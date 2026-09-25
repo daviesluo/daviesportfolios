@@ -839,6 +839,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 22:13 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: in agents mode, a number that is already a whole number is written as an integer, without .00.**
+- Agents dollars, percents, basis points, fill shares and two-decimal chart prices drop a trailing .00. A size of 20.129 still reads 20.13; 1.20 and 21.50% stay. A value that rounds to zero reads 0, not -0.00. The homepage formatters are unchanged.
+- The pin is `fmtUsd(100) === '$100'`, `fmtPctSigned(25, 2) === '+25%'` and `rwShareText(20) === '20'`. The old printers returned `$100.00`, `+25.00%` and `20.00`.
+
 ### [2026-09-25 21:16 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: a phone subpage still left a blank band under it and the title slid off the top; REALIZED and its fees stay on one line; Reward quotes fill shares print to two places.**

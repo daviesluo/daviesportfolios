@@ -11,7 +11,7 @@
 // the x axis is a real time scale rather than an index: crypto trades every
 // minute of the week, so there are no session gaps to close up.
 
-import { MONTHS } from '../app/formatters.js';
+import { dropDot00, MONTHS } from '../app/formatters.js';
 
 /** Room for the y labels on the left and the x labels underneath. */
 export const CHART_PAD = { padL: 54, padR: 14, padT: 14, padB: 26 };
@@ -55,7 +55,7 @@ export function priceTicks(lo, hi, want = 4) {
 export function fmtChartPrice(v, span) {
   if (v == null || !isFinite(v)) return '—';
   const d = span >= 200 ? 0 : span >= 20 ? 1 : span >= 2 ? 2 : span >= 0.2 ? 3 : 4;
-  return v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  return dropDot00(v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }));
 }
 
 /** "14:03" on a minute chart, "18 Sep 14:00" on an hourly one, "18 Sep" on a 4-hour one. @param {number} ms @param {number} intervalMin */

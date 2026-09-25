@@ -4,7 +4,7 @@
 // touches the DOM; `agents.test.js` pins the shaping.
 import { SB_ANON, EDGE_AGENTS_URL } from '../app/supabase_config.js';
 import { getAppToken } from '../app/auth.js';
-import { fmtMoney, formatAgo } from '../app/formatters.js';
+import { dropDot00, fmtMoney, formatAgo } from '../app/formatters.js';
 import { Storage } from '../app/storage.js';
 
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
@@ -29,11 +29,14 @@ export const kindLabel = (kind) => KIND_LABELS[kind] ?? kind;
 /** @param {string} id */
 export const venueHue = (id) => VENUE_HUES[id] ?? 'rgba(244,239,227,0.6)';
 
-/** Signed USD with cents — the whole book is a couple of hundred dollars, so "$1.23K" would hide the movement. */
-export const fmtUsd = (n, signed = false) => fmtMoney(n, { signed, compact: false });
+/** Signed USD. A whole number of dollars is an integer ("$100", "$0"); cents stay ("+$1.50"). */
+export const fmtUsd = (n, signed = false) => dropDot00(fmtMoney(n, { signed, compact: false }));
 
 /** @param {number | null | undefined} n */
-export const fmtPctSigned = (n, precision = 1) => (n == null || isNaN(n) ? '—' : (n > 0 ? '+' : '') + n.toFixed(precision) + '%');
+export const fmtPctSigned = (n, precision = 1) => (n == null || isNaN(n) ? '—' : dropDot00((n > 0 ? '+' : '') + n.toFixed(precision) + '%'));
+
+/** Unsigned percent, two places, ".00" dropped when the rounded value is whole: 25 → "25%", 21.5 → "21.50%". @param {number | null | undefined} n */
+export const fmtPct2 = (n) => (n == null || isNaN(n) ? '—' : dropDot00(Number(n).toFixed(2) + '%'));
 
 function headers() {
   return { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}`, 'X-App-Token': getAppToken() };
@@ -516,7 +519,7 @@ export function agentsTabsView(dash, tests = 0) {
 }
 
 /**
- * What a percentage is of, in the words its label carries: "% of $360.00 capital". The same gain reads a different
+ * What a percentage is of, in the words its label carries: "% of $360 capital". The same gain reads a different
  * percentage on a row, a venue card and a scoreboard, because each is on its own capital; the label says which.
  * @param {number} usd  the base
  * @param {string} what  "capital", "cost", "held"
@@ -562,7 +565,7 @@ export const fmtFrac = (f) => (f == null ? '—' : fmtPctSigned(f * 100, 1));
 export const fmtFees = (bps) => (bps ? `${bps.maker / 100}% / ${bps.taker / 100}%` : '—');
 
 /** Signed basis points with two decimals, the way the basis reads. @param {number | null | undefined} n */
-export const fmtBps = (n) => (n == null || isNaN(n) ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(2)} bps`);
+export const fmtBps = (n) => (n == null || isNaN(n) ? '—' : dropDot00(`${n > 0 ? '+' : ''}${n.toFixed(2)} bps`));
 
 /**
  * "in 2h 13m" until an ISO time, "due" once it has passed — the next bar
@@ -600,7 +603,7 @@ export function nextDecisionText(kind, iso, nowMs) {
  * @param {number | null | undefined} pct
  */
 export function glText(usd, pct) {
-  const money = fmtMoney(usd ?? 0, { signed: true, compact: false });
+  const money = fmtUsd(usd ?? 0, true);
   return pct == null || !Number.isFinite(pct) ? money : `${money} (${fmtPctSigned(pct, 2)})`;
 }
 
@@ -1120,15 +1123,16 @@ export function fmtCents(p) {
 }
 
 /**
- * A fill's shares on the Reward quotes page, to two decimal places. The
- * venue's size is a long float; the fills table does not print it raw.
+ * A fill's shares on the Reward quotes page, to two decimal places. A whole
+ * number is an integer ("20", not "20.00"). The venue's size is a long
+ * float; the fills table does not print it raw.
  * @param {number | null | undefined} size
  */
 export function rwShareText(size) {
   if (size == null) return '—';
   const n = Number(size);
   if (!Number.isFinite(n)) return '—';
-  return n.toFixed(2);
+  return dropDot00(n.toFixed(2));
 }
 
 /** What a market's inventory is, as a holder reads it: YES shares, or NO shares for a short YES. @param {number | null | undefined} net */
@@ -1136,7 +1140,7 @@ export function rwHeldText(net) {
   const x = Number(net) || 0;
   if (x === 0) return '—';
   const size = Math.abs(x);
-  return `${Number.isInteger(size) ? size : size.toFixed(2)} ${x > 0 ? 'Yes' : 'No'}`;
+  return `${dropDot00(size.toFixed(2))} ${x > 0 ? 'Yes' : 'No'}`;
 }
 
 /**

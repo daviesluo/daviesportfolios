@@ -12,10 +12,10 @@
 // its realised G/L, the way the transaction history leads with the book's.
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
-import { fmtDayMonth, fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
+import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwBarTileKeys, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwBarTileKeys, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -126,7 +126,7 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
     <div className={`ag-sb-cell ${cls}`}>
       <SbLabel label={label} asides={[aside]} />
       <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
-        <span className="ag-sb-usd">{m(fmtMoney(usd ?? 0, { signed: true, compact: false }))}</span>
+        <span className="ag-sb-usd">{m(fmtUsd(usd ?? 0, true))}</span>
         {hasPct ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
       </div>
       <div className="ag-sb-extra">
@@ -134,7 +134,7 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
           <span className="ag-sb-split mono">
             {split.map(([k, v]) => (
               <span key={k} className="ag-sb-split-line">
-                <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtMoney(v, { signed: true, compact: false }))}</span>
+                <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtUsd(v, true))}</span>
               </span>
             ))}
           </span>
@@ -163,7 +163,7 @@ function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
       <div className="ag-sb-cell ag-sb-cell-main ag-sb-cell-deployed">
         <SbLabel label="DEPLOYED" />
         <div className="sb-value sb-value-lg mono">
-          {m(fmtUsd(deployedUsd))}{hasPct ? <span className="ag-sb-deployed-pct">({pct.toFixed(2)}%)</span> : null}
+          {m(fmtUsd(deployedUsd))}{hasPct ? <span className="ag-sb-deployed-pct">({fmtPct2(pct)})</span> : null}
         </div>
         <div className="ag-sb-extra" />
       </div>
@@ -298,14 +298,14 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
                   real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
               <FigLabel name={`funded${r.test || paperOnly(onTab, r.id) ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
               <FigLabel name="deployed" />
-              <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({r.deployedPct.toFixed(2)}%)</span> : null}</span>
+              <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({fmtPct2(r.deployedPct)})</span> : null}</span>
               <FigLabel name="today" />{gl(r.todayUsd, r.todayPct)}
               <FigLabel name="unrealised" />{gl(r.unrealisedUsd, r.unrealisedPct)}
               <FigLabel name="realised" />{gl(r.realisedUsd, r.realisedPct)}
               {r.test?.rewards ? (
                 <>
-                  <span className="dim ag-fig-sub">rewards</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.rewards.realisedUsd) }}>{m(fmtMoney(r.test.rewards.realisedUsd, { signed: true, compact: false }))}</span>
-                  <span className="dim ag-fig-sub">orders</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.orders.realisedUsd) }}>{m(fmtMoney(r.test.orders.realisedUsd, { signed: true, compact: false }))}</span>
+                  <span className="dim ag-fig-sub">rewards</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.rewards.realisedUsd) }}>{m(fmtUsd(r.test.rewards.realisedUsd, true))}</span>
+                  <span className="dim ag-fig-sub">orders</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.orders.realisedUsd) }}>{m(fmtUsd(r.test.orders.realisedUsd, true))}</span>
                 </>
               ) : null}
               {r.feesUsd != null ? <><FigLabel name="fees" /><span className="dim">{m(fmtUsd(r.feesUsd))}</span></> : null}
@@ -328,7 +328,7 @@ function LadderCell({ c, m }) {
   return (
     <span className="ag-qheld">
       <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price))}
-      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtMoney(c.unrealisedUsd, { signed: true, compact: false }))}</span>}
+      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtUsd(c.unrealisedUsd, true))}</span>}
     </span>
   );
 }
@@ -380,7 +380,7 @@ function QuotesDetail({ q, m, at }) {
               </table>
               <div className="ag-quotes-grid mono">
                 <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
-                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedUsd) }}>{m(fmtMoney(b.realisedUsd ?? 0, { signed: true, compact: false }))}</span>
+                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedUsd) }}>{m(fmtUsd(b.realisedUsd ?? 0, true))}</span>
               </div>
             </div>
           ))}
@@ -405,7 +405,7 @@ function QuotesDetail({ q, m, at }) {
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
                   <td className="ag-ph dim">{t.how ?? '—'}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtMoney(t.pnlUsd, { signed: true, compact: false }))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd(t.pnlUsd, true))}</td>
                 </tr>
               ))}
             </tbody>
@@ -462,7 +462,7 @@ function RwDetail({ r, m, at }) {
   const today = rwTodayRow(r, at);
   const dayRows = today ? [today, ...days] : days;
   /** @param {number | null | undefined} x */
-  const usd = (x) => m(fmtMoney(Number(x) || 0, { signed: true, compact: false }));
+  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
   return (
     <div className="ag-detail ag-rw-detail">
       <div className="ag-detail-head">
@@ -1088,7 +1088,7 @@ function PositionTiles({ s, m, nowMs, selected, onSelect }) {
           <div className="pc-top">
             <span className="pc-ticker mono">{p.symbol}</span>
             <span className="pc-day mono" style={{ color: pctColor(p.returnPct) }}>
-              {m(fmtMoney(p.unrealisedUsd ?? 0, { signed: true, compact: false }))} ({fmtPctSigned(p.returnPct, 2)})
+              {m(fmtUsd(p.unrealisedUsd ?? 0, true))} ({fmtPctSigned(p.returnPct, 2)})
             </span>
           </div>
           <div className="pc-price mono">{m(fmtUsd(p.mark))}</div>

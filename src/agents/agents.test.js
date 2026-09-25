@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
-  fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
+  fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
@@ -64,6 +64,17 @@ describe('formatting', () => {
   it('keeps cents on a small book and signs gains', () => {
     expect(fmtUsd(1.5, true)).toBe('+$1.50');
     expect(fmtUsd(-0.4)).toBe('-$0.40');
+    // A whole number is an integer. The old printers wrote "$100.00", "$0.00", "+25.00%".
+    expect(fmtUsd(100)).toBe('$100');
+    expect(fmtUsd(0)).toBe('$0');
+    expect(fmtUsd(-0.004)).toBe('$0');
+    expect(fmtUsd(1.2)).toBe('$1.20');
+    expect(fmtPctSigned(25, 2)).toBe('+25%');
+    expect(fmtPctSigned(21.5, 2)).toBe('+21.50%');
+    expect(fmtPctSigned(0, 2)).toBe('0%');
+    expect(fmtPctSigned(0.001, 2)).toBe('0%');
+    expect(fmtPct2(25)).toBe('25%');
+    expect(fmtPct2(21.5)).toBe('21.50%');
     expect(fmtFrac(-0.2806)).toBe('-28.1%');
     expect(fmtFrac(null)).toBe('—');
     expect(fmtFees({ maker: 40, taker: 80 })).toBe('0.4% / 0.8%');
@@ -123,6 +134,8 @@ describe('venueRows / untilText', () => {
     expect(untilText('2026-09-20T04:00:00Z', now)).toBe('due');
     expect(untilText(null, now)).toBe('—');
     expect(fmtBps(-0.61)).toBe('-0.61 bps');
+    expect(fmtBps(2)).toBe('+2 bps');
+    expect(fmtBps(0)).toBe('0 bps');
     expect(fmtBps(null)).toBe('—');
   });
 });
@@ -355,6 +368,8 @@ describe('chart geometry', () => {
     expect(priceTicks(NaN, 1)).toEqual([]);
     expect(fmtChartPrice(86000.4, 400)).toBe('86,000');
     expect(fmtChartPrice(110.25, 12)).toBe('110.25');
+    expect(fmtChartPrice(115, 12)).toBe('115');
+    expect(fmtChartPrice(110.5, 12)).toBe('110.50');
     expect(fmtChartPrice(0.5123, 0.05)).toBe('0.5123');
     expect(fmtChartPrice(null, 1)).toBe('—');
     // UK LOCAL time, the clock the site's own header shows: 08:05 UTC in September is 09:05 BST.
@@ -662,7 +677,8 @@ describe('glText / scoreboardView / strategyScoreboard', () => {
   it('writes a gain the way the home scoreboard does, and drops the percent without a base', () => {
     expect(glText(1521.4, 0.86)).toBe('+$1,521 (+0.86%)');
     expect(glText(-0.09, -0.47)).toBe('-$0.09 (-0.47%)');
-    expect(glText(0, null)).toBe('$0.00');
+    expect(glText(0, null)).toBe('$0');
+    expect(glText(12, 25)).toBe('+$12 (+25%)');
   });
   it('puts today, unrealised and realised on their stated bases, and carries no total', () => {
     const dash = { dayStart: '2026-09-21T00:00:00.000Z',
@@ -730,7 +746,7 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
   });
   it('says what each total covers, and what each percent is of', () => {
     expect([scoreboardView(dash, 'live').strategies, scoreboardView(dash, 'testing').strategies, scoreboardView(dash).strategies]).toEqual([1, 3, 4]);
-    expect(pctOf(360, 'capital')).toBe('% of $360.00 capital');
+    expect(pctOf(360, 'capital')).toBe('% of $360 capital');
     expect(pctOf(99.75, 'held', (s) => s.replace(/\d/g, '•'))).toBe('% of $••.•• held');   // a base is money: the mask covers it
     // The paper tests are rows of TESTING that no total adds up, and each says what its unrealised percent is of.
     const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
@@ -962,7 +978,7 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   it('writes a price in cents and a holding as the side it is long', () => {
     expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);
     // A fill's size arrives as a long float. Two places; the raw tail is the bug.
-    expect([rwShareText(20.129), rwShareText(20), rwShareText(1.2), rwShareText(null)]).toEqual(['20.13', '20.00', '1.20', '—']);
+    expect([rwShareText(20.129), rwShareText(20), rwShareText(1.2), rwShareText(null)]).toEqual(['20.13', '20', '1.20', '—']);
     expect([rwHeldText(20), rwHeldText(-20), rwHeldText(0), rwHeldText(2.5)]).toEqual(['20 Yes', '20 No', '—', '2.50 Yes']);
   });
   it('prints realised and unrealised, and rewards and orders, so every part adds up to the total printed beside it', () => {

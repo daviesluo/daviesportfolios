@@ -85,7 +85,8 @@ Tap a tile to open its chart.
 
 The crypto strategies, called **Agents (beta)** in the menu and on the
 page: the ones trading real money and the ones still being tested, kept
-apart on two tabs.
+apart on two tabs. A whole number is written as an integer. Two decimal
+places stay when the number is not whole.
 
 - **LIVE and TESTING.** Two tabs at the very top; click one, or use the
   arrow keys, to switch. Each says how many strategies it lists and what
@@ -136,7 +137,7 @@ apart on two tabs.
   total sits in one market, how many markets it is quoting today, how many
   positions are still held); the days, including the UTC day still open,
   with the same worst case as the tile above,
-  then today's quotes, and the latest fills, shares to two decimal places, then price. The foot
+  then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
   is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from

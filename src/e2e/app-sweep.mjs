@@ -1710,8 +1710,8 @@ async function run() {
       const lastName = ((await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').last().textContent().catch(() => '')) || '').trim();
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
       if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
-        && /2 open · \$296\.00 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1\.00/.test(rwRowText) && /\+\$42\.00/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1.00, realised +$42.00, every minute');
+        && /2 open · \$296 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42(?!\d)/.test(rwRowText) && /every minute/.test(rwRowText)) {
+        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1, realised +$42, every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", last row "${lastName}", Polymarket badges ${rwBadge}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
@@ -1768,7 +1768,7 @@ async function run() {
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
         && rDayHeads.join(',') === 'Day (UTC),Costs,Fills,WORST CASE,Rewards,Total'
         && rDays.length === 4 && /· today$/.test(rDays[0]) && /^\d{1,2} Sep$/.test(rDays[1]) && /warm-up$/.test(rDays[3])
-        && /\$296\.00/.test(rFirstDay) && /\+\$12\.50/.test(rFirstDay) && (narrow || (/\b2\b/.test(rFirstDay) && /\+\$6\.10/.test(rFirstDay)))
+        && /\$296(?!\d)/.test(rFirstDay) && /\+\$12\.50/.test(rFirstDay) && (narrow || (/\b2\b/.test(rFirstDay) && /\+\$6\.10/.test(rFirstDay)))
         && /^When \([A-Z]+\),Market,Side,Shares,Price$/.test(rFillHeads.join(',')) && rFillEq < 1.5
         && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill) && rFirstFill.indexOf('20.13') < rFirstFill.indexOf('46¢') && !/20\.129/.test(rFirstFill)
         && rTiles.join(',') === 'WORST CASE,TOP SHARE,QUOTING TODAY,POSITIONS STILL HELD' && /WORST CASE \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /QUOTING TODAY/.test(rBar) && /POSITIONS STILL HELD/.test(rBar) && !/if rewards were halved/.test(rBar)
@@ -1839,10 +1839,10 @@ async function run() {
       // reads; realised splits into its rewards and what its orders made, which add up to it as printed.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
       const rwRowCells = (await rwRowEl.first().locator('.ag-gl').allTextContents()).map((t) => t.trim());
-      if (pm && pm.meta === '1 strategy' && pm.pairs['funded (Paper)'] === '$296.00' && pm.pairs.deployed === '$14.40 (4.86%)'
+      if (pm && pm.meta === '1 strategy' && pm.pairs['funded (Paper)'] === '$296' && pm.pairs.deployed === '$14.40 (4.86%)'
         && [pm.pairs.today, pm.pairs.unrealised, pm.pairs.realised].join(' | ') === rwRowCells.join(' | ') && !pm.bases.unrealised
         && pm.pairs.rewards === '+$41.60' && pm.pairs.orders === '+$0.40' && !('fees' in pm.pairs)) {
-        ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296.00, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
+        ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}, RW row cells ${rwRowCells.join(' | ')}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
@@ -1917,9 +1917,9 @@ async function run() {
       const detailVals = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const paperInk = await page.locator('.ag-detail .ag-detail-head .ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
       const detailFit = await boardFits('.ag-detail .ag-scoreboard-sm');
-      if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100.00 | $21.50(21.50%)'
+      if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100 | $21.50(21.50%)'
         && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.titlesMatch && detailFit.feesSmaller && detailFit.sameLine) {
-        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; REALIZED\'s title matches the others and stays inside the frame');
+        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; REALIZED\'s title matches the others and stays inside the frame');
       } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}, fit ${JSON.stringify(detailFit)}`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
@@ -2180,7 +2180,7 @@ async function run() {
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
       const PAPER_SB = 'FUNDED=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [(incl. fees $0.08)]=+$54.76(+2.95%)';
-      const LIVE_SB = 'FUNDED=$50.00 | DEPLOYED=$12.50(25.00%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
+      const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 8 Paper · 8 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
@@ -2227,15 +2227,15 @@ async function run() {
       else fail(T('armed'), `bar ${barText(a0)}, open ${opened(a0)}`);
       const lr = a0.rows[0];
       // Its name without " · live" (Davies, 2026-09-24): the tab says it. No mode badge either.
-      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X' && lr.badges === 0 && lr.venue === 'Revolut X' && lr.sub === '1 open · $50.00 cap'
+      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X' && lr.badges === 0 && lr.venue === 'Revolut X' && lr.sub === '1 open · $50 cap'
         && lr.gl.join(' | ') === '+$0.20 (+0.40%) | +$0.50 (+4.17%) | +$0.30 (+0.60%)' && sbText(a0) === LIVE_SB && a0.sections.join('|') === 'LIVE STRATEGIES') {
         ok(T('armed'), `LIVE is the live row alone, named without " · live", and its scoreboard is that row's figures (${sbText(a0)})`);
       } else fail(T('armed'), `LIVE: rows ${JSON.stringify(a0.rows)}, scoreboard ${sbText(a0)}, sections ${a0.sections.join('|')}`);
       const lv = a0.venues[0];
-      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50.00' && lv.pairs.deployed === '$12.50 (25.00%)'
+      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50' && lv.pairs.deployed === '$12.50 (25%)'
         && lv.pairs.today === '+$0.20 (+0.40%)' && lv.pairs.unrealised === '+$0.50 (+4.17%)' && lv.pairs.realised === '+$0.30 (+0.60%)' && lv.pairs.fees === '$0.03'
         && Object.keys(lv.bases).length === 0 && a0.shareBar === 0) {
-        ok(T('armed'), 'one venue card, Revolut X: funded $50.00 with no (Paper), the row\'s figures, no percent badges, and no share bar for one venue');
+        ok(T('armed'), 'one venue card, Revolut X: funded $50 with no (Paper), the row\'s figures, no percent badges, and no share bar for one venue');
       } else fail(T('armed'), `LIVE venues ${JSON.stringify(a0.venues)}, share bars ${a0.shareBar}`);
       const liveFit = await page.locator('.ag-modepanel-live .ag-scoreboard').evaluate((el) => {
         const box = el.getBoundingClientRect();
@@ -2254,7 +2254,7 @@ async function run() {
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
       if (a1.venues.length === 3 && rv && bn && rv.meta === '4 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$121.25 (8.79%)'
-        && rv.pairs.realised === '+$12.76 (+0.92%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180.00' && a1.shareBar === 1) {
+        && rv.pairs.realised === '+$12.76 (+0.92%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
         ok(T('armed'), 'TESTING\'s Revolut X card includes Stablecoin quotes (funded (Paper) $1,380.00, deployed $121.25, 8.79%), beside Binance\'s and Polymarket\'s');
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
@@ -2279,8 +2279,8 @@ async function run() {
       const dCard = ((await page.locator('.ag-detail .ag-poscard .pc-ticker').first().textContent().catch(() => '')) || '').trim();
       const dH = await topModalHeight();
       await shot(page, 'agents-tabs-live-detail');
-      if (dTitle === 'Trend 4h · Revolut X' && dMode === 'LIVE' && dSb.join(' | ') === '$50.00 | $12.50(25.00%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
-        ok(T('armed'), 'the live row opens its own page, titled without " · live", in the same window: LIVE, FUNDED $50.00, the same figures as its row and LIVE\'s scoreboard, its ETH position');
+      if (dTitle === 'Trend 4h · Revolut X' && dMode === 'LIVE' && dSb.join(' | ') === '$50 | $12.50(25%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
+        ok(T('armed'), 'the live row opens its own page, titled without " · live", in the same window: LIVE, FUNDED $50, the same figures as its row and LIVE\'s scoreboard, its ETH position');
       } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}", window ${dH} of ${a0.modalHeight}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
