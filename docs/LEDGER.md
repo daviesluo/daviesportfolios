@@ -835,6 +835,20 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 04:35 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, ten Premier League full-time rules frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). The 04:19 section ran PEER, DIURNAL, SHIFT, NEXT, BACK, MEAN3, DRIFT and AGREE; none cleared the bar, and none of them is reopened. This round's ten each buy one YES from final scores, one hour before kickoff, and hold to settlement. No Polymarket price of these rules and no return have been read. MED, VAR, NEAR, RICH, YDAY, CLIM, JUMP, HOT, POST, HITS, POISSON, PACE, VOL, COPY, ROUND and FADE stay failed. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. Bookmaker columns, prints after kickoff, a halftime copy, exact-score ladders and goalscorer props were not run (`reviews/2026-09-25-polymarket-fp5-round10-kills.md`).
+- ELO (`reviews/2026-09-25-polymarket-fp5-prereg-elo.md`): fixed rating, K 20, home advantage 60, draw anchor 0.25. Self-check `H 0.459513 14.638156`.
+- FORM5 (`reviews/2026-09-25-polymarket-fp5-prereg-form5.md`): last five, points per game, gap 0.6. Self-check `H 1.0 14.638156`.
+- TABLE (`reviews/2026-09-25-polymarket-fp5-prereg-table.md`): this season's points, lead of three, four games played. Self-check `H 1.0 14.638156`.
+- REST (`reviews/2026-09-25-polymarket-fp5-prereg-rest.md`): two more days since the previous match. Self-check `H 1.0 14.638156`.
+- VENUE (`reviews/2026-09-25-polymarket-fp5-prereg-venue.md`): this club's home win rate, eight homes. Self-check `H 1.0 -10.2995`.
+- STREAK3 (`reviews/2026-09-25-polymarket-fp5-prereg-streak3.md`): three wins, the other side not. Self-check `H 1.0 14.638156`.
+- DRAWBASE (`reviews/2026-09-25-polymarket-fp5-prereg-drawbase.md`): the league draw rate. Self-check `D 0.25 88.560401`.
+- H2H (`reviews/2026-09-25-polymarket-fp5-prereg-h2h.md`): modal result of this pair, three meetings. Self-check `H 1.0 14.638156`.
+- CONGEST (`reviews/2026-09-25-polymarket-fp5-prereg-congest.md`): two fewer matches in 14 days. Self-check `H 1.0 14.638156`.
+- MARGIN (`reviews/2026-09-25-polymarket-fp5-prereg-margin.md`): one goal per game over the last eight. Self-check `H 1.0 14.638156`.
+
 ### [2026-09-25 04:19 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, eight temperature rules were run on the full sample and none clears the bar.** The 04:07 section froze them before any price of the rule was scored. The 04:09 section made a missing bracket a no-trade; the pins did not change, and PEER's file matches a run of that code. This section is those runs. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. MED, VAR, NEAR, RICH, YDAY, CLIM, JUMP, HOT, POST, HITS, POISSON and PACE were not retuned. The search file is not written: nothing passed. Each run was repeated and the two files matched. The weather file sha256 is `890d805ef362fbc63eec19db4309d5bcbe7fc3b3ab85487634b9e124a841a948`. One Seoul fill was recomputed with the fee formula and matched the scorer (−$4.471505), and it is DRIFT's only January trade.
