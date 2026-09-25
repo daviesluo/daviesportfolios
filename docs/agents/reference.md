@@ -7608,6 +7608,23 @@ exit open is 2026-09-25. The gap that voids the rule is 20 bps, not 10. A
 missing day is not filled in. WBRAT and WBPAR are not pre-registered. No
 later-year return of EREAL has been computed. This is not a testing row.
 
+### 3.375 EREAL fails the pre-registered later years (2026-09-25)
+
+The pre-registration was `577ba4f`, pushed before any later-year return. The
+test was run twice and the copies matched.
+`docs/agents/backtests/fp321/ereal_oos.json`, sha256 `9be0c91a…`. 2023
+reproduces: 31 trades, +$90.824, mean +292.9806 bps, edge-off mean −3.9242
+bps, house p95 +76.5994 bps on 325 trades. Entries 2024-01-01 through
+2026-09-23: 232 trades, +$83.8137, mean +$0.361266. The edge-off set has 765
+trades and a mean of −$0.168591. The cutoff is the house p95, +$0.3071, not
+that mean. The gap is 5.4189 bps. 2024 has no entry, so that window is $0.
+2025-01-01 through 2026-09-23 is +$83.8137. Doubled costs are +$37.2925. May
+2025 is +$49.1209, 58.61% of the total; without it the total is +$34.6929.
+Annualised over 998 days it is 0.306533. The first window is not positive,
+the gap is inside 20 bps, and one month is above 40%. The buy and the sell
+were not moved. The 1 bp line was not raised. EREAL is not a testing row.
+WBRAT and WBPAR stay inside 2023. The next rules are not frozen.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,71 @@
+{
+  "annualised": 0.306533,
+  "cm_half_spread": 1.8701481344745498e-06,
+  "code_sha256": {
+    "fp321_common": "90c9fc0e723da363fa7f7439e4c6794a40fe39e10e7dd114fc0ce81d302118c8",
+    "fp321_ereal_test": "c1c7a06734c1e5ad5bf9832c793886afd25c3f4f096daeb063f50069c8f5abef",
+    "fp321_oos_fetch": "da6f82ec4e5da16524318698940d6e67ee7c790e85ffa7250e5a413895d83a5a"
+  },
+  "conditions": {
+    "above_cash": true,
+    "at_least_30": true,
+    "beats_null": true,
+    "both_subwindows_positive": false,
+    "clears_by_more_than_20bps": false,
+    "doubled_costs_positive": true,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": 37.2925,
+  "exit_open_ms": 1790294400000,
+  "input_sha256": {
+    "oos_book": "339261cf8dbb50072aed8b75405d52feb5906e85fcdc7c72adaeb75a86b00d21",
+    "oos_fair": "3e02cfbafa6946771e1d08b642bee05246de80d2d4cfb3301b55f1fac221fbfb",
+    "screen_book": "f84296b3ba8f970c3ee8c6bbef6466da0b8bb186cc5f3a87cd9961a147a73a9a",
+    "screen_fair": "8907b2965466258c300cab2bea1dcd4f69e1e6974b1e3f2a63a880094e65c2fb"
+  },
+  "last_entry_ms": 1790121600000,
+  "null_kind": "other_regime",
+  "null_mean_pnl_usd": -0.168591,
+  "null_n": 765,
+  "oos1_pnl_usd": 0,
+  "oos2_pnl_usd": 83.8137,
+  "oos_days": 998,
+  "passes": false,
+  "prereg_sha256": "997ea0f8a33b60652cda3a1426defbb4e846c5125b1ba2bc97bcb14fb01e8a66",
+  "primary": {
+    "beats_null": true,
+    "best_month": "2025-05",
+    "best_month_pnl_usd": 49.1209,
+    "best_month_share": 0.5861,
+    "by_month": {
+      "2025-03": 9.4291,
+      "2025-04": -6.3106,
+      "2025-05": 49.1209,
+      "2025-06": 9.7301,
+      "2025-11": 5.1247,
+      "2026-02": -37.1393,
+      "2026-03": 28.5703,
+      "2026-04": 24.2728,
+      "2026-05": -19.1016,
+      "2026-06": -48.2611,
+      "2026-07": 26.3553,
+      "2026-08": 42.0232
+    },
+    "clears_by_more_than_20bps": false,
+    "gap_bps": 5.4189,
+    "mean_pnl_usd": 0.361266,
+    "n": 232,
+    "null_p95_pnl_usd": 0.3071,
+    "total_pnl_usd": 83.8137,
+    "without_best_month_usd": 34.6929
+  },
+  "screen_reproduction": {
+    "mean_net_bps": 292.9806,
+    "n": 31,
+    "null_mean_bps": -3.9242,
+    "null_n": 325,
+    "null_p95_bps": 76.5994,
+    "total_pnl_usd": 90.824
+  },
+  "signal_last_ms": 1790035200000
+}
