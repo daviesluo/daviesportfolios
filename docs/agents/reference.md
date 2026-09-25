@@ -6784,6 +6784,117 @@ three screen bars pass and the mean net is strictly more than 20 bps above
 the edge-off trade. LS-FADE's 60-trade reproduction, the control, doubled
 costs, and the rule that no month is above 40% of the profit are not relaxed.
 
+### 3.334 USDT at least five basis points under spot: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp289-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp289/screen_2023.json`,
+sha256 `9307125a…`). Fair value of the USDT book is the spot close. The
+finished USDT close was at least five basis points under that fair value,
+then buy the USDT book for nine days: 84 trades, mean +362.7969 bps, null
+p95 +337.2379 bps, +$304.7494. The file's gross is +383.5432 bps. The
+edge-off set has 273 trades and a mean of +213.9465 bps. The cutoff is the
+house p95, not that mean. The mean clears the p95 by 25.559 bps. **The 2023
+screen passes, and the gap is strictly more than 20 bps. This is not a
+testing row. The later years are not scored by this note.** One USDT leg.
+The other trade is the nine-day USDT long with that discount absent. A count
+taken before the freeze was 84 against 273. The scored book is 84 and 273.
+The rule was not changed.
+
+### 3.335 USDT rich to spot, short against the same short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp290-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp290/screen_2023.json`,
+sha256 `d5763605…`). The finished USDT close was strictly above the spot
+close, then sell the USDT book for twelve days: 57 trades, mean −308.4041
+bps, null p95 −132.5773 bps, −$175.7903. The file's gross is −289.0015 bps.
+**Nothing here is fit to add.** The mean is negative and under the null. One
+USDT leg. The other trade is the twelve-day USDT short with that premium
+absent, 297 trades. A count taken before the freeze was 57 against 297. The
+scored book is 57 and 297. The rule was not changed. This is not a testing
+row and it is not taken out of sample.
+
+### 3.336 Spot under the USDT book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp291-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp291/screen_2023.json`,
+sha256 `bcd27f5a…`). The finished spot close was strictly under the USDT
+close, then buy spot for fourteen days: 55 trades, mean +393.8973 bps, null
+p95 +661.1058 bps, +$216.6435. The file's gross is +414.7059 bps. **Nothing
+here is fit to add.** The mean is positive and under the null. The edge-off
+mean is +393.5459 bps. The cutoff is the house p95 on 297 trades, not that
+mean. One spot leg. A count taken before the freeze was 55 against 297. The
+scored book is 55 and 297. The rule was not changed. This is not a testing
+row and it is not taken out of sample.
+
+### 3.337 A wider USDT premium to spot: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp292-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp292/screen_2023.json`,
+sha256 `31969d78…`). The USDT-over-spot basis finished positive and strictly
+above the basis five days earlier, then sell the USDT book for eight days:
+46 trades, mean −150.0509 bps, null p95 −26.6817 bps, −$69.0234. The file's
+gross is −130.3313 bps. **Nothing here is fit to add.** The mean is negative
+and under the null. One USDT leg. The edge-off set has 312 trades. A count
+taken before the freeze was 46 against 312. The scored book is 46 and 312.
+The rule was not changed. This is not a testing row and it is not taken out
+of sample.
+
+### 3.338 Coin-margined under the USDT book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp293-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp293/screen_2023.json`,
+sha256 `c8c30013…`). The finished coin-margined close was strictly under the
+USDT close, then buy the coin-margined book for eleven days: 93 trades, mean
++400.4137 bps, null p95 +413.2256 bps, +$372.3847. The file's gross is
++421.2353 bps. **Nothing here is fit to add.** The mean is positive and
+under the null by 12.8119 bps. One coin-margined leg. The edge-off set has
+253 trades and a mean of +296.1287 bps. The cutoff is the house p95, not
+that mean. A count taken before the freeze was 93 against 253. The scored
+book is 93 and 253. The rule was not changed. This is not a testing row and
+it is not taken out of sample.
+
+### 3.339 USDT at least five basis points under the coin-margined book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp294-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp294/screen_2023.json`,
+sha256 `8bbb9551…`). Fair value of the USDT book is the coin-margined close.
+The finished USDT close was at least five basis points under that fair value,
+then buy the USDT book for six days: 89 trades, mean +197.3904 bps, null p95
++243.7014 bps, +$175.6775. The file's gross is +217.8056 bps. **Nothing here
+is fit to add.** The mean is positive and under the null. One USDT leg. The
+edge-off set has 267 trades. A count taken before the freeze was 89 against
+267. The scored book is 89 and 267. The rule was not changed. This is not a
+testing row and it is not taken out of sample.
+
+### 3.340 A wider coin-margined premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp295-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp295/screen_2023.json`,
+sha256 `8c72edf6…`). The coin-margined-over-USDT basis finished positive and
+strictly above the basis six days earlier, then sell the coin-margined book
+for ten days: 148 trades, mean −331.114 bps, null p95 −152.7093 bps,
+−$490.0487. The file's gross is −311.7568 bps. **Nothing here is fit to
+add.** The mean is negative and under the null. One coin-margined leg. The
+edge-off set has 195 trades. A count taken before the freeze was 148 against
+195. The scored book is 148 and 195. The rule was not changed. This is not a
+testing row and it is not taken out of sample.
+
+### 3.341 Coin-margined at least five basis points over the USDT book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp296-protocol.md`) was committed before any
+return (`94b463a`). Two runs matched (`backtests/fp296/screen_2023.json`,
+sha256 `44cfcf75…`). The finished coin-margined close was at least five basis
+points above the USDT close, then sell the coin-margined book for sixteen
+days: 87 trades, mean −204.821 bps, null p95 −327.3999 bps, −$178.1943. The
+file's gross is −185.211 bps. **Nothing here is fit to add.** The mean is
+negative. It sits above a negative null. One coin-margined leg. The edge-off
+set has 254 trades and a mean of −456.637 bps. The cutoff is the house p95,
+not that mean. A count taken before the freeze was 87 against 254. The
+scored book is 87 and 254. The rule was not changed. This is not a testing
+row and it is not taken out of sample. Only DISCU clears the three bars and
+clears the edge-off trade by more than 20 bps. Its later years are not
+scored here.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

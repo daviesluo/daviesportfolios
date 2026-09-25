@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp291_common": "06fe4f82cb8c63f70a719b1752ff6ef5441f1c842093eaeb702def27bf0cd5b2",
+    "fp291_measure": "5aa72988d6fa9538ee4a2f5c26b0fad4e8d301f1e61ecede4596778856483917",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CHEAPS",
+      "mean_gross_bps": 414.7059,
+      "mean_net_bps": 393.8973,
+      "min_n": 30,
+      "n": 55,
+      "note": "Fair value of spot is the USDT close. The finished spot close was strictly under that fair value. The next spot open is bought and sold fourteen days later. The other trade buys spot for fourteen days when it is not cheap to the USDT book. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side.",
+      "null_p95_bps": 661.1058,
+      "passes_screen": false,
+      "total_pnl_usd": 216.6435
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 393.5459,
+  "null_n": 297,
+  "passed": [],
+  "protocol_sha256": "442279499fc9cea1563f2113143a3a1c3889a2fe07894789e26d3720db63122a"
+}

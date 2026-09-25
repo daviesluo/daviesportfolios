@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp289_common": "3425df6d858fb3661bb5d2951ba38f0fbb9eddcd2df81cc7fa8d5a11701ab687",
+    "fp289_measure": "88abce0a97031402a87372b3d15eb4c91e69116de9cab39d6a0f17876792a131",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DISCU",
+      "mean_gross_bps": 383.5432,
+      "mean_net_bps": 362.7969,
+      "min_n": 30,
+      "n": 84,
+      "note": "Fair value of the USDT book is the spot close. The finished USDT close was at least five basis points under that fair value. The next USDT open is bought and sold nine days later. The other trade buys the USDT book for nine days when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side.",
+      "null_p95_bps": 337.2379,
+      "passes_screen": true,
+      "total_pnl_usd": 304.7494
+    }
+  ],
+  "input_sha256": {
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 213.9465,
+  "null_n": 273,
+  "passed": [
+    "DISCU"
+  ],
+  "protocol_sha256": "a4627c1d110bc2e1cd188795b19390eebdca9854b960cd5943d420b19764a450"
+}
