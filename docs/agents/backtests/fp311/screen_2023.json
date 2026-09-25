@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp311_common": "a184780028e087ac4d5787150b9c63670a13aa117cdc61efdfa717ea9c1b1d5a",
+    "fp311_measure": "fabbbbdd9a24c44f2a9e4b168c38a89d4512ab7607808d8232a30c641a0d4840",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "HTXCH",
+      "mean_gross_bps": 187.9688,
+      "mean_net_bps": 167.6132,
+      "min_n": 30,
+      "n": 171,
+      "note": "Fair value is the HTX btcusdt daily close, published at 16:00 UTC. The finished USDT close was strictly under the latest HTX close whose bucket had already ended, so the next USDT open is a price that finished cheap to HTX. Buy the USDT book for ten days. The other trade buys the USDT book for ten days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": 415.3999,
+      "passes_screen": false,
+      "total_pnl_usd": 286.6185
+    }
+  ],
+  "input_sha256": {
+    "hx": "8cc03af39f9e4a7d60169bef224f2e00a37e620879f2e8fd01e0ca6961263b06",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 384.5021,
+  "null_n": 185,
+  "passed": [],
+  "protocol_sha256": "18b03a60201119d4dc0d703f9f217f176117e47e6c7846dbb1b2ff353a796640"
+}

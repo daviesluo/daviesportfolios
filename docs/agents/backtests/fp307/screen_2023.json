@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp307_common": "cd8d61c9999c1f701ef004e02b000b57bebe713402355c72fa448a056aca94a7",
+    "fp307_measure": "7fcc7bfd481e05058eeda54bfd97db66689e07843ae8377252f95b79a073a567",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MEXCH",
+      "mean_gross_bps": 159.5842,
+      "mean_net_bps": 139.2854,
+      "min_n": 30,
+      "n": 157,
+      "note": "Fair value is the BitMEX XBTUSD daily close. The finished coin-margined close was strictly under that close, so the next coin-margined open is a price that finished cheap to BitMEX. Buy the coin-margined book for seven days. The other trade buys the coin-margined book for seven days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": 283.2216,
+      "passes_screen": false,
+      "total_pnl_usd": 218.678
+    }
+  ],
+  "input_sha256": {
+    "cm": "087120f5e8b44ceaf1675643b3e915c1db4786f96094d95f7fa17a022090d092",
+    "mx": "db7a84914028edd96f1eafb083a7ac18d0e65fa265386d50d34dee5ed0ac1a16"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 237.5748,
+  "null_n": 193,
+  "passed": [],
+  "protocol_sha256": "61fce6ad8d250d4573fbb746cd689492129378575aef68cb1e21366121a7c3c4"
+}

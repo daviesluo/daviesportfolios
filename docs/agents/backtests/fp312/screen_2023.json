@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp312_common": "77c4031c3a72d9fd6efec04484427105f0a75942ca2291b33b909c9df1cbc488",
+    "fp312_measure": "dccb5faacc118788cce71a3bca94f8c8f377458f5c769c719da818ef2335c420",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "WBTCH",
+      "mean_gross_bps": 390.8267,
+      "mean_net_bps": 370.0658,
+      "min_n": 30,
+      "n": 168,
+      "note": "Fair value is the WhiteBIT BTC_USDT daily close. The finished Binance spot close was at least five basis points under that close, so the next Binance spot open is a price that finished cheap to WhiteBIT. Buy Binance spot for sixteen days. The other trade buys Binance spot for sixteen days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": 545.9713,
+      "passes_screen": false,
+      "total_pnl_usd": 621.7105
+    }
+  ],
+  "input_sha256": {
+    "spot": "8518ba272f77df0514e6a5fdbbda68f66ab9cee4f2883e20f6de2a7ad60ba614",
+    "wb": "686df169ef8f0d4a1b0dd5e12bbb1964e36a1f5b7c8c75bc5af9bc3e2132b2ea"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 508.1501,
+  "null_n": 182,
+  "passed": [],
+  "protocol_sha256": "ec49a7e9dacc1ba40d5409808410ad5fd323a09aadaac442b319c84a01f28021"
+}

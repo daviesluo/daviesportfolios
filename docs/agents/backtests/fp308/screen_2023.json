@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp308_common": "ebeb2d2cea8e79a018005208105bd0d07c692b8873afae380b7f1955aa51e6cf",
+    "fp308_measure": "1284436765a4b2d89d0e42c94126c736708976c9c98ee96b0dc44e63f462db20",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OKXCH",
+      "mean_gross_bps": 402.7173,
+      "mean_net_bps": 381.9327,
+      "min_n": 30,
+      "n": 176,
+      "note": "Fair value is the OKX spot BTC-USDT daily close. The finished Binance spot close was strictly under that close, so the next Binance spot open is a price that finished cheap to OKX. Buy Binance spot for fourteen days. The other trade buys Binance spot for fourteen days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": 405.2689,
+      "passes_screen": false,
+      "total_pnl_usd": 672.2015
+    }
+  ],
+  "input_sha256": {
+    "ox": "49d18e16245c9b3c98d3f212e0f30142a6f0fd26ff2e7ff8381d76a074299fb0",
+    "spot": "8518ba272f77df0514e6a5fdbbda68f66ab9cee4f2883e20f6de2a7ad60ba614"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 405.2689,
+  "null_n": 176,
+  "passed": [],
+  "protocol_sha256": "3f36e7dc3d8cbd72391c5f37a742f990a36ca4da149832773cbaf28c3b08b88c"
+}

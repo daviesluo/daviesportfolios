@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp309_common": "de73c8b3c26c4642958e9823eb22acf29e296341a7dfbb7b82e1786ebc35dd75",
+    "fp309_measure": "3ac5d09df73c84ed778a5c9aadc00fd8aa4cc10be016cb5671d2e5d23fa8590f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "GATCH",
+      "mean_gross_bps": 205.6643,
+      "mean_net_bps": 185.2733,
+      "min_n": 30,
+      "n": 178,
+      "note": "Fair value is the Gate.io BTC_USDT daily close. The finished USDT close was at least five basis points under that close, so the next USDT open is a price that finished cheap to Gate.io. Buy the USDT book for eight days. The other trade buys the USDT book for eight days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": 258.5988,
+      "passes_screen": false,
+      "total_pnl_usd": 329.7865
+    }
+  ],
+  "input_sha256": {
+    "gt": "cb7908db1190661575a48a95ac79a70c9bb07572b425fe8e18870a10a6f0c9a9",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 250.3937,
+  "null_n": 180,
+  "passed": [],
+  "protocol_sha256": "8b78a67c9299bbdce1ac5839c5bc920fe77a3b4e54863e0fdd2470e1946cf23c"
+}

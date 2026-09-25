@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp306_common": "be151387211722ecf7db29e9534ef7c34b3d084ac444048a33170c49e37299e4",
+    "fp306_measure": "96d34dbebdd426f641e0f2ab12a3a5927a6312f8da5a890f8e9bb0a0be7c2c88",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BFXRH",
+      "mean_gross_bps": -304.234,
+      "mean_net_bps": -323.6062,
+      "min_n": 30,
+      "n": 163,
+      "note": "Fair value is the Bitfinex tBTCUSD daily close. The finished USDT close was strictly above that close, so the next USDT open is a price that finished rich to Bitfinex. Sell the USDT book for twelve days. The other trade sells the USDT book for twelve days on these same prices when that premium is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. A book ticker is not read.",
+      "null_p95_bps": -229.3598,
+      "passes_screen": false,
+      "total_pnl_usd": -527.4781
+    }
+  ],
+  "input_sha256": {
+    "bf": "b88a2410f23b0950720e213caa44ad0f953a2dcd6b55e76818fb93da3d1ed9ee",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -269.4065,
+  "null_n": 191,
+  "passed": [],
+  "protocol_sha256": "23cca1a2e277a5c03fa6a274df1082a822551ae5cdeb9c1538a9e09eee53aa61"
+}

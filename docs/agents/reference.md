@@ -7132,6 +7132,143 @@ protocols are `reviews/2026-09-25-fp305-protocol.md` through
 `reviews/2026-09-25-fp312-protocol.md`. No later-year return of these rules
 has been computed. No testing row is added.
 
+### 3.352 Ten basis points under the Bitstamp close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp305-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp305/screen_2023.json`,
+sha256 `19d9d541…`). Fair value is the Bitstamp BTC/USD daily close, used only
+after that bucket has ended. The finished USDT close was at least ten basis
+points under that close, then buy the USDT book for nine days: 174 trades,
+mean +201.3375 bps, null p95 +315.7477 bps, +$350.3272. The file's gross is
++221.7606 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. One USDT leg. The edge-off set has 183 trades and a mean of
++294.2601 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 174 against 183. The scored book is 174 and 183. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
+The 174 rule entries and the 183 edge-off entries are the same timestamps as
+CBCHP. Every stored Bitstamp close differs from the Coinbase close on that
+day. The dollars match because the fill is the USDT open. The series is not
+Coinbase.
+
+### 3.353 A Bitfinex premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp306-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp306/screen_2023.json`,
+sha256 `34f259c4…`). Fair value is the Bitfinex tBTCUSD daily close, used only
+after that candle has ended. The finished USDT close was strictly above that
+close, then sell the USDT book for twelve days: 163 trades, mean −323.6062
+bps, null p95 −229.3598 bps, −$527.4781. The file's gross is −304.234 bps.
+**Nothing here is fit to add.** The mean is negative and under the null. One
+USDT leg. The edge-off set has 191 trades and a mean of −269.4065 bps. The
+cutoff is the house p95, not that mean. A count taken before the freeze was
+163 against 191. The scored book is 163 and 191. The rule was not changed.
+This is not a testing row and it is not taken out of sample.
+
+The cheap side of this premium was longer at zero, five and ten basis points,
+so it was not shipped.
+
+### 3.354 Strictly under the BitMEX close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp307-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp307/screen_2023.json`,
+sha256 `e9c6ca84…`). Fair value is the BitMEX XBTUSD daily close, used only
+after that bucket has ended. The finished coin-margined close was strictly
+under that close, then buy the coin-margined book for seven days: 157 trades,
+mean +139.2854 bps, null p95 +283.2216 bps, +$218.678. The file's gross is
++159.5842 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. One coin-margined leg. The edge-off set has 193 trades and a mean of
++237.5748 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 157 against 193. The scored book is 157 and 193. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
+The coin-margined book is missing 2023-08-28 through 2023-08-31. Those days
+are not filled in.
+
+### 3.355 Strictly under the OKX spot close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp308-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp308/screen_2023.json`,
+sha256 `99505be5…`). Fair value is the OKX spot BTC-USDT daily close, used
+only after that candle has ended. The finished Binance spot close was strictly
+under that close, then buy Binance spot for fourteen days: 176 trades, mean
++381.9327 bps, null p95 +405.2689 bps, +$672.2015. The file's gross is
++402.7173 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. One spot leg. The edge-off set has 176 trades and a mean of
++405.2689 bps. The sets have the same length, so the house p95 equals that
+mean. A count taken before the freeze was 176 against 176. The scored book is
+176 and 176. The rule was not changed. This is not a testing row and it is not
+taken out of sample.
+
+The two sets have the same length, so every null draw is the full pool and the
+house p95 equals the edge-off mean. The cutoff was not moved to five basis
+points.
+
+### 3.356 Five basis points under the Gate.io close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp309-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp309/screen_2023.json`,
+sha256 `f3352d74…`). Fair value is the Gate.io BTC_USDT daily close, used only
+after that window has ended. The finished USDT close was at least five basis
+points under that close, then buy the USDT book for eight days: 178 trades,
+mean +185.2733 bps, null p95 +258.5988 bps, +$329.7865. The file's gross is
++205.6643 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. One USDT leg. The edge-off set has 180 trades and a mean of
++250.3937 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 178 against 180. The scored book is 178 and 180. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
+### 3.357 Five basis points under the KuCoin close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp310-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp310/screen_2023.json`,
+sha256 `08430523…`). Fair value is the KuCoin BTC-USDT daily close, used only
+after that candle has ended. The finished coin-margined close was at least
+five basis points under that close, then buy the coin-margined book for eleven
+days: 170 trades, mean +300.6683 bps, null p95 +366.0344 bps, +$511.1361. The
+file's gross is +321.2902 bps. **Nothing here is fit to add.** The mean is
+positive and under the null. One coin-margined leg. The edge-off set has 176
+trades and a mean of +346.8491 bps. The cutoff is the house p95, not that
+mean. A count taken before the freeze was 170 against 176. The scored book is
+170 and 176. The rule was not changed. This is not a testing row and it is not
+taken out of sample.
+
+The coin-margined book is missing 2023-08-28 through 2023-08-31. Those days
+are not filled in.
+
+### 3.358 Strictly under the HTX close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp311-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp311/screen_2023.json`,
+sha256 `51981906…`). Fair value is the HTX btcusdt daily close, published at
+16:00 UTC and used only after that candle has ended. The finished USDT close
+was strictly under that close, then buy the USDT book for ten days: 171
+trades, mean +167.6132 bps, null p95 +415.3999 bps, +$286.6185. The file's
+gross is +187.9688 bps. **Nothing here is fit to add.** The mean is positive
+and under the null. One USDT leg. The edge-off set has 185 trades and a mean
+of +384.5021 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 171 against 185. The scored book is 171 and 185. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
+### 3.359 Five basis points under the WhiteBIT close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp312-protocol.md`) was committed before any
+return (`cf2f128`). Two runs matched (`backtests/fp312/screen_2023.json`,
+sha256 `60cbfcf8…`). Fair value is the WhiteBIT BTC_USDT daily close, used
+only after that candle has ended. The finished Binance spot close was at least
+five basis points under that close, then buy Binance spot for sixteen days:
+168 trades, mean +370.0658 bps, null p95 +545.9713 bps, +$621.7105. The file's
+gross is +390.8267 bps. **Nothing here is fit to add.** The mean is positive
+and under the null. One spot leg. The edge-off set has 182 trades and a mean
+of +508.1501 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 168 against 182. The scored book is 168 and 182. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
