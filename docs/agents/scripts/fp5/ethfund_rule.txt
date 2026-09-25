@@ -1,0 +1,23 @@
+Family: long the next UTC day when the day-over-day change in the ETHUSDT perpetual funding sum is in its own trailing top quintile.
+Frozen 2026-09-25 05:53:33 UTC, before any funding change of this rule was joined to a next-day return.
+Not the BTC funding level in its bottom decile, which stays killed. Not a flip of that rule onto high BTC funding. Not SOL funding. Not the premium index.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by ETHUSDT perpetual funding.
+Series: data.binance.vision futures/um monthly fundingRate for ETHUSDT. Column last_funding_rate. calc_time is milliseconds.
+A UTC day's funding sum is the sum of that column's prints whose calc_time falls on that date.
+Days with fewer than three prints are missing, not zero. Funding is signed, so the change is a difference.
+Change = sum[D] - sum[previous calendar day]. Missing unless the previous calendar day has a sum.
+Sort the previous 90 printed changes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC calendar day when that change is strictly above the threshold.
+A day whose previous calendar day has no change is not an execution day. The signal is not carried forward.
+Monthly files for 2019 are absent. The archive's first print is 2020-01-01, so 2021 is the first January with 90 earlier changes.
+Execution days are 2021-01-01 through 2021-12-31. No other year is scored.
+Prices are Binance spot daily closes (BTCUSDT, ETHUSDT). The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2021. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a falling ETH funding sum. Do not switch to BTCUSDT funding, the funding level, or a decile of the level. Do not fill a missing day. Do not change the quintile. Do not add 2022.

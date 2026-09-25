@@ -1,0 +1,21 @@
+Family: long the next UTC day when the day-over-day change in the ETHBTC spot close is in its own trailing top quintile.
+Frozen 2026-09-25 05:53:33 UTC, before any ETHBTC change of this rule was joined to a next-day return.
+Not the BTC–ETH return gap. Not the ETH/BTC spot quote-volume ratio. Not ETHUSDT. Not a flip of either killed ratio.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by the ETHBTC close.
+Series: Binance spot monthly klines, ETHBTC, 1d. Close is field index 4 (0-based). A close is a level only when it is positive.
+Change = close[D] / close[previous calendar day] - 1. Missing unless the previous calendar day exists and its close is positive.
+Sort the previous 90 printed changes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC calendar day when that change is strictly above the threshold.
+A day whose previous calendar day has no change is not an execution day. The signal is not carried forward.
+The archive starts 2017-08-01, so 2018 is the first January with 90 earlier changes.
+Execution days are 2018-01-01 through 2018-12-31. No other year is scored.
+Prices are Binance spot daily closes (BTCUSDT, ETHUSDT). The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2018. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a falling ETHBTC close. Do not switch to quote volume, trade count, or ETHUSDT. Do not fill a missing day. Do not change the quintile. Do not add 2019.
