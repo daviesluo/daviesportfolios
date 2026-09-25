@@ -809,6 +809,14 @@ before touching migration state.
 | `docs/agents/scripts/fp116/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The BTC spot trade count over the USDT perpetual's trade count, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp116/screen_2023.json`. |
 | `docs/agents/scripts/fp117/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | USDT-margined BTC volume over coin-margined BTC volume, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp117/screen_2023.json`. |
 | `docs/agents/scripts/fp118/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How dispersed the day's top-trader position ratio was, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp118/screen_2023.json`. |
+| `docs/agents/scripts/fp119/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC option premium open interest at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp120/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC option contract volume at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp121/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC put contracts over call contracts at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp122/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC put contract volume over call contract volume at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp123/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many BTC option strikes have open interest at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp124/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Gamma-weighted BTC option open contracts at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp125/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many days the BTC option book has left, weighted by open contracts, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp126/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Absolute-delta-weighted BTC option open contracts at the day's last hour, long BTC for one day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

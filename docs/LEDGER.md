@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp111–fp118 are scored. Nothing passes the house bar.** Eight different signals, each held one day. All eight have fills. OIUSD, TOPPOS, OITURN, SPOTP, TRDMIX and TOPSTD have a negative mean. POSGAP and UMCM are positive and under their own null. TOPSTD has 11 fills; the count stays 30. No later year was read. FRNG-2 through FRNG-14 were not rerun. No funding print was read. No hourly price bar was read. No alt quote was read. No bookDepth file was read. No testing row. No pull request. Main was not pushed.
+**fp119–fp126 are written down and not scored.** Eight different BTC option-book signals, each held one day. No 2023 return has been computed. No option file has been read for a return. fp111–fp118 stay scored and closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 06:32 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp119–fp126 are protocols only. No return has been computed.** Eight different statistics of the BTCUSDT option book at the last hour in that day's file, each long BTC for one day: premium open interest, contract volume, put contracts over call contracts, put volume over call volume, the count of strikes with open interest, gamma times open contracts, open-contract-weighted days to expiry, and absolute delta times open contracts. Pins printed fp119 through fp126 pins ok before this commit. The count stays 30. The window stays 90 days and 90 prints. No sign is flipped. Implied vol, the bid and the ask, volume in USDT, vega, theta, and the other coins' option files are not inputs. fp111–fp118 are not rerun. FRNG-2 through FRNG-14 stay closed. SOL-Q through LTC-Q and AVAX-Q stay closed. No later year is in the protocol. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 06:19 UTC] Platform: Cursor | Model: Grok 4.7
 
