@@ -7625,6 +7625,62 @@ the gap is inside 20 bps, and one month is above 40%. The buy and the sell
 were not moved. The 1 bp line was not raised. EREAL is not a testing row.
 WBRAT and WBPAR stay inside 2023. The next rules are not frozen.
 
+### 3.376 Eight published prices are frozen. No return of these rules has been computed (2026-09-25)
+
+The previous round scored three rules. A realised coin price, a wrapper
+exchange rate, and par of one are three sentences. Copying them onto another
+coin, another token, or another threshold was refused, and that refusal is
+not a reason to turn in fewer than eight. A funding sign and funding against
+SOFR are not a price. Another venue's close is not a price. Spot, the
+coin-margined book and the USDT book are not each other's fair value.
+
+Eight different prices are frozen before any return. Each buys one spot book
+for two days when the previous close is cheap to a published series in the
+same unit, and the other trade buys that book for two days when the discount
+is absent. The count was taken with no profit. The cheap set is the shorter
+one. The short side was not taken. A print stamped on the entry is not used.
+The dollar leg is Coin Metrics BUSD `PriceUSD`, completed before the entry.
+USDT `PriceUSD` is not the bridge. BUSD is not treated as one.
+
+GLDPM (`docs/agents/reviews/2026-09-25-fp324-protocol.md`) is the LBMA Gold
+Price PM divided by that BUSD price, on PAXGBUSD, at 50 bp: 154 spans against
+157, one neither, 312 fillable. ECBFX
+(`docs/agents/reviews/2026-09-25-fp325-protocol.md`) is the ECB US dollars
+per euro divided by BUSD, on EURBUSD, at 25 bp: 160 against 182, one neither,
+343 fillable. BMACP (`docs/agents/reviews/2026-09-25-fp326-protocol.md`) is
+the US Big Mac price over the euro-area Big Mac price, divided by BUSD, at
+200 bp: 148 against 194, one neither, 343 fillable. CPIPP
+(`docs/agents/reviews/2026-09-25-fp327-protocol.md`) is US CPI-U over
+euro-area HICP, scaled by the 2022-12-30 ECB rate `1.0666` and divided by
+BUSD, at 1 bp: 107 against 212, 24 neither, 343 fillable, ready 2023-01-25.
+PPIPP (`docs/agents/reviews/2026-09-25-fp328-protocol.md`) is US finished-goods
+PPI over euro-area producer prices, at 500 bp: 130 against 173, 40 neither,
+343 fillable, ready 2023-02-10. WAGPP
+(`docs/agents/reviews/2026-09-25-fp329-protocol.md`) is US average hourly
+earnings over the euro-area calendar-adjusted wage index, at 500 bp: 93
+against 160, 90 neither, 343 fillable, ready 2023-04-01. CLTHP
+(`docs/agents/reviews/2026-09-25-fp330-protocol.md`) is US apparel over
+euro-area clothing and footwear, at 1000 bp: 120 against 199, 24 neither,
+343 fillable. AIRPP (`docs/agents/reviews/2026-09-25-fp331-protocol.md`) is
+US airline fares over euro-area passenger air, at 1 bp: 146 against 173, 24
+neither, 343 fillable.
+
+Every pair of cheap sets is under 80 percent of the smaller set. The largest
+shares are CPI against clothing, 77 of 107; Big Mac against airfares, 103 of
+146; and gold against wages, 65 of 93. Not shipped, and no return computed: M2 at 1 bp had 27
+cheap spans. Unit labour costs overlapped wages on 91 of 93 days. Rent
+overlapped CPI on 93 of 107. Services overlapped CPI on 85 of 86. Food at 1
+bp had 18 cheap spans. House prices overlapped producer prices on 114 of 116.
+Energy overlapped producer prices on all 62. Used cars overlapped wages on 76
+of 93. New cars overlapped CPI on all 73. Hotels overlapped airfares on 137
+of 146. Annual GDP purchasing power was cheap on 342 days and the edge-off
+set was empty, so the short side was not taken. Realised price, par, and a
+second threshold on a shipped line are not in this round.
+
+No return of these rules has been computed. This is not a testing row. The
+gap that would take a rule out of sample is strictly more than 20 bps. The
+count stays 30. The next eight are not frozen in this section.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
