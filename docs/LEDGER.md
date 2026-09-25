@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp136–fp143 are protocols only. No return has been computed.** Eight market statistics, each long BTC for one day. The OIRNG pull no longer requires a print on every day: a day with a non-positive sample is not a print and is not filled in. No later year has been read. No testing row. No pull request. Main was not pushed.
+**fp144 is a protocol only. No return of FRIN has been computed.** FUNDGAP was measured at 0 trades and does not count: its holes mean a trailing 90 calendar days never held 90 prints. The window was not shrunk and the reciprocal was not scored. OIRNG's second pull wrote 450 days and has not been scored. The other six of fp137–fp143 have local screen files that are not committed. Next: fetch FRIN, score OIRNG and FRIN twice, then one result commit of the rules that have fills. The count stays 30. The window stays 90 days and 90 prints. No later year has been read as a signal. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:37 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp144 is a protocol only. No return of FRIN has been computed.** Pins printed `fp144 pins ok` before this commit. The statistic is the 16:00 USDT-margined BTCUSDT funding rate minus the 00:00 rate the same UTC day. The 08:00 rate is required so the day has three buckets and is not stored. The coin-margined book is not an input. This is not FRJMP, not the unsigned funding range, not the funding level, not either tail, and not FUNDGAP. FUNDGAP was already measured at 0 trades: 442 prints over a span with holes, so `rank_threshold` never opened, and that zero does not count. Its reciprocal is not scored. The window was not shrunk. USDT-margined funding has a print every day from 2022-10-01 through 2023-12-31, so the frozen 90-day, 90-print rule can open on this file. The count stays 30. No sign is flipped. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is scored. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:32 UTC] Platform: Cursor | Model: Grok 4.7
 
