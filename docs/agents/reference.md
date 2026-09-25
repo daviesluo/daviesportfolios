@@ -6484,6 +6484,30 @@ pass would still not be a testing row. The fill is a Binance daily open.
 The next eight are not frozen. No later-year return of LOUDER has been
 computed.
 
+### 3.314 A louder three-day move against the quieter long: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp268-prereg-louder.md`, sha256
+`1dd6860a…`, frozen 2026-09-25T13:42:41Z) was pushed in `f6b92c4` before any
+daily open from 2024-01-01 was read as an entry. The USDT book was read at
+2026-09-25T13:39:52.405491Z (bid 84066.00, ask 84066.10, half-spread
+5.947704216257381e-07). The buy and the sell were not moved. Two
+out-of-sample runs matched (`backtests/fp268/louder_oos.json`, sha256
+`f7bf741f…`). 2023 reproduces: 170 trades, +$1021.9923, mean +601.172 bps,
+quieter mean +529.6739 bps, sample p95 +551.9241 bps on 175 quieter trades.
+Entries from 2024-01-01 through 2026-09-04: 499 trades, +$977.9158, mean
++$1.959751. The quieter set has 479 trades, mean +$1.562082. It is shorter
+than the rule, so the sample p95 is missing. That missing cutoff was not
+replaced with the quieter mean. 2024 is +$1028.8694 and 2025-01-01 through
+2026-09-04 is −$50.9536. Doubled costs are +$876.2614. February 2024 is
++$468.1748, 47.87% of the total; without it the total is +$509.741.
+Annualised on the locked $100 over 998 days it is 3.576546. The count
+clears 30, doubled costs are positive, and the annualised total clears 4%.
+The second window is negative, the sample p95 is missing, the mean does not
+clear a cutoff by more than 10 bps, and one month is more than 40% of the
+profit. **The rule fails.** It was not rewritten. It is not a testing row.
+The next search does not inherit the three-day absolute comparison or the
+twenty-one-day hold.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
