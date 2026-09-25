@@ -8,19 +8,20 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp29 protocol is written and not scored.** PEAK is today's close divided
-by the highest close in the prior 30 days, minus 1, above its own trailing
-90th, long BTC the next day. IMPACT stays dead, including the later years
-(§3.57). Do not promote its 80th or its 95th. BAL-CHG stays dead (§3.56).
-Do not score a day the count did not rise, do not score its 80th, and do
-not score the level of `AdrBalCnt`. BODY stays dead, including the later
-years (§3.55). Do not promote its 80th. Do not score a close under the prior
-30-day high, and do not score the 80th. The count of trades stays 30. Do
-not reopen EXCH-BAL, FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI,
-VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
-quiet-day range, the taker share, dispersion, or skew. fp5 through fp28 stay
-closed, including LS-FADE. The screen is the next step. No testing row. No
-pull request. No push to main.
+**fp29 screen failed. PEAK is dead.** Today's close divided by the highest
+close in the prior 30 days, minus 1, above its own trailing 90th, long BTC
+the next day: 48 trades, +18.22 bps against a null of +60.96, +$8.75
+(§3.58). The count cleared and the mean was positive; it lost to the null.
+Do not score a close under the prior 30-day high, and do not score the 80th.
+IMPACT stays dead, including the later years (§3.57). Do not promote its
+80th or its 95th. BAL-CHG stays dead (§3.56). Do not score a day the count
+did not rise, do not score its 80th, and do not score the level of
+`AdrBalCnt`. BODY stays dead, including the later years (§3.55). Do not
+promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow,
+UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
+AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
+skew. fp5 through fp29 stay closed, including LS-FADE. The next rule is not
+written. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -843,6 +844,19 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:01 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp29 screen: nothing passes.** Protocol was `d235b84`. Two scores matched
+(`3f7c62a0…`). PEAK 48 trades, +18.22 bps against a null of +60.96, +$8.75.
+Gross before costs was +38.28 bps. The daily grid has 458 bars and no hole.
+The first 30 days have no prior window, so there are 427 distances.
+Reference §3.58. The count cleared. The mean was positive and lost to the
+null. A close under the prior high and the 80th are not candidates. IMPACT
+stays closed, including the later years, and its 80th and 95th are not
+candidates. BAL-CHG stays closed, including the level of the address count.
+BODY stays closed, including the later years. No testing row. No pull
+request. Main was not pushed.
 
 ### [2026-09-25 03:00 UTC] Platform: Cursor | Model: Grok 4.7
 

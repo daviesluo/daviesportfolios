@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp29_common": "683ab8c61fc912a426d24495986e86c5caaa22d57ceee48ec4fb057e3a6017f6",
+    "fp29_measure": "0642c425bfa6b042753537af84c4c0335a1304db3f2832ae43c5699a2c7416a1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "PEAK",
+      "mean_gross_bps": 38.2789,
+      "mean_net_bps": 18.2224,
+      "min_n": 30,
+      "n": 48,
+      "note": "Close versus the prior 30 daily closes' high, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 60.9592,
+      "passes_screen": false,
+      "total_pnl_usd": 8.7468
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "497baf391f5672e4ddd33df2d7e70c633d5cc2e66319378e1ca9feac869e0b29"
+  },
+  "passed": [],
+  "protocol_sha256": "d3e0ac6e49deb722d65bc325f7289d492a82dd21939e30fed0d3008c92e2f7bc"
+}

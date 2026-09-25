@@ -3010,6 +3010,17 @@ it is −8.29%. The 80th neighbor loses (−$50.2414, 202 trades). The 95th
 also loses (−$25.6306, 71 trades). **Nothing here is fit to add.** A day
 whose volume and moves do not line up, and the 80th, are not candidates.
 
+### 3.58 Distance from the prior close high: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp29-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp29/screen_2023.json`). Today's close
+divided by the highest close of the prior 30 days, minus 1, above its own
+trailing 90th, long spot the next day: 48 trades, mean +18.2 bps, null p95
++61.0 bps. The gross move was +38.3 bps. The daily grid has no hole. The
+first 30 days have no prior window, so there are 427 distances. **Nothing
+here is fit to add.** The count cleared and the mean was positive; it lost
+to the null. A close under the prior high and the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
