@@ -4806,6 +4806,112 @@ and under the null. The null is every two-day long. Opens through 2024-01-02
 were exits only. Either condition alone was not scored. Two days was not
 refit.
 
+### 3.198 An outside day, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp169-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp169/screen_2023.json`,
+sha256 `c31c8fdb…`). A day whose high is strictly above the prior high and
+whose low is strictly under the prior low, then the next session from open
+to close: 42 trades, mean −3.1889 bps, null p95 +67.4534 bps, −$1.3393. The
+file's gross is +16.8247 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The null is every session. The outside
+day is known at that close. The buy is the next open. The entry day's high,
+low and close are not the signal.
+
+### 3.199 The 08:00 funding rate the lowest of the three: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp170-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp170/screen_2023.json`,
+sha256 `aaa8ae47…`). The 08:00 rate strictly under the 00:00 rate and
+strictly under the 16:00 rate, then a one-day long, funding cash not added:
+74 trades, mean −18.7169 bps, null p95 +46.8893 bps, −$13.8505. The file's
+gross is +1.2657 bps. **Nothing here is fit to add.** The count cleared and
+the mean was negative. The null is every one-day long. The trough is known
+at 16:00. The buy is the next open. A tie did not fire. A rising path did
+not fire.
+
+### 3.200 A close through yesterday's high, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp171-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp171/screen_2023.json`,
+sha256 `ae05d522…`). A close strictly above yesterday's high, then the next
+session from open to close: 84 trades, mean +20.5106 bps, null p95 +47.5895
+bps, +$17.2289. The file's gross is +40.5717 bps. **Nothing here is fit to
+add.** The count cleared and the mean was positive and under the null. The
+null is every session. Yesterday's high is not the buy price. The buy is the
+next open. The entry day's high, low and close are not the signal.
+
+### 3.201 A down day, then a stop at that day's low: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp172-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp172/screen_2023.json`,
+sha256 `480056a9…`). A close strictly under the open, then the next day buys
+the open and sells at the prior day's low when that low trades, otherwise at
+the close: 182 trades, mean −11.4046 bps, null p95 +24.2088 bps, −$20.7563.
+The file's gross is +8.5926 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The null is that same stop on every day.
+The down day and its low are known before the open that is bought. The entry
+day's low and close are the stop's fill. They are not the reason to enter.
+The entry day's high is not read.
+
+### 3.202 Inside the range of three days earlier, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp173-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp173/screen_2023.json`,
+sha256 `5d9bfa29…`). A high strictly under the high of three days earlier and
+a low strictly above that day's low, then the next session from open to
+close: 69 trades, mean −12.7773 bps, null p95 +48.5409 bps, −$8.8163. The
+file's gross is +7.2171 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The null is every session. Yesterday is
+not the comparison. The coil is known at that close. The buy is the next
+open.
+
+### 3.203 A range wider than six days earlier, held two days: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp174-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp174/screen_2023.json`,
+sha256 `15fd0380…`). A range strictly wider than the range of the day exactly
+six days earlier, long from the next open to the open two days later: 179
+trades, mean +66.6681 bps, null p95 +64.0948 bps, +$119.336. The file's
+gross is +86.8216 bps. The null is every two-day long. **The 2023 screen
+passes.** The comparison is known when that day closes. The buy is the next
+open. The entry day's high, low and close are not read to decide the entry.
+The screen's last stored bar is 2024-01-02, and that bar is an exit. The
+pre-registration (`reviews/2026-09-25-fp174-prereg-lag6.md`, sha256
+`e81b2cdb…`, frozen 2026-09-25T09:05:29Z, BTCUSDT bid 84598.00000000, ask
+84598.01000000, half-spread 5.910304855747668e-08) was frozen before any
+daily open from 2024-01-01 was read as an entry. The later years are not
+read. It is not a testing row.
+
+### 3.204 Two higher highs, then a one-day short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp175-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp175/screen_2023.json`,
+sha256 `97892ba2…`). A high strictly above yesterday's high and that high
+strictly above the high of the day before, then a one-day short, funding
+cash not added: 73 trades, mean −81.7917 bps, null p95 −6.7775 bps,
+−$59.708. The file's gross is −61.9355 bps. **Nothing here is fit to add.**
+The count cleared and the mean was negative and under the null. The null is
+every one-day short. The two highs are known at that close. The short is the
+next open. This is not a long.
+
+### 3.205 A close above the prior three closes, held three days: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp176-protocol.md`) was committed before any
+return (`f48437a`). Two runs matched (`backtests/fp176/screen_2023.json`,
+sha256 `99f90993…`). A close strictly above each of the three prior closes,
+long from the next open to the open three days later: 119 trades, mean
++125.9975 bps, null p95 +121.207 bps, +$149.937. The file's gross is
++146.2698 bps. The null is every three-day long. The three prior closes need
+not themselves be rising. **The 2023 screen passes.** The comparison is
+known when that day closes. The buy is the next open. The entry day's high,
+low and close are not read to decide the entry. The screen's last stored bar
+is 2024-01-03, and that bar is an exit. The pre-registration
+(`reviews/2026-09-25-fp176-prereg-c3.md`, sha256 `b3104fbd…`, frozen
+2026-09-25T09:05:29Z, the same BTCUSDT book as §3.203) was frozen before any
+daily open from 2024-01-01 was read as an entry. The later years are not
+read. It is not a testing row.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp170_common": "d5e880d2c7a34d1d7eda3a380790d3577ac68d1d4ddcdf6f489b079048dcba58",
+    "fp170_measure": "a93aab280042a9dccbf7e4b1679617dcf952cedd6db8dd5008af5a2182d0fe63",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FNTROUGH",
+      "mean_gross_bps": 1.2657,
+      "mean_net_bps": -18.7169,
+      "min_n": 30,
+      "n": 74,
+      "note": "The 08:00 funding rate is strictly the lowest of the three. Next open, long BTC for one day. The funding cash is not added.",
+      "null_p95_bps": 46.8893,
+      "passes_screen": false,
+      "total_pnl_usd": -13.8505
+    }
+  ],
+  "input_sha256": {
+    "funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4",
+    "spot_open": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b"
+  },
+  "passed": [],
+  "protocol_sha256": "642d699c4ffa8b6117925db05780b5fc8edb20f155343da67fc63b2ac30f52bb"
+}

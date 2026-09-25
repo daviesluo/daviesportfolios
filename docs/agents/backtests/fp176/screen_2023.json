@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp176_common": "51310067c7cb0927f7726b8b6acf2937d4c53544b0edd5418f9947ead8ed3c0f",
+    "fp176_measure": "157ae671f96702ca99560cd3527a51ab13e3cbb66e2e4241b72afdb68f39a102",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "C3",
+      "mean_gross_bps": 146.2698,
+      "mean_net_bps": 125.9975,
+      "min_n": 30,
+      "n": 119,
+      "note": "The close is strictly above each of the prior three closes. Next open, long BTC, and sell the open three days later.",
+      "null_p95_bps": 121.207,
+      "passes_screen": true,
+      "total_pnl_usd": 149.937
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "f96e33de09ebf8ce91f0a9ef53f1d2398d77455ea5ce49eac824f9cd6e91b257"
+  },
+  "passed": [
+    "C3"
+  ],
+  "protocol_sha256": "4a1d42b180a083e3fd65a05b9be14b84bcd030798fc6b83315b3c12b7c526133"
+}

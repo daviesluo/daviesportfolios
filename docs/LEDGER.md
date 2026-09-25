@@ -10,7 +10,7 @@ and is opened only when a closed item is reopened or audited.
 
 **BRKHI is void. The later years were recorded and the rule is not a testing row.** The buy is a price inside the day, and the four-day width uses that day's finished high and low, which are not known at the buy. The rule was not rewritten and was not run again. Entries 2024-01-01 through 2026-09-24 stay in the research record: 146 trades, +$97.4032. No pull request. Main was not pushed.
 
-**fp169–fp176 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL, LAG6, HHSH and C3. The count stays 30.
+**fp169–fp176 are scored. LAG6 and C3 pass the 2023 screen. The later years are not read.** Pre-registrations are frozen. OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL and HHSH stay void. No testing row was armed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -834,6 +834,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:06 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp169–fp176 are scored. LAG6 and C3 pass the 2023 screen. The later years are not read.** The protocol was `f48437a`, pushed before any of these returns. Each screen file was written twice and the copies matched. OUTNEXT 42 / file gross +16.8247 / file mean −3.1889 / null +67.4534 / −$1.3393 (`c31c8fdb…`). FNTROUGH 74 / file gross +1.2657 / file mean −18.7169 / null +46.8893 / −$13.8505 (`aaa8ae47…`). THRU 84 / file gross +40.5717 / file mean +20.5106 / null +47.5895 / +$17.2289 (`ae05d522…`). STOPLOW 182 / file gross +8.5926 / file mean −11.4046 / null +24.2088 / −$20.7563 (`480056a9…`). COIL 69 / file gross +7.2171 / file mean −12.7773 / null +48.5409 / −$8.8163 (`5d9bfa29…`). LAG6 179 / file gross +86.8216 / file mean +66.6681 / null +64.0948 / +$119.336 (`15fd0380…`), screen pass. HHSH 73 / file gross −61.9355 / file mean −81.7917 / null −6.7775 / −$59.708 (`97892ba2…`). C3 119 / file gross +146.2698 / file mean +125.9975 / null +121.207 / +$149.937 (`99f90993…`), screen pass. Every rule has fills. Every fill was recomputed from the stored prices and matched. OUTNEXT, FNTROUGH, STOPLOW, COIL and HHSH have a negative mean. THRU is positive and under its null. LAG6 and C3 have a positive mean above their own null. The entry of each rule uses a print that has already closed. The buy is the next open. The entry day's high, low and close are not read to decide the entry. STOPLOW's level is the prior day's low; the entry day's low and close are only the stop's fill. The pre-registrations are `docs/agents/reviews/2026-09-25-fp174-prereg-lag6.md`, sha256 `e81b2cdbbbb115b03354b3567df2ca1a9e5cdf8830fe12e0fb67309be540c512`, and `docs/agents/reviews/2026-09-25-fp176-prereg-c3.md`, sha256 `b3104fbd29591db867c0a6ad162a02df7cdf8e485dca8b156167b98eb2e6560c`, both frozen 2026-09-25T09:05:29Z, BTCUSDT bid 84598.00000000, ask 84598.01000000, half-spread 5.910304855747668e-08. No daily open from 2024-01-01 was read as an entry. LAG6's screen stops on 2024-01-02 and C3's on 2024-01-03, and those bars are exits. Reference §3.198–§3.205. No percentile was used. No sign of a killed rule was flipped. No count was lowered. BRKHI stays void and was not rewritten. FNCLIMB, ACCUM, TAKTGT, FAILSH, VOL3, WIDE4 and FLOW stay closed. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. fp145–fp152 stay closed. UMCMJMP stays at 26 trades. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No liquidation file was read. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:02 UTC] Platform: Cursor | Model: Grok 4.7
 

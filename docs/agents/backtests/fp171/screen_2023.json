@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp171_common": "c8fe7c1aaacf76f1e95a08f2f4e9c9d6895b6bff7f9ec85d8309160c1492f4bb",
+    "fp171_measure": "6b0668545dff7b1a7dfb0f876ecac0fdadb6cf61cd20d03dc5f40fe9363ec3ec",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "THRU",
+      "mean_gross_bps": 40.5717,
+      "mean_net_bps": 20.5106,
+      "min_n": 30,
+      "n": 84,
+      "note": "The close finished strictly above yesterday's high. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 47.5895,
+      "passes_screen": false,
+      "total_pnl_usd": 17.2289
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "912512685b5c919da7031c593fd109dead7d85b2cb672e2fa2ce46e7dbcd7312"
+}

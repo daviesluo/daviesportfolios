@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp175_common": "184429a3900fea46ef11484a8cfafc8476387fdb962efb67e05ae3ac1b1bab3d",
+    "fp175_measure": "d96c8c748d09f6a00b9763ef2bc773c78f02442db24d96cde0a4775ec731caf3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "HHSH",
+      "mean_gross_bps": -61.9355,
+      "mean_net_bps": -81.7917,
+      "min_n": 30,
+      "n": 73,
+      "note": "Two higher highs in a row. Next day, short BTC from the open to the next open. The funding cash is not added.",
+      "null_p95_bps": -6.7775,
+      "passes_screen": false,
+      "total_pnl_usd": -59.708
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "d780755d9596bc5d6b601dbc5cf6a2250f29398315ebf0c6bbff33f5a82fcc1e"
+}

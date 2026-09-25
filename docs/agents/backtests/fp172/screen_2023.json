@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp172_common": "6cfebb737a8fa50244e67926f587793ad4e22ecbaf3331f4b359428f34506b93",
+    "fp172_measure": "2fb7eb0dd43219a9763f31684a92c23dfe71e676caec8ec63c3e9b7ab4ad33a7",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "STOPLOW",
+      "mean_gross_bps": 8.5926,
+      "mean_net_bps": -11.4046,
+      "min_n": 30,
+      "n": 182,
+      "note": "A down day. Next day, buy the open, and sell at that day's low when the low trades there, otherwise sell the close.",
+      "null_p95_bps": 24.2088,
+      "passes_screen": false,
+      "total_pnl_usd": -20.7563
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "da7c08ef210c0bfc58f5efc350354234cb9f776f5e8cf155cdf918c704f66c40"
+}
