@@ -835,6 +835,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 01:12 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 COPY pull, pace only.** The 01:02 section's eight-wide fetch was keeping the rows and running at about one wallet a second, because each history is several pages and the host gap was 0.12s. The gap for `data-api.polymarket.com` in this pull is now 0.02s, sixteen at a time. Still before any ranking. A 429 still backs off. Not on main.
+
 ### [2026-09-25 01:02 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 COPY pull, deviation before any ranking.** The 00:48 freeze stands. May tapes are on disk (9,412 wallets with at least five prints, no incomplete market). Closed positions one wallet at a time were about three seconds each, which would not finish. `copy_inputs.py` now fetches eight wallets at once, still 0.12s per host, and still keeps the same rows. No wallet has been ranked. No copied return has been computed. Not on main. No testing row.

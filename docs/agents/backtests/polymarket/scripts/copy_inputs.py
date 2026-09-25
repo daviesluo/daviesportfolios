@@ -276,11 +276,12 @@ def tape_for(cond, meta, start, stop):
 
 
 def _share_pace():
-    """Eight wallets at once. The gap per host stays 0.12s; only the wait overlaps.
+    """Several wallets at once. The gap for this host is tightened to 0.02s.
 
-    Added after the May tapes were already on disk and before any wallet was ranked.
-    The rows kept are the ones closed_positions already named.
+    Both changes were made after the May tapes were on disk and before any wallet
+    was ranked. The rows closed_positions keeps are unchanged. A 429 still backs off.
     """
+    pmnet.MIN_GAP["data-api.polymarket.com"] = 0.02
     lock = threading.Lock()
     orig = pmnet._pace
 
@@ -320,7 +321,7 @@ def main():
     def fetch_closed(w):
         return w, closed_positions(w)
 
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=16) as pool:
         futs = [pool.submit(fetch_closed, w) for w in candidates]
         for fut in as_completed(futs):
             w, rec = fut.result()
