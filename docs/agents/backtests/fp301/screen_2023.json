@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp301_common": "c628b790bb75d245f2cf211e6112987322ec70a41144a4823056a00b78686fa6",
+    "fp301_measure": "8cbff76cbcb172105bdfc95c0afd31efc8c893533d5e5a793722d074ae6928b1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DBCHP",
+      "mean_gross_bps": 344.4908,
+      "mean_net_bps": 323.8225,
+      "min_n": 30,
+      "n": 172,
+      "note": "Fair value is the Deribit BTC-PERPETUAL daily close. The finished USDT close was strictly under that close, so the next USDT open is a price that finished cheap to Deribit. Buy the USDT book for eleven days. The other trade buys the USDT book for eleven days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only.",
+      "null_p95_bps": 322.7323,
+      "passes_screen": true,
+      "total_pnl_usd": 556.9747
+    }
+  ],
+  "input_sha256": {
+    "db": "63f81d9327ca8fb12243f49cb10a245de9b90ef0b049a12263d68cf27ea9013b",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 299.0321,
+  "null_n": 183,
+  "passed": [
+    "DBCHP"
+  ],
+  "protocol_sha256": "1d20cfc23f8c23f9954377909dff74d998648c4c97d18b4e6c27b6899030c191"
+}

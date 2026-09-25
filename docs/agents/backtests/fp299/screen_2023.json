@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp299_common": "c80bc63b0f83d4df4c88e1b0eed69b512f7779b92b4aca8c1885dee39a05339d",
+    "fp299_measure": "e2eb54858fe0582a8e5af2475d36dbcecf82eecdc4ddceb45bf00835db409cea",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CBSPT",
+      "mean_gross_bps": 376.6109,
+      "mean_net_bps": 355.8784,
+      "min_n": 30,
+      "n": 173,
+      "note": "Fair value is the Coinbase Exchange BTC-USD daily close. The finished Binance spot close was at least five basis points under that close, so the next Binance spot open is a price that finished cheap to Coinbase. Buy Binance spot for fourteen days. The other trade buys Binance spot for fourteen days on these same prices when that discount is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only.",
+      "null_p95_bps": 452.9495,
+      "passes_screen": false,
+      "total_pnl_usd": 615.6696
+    }
+  ],
+  "input_sha256": {
+    "cb": "39ad249423d39b2aee52c443b8d65aa7ec83dacce2f562c2fbeea67a6ad455fa",
+    "spot": "8518ba272f77df0514e6a5fdbbda68f66ab9cee4f2883e20f6de2a7ad60ba614"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 430.0588,
+  "null_n": 179,
+  "passed": [],
+  "protocol_sha256": "7962053b92bde0b673ecc958e9023fb34987df71c43cd3c511df6ff1c57a2e2f"
+}

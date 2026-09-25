@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp298_common": "e1f32632c120e50a73aa87d95fae8ea6ee556b2af4124f4d09d6b3433b0212e1",
+    "fp298_measure": "7815901e92ecb38a826aea8efaf1ec73e39506f7cd1c71b63431d53e21717649",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CBRCH",
+      "mean_gross_bps": -307.6702,
+      "mean_net_bps": -327.0355,
+      "min_n": 30,
+      "n": 170,
+      "note": "Fair value is the Coinbase Exchange BTC-USD daily close. The finished USDT close was strictly above that close, so the next USDT open is a price that finished rich to Coinbase. Sell the USDT book for twelve days. The other trade sells the USDT book for twelve days on these same prices when that premium is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only.",
+      "null_p95_bps": -236.7359,
+      "passes_screen": false,
+      "total_pnl_usd": -555.9603
+    }
+  ],
+  "input_sha256": {
+    "cb": "39ad249423d39b2aee52c443b8d65aa7ec83dacce2f562c2fbeea67a6ad455fa",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -264.1762,
+  "null_n": 184,
+  "passed": [],
+  "protocol_sha256": "6426bc92341dbb4667766dd272f896bb2f04085e67869bb09fbacac72c810305"
+}

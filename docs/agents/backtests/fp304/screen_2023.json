@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp304_common": "ec96b413a3e958e74ee678411639e603874c160ea05b4d54093034b0f4244d27",
+    "fp304_measure": "2ca20e8bdcfce95032913b91f33db7557ca4b524239a504edaed4de0d4844656",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DBWDN",
+      "mean_gross_bps": -231.9279,
+      "mean_net_bps": -251.4445,
+      "min_n": 30,
+      "n": 133,
+      "note": "Fair value is the Deribit BTC-PERPETUAL daily close. The basis is the finished USDT close over that fair value. It finished positive and strictly above the basis six days earlier, so the next USDT open sells a premium to Deribit that has widened. Sell the USDT book for ten days. The other trade sells the USDT book for ten days on these same prices when that wider premium is absent. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only.",
+      "null_p95_bps": -181.2094,
+      "passes_screen": false,
+      "total_pnl_usd": -334.4212
+    }
+  ],
+  "input_sha256": {
+    "db": "63f81d9327ca8fb12243f49cb10a245de9b90ef0b049a12263d68cf27ea9013b",
+    "um": "b4ff5735a3bcd4f110e6d8c97d140180521ebcd94821fb47829aeb31d9ff680d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -246.3895,
+  "null_n": 223,
+  "passed": [],
+  "protocol_sha256": "b216a5866c102dc13cc1bc28754b5eda4c3a3a49835074ee9514550b15ef6771"
+}

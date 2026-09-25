@@ -6932,6 +6932,120 @@ DBCMC 167/184, DBWDN 133/223. The protocols are
 `reviews/2026-09-25-fp304-protocol.md`. No later-year return of these rules
 has been computed. No testing row is added.
 
+### 3.343 Ten basis points under the Coinbase close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp297-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp297/screen_2023.json`,
+sha256 `32260c5d…`). Fair value is the Coinbase Exchange BTC-USD daily close,
+used only after that bucket has ended. The finished USDT close was at least
+ten basis points under that close, then buy the USDT book for nine days: 174
+trades, mean +201.3375 bps, null p95 +315.7477 bps, +$350.3272. The file's
+gross is +221.7606 bps. **Nothing here is fit to add.** The mean is positive
+and under the null. One USDT leg. The edge-off set has 183 trades and a mean
+of +294.2601 bps. The cutoff is the house p95, not that mean. A count taken
+before the freeze was 174 against 183. The scored book is 174 and 183. The
+rule was not changed. This is not a testing row and it is not taken out of
+sample.
+
+### 3.344 A Coinbase premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp298-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp298/screen_2023.json`,
+sha256 `679cb205…`). The finished USDT close was strictly above the Coinbase
+close, then sell the USDT book for twelve days: 170 trades, mean −327.0355
+bps, null p95 −236.7359 bps, −$555.9603. The file's gross is −307.6702 bps.
+**Nothing here is fit to add.** The mean is negative and under the null. One
+USDT leg. The edge-off set has 184 trades and a mean of −264.1762 bps. A
+count taken before the freeze was 170 against 184. The scored book is 170 and
+184. The rule was not changed. This is not a testing row and it is not taken
+out of sample.
+
+### 3.345 Binance spot five basis points under Coinbase: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp299-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp299/screen_2023.json`,
+sha256 `cda55e40…`). Fair value is the Coinbase close. The finished Binance
+spot close was at least five basis points under it, then buy Binance spot for
+fourteen days: 173 trades, mean +355.8784 bps, null p95 +452.9495 bps,
++$615.6696. The file's gross is +376.6109 bps. **Nothing here is fit to
+add.** The mean is positive and under the null. One spot leg. The edge-off
+set has 179 trades and a mean of +430.0588 bps. The cutoff is the house p95,
+not that mean. A count taken before the freeze was 173 against 179. The
+scored book is 173 and 179. The rule was not changed. This is not a testing
+row and it is not taken out of sample.
+
+### 3.346 A wider Coinbase premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp300-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp300/screen_2023.json`,
+sha256 `3ff1230e…`). The USDT-over-Coinbase basis finished positive and
+strictly above the basis five days earlier, then sell the USDT book for eight
+days: 132 trades, mean −256.6978 bps, null p95 −106.2501 bps, −$338.8411.
+The file's gross is −237.1917 bps. **Nothing here is fit to add.** The mean
+is negative and under the null. One USDT leg. The edge-off set has 226
+trades and a mean of −169.8038 bps. A count taken before the freeze was 132
+against 226. The scored book is 132 and 226. The rule was not changed. This
+is not a testing row and it is not taken out of sample.
+
+### 3.347 Strictly under the Deribit close: the screen passes by 1.0902 bps and stays in 2023 (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp301-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp301/screen_2023.json`,
+sha256 `5b952dc8…`). Fair value is the Deribit BTC-PERPETUAL daily close,
+used only after that 08:00 UTC candle has ended. The finished USDT close was
+strictly under that close, then buy the USDT book for eleven days: 172
+trades, mean +323.8225 bps, null p95 +322.7323 bps, +$556.9747. The file's
+gross is +344.4908 bps. The three screen bars pass. The gap over the house
+p95 is 1.0902 bps. The edge-off set has 183 trades and a mean of +299.0321
+bps. The cutoff is the house p95, not that mean. A gap inside 20 bps stays
+inside 2023. One USDT leg. A count taken before the freeze was 172 against
+183. The scored book is 172 and 183. The rule was not changed. This is not a
+testing row and it is not taken out of sample.
+
+### 3.348 Coin-margined five basis points over Deribit: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp302-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp302/screen_2023.json`,
+sha256 `5a48c10c…`). The finished coin-margined close was at least five basis
+points above the Deribit close, then sell the coin-margined book for sixteen
+days: 169 trades, mean −383.7257 bps, null p95 −384.6684 bps, −$648.4965.
+The file's gross is −364.4739 bps. **Nothing here is fit to add.** The mean
+is negative. It sits 0.9427 bps above a negative null. One coin-margined
+leg. The edge-off set has 172 trades and a mean of −400.9046 bps. The
+coin-margined book is missing 2023-08-28 through 2023-08-31. Those days were
+not filled in. A count taken before the freeze was 169 against 172. The
+scored book is 169 and 172. The rule was not changed. This is not a testing
+row and it is not taken out of sample.
+
+### 3.349 Coin-margined strictly under Deribit: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp303-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp303/screen_2023.json`,
+sha256 `514e808a…`). The finished coin-margined close was strictly under the
+Deribit close, then buy the coin-margined book for six days: 167 trades,
+mean +146.2166 bps, null p95 +201.3999 bps, +$244.1817. The file's gross is
++166.5293 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. One coin-margined leg. The edge-off set has 184 trades and a mean
+of +176.5029 bps. The cutoff is the house p95, not that mean. The missing
+coin-margined days were not filled in. A count taken before the freeze was
+167 against 184. The scored book is 167 and 184. The rule was not changed.
+This is not a testing row and it is not taken out of sample.
+
+### 3.350 A wider Deribit premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp304-protocol.md`) was committed before any
+return (`21d193c`). Two runs matched (`backtests/fp304/screen_2023.json`,
+sha256 `0c1d4b8a…`). The USDT-over-Deribit basis finished positive and
+strictly above the basis six days earlier, then sell the USDT book for ten
+days: 133 trades, mean −251.4445 bps, null p95 −181.2094 bps, −$334.4212.
+The file's gross is −231.9279 bps. **Nothing here is fit to add.** The mean
+is negative and under the null. One USDT leg. The edge-off set has 223
+trades and a mean of −246.3895 bps. A count taken before the freeze was 133
+against 223. The scored book is 133 and 223. The rule was not changed. Only
+DBCHP clears the three bars, and it clears the edge-off trade by 1.0902 bps.
+That gap stays inside 2023. This is not a testing row and it is not taken
+out of sample.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
