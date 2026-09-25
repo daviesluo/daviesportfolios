@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp161–fp168 are scored. BRKHI passes the 2023 screen. The later years are not read.** The pre-registration is `docs/agents/reviews/2026-09-25-fp164-prereg-brkhi.md`, sha256 `28a3d44d…`, frozen 2026-09-25T08:45:36Z. Seven mechanisms fail. The count stays 30. No testing row. No pull request. Main was not pushed.
+**fp161–fp168 are scored. BRKHI clears the pre-registered bar. The other seven stay void.** Entries 2024-01-01 through 2026-09-24: 146 trades, +$97.4032. No testing row was armed. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 08:50 UTC] Platform: Cursor | Model: Grok 4.7
+
+**BRKHI clears the pre-registered bar. The other seven stay void.** The pre-registration was `bcd36e4`'s file, sha256 `28a3d44d…`, frozen 2026-09-25T08:45:36Z, before this pull. 2023 reproduces: 70 trades, +$92.7466. The rule file's hash is the screen's. Entries 2024-01-01 through 2026-09-24: 146 trades, +$97.4032, mean +$0.667145, null p95 +$0.2108 on 479 breaks (`4ffe792e…`). 2024 +$60.2943. 2025-01-01 through 2026-09-24 +$37.1089. Doubled costs +$68.0377. February 2024 +$18.7778, share 0.1928, without it +$78.6254. Annualised 0.356234 on the locked $100 over 998 days. Two runs matched. The daily grid has 998 bars and stops on 2026-09-24. No bar on 2026-09-25 was stored. Every fill was recomputed from the stored open, high and close. The buy is still yesterday's high, or the open when the open is already through, and the sell is still that day's close. It was not rewritten as a next-day entry. FNCLIMB, ACCUM, TAKTGT, FAILSH, VOL3, WIDE4 and FLOW stay void. No count was lowered. No testing row was armed. Not a live row. Not a migration. No pull request. Main was not pushed.
 
 ### [2026-09-25 08:46 UTC] Platform: Cursor | Model: Grok 4.7
 

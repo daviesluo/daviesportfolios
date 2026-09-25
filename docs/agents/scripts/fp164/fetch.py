@@ -117,6 +117,49 @@ def pull_opens(end_ms: int, rel: str, indexes: tuple[int, ...]) -> dict[int, tup
     return rows
 
 
+def pull_oos(start_ms: int, end_ms: int) -> dict[int, tuple]:
+    """Daily open, high, low, close from 2024-01-01 through 2026-09-24.
+
+    The last bar is an exit for that day's entry. A bar on 2026-09-25 is not stored.
+    """
+    if end_ms >= 1_790_294_400_000:
+        raise SystemExit("a bar on 2026-09-25 was requested")
+    cursor = start_ms
+    rows: dict[int, tuple] = {}
+    while cursor <= end_ms:
+        url = (
+            f"{MARKET}/api/v3/klines?symbol=BTCUSDT&interval=1d"
+            f"&startTime={cursor}&endTime={end_ms}&limit=1000"
+        )
+        batch = json.loads(get(url))
+        if not batch:
+            break
+        for kline in batch:
+            open_ms = int(kline[0])
+            if open_ms < start_ms or open_ms > end_ms:
+                continue
+            if len(kline) < 5:
+                raise SystemExit("a kline is missing the close")
+            rows[open_ms] = (float(kline[1]), float(kline[2]), float(kline[3]), float(kline[4]))
+        nxt = int(batch[-1][0]) + c.fp5.DAY_MS
+        if nxt <= cursor:
+            break
+        cursor = nxt
+        if len(batch) < 1000:
+            break
+    if not rows or min(rows) != start_ms or max(rows) != end_ms:
+        raise SystemExit("the out-of-sample daily grid does not span the window")
+    t = start_ms
+    while t <= end_ms:
+        if t not in rows:
+            raise SystemExit("the out-of-sample grid is missing a day")
+        t += c.fp5.DAY_MS
+    if any(day >= end_ms + c.fp5.DAY_MS for day in rows):
+        raise SystemExit("a bar on 2026-09-25 was stored")
+    save("oos_1d/BTCUSDT.json", rows)
+    return rows
+
+
 def pull_funding(last_day_ms: int) -> dict[int, tuple]:
     out: dict[int, tuple] = {}
     last = datetime.datetime.fromtimestamp(last_day_ms / 1000, datetime.timezone.utc).strftime("%Y-%m")

@@ -4729,7 +4729,7 @@ The file's gross is +18.1385 bps. **Nothing here is fit to add.** The count
 cleared and the mean was negative and under the null. The null is that same
 target on every day. Two percent was not refit. One was not the cut.
 
-### 3.193 A wide break of yesterday's high: the screen passes, the later years are not read (2026-09-25)
+### 3.193 A wide break of yesterday's high: the screen passes, and the later years clear (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp164-protocol.md`) was committed before any
 return (`587361b`). Two runs matched (`backtests/fp164/screen_2023.json`,
@@ -4742,10 +4742,21 @@ last bar is 2023-12-31. Three fills were recomputed from the stored open,
 high, low and close and matched. **The 2023 screen passes.** The
 pre-registration (`reviews/2026-09-25-fp164-prereg-brkhi.md`, sha256
 `28a3d44d…`, frozen 2026-09-25T08:45:36Z, BTCUSDT bid 84306.00000000, ask
-84306.01000000, half-spread 5.930775627881614e-08) is frozen before any daily
-bar after 2023-12-31 is read. The later years are not scored in this note.
-The width is the finished day's range. The buy is a price inside that day.
-That is the fill the screen ran.
+84306.01000000, half-spread 5.930775627881614e-08) was frozen before any daily
+bar after 2023-12-31 was read. The width is the finished day's range. The buy
+is a price inside that day. That fill was not rewritten as a next-day entry.
+Two out-of-sample runs matched (`backtests/fp164/brkhi_oos.json`, sha256
+`4ffe792e…`). 2023 reproduces: 70 trades, +$92.7466. Entries from 2024-01-01
+through 2026-09-24: 146 trades, +$97.4032, mean +$0.667145, null p95 +$0.2108,
+against 479 breaks with the width filter off. 2024 is +$60.2943 and
+2025-01-01 through 2026-09-24 is +$37.1089. Doubled costs are +$68.0377.
+February 2024 is +$18.7778, 19.28% of the total; without it the total is
++$78.6254. Annualised on the locked $100 over 998 days it is 0.356234. The
+daily grid has 998 bars and stops on 2026-09-24. No bar on 2026-09-25 was
+stored. Every out-of-sample fill was recomputed from the stored open, high
+and close and matched. **This clears the pre-registered bar.** It is fit to
+add on paper, BTC only, at this size. It is not a live row and not a
+migration. No testing row was armed.
 
 ### 3.194 A short after a failed break: none clears (2026-09-25)
 
