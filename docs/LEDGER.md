@@ -835,6 +835,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 03:08 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, more rules frozen in the same round, none of them run** (branch `cursor/polymarket-fp5-b50c`; not on main). Davies said a round does not stop after one rule, and this round needs at least eight. POST's fetch has finished; the file has not been opened and no return has been computed. FADE, ROUND, COPY and VOL stay failed.
+- Killed on arithmetic, not run (`reviews/2026-09-25-polymarket-fp5-round8-kills.md`): an overlapping week cannot force a bracket to zero (58 posts in two days is wider than a bracket); buying the dearest bracket because it is the dearest never clears the fee; a geopolitics quote has no queue in the public tape; a second grid of the same week exists five times, all in 2025, so the out-of-sample count is zero; buying NO on a rare bracket is FAV and stays failed. Betfair stays the kill in the 02:59 POST pre-registration.
+- Frozen, not yet run: HITS (`reviews/2026-09-25-polymarket-fp5-prereg-hits.md`, hand fill +88.560401), POISSON (`reviews/2026-09-25-polymarket-fp5-prereg-poisson.md`, hand fill +39.351744), PACE (`reviews/2026-09-25-polymarket-fp5-prereg-pace.md`, hand fill +39.351744). No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+
 ### [2026-09-25 02:59 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 POST pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). FADE failed in the 02:52 section and is not being retuned. ROUND, COPY and VOL stay failed. Davies asked for two ideas. A Polymarket–Betfair gap is not run: Betfair's historical files are a purchased package behind a session token, the free football CSV is one closing price and not the same contract, and one leg alone is the information bet fp4's S5 already refused. The rule that is frozen buys, on Elon tweet ladders (series 10000) and Trump Truth Social ladders (series 11108), the bracket past windows of the same length landed in most often, and only when the live brackets at the open are within 3¢. It sells a day before the end when the shown price has risen, and otherwise holds. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-post.md`. `post_test.py --self-check` passes (round trip +5.348107, hold to a win +72.205128). No opening price and no return have been read. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
