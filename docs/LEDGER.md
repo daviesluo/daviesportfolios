@@ -8,10 +8,11 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp15 failed the 2023 screen and is discarded** (§3.44). Do not score the
-low ratio, and do not reopen the quiet-day range, DVOL minus realized vol,
-dispersion, or skew. fp5 through fp14 stay closed, including LS-FADE. The
-next search is not written. No testing row. No pull request. No push to
+**fp16 protocol is written. No return has been computed.** The rule is the
+lag-1 correlation of BTC's 24 hourly returns, long the next day when that
+correlation is above its own trailing 90th. The negative tail is not a
+candidate. Do not reopen fp5 through fp15, including LS-FADE and RV-RATIO.
+The screen is the next step. No testing row. No pull request. No push to
 main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -835,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:52 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp16 protocol only. No return has been computed.** A different family from
+the eleven closed rounds: the lag-1 correlation of BTC's 24 hourly returns,
+long spot the next day. RV-RATIO, the quiet-day range, DVOL minus realized
+vol, dispersion and skew stay closed. The negative tail is not a candidate.
+`pin_test.py` passed before this commit. The screen is the next step. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 01:48 UTC] Platform: Cursor | Model: Grok 4.7
 
