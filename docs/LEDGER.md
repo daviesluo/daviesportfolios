@@ -8,7 +8,9 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp161–fp168 are scored. BRKHI clears the pre-registered bar. The other seven stay void.** Entries 2024-01-01 through 2026-09-24: 146 trades, +$97.4032. No testing row was armed. No pull request. Main was not pushed.
+**BRKHI is void. The later years were recorded and the rule is not a testing row.** The buy is a price inside the day, and the four-day width uses that day's finished high and low, which are not known at the buy. The rule was not rewritten and was not run again. Entries 2024-01-01 through 2026-09-24 stay in the research record: 146 trades, +$97.4032. No pull request. Main was not pushed.
+
+**fp169–fp176 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL, LAG6, HHSH and C3. The count stays 30.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +834,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:02 UTC] Platform: Cursor | Model: Grok 4.7
+
+**BRKHI is void. fp169–fp176 are protocols only. No return of these rules has been computed.** The later years of BRKHI stay in the research record and the rule is not a testing row. The buy is a price inside the day, and the four-day width uses that day's finished high and low, which are not known at the buy. The rule was not rewritten and was not run again. Reference §3.193 says the rule is void. Pins printed fp169 through fp176 pins ok before this commit. Frequency was counted with no return, and each count is above 30: an outside day 42, the 08:00 funding rate strictly the lowest of the three 74, a close strictly above yesterday's high 84, a down day 182, a day strictly inside the range of three days earlier 69, a range strictly wider than the range six days earlier 179, two higher highs 73, a close strictly above each of the prior three closes 119. A funding sign that flips through the day was 30 and was not frozen. A spring under the prior three lows was 16 and was not widened. The narrowest of four, volume above each of the prior three, and open interest down with the taker ratio down were counted and were not frozen. OUTNEXT longs the next session after an outside day. FNTROUGH longs one day after the 08:00 funding rate is strictly the lowest of the three. The funding cash is not added. THRU longs the next session after a close strictly above yesterday's high, and does not buy that high. STOPLOW buys the next open after a down day and sells at the prior day's low when that low trades, otherwise at the close. The level is known before the open. COIL longs the next session after a day strictly inside the high and the low of three days earlier. LAG6 buys the next open and sells the open two days later after a range strictly wider than the range six days earlier. HHSH shorts the next open to the open after that after two higher highs. The funding cash is not added. C3 buys the next open and sells the open three days later after a close strictly above each of the prior three closes. The three prior closes need not themselves be rising. The null of each rule is the same payoff on a larger pool, so the rule is a subset. The count stays 30. No percentile is used. No sign of a killed rule is flipped. BRKHI, FNCLIMB, ACCUM, TAKTGT, FAILSH, VOL3, WIDE4 and FLOW stay closed. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. fp145–fp152 stay closed. UMCMJMP stays at 26 trades. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 08:50 UTC] Platform: Cursor | Model: Grok 4.7
 

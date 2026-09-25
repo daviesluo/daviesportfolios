@@ -4729,7 +4729,7 @@ The file's gross is +18.1385 bps. **Nothing here is fit to add.** The count
 cleared and the mean was negative and under the null. The null is that same
 target on every day. Two percent was not refit. One was not the cut.
 
-### 3.193 A wide break of yesterday's high: the screen passes, and the later years clear (2026-09-25)
+### 3.193 A wide break of yesterday's high: the later years clear, and the rule is void (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp164-protocol.md`) was committed before any
 return (`587361b`). Two runs matched (`backtests/fp164/screen_2023.json`,
@@ -4754,9 +4754,10 @@ February 2024 is +$18.7778, 19.28% of the total; without it the total is
 +$78.6254. Annualised on the locked $100 over 998 days it is 0.356234. The
 daily grid has 998 bars and stops on 2026-09-24. No bar on 2026-09-25 was
 stored. Every out-of-sample fill was recomputed from the stored open, high
-and close and matched. **This clears the pre-registered bar.** It is fit to
-add on paper, BTC only, at this size. It is not a live row and not a
-migration. No testing row was armed.
+and close and matched. The six lines cleared. **The rule is void.** The buy
+is a price inside the day, and the four-day width uses that day's finished
+high and low, which are not known at the buy. The rule was not rewritten and
+was not run again. It is not a testing row.
 
 ### 3.194 A short after a failed break: none clears (2026-09-25)
 
