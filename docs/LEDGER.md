@@ -835,6 +835,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:52 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 FADE was run and it fails. Not a testing candidate.** The 02:48 section froze the rule and said the run was next. This section is that run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. ROUND, COPY and VOL were not retuned.
+- Out of sample: **+$54.579594 on 62 trades**. OOS1 +$83.21 on 39, OOS2 −$28.63 on 23. Stress +$27.73. Null 95th +$109.34. In sample +$44.47 on 37. March is +$48.03, 88 % of the total; without it the remainder is +$6.55, so the month fails on the 40 % cap. YES +$4.81 on 41 and NO +$49.77 on 21 were read after the run and not promoted. Stress and +7.87 % a year on a $10 peak pass. The halves, the null, the trade count and the month do not.
+- The pull: 369 ladders, 108 inside the band, no missing earlier price, no incomplete tape. Input sha256 `d71aa476a8f66c4914b904430b330e127b0e5c27539123b7a855eb766c63fda0`. Both runs sha256 `382cf28ae7e537150179008c4f49ce85ae0d1daff4e9db7fe2d56b87e3f4a264`. `fade_test.py` is still the freeze's blob. Write-up: `reviews/2026-09-25-polymarket-fp5-fade.md`. The six-hour fade is not retried the other way, at another lag, with a wider band, or with March removed.
+
 ### [2026-09-25 02:48 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 FADE pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). ROUND failed in the 02:42 section and is not being retuned: one side is not taken, September stays in the sum, and the strike spacing stays at $10,000. COPY and VOL stay failed. The next rule buys the side a six-hour move made cheaper, on the daily Bitcoin strike whose shown price is closest to one half inside 0.40 to 0.60, and holds to settlement. No spot, no neighbor line and no wallet. The band chooses the strike; it is not a claim that 0.40–0.60 is underpriced. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-fade.md`. `fade_test.py --self-check` passes (hand fill +13.977244). Hourly up/down fade is not opened: the history there lags the prints by about 12¢. No decision-time price and no return have been read. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.

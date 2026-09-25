@@ -2758,6 +2758,17 @@ the NO buys lose. In sample loses too (−$377.46 on 92). The write-up is
 `reviews/2026-09-25-polymarket-fp5-round.md`. Not a paper test and not a live row. Not retried at a
 finer modulus, on one side only, or with September removed.
 
+### 3.37 FADE, a six-hour move taken the other way, fails its bar (2026-09-25)
+
+The same search's fourth test. On the daily Bitcoin ladder the strike closest to one half, inside 0.40
+to 0.60, is bought on the side a six-hour move made cheaper, after the taker fee and one tick, and held
+to settlement. No spot, no neighbor line and no wallet. The band chooses the strike. Pre-registered
+before any price of the rule (`reviews/2026-09-25-polymarket-fp5-prereg-fade.md`). Out of sample:
+**+$54.58 on 62 trades**. One half is negative (−$28.63 on 23). Stress +$27.73. The null's 95th
+percentile is +$109.34. March is 88 % of the profit. The write-up is
+`reviews/2026-09-25-polymarket-fp5-fade.md`. Not a paper test and not a live row. Not retried by
+following the move, at another lag, with a wider band, or with March removed.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
