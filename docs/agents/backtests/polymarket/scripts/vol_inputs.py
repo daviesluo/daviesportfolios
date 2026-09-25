@@ -65,11 +65,14 @@ def load_dvol(td_min, td_max):
     end_ms = int(td_max) * 1000
     while cursor < end_ms:
         chunk_end = min(cursor + 40 * 86400 * 1000, end_ms)
-        if any(cursor <= t < chunk_end for t in by):
-            # Still fetch if the chunk is sparse: require a candle within the first day.
-            if any(cursor <= t < cursor + 86400 * 1000 for t in by):
-                cursor = chunk_end
-                continue
+        # One candle on the boundary is not a cached chunk. Deribit's end is inclusive, so the
+        # previous window's last hour sits on this cursor; skipping on that one candle dropped
+        # every other 40-day window (found before any return was computed).
+        have = sum(1 for t in by if cursor <= t < chunk_end)
+        expect = max(1, int((chunk_end - cursor) / 3600000) - 1)
+        if have >= expect * 0.9:
+            cursor = chunk_end
+            continue
         rows = deribit(cursor, chunk_end)
         for c in rows:
             by[int(c[0])] = float(c[4])

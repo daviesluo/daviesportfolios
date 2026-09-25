@@ -835,6 +835,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 00:44 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 VOL was run and it fails. Not a testing candidate.** The 00:26 section froze the rule and said the run was next. This section is that run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+- Primary, hourly DVOL, out of sample: **−$239.675216 on 146 trades**, OOS1 −$277.08 on 88, OOS2 +$37.41 on 58. Stress −$320.42. Null 95th +$418.13. Only the ≥80-trade condition passes. The shown-history counterfactual is still −$200.37, so it is not fp4's history lag. Secondary realised vol also fails (−$20.79 on 167). The digital-versus-vol family is discarded, including an ETH twin and a threshold change.
+- Deviation, before any P&L: the frozen puller skipped a Deribit chunk on one boundary candle and dropped every other 40 days (190 of 367 events had no DVOL). It now requires 90 % of the hours the pre-registration named. The candle definition did not change. Input sha256 `ed5bf0928e10f8c3bc1039a7ff04904d7b5838e16baffd9496c56dcc2fe4bc17`. Both runs sha256 `5d599374b8d5cc9cb6dff94a5d91ca16bce75267cfcf500de26d7c9f24fa04d0`. Write-up: `reviews/2026-09-25-polymarket-fp5-vol.md`.
+
 ### [2026-09-25 00:26 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, Polymarket only, pre-registration frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main).

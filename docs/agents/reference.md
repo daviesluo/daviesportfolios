@@ -2721,6 +2721,19 @@ concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games
 of one day and with the rewards computed from the published formula; what Polymarket actually pays is visible only to
 an account that quotes, and whether this one may is the review's §0.
 
+### 3.34 VOL, a Deribit digital on the daily Bitcoin ladder, fails its bar (2026-09-25)
+
+A fifth search, Polymarket only, on the same six conditions as FAV. The rule buys the cheap side of the noon-ET
+Binance ladder where a zero-drift digital (Deribit hourly DVOL, 16 hours to the print) still has edge one tick
+through the shown price after the crypto taker fee, and holds to the Binance settlement. Pre-registered before
+the run (`reviews/2026-09-25-polymarket-fp5-prereg-vol-digital.md`); the puller's chunk skip was repaired before
+any P&L, and the study records that deviation. Out of sample, 2026-01-01 → 2026-09-11: **−$239.68 on 146 trades**,
+one half positive, stress −$320.42, short of the calibration null. A 24-hour realised-vol arm also loses
+(−$20.79 on 167). The write-up is `reviews/2026-09-25-polymarket-fp5-vol.md`. Not a paper test and not a live
+row. The same search's arithmetic kills — a leaderboard with no as-of date, a dispute with no proposal time, a
+4 bp Kraken basis, the 2028 nomination against the presidency, funding as a drift, a one-month longshot — are
+in that study. Access is unchanged from §3.33: this account does not open a Polymarket position.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
