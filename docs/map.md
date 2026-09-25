@@ -717,7 +717,7 @@ before touching migration state.
 | `docs/agents/scripts/fp24/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Total BTC transaction fees, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp24/screen_2023.json`. |
 | `docs/agents/scripts/fp25/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC held on exchanges, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp25/screen_2023.json`. |
 | `docs/agents/scripts/fp26/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `body_test.py` | The candle body as a share of the day's range, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp26/screen_2023.json`. The later years are `docs/agents/backtests/fp26/body_oos.json`. |
-| `docs/agents/scripts/fp27/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The daily change in addresses holding BTC, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp27/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The daily change in addresses holding BTC, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp27/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

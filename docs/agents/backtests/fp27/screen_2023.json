@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp27_common": "d2ca33d1b3504a3f05aa81359d8445edb4a222cccba50c04c15ef04224f1eda4",
+    "fp27_measure": "363f15b92010eb6ae4f4f3fd0c02f5d160757c89e3d5f38599ed8d65ab47e200",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BAL-CHG",
+      "mean_gross_bps": 41.4804,
+      "mean_net_bps": 21.4175,
+      "min_n": 30,
+      "n": 48,
+      "note": "Rise in addresses with a balance, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 60.9592,
+      "passes_screen": false,
+      "total_pnl_usd": 10.2804
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "counts": "6972104efc3be263281cf346088af93d2963fbe82cfea21a040d25de98e1517e"
+  },
+  "passed": [],
+  "protocol_sha256": "41f408a356ce16c7334fe0ca23f5026d2560b3bbd42e443b6cd7e66474ab9939"
+}

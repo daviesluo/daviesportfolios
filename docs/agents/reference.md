@@ -2979,6 +2979,18 @@ Without February 2024 the total is −$5.835. Annualised on the locked $100
 it is 1.94%. The 80th neighbor loses (−$26.5839, 210 trades). **Nothing
 here is fit to add.** A doji and the 80th are not candidates.
 
+### 3.56 The change in funded addresses: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp27-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp27/screen_2023.json`). The daily
+change in addresses holding BTC, above its own trailing 90th, long spot the
+next day: 48 trades, mean +21.4 bps, null p95 +61.0 bps. The gross move was
++41.5 bps. The count series has 457 prints and no hole; the first day has no
+earlier count, so there are 456 changes. The daily grid has no hole.
+**Nothing here is fit to add.** The count cleared and the mean was positive;
+it lost to the null. A day the count did not rise and the 80th are not
+candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
