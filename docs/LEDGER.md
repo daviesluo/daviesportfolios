@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp13 failed the 2023 screen and is discarded** (§3.42). Do not lower the
-count, and do not score the low tail of the implied-vol spread. fp5 through
-fp12 stay closed. The next search is not written. No testing row. No pull
-request. No push to main.
+**fp14 protocol is written and the screen is not scored.** Cross-sectional
+8h return skew, long BTC the next 8h. Dispersion stays closed, and the left
+tail is not a candidate. fp5 through fp13 stay closed. No testing row. No
+pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +834,14 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:32 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp14 protocol only. No return has been computed.** A different statistic
+from the nine closed rounds: population skewness of the basket's 8h returns,
+long spot the next 8h. Dispersion is the second moment and stays closed.
+`pin_test.py` passed before this commit. The screen is the next step. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 01:30 UTC] Platform: Cursor | Model: Grok 4.7
 
