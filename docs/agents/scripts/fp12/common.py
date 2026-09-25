@@ -18,8 +18,8 @@ _SPEC.loader.exec_module(fp5)
 MIN_N = 30
 
 
-def _upper(points: list[tuple[int, float]]) -> list[int]:
-    """Timestamps strictly above their own trailing-90-day 90th. The low tail is not returned."""
+def _upper(points: list[tuple[int, float]], q: float = 0.90) -> list[int]:
+    """Timestamps strictly above their own trailing-90-day quantile. The low tail is not returned."""
     points = sorted(points)
     out = []
     for i, (ts, value) in enumerate(points):
@@ -28,7 +28,7 @@ def _upper(points: list[tuple[int, float]]) -> list[int]:
             for j in range(i)
             if ts - 90 * fp5.DAY_MS <= points[j][0] < ts
         ]
-        thr = fp5.rank_threshold(hist, 0.90, 90)
+        thr = fp5.rank_threshold(hist, q, 90)
         if thr is None or not value > thr:
             continue
         out.append(ts)
@@ -52,15 +52,25 @@ def dom_prints(bars: dict[int, tuple]) -> list[tuple[int, float]]:
     return prints
 
 
-def dom_entries(bars: dict[int, tuple]) -> list[int]:
-    return _upper(dom_prints(bars))
+def dom_entries(bars: dict[int, tuple], q: float = 0.90) -> list[int]:
+    return _upper(dom_prints(bars), q)
 
 
-def dom_trades(bars: dict[int, tuple], btc: dict[int, tuple]) -> list[dict]:
+def dom_trades(
+    bars: dict[int, tuple],
+    btc: dict[int, tuple],
+    q: float = 0.90,
+    fee: float = fp5.FEE,
+    start_ms: int = fp5.SCREEN_START_MS,
+    end_ms: int = fp5.SCREEN_END_MS,
+) -> list[dict]:
     """Enter spot BTC when dominance's last 8h bar was rich. Hold one 8h bar."""
     trades = []
-    for entry in dom_entries(bars):
-        trade = fp5._trade("BTCUSDT", entry, entry + fp5.EIGHT_H_MS, btc)
+    for entry in dom_entries(bars, q):
+        trade = fp5._trade(
+            "BTCUSDT", entry, entry + fp5.EIGHT_H_MS, btc,
+            fee=fee, start_ms=start_ms, end_ms=end_ms,
+        )
         if trade is not None:
             trades.append(trade)
     return trades

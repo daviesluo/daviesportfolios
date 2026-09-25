@@ -8,10 +8,11 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp12 protocol is written and not scored.** One rule, not the closed
-families: the BTC dominance contract's 8h return, long spot BTC for the next
-8h. No return has been computed. fp5 through fp11 stay closed. No testing
-row. No pull request. No push to main.
+**fp12 passed the 2023 screen and is pre-registered. Out of sample is not
+scored yet.** DOM-UP, 115 trades, +30.95 bps against a null of +4.80, +$35.59.
+The pre-registration is frozen (`d5dc5a69…`, 2026-09-25T01:22:11Z). No 2024
+price has been read. Neighbors are the 80th and the 95th. No testing row.
+No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
