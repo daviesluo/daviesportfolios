@@ -1,0 +1,70 @@
+{
+  "annualised": -0.233497,
+  "conditions": {
+    "above_cash": false,
+    "at_least_30": true,
+    "beats_null": false,
+    "both_subwindows_positive": false,
+    "doubled_costs_positive": false,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": -86.0939,
+  "half_spread": 4.914729444141376e-05,
+  "input_sha256": {
+    "oos_avax_1d": "01ce12a488ab72bc152847b9ef1452ff752f6c292de3d22b60e352859efce212",
+    "oos_btc_1d": "d4bb703d032ba3dc30ec86078b91cf70078fc5ff9a16833498d154c48a185dd4",
+    "screen_avax_1d": "515f7c34ddbcdf7ecab3ef129cab2a71fa8971b0c868d898757d92d8ac53c327",
+    "screen_btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "neighbors_hold": false,
+  "oos1_pnl_usd": -14.5546,
+  "oos2_pnl_usd": -49.2892,
+  "oos_days": 998,
+  "passes": false,
+  "prereg_sha256": "b080801a6326a2966347eea41ac1e525ec5cb00be1f4284d82fadd0ea8e59bd1",
+  "primary": {
+    "beats_null": false,
+    "best_month": "2026-09",
+    "best_month_pnl_usd": 6.0157,
+    "best_month_share": -0.0942,
+    "by_month": {
+      "2024-03": -2.6348,
+      "2024-06": -3.7072,
+      "2024-07": -11.6912,
+      "2024-08": 0.0683,
+      "2024-09": 1.3702,
+      "2024-10": 4.2583,
+      "2024-11": 3.6126,
+      "2024-12": -5.8307,
+      "2025-03": -6.0251,
+      "2025-04": -3.2821,
+      "2025-05": 1.7595,
+      "2025-06": -2.0891,
+      "2025-07": -6.9224,
+      "2025-08": -6.2313,
+      "2025-09": -23.8346,
+      "2025-12": -2.3412,
+      "2026-01": -2.6009,
+      "2026-02": -2.3083,
+      "2026-04": -5.3955,
+      "2026-05": -1.9474,
+      "2026-06": 5.2519,
+      "2026-07": -0.6661,
+      "2026-08": 1.3277,
+      "2026-09": 6.0157
+    },
+    "mean_pnl_usd": -0.570034,
+    "n": 112,
+    "null_p95_pnl_usd": 0.442,
+    "total_pnl_usd": -63.8438,
+    "without_best_month_usd": -69.8595
+  },
+  "quantile_80_n": 178,
+  "quantile_80_pnl_usd": -50.7577,
+  "quantile_95_n": 71,
+  "quantile_95_pnl_usd": -63.2799,
+  "screen_reproduction": {
+    "n": 77,
+    "total_pnl_usd": 80.1845
+  }
+}

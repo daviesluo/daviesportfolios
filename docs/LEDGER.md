@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp95–fp102 are scored on 2023. AVAX-Q passes that screen. Its pre-registration is frozen and no later-year price has been read.** The other seven have fills and fail. No hourly bar was read. ETH was not scored. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp94, and the previous rounds' named ideas stay closed. No testing row yet. No pull request. Main was not pushed.
+**fp95–fp102 are scored. AVAX-Q passed 2023 and failed the later years. Nothing passes the house bar.** The other seven have fills and fail the 2023 screen. No hourly bar was read. ETH was not scored. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp94, and the previous rounds' named ideas stay closed. The 80th and the 95th of AVAX-Q lose and are not candidates. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:29 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp95–fp102 are scored. AVAX-Q passed 2023 and failed the later years. Nothing passes the house bar.** Protocol was `6b35a2c`. The pre-registration was `0a3786a`, sha256 `b080801a6326a2966347eea41ac1e525ec5cb00be1f4284d82fadd0ea8e59bd1`, frozen 2026-09-25T05:23:21Z, AVAXUSDT bid 10.17300000, ask 10.17400000, half-spread 4.914729444141376e-05. Two out-of-sample runs matched (`docs/agents/backtests/fp100/avax_oos.json`, sha256 `01fa9fa2c80778b4c2831f5a2e40c1f1b8d662d9eb66005733e282e739426e5c`). 2023 reproduces: 77 trades, +$80.1845. Entries from 2024-01-01 through 2026-09-24: 112 trades, total −$63.8438, mean −$0.570034, null p95 +$0.442. OOS1 −$14.5546. OOS2 −$49.2892. Doubled costs −$86.0939. Best month 2026-09 +$6.0157, share −0.0942, without it −$69.8595. Annualised −0.233497 on the locked $100 over 998 days. The 80th loses (−$50.7577, 178 trades). The 95th loses (−$63.2799, 71 trades). `passes` is false. Reference §3.124–§3.131. No hourly bar was read. ETH was not scored. No sign was flipped. No count was lowered. The window was not shrunk. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, and fp30–fp94 stay closed. Neither neighbour is a candidate. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:25 UTC] Platform: Cursor | Model: Grok 4.7
 

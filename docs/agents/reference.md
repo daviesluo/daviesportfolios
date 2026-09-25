@@ -3936,6 +3936,132 @@ The hole was not filled in. 457 days have a return. **Nothing here is fit to
 add.** The count cleared and the mean was positive; it lost to the null. A
 last close under the first hour's close, and the 80th, are not candidates.
 
+### 3.124 SOL's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp95-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp95/screen_2023.json`). SOL's daily
+quote volume divided by BTC's, above its own trailing 90th, long SOL the next
+day: 83 trades, mean +10.4 bps, null p95 +138.8 bps, +$8.60. The file's gross
+is +30.4074 bps, the mean is +10.3667 bps, the null is +138.8212 bps, and the
+total is +$8.6043. The null is SOL's own one-day holds, so it does not match
+a BTC screen. 84 days cleared the 90th. The 2022-12-30 print enters on
+2022-12-31, outside the screen, so 83 trades fill. The daily grid has 458
+bars. The 2024-01-01 quote is stored as zero and is not a print, so 457 days
+have a ratio. No hourly bar was read. ETH was not scored. **Nothing here is
+fit to add.** The count cleared and the mean was positive; it lost to the
+null. A day SOL was quiet versus BTC, and the 80th, are not candidates.
+
+### 3.125 BNB's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp96-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp96/screen_2023.json`). BNB's daily
+quote volume divided by BTC's, above its own trailing 90th, long BNB the next
+day: 78 trades, mean −20.5 bps, null p95 +25.025 bps, −$16.03. The file's
+gross is −0.5662 bps, the mean is −20.5451 bps, and the total is −$16.0252.
+The null is BNB's own one-day holds, so it does not match a BTC screen. The
+daily grid has 458 bars. The 2024-01-01 quote is stored as zero and is not a
+print, so 457 days have a ratio. All 78 signal days have a trade. No hourly
+bar was read. ETH was not scored. **Nothing here is fit to add.** The count
+cleared and the mean was negative. A day BNB was quiet versus BTC, and the
+80th, are not candidates.
+
+### 3.126 XRP's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp97-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp97/screen_2023.json`). XRP's daily
+quote volume divided by BTC's, above its own trailing 90th, long XRP the next
+day: 57 trades, file mean −51.765 bps, null p95 +139.1 bps, −$29.506. The
+file's gross is −31.8486 bps and the null is +139.1256 bps. The null is XRP's
+own one-day holds, so it does not match a BTC screen. The daily grid has 458
+bars. The 2024-01-01 quote is stored as zero and is not a print, so 457 days
+have a ratio. All 57 signal days have a trade. No hourly bar was read. ETH
+was not scored. **Nothing here is fit to add.** The count cleared and the
+mean was negative. A day XRP was quiet versus BTC, and the 80th, are not
+candidates.
+
+### 3.127 DOGE's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp98-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp98/screen_2023.json`). DOGE's daily
+quote volume divided by BTC's, above its own trailing 90th, long DOGE the
+next day: 53 trades, mean −9.6 bps, null p95 +50.2 bps, −$5.07. The file's
+gross is +10.4376 bps, the mean is −9.5632 bps, the null is +50.1775 bps, and
+the total is −$5.0685. The null is DOGE's own one-day holds, so it does not
+match a BTC screen. The daily grid has 458 bars. The 2024-01-01 quote is
+stored as zero and is not a print, so 457 days have a ratio. All 53 signal
+days have a trade. No hourly bar was read. ETH was not scored. **Nothing here
+is fit to add.** The count cleared and the mean was negative. A day DOGE was
+quiet versus BTC, and the 80th, are not candidates.
+
+### 3.128 ADA's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp99-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp99/screen_2023.json`). ADA's daily
+quote volume divided by BTC's, above its own trailing 90th, long ADA the next
+day: 71 trades, mean −5.8 bps, null p95 +85.3 bps, −$4.14. The file's gross
+is +14.1812 bps, the mean is −5.8271 bps, the null is +85.2975 bps, and the
+total is −$4.1373. The null is ADA's own one-day holds, so it does not match
+a BTC screen. The daily grid has 458 bars. The 2024-01-01 quote is stored as
+zero and is not a print, so 457 days have a ratio. All 71 signal days have a
+trade. No hourly bar was read. ETH was not scored. **Nothing here is fit to
+add.** The count cleared and the mean was negative. A day ADA was quiet
+versus BTC, and the 80th, are not candidates.
+
+### 3.129 AVAX's quote over BTC's quote: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp100-protocol.md`) was committed before the
+2023 screen. Two runs matched (`backtests/fp100/screen_2023.json`). AVAX's
+daily quote volume divided by BTC's, above its own trailing 90th, long AVAX
+the next day: 77 trades, mean +104.1 bps, null p95 +96.2 bps, +$80.18. The
+file's gross is +124.3642 bps, the mean is +104.1357 bps, the null is
++96.2019 bps, and the total is +$80.1845. The null is AVAX's own one-day
+holds, so it does not match a BTC screen. The daily grid has 458 bars. The
+2024-01-01 quote is stored as zero and is not a print, so 457 days have a
+ratio. All 77 signal days have a trade. No hourly bar was read. ETH was not
+scored. The pre-registration (`reviews/2026-09-25-fp100-prereg-avax.md`,
+sha256 `b080801a…`, frozen 2026-09-25T05:23:21Z, AVAXUSDT bid 10.17300000,
+ask 10.17400000, half-spread 4.914729444141376e-05) was committed before any
+later-year daily quote. Two out-of-sample runs matched
+(`backtests/fp100/avax_oos.json`). 2023 reproduces: 77 trades, +$80.1845.
+Entries from 2024-01-01 through 2026-09-24: 112 trades, −$63.8438, mean
+−$0.570034, null p95 +$0.442. 2024 is −$14.5546 and 2025-01-01 through
+2026-09-24 is −$49.2892. Doubled costs are −$86.0939. September 2026 is
++$6.0157; without it the total is −$69.8595. Annualised on the locked $100
+over 998 days it is −0.233497. The 80th neighbor loses (−$50.7577, 178
+trades). The 95th loses (−$63.2799, 71 trades). The screen file's zero quote
+on 2024-01-01 is overwritten by the later file on the merge. The 2026-09-25
+quote stays zero. **Nothing here is fit to add.** Both later windows are
+negative, the mean loses to the null, and doubled costs lose. A day AVAX was
+quiet versus BTC, and either neighbour, are not candidates.
+
+### 3.130 LINK's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp101-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp101/screen_2023.json`). LINK's daily
+quote volume divided by BTC's, above its own trailing 90th, long LINK the
+next day: 82 trades, mean +24.1 bps, null p95 +76.738 bps, +$19.73. The
+file's gross is +44.1264 bps, the mean is +24.0582 bps, and the total is
++$19.7277. The null is LINK's own one-day holds, so it does not match a BTC
+screen. The daily grid has 458 bars. The 2024-01-01 quote is stored as zero
+and is not a print, so 457 days have a ratio. All 82 signal days have a
+trade. No hourly bar was read. ETH was not scored. **Nothing here is fit to
+add.** The count cleared and the mean was positive; it lost to the null. A
+day LINK was quiet versus BTC, and the 80th, are not candidates.
+
+### 3.131 LTC's quote over BTC's quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp102-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp102/screen_2023.json`). LTC's daily
+quote volume divided by BTC's, above its own trailing 90th, long LTC the next
+day: 63 trades, file mean −59.16 bps, null p95 +43.1 bps, −$37.27. The file's
+gross is −39.2585 bps, the null is +43.1045 bps, and the total is −$37.2708.
+The null is LTC's own one-day holds, so it does not match a BTC screen. The
+daily grid has 458 bars. The 2024-01-01 quote is stored as zero and is not a
+print, so 457 days have a ratio. All 63 signal days have a trade. No hourly
+bar was read. ETH was not scored. **Nothing here is fit to add.** The count
+cleared and the mean was negative. A day LTC was quiet versus BTC, and the
+80th, are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
