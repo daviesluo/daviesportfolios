@@ -57,10 +57,5 @@ jobs:
           git config user.email daviesluo@gmail.com
           git add -A
           git status --short
-          git commit -m "$(cat <<'EOF'
-Keep the scoreboard inside its frame, show deployed capital, and name the worst case.
-
-The scoreboard's last column stays inside the frame. The two test pages use the shorter labels, and a viewer sees PERFORMANCE VS S&P 500. Strategy tables show deployed dollars beside the venue, Polymarket's funded label stays on one line, Load full history appears only when that coin has rows the window left out, and the days column is named WORST CASE.
-EOF
-)"
+          git commit -m "Keep the scoreboard inside its frame, show deployed capital, and name the worst case."
           git push origin HEAD:main
