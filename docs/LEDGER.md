@@ -8,9 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp12 failed out of sample and is discarded** (§3.41). Do not score the
-lower tail of dominance. fp5 through fp11 stay closed. The next search is not
-written. No testing row. No pull request. No push to main.
+**fp13 protocol is written and not scored.** One rule, not the closed
+families: ETH implied vol minus BTC implied vol, long BTC the next day. No
+return has been computed. fp5 through fp12 stay closed. No testing row. No
+pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -833,6 +834,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:27 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp13 protocol only. No return has been computed.** A different family from
+the eight closed rounds: the gap between ETH and BTC implied vol, long spot
+the next day. `pin_test.py` passed before this commit. The screen is the
+next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:26 UTC] Platform: Cursor | Model: Grok 4.7
 
