@@ -6632,6 +6632,24 @@ as PICK, UNDER and STALE. A count taken before the freeze, with no profit
 computed, was 174 against 174. The scored book is 174. The rule was not
 changed. A Binance daily open is not a Revolut X fill.
 
+### 3.324 Eight more single-leg rules, frozen before any 2023 return (2026-09-25)
+
+RISE and LAGSP passed the 2023 screen in §3.322 and §3.323. RISE cleared the
+other trade by 12.2298 bps. LAGSP cleared it by 0.1308 bps. Both stay inside
+2023. Neither is a testing row. A mean that clears the other trade by 20 bps
+or less is not taken out of sample. fp281 through fp288 are frozen in the
+same commit as this note, before any return of those rules. None uses the
+opposite side as the other trade. Each null is another trade held the same
+number of days. It is not the same leg with the condition turned off. A count
+of spans, with no profit computed: PEAK 54 and 54, REBND 88 and 88, DROPCM 81
+and 81, TRIO 201 and 201, SOFTER 91 and 91, RESUME 51 and 51, LESSUP 94 and
+94, LIFTL 134 and 134. Fillable days were 355/355, 358/358, 347/347, 337/345,
+343/351, 361/361, 346/346 and 351/351. The screen count stays 30. A pass of
+2023 is not a testing row. Later years are scored only when the mean net is
+strictly more than 20 bps above the other trade and the three screen bars all
+pass. LS-FADE's 60-trade reproduction, the control, doubled costs, and the
+rule that no month is above 40% of the profit are not relaxed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
