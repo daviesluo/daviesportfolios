@@ -6343,6 +6343,10 @@ under the other trade, and one month is more than the whole profit. **The
 rule fails.** It was not rewritten. It is not a testing row. The next
 search does not inherit the two-day turn or the fifteen-day hold.
 
+### 3.304 A one-cent gap is not a testing row (2026-09-25)
+
+Davies, 2026-09-25: PICK is not built as a testing row and is not written as a Revolut X paper candidate. The other trade was about one cent ahead (+$1.004429 against +$0.9919). The 2025-01-01 through 2026-09-16 total is +$0.6733. The fill is a Binance daily open, not a price this account can get. LATER failed and is void. The buys and the sells were not moved. LS-FADE's 60-trade reproduction, the control, doubled costs, and the rule that no month is above 40% of the profit are not relaxed. The screen count stays 30. No testing row is added until a later window passes every pre-registered bar and the fill is a price on that contract. fp265 through fp272 are frozen in the same commit as this note, before any return of those rules. A count of spans, with no profit computed: LASTUP 63 and 63, UNDER 206 and 206, FASTER 118 and 118, LOUDER 170 and 175, STALE 89 and 89, INUP 69 and 69, BACK 123 and 123, LEDSP 169 and 169.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
