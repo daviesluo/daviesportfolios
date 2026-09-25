@@ -7458,6 +7458,51 @@ taken before the freeze was 84 against 274. The scored book is 84 and 274.
 The rule was not changed. This is not a testing row. The later years are
 not scored in this commit.
 
+### 3.369 The funding rules did not price the fill. None is taken out of sample (2026-09-25)
+
+Davies, 2026-09-25: after a round is scored, write what it actually tested
+before the next round is frozen. These eight are not eight price edges.
+
+What was tested is two sentences, each copied onto four books. The first
+buys for two days when the last settled funding rate is negative: UZERO on
+BTCUSDT, CZERO on BTCUSD_PERP, EZERO on ETHUSD_PERP, BZERO on BNBUSDT. The
+second buys for two days when that rate is strictly below the published
+eight-hour SOFR carry: USOFR on BTCUSDT, CSOFR on BTCUSD_PERP, ESOFR on
+ETHUSDT, MSOFR on ETHUSD_PERP. The index level was not stored. The discount
+of the open versus a fair value, in basis points, was not computed. A
+negative funding rate says the contract finished below the index at that
+earlier settlement. It does not say how many basis points the later open
+was cheap. Funding versus SOFR compares two rates. The fill is a price.
+Those are not the same unit.
+
+UZERO, CZERO, EZERO and BZERO are one sentence on four contracts. USOFR,
+CSOFR, ESOFR and MSOFR are the other sentence on four contracts. The
+threshold inside each sentence does not change. Changing the book is the
+same move as changing the exchange on a close-to-close discount.
+
+The other trade is the same book and the same side with the edge off. It
+is not the opposite side and it is not an unconditional hold of a different
+instrument. It does not have LASTUP's contamination, where the control was
+the same-day short. Every rule is still long only, and the number scored is
+the two-day drift of the open, not a basis earned in basis points of the
+price paid. BNBUSDT funding below SOFR was the longer set, 294 against 70,
+and was not shipped. The short side was not taken.
+
+The 2023 screen stands where §3.361–§3.368 left it. UZERO clears by 70.2341
+bps, CZERO by 47.6347 bps, USOFR by 42.5238 bps and MSOFR by 43.1351 bps.
+EZERO, BZERO, CSOFR and ESOFR do not clear. None of the four that clear is
+taken out of sample. The price paid was not stated as a number of basis
+points cheap to a fair value in the same units. A book ticker was not frozen
+for them. No later-year bar is requested as an entry. None is a testing row.
+
+The next round does not buy because a close finished under another venue's
+close, on any exchange. It does not copy a funding sign, or funding versus
+SOFR, onto another contract. It does not cut one premium into several
+thresholds. Spot, the coin-margined book and the USDT book are not each
+other's fair value. Another venue's last trade of the same coin is not the
+fair value. A rule that cannot say how many basis points separate the two
+prices, in one unit, is not run. The fill stays that contract's own open.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
