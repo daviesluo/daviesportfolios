@@ -7769,6 +7769,71 @@ negative. It sits 11.3679 bps above that cutoff. Nothing here is fit to add.
 The later years are not scored. This is not a testing row. The 1 bp line
 was not moved and the short was not taken. The next eight are not frozen.
 
+### 3.385 Gold and the euro are two sentences. Six baskets are one (2026-09-25)
+
+Davies, 2026-09-25: after this round is scored, write what it tested
+before the next round is frozen. GLDPM and ECBFX are two rules. BMACP,
+CPIPP, PPIPP, WAGPP, CLTHP and AIRPP are one purchasing-power sentence
+with the basket changed.
+
+GLDPM buys PAXGBUSD when the previous close is cheap to the LBMA Gold
+Price PM divided by the completed BUSD price. The token is a claim on
+gold. The auction is the published gold price, in the book's unit after
+that division. The seller of PAXG is the one who would be wrong. That
+sentence lost: mean net −14.7014 bps, 0.3968 bps above its null.
+
+ECBFX buys EURBUSD when the previous close is cheap to the ECB US
+dollars per euro divided by the same BUSD price. The book is a claim on
+euros. The reference rate is the published euro price. That claim is
+not the gold claim. That sentence lost: mean net −12.8846 bps, 9.6792
+bps above its null.
+
+BMACP, CPIPP, PPIPP, WAGPP, CLTHP and AIRPP each divide an American
+price level by a euro-area price level, scale by the 2022-12-30 ECB
+rate where the level is an index, and divide by BUSD. The person who
+would be wrong is the euro book, for not matching a price index. Big
+Mac, CPI, PPI, wages, clothing and airfares are six inputs to that one
+sentence. Every mean is negative. CPIPP sits 16.2028 bps above its
+null, inside 20 bps, and is not taken out of sample. BMACP, PPIPP,
+CLTHP and AIRPP sit 9.9675, 0.7728, 1.993 and 11.3679 bps above their
+nulls. WAGPP sits 17.4935 bps under its null.
+
+The next round does not test purchasing power, and does not swap in
+another price index. It does not test a gold price divided by a
+stablecoin, or an ECB exchange rate divided by a stablecoin. Realised
+price, token par, a funding sign, and another venue's close stay
+banned. The round-trip fee stays 20 bps. The count stays 30. A gap
+inside 20 bps is not taken out of sample.
+
+From the next round, a rule is not run until the derivation is written.
+The derivation names who is wrong about which price, why the open that
+is paid is below a fair value that was already published, that the
+discount and the fill are the same unit, and that the discount, known
+before the entry, already exceeded the round-trip fee. A rule that
+cannot write that chain is not started. Swapping the basket, the
+exchange, the threshold, or the coin to fill eight is refused. Eight
+rules are still required, and each has to be a different cause.
+
+No such eight were written, so none was run. A Binance leveraged-token
+net asset value would be a different sentence: the issuer redeems at
+that published value, and a seller below it would be the one who is
+wrong. The public market-data files do not carry that history.
+`data.binance.vision` has spot klines, trades and aggregate trades, and
+the USDT-M and coin-M futures trees. It has no net-asset-value series.
+BTCUP, ETHUP, BNBUP and ADAUP would be one sentence. Not frozen.
+Wrapped NXM `getTokenPrice` is the mutual's mint price. The published
+redemption sat 2.5 percent below the mint price and was gated, and the
+wrapper is not a bid the mutual pays. The sources are the Nexus Mutual
+token model and the history of the capitalisation controls, both at
+`https://github.com/NexusMutual/docs`. An open below the mint price is
+not that seller's mistake. Not frozen. Another staking rate, another
+par, another metal, another official FX pair, and another price index
+are the sentences already banned.
+
+No return of a next round has been computed. The next eight are not
+frozen. This is not a testing row. No later-year bar is requested as
+an entry.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
