@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp95–fp102 are scored. AVAX-Q passed 2023 and failed the later years. Nothing passes the house bar.** The other seven have fills and fail the 2023 screen. No hourly bar was read. ETH was not scored. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp94, and the previous rounds' named ideas stay closed. The 80th and the 95th of AVAX-Q lose and are not candidates. No testing row. No pull request. Main was not pushed.
+**fp103–fp110 protocols only. No return of these rules has been computed.** The relative-quote family stops at fp102. These eight screens are the range of BTC's three funding prints, long BTC for 2, 3, 4, 5, 6, 7, 10 or 14 days. AVAX-Q failed the later years. SOL-Q through LTC-Q stay closed. No hourly price bar is read. No alt quote is read. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp102, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:36 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp103–fp110 protocols only. No return of these rules has been computed.** The relative-quote family stops at fp102. These eight screens are a different input and a different hold: the range of BTC's three funding prints at 00:00, 08:00 and 16:00 UTC, long BTC at the next daily open for 2, 3, 4, 5, 6, 7, 10 or 14 days. Pins passed on synthetic bars. The funding level is not the statistic, and the upper tail of the rate is not a separate rule. No hourly price bar is read. No alt quote is read. Funding at or after 2024-01-01 is not requested. Daily opens through 2024-01-14 are exit prints only. AVAX-Q failed the later years and is not revived. SOL-Q, BNB-Q, XRP-Q, DOGE-Q, ADA-Q, LINK-Q and LTC-Q stay closed. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp102, and the previous rounds' named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:29 UTC] Platform: Cursor | Model: Grok 4.7
 
