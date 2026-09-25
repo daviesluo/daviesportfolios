@@ -2857,6 +2857,16 @@ spot for the next day: 31 trades, mean −19.9 bps, null p95 +71.8 bps. The
 gross move was +0.1 bps. **Nothing here is fit to add.** The low ratio is
 not a candidate. The quiet-day range and DVOL minus realized vol stay closed.
 
+### 3.45 Intraday return autocorrelation: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp16-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp16/screen_2023.json`). Lag-1
+correlation of BTC's 24 hourly returns, above its own trailing 90th, long
+spot for the next day: 27 trades, mean +23.8 bps, null p95 +81.3 bps. The
+gross move was +43.8 bps. One hour is missing, 2023-03-24 13:00 UTC.
+**Nothing here is fit to add.** The count stays 30. The negative tail and
+the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

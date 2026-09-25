@@ -8,11 +8,11 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp16 protocol is written. No return has been computed.** The rule is the
-lag-1 correlation of BTC's 24 hourly returns, long the next day when that
-correlation is above its own trailing 90th. The negative tail is not a
-candidate. Do not reopen fp5 through fp15, including LS-FADE and RV-RATIO.
-The screen is the next step. No testing row. No pull request. No push to
+**fp16 failed the 2023 screen and is discarded** (§3.45). Do not lower the
+count of 30, do not score the negative tail, and do not score the 80th.
+Do not reopen RV-RATIO, the quiet-day range, DVOL minus realized vol,
+dispersion, or skew. fp5 through fp15 stay closed, including LS-FADE. The
+next search is not written. No testing row. No pull request. No push to
 main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -836,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:53 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp16 screen: nothing passes.** Protocol was `3d07eca`. Two scores matched
+(`31086946…`). AC-HOUR 27 trades, +23.76 bps against a null of +81.29,
++$6.41. Gross before costs was +43.82 bps. One hour is missing,
+2023-03-24 13:00 UTC. Reference §3.45. The count stays 30. The negative
+tail and the 80th are not candidates. No testing row. No pull request.
+Main was not pushed.
 
 ### [2026-09-25 01:52 UTC] Platform: Cursor | Model: Grok 4.7
 

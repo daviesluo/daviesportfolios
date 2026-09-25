@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp16_common": "5331ae299e46ff23dc2f06d373528baedb5e8be7c9456e00890ea735437bf0eb",
+    "fp16_measure": "482210653c96c2a0df3b45e0febc5124d4537cbb7cb02d52542a548e8313c863",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AC-HOUR",
+      "mean_gross_bps": 43.8228,
+      "mean_net_bps": 23.7553,
+      "min_n": 30,
+      "n": 27,
+      "note": "Lag-1 correlation of the day's 24 hourly returns, above its own trailing 90th. Next day, one day.",
+      "null_p95_bps": 81.2895,
+      "passes_screen": false,
+      "total_pnl_usd": 6.4139
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "btc_1h": "20730c93fd950ce76a53a4df67a5e66502fdf94eefdbcda4c1c57c02b1c919e7"
+  },
+  "passed": [],
+  "protocol_sha256": "886ed94f504a933ad74b4ea456c2958a50bfad23d1868a0e6fc77c08cb4ea432"
+}
