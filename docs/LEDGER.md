@@ -835,6 +835,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:31 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 COPY was run and it fails. Not a testing candidate.** The 00:48 section froze the rule. The 01:12 section only changed the fetch pace, before any ranking. This section is the run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+- Out of sample: **+$393.285293 on 206 trades**. OOS1 +$56.93 on 178, OOS2 +$336.36 on 28. Stress +$321.49. Null 95th +$395.66, so it misses by $2.37. August is +$331.08, 84 % of the total, and that month is one wallet's 22 trades. Both halves, the stress book, the trade count and +17.25 % a year on an $81.59 peak pass. The null and the month do not.
+- The pull matched the freeze: 9,412 wallets with at least five May prints, no incomplete May market, 472 closed-position histories unread past the cap and not ranked, five leaders, 713 buys, 155 tapes, none incomplete. Input sha256 `215b2b4ea68d7d7ab128eecd0a4aed385dccb515b68724f0282624452fa7e15e`. Both runs sha256 `35fcffdb5dc18403a0ba7842d249e0f8e9bdab99df7e1a1c6b0fecbf99568f69`. `copy_test.py` is still the freeze's blob. Write-up: `reviews/2026-09-25-polymarket-fp5-copy.md`. The copy family stops. Not retried with a higher page cap, a different top N, or August removed.
+
 ### [2026-09-25 01:12 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 COPY pull, pace only.** The 01:02 section's eight-wide fetch was keeping the rows and running at about one wallet a second, because each history is several pages and the host gap was 0.12s. The gap for `data-api.polymarket.com` in this pull is now 0.02s, sixteen at a time. Still before any ranking. A 429 still backs off. Not on main.

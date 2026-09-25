@@ -2734,6 +2734,19 @@ row. The same search's arithmetic kills — a leaderboard with no as-of date, a 
 4 bp Kraken basis, the 2028 nomination against the presidency, funding as a drift, a one-month longshot — are
 in that study. Access is unchanged from §3.33: this account does not open a Polymarket position.
 
+### 3.35 COPY, five May Bitcoin-ladder wallets, fails its bar (2026-09-25)
+
+The same search's second test. Five wallets, chosen only from May ladder prints and closed positions
+dated before 2026-06-01, copied into taker buys from 2026-06-01 to 2026-09-11. A fill is the next other
+buy within five minutes at a price no better than the leader's, held to settlement, crypto fee on.
+Pre-registered before any ranking (`reviews/2026-09-25-polymarket-fp5-prereg-copy-wallets.md`). Out of
+sample: **+$393.29 on 206 trades**. Both halves, the stress book, the trade count and 17 % a year on
+the $82 peak pass. It misses the calibration null by $2.37 (95th percentile +$395.66) and August is
+84 % of the profit, one wallet's 22 trades. The write-up is `reviews/2026-09-25-polymarket-fp5-copy.md`.
+Not a paper test and not a live row. The copy family stops: the leaderboard has no as-of date (§3.34),
+and this as-of ranking fails too. Not retried with a higher page cap, a different top N, or August
+removed.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

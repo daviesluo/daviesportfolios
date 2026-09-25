@@ -1,0 +1,105 @@
+{
+  "leaders": [
+    "0x66d75f659e20e1b1894e52e3c6ad52c9a51d5b7b",
+    "0x7fd3fe6580b5b944e32701fdbba0c0ef4991e662",
+    "0xce244e7b39c7fd1418b4af750ca8d7d6a2cc6239",
+    "0x97bcb1873605e3b07e74898e2050974c8bf930cd",
+    "0xafe65d1671a61dfaab2b463257450ec7f1fe8192"
+  ],
+  "prereg": "reviews/2026-09-25-polymarket-fp5-prereg-copy-wallets.md",
+  "result": {
+    "OOS": {
+      "buy_no": 56,
+      "buy_yes": 150,
+      "cost": 915.658854,
+      "fees": 54.365285,
+      "lost": 160,
+      "partial_payout": 0,
+      "pnl": 393.285293,
+      "pnl_per_dollar": 0.429511,
+      "trades": 206,
+      "won": 46
+    },
+    "OOS1": {
+      "buy_no": 48,
+      "buy_yes": 130,
+      "cost": 785.528857,
+      "fees": 46.250086,
+      "lost": 139,
+      "partial_payout": 0,
+      "pnl": 56.929579,
+      "pnl_per_dollar": 0.072473,
+      "trades": 178,
+      "won": 39
+    },
+    "OOS2": {
+      "buy_no": 8,
+      "buy_yes": 20,
+      "cost": 130.129997,
+      "fees": 8.1152,
+      "lost": 21,
+      "partial_payout": 0,
+      "pnl": 336.355713,
+      "pnl_per_dollar": 2.584767,
+      "trades": 28,
+      "won": 7
+    },
+    "bar": {
+      "1_oos_pos_and_both_halves": true,
+      "2_beats_null_p95": false,
+      "3_stress_pos": true,
+      "4_at_least_80_trades": true,
+      "5_not_one_month": false,
+      "6_beats_cash": true
+    },
+    "buys_incomplete": [],
+    "leaders": [
+      {
+        "positions": 27,
+        "pre_june_pnl": 91964.4176,
+        "wallet": "0x66d75f659e20e1b1894e52e3c6ad52c9a51d5b7b"
+      },
+      {
+        "positions": 41,
+        "pre_june_pnl": 64850.4403,
+        "wallet": "0x7fd3fe6580b5b944e32701fdbba0c0ef4991e662"
+      },
+      {
+        "positions": 26,
+        "pre_june_pnl": 56808.4626,
+        "wallet": "0xce244e7b39c7fd1418b4af750ca8d7d6a2cc6239"
+      },
+      {
+        "positions": 17,
+        "pre_june_pnl": 56379.9577,
+        "wallet": "0x97bcb1873605e3b07e74898e2050974c8bf930cd"
+      },
+      {
+        "positions": 23,
+        "pre_june_pnl": 56164.8113,
+        "wallet": "0xafe65d1671a61dfaab2b463257450ec7f1fe8192"
+      }
+    ],
+    "null": {
+      "draws": 10000,
+      "mean": -53.286212,
+      "p95": 395.657642
+    },
+    "oos_by_month": {
+      "2026-06": 5.358617,
+      "2026-07": 41.134097,
+      "2026-08": 331.082289,
+      "2026-09": 15.710289
+    },
+    "oos_days": 102.0,
+    "oos_peak_capital": 81.589999,
+    "oos_return_per_year_on_peak": 17.248982,
+    "passes": false,
+    "skipped": {
+      "no_fill": 507
+    },
+    "stress_OOS_pnl": 321.490498,
+    "trades_n": 206
+  },
+  "rule": "COPY"
+}
