@@ -836,6 +836,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 21:32 UTC] Platform: Cursor | Model: Grok 4.7
+**The independent review voided `rxpar`. The score is not redone.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Pass 76's pool of 489.5489548955 bp over 525 and 454 completed trips was scored by treating an hourly close as a fill. An hourly close at 0.9999 is not a fill of a resting buy at 0.9999. The public candle route has no historical order book.
+
+The pinned first USDC exit is the hour starting 2025-11-27 00:00 UTC, millisecond 1764201600000. The stored candle, `pass76/USDC-USD_60.json`, is open 1.0003, high 1.0011, low 0.9994, close 1.0003, volume 10.06604. `GET https://revx.revolut.com/api/1.0/public/trades/all?symbol=USDC-USD&region=UK&start_date=1764201600000&end_date=1764205199999&limit=100`, read 2026-09-25 21:31:57 UTC, returned two UK prints and an empty cursor. Both are side sell, price 0.9994, quantity 5.033020. The timestamps are 1764203900949 and 1764204244489. The quantities sum to 10.066040, the candle volume. Neither print is at 1.0000. The close of 1.0003 is not a sale. The screen's pin of that close as the exit does not stand.
+
+The rule text, the frozen time, the screen, and `summary_pass76.json` stay as the record of what was hashed. They are not rewritten. The trips are not counted again off the trade tape. `reached_preregistration` stays false. No testing row is opened. No order of this account was shown crossing the book. The sentence is not written again. No new causal off the banned list was opened, so pass 78 stays unopened. A zero-trip variant was not used to fill a slot. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. Branch `cursor/revolut-x-search-d133`.
+
+
 ### [2026-09-25 21:25 UTC] Platform: Cursor | Model: Grok 4.7
 **Eight maker sentences were written and none was hashed.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The 21:15 line that pass 77 was not opened is the state at that clock. This round opened pass 77. `rxpar` stays one sentence: a bid one quote step under the published dollar, and a sell at that dollar. USDC-USD and USDT-USD are its two books. It is not rerun and it is not rescored. A different stablecoin, a different quote currency, and gold collateral stay closed. Pass 74's three triangles stay closed. Pass 72's six forwards stay closed. A taker comparison with an external dollar price stays closed. The 60-trip gate, both books, 40% of any month, doubled cost, the random null, and 400 bps stay where they are. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass.
 
