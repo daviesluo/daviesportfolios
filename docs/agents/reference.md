@@ -6173,6 +6173,16 @@ twenty-five-day long on every day. A count taken before the freeze, with
 no profit computed, was 102. The scored book is 102. The rule was not
 changed. This is not a testing row.
 
+### 3.293 A Binance daily open is not a Revolut X fill (2026-09-25)
+
+Davies, 2026-09-25: a Binance daily open that clears a numerical gate is not
+evidence that Revolut X can trade it. That result is not a Revolut X
+paper-testing candidate. A nearby signal is not substituted to force a
+pass. A rule has to know its signal before the entry. The fill has to be a
+price that exists on that contract. LS-FADE's 60-trade reproduction (§3.34),
+the control, and doubled costs are not relaxed. No testing row is added.
+LS-FADE is not rewritten.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
