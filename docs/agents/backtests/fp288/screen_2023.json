@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp288_common": "67b343038cb9fa1a871f461cf108f9d28937be27265356d296118e786027d761",
+    "fp288_measure": "63a247db775ba554db98c8ad2ea067ae9a7c48cc1afda341c40114908bebd707",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LIFTL",
+      "mean_gross_bps": 368.3052,
+      "mean_net_bps": 347.5893,
+      "min_n": 30,
+      "n": 134,
+      "note": "The lowest of the last eight finished spot closes was strictly above the lowest of the eight closes before those, and the finished eight-day spot return was positive. The next spot open is bought and sold fifteen days later. The other trade buys spot fifteen days later for another fifteen days. Both windows have to fill. One leg. Funding cash is not added. The null is not that fifteen-day long on every day.",
+      "null_p95_bps": 317.213,
+      "passes_screen": true,
+      "total_pnl_usd": 465.7697
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": 317.213,
+  "null_n": 134,
+  "passed": [
+    "LIFTL"
+  ],
+  "protocol_sha256": "ff0d7d3f8b2e8a2b375f4f9fde89a482183fe97d0efc0e512558b8d348e1a37b"
+}

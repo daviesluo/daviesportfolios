@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp287_common": "a6e960984d4fa269b6895980e8bbfbc61afbbce4a0b3685722fc2890b26a2fb7",
+    "fp287_measure": "8eb4fd089a02c240877711836937afff9b54671ed5057007c8cafa5d050b831c",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LESSUP",
+      "mean_gross_bps": 793.8868,
+      "mean_net_bps": 772.3206,
+      "min_n": 30,
+      "n": 94,
+      "note": "Spot and the USDT book both finished a sixteen-day rise, and the USDT rise was strictly smaller. The next USDT open is bought and sold twenty days later. The other trade buys spot for those same twenty days. One leg. Funding cash is not added. The null is not that USDT long with the comparison turned off.",
+      "null_p95_bps": 769.4514,
+      "passes_screen": true,
+      "total_pnl_usd": 725.9814
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": 769.4514,
+  "null_n": 94,
+  "passed": [
+    "LESSUP"
+  ],
+  "protocol_sha256": "5f005b409d8cf654c39acc4bf2a8ccdf5fb31d0a2e8d92ace8dea5de738d6d96"
+}

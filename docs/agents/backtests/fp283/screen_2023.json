@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp283_common": "1825a977c1e1478084a55ee095a6a6ee6afab25a7801ed5c579aeda9df808e1c",
+    "fp283_measure": "8aa850ba8cf7291a5eb50a7bd7992b504f866cbd3921cbcb802e8282e50264cf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DROPCM",
+      "mean_gross_bps": -332.6429,
+      "mean_net_bps": -351.9583,
+      "min_n": 30,
+      "n": 81,
+      "note": "The finished eight-day coin-margined return was negative and the eight-day return that ended eight days earlier was positive. The next coin-margined open is sold and bought back eleven days later. The other trade sells it eleven days later for another eleven days. Both windows have to fill. One leg. Funding cash is not added. The null is not that eleven-day short on every day.",
+      "null_p95_bps": -353.9095,
+      "passes_screen": false,
+      "total_pnl_usd": -285.0862
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": -353.9095,
+  "null_n": 81,
+  "passed": [],
+  "protocol_sha256": "1654818ec398740c60f131a2fdf864916ea1749171371a15532e7532dd4a2ebb"
+}

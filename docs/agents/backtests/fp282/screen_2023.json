@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp282_common": "c697cf4788213b4cad0670874aacc90a32be87b27afd236769cafa557a4c76b2",
+    "fp282_measure": "04e4df97637ab23d2caf503a8fc40e99c6390de510dbd8e4fbb4907758eb9c4d",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "REBND",
+      "mean_gross_bps": 267.7883,
+      "mean_net_bps": 247.2732,
+      "min_n": 30,
+      "n": 88,
+      "note": "The finished seven-day USDT return was positive and the seven-day return that ended seven days earlier was negative. The next USDT open is bought and sold eight days later. The other trade buys it eight days later for another eight days. Both windows have to fill. One leg. Funding cash is not added. The null is not that eight-day long on every day.",
+      "null_p95_bps": 73.1577,
+      "passes_screen": true,
+      "total_pnl_usd": 217.6004
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": 73.1577,
+  "null_n": 88,
+  "passed": [
+    "REBND"
+  ],
+  "protocol_sha256": "ad532353028bd2e4af0fdf95d1a2dfa113f4614bc39362e6f6f097467bf9ede7"
+}

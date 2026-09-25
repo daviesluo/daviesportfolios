@@ -1,0 +1,32 @@
+{
+  "code_sha256": {
+    "fp284_common": "5c4ed2ba2dcaad76395e71f6f5482b76e75144c80a7f05ae9be03bb5168357f1",
+    "fp284_measure": "a9bb8f68911f07f58f822026e71b0744ac733ed7678c38dac8561876300c192e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TRIO",
+      "mean_gross_bps": 582.9392,
+      "mean_net_bps": 561.7945,
+      "min_n": 30,
+      "n": 201,
+      "note": "Spot, the USDT book and the coin-margined book each finished a ten-day rise. The next coin-margined open is bought and sold twenty-one days later. The other trade buys spot for those same twenty-one days. One leg. Funding cash is not added. The null is not that coin-margined long with the other two books ignored.",
+      "null_p95_bps": 561.1486,
+      "passes_screen": true,
+      "total_pnl_usd": 1129.207
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": 561.1486,
+  "null_n": 201,
+  "passed": [
+    "TRIO"
+  ],
+  "protocol_sha256": "56f8a30ec42a8bfbb2fb58c78b827aa2692952400f2881355ece7b2efb4c235e"
+}
