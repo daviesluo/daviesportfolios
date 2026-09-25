@@ -7834,6 +7834,189 @@ No return of a next round has been computed. The next eight are not
 frozen. This is not a testing row. No later-year bar is requested as
 an entry.
 
+### 3.386 Issuer bids that were not a screen (2026-09-25)
+
+Davies, 2026-09-25: the six baskets are one sentence. Do not stop at
+being unable to write eight causes. Search for an already published
+redemption price or net-asset-value history. The cause has to be an
+issuer or seller who must transact at that published price. The fill
+is that contract's own open, in the same unit, and the discount known
+before the entry already exceeds the 20 bp round trip. A leveraged-token
+net asset value, a staking receipt's real redemption price, and a
+published exchange rate are allowed when they are not an already banned
+sentence. A public file with no history is named and the search moves
+on. Swapping the coin or the threshold is not a second rule. A negative
+mean, or a gap inside 20 bps, is not taken out of sample. The count
+stays 30. The threshold is not loosened below 25 bp.
+
+No return was computed. No rule cleared a standing same-unit bid, at a
+grid threshold of at least 25 bp, with at least 30 cheap days and a
+cheap set shorter than the edge-off set, that was not an already banned
+sentence. Nothing was taken out of sample. No testing row.
+
+**Leveraged-token net asset value.** Binance must redeem BTCUP at the
+published net asset value. BTCUPUSDT, ETHUPUSDT, BNBUPUSDT and ADAUPUSDT
+were trading in the June 2023 exchange list; four tokens would be one
+sentence. The public files do not carry the net asset value. The vision
+bucket listing
+`https://s3-ap-northeast-1.amazonaws.com/data.binance.vision?delimiter=/&prefix=data/`
+has only `data/futures/`, `data/option/` and `data/spot/`. The June 2023
+BTCUPUSDT daily kline is on vision and is the market print, not the net
+asset value. `https://data-api.binance.vision/fapi/v1/lvtKlines` and
+`https://data-api.binance.vision/sapi/v1/blvt/tokenInfo?tokenName=BTCUP`
+are HTTP 404. `https://fapi.binance.com/fapi/v1/lvtKlines`,
+`https://dapi.binance.com/dapi/v1/lvtKlines` and
+`https://api.binance.me/fapi/v1/lvtKlines` are HTTP 451 from this
+runner. `https://api.binance.us/sapi/v1/blvt/tokenInfo?tokenName=BTCUP`
+is HTTP 400, `API-key format invalid`, and returns no series. Wayback
+CDX for `fapi.binance.com/fapi/v1/lvtKlines` and
+`api.binance.com/sapi/v1/blvt/*` is `[]`. Coin Metrics community
+catalog `https://community-api.coinmetrics.io/v4/catalog/assets?assets=btcup,ethup,bnbup`
+lists zero metrics for those three assets. GitHub repository search for
+`btcup nav`, `lvtKlines` and `blvt historical nav` returned no
+repository. Hugging Face dataset search for `binance leveraged token NAV
+historical` returned no repository. The net asset value was not
+reconstructed from the underlying. Not frozen.
+
+**PEOPLE overflow.** Juicebox TerminalV1
+`0xd569d3cce55b71a8a3f3c418c329a66e5f714431`, project 36, pays the
+remaining ETH overflow pro rata for PEOPLE
+`0x7a58c0be72be218b41c608b7fe7c5bb630736c71`. The published description
+is `https://www.constitutiondao.com/` (1 ETH per 1,000,000 PEOPLE) and
+`https://docs.juicebox.money/blog/constitutiondao-config/` (target 0,
+redemption rate 100%). At block 17381673, timestamp 1685570411, before
+2023-06-01, the terminal balance is 5116.581899958435 ETH and the supply
+is 5067194794.304562 PEOPLE, so the bid is 1.009746439e-6 ETH per PEOPLE.
+On 2023-09-03, the least-rich PEOPLEUSDT close of the year under a
+generous bound, block 18051658, the bid is 1.009743209e-6 ETH. That
+day's PEOPLEUSDT close is 0.00907 and the ETHUSDT close is 1635.84, so
+the bid is 0.00165178 USDT and the discount is −8178.8552 bps. Across
+all 365 PEOPLEUSDT daily closes of 2023, marking the bid at 1.05e-6 ETH
+times that day's ETHUSDT close, zero days are 25 bp cheap. The smallest
+close is 0.00875. The market sits above the bid. The return was not
+computed. Tribe's emptied pot is the same pro-rata sentence and is not
+a second rule. Not frozen.
+
+**Fixed ETH dissolution.** Aragon's immutable ETH-per-ANT rate is one
+sentence, a constant, not the PEOPLE overflow. It was not re-counted
+this sitting and was not frozen. A second fixed ratio would be the same
+sentence.
+
+**Batched curve.** Aavegotchi's market maker pays the batch's clearing
+price, and a batch can cancel. The static curve price is not the fill.
+Not frozen.
+
+**Slot-auction receipt.** BDOTDOT was trading in the June 2023 list.
+`https://www.binance.com/en/dotslot` and
+`https://cryptonews.net/news/market/3078039/` say BDOT is 1 DOT, and
+that the 1:1 redemption opens on 2023-10-26 06:00 UTC, the day BDOT/DOT
+trading is halted. Par, and no overlapping open. Not frozen.
+
+**Wrapped Beacon ETH.** The exchange-rate history
+`https://www.binance.com/bapi/earn/v1/public/pos/cftoken/project/exchange-rate/history?projectId=BETH`
+is the series already scored as WBRAT. The same URL returned that
+series for every other project id that was tried. Another staking rate
+stays banned. Not run again.
+
+**Hashrate token.** BTCST's white paper
+`https://www.1-b.tc/static/BTCST_Whitepaper.pdf` describes a discounted
+cash-flow story, not a price the issuer must pay. The redenomination
+note `https://btcst.medium.com/btcst-to-implement-results-of-stp-4-1-10-redenomination-the-week-of-march-15-872c9ea3d5b7`
+is a split, not a 2023 redemption history. Not frozen.
+
+Wrapped NXM's mint price stays not a bid, as in §3.385. Gold, an
+official foreign-exchange rate, token par, a price index, realised
+price, a funding sign, and another venue's close were not run. Vault
+shares, rETH, wstETH, GLP, RAI and OUSG are not in the June 2023
+trading list, so their published rates have no Binance open to buy.
+
+No return of this round has been computed. The next eight are not
+frozen. This is not a testing row. No later-year bar is requested as
+an entry.
+
+### 3.387 The same redemption search, counted where a file exists (2026-09-25)
+
+Davies, 2026-09-25: do not stop after failing to write eight causes.
+Search for a published redemption price or net-asset-value history.
+Write the cause before any run. The issuer must transact at that
+price. The fill is that contract's own open, in the same unit, and
+the discount known before the entry already exceeds the 20 bp round
+trip. A leveraged-token net asset value, a staking receipt's
+redemption price, and a published exchange rate are allowed when they
+are not an already banned sentence. Name a file that has no history
+and move to the next candidate. Swapping the coin or the threshold is
+not a second rule. A negative mean, or a gap inside 20 bps, is not
+taken out of sample. The count stays 30. The threshold stays at least
+25 bp.
+
+No return was computed. No new sentence cleared 30 cheap days. Nothing
+was taken out of sample. No testing row.
+
+**Leveraged-token net asset value, continued.** Binance redeems BTCUP
+at the published net asset value. One sentence covers the UP and DOWN
+tokens. `https://data-api.binance.vision/futures/v1/lvtKlines` and
+`https://data-api.binance.vision/fapi/v1/lvtKlines` are HTTP 404.
+Wayback CDX for `fapi.binance.com/fapi/v1/lvtKlines` is `[]`. These
+bapi paths are HTTP 404:
+`/bapi/margin/v1/public/margin/leverage-token/token-list`,
+`/bapi/margin/v1/public/margin/api/tokenList`,
+`/bapi/futures/v1/public/future/leverage-token/list`,
+`/bapi/composite/v1/public/market/lvt/kline`, and
+`/bapi/margin/v1/public/margin/leverage-token/nav-kline`. GitHub
+repository search for `lvtKlines` returned no repository.
+`https://www.binance.com/bapi/asset/v2/public/asset-service/product/get-products?includeEtf=true`
+returns 1368 products and an `etf` flag that is false on each of them.
+It has no net-asset-value field. The net asset value was not
+reconstructed. Not frozen.
+
+**Earn exchange-rate URL.** 
+`https://www.binance.com/bapi/earn/v1/public/pos/cftoken/project/exchange-rate/history`
+ignores `projectId`. BETH, SOL, BNB, BTC, ETH, WBETH, DOT, ATOM, MATIC
+and ADA each returned the same 1000 rows, from calcDate 1703980800000
+rate 1.026784871806 through calcDate 1790294400000 rate 1.107145788205.
+That is the wrapped-beacon series already scored. Not run again.
+
+**Fixed ETH dissolution, counted.** The Aragon redeemer
+`0x80fBB6122b8E023988e640dB1ae348a10A7933E8` has 0.0025376 in its
+bytecode (`0x903ef0a950000` wei per ANT). Its ETH balance is 0 at
+block 18472947 (before 2023-11-01) and 14774.950418290462 at block
+18487227 (before 2023-11-03). The first entry that can use a finished
+close after that funding is 2023-11-03. On ANTUSDT and ETHUSDT daily
+bars, 59 days have a previous close. Three of them are 25 bp cheap:
+2023-11-03 at 47.7354 bps, 2023-12-08 at 30.0343 bps, and 2023-12-19
+at 33.8955 bps. The largest discount is 47.7354 bps. Zero days are
+50 bp cheap. The return was not computed.
+
+**Same fixed ratio, other coins.** Merit Circle's published swap is
+1 MC = 100 BEAMX
+(`https://www.coinlive.com/news-flash/299684`). MCUSDT daily bars run
+through 2023-11-07. BEAMXUSDT daily bars start 2023-11-14. No day is
+in both files. KEEPUSDT has no June 2023 kline (HTTP 404); KEEP and NU
+were already halted in the June 2023 list. The 2022 Threshold ratios
+are not a 2023 overlap. Gifto's GTO to GFT swap is 1:1
+(`https://cryptoslate.com/gifto-token-surges-over-300-following-rebrand-token-swap/`).
+GTOUSDT has no January 2023 kline. Par, and no overlap. None of these
+is a second rule. Not frozen.
+
+**Tranchess and GLP.** `https://docs.tranchess.com/faq/asset-tracking-and-liquid-staking/primary-market`
+says QUEEN, BISHOP and ROOK trade on Tranchess. They are not Binance
+spot symbols. `Fund.historicalNavs` is documented at
+`https://docs.tranchess.com/tech-support/protocol-overview/fund`.
+There is no Binance open to buy. GLP is not a Binance symbol. GMX is
+the governance token. Not frozen.
+
+**Later books that are not 2023 redemption prices.** June 2023 daily
+klines are HTTP 404 for BNSOLUSDT, FRAXUSDT, AEURUSDT, EZETHUSDT,
+ENAUSDT, ETHFIUSDT, XAUTUSDT, PYUSDUSDT and USDEUSDT. PENDLEUSDT and
+FDUSDUSDT exist in July 2023. PENDLE is not the principal token.
+FDUSD is par. WBETHUSDT exists in December 2023 and is the same
+receipt already scored. BETHETH exists in June 2023 and is par.
+Not run.
+
+No return of this round has been computed. The next eight are not
+frozen. This is not a testing row. No later-year bar is requested as
+an entry.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
