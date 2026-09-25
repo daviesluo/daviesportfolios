@@ -1,0 +1,9 @@
+Family: two-sided retail prints on wide UK alt books, the mechanism PR5 used on GBP stables.
+Frozen 2026-09-25 01:17:11 UTC, before any same-minute gap on these books was computed.
+Not a change to PR5's books or its distances. Not T1 and not T2.
+Books, fixed: CVC-USD, GHST-USD, IMU-USD, GFI-USD, ALEO-USD. Region UK.
+Screen day, one day, which cannot pass: 2026-09-24.
+A minute is two-sided when it has at least one buy print and one sell print.
+Gap = (highest sell print - lowest buy print) / midpoint of those two, in bps.
+Kill the family unless at least one book has 30 or more two-sided minutes and a median gap of 20 bps or more.
+A book that clears this screen is not a pass. It only earns a later, pre-registered print test on other days.

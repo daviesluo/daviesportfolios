@@ -58,6 +58,16 @@ The same bar, on mechanisms the first screen had not measured. `docs/agents/scri
 
 UK tax-year and month-end calendars were not priced. Three Aprils, or thirty-six month-ends, cannot reach a 60-trip bar, so there was no P&L to compute.
 
+## Continuation: new families, still nothing
+
+Rules under `docs/agents/scripts/fp5/` were hashed before their own results. Numbers are in `backtests/fp5/summary_pass3.json`. A candle screen can kill a rule. It cannot pass one. `reached_preregistration` is still false.
+
+Directional screens, each killed by its own bar: Friday pinning toward a round number (2023–24, pooled −1,241 bps). The next UTC day after a positive S&P session (2024, −578 bps; BTC negative). A one-hour long 100 bps under the running VWAP (2024, median gross about +11 bps, pooled −34,000). Binance's global long/short account ratio in its trailing bottom quintile (2022–23, pooled +4,159 bps and above the null, but January 2023 is 60% of it). Stablecoin-supply expansion (2020–21, 10 entries, because supply almost always rises). CME Bitcoin gap-downs (2018–20, 162 bars, pooled −3,192 bps). Extreme fear on the published fear-and-greed index (2018–19, pooled +4,841 bps and above the null, one month is 52%). Hash rate below its 30-day median (2025, pooled −4,443 bps). A stronger pound leading the next day (2025, pooled −1,723 bps). On-chain transaction count above its 30-day median (2020, pooled +6,822 bps, stress positive, month share 0.35, and still under the random-day null's p95 of +11,134).
+
+Same-venue structure. PAXG-USD and XAUT-USD differ by a median 16 bps in June–August 2026 (95th percentile 39). Buying the cheaper one when the gap is at least 40 bps, on March–May, is 16 trips, all in May, pooled −276 bps. A half-spread through-fill bid was then tested on prints, not candles: 38 bps behind the last print, maker exit 38 bps higher within 30 minutes, otherwise a taker stop. Window 2026-07-23 through 2026-09-23 excluding the one VVV day (2026-09-21) that had already been used as a count screen. VVV-USD: 253 trips, −1,673 bps, stress −3,950. STRK-USD: 103 trips, +1,413 bps, stress +486. The pair was pre-registered together, so STRK is not split out. Pooled −130 bps, stress −1,732. NEON the day before had 8 through-fills (the screen required 30) even though those 8 marked out +226 bps; the count gate stands.
+
+No testing row. PR5, `trend-4h` and `pmrw.ts` were not edited.
+
 ## Reproduce
 
-From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`.
+From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json` is the record of what they returned.

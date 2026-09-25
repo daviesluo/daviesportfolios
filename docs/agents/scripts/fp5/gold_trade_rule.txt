@@ -1,0 +1,14 @@
+Family: buy the cheaper of PAXG-USD and XAUT-USD when the two UK hourly closes differ by 40 bps or more.
+Frozen 2026-09-25 01:21:39 UTC, before any next-hour return of this rule was computed.
+The June-August screen only counted the gap. It was not a P&L, and it is not scored here.
+40 bps is the doubled taker round trip used all session, not a percentile from that screen.
+Spot cannot short, so the rich token is not sold. The position is long the cheap token or flat.
+
+Exit at the next hourly close. One hour, one trip. Cost 30 bps (9 in, 9 out, and about 5 of spread a side).
+Stress 60 bps.
+Prices are Revolut X UK hourly closes. A loss kills the family. A gain is not a pass: these candles can print a quote with no trade.
+Test window only: hours from 2026-03-01 through 2026-05-31. No other month is scored.
+Null: the same number of long hours, random hours in the window, random token, 500 draws, seed 20260925.
+Kill unless P&L > 0, stress > 0, round trips >= 60, both tokens' own P&L > 0 when each is the cheap one,
+P&L > null p95, no calendar month is more than 40% of P&L, and P&L exceeds 100 bps.
+Round trip = one one-hour long.

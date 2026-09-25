@@ -1,0 +1,7 @@
+Family: PAXG-USD versus XAUT-USD on the same UK book.
+Frozen 2026-09-25 01:20:14 UTC, before any hourly gap between the two tokens was computed.
+Not the weekend gold fade, and not either token versus the London fix.
+Window, which cannot pass: hourly UK closes from 2026-06-01 through 2026-08-31.
+Gap = PAXG close / XAUT close - 1, in bps, on hours both books have.
+Kill unless the 95th percentile of the absolute gap is at least 20 bps and at least 60 hours exceed 20 bps.
+Clearing this screen is not a pass.

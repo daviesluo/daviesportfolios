@@ -1,0 +1,17 @@
+Family: long the next week when the broad stablecoin float expanded over the week just ended.
+Frozen 2026-09-25 01:14:47 UTC, before any next-week return of this rule was computed.
+Not the long/short-ratio rule (killed on its month bar), not momentum, and not the funding gate.
+The signal is the change in dollars of stablecoins outstanding, not the coin's own return.
+
+Spot cannot short. Long or flat. Books: BTC and ETH.
+Series: DefiLlama all-stables totalCirculatingUSD.peggedUSD, one sample per Monday 00:00 UTC.
+If that sample is above the previous Monday's sample, the following week (Monday to next Monday) is long.
+Otherwise flat. Weeks are non-overlapping.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+Prices are Binance daily closes. A loss kills the family. A gain is not a pass.
+Screen only: weeks whose long window starts in 2020 or 2021. No later year is scored.
+Null: the same number of long weeks, random weeks in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L,
+and pooled P&L exceeds 800 bps.
+Round trip = an entry from flat to long.

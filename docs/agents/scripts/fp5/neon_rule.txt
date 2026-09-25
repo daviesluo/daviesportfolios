@@ -1,0 +1,10 @@
+Family: a through-fill bid one half-spread behind the last print on NEON-USD.
+Frozen 2026-09-25 01:19:28 UTC, before any NEON print markout of this rule was computed.
+Not T1 (inside the touch on six other books), not the STRK 2.7-sigma screen (that book, that distance).
+The distance is half of NEON's own 679 bp spread from the 2026-09-25 ticker snapshot: 340 bps. It is not fitted to prints.
+
+Book: NEON-USD, region UK. Screen day, which cannot pass: 2026-09-22.
+A bid is imagined after each print, at that print's price times (1 - 340 bps), and it lives five minutes.
+It fills on the first later print strictly below it. Markout is the first print at least 15 minutes after the fill, versus the fill price, in bps. One fill per five minutes, so fills do not overlap.
+Kill unless n >= 30 and the median markout is at least 20 bps.
+Clearing this screen is not a pass.

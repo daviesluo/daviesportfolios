@@ -1,0 +1,15 @@
+Family: buy a CME Bitcoin futures gap-down at the reopen, and the same direction in ETH.
+Frozen 2026-09-25 01:15:31 UTC, before any reopen return of this rule was computed.
+Not the Friday round-number pin, not the weekend-beta check, and not a new threshold on either.
+
+Spot cannot short, so only gap-downs are traded.
+Signal: Yahoo Finance daily bars of BTC=F. A bar gaps down when its open is 20 to 150 bps below the previous bar's close.
+BTC result: that bar's close over its open. ETH result: Binance ETHUSDT daily close over open on the same calendar date.
+Each such bar is its own trip. Cost 40 bps. Stress 80 bps.
+Screen only: signal bars dated 2018-01-01 through 2020-12-31. No later year is scored.
+A loss kills the family. A gain is not a pass.
+Null: the same number of long bars, drawn from every screened bar, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L,
+and pooled P&L exceeds 1,200 bps (4% a year over three years).
+Round trip = one gap-down bar.

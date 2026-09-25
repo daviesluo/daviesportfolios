@@ -1,0 +1,18 @@
+Family: Coinbase spot premium as US demand, long-only on the next day.
+Frozen 2026-09-25 00:58:27 UTC, before any premium series or next-day return of this rule was computed.
+Not a revival of momentum-1d, the funding gate, hour-of-day, or cross-sectional momentum.
+The signal is the close-to-close premium of Coinbase's USD book over Binance's USDT book, not the past return.
+
+Books: BTC and ETH. Revolut X spot cannot short, so the position is long or flat.
+premium = Coinbase daily close / Binance daily close - 1, same UTC day.
+Next UTC day is long if premium >= +5 bps, otherwise flat.
+5 bps is a quarter of a 20 bp round trip, set so a premium inside quote noise is not a position.
+Cost: 20 bps times the absolute change in position (entry 20, exit 20, a one-day long is 40).
+Stress: 40 bps times the same change.
+Screen window only: 2024-01-01 through 2024-12-31 inclusive, execution on Binance close-to-close
+with Revolut's taker cost. Revolut's own 2024 daily candles have no volume, so they are not the execution series.
+A loss here kills the family. A gain is not a pass: prints and the unseen window stay unread until a later freeze.
+Null: the same number of long days, placed on random days of the screen, 500 draws, seed 20260925.
+Kill unless, on the pooled equal-weight of the two books: P&L after 20 bp > 0, stress > 0,
+round trips >= 60, P&L > null p95, both books' own P&L > 0, and no calendar month is more than 40% of P&L.
+Round trip = one entry from flat to long.

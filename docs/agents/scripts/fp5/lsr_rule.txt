@@ -1,0 +1,20 @@
+Family: long the next day when Binance's global long/short account ratio is in its own trailing bottom quintile.
+Frozen 2026-09-25 01:12:39 UTC, before any next-day return of this rule was computed.
+This is fp3's B14, which that search left untested. It is not the funding gate, not momentum, and not a new threshold on a killed rule.
+The series is the global account ratio only. Open interest and the top-trader ratios are not read.
+Column locked 2026-09-25 01:13:24 UTC, after the metrics header was read and before any return:
+count_long_short_ratio, the last row of that UTC date, from
+data.binance.vision/data/futures/um/daily/metrics. No other column is read.
+
+Spot cannot short. Long or flat. Books: BTC and ETH.
+At the end of UTC day D the ratio for that day is known.
+It is in the bottom quintile when it is strictly below the 20th percentile of the previous 90 daily values (D-90 through D-1).
+Then day D+1 is long. Otherwise flat.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+Prices are Binance daily closes. A loss kills the family. A gain is not a pass.
+Screen only: execution days from 2022-01-01 through 2023-12-31. No later year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L,
+and pooled P&L exceeds 800 bps (4% a year over the two screen years).
+Round trip = an entry from flat to long.

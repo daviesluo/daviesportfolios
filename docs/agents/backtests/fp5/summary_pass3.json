@@ -1,0 +1,20 @@
+{
+  "reached_preregistration": false,
+  "note": "Each rule was hashed before its own result. A candle or a one-day print screen can kill a rule. None of these is a pass. The print test on VVV and STRK is the only one whose fills are prints through a price, and it loses.",
+  "kills": {
+    "friday_pin_2023_2024": {"pool_bps": -1240.85, "stress_bps": -2440.85, "trips": 60, "btc_bps": -868.08, "eth_bps": -1613.62},
+    "spx_next_day_2024": {"pool_bps": -578.3, "stress_bps": -3098.3, "trips": 126, "btc_bps": -1173.0, "eth_bps": 16.4, "null_p95_bps": 3776.9},
+    "vwap_one_hour_2024": {"pool_bps": -33980.0, "stress_bps": -71020.0, "trips": 1852, "btc_median_gross_bps": 11.15, "eth_median_gross_bps": 10.06},
+    "long_short_ratio_2022_2023": {"pool_bps": 4159.2, "stress_bps": 2619.2, "trips": 77, "month_share": 0.597, "null_p95_bps": 81.5, "why": "one month is 60% of P&L"},
+    "stablecoin_supply_2020_2021": {"pool_bps": 36333.1, "trips": 10, "null_p95_bps": 35002.6, "why": "supply almost always rises, so there are 10 entries and the result is beta"},
+    "cme_gap_down_2018_2020": {"bars": 162, "pool_bps": -3191.7, "stress_bps": -9671.7, "btc_bps": -9121.3, "eth_bps": 2737.8},
+    "fear_greed_2018_2019": {"pool_bps": 4840.5, "stress_bps": 3200.5, "trips": 82, "month_share": 0.525, "null_p95_bps": -796.4, "why": "beats the null, one month is 52% of P&L"},
+    "hash_rate_2025": {"pool_bps": -4443.1, "stress_bps": -7683.1, "trips": 162, "btc_bps": -4104.0, "eth_bps": -4782.3},
+    "gbp_lead_2025": {"pool_bps": -1723.0, "stress_bps": -4323.0, "trips": 130, "btc_bps": -1370.6, "eth_bps": -2075.5},
+    "onchain_tx_count_2020": {"pool_bps": 6822.3, "stress_bps": 4142.3, "trips": 134, "month_share": 0.345, "null_p95_bps": 11134.2, "why": "does not beat the random-day null"},
+    "neon_through_fill_one_day": {"n": 8, "median_markout_bps": 226.09, "why": "under the pre-registered count of 30"},
+    "gold_token_gap_jun_aug_screen_only": {"hours": 2208, "abs_p50_bps": 16.41, "abs_p95_bps": 38.82, "hours_over_20": 912, "p_and_l": false},
+    "gold_token_trade_mar_may": {"trips": 16, "pool_bps": -276.4, "stress_bps": -756.4, "why": "one month, and the rich-token side loses"},
+    "half_spread_prints_vvv_strk": {"vvv_trips": 253, "vvv_bps": -1673.2, "vvv_stress_bps": -3950.2, "strk_trips": 103, "strk_bps": 1412.7, "strk_stress_bps": 485.7, "pool_bps": -130.3, "stress_bps": -1732.3, "why": "VVV's taker stops wipe the maker exits; the pair was pre-registered together"}
+  }
+}

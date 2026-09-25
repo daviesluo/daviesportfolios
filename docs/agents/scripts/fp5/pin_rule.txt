@@ -1,0 +1,17 @@
+Family: Friday 08:00 UTC pinning toward the next round number above the price.
+Frozen 2026-09-25 01:00:19 UTC, before any Friday return of this rule was computed.
+Not hour-of-day (the bet is the sign toward a strike, not the clock's average return),
+not the funding-hour drift, not momentum, and not the Coinbase-premium rule killed on its own bar.
+
+Spot cannot short. Only buy toward a round number that sits above the price.
+BTC grid: 1000. ETH grid: 50.
+At Friday 00:00 UTC, gap = (ceil(price / grid) * grid / price - 1).
+Enter long if gap is between 20 and 80 bps. Otherwise flat.
+Exit at Friday 08:00 UTC. One shot, no stop.
+Cost 20 bps per entry and 20 bps per exit (40 bps a round trip). Stress doubles that to 80 bps a round trip.
+Prices are Binance 1-hour candle opens at those timestamps.
+Screen only: Fridays from 2023-01-01 through 2024-12-31. Later dates are not scored.
+A loss kills the family. A gain is not a pass.
+Null: the same number of long Fridays drawn at random from the screen's Fridays, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, and no calendar month is more than 40% of pooled P&L.

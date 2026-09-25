@@ -1,0 +1,17 @@
+Family: a maker bid 2.7 one-minute sigma behind Binance's last close, on wide UK books, refreshed once a minute.
+Frozen 2026-09-25 01:10:36 UTC, before any fill or return of this rule was computed.
+Not T1 (that quoted inside the touch), not T2 (that quoted a fixed 50 bps from Binance on six liquid books),
+not the touch-budget screen (that asked whether the half-spread itself clears 2.7 sigma).
+This quote sits behind the touch, at the distance the one-minute budget asks for, on books whose spread is wider than that distance.
+
+Books, fixed: NEON, AURORA, ALEO, VVV, STRK, all USD.
+Sigma: standard deviation of Binance 1-minute close-to-close log returns from 2026-09-01 00:00 UTC through 2026-09-07 23:59 UTC, per book. Distance = 2.7 times that sigma, converted to a fraction of price. Locked before the screen is scored.
+A bid is sent at the start of each minute from 00:00 through 15:59 UTC only (960 a day, under the 1,000-order budget) at Binance's previous minute close times (1 - distance). It dies at the end of that minute.
+Screen only: 2026-09-08 through 2026-09-21 inclusive. Later dates are not scored.
+Candle kill, which cannot pass: fill at the bid if that minute's Binance low trades through it; exit at the next minute's Binance close as a taker.
+Cost on the exit: 9 bps. Stress: 18 bps. Entry is maker, 0.
+A loss kills the family. A gain is not a pass: Revolut prints are not read unless this kill survives.
+Null: the same number of filled minutes, placed on random screened minutes, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, every book's own P&L > 0,
+P&L > null p95, and no calendar day is more than 40% of pooled P&L.
+Round trip = one filled bid.

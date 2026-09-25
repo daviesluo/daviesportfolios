@@ -1,0 +1,17 @@
+Family: through-fill bids a half-spread behind the last print, on VVV-USD and STRK-USD.
+Frozen 2026-09-25 01:23:50 UTC, before any P&L of this test was computed.
+The VVV one-day screen (2026-09-21) is not in this window. STRK was not screened.
+Distance is 38 bps on both books: half of VVV's 76.5 bp snapshot spread, and STRK's own half-spread is 38.2.
+One position at a time. After a print, a bid sits at that print times (1 - 38 bps) for five minutes.
+A fill is the first later print strictly below the bid. Entry fee is zero.
+An ask then sits at the fill times (1 + 38 bps) for 30 minutes. A print strictly above that ask is a maker exit, P&L 38 bps.
+If it does not fill, the exit is the first sell print at or after 30 minutes, as a taker, minus 9 bps.
+If no sell print follows, there is no trip: the position is dropped from the sample rather than marked at a quote.
+Stress subtracts another 9 bps from every trip.
+Test days: 2026-07-23 through 2026-09-20, and 2026-09-22 through 2026-09-23. Region UK. 2026-09-21 is not scored.
+A loss kills the family. This test uses prints, so a pass here is eligible.
+Null: the same number of trips per book, entered at a random print's own price, exited on the first sell print at least 30 minutes later, minus 9 bps, 500 draws, seed 20260925.
+Kill unless pooled P&L > 0, stress > 0, round trips >= 60, both books > 0, median trip > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, no calendar day is more than 40%,
+and the annualized return on a $200 lot exceeds 4%.
+Round trip = one entry, maker exit or taker stop.

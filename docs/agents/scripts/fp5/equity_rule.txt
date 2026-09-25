@@ -1,0 +1,16 @@
+Family: the US cash session leads the next UTC day of BTC and ETH.
+Frozen 2026-09-25 01:02:55 UTC, before any next-day crypto return of this rule was computed.
+Not the 15:00 UTC hour (that hour is inside the cash session and was killed), not momentum-1d,
+not the Coinbase premium, and not Friday pinning.
+
+Spot cannot short. Long or flat.
+Signal: S&P 500 close-to-close return on US session date D, known by the cash close.
+Trade: the Binance daily return from 00:00 UTC on D+1 to 00:00 UTC on D+2.
+Long that day if the S&P return was positive, otherwise flat.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+Screen only: signal dates in 2024 whose execution day also falls in 2024. No later year is scored.
+A loss kills the family. A gain is not a pass.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, and no calendar month is more than 40% of pooled P&L.
+Round trip = an entry from flat to long.

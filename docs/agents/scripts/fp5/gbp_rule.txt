@@ -1,0 +1,13 @@
+Family: a stronger pound leads the next UTC day of BTC and ETH.
+Frozen 2026-09-25 01:22:20 UTC, before any next-day crypto return of this rule was computed.
+Not the S&P lead (that was the US cash session, and it lost), and not the coin-implied GBP rate.
+
+Spot cannot short. Long or flat. Books: BTC and ETH.
+Signal: Yahoo GBPUSD=X close-to-close return on date D. Long date D+1 when that return is positive.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+Prices are Binance daily closes. A loss kills the family. A gain is not a pass.
+Screen only: execution days in 2025. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.

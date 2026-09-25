@@ -1,0 +1,16 @@
+Family: a one-hour long when the hour's close is 100 bps or more below the same UTC day's running VWAP.
+Frozen 2026-09-25 01:03:40 UTC, before any next-hour return of this rule was computed.
+Not the daily reversal search, not the 300 bp daily jump, not the one-hour coin/BTC ratio, and not order-flow markouts.
+The anchor is today's volume-weighted price, and the hold is one hour.
+
+Spot cannot short. Long or flat.
+Books: BTC and ETH. Prices and volume are Binance 1-hour candles.
+VWAP before hour h is the volume-weighted close of earlier hours of the same UTC day. Hours with no prior volume are skipped.
+Enter at the close of hour h if close <= VWAP * (1 - 100 bps). Exit at the next hour's close. One hour, no stop.
+Cost 40 bps per entry (20 in and 20 out). Stress 80 bps per entry.
+Screen only: entries whose hour and whose exit hour both fall in 2024. No later year is scored.
+A loss kills the family. A gain is not a pass.
+Null: the same number of long hours, drawn from hours that have a defined VWAP, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, and no calendar month is more than 40% of pooled P&L.
+Round trip = one one-hour long.
