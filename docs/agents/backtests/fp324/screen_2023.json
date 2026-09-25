@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp324_common": "48bdeb629447a71d02572b39b4a301eada174ed66f2181285da41cb2b29ea105",
+    "fp324_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "GLDPM",
+      "mean_gross_bps": 5.2892,
+      "mean_net_bps": -14.7014,
+      "min_n": 30,
+      "n": 154,
+      "note": "Fair value is the LBMA Gold Price PM divided by the Coin Metrics BUSD price that had already completed. The previous PAXGBUSD close is at least fifty basis points under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -15.0982,
+      "passes_screen": false,
+      "total_pnl_usd": -22.6402
+    }
+  ],
+  "input_sha256": {
+    "book": "b2234e959ca5be591a41f7990e50a22b1de606c2108b8980e1a3876ea18a1558",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "usd": "3ce12898da2afe017726b357c3bb621885dee2c5025adeddfb59d85876f0775c"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -16.6611,
+  "null_n": 157,
+  "passed": [],
+  "protocol_sha256": "4853ba2ea74f9da77480f6e798d66a5021a0b2c2b88f6c074f343b02e4665a16"
+}

@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp330_common": "ef4bee6780c9fddb02decde7c0a0ccdd33f41593b7e492b81a2228dd9edbe44f",
+    "fp330_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CLTHP",
+      "mean_gross_bps": 3.8495,
+      "mean_net_bps": -16.1382,
+      "min_n": 30,
+      "n": 120,
+      "note": "Fair value is 1.0666 times the US CPI apparel index, rebased to December 2022, divided by the euro-area clothing-and-footwear HICP rebased to the same month, divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least one thousand basis points under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -18.1312,
+      "passes_screen": false,
+      "total_pnl_usd": -19.3658
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "ea": "9ce91261eef3f170a004abb19a298ba6d353db9cea8bbd41d4c9fa1150198350",
+    "us": "3c6399d7352bf2368cf5d9e0dd936cdc7a16d64d738e09b0dac166613aa2c4e3"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -23.3496,
+  "null_n": 199,
+  "passed": [],
+  "protocol_sha256": "922e0cb17470be71fe6ff7ace4f847e89848f3a0edec420b4b8f8aff7fb66fe0"
+}

@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp325_common": "e306701c455edac891cdf63159cb672653003fc125df84e76f25298bc1d3ad2e",
+    "fp325_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ECBFX",
+      "mean_gross_bps": 7.1097,
+      "mean_net_bps": -12.8846,
+      "min_n": 30,
+      "n": 160,
+      "note": "Fair value is the ECB US dollar per euro reference rate divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least twenty-five basis points under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -22.5638,
+      "passes_screen": false,
+      "total_pnl_usd": -20.6153
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "usd": "5554ffe93c1be4ff1e130217a0a244e95d238604e116bc0d8940239ead748eab"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -25.5012,
+  "null_n": 182,
+  "passed": [],
+  "protocol_sha256": "8c0f70f6f9a8cd7e4a23b4915b5edcef16c27e2a6e2b6e3b2052092246b2ed02"
+}

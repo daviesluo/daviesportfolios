@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp331_common": "cc0b2b3aef2ad7c463175efd51cb0d5c138ac3acd06765b65f02a63cb54f8cdf",
+    "fp331_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AIRPP",
+      "mean_gross_bps": 7.3722,
+      "mean_net_bps": -12.6225,
+      "min_n": 30,
+      "n": 146,
+      "note": "Fair value is 1.0666 times the US CPI airline-fares index, rebased to December 2022, divided by the euro-area passenger-air HICP rebased to the same month, divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least one basis point under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -23.9904,
+      "passes_screen": false,
+      "total_pnl_usd": -18.4289
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "ea": "6163039c9ac8664b2b65fda6e930a84436ca72e0e4893e47b9476d391bba2457",
+    "us": "be289932f9c4a133add4e18a1612005dbab95b2cb42fe06286eaff72fa06efd6"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -27.4004,
+  "null_n": 173,
+  "passed": [],
+  "protocol_sha256": "7107d949f24e1d903b2bc851f5e8856a4cfedc1249a476caa850dacd83a0e3c8"
+}

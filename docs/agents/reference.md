@@ -7681,6 +7681,94 @@ No return of these rules has been computed. This is not a testing row. The
 gap that would take a rule out of sample is strictly more than 20 bps. The
 count stays 30. The next eight are not frozen in this section.
 
+### 3.377 GLDPM fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp324/screen_2023.json`,
+sha256 `55fb3385…`. 154 trades. Mean gross +5.2892 bps. Mean net −14.7014 bps.
+The edge-off set has 157 trades and a mean of −16.6611 bps. The cutoff is
+the house p95, −15.0982 bps, not that mean. Total −$22.6402. The mean is
+negative. It sits 0.3968 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 50 bp line
+was not moved and the short was not taken.
+
+### 3.378 ECBFX fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp325/screen_2023.json`,
+sha256 `04137c22…`. 160 trades. Mean gross +7.1097 bps. Mean net −12.8846 bps.
+The edge-off set has 182 trades and a mean of −25.5012 bps. The cutoff is
+the house p95, −22.5638 bps, not that mean. Total −$20.6153. The mean is
+negative. It sits 9.6792 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 25 bp line
+was not moved and the short was not taken.
+
+### 3.379 BMACP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp326/screen_2023.json`,
+sha256 `d38be64f…`. 148 trades. Mean gross +8.2805 bps. Mean net −11.7161 bps.
+The edge-off set has 194 trades and a mean of −25.6123 bps. The cutoff is
+the house p95, −21.6836 bps, not that mean. Total −$17.3398. The mean is
+negative. It sits 9.9675 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 200 bp line
+was not moved and the short was not taken.
+
+### 3.380 CPIPP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp327/screen_2023.json`,
+sha256 `c0e82f54…`. 107 trades. Mean gross +15.1919 bps. Mean net −4.8185 bps.
+The edge-off set has 212 trades and a mean of −28.6207 bps. The cutoff is
+the house p95, −21.0213 bps, not that mean. Total −$5.1558. The mean is
+negative. It sits 16.2028 bps above that cutoff, inside 20 bps. Nothing here
+is fit to add. The later years are not scored. This is not a testing row.
+The 1 bp line was not moved and the short was not taken.
+
+### 3.381 PPIPP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp328/screen_2023.json`,
+sha256 `8871e2dc…`. 130 trades. Mean gross +3.2088 bps. Mean net −16.7776 bps.
+The edge-off set has 173 trades and a mean of −21.5176 bps. The cutoff is
+the house p95, −17.5504 bps, not that mean. Total −$21.8109. The mean is
+negative. It sits 0.7728 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 500 bp line
+was not moved and the short was not taken.
+
+### 3.382 WAGPP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp329/screen_2023.json`,
+sha256 `50fa607e…`. 93 trades. Mean gross −7.9743 bps. Mean net −27.9384 bps.
+The edge-off set has 160 trades and a mean of −15.8671 bps. The cutoff is
+the house p95, −10.4449 bps, not that mean. Total −$25.9827. The mean is
+negative and under that cutoff, by 17.4935 bps. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 500 bp line
+was not moved and the short was not taken.
+
+### 3.383 CLTHP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp330/screen_2023.json`,
+sha256 `62e7321d…`. 120 trades. Mean gross +3.8495 bps. Mean net −16.1382 bps.
+The edge-off set has 199 trades and a mean of −23.3496 bps. The cutoff is
+the house p95, −18.1312 bps, not that mean. Total −$19.3658. The mean is
+negative. It sits 1.993 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 1000 bp line
+was not moved and the short was not taken.
+
+### 3.384 AIRPP fails the 2023 screen (2026-09-25)
+
+The protocol was `a90b9b4`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp331/screen_2023.json`,
+sha256 `09ce00a4…`. 146 trades. Mean gross +7.3722 bps. Mean net −12.6225 bps.
+The edge-off set has 173 trades and a mean of −27.4004 bps. The cutoff is
+the house p95, −23.9904 bps, not that mean. Total −$18.4289. The mean is
+negative. It sits 11.3679 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 1 bp line
+was not moved and the short was not taken. The next eight are not frozen.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

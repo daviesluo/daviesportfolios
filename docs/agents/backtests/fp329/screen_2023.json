@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp329_common": "36dbef6301ff853c6bfc509157763ba7037291f0b37f14d5afb1f61d2df2f596",
+    "fp329_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "WAGPP",
+      "mean_gross_bps": -7.9743,
+      "mean_net_bps": -27.9384,
+      "min_n": 30,
+      "n": 93,
+      "note": "Fair value is 1.0666 times US average hourly earnings, rebased to December 2022, divided by the euro-area calendar-adjusted wage index rebased to 2022-Q4, divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least five hundred basis points under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -10.4449,
+      "passes_screen": false,
+      "total_pnl_usd": -25.9827
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "ea": "42a4ce162c23870b318956b00eb06099f92362926d3682ba156e5fcd62e51c90",
+    "us": "ecc05b069a1a23d3f244885d6adaec9c8951f4bbea46605574f26b4f3ef50408"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -15.8671,
+  "null_n": 160,
+  "passed": [],
+  "protocol_sha256": "35d9dbffde7b94bbf99853d86ae9406ac6b8cad5b01e65d10185eaf127ed59bc"
+}

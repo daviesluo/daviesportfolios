@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp327_common": "b90cea2f1c46ccb8ce71a3c245b34596f185dbbfdb020a191f6d17f2e69c692e",
+    "fp327_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CPIPP",
+      "mean_gross_bps": 15.1919,
+      "mean_net_bps": -4.8185,
+      "min_n": 30,
+      "n": 107,
+      "note": "Fair value is 1.0666 times the US CPI-U, rebased to December 2022, divided by the euro-area HICP rebased to the same month, divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least one basis point under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -21.0213,
+      "passes_screen": false,
+      "total_pnl_usd": -5.1558
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "ea": "2e94795fc6fbabc298a61221ce770dbc327e74454ca710b015220c173b55e2ee",
+    "us": "5be26b7ea44ee001100cdf48eea653240be047754735f6ec800d2d93c2037ba6"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -28.6207,
+  "null_n": 212,
+  "passed": [],
+  "protocol_sha256": "73f9cd6e97dcd969e261c2c2201686bcd6b18d2dbe066dbd69f28ff470cf615a"
+}

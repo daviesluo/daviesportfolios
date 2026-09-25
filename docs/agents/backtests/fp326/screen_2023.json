@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp326_common": "8b1023f17ec96ccec9c1e33964e56779952c3d4d9b957fd00fecea109a556730",
+    "fp326_measure": "8ce8e5455bf1ce191125fb4d714cf1ca45592bd7cbb67ce3c8a6f3bb9f4d4c89",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BMACP",
+      "mean_gross_bps": 8.2805,
+      "mean_net_bps": -11.7161,
+      "min_n": 30,
+      "n": 148,
+      "note": "Fair value is the Big Mac US price divided by the euro-area Big Mac price, then divided by the Coin Metrics BUSD price that had already completed. The previous EURBUSD close is at least two hundred basis points under that price. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -21.6836,
+      "passes_screen": false,
+      "total_pnl_usd": -17.3398
+    }
+  ],
+  "input_sha256": {
+    "book": "f99876ef6f78eb9dbfc1783a89ea80f63d474dc4c8477d5283e6416476b03770",
+    "busd": "748a0b8bcb5e15f3c94bcafeed74b1bad86ccb19e38d7a08e97126211bc5bd92",
+    "usd": "32ecabb1bee2d7c2aa46ec2689af5461b2224ad090e807f101b2e57bda5ef996"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -25.6123,
+  "null_n": 194,
+  "passed": [],
+  "protocol_sha256": "d1aefef777a9dddbef3364079c3f4b25d2a41419fe14eb81b2e37de036419e36"
+}
