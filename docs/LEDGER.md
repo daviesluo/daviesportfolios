@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp119–fp127 are scored. Nothing passes the house bar.** Seven option-book signals have fills and fail. PCOI has no fill and does not count. MEMBYTE has 99 fills, a positive mean, and is under its own null. No later year was read. No testing row. No pull request. Main was not pushed.
+**fp128–fp135 are protocols only. No return has been computed.** Eight different signals, each a published series with a print on every UTC day from 2022-10-01 through 2023-12-31, each long BTC for one day: the last unspent-output count (UTXO), average block size (BLKSZ), median confirmation time (MEDCONF), English Wikipedia pageviews of Bitcoin (WIKI), blocks mined (BLKCNT), on-chain output volume in BTC (OUTBTC), the intraday range of the unspent-output count (UTXORNG), and median confirmation time over the average (CONFR). The frozen 90-day, 90-print rule therefore has a full year of days that can fire. Pins printed fp128 through fp135 pins ok. The option archive and the mempool chart are not read. No sign is flipped. The count stays 30. The window is not shrunk. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:01 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp128–fp135 are protocols only. No return has been computed.** Eight different signals, each long BTC for one day, each with a published print on every UTC day from 2022-10-01 through 2023-12-31: the last unspent-output count (UTXO), average block size in megabytes (BLKSZ), median confirmation time in minutes (MEDCONF), English Wikipedia pageviews of Bitcoin (WIKI), blocks mined (BLKCNT), on-chain output volume in BTC (OUTBTC), the intraday range of the unspent-output count (UTXORNG), and median confirmation time divided by the average (CONFR). Pins printed fp128 through fp135 pins ok before this commit. The frozen window stays 90 days and 90 prints, so a full year of days can fire. The count stays 30. No sign is flipped. No option file is read. No mempool chart is read. No hourly price bar is read. No funding print is read. No alt quote is read. No metrics file is read. Hash rate, fees, address counts, transaction counts, and exchange flows are not inputs. fp119–fp127 stay closed, including PCOI, which had no fill. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 06:47 UTC] Platform: Cursor | Model: Grok 4.7
 
