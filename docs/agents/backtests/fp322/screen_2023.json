@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp322_common": "573c19044bce2fcafd0560a47889b716e394be79ad1abd91e7ef0e75283a7349",
+    "fp322_measure": "605e2f007535e8faf4b2e1e20fdad1d2c0afcae72f07a9c8f6ee51c94fd43550",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "WBRAT",
+      "mean_gross_bps": 7.8115,
+      "mean_net_bps": -12.1842,
+      "min_n": 30,
+      "n": 43,
+      "note": "Fair value is Binance's published WBETH exchange rate, ETH per WBETH. The previous WBETHETH close is at least twenty-five basis points under that rate. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": -17.1134,
+      "passes_screen": false,
+      "total_pnl_usd": -5.2392
+    }
+  ],
+  "input_sha256": {
+    "book": "98e7276a1ff62156d90a377c4e78b03eb6b02c824d32d59778486e437995ec00",
+    "fair": "bafb79ea2de90b0fdeb114b0c4d48d25453144222900b26f13a3134ceb45fd48"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -19.0215,
+  "null_n": 189,
+  "passed": [],
+  "protocol_sha256": "f9b8a6e6e567d4db6b97553211ecfeb2d4e8586417a3c0d9ed0840eba51cede7"
+}

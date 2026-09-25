@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp321_common": "90c9fc0e723da363fa7f7439e4c6794a40fe39e10e7dd114fc0ce81d302118c8",
+    "fp321_measure": "99f99c778e576c75d6d176645967d9403c6492a2481b54862c595e39214eff9e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "EREAL",
+      "mean_gross_bps": 313.5871,
+      "mean_net_bps": 292.9806,
+      "min_n": 30,
+      "n": 31,
+      "note": "Fair value is the Coin Metrics realized ETH price in USD. The previous ETHUSD_PERP close is at least one basis point under that price. Buy the coin-margined book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 76.5994,
+      "passes_screen": true,
+      "total_pnl_usd": 90.824
+    }
+  ],
+  "input_sha256": {
+    "book": "f84296b3ba8f970c3ee8c6bbef6466da0b8bb186cc5f3a87cd9961a147a73a9a",
+    "fair": "8907b2965466258c300cab2bea1dcd4f69e1e6974b1e3f2a63a880094e65c2fb"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -3.9242,
+  "null_n": 325,
+  "passed": [
+    "EREAL"
+  ],
+  "protocol_sha256": "2076a54456344cb8cc5d24792f32da6b3eae38525c703a9bfac24f25117c76c5"
+}

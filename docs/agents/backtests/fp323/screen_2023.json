@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp323_common": "a564ede4d87c9a995a158e2b2d32c2b9d80539b0795f421b9b8360f7a58b21b7",
+    "fp323_measure": "8552fa069847385a3168ded0418b03eb0d938a6f706b2de67ed3b8c9332bc592",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "WBPAR",
+      "mean_gross_bps": 3.124,
+      "mean_net_bps": -16.8623,
+      "min_n": 30,
+      "n": 167,
+      "note": "Fair value is the standing par of one BTC per WBTC. The previous WBTCBTC close is at least one basis point under that par. Buy the spot book for two days. The other trade buys it for two days when that discount is absent. Same prices, same side, the edge turned off. One leg. The traded open is the fill only. The entry day's close is not an input. A daily print is not an input. A book ticker is not read.",
+      "null_p95_bps": -22.1764,
+      "passes_screen": false,
+      "total_pnl_usd": -28.16
+    }
+  ],
+  "input_sha256": {
+    "book": "7d3e7c9724a6e565c5a62018fbda2befdd123cf8b67b1e42f8f4c6fd24f407f4"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -22.5177,
+  "null_n": 196,
+  "passed": [],
+  "protocol_sha256": "9092e90dd2110cdcc42cb6884f1a7fae1aa83983132e24340ee1bf48554fd49a"
+}

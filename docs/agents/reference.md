@@ -7563,6 +7563,39 @@ No return of these rules has been computed. No book ticker was frozen. No
 later-year bar is requested as an entry. None is a testing row. fp313–fp320
 stay inside 2023.
 
+### 3.371 EREAL clears the 2023 screen (2026-09-25)
+
+The protocol was `c824fd5`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp321/screen_2023.json`,
+sha256 `6445081a…`. 31 trades. Mean gross +313.5871 bps. Mean net +292.9806
+bps. The edge-off set has 325 trades and a mean of −3.9242 bps. The cutoff
+is the house p95, +76.5994 bps, not that mean. Total +$90.824. The gap is
+216.3812 bps. The three screen bars pass. The later years are not scored
+in this commit. This is not a testing row. The buy and the sell were not
+moved. The 1 bp line was not raised.
+
+### 3.372 WBRAT fails the 2023 screen (2026-09-25)
+
+The protocol was `c824fd5`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp322/screen_2023.json`,
+sha256 `794f6dc4…`. 43 trades. Mean gross +7.8115 bps. Mean net −12.1842 bps.
+The edge-off set has 189 trades and a mean of −19.0215 bps. The cutoff is
+the house p95, −17.1134 bps, not that mean. Total −$5.2392. The mean is
+negative. It sits 4.9292 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 25 bp line
+was not moved and the short was not taken.
+
+### 3.373 WBPAR fails the 2023 screen (2026-09-25)
+
+The protocol was `c824fd5`, pushed before this return. The screen file was
+written twice and the copies matched. `docs/agents/backtests/fp323/screen_2023.json`,
+sha256 `814dd798…`. 167 trades. Mean gross +3.124 bps. Mean net −16.8623 bps.
+The edge-off set has 196 trades and a mean of −22.5177 bps. The cutoff is
+the house p95, −22.1764 bps, not that mean. Total −$28.16. The mean is
+negative. It sits 5.3141 bps above that cutoff. Nothing here is fit to add.
+The later years are not scored. This is not a testing row. The 1 bp line
+was not moved. USDC and BETH were not added after this result.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
