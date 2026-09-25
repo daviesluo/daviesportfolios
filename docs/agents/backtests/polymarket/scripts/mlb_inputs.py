@@ -33,6 +33,39 @@ END = "2026-09-11T00:00:00Z"
 MATCH_WINDOW = 3 * 3600
 YES_NRFI = ("Yes", "Yes Run")
 NO_NRFI = ("No", "No Run")
+# Polymarket's 2025 titles use the short club name. The stats file uses the full name.
+ALIAS = {
+    "Diamondbacks": "Arizona Diamondbacks",
+    "Braves": "Atlanta Braves",
+    "Orioles": "Baltimore Orioles",
+    "Red Sox": "Boston Red Sox",
+    "Cubs": "Chicago Cubs",
+    "White Sox": "Chicago White Sox",
+    "Reds": "Cincinnati Reds",
+    "Guardians": "Cleveland Guardians",
+    "Rockies": "Colorado Rockies",
+    "Tigers": "Detroit Tigers",
+    "Astros": "Houston Astros",
+    "Royals": "Kansas City Royals",
+    "Angels": "Los Angeles Angels",
+    "Dodgers": "Los Angeles Dodgers",
+    "Marlins": "Miami Marlins",
+    "Brewers": "Milwaukee Brewers",
+    "Twins": "Minnesota Twins",
+    "Mets": "New York Mets",
+    "Yankees": "New York Yankees",
+    "Phillies": "Philadelphia Phillies",
+    "Pirates": "Pittsburgh Pirates",
+    "Padres": "San Diego Padres",
+    "Giants": "San Francisco Giants",
+    "Mariners": "Seattle Mariners",
+    "Cardinals": "St. Louis Cardinals",
+    "Rays": "Tampa Bay Rays",
+    "Rangers": "Texas Rangers",
+    "Blue Jays": "Toronto Blue Jays",
+    "Nationals": "Washington Nationals",
+}
+FULL = set(ALIAS.values()) | {"Athletics", "Oakland Athletics"}
 
 _MLB_LAST = 0.0
 _MLB_LOCK = threading.Lock()
@@ -109,6 +142,15 @@ def slug_kind(slug):
     return None
 
 
+def canonical(name):
+    """The stats-file club name. A full name is unchanged. An unknown name is None."""
+    if not name:
+        return None
+    if name in FULL or name in ALIAS.values():
+        return name
+    return ALIAS.get(name)
+
+
 def clubs_of(title):
     text = title or ""
     for sep in (" vs. ", " vs "):
@@ -134,9 +176,10 @@ def classify_ml(m, home, away):
     outs = _list(m.get("outcomes"))
     if outs is None or len(outs) != 2:
         return None
-    if set(outs) != {home, away}:
+    named = [canonical(o) for o in outs]
+    if None in named or set(named) != {home, away}:
         return None
-    return [(outs[0], 0), (outs[1], 1)]
+    return [(named[0], 0), (named[1], 1)]
 
 
 def classify_nrfi(m):
@@ -299,6 +342,7 @@ def build_rows(ev, raw, indexed, people):
     if kind == "props":
         return _props(ev, raw, people, end, kick, td, closed_ev)
     home, away = clubs_of((raw or {}).get("title"))
+    home, away = canonical(home), canonical(away)
     game = match_game(home, away, kick, indexed)
     if game is None:
         return []
@@ -668,6 +712,11 @@ def self_check():
     ml = {"sportsMarketType": "moneyline", "outcomes": [home, away], "question": home + " vs. " + away}
     if classify_ml(ml, home, away) != [(home, 0), (away, 1)]:
         raise SystemExit("moneyline %s" % (classify_ml(ml, home, away),))
+    short = {"sportsMarketType": "moneyline", "outcomes": ["Diamondbacks", "Mets"]}
+    if classify_ml(short, "Arizona Diamondbacks", "New York Mets") != [("Arizona Diamondbacks", 0), ("New York Mets", 1)]:
+        raise SystemExit("short names %s" % (classify_ml(short, "Arizona Diamondbacks", "New York Mets"),))
+    if canonical("Baltimore Orioles") != "Baltimore Orioles" or canonical("No Club") is not None:
+        raise SystemExit("canonical")
     spread = {"sportsMarketType": "spreads", "line": -1.5, "outcomes": [home, away], "question": "Spread: " + home + " (-1.5)"}
     if classify_ml(spread, home, away) is not None or classify_nrfi(spread) is not None or classify_xin(spread) is not None:
         raise SystemExit("a spread was kept")

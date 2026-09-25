@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5, branch `cursor/polymarket-fp5-b50c`:** ARM, WALK, K9, TIRED, YRFI, XIN, HR05 and K35 are frozen and not yet scored. Do not open their price files until this freeze is pushed. Do not retune them after the run. Do not reopen HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15 or FH05. Do not retune REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 or CORNERS. Do not lower CONGEST to a gap of 1. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
+**fp5, branch `cursor/polymarket-fp5-b50c`:** ARM, WALK, K9, TIRED, YRFI, XIN, HR05 and K35 are frozen and not yet scored. The 2025 titles use short club names; the joiner maps them onto the stats-file names. Do not retune the eight rules after the run. Do not reopen HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15 or FH05. Do not retune REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 or CORNERS. Do not lower CONGEST to a gap of 1. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,10 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 06:01 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, the baseball joiner maps 2025's short club names. No return has been computed.** The 05:57 freeze stood. The first pull matched full names and left the short titles empty: "Diamondbacks vs. Mets" is Arizona and New York on the stats file. `canonical` in `scripts/mlb_inputs.py` maps those short names. The thresholds are unchanged. Empty structure caches from the stopped pull were deleted; full-name caches were kept. `Diamondbacks` at `2025-04-29T23:10:00Z` now matches the stats-file game at the same timestamp. The sample pull starts again after this commit.
 
 ### [2026-09-25 05:57 UTC] Platform: Cursor | Model: Grok 4.7
 
