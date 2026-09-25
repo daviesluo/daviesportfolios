@@ -2909,6 +2909,17 @@ close. The daily grid has no hole. **Nothing here is fit to add.** The
 count cleared and the mean was positive; it lost to the null. A gap down
 and the 80th are not candidates.
 
+### 3.50 Close versus the day's VWAP: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp21-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp21/screen_2023.json`). The close over
+that day's VWAP, above its own trailing 90th, long spot the next day: 44
+trades, mean +28.1 bps, null p95 +64.0 bps. The gross move was +48.2 bps.
+Thirty-one of those signal days opened at or below the previous close. The
+daily grid has no hole. **Nothing here is fit to add.** The count cleared
+and the mean was positive; it lost to the null. A close under the VWAP and
+the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

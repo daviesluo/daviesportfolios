@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp21_common": "a2765520d5de6d047b760b397ec76546d5646e088e4cef76fd10c0f4eff3de1f",
+    "fp21_measure": "7991227cda71de5f4bdeae0252d5ab17e04b9198a42756ee51b5e49d27be19c9",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "VWAP-PREM",
+      "mean_gross_bps": 48.172,
+      "mean_net_bps": 28.0958,
+      "min_n": 30,
+      "n": 44,
+      "note": "Close above the day's VWAP, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 63.9818,
+      "passes_screen": false,
+      "total_pnl_usd": 12.3621
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "58da95d48391be27bf5975b101fce146985f8ce7f856ef771dd80d466faf3e8c"
+  },
+  "passed": [],
+  "protocol_sha256": "6deb952f51f7805f95ff4811968ed3c6fa2a3e33d74dbce4d160de7cac1e822e"
+}

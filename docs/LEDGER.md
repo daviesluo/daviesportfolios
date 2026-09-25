@@ -8,13 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp21 protocol is frozen. No return has been computed.** VWAP-PREM is the
-close over that day's VWAP, long BTC the next day. Do not score a close
-under the VWAP. GAP-UP stays dead (§3.49): do not score a gap down or the
-80th. Do not reopen CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO,
-the quiet-day range, the taker share, dispersion, or skew. fp5 through
-fp20 stay closed, including LS-FADE. The screen is the next step. No
-testing row. No pull request. No push to main.
+**fp21 failed the 2023 screen and is discarded** (§3.50). The count cleared
+and the mean was positive; it lost to the null. Do not score a close under
+the VWAP, and do not score the 80th. GAP-UP stays dead (§3.49). Do not
+reopen CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
+range, the taker share, dispersion, or skew. fp5 through fp20 stay closed,
+including LS-FADE. The next search is not written. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +837,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:14 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp21 screen: nothing passes.** Protocol was `16c34db`. Two scores matched
+(`99c2dee1…`). VWAP-PREM 44 trades, +28.10 bps against a null of +63.98,
++$12.36. Gross before costs was +48.17 bps. Thirty-one of the signal days
+opened at or below the previous close. The daily grid has no hole.
+Reference §3.50. The count cleared and the mean was positive; it lost to
+the null. A close under the VWAP and the 80th are not candidates. No
+testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:14 UTC] Platform: Cursor | Model: Grok 4.7
 
