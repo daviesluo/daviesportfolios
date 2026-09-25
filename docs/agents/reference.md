@@ -2931,6 +2931,17 @@ not a print. **Nothing here is fit to add.** The count stays 30. The mean
 was positive and lost to the null. An even day and the 80th are not
 candidates.
 
+### 3.52 Share of up hours: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp23-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp23/screen_2023.json`). The share of
+the day's hours that closed above their own open, above its own trailing
+90th, long spot the next day: 23 trades, mean +59.7 bps, null p95 +85.9 bps.
+The gross move was +79.8 bps. The same hour is missing, 2023-03-24 13:00 UTC,
+and that day is not a print. **Nothing here is fit to add.** The count stays
+30. The mean was positive and lost to the null. A day of mostly down hours
+and the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

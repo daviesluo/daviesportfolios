@@ -8,14 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp23 protocol is frozen. No return has been computed.** UP-SHARE is the
-share of the day's hours that closed above their own open, long BTC the
-next day. Do not score a day of mostly down hours. VOL-HHI stays dead
-(§3.51): do not score an even day or the 80th, and the count stays 30.
-Do not reopen VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
-RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
-through fp22 stay closed, including LS-FADE. The screen is the next step.
-No testing row. No pull request. No push to main.
+**fp23 failed the 2023 screen and is discarded** (§3.52). 23 trades, under
+30, and the positive mean lost to the null. Do not score a day of mostly
+down hours, and do not score the 80th. The count stays 30. VOL-HHI stays
+dead (§3.51). Do not reopen VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR,
+AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
+dispersion, or skew. fp5 through fp22 stay closed, including LS-FADE. The
+next search is not written. No testing row. No pull request. No push to
+main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +838,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:21 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp23 screen: nothing passes.** Protocol was `21302cc`. Two scores matched
+(`6c8c0fd0…`). UP-SHARE 23 trades, +59.67 bps against a null of +85.93,
++$13.72. Gross before costs was +79.81 bps. One hour is missing,
+2023-03-24 13:00 UTC, and that day is not a print. Reference §3.52. The
+count stays 30. The mean was positive and lost to the null. A day of
+mostly down hours and the 80th are not candidates. No testing row. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 02:20 UTC] Platform: Cursor | Model: Grok 4.7
 
