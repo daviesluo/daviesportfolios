@@ -8,10 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp14 failed the 2023 screen and is discarded** (§3.43). Do not score the
-left tail of the skewness, and do not reopen dispersion. fp5 through fp13
-stay closed. The next search is not written. No testing row. No pull
-request. No push to main.
+**fp15 protocol is written. No return has been computed.** The rule is
+BTC's 7-day realized vol divided by its 30-day realized vol, long the next
+day when that ratio is above its own trailing 90th. The low ratio is not a
+candidate. Do not reopen fp5 through fp14, including LS-FADE, the quiet-day
+range, DVOL minus realized vol, dispersion, or skew. The screen is the next
+step. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:46 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp15 protocol only. No return has been computed.** A different family from
+the ten closed rounds: the ratio of 7-day to 30-day population realized vol
+of BTC, long spot the next day. The quiet-day range, DVOL minus realized
+vol, dispersion and skew stay closed. The low ratio is not a candidate.
+`pin_test.py` passed before this commit. The screen is the next step. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 01:37 UTC] Platform: Cursor | Model: Grok 4.7
 
