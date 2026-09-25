@@ -6763,6 +6763,27 @@ name the fair value it is cheap against, or the spread or basis it earns.
 The other trade is that same leg with the price edge turned off. It is not
 the opposite side and it is not an unconditional hold.
 
+### 3.333 Two stated bases, frozen before any 2023 return (2026-09-25)
+
+fp281 through fp288 are recorded in §3.325–§3.332. They pick a side. None
+names a fair value, a spread, or a basis, so none is taken out of sample.
+fp289 through fp296 are frozen in the same commit as this note, before any
+return of those rules. Two price edges are stated. The first is the basis of
+the USDT book against spot: DISCU, RICHU, CHEAPS and WIDEN. The second is
+the basis of the coin-margined book against the USDT book: CHEAPC, DISCM,
+GAPCM and RICHC. Each null is that same leg, on the same prices, with the
+edge turned off. It is not the opposite side and it is not an unconditional
+hold. A count of spans, with no profit computed: DISCU 84 and 273, RICHU 57
+and 297, CHEAPS 55 and 297, WIDEN 46 and 312, CHEAPC 93 and 253, DISCM 89
+and 267, GAPCM 148 and 195, RICHC 87 and 254. Fillable days were 357, 354,
+352, 358, 347, 360, 348 and 342. The five-basis-point line is 0.0005. It is
+the discount that leaves both sets at or above 30 where a strict one-tick
+discount did not. No profit was computed to choose it. The screen count stays
+30. A pass of 2023 is not a testing row. Later years are scored only when the
+three screen bars pass and the mean net is strictly more than 20 bps above
+the edge-off trade. LS-FADE's 60-trade reproduction, the control, doubled
+costs, and the rule that no month is above 40% of the profit are not relaxed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
