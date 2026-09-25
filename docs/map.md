@@ -843,14 +843,14 @@ before touching migration state.
 | `docs/agents/scripts/fp150/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in USDT-margined BTC volume over coin-margined BTC volume, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp150/screen_2023.json`. |
 | `docs/agents/scripts/fp151/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The dispersion of the taker long/short volume ratio, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp151/screen_2023.json`. |
 | `docs/agents/scripts/fp152/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in the BTC premium-index close, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp152/screen_2023.json`. |
-| `docs/agents/scripts/fp153/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Premium close above zero: long spot, short the perpetual, and the short keeps the hold's 08:00 and 16:00 funding. |
-| `docs/agents/scripts/fp154/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | A positive sum of the day's three funding rates: short the perpetual the next day, and keep that hold's 08:00 and 16:00 funding. |
-| `docs/agents/scripts/fp155/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Last taker ratio above one: long BTC from the next open to that day's close. |
-| `docs/agents/scripts/fp156/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Dollar open interest higher at the last print than the first: long BTC from that close to the next open. |
-| `docs/agents/scripts/fp157/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Spot close above the close five days earlier: long BTC for two days. |
-| `docs/agents/scripts/fp158/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | An up day, then a long BTC day that exits at 2% under the open when the low trades there. |
-| `docs/agents/scripts/fp159/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 00:00 funding rate strictly the richest of the three: long BTC for one day. |
-| `docs/agents/scripts/fp160/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The taker ratio crosses up through one: long BTC until it is back at or under one, at most five days. |
+| `docs/agents/scripts/fp153/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Premium close above zero: long spot, short the perpetual, and the short keeps the hold's 08:00 and 16:00 funding. The screen is `docs/agents/backtests/fp153/screen_2023.json`. |
+| `docs/agents/scripts/fp154/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | A positive sum of the day's three funding rates: short the perpetual the next day, and keep that hold's 08:00 and 16:00 funding. The screen is `docs/agents/backtests/fp154/screen_2023.json`. |
+| `docs/agents/scripts/fp155/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Last taker ratio above one: long BTC from the next open to that day's close. The screen is `docs/agents/backtests/fp155/screen_2023.json`. |
+| `docs/agents/scripts/fp156/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Dollar open interest higher at the last print than the first: long BTC from that close to the next open. The screen is `docs/agents/backtests/fp156/screen_2023.json`. |
+| `docs/agents/scripts/fp157/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Spot close above the close five days earlier: long BTC for two days. The screen is `docs/agents/backtests/fp157/screen_2023.json`. |
+| `docs/agents/scripts/fp158/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | An up day, then a long BTC day that exits at 2% under the open when the low trades there. The screen is `docs/agents/backtests/fp158/screen_2023.json`. |
+| `docs/agents/scripts/fp159/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 00:00 funding rate strictly the richest of the three: long BTC for one day. The screen is `docs/agents/backtests/fp159/screen_2023.json`. |
+| `docs/agents/scripts/fp160/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The taker ratio crosses up through one: long BTC until it is back at or under one, at most five days. The screen is `docs/agents/backtests/fp160/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

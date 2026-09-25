@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp156_common": "71f6670b47188bb403cf69258efa23f8432916d582004ed9d8904d6f5a3f8d4f",
+    "fp156_measure": "11e25d91e0d932e4a3338a9f0e1da090c4fb58a5ab8319fadba605e936408a1a",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OINIGHT",
+      "mean_gross_bps": 0.0059,
+      "mean_net_bps": -19.9741,
+      "min_n": 30,
+      "n": 192,
+      "note": "Dollar open interest is higher at the last print than the first. Long BTC from that close to the next open.",
+      "null_p95_bps": -19.9699,
+      "passes_screen": false,
+      "total_pnl_usd": -38.3503
+    }
+  ],
+  "input_sha256": {
+    "oi_ends": "1f91eadfd5d384ae80e1a9890973ff2838511e434d1b7e39ec3960aa6f751461",
+    "spot_oc": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "51cd984c8701eb86078226b066333c3b580b43a30e94509d196a8da34b93d496"
+}

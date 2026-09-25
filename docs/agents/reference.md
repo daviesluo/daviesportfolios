@@ -4608,6 +4608,94 @@ trades clear 30, and the mean was positive and under the null. 2022-10-02
 and 2023-02-24 were not filled in. The high and the low were not stored. The
 count stays 30.
 
+### 3.182 Cash-and-carry on a positive premium: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp153-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp153/screen_2023.json`,
+sha256 `ec7f1ad2…`). The premium close above zero, long spot and short the
+perpetual for one day, the short keeping the hold's 08:00 and 16:00 funding:
+69 trades, mean −31.8093 bps, null p95 −31.0889 bps, −$21.9484. The file's
+gross is +8.1611 bps. **Nothing here is fit to add.** Sixty-nine trades clear
+30, and the mean was negative and under the null. The null is that same
+two-leg book. 2022-10-02 and 2023-02-24 were not filled in. The high and the
+low were not stored. No percentile was used.
+
+### 3.183 A short after a positive funding day: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp154-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp154/screen_2023.json`,
+sha256 `81c7c467…`). The three funding rates summing to more than zero, short
+the perpetual for one day, keeping the hold's 08:00 and 16:00 funding: 337
+trades, mean −39.2815 bps, null p95 −35.603 bps, −$132.3785. The file's gross
+is −19.3432 bps. **Nothing here is fit to add.** The count cleared, and the
+mean was negative and under the null. The null is that same short. The
+decision day's sum was not added again. The funding level was not scored.
+
+### 3.184 A session long after aggressive buyers: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp155-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp155/screen_2023.json`,
+sha256 `cec6916c…`). The last taker ratio above one, long from the next open
+to that day's close: 183 trades, mean +6.9725 bps, null p95 +26.2971 bps,
++$12.7597. The file's gross is +27.0065 bps. **Nothing here is fit to add.**
+The count cleared and the mean was positive; it lost to the null. The null is
+an open-to-close long. The path through the day was not stored. The taker
+level was not scored.
+
+### 3.185 An overnight long after open interest rose: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp156-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp156/screen_2023.json`,
+sha256 `bacb3458…`). Dollar open interest higher at the last print than the
+first, long from that close to the next open: 192 trades, mean −19.9741 bps,
+null p95 −19.9699 bps, −$38.3503. The file's gross is +0.0059 bps. **Nothing
+here is fit to add.** The count cleared, and the mean was negative and under
+the null. The null is that same overnight. Yesterday's open interest was not
+read.
+
+### 3.186 Five-day momentum, held two days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp157-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp157/screen_2023.json`,
+sha256 `6996f093…`). The close above the close five days earlier, long for two
+days: 198 trades, mean +53.2597 bps, null p95 +65.2042 bps, +$105.4542. The
+file's gross is +73.3863 bps. **Nothing here is fit to add.** The count
+cleared and the mean was positive; it lost to the null. The null is BTC's own
+two-day holds. The 2024-01-02 open was an exit only. No percentile was used.
+
+### 3.187 An up day, then a two-percent stop: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp158-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp158/screen_2023.json`,
+sha256 `050f67de…`). An up candle, then a long that exits at 2% under the open
+when the low trades there: 183 trades, mean +19.2099 bps, null p95 +25.9981
+bps, +$35.1541. The file's gross is +39.2683 bps. **Nothing here is fit to
+add.** The count cleared and the mean was positive; it lost to the null. The
+null applies the same stop to every day. The stop stayed at 2%. The high was
+not stored.
+
+### 3.188 The richest opening funding rate: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp159-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp159/screen_2023.json`,
+sha256 `54198969…`). The 00:00 funding rate strictly above the other two, long
+BTC for one day: 70 trades, mean +37.6007 bps, null p95 +48.8972 bps,
++$26.3205. The file's gross is +57.696 bps. **Nothing here is fit to add.**
+The count cleared and the mean was positive; it lost to the null. The null is
+BTC's own one-day holds. A tie did not fire. The funding cash was not added.
+
+### 3.189 A taker cross, held until it returns: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp160-protocol.md`) was committed before any
+return (`1954374`). Two runs matched (`backtests/fp160/screen_2023.json`,
+sha256 `2a464ca4…`). The taker ratio crossing up through one, long until a
+later last print is back at or under one, at most five days: 84 trades, mean
++28.6977 bps, null p95 +85.9051 bps, +$24.1061. The file's gross is +48.7752
+bps. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. The null starts the same exit on a random day.
+Taker prints through 2024-01-04 and opens through 2024-01-05 were exits only.
+The cap stayed at five days. The count stays 30.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

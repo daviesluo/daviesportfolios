@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp160_common": "a5ff6630bb85ae6e4b9396cfe54d93243df343e562e9b9faa374f2e9ad109e92",
+    "fp160_measure": "19ff63329b784e218d9053326270053840d0351019fb2efa6252d51d8d4f0ac1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TAKX",
+      "mean_gross_bps": 48.7752,
+      "mean_net_bps": 28.6977,
+      "min_n": 30,
+      "n": 84,
+      "note": "The taker ratio crosses up through one. Long BTC until a later last print is back at or under one, at most five days.",
+      "null_p95_bps": 85.9051,
+      "passes_screen": false,
+      "total_pnl_usd": 24.1061
+    }
+  ],
+  "input_sha256": {
+    "spot_open": "803aed3b4b680fc89d27c6e98ba6ef47b23f2b52886b133fd29e380169976450",
+    "taker_last": "992604f38c81defe27b6b7f4966f48da9c594ba9f6e1d81de2bb379c203829e1"
+  },
+  "passed": [],
+  "protocol_sha256": "fbfbe0d4f7e7bd5fd9dbf6ea7ab474de5649529c9e856b94f9dbfed5a1fe6b9e"
+}

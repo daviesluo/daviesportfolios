@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp153_common": "54c05ae2f934e1576776b680baf84d25749a54d3464150ea8b2916c19a509585",
+    "fp153_measure": "2398e0da12f9f68d17c45978da84f826e9cb4d9e6cc5b2e4a04b8a21909e1f62",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BASBOOK",
+      "mean_gross_bps": 8.1611,
+      "mean_net_bps": -31.8093,
+      "min_n": 30,
+      "n": 69,
+      "note": "Premium close above zero. Next day, long spot and short the perpetual, and the short keeps the 08:00 and 16:00 funding.",
+      "null_p95_bps": -31.0889,
+      "passes_screen": false,
+      "total_pnl_usd": -21.9484
+    }
+  ],
+  "input_sha256": {
+    "funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4",
+    "premium_close": "8132e0d2d5aba0b868c5f8fa1b3ef62bcef30da06ca50630d8d35ad2afa76062",
+    "spot_open": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "um_open": "5a3b538c5e57015a7288f14e38e10b729cc5fcca066240b438f16dde08b2d874"
+  },
+  "passed": [],
+  "protocol_sha256": "94013401fe84c6401bfbc675c5b1dee45715ff94fa3c22c4ab2ee89b7bb5a36c"
+}

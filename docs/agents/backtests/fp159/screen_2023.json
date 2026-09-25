@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp159_common": "21d7846394cef16c1f8d6aabf8e97b037ff83f29a85c2c1f679a95102cd0a643",
+    "fp159_measure": "c6c71bc0dc3a5dc97e61916c215d2e4c6826b5b58a52580306248972274d91e1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "PEAK0",
+      "mean_gross_bps": 57.696,
+      "mean_net_bps": 37.6007,
+      "min_n": 30,
+      "n": 70,
+      "note": "The 00:00 funding rate is strictly above the 08:00 and 16:00 rates. Next day, long BTC for one day.",
+      "null_p95_bps": 48.8972,
+      "passes_screen": false,
+      "total_pnl_usd": 26.3205
+    }
+  ],
+  "input_sha256": {
+    "funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4",
+    "spot_open": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b"
+  },
+  "passed": [],
+  "protocol_sha256": "6786c4803a0d47ad456d960378fbf00a003a6b7514600c5ff11700f73e57b966"
+}

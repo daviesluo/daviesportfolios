@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp153–fp160 are protocols only. No return has been computed.** Eight mechanisms, none of them a day-over-day jump above its own 90th long BTC for one day: hedged cash-and-carry (BASBOOK), a funding short that keeps the hold's funding (FNCARRY), an open-to-close long after taker parity (TAKSESS), an overnight long after open interest rose (OINIGHT), five-day momentum held two days (MOM5), an up day then a two-percent stop (UPSTOP), a long when the 00:00 funding rate is the richest (PEAK0), and a long after the taker ratio crosses up through one until it returns (TAKX). The count stays 30. No percentile window is used, and none is shrunk. No later year is in the request. No testing row. No pull request. Main was not pushed.
+**fp153–fp160 are scored. Nothing passes the house bar.** Eight mechanisms, each with fills. None is a day-over-day jump above its own 90th, long BTC for one day. The count stays 30. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 08:24 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp153–fp160 are scored. Nothing passes the house bar.** The protocol was `1954374`, pushed before any of these returns. Each screen file was written twice and the copies matched. BASBOOK 69 / file gross +8.1611 / file mean −31.8093 / null −31.0889 / −$21.9484 (`ec7f1ad2…`). FNCARRY 337 / file gross −19.3432 / file mean −39.2815 / null −35.603 / −$132.3785 (`81c7c467…`). TAKSESS 183 / file gross +27.0065 / file mean +6.9725 / null +26.2971 / +$12.7597 (`cec6916c…`). OINIGHT 192 / file gross +0.0059 / file mean −19.9741 / null −19.9699 / −$38.3503 (`bacb3458…`). MOM5 198 / file gross +73.3863 / file mean +53.2597 / null +65.2042 / +$105.4542 (`6996f093…`). UPSTOP 183 / file gross +39.2683 / file mean +19.2099 / null +25.9981 / +$35.1541 (`050f67de…`). PEAK0 70 / file gross +57.696 / file mean +37.6007 / null +48.8972 / +$26.3205 (`54198969…`). TAKX 84 / file gross +48.7752 / file mean +28.6977 / null +85.9051 / +$24.1061 (`2a464ca4…`). Every counted rule has fills. TAKSESS, MOM5, UPSTOP, PEAK0 and TAKX are positive and under their own null. BASBOOK, FNCARRY and OINIGHT have a negative mean. The null matches each rule's own payoff. No percentile was used. No sign of a killed rule was flipped. No count was lowered. No window was shrunk. fp145–fp152 stay closed. UMCMJMP stays at 26 trades. Reference §3.182–§3.189. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No liquidation file was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 08:19 UTC] Platform: Cursor | Model: Grok 4.7
 

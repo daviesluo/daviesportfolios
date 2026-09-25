@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp154_common": "ab20487ee47fdd5ac0d7980f5080ddb43dd4f3522aed09cd2bb1a53bab6c8767",
+    "fp154_measure": "704587eaace6045157aaa92b35c26a68de8a5cba7171234320e9364eecb3ee08",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FNCARRY",
+      "mean_gross_bps": -19.3432,
+      "mean_net_bps": -39.2815,
+      "min_n": 30,
+      "n": 337,
+      "note": "The previous day's three funding rates sum to more than zero. Next day, short the perpetual, and the short keeps the 08:00 and 16:00 funding.",
+      "null_p95_bps": -35.603,
+      "passes_screen": false,
+      "total_pnl_usd": -132.3785
+    }
+  ],
+  "input_sha256": {
+    "funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4",
+    "um_open": "5a3b538c5e57015a7288f14e38e10b729cc5fcca066240b438f16dde08b2d874"
+  },
+  "passed": [],
+  "protocol_sha256": "02d8401479fae66d91578f42608319f8316c5b754e129dad5ca6c1bb4af5e051"
+}
