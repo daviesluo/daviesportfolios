@@ -12,7 +12,7 @@ and is opened only when a closed item is reopened or audited.
 
 **LAG6 and C3 fail the pre-registered later years. Neither is a testing row.** The buys and the sells were not moved. LAG6 entries 2024-01-01 through 2026-09-23: 462 trades, −$13.8381. C3 entries 2024-01-01 through 2026-09-22: 327 trades, +$41.3727, and the other bars fail. No pull request. Main was not pushed.
 
-**fp169–fp176 are scored.** OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL and HHSH stayed void on the 2023 screen. BRKHI stays void.
+**fp177–fp184 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. ENGULF, UPWICK, LIFT, REVCLOSE, LHLL, DIP, BODYGT and DELAY. The count stays 30. BRKHI stays void.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -836,6 +836,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:19 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp177–fp184 are protocols only. No return of these rules has been computed.** LAG6 and C3 failed the pre-registered later years and were not rewritten. Pins printed fp177 through fp184 pins ok before this commit. Frequency was counted with no return, and each count is above 30: a bullish engulfing body 42, an upper wick longer than the body 79, a close between yesterday's close and high 99, a close above the prior down day's open 58, a lower high and a lower low 97, a lower low with a higher close 37, a wider up-day body 103, a close above the high of two days ago and under yesterday's high 44. ENGULF, LIFT, REVCLOSE, DIP, BODYGT and DELAY buy the next open and sell that close. UPWICK and LHLL short the next open and cover at the next open. The funding cash is not added on the shorts. The null of each rule is the same payoff on a larger pool, so the rule is a subset. The count stays 30. No percentile is used. No sign of a killed rule is flipped. The six-day range, the two-day hold, the three-close filter and the three-day hold stay closed. BRKHI stays void. OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL and HHSH stay closed. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:15 UTC] Platform: Cursor | Model: Grok 4.7
 
