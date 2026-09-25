@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp278_common": "ce6dd839cda22253e1eb190744c5d3bb173ff553b0f08c4a221356330fbde072",
+    "fp278_measure": "7d42ff10d96259bb6c54d41edc3c3094ee026f2315a2459dddf672c10cae9a07",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BOTHDOWN",
+      "mean_gross_bps": -547.0954,
+      "mean_net_bps": -565.9823,
+      "min_n": 30,
+      "n": 141,
+      "note": "Spot and the USDT book both finished a nine-day decline. The next USDT open is sold and bought back twenty-eight days later. The other trade sells the coin-margined book for those same twenty-eight days. One leg. Funding cash is not added. The null is not that USDT short with the two declines turned off.",
+      "null_p95_bps": -567.0602,
+      "passes_screen": false,
+      "total_pnl_usd": -798.0351
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": -567.0602,
+  "null_n": 141,
+  "passed": [],
+  "protocol_sha256": "1f4dba6963098d8f8fe7e623c563abaf6f5f829db473235838bc08993b58cc5a"
+}

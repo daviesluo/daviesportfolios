@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp274_common": "1b17caf8ed329e066449377fe37c21dc4c762c17e89936e09399700a5d862e26",
+    "fp274_measure": "5e8bde15874065e22225cd23cb94b5f8056ddaddbd97ec69aaffefecb44be0ba",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ABOVE",
+      "mean_gross_bps": -482.1298,
+      "mean_net_bps": -501.1465,
+      "min_n": 30,
+      "n": 51,
+      "note": "Yesterday's USDT close finished above yesterday's spot close. The next USDT open is sold and bought back eighteen days later. The other trade sells spot for those same eighteen days. One leg. Funding cash is not added. The null is not that USDT short with the comparison turned off.",
+      "null_p95_bps": -502.9563,
+      "passes_screen": false,
+      "total_pnl_usd": -255.5847
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": -502.9563,
+  "null_n": 51,
+  "passed": [],
+  "protocol_sha256": "f268a21237c24d2974b5a448a9c7af5190a5ebe29eb86c45cb31abdb0b0b84ee"
+}

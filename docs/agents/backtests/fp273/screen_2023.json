@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp273_common": "a52b21440895b71dbb0fceace8f8e5cf5b47b12321f5c973ac27c26c5fe83c96",
+    "fp273_measure": "a261b7dca97e14d78e873187b644318746162e778395833011dc27ad2044dfe5",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DRIFT",
+      "mean_gross_bps": 251.4984,
+      "mean_net_bps": 231.0159,
+      "min_n": 30,
+      "n": 131,
+      "note": "Two non-overlapping finished fourteen-day USDT rises. The next USDT open is bought and sold nine days later. The other trade buys that book nine days later for another nine days. Both windows have to fill. One leg. Funding cash is not added. The null is not that nine-day long on every day.",
+      "null_p95_bps": 278.6329,
+      "passes_screen": false,
+      "total_pnl_usd": 302.6308
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": 278.6329,
+  "null_n": 131,
+  "passed": [],
+  "protocol_sha256": "eeb60fb91ecf4a19ee66dffef8cb2e7474ede6a75a6485848926b310623c2bbc"
+}

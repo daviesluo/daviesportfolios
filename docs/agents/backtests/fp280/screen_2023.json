@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp280_common": "c9ae9604115d9b7ba7e5a91fb196accb23f3e563f1ec8c28213033a6c95c9fcf",
+    "fp280_measure": "be92547f3e3e65d65f401794a2a40761182c2f7855eb163081324390f6492816",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LAGSP",
+      "mean_gross_bps": 679.1516,
+      "mean_net_bps": 657.8146,
+      "min_n": 30,
+      "n": 174,
+      "note": "Spot's finished twelve-day return was strictly below the USDT twelve-day return. The next spot open is bought and sold twenty-six days later. The other trade buys the USDT book for those same twenty-six days. One leg. Funding cash is not added. The null is not that spot long with the comparison turned off.",
+      "null_p95_bps": 657.6838,
+      "passes_screen": true,
+      "total_pnl_usd": 1144.5975
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": 657.6838,
+  "null_n": 174,
+  "passed": [
+    "LAGSP"
+  ],
+  "protocol_sha256": "5ae4b41e55dbba927b39f906eea8b4ad3ad189ffaf3eedbd8679fce6cce3f67a"
+}

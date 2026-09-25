@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp275_common": "9a0c000d3767e6738c3db2ac478ceee858f32489de858a1e647bc3c04f28bce5",
+    "fp275_measure": "fa94bd9261d1576a1ba85858831991800e804a031a91f76215cbac1dba2345d2",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DEEPCM",
+      "mean_gross_bps": -433.6134,
+      "mean_net_bps": -452.7271,
+      "min_n": 30,
+      "n": 134,
+      "note": "The finished six-day coin-margined return was negative. The next coin-margined open is sold and bought back sixteen days later. The other trade sells that book sixteen days later for another sixteen days. Both windows have to fill. One leg. Funding cash is not added. The null is not that sixteen-day short on every day.",
+      "null_p95_bps": -206.7926,
+      "passes_screen": false,
+      "total_pnl_usd": -606.6543
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": -206.7926,
+  "null_n": 134,
+  "passed": [],
+  "protocol_sha256": "2640574434cd3ad77b3908dafdd20c18c19e08138567ad53d61ddec978ede9b0"
+}

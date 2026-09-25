@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp279_common": "3c7df774ceac1760ea37f5221eb4878e2012679c6ccece21bc89f69683947418",
+    "fp279_measure": "49d0dc1e7292bed868bba574b2edda20a8c218a06b109704a3b7ec861d771164",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "RISE",
+      "mean_gross_bps": 80.429,
+      "mean_net_bps": 60.2883,
+      "min_n": 30,
+      "n": 225,
+      "note": "The finished fifteen-day spot return was positive. The next spot open is bought and sold three days later. The other trade buys spot three days later for another three days. Both windows have to fill. One leg. Funding cash is not added. The null is not that three-day long on every day.",
+      "null_p95_bps": 48.0585,
+      "passes_screen": true,
+      "total_pnl_usd": 135.6487
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": 48.0585,
+  "null_n": 225,
+  "passed": [
+    "RISE"
+  ],
+  "protocol_sha256": "7a69b6e737c680f74f55c97402ee0552c22850c6683eec7b9be20b2b191f1dcc"
+}
