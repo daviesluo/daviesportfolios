@@ -1,0 +1,92 @@
+{
+  "inputs_sha256": {
+    "BTC-GBP_1m_sha256": "fa73e635223b9ae173210edc70696218cb26e03e381ab453466d409d0e3ee0b3",
+    "BTC-USDC_1m_sha256": "1333323bb85a4e8c2f9ad3ec9f88fc6b7bf06056c553079b056e7b41e9135860",
+    "BTC-USD_1m_sha256": "665b83c7802b70d1cf3ad614ac021a922c92bf0b8e1a3df1e9f8b4ff05e7521f",
+    "ETH-GBP_1m_sha256": "e8e359bc51cd05ef4152d2f20f74ea82f58e7a352fe54e42275f55fc25356078",
+    "ETH-USDC_1m_sha256": "f09d4f81f6444a5d69e5d5c3afa272aa6fd8a7ee58eeea64bb5ea88cb308bc0e",
+    "ETH-USD_1m_sha256": "58b6ae92cddf0a0980122322a71a1f134ca2c197948ff4dc25b216872584ca1e",
+    "USDC-GBP_1m_sha256": "133fdf0e428993e345345ff2985e9fc47aeade3e56d93a52b373291022ecfa89",
+    "USDC-USD_1m_sha256": "a8bb650051bac8153590a0454f8e145a879956bedcc35d57bdf1bb00ed0c289a"
+  },
+  "kills": {
+    "rxgbp": {
+      "btc_bps": 0.0,
+      "cleared": false,
+      "edge_off_bps": -281.008838294646,
+      "eligible": 4,
+      "eth_bps": 0.0,
+      "fee_bps": 80,
+      "max_btc_gross_bps": 28.1258904404158,
+      "max_eth_gross_bps": 26.556755567912482,
+      "max_joint_gross_bps": 26.556755567912482,
+      "month": null,
+      "month_pnl_bps": null,
+      "month_share": null,
+      "null_p50_bps": 0.0,
+      "null_p95_bps": 0.0,
+      "one_sided_btc": 0,
+      "one_sided_eth": 0,
+      "orders": 4,
+      "pool_bps": 0.0,
+      "stress_bps": 0.0,
+      "trips": 0
+    },
+    "rxsgbp": {
+      "btc_bps": 0.0,
+      "cleared": false,
+      "edge_off_bps": -70.8563835944275,
+      "eligible": 1,
+      "eth_bps": 0.0,
+      "fee_bps": 100,
+      "max_btc_gross_bps": 18.885795841845354,
+      "max_eth_gross_bps": 39.40143696929965,
+      "max_joint_gross_bps": 18.885795841845354,
+      "month": null,
+      "month_pnl_bps": null,
+      "month_share": null,
+      "null_p50_bps": 0.0,
+      "null_p95_bps": 0.0,
+      "one_sided_btc": 0,
+      "one_sided_eth": 0,
+      "orders": 5,
+      "pool_bps": 0.0,
+      "stress_bps": 0.0,
+      "trips": 0
+    },
+    "rxusdc": {
+      "btc_bps": 0.0,
+      "cleared": false,
+      "edge_off_bps": -89.47386253318574,
+      "eligible": 3,
+      "eth_bps": 0.0,
+      "fee_bps": 60,
+      "max_btc_gross_bps": 47.06480426473148,
+      "max_eth_gross_bps": 66.06282997027479,
+      "max_joint_gross_bps": 47.06480426473148,
+      "month": null,
+      "month_pnl_bps": null,
+      "month_share": null,
+      "null_p50_bps": 0.0,
+      "null_p95_bps": 0.0,
+      "one_sided_btc": 0,
+      "one_sided_eth": 1,
+      "orders": 3,
+      "pool_bps": 0.0,
+      "stress_bps": 0.0,
+      "trips": 0
+    }
+  },
+  "note": "Each rule was hashed at 2026-09-25 20:36:22 UTC, before any of these minute closes was joined to a P&L. Three triangles were scored. A threshold is not a second rule. Pass 72's six forwards are not rerun. Pass 73 hashed nothing. The sentence that pass 74 was not opened is the state at 20:18 UTC. The exit is the same minute. It is not the next UK four-hour open. The previous minute's open is not the fair value. The tape is one-minute UK closes, region=UK, pulled 2026-09-25 20:24:52 UTC through 20:34:26 UTC from https://revx.revolut.com/api/1.0/public/candles/{SYM}?interval=1&region=UK. Each file stores start, close, and volume. A minute counts only when every leg has volume strictly above zero. A zero-volume minute is the vendor's mid and is not a fill. Each book has 41,543 rows from 2026-08-28 00:00 UTC through 2026-09-25 20:24 UTC. 2026-09-03 06:40 UTC and 06:41 UTC are absent on every book. They are not filled. The public tape does not store the historical bid or ask. The fill is that minute's close, the last trade. Two closes in one minute can be up to sixty seconds apart. rxusdc buys one coin book and sells the other, and sells or buys USDC-USD. Three taker orders, 60 bps. Dollars from selling the USDC book are the USDC close times the USDC-USD close. Dollars paid are the USD close. The other direction is the reciprocal. rxgbp turns sterling into dollars on USDC-USD and USDC-GBP. There is no GBP-USD book. Four taker orders, 80 bps. Dollars from selling the sterling book are the GBP close times the USDC-USD close divided by the USDC-GBP close. rxsgbp buys the USDC coin book and sells the sterling coin book, starting and ending in dollars. Five taker orders, 100 bps. The two USDC-USD orders use this tape's one close, so their prices cancel and their fees do not. The minute takes the direction with the larger gross. Both coins must clear. One coin does not fire the trip. The charge is 20 bps on each taker order. The 9 bp schedule is not used. Stress charges 40 bps on each order. The edge-off control is every eligible minute, both coins, the better direction, fee still charged, including a negative net. It is not an extra rule. The null is 500 draws of the same trip count from those eligible minutes, seed 20260925, index 474, summing that unfiltered net. A count below 60 is still scored. The gate is not lowered. A zero count is scored as zero. rxusdc is 0.0 bps over 0 trips, 3 eligible minutes, stress 0.0, BTC 0.0, ETH 0.0, edge-off -89.5, null p95 0.0, one-sided BTC 0, one-sided ETH 1, max joint gross 47.1. rxgbp is 0.0 bps over 0 trips, 4 eligible minutes, stress 0.0, BTC 0.0, ETH 0.0, edge-off -281.0, null p95 0.0, one-sided BTC 0, one-sided ETH 0, max joint gross 26.6. rxsgbp is 0.0 bps over 0 trips, 1 eligible minute, stress 0.0, BTC 0.0, ETH 0.0, edge-off -70.9, null p95 0.0, one-sided BTC 0, one-sided ETH 0, max joint gross 18.9. rxusdc against rxgbp is Jaccard 0.000. rxusdc against rxsgbp is Jaccard 0.000. rxgbp against rxsgbp is Jaccard 0.000. Each fire set is empty, so that Jaccard is zero trips over an empty union. No eligible minute had both coins strictly above the fee. Different books are not the same sentence. Beating a negative edge-off pool or a negative null while the pool stays under the gates is not close to a pass. No testing row is opened. A numeric clear on these closes is still not paper testing, because no order of this account was shown crossing the book. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass. Pass 75 is not opened.",
+  "overlap_jaccard": {
+    "rxgbp_rxsgbp": 0.0,
+    "rxusdc_rxgbp": 0.0,
+    "rxusdc_rxsgbp": 0.0
+  },
+  "reached_preregistration": false,
+  "rules": {
+    "rxgbp_rule_sha256": "132bdf3a9336bcab7d58be25cced574719d344a352333d14f94744f6cf8d22c7",
+    "rxsgbp_rule_sha256": "15eff7020b2435febef76fc284ccda36aa2b787cf784646fff5ba3dda5a583aa",
+    "rxusdc_rule_sha256": "d6f59a0d3ae5c06ddb0cfacb72bcd2ca231a13d974e86913c4259288cc5ea689"
+  }
+}
