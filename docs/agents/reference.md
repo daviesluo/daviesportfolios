@@ -2942,6 +2942,16 @@ and that day is not a print. **Nothing here is fit to add.** The count stays
 30. The mean was positive and lost to the null. A day of mostly down hours
 and the 80th are not candidates.
 
+### 3.53 Total native fees: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp24-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp24/screen_2023.json`). Total BTC
+transaction fees, above their own trailing 90th, long spot the next day: 86
+trades, mean −7.6 bps, null p95 +41.4 bps. The gross move was +12.4 bps. The
+fee series has 457 prints and no hole. The daily grid has no hole. **Nothing
+here is fit to add.** The count cleared; the mean was negative and lost to
+the null. A cheap-fee day and the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

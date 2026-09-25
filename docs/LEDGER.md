@@ -8,14 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp24 protocol is written and not scored.** FEE-HIGH is the day's total
-BTC transaction fees above their own trailing 90th, long BTC the next day.
-UP-SHARE stays dead (§3.52). Do not score a cheap-fee day, and do not score
-the 80th. The count stays 30. Do not reopen VOL-HHI, VWAP-PREM, GAP-UP,
-CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
-taker share, dispersion, or skew. fp5 through fp23 stay closed, including
-LS-FADE. The screen is the next step. No testing row. No pull request. No
-push to main.
+**fp24 failed the 2023 screen and is discarded** (§3.53). 86 trades. The
+mean is negative and lost to the null. Do not score a cheap-fee day, and do
+not score the 80th. The count stays 30. UP-SHARE stays dead (§3.52). Do not
+reopen VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
+RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
+through fp23 stay closed, including LS-FADE. The next search is not written.
+No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +837,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:28 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp24 screen: nothing passes.** Protocol was `be4d6f4`. Two scores matched
+(`f253531a…`). FEE-HIGH 86 trades, −7.60 bps against a null of +41.40,
+−$6.54. Gross before costs was +12.40 bps. The fee series has 457 prints
+and no hole. Reference §3.53. The count cleared. The mean was negative and
+lost to the null. A cheap-fee day and the 80th are not candidates. No
+testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:27 UTC] Platform: Cursor | Model: Grok 4.7
 
