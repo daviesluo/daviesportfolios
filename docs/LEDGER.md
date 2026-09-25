@@ -14,6 +14,8 @@ and is opened only when a closed item is reopened or audited.
 
 **fp177–fp184 fail the 2023 screen. None is a testing row.** The protocol was `85075b2`, pushed before any of these returns. Two runs of each screen matched. ENGULF 42 trades, −$17.9164. UPWICK 79 trades, −$27.8004. LIFT 99 trades, +$8.0113, under its null. REVCLOSE 58 trades, −$13.9068. LHLL 97 trades, −$46.4808. DIP 37 trades, −$6.2639. BODYGT 103 trades, +$7.7782, under its null. DELAY 44 trades, +$1.2985, under its null. The count stays 30. No rule was rewritten. BRKHI stays void. No pull request. Main was not pushed.
 
+**fp185–fp192 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. None reads a high, a low, a wick, or an engulfing body. BIDUP, BKFLIP, SPOTIDX, XBOOK, UMLT, CMBUY, ABOVEVW and UNDMARK. The count stays 30. BRKHI, LAG6, C3 and fp177–fp184 stay closed.
+
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +838,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:38 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp185–fp192 are protocols only. No return of these rules has been computed.** LAG6 and C3 failed the pre-registered later years and were not rewritten. fp177–fp184 failed the 2023 screen and were not rewritten. Pins printed fp185 through fp192 pins ok before this commit. Frequency was counted with no return, and each count is above 30: bid notional up and ask notional down 69, the book opening ask-heavy and closing bid-heavy 59, the spot close under the index close 194, the coin-margined close under the USDT close 98, the last aligned USDT funding rate under the coin-margined rate 158, the coin-margined taker-buy share above one half and the USDT share under one half 46, the spot close above that day's average trade 193, the perpetual's average trade under the mark close 194. Book files for 2022-12-31, 2023-02-08 and 2023-02-09 were absent and were not filled in. Each rule buys the next open and sells that close. The funding cash is not added. The null of each rule is the same session on every in-screen day, so the rule is a subset. The count stays 30. No percentile is used. No sign of a killed rule is flipped. The six-day range, the two-day hold, the three-close filter and the three-day hold stay closed. An engulfing body, a wick, and a high or a low stay closed. BRKHI stays void. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:22 UTC] Platform: Cursor | Model: Grok 4.7
 

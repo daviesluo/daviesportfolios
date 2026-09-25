@@ -875,6 +875,14 @@ before touching migration state.
 | `docs/agents/scripts/fp182/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | A low under yesterday's low and a close above yesterday's close: long BTC the next day from the open to the close. The screen is `docs/agents/backtests/fp182/screen_2023.json`. |
 | `docs/agents/scripts/fp183/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | An up day whose body is strictly wider than yesterday's body: long BTC the next day from the open to the close. The screen is `docs/agents/backtests/fp183/screen_2023.json`. |
 | `docs/agents/scripts/fp184/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | A close above the high of two days ago and under yesterday's high: long BTC the next day from the open to the close. The screen is `docs/agents/backtests/fp184/screen_2023.json`. |
+| `docs/agents/scripts/fp185/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Bid notional rose and ask notional fell through the day: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp186/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The book opened ask-heavy and closed bid-heavy: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp187/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The Binance spot close finished strictly under the index close: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp188/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The coin-margined perpetual close finished strictly under the USDT perpetual close: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp189/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The last aligned USDT funding rate finished strictly under the coin-margined rate: long BTC the next day from the open to the close. The funding cash is not added. |
+| `docs/agents/scripts/fp190/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The coin-margined taker-buy share finished strictly above one half and the USDT share strictly under one half: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp191/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The spot close finished strictly above that day's average trade: long BTC the next day from the open to the close. |
+| `docs/agents/scripts/fp192/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The USDT perpetual's average trade finished strictly under the mark close: long BTC the next day from the open to the close. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
