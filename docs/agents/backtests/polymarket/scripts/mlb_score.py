@@ -7,18 +7,40 @@ rate of the event the contract pays. The caller passes every threshold.
 import stat_score as stat
 
 KNOW = 4 * 3600
+_INDEX = {}
+_GAMES = {}
 
 
 def _ts(row):
     return float(row["ts"])
 
 
+def _token(rows, key):
+    """Identity plus the tail, so a reused list id does not keep the old index."""
+    if not rows:
+        return (id(rows), key, 0)
+    first, last = rows[0], rows[-1]
+    return (
+        id(rows), key, len(rows), first.get("ts"), last.get("ts"),
+        first.get("pid"), last.get("pid"), first.get("er"), last.get("er"),
+        first.get("k"), last.get("k"), first.get("bb"), last.get("bb"),
+        first.get("pitches"), last.get("pitches"), first.get("hr"), last.get("hr"),
+        last.get("extra"), last.get("fi_allowed"),
+    )
+
+
 def _index(rows, key):
+    """Group rows once per book. A new list gets a new index."""
+    token = _token(rows, key)
+    got = _INDEX.get(token)
+    if got is not None:
+        return got
     out = {}
     for row in rows or []:
         out.setdefault(row[key], []).append(row)
     for pid in out:
         out[pid].sort(key=_ts)
+    _INDEX[token] = out
     return out
 
 
@@ -57,7 +79,14 @@ def _won(game, team):
 
 
 def _games(book):
-    return sorted(book.get("games") or [], key=_ts)
+    rows = book.get("games") or []
+    token = _token(rows, "games")
+    got = _GAMES.get(token)
+    if got is not None:
+        return got
+    got = sorted(rows, key=_ts)
+    _GAMES[token] = got
+    return got
 
 
 def _limit(kick):

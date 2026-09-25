@@ -837,6 +837,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 06:52 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, the baseball quotes cache their indexes. No return has been computed.** The eight rules are unchanged. `scripts/mlb_score.py` groups a book's starts, games and appearances once. The cache key includes the list's length and the first and last row, because a bare id was reused by a later self-check list and the away quote went empty. All eight `--self-check` pins are still `HOT 1.0 14.638156` or `Y 1.0 14.638156`. The input pull has finished on disk and is not committed. Scoring starts after this commit.
+
 ### [2026-09-25 06:01 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, the baseball joiner maps 2025's short club names. No return has been computed.** The 05:57 freeze stood. The first pull matched full names and left the short titles empty: "Diamondbacks vs. Mets" is Arizona and New York on the stats file. `canonical` in `scripts/mlb_inputs.py` maps those short names. The thresholds are unchanged. Empty structure caches from the stopped pull were deleted; full-name caches were kept. `Diamondbacks` at `2025-04-29T23:10:00Z` now matches the stats-file game at the same timestamp. The sample pull starts again after this commit.
