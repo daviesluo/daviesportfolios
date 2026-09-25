@@ -1,0 +1,34 @@
+{
+  "code_sha256": {
+    "fp333_common": "9eaa6a28a66581cd9fd79a3227b244796dfb3f127934a8abc63ac03e6561fa59",
+    "fp333_measure": "e1a78cb75a2433932d99d5fc017820836b1fe8f09b55a51375967dbed5eee34f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "discount": {
+    "median_entry_bps": -15.558,
+    "median_exit_bps": -11.5694,
+    "median_signal_bps": 69.9624
+  },
+  "ideas": [
+    {
+      "idea": "PEPRM",
+      "mean_gross_bps": 9.153,
+      "mean_net_bps": -30.847,
+      "min_n": 30,
+      "n": 48,
+      "note": "Short 1000PEPEUSDT and long PEPEUSDT for one day. The result is the change in the premium. Forty basis points of fills are taken off. Funding cash is not added.",
+      "null_p95_bps": -28.058,
+      "passes_screen": false,
+      "total_pnl_usd": -14.8065
+    }
+  ],
+  "input_sha256": {
+    "perp.json": "1d762991b8ddcaf895b11b3954f1cdcff60714695bdc3362b00f768df4fc88a8",
+    "spot.json": "2fe69a9f714c84865e316ce64a9d517bf5e71d202ccab75889f2fe60dd5d4708"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -42.3878,
+  "null_n": 191,
+  "passed": [],
+  "protocol_sha256": "fbf0a08fd37798f356c6805c76986ef58ca3f91d00900115ef5bc3b5fe41f707"
+}

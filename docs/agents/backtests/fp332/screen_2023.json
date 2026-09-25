@@ -1,0 +1,40 @@
+{
+  "code_sha256": {
+    "fp332_common": "85d4e03e5f859af95d479837850344265eac9ebf39757f233107fbbf34588421",
+    "fp332_measure": "ba01b63a24744ee7dcdab697fe30ac102b4dedf2ffe237eb92bb8b107649117a",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "discount": {
+    "median_entry_bps": 130.5214,
+    "median_exit_bps": -1.0325,
+    "median_signal_bps": 130.8971
+  },
+  "ideas": [
+    {
+      "idea": "SPQTR",
+      "mean_gross_bps": 133.2947,
+      "mean_net_bps": 93.2947,
+      "min_n": 30,
+      "n": 125,
+      "note": "Short the front quarterly, long Binance spot, until the expiry-day open. The result is the change in the basis. Forty basis points of fills are taken off.",
+      "null_p95_bps": 9.2826,
+      "passes_screen": true,
+      "total_pnl_usd": 116.6183
+    }
+  ],
+  "input_sha256": {
+    "BTCUSDT_230331.json": "655f8c0d9a649e731f37a6c51d603890f4a7b3d2e8464ad2c96a86113d044bf4",
+    "BTCUSDT_230630.json": "451ddcecbc06d7ae4e3ad74b584b9e204bf563affcd07214dc8bfeb7ecd4a0df",
+    "BTCUSDT_230929.json": "155e323f8e394497f9d0d1ae805553965f519b5b69988d22a0f4d19362479d8e",
+    "BTCUSDT_231229.json": "a2e81fdc6c37c2116be341c2e2c4f4cac69f09fe19812953a08a29ddf5418326",
+    "BTCUSDT_240329.json": "352443add88ec2cc4cc186536c6168ab5a825237e8ec5233f257f9327c49730e",
+    "spot.json": "ea9354cdff8d3ecf5e485e4accfa25774b0c2d5956b02c2b18372ccc8f52b80a"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 5.9951,
+  "null_n": 240,
+  "passed": [
+    "SPQTR"
+  ],
+  "protocol_sha256": "6127402dc7e468abdc2c30a0efb9a2c976cfc19f098d17edf60295832b1aea39"
+}

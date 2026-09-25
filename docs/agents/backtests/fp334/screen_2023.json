@@ -1,0 +1,39 @@
+{
+  "code_sha256": {
+    "fp334_common": "642ecd7ba197274586d2cceaa2b1039441479dd284066c66dbda9e6458c81a24",
+    "fp334_measure": "5c62b3d2e73cce51e6c53f1a4a7675fdabdbb78b97d277f01cef0a654ae355cf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "discount": {
+    "cheap_days": 36,
+    "median_cash_bps": 105.9454,
+    "median_exit_bps": 0,
+    "median_open_premium_bps": -93.8658,
+    "median_signal_bps": -119.159
+  },
+  "ideas": [
+    {
+      "idea": "FDCSH",
+      "mean_gross_bps": 128.5634,
+      "mean_net_bps": 88.5634,
+      "min_n": 30,
+      "n": 85,
+      "note": "Long TRBUSDT and short TRB spot across one funding settlement. The result is the cash the long receives. Forty basis points of fills are taken off. The coin's move is not added.",
+      "null_p95_bps": -36.9061,
+      "passes_screen": true,
+      "total_pnl_usd": 75.2789
+    }
+  ],
+  "input_sha256": {
+    "funding.json": "6f38e3c06d2a2d0ca864a9a7b07e8391ab9ee3b4439c41d7f5bab6929e4f8cda",
+    "perp.json": "cdc1dc393b69d93c3d46852629502378efc8cf22e2d62488fbdc7851712e636e",
+    "spot.json": "c06300d951ffcec77ae9bdd6117f0928f3402d3f648f9d232a71cbe153444260"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": -38.3963,
+  "null_n": 815,
+  "passed": [
+    "FDCSH"
+  ],
+  "protocol_sha256": "16fcebba4348cc897cbeb5cf92f7424f44b900d4accc037e566778bd541e7eb5"
+}

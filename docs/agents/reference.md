@@ -8183,6 +8183,124 @@ No return of this round has been computed. The next eight are not
 frozen. This is not a testing row. No later-year bar is requested as
 an entry.
 
+### 3.390 The discount change, not the coin's drift (2026-09-25)
+
+Davies, 2026-09-25: the number recorded in the earlier rounds is the
+drift of the open after the entry, not the basis points of the discount
+being recovered. From this round that drift is not a price edge. The
+buy is an open below a fair value, and the exit result is the change in
+that discount. Another venue's close, a funding sign, funding versus
+SOFR, purchasing-power parity, a price basket, realised price, token
+par, minting cost, electricity, and a redemption ratio with no
+overlapping open stay void. They were not re-skinned.
+
+The fee stays ten basis points a fill. A two-leg package is four fills,
+forty basis points. A line below that fee is not a candidate. The grid
+stays 1, 5, 10, 25, 50, 100, 200, 500, 1000, 2000. The shipped line is
+the smallest grid point above the fee at which the cheap set has at
+least 30 days and is strictly shorter than the edge-off set. The null
+is the same package with the edge off: 200 draws, seed `20250925`,
+index 190. A missing bar is neither trade. Each signal is one $100
+package, including when the holds overlap. The screen is
+`[2023-01-01, 2024-01-01)`. The protocols were `60b1b33`, pushed before
+any of these returns. Each screen was written twice and the copies
+matched.
+
+**SPQTR.** Who is wrong: the buyer of the front BTCUSDT quarterly pays
+more than the Binance spot open for a coin the contract is written to
+meet at delivery. Binance delivers the quarterly on the last Friday at
+08:00 UTC. The exit used here is the two contracts' own 00:00 opens on
+that day. The settlement index is not read. The signal is the previous
+close basis, at least 100 bp. Gross is the entry-open basis minus the
+expiry-open basis. Forty basis points come off. 125 trades, edge-off
+240, fillable 365. Median entry basis +130.5214 bp, median exit basis
+−1.0325 bp, median signal +130.8971 bp. File gross +133.2947 bp, file
+mean +93.2947 bp, null p95 +9.2826 bp, null mean +5.9951 bp, +$116.6183
+(`d137286d…`). The gap is 84.0121 bp. The mean is positive and the gap
+is above 20 bp, so the later years are pre-registered and are not in
+this file. Screen `docs/agents/backtests/fp332/screen_2023.json`.
+
+**PEPRM.** Who is wrong: the buyer of 1000PEPEUSDT pays more per coin
+than the PEPEUSDT open, after dividing the perpetual by 1,000. The
+signal is the previous close premium, at least 50 bp. The hold is the
+next daily open. Gross is the change in that premium. Funding cash is
+not added, and the coin's move is not the result. 48 trades, edge-off
+191, fillable 239. Median signal +69.9624 bp. Median entry premium
+−15.558 bp. Median exit premium −11.5694 bp. The close that armed the
+trade was rich, and the open that could be filled was already cheap.
+File gross +9.153 bp, file mean −30.847 bp, null p95 −28.058 bp, null
+mean −42.3878 bp, −$14.8065 (`93512407…`). The mean is negative. It
+sits 2.789 bp under its null. It is not taken out of sample. The
+opposite sign has 45 days and is the same premium. It was not scored.
+Screen `docs/agents/backtests/fp333/screen_2023.json`.
+
+**FDCSH.** Who is wrong: the short of TRBUSDT pays the long a cash
+funding amount. The package is long the perpetual and short the spot,
+so the coin is hedged and the cash is the result. The cash at the exit
+is zero. The print is not the signal. The signal is the average of this
+interval's own hourly closes, excluding the hour still open at the
+entry, at least 50 bp cheap. An eight-hour print uses seven hours. A
+four-hour print uses three. 85 trades, edge-off 815, 36 entry days.
+Median cash +105.9454 bp, median exit 0, median signal −119.159 bp.
+File gross +128.5634 bp, file mean +88.5634 bp, null p95 −36.9061 bp,
+null mean −38.3963 bp, +$75.2789 (`42030f61…`). The gap is 125.4695 bp.
+The mean is positive and the gap is above 20 bp, so the later years are
+pre-registered and are not in this file. A negative rate is cash paid
+to the long. It is not a reason to be long the coin. Screen
+`docs/agents/backtests/fp334/screen_2023.json`.
+
+The other identities were counted and were not scored. They are not
+used to fill eight.
+
+**Same delivery sentence.** The USDT-M perpetual against the front
+quarterly overlaps the spot-versus-quarterly days. It is SPQTR with the
+spot leg swapped for the perpetual. Coin-margined quarterlies are the
+same delivery with the margin changed. ETH against its own quarterly is
+the same delivery with the coin changed. The BTC-minus-ETH relative
+basis peaked at 83 bp, under the 100 bp four-leg fee. None was scored.
+
+**Calendar.** The USDT-M calendar had no grid point: the near contract
+stayed rich to the far one. The coin-margined calendar was cheap on a
+longer set at 50 bp and at 100 bp, and on 2 days at 200 bp. No off-grid
+threshold was inserted. Three USDT-M quarterlies never overlap for 30
+days. A butterfly that includes the perpetual had 2 to 5 days at 100 bp.
+Not scored.
+
+**Same coin, two margins.** Coin-margined versus USDT-M at the same
+expiry peaked at 42.3 bp. The two perpetuals peaked at 9.7 bp. Under the
+fee. Not scored.
+
+**Perpetual premium, other names.** BTCUSDT perpetual versus spot peaks
+near 9 bp on the daily book and at 15.50 bp on the hour before a
+funding print, with zero hours at 25 bp. In the pre-specified basket
+only PEPE clears 50 bp. That is PEPRM. A second coin would be the same
+premium. Not scored.
+
+**Triangles.** ETHBTC peaked at 5.4 bp. The USDC triangle peaked at
+7.15 bp on 295 days. The BUSD triangle had one day beyond 10 bp. Under
+the fee. Not scored.
+
+**Funding cash, other names.** PEPE's 721 prints peak at 10.85 bp. BTC
+funding peaks near 5.52 bp. A four-month read of the USDT-M funding
+files left TRB as the only name near 30 days at 50 bp of negative cash.
+BLZ had 14 and 10 in that sample, UNFI 8 and 4. Names were not pooled.
+The positive-rate side of TRB peaks at 6.9124 bp. Not scored.
+
+**Option structures.** On BTC end-of-hour fills, the nearest expiry, and
+the strike bracket around the spot open: a box below zero was 0 of 140
+days at hour 0. A box above its width was 3 days at 100 bp at hour 0,
+and 25 days at 100 bp across all hours. The round trip on four legs,
+entered and exited, is 80 bp, so the grid point is 100. 25 days is under
+30. The published option fee was not substituted for the ten-basis-point
+fill. Put-call parity, the butterfly and the vertical did not clear.
+Quotes were not used as fills. Not scored.
+
+No testing row is added. The count stays 30. LS-FADE's 60-trade
+reproduction, the control, doubled costs, and the rule that no month is
+above 40% of the profit are not relaxed. PEPRM is not taken out of
+sample. SPQTR and FDCSH are pre-registered. No later-year return of
+either has been computed. No pull request. Main was not pushed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
