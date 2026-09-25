@@ -8,14 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp25 failed the 2023 screen and is discarded** (§3.54). 77 trades. The
-positive mean lost to the null. Do not score a thin stock, and do not score
-the 80th. The count stays 30. FEE-HIGH stays dead (§3.53). Do not reopen the
-net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
-PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
-share, dispersion, or skew. fp5 through fp24 stay closed, including LS-FADE.
-The next search is not written. No testing row. No pull request. No push to
-main.
+**fp26 protocol is written and not scored.** BODY is the candle body as a
+share of that day's high-low range, above its own trailing 90th, long BTC
+the next day. EXCH-BAL stays dead (§3.54). Do not score a doji, and do not
+score the 80th. The count stays 30. Do not reopen FEE-HIGH, the net exchange
+flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
+AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
+skew. fp5 through fp25 stay closed, including LS-FADE. The screen is the
+next step. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +838,17 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:36 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp26 protocol only. No return has been computed.** A different family from
+the twenty-one closed rounds: the absolute candle body divided by the day's
+high-low range, long BTC the next day. A down day with a full body counts
+the same as an up day. EXCH-BAL, FEE-HIGH, UP-SHARE, VOL-HHI, VWAP-PREM,
+GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
+range, the taker share, dispersion and skew stay closed. A doji is not a
+candidate. `pin_test.py` passed before this commit. The screen is the next
+step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:33 UTC] Platform: Cursor | Model: Grok 4.7
 
