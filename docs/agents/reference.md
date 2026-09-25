@@ -3114,6 +3114,125 @@ hole. The first day has no prior close, so there are 456 differences.
 it lost to the null. A day ETH outruns BTC, and the 80th, are not
 candidates.
 
+### 3.67 The second half minus the first: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp38-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp38/screen_2023.json`). The second
+twelve hours' return minus the first twelve, above its own trailing 90th,
+long spot the next day: 34 trades, mean +22.9 bps, null p95 +76.3 bps,
++$7.79. The gross move was +43.0 bps. The null matches §3.61 because both
+rules have 34 trades on the same BTC pool and the same seed. The hourly grid
+has one hole, 2023-03-24 13:00 UTC, and that day is not a print. 456 days
+have a difference. **Nothing here is fit to add.** The count cleared and the
+mean was positive; it lost to the null. A day whose second half does not
+outrun the first, and the 80th, are not candidates.
+
+### 3.68 Hours sitting inside the previous hour: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp39-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp39/screen_2023.json`). The count of
+hours whose range sits inside the previous hour, above its own trailing
+90th, long spot the next day: 10 trades, mean −56.1 bps, null p95 +117.1
+bps, −$5.61. The gross move was −36.2 bps. The null matches §3.59 because
+both rules have 10 trades on the same BTC pool and the same seed. The hourly
+grid has the same one hole, and that day is not a print. 456 days have a
+count. Eleven days cleared the rank; the last of them, 2023-12-31, has no
+exit inside the screen. **Nothing here is fit to add.** The count stays at
+30. A day with fewer inside hours, and the 80th, are not candidates.
+
+### 3.69 Hours that lift the low: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp40-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp40/screen_2023.json`). The count of
+hours whose low is strictly above the previous hour's low, above its own
+trailing 90th, long spot the next day: 22 trades, mean +66.3 bps, null p95
++93.0 bps, +$14.59. The file's null is +92.975 bps. The gross move was
++86.5 bps. The hourly grid has the same one hole, and that day is not a
+print. 456 days have a count. **Nothing here is fit to add.** The count
+stays at 30. The mean was positive and under the null. A day with fewer
+higher lows, and the 80th, are not candidates.
+
+### 3.70 Consecutive rising closes: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp41-protocol.md`) was committed before the
+2023 screen. Two runs matched (`backtests/fp41/screen_2023.json`). Consecutive
+daily closes each strictly above the prior close, above its own trailing 90th
+and strictly above zero, long spot the next day: 33 trades, mean +111.9 bps,
+null p95 +74.8 bps, +$36.93. The gross move was +132.2 bps. The null matches
+§3.72 because both rules have 33 trades on the same BTC pool and the same
+seed. The daily grid has no hole. The first day has no prior close, so there
+are 456 streaks. The pre-registration
+(`reviews/2026-09-25-fp41-prereg-streak.md`, sha256 `968248fa…`, frozen
+2026-09-25T03:28:08Z) was committed before any later year. Two out-of-sample
+runs matched (`backtests/fp41/streak_oos.json`). 2023 reproduces: 33 trades,
++$36.9301. Entries from 2024-01-01 through 2026-09-24: 84 trades, +$35.6965,
+mean +$0.424959, null p95 +$0.3632. 2024 is +$30.7475 and 2025-01-01 through
+2026-09-24 is +$4.949. Doubled costs are +$18.842. February 2024 is +$17.3009,
+48.47% of the total; without it the total is +$18.3956. Annualised on the
+locked $100 it is +13.06%. The 80th neighbor is positive (+$18.6522, 138
+trades). The 95th is positive (+$32.9515, 53 trades). **Nothing here is fit
+to add.** One month is more than 40% of the profit. A positive neighbour
+does not save it. A shorter run, and the 80th, are not candidates.
+
+### 3.71 Absolute move per unit of quote volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp42-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp42/screen_2023.json`). The absolute
+open-to-close return divided by quote volume, above its own trailing 90th,
+long spot the next day: 56 trades, mean +12.9 bps, null p95 +54.2 bps,
++$7.20. The gross move was +32.9 bps. The daily grid has no hole. Every day
+in the window has a print, 457 of them. **Nothing here is fit to add.** The
+count cleared and the mean was positive; it lost to the null. A quieter
+day, and the 80th, are not candidates.
+
+### 3.72 Quote volume in up hours: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp43-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp43/screen_2023.json`). The share of
+quote volume in hours that closed above their open, above its own trailing
+90th, long spot the next day: 33 trades, mean +54.0 bps, null p95 +74.8 bps,
++$17.82. The gross move was +74.1 bps. The null matches §3.70 because both
+rules have 33 trades on the same BTC pool and the same seed. The hourly grid
+has the same one hole, and that day is not a print. 456 days have a share.
+**Nothing here is fit to add.** The count cleared and the mean was positive;
+it lost to the null. The down-volume side, and the 80th, are not candidates.
+
+### 3.73 The first hour: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp44-protocol.md`) was committed before the
+2023 screen. Two runs matched (`backtests/fp44/screen_2023.json`). The first
+hour's close divided by that hour's open, minus 1, above its own trailing
+90th, long spot the next day: 36 trades, mean +80.8 bps, null p95 +72.6 bps,
++$29.07. The gross move was +100.9 bps. Later hours are not an input, so the
+2023-03-24 13:00 UTC hole does not drop that day. 457 days have a first hour.
+Thirty-seven days cleared the rank; 2023-12-31 has no exit inside the screen.
+The pre-registration (`reviews/2026-09-25-fp44-prereg-drive.md`, sha256
+`867061de…`, frozen 2026-09-25T03:28:08Z) was committed before any later
+year. Two out-of-sample runs matched (`backtests/fp44/drive_oos.json`). 2023
+reproduces: 36 trades, +$29.0716. Entries from 2024-01-01 through 2026-09-24:
+106 trades, +$19.7853, mean +$0.186654, null p95 +$0.2899. 2024 is +$9.0681
+and 2025-01-01 through 2026-09-24 is +$10.7172. Doubled costs are −$1.4331.
+July 2024 is +$11.4648, 57.95% of the total; without it the total is
++$8.3206. Annualised on the locked $100 it is +7.24%. The 80th neighbor is
+positive (+$15.3272, 209 trades). The 95th is positive (+$14.5699, 64
+trades). The later hourly grid has 23,952 bars and no hole. **Nothing here
+is fit to add.** The mean loses to the null, doubled costs lose, and one
+month is more than 40% of the profit. A positive neighbour does not save it.
+A weak first hour, and the 80th, are not candidates.
+
+### 3.74 The close versus yesterday's high: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp45-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp45/screen_2023.json`). Today's close
+divided by yesterday's high, minus 1, above its own trailing 90th, long spot
+the next day: 43 trades, mean +44.7 bps, null p95 +66.2 bps, +$19.23. The
+gross move was +64.8 bps. The null matches §3.62 because both rules have 43
+trades on the same BTC pool and the same seed. The daily grid has no hole.
+The first day has no prior high, so there are 456 distances. **Nothing here
+is fit to add.** The count cleared and the mean was positive; it lost to the
+null. A close under yesterday's high, and the 80th, are not candidates. The
+prior 30-day close high stays dead, and its 80th is not a candidate.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

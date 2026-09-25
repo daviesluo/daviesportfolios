@@ -1,0 +1,69 @@
+{
+  "annualised": 0.130553,
+  "conditions": {
+    "above_cash": true,
+    "at_least_30": true,
+    "beats_null": true,
+    "both_subwindows_positive": true,
+    "doubled_costs_positive": true,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": 18.842,
+  "half_spread": 5.938241924546982e-08,
+  "input_sha256": {
+    "oos_btc_1d": "65419975cbd50bfa9ba909fab3a487aa564b4778eff48457274d4c4561dd2895",
+    "screen_btc_1d": "497baf391f5672e4ddd33df2d7e70c633d5cc2e66319378e1ca9feac869e0b29"
+  },
+  "neighbors_hold": true,
+  "oos1_pnl_usd": 30.7475,
+  "oos2_pnl_usd": 4.949,
+  "oos_days": 998,
+  "passes": false,
+  "prereg_sha256": "968248fa9c47854236736e9764f5d66ef1bb0522905b3ef911178eb88cbe6df6",
+  "primary": {
+    "beats_null": true,
+    "best_month": "2024-02",
+    "best_month_pnl_usd": 17.3009,
+    "best_month_share": 0.4847,
+    "by_month": {
+      "2024-01": -4.8664,
+      "2024-02": 17.3009,
+      "2024-03": 3.9912,
+      "2024-04": -0.8052,
+      "2024-07": 2.3319,
+      "2024-08": -2.3537,
+      "2024-09": -0.0537,
+      "2024-10": 2.528,
+      "2024-11": 12.6744,
+      "2025-01": -1.8334,
+      "2025-04": 7.0205,
+      "2025-05": 0.9653,
+      "2025-06": -2.5172,
+      "2025-07": -0.2912,
+      "2025-09": -1.3662,
+      "2025-10": -1.8979,
+      "2025-11": -3.7729,
+      "2025-12": -1.1569,
+      "2026-01": 1.2289,
+      "2026-03": 4.0281,
+      "2026-04": -1.246,
+      "2026-06": -1.1834,
+      "2026-07": -3.3565,
+      "2026-08": 10.3642,
+      "2026-09": -0.0363
+    },
+    "mean_pnl_usd": 0.424959,
+    "n": 84,
+    "null_p95_pnl_usd": 0.3632,
+    "total_pnl_usd": 35.6965,
+    "without_best_month_usd": 18.3956
+  },
+  "quantile_80_n": 138,
+  "quantile_80_pnl_usd": 18.6522,
+  "quantile_95_n": 53,
+  "quantile_95_pnl_usd": 32.9515,
+  "screen_reproduction": {
+    "n": 33,
+    "total_pnl_usd": 36.9301
+  }
+}
