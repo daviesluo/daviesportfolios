@@ -2822,6 +2822,75 @@ public tape, so a fill cannot be built. A second grid of the same week exists fi
 failed. The note is `reviews/2026-09-25-polymarket-fp5-round8-kills.md`, and the Betfair kill is also in
 the POST pre-registration. None is a paper test or a live row.
 
+### 3.43 MED, the bracket around the median count, fails its bar (2026-09-25)
+
+The next round, eight rules each frozen before its prices were scored. On the same post-count ladders as
+POST, one hour after the open, MED buys the bracket that contains the median of past winning midpoints
+when that bracket's hit rate clears the price. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-med.md`. Out of sample: **−$18.42 on 2 trades**, both lost.
+Stress −$19.17. The null's 95th percentile is +$107.68. The write-up is
+`reviews/2026-09-25-polymarket-fp5-med.md`. Not a paper test and not a live row. Not retried with the mean
+in place of the median.
+
+### 3.44 VAR, the bracket named by two variances, fails its bar (2026-09-25)
+
+The book's variance of bracket midpoints is compared with the variance of past winning midpoints. The
+richer book buys the bracket around the historical mean; the cheaper book buys the furthest bracket. The
+hit rate still has to clear the price. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-var.md`.
+Out of sample: **−$71.47 on 11 trades**, 0 won. The second half has no trade. The null's 95th percentile
+equals the loss. The write-up is `reviews/2026-09-25-polymarket-fp5-var.md`. Not a paper test and not a
+live row. Not retried with another variance, or with the empty half removed.
+
+### 3.45 NEAR, the bracket beside the dearest, fails its bar (2026-09-25)
+
+The trade is the bracket next to the highest shown price, on the side closer to the median, and only when
+the dearest bracket does not already contain that median. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-near.md`. The full sample filled once, in sample, for −$10. Out
+of sample: **$0 on 0 trades**. The write-up is `reviews/2026-09-25-polymarket-fp5-near.md`. Not a paper
+test and not a live row. Not retried by buying the dearest bracket.
+
+### 3.46 RICH, NO on the dearest post-count bracket, fails its bar (2026-09-25)
+
+NO is bought on the highest shown bracket when one minus its hit rate clears the NO price, and only while
+the YES price is inside 0.10 to 0.90. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-rich.md`.
+Out of sample: **+$13.97 on 52 trades**, 45 won and 7 lost. Both halves are positive. Stress +$10.37.
+The null's 95th percentile is +$48.65. May is 93 % of the profit. The 4 % a year on a $50 peak passes.
+The write-up is `reviews/2026-09-25-polymarket-fp5-rich.md`. Not a paper test and not a live row. Not
+retried with May removed or with the band widened into the favourite entry.
+
+### 3.47 YDAY, repeating the last resolved temperature bucket, fails its bar (2026-09-25)
+
+On the daily temperature markets, with no forecast, the fair value is how often the next resolved day
+landed in the previous day's bucket. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-yday.md`.
+Out of sample: **−$1,536.22 on 584 trades**, 58 won and 526 lost. Both halves lose. Stress −$1,764.09.
+The null's 95th percentile is +$999.33. The write-up is `reviews/2026-09-25-polymarket-fp5-yday.md`. Not a
+paper test and not a live row. Not a rerun of WX.
+
+### 3.48 CLIM, the month's median temperature bucket, fails its bar (2026-09-25)
+
+The same markets. The bracket is the one that contains the median of past winning midpoints in that
+calendar month. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-clim.md`. Out of sample:
+**−$283.66 on 944 trades**. One half is positive (+$250.45 on 494) and the other is −$534.11 on 450.
+Stress −$636.48. The null's 95th percentile is +$1,152.98. The write-up is
+`reviews/2026-09-25-polymarket-fp5-clim.md`. Not a paper test and not a live row. Not a rerun of WX.
+
+### 3.49 JUMP, one step past the last two temperatures, fails its bar (2026-09-25)
+
+The target is the last resolved midpoint plus the step from the day before it. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-jump.md`. Out of sample: **+$692.12 on 421 trades**, 67 won and
+354 lost. The first half is −$15.30 on 277. Stress +$491.87. The null's 95th percentile is +$1,208.88.
+May is 105 % of the total; without it the remainder is −$36.30. Stress, the trade count and +1,193 % a
+year on an $84 peak pass. The write-up is `reviews/2026-09-25-polymarket-fp5-jump.md`. Not a paper test
+and not a live row. Not retried with May removed. Not a rerun of WX.
+
+### 3.50 HOT, the bucket above the month's median high, fails its bar (2026-09-25)
+
+Highest-temperature markets only. The trade is the listed bucket above the one that contains the month's
+median, not the median itself. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-hot.md`. Out of
+sample: **−$735.32 on 493 trades**, 55 won and 438 lost. Both halves lose. Stress −$924.88. The null's
+95th percentile is +$869.02. The write-up is `reviews/2026-09-25-polymarket-fp5-hot.md`. Not a paper test
+and not a live row. Not a rerun of WX or of CLIM.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
