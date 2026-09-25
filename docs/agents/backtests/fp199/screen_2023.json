@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp199_common": "5dea4958937afd0a7e86e64b5f84b70167929d86c6782f64cf9377c24fe778af",
+    "fp199_measure": "e86422b064a19ed35fdb5d2b3836490e2f27c29a32c8178ba4f6d659e1498368",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MRKSH",
+      "mean_gross_bps": -14.9479,
+      "mean_net_bps": -34.898,
+      "min_n": 30,
+      "n": 184,
+      "note": "The mark close/open finished strictly above the index close/open. Next day, short the USDT perpetual from the open to the next open. Funding cash is not added. The null is that short on every day.",
+      "null_p95_bps": -26.6463,
+      "passes_screen": false,
+      "total_pnl_usd": -64.2124
+    }
+  ],
+  "input_sha256": {
+    "index": "fb6e2e9ae6c07bb7c78ae56b678d2dbd24f6c8d39b625fcb95c85fb31312cff8",
+    "mark": "5cb720e9f11e740cda3db3b482cc195675cddbc11d81e00f3699af73f495bf8d",
+    "um": "1af87106d99cdf61dd85894c0b09d3dccf85deae1c5079adeb31f0c4d3b6d376"
+  },
+  "passed": [],
+  "protocol_sha256": "fdd8f972d18904737b867a630d27ebd48cd24d78725c7f264f816702e82f96d9"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp198_common": "5e7ac22fb29441ac471a750a703df706d466f962b626ac3c1eb345c0c4df7cc5",
+    "fp198_measure": "8d33f056bee636ee97aa54cb1294113394b65ed0edefd20ea46578fe0a9a7188",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "COISH",
+      "mean_gross_bps": -29.3178,
+      "mean_net_bps": -49.2392,
+      "min_n": 30,
+      "n": 185,
+      "note": "Coin open interest finished strictly above its first print. Next day, short the USDT perpetual from the open to the close. Funding cash is not added. The null is that short on every day.",
+      "null_p95_bps": -29.906,
+      "passes_screen": false,
+      "total_pnl_usd": -91.0925
+    }
+  ],
+  "input_sha256": {
+    "oi": "e639d73b745768bc3c3b8a0307dc4bbe94f20f2bbf263ac574fc1de87e4e67ce",
+    "um": "d1beffd964628f38b0593d333a457e4205f2cc6590ef17bde3eb679be7069cd6"
+  },
+  "passed": [],
+  "protocol_sha256": "f21f604bac7fd4aad3ce1f6fec8cd428198217a43c138264fac74c19ba67f441"
+}

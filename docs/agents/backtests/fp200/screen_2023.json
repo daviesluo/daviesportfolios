@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp200_common": "13fb810689f1c46fa8ff7bb113bfc6206fb6812d63e06f5b3fb935d902831e96",
+    "fp200_measure": "114c7e4505471fa49444fd9105b2c13e1966343ebe5e2d668cab0e4cbe7945a0",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TAKSP",
+      "mean_gross_bps": 5.4791,
+      "mean_net_bps": -34.4919,
+      "min_n": 30,
+      "n": 202,
+      "note": "The USDT taker-buy share finished strictly above the coin-margined share. Next day, long the coin-margined perpetual and short the USDT perpetual, open to close. Funding cash is not added. The null is that spread on every day.",
+      "null_p95_bps": -33.7986,
+      "passes_screen": false,
+      "total_pnl_usd": -69.6737
+    }
+  ],
+  "input_sha256": {
+    "cm": "0af0b66d5d1e6df41aba07964b7d892c1e814e3ee8a8641703a9cd84bec68c03",
+    "um": "24ecaa188ac5e5981eaf1fdb477d1bb3a213ef26f6076a4cde9659bf8cf051fb"
+  },
+  "passed": [],
+  "protocol_sha256": "cd460ba804a205859df53ee964856ff98e20ed0d3c3b5dae2a6061f79324516c"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp195_common": "78a4c0dd07b9cc1832c3fa6a4bc09a26579a63ae346319ce08408be170e91b2d",
+    "fp195_measure": "445e5a08d1e0edba4b8cd4f17f1e049b5b65ce2335a70fd07e9be1de523db697",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "VWAPH",
+      "mean_gross_bps": 7.1987,
+      "mean_net_bps": -32.7757,
+      "min_n": 30,
+      "n": 120,
+      "note": "The USDT perpetual's average trade finished strictly above the spot average. Next day, long spot and short that perpetual, open to close. Funding cash is not added. The null is that hedge on every day.",
+      "null_p95_bps": -33.4027,
+      "passes_screen": false,
+      "total_pnl_usd": -39.3308
+    }
+  ],
+  "input_sha256": {
+    "spot": "58da95d48391be27bf5975b101fce146985f8ce7f856ef771dd80d466faf3e8c",
+    "um": "27832da4c3a76cce8878d744b21c93b71ce9ea691d4b8c5ccd1dc84d12df7549"
+  },
+  "passed": [],
+  "protocol_sha256": "dc88fd0b21506710b7baa8c0eb1ace623a2dcbd3149f1dfa7c0ffcf5f91064e9"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp197_common": "2af3b54a1b4765449f2d1b24d4efef57fd25a98081fc42fe59442efeebc3f572",
+    "fp197_measure": "1a29da57ae207b06f720f4c7cd6a17fe986b617ff7403d4ce3832bd3d3daed19",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ON16",
+      "mean_gross_bps": 0.0052,
+      "mean_net_bps": -19.9748,
+      "min_n": 30,
+      "n": 124,
+      "note": "The 16:00 funding rate finished strictly above the 08:00 rate. That day's close is sold and the next open is bought. Funding cash is not added. The null is that overnight short on every day.",
+      "null_p95_bps": -19.956,
+      "passes_screen": false,
+      "total_pnl_usd": -24.7688
+    }
+  ],
+  "input_sha256": {
+    "funding": "37e16b68209e37f0a02f1b66a65160e3e486f5cc6f4246269a35772d5f5023a1",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "77affacd430d45b64a22aa4e1079db45b8b87ce95414b103f8325b13c838b7ba"
+}

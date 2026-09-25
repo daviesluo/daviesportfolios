@@ -5138,6 +5138,114 @@ the mean was positive and under the null. The null is every session. The
 perpetual's close is not the comparison. The high and the low are not read.
 An equal mark does not fire. The buy is the next open.
 
+### 3.222 Ask notional above bid notional, then a session short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp193-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp193/screen_2023.json`,
+sha256 `d9dc206d…`). The last book snapshot's ask notional strictly above
+its bid notional, then a short of the next session from the open to the
+close: 112 trades, mean −61.9342 bps, null p95 −13.7277 bps, −$69.3663.
+The file's gross is −42.0381 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The null is every spot session short,
+not an unconditional long. The three missing book days were not filled in.
+An equal book does not fire. This is not the bid-up and ask-down change.
+The sell is the next open.
+
+### 3.223 The index return above the spot return, then an open-to-open short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp194-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp194/screen_2023.json`,
+sha256 `a9abb8b0…`). The index close/open strictly above the spot close/open,
+then a short from the next open to the following open: 177 trades, mean
+−55.7059 bps, null p95 −22.5105 bps, −$98.5994. The file's gross is
+−35.7974 bps. **Nothing here is fit to add.** The count cleared and the
+mean was negative. The null is every open-to-next-open short, not an
+unconditional long. This is not the spot close set against the index close.
+The open on 2024-01-01 is a cover only. The sell is the next open.
+
+### 3.224 The perpetual average above the spot average, then a two-leg session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp195-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp195/screen_2023.json`,
+sha256 `0e6582f0…`). The USDT perpetual's average trade strictly above the
+spot average, then long spot and short that perpetual, each open to close:
+120 trades, mean −32.7757 bps, null p95 −33.4027 bps, −$39.3308. The file's
+gross is +7.1987 bps. **Nothing here is fit to add.** The count cleared.
+The mean was negative, so it does not pass. The mean is above that null.
+The null is the same hedge on every day both legs exist, not an
+unconditional long. Funding cash is not added. A hundred dollars sits on
+each leg. This is not the spot close against its own average, and it is
+not the perpetual average against the mark.
+
+### 3.225 The coin-margined close above spot, then a two-leg session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp196-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp196/screen_2023.json`,
+sha256 `ac64dc6f…`). The coin-margined close strictly above the spot close,
+then long spot and short that perpetual, each open to close: 151 trades,
+mean −32.2977 bps, null p95 −33.6862 bps, −$48.7695. The file's gross is
++7.6777 bps. **Nothing here is fit to add.** The count cleared. The mean
+was negative, so it does not pass. The mean is above that null. The null
+is the same hedge on every day both legs exist, not an unconditional long.
+Funding cash is not added. A hundred dollars sits on each leg. A count
+taken before the freeze, with no profit computed, was 147. The scored book
+is 151. The rule was not changed. This is not the coin-margined close set
+against the USDT perpetual close.
+
+### 3.226 The 16:00 funding rate above the 08:00 rate, then an overnight short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp197-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp197/screen_2023.json`,
+sha256 `9efbc829…`). The 16:00 USDT funding rate strictly above the same
+day's 08:00 rate, then a short from that day's close to the next open: 124
+trades, mean −19.9748 bps, null p95 −19.956 bps, −$24.7688. The file's
+gross is +0.0052 bps. **Nothing here is fit to add.** The count cleared
+and the mean was negative and under the null. The null is every overnight
+short, not an unconditional long. The 00:00 rate is not read. Funding cash
+is not added. The close is the fill, not an input. The open on 2024-01-01
+is a cover only.
+
+### 3.227 Rising coin open interest, then a perpetual session short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp198-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp198/screen_2023.json`,
+sha256 `1f181522…`). The last coin open interest strictly above the first
+print, then a short of the next USDT-perpetual session from the open to the
+close: 185 trades, mean −49.2392 bps, null p95 −29.906 bps, −$91.0925. The
+file's gross is −29.3178 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative and under the null. The null is every
+USDT-perpetual session short, not an unconditional long. The quantity is
+coins, not dollars. This is not the dollar open-interest overnight long.
+Funding cash is not added. The sell is the next open.
+
+### 3.228 The mark return above the index return, then a perpetual open-to-open short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp199-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp199/screen_2023.json`,
+sha256 `f7f9e3cd…`). The mark close/open strictly above the index
+close/open, then a short of the USDT perpetual from the next open to the
+following open: 184 trades, mean −34.898 bps, null p95 −26.6463 bps,
+−$64.2124. The file's gross is −14.9479 bps. **Nothing here is fit to add.**
+The count cleared and the mean was negative and under the null. The null
+is every such perpetual short, not an unconditional long. Funding cash is
+not added. This is not the perpetual average set against the mark close.
+The perpetual open on 2024-01-01 is a cover only. The sell is the next open.
+
+### 3.229 The USDT taker share above the coin-margined share, then a two-leg session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp200-protocol.md`) was committed before any
+return (`4fb0448`). Two runs matched (`backtests/fp200/screen_2023.json`,
+sha256 `4dca03c2…`). The USDT taker-buy share strictly above the
+coin-margined share, then long the coin-margined perpetual and short the
+USDT perpetual, each open to close: 202 trades, mean −34.4919 bps, null
+p95 −33.7986 bps, −$69.6737. The file's gross is +5.4791 bps. **Nothing
+here is fit to add.** The count cleared and the mean was negative and
+under the null. The null is the same spread on every day both legs exist,
+not an unconditional long. Funding cash is not added. A hundred dollars
+sits on each leg. A count taken before the freeze, with no profit computed,
+was 201. The scored book is 202. The rule was not changed. This is not
+each share set against one half.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

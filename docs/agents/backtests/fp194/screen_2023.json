@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp194_common": "3b1c69ad776a278bad2e30aa987fec7f1ace2fa05ace118728a2a54b69dae729",
+    "fp194_measure": "e4890f5a1d852c4f25dffcc1096bbbb3c877aac6ac885f7d91513a750b7635e2",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "IDXSH",
+      "mean_gross_bps": -35.7974,
+      "mean_net_bps": -55.7059,
+      "min_n": 30,
+      "n": 177,
+      "note": "The index close/open finished strictly above the spot close/open. Next day, short BTC from the open to the next open. The null is that short on every day.",
+      "null_p95_bps": -22.5105,
+      "passes_screen": false,
+      "total_pnl_usd": -98.5994
+    }
+  ],
+  "input_sha256": {
+    "index": "fb6e2e9ae6c07bb7c78ae56b678d2dbd24f6c8d39b625fcb95c85fb31312cff8",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "152e583715c291be5a8d046b9aee5f1774f74bf88a19319592c719c6d94dbe45"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp196_common": "f6e2b96f33d04b88e84b7557ae60305da414a7baab8e647b62f5519098b471c5",
+    "fp196_measure": "ae363f8884df3094b9482add61d09ee68e4e5845ff96f607848836a41d311f93",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CMH",
+      "mean_gross_bps": 7.6777,
+      "mean_net_bps": -32.2977,
+      "min_n": 30,
+      "n": 151,
+      "note": "The coin-margined close finished strictly above the spot close. Next day, long spot and short that perpetual, open to close. Funding cash is not added. The null is that hedge on every day.",
+      "null_p95_bps": -33.6862,
+      "passes_screen": false,
+      "total_pnl_usd": -48.7695
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "ff4b1070ad480510c577c03b5a25aa3d1a5393c4d0095e22b1e356cd0aabc879"
+}

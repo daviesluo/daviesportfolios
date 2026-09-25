@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp193_common": "56a718316bb47c7ef14c71c6aff6ebe206b968c17f772af3c0b0ea4829ad25e8",
+    "fp193_measure": "7b8277e0f4c8d06747bb2beadc8b56667e53f79173c8fe39103c11c7582755b1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ASKSH",
+      "mean_gross_bps": -42.0381,
+      "mean_net_bps": -61.9342,
+      "min_n": 30,
+      "n": 112,
+      "note": "The last book snapshot's ask notional finished strictly above its bid notional. Next day, short BTC from the open to the close. The null is that short on every day.",
+      "null_p95_bps": -13.7277,
+      "passes_screen": false,
+      "total_pnl_usd": -69.3663
+    }
+  ],
+  "input_sha256": {
+    "book": "8f2f88a2f0fcd6b27bfa9cbe8053e85e8a8f53486791827be816dd098e48467b",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "2cd4319a51a4415c9e63950b8922762699c490875afd611ecb738cb844b47c3c"
+}
