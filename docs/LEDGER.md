@@ -835,6 +835,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 04:09 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, a missing temperature bracket is no trade.** The 04:07 freeze named the eight rules. `city_more.hit` asked a bracket that is not on the board for its interval and raised. The pre-registration already says that case is no trade. The guard is in `city_more.py`, and `diurnal_test.py --self-check` now refuses a target that sits outside every bucket. The pins are unchanged. No return has been written up. `agents/pmrw.ts` was not touched.
+
 ### [2026-09-25 04:07 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, eight temperature rules frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). The 03:51 section ran MED, VAR, NEAR, RICH, YDAY, CLIM, JUMP and HOT; none cleared the bar, and none of them is reopened. This round's eight each have a fill walk. No price of these rules and no return have been read. VOL, COPY, ROUND, FADE, POST, HITS, POISSON and PACE stay failed. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. A same-bucket gap between cities, a weekday split of CLIM, and the reverse of JUMP were not run (`reviews/2026-09-25-polymarket-fp5-round9-kills.md`).

@@ -30,6 +30,9 @@ def mean(xs):
 
 
 def hit(values, market):
+    """None when the rule named no bracket. A missing bracket is no trade."""
+    if market is None or market.get("iv") is None:
+        return None
     if not values:
         return 0.0
     return sum(1 for x in values if city.contains_iv(market["iv"], x)) / float(len(values))

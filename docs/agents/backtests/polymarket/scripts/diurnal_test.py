@@ -64,6 +64,12 @@ def self_check():
     got = choose(trade, city.known_priors(trade, rows), idx)
     if got is None or got[0]["iv"] != [21, 23]:
         raise SystemExit("diurnal choose %s" % (None if got is None else got[0]["iv"]))
+    miss = more.live("2026-01-21", [
+        {"lo": 0, "hi": 2, "cond": "no", "shown": 0.02, "print_px": 0.01},
+    ], event="miss")
+    missed = [row for row in rows if row["event"] != "t"] + [miss]
+    if choose(miss, city.known_priors(miss, missed), more.indexes(missed)) is not None:
+        raise SystemExit("a target outside every bucket was a trade")
     trades, _counts, inc = city.trades_from(rows, lambda ev, priors: choose(ev, priors, idx))
     if inc:
         raise SystemExit("incomplete")
