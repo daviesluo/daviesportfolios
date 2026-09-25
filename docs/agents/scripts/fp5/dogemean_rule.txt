@@ -1,0 +1,21 @@
+Family: long the next open after DOGEUSDT spot quote volume exceeds twice its prior 20-day mean.
+Frozen 2026-09-25 06:43:51 UTC, before any open of this rule was joined to a return.
+Not the previous-day double. Not the 2020 quote-volume change quintile. Not the voided 1% open gap. Not a trailing quintile. Not the US-session share. Not a flip. Not the OKX basis.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by this mechanism.
+Signal day D fires when the DOGEUSDT spot quote volume, field index 7, is positive, each of the previous 20 calendar days has a positive quote volume, and today's quote volume is strictly greater than twice the mean of those previous 20 days. Today is not inside that mean. A tie at exactly twice the mean does not fire. The multiple stays 2. DOGEUSDT spot 1d starts 2019-07-05, so 2021 is a full year in which 1 January already has the 20-day mean. 2020 is the killed quote-volume year and is not this screen.
+Execution days are 2021-01-01 through 2021-12-31. No other year is scored. No 2022 signal is scored.
+The signal is known by the end of signal day D. The execution day is the next UTC calendar day. The signal is not carried forward.
+Fill, decided before the result: enter at the open of the execution day and exit at the open of the next calendar day.
+The open is field index 1 (0-based) of the Binance spot 1d kline for that book (BTCUSDT, ETHUSDT). Binance prints a daily bar every calendar day, so that open is the next tradable open. There is no US-session filter.
+Gross bps on a book = (exit open / entry open - 1) * 10000. A trip exists only when both opens are positive. A signal missing either open is not a trip.
+Each signal is its own round trip. The position is not carried. If the next day is also a signal, the first trip exits at that day's open and the second trip enters at the same open. Both the exit and the new entry are charged. There is no netting.
+Cost 20 bps on the entry and 20 bps on the exit. Stress doubles each charge to 40 and 40.
+Both charges are booked on the entry day's calendar month. The exit open on the calendar day after the screen year is allowed for an entry on the last screen day. It is a fill, not an extra scored year.
+Null: the same number of trips, random execution days in the screen year that have both opens, 500 draws, seed 20260925, index int(0.95*500)-1. The null is not loosened. This is not a rerun of the LINK quote-volume screen.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = one entry at an execution-day open and the exit at the next day's open.
+The reported figures are that arithmetic. Do not replace them because the open is a Binance daily kline. Do not arm. Do not edit PR5.
+This is not the rule that goes long the next day when a coin's own change sits above the top quintile of its previous 90 changes. Do not put another coin under that rule. Do not rerun the LINK quote-volume screen and do not loosen its null. Do not touch the OKX basis. Do not revive a killed rule and do not flip its sign.
+Do not lower the voided DOGE 1% open-gap threshold and do not score that rule. Do not change the ETH two-up streak's 20 bps cost or its 40% month gate, and do not rescore it.
+Do not switch the denominator to the previous day. Do not switch to a percentile. Do not add 2022. Do not score 2020.
