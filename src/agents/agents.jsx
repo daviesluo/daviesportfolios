@@ -25,6 +25,22 @@ import {
 const UK_TZ = ukTzAbbr(new Date());
 
 const REFRESH_MS = 60_000;
+
+/**
+ * Refresh, then close — the same pair on the list and on every page opened
+ * over it (Davies, 2026-09-25). The minute's own refresh does not use this
+ * button; a click does, and it asks again rather than joining a request
+ * already on its way.
+ * @param {{ onRefresh: () => void, onClose: () => void, loading: boolean, closeClass?: string }} props
+ */
+function PageActions({ onRefresh, onClose, loading, closeClass = '' }) {
+  return (
+    <div className="modal-head-actions">
+      <button type="button" className="btn-ghost icon" onClick={onRefresh} disabled={loading} aria-label="Refresh" title="Refresh">{loading ? '…' : '↻'}</button>
+      <button type="button" className={`btn-ghost icon${closeClass ? ` ${closeClass}` : ''}`} onClick={onClose} aria-label="Close">✕</button>
+    </div>
+  );
+}
 const TICK_MS = 20_000;
 const SURFACE = '#0f1815';   // the modal's own background — the 2px ring every overlapping mark wears
 
@@ -100,8 +116,8 @@ function SbLabel({ label, asides = [] }) {
 /**
  * One cell of the scoreboard: a label, a signed amount, its percent — the home page's own shape. `aside` is what else
  * is in the figure (the fees on realised). A percent no longer names its base beside the title (Davies, 2026-09-24):
- * the number beside the dollars is enough. `split` is what the figure is made of, on one line under it so it does not
- * stretch the row the other cells share.
+ * the number beside the dollars is enough. `split` is what the figure is made of, each part on its own line under it
+ * (Davies, 2026-09-25): one running line wrapped through the amount.
  * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | null, split?: Array<[string, number]> | null, cls?: string }} props
  */
 function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
@@ -116,11 +132,10 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
       <div className="ag-sb-extra">
         {split && split.length > 0 ? (
           <span className="ag-sb-split mono">
-            {split.map(([k, v], i) => (
-              <React.Fragment key={k}>
-                {i > 0 ? <span className="dim ag-sb-split-dot"> · </span> : null}
+            {split.map(([k, v]) => (
+              <span key={k} className="ag-sb-split-line">
                 <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtMoney(v, { signed: true, compact: false }))}</span>
-              </React.Fragment>
+              </span>
             ))}
           </span>
         ) : null}
@@ -173,7 +188,7 @@ function Scoreboard({ dash, tab, m, tests = [] }) {
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtUsd(v.feesUsd))})`} />
     </div>
   );
 }
@@ -189,7 +204,7 @@ function StrategyScoreboard({ s, m }) {
       <div className="ag-sb-divider" />
       <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtUsd(v.feesUsd))})`} />
     </div>
   );
 }
@@ -204,6 +219,41 @@ function FigLabel({ name, pct = null, of = null, title }) {
     <span className="dim ag-fig-label" title={title}>
       <span className="ag-fig-name">{name}</span>
       {of && pct != null && Number.isFinite(pct) ? <>{' '}<span className="ag-fig-base">% of {of}</span></> : null}
+    </span>
+  );
+}
+
+/**
+ * One slice of the share bar. The full label ("Polymarket 14%") is what the
+ * slice says when it fits; a slice too narrow for that shows the percent
+ * alone, measured against the slice rather than a fixed share (Davies,
+ * 2026-09-25). A cutoff of 12% still painted the middle of "Polymarket".
+ * @param {{ s: { id: string, widthPct: number, title: string, text: string, short: string } }} props
+ */
+function ShareSegment({ s }) {
+  const ref = React.useRef(/** @type {HTMLSpanElement | null} */ (null));
+  const [narrow, setNarrow] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !s.text) { setNarrow(false); return undefined; }
+    const fit = () => {
+      const probe = document.createElement('span');
+      const cs = getComputedStyle(el);
+      probe.style.cssText = `position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;font:${cs.font};letter-spacing:${cs.letterSpacing};`;
+      probe.textContent = s.text;
+      el.appendChild(probe);
+      const tooNarrow = probe.offsetWidth > el.clientWidth + 1;
+      probe.remove();
+      setNarrow((prev) => (prev === tooNarrow ? prev : tooNarrow));
+    };
+    fit();
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [s.text]);
+  return (
+    <span ref={ref} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
+      {narrow ? s.short : s.text}
     </span>
   );
 }
@@ -228,9 +278,7 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
       {rows.length > 1 && (
         <div className="ag-share-bar">
           {segments.map((s) => (
-            <span key={s.id} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
-              {s.text}
-            </span>
+            <ShareSegment key={s.id} s={s} />
           ))}
         </div>
       )}
@@ -523,17 +571,16 @@ function RwDetail({ r, m, at }) {
 // money detail (cost, value, unrealised, orders, last decision) hides
 // under 760 px — it is all on the detail page — so a phone sees a whole
 // row without scrolling.
-// A column's `base` is what its percent is of, under its heading: a row's today and realised are on its own capital
-// (the "cap" under its name), its unrealised on the cost of what it holds. A paper test whose unrealised is on
-// something else says so in its own cell. No Mode column: the tab says LIVE or TESTING (Davies, 2026-09-24).
-// Deployed, beside Venue, is the same dollars the scoreboard calls DEPLOYED (`valueUsd`) — what the row holds.
+// No Mode column: the tab says LIVE or TESTING (Davies, 2026-09-24). The heading is the column's name alone —
+// the "% of …" line under Today, Unrealised and Realised is gone (Davies, 2026-09-25). Deployed, beside Venue,
+// is the same dollars the scoreboard calls DEPLOYED (`valueUsd`) — what the row holds.
 const COLUMNS = [
   { id: 'name', label: 'Strategy', cls: 'hl-left' },
   { id: 'venue', label: 'Venue', cls: 'hl-left' },
   { id: 'deployed', label: 'Deployed', cls: 'hl-right' },
-  { id: 'today', label: 'Today', cls: 'hl-right', base: '% of cap' },
-  { id: 'unrealised', label: 'Unrealised G/L', cls: 'hl-right', base: '% of cost' },
-  { id: 'realised', label: 'Realised G/L', cls: 'hl-right', base: '% of cap' },
+  { id: 'today', label: 'Today', cls: 'hl-right' },
+  { id: 'unrealised', label: 'Unrealised G/L', cls: 'hl-right' },
+  { id: 'realised', label: 'Realised G/L', cls: 'hl-right' },
   { id: 'next', label: 'Next', cls: 'hl-left' },
 ];
 
@@ -551,7 +598,7 @@ function NameCell({ r, m, onOpen }) {
   );
 }
 
-/** A row's unrealised, and — when it is not on cost, as the column's heading says — what its percent is of. */
+/** A row's unrealised. A row whose percent is not on cost still says so under the figure. */
 function UnrealisedCell({ r, m }) {
   return (
     <>
@@ -579,7 +626,7 @@ function StrategyTable({ rows, m, onOpen }) {
     <div className="hl-scroll">
       <table className="hl-table ag-table mono">
         <thead>
-          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls} ag-col-${c.id}`}>{c.label}{c.base ? <>{' '}<span className="ag-th-base">{c.base}</span></> : null}</th>)}</tr>
+          <tr>{COLUMNS.map((c) => <th key={c.id} className={`hl-th ${c.cls} ag-col-${c.id}`}>{c.label}</th>)}</tr>
         </thead>
         <tbody>
           {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={COLUMNS.length}>No strategies yet.</td></tr>}
@@ -854,14 +901,16 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
 }
 
 /** The chart card: symbol tabs, the chart for the one selected, and its fills. */
-function SymbolChart({ s, symbol, onSelect, m, nowMs, at, more, loadingMore, onLoadMore }) {
+function SymbolChart({ s, symbol, onSelect, m, nowMs, at, gen, more, loadingMore, onLoadMore }) {
   const [chart, setChart] = React.useState(/** @type {any} */ (() => readChartCache(s.id, symbol)?.chart ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
   const [loading, setLoading] = React.useState(() => !readChartCache(s.id, symbol));
   const held = new Map((s.positions ?? []).map((p) => [p.symbol, p]));
 
-  // A new pair empties the card; the dashboard's own minute refresh (`at`)
-  // only refetches — the frame stays, the way a live chart should.
+  // A new pair empties the card. Each dashboard refresh (`gen`) — the
+  // minute's, or the button on this page — refetches without clearing the
+  // frame, the way a live chart should. `at` alone is not enough: two
+  // answers can share a timestamp, and a click must still redraw.
   React.useEffect(() => { const c = readChartCache(s.id, symbol); setChart(c?.chart ?? null); setError(null); setLoading(!c); }, [s.id, symbol]);
   React.useEffect(() => {
     if (!symbol) return undefined;
@@ -878,7 +927,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at, more, loadingMore, onL
       }
     })();
     return () => { alive = false; };
-  }, [s.id, symbol, at]);
+  }, [s.id, symbol, at, gen]);
 
   // The row's own venue, like its badge: the candles are Kraken's, but Kraken is not a venue on the page any more.
   const hue = venueHue(chart?.venue ?? s.venue);
@@ -1072,7 +1121,7 @@ function Countdown({ at, label }) {
   );
 }
 
-function Detail({ s, dash, m, nowMs }) {
+function Detail({ s, dash, m, nowMs, gen }) {
   const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [symbol, setSymbol] = React.useState(() => defaultChartSymbol(s));
@@ -1093,7 +1142,7 @@ function Detail({ s, dash, m, nowMs }) {
       <StrategyScoreboard s={s} m={m} />
       <PositionTiles s={s} m={m} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
-      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} more={more} loadingMore={loadingMore} onLoadMore={loadMore} />
+      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} gen={gen} more={more} loadingMore={loadingMore} onLoadMore={loadMore} />
     </div>
   );
 }
@@ -1109,6 +1158,9 @@ function AgentsModal({ hideValues, onClose }) {
   const [loading, setLoading] = React.useState(() => !readAgentsCache());
   const [selected, setSelected] = React.useState(/** @type {string | null} */ (null));
   const [now, setNow] = React.useState(() => Date.now());
+  // Bumps on every dashboard answer, including one whose `at` did not move,
+  // so the open chart refetches with the rest of the page.
+  const [gen, setGen] = React.useState(0);
   const m = React.useCallback((s) => (hideValues ? maskDigits(s) : s), [hideValues]);
 
   // Two refreshes can be in flight together (the minute's interval and a click): only the NEWEST request's answer is
@@ -1125,7 +1177,7 @@ function AgentsModal({ hideValues, onClose }) {
       // which a page opened straight after a reload would otherwise duplicate.
       const next = await ((!manual && dashboardInFlight()) || fetchAgentsDashboard());
       if (!alive.current || !guard.current.isLatest(seq)) return;
-      setDash(next); setError(null);
+      setDash(next); setError(null); setGen((g) => g + 1);
     } catch (e) {
       if (!alive.current || !guard.current.isLatest(seq)) return;
       setError(e instanceof Error ? e.message : String(e));
@@ -1135,12 +1187,44 @@ function AgentsModal({ hideValues, onClose }) {
   }, []);
 
   React.useEffect(() => {
-    load();
-    const id = setInterval(() => load(), REFRESH_MS);
+    // One clock for every agents page. The list and the pages opened over
+    // it are this one modal, so a strategy, the quote test or Reward quotes
+    // keeps the same minute (Davies, 2026-09-25). A hidden tab does not call
+    // out; coming back after a minute does, at once.
+    let cancelled = false;
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let timer = null;
+    let last = 0;
+    const hidden = () => typeof document !== 'undefined' && document.visibilityState === 'hidden';
+    const fire = () => {
+      if (cancelled || hidden()) return;
+      load();
+      last = Date.now();
+    };
+    const schedule = () => {
+      if (cancelled) return;
+      timer = setTimeout(() => { fire(); schedule(); }, REFRESH_MS);
+    };
+    const onVisibility = () => {
+      if (cancelled || hidden()) return;
+      if (Date.now() - last >= REFRESH_MS) {
+        if (timer) clearTimeout(timer);
+        fire();
+        schedule();
+      }
+    };
+    fire();
+    schedule();
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisibility);
     // The data comes once a minute; the CLOCK moves faster, so "seen 40 s
     // ago" creeps instead of jumping a minute at a time.
     const tick = setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => { clearInterval(id); clearInterval(tick); };
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      clearInterval(tick);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [load]);
 
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
@@ -1172,10 +1256,7 @@ function AgentsModal({ hideValues, onClose }) {
         <div>
           <h2 className="modal-title mono">Agents (beta)</h2>
         </div>
-        <div className="modal-head-actions">
-          <button className="btn-ghost icon" onClick={() => load(true)} disabled={loading} aria-label="Refresh" title="Refresh">{loading ? '…' : '↻'}</button>
-          <button className="btn-ghost icon" onClick={onClose} aria-label="Close">✕</button>
-        </div>
+        <PageActions onRefresh={() => load(true)} onClose={onClose} loading={loading} />
       </header>
       {dash && !notReady && <ModeTabs view={tabsView} tab={tab} onSelect={setTabChoice} />}
       <div className="modal-body ag-body">
@@ -1212,12 +1293,10 @@ function AgentsModal({ hideValues, onClose }) {
           <div>
             <h2 className="modal-title mono">{strategyName(current)}</h2>
           </div>
-          <div className="modal-head-actions">
-            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
-          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <Detail s={current} dash={dash} m={m} nowMs={now} />
+          <Detail s={current} dash={dash} m={m} nowMs={now} gen={gen} />
         </div>
       </Modal>
     )}
@@ -1227,9 +1306,7 @@ function AgentsModal({ hideValues, onClose }) {
           <div>
             <h2 className="modal-title mono">Stablecoin quotes</h2>
           </div>
-          <div className="modal-head-actions">
-            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
-          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
           <QuotesDetail q={dash.quotes} m={m} at={dash.at} />
@@ -1242,9 +1319,7 @@ function AgentsModal({ hideValues, onClose }) {
           <div>
             <h2 className="modal-title mono">Reward quotes</h2>
           </div>
-          <div className="modal-head-actions">
-            <button className="btn-ghost icon ag-detail-close" onClick={() => setSelected(null)} aria-label="Close">✕</button>
-          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
           <RwDetail r={dash.rw} m={m} at={dash.at} />

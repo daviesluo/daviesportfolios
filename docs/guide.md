@@ -99,17 +99,19 @@ apart on two tabs.
 - **A tab.** A scoreboard in the home page's style: **funded**, the
   capital its strategies are allotted, then **deployed**, what they hold,
   with its share of funded beside the figure, then today, unrealised and
-  realised gain. The fees sit on realised. TESTING's scoreboard adds
+  realised gain. The realised title is the same size as the others; the fees
+  sit with it, smaller, in parentheses. TESTING's scoreboard adds
   Stablecoin quotes and Reward quotes with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
   in its yellow, where the same strategies run as paper twins, deciding
   alike and filled at Binance's own prices, and on TESTING Polymarket in
   its blue, whose card is Reward quotes — showing the same figures for
   that exchange (**funded (Paper)** on TESTING; the accounts' real
-  balances are not shown). Then one row per strategy: a status dot (green
-  running, amber stale, grey paused), its exchange, what it has deployed
-  (the same dollars the scoreboard calls deployed), today, unrealised and
-  realised gain with each column's base under its heading, and a countdown
+  balances are not shown). A bar above the cards shows each exchange's
+  share; a slice too narrow for the name shows the percent alone. Then one
+  row per strategy: a status dot (green running, amber stale, grey paused),
+  its exchange, what it has deployed (the same dollars the scoreboard calls
+  deployed), today, unrealised and realised gain, and a countdown
   to its next decision; the tab says the mode, so a row does not, and a
   live strategy's name does not carry "live". With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
@@ -129,8 +131,8 @@ apart on two tabs.
   reads like a strategy's, on what its markets have at work; realised is
   the rewards and what closed trades made, unrealised what it still holds
   (in Yes or No shares) at the mid. Tap it for its page: the same
-  scoreboard, with realised split on one line into the rewards and what
-  its orders made; a status row (the pessimistic total, how much of the
+  scoreboard, with realised split into the rewards and what its orders
+  made, each on its own line; a status row (the pessimistic total, how much of the
   total sits in one market, how many markets it is quoting today, how many
   positions are still held); the days, including the UTC day still open,
   with the same worst case as the tile above,
@@ -141,8 +143,10 @@ apart on two tabs.
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
-- **A strategy.** Tap a row to open it over the list; its ✕ brings the
-  list back as it was. It shows its own scoreboard and positions, a
+- **A strategy.** Tap a row to open it over the list. The same refresh
+  button sits beside ✕, and ✕ brings the list back as it was. The minute
+  refresh keeps going on this page, and on the quote pages, the same as
+  on the list. It shows its own scoreboard and positions, a
   countdown to the next decision, and **LIVE STATE**: what the loop sees
   for each coin right now (trend, strength, breakout, volatility,
   momentum, position, unrealised gain, time held) and when that last
@@ -257,6 +261,8 @@ Below 1020 px wide the page becomes one column: the header, the board or
 heat map, the sidebar, then Market Conditions as a 3 × 3 grid. An open
 modal holds the page still behind it, so dragging inside the modal
 doesn't scroll the board, and closing it puts you back where you were.
+On a phone the modal fills the screen, including the strip under the
+browser's toolbar.
 
 ## Installing it
 

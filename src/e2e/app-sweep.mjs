@@ -1603,8 +1603,8 @@ async function run() {
         if (nameAlign === 'left') ok(S('agents'), 'the strategy name reads from the left, under the dot beside it');
         else fail(S('agents'), `name column text-align ${nameAlign}`);
       }
-      // Five cells since 2026-09-24 (Davies): FUNDED before DEPLOYED, DEPLOYED as a percent of it; no total; each percent
-      // names its base under its label, and the fees ride on realised's.
+      // Five cells since 2026-09-24 (Davies): FUNDED before DEPLOYED, DEPLOYED as a percent of it; no total.
+      // REALIZED's title matches the other cells; the fees are smaller and in parentheses (Davies, 2026-09-25).
       const boardFits = (sel) => page.locator(sel).evaluate((el) => {
         const box = el.getBoundingClientRect();
         const label = el.querySelector('.ag-sb-realised .ag-sb-label');
@@ -1612,13 +1612,24 @@ async function run() {
           const r = n.getBoundingClientRect();
           return r.width > 0 && r.right > box.right + 1.5;
         }).map((n) => (n.textContent || '').trim());
-        return { overflow: Math.round(el.scrollWidth - el.clientWidth), outside, labelH: label ? Math.round(label.getBoundingClientRect().height) : 0 };
+        const names = [...el.querySelectorAll('.ag-sb-name')];
+        const sizes = names.map((n) => getComputedStyle(n).fontSize);
+        const tracks = names.map((n) => getComputedStyle(n).letterSpacing);
+        const aside = el.querySelector('.ag-sb-aside');
+        const asideSize = aside ? parseFloat(getComputedStyle(aside).fontSize) : null;
+        const nameSize = names[0] ? parseFloat(getComputedStyle(names[0]).fontSize) : 0;
+        return {
+          overflow: Math.round(el.scrollWidth - el.clientWidth), outside,
+          labelH: label ? Math.round(label.getBoundingClientRect().height) : 0,
+          titlesMatch: sizes.length >= 2 && sizes.every((s) => s === sizes[0]) && tracks.every((t) => t === tracks[0]),
+          feesSmaller: asideSize != null && asideSize < nameSize - 0.1,
+        };
       });
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
       const sbFit = await boardFits('.ag-modepanel > .ag-scoreboard');
-      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / incl. fees $0.08' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.labelH < 28) {
-        ok(S('agents'), 'five cells, FUNDED first, no total; no percent badges except the fees on realised, DEPLOYED carries no (Paper); the realised label stays inside the frame');
+      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.08)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller) {
+        ok(S('agents'), 'five cells, FUNDED first, no total; REALIZED\'s title matches the others and the fees sit smaller, in parentheses, inside the frame');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}; fit ${JSON.stringify(sbFit)}`);
       const meters = await page.locator('.ag-sb-meter').count();
       if (meters === 0) ok(S('agents'), 'DEPLOYED has no progress bar');
@@ -1651,8 +1662,8 @@ async function run() {
       const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
       if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && !/not in the scoreboard/.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
-        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14 \(\+0\.14%\)/.test(quoteRowText) && /% of deployed/.test(quoteRowText) && oldCard === 0) {
-        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, counted in the scoreboard, today +$0.12, unrealised +$0.14 (of deployed), realised +$0.42; no card below');
+        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14 \(\+0\.14%\)/.test(quoteRowText) && !/% of deployed/.test(quoteRowText) && oldCard === 0) {
+        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, counted in the scoreboard, today +$0.12, unrealised +$0.14 with no "% of deployed", realised +$0.42; no card below');
       } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
@@ -1676,6 +1687,9 @@ async function run() {
         && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
         ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
+      const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
+      if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the quote page has the same refresh button beside close');
+      else fail(S('agents'), `quote page actions ${qHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the quote page returns to the list');
@@ -1696,7 +1710,17 @@ async function run() {
       const rTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       // Its scoreboard, name by name, and the rewards-and-orders lines under realised and unrealised (Davies, 2026-09-24).
       const rLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
-      const rSplit = await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-cell').evaluateAll((els) => els.map((c) => [...c.querySelectorAll('.ag-sb-split')].map((s) => (s.textContent || '').replace(/\s+/g, ' ').trim()).join(' / ')).filter(Boolean));
+      // Rewards and orders each take a line, and neither wraps through its amount (Davies, 2026-09-25).
+      const rSplitLines = await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-split-line').evaluateAll((els) => els.map((el) => {
+        const r = el.getBoundingClientRect();
+        const cell = el.closest('.ag-sb-cell')?.getBoundingClientRect();
+        return {
+          text: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+          top: r.top,
+          oneLine: el.getClientRects().length === 1,
+          fits: !!cell && r.left >= cell.left - 1 && r.right <= cell.right + 1,
+        };
+      }));
       const rSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
       const rMarkets = await page.locator('.ag-rw-markets tbody tr').count();
       const rHeldRow = ((await page.locator('.ag-rw-markets tbody tr').last().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
@@ -1729,7 +1753,8 @@ async function run() {
       const rPh = await page.locator('.ag-rw-detail th.ag-ph').evaluateAll((els) => els.filter((el) => getComputedStyle(el).display !== 'none').length);
       const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
       if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
-        && rSplit.join(' | ') === 'rewards +$41.60 · orders +$0.40'
+        && rSplitLines.length === 2 && rSplitLines[0].text === 'rewards +$41.60' && rSplitLines[1].text === 'orders +$0.40'
+        && rSplitLines.every((l) => l.oneLine && l.fits) && rSplitLines[1].top > rSplitLines[0].top + 2
         && rSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
         && rDayHeads.join(',') === 'Day (UTC),Costs,Fills,WORST CASE,Rewards,Total'
@@ -1742,7 +1767,10 @@ async function run() {
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(rFoot) && rWarn === 0
         && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
         ok(S('agents'), `its page: FUNDED first, realised stays inside its cell, STATUS is worst case, top share, quoting today and positions still held, the open day leads the days, 4 quotes, 4 days, 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}`);
-      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${rSplit.join(' | ')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${JSON.stringify(rSplitLines)}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+      const rHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
+      if (rHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the reward page has the same refresh button beside close');
+      else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the RW page returns to the list');
@@ -1765,9 +1793,36 @@ async function run() {
       if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 2].startsWith('Revolut X') && badges[badges.length - 1] === 'Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X and RW on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW on Polymarket $14.40 — 89 % and 11 %.
-      const shares = (await page.locator('.ag-share').allTextContents()).map((t) => t.trim());
-      if (shares.join(' | ') === 'Revolut X 89% |  | 11%') ok(S('agents'), 'share bar: Revolut X is 89% of deployed value (quotes included); Binance holds nothing; Polymarket\'s 11% shows as the percent alone');
-      else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
+      // The bar shows the venue and its percent when that line fits the slice, and the percent alone when it does not.
+      // A fixed cutoff left the middle of "Polymarket" on a slice that was still a bit wider than the cutoff.
+      const shareGeom = await page.locator('.ag-share').evaluateAll((els) => els.map((el) => {
+        const text = (el.textContent || '').trim();
+        const range = document.createRange();
+        if (text) range.selectNodeContents(el);
+        const rects = text ? [...range.getClientRects()] : [];
+        const textW = rects.reduce((m, r) => Math.max(m, r.width), 0);
+        return {
+          id: [...el.classList].find((c) => c.startsWith('ag-share-') && c !== 'ag-share') || '',
+          text, title: el.getAttribute('title') || '', textW, box: el.clientWidth, lines: rects.length,
+        };
+      }));
+      const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
+        && shareGeom[1].text === '' && /Revolut X: 89%/.test(shareGeom[0].title) && /Polymarket: 11%/.test(shareGeom[2].title)
+        && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
+      if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
+      else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
+      // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
+      const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
+      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '89%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const rects = [...range.getClientRects()];
+        return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
+      }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
+      await squeeze.evaluate((el) => el.remove());
+      if (squeezed && squeezedFit.text === '89%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
@@ -1827,6 +1882,13 @@ async function run() {
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);
       const depHeadOk = vpWidth <= 760 || (depHeads[1] === 'Venue' && depHeads[2] === 'Deployed');
+      if (vpWidth > 760) {
+        const thBases = await page.locator('.ag-strategies .ag-th-base').count();
+        const headLine = depHeads.join('|');
+        const wantHeads = 'Strategy|Venue|Deployed|Today|Unrealised G/L|Realised G/L|Next';
+        if (thBases === 0 && headLine === wantHeads) ok(S('agents'), 'the strategy table heading is the column name alone, with no "% of …" under it');
+        else fail(S('agents'), `heading bases ${thBases}, heads ${headLine}`);
+      }
       const trendDep = (await page.locator('.ag-row', { has: page.locator('.ag-name-btn:text-is("Trend 4h · Revolut X")') }).locator('.ag-deployed').first().textContent().catch(() => '')).trim();
       if (depHeadOk && depCells.length === rows && depSum === sbDepUsd && trendDep === '$21.50') {
         ok(S('agents'), `Deployed sits beside Venue and adds up to the scoreboard ($${(sbDepUsd / 100).toFixed(2)}); Trend 4h is $21.50`);
@@ -1847,8 +1909,8 @@ async function run() {
       const paperInk = await page.locator('.ag-detail .ag-detail-head .ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
       const detailFit = await boardFits('.ag-detail .ag-scoreboard-sm');
       if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100.00 | $21.50(21.50%)'
-        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.labelH < 28) {
-        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; realised stays inside the frame');
+        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.titlesMatch && detailFit.feesSmaller) {
+        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; REALIZED\'s title matches the others and stays inside the frame');
       } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}, fit ${JSON.stringify(detailFit)}`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
@@ -1962,6 +2024,22 @@ async function run() {
       const backBtn = await page.locator('.ag-back').count();
       if (stacked === 2 && backBtn === 0) ok(S('agents'), 'the detail is its own modal over the list, closed by its ✕, no back button');
       else fail(S('agents'), `modals ${stacked}, back buttons ${backBtn}`);
+      const dHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
+      const asked = (part) => (/** @type {string[]} */ (page.__requested) || []).filter((u) => u.includes(part)).length;
+      const dash0 = asked('action=dashboard');
+      const chart0 = asked('action=chart');
+      await page.locator('.modal').last().locator('button[aria-label="Refresh"]').click();
+      await page.waitForTimeout(400);
+      const clicked = dHeads.join(',') === 'Refresh,Close' && asked('action=dashboard') > dash0 && asked('action=chart') > chart0;
+      if (clicked) ok(S('agents'), 'the strategy page refreshes from the button beside close: the dashboard and the open chart are asked again');
+      else fail(S('agents'), `strategy actions ${dHeads.join(',')}, dashboard ${dash0}→${asked('action=dashboard')}, chart ${chart0}→${asked('action=chart')}`);
+      // The minute keeps running on the page that is open, not only on the list underneath.
+      const dash1 = asked('action=dashboard');
+      await page.clock.fastForward(61_000);
+      await page.waitForTimeout(200);
+      if (asked('action=dashboard') > dash1) ok(S('agents'), 'a minute on the strategy page refreshes it again');
+      else fail(S('agents'), `dashboard requests stayed at ${dash1} after a minute on the strategy page`);
+      await page.clock.setFixedTime(CLOCK);
       await page.locator('.ag-detail-close').click();
       await page.waitForTimeout(300);
       const listBack = await page.locator('.ag-strategies .ag-row').count();
@@ -2092,8 +2170,8 @@ async function run() {
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      const PAPER_SB = 'FUNDED=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [incl. fees $0.08]=+$54.76(+2.95%)';
-      const LIVE_SB = 'FUNDED=$50.00 | DEPLOYED=$12.50(25.00%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [incl. fees $0.03]=+$0.30(+0.60%)';
+      const PAPER_SB = 'FUNDED=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [(incl. fees $0.08)]=+$54.76(+2.95%)';
+      const LIVE_SB = 'FUNDED=$50.00 | DEPLOYED=$12.50(25.00%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 8 Paper · 8 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
@@ -2257,6 +2335,64 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
+
+    // A phone subpage fills its backdrop. 100dvh, centered, left a band of the
+    // home page under the browser toolbar and an empty safe-area inside the
+    // frame (Davies, 2026-09-25, iPhone 16 Pro). Headless Chrome has no
+    // toolbar, so the pin stretches the backdrop past the viewport: the old
+    // modal stays 100dvh and the new one meets the backdrop's edges.
+    if (vp.name === 'phone') {
+      const phoneFills = async (title) => {
+        const tag = await page.addStyleTag({ content: '.modal-backdrop{height:940px!important;min-height:940px!important;bottom:auto!important;}' });
+        await page.waitForTimeout(80);
+        const geom = await page.evaluate(() => {
+          const bds = [...document.querySelectorAll('.modal-backdrop')];
+          const bd = bds[bds.length - 1];
+          const modal = bd?.querySelector('.modal');
+          const body = modal?.querySelector('.modal-body');
+          if (!bd || !modal) return null;
+          const b = bd.getBoundingClientRect();
+          const m = modal.getBoundingClientRect();
+          return {
+            title: (modal.querySelector('.modal-title')?.textContent || '').replace(/\s+/g, ' ').trim(),
+            bTop: Math.round(b.top), bBot: Math.round(b.bottom), bH: Math.round(b.height),
+            mTop: Math.round(m.top), mBot: Math.round(m.bottom), mH: Math.round(m.height),
+            minH: body ? getComputedStyle(body).minHeight : '',
+          };
+        });
+        await tag.evaluate((el) => el.remove());
+        const filled = !!geom && geom.bH >= 939 && Math.abs(geom.mTop - geom.bTop) <= 1 && Math.abs(geom.mBot - geom.bBot) <= 1 && geom.minH === '0px';
+        if (filled) ok(S('modal'), `${title} fills a backdrop taller than the screen (${geom.mH}px)`);
+        else fail(S('modal'), `${title} ${JSON.stringify(geom)}`);
+      };
+      const openMenuItem = async (item, title) => {
+        await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+        await page.waitForTimeout(200);
+        await page.locator(`.header-menu-item:text-is("${item}")`).first().click();
+        await page.locator(`.modal .modal-title:text-is("${title}")`).first().waitFor({ timeout: 10_000 });
+        await page.waitForTimeout(350);
+      };
+      await openMenuItem('Holding list', 'Holding list');
+      await phoneFills('Holding list');
+      const tickerBtn = page.locator('.modal .hl-ticker-btn').first();
+      if (await tickerBtn.count()) {
+        const ticker = ((await tickerBtn.locator('.hl-ticker').textContent()) || '').trim();
+        await tickerBtn.click();
+        await page.locator('.modal .modal-title').last().waitFor({ timeout: 8_000 }).catch(() => {});
+        await page.waitForTimeout(350);
+        await phoneFills(ticker || 'ticker');
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
+      } else fail(S('modal'), 'Holding list has no ticker to open');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      for (const item of ['Sectors list', 'Transaction history', 'Agents (beta)']) {
+        await openMenuItem(item, item);
+        await phoneFills(item);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
+      }
+    }
 
     await ctx.close();
   }

@@ -839,6 +839,28 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 20:42 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: every agents page refreshes itself every minute, and each strategy page has the list's refresh button beside close.**
+- The minute is one clock on the agents modal, so it keeps running on the list, a strategy, Stablecoin quotes and Reward quotes. A hidden tab does not call out; coming back after a minute does, at once.
+- The open chart refetches with that answer. A click does too: the same refresh button sits to the left of ✕ on those pages.
+- The sweep clicks it on a strategy page and reads another dashboard request and another chart request, then moves a minute and reads one more dashboard request.
+
+### [2026-09-25 20:33 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: phone subpages fill the screen, a narrow venue slice shows only the percent, Stablecoin quotes drops "% of deployed", strategy headings drop the small base, and REALIZED's title matches the other cells.**
+- A phone subpage is the backdrop, `100lvh`, stretched to its edges. `100dvh` centered in the fixed layer stopped above the browser toolbar, so the home page showed through and the safe-area padding sat empty while the last row was clipped. The scroller, not the frame, clears the home indicator. Headless Chrome has no toolbar, so the sweep stretches the backdrop past the viewport and requires the modal to meet it.
+- The share bar measures the slice. The full label shows when it fits; otherwise the percent alone. A 12% cutoff still painted the middle of "Polymarket". Squeezing Revolut X to 48px must read "89%".
+- Stablecoin quotes' unrealised cell no longer says "% of deployed". The scoreboard still folds what that test has deployed (`scoreDeployed`).
+- LIVE and TESTING table headings are the column name alone. The "% of …" line under Today, Unrealised and Realised is gone. Phone cards are not that heading.
+- REALIZED G/L stays the same size and tracking as the other scoreboard titles. The fees are smaller and in parentheses, `(incl. fees …)`, and wrap under the title when the column cannot hold both. The old rule shrank the whole title to fit the fees on one line.
+- Reward quotes' realised split, rewards then orders, each on its own line, is the section below.
+
+### [2026-09-25 20:03 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: Reward quotes' realised split is two lines, rewards then orders.**
+- Under REALIZED G/L, rewards and orders each take their own line. One running line had been wrapping through the amount.
+
 ### [2026-09-25 19:31 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: Deployed beside Venue, Polymarket's funded label on one line, the history button only when it adds a row, and DAYS names WORST CASE.**

@@ -1621,23 +1621,47 @@ body {
     gap: 4px;
   }
 
-  /* --- Modals: full-screen page on mobile --- */
-  .modal-backdrop { align-items: center; padding: 0; }
+  /* --- Modals: full-screen page on mobile ---
+     100dvh, centered in the fixed backdrop, stops above the browser's
+     bottom toolbar. The page then shows through under the subpage, and
+     the safe-area padding sits empty while the last row is clipped above
+     it (Davies, 2026-09-25, iPhone 16 Pro). The backdrop is the large
+     viewport and a hair off opaque, so the layer paints under that
+     toolbar instead of being clipped as a solid fixed box. The page
+     itself is stretched to the backdrop, and the scroller — not the
+     frame — keeps the last row clear of the home indicator. */
+  .modal-backdrop {
+    align-items: stretch;
+    justify-items: stretch;
+    padding: 0;
+    top: 0;
+    bottom: auto;
+    height: 100lvh;
+    max-height: none;
+    background: rgba(15, 24, 21, 0.99);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   .modal,
   .modal.size-sm,
   .modal.size-md,
   .modal.size-lg {
-    width: 100vw;
-    max-width: 100vw;
+    position: absolute;
+    inset: 0;
+    width: auto;
+    max-width: none;
     box-sizing: border-box;
     border-radius: 0;
-    height: 100dvh;
-    max-height: 100dvh;
+    border: 0;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    background-color: rgba(15, 24, 21, 0.99);
     /* Reserve room for the iOS status bar / dynamic island so the modal
        header isn't hidden underneath. Match the main app's top inset
        (env − 8px, min 8px) so the visual rhythm is identical. */
     padding-top: max(8px, calc(env(safe-area-inset-top) - 8px));
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: 0;
   }
   .modal-head {
     padding: 14px 16px 12px;
@@ -1657,7 +1681,13 @@ body {
   .modal-head-roomy > .modal-head-actions { position: absolute; top: 14px; right: 16px; margin: 0; }
   .modal-head-roomy .modal-title { padding-right: 108px; }
   .modal-title { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .modal-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
+  .modal-body {
+    padding: 12px 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
   .modal-foot { padding: 10px 16px; }
   .player-grid { grid-template-columns: 1fr; }
 
@@ -2135,21 +2165,14 @@ body {
   .ag-detail .ag-ph { display: none; }
 }
 
-/* A scoreboard label is its name and, on the same line, what else the figure holds (the fees on realised).
-   The fees make REALIZED the longest label. The cell is a size container so that line shrinks to the column
-   instead of painting past the frame (Davies, 2026-09-25). */
+/* A scoreboard label is its name and, beside it, what else the figure holds.
+   REALIZED's name stays the same size and tracking as every other title.
+   The fees are the smaller parenthetical; they drop under the name when the
+   column cannot hold both, instead of shrinking the title (Davies, 2026-09-25). */
 .sb-label.ag-sb-label { flex-direction: row; align-items: baseline; flex-wrap: nowrap; gap: 6px; min-width: 0; max-width: 100%; }
 .ag-sb-name { white-space: nowrap; }
-.ag-sb-aside { font-size: 9px; line-height: 1.3; white-space: nowrap; }
-.ag-sb-realised { container-type: inline-size; }
-.ag-sb-realised .sb-label.ag-sb-label { letter-spacing: 0.04em; gap: 4px; font-size: clamp(7px, 4.5cqi, 9px); }
-.ag-sb-realised .ag-sb-aside { font-size: 1em; }
-@media (max-width: 760px) {
-  /* A phone cell is half the screen. The fees stay on the title's line, a step smaller, so they stay inside the frame. */
-  .ag-sb-realised { container-type: normal; }
-  .ag-sb-realised .sb-label.ag-sb-label { font-size: 8px; letter-spacing: 0.02em; gap: 3px; }
-  .ag-sb-realised .ag-sb-aside { font-size: 8px; }
-}
+.ag-sb-aside { font-size: 8px; line-height: 1.3; white-space: nowrap; }
+.ag-sb-realised .sb-label.ag-sb-label { flex-wrap: wrap; gap: 2px 4px; }
 /* Five cells — FUNDED, DEPLOYED, TODAY, UNREALIZED, REALIZED (Davies, 2026-09-24) — each three rows of one grid:
    label, figure, what is under the figure. Rows are shared (subgrid), so the figures stand on one line and so do the
    lines under them, whatever each label says. A phone gives FUNDED the top row and the other four two rows of two. */
@@ -2163,8 +2186,9 @@ body {
 .ag-sb-divider { grid-row: span 3; width: 1px; }
 .ag-sb-deployed-pct { margin-left: 6px; font-size: 12px; font-weight: 500; color: var(--chalk-dim); }
 .ag-sb-extra { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-/* RW's rewards and orders under realised, on one line so the shared extra row stays one line tall. */
-.ag-sb-split { display: block; font-size: 10.5px; line-height: 1.3; white-space: normal; }
+/* RW's rewards and orders under realised, each on its own line (Davies, 2026-09-25). One running line wrapped through the amount. */
+.ag-sb-split { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; font-size: 10.5px; line-height: 1.3; }
+.ag-sb-split-line { white-space: nowrap; }
 .ag-sb-extra:empty { display: none; }
 @media (max-width: 760px) {
   .ag-scoreboard { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; gap: 3px 14px; padding: 12px 14px; }

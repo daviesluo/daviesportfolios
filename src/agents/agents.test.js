@@ -573,14 +573,18 @@ describe('positionLines', () => {
 });
 
 describe('shareSegments', () => {
-  it('labels a segment with the venue and its share, a sliver with the percent only, and keeps what the share is of in the title', () => {
+  it('keeps the full label and a percent-only short form, and what the share is of in the title', () => {
     const rows = /** @type {any} */ ([{ id: 'binance', label: 'Binance', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
     const seg = shareSegments(rows);
     expect(seg[0].text).toBe('Binance 80%');
+    expect(seg[0].short).toBe('80%');
     expect(seg[0].title).toBe('Binance: 80% of deployed value');
     expect(seg[1].text).toBe('Revolut X 20%');
     expect(seg[0].widthPct).toBe(80);
-    expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('5%');
+    // The data keeps the full label even for a sliver. The bar drops the name when the slice cannot show it.
+    const sliver = shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0];
+    expect(sliver.text).toBe('X 5%');
+    expect(sliver.short).toBe('5%');
     expect(shareSegments(/** @type {any} */ ([{ id: 'z', label: 'Z', share: 0, shareOf: 'value' }]))[0].text).toBe('');
   });
 });
@@ -732,7 +736,7 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
     const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, rewardUsd: 41.6, realisedUsd: 42, unrealisedUsd: -1, todayUsd: 12.5, running: true, lagMinutes: 2 });
     if (!q || !w) throw new Error('a test row was missing');
-    expect([q?.unrealisedOf, w?.scoreDeployed]).toEqual(['deployed', true]);
+    expect([q?.scoreDeployed, q?.unrealisedOf, w?.scoreDeployed]).toEqual([true, undefined, true]);
     expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
     // Davies, 2026-09-24: both paper tests count in TESTING's scoreboard. Stablecoin quotes counts on the Revolut X
     // card; Reward quotes is Polymarket's card. Leaving either out fails this. LIVE does not take them.

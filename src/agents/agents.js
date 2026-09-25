@@ -889,11 +889,13 @@ export function venueRows(dash, tab = null, tests = []) {
 }
 
 /**
- * The share bar's segments. A segment wide enough names the venue and its
- * share; a narrower one has room for the percent only (Davies, 2026-09-25)
- * — blanking it left an 11% slice with no number. Nothing at all stays
- * blank. What the share is OF — deployed value, or allotted capital while
- * nothing is deployed — lives in the title only.
+ * The share bar's segments. `text` is the venue and its share; the bar
+ * itself drops the name when that line does not fit the slice and shows
+ * the percent alone (Davies, 2026-09-25). A fixed cutoff clipped
+ * "Polymarket" in the middle once the slice was still a bit wider than
+ * the cutoff. Nothing at all stays blank. What the share is OF — deployed
+ * value, or allotted capital while nothing is deployed — lives in the
+ * title only.
  * @param {ReturnType<typeof venueRows>} rows
  */
 export function shareSegments(rows) {
@@ -901,10 +903,11 @@ export function shareSegments(rows) {
   return (rows ?? []).map((r) => {
     const pct = Math.round(r.share * 100);
     const widthPct = Math.max(0, Math.min(100, r.share * 100));
-    const full = `${r.label} ${pct}%`;
+    const full = pct <= 0 ? '' : `${r.label} ${pct}%`;
     return {
       id: r.id, label: r.label, pct, widthPct,
-      text: pct <= 0 ? '' : (r.share < 0.12 ? `${pct}%` : full),
+      text: full,
+      short: pct <= 0 ? '' : `${pct}%`,
       title: `${r.label}: ${pct}% of ${basis}`,
     };
   });
@@ -1061,7 +1064,10 @@ export function quotesRow(q) {
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'paper',
-    unrealisedOf: 'deployed',
+    // The scoreboard still folds what this test has deployed. The row does not
+    // say "% of deployed": the other strategies' unrealised cells don't, and
+    // the heading no longer carries a base either (Davies, 2026-09-25).
+    scoreDeployed: true,
     capitalUsd: Number(q.capitalUsd) || 0,
     valueUsd: openUsd,
     todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
