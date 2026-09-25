@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp97_common": "cb2947b7397b5bd196b6c9e3fcd5f1b037cf8297de51bf3db1ebc21a6bb81790",
+    "fp97_measure": "e33f2eaefd5f63f82ebb0c28f9efd5877ad599ba829d4c8234f56d83038816f9"
+  },
+  "ideas": [
+    {
+      "idea": "XRP-Q",
+      "mean_gross_bps": -31.8486,
+      "mean_net_bps": -51.765,
+      "min_n": 30,
+      "n": 57,
+      "note": "XRP's daily quote volume over BTC's, above its own trailing 90th. Next day, long XRP.",
+      "null_p95_bps": 139.1256,
+      "passes_screen": false,
+      "total_pnl_usd": -29.506
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "c08681c2706537d9e8d029cecda9e90d02cb952cadfb3ad3b95dc229a580d943",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "99fe5c77c31fe2e56f8c53bbc184b0038646178a7f9b455b2e371070f2f2f656"
+}

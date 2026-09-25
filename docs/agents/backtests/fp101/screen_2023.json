@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp101_common": "7720628d65af9e46bd004b927e3bf4530060542c8370369d7a180bbd20b8fe90",
+    "fp101_measure": "2533873c35a341a5bbc4b3c2b0bbca626e1325deb725e3259078667e7d53c0b4",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LINK-Q",
+      "mean_gross_bps": 44.1264,
+      "mean_net_bps": 24.0582,
+      "min_n": 30,
+      "n": 82,
+      "note": "LINK's daily quote volume over BTC's, above its own trailing 90th. Next day, long LINK.",
+      "null_p95_bps": 76.738,
+      "passes_screen": false,
+      "total_pnl_usd": 19.7277
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "4d76579d887a005fdaead5f9ce1834329a4fd961a489177a3d83c0b49d63ec1d",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "f10e788fe53d082c76b5c98241692c727fd6f77c84bd246539ed1cf5dd2e96ce"
+}

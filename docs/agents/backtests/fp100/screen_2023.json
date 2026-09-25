@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp100_common": "e5f4fc82986474291723ce262df5943e62986ea1452c2245c24bee17ea16accf",
+    "fp100_measure": "0b81e6eb90c56a8d2a16dcfe9250b1e6d5b094e1b6fb4473c537232699f0fcf5",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AVAX-Q",
+      "mean_gross_bps": 124.3642,
+      "mean_net_bps": 104.1357,
+      "min_n": 30,
+      "n": 77,
+      "note": "AVAX's daily quote volume over BTC's, above its own trailing 90th. Next day, long AVAX.",
+      "null_p95_bps": 96.2019,
+      "passes_screen": true,
+      "total_pnl_usd": 80.1845
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "515f7c34ddbcdf7ecab3ef129cab2a71fa8971b0c868d898757d92d8ac53c327",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [
+    "AVAX-Q"
+  ],
+  "protocol_sha256": "77b0023a7f204f021072a84a7d7f7f822ea1c79d34477502cd57400c52748d2e"
+}

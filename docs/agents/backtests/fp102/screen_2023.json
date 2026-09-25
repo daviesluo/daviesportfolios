@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp102_common": "66b09b9b7c72936ea2c8723f6faabfd7a2a7ff01ac56f3b4cb968a3250f5e633",
+    "fp102_measure": "e94a0eb468aa0f3455055f8b9eb4533f6da78acd79adb1a9e7cb1aff10801a6b",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LTC-Q",
+      "mean_gross_bps": -39.2585,
+      "mean_net_bps": -59.16,
+      "min_n": 30,
+      "n": 63,
+      "note": "LTC's daily quote volume over BTC's, above its own trailing 90th. Next day, long LTC.",
+      "null_p95_bps": 43.1045,
+      "passes_screen": false,
+      "total_pnl_usd": -37.2708
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "398ff747daaf442606a47850dd60ddf67be4a930fca27f646c304f6a6a4d7a7c",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "61b85649ab705b20d0bf83391ca9368a854217fdd115f98a43834c8a0e5f348a"
+}

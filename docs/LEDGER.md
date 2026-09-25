@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp95–fp102 are frozen and not yet scored.** Eight screens compare a spot coin's daily quote volume with BTC's and go long that coin the next day. None of them has a 2023 return. No hourly bar is read. ETH is not in the round. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp94, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp95–fp102 are scored on 2023. AVAX-Q passes that screen. Its pre-registration is frozen and no later-year price has been read.** The other seven have fills and fail. No hourly bar was read. ETH was not scored. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp94, and the previous rounds' named ideas stay closed. No testing row yet. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:25 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp95–fp102 are scored on 2023. AVAX-Q passes that screen. The pre-registration is frozen and no later-year kline has been read.** Protocol was `6b35a2c`. Each screen file was written twice and the copies matched. SOL-Q 83 / file gross +30.4074 / file mean +10.3667 / null +138.8212 / +$8.6043 (`121ac7a8…`). BNB-Q 78 / file gross −0.5662 / file mean −20.5451 / null +25.025 / −$16.0252 (`aabed6f6…`). XRP-Q 57 / file gross −31.8486 / file mean −51.765 / null +139.1256 / −$29.506 (`efee92d2…`). DOGE-Q 53 / file gross +10.4376 / file mean −9.5632 / null +50.1775 / −$5.0685 (`ce4144a7…`). ADA-Q 71 / file gross +14.1812 / file mean −5.8271 / null +85.2975 / −$4.1373 (`6ed6b01e…`). AVAX-Q 77 / file gross +124.3642 / file mean +104.1357 / null +96.2019 / +$80.1845 (`b18c5abb…`). LINK-Q 82 / file gross +44.1264 / file mean +24.0582 / null +76.738 / +$19.7277 (`eb49f3a1…`). LTC-Q 63 / file gross −39.2585 / file mean −59.16 / null +43.1045 / −$37.2708 (`e20a93c5…`). Every fill matched fp5's `net_return` on that coin. The null is that coin's own one-day holds, so it does not match a BTC screen. AVAX-Q is the only pass. Its book was measured 2026-09-25T05:23:21Z, AVAXUSDT bid 10.17300000, ask 10.17400000, half-spread 4.914729444141376e-05. The pre-registration sha256 is `b080801a6326a2966347eea41ac1e525ec5cb00be1f4284d82fadd0ea8e59bd1`. No 2024 kline was requested. No hourly bar was read. ETH was not scored. No sign was flipped. No count was lowered. The window was not shrunk. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, and fp30–fp94 stay closed. No testing row yet. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:22 UTC] Platform: Cursor | Model: Grok 4.7
 

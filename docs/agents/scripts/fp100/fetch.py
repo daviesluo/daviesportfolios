@@ -15,6 +15,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -47,8 +48,18 @@ def get(url: str) -> bytes:
     raise RuntimeError(f"get failed {last}")
 
 
-def klines(symbol: str, interval: str, step: int, end_ms: int, fields: tuple[int, ...]) -> dict[int, tuple]:
-    cursor = LOOKBACK_MS
+def klines(
+    symbol: str,
+    interval: str,
+    step: int,
+    end_ms: int,
+    fields: tuple[int, ...],
+    start_ms: int = LOOKBACK_MS,
+    mask_open: int | None = None,
+) -> dict[int, tuple]:
+    if mask_open is None:
+        mask_open = c.fp5.SCREEN_END_MS
+    cursor = start_ms
     rows: dict[int, tuple] = {}
     while cursor <= end_ms:
         url = (
@@ -62,12 +73,12 @@ def klines(symbol: str, interval: str, step: int, end_ms: int, fields: tuple[int
             if len(k) <= max(fields):
                 raise SystemExit(f"a {interval} kline is missing a field")
             open_ms = int(k[0])
-            if open_ms < LOOKBACK_MS:
+            if open_ms < start_ms:
                 continue
             if open_ms > end_ms:
                 raise SystemExit(f"a {interval} bar opened past the screen: {open_ms}")
             open_ = float(k[1])
-            if interval == "1d" and open_ms == c.fp5.SCREEN_END_MS:
+            if interval == "1d" and open_ms == mask_open:
                 rows[open_ms] = horizon(open_, fields)
             else:
                 rows[open_ms] = tuple(float(k[i]) for i in fields)
@@ -102,6 +113,28 @@ def pull(symbol: str) -> dict[int, tuple]:
         raise SystemExit(symbol + " klines came back empty")
     save(f"spot1d/{symbol}.json", rows)
     return rows
+
+
+def pull_oos() -> None:
+    """Daily bars from 2024-01-01 through the 2026-09-25 open. Called only after the pre-registration is frozen."""
+    if not os.environ.get("FP100_OOS"):
+        raise SystemExit("the out-of-sample pull is not armed")
+    start_ms = c.fp5.SCREEN_END_MS
+    end_ms = int(datetime(2026, 9, 25, tzinfo=timezone.utc).timestamp() * 1000)
+    for symbol in ("AVAXUSDT", "BTCUSDT"):
+        rows = klines(
+            symbol, "1d", c.fp5.DAY_MS, end_ms, (1, 7), start_ms=start_ms, mask_open=end_ms,
+        )
+        if any(t > end_ms for t in rows):
+            raise SystemExit("a daily bar opened after 2026-09-25")
+        if not rows or min(rows) != start_ms or max(rows) != end_ms:
+            raise SystemExit(symbol + " out-of-sample window is wrong")
+        if rows[end_ms][1] != 0.0:
+            raise SystemExit(symbol + " stored a quote on the last open")
+        if rows[start_ms][1] <= 0:
+            raise SystemExit(symbol + " masked the 2024-01-01 quote")
+        save(f"oos_1d/{symbol}.json", rows)
+        print(f"fp100 oos {symbol} 1d {len(rows)} first {min(rows)} last {max(rows)}")
 
 
 def main() -> None:

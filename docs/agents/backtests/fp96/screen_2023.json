@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp96_common": "1cae8f8d394d158f68f74a1c8044036d840b53c3c9968ffd8ae8cb1a46695ede",
+    "fp96_measure": "0d3a8a1e91b89853dc828cd9ec560805dbe9f454dde5e117b825af4dd01d99c4"
+  },
+  "ideas": [
+    {
+      "idea": "BNB-Q",
+      "mean_gross_bps": -0.5662,
+      "mean_net_bps": -20.5451,
+      "min_n": 30,
+      "n": 78,
+      "note": "BNB's daily quote volume over BTC's, above its own trailing 90th. Next day, long BNB.",
+      "null_p95_bps": 25.025,
+      "passes_screen": false,
+      "total_pnl_usd": -16.0252
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "84530cb589f43dff6fd20e6541b9ab1ed58ffdedb27fbad281748777a0ee1c1a",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "0c089fc675ba15c9109b598f54faf2d3426082e0e7a88af5fdad2b5f1924485c"
+}

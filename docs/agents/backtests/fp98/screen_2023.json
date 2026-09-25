@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp98_common": "77cfa14b1cadcf4ba089840420556eda2b3f0918841b29386289f512236aaa16",
+    "fp98_measure": "a969293d93f5dc784ac010304d17c4f99ec9b1b5f5a28686923f3bce86fd5156"
+  },
+  "ideas": [
+    {
+      "idea": "DOGE-Q",
+      "mean_gross_bps": 10.4376,
+      "mean_net_bps": -9.5632,
+      "min_n": 30,
+      "n": 53,
+      "note": "DOGE's daily quote volume over BTC's, above its own trailing 90th. Next day, long DOGE.",
+      "null_p95_bps": 50.1775,
+      "passes_screen": false,
+      "total_pnl_usd": -5.0685
+    }
+  ],
+  "input_sha256": {
+    "alt_1d": "3b5d86b1b677d57028a22e9a46987bde6836dcea7c2e8caca2b19bf256bb2506",
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "bf85c6b64e798ab13a178168bb4533cf39c77a5b01eb5c171884cb53a7e59c8f"
+}
