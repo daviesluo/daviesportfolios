@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp128–fp135 are scored. Nothing passes the house bar.** Eight different signals, each with a print every day from 2022-10-01 through 2023-12-31, each with fills, each under its own null. No later year was read. No testing row. No pull request. Main was not pushed.
+**fp136–fp143 are protocols only. No return has been computed.** Eight market statistics, each long BTC for one day. Pins printed fp136 through fp143 pins ok. No later year has been read. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:25 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp136–fp143 are protocols only. No return has been computed.** Eight different market statistics, each long BTC for one day: the intraday dollar-open-interest range divided by the last print (OIRNG), the sum of today's three USDT-margined funding rates minus yesterday's sum (FRJMP), the premium-index high minus the low (BASERNG), the intraday range of the taker long/short volume ratio (TAKRNG), today's spot quote over the USDT perpetual's quote minus yesterday's ratio (MIXJMP), today's range over yesterday's range, minus one (RNGRAT), the last aligned USDT-margined funding rate minus the coin-margined rate (FUNDGAP), and the spot close over the previous close, minus one (DRET). Pins printed fp136 through fp143 pins ok before this commit. The count stays 30. The window stays 90 days and 90 prints. No sign is flipped. Coin-margined liquidation snapshots are present from 2023-06-25 and were not scored; the USDT-margined path has no liquidation file. The window was not shrunk. Account-count ratios, the contract count, the funding level, the funding range, and the basis level stay closed. fp128–fp135 stay closed. No option file is read. No mempool chart is read. No hourly price bar is read. No on-chain chart is read. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:03 UTC] Platform: Cursor | Model: Grok 4.7
 
