@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5, branch `cursor/polymarket-fp5-b50c`:** REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 and CORNERS were run on the full sample and none clears the bar. Do not retune them. Do not lower CONGEST to a gap of 1. The next round starts only when Davies sends it. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
+**fp5, branch `cursor/polymarket-fp5-b50c`:** HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15 and FH05 are frozen and not yet scored. Do not retune REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 or CORNERS. Do not lower CONGEST to a gap of 1. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 05:21 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight halftime and stat-gap rules are frozen and not yet scored.** Branch `cursor/polymarket-fp5-b50c`, not main. No price-history file of these rules was opened and no return was computed. Question text and `sportsMarketType` were read so the parser keeps halftime result, one club's full-time over 1.5, and the first-half match over 0.5; settlement prices were not used. Score-file counts (not prices) set thresholds that occur: a corner gap of 2.0 over six matches, a half-time-lead gap of 2/6, a clean-sheet gap of 2/6, and a second-half-goal gap of 0.5. CONGEST was not rerun at a gap of 1. REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35, CORNERS, ELO, FORM5, TABLE, REST, VENUE, STREAK3, DRAWBASE, H2H, MARGIN and the earlier failed rules were not reopened. `agents/pmrw.ts`, PR5 and trend-4h were not touched. Considered and not run: `reviews/2026-09-25-polymarket-fp5-round12-kills.md`.
+
+- HTLEAD: a club's own rate of leading at the break, eight matches, buy that yes. The draw is not bought. `htlead_test.py --self-check` prints `HOT 1.0 14.638156`. Pre-registration: `reviews/2026-09-25-polymarket-fp5-prereg-htlead.md`.
+- HTDRAW: the halftime draw, the average of the two clubs' own rates, eight matches each, buy that yes only. Pin `D 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-htdraw.md`.
+- CORN6: corners, last six, gap 2.0 per game, buy that side to win the match. A one-corner gap does not trade. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-corn6.md`.
+- HTWIN: half-time leads, last six, gap 2/6, buy that side to win the match. One lead in six does not trade. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-htwin.md`.
+- CLEAN: clean sheets, last six, gap 2/6, buy that side to win the match. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-clean.md`.
+- SHWIN: second-half goals, last six, gap 0.5, buy that side to win the match. An even second half does not trade. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-shwin.md`.
+- TEAM15: one club's full-time over 1.5, that club's rate of scoring two or more, eight matches. A 0.5 line does not trade. Pin `HOT 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-team15.md`.
+- FH05: first-half match over 0.5 only, the average of the two clubs' rates that the first half had a goal. A 1.5 line does not trade. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-fh05.md`.
 
 ### [2026-09-25 05:08 UTC] Platform: Cursor | Model: Grok 4.7
 
