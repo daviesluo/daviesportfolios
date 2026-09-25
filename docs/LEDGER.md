@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:28 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The USDC premium and the coin-margined versus USDT premium stay killed, and 2022 was not added to make up the two missing trips. `docs/agents/scripts/fp5/dvol_rule.txt` and `yield_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass12.json`. A jump in Deribit BTC DVOL, long the next day in 2022, is −3,574 bps over 66 trips, both books negative. A jump in the US 10-year yield, long the next day in 2018, is −2,081 bps over 31 trips, both books negative. The yield rule does not carry a signal across a missing calendar day, so the screen has 192 execution days. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:20 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Address count and the lower wick stay killed. `docs/agents/scripts/fp5/usdc_rule.txt` and `basis_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass11.json`. USDC richening against USDT, long the next day in 2020, is +1,264 bps and still fails: stress −1,096, 59 trips, the BTC book is negative, and June is larger than the pool. The coin-margined BTC perpetual richening against the linear perpetual, long the next day in 2021, is +9,818 bps with both books positive and stress still positive, and still fails: 58 trips. Closes cannot pass. Neither sign is flipped. `reached_preregistration` stays false.

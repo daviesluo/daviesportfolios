@@ -2747,6 +2747,8 @@ Still later, still with `reached_preregistration` false (`screen_pass10.py`, `ba
 
 Still later, still with `reached_preregistration` false (`screen_pass11.py`, `backtests/fp5/summary_pass11.json`): USDC richening against USDT, long the next day in 2020, is +1,264 bps and still fails (stress −1,096, 59 trips, the BTC book is negative, June is larger than the pool). The coin-margined BTC perpetual richening against the linear perpetual, long the next day in 2021, is +9,818 bps with stress still positive and both books positive, and still fails: 58 trips. Closes cannot pass. Neither sign is flipped and neither year is extended.
 
+Still later, still with `reached_preregistration` false (`screen_pass12.py`, `backtests/fp5/summary_pass12.json`): a jump in Deribit BTC DVOL, long the next day in 2022, is −3,574 bps over 66 trips, both books negative. A jump in the US 10-year yield, long the next day in 2018, is −2,081 bps over 31 trips, both books negative. The yield rule keeps a change only against the previous calendar day, so a Monday print is never a signal and the screen has 192 execution days. Neither sign is flipped and neither year is extended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

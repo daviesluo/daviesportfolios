@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "dvol_jump_2022": {
+      "btc_bps": -3735.7,
+      "candle_bar_clear": false,
+      "eth_bps": -3411.5,
+      "execution_days": 365,
+      "long_days": 81,
+      "month_share": null,
+      "name": "dvol_jump_2022",
+      "null_p50_bps": -4347.9,
+      "null_p95_bps": 375.5,
+      "pool_bps": -3573.6,
+      "stress_bps": -6213.6,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 66,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    },
+    "yield_jump_2018": {
+      "btc_bps": -1103.1,
+      "candle_bar_clear": false,
+      "eth_bps": -3058.1,
+      "execution_days": 192,
+      "long_days": 36,
+      "month_share": null,
+      "name": "yield_jump_2018",
+      "null_p50_bps": -945.8,
+      "null_p95_bps": 3222.6,
+      "pool_bps": -2080.6,
+      "stress_bps": -3320.6,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 31,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "dvol_rule_sha256": "c82440b675421ff2cfa6eba028915cfb432b6f943557fbacffa544603501278f",
+    "yield_rule_sha256": "48f9ff102ddb5189c03f59e5385f7d8409b554a72959922a2a7fa9176627c8ad"
+  }
+}
