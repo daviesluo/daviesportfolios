@@ -623,7 +623,7 @@ export function scoreboardView(dash, tab = null, tests = []) {
   const capital = t.capitalUsd;
   const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
-  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' ? (Number(s.valueUsd) || 0) : (Number(s.costUsd) || 0)), 0);
+  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' || s?.scoreDeployed ? (Number(s.valueUsd) || 0) : (Number(s.costUsd) || 0)), 0);
   return {
     strategies: rows.length, tests: extra.length,
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
@@ -1144,9 +1144,25 @@ export function rwSplit(r) {
   };
 }
 
-/** Tiles under RW's bar. The warm-up drops TOTAL and FILLS (Davies, 2026-09-25). @param {string} phase */
-export function rwBarTileKeys(phase) {
-  return phase === 'warm-up' ? ['STRESS', 'BEST MARKET'] : ['TOTAL', 'STRESS', 'FILLS', 'BEST MARKET'];
+/** Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions open. @param {string} [_phase] */
+export function rwBarTileKeys(_phase) {
+  return ['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN'];
+}
+
+/**
+ * Cost of RW's open inventory, the same base a strategy's unrealised percent uses. A long Yes is shares × its
+ * average Yes price; a short Yes is long No, so its cost is shares × (1 − that price).
+ * @param {any[] | null | undefined} markets
+ */
+export function rwInventoryCost(markets) {
+  let cost = 0;
+  for (const x of markets ?? []) {
+    const net = Number(x?.net) || 0;
+    const avg = Number(x?.avgCost);
+    if (!net || !Number.isFinite(avg)) continue;
+    cost += net > 0 ? net * avg : -net * (1 - avg);
+  }
+  return cost;
 }
 
 /**
@@ -1195,11 +1211,13 @@ export function rwRow(r) {
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'paper',
-    unrealisedOf: 'deployed',
+    // The scoreboard still folds what this test has deployed. The row's own percent is of inventory cost, like every
+    // other strategy's unrealised (Davies, 2026-09-25).
+    scoreDeployed: true,
     capitalUsd: capital,
     valueUsd: held,
     todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
-    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, held),
+    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, rwInventoryCost(r.markets)),
     realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
     rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
     orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },

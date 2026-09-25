@@ -836,6 +836,14 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 00:30 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: Reward quotes' realised was overflowing, and the bar section was the wrong shape.** Also drop the strategy count on both scoreboards, put the fees on the realised title's line, drop Polymarket's empty maker/taker, and make Reward quotes' unrealised percent the same base as the other rows.
+- Realised's rewards and orders wrap inside the cell. The fees sit on the same line as REALIZED G/L. The funded cell no longer counts strategies.
+- The section is STATUS: stress, the best market's share, markets quoting today, positions still open. The progress bar, the "day n of 14" line, TOTAL and FILLS are gone. Not titled "market conditions" — that name is the home page's cards, and this block is the test's own standing.
+- A fill row is one print (side, price, shares). It has no profit of its own: profit is known when a trade closes, and that number is the Orders column on QUOTES and the orders half of realised. 100 was never a cap on fills. It is one line of the fourteen-day pass bar ("at least 100 fills", spec § "The bar"). The engine records every fill.
+- Reward quotes' unrealised percent is of inventory cost (long Yes: shares × average price; short Yes: shares × (1 − that price)), so the cell matches the column's "% of cost". The scoreboard still folds what the test has deployed (`scoreDeployed`). Polymarket's card drops "maker/taker —" because that venue has no fee schedule on the page.
+
 ### [2026-09-25 00:08 UTC] Platform: Cursor | Model: Grok 4.7
 
 **PR5's per-minute record is writing, and the deploy did not cross the 00:00 close.** The bar that closes at 00:00 is

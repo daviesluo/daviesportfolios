@@ -1604,7 +1604,7 @@ async function run() {
       // names its base under its label, and the fees ride on realised's.
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
-      if (sbCells.join(' | ') === 'FUNDED / 8 strategies | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / incl. fees $0.08') {
+      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / incl. fees $0.08') {
         ok(S('agents'), 'five cells, FUNDED first, no total; no percent badges except the fees on realised, DEPLOYED carries no (Paper)');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
       const meters = await page.locator('.ag-sb-meter').count();
@@ -1697,14 +1697,14 @@ async function run() {
       const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
       if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
         && rSplit.join(' | ') === 'rewards +$41.60 · orders +$0.40'
-        && rSections.join(',') === 'THE BAR SO FAR,DAYS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
+        && rSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
         && rDays.length === 3 && rDays.every((d) => /^\d{1,2} Sep( · warm-up)?$/.test(d)) && /warm-up$/.test(rDays[2]) && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill)
-        && rTiles.join(',') === 'TOTAL,STRESS,FILLS,BEST MARKET' && /TOTAL \+\$41\.00 rewards \+\$41\.60 orders -\$0\.60/.test(rBar) && /5 of 100/.test(rBar) && /45 % of the total/.test(rBar)
-        && rNote === 0 && rMeta === 0 && /^Day 3 of 14 · ends \d{1,2} \w{3} \d{2}:\d{2} (BST|GMT)$/.test(rWhen)
+        && rTiles.join(',') === 'STRESS,BEST MARKET,MARKETS,OPEN' && /STRESS \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /quoting today/.test(rBar) && /\b3\b/.test(rBar) && /\b2\b/.test(rBar)
+        && rNote === 0 && rMeta === 0 && rWhen === '' && !/Day \d+ of 14/.test(rBar) && await page.locator('.ag-rw-run').count() === 0
         && /funded \(Paper\) \$296\.00 · markets today 3 · fills 5/.test(rFoot) && rWarn === 0
         && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
-        ok(S('agents'), `its page: FUNDED first, realised on one line (rewards and orders), unrealised unsplit, the bar as four tiles (+$41.00 = +$41.60 − $0.60, 5 of 100 fills) under "${rWhen}", days above quotes, no head line or formula note, 4 quotes, 3 days (the warm-up last), 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}, nothing wider than the page`);
+        ok(S('agents'), `its page: FUNDED first, realised wraps inside its cell, STATUS is stress, best market, markets quoting and positions open, days above quotes, 4 quotes, 3 days, 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}`);
       } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${rSplit.join(' | ')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDays.join('|')}, fills ${rFills} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
@@ -1738,7 +1738,7 @@ async function run() {
       // reads; realised splits into its rewards and what its orders made, which add up to it as printed.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
       const rwRowCells = (await rwRowEl.first().locator('.ag-gl').allTextContents()).map((t) => t.trim());
-      if (pm && pm.meta === '1 strategy · maker/taker —' && pm.pairs['funded (Paper)'] === '$296.00' && pm.pairs.deployed === '$14.40 (4.86%)'
+      if (pm && pm.meta === '1 strategy' && pm.pairs['funded (Paper)'] === '$296.00' && pm.pairs.deployed === '$14.40 (4.86%)'
         && [pm.pairs.today, pm.pairs.unrealised, pm.pairs.realised].join(' | ') === rwRowCells.join(' | ') && !pm.bases.unrealised
         && pm.pairs.rewards === '+$41.60' && pm.pairs.orders === '+$0.40' && !('fees' in pm.pairs)) {
         ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296.00, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
@@ -2027,8 +2027,8 @@ async function run() {
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      const PAPER_SB = 'FUNDED [8 strategies]=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [incl. fees $0.08]=+$54.76(+2.95%)';
-      const LIVE_SB = 'FUNDED [1 strategy]=$50.00 | DEPLOYED=$12.50(25.00%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [incl. fees $0.03]=+$0.30(+0.60%)';
+      const PAPER_SB = 'FUNDED=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [incl. fees $0.08]=+$54.76(+2.95%)';
+      const LIVE_SB = 'FUNDED=$50.00 | DEPLOYED=$12.50(25.00%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [incl. fees $0.03]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 8 Paper · 8 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
@@ -2166,21 +2166,20 @@ async function run() {
         const d = document.querySelector('.ag-rw-detail');
         const cell = (/** @type {string} */ name) => [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-cell') ?? [])].find((x) => txt(x.querySelector('.ag-sb-name')) === name);
         const lines = (/** @type {Element | null | undefined} */ el, /** @type {string} */ sel) => [...(el?.querySelectorAll(sel) ?? [])].map((s) => txt(s.lastElementChild || s));
-        const r = cell('REALIZED G/L'), u = cell('UNREALIZED G/L'), tile = d?.querySelector('.ag-rw-tile-total');
+        const r = cell('REALIZED G/L'), u = cell('UNREALIZED G/L');
         const tds = [...(d?.querySelector('.ag-rw-markets tbody tr')?.querySelectorAll('td') ?? [])].map(txt);
         return {
           realised: txt(r?.querySelector('.ag-sb-usd')), unrealised: txt(u?.querySelector('.ag-sb-usd')),
           realisedSplit: lines(r, '.ag-sb-split-v'), unrealisedSplit: lines(u, '.ag-sb-split-v'),
-          total: txt(tile?.querySelector('.ag-rw-tile-v')), totalSplit: lines(tile, '.ag-rw-tile-sub'), market: tds.slice(5, 8),
+          market: tds.slice(5, 8),
         };
       });
       const c2 = (s) => Math.round(money(s) * 100);
       const sumC = (xs) => xs.reduce((a, s) => a + c2(s), 0);
-      const addsUp = c2(rc.realised) + c2(rc.unrealised) === c2(rc.total) && sumC(rc.totalSplit) === c2(rc.total)
-        && sumC(rc.realisedSplit) === c2(rc.realised) && rc.unrealisedSplit.length === 0 && sumC(rc.market.slice(0, 2)) === c2(rc.market[2]);
-      if (addsUp && rc.total === '+$34.23' && rc.realised === '+$55.76' && rc.unrealised === '-$21.53' && rc.totalSplit.join(' | ') === '+$48.72 | -$14.49'
+      const addsUp = sumC(rc.realisedSplit) === c2(rc.realised) && rc.unrealisedSplit.length === 0 && sumC(rc.market.slice(0, 2)) === c2(rc.market[2]);
+      if (addsUp && rc.realised === '+$55.76' && rc.unrealised === '-$21.53'
         && rc.realisedSplit.join(' | ') === '+$48.72 | +$7.04' && rc.market.join(' | ') === '+$18.41 | +$0.20 | +$18.61' && rowGl[1] === rc.unrealised && rowGl[2] === rc.realised) {
-        ok(T('rw-cents'), `every printed part adds up to its printed total: ${rc.realised} ${rc.unrealised} = ${rc.total} = ${rc.totalSplit.join(' ')}; realised = ${rc.realisedSplit.join(' ')}; a market ${rc.market[0]} ${rc.market[1]} = ${rc.market[2]}; the row reads the page's`);
+        ok(T('rw-cents'), `realised ${rc.realised} = ${rc.realisedSplit.join(' ')}; a market ${rc.market[0]} ${rc.market[1]} = ${rc.market[2]}; the row reads the page's`);
       } else fail(T('rw-cents'), `RW parts: ${JSON.stringify(rc)}, row ${rowGl.join(' | ')}`);
       agentsMode = 'ok';
       await page.locator('.ag-detail-close').last().click().catch(() => {});

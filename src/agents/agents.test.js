@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -718,7 +718,7 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
     const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, rewardUsd: 41.6, realisedUsd: 42, unrealisedUsd: -1, todayUsd: 12.5, running: true, lagMinutes: 2 });
     if (!q || !w) throw new Error('a test row was missing');
-    expect([q?.unrealisedOf, w?.unrealisedOf]).toEqual(['deployed', 'deployed']);
+    expect([q?.unrealisedOf, w?.scoreDeployed]).toEqual(['deployed', true]);
     expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
     // Davies, 2026-09-24: both paper tests count in TESTING's scoreboard. Stablecoin quotes counts on the Revolut X
     // card; Reward quotes is Polymarket's card. Leaving either out fails this. LIVE does not take them.
@@ -884,30 +884,36 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   const r = { phase: 'run', dayOfRun: 3, runStart: '2026-09-25T00:00:00.000Z', runEnd: '2026-10-09T00:00:00.000Z', startedAt: '2026-09-24T19:31:00Z',
     lastMinute: '2026-09-27T10:02:00Z', lagMinutes: 2, running: true, finished: false, lastError: null,
     capitalUsd: 296, totalUsd: 60, stressUsd: 24, rewardUsd: 62, fillsPnlUsd: -2, realisedUsd: 61, unrealisedUsd: -1, mismatchUsd: 0,
-    todayUsd: 20, heldUsd: 40, open: 3, fills: 12, quoting: 16, bestMarketUsd: 12, markets: [], days: [], recent: [] };
+    todayUsd: 20, heldUsd: 40, open: 3, fills: 12, quoting: 16, bestMarketUsd: 12,
+    markets: [{ net: 100, avgCost: 0.4 }], days: [], recent: [] };
   it('fills the cells a strategy row has, on paper, at Polymarket', () => {
     const row = rwRow(r);
     expect([row?.id, row?.name, row?.venueId, row?.venue, row?.mode, row?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
     expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([296, 40, 3]);
-    // Today and realised on the capital at work; unrealised on what is held, the strategies' base.
+    // Today and realised on the capital at work; unrealised on inventory cost, the same base as every other row.
     expect(row?.todayPct).toBeCloseTo((20 / 296) * 100, 12);
     expect(row?.realisedPct).toBeCloseTo((61 / 296) * 100, 12);
+    expect(rwInventoryCost(r.markets)).toBeCloseTo(40, 12);
     expect(row?.unrealisedPct).toBeCloseTo((-1 / 40) * 100, 12);
+    expect(row?.unrealisedOf).toBeUndefined();
+    const shortNo = rwInventoryCost([{ net: -20, avgCost: 0.66 }]);
+    expect(shortNo).toBeCloseTo(20 * 0.34, 12);
+    expect(rwRow({ ...r, markets: [{ net: -20, avgCost: 0.66 }], heldUsd: 14.4 })?.unrealisedPct).toBeCloseTo((-1 / shortNo) * 100, 12);
     expect(row?.status).toMatchObject({ tone: 'running', detail: 'quoting 16 markets · last minute decided 2 min ago' });
     expect(venueLabel('polymarket')).toBe('Polymarket');
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
     expect(rwRow({ ...r, running: false, finished: true })).toMatchObject({ nextText: 'finished', status: { tone: 'paused', detail: 'the fourteen days are over' } });
-    expect(rwRow({ ...r, heldUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
+    expect(rwRow({ ...r, markets: [], heldUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
     expect(rwRow({ ...r, quoting: 1 })?.status.detail).toBe('quoting 1 market · last minute decided 2 min ago');
     expect(rwRow(null)).toBe(null);
   });
   it('says which part of the run it is in, the fills against the bar, and a split that disagrees', () => {
     expect(rwView(r)).toMatchObject({ phaseText: 'day 3 of 14', fillsText: '12 of 100', bestShareText: '20 %', stoppedText: '', mismatch: false });
     expect(rwView({ ...r, phase: 'warm-up', dayOfRun: null })?.phaseText).toBe('warm-up, counted nowhere');
-    expect(rwBarTileKeys('warm-up')).toEqual(['STRESS', 'BEST MARKET']);
-    expect(rwBarTileKeys('run')).toEqual(['TOTAL', 'STRESS', 'FILLS', 'BEST MARKET']);
+    expect(rwBarTileKeys('warm-up')).toEqual(['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN']);
+    expect(rwBarTileKeys('run')).toEqual(['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN']);
     expect(rwView({ ...r, totalUsd: -5 })?.bestShareText).toBe('—');
     expect(rwView({ ...r, mismatchUsd: 0.02 })?.mismatch).toBe(true);
     expect(rwView(undefined)).toBe(null);

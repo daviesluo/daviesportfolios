@@ -100,8 +100,7 @@ apart on two tabs.
   capital its strategies are allotted, then **deployed**, what they hold,
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The fees sit on realised. TESTING's scoreboard adds
-  Stablecoin quotes and Reward quotes with the other strategies, and the
-  funded cell counts every row as a strategy. Then a card per exchange —
+  Stablecoin quotes and Reward quotes with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
   in its yellow, where the same strategies run as paper twins, deciding
   alike and filled at Binance's own prices, and on TESTING Polymarket in
@@ -130,13 +129,11 @@ apart on two tabs.
   the rewards and what closed trades made, unrealised what it still holds
   (in Yes or No shares) at the mid. Tap it for its page: the same
   scoreboard, with realised split on one line into the rewards and what
-  its orders made; the running figures against its bar (while the fourteen
-  days are running: the total with its rewards and orders, the pessimistic
-  total, fills out of the 100 it needs, the best market's share; in the
-  warm-up, only the pessimistic total and the best market) under a line
-  that says which of the fourteen days it is; the closed days, then today's
-  quotes with the bid, the ask and the share of each pool, and the latest
-  fills. Every part that is printed beside a total adds up, to the cent, to
+  its orders made; a status row (the pessimistic total, how much of the
+  total sits in one market, how many markets it is quoting, how many
+  positions are still open); the closed days, then today's quotes, and
+  the latest fills. A fill is one print, so the fills table has no profit
+  of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket

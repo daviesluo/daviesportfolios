@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwBarTileKeys, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -92,7 +92,7 @@ function SbLabel({ label, asides = [] }) {
   return (
     <div className="sb-label ag-sb-label">
       <span className="ag-sb-name">{label}</span>
-      {asides.filter(Boolean).map((a, i) => <React.Fragment key={i}>{' '}<span className="ag-sb-aside">{a}</span></React.Fragment>)}
+      {asides.filter(Boolean).map((a, i) => <span key={i} className="ag-sb-aside">{a}</span>)}
     </div>
   );
 }
@@ -160,17 +160,14 @@ function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
  * A tab's scoreboard, in the home scoreboard's cells: what its strategies
  * are funded with and have deployed, today's change (the UTC day),
  * unrealised and realised — no total, by the owner's choice. TESTING adds
- * the paper tests as well (Davies, 2026-09-24). The funded cell counts every
- * row as a strategy.
+ * the paper tests as well (Davies, 2026-09-24).
  * @param {{ dash: any, tab: 'live' | 'testing', m: (s: string) => string, tests?: any[] }} props
  */
 function Scoreboard({ dash, tab, m, tests = [] }) {
   const v = scoreboardView(dash, tab, tests);
-  const n = v.strategies + (v.tests || 0);
-  const count = `${n} ${n === 1 ? 'strategy' : 'strategies'}`;
   return (
     <div className="ag-scoreboard">
-      <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} aside={count} />
+      <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} />
       <div className="ag-sb-divider" />
       <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
       <div className="ag-sb-divider" />
@@ -245,7 +242,7 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
               <div className="dim mono ag-venue-meta">
-                {`${n} ${n === 1 ? 'strategy' : 'strategies'} · maker/taker ${fmtFees(r.feeBps)}`}
+                {`${n} ${n === 1 ? 'strategy' : 'strategies'}${r.feeBps ? ` · maker/taker ${fmtFees(r.feeBps)}` : ''}`}
               </div>
             </div>
             <div className="ag-venue-grid mono">
@@ -384,42 +381,31 @@ const dayLabel = (day) => fmtDayMonth(new Date(`${day}T00:00:00Z`), { locale: 'e
  * @param {{ v: NonNullable<ReturnType<typeof rwView>>, r: any, usd: (x: number | null | undefined) => string }} props
  */
 function RwBar({ v, r, usd }) {
-  const fills = Number(r.fills) || 0;
-  const when14 = v.phase === 'warm-up' ? `The fourteen days start ${when(v.runStart)} ${UK_TZ}`
-    : v.phase === 'run' ? `Day ${v.dayOfRun} of ${v.days} · ends ${when(v.runEnd)} ${UK_TZ}` : `Ended ${when(v.runEnd)} ${UK_TZ}`;
-  const done = v.phase === 'run' && v.dayOfRun ? Math.min(100, (100 * v.dayOfRun) / v.days) : v.phase === 'after' ? 100 : 0;
+  const quoting = Number(r.quoting) || 0;
+  const open = Number(r.open) || 0;
   return (
     <section className={`ag-section ag-rw-bar is-${v.phase}`}>
-      <div className="ag-rw-bar-head">
-        <div className="ag-section-title mono">{v.phase === 'warm-up' ? 'WARM-UP' : 'THE BAR SO FAR'}</div>
-        <div className="ag-rw-when mono">{when14}</div>
-      </div>
-      <div className="ag-rw-run" role="img" aria-label={when14}><span style={{ width: `${done}%` }} /></div>
+      <div className="ag-section-title mono">STATUS</div>
       <div className="ag-rw-tiles">
-        {rwBarTileKeys(v.phase).includes('TOTAL') && (
-          <div className="ag-rw-tile ag-rw-tile-total">
-            <div className="ag-rw-tile-k mono">TOTAL</div>
-            <div className="ag-rw-tile-v mono" style={{ color: pctColor(v.totalUsd) }}>{usd(v.totalUsd)}</div>
-            <div className="ag-rw-tile-sub mono"><span className="dim">rewards</span>{' '}<span style={{ color: pctColor(v.rewardUsd) }}>{usd(v.rewardUsd)}</span></div>
-            <div className="ag-rw-tile-sub mono"><span className="dim">orders</span>{' '}<span style={{ color: pctColor(v.ordersUsd) }}>{usd(v.ordersUsd)}</span></div>
-          </div>
-        )}
         <div className="ag-rw-tile">
           <div className="ag-rw-tile-k mono">STRESS</div>
           <div className="ag-rw-tile-v mono" style={{ color: pctColor(r.stressUsd) }}>{usd(r.stressUsd)}</div>
-          <div className="ag-rw-tile-note dim">the pessimistic total</div>
+          <div className="ag-rw-tile-note dim">if rewards were halved and every fill a tick worse</div>
         </div>
-        {rwBarTileKeys(v.phase).includes('FILLS') && (
-          <div className="ag-rw-tile">
-            <div className="ag-rw-tile-k mono">FILLS</div>
-            <div className="ag-rw-tile-v mono">{fills} <span className="dim ag-rw-of">of 100</span></div>
-            <div className="ag-rw-meter" role="img" aria-label={`${fills} of the 100 fills the bar needs`}><span style={{ width: `${Math.min(100, fills)}%` }} /></div>
-          </div>
-        )}
         <div className="ag-rw-tile">
           <div className="ag-rw-tile-k mono">BEST MARKET</div>
           <div className="ag-rw-tile-v mono">{v.bestShareText}</div>
-          <div className="ag-rw-tile-note dim">of the total</div>
+          <div className="ag-rw-tile-note dim">of the total, from one market</div>
+        </div>
+        <div className="ag-rw-tile">
+          <div className="ag-rw-tile-k mono">MARKETS</div>
+          <div className="ag-rw-tile-v mono">{quoting}</div>
+          <div className="ag-rw-tile-note dim">quoting today</div>
+        </div>
+        <div className="ag-rw-tile">
+          <div className="ag-rw-tile-k mono">OPEN</div>
+          <div className="ag-rw-tile-v mono">{open}</div>
+          <div className="ag-rw-tile-note dim">{open === 1 ? 'position still held' : 'positions still held'}</div>
         </div>
       </div>
     </section>
