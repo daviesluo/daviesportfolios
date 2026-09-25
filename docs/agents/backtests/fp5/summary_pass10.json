@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "addr_balance_jump_2019": {
+      "btc_bps": 886.1,
+      "candle_bar_clear": false,
+      "eth_bps": -806.9,
+      "execution_days": 365,
+      "long_days": 95,
+      "month_share": 30.314,
+      "name": "addr_balance_jump_2019",
+      "null_p50_bps": -893.4,
+      "null_p95_bps": 3763.9,
+      "pool_bps": 39.6,
+      "stress_bps": -2240.4,
+      "top_month": "2019-05",
+      "top_month_bps": 1199.8,
+      "trips": 57,
+      "why": "doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; one month is more than 40% of P&L; pooled P&L does not exceed 400 bps"
+    },
+    "lower_wick_2018": {
+      "btc_bps": -4905.3,
+      "candle_bar_clear": false,
+      "eth_bps": -3887.2,
+      "execution_days": 365,
+      "long_days": 73,
+      "month_share": null,
+      "name": "lower_wick_2018",
+      "null_p50_bps": -4143.5,
+      "null_p95_bps": 1763.4,
+      "pool_bps": -4396.3,
+      "stress_bps": -6956.3,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 64,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "addr_rule_sha256": "60dfc936bb20f5df5850b8fe035239f8fb7853d3630b07ef1623e18f4473969c",
+    "wick_rule_sha256": "f49c0b9d673b1bf594f6a4cea68cd7817502e274ab945ca9dafabde991d0bb09"
+  }
+}

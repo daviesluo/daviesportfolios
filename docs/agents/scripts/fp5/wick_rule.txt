@@ -1,0 +1,26 @@
+Family: long the next day when the BTC spot candle had an unusually long lower wick.
+Frozen 2026-09-25 02:15:40 UTC, before any wick share or next-day return of this rule was computed.
+Not the close-to-close continuation (that was the sign of the daily return, and it was killed).
+Not a quiet range (that was the width of a 10-day range).
+Not the BTC-ETH return gap.
+The series is the lower wick as a share of that day's high-to-low range.
+
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by one BTCUSDT spot candle.
+Prices and the candle are Binance spot daily klines.
+Fields locked here, before any file of this rule is opened: open is field 2, high is field 3, low is field 4, close is field 5, all 1-based.
+The lower wick is the lesser of open and close, minus the low.
+The day's share is that wick divided by high minus low.
+A share is missing unless high is above low and all four fields exist.
+Sort the previous 90 printed shares ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC day when date D's share is strictly above that threshold. Otherwise flat.
+Execution days are 2018-01-01 through 2018-12-31 whose previous calendar day has a share and 90 earlier shares.
+The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2018. No other year is scored. If a locked field is absent, record the gap and do not pick another field.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a short lower wick. Do not use the upper wick. Do not change the quintile. Do not add 2019.
