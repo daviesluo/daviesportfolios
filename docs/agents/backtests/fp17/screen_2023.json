@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp17_common": "a7761e23e3d147fa1d4fa9cd2f46d9885c2cda68fd9bfacf6d65bc06239d8c41",
+    "fp17_measure": "611ef82469122056a4d1a348161f62bc5b26d352368600aa1654a18a218280c1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AVG-SIZE",
+      "mean_gross_bps": 59.6063,
+      "mean_net_bps": 39.5072,
+      "min_n": 30,
+      "n": 64,
+      "note": "Average trade size above its own trailing 90th. Next day, one day.",
+      "null_p95_bps": 51.3805,
+      "passes_screen": false,
+      "total_pnl_usd": 25.2846
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "90d55db2891f95af4255a7193781630f3bdf68b2a4ccb7aeeb3870df9c32bbd4"
+  },
+  "passed": [],
+  "protocol_sha256": "231b4636f390806f903ed99ebc8be85f3af583d317e410b4561224c28bd7dab3"
+}

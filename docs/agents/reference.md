@@ -2867,6 +2867,16 @@ gross move was +43.8 bps. One hour is missing, 2023-03-24 13:00 UTC.
 **Nothing here is fit to add.** The count stays 30. The negative tail and
 the 80th are not candidates.
 
+### 3.46 Average trade size: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp17-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp17/screen_2023.json`). Quote volume
+divided by the trade count, above its own trailing 90th, long spot for the
+next day: 64 trades, mean +39.5 bps, null p95 +51.4 bps. The gross move was
++59.6 bps. **Nothing here is fit to add.** The count cleared and the mean
+was positive; it lost to the null. The small-trade tail and the 80th are
+not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

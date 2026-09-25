@@ -8,12 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp17 protocol is written. No return has been computed.** The rule is BTC's
-average trade size, quote volume divided by the trade count, long the next
-day when that size is above its own trailing 90th. The small-trade tail is
-not a candidate. Do not reopen fp5 through fp16, including LS-FADE,
-RV-RATIO and AC-HOUR. The screen is the next step. No testing row. No pull
-request. No push to main.
+**fp17 failed the 2023 screen and is discarded** (§3.46). The count cleared
+and the mean was positive; it lost to the null. Do not score the
+small-trade tail, and do not score the 80th. Do not reopen AC-HOUR,
+RV-RATIO, the quiet-day range, or the taker share. fp5 through fp16 stay
+closed, including LS-FADE. The next search is not written. No testing row.
+No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:59 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp17 screen: nothing passes.** Protocol was `b2ea8db`. Two scores matched
+(`491e48f2…`). AVG-SIZE 64 trades, +39.51 bps against a null of +51.38,
++$25.28. Gross before costs was +59.61 bps. Reference §3.46. The count
+cleared and the mean was positive; it lost to the null. The small-trade
+tail and the 80th are not candidates. No testing row. No pull request.
+Main was not pushed.
 
 ### [2026-09-25 01:58 UTC] Platform: Cursor | Model: Grok 4.7
 
