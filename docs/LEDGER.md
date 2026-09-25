@@ -861,6 +861,10 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
+### [2026-09-25 13:22 UTC] Platform: Cursor | Model: Grok 4.7
+
+**The book-string check now matches the frozen pre-registration lines. No later-year return has been computed.** The bid and ask were wrapped across lines. The phrases in the two testers were aligned to those lines. The pre-registration bytes were not changed. The buys and the sells were not moved.
+
 ### [2026-09-25 13:20 UTC] Platform: Cursor | Model: Grok 4.7
 
 **PICK and LATER are pre-registered. No return after 2023 has been computed.** The spot book was read at 2026-09-25T13:15:30.993461Z (bid 84529.73, ask 84529.74). The coin-margined book was read at 2026-09-25T13:15:31.413772Z (bid 84467.7, ask 84467.8). PICK's other trade stays the nine-day spot long on the same entries. LATER's other trade stays the fifteen-day spot long that starts fifteen days later. Neither null is the same leg with the condition off. The 2023 gap of about 3 bps does not relax the bar. No testing row. No pull request. Main was not pushed.

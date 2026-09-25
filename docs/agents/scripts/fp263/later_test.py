@@ -194,7 +194,7 @@ def main() -> None:
     if digest != SIDECAR.read_text().strip():
         raise SystemExit("the pre-registration does not match its frozen sha256")
     prereg = PREREG.read_text()
-    for phrase in ("bid 84529.73, ask 84529.74", "5.915078291274204e-08"):
+    for phrase in ("bid 84529.73, ask", "84529.74, half-spread 5.915078291274204e-08"):
         if phrase not in prereg:
             raise SystemExit("the frozen book is not the pre-registration")
     screen_doc = json.loads(SCREEN.read_text())

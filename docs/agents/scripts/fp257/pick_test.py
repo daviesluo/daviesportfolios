@@ -200,10 +200,10 @@ def main() -> None:
         raise SystemExit("the pre-registration does not match its frozen sha256")
     prereg = PREREG.read_text()
     for phrase in (
-        "bid 84467.7, ask 84467.8",
-        "5.91941895018044e-07",
-        "bid 84529.73, ask 84529.74",
-        "5.915078291274204e-08",
+        "bid 84467.7,",
+        "ask 84467.8, half-spread 5.91941895018044e-07",
+        "bid 84529.73, ask",
+        "84529.74, half-spread 5.915078291274204e-08",
     ):
         if phrase not in prereg:
             raise SystemExit("the frozen book is not the pre-registration")
