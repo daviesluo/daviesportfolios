@@ -2848,6 +2848,15 @@ skewness of the basket's 8h returns, above its own trailing 90th, long spot
 for the next 8h: 124 trades, mean −1.9 bps, null p95 +9.6 bps. **Nothing here
 is fit to add.** The left tail is not a candidate, and dispersion stays closed.
 
+### 3.44 Realized-vol term structure: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp15-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp15/screen_2023.json`). The ratio of
+7-day to 30-day population realized vol, above its own trailing 90th, long
+spot for the next day: 31 trades, mean −19.9 bps, null p95 +71.8 bps. The
+gross move was +0.1 bps. **Nothing here is fit to add.** The low ratio is
+not a candidate. The quiet-day range and DVOL minus realized vol stay closed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

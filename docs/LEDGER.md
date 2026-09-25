@@ -8,12 +8,11 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp15 protocol is written. No return has been computed.** The rule is
-BTC's 7-day realized vol divided by its 30-day realized vol, long the next
-day when that ratio is above its own trailing 90th. The low ratio is not a
-candidate. Do not reopen fp5 through fp14, including LS-FADE, the quiet-day
-range, DVOL minus realized vol, dispersion, or skew. The screen is the next
-step. No testing row. No pull request. No push to main.
+**fp15 failed the 2023 screen and is discarded** (§3.44). Do not score the
+low ratio, and do not reopen the quiet-day range, DVOL minus realized vol,
+dispersion, or skew. fp5 through fp14 stay closed, including LS-FADE. The
+next search is not written. No testing row. No pull request. No push to
+main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +835,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:48 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp15 screen: nothing passes.** Protocol was `2ba98e4`. Two scores matched
+(`af54b443…`). RV-RATIO 31 trades, −19.88 bps against a null of +71.83,
+−$6.16. Gross before costs was +0.10 bps. Reference §3.44. The low ratio is
+not a candidate. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:46 UTC] Platform: Cursor | Model: Grok 4.7
 

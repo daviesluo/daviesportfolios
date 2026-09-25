@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp15_common": "da78772ba36efd8f243203f3643796353d1ac4cdb7a8f1a0612c0e37325d5f6c",
+    "fp15_measure": "7c1c4f3c2840cdfd255f2bdc1578a9538182ed024e06b112194897607b4e2538",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "RV-RATIO",
+      "mean_gross_bps": 0.1034,
+      "mean_net_bps": -19.8769,
+      "min_n": 30,
+      "n": 31,
+      "note": "7-day realized vol over 30-day realized vol, above its own trailing 90th. Next day, one day.",
+      "null_p95_bps": 71.8264,
+      "passes_screen": false,
+      "total_pnl_usd": -6.1618
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e"
+  },
+  "passed": [],
+  "protocol_sha256": "c74bac2559a638e16de673ef3004b882d24ed74d44f847cba8a20bdd5d97c441"
+}
