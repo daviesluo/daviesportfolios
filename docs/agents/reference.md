@@ -5764,7 +5764,7 @@ sha256 `8e98355f…`). Yesterday's spot close was above each of the ten prior
 closes, then buy spot for eight days: 74 trades, mean +369.3889 bps, null
 p95 +329.1859 bps, +$273.3478. The file's gross is +390.1485 bps. The count
 cleared, the mean is positive, and the mean is above the null. **The 2023
-screen passes. The later years are not scored. This is not a testing row.**
+screen passes. The later years are §3.273. This is not a testing row.**
 One spot leg. Funding cash is not added. The null is that eight-day long on
 every day. A count taken before the freeze, with no profit computed, was 74.
 The scored book is 74. The rule was not changed.
@@ -5817,7 +5817,7 @@ sha256 `ff0517d5…`). Two finished three-day rises, back to back, then buy
 the USDT perpetual for four days: 112 trades, mean +187.5425 bps, null p95
 +158.3111 bps, +$210.0476. The file's gross is +207.938 bps. The count
 cleared, the mean is positive, and the mean is above the null. **The 2023
-screen passes. The later years are not scored. This is not a testing row.**
+screen passes. The later years are §3.274. This is not a testing row.**
 It is not four consecutive higher closes. One USDT-perpetual leg. Funding
 cash is not added. The null is that four-day long on every day. A count
 taken before the freeze, with no profit computed, was 112. The scored book
@@ -5862,6 +5862,49 @@ mean was positive; it lost to the null. One spot leg. The coin-margined
 book is a signal, not a second leg. Funding cash is not added. The null is
 that five-day long on every day. A count taken before the freeze, with no
 profit computed, was 177. The scored book is 177. The rule was not changed.
+
+### 3.273 Ten higher spot closes, held eight days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp233-prereg-hi10.md`, sha256
+`4df73901…`, frozen 2026-09-25T12:10:37Z, BTCUSDT spot bid 84640.0, ask
+84640.01, half-spread 5.907372048690988e-08) was frozen before any daily open
+from 2024-01-01 was read as an entry. The buy and the sell were not moved.
+Two out-of-sample runs matched (`backtests/fp233/hi10_oos.json`, sha256
+`12c437e4…`). 2023 reproduces: 74 trades, +$273.3478. Entries from 2024-01-01
+through 2026-09-17: 184 trades, +$68.0852, mean +$0.370028, null p95
++$1.3145 on 991 eight-day spot longs with the close filter off. 2024 is
++$131.5458 and 2025-01-01 through 2026-09-17 is −$63.4606. Doubled costs are
++$31.1858. February 2024 is +$119.2415, 175.14% of the total; without it the
+total is −$51.1564. Annualised on the locked $100 over 998 days it is
+0.249009. The last entry is 2026-09-17. The last stored spot bar is the
+2026-09-25 open, an exit. Closes used as the signal stop on 2026-09-16. No
+bar on 2026-09-26 was stored. The count clears 30, doubled costs are
+positive, and the annualised total clears 4%. 2025–2026 is negative, the
+mean is under the null, and one month is more than 40% of the profit. **The
+rule fails.** It was not rewritten. It is not a testing row. The next search
+does not inherit the ten-close filter or the eight-day hold.
+
+### 3.274 Two finished three-day rises, held four days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp237-prereg-step.md`, sha256
+`83d4aa15…`, frozen 2026-09-25T12:10:37Z, BTCUSDT USDT-perpetual bid 84615.8,
+ask 84615.9, half-spread 5.909058408753729e-07) was frozen before any daily
+open from 2024-01-01 was read as an entry. The spot book was not this
+spread. The buy and the sell were not moved. Two out-of-sample runs matched
+(`backtests/fp237/step_oos.json`, sha256 `c1898b1e…`). 2023 reproduces: 112
+trades, +$210.0476. Entries from 2024-01-01 through 2026-09-21: 269 trades,
++$0.7254, mean +$0.002697, null p95 +$0.5928 on 995 four-day longs with the
+two-rise filter off. 2024 is +$47.7475 and 2025-01-01 through 2026-09-21 is
+−$47.0222. Doubled costs are −$53.0225. February 2024 is +$40.9587, 56.4667
+times the total; without it the total is −$40.2333. Annualised on the locked
+$100 over 998 days it is 0.002653. The last entry is 2026-09-21. The last
+stored bar is the 2026-09-25 open, an exit. Closes used as the signal stop
+on 2026-09-20. No bar on 2026-09-26 was stored. The count clears 30.
+2025–2026 is negative, the mean is under the null, doubled costs are
+negative, one month is more than 40% of the profit, and the annualised total
+does not clear 4%. **The rule fails.** It was not rewritten. It is not a
+testing row. It is not four consecutive higher closes. The next search does
+not inherit the two three-day rises or the four-day hold.
 
 ### 4. Design consequences (decided by the evidence above)
 
