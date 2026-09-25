@@ -3085,6 +3085,74 @@ write-up is `reviews/2026-09-25-polymarket-fp5-corners.md`. Not a paper test and
 retried with May or the second half removed. One August fill was recomputed with the fee formula
 and matched the scorer (−$10.307).
 
+### 3.76 HTLEAD, leading at the break, fails its bar (2026-09-25)
+
+A club's own rate of leading at halftime, eight matches. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-htlead.md`. Out of sample: **+$72.46 on 70 trades**, 19 won
+and 51 lost. The first half is −$5.38. Stress +$53.40. The null's 95th percentile is +$235.80.
+August is 119% of the profit; without it −$13.66 remains. The 4% a year on an $82.42 peak passes.
+The write-up is `reviews/2026-09-25-polymarket-fp5-htlead.md`. Not a paper test and not a live row.
+Not VENUE. Not retried with August or the first half removed.
+
+### 3.77 HTDRAW, the halftime draw, fails its bar (2026-09-25)
+
+The average of the two clubs' own rates of being level at the break. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-htdraw.md`. Out of sample: **−$28.56 on 20 trades**, 6 won
+and 14 lost. The first half is −$90.29. Stress −$32.60. The null's 95th percentile is +$88.66.
+The write-up is `reviews/2026-09-25-polymarket-fp5-htdraw.md`. Not a paper test and not a live row.
+Not DRAWBASE. One April fill was recomputed with the fee formula and matched the scorer (−$10.1857).
+
+### 3.78 CORN6, two more corners then the match, fails its bar (2026-09-25)
+
+Last six matches, gap 2.0 corners a game, buy that side to win. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-corn6.md`. Out of sample: **+$17.54 on 32 trades**, 13 won
+and 19 lost. The second half is −$41.13. Stress +$13.60. The null's 95th percentile is +$140.46.
+February is 249% of the profit; without it −$26.22 remains. The 4% a year on a $30 peak passes.
+The write-up is `reviews/2026-09-25-polymarket-fp5-corn6.md`. Not a paper test and not a live row.
+Not CORNERS. The gap was not lowered.
+
+### 3.79 HTWIN, two more half-time leads then the match, fails its bar (2026-09-25)
+
+Last six matches, gap 2/6, buy that side to win. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-htwin.md`. Out of sample: **−$91.79 on 31 trades**, 8 won
+and 23 lost. Both halves lose. Stress −$96.04. The null's 95th percentile is +$154.64. The
+write-up is `reviews/2026-09-25-polymarket-fp5-htwin.md`. Not a paper test and not a live row.
+Not HTLEAD.
+
+### 3.80 CLEAN, two more clean sheets then the match, fails its bar (2026-09-25)
+
+Last six matches, gap 2/6, buy that side to win. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-clean.md`. Out of sample: **+$25.56 on 36 trades**, 12 won
+and 24 lost. The second half is −$31.04. Stress +$20.60. The null's 95th percentile is +$150.89.
+May is 214% of the profit; without it −$29.08 remains. The 4% a year on a $30 peak passes. The
+write-up is `reviews/2026-09-25-polymarket-fp5-clean.md`. Not a paper test and not a live row.
+Not FOUL. Not retried with May or the second half removed.
+
+### 3.81 SHWIN, half a goal after the break then the match, fails its bar (2026-09-25)
+
+Last six matches, gap 0.5 second-half goals, buy that side to win. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-shwin.md`. Out of sample: **−$118.90 on 55 trades**, 15 won
+and 40 lost. Both halves lose. Stress −$127.00. The null's 95th percentile is +$197.12. The
+write-up is `reviews/2026-09-25-polymarket-fp5-shwin.md`. Not a paper test and not a live row.
+Not OVER35.
+
+### 3.82 TEAM15, one club scores two, fails its bar (2026-09-25)
+
+That club's own rate of scoring two or more, line 1.5 only. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-team15.md`. Out of sample: **+$48.93 on 14 trades**, 6 won
+and 8 lost. The first half has no trade. Stress +$43.88. The null's 95th percentile is +$89.37.
+August is 136% of the profit; without it −$17.55 remains. The 4% a year on a $30 peak passes.
+The write-up is `reviews/2026-09-25-polymarket-fp5-team15.md`. Not a paper test and not a live row.
+Not SPREAD15. The line was not moved.
+
+### 3.83 FH05, a goal before the break, fails its bar (2026-09-25)
+
+The first-half match over 0.5 only. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-fh05.md`.
+Out of sample: **+$6.28 on 9 trades**, 7 won and 2 lost. The first half has no trade. Stress +$4.90.
+The null's 95th percentile is +$33.78. August is 202% of the profit; without it −$6.40 remains.
+The 4% a year on a $20 peak passes. The write-up is `reviews/2026-09-25-polymarket-fp5-fh05.md`.
+Not a paper test and not a live row. Not OVER35. A 1.5 line was not bought.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
