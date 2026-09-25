@@ -8,12 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp19 failed the 2023 screen and is discarded** (§3.48). The count cleared
-and the mean was positive; it lost to the null. Do not score a close on
-the low, and do not score the 80th. PAIR-CORR stays dead (§3.47). Do not
-reopen AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
-dispersion, or skew. fp5 through fp18 stay closed, including LS-FADE. The
-next search is not written. No testing row. No pull request. No push to main.
+**fp20 protocol is frozen. No return has been computed.** GAP-UP is the
+overnight gap, this open over the previous close, long BTC at the next
+open. Do not score a gap down. CLOSE-LOC stays dead (§3.48): do not score
+a close on the low or the 80th. Do not reopen PAIR-CORR, AVG-SIZE, AC-HOUR,
+RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
+through fp19 stay closed, including LS-FADE. The screen is the next step.
+No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +837,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:10 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp20 protocol only. No return has been computed.** A different family from
+the fifteen closed rounds: the overnight gap, this open over the previous
+close, long BTC at the following open. CLOSE-LOC, PAIR-CORR, AVG-SIZE,
+AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion and
+skew stay closed. A gap down is not a candidate. `pin_test.py` passed
+before this commit. The screen is the next step. No pull request. Main was
+not pushed.
 
 ### [2026-09-25 02:08 UTC] Platform: Cursor | Model: Grok 4.7
 
