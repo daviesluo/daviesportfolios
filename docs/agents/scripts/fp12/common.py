@@ -35,11 +35,11 @@ def _upper(points: list[tuple[int, float]], q: float = 0.90) -> list[int]:
     return out
 
 
-def dom_prints(bars: dict[int, tuple]) -> list[tuple[int, float]]:
+def dom_prints(bars: dict[int, tuple], end_ms: int = fp5.SCREEN_END_MS) -> list[tuple[int, float]]:
     """(t+8h, dominance close-to-close return on the bar that opened at t)."""
     prints = []
     for t in sorted(bars):
-        if t >= fp5.SCREEN_END_MS:
+        if t >= end_ms:
             continue
         prev = t - fp5.EIGHT_H_MS
         if prev not in bars:
@@ -52,8 +52,8 @@ def dom_prints(bars: dict[int, tuple]) -> list[tuple[int, float]]:
     return prints
 
 
-def dom_entries(bars: dict[int, tuple], q: float = 0.90) -> list[int]:
-    return _upper(dom_prints(bars), q)
+def dom_entries(bars: dict[int, tuple], q: float = 0.90, end_ms: int = fp5.SCREEN_END_MS) -> list[int]:
+    return _upper(dom_prints(bars, end_ms), q)
 
 
 def dom_trades(
@@ -66,7 +66,7 @@ def dom_trades(
 ) -> list[dict]:
     """Enter spot BTC when dominance's last 8h bar was rich. Hold one 8h bar."""
     trades = []
-    for entry in dom_entries(bars, q):
+    for entry in dom_entries(bars, q, end_ms):
         trade = fp5._trade(
             "BTCUSDT", entry, entry + fp5.EIGHT_H_MS, btc,
             fee=fee, start_ms=start_ms, end_ms=end_ms,

@@ -8,11 +8,9 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp12 passed the 2023 screen and is pre-registered. Out of sample is not
-scored yet.** DOM-UP, 115 trades, +30.95 bps against a null of +4.80, +$35.59.
-The pre-registration is frozen (`d5dc5a69…`, 2026-09-25T01:22:11Z). No 2024
-price has been read. Neighbors are the 80th and the 95th. No testing row.
-No pull request. No push to main.
+**fp12 failed out of sample and is discarded** (§3.41). Do not score the
+lower tail of dominance. fp5 through fp11 stay closed. The next search is not
+written. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,6 +833,26 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:26 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp12 out of sample: DOM-UP fails.** The pre-registration was `d46ff8c`,
+before any later year. 2023 reproduces (115 trades, +$35.589). Two scores
+matched (`c58cb9cb…`). 302 trades, −$47.16. 2024 +$7.34, the later window
+−$54.49. Mean −15.6 bps against a null of −4.5 bps. Doubled costs −$107.40.
+The 80th and the 95th both lose. Reference §3.41. A first scorer that
+returned no 2024 trade was invalid and is not this result. The 2026-09-24
+dominance file was not published. The lower tail is not a candidate. No
+testing row. No pull request. Main was not pushed.
+
+### [2026-09-25 01:23 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp12 pre-registration, before any later year.** The 2023 screen passed:
+115 trades, +$35.589, mean +30.9469 bps against a null of +4.7979. The
+pre-registration is `d5dc5a69…`, frozen at 2026-09-25T01:22:11Z. The book at
+the freeze was bid 84645.6 / ask 84645.61. The 2023 reproduction still reads
+115 and +$35.589 after the quantile argument was added. Out of sample has
+not been downloaded. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:20 UTC] Platform: Cursor | Model: Grok 4.7
 

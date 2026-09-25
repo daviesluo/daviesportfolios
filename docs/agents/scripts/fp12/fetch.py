@@ -66,9 +66,13 @@ def pull_oos() -> tuple[int, int]:
     last = datetime(2026, 9, 24, tzinfo=timezone.utc)
     while day <= last:
         kept = _day(day.strftime("%Y-%m-%d"), oos_end)
+        # A day the archive has not published yet is a missing bar, which the
+        # rule skips. An earlier hole is a broken pull.
         if not kept:
-            raise SystemExit(f"missing dominance day {day.date()}")
-        dom.extend(kept)
+            if day.date().isoformat() != "2026-09-24":
+                raise SystemExit(f"missing dominance day {day.date()}")
+        else:
+            dom.extend(kept)
         day += timedelta(days=1)
     book = {int(row[0]): row for row in dom if int(row[0]) < oos_end}
     dom = [book[k] for k in sorted(book)]

@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp12_common": "2f6751e881ea4abedbbc20a710d603130c66461241af3bbdf1328141df1dfa1f",
+    "fp12_measure": "d791c41cdff05c3ccf694369c18b51f39ef625758de97f0783b41786e452472f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DOM-UP",
+      "mean_gross_bps": 51.0289,
+      "mean_net_bps": 30.9469,
+      "min_n": 30,
+      "n": 115,
+      "note": "BTCDOM 8h return above its own trailing 90th. Next 8h bar of spot BTC.",
+      "null_p95_bps": 4.7979,
+      "passes_screen": true,
+      "total_pnl_usd": 35.589
+    }
+  ],
+  "input_sha256": {
+    "btc_8h": "c115781ef8b40b2ab860d28e5c595d437745a9723b8d3e9b4eb6760f3cfa44bd",
+    "dom_8h": "207366fde8040db91e5228390f14682f54369bb0f8db32241d9185732dc88c69"
+  },
+  "passed": [
+    "DOM-UP"
+  ],
+  "protocol_sha256": "1b00d662b7cc4b1a371289bd0909a4e8d7b23ba487536e6dcd881298349166b2"
+}

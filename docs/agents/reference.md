@@ -2817,6 +2817,20 @@ files start on 2023-01-01, with one hole on 8–9 February. **Nothing here is
 fit to add.** The ask-heavy side is not a candidate, and the 5% level is not
 the next cut.
 
+### 3.41 BTC dominance return: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp12-protocol.md`) was committed before the
+2023 return. DOM-UP passed that screen: 115 trades, mean +30.9 bps, null p95
++4.8 bps. The pre-registration (`reviews/2026-09-25-fp12-prereg-dom-up.md`)
+was committed before any later year was read. The out-of-sample run reproduces
+2023 (115 trades, +$35.589) and then fails the bar
+(`backtests/fp12/dom_up_oos.json`). 302 trades, total −$47.16. 2024 is +$7.34
+and 2025 through 2026-09-24 is −$54.49. The mean is −15.6 bps against a null
+of −4.5 bps. Doubled costs are −$107.40. The 80th and the 95th both lose.
+**Not fit to add.** The lower tail is not a candidate. One scorer that
+returned no 2024 trade was invalid: it dropped every bar from 2024 on. The
+run above is the one that reproduces 2023.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
