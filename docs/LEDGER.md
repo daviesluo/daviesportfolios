@@ -8,13 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp19 protocol is frozen. No return has been computed.** CLOSE-LOC is where
-the close sits between that day's low and high, long BTC the next day. Do
-not score a close on the low. PAIR-CORR stays dead (§3.47): do not score
-the low-correlation tail or the 80th. Do not reopen AVG-SIZE, AC-HOUR,
-RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
-through fp18 stay closed, including LS-FADE. The screen is the next step.
-No testing row. No pull request. No push to main.
+**fp19 failed the 2023 screen and is discarded** (§3.48). The count cleared
+and the mean was positive; it lost to the null. Do not score a close on
+the low, and do not score the 80th. PAIR-CORR stays dead (§3.47). Do not
+reopen AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
+dispersion, or skew. fp5 through fp18 stay closed, including LS-FADE. The
+next search is not written. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:08 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp19 screen: nothing passes.** Protocol was `b14c3c5`. Two scores matched
+(`b87d4bd7…`). CLOSE-LOC 41 trades, +12.06 bps against a null of +70.16,
++$4.95. Gross before costs was +32.11 bps. The daily grid has no hole.
+Reference §3.48. The count cleared and the mean was positive; it lost to
+the null. A close on the low and the 80th are not candidates. No testing
+row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:07 UTC] Platform: Cursor | Model: Grok 4.7
 
