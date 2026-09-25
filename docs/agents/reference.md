@@ -6293,6 +6293,56 @@ coin-margined long on the same entries. Funding cash is not added. A count
 taken before the freeze, with no profit computed, was 154 against 154. The
 scored book is 154. The rule was not changed. This is not a testing row.
 
+### 3.302 A finished spot decline, coin-margined against spot: the later years pass (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp257-prereg-pick.md`, sha256
+`316a7ff7…`, frozen 2026-09-25T13:16:20Z) was pushed in `8878fdc` before any
+daily open from 2024-01-01 was read as an entry. Spot was read at
+2026-09-25T13:15:30.993461Z (bid 84529.73, ask 84529.74, half-spread
+5.915078291274204e-08). The coin-margined book was read at
+2026-09-25T13:15:31.413772Z (bid 84467.7, ask 84467.8, half-spread
+5.91941895018044e-07). The buy and the sell were not moved. The 2023 gap of
+about 3 bps did not relax the bar. Two out-of-sample runs matched
+(`backtests/fp257/pick_oos.json`, sha256 `f6179573…`). 2023 reproduces: 156
+trades, +$363.8263, mean +233.222 bps, the other trade +230.2271 bps.
+Entries from 2024-01-01 through 2026-09-16: 475 trades, +$477.1037, mean
++$1.004429, other-trade cutoff +$0.9919 on 475 nine-day spot longs. 2024 is
++$476.4304 and 2025-01-01 through 2026-09-16 is +$0.6733. Doubled costs are
++$381.2452. February 2024 is +$174.3003, 36.53% of the total; without it
+the total is +$302.8034. Annualised on the locked $100 over 998 days it is
+1.744918. The null is that nine-day spot long on the same entries. It is
+not the coin-margined long with the decline turned off. The last entry is
+2026-09-16. The last stored bar on each book is the 2026-09-25 open, an
+exit. A close after 2026-09-15 is not a signal. No bar on 2026-09-26 was
+stored. **The pre-registered bar passes. This is not a testing row.** It is
+not a Revolut X paper candidate. The second window is +$0.6733 and the mean
+clears the other trade by the file's own cutoff. The rule was not retuned.
+
+### 3.303 A new two-day rise against the same long started later: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp263-prereg-later.md`, sha256
+`73b1a382…`, frozen 2026-09-25T13:16:20Z) was pushed in `8878fdc` before any
+daily open from 2024-01-01 was read as an entry. Spot was read at
+2026-09-25T13:15:30.993461Z (bid 84529.73, ask 84529.74, half-spread
+5.915078291274204e-08). Both trades are that spot book. The buy and the
+sell were not moved. Two out-of-sample runs matched
+(`backtests/fp263/later_oos.json`, sha256 `8c099ae1…`). 2023 reproduces: 87
+trades, +$380.6856, mean +437.5697 bps, the other trade +329.1846 bps.
+Entries from 2024-01-01 through 2026-08-26: 252 trades, +$148.8984, mean
++$0.590867, other-trade cutoff +$0.8883 on 252 fifteen-day spot longs that
+start fifteen days later. 2024 is +$299.3036 and 2025-01-01 through
+2026-08-26 is −$150.4052. Doubled costs are +$98.2512. February 2024 is
++$150.1256, 100.82% of the total; without it the total is −$1.2272.
+Annualised on the locked $100 over 998 days it is 0.544568. The null is
+that later fifteen-day long. It is not the fifteen-day long on every day.
+The last entry is 2026-08-26, because the other trade exits on the
+2026-09-25 open. A close after 2026-08-25 is not a signal. No bar on
+2026-09-26 was stored. The count clears 30, doubled costs are positive, and
+the annualised total clears 4%. The second window is negative, the mean is
+under the other trade, and one month is more than the whole profit. **The
+rule fails.** It was not rewritten. It is not a testing row. The next
+search does not inherit the two-day turn or the fifteen-day hold.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
