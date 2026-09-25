@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp79–fp86 are frozen and not yet scored.** Eight screens are written down. No return of these rules has been computed. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp79–fp86 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. No later year was pulled. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:01 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp79–fp86 are scored. Nothing passes the house bar.** Protocol was `409b715`. Each screen file was written twice and the copies matched. BUSY-RET 35 / +14.20 / file mean +14.1953 / null +78.4258 / +$4.9684 (`97d363a1…`). VWAP-LOC 40 / file gross −10.4695 / file mean −30.4286 / null +67.5914 / −$12.1714 (`32bced08…`). MAX-GAP 26 / file mean +74.8086 / null +81.2211 / +$19.4502 (`dea3b274…`). NOON-QUOTE 35 / file mean +44.3483 / null +78.4258 / +$15.5219 (`fba5064d…`). HIGH-CLOSE 37 / file mean +31.0467 / null +74.5602 / +$11.4873 (`e2edf4da…`). WTD-RET 35 / file mean +21.85 / null +78.4258 / +$7.6475 (`9c6091a3…`). MED-OPEN 33 / file mean +41.0741 / null +74.7946 / +$13.5544 (`bb3323f9…`). OVERLAP 23 / file gross +6.8138 / file mean −13.1798 / null +85.9259 / −$3.0314 (`d5810bcb…`). Every fill matched fp5's `net_return`. Reference §3.108–§3.115. No sign was flipped. No count was lowered. The window was not shrunk. MAX-GAP and OVERLAP stay under 30. VWAP-LOC and OVERLAP have negative means and the signs were not flipped. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No later year was pulled. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 04:57 UTC] Platform: Cursor | Model: Grok 4.7
 

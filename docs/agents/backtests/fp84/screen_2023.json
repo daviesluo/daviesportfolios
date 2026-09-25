@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp84_common": "eb3da80add65fc34edc9f27af46123168f5ccc9dbefeb75367565e0634d8d388",
+    "fp84_measure": "60ecd43184440c4c016b90a26dddadd9c2b03b54e2bf22b3bc060b9b7b590320"
+  },
+  "ideas": [
+    {
+      "idea": "WTD-RET",
+      "mean_gross_bps": 41.9138,
+      "mean_net_bps": 21.85,
+      "min_n": 30,
+      "n": 35,
+      "note": "Quote-weighted mean of the 24 hourly returns, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 78.4258,
+      "passes_screen": false,
+      "total_pnl_usd": 7.6475
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "1164bc2865661aa709dfef70eccac3fa161372930359071294a2c174e836d16d"
+  },
+  "passed": [],
+  "protocol_sha256": "32b8556fd7a3b7fcb60a044842b97090c95ceec5e0d527b18be3557c4734778d"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp82_common": "4de2e5c6da87047623fd55780b9589ca19862e117a38e0218d0e7ee77cc1dfb2",
+    "fp82_measure": "9fdba7263daab82288fb8655bca366654ac8e8abdf93eb0b0a2346211ae82afc"
+  },
+  "ideas": [
+    {
+      "idea": "NOON-QUOTE",
+      "mean_gross_bps": 64.4571,
+      "mean_net_bps": 44.3483,
+      "min_n": 30,
+      "n": 35,
+      "note": "Quote share of hours 12 through 17, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 78.4258,
+      "passes_screen": false,
+      "total_pnl_usd": 15.5219
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "4888de75d495a976a56eefe22477ddd3b4034dfa8c6525621841aafd877ed45e"
+  },
+  "passed": [],
+  "protocol_sha256": "8ed74fbac820fd08fa8fcc59c4bc6d74faf900e85b585c18a906c92571d5fc2b"
+}

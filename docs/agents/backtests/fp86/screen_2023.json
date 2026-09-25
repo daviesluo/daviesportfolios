@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp86_common": "b1de4eccf15600bd934bd5cdc7105567d27cfb02c8e841435f791adb65af1e20",
+    "fp86_measure": "9ba0b1d9573e95f3609c024c0532a71f39bbaa41f6869624958a5a295e9a1e6e"
+  },
+  "ideas": [
+    {
+      "idea": "OVERLAP",
+      "mean_gross_bps": 6.8138,
+      "mean_net_bps": -13.1798,
+      "min_n": 30,
+      "n": 23,
+      "note": "Mean overlap of consecutive hourly ranges, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 85.9259,
+      "passes_screen": false,
+      "total_pnl_usd": -3.0314
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "e4d7eeaf226832d457e046a273212bfd09d810536b517dc683c3a22a7cf09e4f"
+  },
+  "passed": [],
+  "protocol_sha256": "c5f89f950405204403116a304cba204e11f11a3601d793717b5a34e8d0dd1133"
+}

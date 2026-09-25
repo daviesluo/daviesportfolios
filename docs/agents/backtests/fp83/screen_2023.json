@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp83_common": "d07076ce5dcead91cfe04a243665aaf4a75e5cc261f46fa1a49710d5b8fdce71",
+    "fp83_measure": "8f3d7200d4b912734276991889ca2394b47c0742eb54afa7dd09f323b2cc7e45"
+  },
+  "ideas": [
+    {
+      "idea": "HIGH-CLOSE",
+      "mean_gross_bps": 51.1289,
+      "mean_net_bps": 31.0467,
+      "min_n": 30,
+      "n": 37,
+      "note": "Close of the high's hour over the day's open, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 74.5602,
+      "passes_screen": false,
+      "total_pnl_usd": 11.4873
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "694ab50b4b18cb3d9226d818f674a3bfc35a4ea9b7081ef1b1f9b85fc29a4af4"
+  },
+  "passed": [],
+  "protocol_sha256": "ebcb0c8b3b1d6dc4d7005f4b3c286e83887272a422faf7dbb357820ef5cd0d42"
+}
