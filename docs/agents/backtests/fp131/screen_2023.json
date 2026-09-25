@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp131_common": "68fdf474ec4dd5d85b490ce47d997e63626f71c2d6bead7dfbe838f6eeba6bb6",
+    "fp131_measure": "1c54580aa16dbdaae354f6d78def3e4e556edda61a8a94fb85374886751f8448",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "WIKI",
+      "mean_gross_bps": 24.247,
+      "mean_net_bps": 4.2185,
+      "min_n": 30,
+      "n": 54,
+      "note": "English Wikipedia pageviews of Bitcoin that UTC day, above their own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 60.627,
+      "passes_screen": false,
+      "total_pnl_usd": 2.278
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "wiki": "a04694617b88367e04d62fb02fee38fea89504f43a608d11578a3b11b0d1b4c1"
+  },
+  "passed": [],
+  "protocol_sha256": "f13b4d93337d1c7706fd646d3dad28bf6e269efa8d24bf68dccc518dc7248296"
+}

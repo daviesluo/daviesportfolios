@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp135_common": "1ccec383a2880b0bac7c287d62f7d95540cb5fdbf2f7ca15193ead7be8e8d781",
+    "fp135_measure": "642f0bbab62199e1ff5f5d507a86353b81b9d62707078df4deb529f3544f194a",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CONFR",
+      "mean_gross_bps": -1.8146,
+      "mean_net_bps": -21.791,
+      "min_n": 30,
+      "n": 31,
+      "note": "Median confirmation time divided by the average, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 71.8264,
+      "passes_screen": false,
+      "total_pnl_usd": -6.7552
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "confirm_both": "1ed8ac1145f00718e544e2c4a34371a3f55017760383640658947730ceab03cd"
+  },
+  "passed": [],
+  "protocol_sha256": "46f50a78800ff2bb3afca9320c780091ca7316a00aa5f8d77495b0d73cce2f6b"
+}

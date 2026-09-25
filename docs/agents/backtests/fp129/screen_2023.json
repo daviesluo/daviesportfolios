@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp129_common": "eb64c0f0922dd0584857b150fa53e6812c185211ee515d92ab19dc4768825932",
+    "fp129_measure": "d4100aee7d282ce5cc367e1c9322cb9258481bff8d774a9e62ab0f25f4cb9d39",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BLKSZ",
+      "mean_gross_bps": 70.4752,
+      "mean_net_bps": 50.3544,
+      "min_n": 30,
+      "n": 47,
+      "note": "Average block size of the UTC day, in megabytes, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 66.6563,
+      "passes_screen": false,
+      "total_pnl_usd": 23.6665
+    }
+  ],
+  "input_sha256": {
+    "block_size": "7c2536aa1ced799ca67d568490c2a573d9c183cc43ce0c94d56d6e9863a1bcc2",
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b"
+  },
+  "passed": [],
+  "protocol_sha256": "b2882c4b25812d28956bf535c5ec4a91cee69990cf8d05b04ae175f536e3b176"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp130_common": "5269d807f8fa7280b63f4b6b5edd3bb80603f469f1d6d18c93fc7da5320fc076",
+    "fp130_measure": "1b4960b6bdb6c256120505985632afd5519a71820dc34f7df90c58108429590d",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MEDCONF",
+      "mean_gross_bps": 26.6411,
+      "mean_net_bps": 6.6079,
+      "min_n": 30,
+      "n": 48,
+      "note": "Median confirmation time of the UTC day, in minutes, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 60.9592,
+      "passes_screen": false,
+      "total_pnl_usd": 3.1718
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "median_conf": "f5fa205a9b44b9d4fa5fa04269056a57bb3fee89c7702b17caf4823011dd97ee"
+  },
+  "passed": [],
+  "protocol_sha256": "b63669994718c61cdde9efb7f581a2dcb0e736fdec03181848e41fcf5e8333c1"
+}

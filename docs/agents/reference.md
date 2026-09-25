@@ -4345,6 +4345,89 @@ The mean was positive and under the null. 457 prints, from 2022-10-01
 through 2023-12-31, with no missing day. The day's maximum was not scored.
 Mempool transaction count was not read.
 
+### 3.157 Last unspent-output count: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp128-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp128/screen_2023.json`, sha256
+`ba9be1a1…`). The last unspent-output count of the UTC day, long BTC for one
+day: 264 trades, mean −2.5299 bps, null p95 +19.5105 bps, −$6.6789. The
+file's gross is +17.4851 bps. 265 signal days; the 2023-12-31 print would
+enter on 2024-01-01 and is outside the screen. 457 prints, 2022-10-01
+through 2023-12-31, no missing day. **Nothing here is fit to add.** The
+count cleared; the mean was negative and under the null. The day's range
+was not this statistic.
+
+### 3.158 Average block size: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp129-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp129/screen_2023.json`, sha256
+`6b291229…`). Average block size that UTC day, in megabytes, long BTC for
+one day: 47 trades, mean +50.3544 bps, null p95 +66.6563 bps, +$23.6665.
+The file's gross is +70.4752 bps. 47 signal days, 47 trades. **Nothing here
+is fit to add.** The mean was positive and under the null. Hash rate and
+the block count were not read.
+
+### 3.159 Median confirmation time: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp130-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp130/screen_2023.json`, sha256
+`659c05ad…`). Median confirmation time that UTC day, in minutes, long BTC
+for one day: 48 trades, mean +6.6079 bps, null p95 +60.9592 bps, +$3.1718.
+The file's gross is +26.6411 bps. **Nothing here is fit to add.** The mean
+was positive and under the null. The average, and the ratio of the two,
+were not this statistic. Mempool size was not read.
+
+### 3.160 Wikipedia pageviews: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp131-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp131/screen_2023.json`, sha256
+`b7f02cb9…`). English Wikipedia pageviews of Bitcoin that UTC day, long BTC
+for one day: 54 trades, mean +4.2185 bps, null p95 +60.627 bps, +$2.278.
+The file's gross is +24.247 bps. **Nothing here is fit to add.** The mean
+was positive and under the null. No other article was read. Fear and greed
+was not read.
+
+### 3.161 Blocks mined: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp132-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp132/screen_2023.json`, sha256
+`b9f9dcea…`). Blocks mined that UTC day, long BTC for one day: 39 trades,
+mean −4.5938 bps, null p95 +66.261 bps, −$1.7916. The file's gross is
++15.417 bps. **Nothing here is fit to add.** The mean was negative and
+under the null. Hash rate, difficulty, and issuance were not read.
+
+### 3.162 On-chain output volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp133-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp133/screen_2023.json`, sha256
+`7da02b02…`). On-chain output volume that UTC day, in BTC, long BTC for one
+day: 33 trades, mean +46.763 bps, null p95 +74.7946 bps, +$15.4318. The
+file's gross is +66.8766 bps. **Nothing here is fit to add.** The mean was
+positive and under the null. Estimated transaction volume, Binance volume,
+and exchange net flow were not read.
+
+### 3.163 Intraday range of the unspent-output count: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp134-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp134/screen_2023.json`, sha256
+`6fcd2548…`). The day's maximum unspent-output count minus the minimum,
+long BTC for one day: 75 trades, mean −1.3739 bps, null p95 +50.8989 bps,
+−$1.0305. The file's gross is +18.6433 bps. 76 signal days; the 2023-12-31
+print would enter on 2024-01-01 and is outside the screen. The raw samples
+match the UTXO download; the statistic does not. **Nothing here is fit to
+add.** The mean was negative and under the null. The last sample was not
+scored.
+
+### 3.164 Median confirmation over the average: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp135-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp135/screen_2023.json`, sha256
+`19222a5b…`). Median confirmation time divided by the average, long BTC for
+one day: 31 trades, mean −21.791 bps, null p95 +71.8264 bps, −$6.7552. The
+file's gross is −1.8146 bps. **Nothing here is fit to add.** Thirty-one
+trades clear 30, and the mean was negative and under the null. Neither
+level was scored. The reciprocal was not scored.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp132_common": "13496875933fc59617e1bce13b36109d7ec5f726134eb9042a7d89000e67a3d0",
+    "fp132_measure": "1555164a7dc928615ce4107539fdb6cea20c09b053cd6115f587f6817f96d77b",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BLKCNT",
+      "mean_gross_bps": 15.417,
+      "mean_net_bps": -4.5938,
+      "min_n": 30,
+      "n": 39,
+      "note": "Blocks mined that UTC day, above their own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 66.261,
+      "passes_screen": false,
+      "total_pnl_usd": -1.7916
+    }
+  ],
+  "input_sha256": {
+    "block_count": "b577ff31d0ebdbebc1143011db51abc5a2ce962f158c7ae941507847d278912e",
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b"
+  },
+  "passed": [],
+  "protocol_sha256": "ab3290722198e6d7effafb2bfd617bd0466b574d0f450bd02d2770d3ace31cb0"
+}

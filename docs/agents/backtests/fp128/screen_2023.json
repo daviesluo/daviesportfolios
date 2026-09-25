@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp128_common": "891dabceb418488664eb4f1aedfe6fc98f370ab038ab609844574cdc675c12f3",
+    "fp128_measure": "67fb940b5c7fb55efce5a738d55e0f84cb0b1b3ef6d296267aabf1753e241cd5",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UTXO",
+      "mean_gross_bps": 17.4851,
+      "mean_net_bps": -2.5299,
+      "min_n": 30,
+      "n": 264,
+      "note": "Last unspent-output count of the UTC day, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 19.5105,
+      "passes_screen": false,
+      "total_pnl_usd": -6.6789
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "utxo": "e1274e5e70f0d0b298ecb0b9336abae305042125cc1d9fa3975c143600cb5a9f"
+  },
+  "passed": [],
+  "protocol_sha256": "53608b037743b785f22ab390649069f6cdc2ed9338b6a0760181f6ea8bf4c530"
+}

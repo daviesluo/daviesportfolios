@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp128–fp135 are protocols only. No return has been computed.** Eight different signals, each a published series with a print on every UTC day from 2022-10-01 through 2023-12-31, each long BTC for one day: the last unspent-output count (UTXO), average block size (BLKSZ), median confirmation time (MEDCONF), English Wikipedia pageviews of Bitcoin (WIKI), blocks mined (BLKCNT), on-chain output volume in BTC (OUTBTC), the intraday range of the unspent-output count (UTXORNG), and median confirmation time over the average (CONFR). The frozen 90-day, 90-print rule therefore has a full year of days that can fire. Pins printed fp128 through fp135 pins ok. The option archive and the mempool chart are not read. No sign is flipped. The count stays 30. The window is not shrunk. No later year is in the request. No testing row. No pull request. Main was not pushed.
+**fp128–fp135 are scored. Nothing passes the house bar.** Eight different signals, each with a print every day from 2022-10-01 through 2023-12-31, each with fills, each under its own null. No later year was read. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:03 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp128–fp135 are scored. Nothing passes the house bar.** Protocol was `a0e6d12`, pushed before any of these returns. Each screen file was written twice and the copies matched. These are eight different signals, each long BTC for one day, each with 457 prints from 2022-10-01 through 2023-12-31 and no missing day. UTXO 264 / file gross +17.4851 / file mean −2.5299 / null +19.5105 / −$6.6789 (`ba9be1a1…`). BLKSZ 47 / file gross +70.4752 / file mean +50.3544 / null +66.6563 / +$23.6665 (`6b291229…`). MEDCONF 48 / file gross +26.6411 / file mean +6.6079 / null +60.9592 / +$3.1718 (`659c05ad…`). WIKI 54 / file gross +24.247 / file mean +4.2185 / null +60.627 / +$2.278 (`b7f02cb9…`). BLKCNT 39 / file gross +15.417 / file mean −4.5938 / null +66.261 / −$1.7916 (`b9f9dcea…`). OUTBTC 33 / file gross +66.8766 / file mean +46.763 / null +74.7946 / +$15.4318 (`7da02b02…`). UTXORNG 75 / file gross +18.6433 / file mean −1.3739 / null +50.8989 / −$1.0305 (`6fcd2548…`). CONFR 31 / file gross −1.8146 / file mean −21.791 / null +71.8264 / −$6.7552 (`19222a5b…`). Every counted rule has fills and clears 30. UTXO had 265 signal days and UTXORNG had 76; the 2023-12-31 print would enter on 2024-01-01, outside the screen. BLKSZ, MEDCONF, WIKI and OUTBTC are positive and under their own null. UTXO, BLKCNT, UTXORNG and CONFR have a negative mean. The null is BTC's own one-day holds. Reference §3.157–§3.164. No sign was flipped. No count was lowered. The window was not shrunk. No option file was read. No mempool chart was read. No funding print was read. No hourly price bar was read. No alt quote was read. No metrics file was read. fp119–fp127 stay closed. No later year was read. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:01 UTC] Platform: Cursor | Model: Grok 4.7
 
