@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:12 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Average trade size and bid depth stay killed. `docs/agents/scripts/fp5/mix_rule.txt` and `split_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass9.json`. A jump in BTC spot quote volume relative to the perpetual, long the next day in 2021, is −619 bps over 64 trips, and the BTC book is negative. A wide BTC–ETH daily-return disagreement, long the next day in 2022, is −3,719 bps over 51 trips, both books negative. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:08 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Monday and the open-interest drop stay killed. The open-interest rule that cleared its candle arithmetic is not promoted. `docs/agents/scripts/fp5/trade_rule.txt` and `depth_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass8.json`. BTC spot average trade size in its trailing top quintile, long the next day in 2023, is +3,781 bps and still fails: 35 trips. BTC perpetual bid depth over ask depth at the 1% band, in its trailing top quintile, long the next day in 2024, is −3,958 bps over 65 trips, both books negative. Neither sign is flipped. `reached_preregistration` stays false.

@@ -1,0 +1,27 @@
+Family: long the next day when BTC spot quote volume jumped relative to the perpetual.
+Frozen 2026-09-25 02:11:12 UTC, before any spot-to-perp volume ratio or next-day return of this rule was computed.
+Not the volume-spike test (that was total volume, and whether that day's price move continued).
+Not average trade size (quote volume divided by the trade count, and that rule was killed).
+Not the futures taker buy/sell ratio.
+The series is the day-over-day change in spot quote volume divided by perpetual quote volume.
+
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by BTCUSDT volumes.
+Spot quote volume is field 8 (1-based) of the Binance spot daily kline, BTCUSDT.
+Perpetual quote volume is field 8 of the Binance USD-M futures daily kline, BTCUSDT.
+The day's ratio is spot quote volume divided by perpetual quote volume. A ratio is missing unless both are positive.
+The day's change is that ratio over the previous calendar day's ratio, minus one.
+A change is missing unless both ratios exist and the previous ratio is positive.
+Sort the previous 90 printed changes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC day when date D's change is strictly above that threshold. Otherwise flat.
+Execution days are 2021-01-01 through 2021-12-31 whose previous calendar day has a change and 90 earlier changes.
+The public futures daily kline archive for BTCUSDT starts 2020-01, which is why the screen is 2021: it is the first year whose January can have 90 earlier changes. Do not move the screen into 2020.
+Prices are Binance spot daily closes (BTCUSDT, ETHUSDT). The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2021. No other year is scored. If field 8 is absent, record the gap and do not pick another field.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a falling spot share. Do not change the quintile. Do not add 2022.

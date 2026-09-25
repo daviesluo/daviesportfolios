@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "btc_eth_divergence_2022": {
+      "btc_bps": -3788.1,
+      "candle_bar_clear": false,
+      "eth_bps": -3650.7,
+      "execution_days": 365,
+      "long_days": 72,
+      "month_share": null,
+      "name": "btc_eth_divergence_2022",
+      "null_p50_bps": -3944.1,
+      "null_p95_bps": 721.5,
+      "pool_bps": -3719.4,
+      "stress_bps": -5759.4,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 51,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    },
+    "spot_perp_volume_jump_2021": {
+      "btc_bps": -1933.8,
+      "candle_bar_clear": false,
+      "eth_bps": 695.3,
+      "execution_days": 365,
+      "long_days": 71,
+      "month_share": null,
+      "name": "spot_perp_volume_jump_2021",
+      "null_p50_bps": 986.0,
+      "null_p95_bps": 6350.3,
+      "pool_bps": -619.2,
+      "stress_bps": -3179.2,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 64,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "mix_rule_sha256": "da6fdaa337fa174f7f26131064fad2d81f69b4e36df85537ebdf29fb9d8b9df8",
+    "split_rule_sha256": "821f5cdb732a79b7f8f7a37dc274d3bcf1d7c8d7c180d39cb7d237d8eef7697e"
+  }
+}

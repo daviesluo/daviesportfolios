@@ -2741,6 +2741,8 @@ Still later, still with `reached_preregistration` false (`screen_pass7.py`, `bac
 
 Still later, still with `reached_preregistration` false (`screen_pass8.py`, `backtests/fp5/summary_pass8.json`): BTC spot average trade size in its trailing top quintile, long the next day in 2023, is +3,781 bps and still fails, because 107 long days are 35 trips. BTC perpetual bid-over-ask depth at the 1% band, in its trailing top quintile, long the next day in 2024, is −3,958 bps over 65 trips, both books negative. Neither sign is flipped.
 
+Still later, still with `reached_preregistration` false (`screen_pass9.py`, `backtests/fp5/summary_pass9.json`): a jump in BTC spot quote volume relative to the perpetual, long the next day in 2021, is −619 bps over 64 trips, and the BTC book is negative. A wide BTC–ETH return disagreement, long the next day in 2022, is −3,719 bps over 51 trips, both books negative. Neither sign is flipped.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
