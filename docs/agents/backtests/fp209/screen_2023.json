@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp209_common": "e81bfa89c90c8deaa5e02043fc47778fedc651873744b234c98646b51bd0a951",
+    "fp209_measure": "d463019244c7a950ad13e16c6ad52e9c6b8a4ff876365baa5df58ea33efdfe57",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "SVW",
+      "mean_gross_bps": 5.3688,
+      "mean_net_bps": -34.602,
+      "min_n": 30,
+      "n": 187,
+      "note": "Spot and the USDT perpetual disagree on close over that session's average, and the gap widened. Next session, long the lower score and short the higher. Funding cash is not added. The null is that spread on every day the scores differ.",
+      "null_p95_bps": -33.2198,
+      "passes_screen": false,
+      "total_pnl_usd": -64.7057
+    }
+  ],
+  "input_sha256": {
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "spotsig": "2a8a220764fd0d5085ed278eb6e341bc358c134fc49822363b70468c323f6096",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c",
+    "umsig": "b4e68b152d7cff52d7ca9ef07c6ea2e20139e16661b255c799acbbb225430f35"
+  },
+  "passed": [],
+  "protocol_sha256": "be186e847beb1ad299c2618440cc195ffba1109d78baba36acdfcfe3f5a57ec2"
+}

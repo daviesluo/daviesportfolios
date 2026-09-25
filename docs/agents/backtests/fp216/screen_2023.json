@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp216_common": "4682b67c7dcf7975fe90ee49ffa2eed89913e1b673a8e2159fbca14730702e9c",
+    "fp216_measure": "c45912d27bdcd2b674edd7f09180480a18ade961e4c9853f20dd695687317e49",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "SCM",
+      "mean_gross_bps": 6.0315,
+      "mean_net_bps": -33.9406,
+      "min_n": 30,
+      "n": 143,
+      "note": "Spot's residual to the mark and the coin-margined residual have opposite signs. Next session, long the more negative residual and short the more positive. Funding cash is not added. The null is that spread on every day the residuals differ.",
+      "null_p95_bps": -33.1383,
+      "passes_screen": false,
+      "total_pnl_usd": -48.535
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "cmsig": "750a912440c7ec53761bd574e06384fafaeca3f61ac8b74c94a6e51283ed1963",
+    "mark": "5cb720e9f11e740cda3db3b482cc195675cddbc11d81e00f3699af73f495bf8d",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "spotsig": "9eed7570a69a7405208324fd1a214420f936403b5395693109a2b6c1f94d4d11"
+  },
+  "passed": [],
+  "protocol_sha256": "3abe40d86b2ce51d5136dd6280cbb708202630d6b7c0dff30152370b50f3e10f"
+}

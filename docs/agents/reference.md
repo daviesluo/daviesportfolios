@@ -5362,6 +5362,129 @@ rule was not changed. This is not the mark return set against the index
 return. The hold is one close to the next close. The coin-margined close
 on 2024-01-01 is an exit only.
 
+### 3.238 Spot and USDT close-over-average diverged, then a session spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp209-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp209/screen_2023.json`,
+sha256 `b02a297c…`). Spot's close over its session average and the USDT
+perpetual's close over its own average differ, and the gap widened. The next
+session is long the lower score and short the higher score: 187 trades, mean
+−34.602 bps, null p95 −33.2198 bps, −$64.7057. The file's gross is +5.3688
+bps. **Nothing here is fit to add.** The count cleared and the mean was
+negative and under the null. Each fill is long one contract and short the
+other. The null is that spread on every day the scores differ, not an
+unconditional long and not an unconditional short. Funding cash is not added.
+A count taken before the freeze, with no profit computed, was 187. The scored
+book is 187. The rule was not changed.
+
+### 3.239 USDT and coin-margined returns diverged, then a session spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp210-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp210/screen_2023.json`,
+sha256 `cf5f0a52…`). The USDT close/open and the coin-margined close/open
+differ, and the gap widened. The next session is long the lower return and
+short the higher return: 190 trades, mean −33.9928 bps, null p95 −33.1814
+bps, −$64.5864. The file's gross is +5.9791 bps. **Nothing here is fit to
+add.** The count cleared and the mean was negative and under the null. Each
+fill is long one contract and short the other. The null is that spread on
+every day the returns differ, not an unconditional long and not an
+unconditional short. Funding cash is not added. A count taken before the
+freeze, with no profit computed, was 190. The scored book is 190. The rule
+was not changed.
+
+### 3.240 The 16:00 funding rates diverged, then an open-to-open spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp211-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp211/screen_2023.json`,
+sha256 `7405bfb4…`). The USDT 16:00 funding rate and the coin-margined 16:00
+rate differ, and the gap widened. The next open is long the lower rate and
+short the higher rate, and both cover at the following open: 134 trades, mean
+−35.3896 bps, null p95 −33.7423 bps, −$47.422. The file's gross is +4.5796
+bps. **Nothing here is fit to add.** The count cleared and the mean was
+negative and under the null. Each fill is long one contract and short the
+other. Funding cash is not added. The null is that spread on every day the
+rates differ, not an unconditional long and not an unconditional short. Only
+the 16:00 print is stored. A missing coin-margined day was not filled in. A
+count taken before the freeze, with no profit computed, was 134. The scored
+book is 134. The rule was not changed.
+
+### 3.241 The front quarterly outran the perpetual, then a session spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp212-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp212/screen_2023.json`,
+sha256 `5ee7ffa5…`). The entry day's front coin-margined quarterly close/open
+finished strictly above the perpetual's. The next session is long the
+perpetual and short that same quarterly: 173 trades, mean −30.9058 bps, null
+p95 −32.3339 bps, −$53.467. The file's gross is +9.0724 bps. **Nothing here
+is fit to add.** The count cleared. The mean was negative, so it does not
+pass. The mean is above that null. Each fill is long one contract and short
+the other. The null is that spread on every day both session bars exist, not
+an unconditional long and not an unconditional short. Funding cash is not
+added. The signal bar and the fill are the same contract, the front quarterly
+of the entry day. A count taken before the freeze, with no profit computed,
+was 173. The scored book is 173. The rule was not changed.
+
+### 3.242 Funding changes had opposite signs, then a session spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp213-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp213/screen_2023.json`,
+sha256 `2921e58d…`). The USDT and coin-margined 16:00 funding changes have
+opposite signs. The next session is long the book whose rate fell and short
+the book whose rate rose: 47 trades, mean −32.89 bps, null p95 −31.8763 bps,
+−$15.4583. The file's gross is +7.0842 bps. **Nothing here is fit to add.**
+The count cleared and the mean was negative and under the null. Each fill is
+long one contract and short the other. Funding cash is not added. The null
+keeps the same choice of legs on every day the changes differ, not an
+unconditional long and not an unconditional short. A count taken before the
+freeze, with no profit computed, was 47. The scored book is 47. The rule was
+not changed.
+
+### 3.243 Spot and USDT mark residuals had opposite signs, then a close-to-close spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp214-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp214/screen_2023.json`,
+sha256 `87201cf9…`). Spot's residual to the mark and the USDT residual have
+opposite signs. The next close is long the more negative residual and short
+the more positive one, and both cover at the following close: 184 trades,
+mean −34.9152 bps, null p95 −33.4673 bps, −$64.244. The file's gross is
++5.0549 bps. **Nothing here is fit to add.** The count cleared and the mean
+was negative and under the null. Each fill is long one contract and short the
+other. The null is that spread on every day the residuals differ, not an
+unconditional long and not an unconditional short. Funding cash is not added.
+The signal close is an input, so the fill is the next close. A count taken
+before the freeze, with no profit computed, was 184, counting the 2024-01-01
+close as an exit. The scored book is 184. The rule was not changed.
+
+### 3.244 USDT and coin-margined closes diverged, then a close-to-close spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp215-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp215/screen_2023.json`,
+sha256 `adfd15ed…`). The USDT close and the coin-margined close differ, and
+the gap widened. The next close is long the lower close and short the higher
+close, and both cover at the following close: 176 trades, mean −34.3307 bps,
+null p95 −33.2381 bps, −$60.4221. The file's gross is +5.6406 bps. **Nothing
+here is fit to add.** The count cleared and the mean was negative and under
+the null. Each fill is long one contract and short the other. The level
+chooses the two legs. It is not a spot long. The null is that spread on every
+day the closes differ, not an unconditional long and not an unconditional
+short. Funding cash is not added. A count taken before the freeze, with no
+profit computed, was 176. The scored book is 176. The rule was not changed.
+
+### 3.245 Spot and coin-margined mark residuals had opposite signs, then a session spread: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp216-protocol.md`) was committed before any
+return (`59e8e3c`). Two runs matched (`backtests/fp216/screen_2023.json`,
+sha256 `5b0bfe00…`). Spot's residual to the mark and the coin-margined
+residual have opposite signs. The next session is long the more negative
+residual and short the more positive one: 143 trades, mean −33.9406 bps, null
+p95 −33.1383 bps, −$48.535. The file's gross is +6.0315 bps. **Nothing here
+is fit to add.** The count cleared and the mean was negative and under the
+null. Each fill is long one contract and short the other. The null is that
+spread on every day the residuals differ, not an unconditional long and not
+an unconditional short. Funding cash is not added. A day with no
+coin-margined bar was not filled in. A count taken before the freeze, with no
+profit computed, was 143. The scored book is 143. The rule was not changed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

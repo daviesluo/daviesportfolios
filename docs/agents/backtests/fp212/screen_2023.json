@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp212_common": "e225ef195457242e118e36fa3ee30ce19ec3697bd848099335ef921b296f0ce2",
+    "fp212_measure": "1b262c01fa7ab046cb4ca704aeccd53961c194690f1e30a325f523b868b904e8",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CAL",
+      "mean_gross_bps": 9.0724,
+      "mean_net_bps": -30.9058,
+      "min_n": 30,
+      "n": 173,
+      "note": "The entry day's front coin-margined quarterly close/open finished strictly above the perpetual's. Next session, long the perpetual and short that quarterly. Funding cash is not added. The null is that spread on every day both bars exist.",
+      "null_p95_bps": -32.3339,
+      "passes_screen": false,
+      "total_pnl_usd": -53.467
+    }
+  ],
+  "input_sha256": {
+    "BTCUSD_230331": "c5ec6271d8f751b39002d31c8e92d33d7f46fd8b1080a786f74dbb17e067918b",
+    "BTCUSD_230630": "a52ee53fce29c932ff1eea7ec8e7ca43e439051310b1725cbc4f3ead0575ce2c",
+    "BTCUSD_230929": "766ced996d71d9f7c635d9886694ede5abd31b2bd5c6031db560979977ad14b8",
+    "BTCUSD_231229": "05b079614efafa52d7115b26e342e16ff13339ef212a1d87b293b33d69e85d8d",
+    "BTCUSD_240329": "2ad59cf78b998fd058e865cc2d10697c2807e3a7fb849c0f2db620acde659825",
+    "perp": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "perpsig": "750a912440c7ec53761bd574e06384fafaeca3f61ac8b74c94a6e51283ed1963"
+  },
+  "passed": [],
+  "protocol_sha256": "93c1129f8285e0445bef2574095599d977daf6b25d29345219332c258709b145"
+}

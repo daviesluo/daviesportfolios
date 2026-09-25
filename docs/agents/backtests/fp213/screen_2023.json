@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp213_common": "172fba77b99a20db327be63f483913e38d7f02a7aa473d88756d56d2e462e68c",
+    "fp213_measure": "2e403ec30e1ce65696cfa27c7b273665806d211092a70e4c2a2cff1ef4916a85",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FCH",
+      "mean_gross_bps": 7.0842,
+      "mean_net_bps": -32.89,
+      "min_n": 30,
+      "n": 47,
+      "note": "The USDT and coin-margined 16:00 funding changes have opposite signs. Next session, long the book whose rate fell and short the book whose rate rose. Funding cash is not added. The null is that spread on every day the changes differ.",
+      "null_p95_bps": -31.8763,
+      "passes_screen": false,
+      "total_pnl_usd": -15.4583
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "cm_funding": "824bbdecb5cfd59c0e1989d6eaecbddaea17702a7b38c9921e6d055de4b4c168",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c",
+    "um_funding": "e1c48c010f5f77e9f90a14dbf91dae7f1f0260242237c40684cdde6a46e7b1c8"
+  },
+  "passed": [],
+  "protocol_sha256": "c189a33109b16c16420ff4744d84297fe62720a7f304c47c34e311f5bfeec26c"
+}

@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp211_common": "ab2c0503507042128e73ff7b23697a9fd2fc4e0c1597036b7a5563f6d4f0231a",
+    "fp211_measure": "ada0cef4e6809033d73f86df83b8b3354fe951467a35d1cef80f8ab0de0dd2a0",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FND",
+      "mean_gross_bps": 4.5796,
+      "mean_net_bps": -35.3896,
+      "min_n": 30,
+      "n": 134,
+      "note": "The USDT 16:00 funding rate and the coin-margined 16:00 rate differ, and the gap widened. Next open to the following open, long the lower rate and short the higher. Funding cash is not added. The null is that spread on every day the rates differ.",
+      "null_p95_bps": -33.7423,
+      "passes_screen": false,
+      "total_pnl_usd": -47.422
+    }
+  ],
+  "input_sha256": {
+    "cm": "626a54407d222563367d61cb094219971c8ce114f0f3768e10e0600436e460c7",
+    "cm_funding": "824bbdecb5cfd59c0e1989d6eaecbddaea17702a7b38c9921e6d055de4b4c168",
+    "um": "3570ff4f90a7b259966b1929a9c33183da3240aa3d5802cc2b61cca9567d5580",
+    "um_funding": "e1c48c010f5f77e9f90a14dbf91dae7f1f0260242237c40684cdde6a46e7b1c8"
+  },
+  "passed": [],
+  "protocol_sha256": "a11dbd712ee126b49ee5b47adfb6222aaf4f9356ddfc3f75d338ae9043971132"
+}
