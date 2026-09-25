@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp62–fp70 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. AFTER-HIGH was scored and has no fill, so it does not count, and the 90-print window was not widened. No later year was pulled. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp61 stay closed, including this round's named ideas. No testing row. No pull request. Main was not pushed.
+**fp71–fp78 protocols only. No return of these rules has been computed.** Eight screens frozen together: the open inside today's range, the return of the low's hour, the quote share before the high, the return from hour 0 to hour 6, crosses of today's open, the widest hour over the day's range, the day's VWAP over the open, and the lowest hourly close over the open. Pins passed on synthetic bars. The close does not enter the open's location. The high is not stored for the low's hour, and a low in hour 23 is still a print. Hours after 6 do not enter the morning return. Yesterday's close does not enter the crosses of today's open. The sum of hourly ranges does not enter the widest hour. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp70, and the previous round's eight named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 04:40 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp71–fp78 protocols only. No return of these rules has been computed.** Eight screens frozen together: the open inside today's range, the return of the low's hour, the quote share before the high, the return from hour 0 to hour 6, crosses of today's open, the widest hour over the day's range, the day's VWAP over the open, and the lowest hourly close over the open. Pins passed on synthetic bars. The close does not enter the open's location. The high is not stored for the low's hour, and a low in hour 23 is still a print. Hours after 6 do not enter the morning return. Yesterday's close does not enter the crosses of today's open. The sum of hourly ranges does not enter the widest hour. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp70, and the previous round's eight named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 04:32 UTC] Platform: Cursor | Model: Grok 4.7
 
