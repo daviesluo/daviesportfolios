@@ -8,21 +8,19 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp28 out of sample failed. IMPACT is dead.** The population correlation,
-inside one UTC day, of hourly quote volume and the absolute hourly move,
-above its own trailing 90th, long BTC the next day: 2023 passed (37 trades,
-+86.59 bps against a null of +74.56, +$32.04) and the later years do not
-(§3.57). 113 trades, −$22.6606 against a null of +$0.2644. Both later
-windows are negative. Do not score a day whose volume and moves do not line
-up, and do not promote the 80th or the 95th. BAL-CHG stays dead (§3.56).
+**fp29 protocol is written and not scored.** PEAK is today's close divided
+by the highest close in the prior 30 days, minus 1, above its own trailing
+90th, long BTC the next day. IMPACT stays dead, including the later years
+(§3.57). Do not promote its 80th or its 95th. BAL-CHG stays dead (§3.56).
 Do not score a day the count did not rise, do not score its 80th, and do
 not score the level of `AdrBalCnt`. BODY stays dead, including the later
-years (§3.55). Do not promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH,
-the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
-PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
-share, dispersion, or skew. fp5 through fp28 stay closed, including
-LS-FADE. The next rule is not written. No testing row. No pull request.
-No push to main.
+years (§3.55). Do not promote its 80th. Do not score a close under the prior
+30-day high, and do not score the 80th. The count of trades stays 30. Do
+not reopen EXCH-BAL, FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI,
+VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
+quiet-day range, the taker share, dispersion, or skew. fp5 through fp28 stay
+closed, including LS-FADE. The screen is the next step. No testing row. No
+pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -845,6 +843,21 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:00 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp29 protocol only. No return has been computed.** A different family from
+the twenty-four closed rounds: today's close divided by the highest close of
+the prior 30 days, minus 1, long BTC the next day. This is not the 30-day
+return, and it does not read the candle high. IMPACT stays closed, including
+the later years, and its 80th and 95th are not candidates. BAL-CHG stays
+closed. Its 80th is not a candidate, and the level of the address count is
+not a candidate. BODY stays closed, including the later years, and its 80th
+neighbor is not a candidate. EXCH-BAL, FEE-HIGH, UP-SHARE, VOL-HHI,
+VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
+quiet-day range, the taker share, dispersion and skew stay closed. A close
+under the prior high is not a candidate. `pin_test.py` passed before this
+commit. The screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:55 UTC] Platform: Cursor | Model: Grok 4.7
 
