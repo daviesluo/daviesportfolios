@@ -7046,6 +7046,92 @@ DBCHP clears the three bars, and it clears the edge-off trade by 1.0902 bps.
 That gap stays inside 2023. This is not a testing row and it is not taken
 out of sample.
 
+### 3.351 Eight new public fair values are frozen, with no return (2026-09-25)
+
+Davies, 2026-09-25: the Coinbase and Deribit round is recorded. DBCHP stays
+inside 2023. The next rules do not slice one Coinbase or Deribit premium into
+a cheap side, a rich side and a wider basis. Each rule uses a different
+public dataset, and only one side of that premium. A book ticker is not read.
+The fill is the daily open of the contract being traded. Fair value is not
+Binance spot, the coin-margined book or the USDT book used as each other's
+external data. A close is used only when its bucket has already ended, and
+only when that end is strictly earlier than the Binance entry open. A print
+that was not yet published at the decision is not used.
+
+The threshold on each rule is the smallest of zero, five and ten basis points
+at which the edge-off set is at least as long as the rule. Where the cheap
+set was longer at all three lines, the rule is the strict premium. That
+choice is from span counts. No profit has been computed.
+
+Kraken's public OHLC request did not return 2023. Bybit returned HTTP 403.
+MEXC, Bitget spot, Crypto.com, Poloniex and CoinEx did not return the 2023
+window. Those sources were replaced. Bitget's USDT-futures history did return
+late-2022 bars. WhiteBIT is the eighth source.
+
+Bitstamp `GET /api/v2/ohlc/btcusd/` with `step=86400`
+(`https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=86400`; the public page is
+`https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData`). Each
+bucket starts at 00:00 UTC. The close is published when the bucket ends.
+
+Bitfinex `GET /v2/candles/trade:1D:tBTCUSD/hist`
+(`https://api-pub.bitfinex.com/v2/candles/trade:1D:tBTCUSD/hist`; the public
+page is `https://docs.bitfinex.com/reference/rest-public-candles`). Each
+candle starts at 00:00 UTC. The row is `[MTS, OPEN, CLOSE, HIGH, LOW, VOLUME]`.
+The close is published when the candle ends.
+
+BitMEX `GET /api/v1/trade/bucketed` for `XBTUSD` with `binSize=1d` and
+`partial=false`
+(`https://www.bitmex.com/api/v1/trade/bucketed?binSize=1d&partial=false&symbol=XBTUSD`;
+the public page is
+`https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed`). Each bucket
+starts at 00:00 UTC. `partial=false` returns closed buckets only. This is not
+the Binance coin-margined book.
+
+OKX `GET /api/v5/market/history-candles` for spot `BTC-USDT` with `bar=1Dutc`
+(`https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1Dutc`;
+the public page is
+`https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history`).
+Each candle starts at 00:00 UTC. Only `confirm` 1 is stored. This is not a
+Binance book and it is not the OKX swap.
+
+Gate.io `GET /api/v4/spot/candlesticks` for `BTC_USDT` with `interval=1d`
+(`https://api.gateio.ws/api/v4/spot/candlesticks?currency_pair=BTC_USDT&interval=1d`;
+the public page is
+`https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks`). Each
+window starts at 00:00 UTC. Only `window_closed` true is stored. The close is
+the third field and the open is the sixth.
+
+KuCoin `GET /api/v1/market/candles` for `BTC-USDT` with `type=1day`
+(`https://api.kucoin.com/api/v1/market/candles?type=1day&symbol=BTC-USDT`;
+the public page is
+`https://www.kucoin.com/docs/rest/spot-trading/market-data/get-klines`). Each
+candle starts at 00:00 UTC. The row is `[time, open, close, high, low, volume, turnover]`.
+
+HTX `GET /market/history/kline` for `btcusdt` with `period=1day`
+(`https://api.huobi.pro/market/history/kline?symbol=btcusdt&period=1day&size=2000`;
+the public page is
+`https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles`). Every
+stored candle starts at 16:00 UTC. The close is published at the next 16:00
+UTC. A Binance midnight entry does not use the candle that ends at 16:00 UTC
+on that same calendar day.
+
+WhiteBIT `GET /api/v1/public/kline` for `BTC_USDT` with `interval=1d`
+(`https://whitebit.com/api/v1/public/kline?market=BTC_USDT&interval=1d`; the
+public page is `https://docs.whitebit.com/public/kline/`). Each candle starts
+at 00:00 UTC. The row is `[time, open, close, high, low, volume, deal]`.
+
+The Binance coin-margined book is missing 2023-08-28 through 2023-08-31.
+Those days are not filled in. MEXCH and KUCCH trade that book.
+
+Counts, rule against edge-off, with no profit computed: BSTCH 174/183,
+BFXRH 163/191, MEXCH 157/193, OKXCH 176/176, GATCH 178/180, KUCCH 170/176,
+HTXCH 171/185, WBTCH 168/182. OKXCH's two sets are the same length, so the
+house p95 equals the edge-off mean. BFXRH is the strict Bitfinex premium
+because the cheap set was longer at zero, five and ten basis points. The
+protocols are `reviews/2026-09-25-fp305-protocol.md` through
+`reviews/2026-09-25-fp312-protocol.md`. No later-year return of these rules
+has been computed. No testing row is added.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
