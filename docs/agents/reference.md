@@ -2807,6 +2807,16 @@ above its own trailing 90th, long BTC for the next 8h: 117 trades, mean
 add.** The lower tails are not candidates, and a second coin is not the next
 version of the ETH bar.
 
+### 3.40 Perp book imbalance: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp11-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp11/screen_2023.json`). The perpetual's
+1% book, bid notional over ask notional, above its own trailing 90th, long
+spot for the next 8h: 119 trades, mean −8.1 bps, null p95 +5.4 bps. The depth
+files start on 2023-01-01, with one hole on 8–9 February. **Nothing here is
+fit to add.** The ask-heavy side is not a candidate, and the 5% level is not
+the next cut.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

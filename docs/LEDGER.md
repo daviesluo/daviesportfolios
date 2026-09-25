@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp11 protocol is written and not scored.** One rule, not the closed
-families: the perpetual's 1% book, bid-heavy versus its own history, long
-spot BTC for the next 8h. No return has been computed. fp5 through fp10 stay
-closed. No testing row. No pull request. No push to main.
+**fp11 failed the 2023 screen and is discarded** (§3.40). Do not score the
+ask-heavy side, and do not move the level from 1% to 5%. fp5 through fp10
+stay closed. The next search is not written. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,7 +835,16 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-### [2026-09-25 01:16 UTC] Platform: Cursor | Model: Grok 4.7
+### [2026-09-25 01:19 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp11 screen: nothing passes.** Protocol was `587d926`. The section below
+was stamped 01:16 and the commit landed at 01:17; that stamp is corrected.
+Two scores matched (`c513619f…`). DEPTH-BID 119 trades, −8.09 bps against a
+null of +5.36, −$9.63. Depth files start 2023-01-01, with a hole on 8–9
+February. Reference §3.40. The ask-heavy side and the 5% level are not
+candidates. No testing row. No pull request. Main was not pushed.
+
+### [2026-09-25 01:17 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp11 protocol only. No return has been computed.** A different family from
 the six closed rounds: resting bid depth on the BTC perpetual, one percent
