@@ -8,20 +8,32 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp29 screen failed. PEAK is dead.** Today's close divided by the highest
-close in the prior 30 days, minus 1, above its own trailing 90th, long BTC
-the next day: 48 trades, +18.22 bps against a null of +60.96, +$8.75
-(§3.58). The count cleared and the mean was positive; it lost to the null.
-Do not score a close under the prior 30-day high, and do not score the 80th.
-IMPACT stays dead, including the later years (§3.57). Do not promote its
-80th or its 95th. BAL-CHG stays dead (§3.56). Do not score a day the count
-did not rise, do not score its 80th, and do not score the level of
-`AdrBalCnt`. BODY stays dead, including the later years (§3.55). Do not
-promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow,
-UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
-AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
-skew. fp5 through fp29 stay closed, including LS-FADE. The next rule is not
-written. No testing row. No pull request. No push to main.
+**fp30–fp37 are frozen and not yet scored.** Eight screens, each long BTC
+the next day, fill fp5's `net_return`. Protocols
+`docs/agents/reviews/2026-09-25-fp30-protocol.md` through `fp37`, written
+before any return. TURN counts sign changes of the 24 hourly returns; a
+flat hour keeps the previous non-zero sign. RET-HHI is the Herfindahl of
+the absolute hourly returns. LATE-VOL is quote volume in hours 18–23 over
+hours 0–5, minus 1. LOW-LIFT is today's low over yesterday's low, minus 1.
+TRD-CHG is the rise in the trade count. OPEN-VWAP is today's open over
+yesterday's VWAP, minus 1, filled at the next open. OPEN-LOC is where
+today's open sits in yesterday's range, filled at the next open. REL is
+BTC's close-to-close return minus ETH's. Pins passed on synthetic bars.
+Score only after this protocol commit is on the remote: fetch, measure
+twice, compare the JSON files. A 2023 pass still needs a pre-registration
+before any 2024 price, and the other seven are still scored in the same
+round. Do not lower the count of 30. Do not flip a sign. Do not score an
+80th or a 95th on a failed screen. PEAK stays dead (§3.58): 48 trades,
++18.22 bps against a null of +60.96, +$8.75. Do not score a close under the
+prior 30-day high, and do not score its 80th. IMPACT stays dead, including
+the later years (§3.57). Do not promote its 80th or its 95th. BAL-CHG stays
+dead (§3.56). Do not score a day the count did not rise, do not score its
+80th, and do not score the level of `AdrBalCnt`. BODY stays dead, including
+the later years (§3.55). Do not promote its 80th. Do not reopen EXCH-BAL,
+FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP,
+CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
+taker share, dispersion, or skew. fp5 through fp29 stay closed, including
+LS-FADE. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -844,6 +856,22 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:14 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp30–fp37 protocols only. No return has been computed.** Eight screens
+frozen together, each a different input from the twenty-nine closed rounds:
+hourly sign changes, concentration of the hourly move, late quote volume
+versus early, today's low over yesterday's low, the rise in the trade
+count, the open versus yesterday's VWAP, the open inside yesterday's range,
+and BTC's daily return minus ETH's. Pins passed on synthetic bars. The flat
+hour in TURN keeps the previous non-zero sign, so a plus, a flat hour, a
+minus, then plus hours is two turns. IMPACT stays closed, including the
+later years, and its 80th and 95th are not candidates. PEAK stays closed. A
+close under the prior 30-day high is not a candidate, and neither is its
+80th. BAL-CHG stays closed, including the level of the address count. BODY
+stays closed, including the later years, and its 80th is not a candidate.
+No 2023 number was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 03:01 UTC] Platform: Cursor | Model: Grok 4.7
 

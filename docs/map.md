@@ -720,6 +720,14 @@ before touching migration state.
 | `docs/agents/scripts/fp27/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The daily change in addresses holding BTC, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp27/screen_2023.json`. |
 | `docs/agents/scripts/fp28/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `impact_test.py` | Whether BTC's hourly quote volume lined up with the hourly move, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp28/screen_2023.json`. The later years are `docs/agents/backtests/fp28/impact_oos.json`. |
 | `docs/agents/scripts/fp29/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close versus the prior 30 daily closes' high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp29/screen_2023.json`. |
+| `docs/agents/scripts/fp30/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Sign changes of BTC's hourly return, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp31/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How concentrated BTC's absolute hourly move is, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp32/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's late quote volume versus the early hours, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp33/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's low versus the previous day's low, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp34/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The rise in BTC's trade count, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp35/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's open versus the previous day's VWAP, long BTC at the next open. The fill is fp5's. |
+| `docs/agents/scripts/fp36/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Where BTC's open sits in the previous day's range, long BTC at the next open. The fill is fp5's. |
+| `docs/agents/scripts/fp37/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's daily return minus ETH's, long BTC the next day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
