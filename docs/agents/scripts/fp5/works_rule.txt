@@ -1,0 +1,20 @@
+Family: long the next UTC day when the day-over-day difference in OpenAlex works published is in its own trailing top quintile.
+Frozen 2026-09-25 04:16:27 UTC, before any works-count difference of this rule was joined to a next-day return.
+Not Wikipedia pageviews. Not npm downloads. Not CVE counts. Not a flip of any of those.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by this works count.
+Series: OpenAlex works whose publication_date is that UTC day. A day the API counts as zero is a level of zero. The window is 2017-01-01 through 2018-12-31. A weekend is a level.
+Change = count[D] - count[previous calendar day]. Missing unless the previous calendar day exists.
+Sort the previous 90 printed changes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC calendar day when that change is strictly above the threshold.
+A day whose previous calendar day has no change is not an execution day. The signal is not carried forward.
+Execution days are 2018-01-01 through 2018-12-31. Both spot books start 2017-08, so 2018 is the screen. No other year is scored.
+Prices are Binance spot daily closes (BTCUSDT, ETHUSDT). The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2018. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to fewer works. Do not switch the date field to created date. Do not change the quintile. Do not add 2019. Do not drop a month.
