@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "premium_index_2021": {
+      "btc_bps": -2044.7,
+      "candle_bar_clear": false,
+      "eth_bps": 1695.9,
+      "execution_days": 358,
+      "long_days": 72,
+      "month_share": null,
+      "name": "premium_index_2021",
+      "null_p50_bps": 487.0,
+      "null_p95_bps": 6481.7,
+      "pool_bps": -174.4,
+      "stress_bps": -2894.4,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 68,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    },
+    "wiki_views_2018": {
+      "btc_bps": -3827.9,
+      "candle_bar_clear": false,
+      "eth_bps": -9158.8,
+      "execution_days": 365,
+      "long_days": 74,
+      "month_share": null,
+      "name": "wiki_views_2018",
+      "null_p50_bps": -4492.1,
+      "null_p95_bps": 1632.7,
+      "pool_bps": -6493.3,
+      "stress_bps": -8893.3,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 60,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "pidx_rule_sha256": "7add4493fd78e7975a8441cc12cfd7b1be794a087300ffae6822f659964c529d",
+    "wiki_rule_sha256": "f8eab2a18cf94601a5195ea498b81de7d2f1ef0efcd51fa815e9ee8abbfb8794"
+  }
+}

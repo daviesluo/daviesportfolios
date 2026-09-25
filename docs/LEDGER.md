@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:48 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Wallet-user growth and the high-yield spread widening stay killed. The lightning-capacity series was not scored. `docs/agents/scripts/fp5/pidx_rule.txt` and `wiki_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass15.json`. A jump in the BTC perpetual premium index, long the next day in 2021, is −174 bps over 68 trips, and the BTC book is negative. A jump in English Wikipedia pageviews of Bitcoin, long the next day in 2018, is −6,493 bps over 60 trips, both books negative. The premium archive is missing five July bars and those days are not filled. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:43 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The WBTC mint and the average-block-size jump stay killed. `docs/agents/scripts/fp5/wallet_rule.txt` and `credit_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass14.json`. A jump in Blockchain.com wallet users, long the next day in 2018, is −7,020 bps over 22 trips, both books negative. A jump in the ICE BofA US high-yield option-adjusted spread, long the next day in 2025, is −1,961 bps over 32 trips, both books negative. The spread rule does not carry a signal across a missing calendar day, so the screen has 207 execution days. A three-year lightning-capacity endpoint was not scored, because two pulls do not return the same days. Neither sign is flipped. `reached_preregistration` stays false.
