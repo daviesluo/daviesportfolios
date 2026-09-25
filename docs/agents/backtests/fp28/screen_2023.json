@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp28_common": "dbd7b33581b1d5931db64f9b518afe2fb652eb7fc9a8e7e17acf2f14b6d0b4ed",
+    "fp28_measure": "d7465a17efda116681a8d23a87886db39f2e6b5fe3d65016b7c0bb0206e646d2",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "IMPACT",
+      "mean_gross_bps": 106.7802,
+      "mean_net_bps": 86.5868,
+      "min_n": 30,
+      "n": 37,
+      "note": "Hourly quote volume lined up with the absolute hourly move, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 74.5602,
+      "passes_screen": true,
+      "total_pnl_usd": 32.0371
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "1164bc2865661aa709dfef70eccac3fa161372930359071294a2c174e836d16d"
+  },
+  "passed": [
+    "IMPACT"
+  ],
+  "protocol_sha256": "d565281f29dc0542589996a189aa629a17c4018ea0f4380fc72aade673e5577c"
+}
