@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp249_common": "a50257ceaeb6ae2686418de5aee9421578f730ced64917754897d7d0ce3fcb57",
+    "fp249_measure": "2f7fb315a1a65ad0265f8a18d7212c4ef85734018672d6bbe1fefca66bf4181b",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "JOIN",
+      "mean_gross_bps": 496.1709,
+      "mean_net_bps": 475.1995,
+      "min_n": 30,
+      "n": 152,
+      "note": "Spot and the coin-margined perpetual both finished a four-day decline. The next USDT open is bought and sold nineteen days later. One USDT-perpetual leg. Funding cash is not added. The null is that nineteen-day long on every day.",
+      "null_p95_bps": 621.3966,
+      "passes_screen": false,
+      "total_pnl_usd": 722.3032
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "838424a0eced0815c818dc16fedc9d643ea0737d83b598fc00365ae0ce6ea66d"
+}

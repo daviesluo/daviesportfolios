@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp255_common": "b66dee3bc9bae73aaab114295723a03ed5eace018ade67e1dcfc32670d2f4df8",
+    "fp255_measure": "80df00e7638dbf2625044508e7ae29d69eecc5a3b5c5c7a1430e71cf1c0e85f3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TWOD",
+      "mean_gross_bps": -430.4524,
+      "mean_net_bps": -449.5724,
+      "min_n": 30,
+      "n": 80,
+      "note": "Two finished down days on spot, back to back. The next spot open is sold and bought back nineteen days later. One spot leg. Funding cash is not added. The null is that nineteen-day short on every day.",
+      "null_p95_bps": -272.4165,
+      "passes_screen": false,
+      "total_pnl_usd": -359.6579
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "passed": [],
+  "protocol_sha256": "6eea8ce34a4354cdd8cc410871d928b3b7c54db9fc71e8da824d48fff55c3f25"
+}

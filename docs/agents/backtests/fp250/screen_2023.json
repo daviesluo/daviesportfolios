@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp250_common": "086447a1a12f6f74a8c5b03124dc82ba806f8a28f83b5fea75501c5e0f14e566",
+    "fp250_measure": "f6dbdfaf33b848273fb720bd04d071618cec78588347f87e1dc437da124460ef",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FADE",
+      "mean_gross_bps": -599.9496,
+      "mean_net_bps": -618.731,
+      "min_n": 30,
+      "n": 61,
+      "note": "The finished ten-day USDT rise was positive and smaller than the ten-day rise before it. The next coin-margined open is sold and bought back twenty-six days later. One coin-margined leg. Funding cash is not added. The null is that twenty-six-day short on every day.",
+      "null_p95_bps": -385.7913,
+      "passes_screen": false,
+      "total_pnl_usd": -377.4259
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c"
+  },
+  "passed": [],
+  "protocol_sha256": "89b739ee749dee323c9b261663f8a3a271504a08fbd7e64f4ad97144d33fe40a"
+}

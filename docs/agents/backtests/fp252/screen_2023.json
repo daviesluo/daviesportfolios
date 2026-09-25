@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp252_common": "0d98a49a3d21935237af46eadb969e36150499ea6aeae131c001f1e9cb365a32",
+    "fp252_measure": "d456331cf688f9c97504519cbb7d6bc773800b8ede83a6357d5efab80620a027",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "INNER",
+      "mean_gross_bps": 550.4338,
+      "mean_net_bps": 529.3541,
+      "min_n": 30,
+      "n": 238,
+      "note": "The absolute five-day spot return finished smaller than the absolute twenty-day spot return. The next coin-margined open is bought and sold twenty days later. One coin-margined leg. Funding cash is not added. The null is that twenty-day long on every day.",
+      "null_p95_bps": 631.1015,
+      "passes_screen": false,
+      "total_pnl_usd": 1259.8627
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79"
+  },
+  "passed": [],
+  "protocol_sha256": "deae407b72dcd5541d4824b9a73b08b14d9caaf706163f5e3e1c6ff6690be42b"
+}

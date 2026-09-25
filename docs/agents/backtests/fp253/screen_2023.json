@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp253_common": "2bbfd7d0ad0a438fc99f9475ca592492c7a7ad937c69f8124951a86a24672847",
+    "fp253_measure": "faf92b1e917aa5c7d4d2a79b512011d44d87c2e3f2044f5f35ac14dc5122bacf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FLIP",
+      "mean_gross_bps": 571.2084,
+      "mean_net_bps": 550.0871,
+      "min_n": 30,
+      "n": 93,
+      "note": "Yesterday's spot close finished above the prior close, and that prior close finished below the close before it. The next spot open is bought and sold twenty-two days later. One spot leg. Funding cash is not added. The null is that twenty-two-day long on every day.",
+      "null_p95_bps": 755.778,
+      "passes_screen": false,
+      "total_pnl_usd": 511.581
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "passed": [],
+  "protocol_sha256": "77fb2d2d0ee514ef34faaa246fa666b407e604e26d8a467209a5ed67b3583be6"
+}
