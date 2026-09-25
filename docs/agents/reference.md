@@ -2745,6 +2745,8 @@ Still later, still with `reached_preregistration` false (`screen_pass9.py`, `bac
 
 Still later, still with `reached_preregistration` false (`screen_pass10.py`, `backtests/fp5/summary_pass10.json`): a jump in the count of Bitcoin addresses with a balance, long the next day in 2019, is +40 bps and still fails (stress −2,240, 57 trips, the ETH book is negative, May is 30 times the pool). A long BTC lower wick, long the next day in 2018, is −4,396 bps over 64 trips, both books negative. Neither sign is flipped.
 
+Still later, still with `reached_preregistration` false (`screen_pass11.py`, `backtests/fp5/summary_pass11.json`): USDC richening against USDT, long the next day in 2020, is +1,264 bps and still fails (stress −1,096, 59 trips, the BTC book is negative, June is larger than the pool). The coin-margined BTC perpetual richening against the linear perpetual, long the next day in 2021, is +9,818 bps with stress still positive and both books positive, and still fails: 58 trips. Closes cannot pass. Neither sign is flipped and neither year is extended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

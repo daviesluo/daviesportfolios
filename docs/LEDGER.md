@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:20 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Address count and the lower wick stay killed. `docs/agents/scripts/fp5/usdc_rule.txt` and `basis_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass11.json`. USDC richening against USDT, long the next day in 2020, is +1,264 bps and still fails: stress −1,096, 59 trips, the BTC book is negative, and June is larger than the pool. The coin-margined BTC perpetual richening against the linear perpetual, long the next day in 2021, is +9,818 bps with both books positive and stress still positive, and still fails: 58 trips. Closes cannot pass. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:17 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The spot-versus-perp volume jump and the BTC–ETH return gap stay killed. `docs/agents/scripts/fp5/addr_rule.txt` and `wick_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass10.json`. A jump in the count of Bitcoin addresses with a balance, long the next day in 2019, is +40 bps and still fails: stress −2,240, 57 trips, the ETH book is negative, and May is 30 times the pool. A long BTC lower wick, long the next day in 2018, is −4,396 bps over 64 trips, both books negative. Neither sign is flipped. `reached_preregistration` stays false.

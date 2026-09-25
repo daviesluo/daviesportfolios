@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "coin_m_richening_2021": {
+      "btc_bps": 4786.6,
+      "candle_bar_clear": false,
+      "eth_bps": 14850.0,
+      "execution_days": 365,
+      "long_days": 64,
+      "month_share": 0.366,
+      "name": "coin_m_richening_2021",
+      "null_p50_bps": 800.0,
+      "null_p95_bps": 5982.1,
+      "pool_bps": 9818.3,
+      "stress_bps": 7498.3,
+      "top_month": "2021-05",
+      "top_month_bps": 3597.8,
+      "trips": 58,
+      "why": "fewer than 60 round trips"
+    },
+    "usdc_richening_2020": {
+      "btc_bps": -839.9,
+      "candle_bar_clear": false,
+      "eth_bps": 3368.2,
+      "execution_days": 366,
+      "long_days": 66,
+      "month_share": 1.121,
+      "name": "usdc_richening_2020",
+      "null_p50_bps": 1552.5,
+      "null_p95_bps": 6136.7,
+      "pool_bps": 1264.2,
+      "stress_bps": -1095.8,
+      "top_month": "2020-06",
+      "top_month_bps": 1416.7,
+      "trips": 59,
+      "why": "doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; one month is more than 40% of P&L"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "basis_rule_sha256": "d9e8798327f9c8790688c4521d60e0b44184504c87ac1d5c741d7ce666aee2f1",
+    "usdc_rule_sha256": "7ba2d139afc46adc47ec02b4022ce9a2a36eab03804190050fde9252ab8e0880"
+  }
+}
