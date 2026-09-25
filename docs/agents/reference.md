@@ -8104,6 +8104,85 @@ No return of this round has been computed. The next eight are not
 frozen. This is not a testing row. No later-year bar is requested as
 an entry.
 
+### 3.389 Same-unit files with thirty cheap days (2026-09-25)
+
+Davies, 2026-09-25: the minting-cost round is recorded. Do not retest
+electricity, power, terawatt-hours, or miner revenue, and do not
+swap in the upper-bound column. The next round does not hand in
+eight energy pages. Find a same-unit price that overlaps that
+contract's daily bars for at least 30 days and is already 25 bp
+cheap on at least 30 days before the entry. Write the URL and the
+day counts, then the cause, then the score. If eight such files are
+not found, record how many were found. Do not fill the eight by
+changing a column, an electricity price, or a coin on the same file.
+Redemption, par, realised price, another venue's close, a funding
+sign, and purchasing-power parity stay banned. The threshold stays
+at least 25 bp. No testing row.
+
+No such file was found. The count is zero. No cause was written. No
+rule was frozen. No return was computed. Nothing was taken out of
+sample.
+
+**Coin Metrics' community catalog has no other USD price.**
+`https://community-api.coinmetrics.io/v4/catalog/metrics` lists 32
+metrics. The USD prices in it are `PriceUSD`, `ReferenceRate`, and
+`ReferenceRateUSD`, which are market prices. `CapMrktCurUSD` and
+`CapMrktEstUSD` are those prices times a supply. The other rows are
+counts, flows, a hash rate, issuance, or a ratio. No new same-unit
+series was downloaded from this catalog. Not counted.
+
+**Index Coop publishes a live NAV object, not a 2023 file.**
+`https://api.indexcoop.com/dpi/analytics` is HTTP 200 and one
+object. `navPrice` is null. `https://api.indexcoop.com/dpi/nav` is
+HTTP 500. `api.tokensets.com` does not resolve. DPIUSDT, MVIUSDT and
+BEDUSDT each have zero of the twelve 2023 monthly kline files
+(HTTP 404). Overlap with a 2023 daily bar is 0. Not counted.
+
+**Treasury-token and stock-token books are absent in 2023.**
+OUSGUSDT, USDYUSDT, STBTUSDT and BUIDLUSDT have zero of twelve 2023
+monthly kline files. TSLABUSDT, AAPLBUSDT, AMDBUSDT, SPYBUSDT,
+QQQBUSDT, TQQQBUSDT, MSTRBUSDT, COINBUSDT and NVDABUSDT have zero of
+twelve. XAUTUSDT, FRAXUSDT, BNSOLUSDT and BTCSTUSDT have zero of
+twelve. Ondo's host does not resolve. Superstate's
+`https://api.superstate.co/v1/funds/ustb/nav` and
+`https://api.superstate.com/v1/funds` are HTTP 404. Overlap is 0.
+Not counted.
+
+**Frax's combined snapshot is one 2026 print.**
+`https://api.frax.finance/combineddata/` is HTTP 200. The FXS object
+is one price, 0.30159, timestamp 1790373606 (2026-09-25 22:00:06
+UTC), beside a market cap. The FRAX object is one price, 0.992104.
+The FPI object is one price, 1.1579360716249116. Collateral is a
+ratio, 0.945, and a dollar total, not USD per token. The file has
+no 2023 daily row. FXSUSDT has a 2023 book. This snapshot does not
+overlap it. Overlap is 0. Not counted. Makerburn's history URL is
+HTTP 502. No file.
+
+**A block-level MEV file is not a daily coin price.**
+`https://raw.githubusercontent.com/xodn348/BTC_EXP/main/data/raw/mev/mev_estimated_from_blocks_20260115_164016.csv`
+has columns `block_height`, `timestamp`, `total_fees_sat`, `mev_sat`,
+`mev_usd`. The timestamp on the rows that were read is the export
+time, repeated, and `mev_usd` is dollars of extractable value in one
+block. It is not USD per BTC on a daily bar. Overlap with a daily
+close is 0. Not counted. The same repository's Yahoo BTC file is
+another venue's close and was not counted. Its pool-cost and
+electricity files are the minting sentence and were not opened again.
+
+**Books that exist had no new same-unit file.** WBETHUSDT has a
+December 2023 monthly file and no January or June file. That rate
+is the series already scored. It was not downloaded again.
+USTCUSDT, GMXUSDT, GNSUSDT, SPELLUSDT, ALCXUSDT, LQTYUSDT and ARUSDT
+have a June 2023 file. No same-unit fair-value file was found for
+them. Gains' holding-rate endpoint is a funding history and was not
+used as a price. USTC's target of one dollar is par and was not
+measured. Spot kline prefixes on the public bucket number 3710.
+Changing coin on a missing file was not used to manufacture a
+second row.
+
+No return of this round has been computed. The next eight are not
+frozen. This is not a testing row. No later-year bar is requested as
+an entry.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
