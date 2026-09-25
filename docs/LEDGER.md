@@ -8,10 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp6's five rules failed the 2023 screen and are discarded.** None is fit
-to add (reference §3.35). Do not lower USDC-CHEAP's count, do not adopt
-Tuesday, do not flip FUND-GAP or QUIET. The next search is not written yet.
-No testing row. No push to main.
+**fp7's 2023 screen is not run.** The protocol is
+`docs/agents/reviews/2026-09-25-fp7-protocol.md`, committed before any return
+of MVRV, active addresses or BTC's volume share. Next:
+`python3 docs/agents/scripts/fp7/fetch.py`, then
+`python3 docs/agents/scripts/fp7/measure.py`. fp6 stays discarded (§3.35),
+including Tuesday. No testing row. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:50 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp7 protocol only. No return has been computed.** Three rules: Coin Metrics
+MVRV strictly under 1, active addresses above their own trailing 90th, and
+BTC's share of BTC+ETH quote volume above its own trailing 90th. Each is long
+BTC for one day at the next open. The lower tails are not scored. FRED's dollar
+index did not answer within 90 seconds, twice, so it is not in this screen and
+it is not a result. `pin_test.py` passed before this commit.
 
 ### [2026-09-25 00:49 UTC] Platform: Cursor | Model: Grok 4.7
 
