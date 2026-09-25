@@ -2751,6 +2751,8 @@ Still later, still with `reached_preregistration` false (`screen_pass12.py`, `ba
 
 Still later, still with `reached_preregistration` false (`screen_pass13.py`, `backtests/fp5/summary_pass13.json`): a jump in outstanding WBTC, counted in tokens and not in dollars, long the next day in 2020, is −11,569 bps over 45 trips, both books negative. A jump in average Bitcoin block size, long the next day in 2018, is −5,964 bps over 68 trips, both books negative. Neither sign is flipped and neither year is extended.
 
+Still later, still with `reached_preregistration` false (`screen_pass14.py`, `backtests/fp5/summary_pass14.json`): a jump in Blockchain.com wallet users, long the next day in 2018, is −7,020 bps over 22 trips, both books negative. A jump in the ICE BofA US high-yield option-adjusted spread, long the next day in 2025, is −1,961 bps over 32 trips, both books negative. The spread rule keeps a change only against the previous calendar day, so a Monday print is never a signal and the screen has 207 execution days. The graph file starts 2023-09-25, so 2025 is the screen and 2024 is not scored. Neither sign is flipped and neither year is extended. A three-year lightning-capacity endpoint was not scored, because two pulls do not return the same days.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:43 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The WBTC mint and the average-block-size jump stay killed. `docs/agents/scripts/fp5/wallet_rule.txt` and `credit_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass14.json`. A jump in Blockchain.com wallet users, long the next day in 2018, is −7,020 bps over 22 trips, both books negative. A jump in the ICE BofA US high-yield option-adjusted spread, long the next day in 2025, is −1,961 bps over 32 trips, both books negative. The spread rule does not carry a signal across a missing calendar day, so the screen has 207 execution days. A three-year lightning-capacity endpoint was not scored, because two pulls do not return the same days. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:34 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The DVOL jump and the 10-year yield jump stay killed. `docs/agents/scripts/fp5/wbtc_rule.txt` and `block_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass13.json`. A jump in outstanding WBTC, counted in tokens, long the next day in 2020, is −11,569 bps over 45 trips, both books negative. A jump in average Bitcoin block size, long the next day in 2018, is −5,964 bps over 68 trips, both books negative. Neither sign is flipped. `reached_preregistration` stays false.

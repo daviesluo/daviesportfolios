@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "hy_oas_2025": {
+      "btc_bps": -1622.5,
+      "candle_bar_clear": false,
+      "eth_bps": -2300.3,
+      "execution_days": 207,
+      "long_days": 43,
+      "month_share": null,
+      "name": "hy_oas_2025",
+      "null_p50_bps": -866.5,
+      "null_p95_bps": 1973.8,
+      "pool_bps": -1961.4,
+      "stress_bps": -3241.4,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 32,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    },
+    "wallet_users_2018": {
+      "btc_bps": -5251.8,
+      "candle_bar_clear": false,
+      "eth_bps": -8788.1,
+      "execution_days": 362,
+      "long_days": 68,
+      "month_share": null,
+      "name": "wallet_users_2018",
+      "null_p50_bps": -4191.3,
+      "null_p95_bps": 1206.0,
+      "pool_bps": -7020.0,
+      "stress_bps": -7900.0,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 22,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "credit_rule_sha256": "757897258ae593025745cd20d0b9a3ece5e0b1ca43f5efd78245dc826adcb5f7",
+    "wallet_rule_sha256": "ce198c8c3cbe4355116966d5124935b4c8a1990a7c64434a3daa9333387fa6a2"
+  }
+}
