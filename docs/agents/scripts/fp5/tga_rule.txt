@@ -1,0 +1,20 @@
+Family: long the next UTC day when the day-over-day change in the Treasury General Account closing balance is in its own trailing top quintile.
+Frozen 2026-09-25 03:34:46 UTC, before any TGA change of this rule was joined to a next-day return.
+Not the public-debt stock. Not overnight reverse repo. Not a yield. Not the dollar index. Not WTI. Not a flip of any of those.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by this cash balance.
+Series: Treasury Fiscal Data operating_cash_balance, account_type exactly Treasury General Account (TGA) Closing Balance, field close_today_bal. The series starts 2022-04-18. A missing print, including a weekend and a holiday, is not a level. Only a positive balance is a level.
+Change = balance[D] / balance[previous calendar day] - 1. Missing unless the previous calendar day exists and its balance is positive. A missing day is not filled from the previous session.
+Sort the previous 90 printed changes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC calendar day when that change is strictly above the threshold.
+A day whose previous calendar day has no change is not an execution day. The signal is not carried forward.
+Execution days are 2023-01-01 through 2023-12-31. The closing-balance series starts 2022-04-18, so 2023 is the first January with 90 earlier changes. 2022 is not scored. No other year is scored.
+Prices are Binance spot daily closes (BTCUSDT, ETHUSDT). The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2023. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a falling balance. Do not switch to the opening balance, the Federal Reserve Account, or the debt stock. Do not fill from the previous printed session. Do not change the quintile. Do not add 2024. Do not drop a month.
