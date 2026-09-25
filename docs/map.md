@@ -736,14 +736,14 @@ before touching migration state.
 | `docs/agents/scripts/fp43/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's quote volume that printed in up hours, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp43/screen_2023.json`. |
 | `docs/agents/scripts/fp44/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `drive_test.py` | BTC's first-hour return, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp44/screen_2023.json`. The later years are `docs/agents/backtests/fp44/drive_oos.json`. |
 | `docs/agents/scripts/fp45/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close versus the previous day's high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp45/screen_2023.json`. |
-| `docs/agents/scripts/fp46/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's last hourly close versus the equal-weighted mean of that day's closes, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp47/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours break the day's running high, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp48/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The change in BTC's quote volume per trade, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp49/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's hours that closed above the prior hour, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp50/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Which hour printed BTC's high, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp51/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours held a low above the day's open, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp52/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The change in BTC's quote volume, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp53/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many hours apart BTC's high and low printed, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp46/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's last hourly close versus the equal-weighted mean of that day's closes, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp46/screen_2023.json`. |
+| `docs/agents/scripts/fp47/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours break the day's running high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp47/screen_2023.json`. |
+| `docs/agents/scripts/fp48/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `size_test.py` | The change in BTC's quote volume per trade, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp48/screen_2023.json`. |
+| `docs/agents/scripts/fp49/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's hours that closed above the prior hour, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp49/screen_2023.json`. |
+| `docs/agents/scripts/fp50/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Which hour printed BTC's high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp50/screen_2023.json`. |
+| `docs/agents/scripts/fp51/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours held a low above the day's open, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp51/screen_2023.json`. |
+| `docs/agents/scripts/fp52/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The change in BTC's quote volume, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp52/screen_2023.json`. |
+| `docs/agents/scripts/fp53/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many hours apart BTC's high and low printed, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp53/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

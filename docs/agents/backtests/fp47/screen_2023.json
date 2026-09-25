@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp47_common": "e5693eee0c0a9b13cf59249c3ddf78bb1337660f280317f77d3eeab31c323636",
+    "fp47_measure": "e71608474ba4a4e09d14cf5fb0b79f783cacfea4d67d9f94a5b27be7ba5e4a69",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "NEW-HIGHS",
+      "mean_gross_bps": 51.5101,
+      "mean_net_bps": 31.4272,
+      "min_n": 30,
+      "n": 27,
+      "note": "Count of hours that break the day's running high, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 81.2895,
+      "passes_screen": false,
+      "total_pnl_usd": 8.4853
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "4cdaf8b07d92bd7b97ff339bfa4d3c71d52adcbe5db72217b9bcefc94097b410"
+  },
+  "passed": [],
+  "protocol_sha256": "8ee99d3904f7bef98904f88cc9bc7a75514da033a17805f8a96dcb3ddcfab937"
+}

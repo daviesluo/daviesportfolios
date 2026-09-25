@@ -15,6 +15,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -47,8 +48,8 @@ def get(url: str) -> bytes:
         time.sleep(1.0 * (k + 1))
     raise RuntimeError(f"get failed {last}")
 
-def klines(end_ms: int) -> dict[int, tuple]:
-    cursor = LOOKBACK_MS
+def klines(end_ms: int, start_ms: int = LOOKBACK_MS) -> dict[int, tuple]:
+    cursor = start_ms
     rows: dict[int, tuple] = {}
     fields = (1, 7, 8)
     while cursor <= end_ms:
@@ -63,7 +64,7 @@ def klines(end_ms: int) -> dict[int, tuple]:
             if len(k) <= max(fields):
                 raise SystemExit("a daily kline is missing a field")
             open_ms = int(k[0])
-            if open_ms < LOOKBACK_MS:
+            if open_ms < start_ms:
                 continue
             if open_ms > end_ms:
                 raise SystemExit(f"a daily bar opened past the screen: {open_ms}")
@@ -81,11 +82,29 @@ def klines(end_ms: int) -> dict[int, tuple]:
     return rows
 
 
-def save(rows: dict[int, tuple]) -> None:
-    out = DATA / "spot1d" / "BTCUSDT.json"
+def save(rows: dict[int, tuple], folder: str = "spot1d") -> None:
+    out = DATA / folder / "BTCUSDT.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     payload = [[t, *rows[t]] for t in sorted(rows)]
     out.write_text(json.dumps(payload, separators=(",", ":")))
+
+
+def pull_oos() -> None:
+    """Daily bars from 2024-01-01 through the 2026-09-25 open. Called only after the pre-registration is frozen."""
+    if not os.environ.get("FP48_OOS"):
+        raise SystemExit("the out-of-sample pull is not armed")
+    start_ms = c.fp5.SCREEN_END_MS
+    end_ms = int(datetime(2026, 9, 25, tzinfo=timezone.utc).timestamp() * 1000)
+    rows = klines(end_ms, start_ms)
+    if any(t > end_ms for t in rows):
+        raise SystemExit("a daily bar opened after 2026-09-25")
+    if not rows or min(rows) != start_ms or max(rows) != end_ms:
+        raise SystemExit("the daily out-of-sample window is wrong")
+    horizon = rows.get(end_ms)
+    if horizon is None or horizon[1] != 0 or horizon[2] != 0:
+        raise SystemExit("the 2026-09-25 bar stored a quote or a trade count")
+    save(rows, "oos_1d")
+    print(f"fp48 oos BTCUSDT 1d {len(rows)} first {min(rows)} last {max(rows)}")
 
 
 def main() -> None:

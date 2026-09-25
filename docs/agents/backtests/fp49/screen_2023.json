@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp49_common": "e01ab6d568cd399778e4653315a35e2837576cf3580fec05e0029e4b9d558911",
+    "fp49_measure": "d42d13fae3850acfb4c26dd0511ac898b972716a7fa611f06cd4d8780de95b82",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UP-STEP",
+      "mean_gross_bps": 148.0308,
+      "mean_net_bps": 127.755,
+      "min_n": 30,
+      "n": 25,
+      "note": "Share of hours that closed above the prior hour, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 87.1238,
+      "passes_screen": false,
+      "total_pnl_usd": 31.9388
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "0990847afb1392373481b05dfcd4eaf94eea53329f361047d7a0a40380aa338e"
+  },
+  "passed": [],
+  "protocol_sha256": "ca8efd1512f77f84bb8111871e09ad7bcb64ba1b9b4ac0a9b88c5e2b5855a5c0"
+}

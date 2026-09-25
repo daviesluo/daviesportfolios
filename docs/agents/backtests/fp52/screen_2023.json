@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp52_common": "ad81ddf7728fae003249256299d87b84dd2320749baf700c9745d07d7b5bd387",
+    "fp52_measure": "8138ab4b5ea5d73429c279521f1f6811c037fb987ae8de11ea288abbccb17670",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "QVOL-CHG",
+      "mean_gross_bps": 81.9475,
+      "mean_net_bps": 61.8038,
+      "min_n": 30,
+      "n": 45,
+      "note": "Rise in quote volume, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 64.2744,
+      "passes_screen": false,
+      "total_pnl_usd": 27.8117
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "084aec1502fe52799ccb18718f13519a02c0819285cac514296ffe1a6947b1be"
+  },
+  "passed": [],
+  "protocol_sha256": "bc26a4e91df76201a9ec4a4bfe7b20f5b0711da5d7cb40670f82c34748fca65a"
+}
