@@ -8,6 +8,8 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
+**fp5, branch `cursor/polymarket-fp5-b50c`:** REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 and CORNERS are frozen and not yet scored. After this freeze is the branch tip, pull the full sample with `scripts/stat_inputs.py`, pick prints, score each rule twice, and keep a run only when the two files match. Do not retune a threshold. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
+
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
 risk and a verification step on each. It is a PROPOSAL: nothing in it
@@ -834,6 +836,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 05:00 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight Premier League stat rules are frozen and not yet scored.** Branch `cursor/polymarket-fp5-b50c`, not main. No price-history file was opened and no return was computed. Question text and `sportsMarketType` were read so the parser keeps full-time -1.5, full-time over 3.5, both teams to score, and full-time total corners; settlement prices were not used. Score-file counts (not prices) set thresholds that occur: shots on target gap 1.5 over six matches fires on 125 of the matches from August 2025, fouls gap 2 on 147, yellow cards gap 0.8 on 139, and a referee with eight prior matches on 399. CONGEST was not rerun at a gap of 1. ELO, FORM5, TABLE, REST, VENUE, STREAK3, DRAWBASE, H2H, MARGIN and the earlier failed rules were not reopened. `agents/pmrw.ts`, PR5 and trend-4h were not touched. Considered and not run: `reviews/2026-09-25-polymarket-fp5-round11-kills.md`.
+
+- REF: this referee's home-win rate, eight prior matches, buy home only. `ref_test.py --self-check` prints `H 1.0 14.638156`. Pre-registration: `reviews/2026-09-25-polymarket-fp5-prereg-ref.md`.
+- SOT: shots on target, last six, gap 1.5, buy the higher side. Pin `H 1.0 14.638156`. A one-shot gap does not trade. `reviews/2026-09-25-polymarket-fp5-prereg-sot.md`.
+- FOUL: fouls, last six, gap 2, buy the side that fouls less. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-foul.md`.
+- CARD: yellow cards, last six, gap 0.8, buy the side with fewer. Red cards are not counted. Pin `H 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-card.md`.
+- SPREAD15: full-time -1.5 only. The fair value is that club's rate of winning by two or more, eight matches. An equal edge keeps the home club. Pin `HOT 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-spread15.md`.
+- BTTS: both teams to score, the average of the two clubs' rates, buy yes only. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-btts.md`.
+- OVER35: full-time over 3.5, four or more goals, buy the over only. A 2.5 line does not trade. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-over35.md`.
+- CORNERS: full-time total corners, each club's last eight, pool deduped, one over, an equal edge keeps the lower line. Pin `9.5 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-corners.md`.
+
+The shared quote code is `scripts/stat_score.py`. The puller is `scripts/stat_inputs.py` (self-check prints `1755284400` and drops the odds column). Prints are `scripts/stat_pick.py`. The full-sample pull and the scoring runs are the next step, after this commit is pushed.
 
 ### [2026-09-25 04:45 UTC] Platform: Cursor | Model: Grok 4.7
 
