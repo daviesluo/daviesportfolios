@@ -1,0 +1,21 @@
+Family: long the next open after an interior ETHUSDT perpetual funding print is strictly above both endpoint prints of that UTC day.
+Frozen 2026-09-25 07:46:41 UTC, before any open of this rule was joined to a return.
+Prints are last_funding_rate, ordered by calc_time. A day with fewer than 3 prints is missing, not zero. The interior is every print except the first and the last. With exactly 3 prints the interior is the middle print. With more than 3 prints the interior peak is the maximum of those middle prints. Not the maximum print compared with 0.0005. Not the daily sum compared with 0.001. Not a width above 0.0004. Not a last print below the first with a positive sum. Not a moving average, a breakout, or a candlestick pattern.
+Signal day D fires when the day has at least 3 prints and the maximum of the interior prints is strictly above the first print and strictly above the last print. An interior print equal to either endpoint does not fire. Do not require the day's sum to be positive. Do not flip this to an endpoint above the interior.
+Execution days are 2021-01-01 through 2021-12-31. A signal on 2020-12-31 may enter on 2021-01-01. No 2022 signal is scored. Do not add 2022.
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by this mechanism.
+The signal is known by the end of signal day D. The execution day is the next UTC calendar day. The signal is not carried forward.
+Fill, decided before the result: enter at the open of the execution day and exit at the open of the next calendar day.
+The open is field index 1 (0-based) of the Binance spot 1d kline for that book (BTCUSDT, ETHUSDT). Binance prints a daily bar every calendar day, so that open is the next tradable open. There is no US-session filter.
+Gross bps on a book = (exit open / entry open - 1) * 10000. A trip exists only when both opens are positive. A signal missing either open is not a trip.
+Each signal is its own round trip. The position is not carried. If the next day is also a signal, the first trip exits at that day's open and the second trip enters at the same open. Both the exit and the new entry are charged. There is no netting.
+Cost 20 bps on the entry and 20 bps on the exit. Stress doubles each charge to 40 and 40.
+Both charges are booked on the entry day's calendar month. The exit open on the calendar day after the screen year is allowed for an entry on the last screen day. It is a fill, not an extra scored year.
+Null: the same number of trips, random execution days in the screen year that have both opens, 500 draws, seed 20260925, index int(0.95*500)-1. The null is not loosened.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = one entry at an execution-day open and the exit at the next day's open.
+The reported figures are that arithmetic. Do not replace them because the open is a Binance daily kline. Do not arm. Do not edit PR5.
+Do not lower 1.30, 0.001, the five-day funding window, the 10% SOL excess, or the 0.0004 funding-print width, and do not rescore those rules. Do not lower the 60-trip gate to 12 or to 46, and do not extend those years. Do not lower 0.0005 or switch that peak onto the daily sum. Do not lower 0.0015. Do not lower 0.002. Do not lower the account-minus-position gap of 2. Do not lower the return multiple of 2. Do not touch the OKX basis. Do not revive a killed rule and do not flip its sign. Do not return to a moving average, a breakout, or a candlestick pattern. Do not slice the top-trader position ratio or the account ratio again. Do not rerun the account-minus-position gap narrowing at a different cost.
+Liquidation snapshots are not in this run. Do not stand another series in for them, and do not switch the exchange and rerun them.
+The US-session volume share and the daily-range widening stay killed. Do not rerun the LINK quote-volume screen. Do not lower the voided DOGE 1% open gap. Do not change the ETH two-up streak's cost or month gate. Do not extend the DOGE quote-volume mean screen or lower its 60-trip gate to 45.
