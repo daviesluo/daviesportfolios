@@ -8,11 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**This Binance search did not find a rule fit to add.** LS-FADE failed its
-frozen later-year bar (§3.34). The fp6 screen failed, and Tuesday is spent
-(§3.35). The fp7 screen failed: MVRV, active addresses and BTC's volume share
-all lost to the null (§3.36). Do not retune those cuts, do not flip a sign,
-do not add a testing row. No push to main.
+**fp8's 2023 screen is not run.** The closed rounds stay closed (§3.34–§3.36):
+do not revive LS-FADE, the weekday controls, MVRV, active addresses or BTC's
+volume share. The next protocol is `docs/agents/reviews/2026-09-25-fp8-protocol.md`,
+committed before any return of exchange outflow, hash-rate drops or quarterly
+backwardation. Next: `python3 docs/agents/scripts/fp8/fetch.py`, then
+`python3 docs/agents/scripts/fp8/measure.py`. No testing row. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,6 +836,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:57 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp8 protocol only. No return has been computed.** A different family from
+the three closed rounds: coins leaving exchanges, a drop in hash rate, and
+the dated quarterly future more than a round trip under spot. `pin_test.py`
+passed before this commit. The screen is the next step.
 
 ### [2026-09-25 00:53 UTC] Platform: Cursor | Model: Grok 4.7
 
