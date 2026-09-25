@@ -8,14 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp23 failed the 2023 screen and is discarded** (§3.52). 23 trades, under
-30, and the positive mean lost to the null. Do not score a day of mostly
-down hours, and do not score the 80th. The count stays 30. VOL-HHI stays
-dead (§3.51). Do not reopen VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR,
-AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
-dispersion, or skew. fp5 through fp22 stay closed, including LS-FADE. The
-next search is not written. No testing row. No pull request. No push to
-main.
+**fp24 protocol is written and not scored.** FEE-HIGH is the day's total
+BTC transaction fees above their own trailing 90th, long BTC the next day.
+UP-SHARE stays dead (§3.52). Do not score a cheap-fee day, and do not score
+the 80th. The count stays 30. Do not reopen VOL-HHI, VWAP-PREM, GAP-UP,
+CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
+taker share, dispersion, or skew. fp5 through fp23 stay closed, including
+LS-FADE. The screen is the next step. No testing row. No pull request. No
+push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +838,17 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:27 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp24 protocol only. No return has been computed.** A different family from
+the nineteen closed rounds: Coin Metrics `FeeTotNtv`, total transaction fees
+in BTC, above its own trailing 90th, long BTC the next day. This is not hash
+rate, not an address count, and not spot volume. UP-SHARE, VOL-HHI,
+VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
+quiet-day range, the taker share, dispersion and skew stay closed. A
+cheap-fee day is not a candidate. `pin_test.py` passed before this commit.
+The screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:21 UTC] Platform: Cursor | Model: Grok 4.7
 
