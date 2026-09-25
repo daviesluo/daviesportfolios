@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp39_common": "10269698da5713900ae25d10cfb1d0e43078b28d013cdff07c0eb95e76a14704",
+    "fp39_measure": "0ec5879b3a3e5d2b7e3441133af38c1611d9019568e88c6e0e36469b4f89d4f3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "INSIDE",
+      "mean_gross_bps": -36.2351,
+      "mean_net_bps": -56.1427,
+      "min_n": 30,
+      "n": 10,
+      "note": "Count of hourly inside bars, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 117.1159,
+      "passes_screen": false,
+      "total_pnl_usd": -5.6143
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "e4d7eeaf226832d457e046a273212bfd09d810536b517dc683c3a22a7cf09e4f"
+  },
+  "passed": [],
+  "protocol_sha256": "cb3bf300935385cef596162a85bd64dc471331c397269d8b587565a0afb82d72"
+}

@@ -8,36 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp38–fp45 are frozen and not yet scored.** Eight screens, each long BTC
-the next day, fill fp5's `net_return`. Protocols
-`docs/agents/reviews/2026-09-25-fp38-protocol.md` through `fp45`, written
-before any return. HALF-DIFF is the second twelve hours' return minus the
-first twelve. INSIDE counts hourly bars sitting inside the previous hour.
-HI-LOWS counts hours whose low is strictly above the previous hour's low.
-STREAK counts consecutive daily closes that finished above the prior close,
-and a day that did not rise stays in the history. AMIHUD is the absolute
-open-to-close return divided by quote volume. UP-VOL is the share of quote
-volume in hours that closed up. OPEN-DRIVE is the first hour's return.
-YDAY-HIGH is today's close divided by yesterday's high, minus 1. Pins
-passed on synthetic bars. Score only after this protocol commit is on the
-remote: fetch, measure twice, compare the JSON files. A 2023 pass still
-needs a pre-registration before any 2024 price, and the other seven are
-still scored in the same round. Do not lower the count of 30. Do not flip a
-sign. Do not score an 80th or a 95th on a failed screen. fp30–fp37 stay
-dead (§3.59–§3.66). Do not score a quieter day, a spread-out move, a heavier
-early block, a lower low, a day the trade count did not rise, the level of
-the trade count, an open under yesterday's VWAP, an open low in yesterday's
-range, or a day ETH outruns BTC. Do not lower TURN's count. PEAK stays dead
-(§3.58). Do not score a close under the prior 30-day high, and do not score
-its 80th. IMPACT stays dead, including the later years (§3.57). Do not
-promote its 80th or its 95th. BAL-CHG stays dead (§3.56). Do not score a
-day the address count did not rise, do not score its 80th, and do not score
-the level of `AdrBalCnt`. BODY stays dead, including the later years
-(§3.55). Do not promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net
-exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR,
-AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
-dispersion, or skew. fp5 through fp37 stay closed, including LS-FADE. No
-testing row. No pull request. No push to main.
+**fp38–fp45 screens are scored. STREAK and OPEN-DRIVE passed 2023; their pre-registrations are frozen and the later years are not pulled yet.** Protocol `ff4d925`. Each screen file was written twice and the two copies matched. HALF-DIFF, INSIDE, HI-LOWS, AMIHUD, UP-VOL and YDAY-HIGH failed the 2023 screen. STREAK is 33 trades, mean net +111.9095 bps, total +$36.9301, null +74.7946 (`d08e3999…`). OPEN-DRIVE is 36 trades, mean net +80.7544 bps, total +$29.0716, null +72.6224 (`50cdbd2b…`). Pre-registrations `docs/agents/reviews/2026-09-25-fp41-prereg-streak.md` (sha256 `968248fa…`) and `docs/agents/reviews/2026-09-25-fp44-prereg-drive.md` (sha256 `867061de…`), frozen at 2026-09-25T03:28:08Z from `bookTicker` BTCUSDT, bid 84200.00000000, ask 84200.01000000, half-spread 5.938241924546982e-08. Pull 2024–2026 only after this commit is on the remote, then run `streak_test.py` and `drive_test.py` twice each and compare the JSON files. A screen pass is not adoption. Do not retune either cut. Do not score an 80th or a 95th of a failed screen. The six failures are dead. A rule that is rejected without a scored run does not count. Do not lower the count of 30. Do not flip a sign. Do not shrink the window. fp30–fp37 stay dead (§3.59–§3.66). Do not score a quieter day, a spread-out move, a heavier early block, a lower low, a day the trade count did not rise, the level of the trade count, an open under yesterday's VWAP, an open low in yesterday's range, or a day ETH outruns BTC. Do not lower TURN's count. PEAK stays dead (§3.58). Do not score a close under the prior 30-day high, and do not score its 80th. IMPACT stays dead, including the later years (§3.57). Do not promote its 80th or its 95th. BAL-CHG stays dead (§3.56). Do not score a day the address count did not rise, do not score its 80th, and do not score the level of `AdrBalCnt`. BODY stays dead, including the later years (§3.55). Do not promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5 through fp37 stay closed, including LS-FADE. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -860,6 +831,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:33 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp38–fp45 screens are scored. Two passed 2023. Their later years are not pulled.** Protocol was `ff4d925`. Each file was scored twice and the two copies matched. HALF-DIFF 34 / +22.92 / null +76.29 / +$7.79 (`cc0389ba…`). INSIDE 10 / −56.14 / +117.12 / −$5.61 (`c8ede594…`). HI-LOWS 22 / +66.33 / +92.975 / +$14.59 (`13a0f74f…`). STREAK 33 / +111.91 / +74.79 / +$36.93 (`d08e3999…`), screen pass. AMIHUD 56 / +12.85 / +54.24 / +$7.20 (`9a330b9f…`). UP-VOL 33 / +53.99 / +74.79 / +$17.82 (`832ecb42…`). OPEN-DRIVE 36 / +80.75 / +72.62 / +$29.07 (`50cdbd2b…`), screen pass. YDAY-HIGH 43 / +44.73 / +66.23 / +$19.23 (`b104a4b2…`). STREAK's pre-registration is `968248fa…` and OPEN-DRIVE's is `867061de…`, both frozen at 2026-09-25T03:28:08Z, bid 84200.00000000, ask 84200.01000000, half-spread 5.938241924546982e-08. No daily close and no hourly bar from 2024 onward has been read. The 2024-01-01 open already in the screen files is an exit print. A rule rejected without a scored run does not count, so the six failures stay recorded and the two passes still have to be scored through 2026-09-24 after this commit is on the remote. No neighbour of a failed screen was scored. No sign was flipped. IMPACT, PEAK, BAL-CHG and BODY stay closed. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 03:26 UTC] Platform: Cursor | Model: Grok 4.7
 

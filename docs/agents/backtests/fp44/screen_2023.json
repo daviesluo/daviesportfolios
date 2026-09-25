@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp44_common": "660ed53d6ef41fd550cd14a74a02254ce79bfd5282e856f7ee0c2807419b55f8",
+    "fp44_measure": "d40bbac6e6288f5dee5da754a4370a647c88bfd145dc3d550a29c5431e51d9ad",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-DRIVE",
+      "mean_gross_bps": 100.9361,
+      "mean_net_bps": 80.7544,
+      "min_n": 30,
+      "n": 36,
+      "note": "The first hour's return, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 72.6224,
+      "passes_screen": true,
+      "total_pnl_usd": 29.0716
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "2be9b24abf4bf5b381d350c142b17753848c28743dcca42c540e74ffdcfb4f1a"
+  },
+  "passed": [
+    "OPEN-DRIVE"
+  ],
+  "protocol_sha256": "8d6e6237223815fa69a72c4456067387d4c4edb58712d70dcef9acff50f20ac7"
+}

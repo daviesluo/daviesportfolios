@@ -728,14 +728,14 @@ before touching migration state.
 | `docs/agents/scripts/fp35/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's open versus the previous day's VWAP, long BTC at the next open. The fill is fp5's. The screen is `docs/agents/backtests/fp35/screen_2023.json`. |
 | `docs/agents/scripts/fp36/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Where BTC's open sits in the previous day's range, long BTC at the next open. The fill is fp5's. The screen is `docs/agents/backtests/fp36/screen_2023.json`. |
 | `docs/agents/scripts/fp37/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's daily return minus ETH's, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp37/screen_2023.json`. |
-| `docs/agents/scripts/fp38/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's second-half return minus its first-half return, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp39/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours sit inside the previous hour, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp40/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours lift the low, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp41/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many daily closes in a row finished up, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp42/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's absolute daily move per unit of quote volume, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp43/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's quote volume that printed in up hours, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp44/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's first-hour return, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp45/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close versus the previous day's high, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp38/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's second-half return minus its first-half return, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp38/screen_2023.json`. |
+| `docs/agents/scripts/fp39/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours sit inside the previous hour, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp39/screen_2023.json`. |
+| `docs/agents/scripts/fp40/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours lift the low, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp40/screen_2023.json`. |
+| `docs/agents/scripts/fp41/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `streak_test.py` | How many daily closes in a row finished up, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp41/screen_2023.json`. |
+| `docs/agents/scripts/fp42/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's absolute daily move per unit of quote volume, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp42/screen_2023.json`. |
+| `docs/agents/scripts/fp43/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's quote volume that printed in up hours, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp43/screen_2023.json`. |
+| `docs/agents/scripts/fp44/common.py`, `pin_test.py`, `fetch.py`, `measure.py`, `drive_test.py` | BTC's first-hour return, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp44/screen_2023.json`. |
+| `docs/agents/scripts/fp45/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close versus the previous day's high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp45/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

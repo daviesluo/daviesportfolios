@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp43_common": "a2958b8901b11d8812ba64314321f8cd094a0e4dd661d71866a3b4afff7b4430",
+    "fp43_measure": "3196f5fecf7641f700e547c5cd245bb183ced68ef37cf903b759131fb3602b1d",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UP-VOL",
+      "mean_gross_bps": 74.1164,
+      "mean_net_bps": 53.9883,
+      "min_n": 30,
+      "n": 33,
+      "note": "Share of quote volume in up hours, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 74.7946,
+      "passes_screen": false,
+      "total_pnl_usd": 17.8161
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "1164bc2865661aa709dfef70eccac3fa161372930359071294a2c174e836d16d"
+  },
+  "passed": [],
+  "protocol_sha256": "5fa99c35d1a5227150b91eb9146855a99a9c8103989646162de1dc7529918879"
+}

@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp42_common": "f07facfab7a261d172c206c0f808c6fcee1e7099ad3a692bdc85411dbf8f42c3",
+    "fp42_measure": "37f83831367843a1d648f3f1df0d720688e159640953e2b00006097eae9613b3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AMIHUD",
+      "mean_gross_bps": 32.8962,
+      "mean_net_bps": 12.8504,
+      "min_n": 30,
+      "n": 56,
+      "note": "Absolute return per unit of quote volume, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 54.2382,
+      "passes_screen": false,
+      "total_pnl_usd": 7.1962
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "75dd1bfb1c08bb86f166b78ec9ede63b4cdc7cdfacacada17ed64f1d4f268519"
+  },
+  "passed": [],
+  "protocol_sha256": "71f63b3f6cc7b5b46c3e191c15015d391f48927bed6b2965c5a1eded6354eb3b"
+}

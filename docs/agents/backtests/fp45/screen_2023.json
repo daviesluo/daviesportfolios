@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp45_common": "5ef22c98b7c420d51e5f2037cb4da9b24db9386c79c8701b50a89eafe11bf6d3",
+    "fp45_measure": "fbe17ab1caa645e7eff167ec18499666ed04379a5dbf6eb4a3b83f3fdb644de7",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "YDAY-HIGH",
+      "mean_gross_bps": 64.8387,
+      "mean_net_bps": 44.7292,
+      "min_n": 30,
+      "n": 43,
+      "note": "Close versus yesterday's high, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 66.2261,
+      "passes_screen": false,
+      "total_pnl_usd": 19.2335
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "0ab244d15cf195c88a60450f8881d734506098f52a474a200df58526d2447840"
+  },
+  "passed": [],
+  "protocol_sha256": "3fbcc3e9fdc399d014e6c7e2f5744abd63d6a8b78cddb8edfe3089d50519c65f"
+}
