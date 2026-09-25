@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp103–fp110 are scored. Nothing passes the house bar.** All eight have 44 fills. Each mean is positive and under that hold's own null. No later year past the declared exit opens was read. AVAX-Q failed the later years. SOL-Q through LTC-Q stay closed. No hourly price bar was read. No alt quote was read. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp102, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp111–fp118 protocols only. No return of these rules has been computed.** Eight different signals, each held one day: OIUSD, TOPPOS, OITURN, POSGAP, SPOTP, TRDMIX, UMCM, TOPSTD. Pins passed on synthetic bars. FRNG-2 through FRNG-14 are not rerun. No funding print is read. No hourly price bar is read. No alt quote is read. No bookDepth file is read. The count stays 30. The window stays 90 days and 90 prints. No 2023 number of these rules was computed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 06:00 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp111–fp118 protocols only. No return of these rules has been computed.** Eight holds of one funding-range signal are one rule, so FRNG-2 through FRNG-14 stay closed and are not rerun. These eight screens are eight different statistics, each long BTC at the next daily open for one day: the last dollar open interest (OIUSD), the last top-trader position ratio (TOPPOS), coin open interest over spot base volume (OITURN), the top-trader position ratio over the top-trader account ratio minus one (POSGAP), spot quote volume over the USDT perpetual's quote volume (SPOTP), the spot trade count over the USDT perpetual's trade count (TRDMIX), USDT-margined BTC volume over coin-margined BTC volume (UMCM), and the population dispersion of the day's top-trader position ratio (TOPSTD). Pins passed on synthetic bars. The hold is one day in every file and is not the thing being searched. No funding print is read. No hourly price bar is read. No alt quote is read. No bookDepth file is read. Retail long/short and taker columns are not stored. The 2024-01-01 open is an exit print only. AVAX-Q failed the later years and is not revived. SOL-Q through LTC-Q stay closed. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp110, and the previous rounds' named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:39 UTC] Platform: Cursor | Model: Grok 4.7
 
