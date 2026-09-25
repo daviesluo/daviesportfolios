@@ -2737,6 +2737,8 @@ Still later, still with `reached_preregistration` false (`screen_pass5.py`, `bac
 
 Still later, still with `reached_preregistration` false (`screen_pass6.py`, `backtests/fp5/summary_pass6.json`): the VIX close above its trailing 252-session 80th percentile, long the next day in 2019–2020, is +2,396 bps and still fails (17 trips, April 2020 is larger than the pool, and the random-day null's p95 is +5,685). US spot-bitcoin ETF net creation above its trailing 20-session median, long the next day in 2025, is +595 bps and fails the doubled cost, the trip count, the BTC book, the null and the month share. Neither sign is flipped.
 
+Still later, still with `reached_preregistration` false (`screen_pass7.py`, `backtests/fp5/summary_pass7.json`): long the UTC Monday in 2022–2023 is −4,199 bps over 104 trips, both books negative. BTC perpetual open interest falling into its trailing bottom quintile, long the next day in 2021, clears every numeric gate on daily closes (+9,186 bps, 63 trips, stress +6,666, February is 25%, null p95 +6,658). Closes cannot pass. The sign is not flipped and the year is not extended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
