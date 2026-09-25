@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp119–fp126 are written down and not scored.** Eight different BTC option-book signals, each held one day. No 2023 return has been computed. No option file has been read for a return. fp111–fp118 stay scored and closed. No testing row. No pull request. Main was not pushed.
+**fp127 is written down and not scored.** The signal is the last mempool size of the UTC day, long BTC for one day. No return has been computed. fp119–fp126 are scored on disk and are not in this commit. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 06:44 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp127 is a protocol only. No return has been computed.** The statistic is the last published mempool size of the UTC day, in bytes, long BTC for one day. The day's maximum and the day's mean are not the statistic. Pins printed fp127 pins ok before this commit. The option-file date parser in fp119–fp126 took the text after the last hyphen, so every name became `18.zip` and the list was empty. That pull stored nothing and was not scored. The parser now reads the date from the file name. The count stays 30. The window stays 90 days and 90 prints. No sign is flipped. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 06:32 UTC] Platform: Cursor | Model: Grok 4.7
 

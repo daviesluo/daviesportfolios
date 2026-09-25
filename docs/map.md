@@ -817,6 +817,7 @@ before touching migration state.
 | `docs/agents/scripts/fp124/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Gamma-weighted BTC option open contracts at the day's last hour, long BTC for one day. The fill is fp5's. |
 | `docs/agents/scripts/fp125/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many days the BTC option book has left, weighted by open contracts, long BTC for one day. The fill is fp5's. |
 | `docs/agents/scripts/fp126/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Absolute-delta-weighted BTC option open contracts at the day's last hour, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp127/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The last mempool size of the UTC day, in bytes, long BTC for one day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

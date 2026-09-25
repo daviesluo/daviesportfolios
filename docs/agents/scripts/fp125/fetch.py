@@ -113,9 +113,12 @@ def list_days() -> list[str]:
         if not keys:
             break
         for key in keys:
-            if not key.endswith(".zip"):
+            name = key.rsplit("/", 1)[-1]
+            if not name.endswith(".zip"):
                 continue
-            ymd = key.rsplit("-", 1)[-1][:10]
+            ymd = name[-14:-4]
+            if len(ymd) != 10 or ymd[4] != "-" or ymd[7] != "-":
+                raise SystemExit("an option name has no date")
             if ymd < "2022-10-01" or ymd >= "2024-01-01":
                 continue
             days.append(ymd)
