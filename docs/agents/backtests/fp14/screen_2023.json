@@ -1,0 +1,57 @@
+{
+  "code_sha256": {
+    "fp14_common": "cc105433eea3a91fe9b1453f743570fe3a7a22a14073957e934a852404270e7b",
+    "fp14_measure": "81cadee739cab2632fa29f2b9bb4db2c77806e1431531aef1767c158bb5856e2",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "SKEW",
+      "mean_gross_bps": 18.0726,
+      "mean_net_bps": -1.9436,
+      "min_n": 30,
+      "n": 124,
+      "note": "Basket 8h return skewness above its own trailing 90th. Next 8h bar of spot BTC.",
+      "null_p95_bps": 9.5545,
+      "passes_screen": false,
+      "total_pnl_usd": -2.41
+    }
+  ],
+  "input_sha256": {
+    "AAVEUSDT": "18e329efca497f780d68ba7bbbc39244820aff4e0ec866c159792278a8bd7786",
+    "ADAUSDT": "8faeb2efba0cd54dfc7cd64625d04886c694c941536ef6864baac1a436bd5bbb",
+    "APTUSDT": "73b6d0c83c4ddf901547dbe505439461557bf75221ef85f3334946fb41b7a449",
+    "ARBUSDT": "587ae1d8b50f50a64ef617d28f6a299f17c17e3fa8e1b9776f03bd40ad35aaa1",
+    "ATOMUSDT": "1bc36b7053468d2bde9bd524d5fe90773bb35b3fc132f40a907dcf76127c5fc4",
+    "AVAXUSDT": "585a4662ea66c81179af8b01a1445a54ff3efe775e19cf748f975d9d5b434625",
+    "BCHUSDT": "09adaad01e95d20bcc40fa1a589c4ed872137ed78a006a6079a9647d3f83fa9b",
+    "BNBUSDT": "ed427ef6e54ab45781da4df3aedb2c4a6344c8a9f6e97ca28e2525dc39961b84",
+    "BTCUSDT": "c115781ef8b40b2ab860d28e5c595d437745a9723b8d3e9b4eb6760f3cfa44bd",
+    "DOGEUSDT": "7303773bbe1bca4c17f9c2940cbc9148b9702d87e6c9dfecdd84a5a3b92ef8dc",
+    "DOTUSDT": "5ddefe9ad55e3ba26760d4b510097a24da403b25dc270d75cb99f3f466c45609",
+    "ETHUSDT": "d8bedc8d00544cae3b84b077e07f78f413f4c4c04f18b507f312c63cc0344428",
+    "FILUSDT": "68b7694a1a1a0c12d6123ce7fdb50ab8cbe05dc6013421891f5610a7ec27b706",
+    "FTTUSDT": "0796595328ae3528f19310b03787a4da5138f6a4147c514fd87c820bb7639ed6",
+    "INJUSDT": "2fc8ef22f6da2c699083286b36b7778a2a917846c99b11681668430db9e72d45",
+    "LINKUSDT": "bcb4e62cc655434c69477c0ed333b6f02079e1d8da895c1cc6ecde47b106451f",
+    "LTCUSDT": "713c36705287f909c580c699530e4129a3f944e8321cfc2b8724b4b260251102",
+    "LUNAUSDT": "b26672f78eea7b64fec7992017869c6be256fac2d7ee370bc56616239e8b6d70",
+    "LUNCUSDT": "c9e2fdd8e05c2bc8c346f8d91c530ddbaf6417c5975a9f9477da48e2a75dbe65",
+    "MATICUSDT": "6a0a6e6519493e3b87fb18d318980df34f87b6c5d42f73137bf379222ccc77a2",
+    "NEARUSDT": "c1de04794d1a241eca7e62def539c9760054b7a9ac450c4c56d3d57c2dccda3a",
+    "OPUSDT": "9c146f53fe6660ebab9b3b0bc27bfa45cc57885f7bb566bacf53222a36808a49",
+    "PEPEUSDT": "ace45f778f4d8e9c219a2ba1eade8263169e791075ada5ca65a31022f0d5e25d",
+    "POLUSDT": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "SEIUSDT": "cb10b67221b1dc6e03170ae7c5d2af3bcd960d02aac1414e23ed50b4380103e5",
+    "SHIBUSDT": "90b7fb803eb91ebf019b94df73a7182f3538398b142ba57f4d0e978a0908b2c6",
+    "SOLUSDT": "4068b50f16102d0cea1b71a89760a4a854aa03b7399fc9d746c9ae82ac2d71c7",
+    "SUIUSDT": "170181cde35b8e8edad89e973c2f286d19a1d79e0f76b3b6a9f4268b65b8f31c",
+    "TIAUSDT": "88fe13c0c85b9b659a0b17f4607e17b4a7dfd2b93b1f00a419eaa968de09b344",
+    "TRXUSDT": "a080778bd848c21f61994851cc79d2aae6e82dac6c521744c25b613b25722313",
+    "UNIUSDT": "a50792ea44908d7e024e81728aeccdfc504a17b0c4793e58571dbcd21f1b51fa",
+    "WLDUSDT": "0c60802d2ee57da96ddc7425c41028bfb576d36f54c7469bfad612f945bcb59f",
+    "XRPUSDT": "975217e5c400a9ddb68b57526abee590cc816bbe93a7bfb7b63cdcdd2af4554e"
+  },
+  "passed": [],
+  "protocol_sha256": "a5295285c4e500928efce172dff9d5dedf5f2c928d9d23152f5582c4e5ac74af"
+}

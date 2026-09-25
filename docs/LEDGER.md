@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp14 protocol is written and the screen is not scored.** Cross-sectional
-8h return skew, long BTC the next 8h. Dispersion stays closed, and the left
-tail is not a candidate. fp5 through fp13 stay closed. No testing row. No
-pull request. No push to main.
+**fp14 failed the 2023 screen and is discarded** (§3.43). Do not score the
+left tail of the skewness, and do not reopen dispersion. fp5 through fp13
+stay closed. The next search is not written. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +834,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:37 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp14 screen: nothing passes.** Protocol was `5452659`. Two scores matched
+(`adeaf924d…`). SKEW 124 trades, −1.94 bps against a null of +9.55, −$2.41.
+Reference §3.43. The left tail is not a candidate. Dispersion stays closed.
+No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:32 UTC] Platform: Cursor | Model: Grok 4.7
 
