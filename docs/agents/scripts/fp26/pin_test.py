@@ -65,8 +65,11 @@ def test_formula() -> None:
         raise SystemExit("a zero open was a print")
     if c.body_at({}, start) is not None:
         raise SystemExit("a missing bar was a print")
-    if c.body_at({c.fp5.SCREEN_END_MS: bar(100.0, 110.0, 100.0, 110.0)}, c.fp5.SCREEN_END_MS) is not None:
+    later = {c.fp5.SCREEN_END_MS: bar(100.0, 110.0, 100.0, 110.0)}
+    if c.body_at(later, c.fp5.SCREEN_END_MS) is not None:
         raise SystemExit("a 2024 bar was a print")
+    if c.body_at(later, c.fp5.SCREEN_END_MS, c.fp5.SCREEN_END_MS + c.fp5.DAY_MS) != 1.0:
+        raise SystemExit("a later horizon still dropped the 2024 bar")
 
 
 def test_strict_quantile() -> None:

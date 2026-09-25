@@ -2962,6 +2962,23 @@ has 457 prints and no hole. The daily grid has no hole. **Nothing here is
 fit to add.** The count cleared and the mean was positive; it lost to the
 null. A thin stock and the 80th are not candidates.
 
+### 3.55 Candle body: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp26-protocol.md`) was committed before the
+2023 screen. Two runs matched (`backtests/fp26/screen_2023.json`). The
+absolute candle body divided by the day's range, above its own trailing
+90th, long spot the next day: 46 trades, mean +107.0 bps, null p95 +58.8
+bps, +$49.22. Seventeen of those days closed below their open. The
+pre-registration (`reviews/2026-09-25-fp26-prereg-body.md`, sha256
+`4be527de…`, frozen 2026-09-25T02:37:30Z) was committed before any later
+year. Two out-of-sample runs matched (`backtests/fp26/body_oos.json`). 2023
+reproduces: 46 trades, +$49.2172. Entries from 2024-01-01 through 2026-09-24:
+119 trades, +$5.3179, mean +$0.044688, null p95 +$0.2813. 2024 is +$10.6116
+and 2025-01-01 through 2026-09-24 is −$5.2937. Doubled costs are −$18.469.
+Without February 2024 the total is −$5.835. Annualised on the locked $100
+it is 1.94%. The 80th neighbor loses (−$26.5839, 210 trades). **Nothing
+here is fit to add.** A doji and the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

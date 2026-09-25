@@ -8,14 +8,16 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp26 passed the 2023 screen and is not adopted.** The pre-registration is
-frozen (`4be527de…`, 2026-09-25T02:37:30Z). The out-of-sample test, 2024-01-01
-through 2026-09-24, is the next step and has not been run. Do not score a
-doji, and do not score the 80th on the screen. EXCH-BAL stays dead (§3.54).
-Do not reopen FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM,
-GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
-range, the taker share, dispersion, or skew. No testing row until the
-pre-registered bar clears. No pull request. No push to main.
+**fp26 failed the pre-registered out-of-sample bar and is discarded**
+(§3.55). 2023 passed and was frozen before the later years were read. 2024
+is positive and 2025 through 2026-09-24 is negative. The mean lost to the
+null, doubled costs lose, and the 80th veto fires. Do not score a doji, and
+do not adopt the 80th. EXCH-BAL stays dead (§3.54). Do not reopen FEE-HIGH,
+the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
+PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
+share, dispersion, or skew. fp5 through fp25 stay closed, including LS-FADE.
+The next search is not written. No testing row. No pull request. No push to
+main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +840,19 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:40 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp26 out of sample: nothing passes.** Pre-registration was `ddef5c7`
+(`4be527de…`). Two scores matched (`a983c9c6…`). 2023 reproduces: 46 trades,
++$49.2172. OOS is 119 trades, +$5.3179 against a null of +$0.2813. 2024 is
++$10.6116 and the later window is −$5.2937. Doubled costs are −$18.469.
+Without 2024-02 the total is −$5.835. Annualised 1.94%. The 80th neighbor
+is −$26.5839. Reference §3.55. A first scorer returned no later trade
+because the screen's date gate dropped every bar from 2024 on; that file
+was not committed. This run keeps the 2023 numbers and then scores the
+later years. A doji and the 80th are not candidates. No testing row. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 02:38 UTC] Platform: Cursor | Model: Grok 4.7
 

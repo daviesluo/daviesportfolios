@@ -20,9 +20,9 @@ _SPEC.loader.exec_module(fp5)
 MIN_N = 30
 
 
-def body_at(daily: dict[int, tuple], day: int) -> float | None:
-    """Absolute body divided by the high-low range. None on a flat bar, a hole, or a 2024 bar."""
-    if day >= fp5.SCREEN_END_MS:
+def body_at(daily: dict[int, tuple], day: int, end_ms: int = fp5.SCREEN_END_MS) -> float | None:
+    """Absolute body divided by the high-low range. None on a flat bar, a hole, or a bar on or after `end_ms`."""
+    if day >= end_ms:
         return None
     bar = daily.get(day)
     if bar is None or len(bar) < 4:
@@ -38,11 +38,11 @@ def body_at(daily: dict[int, tuple], day: int) -> float | None:
     return abs(close - open_) / (high - low)
 
 
-def body_prints(daily: dict[int, tuple]) -> list[tuple[int, float]]:
-    """(day, body share). Days on or after 2024-01-01 are not points."""
+def body_prints(daily: dict[int, tuple], end_ms: int = fp5.SCREEN_END_MS) -> list[tuple[int, float]]:
+    """(day, body share). Days on or after `end_ms` are not points. The screen's end is 2024-01-01."""
     prints = []
     for day in sorted(daily):
-        body = body_at(daily, day)
+        body = body_at(daily, day, end_ms)
         if body is None:
             continue
         prints.append((day, body))
@@ -66,8 +66,10 @@ def _upper(points: list[tuple[int, float]], q: float) -> list[int]:
     return out
 
 
-def body_signal_days(daily: dict[int, tuple], q: float = 0.90) -> list[int]:
-    return _upper(body_prints(daily), q)
+def body_signal_days(
+    daily: dict[int, tuple], q: float = 0.90, end_ms: int = fp5.SCREEN_END_MS,
+) -> list[int]:
+    return _upper(body_prints(daily, end_ms), q)
 
 
 def body_trades(
@@ -79,7 +81,7 @@ def body_trades(
 ) -> list[dict]:
     """Enter the next daily open after a day whose body is unusually large. Hold one day."""
     trades = []
-    for day in body_signal_days(daily, q):
+    for day in body_signal_days(daily, q, end_ms):
         entry = day + fp5.DAY_MS
         exit_ = entry + fp5.DAY_MS
         trade = fp5._trade(
