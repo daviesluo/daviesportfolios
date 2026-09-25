@@ -835,6 +835,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:38 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 ROUND pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). COPY failed in the 02:31 section and is not being retuned: the page cap stays, and August stays in the sum. VOL stays failed. The next rule buys a $10,000 Bitcoin strike when it sits off the straight line through the strike below it and the strike above it by more than the taker fee and one tick, and holds to settlement. No spot and no volatility. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-round-strike.md`. `round_test.py --self-check` passes (hand fill +11.36113). No decision-time price and no return have been read. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+
 ### [2026-09-25 02:31 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 COPY was run and it fails. Not a testing candidate.** The 00:48 section froze the rule. The 01:12 section only changed the fetch pace, before any ranking. This section is the run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
