@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp122_common": "276b64c694d8752b4152c37ee60644df2411e448681fff77098f0c19c43f829b",
+    "fp122_measure": "cdb32cd944e0a5f7d733b2e5b0c555c8ae664cbc7bcf38fc13264bc0d9056b3f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "PCVOL",
+      "mean_gross_bps": -15.8465,
+      "mean_net_bps": -35.7949,
+      "min_n": 30,
+      "n": 4,
+      "note": "BTC put volume_contracts over call volume_contracts at the day's last hour, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 180.9327,
+      "passes_screen": false,
+      "total_pnl_usd": -1.4318
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "pc_vol": "cbe2b28f5c6c6441c68d656a92f527dcfe17e8bac950f10dd96990fc8bcd612c"
+  },
+  "passed": [],
+  "protocol_sha256": "2dbda9343099edd2208401df7fde268057155fa06af78359dfc5d8ea85f42cfd"
+}

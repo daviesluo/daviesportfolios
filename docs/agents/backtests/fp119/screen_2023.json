@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp119_common": "01f0368fd94fdfdf6c405e65e38594c8fe9975baba7eeab24b2f09f473f6574a",
+    "fp119_measure": "ccb79d02e5fa3b168fbe4fc1bbc66835c38195ca7d10c29335346377ff99242f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OPTOI",
+      "mean_gross_bps": -69.6527,
+      "mean_net_bps": -89.4935,
+      "min_n": 30,
+      "n": 11,
+      "note": "Sum of BTC option openinterest_usdt at the day's last hour, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 125.233,
+      "passes_screen": false,
+      "total_pnl_usd": -9.8443
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "oi_usd": "f09829ef7f16a83402fb6c10f95795accf20cdfdd1452070e33da9b4478e9578"
+  },
+  "passed": [],
+  "protocol_sha256": "9696ab93b8790e36e026f6da5f5a43b8618fd02e40564d8f794bade08fab53c7"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp123_common": "19e84365815ba06eff192dd6081e7e77977c7ae90e2b5baf61333c85c038ed28",
+    "fp123_measure": "94f254bebbedda3d5e568cdc62829e6dac45c92edd4e975a9bd82e2b28e85fb8",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "STRIKE",
+      "mean_gross_bps": -121.4775,
+      "mean_net_bps": -141.2148,
+      "min_n": 30,
+      "n": 4,
+      "note": "Count of distinct BTC option strikes with positive open contracts at the day's last hour, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 180.9327,
+      "passes_screen": false,
+      "total_pnl_usd": -5.6486
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "strikes": "093f49ef77052e851684d520e3e100a231493cc952d33c846a787311fde2cd34"
+  },
+  "passed": [],
+  "protocol_sha256": "903a5d0d38539c472196687f25c14915a4c2fdce3cb42099c9c1c4c6b4aa8bdf"
+}

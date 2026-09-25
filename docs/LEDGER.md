@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp127 is written down and not scored.** The signal is the last mempool size of the UTC day, long BTC for one day. No return has been computed. fp119–fp126 are scored on disk and are not in this commit. No testing row. No pull request. Main was not pushed.
+**fp119–fp127 are scored. Nothing passes the house bar.** Seven option-book signals have fills and fail. PCOI has no fill and does not count. MEMBYTE has 99 fills, a positive mean, and is under its own null. No later year was read. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 06:47 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp119–fp127 are scored. Nothing passes the house bar.** Option protocols were `502b701`. The mempool protocol was `2470639`. Each screen file was written twice and the copies matched. OPTOI 11 / file gross −69.6527 / file mean −89.4935 / null +125.233 / −$9.8443 (`2fe6b6b8…`). OPTVOL 7 / file gross −74.2966 / file mean −94.1282 / null +145.7716 / −$6.589 (`b1cccc6b…`). PCVOL 4 / file gross −15.8465 / file mean −35.7949 / null +180.9327 / −$1.4318 (`614562ad…`). STRIKE 4 / file gross −121.4775 / file mean −141.2148 / null +180.9327 / −$5.6486 (`905a361f…`). GAMMA 8 / file gross −46.9044 / file mean −66.7907 / null +143.3296 / −$5.3433 (`df0bf189…`). DTE 6 / file gross +83.6105 / file mean +63.4634 / null +166.5821 / +$3.8078 (`48e59b25…`). DELTA 10 / file gross −72.0324 / file mean −91.8685 / null +117.1159 / −$9.1868 (`d500e739…`). MEMBYTE 99 / file gross +55.6082 / file mean +35.5171 / null +42.144 / +$35.162 (`b8d0ae64…`). PCOI had 147 prints and 0 trades (`30044339…`). It does not count. The option archive is 147 days, 2023-05-18 through 2023-10-23, and skips 2023-09-08 through 2023-09-18 plus 2023-09-25. Those days were not filled in. Mempool is 457 days, 2022-10-01 through 2023-12-31, with no hole, and the request stopped at 2023-12-31 00:00 UTC. DTE and MEMBYTE are positive and under their own null. The other counted rules have a negative mean. Every counted rule has fills. The null is BTC's own one-day holds. PCVOL and STRIKE share a null because both have 4 trades. Reference §3.148–§3.156. No sign was flipped. No count was lowered. The window was not shrunk. No funding print was read. No hourly price bar was read. No alt quote was read. No metrics file was read. No implied vol was read. fp111–fp118 were not rerun. FRNG-2 through FRNG-14 stay closed. SOL-Q through LTC-Q and AVAX-Q stay closed. No later year was read. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 06:44 UTC] Platform: Cursor | Model: Grok 4.7
 

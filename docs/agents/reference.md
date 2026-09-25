@@ -4253,6 +4253,98 @@ trades are under 30, and the mean was negative. The count stays 30. The
 window is not widened. The level of the same column, and the 80th, are not
 candidates.
 
+### 3.148 Option premium open interest: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp119-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp119/screen_2023.json`). The sum of BTC
+option premium open interest at the day's last hour, long BTC for one day:
+11 trades, mean −89.4935 bps, null p95 +125.233 bps, −$9.8443. The file's
+gross is −69.6527 bps. The null is BTC's own one-day holds. **Nothing here
+is fit to add.** Eleven trades are under 30, and the mean was negative. The
+count stays 30. The public option files run from 2023-05-18 through
+2023-10-23 and skip 2023-09-08 through 2023-09-18, plus 2023-09-25. Those
+days were not filled in. The window was not widened.
+
+### 3.149 Option contract volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp120-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp120/screen_2023.json`). The sum of BTC
+option `volume_contracts` at the day's last hour, long BTC for one day: 7
+trades, mean −94.1282 bps, null p95 +145.7716 bps, −$6.589. The file's gross
+is −74.2966 bps. **Nothing here is fit to add.** Seven trades are under 30,
+and the mean was negative. The count stays 30. This is not the premium open
+interest, and it is not `volume_usdt`.
+
+### 3.150 Put contracts over call contracts: no fill (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp121-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp121/screen_2023.json`). Put open
+contracts over call open contracts, long BTC for one day: 0 trades. The file
+has no mean and no null. The total is 0. **This run does not count.** A
+scored rule with no fill is not one of the eight. 147 prints, and none was
+strictly above its own trailing 90th on a day that already had 90 earlier
+prints. The window was not widened. The reciprocal was not scored.
+
+### 3.151 Put volume over call volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp122-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp122/screen_2023.json`). Put
+`volume_contracts` over call `volume_contracts` at the day's last hour, long
+BTC for one day: 4 trades, mean −35.7949 bps, null p95 +180.9327 bps,
+−$1.4318. The file's gross is −15.8465 bps. **Nothing here is fit to add.**
+Four trades are under 30, and the mean was negative. The count stays 30.
+The null matches STRIKE's because both have 4 trades on BTC's one-day pool.
+
+### 3.152 Strikes with open interest: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp123-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp123/screen_2023.json`). The count of
+distinct strikes with positive open contracts, long BTC for one day: 4
+trades, mean −141.2148 bps, null p95 +180.9327 bps, −$5.6486. The file's
+gross is −121.4775 bps. **Nothing here is fit to add.** Four trades are
+under 30, and the mean was negative. The count stays 30. A call and a put
+at one strike count once.
+
+### 3.153 Gamma-weighted open contracts: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp124-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp124/screen_2023.json`). The sum of
+positive gamma times open contracts, long BTC for one day: 8 trades, mean
+−66.7907 bps, null p95 +143.3296 bps, −$5.3433. The file's gross is −46.9044
+bps. **Nothing here is fit to add.** Eight trades are under 30, and the mean
+was negative. The count stays 30. No spot price was applied. Vega and theta
+were not read.
+
+### 3.154 Days left in the option book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp125-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp125/screen_2023.json`).
+Open-contract-weighted days to expiry, long BTC for one day: 6 trades, mean
++63.4634 bps, null p95 +166.5821 bps, +$3.8078. The file's gross is +83.6105
+bps. **Nothing here is fit to add.** The mean was positive and under the
+null, and six trades are under 30. The count stays 30. An unweighted mean
+was not scored.
+
+### 3.155 Absolute delta times open contracts: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp126-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp126/screen_2023.json`). The sum of
+absolute delta times open contracts, long BTC for one day: 10 trades, mean
+−91.8685 bps, null p95 +117.1159 bps, −$9.1868. The file's gross is −72.0324
+bps. **Nothing here is fit to add.** Ten trades are under 30, and the mean
+was negative. The count stays 30. The signed sum was not scored.
+
+### 3.156 Last mempool size: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp127-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp127/screen_2023.json`). The last
+mempool size of the UTC day, in bytes, long BTC for one day: 99 trades, mean
++35.5171 bps, null p95 +42.144 bps, +$35.162. The file's gross is +55.6082
+bps. The null is BTC's own one-day holds. **Nothing here is fit to add.**
+The mean was positive and under the null. 457 prints, from 2022-10-01
+through 2023-12-31, with no missing day. The day's maximum was not scored.
+Mempool transaction count was not read.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

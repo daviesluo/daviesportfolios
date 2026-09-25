@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp127_common": "117eb4cd8eb50c1a567109bc8da5fc671fc364748311028b66791034cdbaaefd",
+    "fp127_measure": "a164300bbcb348e78c5be2140d9097eb71e95fb61e44ce93657d0e114eea528f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MEMBYTE",
+      "mean_gross_bps": 55.6082,
+      "mean_net_bps": 35.5171,
+      "min_n": 30,
+      "n": 99,
+      "note": "Last mempool size of the UTC day, in bytes, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 42.144,
+      "passes_screen": false,
+      "total_pnl_usd": 35.162
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "mempool": "915fba877939314f9778ec0b1e957057b7ab704d79ab944f88ddacadb5805984"
+  },
+  "passed": [],
+  "protocol_sha256": "5caff7c5eddada40e3c30aeef9bbc732d3299cb59ff1f2776e539409f6dc3b3e"
+}

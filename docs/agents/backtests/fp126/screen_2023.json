@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp126_common": "5ccb949450557709e24624a2d7039087734cb87795c7fa10f1cebd0c2e7fef02",
+    "fp126_measure": "da674652399b9d0cb9a8727b83cb64634edc395d97fb566e489e2c0b97842676",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DELTA",
+      "mean_gross_bps": -72.0324,
+      "mean_net_bps": -91.8685,
+      "min_n": 30,
+      "n": 10,
+      "note": "Sum of absolute delta times open contracts at the day's last hour, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 117.1159,
+      "passes_screen": false,
+      "total_pnl_usd": -9.1868
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "delta": "294211b4b0bca4e6110b866a1d0e19eaa4c1431f2ad5e35341b71f7f099497c2"
+  },
+  "passed": [],
+  "protocol_sha256": "76358ef5c698b46f448777a9c9803cf626d7ddd1dc76002e8f7c49c50354297a"
+}
