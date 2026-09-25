@@ -835,6 +835,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 00:26 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, Polymarket only, pre-registration frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main).
+Davies asked for new Polymarket strategies by the same method. RW, PR5 and trend-4h were not touched, and no
+testing or live row was added. Ideas that die before a test: copying the leaderboard (the ranking has no as-of
+date, so a backtest would select on the outcome; a month-leader sample's next buy was 0.66¢ worse, 16 of 63);
+buying a disputed proposal (the resolution record has no proposal time, so an entry would look ahead);
+Kraken against Binance (about 4 bps, under a cent on a 16-hour digital). VOL is the one that clears the
+arithmetic: a Deribit hourly DVOL digital against the daily Bitcoin ladder, fee and one tick, days before
+2026-09-11. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-vol-digital.md`. The self-check passes.
+The historical run is the next commit.
+
 ### [2026-09-24 23:41 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: the two paper tests count in TESTING's totals.** "算进" on the open question (TESTING's scoreboard and the Revolut X card).
