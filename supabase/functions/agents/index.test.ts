@@ -4,7 +4,7 @@
 // `Deno.serve` sits behind `import.meta.main`, so importing binds nothing.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, parseState, probeParts, probeSymbols, runJevBatch,
+  authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS,
 } from "./index.ts";
@@ -30,6 +30,15 @@ Deno.test("isNotReady — PostgREST's missing-table replies, and nothing else", 
   assert(isNotReady(new Error('db GET agent_strategies → 404: {"code":"PGRST205","message":"Could not find the table"}')));
   assert(isNotReady(new Error('relation "public.agent_orders" does not exist')));
   assert(!isNotReady(new Error("db GET agent_orders → 500: timeout")));
+});
+
+Deno.test("ordersBeyondChart — the history button only when this pair has a row the window left out", () => {
+  assertEquals(FULL_HISTORY_LIMIT, 300);
+  const shown = [1, 2];
+  assertEquals(ordersBeyondChart(shown, [{ id: 1, symbol: "BTC/USD" }, { id: 2, symbol: "BTC/USD" }], "BTC/USD"), false);
+  assertEquals(ordersBeyondChart(shown, [{ id: 1, symbol: "BTC/USD" }, { id: 9, symbol: "BTC/USD" }], "BTC/USD"), true);
+  assertEquals(ordersBeyondChart(shown, [{ id: 9, symbol: "ETH/USD" }], "BTC/USD"), false);
+  assertEquals(ordersBeyondChart([], [], "BTC/USD"), false);
 });
 
 Deno.test("chartWindow — the detail page's candle size and span per rulebook", () => {

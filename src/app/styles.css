@@ -1878,6 +1878,11 @@ body {
 .ag-venue-card.is-warn, .ag-quotes-card.is-warn { border-color: var(--loss-dim); }
 .ag-venue-head, .ag-quotes-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
 .ag-venue-grid, .ag-quotes-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
+/* "funded (Paper)" stays one line on every card. The label used to shrink to the longest word, so Polymarket's
+   narrower card broke it in two while Revolut X and Binance still fitted it. */
+.ag-venue-grid { grid-template-columns: max-content minmax(0, 1fr); }
+.ag-venue-grid > .ag-fig-label { min-width: max-content; }
+.ag-venue-grid .ag-fig-name { white-space: nowrap; }
 .ag-venue-grid > span:nth-child(even), .ag-quotes-grid > span:nth-child(even) { text-align: right; }
 /* The quote test's page: one card per book, its ladder a rung per row (0.1 / 0.2 / 0.3 % from interbank), bid and ask. */
 .ag-ladder { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
@@ -2110,13 +2115,14 @@ body {
 .ag-sb-cell-main { flex: 0 0 auto; min-width: 100px; }
 /* The strategies table is a fixed layout that fits the modal: one set of widths, summing to 100. No Mode column
    since the page has its LIVE and TESTING tabs (Davies, 2026-09-24). */
-.ag-strategies .ag-table .ag-col-name { width: 27%; }
+.ag-strategies .ag-table .ag-col-name { width: 22%; }
 .ag-strategies .ag-table .ag-col-venue { width: 12%; }
-.ag-strategies .ag-table .ag-col-today { width: 16%; }
-.ag-strategies .ag-table .ag-col-unrealised { width: 18%; }
-.ag-strategies .ag-table .ag-col-realised { width: 18%; }
+.ag-strategies .ag-table .ag-col-deployed { width: 11%; }
+.ag-strategies .ag-table .ag-col-today { width: 14%; }
+.ag-strategies .ag-table .ag-col-unrealised { width: 16%; }
+.ag-strategies .ag-table .ag-col-realised { width: 16%; }
 .ag-strategies .ag-table .ag-col-next { width: 9%; }
-.ag-strategies .ag-table td.ag-col-today, .ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
+.ag-strategies .ag-table td.ag-col-deployed, .ag-strategies .ag-table td.ag-col-today, .ag-strategies .ag-table td.ag-col-unrealised, .ag-strategies .ag-table td.ag-col-realised { overflow: visible; text-overflow: clip; }
 /* A badge is never ellipsised: at 10 % the Revolut X badge overflowed its cell by a pixel or two and the
    table's text-overflow drew the first dot of an ellipsis after it — the "small white dot" the owner saw. */
 .ag-strategies .ag-table td.ag-col-venue { overflow: visible; text-overflow: clip; }
@@ -2129,17 +2135,28 @@ body {
   .ag-detail .ag-ph { display: none; }
 }
 
-/* A scoreboard label is its name and, on the same line, what else the figure holds (the fees on realised). */
-.sb-label.ag-sb-label { flex-direction: row; align-items: baseline; flex-wrap: nowrap; gap: 6px; }
+/* A scoreboard label is its name and, on the same line, what else the figure holds (the fees on realised).
+   The fees make REALIZED the longest label. The cell is a size container so that line shrinks to the column
+   instead of painting past the frame (Davies, 2026-09-25). */
+.sb-label.ag-sb-label { flex-direction: row; align-items: baseline; flex-wrap: nowrap; gap: 6px; min-width: 0; max-width: 100%; }
 .ag-sb-name { white-space: nowrap; }
 .ag-sb-aside { font-size: 9px; line-height: 1.3; white-space: nowrap; }
+.ag-sb-realised { container-type: inline-size; }
+.ag-sb-realised .sb-label.ag-sb-label { letter-spacing: 0.04em; gap: 4px; font-size: clamp(7px, 4.5cqi, 9px); }
+.ag-sb-realised .ag-sb-aside { font-size: 1em; }
+@media (max-width: 760px) {
+  /* A phone cell is half the screen. The fees stay on the title's line, a step smaller, so they stay inside the frame. */
+  .ag-sb-realised { container-type: normal; }
+  .ag-sb-realised .sb-label.ag-sb-label { font-size: 8px; letter-spacing: 0.02em; gap: 3px; }
+  .ag-sb-realised .ag-sb-aside { font-size: 8px; }
+}
 /* Five cells — FUNDED, DEPLOYED, TODAY, UNREALIZED, REALIZED (Davies, 2026-09-24) — each three rows of one grid:
    label, figure, what is under the figure. Rows are shared (subgrid), so the figures stand on one line and so do the
    lines under them, whatever each label says. A phone gives FUNDED the top row and the other four two rows of two. */
 .ag-scoreboard {
-  display: grid; overflow: visible; grid-auto-flow: column; grid-template-rows: auto auto auto;
+  display: grid; overflow: hidden; grid-auto-flow: column; grid-template-rows: auto auto auto;
   grid-template-columns: auto 1px auto 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr);
-  column-gap: 16px; row-gap: 3px; padding: 12px 18px;
+  column-gap: 12px; row-gap: 3px; padding: 12px 14px;
 }
 .ag-sb-cell { display: grid; grid-template-rows: subgrid; grid-row: span 3; min-width: 0; }
 .ag-sb-cell > .sb-value { align-self: end; }
@@ -2203,6 +2220,9 @@ body {
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
+/* Shares and price are the same width; the question takes the rest. */
+.ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
+.ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
 @media (max-width: 760px) {
   .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .ag-rw-tile-v { font-size: 15px; }

@@ -213,6 +213,29 @@ export async function prefetchAgentsDashboard(fetchImpl = fetch, later = (fn, ms
  * @param {number} [limit]
  * @param {typeof fetch} [fetchImpl]
  */
+/**
+ * How many newest orders "Load full history" asks for. The chart's `ordersMore`
+ * is computed against this same count (`FULL_HISTORY_LIMIT` in `agents/index.ts`).
+ */
+export const FULL_HISTORY_LIMIT = 300;
+
+/**
+ * The button under the orders table. It is there only when the chart says the
+ * log would add a row (`ordersMore`). An older server that does not say leaves
+ * the button up. Once the log has been fetched, the button is gone.
+ * @param {any} chart @param {any} more
+ */
+export function showFullHistory(chart, more) {
+  if (more || !chart) return false;
+  return chart.ordersMore !== false;
+}
+
+/** The limit the chart named, else {@link FULL_HISTORY_LIMIT}. @param {any} chart */
+export function historyLimitOf(chart) {
+  const n = Number(chart?.historyLimit);
+  return Number.isFinite(n) && n > 0 ? Math.min(500, Math.floor(n)) : FULL_HISTORY_LIMIT;
+}
+
 export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch) {
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=log&strategy=${encodeURIComponent(strategyId)}&limit=${limit}`, { headers: headers() });
   const text = await res.text();
@@ -866,10 +889,11 @@ export function venueRows(dash, tab = null, tests = []) {
 }
 
 /**
- * The share bar's segments. The visible label is the venue and its share
- * (a sliver carries no words); what the share is OF — deployed value, or
- * allotted capital while nothing is deployed — lives in the title only,
- * by the owner's choice.
+ * The share bar's segments. A segment wide enough names the venue and its
+ * share; a narrower one has room for the percent only (Davies, 2026-09-25)
+ * — blanking it left an 11% slice with no number. Nothing at all stays
+ * blank. What the share is OF — deployed value, or allotted capital while
+ * nothing is deployed — lives in the title only.
  * @param {ReturnType<typeof venueRows>} rows
  */
 export function shareSegments(rows) {
@@ -877,9 +901,10 @@ export function shareSegments(rows) {
   return (rows ?? []).map((r) => {
     const pct = Math.round(r.share * 100);
     const widthPct = Math.max(0, Math.min(100, r.share * 100));
+    const full = `${r.label} ${pct}%`;
     return {
       id: r.id, label: r.label, pct, widthPct,
-      text: r.share < 0.12 ? '' : `${r.label} ${pct}%`,
+      text: pct <= 0 ? '' : (r.share < 0.12 ? `${pct}%` : full),
       title: `${r.label}: ${pct}% of ${basis}`,
     };
   });
@@ -1144,9 +1169,34 @@ export function rwSplit(r) {
   };
 }
 
-/** Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions open. @param {string} [_phase] */
+/** Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions still held. @param {string} [_phase] */
 export function rwBarTileKeys(_phase) {
-  return ['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN'];
+  return ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
+}
+
+/**
+ * The UTC day still in progress, in the same columns as a closed day. Closed days are each the change since the
+ * previous close of the same phase; this row is the snapshot minus those changes, so it does not repeat them.
+ * Its total is the scoreboard's today (`todayUsd`). Costs are the capital at work now, a level, as on a closed day.
+ * @param {any} r  the dashboard's `rw`
+ * @param {string | number | null | undefined} [at]  when the page was read; the day's label
+ */
+export function rwTodayRow(r, at) {
+  if (!r) return null;
+  const phase = r.phase;
+  const closed = (r.days ?? []).filter((d) => d.phase === phase);
+  const sum = (/** @type {string} */ k) => closed.reduce((s, d) => s + (Number(d[k]) || 0), 0);
+  const stamp = at || r.lastMinute || new Date().toISOString();
+  const ms = Date.parse(String(stamp));
+  const day = Number.isFinite(ms) ? new Date(ms).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  return {
+    day, phase, live: true,
+    totalUsd: Number(r.todayUsd) || 0,
+    stressUsd: (Number(r.stressUsd) || 0) - sum('stressUsd'),
+    rewardUsd: (Number(r.rewardUsd) || 0) - sum('rewardUsd'),
+    fills: (Number(r.fills) || 0) - sum('fills'),
+    capitalUsd: Number(r.capitalUsd) || 0,
+  };
 }
 
 /**

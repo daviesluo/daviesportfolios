@@ -839,6 +839,21 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 19:31 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: Deployed beside Venue, Polymarket's funded label on one line, the history button only when it adds a row, and DAYS names WORST CASE.**
+- LIVE STRATEGIES and TESTING STRATEGIES gain a Deployed column immediately right of Venue. It is the scoreboard's deployed figure (`valueUsd`), and the rows add up to that cell. The phone cards show the same amount.
+- "funded (Paper)" stays one line on every venue card. The label had been allowed to shrink to its longest word, so Polymarket's card broke it in two.
+- Load full history sits under the orders table only when the chart says the log would add a row for that coin (`ordersMore`, against the newest 300). A pair whose window already holds them does not show the button. The chart read is what the `agents` deploy publishes.
+- Reward quotes' DAYS column Stress is WORST CASE, the same name as the tile above it.
+
+### [2026-09-25 19:05 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: the scoreboard's last cell painted past the frame, and the two test pages needed a quieter reading.**
+- REALIZED's fees stay on the title's line. The cell shrinks that line to the column (the strategy page had been missing the class the tab already used), so the words stay inside the border on LIVE, TESTING and a strategy page, desktop and phone. The browser sweep measures the label against the frame.
+- Reward quotes STATUS drops the small lines. The tiles are WORST CASE, TOP SHARE, QUOTING TODAY, POSITIONS STILL HELD. DAYS leads with Costs, then fills and stress, and ends rewards then total; the UTC day still open is the first row, that day's change (the scoreboard's today), not the running total. FILLS puts shares before price, both the same width. Both test pages end "as of … · refreshes every minute".
+- A venue slice too narrow for its name shows the percent alone. A read-only viewer's chart title is PERFORMANCE VS S&P 500 (PERFORMANCE VS S&P FUT while the benchmark is the futures).
+
 ### [2026-09-25 02:42 UTC] Platform: Cursor | Model: Grok 4.7
 
 **trend-4h-live's funded capital is $100, and the one-slot cap moved with the slot.** Davies, in this conversation:

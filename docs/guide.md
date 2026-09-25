@@ -107,7 +107,8 @@ apart on two tabs.
   its blue, whose card is Reward quotes — showing the same figures for
   that exchange (**funded (Paper)** on TESTING; the accounts' real
   balances are not shown). Then one row per strategy: a status dot (green
-  running, amber stale, grey paused), its exchange, today, unrealised and
+  running, amber stale, grey paused), its exchange, what it has deployed
+  (the same dollars the scoreboard calls deployed), today, unrealised and
   realised gain with each column's base under its heading, and a countdown
   to its next decision; the tab says the mode, so a row does not, and a
   live strategy's name does not carry "live". With nothing live, LIVE says
@@ -119,8 +120,8 @@ apart on two tabs.
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
   tie up; its dot turns amber if it stops. Tap it for its page: the same
   scoreboard, then each book's six rungs (the price each quotes, or what
-  it holds and has made at the last trade) and the latest round trips,
-  with today's orders against Revolut X's 1,000 a day at the foot.
+  it holds and has made at the last trade) and the latest round trips.
+  The foot is when the page was read, and that it refreshes every minute.
 - **Reward quotes.** After it, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC
@@ -130,9 +131,11 @@ apart on two tabs.
   (in Yes or No shares) at the mid. Tap it for its page: the same
   scoreboard, with realised split on one line into the rewards and what
   its orders made; a status row (the pessimistic total, how much of the
-  total sits in one market, how many markets it is quoting, how many
-  positions are still open); the closed days, then today's quotes, and
-  the latest fills. A fill is one print, so the fills table has no profit
+  total sits in one market, how many markets it is quoting today, how many
+  positions are still held); the days, including the UTC day still open,
+  with the same worst case as the tile above,
+  then today's quotes, and the latest fills, shares then price. The foot
+  is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
   Polymarket's published formula against the book as it stood, so they
@@ -150,7 +153,8 @@ apart on two tabs.
   up-triangles are buys, red down-triangles sells, a dashed segment is
   an order still resting, and a dotted line is the average cost. Hover
   for the time, the close and any fill. Under the chart is every order
-  on that coin, newest first.
+  on that coin in the window, newest first. Load full history appears
+  under that table only when the coin has orders older than the window.
 
 The page opens on what it showed last time in this browser, the first
 time after a reload included, and refreshes behind it: as it opens, then
@@ -189,7 +193,7 @@ Opens from any holding, tile or Market Conditions card.
 Two tabs share one slot and one range: **VS S&P 500** (it reads VS S&P
 FUT while the benchmark is the futures contract) and **INVESTMENT**.
 Both come from the same valuation, so they can't disagree about what
-the portfolio is worth. The read-only password shows VS S&P 500 alone.
+the portfolio is worth. The read-only password shows PERFORMANCE VS S&P 500 alone.
 
 ### VS S&P 500
 

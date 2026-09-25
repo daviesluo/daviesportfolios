@@ -1488,7 +1488,7 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
           destinations, mark the current one, and cost no extra row. */}
       <div className="panel-title-row">
         {isReadOnly ? (
-          <div className="panel-title">VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</div>
+          <div className="panel-title">PERFORMANCE VS {benchmarksFutures ? <>S&amp;P FUT</> : <>S&amp;P 500</>}</div>
         ) : (
           <div className="view-tabs" role="tablist" aria-label="Performance view">
             <button

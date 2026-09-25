@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, lastChangeText, symbolOrderRows,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -392,6 +392,19 @@ describe('symbolOrderRows / fetchAgentsChart', () => {
     expect(rows[1]).toMatchObject({ side: 'buy', state: 'filled', fillPrice: 110, costUsd: 27.5, feeUsd: 0.11 });
     expect(symbolOrderRows(null, null, null)).toEqual([]);
   });
+  it('Load full history is shown only when the chart says the log would add a row', () => {
+    // The button used to sit under every strategy. A chart that already holds
+    // every order the log would return (`ordersMore: false`) must hide it;
+    // an older server that does not say leaves it up.
+    expect(FULL_HISTORY_LIMIT).toBe(300);
+    expect(showFullHistory({ ordersMore: false }, null)).toBe(false);
+    expect(showFullHistory({ ordersMore: true }, null)).toBe(true);
+    expect(showFullHistory({}, null)).toBe(true);
+    expect(showFullHistory(null, null)).toBe(false);
+    expect(showFullHistory({ ordersMore: true }, { orders: [] })).toBe(false);
+    expect(historyLimitOf({ historyLimit: 300 })).toBe(300);
+    expect(historyLimitOf({})).toBe(300);
+  });
   it('the full history widens the same table and never duplicates a row', () => {
     const more = { orders: [
       { id: 1, ts: CHART.orders[0].ts, symbol: 'BTC/USD', side: 'buy', mode: 'paper', state: 'filled', price: 110, base_size: 0.25, filled_base: 0.25, avg_fill_price: 110, fee_usd: 0.11 },
@@ -560,14 +573,15 @@ describe('positionLines', () => {
 });
 
 describe('shareSegments', () => {
-  it('labels a segment with the venue and its share, a sliver with nothing, and keeps what the share is of in the title', () => {
+  it('labels a segment with the venue and its share, a sliver with the percent only, and keeps what the share is of in the title', () => {
     const rows = /** @type {any} */ ([{ id: 'binance', label: 'Binance', share: 0.8, shareOf: 'value' }, { id: 'revx', label: 'Revolut X', share: 0.2, shareOf: 'value' }]);
     const seg = shareSegments(rows);
     expect(seg[0].text).toBe('Binance 80%');
     expect(seg[0].title).toBe('Binance: 80% of deployed value');
     expect(seg[1].text).toBe('Revolut X 20%');
     expect(seg[0].widthPct).toBe(80);
-    expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('');
+    expect(shareSegments(/** @type {any} */ ([{ id: 'x', label: 'X', share: 0.05, shareOf: 'value' }]))[0].text).toBe('5%');
+    expect(shareSegments(/** @type {any} */ ([{ id: 'z', label: 'Z', share: 0, shareOf: 'value' }]))[0].text).toBe('');
   });
 });
 
@@ -912,11 +926,34 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   it('says which part of the run it is in, the fills against the bar, and a split that disagrees', () => {
     expect(rwView(r)).toMatchObject({ phaseText: 'day 3 of 14', fillsText: '12 of 100', bestShareText: '20 %', stoppedText: '', mismatch: false });
     expect(rwView({ ...r, phase: 'warm-up', dayOfRun: null })?.phaseText).toBe('warm-up, counted nowhere');
-    expect(rwBarTileKeys('warm-up')).toEqual(['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN']);
-    expect(rwBarTileKeys('run')).toEqual(['STRESS', 'BEST MARKET', 'MARKETS', 'OPEN']);
+    expect(rwBarTileKeys('warm-up')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
+    expect(rwBarTileKeys('run')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
     expect(rwView({ ...r, totalUsd: -5 })?.bestShareText).toBe('—');
     expect(rwView({ ...r, mismatchUsd: 0.02 })?.mismatch).toBe(true);
     expect(rwView(undefined)).toBe(null);
+  });
+  it('adds the UTC day still open, as that day\'s change, and leaves a warm-up day out of it', () => {
+    // Closed days of the run sum to yesterday's running total. Today's row is what has happened since, the same
+    // number the scoreboard calls today — not the running total, which would count those days again.
+    const book = {
+      ...r, phase: 'run', lastMinute: '2026-09-17T22:58:00Z', capitalUsd: 296, totalUsd: 41, todayUsd: 12.5,
+      stressUsd: 17.2, rewardUsd: 41.6, fills: 5,
+      days: [
+        { day: '2026-09-16', phase: 'run', totalUsd: 15.2, stressUsd: 6.1, rewardUsd: 15.5, fills: 2, capitalUsd: 290.4 },
+        { day: '2026-09-15', phase: 'run', totalUsd: 13.3, stressUsd: 5, rewardUsd: 13.6, fills: 1, capitalUsd: 288.2 },
+        { day: '2026-09-14', phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1 },
+      ],
+    };
+    const today = rwTodayRow(book, '2026-09-17T23:00:00Z');
+    expect(today).toMatchObject({ day: '2026-09-17', phase: 'run', live: true, capitalUsd: 296, fills: 2 });
+    expect(today?.totalUsd).toBeCloseTo(12.5, 12);
+    expect(today?.stressUsd).toBeCloseTo(6.1, 12);
+    expect(today?.rewardUsd).toBeCloseTo(12.5, 12);
+    expect(today?.totalUsd).not.toBeCloseTo(book.totalUsd, 6);
+    // No closed day of this phase yet: the day's rewards and fills are the whole snapshot.
+    const first = rwTodayRow({ ...r, days: [], todayUsd: 20, rewardUsd: 62, stressUsd: 24, fills: 12, capitalUsd: 296 }, '2026-09-27T10:02:00Z');
+    expect(first).toMatchObject({ day: '2026-09-27', rewardUsd: 62, stressUsd: 24, fills: 12, totalUsd: 20, capitalUsd: 296 });
+    expect(rwTodayRow(null)).toBe(null);
   });
   it('writes a price in cents and a holding as the side it is long', () => {
     expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);

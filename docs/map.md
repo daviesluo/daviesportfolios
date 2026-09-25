@@ -103,9 +103,9 @@ How the less obvious parts work, and why they are built the way they are.
   pre-warms **both** ext-states' 1D chart caches, so toggling the
   switch is a cache-hit instead of a 1-2 s cold fetch — no manual
   refresh needed. Whenever the toggle is on, the perf-chart legend
-  dot flips to `S&P 500 FUTURES` AND the panel title flips to
-  "PERFORMANCE VS S&P FUTURES" so the benchmark is unambiguous (both
-  revert to "S&P 500" on the cash-index ranges).
+  dot flips to `S&P 500 FUTURES` and the panel title says S&P FUT
+  (VS S&P FUT on the signed-in tabs; PERFORMANCE VS S&P FUT for a
+  read-only viewer, whose title is PERFORMANCE VS S&P 500 otherwise).
 - **1D chart spans 24 h** — both in-session and ext-hours views show
   the trailing 24 h. In-session uses Yahoo `range=5d` + a client-side
   `filterToLast24h` cut (Yahoo's `range=1d` only ever covers the
@@ -547,7 +547,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: LIVE and TESTING tabs, each with its own scoreboard, venue cards and table; each strategy's status, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: LIVE and TESTING tabs, each with its own scoreboard, venue cards and table; each strategy's status, deployed amount, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
 
 ### `supabase/functions/` — the server
 

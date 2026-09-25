@@ -729,6 +729,22 @@ async function dashboard(now: number) {
   };
 }
 
+/**
+ * How many newest orders the detail's "Load full history" asks for. `ordersMore`
+ * on the chart is whether any of them, on this pair, is missing from the window
+ * the table already shows. The page's `FULL_HISTORY_LIMIT` is the same number.
+ */
+export const FULL_HISTORY_LIMIT = 300;
+
+/**
+ * True when the log's newest orders include one on this pair that the chart
+ * window did not return, so loading them would add a row to the table.
+ */
+export function ordersBeyondChart(shownIds: readonly number[], preview: readonly { id: number; symbol: string }[], symbol: string): boolean {
+  const shown = new Set(shownIds.map((id) => Number(id)));
+  return preview.some((o) => o.symbol === symbol && !shown.has(Number(o.id)));
+}
+
 /** The window the detail chart shows, by the rule's own bar: a minute rule shows the last 12 hours, an hourly one a week, a 4-hour one a month. */
 export function chartWindow(kind: StrategyRow["kind"]): { intervalMin: number; spanMs: number } {
   if (kind === "dislocation-1m") return { intervalMin: 1, spanMs: 12 * ONE_H };
@@ -758,13 +774,16 @@ async function chart(strategyId: string, symbol: string, now: number) {
   const { intervalMin, spanMs } = chartWindow(s.kind);
   const since = new Date(now - spanMs).toISOString();
   const sym = encodeURIComponent(symbol);
-  const [candles, orders, decisions, observations] = await Promise.all([
+  const [candles, orders, decisions, observations, preview] = await Promise.all([
     d.select<{ start: string; open: number; high: number; low: number; close: number; volume: number }>("agent_candles",
       `venue=eq.${s.signal_venue}&symbol=eq.${sym}&interval_min=eq.${intervalMin}&start=gte.${since}&select=start,open,high,low,close,volume&order=start.asc&limit=2000`),
     d.select<OrderRow & { cancelled_at: string | null }>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=*&order=ts.asc&limit=500`),
     d.select<{ id: number; ts: string; bar_start: string; final_action: string; rule_action: string; final_reason: string; provider: string; risk_allowed: boolean; numbers: Record<string, unknown> }>("agent_decisions",
       `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&ts=gte.${since}&select=id,ts,bar_start,final_action,rule_action,final_reason,provider,risk_allowed,numbers&order=ts.asc&limit=500`),
     d.select<ObservationRow>("agent_observations", latestObservationQuery(strategyId, symbol)),
+    // The same newest rows the history button fetches, so the button is shown only when one of them would add a line.
+    d.select<{ id: number; symbol: string }>("agent_orders",
+      `strategy_id=eq.${encodeURIComponent(strategyId)}&select=id,symbol&order=ts.desc&limit=${FULL_HISTORY_LIMIT}`),
   ]);
   const allFilled = await d.selectAll<OrderRow>("agent_orders", `strategy_id=eq.${encodeURIComponent(strategyId)}&symbol=eq.${sym}&state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc`);
   const { book, position: pos } = chartBook(s.mode, allFilled);
@@ -779,6 +798,8 @@ async function chart(strategyId: string, symbol: string, now: number) {
       id: o.id, ts: o.ts, side: o.side, price: Number(o.price), base: Number(o.base_size), state: o.state, venue: o.venue, mode: o.mode, requotes: Number(o.requotes ?? 0),
       marketable: !!o.request?.marketable, filledAt: o.filled_at, cancelledAt: o.cancelled_at ?? null, decisionId: o.decision_id,
     })),
+    ordersMore: ordersBeyondChart(orders.map((o) => o.id), preview, symbol),
+    historyLimit: FULL_HISTORY_LIMIT,
     decisions: decisions.map((x) => ({ id: x.id, ts: x.ts, barStart: x.bar_start, action: x.final_action, ruleAction: x.rule_action, reason: x.final_reason, provider: x.provider, riskAllowed: x.risk_allowed, kind: (x.numbers?.kind as string) ?? "bar", mark: Number(x.numbers?.mark ?? 0) || null })),
     position: { book, base: pos.base, avgCost: pos.avgCost, realisedUsd: pos.realisedUsd, feesUsd: pos.feesUsd, openedAt: pos.openedAt },
     observation: observations[0] ? { ts: observations[0].ts, barStart: observations[0].bar_start, state: observations[0].state, numbers: observations[0].numbers } : null,
