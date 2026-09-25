@@ -119,8 +119,8 @@ apart on two tabs.
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
   tie up; its dot turns amber if it stops. Tap it for its page: the same
   scoreboard, then each book's six rungs (the price each quotes, or what
-  it holds and has made at the last trade) and the latest round trips,
-  with today's orders against Revolut X's 1,000 a day at the foot.
+  it holds and has made at the last trade) and the latest round trips.
+  The foot is when the page was read, and that it refreshes every minute.
 - **Reward quotes.** After it, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC
@@ -130,9 +130,10 @@ apart on two tabs.
   (in Yes or No shares) at the mid. Tap it for its page: the same
   scoreboard, with realised split on one line into the rewards and what
   its orders made; a status row (the pessimistic total, how much of the
-  total sits in one market, how many markets it is quoting, how many
-  positions are still open); the closed days, then today's quotes, and
-  the latest fills. A fill is one print, so the fills table has no profit
+  total sits in one market, how many markets it is quoting today, how many
+  positions are still held); the days, including the UTC day still open,
+  then today's quotes, and the latest fills, shares then price. The foot
+  is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
   Polymarket's published formula against the book as it stood, so they
@@ -189,7 +190,7 @@ Opens from any holding, tile or Market Conditions card.
 Two tabs share one slot and one range: **VS S&P 500** (it reads VS S&P
 FUT while the benchmark is the futures contract) and **INVESTMENT**.
 Both come from the same valuation, so they can't disagree about what
-the portfolio is worth. The read-only password shows VS S&P 500 alone.
+the portfolio is worth. The read-only password shows PERFORMANCE VS S&P 500 alone.
 
 ### VS S&P 500
 

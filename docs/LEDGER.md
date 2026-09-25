@@ -836,6 +836,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 19:05 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: the scoreboard's last cell painted past the frame, and the two test pages needed a quieter reading.**
+- REALIZED's fees stay on the title's line. The cell shrinks that line to the column (the strategy page had been missing the class the tab already used), so the words stay inside the border on LIVE, TESTING and a strategy page, desktop and phone. The browser sweep measures the label against the frame.
+- Reward quotes STATUS drops the small lines. The tiles are WORST CASE, TOP SHARE, QUOTING TODAY, POSITIONS STILL HELD. DAYS leads with Costs, then fills and stress, and ends rewards then total; the UTC day still open is the first row, that day's change (the scoreboard's today), not the running total. FILLS puts shares before price, both the same width. Both test pages end "as of … · refreshes every minute".
+- A venue slice too narrow for its name shows the percent alone. A read-only viewer's chart title is PERFORMANCE VS S&P 500 (PERFORMANCE VS S&P FUT while the benchmark is the futures).
+
 ### [2026-09-25 00:30 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: Reward quotes' realised was overflowing, and the bar section was the wrong shape.** Also drop the strategy count on both scoreboards, put the fees on the realised title's line, drop Polymarket's empty maker/taker, and make Reward quotes' unrealised percent the same base as the other rows.

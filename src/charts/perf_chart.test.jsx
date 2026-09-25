@@ -508,7 +508,7 @@ describe('PerfPanel — one slot, two charts', () => {
     expect(tabs(/** @type {HTMLElement} */ (container))).toEqual([]);
     expect(container.querySelector('[role="tablist"]')).toBeNull();
     expect(container.querySelector('#perf-tab-inv')).toBeNull();
-    expect(container.querySelector('.panel-title')?.textContent).toBe('VS S&P 500');
+    expect(container.querySelector('.panel-title')?.textContent).toBe('PERFORMANCE VS S&P 500');
     expect(container.textContent).not.toMatch(/INVESTMENT|DEPOSITED/);
     // The range row stays: the viewer still reads every window.
     expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))

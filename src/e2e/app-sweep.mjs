@@ -1602,11 +1602,21 @@ async function run() {
       }
       // Five cells since 2026-09-24 (Davies): FUNDED before DEPLOYED, DEPLOYED as a percent of it; no total; each percent
       // names its base under its label, and the fees ride on realised's.
+      const boardFits = (sel) => page.locator(sel).evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const label = el.querySelector('.ag-sb-realised .ag-sb-label');
+        const outside = [...el.querySelectorAll('.ag-sb-name, .ag-sb-aside, .ag-sb-usd, .sb-pct, .ag-sb-deployed-pct')].filter((n) => {
+          const r = n.getBoundingClientRect();
+          return r.width > 0 && r.right > box.right + 1.5;
+        }).map((n) => (n.textContent || '').trim());
+        return { overflow: Math.round(el.scrollWidth - el.clientWidth), outside, labelH: label ? Math.round(label.getBoundingClientRect().height) : 0 };
+      });
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
-      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / incl. fees $0.08') {
-        ok(S('agents'), 'five cells, FUNDED first, no total; no percent badges except the fees on realised, DEPLOYED carries no (Paper)');
-      } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}`);
+      const sbFit = await boardFits('.ag-modepanel > .ag-scoreboard');
+      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / incl. fees $0.08' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.labelH < 28) {
+        ok(S('agents'), 'five cells, FUNDED first, no total; no percent badges except the fees on realised, DEPLOYED carries no (Paper); the realised label stays inside the frame');
+      } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}; fit ${JSON.stringify(sbFit)}`);
       const meters = await page.locator('.ag-sb-meter').count();
       if (meters === 0) ok(S('agents'), 'DEPLOYED has no progress bar');
       else fail(S('agents'), `${meters} deployed meters`);
@@ -1649,7 +1659,7 @@ async function run() {
       const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       await shot(page, 'agents-quotes');
       const qStacked = await page.locator('.modal').count();
-      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /round trips 7 · 86 % won/.test(qAside) && /205 of 1,000 · 8 filled/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
+      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
         ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
@@ -1679,8 +1689,19 @@ async function run() {
       const rHeldRow = ((await page.locator('.ag-rw-markets tbody tr').last().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       const rFirst = ((await page.locator('.ag-rw-markets tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       const rDays = (await page.locator('.ag-rw-days tbody tr td:first-child').allTextContents()).map((t) => t.trim());
+      const rDayHeads = (await page.locator('.ag-rw-days thead th').allTextContents()).map((t) => t.trim());
+      const rFirstDay = ((await page.locator('.ag-rw-days tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       const rFills = await page.locator('.ag-rw-fills tbody tr').count();
+      const rFillHeads = (await page.locator('.ag-rw-fills thead th').allTextContents()).map((t) => t.trim());
       const rFirstFill = ((await page.locator('.ag-rw-fills tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const narrow = vpWidth <= 760;
+      const rFillEq = narrow ? 0 : await page.locator('.ag-rw-fills').evaluate((el) => {
+        const heads = [...el.querySelectorAll('thead th')];
+        const shares = heads.find((h) => /Shares/.test(h.textContent || ''));
+        const price = heads.find((h) => /^Price/.test((h.textContent || '').trim()));
+        if (!shares || !price) return -1;
+        return Math.abs(shares.getBoundingClientRect().width - price.getBoundingClientRect().width);
+      }).catch(() => -1);
       const rBar = ((await page.locator('.ag-rw-bar').innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
       // The head's line of detail and the formula's note are gone (Davies, 2026-09-24); where the run is, is the bar's line.
       const rNote = await page.locator('.ag-rw-note').count();
@@ -1692,20 +1713,23 @@ async function run() {
       // A market is its question: the first one reads to its date, in two lines on a desk and four on a phone.
       const rQ = await page.locator('.ag-rw-markets tbody tr').first().locator('.ag-rw-q').evaluate((el) => ({ clipped: el.scrollHeight > el.clientHeight + 1, lines: Math.round(el.clientHeight / parseFloat(getComputedStyle(el).lineHeight)) })).catch(() => ({ clipped: true, lines: 0 }));
       await shot(page, 'agents-rw');
-      const narrow = vpWidth <= 760;
       const rPh = await page.locator('.ag-rw-detail th.ag-ph').evaluateAll((els) => els.filter((el) => getComputedStyle(el).display !== 'none').length);
       const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
       if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
         && rSplit.join(' | ') === 'rewards +$41.60 · orders +$0.40'
         && rSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
-        && rDays.length === 3 && rDays.every((d) => /^\d{1,2} Sep( · warm-up)?$/.test(d)) && /warm-up$/.test(rDays[2]) && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill)
-        && rTiles.join(',') === 'STRESS,BEST MARKET,MARKETS,OPEN' && /STRESS \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /quoting today/.test(rBar) && /\b3\b/.test(rBar) && /\b2\b/.test(rBar)
+        && rDayHeads.join(',') === 'Day (UTC),Costs,Fills,Stress,Rewards,Total'
+        && rDays.length === 4 && /· today$/.test(rDays[0]) && /^\d{1,2} Sep$/.test(rDays[1]) && /warm-up$/.test(rDays[3])
+        && /\$296\.00/.test(rFirstDay) && /\+\$12\.50/.test(rFirstDay) && (narrow || (/\b2\b/.test(rFirstDay) && /\+\$6\.10/.test(rFirstDay)))
+        && /^When \([A-Z]+\),Market,Side,Shares,Price$/.test(rFillHeads.join(',')) && rFillEq < 1.5
+        && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill) && rFirstFill.indexOf('20') < rFirstFill.indexOf('46¢')
+        && rTiles.join(',') === 'WORST CASE,TOP SHARE,QUOTING TODAY,POSITIONS STILL HELD' && /WORST CASE \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /QUOTING TODAY/.test(rBar) && /POSITIONS STILL HELD/.test(rBar) && !/if rewards were halved/.test(rBar)
         && rNote === 0 && rMeta === 0 && rWhen === '' && !/Day \d+ of 14/.test(rBar) && await page.locator('.ag-rw-run').count() === 0
-        && /funded \(Paper\) \$296\.00 · markets today 3 · fills 5/.test(rFoot) && rWarn === 0
+        && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(rFoot) && rWarn === 0
         && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
-        ok(S('agents'), `its page: FUNDED first, realised wraps inside its cell, STATUS is stress, best market, markets quoting and positions open, days above quotes, 4 quotes, 3 days, 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}`);
-      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${rSplit.join(' | ')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDays.join('|')}, fills ${rFills} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+        ok(S('agents'), `its page: FUNDED first, realised stays inside its cell, STATUS is worst case, top share, quoting today and positions still held, the open day leads the days, 4 quotes, 4 days, 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}`);
+      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${rSplit.join(' | ')}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the RW page returns to the list');
@@ -1729,7 +1753,7 @@ async function run() {
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW on Polymarket $14.40 — 89 % and 11 %.
       const shares = (await page.locator('.ag-share').allTextContents()).map((t) => t.trim());
-      if (shares.join(' | ') === 'Revolut X 89% |  | ') ok(S('agents'), 'share bar: Revolut X is 89% of deployed value (quotes included); Polymarket\'s 11% is under the label cutoff and Binance holds nothing');
+      if (shares.join(' | ') === 'Revolut X 89% |  | 11%') ok(S('agents'), 'share bar: Revolut X is 89% of deployed value (quotes included); Binance holds nothing; Polymarket\'s 11% shows as the percent alone');
       else fail(S('agents'), `share bar reads ${shares.join(' | ')}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
@@ -1796,10 +1820,11 @@ async function run() {
       const detailSb = (await page.locator('.ag-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
       const detailVals = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const paperInk = await page.locator('.ag-detail .ag-detail-head .ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
+      const detailFit = await boardFits('.ag-detail .ag-scoreboard-sm');
       if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100.00 | $21.50(21.50%)'
-        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed') {
-        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed');
-      } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}`);
+        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.labelH < 28) {
+        ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; realised stays inside the frame');
+      } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}, fit ${JSON.stringify(detailFit)}`);
       // One table on the detail, not three: the positions table and the decisions table said the same
       // things the cards and the live-state row already say, and the orders table now lives under the chart.
       // The orders table keeps its own class and is now inside the chart card; what must be gone is the positions
@@ -2085,10 +2110,15 @@ async function run() {
         && Object.keys(lv.bases).length === 0 && a0.shareBar === 0) {
         ok(T('armed'), 'one venue card, Revolut X: funded $50.00 with no (Paper), the row\'s figures, no percent badges, and no share bar for one venue');
       } else fail(T('armed'), `LIVE venues ${JSON.stringify(a0.venues)}, share bars ${a0.shareBar}`);
+      const liveFit = await page.locator('.ag-modepanel-live .ag-scoreboard').evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const outside = [...el.querySelectorAll('.ag-sb-name, .ag-sb-aside, .ag-sb-usd, .sb-pct')].filter((n) => n.getBoundingClientRect().width > 0 && n.getBoundingClientRect().right > box.right + 1.5).map((n) => (n.textContent || '').trim());
+        return { overflow: Math.round(el.scrollWidth - el.clientWidth), outside };
+      }).catch(() => ({ overflow: -1, outside: ['missing'] }));
       const liveEdge = await page.locator('.ag-modepanel-live .ag-scoreboard').evaluate((el) => getComputedStyle(el).borderLeftWidth).catch(() => '');
-      if (!a0.arming && a0.alerts.length === 0 && liveEdge !== '3px') {
-        ok(T('armed'), 'no live-trading box, no banner, and the scoreboard has no green edge');
-      } else fail(T('armed'), `armed line "${a0.arming}", banners ${JSON.stringify(a0.alerts)}, border ${liveEdge}`);
+      if (!a0.arming && a0.alerts.length === 0 && liveEdge !== '3px' && liveFit.overflow <= 1 && liveFit.outside.length === 0) {
+        ok(T('armed'), 'no live-trading box, no banner, and the scoreboard has no green edge and stays inside its frame');
+      } else fail(T('armed'), `armed line "${a0.arming}", banners ${JSON.stringify(a0.alerts)}, border ${liveEdge}, fit ${JSON.stringify(liveFit)}`);
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
@@ -2207,7 +2237,7 @@ async function run() {
     const invTabs = await page.locator('#perf-tab-inv').count();
     const title = ((await page.locator('.panel:has(.perf-range-btn) .panel-title:visible').first().textContent().catch(() => '')) || '').trim();
     const legend = await page.locator('.perf-lbl:visible').allTextContents();
-    if (badge === 1 && invTabs === 0 && /^VS S&P/.test(title) && legend.length > 0 && !legend.some((l) => /VALUE|DEPOSITED/.test(l))) {
+    if (badge === 1 && invTabs === 0 && /^PERFORMANCE VS S&P/.test(title) && legend.length > 0 && !legend.some((l) => /VALUE|DEPOSITED/.test(l))) {
       ok(S('perf'), `VIEWER badge; the panel is "${title}" alone, legend ${JSON.stringify(legend.slice(0, 2))}, no Investment tab`);
     } else fail(S('perf'), `badge ${badge}, Investment tabs ${invTabs}, title "${title}", legend ${JSON.stringify(legend)}`);
     await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
