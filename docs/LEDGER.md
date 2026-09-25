@@ -8,11 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5 LS-FADE out of sample is not run.** The pre-registration is frozen
-(`docs/agents/reviews/2026-09-25-fp5-prereg-ls-fade.md`, sha256 `1dcaaac0…`,
-2026-09-25 00:35:51Z). Next: `python3 docs/agents/scripts/fp5/fetch.py --oos`,
-then `python3 docs/agents/scripts/fp5/ls_fade_test.py`, twice, byte-identical.
-Do not read 2024–2026 prices before that. No testing row. No push to main.
+**fp5 LS-FADE failed its frozen bar and is discarded.** The run is valid:
+2023 reproduced (60 trades, +$33.7632) and two OOS runs were byte-identical
+(`docs/agents/backtests/fp5/ls_fade_oos.json`, sha256 `9fb9de3d…`). It fails
+the null, the second sub-window, doubled costs, the month test and the 4%
+cash bar. Do not retune it, do not widen it, do not flip the sign. The next
+Binance search has not been written. No testing row. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,6 +836,25 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:40 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 LS-FADE is not fit to add.** The pre-registration was already frozen
+(`1dcaaac0…`, 00:35:51Z). The out-of-sample inputs were pulled after that
+(`fetch.py --oos`: 997 metric days, 999 daily bars). One metric day is
+absent, 2026-09-24, which can only signal an entry on 2026-09-25 and that
+entry is outside the window. Two runs of `ls_fade_test.py` wrote the same
+bytes (`9fb9de3d7a6f7dcbe65e88e62feafc11133fa96fb12fa24029685f42a0617f82`).
+2023 came back as 60 trades and +$33.7632, so the run is the rule that was
+frozen. Out of sample, $100 a trade, fee plus the frozen half-spread:
+146 trades, total +$5.0693, mean +$0.0347 against a null p95 of +$0.2157
+(1,000 draws, seed 20260925); 2024 +$7.5296 and 2025–26 −$2.4603; doubled
+costs −$24.1117; best month 2026-08 is +$11.1918 and the rest is −$6.1225;
+annualised 1.854% on the $100 it locks over 998 days. The 5th and 20th
+percentile arms are positive (+$14.82 on 94, +$22.43 on 237) and that veto
+does not save a rule that already fails. Input hashes: oos metrics
+`62fe5f50…`, oos daily `93edfc40…`, screen metrics `94e0e0b6…`, screen daily
+`11052871…`. Reference §3.34. No testing row.
 
 ### [2026-09-25 00:36 UTC] Platform: Cursor | Model: Grok 4.7
 

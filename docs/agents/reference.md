@@ -2721,7 +2721,35 @@ concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games
 of one day and with the rewards computed from the published formula; what Polymarket actually pays is visible only to
 an account that quotes, and whether this one may is the review's §0.
 
-## 4. Design consequences (decided by the evidence above)
+### 3.34 fp5, retail long/short fade: the 2023 pass does not survive the later years (2026-09-25)
+
+The fourth Binance search (`reviews/2026-09-25-fp5-protocol.md`) screened fifteen
+rules on 2023 only. Fourteen failed that screen. LS-FADE passed it thinly: BTC,
+retail long/short count ratio under its own trailing-90-day 10th, next daily
+open, one day, 60 trades, +$33.7632, mean +56.3 bps against a null p95 of +51.5
+bps. The pre-registration (`reviews/2026-09-25-fp5-prereg-ls-fade.md`, sha256
+`1dcaaac05388eadfbd569a07ccbff7111f921a5a5b9fbc24044a4a57eac9a414`) was committed
+before any later year was scored. The test is `scripts/fp5/ls_fade_test.py`; the
+result is `backtests/fp5/ls_fade_oos.json`. Two runs were byte-identical, and
+2023 reproduced to the cent, so this is that rule and not a rewrite of it.
+
+| | trades | P&L on $100 |
+|---|---|---|
+| 2024 | (inside the 146) | +$7.53 |
+| 2025-01-01 → 2026-09-24 | (inside the 146) | −$2.46 |
+| whole out-of-sample window | 146 | +$5.07 |
+| same window, doubled fee | 146 | −$24.11 |
+| null p95 of the mean | 1,000 draws, seed 20260925 | +$0.216 a trade |
+| rule's own mean | | +$0.035 a trade |
+
+The best entry-month is 2026-08 (+$11.19). Without it the window is −$6.12.
+Annualised on the $100 it locks, over the 998 days named in the pre-registration,
+is 1.85%. The neighbouring quantiles (5th, 20th) are both positive, which only
+means the veto did not fire. Five of the six conditions fail. **Not fit to add
+to testing.** The threshold is not reused, and the other fourteen screen rules
+stay dead.
+
+### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
 2. **Observe every minute, decide on closed bars.** The loop wakes every minute (pg_cron; one minute is where Revolut X's public token bucket and the Edge budget both stay comfortable): it refreshes both venues' quotes, manages and re-quotes resting orders, checks the protective stops against the live mark, and writes the categorical state on the FORMING bar down when it changes (`agent_observations`) — so the page shows what the market is doing between decisions. Entries still wait for a closed 1h / 4h / 1d bar (the one rule that decided on the minute, the dislocation rule of §3.5, was retired by `0038`). "Every second" would cost nothing on Jev and everything on fees and the 1,000-order cap — §3.6 puts the number on it: below an hour the round-trip cost is the whole result.

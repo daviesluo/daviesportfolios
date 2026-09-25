@@ -1,0 +1,61 @@
+{
+  "annualised": 0.01854,
+  "conditions": {
+    "above_cash": false,
+    "at_least_30": true,
+    "beats_null": false,
+    "both_subwindows_positive": false,
+    "doubled_costs_positive": false,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": -24.1117,
+  "half_spread": 5.9107506265030525e-08,
+  "neighbors_hold": true,
+  "oos1_pnl_usd": 7.5296,
+  "oos2_pnl_usd": -2.4603,
+  "oos_days": 998,
+  "passes": false,
+  "prereg_sha256": "1dcaaac05388eadfbd569a07ccbff7111f921a5a5b9fbc24044a4a57eac9a414",
+  "primary": {
+    "beats_null": false,
+    "best_month": "2026-08",
+    "best_month_pnl_usd": 11.1918,
+    "best_month_share": 2.2078,
+    "by_month": {
+      "2024-02": 8.1671,
+      "2024-05": -3.5313,
+      "2024-06": -0.0265,
+      "2024-07": 0.8189,
+      "2024-08": -2.4687,
+      "2024-09": -6.7358,
+      "2024-10": 0.5842,
+      "2024-11": 9.5272,
+      "2024-12": 1.1945,
+      "2025-03": -0.3199,
+      "2025-04": 1.1286,
+      "2025-05": 4.9035,
+      "2025-06": -3.0314,
+      "2025-07": 5.3659,
+      "2025-10": -2.9324,
+      "2026-01": -0.7791,
+      "2026-03": -9.3284,
+      "2026-04": -7.697,
+      "2026-05": -0.6334,
+      "2026-08": 11.1918,
+      "2026-09": -0.3284
+    },
+    "mean_pnl_usd": 0.034721,
+    "n": 146,
+    "null_p95_pnl_usd": 0.2157,
+    "total_pnl_usd": 5.0693,
+    "without_best_month_usd": -6.1225
+  },
+  "quantile_05_n": 94,
+  "quantile_05_pnl_usd": 14.8156,
+  "quantile_20_n": 237,
+  "quantile_20_pnl_usd": 22.4294,
+  "screen_reproduction": {
+    "n": 60,
+    "total_pnl_usd": 33.7632
+  }
+}
