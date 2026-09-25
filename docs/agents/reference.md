@@ -5497,19 +5497,20 @@ is not inside the hold. Funding cash is not added. The null is that four-day
 long on every day, not a one-day long. A count taken before the freeze, with
 no profit computed, was 52. The scored book is 52. The rule was not changed.
 
-### 3.247 The first week of the month, held to the next month: the 2023 screen passes (2026-09-25)
+### 3.247 The first week of the month, held to the next month: the seven-day null is not a pass (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp218-protocol.md`) was committed before any
 return (`3acc6ef`). Two runs matched (`backtests/fp218/screen_2023.json`,
 sha256 `b028983e…`). Buy the USDT perpetual on a UTC day numbered 1 through 7
 and sell the next month's first open: 84 trades, mean +811.9657 bps, null p95
-+787.6951 bps, +$682.0512. The file's gross is +833.6112 bps. The count
-cleared, the mean is positive, and the mean is above the null. **The 2023
-screen passes. The later years are not scored. This is not a testing row.**
-One leg. The strategy hold is 22 to 31 days. The null is the same exit on
-every day at least seven days remain, so the pool also contains shorter
-holds. Funding cash is not added. A count taken before the freeze, with no
-profit computed, was 84. The scored book is 84. The rule was not changed.
++787.6951 bps, +$682.0512. The file's gross is +833.6112 bps. **That comparison
+is not a pass.** The strategy hold is 22 to 31 days. The null sold at the next
+month's open whenever at least seven days remained, so the pool also contains
+shorter holds. The same-length null is frozen in
+`reviews/2026-09-25-fp218-matched-protocol.md` and is not yet scored. The later
+years are not scored. This is not a testing row. One leg. Funding cash is not
+added. The trades were not changed. A count taken before the first freeze, with
+no profit computed, was 84. The scored book is 84.
 
 ### 3.248 The front quarterly held to its expiry: none clears (2026-09-25)
 

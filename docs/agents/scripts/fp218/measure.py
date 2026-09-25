@@ -19,8 +19,8 @@ import common as c
 
 ROOT = Path(__file__).resolve().parents[4]
 DATA = Path(os.environ.get("FP218_DATA", "/tmp/fp218/data"))
-PROTOCOL = ROOT / "docs/agents/reviews/2026-09-25-fp218-protocol.md"
-NOTE = "A UTC day numbered 1 through 7 is bought and sold at the next month's first open. One USDT-perpetual leg. Funding cash is not added. The null is that hold on every day at least seven days remain."
+PROTOCOL = ROOT / "docs/agents/reviews/2026-09-25-fp218-matched-protocol.md"
+NOTE = "A UTC day numbered 1 through 7 is bought and sold at the next month's first open. One USDT-perpetual leg. Funding cash is not added. The null draws, within each hold length the rule used, that many opens held exactly that many days."
 FIELDS = {"coin", "entry_ms", "exit_ms", "gross", "net", "pnl"}
 
 
@@ -56,17 +56,47 @@ def check_common(trade: dict) -> None:
         raise SystemExit("the dollar result is not a hundred dollars times the net")
 
 
-def assert_subset(trades, pool, spans, pool_spans) -> None:
+def assert_matched(trades, spans, pool_spans, by_hold) -> None:
     if not trades:
         raise SystemExit("the rule has no fill")
-    if len(pool_spans) <= len(spans):
-        raise SystemExit("the null is not a larger pool than the rule")
-    pool_entries = {entry for entry, _exit in pool_spans}
-    counts = Counter(pool)
-    for trade, (entry, _exit) in zip(trades, spans):
-        if entry not in pool_entries or counts[trade["net"]] <= 0:
-            raise SystemExit("a fill is not in the null pool")
-        counts[trade["net"]] -= 1
+    if hasattr(c, "POOL_MIN"):
+        raise SystemExit("the seven-day floor is still the null")
+    need = {}
+    for trade, (entry, exit_ms) in zip(trades, spans):
+        hold = (exit_ms - entry) // c.fp5.DAY_MS
+        if (trade["exit_ms"] - trade["entry_ms"]) // c.fp5.DAY_MS != hold:
+            raise SystemExit("the fill and the span diverged")
+        need[hold] = need.get(hold, 0) + 1
+    if set(spans) - set(pool_spans):
+        raise SystemExit("a fill is not in the null pool")
+    ordered = sorted(pool_spans, key=lambda pair: ((pair[1] - pair[0]) // c.fp5.DAY_MS, pair[0]))
+    if list(pool_spans) != ordered:
+        raise SystemExit("the pool order moved")
+    seen = set()
+    previous = (-1, -1)
+    for entry, exit_ms in pool_spans:
+        hold = (exit_ms - entry) // c.fp5.DAY_MS
+        if hold not in need or hold < 22 or hold > 31:
+            raise SystemExit("the null holds a length the rule does not")
+        if exit_ms != entry + hold * c.fp5.DAY_MS:
+            raise SystemExit("the null exit is not that many days later")
+        if exit_ms - entry <= c.fp5.DAY_MS:
+            raise SystemExit("the null hold is one day or overnight")
+        if (hold, entry) <= previous:
+            raise SystemExit("the pool order moved")
+        previous = (hold, entry)
+        seen.add(hold)
+    if seen != set(need):
+        raise SystemExit("a strategy length has no pool")
+    for hold, count in need.items():
+        if len(by_hold[hold]) <= count:
+            raise SystemExit("a length pool is not larger than the rule")
+    counts = {hold: Counter(nets) for hold, nets in by_hold.items()}
+    for trade in trades:
+        hold = (trade["exit_ms"] - trade["entry_ms"]) // c.fp5.DAY_MS
+        if counts[hold][trade["net"]] <= 0:
+            raise SystemExit("a fill is not in its length pool")
+        counts[hold][trade["net"]] -= 1
 
 
 def run() -> None:
@@ -92,11 +122,11 @@ def run() -> None:
         if abs(trade["net"] - c.fp5.net_return(entry_px, exit_px)) > 1e-12:
             raise SystemExit("the net is not the one leg")
     pool_spans = c.pool_spans(um)
-    pool = c.pool_nets(um)
+    by_hold = c.pool_by_hold(um)
     if c.IDEA != "MTH" or c.MIN_N != 30:
         raise SystemExit("the frozen name or the count moved")
-    assert_subset(trades, pool, spans, pool_spans)
-    row = c.fp5.summarise(c.IDEA, trades, pool, c.MIN_N, NOTE)
+    assert_matched(trades, spans, pool_spans, by_hold)
+    row = c.screen_row(trades, by_hold, NOTE)
     payload = {
         "protocol_sha256": sha256(PROTOCOL),
         "code_sha256": {
@@ -109,7 +139,7 @@ def run() -> None:
         "passed": [row["idea"]] if row["passes_screen"] else [],
     }
     text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    out = ROOT / "docs/agents/backtests/fp218/screen_2023.json"
+    out = ROOT / "docs/agents/backtests/fp218/screen_2023_matched.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)
     print(text, end="")
