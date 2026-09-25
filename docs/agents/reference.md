@@ -6895,6 +6895,43 @@ row and it is not taken out of sample. Only DISCU clears the three bars and
 clears the edge-off trade by more than 20 bps. Its later years are not
 scored here.
 
+### 3.342 Fair value has to be another dataset. Eight external edges are frozen, with no return (2026-09-25)
+
+Davies, 2026-09-25: the fair value of a price edge has to come from another
+dataset. It cannot be computed from the daily bars of the contract being
+traded. That contract's open is the fill only. Binance spot, the
+coin-margined book and the USDT book are not each other's external data.
+DISCU is not pre-registered. Its fair value was the Binance spot close.
+RICHU, CHEAPS, WIDEN, CHEAPC, DISCM, GAPCM and RICHC stay inside 2023 for
+the same reason, and because they did not clear the screen. A print that
+was not yet published at the decision is not used. A series that cannot be
+found is replaced.
+
+Two external closes were found, and the threshold on each rule is the
+smallest of zero, five and ten basis points at which the edge-off set is at
+least as long as the rule. That choice is from span counts. No profit has
+been computed.
+
+Coinbase Exchange `GET /products/BTC-USD/candles?granularity=86400`
+(`api.exchange.coinbase.com`; the public page is
+`https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getproductcandles`).
+Each bucket starts at 00:00 UTC. The close is published when the bucket
+ends. It is used only when that end is strictly earlier than the Binance
+entry open. Deribit `public/get_tradingview_chart_data` for
+`BTC-PERPETUAL` at `resolution=1D` (`www.deribit.com`; the public page is
+`https://docs.deribit.com/#public-get_tradingview_chart_data`). Every tick
+in the pull is 08:00 UTC. The close is published at the next 08:00 UTC and
+is used only when that time is strictly earlier than the Binance midnight
+entry. The coin-margined book is missing 2023-08-28 through 2023-08-31.
+Those days are not filled in.
+
+Counts, rule against edge-off, with no profit computed: CBCHP 174/183,
+CBRCH 170/184, CBSPT 173/179, CBWDN 132/226, DBCHP 172/183, DBRCH 169/172,
+DBCMC 167/184, DBWDN 133/223. The protocols are
+`reviews/2026-09-25-fp297-protocol.md` through
+`reviews/2026-09-25-fp304-protocol.md`. No later-year return of these rules
+has been computed. No testing row is added.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
