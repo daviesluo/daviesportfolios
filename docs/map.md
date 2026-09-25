@@ -835,6 +835,14 @@ before touching migration state.
 | `docs/agents/scripts/fp142/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | USDT-margined BTC funding minus coin-margined funding, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp142/screen_2023.json`. |
 | `docs/agents/scripts/fp143/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close-to-close return, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp143/screen_2023.json`. |
 | `docs/agents/scripts/fp144/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 16:00 BTC funding rate minus the 00:00 rate, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp144/screen_2023.json`. |
+| `docs/agents/scripts/fp145/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in the last taker long/short volume ratio, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp146/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Dollar open interest, the last print over the first, minus one, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp147/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 08:00 BTC funding rate minus the average of the 00:00 and 16:00 rates, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp148/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The USDT perpetual's close-to-close return minus spot's, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp149/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in spot trade count over the USDT perpetual's trade count, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp150/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in USDT-margined BTC volume over coin-margined BTC volume, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp151/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The dispersion of the taker long/short volume ratio, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp152/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in the BTC premium-index close, long BTC for one day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp136–fp141, fp143 and fp144 are scored. Nothing passes the house bar.** Eight market statistics, each long BTC for one day, each with fills. FUNDGAP had 0 trades and does not count. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
+**fp145–fp152 are protocols only. No return has been computed.** Eight different market statistics, each long BTC for one day. The count stays 30. The window stays 90 days and 90 prints. BASERNG's 27 trades do not lower the count. FUNDGAP had no fill and its reciprocal is not scored. Liquidations are not scored and no other series stands in for them. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:54 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp145–fp152 are protocols only. No return has been computed.** Pins printed fp145 through fp152 pins ok before this commit. Eight different statistics, each long BTC for one day: the last taker ratio minus yesterday's last (TAKJMP), the last dollar open interest over the first, minus one (OIIN), the 08:00 funding rate minus the average of the 00:00 and 16:00 rates (FRMID), the perpetual's close-to-close return minus spot's (PXGAP), the jump in spot trade count over the perpetual's trade count (CNTJMP), the jump in USDT-margined volume over coin-margined volume (UMCMJMP), the taker ratio's dispersion over its mean (TAKSTD), and the premium-index close minus yesterday's close (BASJMP). The count stays 30. The window stays 90 days and 90 prints. No sign is flipped. BASERNG stays at 27 trades and does not lower the count. FUNDGAP stays a zero-fill rule. Its reciprocal is not scored and the window is not shrunk. Liquidation files are not scored, and no other series stands in for them. OIRNG, FRJMP, TAKRNG, MIXJMP, RNGRAT, DRET and FRIN stay closed. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:43 UTC] Platform: Cursor | Model: Grok 4.7
 
