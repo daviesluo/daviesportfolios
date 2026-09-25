@@ -8,22 +8,21 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp28 screen passed. Pre-registration is frozen. No 2024 return has been
-computed.** IMPACT is the population correlation, inside one UTC day, of
-hourly quote volume and the absolute hourly move, above its own trailing
-90th, long BTC the next day: 37 trades, +86.59 bps against a null of
-+74.56, +$32.04. The pre-registration is `61c415a5…`, frozen at
-2026-09-25T02:52:42Z, half-spread 5.933062130678438e-08 from bid 84273.51 /
-ask 84273.52. The out-of-sample test is the next step. BAL-CHG stays dead
-(§3.56). Do not score a day the count did not rise, do not score its 80th,
-and do not score the level of `AdrBalCnt`. BODY stays dead, including the
-later years (§3.55). Do not promote its 80th. Do not score a day whose
-volume and moves do not line up until the out-of-sample veto, and do not
-promote the 80th. The count of trades stays 30. Do not reopen EXCH-BAL,
-FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP,
-CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
-taker share, dispersion, or skew. fp5 through fp27 stay closed, including
-LS-FADE. No testing row. No pull request. No push to main.
+**fp28 out of sample failed. IMPACT is dead.** The population correlation,
+inside one UTC day, of hourly quote volume and the absolute hourly move,
+above its own trailing 90th, long BTC the next day: 2023 passed (37 trades,
++86.59 bps against a null of +74.56, +$32.04) and the later years do not
+(§3.57). 113 trades, −$22.6606 against a null of +$0.2644. Both later
+windows are negative. Do not score a day whose volume and moves do not line
+up, and do not promote the 80th or the 95th. BAL-CHG stays dead (§3.56).
+Do not score a day the count did not rise, do not score its 80th, and do
+not score the level of `AdrBalCnt`. BODY stays dead, including the later
+years (§3.55). Do not promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH,
+the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
+PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
+share, dispersion, or skew. fp5 through fp28 stay closed, including
+LS-FADE. The next rule is not written. No testing row. No pull request.
+No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -846,6 +845,20 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:55 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp28 out of sample: nothing passes.** Pre-registration was `fb4330e`
+(`61c415a5…`). Two scores matched (`6f6710e8…`). 2023 reproduces: 37 trades,
++$32.0371. OOS is 113 trades, −$22.6606 against a null of +$0.2644. 2024 is
+−$9.0706 and the later window is −$13.59. Doubled costs are −$45.1928.
+Without 2024-11 the total is −$33.2177. Annualised −8.29%. The 80th neighbor
+is −$50.2414 and the 95th is −$25.6306. Reference §3.57. The hourly grid
+from 2024 on has no hole. A day whose volume and moves do not line up is
+not a candidate, and neither neighbor is a candidate. BAL-CHG stays closed,
+including the level of the address count and its 80th. BODY stays closed,
+including the later years. No testing row. No pull request. Main was not
+pushed.
 
 ### [2026-09-25 02:54 UTC] Platform: Cursor | Model: Grok 4.7
 

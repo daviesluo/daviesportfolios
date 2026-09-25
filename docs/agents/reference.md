@@ -2991,6 +2991,25 @@ earlier count, so there are 456 changes. The daily grid has no hole.
 it lost to the null. A day the count did not rise and the 80th are not
 candidates.
 
+### 3.57 Volume lined up with the move: the screen passes, the later years do not (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp28-protocol.md`) was committed before the
+2023 screen. Two runs matched (`backtests/fp28/screen_2023.json`). The
+population correlation, inside one UTC day, of hourly quote volume and the
+absolute hourly move, above its own trailing 90th, long spot the next day:
+37 trades, mean +86.6 bps, null p95 +74.6 bps, +$32.04. The hourly grid has
+one hole, 2023-03-24 13:00 UTC, and that day is not a print. The
+pre-registration (`reviews/2026-09-25-fp28-prereg-impact.md`, sha256
+`61c415a5…`, frozen 2026-09-25T02:52:42Z) was committed before any later
+year. Two out-of-sample runs matched (`backtests/fp28/impact_oos.json`). 2023
+reproduces: 37 trades, +$32.0371. Entries from 2024-01-01 through 2026-09-24:
+113 trades, −$22.6606, mean −$0.200536, null p95 +$0.2644. 2024 is −$9.0706
+and 2025-01-01 through 2026-09-24 is −$13.59. Doubled costs are −$45.1928.
+Without November 2024 the total is −$33.2177. Annualised on the locked $100
+it is −8.29%. The 80th neighbor loses (−$50.2414, 202 trades). The 95th
+also loses (−$25.6306, 71 trades). **Nothing here is fit to add.** A day
+whose volume and moves do not line up, and the 80th, are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
