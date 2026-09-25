@@ -2877,6 +2877,17 @@ next day: 64 trades, mean +39.5 bps, null p95 +51.4 bps. The gross move was
 was positive; it lost to the null. The small-trade tail and the 80th are
 not candidates.
 
+### 3.47 BTC–ETH return correlation: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp18-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp18/screen_2023.json`). The 30-day
+population correlation of BTC and ETH daily returns, above its own trailing
+90th, long spot for the next day: 26 trades, mean +57.9 bps, null p95
++81.2 bps. The gross move was +78.0 bps. Both daily grids have no hole.
+**Nothing here is fit to add.** The count stays 30. The mean was positive
+and lost to the null. The low-correlation tail and the 80th are not
+candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -8,13 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp18 protocol is frozen. No return has been computed.** PAIR-CORR is the
-30-day population correlation of BTC and ETH daily returns, long BTC the
-next day. Do not score the low-correlation tail. AVG-SIZE stays dead
-(§3.46): do not score the small-trade tail or the 80th. Do not reopen
+**fp18 failed the 2023 screen and is discarded** (§3.47). 26 trades, under
+30, and the positive mean lost to the null. Do not score the
+low-correlation tail, and do not score the 80th. Do not reopen AVG-SIZE,
 AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
-skew. fp5 through fp17 stay closed, including LS-FADE. The screen is the
-next step. No testing row. No pull request. No push to main.
+skew. fp5 through fp17 stay closed, including LS-FADE. The next search is
+not written. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:03 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp18 screen: nothing passes.** Protocol was `ab220e3`. Two scores matched
+(`3f16e692…`). PAIR-CORR 26 trades, +57.86 bps against a null of +81.22,
++$15.04. Gross before costs was +77.99 bps. Both daily grids have no hole.
+Reference §3.47. The count stays 30. The mean was positive and lost to the
+null. The low-correlation tail and the 80th are not candidates. No testing
+row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:02 UTC] Platform: Cursor | Model: Grok 4.7
 
