@@ -8,7 +8,9 @@ import gzip
 import json
 import os
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 sys.path.insert(0, os.path.dirname(__file__))
 import pmnet  # noqa: E402
@@ -273,8 +275,25 @@ def tape_for(cond, meta, start, stop):
     return rec
 
 
+def _share_pace():
+    """Eight wallets at once. The gap per host stays 0.12s; only the wait overlaps.
+
+    Added after the May tapes were already on disk and before any wallet was ranked.
+    The rows kept are the ones closed_positions already named.
+    """
+    lock = threading.Lock()
+    orig = pmnet._pace
+
+    def paced(host):
+        with lock:
+            orig(host)
+
+    pmnet._pace = paced
+
+
 def main():
     outp = sys.argv[1]
+    _share_pace()
     t0 = time.time()
     events = list_events()
     may_counts = {}
@@ -296,14 +315,22 @@ def main():
     candidates = sorted(w for w, n in may_counts.items() if n >= rule.MIN_PRINTS)
     print("candidates", len(candidates), "incomplete markets", len(may_incomplete), flush=True)
     closed, closed_incomplete = {}, []
-    for i, w in enumerate(candidates):
-        rec = closed_positions(w)
-        if rec["incomplete"]:
-            closed_incomplete.append(w)
-        else:
-            closed[w] = rec["rows"]
-        if i % 25 == 24:
-            print("closed", i + 1, "/", len(candidates), flush=True)
+    done = 0
+
+    def fetch_closed(w):
+        return w, closed_positions(w)
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futs = [pool.submit(fetch_closed, w) for w in candidates]
+        for fut in as_completed(futs):
+            w, rec = fut.result()
+            if rec["incomplete"]:
+                closed_incomplete.append(w)
+            else:
+                closed[w] = rec["rows"]
+            done += 1
+            if done % 200 == 0 or done == len(candidates):
+                print("closed", done, "/", len(candidates), round(time.time() - t0, 1), flush=True)
     leaders = rule.rank_wallets(may_counts, closed, closed_incomplete)
     names = [w for _, w, _ in leaders]
     print("leaders", len(names), flush=True)

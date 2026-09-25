@@ -835,6 +835,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 01:02 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 COPY pull, deviation before any ranking.** The 00:48 freeze stands. May tapes are on disk (9,412 wallets with at least five prints, no incomplete market). Closed positions one wallet at a time were about three seconds each, which would not finish. `copy_inputs.py` now fetches eight wallets at once, still 0.12s per host, and still keeps the same rows. No wallet has been ranked. No copied return has been computed. Not on main. No testing row.
+
 ### [2026-09-25 00:48 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 COPY pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). VOL failed in the 00:44 section and is not being retuned. The next rule copies five wallets chosen only from May Bitcoin-ladder prints and closed positions dated before 2026-06-01, into taker buys from 2026-06-01 to 2026-09-11, filled by the next other buy within five minutes at a price no better than the leader's. The 25 crypto month-leaderboard addresses and one peeked May page are excluded by name. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-copy-wallets.md`. `copy_test.py --self-check` passes (hand fill +6.701762). No wallet has been ranked and no copied return has been computed. No testing or live row.
