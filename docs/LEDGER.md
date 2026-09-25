@@ -86,9 +86,10 @@ list stays the short version; the plan is the reasoning behind it.
      every minute to 21:47; the twelve orders are one USDT-GBP re-price and its reversal at 21:48 / 21:58, which hinged
      on 0.106 bps and on an input the engine does not record. **Davies approved recording X and fairU every minute**
      ("这个你觉得需要的话就加上", relayed at 22:38 UTC). The table is `0055_quote_minutes.sql` (`agent_quote_minutes`),
-     pushed on its own so it exists before any writer; the engine change that writes it deploys at 00:03 UTC or later,
-     after the 00:00 close is decided, because `trend-4h-live` runs in the same `agents` function. Decisions stay
-     byte-identical with or without the record (pinned on the first evening's minutes). **Its first round trips (Davies asked at 22:52 whether it can meet the go-live standard now):** not
+     pushed on its own so it exists before any writer. The writer (`7e0d71f`) deployed at 2026-09-25 00:05:30 UTC, after
+     the 00:00 close had been decided (the 20:00 bar, four holds, at 00:00:04). The first recorded minute is
+     2026-09-25 00:05 UTC. Decisions stay byte-identical with or without the record (pinned on the first evening's
+     minutes). **Its first round trips (Davies asked at 22:52 whether it can meet the go-live standard now):** not
      decidable yet — the standard is the spec's six conditions after four weeks (2026-10-21), and the three trips so far
      are one event; the conditions that can be read early are on track (reference §4 item 31, "The first round trips").
      Live stays a NO-GO until the review; going live is one statement on his word.
@@ -834,6 +835,17 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 00:08 UTC] Platform: Cursor | Model: Grok 4.7
+
+**PR5's per-minute record is writing, and the deploy did not cross the 00:00 close.** The bar that closes at 00:00 is
+`bar_start` 2026-09-24 20:00. At 00:00:04 the live row wrote four holds on it, the same as the paper row. `agents`
+deployed at 00:05:30 UTC (edge-functions run 36075843621, "Deployed Functions: agents"). After that: quotes turns at
+00:06 and 00:07 both `recorded: 2`, `errors: []`; `agent_quote_minutes` starts at 2026-09-25 00:05 (two books, X and
+fair present, 22 hourly closes); `agent_quote_state.last_error` null and `last_minute` 00:06; the dry-run
+`last_error` null at 00:07:26; ticks at 00:06:01 and 00:07:00 are `strategies: 7`, `errors: []`, four
+`trend-4h-live` skips; `ops_errors` since 00:04 is 0; live orders 0. No new 4h decision was due. This is a mid-test
+change: minutes before 00:05 are not backfilled.
 
 ### [2026-09-24 23:41 UTC] Platform: Cursor | Model: Grok 4.7
 
