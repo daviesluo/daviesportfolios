@@ -2755,6 +2755,8 @@ Still later, still with `reached_preregistration` false (`screen_pass14.py`, `ba
 
 Still later, still with `reached_preregistration` false (`screen_pass15.py`, `backtests/fp5/summary_pass15.json`): a jump in the BTC perpetual premium index, long the next day in 2021, is −174 bps over 68 trips, and the BTC book is negative. A jump in English Wikipedia pageviews of Bitcoin, long the next day in 2018, is −6,493 bps over 60 trips, both books negative. The premium archive has no bar on 2021-07-01 or on 2021-07-24 through 2021-07-27, and those days are not filled, so the screen has 358 execution days. Neither sign is flipped and neither year is extended. The lightning-capacity series was not scored.
 
+Still later, still with `reached_preregistration` false (`screen_pass16.py`, `backtests/fp5/summary_pass16.json`): a jump in BTC's US-session share of spot quote volume, long the next day in 2018, is −2,241 bps over 68 trips, both books negative. A jump in BTC's daily high-low range, long the next day in 2018, is −3,768 bps over 67 trips, both books negative. Eight days in 2018 are not a full 24 hours and are not filled, so the volume-share screen has 351 execution days. Neither sign is flipped and neither year is extended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
