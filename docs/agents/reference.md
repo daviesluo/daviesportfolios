@@ -4062,6 +4062,103 @@ bar was read. ETH was not scored. **Nothing here is fit to add.** The count
 cleared and the mean was negative. A day LTC was quiet versus BTC, and the
 80th, are not candidates.
 
+### 3.132 The funding range, held two days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp103-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp103/screen_2023.json`). The range of
+BTC's three funding prints, above its own trailing 90th, long BTC for two
+days: 44 trades, mean +43.6 bps, null p95 +115.8 bps, +$19.17. The file's
+gross is +63.6834 bps, the mean is +43.5761 bps, the null is +115.8045 bps,
+and the total is +$19.1735. The null is BTC's own two-day holds, so it does
+not match a one-day screen. The eight holds share these 44 days. Funding has
+1,371 prints and the last is 16:00 on 2023-12-31. 457 days have a range. The
+daily grid has 471 opens through 2024-01-14 and no hole. No hourly price bar
+was read. No alt quote was read. **Nothing here is fit to add.** The count
+cleared and the mean was positive; it lost to the null. A narrower funding
+day, the funding level, and the 80th, are not candidates.
+
+### 3.133 The funding range, held three days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp104-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp104/screen_2023.json`). The same
+funding range, long BTC for three days: 44 trades, mean +93.5 bps, null p95
++154.033 bps, +$41.15. The file's gross is +113.7209 bps, the mean is
++93.5137 bps, and the total is +$41.146. The null is BTC's own three-day
+holds. The signal days are the same 44 days as §3.132. **Nothing here is fit
+to add.** The count cleared and the mean was positive; it lost to the null.
+A narrower funding day, the funding level, and the 80th, are not candidates.
+
+### 3.134 The funding range, held four days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp105-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp105/screen_2023.json`). The same
+funding range, long BTC for four days: 44 trades, mean +144.9 bps, null p95
++204.1 bps, +$63.77. The file's gross is +165.2528 bps, the mean is
++144.9426 bps, the null is +204.1126 bps, and the total is +$63.7748. The
+null is BTC's own four-day holds. The signal days are the same 44 days as
+§3.132. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. A narrower funding day, the funding level,
+and the 80th, are not candidates.
+
+### 3.135 The funding range, held five days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp106-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp106/screen_2023.json`). The same
+funding range, long BTC for five days: 44 trades, mean +218.9 bps, null p95
++239.6 bps, +$96.31. The file's gross is +239.3484 bps, the mean is
++218.8901 bps, the null is +239.6424 bps, and the total is +$96.3117. The
+null is BTC's own five-day holds. The signal days are the same 44 days as
+§3.132. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. A narrower funding day, the funding level,
+and the 80th, are not candidates.
+
+### 3.136 The funding range, held six days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp107-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp107/screen_2023.json`). The same
+funding range, long BTC for six days: 44 trades, mean +238.5 bps, null p95
++298.057 bps, +$104.93. The file's gross is +258.9811 bps, the mean is
++238.4836 bps, and the total is +$104.9328. The null is BTC's own six-day
+holds. The signal days are the same 44 days as §3.132. **Nothing here is fit
+to add.** The count cleared and the mean was positive; it lost to the null.
+A narrower funding day, the funding level, and the 80th, are not candidates.
+
+### 3.137 The funding range, held seven days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp108-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp108/screen_2023.json`). The same
+funding range, long BTC for seven days: 44 trades, mean +285.4 bps, null p95
++333.3 bps, +$125.60. The file's gross is +306.0354 bps, the mean is
++285.4439 bps, the null is +333.2761 bps, and the total is +$125.5953. The
+null is BTC's own seven-day holds. The signal days are the same 44 days as
+§3.132. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. A narrower funding day, the funding level,
+and the 80th, are not candidates.
+
+### 3.138 The funding range, held ten days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp109-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp109/screen_2023.json`). The same
+funding range, long BTC for ten days: 44 trades, mean +364.0 bps, null p95
++471.0 bps, +$160.16. The file's gross is +384.7429 bps, the mean is
++363.9942 bps, the null is +470.9651 bps, and the total is +$160.1574. The
+null is BTC's own ten-day holds. The signal days are the same 44 days as
+§3.132. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. A narrower funding day, the funding level,
+and the 80th, are not candidates.
+
+### 3.139 The funding range, held fourteen days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp110-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp110/screen_2023.json`). The same
+funding range, long BTC for fourteen days: 44 trades, mean +562.0 bps, null
+p95 +637.256 bps, +$247.27. The file's gross is +583.1284 bps, the mean is
++561.9833 bps, and the total is +$247.2727. The null is BTC's own
+fourteen-day holds. The signal days are the same 44 days as §3.132. **Nothing
+here is fit to add.** The count cleared and the mean was positive; it lost
+to the null. A narrower funding day, the funding level, and the 80th, are
+not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

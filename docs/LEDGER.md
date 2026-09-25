@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp103–fp110 protocols only. No return of these rules has been computed.** The relative-quote family stops at fp102. These eight screens are the range of BTC's three funding prints, long BTC for 2, 3, 4, 5, 6, 7, 10 or 14 days. AVAX-Q failed the later years. SOL-Q through LTC-Q stay closed. No hourly price bar is read. No alt quote is read. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp102, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp103–fp110 are scored. Nothing passes the house bar.** All eight have 44 fills. Each mean is positive and under that hold's own null. No later year past the declared exit opens was read. AVAX-Q failed the later years. SOL-Q through LTC-Q stay closed. No hourly price bar was read. No alt quote was read. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp102, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:39 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp103–fp110 are scored. Nothing passes the house bar.** Protocol was `a4d6887`. Each screen file was written twice and the copies matched. All eight share 44 signal days and 44 trades. FRNG-2 file gross +63.6834 / file mean +43.5761 / null +115.8045 / +$19.1735 (`c019188b…`). FRNG-3 +113.7209 / +93.5137 / null +154.033 / +$41.146 (`f45f4464…`). FRNG-4 +165.2528 / +144.9426 / null +204.1126 / +$63.7748 (`9dde31b7…`). FRNG-5 +239.3484 / +218.8901 / null +239.6424 / +$96.3117 (`4b3d658d…`). FRNG-6 +258.9811 / +238.4836 / null +298.057 / +$104.9328 (`bfea06c9…`). FRNG-7 +306.0354 / +285.4439 / null +333.2761 / +$125.5953 (`18af946b…`). FRNG-10 +384.7429 / +363.9942 / null +470.9651 / +$160.1574 (`367ccb2a…`). FRNG-14 +583.1284 / +561.9833 / null +637.256 / +$247.2727 (`e0b41861…`). Every fill matched fp5's `net_return`. Each null is that hold's own BTC pool. Funding has 1,371 prints, three a day, last at 16:00 on 2023-12-31. 457 days have a range. The daily grid has 471 opens through 2024-01-14 and no hole. Reference §3.132–§3.139. No sign was flipped. No count was lowered. The window was not shrunk. No hourly price bar was read. No alt quote was read. SOL-Q through LTC-Q and AVAX-Q stay closed. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, and fp30–fp102 stay closed. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:36 UTC] Platform: Cursor | Model: Grok 4.7
 

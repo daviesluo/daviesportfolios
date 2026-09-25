@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp106_common": "63c58edf81a57e7296334c9c91084eee6360c61ca349548b24f9166ce13ee29a",
+    "fp106_measure": "2dac1eb173ef56c5e6bdbac0ec4be59ed9e1248fac4f23ec92f4f5e112e1c2c1",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FRNG-5",
+      "mean_gross_bps": 239.3484,
+      "mean_net_bps": 218.8901,
+      "min_n": 30,
+      "n": 44,
+      "note": "Range of BTC's three funding prints, above its own trailing 90th. Next day, long BTC for 5 days.",
+      "null_p95_bps": 239.6424,
+      "passes_screen": false,
+      "total_pnl_usd": 96.3117
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "70028b9e538beaebd83ebc24bbedc9ebca65bcfcc7f544433358cdc39b82c5a9",
+    "funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4"
+  },
+  "passed": [],
+  "protocol_sha256": "075d4978ce634d96e6cafecf7a4043ba2cfea9171057b52a774cab93adcd6e31"
+}
