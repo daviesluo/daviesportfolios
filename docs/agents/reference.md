@@ -8217,8 +8217,19 @@ expiry-open basis. Forty basis points come off. 125 trades, edge-off
 −1.0325 bp, median signal +130.8971 bp. File gross +133.2947 bp, file
 mean +93.2947 bp, null p95 +9.2826 bp, null mean +5.9951 bp, +$116.6183
 (`d137286d…`). The gap is 84.0121 bp. The mean is positive and the gap
-is above 20 bp, so the later years are pre-registered and are not in
-this file. Screen `docs/agents/backtests/fp332/screen_2023.json`.
+is above 20 bp. Screen `docs/agents/backtests/fp332/screen_2023.json`.
+The pre-registration was `7ba71b7`, pushed before any later-year return.
+Two runs matched. 2023 reproduces: 125 trades, +$116.6183, mean
++93.2947 bp, null p95 +9.2826 bp. Entries 2024-01-01 through 2026-08-31:
+395 trades, edge-off 512, mean +144.2213 bp, null p95 +1.4352 bp, gap
+142.7861 bp, +$569.674. Median entry basis +164.9628 bp, median exit
++1.3049 bp. 2024 is +$419.5365 and 2025-01-01 through 2026-08-31 is
++$150.1375. Doubled costs are +$411.674. April 2024 is 15.44% of the
+total. The annualised figure on the house formula, over 974 days, is
+2.134815. Each signal is its own $100 package and the holds overlap, so
+that figure is not one untouched $100 left in place. September 2026 is a
+404 and was not filled in. `BTCUSDT_260925` was not a front. The file is
+`2ae6ce0b…`. It clears the pre-registered bar. It is not a testing row.
 
 **PEPRM.** Who is wrong: the buyer of 1000PEPEUSDT pays more per coin
 than the PEPEUSDT open, after dividing the perpetual by 1,000. The
@@ -8244,10 +8255,19 @@ four-hour print uses three. 85 trades, edge-off 815, 36 entry days.
 Median cash +105.9454 bp, median exit 0, median signal −119.159 bp.
 File gross +128.5634 bp, file mean +88.5634 bp, null p95 −36.9061 bp,
 null mean −38.3963 bp, +$75.2789 (`42030f61…`). The gap is 125.4695 bp.
-The mean is positive and the gap is above 20 bp, so the later years are
-pre-registered and are not in this file. A negative rate is cash paid
-to the long. It is not a reason to be long the coin. Screen
-`docs/agents/backtests/fp334/screen_2023.json`.
+The mean is positive and the gap is above 20 bp. A negative rate is cash
+paid to the long. It is not a reason to be long the coin. Screen
+`docs/agents/backtests/fp334/screen_2023.json`. The pre-registration was
+`7ba71b7`, pushed before any later-year return. Two runs matched. 2023
+reproduces: 85 trades, 36 entry days, +$75.2789, mean +88.5634 bp, null
+p95 −36.9061 bp. Entries 2024-01-01 through 2026-08-31: 0 trades.
+3,754 settlements land on the hour. The cheapest completed-interval
+premium among them is −25.3746 bp. 2,088 prints sit 1 to 26 milliseconds
+off the hour and are not that hour, the same drop the 2023 screen
+already makes. Reading those onto the hour gives 5,842 settlements,
+still 0 at −50 bp, and the cheapest premium is −38.9493 bp. The −50 bp
+line was not lowered. The file is `9caed9a2…`. It does not clear the
+pre-registered bar. It is not a testing row.
 
 The other identities were counted and were not scored. They are not
 used to fill eight.
@@ -8298,8 +8318,9 @@ Quotes were not used as fills. Not scored.
 No testing row is added. The count stays 30. LS-FADE's 60-trade
 reproduction, the control, doubled costs, and the rule that no month is
 above 40% of the profit are not relaxed. PEPRM is not taken out of
-sample. SPQTR and FDCSH are pre-registered. No later-year return of
-either has been computed. No pull request. Main was not pushed.
+sample. SPQTR clears the pre-registered later years and is not a testing
+row. FDCSH has no later-year trade and is not a testing row. No pull
+request. Main was not pushed.
 
 ### 4. Design consequences (decided by the evidence above)
 

@@ -1,0 +1,58 @@
+{
+  "annualised": 0.0,
+  "cheapest_signal_bps": -25.3746,
+  "code_sha256": {
+    "fp334_common": "642ecd7ba197274586d2cceaa2b1039441479dd284066c66dbda9e6458c81a24",
+    "fp334_oos_fetch": "4c6f224c7d8faeb80318b5cc4490d08acd06c2431f66f36b30a28c62f05ab6f7",
+    "fp334_oos_test": "670aa0e93ff006065cdd666baaa23a7cf08a097709a6b746735be3f73c4ce4b3"
+  },
+  "conditions": {
+    "above_cash": false,
+    "at_least_30": false,
+    "beats_null": false,
+    "both_subwindows_positive": false,
+    "clears_by_more_than_20bps": false,
+    "doubled_costs_positive": false,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": 0.0,
+  "fillable_n": 3754,
+  "median_cash_bps": null,
+  "median_exit_bps": 0,
+  "null_kind": "other_regime",
+  "null_mean_bps": -40.6067,
+  "null_n": 3754,
+  "off_hour_prints_not_scored": 2088,
+  "oos1_pnl_usd": 0.0,
+  "oos2_pnl_usd": 0.0,
+  "oos_days": 974,
+  "passes": false,
+  "prereg_sha256": "883f3de67db91e944811f6fb24fe8d426e5a30028f342f19c8c98c2347acd293",
+  "primary": {
+    "beats_null": false,
+    "best_month": null,
+    "best_month_pnl_usd": 0.0,
+    "best_month_share": null,
+    "by_month": {},
+    "clears_by_more_than_20bps": false,
+    "entry_days": 0,
+    "gap_bps": null,
+    "mean_net_bps": null,
+    "n": 0,
+    "null_p95_bps": null,
+    "total_pnl_usd": 0.0,
+    "without_best_month_usd": 0.0
+  },
+  "screen_reproduction": {
+    "entry_days": 36,
+    "mean_net_bps": 88.5634,
+    "n": 85,
+    "null_mean_bps": -38.3963,
+    "null_n": 815,
+    "null_p95_bps": -36.9061,
+    "total_pnl_usd": 75.2789
+  },
+  "snapped_cheapest_signal_bps": -38.9493,
+  "snapped_fillable_n": 5842,
+  "snapped_rule_n": 0
+}
