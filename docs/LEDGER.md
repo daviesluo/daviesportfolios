@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp10 failed the 2023 screen and is discarded** (§3.39). Do not score the
-low tails, and do not replace ETH with a second coin. fp5 through fp9 stay
-closed. The next search is not written. No testing row. No pull request. No
-push to main.
+**fp11 protocol is written and not scored.** One rule, not the closed
+families: the perpetual's 1% book, bid-heavy versus its own history, long
+spot BTC for the next 8h. No return has been computed. fp5 through fp10 stay
+closed. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +834,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:16 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp11 protocol only. No return has been computed.** A different family from
+the six closed rounds: resting bid depth on the BTC perpetual, one percent
+from the mid, long spot for the next 8h. `pin_test.py` passed before this
+commit. The screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:15 UTC] Platform: Cursor | Model: Grok 4.7
 
