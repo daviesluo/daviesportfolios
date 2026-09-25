@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp263_common": "729a8e2382bcf21bf2350dd059294462ec2e00831b853edb5cf220ce2e7f32f4",
+    "fp263_measure": "d1db88dd03cc6ac5be1d87330c11d47c4ad50ab5b694f796f6888eb17830a633",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LATER",
+      "mean_gross_bps": 458.4657,
+      "mean_net_bps": 437.5697,
+      "min_n": 30,
+      "n": 87,
+      "note": "A finished two-day spot rise followed a two-day window that was not a rise. The next spot open is bought and sold fifteen days later. The other trade buys spot fifteen days later for another fifteen days. A signal counts only when both windows fill. One leg. Funding cash is not added. The null is not that fifteen-day long on every day.",
+      "null_p95_bps": 329.1846,
+      "passes_screen": true,
+      "total_pnl_usd": 380.6856
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": 329.1846,
+  "null_n": 87,
+  "passed": [
+    "LATER"
+  ],
+  "protocol_sha256": "fdd4248e3dc9668ff7f5b92e92f4c291dd4ea1e0e8d6f90f291436c34c4b414a"
+}

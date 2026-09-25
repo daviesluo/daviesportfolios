@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp258_common": "c6f0bd3cd5ed082611e28f75b861e9909b745603d9317412036631f5f1ed865e",
+    "fp258_measure": "5cee800c17bff9236eb1f3bd2341084849d837cab4d4f02ce7fa84f5565dddda",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FADEU",
+      "mean_gross_bps": -229.1096,
+      "mean_net_bps": -248.6318,
+      "min_n": 30,
+      "n": 214,
+      "note": "A finished twelve-day USDT rise. The next USDT open is sold and bought back thirteen days later. The other trade buys that open for the same thirteen days. One leg. Funding cash is not added. The null is not that short with the rise turned off.",
+      "null_p95_bps": 288.6992,
+      "passes_screen": false,
+      "total_pnl_usd": -532.0721
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_side",
+  "null_mean_bps": 288.6992,
+  "null_n": 214,
+  "passed": [],
+  "protocol_sha256": "936305dc31863b2b3af232c07ce31dd3c844ab94105c7be731ecc99ed4c209c0"
+}

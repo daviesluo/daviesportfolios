@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp262_common": "3ad6a3a9ca12658a2100045e36f2a030c3460be9f35e82a4e77c5570c429dd30",
+    "fp262_measure": "a2801bb20820ecf9907423ae2bc92e17f67b44071377bf243beed9c0539a8830",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OTHER",
+      "mean_gross_bps": 362.7863,
+      "mean_net_bps": 342.0814,
+      "min_n": 30,
+      "n": 108,
+      "note": "The absolute five-day spot return finished larger than the absolute fifteen-day return. The next coin-margined open is bought and sold ten days later. The other trade buys that book for ten days when the five-day absolute return finished smaller. Equals go to neither. One leg. Funding cash is not added. The null is not that ten-day long on every day.",
+      "null_p95_bps": 351.58,
+      "passes_screen": false,
+      "total_pnl_usd": 369.448
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 264.3076,
+  "null_n": 240,
+  "passed": [],
+  "protocol_sha256": "d7f38b4c13c5492cf734d727098ec3b8a46af9724048e44f1db3641e7511f014"
+}

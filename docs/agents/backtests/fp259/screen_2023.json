@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp259_common": "a6c524169116208008bb4bd4b389673085a21471636ce5951e3ac349c9c4febb",
+    "fp259_measure": "2ba6c7c3d308132336ffa4b80ee9f3b96705e5f6920f3db2c0b5812ac608d068",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DEFER",
+      "mean_gross_bps": -274.0383,
+      "mean_net_bps": -293.4708,
+      "min_n": 30,
+      "n": 144,
+      "note": "A finished six-day spot decline. The next spot open is sold and bought back ten days later. The other trade sells spot ten days later for another ten days. A signal counts only when both windows fill. One leg. Funding cash is not added. The null is not that ten-day short on every day.",
+      "null_p95_bps": -203.409,
+      "passes_screen": false,
+      "total_pnl_usd": -422.5979
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": -203.409,
+  "null_n": 144,
+  "passed": [],
+  "protocol_sha256": "3aaf8e94380b85a861f4115f8d0c5b7d657ab589770376391250c81151bc6ea7"
+}
