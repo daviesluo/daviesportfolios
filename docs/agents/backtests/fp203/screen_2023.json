@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp203_common": "1bce88767d62480e89d4bda61ea7e12452234cb23ad450aa34c0af8e1b1b3c18",
+    "fp203_measure": "5336431f48b216ca68814819ad14f9cfa4ce1ba65a09439fcb388764e574e9c2",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CMIDX",
+      "mean_gross_bps": -31.4452,
+      "mean_net_bps": -51.3624,
+      "min_n": 30,
+      "n": 183,
+      "note": "The coin-margined close/open finished strictly above the index close/open. Next day, short the USDT perpetual from the open to the close. The null is that session short on every day.",
+      "null_p95_bps": -23.0788,
+      "passes_screen": false,
+      "total_pnl_usd": -93.9931
+    }
+  ],
+  "input_sha256": {
+    "cm": "750a912440c7ec53761bd574e06384fafaeca3f61ac8b74c94a6e51283ed1963",
+    "index": "fb6e2e9ae6c07bb7c78ae56b678d2dbd24f6c8d39b625fcb95c85fb31312cff8",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c"
+  },
+  "passed": [],
+  "protocol_sha256": "b92702cb1d0d6fc6f3a66ed7a7780898222b434ee2c65edb16c808c33c30b46c"
+}

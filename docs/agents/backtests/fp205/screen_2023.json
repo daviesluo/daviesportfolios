@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp205_common": "5d776ad01ca680b725ee7ac2fe1f850e70f777923a17704f242bffdccb90515a",
+    "fp205_measure": "979bf369050fcfdc9a7467ac52aad6eedb959e06252252a16ed2e71ba984bed8",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMRICH",
+      "mean_gross_bps": -13.7411,
+      "mean_net_bps": -33.6936,
+      "min_n": 30,
+      "n": 81,
+      "note": "The USDT close finished strictly above the mark close. Next day, short the USDT perpetual from the open to the next open. The null is that short on every day.",
+      "null_p95_bps": -7.4658,
+      "passes_screen": false,
+      "total_pnl_usd": -27.2918
+    }
+  ],
+  "input_sha256": {
+    "mark": "8ada6b0515014a88bafcea869e940d6d1e64adfed057e552f96d347732f9d5ed",
+    "um": "3570ff4f90a7b259966b1929a9c33183da3240aa3d5802cc2b61cca9567d5580",
+    "umcls": "49cc0fcdbb153313d2d4184135a153e2b789029f62b194f4ee9d275ab8d32f31"
+  },
+  "passed": [],
+  "protocol_sha256": "68d9f7a9c73b97330f79751eddefc7559a3e72f4c503cb376aaa5039611a8d42"
+}

@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp207_common": "9c581ec9e20fe8deef6d2eff3f9a9c1afef6da07eba17e275e02969650b1687f",
+    "fp207_measure": "c52f244c4c4abcaefa91bb8e7ce996275248a64a7e3a16ef37ed16669daedded",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMX",
+      "mean_gross_bps": -54.393,
+      "mean_net_bps": -74.2643,
+      "min_n": 30,
+      "n": 73,
+      "note": "The USDT close finished strictly above the index close. The next spot close is sold and the following spot close is bought. The null is that close-to-close short on every day.",
+      "null_p95_bps": -2.9621,
+      "passes_screen": false,
+      "total_pnl_usd": -54.213
+    }
+  ],
+  "input_sha256": {
+    "index": "b38022bf42e87ac91d25346b9baf691ff4a726936d092e3b237b1bdc8b7755ce",
+    "spot": "68c63bc7bf9023ca23ec8727810b8abb0092b85e31ce2c2332ab4e95553cc4d5",
+    "umcls": "49cc0fcdbb153313d2d4184135a153e2b789029f62b194f4ee9d275ab8d32f31"
+  },
+  "passed": [],
+  "protocol_sha256": "9f69b41630dd9e4a22d5e1fb41a3d1fa863c9204029c4f1aedd0746b4896f5b0"
+}

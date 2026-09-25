@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp202_common": "14b7db8a6b50d6e80bea320e975ba41bfb94193399fbe8be6b89af35737d7cc5",
+    "fp202_measure": "bd11cb43548aa7928e8aaf85b1310c98a724eeb0da1df3093b460b0ee7c96634",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMVW",
+      "mean_gross_bps": -28.1757,
+      "mean_net_bps": -48.0995,
+      "min_n": 30,
+      "n": 189,
+      "note": "The USDT close finished strictly above that day's average trade. Next day, short the coin-margined perpetual from the open to the next open. The null is that short on every day.",
+      "null_p95_bps": -23.804,
+      "passes_screen": false,
+      "total_pnl_usd": -90.908
+    }
+  ],
+  "input_sha256": {
+    "cm": "626a54407d222563367d61cb094219971c8ce114f0f3768e10e0600436e460c7",
+    "um": "b4e68b152d7cff52d7ca9ef07c6ea2e20139e16661b255c799acbbb225430f35"
+  },
+  "passed": [],
+  "protocol_sha256": "7efb38699a53198237542952f843514ec81b7b67f4247908f532bb91882f5e4e"
+}
