@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp8 failed the 2023 screen and is discarded** (§3.37). Do not lower the
-basis cut, do not score the rich side, do not flip outflow or hash rate.
-fp5 through fp7 stay closed. The next search is not written. No testing row.
-No push to main. No pull request.
+**fp9 protocol is written and not scored.** Two rules, not the closed
+families: the gap between Deribit DVOL and 30-day realized vol, and 8h
+cross-sectional dispersion. No return has been computed. fp5 through fp8 stay
+closed. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +834,13 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:09 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp9 protocol only. No return has been computed.** A different family from
+the four closed rounds: DVOL minus 30-day realized vol, and the dispersion of
+8h returns across the basket. `pin_test.py` passed before this commit. The
+screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:04 UTC] Platform: Cursor | Model: Grok 4.7
 
