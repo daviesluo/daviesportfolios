@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwRow, rwView, fmtCents, rwHeldText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -459,28 +459,20 @@ describe('agentsAlerts', () => {
     expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'paper' }] })).toEqual([]);
     expect(agentsAlerts({ risk: { live_confirmed_at: 'x' }, venues: noKey, strategies: [{ venue: 'revx', mode: 'live' }] }).map((a) => a.id)).toEqual(['nokey-revx']);
   });
-  it('flags live rows while live_confirmed_at is unset — entries are refused in that state, and the exits still run', () => {
+  it('does not banner a live row whose confirmation is unset — the tab already says it, and the box was removed', () => {
     const dash = { risk: { live_confirmed_at: null }, venues, strategies: [{ id: 'trend-4h', venue: 'revx', mode: 'live', positions: [] }] };
-    const out = agentsAlerts(dash);
-    expect(out.map((a) => a.id)).toEqual(['live-unconfirmed']);
-    // Since 2026-09-22 clearing the confirmation stops the BUYING only. The banner said every live order was refused,
-    // which would have told the owner a position had no way out while its floor was running. Since 2026-09-24 it says
-    // so in plain words (Davies: anyone must be able to read it), and in amber: it is the state before the go.
-    expect(out[0]).toMatchObject({ tone: 'stop', label: 'Live trading is not on yet' });
-    expect(out[0].text).toContain('will not buy');
-    expect(out[0].text).toContain('still sold');
-    expect(out[0].text).not.toMatch(/every live order|live_confirmed_at|ENTRY|exits/);
+    expect(agentsAlerts(dash).map((a) => a.id)).toEqual([]);
     expect(agentsAlerts({ ...dash, risk: { live_confirmed_at: '2026-09-21T00:00:00Z' } })).toEqual([]);
-    expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);   // paper needs no confirmation
+    expect(agentsAlerts({ ...dash, strategies: [{ ...dash.strategies[0], mode: 'paper' }] })).toEqual([]);
   });
   it('counts a row relabelled away from REAL coins as live, and says it is winding down — the payload vouches for it with holdsLive and windingDown', () => {
     // A live row set to `paper` while it still holds coins at the venue: the tick keeps selling them as live and refuses
     // entries. Counted by its label alone, the page raised nothing about real money it could not see was there.
     const s = { id: 'trend-4h-live', name: 'Trend 4h · live', venue: 'revx', mode: 'paper', holdsLive: true, windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.0002 }] };
     const out = agentsAlerts({ risk: { live_confirmed_at: null }, venues, strategies: [s] });
-    expect(out.map((a) => a.id)).toEqual(['live-unconfirmed', 'winding-down-trend-4h-live']);
-    expect(out[1].tone).toBe('paused');
-    expect(out[1].text).toContain('Set to paper while holding BTC/USD');
+    expect(out.map((a) => a.id)).toEqual(['winding-down-trend-4h-live']);
+    expect(out[0].tone).toBe('paused');
+    expect(out[0].text).toContain('Set to paper while holding BTC/USD');
   });
   it('a PAUSED (not retired) row the tick is winding down reads as winding down, not as the fault', () => {
     const s = { id: 'trend-4h', name: 'Trend 4h · Revolut X', venue: 'revx', mode: 'paused', windingDown: true, positions: [{ symbol: 'BTC/USD', base: 0.00025 }] };
@@ -798,11 +790,11 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     const words = (d, extra = 0) => { const v = agentsTabsView(d, extra); return [v.live.count, v.live.text, v.live.tone, v.testing.count, v.testing.text, v.testing.tone]; };
     // TESTING's count takes in the two paper tests' rows, and its line says how many of the rows are strategies — the
     // ones its totals add up — and how many are tests.
-    expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper · 3 strategies, 2 tests', 'paper']);
+    expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper · 5 strategies', 'paper']);
     expect(words(dash)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
     expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · 3 strategies', 'paper']);
-    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · 3 strategies, 2 tests', 'paper']);
-    expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper · 1 strategy, 1 test', 'paper']);
+    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · 5 strategies', 'paper']);
+    expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper · 2 strategies', 'paper']);
   });
   it('puts each banner on the tabs it concerns', () => {
     const now = Date.parse('2026-09-21T12:10:00Z');
@@ -819,11 +811,10 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
       'global-pause': 'live+testing',            // holds everything
       'venue-revx': 'live+testing',              // Revolut X has rows on both tabs
       'venue-binance': 'testing',                // Binance's rows are all paper
-      'live-unconfirmed': 'live',
       'winding-down-momentum-1d': 'testing',     // a paused paper row winds down where it is listed
       'pending-trend-4h-live': 'live',
     });
-    expect(alertsFor(busy, 'live', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'live-unconfirmed', 'pending-trend-4h-live']);
+    expect(alertsFor(busy, 'live', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'pending-trend-4h-live']);
     expect(alertsFor(busy, 'testing', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'venue-binance', 'winding-down-momentum-1d']);
     // A venue no row trades on still says its fault, on both tabs: nothing is known about whom it concerns.
     expect(alertsFor({ risk: {}, venues: [{ id: 'binance', note: 'down' }], strategies: [] }, 'live').map((a) => a.id)).toEqual(['venue-binance']);
@@ -915,6 +906,8 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   it('says which part of the run it is in, the fills against the bar, and a split that disagrees', () => {
     expect(rwView(r)).toMatchObject({ phaseText: 'day 3 of 14', fillsText: '12 of 100', bestShareText: '20 %', stoppedText: '', mismatch: false });
     expect(rwView({ ...r, phase: 'warm-up', dayOfRun: null })?.phaseText).toBe('warm-up, counted nowhere');
+    expect(rwBarTileKeys('warm-up')).toEqual(['STRESS', 'BEST MARKET']);
+    expect(rwBarTileKeys('run')).toEqual(['TOTAL', 'STRESS', 'FILLS', 'BEST MARKET']);
     expect(rwView({ ...r, totalUsd: -5 })?.bestShareText).toBe('—');
     expect(rwView({ ...r, mismatchUsd: 0.02 })?.mismatch).toBe(true);
     expect(rwView(undefined)).toBe(null);

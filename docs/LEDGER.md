@@ -847,6 +847,14 @@ fair present, 22 hourly closes); `agent_quote_state.last_error` null and `last_m
 `trend-4h-live` skips; `ops_errors` since 00:04 is 0; live orders 0. No new 4h decision was due. This is a mid-test
 change: minutes before 00:05 are not backfilled.
 
+### [2026-09-25 00:04 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: quieter scoreboards, and the live-trading box goes.** His words, in order: drop the DEPLOYED bar (the percent is enough) and the "% of funded" badges on every scoreboard, keep "incl. fees"; on Reward quotes drop the unrealised rewards/orders lines, stop REALIZED from stretching the bar, drop TOTAL and FILLS in the warm-up, put days above the markets table and rename that table; delete the live-trading hint box. Then: drop the green edge on LIVE's scoreboard, drop the "% of funded" badges on both pages' venue cards, and call every row a strategy.
+- Scoreboards keep the percent beside the figure and the fees line on realised. The funded count is one number of strategies (the two paper rows included). Venue cards no longer print a percent base, and "1 test" / "N strategies, M tests" is gone from the cards and the TESTING tab line.
+- Reward quotes: unrealised is the figure alone; realised's rewards and orders sit on one line. The markets table is titled QUOTES, not "Limited orders" — the rows are markets being quoted (bid, ask, share, held), and "limited orders" would read as an order type. Days sit above it. Warm-up tiles are STRESS and BEST MARKET (`rwBarTileKeys`).
+- The "Live trading is on" box and the "Live trading is not on yet" banner are gone. The LIVE tab still says "Real money · trading" or "Real money · not trading yet". Other banners stay.
+- No strategy row, rule or live state was written. The two paper rows still count in TESTING's totals.
+
 ### [2026-09-24 23:41 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: the two paper tests count in TESTING's totals.** "算进" on the open question (TESTING's scoreboard and the Revolut X card).

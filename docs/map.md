@@ -33,7 +33,7 @@ How the less obvious parts work, and why they are built the way they are.
   Function). The page has two tabs at the top, LIVE (real money: a row
   labelled live, or one still holding real coins) and TESTING (paper),
   each leading with its own scoreboard (funded, deployed, today since
-  00:00 UTC, unrealised and realised G/L, each percent naming its base),
+  00:00 UTC, unrealised and realised G/L; fees on realised),
   venue cards and table. LIVE is that tab's strategy rows. TESTING adds
   the two paper tests: Stablecoin quotes on the Revolut X card, Reward
   quotes as the Polymarket card, both in the scoreboard, so the cards

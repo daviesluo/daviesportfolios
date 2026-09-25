@@ -88,40 +88,32 @@ page: the ones trading real money and the ones still being tested, kept
 apart on two tabs.
 
 - **LIVE and TESTING.** Two tabs at the very top; click one, or use the
-  arrow keys, to switch. Each says how many rows it lists and what money
-  is on it. LIVE is real money: **trading** once live trading is switched
-  on (a green dot), **not trading yet** before that (amber: it buys
-  nothing with real money until then, and still sells what it holds when
-  its rules say so or to stop a loss), **paused** under the global pause,
-  or **nothing is live**. TESTING is paper, and says how many of its rows
-  are strategies and how many are tests. The page opens on LIVE while
+  arrow keys, to switch. Each says how many strategies it lists and what
+  money is on it. LIVE is real money: **trading** once live trading is
+  switched on (a green dot), **not trading yet** before that (amber),
+  **paused** under the global pause, or **nothing is live**. TESTING is
+  paper, and counts every row as a strategy. The page opens on LIVE while
   anything is live, else on TESTING, and stays on the tab you pick while
   it is open. Every Agents page, the tabs and the pages opened over them,
   keeps one window size.
 - **A tab.** A scoreboard in the home page's style: **funded**, the
   capital its strategies are allotted, then **deployed**, what they hold,
-  with its share of funded (a bar under it; past 100 % once profits are
-  put back to work), then today, unrealised and realised gain. Every
-  percentage says what it is of on a small line under its label: funded,
-  or the cost of what is held for unrealised. TESTING's scoreboard adds
-  the two paper tests as well as its strategies, and says how many of
-  each; when a test is in the sum, unrealised's percent is of the
-  strategies' cost plus what the tests have deployed. Then a card per
-  exchange — Revolut X in blue, which on TESTING includes Stablecoin
-  quotes, Binance in its yellow, where the same strategies run as paper
-  twins, deciding alike and filled at Binance's own prices, and on TESTING
-  Polymarket in its blue, whose card is the Reward quotes test — showing
-  the same figures for that exchange (**funded (Paper)** on TESTING; the
-  accounts' real balances are not shown). Then one row per strategy: a
-  status dot (green running, amber stale, grey paused), its exchange,
-  today, unrealised and realised gain with each column's base under its
-  heading, and a countdown to its next decision; the tab says the mode, so
-  a row does not, and a live strategy's name does not carry "live". On
-  LIVE, a green line says
-  since when live trading is on, or an amber one that it is not on yet,
-  in plain words; with nothing live, LIVE says so and TESTING holds
-  everything. A strategy still holding real coins after it was paused or
-  relabelled stays on LIVE until it has sold them.
+  with its share of funded beside the figure, then today, unrealised and
+  realised gain. The fees sit on realised. TESTING's scoreboard adds
+  Stablecoin quotes and Reward quotes with the other strategies, and the
+  funded cell counts every row as a strategy. Then a card per exchange —
+  Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
+  in its yellow, where the same strategies run as paper twins, deciding
+  alike and filled at Binance's own prices, and on TESTING Polymarket in
+  its blue, whose card is Reward quotes — showing the same figures for
+  that exchange (**funded (Paper)** on TESTING; the accounts' real
+  balances are not shown). Then one row per strategy: a status dot (green
+  running, amber stale, grey paused), its exchange, today, unrealised and
+  realised gain with each column's base under its heading, and a countdown
+  to its next decision; the tab says the mode, so a row does not, and a
+  live strategy's name does not carry "live". With nothing live, LIVE says
+  so and TESTING holds everything. A strategy still holding real coins
+  after it was paused or relabelled stays on LIVE until it has sold them.
 - **Stablecoin quotes.** The last row of the testing strategies: a
   four-week paper test of resting quotes 0.1–0.3 % either side of the
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
@@ -137,14 +129,15 @@ apart on two tabs.
   reads like a strategy's, on what its markets have at work; realised is
   the rewards and what closed trades made, unrealised what it still holds
   (in Yes or No shares) at the mid. Tap it for its page: the same
-  scoreboard, with realised and unrealised each split into the rewards
-  and what its orders made; the test's running figures against its bar as
-  four tiles (the total with its rewards and orders, the pessimistic
-  total, fills out of the 100 it needs, the best market's share) under a
-  line that says which of the fourteen days it is; today's markets with
-  the quote and the share of each pool, the closed days and the latest
-  fills. Every part is printed so that it adds up, to the cent, to the
-  total printed beside it. The rewards are worked out from
+  scoreboard, with realised split on one line into the rewards and what
+  its orders made; the running figures against its bar (while the fourteen
+  days are running: the total with its rewards and orders, the pessimistic
+  total, fills out of the 100 it needs, the best market's share; in the
+  warm-up, only the pessimistic total and the best market) under a line
+  that says which of the fourteen days it is; the closed days, then today's
+  quotes with the bid, the ask and the share of each pool, and the latest
+  fills. Every part that is printed beside a total adds up, to the cent, to
+  that total. The rewards are worked out from
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.

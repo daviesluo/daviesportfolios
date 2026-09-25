@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, fmtMoney, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, lastChangeText, liveArming, liveStateRows, newestWins, paperOnly, pctOf, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwBarTileKeys, rwHeldText, rwRow, rwView, scoreboardView, shareSegments, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -98,27 +98,32 @@ function SbLabel({ label, asides = [] }) {
 }
 
 /**
- * One cell of the scoreboard: a label, a signed amount, its percent — the home page's own shape. `base` says what the
- * percent is of: the same gain reads a different percent on a row, a venue card and a scoreboard, each on its own
- * capital, and a figure shown in two places reads the same or its label says why. `aside` is what else is in it, and
- * `split` what it is made of, a line each under the figure: RW's rewards and what its orders made (Davies, 2026-09-24),
- * which add up to the figure as printed. A cell is three rows — label, figure, what is under it — so every figure on
- * the board sits on one line whatever its label says.
- * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, base?: string | null, aside?: string | null, split?: Array<[string, number]> | null, cls?: string }} props
+ * One cell of the scoreboard: a label, a signed amount, its percent — the home page's own shape. `aside` is what else
+ * is in the figure (the fees on realised). A percent no longer names its base beside the title (Davies, 2026-09-24):
+ * the number beside the dollars is enough. `split` is what the figure is made of, on one line under it so it does not
+ * stretch the row the other cells share.
+ * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | null, split?: Array<[string, number]> | null, cls?: string }} props
  */
-function GlCell({ label, usd, pct, m, base = null, aside = null, split = null, cls = '' }) {
+function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
   const hasPct = pct != null && Number.isFinite(pct);
   return (
     <div className={`ag-sb-cell ${cls}`}>
-      <SbLabel label={label} asides={[hasPct && base, aside]} />
+      <SbLabel label={label} asides={[aside]} />
       <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
         <span className="ag-sb-usd">{m(fmtMoney(usd ?? 0, { signed: true, compact: false }))}</span>
         {hasPct ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
       </div>
       <div className="ag-sb-extra">
-        {split?.map(([k, v]) => (
-          <span key={k} className="ag-sb-split mono"><span className="dim">{k}</span>{' '}<span style={{ color: pctColor(v) }}>{m(fmtMoney(v, { signed: true, compact: false }))}</span></span>
-        ))}
+        {split && split.length > 0 ? (
+          <span className="ag-sb-split mono">
+            {split.map(([k, v], i) => (
+              <React.Fragment key={k}>
+                {i > 0 ? <span className="dim ag-sb-split-dot"> · </span> : null}
+                <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtMoney(v, { signed: true, compact: false }))}</span>
+              </React.Fragment>
+            ))}
+          </span>
+        ) : null}
       </div>
     </div>
   );
@@ -126,8 +131,7 @@ function GlCell({ label, usd, pct, m, base = null, aside = null, split = null, c
 
 /**
  * The scoreboard's first two cells (Davies, 2026-09-24): what the strategies are funded with, then what they have
- * deployed of it, as a percent and a bar — past 100 % once profits go back in, where the bar fills and turns gold.
- * On a tab, FUNDED also says how many strategies the board adds up.
+ * deployed of it, as a percent beside the figure. On a tab, FUNDED also says how many strategies the board adds up.
  * @param {{ fundedUsd: number, deployedUsd: number, m: (s: string) => string, aside?: string | null }} props
  */
 function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
@@ -142,17 +146,11 @@ function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
       </div>
       <div className="ag-sb-divider" />
       <div className="ag-sb-cell ag-sb-cell-main ag-sb-cell-deployed">
-        <SbLabel label="DEPLOYED" asides={[hasPct && '% of funded']} />
+        <SbLabel label="DEPLOYED" />
         <div className="sb-value sb-value-lg mono">
           {m(fmtUsd(deployedUsd))}{hasPct ? <span className="ag-sb-deployed-pct">({pct.toFixed(2)}%)</span> : null}
         </div>
-        <div className="ag-sb-extra">
-          {hasPct && (
-            <span className={`ag-sb-meter${pct > 100 ? ' is-over' : ''}`} role="img" aria-label={`${pct.toFixed(2)}% of funded is deployed`}>
-              <span style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} />
-            </span>
-          )}
-        </div>
+        <div className="ag-sb-extra" />
       </div>
     </>
   );
@@ -162,25 +160,23 @@ function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
  * A tab's scoreboard, in the home scoreboard's cells: what its strategies
  * are funded with and have deployed, today's change (the UTC day),
  * unrealised and realised — no total, by the owner's choice. TESTING adds
- * the paper tests as well (Davies, 2026-09-24), and the funded cell says
- * how many strategies and tests that is.
+ * the paper tests as well (Davies, 2026-09-24). The funded cell counts every
+ * row as a strategy.
  * @param {{ dash: any, tab: 'live' | 'testing', m: (s: string) => string, tests?: any[] }} props
  */
 function Scoreboard({ dash, tab, m, tests = [] }) {
   const v = scoreboardView(dash, tab, tests);
-  const count = v.tests
-    ? `${v.strategies} ${v.strategies === 1 ? 'strategy' : 'strategies'}, ${v.tests} ${v.tests === 1 ? 'test' : 'tests'}`
-    : `${v.strategies} ${v.strategies === 1 ? 'strategy' : 'strategies'}`;
-  const unrealisedBase = v.unrealisedOf === 'cost' ? pctOf(v.costUsd, 'cost', m) : pctOf(v.unrealisedBase, 'cost and deployed', m);
+  const n = v.strategies + (v.tests || 0);
+  const count = `${n} ${n === 1 ? 'strategy' : 'strategies'}`;
   return (
     <div className="ag-scoreboard">
       <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} aside={count} />
       <div className="ag-sb-divider" />
-      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} base="% of funded" />
+      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} base={unrealisedBase} />
+      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" base="% of funded" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} cls="ag-sb-realised" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
     </div>
   );
 }
@@ -192,11 +188,11 @@ function StrategyScoreboard({ s, m }) {
     <div className="ag-scoreboard ag-scoreboard-sm">
       <FundedCells fundedUsd={v.capitalUsd} deployedUsd={v.valueUsd} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} base="% of funded" />
+      <GlCell label="TODAY" usd={v.todayUsd} pct={v.todayPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} base={pctOf(v.costUsd, 'cost', m)} />
+      <GlCell label="UNREALIZED G/L" usd={v.unrealisedUsd} pct={v.unrealisedPct} m={m} />
       <div className="ag-sb-divider" />
-      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} base="% of funded" aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
+      <GlCell label="REALIZED G/L" usd={v.realisedUsd} pct={v.realisedPct} m={m} aside={`incl. fees ${m(fmtUsd(v.feesUsd))}`} />
     </div>
   );
 }
@@ -242,23 +238,25 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
         </div>
       )}
       <div className={`ag-venue-cards is-${rows.length === 1 ? 'single' : rows.length === 2 ? 'two' : 'three'}`}>
-        {rows.map((r) => (
+        {rows.map((r) => {
+          const n = r.strategies + (r.tests || 0);
+          return (
           <div key={r.id} className={`ag-venue-card ag-venue-card-${r.id}${r.note ? ' is-warn' : ''}`}>
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
               <div className="dim mono ag-venue-meta">
-                {r.test ? `1 test: ${r.test.name}` : `${r.strategies} ${r.strategies === 1 ? 'strategy' : 'strategies'}${r.tests ? `, ${r.tests} ${r.tests === 1 ? 'test' : 'tests'}` : ''} · maker/taker ${fmtFees(r.feeBps)}`}
+                {`${n} ${n === 1 ? 'strategy' : 'strategies'} · maker/taker ${fmtFees(r.feeBps)}`}
               </div>
             </div>
             <div className="ag-venue-grid mono">
               {/* Funded is the capital the venue's strategies on this tab are allotted, not the account's balance: a
                   real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
               <FigLabel name={`funded${r.test || paperOnly(onTab, r.id) ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
-              <FigLabel name="deployed" pct={r.deployedPct} of="funded" />
+              <FigLabel name="deployed" />
               <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({r.deployedPct.toFixed(2)}%)</span> : null}</span>
-              <FigLabel name="today" pct={r.todayPct} of="funded" />{gl(r.todayUsd, r.todayPct)}
-              <FigLabel name="unrealised" pct={r.unrealisedPct} of={r.unrealisedOf} />{gl(r.unrealisedUsd, r.unrealisedPct)}
-              <FigLabel name="realised" pct={r.realisedPct} of="funded" />{gl(r.realisedUsd, r.realisedPct)}
+              <FigLabel name="today" />{gl(r.todayUsd, r.todayPct)}
+              <FigLabel name="unrealised" />{gl(r.unrealisedUsd, r.unrealisedPct)}
+              <FigLabel name="realised" />{gl(r.realisedUsd, r.realisedPct)}
               {r.test?.rewards ? (
                 <>
                   <span className="dim ag-fig-sub">rewards</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.rewards.realisedUsd) }}>{m(fmtMoney(r.test.rewards.realisedUsd, { signed: true, compact: false }))}</span>
@@ -269,7 +267,8 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
             </div>
             {r.note && <div className="ag-warn-line">{r.note}</div>}
           </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -310,11 +309,11 @@ function QuotesDetail({ q, m }) {
       <div className="ag-scoreboard ag-scoreboard-sm">
         <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} base="% of funded" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} base="% of deployed" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} base="% of funded" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} />
       </div>
       {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
       <section className="ag-section ag-quote-books">
@@ -377,10 +376,11 @@ function QuotesDetail({ q, m }) {
 const dayLabel = (day) => fmtDayMonth(new Date(`${day}T00:00:00Z`), { locale: 'en-GB', timeZone: 'UTC' });
 
 /**
- * RW's running figures against its bar, as four tiles under a line that says where the run is (Davies, 2026-09-24:
- * the warm-up's list, designed better): the total and what it is made of — rewards and orders, which add up to it as
- * printed (`rwSplit`) — the pessimistic total, the fills against the 100 the bar needs, and the best market's share
- * of the total. In the warm-up, which counts nowhere, the line says when the fourteen days start.
+ * RW's running figures against its bar, under a line that says where the run is (Davies, 2026-09-24). While the
+ * fourteen days are running: the total and what it is made of — rewards and orders, which add up to it as printed
+ * (`rwSplit`) — the pessimistic total, the fills against the 100 the bar needs, and the best market's share of the
+ * total. In the warm-up, which counts nowhere, only the stress and the best market stay; the total and the fills
+ * are not shown, and the line says when the fourteen days start.
  * @param {{ v: NonNullable<ReturnType<typeof rwView>>, r: any, usd: (x: number | null | undefined) => string }} props
  */
 function RwBar({ v, r, usd }) {
@@ -396,22 +396,26 @@ function RwBar({ v, r, usd }) {
       </div>
       <div className="ag-rw-run" role="img" aria-label={when14}><span style={{ width: `${done}%` }} /></div>
       <div className="ag-rw-tiles">
-        <div className="ag-rw-tile ag-rw-tile-total">
-          <div className="ag-rw-tile-k mono">TOTAL</div>
-          <div className="ag-rw-tile-v mono" style={{ color: pctColor(v.totalUsd) }}>{usd(v.totalUsd)}</div>
-          <div className="ag-rw-tile-sub mono"><span className="dim">rewards</span>{' '}<span style={{ color: pctColor(v.rewardUsd) }}>{usd(v.rewardUsd)}</span></div>
-          <div className="ag-rw-tile-sub mono"><span className="dim">orders</span>{' '}<span style={{ color: pctColor(v.ordersUsd) }}>{usd(v.ordersUsd)}</span></div>
-        </div>
+        {rwBarTileKeys(v.phase).includes('TOTAL') && (
+          <div className="ag-rw-tile ag-rw-tile-total">
+            <div className="ag-rw-tile-k mono">TOTAL</div>
+            <div className="ag-rw-tile-v mono" style={{ color: pctColor(v.totalUsd) }}>{usd(v.totalUsd)}</div>
+            <div className="ag-rw-tile-sub mono"><span className="dim">rewards</span>{' '}<span style={{ color: pctColor(v.rewardUsd) }}>{usd(v.rewardUsd)}</span></div>
+            <div className="ag-rw-tile-sub mono"><span className="dim">orders</span>{' '}<span style={{ color: pctColor(v.ordersUsd) }}>{usd(v.ordersUsd)}</span></div>
+          </div>
+        )}
         <div className="ag-rw-tile">
           <div className="ag-rw-tile-k mono">STRESS</div>
           <div className="ag-rw-tile-v mono" style={{ color: pctColor(r.stressUsd) }}>{usd(r.stressUsd)}</div>
           <div className="ag-rw-tile-note dim">the pessimistic total</div>
         </div>
-        <div className="ag-rw-tile">
-          <div className="ag-rw-tile-k mono">FILLS</div>
-          <div className="ag-rw-tile-v mono">{fills} <span className="dim ag-rw-of">of 100</span></div>
-          <div className="ag-rw-meter" role="img" aria-label={`${fills} of the 100 fills the bar needs`}><span style={{ width: `${Math.min(100, fills)}%` }} /></div>
-        </div>
+        {rwBarTileKeys(v.phase).includes('FILLS') && (
+          <div className="ag-rw-tile">
+            <div className="ag-rw-tile-k mono">FILLS</div>
+            <div className="ag-rw-tile-v mono">{fills} <span className="dim ag-rw-of">of 100</span></div>
+            <div className="ag-rw-meter" role="img" aria-label={`${fills} of the 100 fills the bar needs`}><span style={{ width: `${Math.min(100, fills)}%` }} /></div>
+          </div>
+        )}
         <div className="ag-rw-tile">
           <div className="ag-rw-tile-k mono">BEST MARKET</div>
           <div className="ag-rw-tile-v mono">{v.bestShareText}</div>
@@ -424,8 +428,8 @@ function RwBar({ v, r, usd }) {
 
 /**
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
- * scoreboard, then what differs — the bar's running figures, today's markets with our quotes and our share of each
- * pool, the closed days, and the fills with the prints that proved them.
+ * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
+ * bid and ask, our share of the pool), and the fills with the prints that proved them.
  */
 function RwDetail({ r, m }) {
   const row = rwRow(r);
@@ -441,25 +445,47 @@ function RwDetail({ r, m }) {
         <StatusDot status={row.status} />
       </div>
       <h3 className="ag-detail-title mono sr-only">Reward quotes</h3>
-      {/* Realised and unrealised, their rewards and orders (rwRow) and the bar's total, rewards and orders (rwView) come
-          to the cent from one split of one total (rwSplit), so on this page every part adds up to the total beside it. */}
+      {/* Realised's rewards and orders (rwRow) and the bar's total, rewards and orders (rwView) come to the cent from
+          one split of one total (rwSplit). Unrealised is the figure alone: its split is not shown (Davies, 2026-09-24). */}
       <div className="ag-scoreboard ag-scoreboard-sm">
         <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} base="% of funded" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} base="% of deployed"
-          split={[['rewards', row.rewards.unrealisedUsd], ['orders', row.orders.unrealisedUsd]]} />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} base="% of funded"
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m}
           split={[['rewards', row.rewards.realisedUsd], ['orders', row.orders.realisedUsd]]} />
       </div>
       {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
+      <section className="ag-section ag-rw-days">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th">Total</th><th className="hl-th">Rewards</th><th className="hl-th ag-ph">Fills</th><th className="hl-th ag-ph">Stress</th><th className="hl-th ag-ph">Capital</th>
+            </tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day has closed yet.</td></tr>}
+              {days.map((d) => (
+                <tr key={d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
+                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
+                  <td className="ag-ph">{d.fills}</td>
+                  <td className="ag-ph ag-gl" style={{ color: pctColor(d.stressUsd) }}>{usd(d.stressUsd)}</td>
+                  <td className="ag-ph">{m(fmtUsd(d.capitalUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <section className="ag-section ag-rw-markets">
-        <div className="ag-section-title mono">MARKETS</div>
+        <div className="ag-section-title mono">QUOTES</div>
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
@@ -484,29 +510,6 @@ function RwDetail({ r, m }) {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ag-section ag-rw-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th">Total</th><th className="hl-th">Rewards</th><th className="hl-th ag-ph">Fills</th><th className="hl-th ag-ph">Stress</th><th className="hl-th ag-ph">Capital</th>
-            </tr></thead>
-            <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day has closed yet.</td></tr>}
-              {days.map((d) => (
-                <tr key={d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
-                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
-                  <td className="ag-ph">{d.fills}</td>
-                  <td className="ag-ph ag-gl" style={{ color: pctColor(d.stressUsd) }}>{usd(d.stressUsd)}</td>
-                  <td className="ag-ph">{m(fmtUsd(d.capitalUsd))}</td>
-                </tr>
-              ))}
             </tbody>
           </table>
         </div>
@@ -1027,24 +1030,7 @@ function LiveEmpty() {
     <div className="ag-nolive">
       <span className="ag-nolive-ring" aria-hidden="true" />
       <h3 className="ag-nolive-title mono">Nothing is live</h3>
-      <p className="ag-nolive-text dim">No strategy trades real money right now. Every strategy and every test runs on paper, under TESTING.</p>
-    </div>
-  );
-}
-
-/**
- * The live switch, once it is on, in words anyone can read (Davies, 2026-09-24): since when, and what it means.
- * Before it is on, the amber "not on yet" banner says so in the same place, and under the global pause the pause's
- * own banner speaks instead.
- */
-function Arming({ dash }) {
-  const a = liveArming(dash);
-  if (a.state !== 'armed' || a.paused || !a.since) return null;
-  return (
-    <div className="ag-arming" role="status">
-      <span className="ag-arming-dot" aria-hidden="true" />
-      <span className="ag-arming-label mono">Live trading is on</span>{' '}
-      <span className="ag-arming-text">Since {when(a.since)} {UK_TZ}. It buys with real money when its rules say so, and sells by itself when they say so or to stop a loss.</span>
+      <p className="ag-nolive-text dim">No strategy trades real money right now. Every strategy runs on paper, under TESTING.</p>
     </div>
   );
 }
@@ -1227,7 +1213,6 @@ function AgentsModal({ hideValues, onClose }) {
               <>
                 <Scoreboard dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
                 <VenueSplit dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
-                {tab === 'live' && <Arming dash={dash} />}
                 <Alerts dash={dash} tab={tab} />
                 <section className={`ag-section ag-strategies ag-strategies-${tab}`}>
                   <div className="ag-section-title mono">{tab === 'live' ? 'LIVE STRATEGIES' : 'TESTING STRATEGIES'}</div>

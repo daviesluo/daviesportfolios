@@ -2148,12 +2148,9 @@ body {
 .ag-sb-divider { grid-row: span 3; width: 1px; }
 .ag-sb-deployed-pct { margin-left: 6px; font-size: 12px; font-weight: 500; color: var(--chalk-dim); }
 .ag-sb-extra { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-/* How much of the funding is deployed: a hairline, gold once profits put more to work than was funded. */
-.ag-sb-meter { display: block; width: 100%; max-width: 150px; height: 3px; margin-top: 4px; border-radius: 2px; background: rgba(244,239,227,0.1); overflow: hidden; }
-.ag-sb-meter > span { display: block; height: 100%; border-radius: 2px; background: rgba(232,228,218,0.7); }
-.ag-sb-meter.is-over > span { background: #d9c37a; }
-/* RW's rewards and orders under realised and unrealised: a name and a figure a line. */
-.ag-sb-split { display: flex; justify-content: space-between; gap: 10px; max-width: 180px; font-size: 10.5px; line-height: 1.35; }
+/* RW's rewards and orders under realised, on one line so the shared extra row stays one line tall. */
+.ag-sb-split { display: block; font-size: 10.5px; line-height: 1.3; white-space: nowrap; }
+.ag-sb-extra:empty { display: none; }
 @media (max-width: 760px) {
   .ag-scoreboard { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; gap: 3px 14px; padding: 12px 14px; }
   .ag-sb-cell-funded { grid-column: 1 / -1; grid-row: auto; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-bottom: 8px; margin-bottom: 7px; border-bottom: 1px solid var(--line-2); }
@@ -2251,8 +2248,6 @@ body {
 .ag-modetab.is-paused .ag-modetab-mark, .ag-modetab.is-winding .ag-modetab-mark { background: var(--chalk-mute); }
 .ag-modetab.is-none .ag-modetab-mark { border: 1.5px solid var(--chalk-mute); }
 .ag-modetab.is-paper .ag-modetab-mark { border: 1.5px dashed rgba(232,228,218,0.7); }
-/* LIVE's scoreboard carries the same green edge a venue card carries its venue's colour on: this is real money. */
-.ag-modepanel-live .ag-scoreboard { border-left: 3px solid var(--gain); }
 /* A tab with one venue gives its card the whole width, its six figures in two columns. */
 @media (min-width: 761px) {
   .ag-venue-cards.is-single { grid-template-columns: 1fr; }
@@ -2261,15 +2256,6 @@ body {
 }
 /* The banners and the armed line sit a section's breadth above the table they govern. */
 .ag-modepanel .ag-alerts { margin-bottom: 14px; }
-/* The live switch, once it is on: the alert banner's shape, in the gain green. */
-.ag-arming {
-  display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; padding: 9px 12px;
-  border: 1px solid oklch(0.78 0.17 150 / 0.3); border-left: 3px solid var(--gain); border-radius: 6px;
-  font-size: 12px; line-height: 1.45; background: var(--gain-wash);
-}
-.ag-arming-dot { flex: none; align-self: center; width: 7px; height: 7px; border-radius: 50%; background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); }
-.ag-arming-label { flex: none; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gain); }
-.ag-arming-text { color: var(--chalk-dim); }
 /* LIVE with nothing on it: the not-deployed state's calm, a ring where its dot is. */
 .ag-nolive { max-width: 460px; margin: 0 auto; padding: 48px 20px 40px; text-align: center; }
 .ag-nolive-ring {
@@ -2283,6 +2269,5 @@ body {
   .ag-modetab { padding: 8px 10px 9px; gap: 4px; }
   .ag-modetab-label { font-size: 11px; letter-spacing: 0.14em; }
   .ag-modetab-text { font-size: 10.5px; }
-  .ag-arming { flex-wrap: wrap; }
   .ag-nolive { padding: 36px 8px 32px; }
 }

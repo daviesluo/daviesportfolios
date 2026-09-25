@@ -470,7 +470,7 @@ const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 /**
  * The tab bar's two entries: how many rows each tab lists and the one line that says what kind of money is on it.
- * TESTING's count takes in the paper tests' rows as well, and its line says so: the same rows the TESTING scoreboard adds.
+ * TESTING's count takes in the paper tests' rows as well. Every row is called a strategy (Davies, 2026-09-25).
  * @param {any} dash
  * @param {number} tests  rows TESTING lists beyond the strategies: the paper tests (quotes, RW)
  */
@@ -487,7 +487,7 @@ export function agentsTabsView(dash, tests = 0) {
     live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count, text: liveWords, tone },
     testing: {
       id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests,
-      text: `Paper · ${counted(strategies, 'strategy', 'strategies')}${tests ? `, ${counted(tests, 'test', 'tests')}` : ''}`, tone: 'paper',
+      text: `Paper · ${counted(strategies + tests, 'strategy', 'strategies')}`, tone: 'paper',
     },
   };
 }
@@ -896,8 +896,8 @@ export const PENDING_ALERT_MS = 2 * 60e3;
 
 /**
  * Each banner also names the tabs it belongs on (`tabs`): the global pause holds both; a venue fault shows wherever
- * that venue has a row; the live confirmation, a live venue's missing key and a live order nobody heard back from are
- * LIVE's; a row winding down is on its own row's tab.
+ * that venue has a row; a live venue's missing key and a live order nobody heard back from are LIVE's; a row winding
+ * down is on its own row's tab. The "live trading is not on yet" line is not a banner (Davies, 2026-09-25).
  * @param {any} dash
  * @param {number} [now]
  * @returns {Array<{ id: string, tone: string, label: string, text: string, tabs: AgentsTab[] }>}
@@ -930,19 +930,6 @@ export function agentsAlerts(dash, now = Date.now()) {
         tabs: ['live'],
       });
     }
-  }
-  // A row trading real money, or still holding real coins under another label (`holdsLive`, the tick's book rule).
-  const liveRows = strategies.filter((s) => s?.mode === 'live' || s?.holdsLive);
-  if (liveRows.length && dash?.risk && !dash.risk.live_confirmed_at) {
-    // Since 2026-09-22 the confirmation gates ENTRIES only: clearing it is how the buying is stopped, and the exits — the
-    // floor and the rule's own — keep running. This used to say every live order was refused, which was once true and
-    // would have left real coins with no way out; it must not tell the owner the exits are off when they are on. In
-    // plain words since 2026-09-24 (Davies: "要普通人能看得懂"), and amber, not a fault: it is the state before the go.
-    out.push({
-      id: 'live-unconfirmed', tone: 'stop', label: 'Live trading is not on yet',
-      text: 'It watches the market but will not buy anything with real money until live trading is switched on. Anything it already holds is still sold when its rules say so, or to stop a loss.',
-      tabs: ['live'],
-    });
   }
   for (const s of strategies) {
     // A retired row that still holds something is WINDING DOWN, not stuck: since 2026-09-22 the tick
@@ -1155,6 +1142,11 @@ export function rwSplit(r) {
     totalUsd: s.total, rewardUsd: rw / 100, ordersUsd: (closed + open) / 100,
     realisedUsd: (rw + closed) / 100, realisedOrdersUsd: closed / 100, unrealisedUsd: open / 100,
   };
+}
+
+/** Tiles under RW's bar. The warm-up drops TOTAL and FILLS (Davies, 2026-09-25). @param {string} phase */
+export function rwBarTileKeys(phase) {
+  return phase === 'warm-up' ? ['STRESS', 'BEST MARKET'] : ['TOTAL', 'STRESS', 'FILLS', 'BEST MARKET'];
 }
 
 /**
