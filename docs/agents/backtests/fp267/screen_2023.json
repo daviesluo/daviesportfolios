@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp267_common": "9eeb7bb838032e4c7f6db7a9d2bb8494cf845deda80d659ec8336ba506cf503c",
+    "fp267_measure": "528844b342752e5d65350496d06fd278f70824c53ab32d3105a9ca1f39b4d9f4",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FASTER",
+      "mean_gross_bps": -110.5572,
+      "mean_net_bps": -130.3164,
+      "min_n": 30,
+      "n": 118,
+      "note": "A finished three-day USDT decline was strictly below zero and strictly below the three-day window that ended three days earlier. The next USDT open is sold and bought back eight days later. The other trade sells that book eight days later for another eight days. Both windows have to fill. One leg. Funding cash is not added. The null is not that eight-day short on every day.",
+      "null_p95_bps": -144.3478,
+      "passes_screen": false,
+      "total_pnl_usd": -153.7733
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "null_kind": "other_time",
+  "null_mean_bps": -144.3478,
+  "null_n": 118,
+  "passed": [],
+  "protocol_sha256": "68c14f120100d186041150636de524c4760e95e3997ffdf98503e1c3e923482a"
+}

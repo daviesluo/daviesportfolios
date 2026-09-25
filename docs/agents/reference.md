@@ -6347,6 +6347,122 @@ search does not inherit the two-day turn or the fifteen-day hold.
 
 Davies, 2026-09-25: PICK is not built as a testing row and is not written as a Revolut X paper candidate. The other trade was about one cent ahead (+$1.004429 against +$0.9919). The 2025-01-01 through 2026-09-16 total is +$0.6733. The fill is a Binance daily open, not a price this account can get. LATER failed and is void. The buys and the sells were not moved. LS-FADE's 60-trade reproduction, the control, doubled costs, and the rule that no month is above 40% of the profit are not relaxed. The screen count stays 30. No testing row is added until a later window passes every pre-registered bar and the fill is a price on that contract. fp265 through fp272 are frozen in the same commit as this note, before any return of those rules. A count of spans, with no profit computed: LASTUP 63 and 63, UNDER 206 and 206, FASTER 118 and 118, LOUDER 170 and 175, STALE 89 and 89, INUP 69 and 69, BACK 123 and 123, LEDSP 169 and 169.
 
+### 3.305 A seven-day decline that closed up, long against short: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp265-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp265/screen_2023.json`,
+sha256 `1d3e890c…`). A finished seven-day spot decline ended with the last
+finished day up, then buy spot for eleven days: 63 trades, mean +404.7314
+bps, null p95 −355.5073 bps, +$254.9808. The file's gross is +425.5617 bps.
+**The 2023 screen passes. This is not a testing row. The later years are not
+scored.** One spot leg. The other trade is the eleven-day short on the same
+entries, and the cutoff is that trade's mean. Funding cash is not added. A
+count taken before the freeze, with no profit computed, was 63 against 63.
+The scored book is 63. The rule was not changed. A Binance daily open is not
+a Revolut X fill.
+
+### 3.306 The coin-margined close finished below spot: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp266-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp266/screen_2023.json`,
+sha256 `59cff905…`). Yesterday's coin-margined close finished below
+yesterday's spot close, then buy the coin-margined book for twelve days: 206
+trades, mean +447.4904 bps, null p95 +443.2493 bps, +$921.8302. The file's
+gross is +468.4063 bps. **The 2023 screen passes. This is not a testing row.
+The later years are not scored.** One coin-margined leg. The other trade is
+the twelve-day spot long on the same entries, and the cutoff is that trade's
+mean. A missing open was not taken from the other book. Funding cash is not
+added. A count taken before the freeze, with no profit computed, was 206
+against 206. The scored book is 206. The rule was not changed. A Binance
+daily open is not a Revolut X fill.
+
+### 3.307 A faster three-day USDT decline, short against the same short later: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp267-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp267/screen_2023.json`,
+sha256 `9d77933f…`). A finished three-day USDT decline was strictly faster
+than the prior three-day window, then short that book for eight days: 118
+trades, mean −130.3164 bps, null p95 −144.3478 bps, −$153.7733. The file's
+gross is −110.5572 bps. **Nothing here is fit to add.** The mean is negative
+and above the null. One USDT leg. The other trade is that eight-day short
+started eight days later. A signal was kept only when both windows could
+fill. Funding cash is not added. A count taken before the freeze, with no
+profit computed, was 118 against 118. The scored book is 118. The rule was
+not changed. This is not a testing row.
+
+### 3.308 A louder three-day move against the quieter one: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp268-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp268/screen_2023.json`,
+sha256 `22382308…`). The absolute three-day spot return finished larger than
+the absolute three-day return that ended three days earlier, then buy the
+USDT book for twenty-one days: 170 trades, mean +601.172 bps, null p95
++551.9241 bps, +$1021.9923. The file's gross is +622.3955 bps. **The 2023
+screen passes. This is not a testing row. The later years are not scored.**
+One USDT leg. The other trade buys that book for twenty-one days when the
+recent absolute return finished smaller. Equals go to neither. The other
+trade has 175 fills and a mean of +529.6739 bps; the cutoff is the house
+p95, +551.9241. Funding cash is not added. A count taken before the freeze,
+with no profit computed, was 170 against 175. The scored book is 170. The
+rule was not changed. A Binance daily open is not a Revolut X fill.
+
+### 3.309 A finished rise that had already ended: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp269-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp269/screen_2023.json`,
+sha256 `9b43a28e…`). A finished nine-day spot rise had already ended, and the
+latest nine-day spot return was not a rise, then buy the coin-margined book
+for five days: 89 trades, mean +88.9967 bps, null p95 +88.2984 bps,
++$79.2071. The file's gross is +109.1949 bps. **The 2023 screen passes. This
+is not a testing row. The later years are not scored.** One coin-margined
+leg. The other trade is the five-day USDT long on the same entries, and the
+cutoff is that trade's mean. A missing open was not taken from the other
+book. Funding cash is not added. A count taken before the freeze, with no
+profit computed, was 89 against 89. The scored book is 89. The rule was not
+changed. A Binance daily open is not a Revolut X fill.
+
+### 3.310 A twenty-day rise with a five-day dip, short against long: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp270-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp270/screen_2023.json`,
+sha256 `e996f477…`). The finished twenty-day coin-margined return was
+positive and the finished five-day return was negative, then short that book
+for seventeen days: 69 trades, mean −581.0178 bps, null p95 +676.4821 bps,
+−$400.9023. The file's gross is −562.1609 bps. **Nothing here is fit to add.**
+The mean is negative and under the null. One coin-margined leg. The other
+trade is the seventeen-day long on the same entries, and the cutoff is that
+trade's mean. Funding cash is not added. A count taken before the freeze,
+with no profit computed, was 69 against 69. The scored book is 69. The rule
+was not changed. This is not a testing row.
+
+### 3.311 A thirty-day decline, short against the same short later: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp271-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp271/screen_2023.json`,
+sha256 `02a448fe…`). The finished thirty-day spot return was negative, then
+short spot for four days: 123 trades, mean −46.5219 bps, null p95 −138.7914
+bps, −$57.2219. The file's gross is −26.595 bps. **Nothing here is fit to
+add.** The mean is negative and above the null. One spot leg. The other
+trade is that four-day short started four days later. A signal was kept only
+when both windows could fill. Funding cash is not added. A count taken
+before the freeze, with no profit computed, was 123 against 123. The scored
+book is 123. The rule was not changed. This is not a testing row.
+
+### 3.312 Spot's ten-day return above the USDT book: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp272-protocol.md`) was committed before any
+return (`dd2cb6e`). Two runs matched (`backtests/fp272/screen_2023.json`,
+sha256 `0dbe0342…`). Spot's finished ten-day return was strictly above the
+USDT ten-day return, then short the coin-margined book for twenty-four days:
+169 trades, mean −635.1923 bps, null p95 −635.7899 bps, −$1073.4749. The
+file's gross is −616.4439 bps. **Nothing here is fit to add.** The mean is
+negative and above the null. One coin-margined leg. The other trade is the
+twenty-four-day USDT short on the same entries, and the cutoff is that
+trade's mean. A missing open was not taken from the other book. Funding cash
+is not added. A count taken before the freeze, with no profit computed, was
+169 against 169. The scored book is 169. The rule was not changed. This is
+not a testing row.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

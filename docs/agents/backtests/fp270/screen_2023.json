@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp270_common": "5132d2c0debc8d28fd59749b5f7b9ab6789fc5614cfe6cd96f65936276aaca22",
+    "fp270_measure": "871623f70cb318da2c5fa32df10d453f1228193c3ffbce60214b38447e25b50e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "INUP",
+      "mean_gross_bps": -562.1609,
+      "mean_net_bps": -581.0178,
+      "min_n": 30,
+      "n": 69,
+      "note": "The finished twenty-day coin-margined return was positive and the finished five-day return was negative. The next coin-margined open is sold and bought back seventeen days later. The other trade buys that open for the same seventeen days. One leg. Funding cash is not added. The null is not that seventeen-day short on every day.",
+      "null_p95_bps": 676.4821,
+      "passes_screen": false,
+      "total_pnl_usd": -400.9023
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd"
+  },
+  "null_kind": "other_side",
+  "null_mean_bps": 676.4821,
+  "null_n": 69,
+  "passed": [],
+  "protocol_sha256": "12cd6de3f66f8941b2a601f09fa752ef0f7ab5b34940810dab33450aa6de60b5"
+}

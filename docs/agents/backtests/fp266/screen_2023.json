@@ -1,0 +1,31 @@
+{
+  "code_sha256": {
+    "fp266_common": "72ef42faa1d2d44bbaeb553b50eb9a985b92506a74484ec781b85fca0987543a",
+    "fp266_measure": "107cf9a6e8ed7a2aaf3aef3c98c4bb9779abd603f8d5f20b5e8e273dc3402cfc",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UNDER",
+      "mean_gross_bps": 468.4063,
+      "mean_net_bps": 447.4904,
+      "min_n": 30,
+      "n": 206,
+      "note": "Yesterday's coin-margined close finished below yesterday's spot close. The next coin-margined open is bought and sold twelve days later. The other trade buys spot for those same twelve days. One leg. Funding cash is not added. The null is not that coin-margined long with the comparison turned off.",
+      "null_p95_bps": 443.2493,
+      "passes_screen": true,
+      "total_pnl_usd": 921.8302
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "null_kind": "other_book",
+  "null_mean_bps": 443.2493,
+  "null_n": 206,
+  "passed": [
+    "UNDER"
+  ],
+  "protocol_sha256": "1f70bda5ad2c26d9e8ffa85cb127f394cf6538f4fb4113a3fa22188ce7c46a7a"
+}
