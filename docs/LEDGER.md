@@ -8,6 +8,8 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
+**fp193–fp200 are frozen and have not been scored.** No return of these eight has been computed. The null of each rule is its own payoff with the filter off, and that payoff is not an open-to-close long on every day. fp185–fp192 stay closed. Counts taken before the freeze, with no profit computed: ASKSH 112 (book days 365, three files missing and not filled), IDXSH 177, VWAPH 120, CMH 147, ON16 124, COISH 185, MRKSH 184, TAKSP 201. The count stays 30. No pull request. Main was not pushed.
+
 **BRKHI is void. The later years were recorded and the rule is not a testing row.** The buy is a price inside the day, and the four-day width uses that day's finished high and low, which are not known at the buy. The rule was not rewritten and was not run again. Entries 2024-01-01 through 2026-09-24 stay in the research record: 146 trades, +$97.4032. No pull request. Main was not pushed.
 
 **LAG6 and C3 fail the pre-registered later years. Neither is a testing row.** The buys and the sells were not moved. LAG6 entries 2024-01-01 through 2026-09-23: 462 trades, −$13.8381. C3 entries 2024-01-01 through 2026-09-22: 327 trades, +$41.3727, and the other bars fail. No pull request. Main was not pushed.
@@ -838,6 +840,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:59 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp193–fp200 are protocols only. No return of these rules has been computed.** fp185–fp192 were recorded at `51fe956` and none passed. Seven of those means were positive and each lost to an open-to-close long on every day. That null is not reused, and those eight were not rewritten. Pins printed fp193 through fp200 pins ok before this commit. Counts taken before the freeze, with no profit computed: ASKSH 112, IDXSH 177, VWAPH 120, CMH 147, ON16 124, COISH 185, MRKSH 184, TAKSP 201. Book files for 2022-12-31, 2023-02-08 and 2023-02-09 were absent and were not filled in. ASKSH shorts the next spot session after the last book snapshot's ask notional finishes above its bid notional. IDXSH shorts the next spot open to the following open after the index close/open finishes above the spot close/open. VWAPH is long spot and short the USDT perpetual, open to close, after the perpetual average finishes above the spot average. CMH is long spot and short the coin-margined perpetual, open to close, after that close finishes above the spot close. ON16 sells the spot close and buys the next open after the 16:00 funding rate finishes above the same day's 08:00 rate. The close is the fill, not an input, and the 00:00 rate is not read. COISH shorts the next USDT-perpetual session after coin open interest, not the dollar value, finishes above its first print. MRKSH shorts the next USDT-perpetual open to the following open after the mark close/open finishes above the index close/open. TAKSP is long the coin-margined perpetual and short the USDT perpetual, open to close, after the USDT taker-buy share finishes above the coin-margined share. Funding cash is not added. Each null is that payoff with the filter off, so the rule is a subset, and none of those payoffs is an unconditional long. The count stays 30. No percentile is used. No sign of a killed rule is flipped. The six-day range, the two-day hold, the three-close filter and the three-day hold stay closed. An engulfing body, a wick, and a high or a low stay closed. BRKHI stays void. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request as a signal. The 2024-01-01 open, where a cover needs it, is an exit only. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:40 UTC] Platform: Cursor | Model: Grok 4.7
 
