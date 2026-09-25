@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp26_common": "a2ddf606bafc3475e98b599ceff87cd9a46c89f7be2728620694d822869eaac7",
+    "fp26_measure": "4f6f3834390e950e9fc617ebaf1bdd273ff1121c75bcf25508c2e02fdd0b7f57",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BODY",
+      "mean_gross_bps": 127.2282,
+      "mean_net_bps": 106.994,
+      "min_n": 30,
+      "n": 46,
+      "note": "Body as a share of the day's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 58.7861,
+      "passes_screen": true,
+      "total_pnl_usd": 49.2172
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "03e622364e80265233e841e07f3a6bf8ded6712376119e51b1ac7426e772dc3d"
+  },
+  "passed": [
+    "BODY"
+  ],
+  "protocol_sha256": "3d513d01370d1df528eb99efbf27bfc458e8dcae95c61e51c44b0991728b1a86"
+}

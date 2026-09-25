@@ -8,14 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp26 protocol is written and not scored.** BODY is the candle body as a
-share of that day's high-low range, above its own trailing 90th, long BTC
-the next day. EXCH-BAL stays dead (§3.54). Do not score a doji, and do not
-score the 80th. The count stays 30. Do not reopen FEE-HIGH, the net exchange
-flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
-AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
-skew. fp5 through fp25 stay closed, including LS-FADE. The screen is the
-next step. No testing row. No pull request. No push to main.
+**fp26 passed the 2023 screen and is not adopted.** The pre-registration is
+frozen (`4be527de…`, 2026-09-25T02:37:30Z). The out-of-sample test, 2024-01-01
+through 2026-09-24, is the next step and has not been run. Do not score a
+doji, and do not score the 80th on the screen. EXCH-BAL stays dead (§3.54).
+Do not reopen FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM,
+GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
+range, the taker share, dispersion, or skew. No testing row until the
+pre-registered bar clears. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +838,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:38 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp26 screen passes. Pre-registration frozen. No 2024 return has been
+computed.** Protocol was `0df80a8`. Two scores matched (`12a020d0…`). BODY
+46 trades, +106.99 bps against a null of +58.79, +$49.22. Seventeen of the
+46 signal days closed below their open. The pre-registration is
+`4be527de…`, frozen at 2026-09-25T02:37:30Z, half-spread
+5.916161022824505e-08 from bid 84514.26 / ask 84514.27. The out-of-sample
+test is the next step. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:36 UTC] Platform: Cursor | Model: Grok 4.7
 
