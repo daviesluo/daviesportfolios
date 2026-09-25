@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 01:47 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. `docs/agents/scripts/fp5/funding_rule.txt` and `taker_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass5.json`. BTC perpetual funding below its trailing bottom decile, long the next day in 2021, is +6,209 bps and still fails: 14 trips. The taker buy/sell ratio below its trailing bottom quintile, long the next day in 2024, is −2,390 bps over 53 trips. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 01:37 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. `docs/agents/scripts/fp5/flow_rule.txt` and `mvrv_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass4.json`. Exchange dollar outflow above its late-2021 80th percentile, long the next day in 2022, is −8,219 bps pooled over 82 trips. Bitcoin's MVRV below its trailing 30-day median, long the next day in 2017, is +6,217 bps and still fails: 30 trips, March is 46% of it, and a random-day null's p95 is +21,073. `reached_preregistration` stays false.

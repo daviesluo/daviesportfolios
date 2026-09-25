@@ -2733,6 +2733,8 @@ The same morning, still with `reached_preregistration` false (`backtests/fp5/sum
 
 Still later, still with `reached_preregistration` false (`backtests/fp5/summary_pass4.json`): bitcoin exchange outflow above its late-2021 80th percentile loses −8,219 bps over 82 trips in 2022, and bitcoin MVRV below its trailing 30-day median makes +6,217 bps in 2017 while failing the trip count (30), the month share (March is 46%) and the random-day null (p95 +21,073). Neither sign is flipped.
 
+Still later, still with `reached_preregistration` false (`screen_pass5.py`, `backtests/fp5/summary_pass5.json`): BTC perpetual funding in its trailing bottom decile, long the next day in 2021 only, is +6,209 bps pooled and still fails, because 34 long days are 14 trips. The taker buy/sell volume ratio in its trailing bottom quintile, long the next day in 2024 only, is −2,390 bps over 53 trips. Neither sign is flipped.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

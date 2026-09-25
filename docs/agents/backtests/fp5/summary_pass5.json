@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "funding_bottom_decile_2021": {
+      "btc_bps": 6254.7,
+      "candle_bar_clear": false,
+      "eth_bps": 6162.7,
+      "execution_days": 365,
+      "long_days": 34,
+      "month_share": 0.352,
+      "name": "funding_bottom_decile_2021",
+      "null_p50_bps": 356.9,
+      "null_p95_bps": 4649.0,
+      "pool_bps": 6208.7,
+      "stress_bps": 5648.7,
+      "top_month": "2021-07",
+      "top_month_bps": 2183.7,
+      "trips": 14,
+      "why": "fewer than 60 round trips"
+    },
+    "taker_ratio_bottom_quintile_2024": {
+      "btc_bps": -1876.8,
+      "candle_bar_clear": false,
+      "eth_bps": -2902.5,
+      "execution_days": 366,
+      "long_days": 71,
+      "month_share": null,
+      "name": "taker_ratio_bottom_quintile_2024",
+      "null_p50_bps": -864.8,
+      "null_p95_bps": 3104.5,
+      "pool_bps": -2389.6,
+      "stress_bps": -4509.6,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 53,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "funding_rule_sha256": "3c2eb810b1310828cd1bbf0c0e572c88a2332f7728e5c339352a9cffb87e1870",
+    "taker_rule_sha256": "362c92162d6c273c511eb42872b7beea19198b88099280624f9da2db67ddae06"
+  }
+}

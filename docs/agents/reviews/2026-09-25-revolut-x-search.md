@@ -76,6 +76,16 @@ Bitcoin's exchange dollar outflow minus inflow, above the 80th percentile of 202
 
 Bitcoin MVRV below its own trailing 30-day median, long the next day in 2017 only, on CoinMetrics reference rates: pooled +6,217 bps, stress +5,617, both books positive, and 136 long days that are only 30 trips. March 2017 is 46% of the pool. The random-day null's p95 is +21,073, so the gain is the year, not the ratio. The sign is not flipped, and the year is not moved.
 
+## Continuation: funding decile and taker ratio, still nothing
+
+`funding_rule.txt` (sha256 `3c2eb810…`) and `taker_rule.txt` (sha256 `362c9216…`) were hashed before their own results. Numbers are in `backtests/fp5/summary_pass5.json`. `screen_pass5.py` checks those hashes and exits if a fresh run disagrees with the summary. `reached_preregistration` is still false.
+
+BTCUSDT perpetual funding, the day's three prints summed, strictly below the 9th of the previous 90 daily sums, long BTC and ETH the next day in 2021 only: 34 long days, 14 trips, pooled +6,208.7 bps, stress +5,648.7, both books positive, July is 35% of the pool, null p95 +4,649. The trip bar is 60. Thirty-four long days cannot make 60 entries. A loss is not what killed it; the count did. The sign is not flipped to high funding, the decile is not moved, and 2022 is not added.
+
+BTCUSDT perpetual taker buy/sell volume ratio, the last print of the UTC day, strictly below the 18th of the previous 90 days, long the next day in 2024 only: 71 long days, 53 trips, pooled −2,389.6 bps, stress −4,509.6, both books negative, null p95 +3,104.5. The sign is not flipped, the quintile is not moved, and 2025 is not added.
+
+The cost check is closed-form. On both rules the gap between the 20 bp charge and the doubled charge is 40 bps times the trip count (an entry and an exit). An independent sum of the long days' closes matches the funding pool to the tenth of a basis point. The first funding entry, 2021-03-26, is a signal of 0.00031828 against a threshold of 0.00033506, and that day's BTC close over the previous close is 727.54 bps by hand.
+
 ## Reproduce
 
-From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json` and `summary_pass4.json` are the records of what they returned.
+From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json`, `summary_pass4.json` and `summary_pass5.json` are the records of what they returned. `python3 docs/agents/scripts/fp5/screen_pass5.py --check` rebuilds the last of those from `backtests/inputs/fp5_2026-09-25/pass5/`.
