@@ -835,6 +835,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:48 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 FADE pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). ROUND failed in the 02:42 section and is not being retuned: one side is not taken, September stays in the sum, and the strike spacing stays at $10,000. COPY and VOL stay failed. The next rule buys the side a six-hour move made cheaper, on the daily Bitcoin strike whose shown price is closest to one half inside 0.40 to 0.60, and holds to settlement. No spot, no neighbor line and no wallet. The band chooses the strike; it is not a claim that 0.40–0.60 is underpriced. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-fade.md`. `fade_test.py --self-check` passes (hand fill +13.977244). Hourly up/down fade is not opened: the history there lags the prints by about 12¢. No decision-time price and no return have been read. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.
+
 ### [2026-09-25 02:42 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 ROUND was run and it fails. Not a testing candidate.** The 02:38 section froze the rule and said the run was next. This section is that run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. COPY and VOL were not retuned.
