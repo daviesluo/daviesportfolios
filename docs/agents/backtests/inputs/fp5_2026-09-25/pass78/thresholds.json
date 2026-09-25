@@ -1,0 +1,36 @@
+{
+  "gap": "0.001",
+  "impact_qty": {
+    "BTC-USD": "0.07521000",
+    "XRP-USD": "5080.256020"
+  },
+  "lag_w_ms": {
+    "ETH-USD": 60000,
+    "SOL-USD": 60000
+  },
+  "lead": "0.0001",
+  "maker_fee_bps": 0,
+  "quiet_ms": {
+    "BTC-USD": 322180,
+    "XRP-USD": 1072376
+  },
+  "quote_step": {
+    "BTC-USD": "0.01",
+    "ETH-USD": "0.01",
+    "SOL-USD": "0.001",
+    "XRP-USD": "0.0001"
+  },
+  "round_unit": {
+    "BTC-USD": "1.00",
+    "ETH-USD": "1.00",
+    "SOL-USD": "0.100",
+    "XRP-USD": "0.0100"
+  },
+  "score_end": 1790294399999,
+  "score_first_day": "2026-06-17",
+  "score_last_day": "2026-09-24",
+  "score_start": 1781654400000,
+  "threshold_day": "2026-06-16",
+  "threshold_end": 1781654399999,
+  "threshold_start": 1781568000000
+}

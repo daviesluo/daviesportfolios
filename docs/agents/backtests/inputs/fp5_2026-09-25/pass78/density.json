@@ -1,0 +1,41 @@
+{
+  "note": "page counts only, no prices. 2025-09-17 is a full pull. Later days stopped when the cursor ended.",
+  "full_day_2025_09_17": {
+    "BTC-USD": 5450,
+    "ETH-USD": 6306,
+    "SOL-USD": 3079,
+    "XRP-USD": 2902
+  },
+  "later_full_days": {
+    "2026-06-17": {
+      "BTC-USD": 1098,
+      "ETH-USD": 434,
+      "SOL-USD": 290,
+      "XRP-USD": 402
+    },
+    "2026-07-17": {
+      "BTC-USD": 1173,
+      "ETH-USD": 370,
+      "SOL-USD": 540,
+      "XRP-USD": 218
+    },
+    "2026-08-17": {
+      "BTC-USD": 459,
+      "ETH-USD": 207,
+      "SOL-USD": 205,
+      "XRP-USD": 183
+    },
+    "2026-09-10": {
+      "BTC-USD": 583,
+      "ETH-USD": 323,
+      "SOL-USD": 560,
+      "XRP-USD": 393
+    },
+    "2026-09-17": {
+      "BTC-USD": 479,
+      "ETH-USD": 319,
+      "SOL-USD": 448,
+      "XRP-USD": 506
+    }
+  }
+}

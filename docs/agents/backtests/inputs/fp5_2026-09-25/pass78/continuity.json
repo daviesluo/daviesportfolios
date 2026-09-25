@@ -1,0 +1,4105 @@
+{
+  "day": "2026-09-24",
+  "end": 1790294399999,
+  "pairs": 455,
+  "read_at": "2026-09-25 22:37:46 UTC",
+  "region": "UK",
+  "rows": [
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "1INCH/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "1INCH-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "1INCH/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "1INCH-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "1INCH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "1INCH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "2Z/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "2Z-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "A8/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "A8-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AAVE/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "AAVE-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AAVE/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "AAVE-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AAVE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AAVE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ABT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ABT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ACH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ACH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ACS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ACS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ADA/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ADA-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ADA/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ADA-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ADA/USD",
+      "prints": 91,
+      "quote": "USD",
+      "symbol": "ADA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ADA/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "ADA-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AERGO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AERGO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AERO/USD",
+      "prints": 37,
+      "quote": "USD",
+      "symbol": "AERO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AGLD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AGLD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AI/USD",
+      "prints": 19,
+      "quote": "USD",
+      "symbol": "AI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AIOZ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AIOZ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AKT/USD",
+      "prints": 48,
+      "quote": "USD",
+      "symbol": "AKT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ALCX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ALCX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ALEO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ALEO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ALEPH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ALEPH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ALGO/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ALGO-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ALGO/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ALGO-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ALGO/USD",
+      "prints": 56,
+      "quote": "USD",
+      "symbol": "ALGO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ALICE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ALICE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AMP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AMP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ANKR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ANKR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "APE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "APE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "API3/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "API3-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "APT/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "APT-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "APT/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "APT-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "APT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "APT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ARB/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ARB-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ARB/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ARB-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ARB/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ARB-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ARKM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ARKM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ARPA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ARPA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ASM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ASM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AST/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AST-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ATH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ATH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ATOM/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ATOM-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ATOM/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ATOM-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ATOM/USD",
+      "prints": 40,
+      "quote": "USD",
+      "symbol": "ATOM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AUCTION/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AUCTION-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AUDIO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AUDIO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AURORA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AURORA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AVAX/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "AVAX-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AVAX/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "AVAX-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AVAX/USD",
+      "prints": 87,
+      "quote": "USD",
+      "symbol": "AVAX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AVAX/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "AVAX-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "AVNT/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "AVNT-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AVNT/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "AVNT-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AVNT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AVNT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AVT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AVT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AWE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AWE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "AXS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "AXS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "B3/USD",
+      "prints": 56,
+      "quote": "USD",
+      "symbol": "B3-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BAL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BAL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BAND/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BAND-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BAT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BAT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BCH/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "BCH-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BCH/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "BCH-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BCH/USD",
+      "prints": 69,
+      "quote": "USD",
+      "symbol": "BCH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BCH/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "BCH-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BEAM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BEAM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BENJI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BENJI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BERA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BERA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BICO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BICO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BIGTIME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BIGTIME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BLUR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BLUR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BLZ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BLZ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BNB/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "BNB-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BNB/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "BNB-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BNB/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BNB-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BNB/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "BNB-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BNT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BNT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BOBA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BOBA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BONK/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "BONK-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BONK/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "BONK-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BONK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BONK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BONK/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "BONK-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BTC/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "BTC-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BTC/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "BTC-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BTC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BTC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "BTC/USDC",
+      "prints": 11,
+      "quote": "USDC",
+      "symbol": "BTC-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "BTRST/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "BTRST-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "C98/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "C98-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CELO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CELO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CELR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CELR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "CHZ/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "CHZ-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CHZ/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "CHZ-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CHZ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CHZ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CLANKER/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CLANKER-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "COMP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "COMP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "COOKIE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "COOKIE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "COTI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "COTI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "COW/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "COW-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CRO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CRO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "CRV/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "CRV-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CRV/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "CRV-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CRV/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CRV-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CTSI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CTSI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CVC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CVC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "CVX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "CVX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DASH/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "DASH-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DASH/GBP",
+      "prints": 17,
+      "quote": "GBP",
+      "symbol": "DASH-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DASH/USD",
+      "prints": 53,
+      "quote": "USD",
+      "symbol": "DASH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DEGEN/USD",
+      "prints": 22,
+      "quote": "USD",
+      "symbol": "DEGEN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DIA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DIA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DIMO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DIMO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOGE/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "DOGE-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOGE/GBP",
+      "prints": 70,
+      "quote": "GBP",
+      "symbol": "DOGE-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOGE/USD",
+      "prints": 73,
+      "quote": "USD",
+      "symbol": "DOGE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DOGE/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "DOGE-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DOGINME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DOGINME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DOGS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DOGS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOLO/USD",
+      "prints": 0,
+      "quote": "USD",
+      "symbol": "DOLO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOT/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "DOT-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DOT/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "DOT-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "DOT/USD",
+      "prints": 43,
+      "quote": "USD",
+      "symbol": "DOT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DOT/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "DOT-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DRIFT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DRIFT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "DYDX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "DYDX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "EDGE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "EDGE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "EGLD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "EGLD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "EIGEN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "EIGEN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ELA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ELA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ENA/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ENA-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ENA/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ENA-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ENA/USD",
+      "prints": 75,
+      "quote": "USD",
+      "symbol": "ENA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ENA/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "ENA-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ENS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ENS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ETC/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ETC-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ETC/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ETC-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ETC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ETC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ETH/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ETH-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ETH/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ETH-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ETH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ETH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ETH/USDC",
+      "prints": 7,
+      "quote": "USDC",
+      "symbol": "ETH-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "EUL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "EUL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FAI/USD",
+      "prints": 9,
+      "quote": "USD",
+      "symbol": "FAI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FARM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FARM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FET/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "FET-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FET/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "FET-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FET/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FET-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FIDA/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "FIDA-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FIDA/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "FIDA-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FIDA/USD",
+      "prints": 10,
+      "quote": "USD",
+      "symbol": "FIDA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FIL/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "FIL-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FIL/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "FIL-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FIL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FIL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FLOKI/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "FLOKI-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FLOKI/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "FLOKI-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FLOKI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FLOKI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FLOW/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FLOW-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FLR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FLR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "FLUID/USD",
+      "prints": 0,
+      "quote": "USD",
+      "symbol": "FLUID-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FORT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FORT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "FORTH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "FORTH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GALA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GALA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GFI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GFI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GHST/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GHST-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GIGA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GIGA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GLM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GLM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GMT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GMT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GODS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GODS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "GRASS/USD",
+      "prints": 32,
+      "quote": "USD",
+      "symbol": "GRASS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GRT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GRT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GST/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GST-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "GTC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "GTC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "HBAR/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "HBAR-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HBAR/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "HBAR-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "HBAR/USD",
+      "prints": 69,
+      "quote": "USD",
+      "symbol": "HBAR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HBAR/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "HBAR-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HFT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HFT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "HIGH/USD",
+      "prints": 13,
+      "quote": "USD",
+      "symbol": "HIGH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HNT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HNT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HOME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HOME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HONEY/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HONEY-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HOPR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HOPR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "HYPE/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "HYPE-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HYPE/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "HYPE-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "HYPE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "HYPE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ICP/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ICP-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ICP/GBP",
+      "prints": 29,
+      "quote": "GBP",
+      "symbol": "ICP-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ICP/USD",
+      "prints": 25,
+      "quote": "USD",
+      "symbol": "ICP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IDEX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IDEX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IDOS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IDOS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ILV/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ILV-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IMU/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IMU-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IMX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IMX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "INJ/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "INJ-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "INJ/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "INJ-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "INJ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "INJ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "IOTX/USD",
+      "prints": 22,
+      "quote": "USD",
+      "symbol": "IOTX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "IP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "IP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "JASMY/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "JASMY-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "JASMY/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "JASMY-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "JASMY/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "JASMY-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "JTO/USD",
+      "prints": 35,
+      "quote": "USD",
+      "symbol": "JTO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "JUP/USD",
+      "prints": 58,
+      "quote": "USD",
+      "symbol": "JUP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "JUP/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "JUP-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KAITO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KAITO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KARRAT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KARRAT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KAVA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KAVA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KERNEL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KERNEL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KNC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KNC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KRL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KRL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KSM/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KSM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "KTA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "KTA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "L3/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "L3-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LAYER/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LAYER-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LCX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LCX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "LDO/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "LDO-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LDO/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "LDO-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LDO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LDO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "LINK/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "LINK-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LINK/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "LINK-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LINK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LINK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LINK/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "LINK-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LMWR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LMWR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LPT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LPT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LQTY/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LQTY-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LRC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LRC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LRDS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LRDS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "LTC/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "LTC-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LTC/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "LTC-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LTC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "LTC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "LTC/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "LTC-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "MAGIC/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "MAGIC-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MAGIC/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "MAGIC-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MAGIC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MAGIC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MANA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MANA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MASK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MASK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MATH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MATH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MDT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MDT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MELANIA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MELANIA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "METIS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "METIS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MEW/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MEW-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MINA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MINA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MLN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MLN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MNDE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MNDE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MOG/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MOG-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MON/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MON-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MOODENG/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MOODENG-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MORPHO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MORPHO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "MSOL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "MSOL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NCT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NCT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "NEAR/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "NEAR-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NEAR/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "NEAR-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NEAR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NEAR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NEIRO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NEIRO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NEON/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NEON-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NKN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NKN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NMR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NMR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "NOT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "NOT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OCEAN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "OCEAN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OFC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "OFC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OGN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "OGN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ONDO/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ONDO-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ONDO/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ONDO-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ONDO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ONDO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "OP/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "OP-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OP/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "OP-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "OP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ORCA/USD",
+      "prints": 21,
+      "quote": "USD",
+      "symbol": "ORCA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "OSMO/USD",
+      "prints": 10,
+      "quote": "USD",
+      "symbol": "OSMO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "OXT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "OXT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PARTI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PARTI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PAXG/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "PAXG-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PAXG/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PAXG-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PENDLE/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "PENDLE-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PENDLE/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "PENDLE-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PENDLE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PENDLE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PENGU/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "PENGU-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PENGU/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "PENGU-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PENGU/USD",
+      "prints": 43,
+      "quote": "USD",
+      "symbol": "PENGU-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PEPE/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "PEPE-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PEPE/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "PEPE-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PEPE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PEPE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PEPE/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "PEPE-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PERP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PERP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PLUME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PLUME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PNG/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PNG-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PNUT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PNUT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "POL/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "POL-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POL/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "POL-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "POL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POLS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "POLS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POND/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "POND-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PONKE/USD",
+      "prints": 6,
+      "quote": "USD",
+      "symbol": "PONKE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POPCAT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "POPCAT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "POWR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "POWR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PRCL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PRCL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PRIME/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PRIME-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PRO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PRO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PROMPT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PROMPT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PROVE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PROVE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "PUMP/USD",
+      "prints": 0,
+      "quote": "USD",
+      "symbol": "PUMP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PUNDIX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PUNDIX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PYR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PYR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "PYTH/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "PYTH-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "QI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "QI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "QNT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "QNT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RAD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RAD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RARE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RARE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RARI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RARI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RAY/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RAY-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RED/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RED-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "RENDER/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "RENDER-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RENDER/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "RENDER-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RENDER/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RENDER-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "REQ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "REQ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "REZ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "REZ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RLC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RLC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RLS/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RLS-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ROSE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ROSE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RPL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RPL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RSC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RSC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "RSR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "RSR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SAFE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SAFE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SAND/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SAND-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SEI/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "SEI-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SEI/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "SEI-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SEI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SEI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SENT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SENT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SHDW/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SHDW-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SHIB/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "SHIB-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SHIB/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "SHIB-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SHIB/USD",
+      "prints": 29,
+      "quote": "USD",
+      "symbol": "SHIB-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SHIB/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "SHIB-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SHPING/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SHPING-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SKL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SKL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SKY/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SKY-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SNX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SNX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SOL/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "SOL-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SOL/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "SOL-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SOL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SOL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SOL/USDC",
+      "prints": 24,
+      "quote": "USDC",
+      "symbol": "SOL-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SOMI/USD",
+      "prints": 0,
+      "quote": "USD",
+      "symbol": "SOMI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SPA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SPA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SPELL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SPELL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SPK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SPK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SPX/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "SPX-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SPX/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "SPX-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SPX/USD",
+      "prints": 50,
+      "quote": "USD",
+      "symbol": "SPX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SQD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SQD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STG/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "STG-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STORJ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "STORJ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "STRK/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "STRK-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STRK/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "STRK-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STRK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "STRK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "STX/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "STX-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STX/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "STX-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "STX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "STX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SUI/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "SUI-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUI/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "SUI-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SUI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUI/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "SUI-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUKU/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SUKU-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUPER/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SUPER-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SUSHI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SUSHI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SWELL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SWELL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SWFTC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SWFTC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SXT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SXT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "SYND/USD",
+      "prints": 0,
+      "quote": "USD",
+      "symbol": "SYND-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "SYRUP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "SYRUP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "T/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "T-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TAIKO/USD",
+      "prints": 1,
+      "quote": "USD",
+      "symbol": "TAIKO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TIA/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "TIA-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TIA/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "TIA-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TIA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TIA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TNSR/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TNSR-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TOKEN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TOKEN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TON/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "TON-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TON/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "TON-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TON/USD",
+      "prints": 19,
+      "quote": "USD",
+      "symbol": "TON-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TON/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "TON-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TOSHI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TOSHI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRAC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TRAC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRB/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TRB-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TREE/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TREE-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRU/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TRU-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TRUMP/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "TRUMP-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRUMP/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "TRUMP-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRUMP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TRUMP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRUMP/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "TRUMP-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "TRX/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "TRX-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRX/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "TRX-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TRX-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TRX/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "TRX-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "TURBO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "TURBO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "UMA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "UMA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "UNI/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "UNI-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "UNI/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "UNI-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "UNI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "UNI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "USDC/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "USDC-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "USDC/GBP",
+      "prints": 54,
+      "quote": "GBP",
+      "symbol": "USDC-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "USDC/USD",
+      "prints": 33,
+      "quote": "USD",
+      "symbol": "USDC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "USDT/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "USDT-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "USDT/USD",
+      "prints": 48,
+      "quote": "USD",
+      "symbol": "USDT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "VELO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "VELO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "VET/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "VET-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "VIRTUAL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "VIRTUAL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "VOXEL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "VOXEL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "VTHO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "VTHO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "VVV/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "VVV-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "VVV/GBP",
+      "prints": 17,
+      "quote": "GBP",
+      "symbol": "VVV-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "VVV/USD",
+      "prints": 96,
+      "quote": "USD",
+      "symbol": "VVV-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "W/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "W-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "WAL/USD",
+      "prints": 14,
+      "quote": "USD",
+      "symbol": "WAL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WAXL/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "WAXL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "WIF/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "WIF-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WIF/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "WIF-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WIF/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "WIF-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "WLD/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "WLD-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "WLD/GBP",
+      "prints": 11,
+      "quote": "GBP",
+      "symbol": "WLD-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WLD/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "WLD-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WLFI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "WLFI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "WOO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "WOO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XAN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XAN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XAUT/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "XAUT-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XAUT/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XAUT-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XCN/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XCN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XDC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XDC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "XLM/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "XLM-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XLM/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "XLM-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "XLM/USD",
+      "prints": 86,
+      "quote": "USD",
+      "symbol": "XLM-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XLM/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "XLM-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "XPL/USD",
+      "prints": 69,
+      "quote": "USD",
+      "symbol": "XPL-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "XRP/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "XRP-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XRP/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "XRP-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XRP/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XRP-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XRP/USDC",
+      "prints": 100,
+      "quote": "USDC",
+      "symbol": "XRP-USDC"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XTZ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XTZ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "XYO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "XYO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "YFI/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "YFI-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ZAMA/USD",
+      "prints": 41,
+      "quote": "USD",
+      "symbol": "ZAMA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ZEN/USD",
+      "prints": 14,
+      "quote": "USD",
+      "symbol": "ZEN-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZK/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZK-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZKC/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZKC-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZKJ/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZKJ-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZORA/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZORA-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": false,
+      "http": 200,
+      "pair": "ZRO/EUR",
+      "prints": 0,
+      "quote": "EUR",
+      "symbol": "ZRO-EUR"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZRO/GBP",
+      "prints": 100,
+      "quote": "GBP",
+      "symbol": "ZRO-GBP"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZRO/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZRO-USD"
+    },
+    {
+      "active": true,
+      "at_least_100": true,
+      "http": 200,
+      "pair": "ZRX/USD",
+      "prints": 100,
+      "quote": "USD",
+      "symbol": "ZRX-USD"
+    }
+  ],
+  "start": 1790208000000
+}
