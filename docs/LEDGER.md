@@ -8,16 +8,16 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp26 failed the pre-registered out-of-sample bar and is discarded**
-(§3.55). 2023 passed and was frozen before the later years were read. 2024
-is positive and 2025 through 2026-09-24 is negative. The mean lost to the
-null, doubled costs lose, and the 80th veto fires. Do not score a doji, and
-do not adopt the 80th. EXCH-BAL stays dead (§3.54). Do not reopen FEE-HIGH,
-the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
-PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
-share, dispersion, or skew. fp5 through fp25 stay closed, including LS-FADE.
-The next search is not written. No testing row. No pull request. No push to
-main.
+**fp27 protocol is written and not scored.** BAL-CHG is the daily change in
+the number of addresses holding BTC, above its own trailing 90th, long BTC
+the next day. BODY stays dead, including the later years (§3.55). Do not
+promote its 80th. Do not score a day the count did not rise, and do not
+score the 80th. The count of trades stays 30. EXCH-BAL stays dead (§3.54).
+Do not reopen FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM,
+GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
+range, the taker share, dispersion, or skew. fp5 through fp26 stay closed,
+including LS-FADE. The screen is the next step. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -840,6 +840,19 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:43 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp27 protocol only. No return has been computed.** A different family from
+the twenty-two closed rounds: the daily change in Coin Metrics `AdrBalCnt`,
+long BTC the next day. This is not the count of addresses that moved, and
+not the level of the stock. BODY stays closed, including the later years,
+and its 80th neighbor is not a candidate. EXCH-BAL, FEE-HIGH, UP-SHARE,
+VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
+RV-RATIO, the quiet-day range, the taker share, dispersion and skew stay
+closed. A day the count fell is not a candidate. `pin_test.py` passed
+before this commit. The screen is the next step. No pull request. Main was
+not pushed.
 
 ### [2026-09-25 02:40 UTC] Platform: Cursor | Model: Grok 4.7
 
