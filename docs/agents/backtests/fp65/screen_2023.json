@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp65_common": "f616b915a0465905366347b1bfc1da7fc1da847b6264abab36291e6e7f6e6f90",
+    "fp65_measure": "9198eb6d1cac3abd81a553b84def0acf387236615782bb31b6eeafc553abb9c0"
+  },
+  "ideas": [
+    {
+      "idea": "ETH-SPAN",
+      "mean_gross_bps": 9.2145,
+      "mean_net_bps": -10.7839,
+      "min_n": 30,
+      "n": 37,
+      "note": "ETH range over BTC range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 74.5602,
+      "passes_screen": false,
+      "total_pnl_usd": -3.99
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "3dd2d73ad7770f9d2c4cc767ff5daf640f6b81041f6baca69dbe25aff4f98f0d",
+    "eth_1d": "8447b0e3a8e75a8701353969a2daac427342442a1dd04d3dfe27a61bb4104f82"
+  },
+  "passed": [],
+  "protocol_sha256": "c0770552149179d5fc2ea6e9d259e755ca6613dd26a37922ea1123084f4d305b"
+}

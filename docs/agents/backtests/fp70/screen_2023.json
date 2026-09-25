@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp70_common": "a444e5940dba7230f30176288cbf54ee9cb373d4c9c0a740431ce58d9692942e",
+    "fp70_measure": "41ae424af33c3cbb63fcadd0c70b82df2750b733f97064ea9d556b772844f6a6"
+  },
+  "ideas": [
+    {
+      "idea": "PRIOR-LOC",
+      "mean_gross_bps": 61.5561,
+      "mean_net_bps": 41.4531,
+      "min_n": 30,
+      "n": 43,
+      "note": "Close inside yesterday's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 66.2261,
+      "passes_screen": false,
+      "total_pnl_usd": 17.8248
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "03e622364e80265233e841e07f3a6bf8ded6712376119e51b1ac7426e772dc3d"
+  },
+  "passed": [],
+  "protocol_sha256": "a0cdccbdd8e43e94fd14b9ea175aacc83ee9f5daff9d58f279394a3b5f4a4bd4"
+}

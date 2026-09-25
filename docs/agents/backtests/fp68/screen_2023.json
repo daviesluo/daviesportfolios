@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp68_common": "c099b7c07e3f2feaa350a1ffa1c24f326286043a23f4c532a7c4fa1d2d3c0cba",
+    "fp68_measure": "41eb543ea7ec2605e91e5cb94363a6a96b7e05395acbae040e456720e03f06b0"
+  },
+  "ideas": [
+    {
+      "idea": "CROSS",
+      "mean_gross_bps": 45.478,
+      "mean_net_bps": 25.4071,
+      "min_n": 30,
+      "n": 24,
+      "note": "Crosses of yesterday's close, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 86.8142,
+      "passes_screen": false,
+      "total_pnl_usd": 6.0977
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "0990847afb1392373481b05dfcd4eaf94eea53329f361047d7a0a40380aa338e"
+  },
+  "passed": [],
+  "protocol_sha256": "60d18c713af667aebdc6f46978fdd6baf77bcb17560bcd5fc2b6e0737d4eabae"
+}

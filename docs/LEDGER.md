@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp70 protocol only. No return of this rule has been computed.** PRIOR-LOC is frozen: today's close inside yesterday's high-to-low range, long BTC the next day. Pins passed on synthetic bars. Today's open, high and low do not enter. Yesterday's close does not enter. A flat prior range is not a print. AFTER-HIGH was scored and produced no fill, so it does not count, and the 90-print window is not widened. The fp62–fp69 screen files are on disk and are not in this commit. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp69 stay closed. No 2023 number of this rule was computed. No pull request. Main was not pushed.
+**fp62–fp70 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. AFTER-HIGH was scored and has no fill, so it does not count, and the 90-print window was not widened. No later year was pulled. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp61 stay closed, including this round's named ideas. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 04:32 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp62–fp70 are scored. Nothing passes the house bar.** Protocol for fp62–fp69 was `51fa8e1`. PRIOR-LOC's protocol was `0448ef6`, committed before its pull. Each screen file was written twice and the copies matched. UNDER 42 / +56.20 / file null +67.4226 / +$23.6039 (`a9b659da…`). HIGH-BASE 26 / +70.54 / +81.2211 / +$18.3408 (`afe50238…`). MID-RET 41 / file mean −0.7749 / +70.1636 / −$0.3177 (`91f6a430…`). ETH-SPAN 37 / −10.78 / +74.5602 / −$3.99 (`d820f378…`). AFTER-HIGH has 0 fills. 432 prints, the longest window holds 89, and the rank asks for 90, so it does not count (`c8455493…`). CHOP 33 / file mean −4.9876 / +74.7946 / −$1.6459 (`dec7d74c…`). CROSS 24 / +25.41 / +86.8142 / +$6.0977 (`c233ccfa…`). EXPAND 27 / file mean −47.8032 / +81.2895 / −$12.9069 (`793eb27c…`). PRIOR-LOC 43 / file mean +41.4531 / +66.2261 / +$17.8248 (`f3153e24…`). Every fill that exists matched fp5's `net_return`. Reference §3.91–§3.99. No sign was flipped. No count was lowered. The window was not shrunk and not widened. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp61 stay closed. No later year was pulled. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 04:28 UTC] Platform: Cursor | Model: Grok 4.7
 

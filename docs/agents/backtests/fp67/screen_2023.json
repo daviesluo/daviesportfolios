@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp67_common": "b8cad04a39e463fb9f82190fd0722f8690f2c08d149c7dda11fdd14ede7351ae",
+    "fp67_measure": "f5bc8de4cf2708caba0b18f6e215137e27e1d40b3629d1f4bd97678290b0ff68"
+  },
+  "ideas": [
+    {
+      "idea": "CHOP",
+      "mean_gross_bps": 15.0224,
+      "mean_net_bps": -4.9876,
+      "min_n": 30,
+      "n": 33,
+      "note": "Hourly range sum over the day's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 74.7946,
+      "passes_screen": false,
+      "total_pnl_usd": -1.6459
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "e4d7eeaf226832d457e046a273212bfd09d810536b517dc683c3a22a7cf09e4f"
+  },
+  "passed": [],
+  "protocol_sha256": "db11cceebea6f22dc21b9c659b94d2393dc578976bccc539973aad49b29a7c0a"
+}

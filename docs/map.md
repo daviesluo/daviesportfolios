@@ -752,15 +752,15 @@ before touching migration state.
 | `docs/agents/scripts/fp59/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's base volume in hours that closed above the prior hour, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp59/screen_2023.json`. |
 | `docs/agents/scripts/fp60/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's open versus the previous day's low, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp60/screen_2023.json`. |
 | `docs/agents/scripts/fp61/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's last hour's return, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp61/screen_2023.json`. |
-| `docs/agents/scripts/fp62/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How far BTC's low finished under the previous close, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp63/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's base volume in the hour of the high, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp64/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's return from hour 8 to hour 15, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp65/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | ETH's range over BTC's range, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp66/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The return of the hour after BTC's high, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp67/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The sum of BTC's hourly ranges over the day's range, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp68/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hourly closes crossed the previous close, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp69/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours extend the day's high or low, long BTC the next day. The fill is fp5's. |
-| `docs/agents/scripts/fp70/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Where BTC's close sits in the previous day's range, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp62/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How far BTC's low finished under the previous close, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp62/screen_2023.json`. |
+| `docs/agents/scripts/fp63/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's base volume in the hour of the high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp63/screen_2023.json`. |
+| `docs/agents/scripts/fp64/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's return from hour 8 to hour 15, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp64/screen_2023.json`. |
+| `docs/agents/scripts/fp65/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | ETH's range over BTC's range, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp65/screen_2023.json`. |
+| `docs/agents/scripts/fp66/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The return of the hour after BTC's high, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp66/screen_2023.json`. |
+| `docs/agents/scripts/fp67/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The sum of BTC's hourly ranges over the day's range, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp67/screen_2023.json`. |
+| `docs/agents/scripts/fp68/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hourly closes crossed the previous close, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp68/screen_2023.json`. |
+| `docs/agents/scripts/fp69/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours extend the day's high or low, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp69/screen_2023.json`. |
+| `docs/agents/scripts/fp70/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Where BTC's close sits in the previous day's range, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp70/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

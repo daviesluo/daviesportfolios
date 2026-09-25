@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp66_common": "61e4046968600f48c8f50aa8ad2363180e416490be736b7e59bbfc7aa2f33796",
+    "fp66_measure": "7c751a615e72fbcea57a799d0f2161fc971dbb8013ce6dff0aebfa62b0df30d2"
+  },
+  "ideas": [
+    {
+      "idea": "AFTER-HIGH",
+      "mean_gross_bps": null,
+      "mean_net_bps": null,
+      "min_n": 30,
+      "n": 0,
+      "note": "Return of the hour after the high, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": null,
+      "passes_screen": false,
+      "total_pnl_usd": 0
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "694ab50b4b18cb3d9226d818f674a3bfc35a4ea9b7081ef1b1f9b85fc29a4af4"
+  },
+  "passed": [],
+  "protocol_sha256": "6a05823eb723b6e93bfb2d272a2dfa4c1e3a3df6f7f6f9ebda34babf5a817e1e"
+}

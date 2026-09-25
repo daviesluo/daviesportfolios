@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp63_common": "ac4b1309887faaa8f312d852822bc9fd8f0109e839a9b9bd64bd3bb68e52613f",
+    "fp63_measure": "183ec7e9ef2b8eed078155186cdd415a14974b5463c03c305c6be45d37383e20"
+  },
+  "ideas": [
+    {
+      "idea": "HIGH-BASE",
+      "mean_gross_bps": 90.7029,
+      "mean_net_bps": 70.5416,
+      "min_n": 30,
+      "n": 26,
+      "note": "Base share of the earliest high hour, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 81.2211,
+      "passes_screen": false,
+      "total_pnl_usd": 18.3408
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "de709bb5b51c8dd7fc37c4dca74bb2c50ab3237c1cf2bc4c65549e905acf23f0"
+  },
+  "passed": [],
+  "protocol_sha256": "7e94913abf0841a1477eb9d69f2d45b9d481ac047e3504f122c9e0dcd3b87bae"
+}

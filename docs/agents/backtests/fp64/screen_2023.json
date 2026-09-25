@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp64_common": "31894de658b755987d52acb0a219cf0293238ae998fbe05c39b63d67baeba97d",
+    "fp64_measure": "58e7672c26aef0a109496cdc5aef7e91dcab625ff103987d52c8a94392345163"
+  },
+  "ideas": [
+    {
+      "idea": "MID-RET",
+      "mean_gross_bps": 19.2436,
+      "mean_net_bps": -0.7749,
+      "min_n": 30,
+      "n": 41,
+      "note": "Middle-block return, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 70.1636,
+      "passes_screen": false,
+      "total_pnl_usd": -0.3177
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "2be9b24abf4bf5b381d350c142b17753848c28743dcca42c540e74ffdcfb4f1a"
+  },
+  "passed": [],
+  "protocol_sha256": "8d6bafd12c839c9cb8e3cadab0351a03ae175926b3c703ab43fee6e8e78a3b14"
+}
