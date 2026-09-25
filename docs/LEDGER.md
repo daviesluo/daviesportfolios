@@ -830,6 +830,17 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
+### [2026-09-25 00:28 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, a fourth Binance search, protocol only.** Davies asked for new Binance strategies by the
+research method (pre-registration, frozen inputs, hashes, pins), on a branch, with no testing or
+live row and no change to PR5, trend-4h, pmrw or a frozen spec. The protocol is
+`docs/agents/reviews/2026-09-25-fp5-protocol.md`. It names fifteen ideas the earlier programmes did
+not price, the 2023 screen that kills them, and the rule that a pass is not an adoption: it earns
+a pre-registration before any later year is scored. `docs/agents/scripts/fp5/pin_test.py` passed
+before this commit. No return has been computed. The screen is the next step; data stays under
+`/tmp/fp5/data` and is not committed.
+
 Closed operations move verbatim into `docs/handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
