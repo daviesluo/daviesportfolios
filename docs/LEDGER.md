@@ -8,12 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5 LS-FADE failed its frozen bar and is discarded.** The run is valid:
-2023 reproduced (60 trades, +$33.7632) and two OOS runs were byte-identical
-(`docs/agents/backtests/fp5/ls_fade_oos.json`, sha256 `9fb9de3d…`). It fails
-the null, the second sub-window, doubled costs, the month test and the 4%
-cash bar. Do not retune it, do not widen it, do not flip the sign. The next
-Binance search has not been written. No testing row. No push to main.
+**fp6's 2023 screen is not run.** The protocol is
+`docs/agents/reviews/2026-09-25-fp6-protocol.md`, committed before any return
+of those five rules. Next: `python3 docs/agents/scripts/fp6/fetch.py`, then
+`python3 docs/agents/scripts/fp6/measure.py`. Do not read 2024–2026 prices for
+these rules. LS-FADE stays discarded (reference §3.34). No testing row. No
+push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,18 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:44 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp6 protocol only. No return has been computed.** LS-FADE is discarded
+(§3.34). The next search is five rules that are not that family: USDC under
+par by a round trip, BTCUSDC cheap versus BTCUSDT by a round trip, Binance
+minus Deribit funding, Monday only, and a quiet BTC day. Tuesday through
+Sunday are printed as spent controls. `docs/agents/scripts/fp6/pin_test.py`
+passed before this commit. The screen is the next step. Deribit's field
+names were checked on one recent hour (keys only, no rate printed) so the
+parser names `interest_8h`. No 2023 gap, funding residual or weekday return
+has been scored.
 
 ### [2026-09-25 00:40 UTC] Platform: Cursor | Model: Grok 4.7
 
