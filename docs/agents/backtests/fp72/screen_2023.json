@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp72_common": "caad41ce4d8b5a26a3b9735b7de331da388d3ef01265d4299618d5c62c99d315",
+    "fp72_measure": "1ec2d26b30489dfd58f90ca721d1ae566d603c0afaf172f0eb415a223dbc722d"
+  },
+  "ideas": [
+    {
+      "idea": "LOW-RET",
+      "mean_gross_bps": 72.0609,
+      "mean_net_bps": 51.9369,
+      "min_n": 30,
+      "n": 36,
+      "note": "Return of the low's hour, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 72.6224,
+      "passes_screen": false,
+      "total_pnl_usd": 18.6973
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "1373b5880f6706a296555cad9a8974d3fdd34cfacf5dc605595d0e5ba2d220f2"
+  },
+  "passed": [],
+  "protocol_sha256": "6fbebbc53481ad7da6a209565568124914b20c2095e2d2d8cf77b3f3e9243a88"
+}

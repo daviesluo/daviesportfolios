@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp73_common": "4c1cf47e01f81807af7b79ff8ac4b67f4c2a41b5b6c0bc65fb15126d04ff259f",
+    "fp73_measure": "9fefcb54ab8f84f1361b7f0dc1f2ac48635534bec38853b25a5017f81584ff91"
+  },
+  "ideas": [
+    {
+      "idea": "PRE-QUOTE",
+      "mean_gross_bps": 95.4887,
+      "mean_net_bps": 75.3179,
+      "min_n": 30,
+      "n": 27,
+      "note": "Quote share before the high, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 81.2895,
+      "passes_screen": false,
+      "total_pnl_usd": 20.3358
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "275095c64daec101c34132fdac646e31537f40bdda977f1998d5c41798cd917f"
+  },
+  "passed": [],
+  "protocol_sha256": "2b277bd9722e51e842f1182eb266be4d03f3090470ea4d4d4534ca89a4566fc3"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp75_common": "5a4b0eb5e1430610126c4ef423a1fadb583a83ed49873ed744bef9a5a7a34097",
+    "fp75_measure": "71eeb22a8cc16d04ae123c9457f8f4c2b423118404d00a038ce992becb685507"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-X",
+      "mean_gross_bps": 45.478,
+      "mean_net_bps": 25.4071,
+      "min_n": 30,
+      "n": 24,
+      "note": "Crosses of today's open, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 86.8142,
+      "passes_screen": false,
+      "total_pnl_usd": 6.0977
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "2be9b24abf4bf5b381d350c142b17753848c28743dcca42c540e74ffdcfb4f1a"
+  },
+  "passed": [],
+  "protocol_sha256": "9045eeb5f5d02df99d49f02dd536084628f9180e7a0a3cc7b68a514476c1c55f"
+}

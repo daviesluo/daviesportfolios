@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp71_common": "3dbe95a89594dd002ea3034bbd9c7a8f83b08989026a75d4fd23d91d2246e90c",
+    "fp71_measure": "3ca8fd2a951b69ceb1c75df0e9f23c6554cfa6ae7b77fbb9c422025d29e07cea"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-IN",
+      "mean_gross_bps": 0.4021,
+      "mean_net_bps": -19.5787,
+      "min_n": 30,
+      "n": 38,
+      "note": "Open inside today's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 65.8998,
+      "passes_screen": false,
+      "total_pnl_usd": -7.4399
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "3dd2d73ad7770f9d2c4cc767ff5daf640f6b81041f6baca69dbe25aff4f98f0d"
+  },
+  "passed": [],
+  "protocol_sha256": "ef1418f52f4b5c60bebad445082b385800fe04e1680ca1b973896866f0fdb612"
+}

@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp77_common": "f461679f7dc668070f032e6fdfb2e6e8a914ed6d62f4a2e6226c11f3d8472c4c",
+    "fp77_measure": "181750d0ac32c366f31434111639df302bd3a626d46d65e3315d0075db0d1e4e"
+  },
+  "ideas": [
+    {
+      "idea": "VWAP-OPEN",
+      "mean_gross_bps": 5.6323,
+      "mean_net_bps": -14.359,
+      "min_n": 30,
+      "n": 44,
+      "note": "VWAP over the open, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 63.9818,
+      "passes_screen": false,
+      "total_pnl_usd": -6.3179
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "b7bc6c1d39a164e60221c3740f99a30199055448d5b1abc2cfa471b844f382a4"
+  },
+  "passed": [],
+  "protocol_sha256": "33fc0d3db9e83bb17078b1dd57dfad47871dfda274d21554c426ce20f7ed0e46"
+}
