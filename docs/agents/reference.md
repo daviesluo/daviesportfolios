@@ -6463,6 +6463,27 @@ is not added. A count taken before the freeze, with no profit computed, was
 169 against 169. The scored book is 169. The rule was not changed. This is
 not a testing row.
 
+### 3.313 A same-day short is not a long's control. Only the louder regime is pre-registered (2026-09-25)
+
+Davies, 2026-09-25: LASTUP is void. Its other trade was the eleven-day short on the same
+entries, and that short lost. A losing short is not the control for a long.
+The rule was not rewritten. UNDER cleared its other trade by 4.2411 bps
+(206 trades, mean +447.4904 bps, cutoff +443.2493 bps) and STALE by 0.6983
+bps (89 trades, mean +88.9967 bps, cutoff +88.2984 bps). Those gaps are the
+same class as PICK. Neither is taken out of sample, and neither is a testing
+row. FASTER, BACK, INUP and LEDSP have negative means and are not taken out
+of sample. LOUDER is the only rule pre-registered from this round. The
+pre-registration (`reviews/2026-09-25-fp268-prereg-louder.md`) is frozen
+before any daily open from 2024-01-01 is read as an entry. The USDT book
+was read at 2026-09-25T13:39:52.405491Z (bid 84066.00, ask 84066.10,
+half-spread 5.947704216257381e-07). The other trade stays the quieter
+twenty-one-day USDT long. The cutoff stays the sample p95, not the quieter
+mean. The buy and the sell stay the twenty-one-day USDT open. A later-year
+fail, or a mean that clears that p95 by 10 bps or less, voids the rule. A
+pass would still not be a testing row. The fill is a Binance daily open.
+The next eight are not frozen. No later-year return of LOUDER has been
+computed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
