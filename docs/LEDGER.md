@@ -8,12 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp24 failed the 2023 screen and is discarded** (§3.53). 86 trades. The
-mean is negative and lost to the null. Do not score a cheap-fee day, and do
-not score the 80th. The count stays 30. UP-SHARE stays dead (§3.52). Do not
-reopen VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
+**fp25 protocol is written and not scored.** EXCH-BAL is the stock of BTC
+held on exchanges, above its own trailing 90th, long BTC the next day.
+FEE-HIGH stays dead (§3.53). Do not score a thin stock, and do not score the
+80th. The count stays 30. Do not reopen the net exchange flow, UP-SHARE,
+VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
 RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
-through fp23 stay closed, including LS-FADE. The next search is not written.
+through fp24 stay closed, including LS-FADE. The screen is the next step.
 No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -837,6 +838,17 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:32 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp25 protocol only. No return has been computed.** A different family from
+the twenty closed rounds: Coin Metrics `SplyExNtv`, coins held on exchanges,
+above its own trailing 90th, long BTC the next day. This is the stock, not
+the day's net flow. FEE-HIGH, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP,
+CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
+taker share, dispersion and skew stay closed. A thin stock is not a
+candidate. `pin_test.py` passed before this commit. The screen is the next
+step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:28 UTC] Platform: Cursor | Model: Grok 4.7
 

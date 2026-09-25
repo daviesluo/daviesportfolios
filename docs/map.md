@@ -715,6 +715,7 @@ before touching migration state.
 | `docs/agents/scripts/fp22/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How concentrated BTC's quote volume is across the day's hours, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp22/screen_2023.json`. |
 | `docs/agents/scripts/fp23/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The share of BTC's hours that closed up, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp23/screen_2023.json`. |
 | `docs/agents/scripts/fp24/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Total BTC transaction fees, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp24/screen_2023.json`. |
+| `docs/agents/scripts/fp25/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC held on exchanges, long BTC the next day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
