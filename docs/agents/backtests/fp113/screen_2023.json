@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp113_common": "8aac623cfbef08485dfeb7cfbcc89e1a3a2e36191c95f537bbd6e5e54f96409f",
+    "fp113_measure": "eb777b023e6f677b8c974b7ab79ca66ebbff56b9691695319c9f7040537e8fd3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OITURN",
+      "mean_gross_bps": 14.1268,
+      "mean_net_bps": -5.8815,
+      "min_n": 30,
+      "n": 61,
+      "note": "Coin open interest over spot base volume, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 53.0762,
+      "passes_screen": false,
+      "total_pnl_usd": -3.5877
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "d2c82f38a73f8201c7811c316d6d34e1a27eb5932e76a03b7e6ea48a2dc43f25",
+    "oi_coin": "d8ac73ebf07774ba89c0ff0c64b61c3ecb0f845bc0d939a9cdaa8dc5ce2ba32e"
+  },
+  "passed": [],
+  "protocol_sha256": "5435088ba00f2817f272fe5c862ab8739fd4e20823a37038309c94ec8cf86d31"
+}

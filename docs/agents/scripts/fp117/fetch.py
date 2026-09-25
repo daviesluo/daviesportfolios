@@ -211,7 +211,10 @@ def pull_vision(market: str, symbol: str, index: int, rel: str, unit_check: bool
                 raise SystemExit(f"two perpetual bars share {open_ms}")
             out[open_ms] = value
     stop = c.fp5.SCREEN_END_MS - c.fp5.DAY_MS
-    assert_span(out, stop, symbol + " 1d")
+    if not out or min(out) != LOOKBACK_MS or max(out) != stop:
+        raise SystemExit(symbol + " perpetual does not span the window")
+    if any(t > stop for t in out):
+        raise SystemExit(symbol + " perpetual goes past 2023")
     save(rel, out)
     return out
 

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp112_common": "3894843f9b90f188187121e5c1b1b433c0bcd219541de819a6c707dfe2b905b6",
+    "fp112_measure": "d08b2bb9a55b34127dcbfa945ce2b713292376e03734192a2489952e1c0ed1fc",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TOPPOS",
+      "mean_gross_bps": 17.8447,
+      "mean_net_bps": -2.171,
+      "min_n": 30,
+      "n": 50,
+      "note": "Last top-trader position long/short, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 63.0355,
+      "passes_screen": false,
+      "total_pnl_usd": -1.0855
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "top_pos": "29f0f3c7efec4616023e25ae49c9fdae95ba920652b3c53e2ac833347b37ef33"
+  },
+  "passed": [],
+  "protocol_sha256": "bb57590dc125daf91cd3e2820259634ef84883cb104744bda5529b66ba7d2955"
+}

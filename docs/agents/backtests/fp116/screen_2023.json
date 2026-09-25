@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp116_common": "51331ca5a28c4a740b63bac3d4bd7bb5d8b141cf89092393403f6e829446153e",
+    "fp116_measure": "c727f64e682ae57c5abf4942b7d6f862923b8c3621f62e7fd996b948a2a02e62",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TRDMIX",
+      "mean_gross_bps": -4.0465,
+      "mean_net_bps": -24.0184,
+      "min_n": 30,
+      "n": 61,
+      "note": "Spot trade count over the USDT perpetual's trade count, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 53.0762,
+      "passes_screen": false,
+      "total_pnl_usd": -14.6512
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "b4704cd535b8721b61b55fe275f01e858b659c3c28cf50aff29300da4eb5630e",
+    "um_count": "1f08cfc53f2ce865a926b5cb91dace65169ca2c4ddef021eb27775958943932a"
+  },
+  "passed": [],
+  "protocol_sha256": "2aeef0ad070c9b9d0fb40b17f6a580ae54bad0c599e20b7b11dbfd901e29b515"
+}

@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp114_common": "32dd8c9cee5392ca83219cb487b449289ee0e78c4fb39b86b7b4917b915f83c6",
+    "fp114_measure": "e8e7c253d4e3b9f7a38108743454c8830ad78d09d21d4744ba9bd533cac8187f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "POSGAP",
+      "mean_gross_bps": 57.6712,
+      "mean_net_bps": 37.5759,
+      "min_n": 30,
+      "n": 51,
+      "note": "Top-trader position ratio over the account ratio, minus one, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 58.6614,
+      "passes_screen": false,
+      "total_pnl_usd": 19.1637
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "pos_gap": "0b5f1b4b3fc109ab0033390e655c0d0460b88ff9b85d516d4589ce5f7e79811d"
+  },
+  "passed": [],
+  "protocol_sha256": "630ca852cedfe6d5abc11f60556fd57b2af495a473f97bc6e69c48b19113d62d"
+}

@@ -187,6 +187,7 @@ def pull_metrics() -> dict[int, tuple]:
                 if value is None:
                     values = []
                     break
+                values.append(value)
             if not values:
                 continue
             out[file_ms] = tuple(values)

@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp111–fp118 protocols only. No return of these rules has been computed.** Eight different signals, each held one day: OIUSD, TOPPOS, OITURN, POSGAP, SPOTP, TRDMIX, UMCM, TOPSTD. Pins passed on synthetic bars. FRNG-2 through FRNG-14 are not rerun. No funding print is read. No hourly price bar is read. No alt quote is read. No bookDepth file is read. The count stays 30. The window stays 90 days and 90 prints. No 2023 number of these rules was computed. No testing row. No pull request. Main was not pushed.
+**fp111–fp118 are scored. Nothing passes the house bar.** Eight different signals, each held one day. All eight have fills. OIUSD, TOPPOS, OITURN, SPOTP, TRDMIX and TOPSTD have a negative mean. POSGAP and UMCM are positive and under their own null. TOPSTD has 11 fills; the count stays 30. No later year was read. FRNG-2 through FRNG-14 were not rerun. No funding print was read. No hourly price bar was read. No alt quote was read. No bookDepth file was read. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 06:19 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp111–fp118 are scored. Nothing passes the house bar.** Protocol was `e291a05`. Each screen file was written twice and the copies matched. These are eight different signals, each long BTC for one day, not eight holds of one signal. OIUSD 88 / file gross +12.5407 / file mean −7.4644 / null +44.0911 / −$6.5687 (`a5581812…`). TOPPOS 50 / file gross +17.8447 / file mean −2.171 / null +63.0355 / −$1.0855 (`b026c1dc…`). OITURN 61 / file gross +14.1268 / file mean −5.8815 / null +53.0762 / −$3.5877 (`0f46e792…`). POSGAP 51 / file gross +57.6712 / file mean +37.5759 / null +58.6614 / +$19.1637 (`d264ee20…`). SPOTP 43 / file gross −22.3025 / file mean −42.238 / null +66.2261 / −$18.1623 (`93234130…`). TRDMIX 61 / file gross −4.0465 / file mean −24.0184 / null +53.0762 / −$14.6512 (`1487fb73…`). UMCM 36 / file gross +54.5138 / file mean +34.4249 / null +72.6224 / +$12.3929 (`f71d8764…`). TOPSTD 11 / file gross −40.9192 / file mean −60.8175 / null +125.233 / −$6.6899 (`ceb87e55…`). Every fill matched fp5's `net_return`. The null is BTC's own one-day holds. OITURN and TRDMIX share a null because both have 61 trades. TRDMIX had 62 signal days; the 2023-12-31 print would enter on 2024-01-01, outside the screen. TOPSTD is under 30 trades and the count stays 30. The coin-margined file has no bar on 2023-08-28 through 2023-08-31; those days were not filled in. The first pull of a last-row metric stored nothing, because the parsed number was never appended; that was fixed before any of these files were written, and the empty pull was not scored. Reference §3.140–§3.147. No sign was flipped. No count was lowered. The window was not shrunk. No funding print was read. No hourly price bar was read. No alt quote was read. No bookDepth file was read. FRNG-2 through FRNG-14 stay closed. SOL-Q through LTC-Q and AVAX-Q stay closed. AFTER-HIGH stays closed. IMPACT, PEAK, BAL-CHG, BODY, and fp30–fp110 stay closed. No later year was read. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 06:00 UTC] Platform: Cursor | Model: Grok 4.7
 

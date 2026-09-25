@@ -4159,6 +4159,100 @@ here is fit to add.** The count cleared and the mean was positive; it lost
 to the null. A narrower funding day, the funding level, and the 80th, are
 not candidates.
 
+### 3.140 Dollar open interest: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp111-protocol.md`) was committed before any
+return (`e291a05`). Two runs matched (`backtests/fp111/screen_2023.json`).
+Last dollar open interest, long BTC for one day: 88 trades, mean −7.5 bps,
+null p95 +44.1 bps, −$6.57. The file's gross is +12.5407 bps, the mean is
+−7.4644 bps, the null is +44.0911 bps, and the total is −$6.5687. The null
+is BTC's own one-day holds. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The change in open interest, and the
+80th, are not candidates.
+
+### 3.141 The top-trader position ratio: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp112-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp112/screen_2023.json`). The last
+position-weighted top-trader long/short, long BTC for one day: 50 trades,
+mean −2.171 bps, null p95 +63.0 bps, −$1.09. The file's gross is +17.8447
+bps, the null is +63.0355 bps, and the total is −$1.0855. The null is BTC's
+own one-day holds. The position-ratio column is blank through 2022-12-13.
+**Nothing here is fit to add.** The count cleared and the mean was negative.
+Account-count ratios, and the 80th, are not candidates.
+
+### 3.142 Coin open interest over base volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp113-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp113/screen_2023.json`). Coin open
+interest over spot base volume, long BTC for one day: 61 trades, mean −5.9
+bps, null p95 +53.0762 bps, −$3.59. The file's gross is +14.1268 bps, the
+mean is −5.8815 bps, and the total is −$3.5877. The null is BTC's own
+one-day holds, the same figure as §3.145 because that screen also has 61
+trades. **Nothing here is fit to add.** The count cleared and the mean was
+negative. Dollar open interest over quote volume, and the 80th, are not
+candidates.
+
+### 3.143 Position ratio over account ratio: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp114-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp114/screen_2023.json`). The
+top-trader position ratio over the top-trader account ratio, minus one,
+long BTC for one day: 51 trades, mean +37.6 bps, null p95 +58.7 bps,
++$19.16. The file's gross is +57.6712 bps, the mean is +37.5759 bps, the
+null is +58.6614 bps, and the total is +$19.1637. The null is BTC's own
+one-day holds. **Nothing here is fit to add.** The count cleared and the
+mean was positive; it lost to the null. The reciprocal, retail, and the
+80th, are not candidates.
+
+### 3.144 Spot quote over perpetual quote: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp115-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp115/screen_2023.json`). Spot quote
+volume over the USDT perpetual's quote volume, long BTC for one day: 43
+trades, mean −42.238 bps, null p95 +66.2 bps, −$18.16. The file's gross is
+−22.3025 bps, the null is +66.2261 bps, and the total is −$18.1623. The
+null is BTC's own one-day holds. **Nothing here is fit to add.** The count
+cleared and the mean was negative. An alt quote, the reciprocal, and the
+80th, are not candidates.
+
+### 3.145 Spot trade count over perpetual trade count: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp116-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp116/screen_2023.json`). The spot
+trade count over the USDT perpetual's trade count, long BTC for one day:
+61 trades, mean −24.0 bps, null p95 +53.0762 bps, −$14.65. The file's gross
+is −4.0465 bps, the mean is −24.0184 bps, and the total is −$14.6512. The
+null is BTC's own one-day holds. 62 days cleared the 90th. The 2023-12-31
+print would enter on 2024-01-01, outside the screen. **Nothing here is fit
+to add.** The count cleared and the mean was negative. The trade-count
+level, quote volume, and the 80th, are not candidates.
+
+### 3.146 USDT-margined volume over coin-margined volume: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp117-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp117/screen_2023.json`). USDT-margined
+BTC volume over coin-margined BTC volume, long BTC for one day: 36 trades,
+mean +34.4 bps, null p95 +72.6 bps, +$12.39. The file's gross is +54.5138
+bps, the mean is +34.4249 bps, the null is +72.6224 bps, and the total is
++$12.3929. The null is BTC's own one-day holds. The public coin-margined
+file has no bar on the last four days of August 2023. Those days are not
+prints. **Nothing here is fit to add.** The count cleared and the mean was
+positive; it lost to the null. The reciprocal, the contract count, and the
+80th, are not candidates.
+
+### 3.147 Dispersion of the position ratio: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp118-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp118/screen_2023.json`). The day's
+population dispersion of the top-trader position ratio, long BTC for one
+day: 11 trades, mean −60.8 bps, null p95 +125.233 bps, −$6.69. The file's
+gross is −40.9192 bps, the mean is −60.8175 bps, and the total is −$6.6899.
+The null is BTC's own one-day holds. **Nothing here is fit to add.** Eleven
+trades are under 30, and the mean was negative. The count stays 30. The
+window is not widened. The level of the same column, and the 80th, are not
+candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
