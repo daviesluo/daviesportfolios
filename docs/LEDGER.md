@@ -8,13 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp20 protocol is frozen. No return has been computed.** GAP-UP is the
-overnight gap, this open over the previous close, long BTC at the next
-open. Do not score a gap down. CLOSE-LOC stays dead (§3.48): do not score
-a close on the low or the 80th. Do not reopen PAIR-CORR, AVG-SIZE, AC-HOUR,
-RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
-through fp19 stay closed, including LS-FADE. The screen is the next step.
-No testing row. No pull request. No push to main.
+**fp20 failed the 2023 screen and is discarded** (§3.49). The count cleared
+and the mean was positive; it lost to the null. Do not score a gap down,
+and do not score the 80th. CLOSE-LOC stays dead (§3.48). Do not reopen
+PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
+share, dispersion, or skew. fp5 through fp19 stay closed, including
+LS-FADE. The next search is not written. No testing row. No pull request.
+No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +837,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:11 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp20 screen: nothing passes.** Protocol was `57e7f00`. Two scores matched
+(`5e770199…`). GAP-UP 32 trades, +13.55 bps against a null of +72.26,
++$4.34. Gross before costs was +33.60 bps. Fifteen of the signal days
+closed at or below the previous close. The daily grid has no hole.
+Reference §3.49. The count cleared and the mean was positive; it lost to
+the null. A gap down and the 80th are not candidates. No testing row. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 02:10 UTC] Platform: Cursor | Model: Grok 4.7
 

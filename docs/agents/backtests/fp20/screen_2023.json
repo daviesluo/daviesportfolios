@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp20_common": "913408504759e240cb0e3ea9f2b88fa252c6c32fb13e839dec3d29a0912fb000",
+    "fp20_measure": "7cb6501c40eaa3818842d73ffd8bf6daa0f84af82f9be30de9a4b3d457a39639",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "GAP-UP",
+      "mean_gross_bps": 33.5994,
+      "mean_net_bps": 13.5523,
+      "min_n": 30,
+      "n": 32,
+      "note": "Overnight gap above its own trailing 90th. The next open, long BTC.",
+      "null_p95_bps": 72.2613,
+      "passes_screen": false,
+      "total_pnl_usd": 4.3367
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "de5fceaceecfa4ac32f971b53e8b5adb4d374ad8538ab93ae9e9aabc0c984574"
+}
