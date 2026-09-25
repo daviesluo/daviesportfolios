@@ -218,9 +218,13 @@ def pull_metrics() -> dict[int, tuple]:
         if blank or len(values) < 2:
             continue
         out[file_ms] = tuple(values)
+    stop = c.fp5.SCREEN_END_MS - c.fp5.DAY_MS
+    if not out or min(out) != LOOKBACK_MS or max(out) != stop:
+        raise SystemExit("signal does not span the window")
+    if len(out) < 440:
+        raise SystemExit("signal days are too few")
     if any(t >= c.fp5.SCREEN_END_MS for t in out):
         raise SystemExit("a metrics day is in 2024")
-    assert_span(out, c.fp5.SCREEN_END_MS - c.fp5.DAY_MS, "signal")
     save(METRICS_REL, out)
     return out
 

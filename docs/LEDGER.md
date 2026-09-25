@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp136–fp143 are protocols only. No return has been computed.** Eight market statistics, each long BTC for one day. Pins printed fp136 through fp143 pins ok. No later year has been read. No testing row. No pull request. Main was not pushed.
+**fp136–fp143 are protocols only. No return has been computed.** Eight market statistics, each long BTC for one day. The OIRNG pull no longer requires a print on every day: a day with a non-positive sample is not a print and is not filled in. No later year has been read. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:32 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp136's pull was stricter than its protocol. No return has been computed.** The first pull refused to write a file because seven UTC days contain a non-positive dollar-open-interest sample: 2023-04-10, 2023-06-06, 2023-08-09, 2023-11-11, 2023-11-20, 2023-11-23 and 2023-11-26. The protocol already says a non-positive sample drops the day and a missing day is not filled in. The pull now keeps those days out and still requires the series to start on 2022-10-01, stop on 2023-12-31, and have at least 440 days. No screen file was written. No sign was flipped. The count stays 30. The window was not shrunk. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:25 UTC] Platform: Cursor | Model: Grok 4.7
 
