@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp9 protocol is written and not scored.** Two rules, not the closed
-families: the gap between Deribit DVOL and 30-day realized vol, and 8h
-cross-sectional dispersion. No return has been computed. fp5 through fp8 stay
-closed. No testing row. No pull request. No push to main.
+**fp9 failed the 2023 screen and is discarded** (§3.38). Do not score the
+low tail of the variance gap or of dispersion. fp5 through fp8 stay closed.
+The next search is not written. No testing row. No pull request. No push to
+main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,7 +835,16 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-### [2026-09-25 01:09 UTC] Platform: Cursor | Model: Grok 4.7
+### [2026-09-25 01:11 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp9 screen: nothing passes.** Protocol was `55d6f20`, before any return.
+The section below was stamped 01:09 and the commit landed at 01:10; that
+stamp is corrected. Two scores matched (`bdd27048…`). VRP 32 trades, −29.44
+bps against a null of +72.26, −$9.42. DISPERSION 138 trades, −8.13 bps
+against +4.88, −$11.21. Reference §3.38. The low tails are not candidates.
+No testing row. No pull request. Main was not pushed.
+
+### [2026-09-25 01:10 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp9 protocol only. No return has been computed.** A different family from
 the four closed rounds: DVOL minus 30-day realized vol, and the dispersion of

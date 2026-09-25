@@ -2787,6 +2787,16 @@ null +117.1 bps. The dated quarterly future more than a round trip under spot:
 no day, on 360 days where both closes existed. **Nothing here is fit to add.**
 The cuts are not reused, and the rich side of the basis is not a candidate.
 
+### 3.38 Variance gap and cross-sectional dispersion: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp9-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp9/screen_2023.json`). Deribit DVOL
+minus 30-day realized vol, above its own trailing 90th: 32 trades, mean
+−29.4 bps, null p95 +72.3 bps. The dispersion of 8h basket returns, above
+its own trailing 90th, long BTC for the next 8h: 138 trades, mean −8.1 bps,
+null +4.9 bps. **Nothing here is fit to add.** The lower tails are not
+candidates, and DVOL's level stays closed with them.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
