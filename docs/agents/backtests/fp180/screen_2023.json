@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp180_common": "b8fee71935309f336cbd15f809e845f57e8b81e42e91ac806d7710f63f5bbf10",
+    "fp180_measure": "123f8d7d8d20623cca38c87e27129d729fd80d0536ae3484b8ca93f8fef0cceb",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "REVCLOSE",
+      "mean_gross_bps": -4.0052,
+      "mean_net_bps": -23.9772,
+      "min_n": 30,
+      "n": 58,
+      "note": "Yesterday closed under its open, and today closed above that open. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 53.3321,
+      "passes_screen": false,
+      "total_pnl_usd": -13.9068
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "a7ccbd213fe84c10ac3746192ee09fb0f75589dfa36fc7ed4f75d76ea2cb1821"
+}

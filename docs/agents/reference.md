@@ -4939,6 +4939,107 @@ one month is more than 40% of the profit. **The rule fails.** It was not
 rewritten. It is not a testing row. The next search does not inherit the
 three-close filter or the three-day hold.
 
+### 3.206 A bullish engulfing body, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp177-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp177/screen_2023.json`,
+sha256 `9fc15965…`). Yesterday closed under its open. Today opened at or
+under that close, closed above its own open, and closed at or above
+yesterday's open. The next session is a long from open to close: 42 trades,
+mean −42.658 bps, null p95 +67.4534 bps, −$17.9164. The file's gross is
+−22.7234 bps. **Nothing here is fit to add.** The count cleared and the mean
+was negative. The null is every session. The two bodies are known at that
+close. The buy is the next open. The entry day's high, low and close are not
+the signal.
+
+### 3.207 An upper wick longer than the body, then a one-day short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp178-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp178/screen_2023.json`,
+sha256 `a1f68a50…`). An up day whose upper wick is strictly longer than the
+body, then a one-day short, funding cash not added: 79 trades, mean −35.1904
+bps, null p95 −5.2888 bps, −$27.8004. The file's gross is −15.2408 bps.
+**Nothing here is fit to add.** The count cleared and the mean was negative
+and under the null. The null is every one-day short. The wick and the body
+are known at that close. The short is the next open. This is not a long.
+
+### 3.208 A close between yesterday's close and high, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp179-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp179/screen_2023.json`,
+sha256 `7db0733a…`). The close finished strictly above yesterday's close and
+strictly under yesterday's high, then the next session from open to close:
+99 trades, mean +8.0922 bps, null p95 +42.1521 bps, +$8.0113. The file's
+gross is +28.1285 bps. **Nothing here is fit to add.** The count cleared and
+the mean was positive and under the null. The null is every session. A close
+through yesterday's high is a different rule and stays closed. The comparison
+is known at that close. The buy is the next open. The entry day's high, low
+and close are not the signal.
+
+### 3.209 A close above the prior down day's open, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp180-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp180/screen_2023.json`,
+sha256 `cf9907d9…`). Yesterday closed under its open, and today closed
+strictly above that open. Today need not itself be an up day. The next
+session is a long from open to close: 58 trades, mean −23.9772 bps, null p95
++53.3321 bps, −$13.9068. The file's gross is −4.0052 bps. **Nothing here is
+fit to add.** The count cleared and the mean was negative. The null is every
+session. Both closes are known before the buy. The buy is the next open. The
+entry day's high, low and close are not the signal.
+
+### 3.210 A lower high and a lower low, then a one-day short: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp181-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp181/screen_2023.json`,
+sha256 `5b12ff9b…`). A high strictly under yesterday's high and a low
+strictly under yesterday's low, then a one-day short, funding cash not
+added: 97 trades, mean −47.9183 bps, null p95 −8.5121 bps, −$46.4808. The
+file's gross is −27.9943 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative and under the null. The null is every
+one-day short. Two higher highs stay closed. A higher low stays closed. The
+two prints are known at that close. The short is the next open. This is not
+a long.
+
+### 3.211 A lower low with a higher close, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp182-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp182/screen_2023.json`,
+sha256 `957d0e85…`). The low undercut yesterday's low and the close finished
+strictly above yesterday's close. The close need not be above the open. The
+next session is a long from open to close: 37 trades, mean −16.9294 bps,
+null p95 +74.5552 bps, −$6.2639. The file's gross is +3.0567 bps. **Nothing
+here is fit to add.** The count cleared and the mean was negative. The null
+is every session. A spring under the prior three lows stays closed and was
+not widened. The low and the close are known before the buy. The buy is the
+next open. The entry day's high, low and close are not the signal.
+
+### 3.212 A wider up-day body, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp183-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp183/screen_2023.json`,
+sha256 `18531cc7…`). An up day whose body is strictly wider than yesterday's
+body, then the next session from open to close: 103 trades, mean +7.5517
+bps, null p95 +40.5939 bps, +$7.7782. The file's gross is +27.5868 bps.
+**Nothing here is fit to add.** The count cleared and the mean was positive
+and under the null. The null is every session. A down day with a wider body
+does not fire. The two bodies are known at that close. The buy is the next
+open. The entry day's high, low and close are not the signal.
+
+### 3.213 A close above an older high and under yesterday's high, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp184-protocol.md`) was committed before any
+return (`85075b2`). Two runs matched (`backtests/fp184/screen_2023.json`,
+sha256 `dbf643b5…`). The close finished strictly above the high of two days
+ago and strictly under yesterday's high, then the next session from open to
+close: 44 trades, mean +2.9512 bps, null p95 +64.0108 bps, +$1.2985. The
+file's gross is +22.9771 bps. **Nothing here is fit to add.** The count
+cleared and the mean was positive and under the null. The null is every
+session. This is not a range comparison and the hold is not two days. A
+missing day is not a signal. The two highs and the close are known before
+the buy. The buy is the next open. The entry day's high, low and close are
+not the signal.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

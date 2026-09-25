@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp178_common": "5b08e6c153d6159878f59c87a8cf99b416bfb74e7713e4484ac731e6b1c5223b",
+    "fp178_measure": "6ee2f4293d5d4682684e2268a5764a584f3c06de00b4f0ca6d60c30a3e4f2dae",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UPWICK",
+      "mean_gross_bps": -15.2408,
+      "mean_net_bps": -35.1904,
+      "min_n": 30,
+      "n": 79,
+      "note": "An up day whose upper wick is strictly longer than the body. Next day, short BTC from the open to the next open. The funding cash is not added.",
+      "null_p95_bps": -5.2888,
+      "passes_screen": false,
+      "total_pnl_usd": -27.8004
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "404511254a9c3526416513116253e80b786d39a3a25ad93422376b22f5c2fca5"
+}

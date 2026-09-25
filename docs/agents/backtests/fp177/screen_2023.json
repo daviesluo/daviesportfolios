@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp177_common": "d5c6331634556990b27c45e15588481362871bbd298ae41d7683140a8f3c9ce4",
+    "fp177_measure": "fc86b7275118e5947335cc8d17724f9617026340ba48b768ba6cff95daeedc3a",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ENGULF",
+      "mean_gross_bps": -22.7234,
+      "mean_net_bps": -42.658,
+      "min_n": 30,
+      "n": 42,
+      "note": "A bullish engulfing body. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 67.4534,
+      "passes_screen": false,
+      "total_pnl_usd": -17.9164
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "15541c78d67de33eddf273fc0f7db3478720da701dc58c1a9c8667d4a51d742c"
+}

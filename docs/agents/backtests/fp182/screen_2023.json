@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp182_common": "50293f44be693677ca7b46001ec95ac61950a935826fb057641970ecea398ceb",
+    "fp182_measure": "abfaea0fce2e8ee636e16233d5f11c9f2ce64e8cf708543ac956b1203426e7cf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DIP",
+      "mean_gross_bps": 3.0567,
+      "mean_net_bps": -16.9294,
+      "min_n": 30,
+      "n": 37,
+      "note": "The low undercut yesterday's low and the close finished above yesterday's close. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 74.5552,
+      "passes_screen": false,
+      "total_pnl_usd": -6.2639
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "10428aff2ba5369f49f3b8ab4d8ea869ccbeb80c2ec4c506427099a0cc37042f"
+}

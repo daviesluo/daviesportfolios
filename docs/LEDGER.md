@@ -12,7 +12,7 @@ and is opened only when a closed item is reopened or audited.
 
 **LAG6 and C3 fail the pre-registered later years. Neither is a testing row.** The buys and the sells were not moved. LAG6 entries 2024-01-01 through 2026-09-23: 462 trades, −$13.8381. C3 entries 2024-01-01 through 2026-09-22: 327 trades, +$41.3727, and the other bars fail. No pull request. Main was not pushed.
 
-**fp177–fp184 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. ENGULF, UPWICK, LIFT, REVCLOSE, LHLL, DIP, BODYGT and DELAY. The count stays 30. BRKHI stays void.
+**fp177–fp184 fail the 2023 screen. None is a testing row.** The protocol was `85075b2`, pushed before any of these returns. Two runs of each screen matched. ENGULF 42 trades, −$17.9164. UPWICK 79 trades, −$27.8004. LIFT 99 trades, +$8.0113, under its null. REVCLOSE 58 trades, −$13.9068. LHLL 97 trades, −$46.4808. DIP 37 trades, −$6.2639. BODYGT 103 trades, +$7.7782, under its null. DELAY 44 trades, +$1.2985, under its null. The count stays 30. No rule was rewritten. BRKHI stays void. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -836,6 +836,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:22 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp177–fp184 fail the 2023 screen. None is a testing row.** The protocol was `85075b2`, pushed before any of these returns. Each screen file was written twice and the copies matched. `FP177_OOS` aborts the scorer. ENGULF 42 / file gross −22.7234 / file mean −42.658 / null +67.4534 / −$17.9164 (`9fc15965…`). UPWICK 79 / file gross −15.2408 / file mean −35.1904 / null −5.2888 / −$27.8004 (`a1f68a50…`). LIFT 99 / file gross +28.1285 / file mean +8.0922 / null +42.1521 / +$8.0113 (`7db0733a…`). REVCLOSE 58 / file gross −4.0052 / file mean −23.9772 / null +53.3321 / −$13.9068 (`cf9907d9…`). LHLL 97 / file gross −27.9943 / file mean −47.9183 / null −8.5121 / −$46.4808 (`5b12ff9b…`). DIP 37 / file gross +3.0567 / file mean −16.9294 / null +74.5552 / −$6.2639 (`957d0e85…`). BODYGT 103 / file gross +27.5868 / file mean +7.5517 / null +40.5939 / +$7.7782 (`18531cc7…`). DELAY 44 / file gross +22.9771 / file mean +2.9512 / null +64.0108 / +$1.2985 (`dbf643b5…`). Every rule has fills. Every fill was recomputed from the stored prices and matched. ENGULF, UPWICK, REVCLOSE, LHLL and DIP have a negative mean. LIFT, BODYGT and DELAY have a positive mean under their own null. The entry of each rule uses a print that has already closed. The buy or the short is the next open. The entry day's high, low and close are not read to decide the entry. Reference §3.206–§3.213. No percentile was used. No sign of a killed rule was flipped. No count was lowered. DIP stays at 37 trades. The six-day range, the two-day hold, the three-close filter and the three-day hold stay closed. LAG6 and C3 stay failed and were not rewritten. BRKHI stays void and was not rewritten. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No liquidation file was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:19 UTC] Platform: Cursor | Model: Grok 4.7
 

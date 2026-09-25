@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp184_common": "fe3eb4b1b3fe3e32f9ce8fd2f9adf8a171fc44f7ff811cc5fc1ea87297d02ef4",
+    "fp184_measure": "b0bc47a7a096de43ef2ea5348bc96098c14f6421a07b10b122c34fec5e7a224f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "DELAY",
+      "mean_gross_bps": 22.9771,
+      "mean_net_bps": 2.9512,
+      "min_n": 30,
+      "n": 44,
+      "note": "The close finished above the high of two days ago and under yesterday's high. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 64.0108,
+      "passes_screen": false,
+      "total_pnl_usd": 1.2985
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "dc02506fbe3f7ec3c667cc3f186a9622df8b0d4051f69ef487e9a27f2de6d13d"
+  },
+  "passed": [],
+  "protocol_sha256": "3e583e70bc10f9743456951c138ae4b243ee272bd97312ccfc7b65c0eca1efaa"
+}
