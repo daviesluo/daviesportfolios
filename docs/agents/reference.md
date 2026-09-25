@@ -5677,7 +5677,7 @@ sha256 `cd228903…`). The finished twelve-day coin-margined return was negative
 and below the spot return, then buy that perpetual for twelve days: 96 trades,
 mean +491.2307 bps, null p95 +480.976 bps, +$471.5815. The file's gross is
 +512.2342 bps. The count cleared, the mean is positive, and the mean is above
-the null. **The 2023 screen passes. The later years are not scored. This is
+the null. **The 2023 screen passes. The later years are §3.263. This is
 not a testing row.** One coin-margined leg. Spot is a signal, not a second
 leg. Funding cash is not added. The null is that twelve-day long on every
 day. A count taken before the freeze, with no profit computed, was 96. The
@@ -5691,7 +5691,7 @@ sha256 `e8bfe70c…`). Buy the most recently listed quarterly during its first
 fourteen days and sell eleven days later, before expiry: 40 trades, mean
 +761.2554 bps, null p95 +599.9328 bps, +$304.5022. The file's gross is
 +782.7995 bps. The count cleared, the mean is positive, and the mean is above
-the null. **The 2023 screen passes. The later years are not scored. This is
+the null. **The 2023 screen passes. The later years are §3.264. This is
 not a testing row.** One leg. The March 2023 contract is not in this rule.
 The sale is not the expiry open. Funding cash is not added. The null is that
 eleven-day long on every later day of that contract. A count taken before the
@@ -5710,6 +5710,51 @@ was negative, so it does not pass. The mean is above that null. One short
 leg. Funding cash is not added. The null is that nine-day short on every
 day. A count taken before the freeze, with no profit computed, was 206. The
 scored book is 206. The rule was not changed.
+
+### 3.263 Coin-margined lagged spot, held twelve days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp230-prereg-cmf.md`, sha256
+`a62199e5…`, frozen 2026-09-25T11:45:09Z, BTCUSD_PERP bid 84668.7, ask
+84668.8, half-spread 5.905366502152256e-07) was frozen before any daily open
+from 2024-01-01 was read as an entry. The buy and the sell were not moved.
+Two out-of-sample runs matched (`backtests/fp230/cmf_oos.json`, sha256
+`46b5a6f7…`). 2023 reproduces: 96 trades, +$471.5815. Entries from 2024-01-01
+through 2026-09-13: 286 trades, −$179.3406, mean −$0.627065, null p95
++$1.5896 on 987 twelve-day longs with the lag filter off. 2024 is +$97.2224
+and 2025-01-01 through 2026-09-13 is −$276.563. Doubled costs are −$236.1253.
+August 2026 is +$92.9147; without it the total is −$272.2553. Annualised on
+the locked $100 over 998 days it is −0.655905. The last entry is 2026-09-13.
+The last stored coin-margined bar is the 2026-09-25 open, an exit. Spot
+closes used as the signal stop on 2026-09-12. No bar on 2026-09-26 was
+stored. The count clears 30. The total is negative, 2025–2026 is negative,
+the mean is under the null, doubled costs are negative, and the total
+without the best month is negative. **The rule fails.** It was not rewritten.
+It is not a testing row. The next search does not inherit the twelve-day lag
+or the twelve-day hold.
+
+### 3.264 A new quarterly held eleven days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp231-prereg-qnew.md`, sha256
+`1faa38ec…`, frozen 2026-09-25T11:45:09Z, BTCUSD_261225 bid 85644.4, ask
+85685.6, half-spread 0.0002404716045059922) was frozen before any daily open
+from 2024-01-01 was read as an entry. BTCUSD_260925 printed bid 0.0 and ask
+0.0 and that expiry print was not the spread. BTCUSD_261225 is not an entry.
+The later contracts are the last Fridays from BTCUSD_240329 through
+BTCUSD_260925. The buy and the sell were not moved. Two out-of-sample runs
+matched (`backtests/fp231/qnew_oos.json`, sha256 `e66a7118…`). 2023
+reproduces: 40 trades, +$304.5022. Entries from 2024-01-01 through
+2026-09-13: 151 trades, +$225.9361, mean +$1.496266, null p95 +$1.7213 on
+877 eleven-day longs with the age filter off. 2024 is −$63.7463 and
+2025-01-01 through 2026-09-13 is +$289.6824. Doubled costs are +$195.3148.
+July 2025 is +$92.5527, 40.96% of the total; without it the total is
++$133.3834. Annualised on the locked $100 over 998 days it is 0.826319.
+Each of the eleven later symbols stops the day before its expiry. No expiry
+bar was stored. None of the eleven was missing. The count clears 30, doubled
+costs are positive, and the annualised total clears 4%. 2024 is negative,
+the mean is under the null, and one month is more than 40% of the profit.
+**The rule fails.** It was not rewritten. It is not a testing row. The next
+search does not inherit the first-fourteen-days filter or the eleven-day
+hold.
 
 ### 4. Design consequences (decided by the evidence above)
 

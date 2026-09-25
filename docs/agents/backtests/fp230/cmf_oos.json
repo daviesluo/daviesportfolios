@@ -1,0 +1,80 @@
+{
+  "annualised": -0.655905,
+  "code_sha256": {
+    "fp230_cmf_test": "25e768e34eb8f1980f4c6591f5ef055d34f6d61f540f5683e79da8e412799c3b",
+    "fp230_common": "319583c44b26197f36e86faa4eef57b5a0862ea159a71dacfc18318a33830c01",
+    "fp230_oos_fetch": "7927373edfa28096c0a2fc96a10fb96ee80ff9032b4716946ea5e210e75a7b3f"
+  },
+  "conditions": {
+    "above_cash": false,
+    "at_least_30": true,
+    "beats_null": false,
+    "both_subwindows_positive": false,
+    "doubled_costs_positive": false,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": -236.1253,
+  "exit_open_ms": 1790294400000,
+  "half_spread": 5.905366502152256e-07,
+  "input_sha256": {
+    "oos_cm": "e34a877b404d4831e10b3b180a59d0ac71ab1a8307abf3807388925e2af2a0ca",
+    "oos_spot": "c3e3c604ccb166c97680b2434ab76671cddfcb3238da9cb0cfd91f240b459ad7",
+    "screen_cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "screen_spot": "82afceed15bca0fdd3b7f1fcce2ae1a98c05f449deb9c31c867699e5ca86f124"
+  },
+  "last_entry_ms": 1789257600000,
+  "oos1_pnl_usd": 97.2224,
+  "oos2_pnl_usd": -276.563,
+  "oos_days": 998,
+  "passes": false,
+  "pool_n": 987,
+  "prereg_sha256": "a62199e513677eea848330cc979e994e44c8c9866a4c8276b0102692959a6595",
+  "primary": {
+    "beats_null": false,
+    "best_month": "2026-08",
+    "best_month_pnl_usd": 92.9147,
+    "best_month_share": -0.5181,
+    "by_month": {
+      "2024-01": 24.8074,
+      "2024-03": 38.7865,
+      "2024-04": -55.4679,
+      "2024-05": 41.2586,
+      "2024-06": -112.0296,
+      "2024-07": 38.2774,
+      "2024-08": -23.2558,
+      "2024-09": 45.5617,
+      "2024-10": 79.4431,
+      "2024-12": 19.8411,
+      "2025-01": -6.1424,
+      "2025-02": -64.7778,
+      "2025-03": -36.5685,
+      "2025-04": 61.5035,
+      "2025-06": 15.5016,
+      "2025-07": -0.6466,
+      "2025-08": 7.6984,
+      "2025-09": 41.9316,
+      "2025-10": -11.9959,
+      "2025-11": -140.9989,
+      "2025-12": 30.0061,
+      "2026-01": -171.6196,
+      "2026-02": -35.3418,
+      "2026-03": 37.4044,
+      "2026-04": 43.2933,
+      "2026-05": -195.7434,
+      "2026-06": 11.8848,
+      "2026-07": 19.4867,
+      "2026-08": 92.9147,
+      "2026-09": 25.647
+    },
+    "mean_pnl_usd": -0.627065,
+    "n": 286,
+    "null_p95_pnl_usd": 1.5896,
+    "total_pnl_usd": -179.3406,
+    "without_best_month_usd": -272.2553
+  },
+  "screen_reproduction": {
+    "n": 96,
+    "total_pnl_usd": 471.5815
+  },
+  "spot_last_ms": 1789171200000
+}

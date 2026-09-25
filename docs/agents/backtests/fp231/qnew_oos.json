@@ -1,0 +1,77 @@
+{
+  "annualised": 0.826319,
+  "code_sha256": {
+    "fp231_common": "00ec231e5d68ce72c457923bf6f5329f50c27a221ae316a9c6d2f2de00b56044",
+    "fp231_oos_fetch": "820f2ceb23f5ab91ff4c6939ee7e1752f779e427f70acbe6490f8bd7c51034c3",
+    "fp231_qnew_test": "f980aae6957ce3bd518797bcf150ec81e67159d2b207ef6db6e4f4707b7e821d"
+  },
+  "conditions": {
+    "above_cash": true,
+    "at_least_30": true,
+    "beats_null": false,
+    "both_subwindows_positive": false,
+    "doubled_costs_positive": true,
+    "not_one_month": false
+  },
+  "doubled_pnl_usd": 195.3148,
+  "half_spread": 0.0002404716045059922,
+  "input_sha256": {
+    "BTCUSD_240329": "2566da224d3016f5d5851083a039dd2be5ed4b35dd181cb87cfc2ec21c150ba4",
+    "BTCUSD_240628": "1740ce2d6889fb9ec99594268bbeb0ba0e1db98a5ad69c9da638ea0bc691af94",
+    "BTCUSD_240927": "43b7eef2c3028d4b006ea42fc35cdeb1b8f60daf43e6dd41316737e5b86a5792",
+    "BTCUSD_241227": "f75e10654b034829eb04158b665c4f5ad9b45d3aa591a45b94815ea8dc92b6f7",
+    "BTCUSD_250328": "baad475423566ef784c32dd4b9ba2bf559f2fc79bf91e012184da073d167cad2",
+    "BTCUSD_250627": "e7cf35a8d7bd3791df981723211d58fddf5b0c5e70ba526908681682bcfe65db",
+    "BTCUSD_250926": "d89a6b062c30418c3ddedc45da4e34a3eab3a7e1856ba6df8c5aa89fa2a715f1",
+    "BTCUSD_251226": "c5285c0c598d054f1436e26540e17fccf22345d45d54ade5cbd733f3b73f41f9",
+    "BTCUSD_260327": "1c17837c3ce7f5419ae64f46d6fca7446c0ddb56b73655dbae290cab690646c1",
+    "BTCUSD_260626": "3911952d49132c0b3f349199d4976a5e890c8e120ea1f5491afb03ae12fcda39",
+    "BTCUSD_260925": "51027c936047b9c071507ba4a6abec1a10bf74e91bed5b949ccfe95c81fd3ab9"
+  },
+  "last_entry_ms": 1789257600000,
+  "oos1_pnl_usd": -63.7463,
+  "oos2_pnl_usd": 289.6824,
+  "oos_days": 998,
+  "passes": false,
+  "pool_n": 877,
+  "prereg_sha256": "1faa38ec3331e3feb890adabdcff6660f1638b88690f17a9a0b7877fd93a99e4",
+  "primary": {
+    "beats_null": false,
+    "best_month": "2025-07",
+    "best_month_pnl_usd": 92.5527,
+    "best_month_share": 0.4096,
+    "by_month": {
+      "2024-01": -69.2676,
+      "2024-03": -6.0159,
+      "2024-04": -97.36,
+      "2024-06": -20.0673,
+      "2024-07": 80.2992,
+      "2024-09": -27.7283,
+      "2024-10": 71.2382,
+      "2024-12": 5.1555,
+      "2025-01": 8.3207,
+      "2025-03": -22.8399,
+      "2025-04": 30.1677,
+      "2025-06": 12.3762,
+      "2025-07": 92.5527,
+      "2025-09": 43.8171,
+      "2025-10": -84.4427,
+      "2025-12": 26.5057,
+      "2026-01": 26.5166,
+      "2026-03": 31.7005,
+      "2026-04": 69.8685,
+      "2026-06": 28.584,
+      "2026-07": 26.5554
+    },
+    "mean_pnl_usd": 1.496266,
+    "n": 151,
+    "null_p95_pnl_usd": 1.7213,
+    "total_pnl_usd": 225.9361,
+    "without_best_month_usd": 133.3834
+  },
+  "screen_reproduction": {
+    "n": 40,
+    "total_pnl_usd": 304.5022
+  },
+  "skipped": []
+}
