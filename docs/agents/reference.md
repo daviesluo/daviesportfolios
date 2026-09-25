@@ -2831,6 +2831,15 @@ of −4.5 bps. Doubled costs are −$107.40. The 80th and the 95th both lose.
 returned no 2024 trade was invalid: it dropped every bar from 2024 on. The
 run above is the one that reproduces 2023.
 
+### 3.42 ETH-minus-BTC implied vol: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp13-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp13/screen_2023.json`). ETH DVOL minus
+BTC DVOL, above its own trailing 90th: 26 trades, mean −0.8 bps, null p95
++81.2 bps. **Nothing here is fit to add.** The count stays 30, and the lower
+tail is not a candidate.
+
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

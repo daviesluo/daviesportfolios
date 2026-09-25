@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp13 protocol is written and not scored.** One rule, not the closed
-families: ETH implied vol minus BTC implied vol, long BTC the next day. No
-return has been computed. fp5 through fp12 stay closed. No testing row. No
-pull request. No push to main.
+**fp13 failed the 2023 screen and is discarded** (§3.42). Do not lower the
+count, and do not score the low tail of the implied-vol spread. fp5 through
+fp12 stay closed. The next search is not written. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,7 +835,15 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-### [2026-09-25 01:27 UTC] Platform: Cursor | Model: Grok 4.7
+### [2026-09-25 01:30 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp13 screen: nothing passes.** Protocol was `eee9f0b`. Two scores matched
+(`47e4ea2a…`). IV-SPREAD 26 trades, −0.79 bps against a null of +81.22,
+−$0.21. ETH DVOL has 457 midnights, aligned with BTC. Reference §3.42. The
+count stays 30. The lower tail is not a candidate. No testing row. No pull
+request. Main was not pushed.
+
+### [2026-09-25 01:28 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp13 protocol only. No return has been computed.** A different family from
 the eight closed rounds: the gap between ETH and BTC implied vol, long spot

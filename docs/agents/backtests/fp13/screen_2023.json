@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp13_common": "1fcf805894b25c377c9d03b15376b4bb051393845765c628acaf2c9b1c43bd54",
+    "fp13_measure": "7e2c3a7ec42ce1af1be4e6bc11b9d65a16073502fdd9fd34a88eebc11e9c02fe",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "IV-SPREAD",
+      "mean_gross_bps": 19.2292,
+      "mean_net_bps": -0.7892,
+      "min_n": 30,
+      "n": 26,
+      "note": "ETH DVOL minus BTC DVOL, above its own trailing 90th. Next day, one day.",
+      "null_p95_bps": 81.2211,
+      "passes_screen": false,
+      "total_pnl_usd": -0.2052
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "btc_dvol": "bc06ffd7ef4ad36ac9ac3fb8b65fcb7eb468f84f6da218f1e892df460ff86236",
+    "eth_dvol": "8cf218c72ab182b8a3ee8d2be33644a0765548940fe9b2e40afde63cf366eea7"
+  },
+  "passed": [],
+  "protocol_sha256": "99f31ca387ee535e993d101e356320af76eb6a2a6b976c9f6fb9019048ff619a"
+}
