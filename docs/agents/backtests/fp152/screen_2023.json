@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp152_common": "08fa2b4cd50668282ed66f1ce3921c8f7539c43648af4271df8accdadacaf306",
+    "fp152_measure": "36fe4e4035fbddfeb177c4df8f163ecae1108122e0a9cc743fda25cc0cffc1ab",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BASJMP",
+      "mean_gross_bps": 36.1547,
+      "mean_net_bps": 16.1024,
+      "min_n": 30,
+      "n": 38,
+      "note": "The BTC premium-index close minus yesterday's close, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 65.8998,
+      "passes_screen": false,
+      "total_pnl_usd": 6.1189
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "premium_close": "8132e0d2d5aba0b868c5f8fa1b3ef62bcef30da06ca50630d8d35ad2afa76062"
+  },
+  "passed": [],
+  "protocol_sha256": "f2b2e923eab8c975c709ea2ac99cf50dd84949238cec38c8ffdb87fd85ba6528"
+}

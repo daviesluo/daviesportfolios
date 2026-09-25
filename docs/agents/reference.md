@@ -4525,6 +4525,89 @@ Forty-two trades clear 30, and the mean was negative and under the null.
 The 08:00 rate was not an input. The coin-margined book was not read. The
 funding level, the funding range, and the day-to-day jump were not scored.
 
+### 3.174 The taker-ratio jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp145-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp145/screen_2023.json`, sha256
+`f17e6ba8…`). The last taker long/short volume ratio minus yesterday's last,
+long BTC for one day: 44 trades, mean −38.6866 bps, null p95 +63.9818 bps,
+−$17.0221. The file's gross is −18.744 bps. **Nothing here is fit to add.**
+Forty-four trades clear 30, and the mean was negative and under the null.
+The range was not stored. The level was not scored.
+
+### 3.175 Intraday dollar open interest: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp146-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp146/screen_2023.json`, sha256
+`1b92241d…`). The last dollar open interest over the first, minus one, long
+BTC for one day: 41 trades, mean +56.2879 bps, null p95 +70.1636 bps,
++$23.0781. The file's gross is +76.4207 bps. **Nothing here is fit to add.**
+Forty-one trades clear 30, and the mean was positive and under the null. A
+non-positive sample between the two ends did not drop the day. The
+day-over-day change and the intraday range were not scored.
+
+### 3.176 Funding curvature: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp147-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp147/screen_2023.json`, sha256
+`69f40537…`). The 08:00 funding rate minus the average of the 00:00 and 16:00
+rates, long BTC for one day: 39 trades, mean +41.5982 bps, null p95 +66.261
+bps, +$16.2233. The file's gross is +61.7015 bps. **Nothing here is fit to
+add.** Thirty-nine trades clear 30, and the mean was positive and under the
+null. The end minus the start, the day's sum, and the range were not scored.
+
+### 3.177 Perpetual return minus spot: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp148-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp148/screen_2023.json`, sha256
+`d10491a1…`). The USDT perpetual's close-to-close return minus spot's, long
+BTC for one day: 45 trades, mean +9.7956 bps, null p95 +64.2744 bps, +$4.408.
+The file's gross is +29.8353 bps. **Nothing here is fit to add.** Forty-five
+trades clear 30, and the mean was positive and under the null. Either return
+alone was not scored. The premium-index file was not read.
+
+### 3.178 The trade-count jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp149-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp149/screen_2023.json`, sha256
+`defe3aa3…`). Spot trade count over the USDT perpetual's trade count, minus
+yesterday's ratio, long BTC for one day: 37 trades, mean +9.4864 bps, null
+p95 +74.5602 bps, +$3.51. The file's gross is +29.5254 bps. **Nothing here
+is fit to add.** Thirty-seven trades clear 30, and the mean was positive and
+under the null. The ratio's level was not scored. Quote volume was not stored.
+
+### 3.179 The cross-book volume jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp150-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp150/screen_2023.json`, sha256
+`fb5ec9d1…`). USDT-margined volume over coin-margined volume, minus
+yesterday's ratio, long BTC for one day: 26 trades, mean +12.6302 bps, null
+p95 +81.2211 bps, +$3.2839. The file's gross is +32.6755 bps. **Nothing here
+is fit to add.** The mean was positive and under the null, and 26 trades are
+under 30. The count stays 30. 2023-08-28 through 2023-08-31 were not filled
+in. The ratio's level was not scored.
+
+### 3.180 Taker-ratio dispersion: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp151-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp151/screen_2023.json`, sha256
+`40e988e8…`). The taker ratio's population dispersion over its mean, long BTC
+for one day: 49 trades, mean −1.7011 bps, null p95 +56.6187 bps, −$0.8335.
+The file's gross is +18.3156 bps. **Nothing here is fit to add.** Forty-nine
+trades clear 30, and the mean was negative and under the null. The range and
+the last print were not scored.
+
+### 3.181 The premium-close jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp152-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp152/screen_2023.json`, sha256
+`e246d97a…`). The premium-index close minus yesterday's close, long BTC for
+one day: 38 trades, mean +16.1024 bps, null p95 +65.8998 bps, +$6.1189. The
+file's gross is +36.1547 bps. **Nothing here is fit to add.** Thirty-eight
+trades clear 30, and the mean was positive and under the null. 2022-10-02
+and 2023-02-24 were not filled in. The high and the low were not stored. The
+count stays 30.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

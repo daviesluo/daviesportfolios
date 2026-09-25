@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp151_common": "6346f748edd34a2f54965e3532902f311deda50ee72d6de0aeedf58bd2959fdd",
+    "fp151_measure": "00b8b6ad68e76032064f26a827ca8a3d9103a66e54ec382e94af9792e06aed50",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TAKSTD",
+      "mean_gross_bps": 18.3156,
+      "mean_net_bps": -1.7011,
+      "min_n": 30,
+      "n": 49,
+      "note": "The taker long/short volume ratio's dispersion over its mean, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 56.6187,
+      "passes_screen": false,
+      "total_pnl_usd": -0.8335
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "taker_samples": "c0044c2fd6663092f955a265ab8d9ff146bfc8fb85950fd7eed677a1f992138e"
+  },
+  "passed": [],
+  "protocol_sha256": "da7fba7ecaaa4f9f701ed14b4e9c68e910baf452fbed3263226e55b113629ae8"
+}

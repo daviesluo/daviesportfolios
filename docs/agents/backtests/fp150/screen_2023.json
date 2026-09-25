@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp150_common": "f7af724ac44408992624c6563afe2bd0b86aa8c4a2e1bb279be736f56a7b466e",
+    "fp150_measure": "0d154a8a7d23e873e7bc1308b7638bcdb89fcb43f82d8a88ef77a0e80141a8fe",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMCMJMP",
+      "mean_gross_bps": 32.6755,
+      "mean_net_bps": 12.6302,
+      "min_n": 30,
+      "n": 26,
+      "note": "USDT-margined BTC volume over coin-margined BTC volume, minus yesterday's ratio, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 81.2211,
+      "passes_screen": false,
+      "total_pnl_usd": 3.2839
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "volumes": "29ae2490326384f868ddb0cb079ae40a1129f48fcb4d421e23a7f4b81046109e"
+  },
+  "passed": [],
+  "protocol_sha256": "b2d64a539d0c808c352cbe25f272a02b7e03b984a1a9695a85fc7b55b875490a"
+}

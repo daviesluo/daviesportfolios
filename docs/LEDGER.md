@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp145–fp152 are protocols only. No return has been computed.** Eight different market statistics, each long BTC for one day. The count stays 30. The window stays 90 days and 90 prints. BASERNG's 27 trades do not lower the count. FUNDGAP had no fill and its reciprocal is not scored. Liquidations are not scored and no other series stands in for them. No later year is in the request. No testing row. No pull request. Main was not pushed.
+**fp145–fp152 are scored. Nothing passes the house bar.** Eight market statistics, each long BTC for one day, each with fills. UMCMJMP has 26 trades. The count stays 30. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:59 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp145–fp152 are scored. Nothing passes the house bar.** The protocol was `2fb56f4`, pushed before any of these returns. Each screen file was written twice and the copies matched. TAKJMP 44 / file gross −18.744 / file mean −38.6866 / null +63.9818 / −$17.0221 (`f17e6ba8…`). OIIN 41 / file gross +76.4207 / file mean +56.2879 / null +70.1636 / +$23.0781 (`1b92241d…`). FRMID 39 / file gross +61.7015 / file mean +41.5982 / null +66.261 / +$16.2233 (`69f40537…`). PXGAP 45 / file gross +29.8353 / file mean +9.7956 / null +64.2744 / +$4.408 (`d10491a1…`). CNTJMP 37 / file gross +29.5254 / file mean +9.4864 / null +74.5602 / +$3.51 (`defe3aa3…`). UMCMJMP 26 / file gross +32.6755 / file mean +12.6302 / null +81.2211 / +$3.2839 (`fb5ec9d1…`). TAKSTD 49 / file gross +18.3156 / file mean −1.7011 / null +56.6187 / −$0.8335 (`40e988e8…`). BASJMP 38 / file gross +36.1547 / file mean +16.1024 / null +65.8998 / +$6.1189 (`e246d97a…`). Every counted rule has fills. OIIN, FRMID, PXGAP, CNTJMP, UMCMJMP and BASJMP are positive and under their own null. TAKJMP and TAKSTD have a negative mean. UMCMJMP has 26 trades. The count stays 30. The coin-margined gap on 2023-08-28 through 2023-08-31 was not filled in. The null is BTC's own one-day holds. Reference §3.174–§3.181. No sign was flipped. No count was lowered. The window was not shrunk. FUNDGAP was not rerun. BASERNG was not rerun. Liquidation files were not scored, and no other series stood in for them. fp136–fp144 stay closed. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:54 UTC] Platform: Cursor | Model: Grok 4.7
 

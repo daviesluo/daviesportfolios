@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp147_common": "9e00df54d2163aa0af8822d1fe7bcacd7fbb4b058b83865c591b03efb152bad3",
+    "fp147_measure": "95538e23180e3619fe21c452051636b22ad3bff9403eeeb0b28dfa3c2facb2fa",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FRMID",
+      "mean_gross_bps": 61.7015,
+      "mean_net_bps": 41.5982,
+      "min_n": 30,
+      "n": 39,
+      "note": "The 08:00 BTC funding rate minus the average of the 00:00 and 16:00 rates, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 66.261,
+      "passes_screen": false,
+      "total_pnl_usd": 16.2233
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "funding_three": "fa796f38069cbdc8313210bd3d547aa048986163d79cf4bf0bd0feab7b41a3ee"
+  },
+  "passed": [],
+  "protocol_sha256": "3589afafb697c72814555816b39f2d7fb7315ceb8d698cdef74fc9419647c3c4"
+}
