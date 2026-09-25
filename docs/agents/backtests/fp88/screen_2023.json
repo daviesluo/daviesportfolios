@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp88_common": "89d02b1a09a574e3d997361d17661ba790ab7f4aad49ce6ea1d009a6aae07942",
+    "fp88_measure": "ba8fa6c4ed251b23ea3a52e07d094f34d2146f36dbe203cb4f2940ce24bb6596"
+  },
+  "ideas": [
+    {
+      "idea": "HOLD",
+      "mean_gross_bps": 35.0109,
+      "mean_net_bps": 14.9609,
+      "min_n": 30,
+      "n": 39,
+      "note": "Today's low above yesterday's high, in units of yesterday's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 66.261,
+      "passes_screen": false,
+      "total_pnl_usd": 5.8347
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "3dd2d73ad7770f9d2c4cc767ff5daf640f6b81041f6baca69dbe25aff4f98f0d"
+  },
+  "passed": [],
+  "protocol_sha256": "eb673b9565ad9b88e7a0bb2bae38a4fd9efcdea8a919c3abd955526ff9a8a52f"
+}

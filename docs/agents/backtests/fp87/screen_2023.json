@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp87_common": "b42ba958fa29d582ae1bd0dc32ebcd6dcd80fa45b64f2c1bd8f99e90eba06b01",
+    "fp87_measure": "3522e9522cf6642f226f1ae770ba60de69aaed60eb04d88660e08879c255a7bf"
+  },
+  "ideas": [
+    {
+      "idea": "STRETCH",
+      "mean_gross_bps": 74.8196,
+      "mean_net_bps": 54.6901,
+      "min_n": 30,
+      "n": 43,
+      "note": "Close above the day's VWAP, in units of the day's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 66.2261,
+      "passes_screen": false,
+      "total_pnl_usd": 23.5167
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "1c9c68661222ca273cb01c2b421a433c9bfbd388dad2fca081daf199941d5997"
+  },
+  "passed": [],
+  "protocol_sha256": "5f96b4975c16bbb634d5d14fa73c368beff5e33119bc48a45263a5763cb7c1d6"
+}

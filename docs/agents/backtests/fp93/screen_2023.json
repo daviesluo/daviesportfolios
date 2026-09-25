@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp93_common": "d9cda91ac6fef0d4b8b1b6c46a1a774a07d1f45d1a59f76ad00bbd0659c32d5d",
+    "fp93_measure": "629a3c0582c40bbcbaf83119098eea8501f919d796cb92fe43a35e82b3d7bc5b"
+  },
+  "ideas": [
+    {
+      "idea": "TAIL-BAR",
+      "mean_gross_bps": 50.0109,
+      "mean_net_bps": 29.9309,
+      "min_n": 30,
+      "n": 32,
+      "note": "Last hour's range over the day's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 72.2613,
+      "passes_screen": false,
+      "total_pnl_usd": 9.5779
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "e4d7eeaf226832d457e046a273212bfd09d810536b517dc683c3a22a7cf09e4f"
+  },
+  "passed": [],
+  "protocol_sha256": "9a5435e5bb5e41af2a513a034f1376b3caf3805d87e36bcb3f24b96ba59db5bb"
+}

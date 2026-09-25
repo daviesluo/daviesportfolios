@@ -3827,6 +3827,115 @@ have an overlap. **Nothing here is fit to add.** The count is under 30 and
 stays there. The mean was negative. A day whose hours overlapped less, and
 the 80th, are not candidates.
 
+### 3.116 The close above the day's VWAP: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp87-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp87/screen_2023.json`). How far the
+close finished above the day's VWAP, in units of the day's range, above its
+own trailing 90th, long spot the next day: 43 trades, mean +54.7 bps, null
+p95 +66.2 bps, +$23.52. The file's gross is +74.8196 bps, the mean is
++54.6901 bps, the null is +66.2261 bps, and the total is +$23.5167. The null
+matches §3.62 because both rules have 43 trades on the same BTC pool and the
+same seed. The daily grid has 458 bars and no hole. The 2024-01-01 bar is
+not a print, so 457 days have a stretch. **Nothing here is fit to add.** The
+count cleared and the mean was positive; it lost to the null. A close that
+finished nearer the VWAP, and the 80th, are not candidates.
+
+### 3.117 The low above yesterday's high: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp88-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp88/screen_2023.json`). How far today's
+low held above yesterday's high, in units of yesterday's range, above its
+own trailing 90th, long spot the next day: 39 trades, file mean +14.9609
+bps, null p95 +66.261 bps, +$5.8347. The file's gross is +35.0109 bps. No
+earlier screen had 39 trades. §3.121 prints the same null. The daily grid
+has 458 bars and no hole. The first day has no yesterday, and the 2024-01-01
+bar is not a print, so 456 days have a hold. **Nothing here is fit to add.**
+The count cleared and the mean was positive; it lost to the null. A low that
+did not hold above yesterday's high, and the 80th, are not candidates.
+
+### 3.118 The worst hourly return: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp89-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp89/screen_2023.json`). The lowest of
+the 24 hourly returns, above its own trailing 90th, long spot the next day:
+23 trades, mean −16.3 bps, null p95 +85.9 bps, −$3.75. The file's gross is
++3.6829 bps, the mean is −16.3045 bps, the null is +85.9259 bps, and the
+total is −$3.75. The null matches §3.52 because both rules have 23 trades on
+the same BTC pool and the same seed. The hourly grid has the same one hole,
+and that day is not a print. 456 days have a worst return. **Nothing here is
+fit to add.** The count is under 30 and stays there. The mean was negative.
+A weaker worst hour, and the 80th, are not candidates.
+
+### 3.119 The last hour's average trade: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp90-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp90/screen_2023.json`). The last hour's
+quote per trade over the day's quote per trade, minus 1, above its own
+trailing 90th, long spot the next day: 31 trades, file mean +18.9592 bps,
+null p95 +71.8264 bps, +$5.8774. The file's gross is +39.0172 bps. The null
+matches §3.44 because both rules have 31 trades on the same BTC pool and the
+same seed. The hourly grid has the same one hole, and that day is not a
+print. 456 days have a ratio. **Nothing here is fit to add.** The count
+cleared and the mean was positive; it lost to the null. A smaller last-hour
+average trade, and the 80th, are not candidates.
+
+### 3.120 Quote at the high over quote at the low: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp91-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp91/screen_2023.json`). Quote volume in
+the earliest hour of the high, divided by quote volume in the earliest hour
+of the low, above its own trailing 90th, long spot the next day: 30 trades,
+mean +3.2 bps, null p95 +75.189 bps, +$0.96. The file's gross is +23.2417
+bps, the mean is +3.2152 bps, and the total is +$0.9646. The null matches
+§3.60 because both rules have 30 trades on the same BTC pool and the same
+seed. The hourly grid has the same one hole, and that day is not a print.
+456 days have a ratio. **Nothing here is fit to add.** The count cleared and
+the mean was positive; it lost to the null. A quieter high hour, and the
+80th, are not candidates.
+
+### 3.121 The opening hour's quote over the last hour's: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp92-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp92/screen_2023.json`). Hour 0's quote
+volume divided by hour 23's quote volume, above its own trailing 90th, long
+spot the next day: 39 trades, mean −8.6 bps, null p95 +66.261 bps, −$3.35.
+The file's gross is +11.4092 bps, the mean is −8.5936 bps, and the total is
+−$3.3515. The null matches §3.117 because both rules have 39 trades on the
+same BTC pool and the same seed. Hours 1 through 22 are not read, so the day
+with the hole is still a print. The hole was not filled in. 457 days have a
+ratio. **Nothing here is fit to add.** The count cleared and the mean was
+negative. An opening hour that was quieter than the last hour, and the 80th,
+are not candidates.
+
+### 3.122 The last hour's share of the day's range: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp93-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp93/screen_2023.json`). Hour 23's range
+divided by the range of the 24 hours, above its own trailing 90th, long spot
+the next day: 32 trades, mean +29.9 bps, null p95 +72.3 bps, +$9.58. The
+file's gross is +50.0109 bps, the mean is +29.9309 bps, the null is +72.2613
+bps, and the total is +$9.5779. The null matches §3.49 because both rules
+have 32 trades on the same BTC pool and the same seed. The hourly grid has
+the same one hole, and that day is not a print. 456 days have a share.
+**Nothing here is fit to add.** The count cleared and the mean was positive;
+it lost to the null. A last hour that printed less of the day's range, and
+the 80th, are not candidates.
+
+### 3.123 The last close over the first hour's close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp94-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp94/screen_2023.json`). Hour 23's close
+divided by hour 0's close, minus 1, above its own trailing 90th, long spot
+the next day: 47 trades, mean +13.7 bps, null p95 +66.6563 bps, +$6.42. The
+file's gross is +33.6986 bps, the mean is +13.6513 bps, and the total is
++$6.4161. No earlier screen had 47 trades, so the null has no earlier file
+to match. It is fp5's 200-draw p95 on the same BTC pool and the same seed.
+Hours 1 through 22 are not read, so the day with the hole is still a print.
+The hole was not filled in. 457 days have a return. **Nothing here is fit to
+add.** The count cleared and the mean was positive; it lost to the null. A
+last close under the first hour's close, and the 80th, are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

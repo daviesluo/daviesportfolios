@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp87–fp94 are frozen and not yet scored.** Eight screens are written down and none of them has a 2023 return. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp86, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp87–fp94 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. No later year was pulled. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp86, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:17 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp87–fp94 are scored. Nothing passes the house bar.** Protocol was `9614bb3`. Each screen file was written twice and the copies matched. STRETCH 43 / file gross +74.8196 / file mean +54.6901 / null +66.2261 / +$23.5167 (`8a2be7dc…`). HOLD 39 / file gross +35.0109 / file mean +14.9609 / null +66.261 / +$5.8347 (`0d16e525…`). WORST-RET 23 / file gross +3.6829 / file mean −16.3045 / null +85.9259 / −$3.75 (`5809aefa…`). LAST-SIZE 31 / file gross +39.0172 / file mean +18.9592 / null +71.8264 / +$5.8774 (`b4c5d645…`). HL-QUOTE 30 / file gross +23.2417 / file mean +3.2152 / null +75.189 / +$0.9646 (`cefecbd7…`). ENDS 39 / file gross +11.4092 / file mean −8.5936 / null +66.261 / −$3.3515 (`a13e4724…`). TAIL-BAR 32 / file gross +50.0109 / file mean +29.9309 / null +72.2613 / +$9.5779 (`8208cb0b…`). REST 47 / file gross +33.6986 / file mean +13.6513 / null +66.6563 / +$6.4161 (`88120c09…`). Every fill matched fp5's `net_return`. STRETCH's null matches §3.62. HOLD and ENDS share a null because both have 39 trades, and no earlier screen had 39. WORST-RET's null matches §3.52. LAST-SIZE's null matches §3.44. HL-QUOTE's null matches §3.60. TAIL-BAR's null matches §3.49. REST's null has no earlier file: no earlier screen had 47 trades. Reference §3.116–§3.123. The 2023-03-24 13:00 UTC hole was not filled in. ENDS and REST still print that day, because hours 1–22 are not read. The other hourly rules do not print it. No sign was flipped. No count was lowered. The window was not shrunk. WORST-RET stays under 30. WORST-RET and ENDS have negative means and the signs were not flipped. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp86, and the previous rounds' named ideas stay closed. No later year was pulled. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:13 UTC] Platform: Cursor | Model: Grok 4.7
 
