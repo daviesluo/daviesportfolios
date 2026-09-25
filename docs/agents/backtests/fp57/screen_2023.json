@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp57_common": "17463b6aaad48e1fabee00550bef35a82e4dd757d7d58a8ee6faed72e45edba0",
+    "fp57_measure": "ea8f801a2e6d0a1689665117e34156937c8248ab2cf40e2b774f2866ec5dd046",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BASE-CHG",
+      "mean_gross_bps": 85.3481,
+      "mean_net_bps": 65.1976,
+      "min_n": 30,
+      "n": 44,
+      "note": "Rise in base volume, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 63.9818,
+      "passes_screen": true,
+      "total_pnl_usd": 28.6869
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "d2c82f38a73f8201c7811c316d6d34e1a27eb5932e76a03b7e6ea48a2dc43f25"
+  },
+  "passed": [
+    "BASE-CHG"
+  ],
+  "protocol_sha256": "6a4c22274e3cf216d9d6024213d7c53e86313c0b9a59ecda7cba9f494861108c"
+}

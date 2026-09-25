@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp58_common": "e0177e713bf23d5ad8bda300367ead47bb4b0bd418728b90584e029adeaa9ace",
+    "fp58_measure": "7edcd44e74284e0ac3e4635341c7a64147ffdddbab56dcac44ab08994c417df6",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LAST-EXT",
+      "mean_gross_bps": -13.3199,
+      "mean_net_bps": -33.2733,
+      "min_n": 30,
+      "n": 19,
+      "note": "Hour of the later of the high and the low, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 90.987,
+      "passes_screen": false,
+      "total_pnl_usd": -6.3219
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "e4d7eeaf226832d457e046a273212bfd09d810536b517dc683c3a22a7cf09e4f"
+  },
+  "passed": [],
+  "protocol_sha256": "d2841024d1069d4f820cc55282a5586ee6aa87557a629988d3d6191f337e2b50"
+}

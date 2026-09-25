@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp56_common": "325afca9bae823d1927a634d95d27949d5cab97fc48cf70af9464481611e1cfa",
+    "fp56_measure": "39a542b56769fe2d6db3ad39f99deee2aa52c12a6f4954bb929be5ac1d7d0ad6",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CLOSE-HIGHS",
+      "mean_gross_bps": 74.9919,
+      "mean_net_bps": 54.862,
+      "min_n": 30,
+      "n": 28,
+      "note": "Count of hours that break the day's running close, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 84.168,
+      "passes_screen": false,
+      "total_pnl_usd": 15.3614
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "0990847afb1392373481b05dfcd4eaf94eea53329f361047d7a0a40380aa338e"
+  },
+  "passed": [],
+  "protocol_sha256": "308f1f69d3c1e4e30a9ff6557e34729908ac4e5b9c68b25153a3229eebe9fa19"
+}

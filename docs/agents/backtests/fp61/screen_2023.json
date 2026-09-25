@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp61_common": "1c9e3805c98d31afbb613f4719aac825729a77bc0726de86e144d77ae78644a2",
+    "fp61_measure": "1185c85c2f938323943e450e858801baae8fec1ef3ecbf6430d6a0fa62dacac3"
+  },
+  "ideas": [
+    {
+      "idea": "LAST-HOUR",
+      "mean_gross_bps": 79.0534,
+      "mean_net_bps": 58.9155,
+      "min_n": 30,
+      "n": 43,
+      "note": "Last hour's return, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 66.2261,
+      "passes_screen": false,
+      "total_pnl_usd": 25.3337
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "2be9b24abf4bf5b381d350c142b17753848c28743dcca42c540e74ffdcfb4f1a"
+  },
+  "passed": [],
+  "protocol_sha256": "efb2310a13b6d580a053536e3a032a33b948a6b21af0ede508850259068e20b8"
+}

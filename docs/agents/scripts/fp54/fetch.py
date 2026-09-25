@@ -15,6 +15,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -47,8 +48,10 @@ def get(url: str) -> bytes:
     raise RuntimeError(f"get failed {{last}}")
 
 
-def klines(interval: str, step: int, end_ms: int, fields: tuple[int, ...]) -> dict[int, tuple]:
-    cursor = LOOKBACK_MS
+def klines(
+    interval: str, step: int, end_ms: int, fields: tuple[int, ...], start_ms: int = LOOKBACK_MS,
+) -> dict[int, tuple]:
+    cursor = start_ms
     rows: dict[int, tuple] = {}
     while cursor <= end_ms:
         url = (
@@ -62,7 +65,7 @@ def klines(interval: str, step: int, end_ms: int, fields: tuple[int, ...]) -> di
             if len(k) <= max(fields):
                 raise SystemExit(f"a {interval} kline is missing a field")
             open_ms = int(k[0])
-            if open_ms < LOOKBACK_MS:
+            if open_ms < start_ms:
                 continue
             if open_ms > end_ms:
                 raise SystemExit(f"a {interval} bar opened past the screen: {open_ms}")
@@ -81,6 +84,29 @@ def save(name: str, rows: dict[int, tuple]) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     payload = [[t, *rows[t]] for t in sorted(rows)]
     out.write_text(json.dumps(payload, separators=(",", ":")))
+
+
+def pull_oos() -> None:
+    """Bars from 2024-01-01 through the 2026-09-25 open. Called only after the pre-registration is frozen."""
+    if not os.environ.get("FP54_OOS"):
+        raise SystemExit("the out-of-sample pull is not armed")
+    start_ms = c.fp5.SCREEN_END_MS
+    end_ms = int(datetime(2026, 9, 25, tzinfo=timezone.utc).timestamp() * 1000)
+    hour_end = end_ms - c.HOUR_MS
+    hourly = klines("1h", c.HOUR_MS, hour_end, (7,), start_ms)
+    daily = klines("1d", c.fp5.DAY_MS, end_ms, (1,), start_ms)
+    if any(t >= end_ms for t in hourly):
+        raise SystemExit("an hourly bar opened on or after 2026-09-25")
+    if not hourly or min(hourly) != start_ms or max(hourly) != hour_end:
+        raise SystemExit("the hourly out-of-sample window is wrong")
+    if not daily or min(daily) != start_ms or max(daily) != end_ms:
+        raise SystemExit("the daily out-of-sample window is wrong")
+    save("oos_1h/BTCUSDT.json", hourly)
+    save("oos_1d/BTCUSDT.json", daily)
+    print(
+        f"fp54 oos BTCUSDT 1h {len(hourly)} first {min(hourly)} last {max(hourly)}; "
+        f"1d {len(daily)} first {min(daily)} last {max(daily)}"
+    )
 
 
 def main() -> None:

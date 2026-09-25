@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp60_common": "532eb2f3faeb3a335ca71d026570d17d13a4d5ab67db6e62ebd69d35bbd67c68",
+    "fp60_measure": "100cad38b08e1dc1846fd2ecdaa7f4a716fb401605a7267c487a99fae11b9ff7"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-YLOW",
+      "mean_gross_bps": 25.8559,
+      "mean_net_bps": 5.8242,
+      "min_n": 30,
+      "n": 41,
+      "note": "Open over the previous day's low, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 70.1636,
+      "passes_screen": false,
+      "total_pnl_usd": 2.3879
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "36c55f0c8e5445817caa50755c7b7beb1a6b8914802f57428f3b39bc797996a8"
+  },
+  "passed": [],
+  "protocol_sha256": "bab0660d68fef5b315109383d522bf103e46f5ed306edae19316089160ed3f65"
+}

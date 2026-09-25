@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp54_common": "0a82e78f189acbfcfef1d444cfbb0b1864a7d5c912787722f5ac32899cba9ba2",
+    "fp54_measure": "609a1ad204a14735b3da53de21ecc596a9f58fb3256d9f375bdc9a5c32526af0",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "VOL-CLOCK",
+      "mean_gross_bps": 86.8053,
+      "mean_net_bps": 66.6518,
+      "min_n": 30,
+      "n": 38,
+      "note": "Quote-weighted hour of the day, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 65.8998,
+      "passes_screen": true,
+      "total_pnl_usd": 25.3277
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "4888de75d495a976a56eefe22477ddd3b4034dfa8c6525621841aafd877ed45e"
+  },
+  "passed": [
+    "VOL-CLOCK"
+  ],
+  "protocol_sha256": "a370c8d9237c5c90ea459ed4c8094c5945a775854d883d31c8207f3aa7ed263c"
+}
