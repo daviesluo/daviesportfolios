@@ -134,13 +134,19 @@ def pull_spot(symbol: str) -> str:
     return f"{symbol} 8h={len(h)} 1d={len(d)}"
 
 
+# The spot name and the perpetual name differ when the perp is on a 1000-token contract.
+# The funding figure is a rate, so the contract multiplier does not scale it.
+FUNDING_ALIAS = {"PEPEUSDT": "1000PEPEUSDT", "SHIBUSDT": "1000SHIBUSDT"}
+
+
 def pull_funding(symbol: str) -> str:
     out = DATA / "funding" / f"{symbol}.json"
-    if out.exists():
+    if out.exists() and out.stat().st_size > 2:
         return f"{symbol} funding cached"
+    source = FUNDING_ALIAS.get(symbol, symbol)
     points: dict[int, float] = {}
     for ym in months((2022, 10), (2023, 12)):
-        url = f"{VISION}/data/futures/um/monthly/fundingRate/{symbol}/{symbol}-fundingRate-{ym}.zip"
+        url = f"{VISION}/data/futures/um/monthly/fundingRate/{source}/{source}-fundingRate-{ym}.zip"
         raw = get(url)
         if raw is None:
             continue
@@ -170,21 +176,9 @@ def pull_metrics() -> str:
         parsed = list(csv.DictReader(text))
         if not parsed:
             continue
-        last = parsed[-1]
-        retail = float(last["count_long_short_ratio"])
-        top = float(last["count_toptrader_long_short_ratio"])
-        if retail == 0:
-            continue
-        y, m, d = (int(x) for x in day.split("-"))
-        import datetime as dt
-        day_ms = int(dt.datetime(y, m, d, tzinfo=dt.timezone.utc).timestamp() * 1000)
-        rows.append({
-            "day_ms": day_ms,
-            "oi": float(last["sum_open_interest_value"]),
-            "count_ls": retail,
-            "top_over_retail": top / retail,
-            "taker": float(last["sum_taker_long_short_vol_ratio"]),
-        })
+        row = metric_row(day, parsed[-1])
+        if row is not None:
+            rows.append(row)
     save_json(out, rows)
     return f"metrics {len(rows)}"
 
@@ -322,6 +316,73 @@ def pull_supply() -> str:
     return f"supply {len(points)}"
 
 
+def metric_row(day: str, last: dict) -> dict | None:
+    """One UTC day's last metrics line. A blank field is missing, not zero."""
+    import datetime as dt
+
+    def num(field: str) -> float | None:
+        text = (last.get(field) or "").strip()
+        if text == "":
+            return None
+        return float(text)
+
+    oi = num("sum_open_interest_value")
+    if oi is None:
+        return None
+    retail = num("count_long_short_ratio")
+    top = num("count_toptrader_long_short_ratio")
+    y, m, d = (int(x) for x in day.split("-"))
+    day_ms = int(dt.datetime(y, m, d, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    return {
+        "day_ms": day_ms,
+        "oi": oi,
+        "count_ls": retail,
+        "top_over_retail": None if retail in (None, 0.0) or top is None else top / retail,
+        "taker": num("sum_taker_long_short_vol_ratio"),
+    }
+
+
+def pull_metric_day(day: str) -> dict | None:
+    url = f"{VISION}/data/futures/um/daily/metrics/BTCUSDT/BTCUSDT-metrics-{day}.zip"
+    raw = get(url)
+    if raw is None:
+        return None
+    zf = zipfile.ZipFile(io.BytesIO(raw))
+    parsed = list(csv.DictReader(zf.read(zf.namelist()[0]).decode().splitlines()))
+    if not parsed:
+        return None
+    return metric_row(day, parsed[-1])
+
+
+def pull_oos() -> None:
+    """BTC daily bars and metrics for the LS-FADE test window. Not used by the screen."""
+    import datetime as dt
+    out_m = DATA / "oos_metrics_btc.json"
+    out_d = DATA / "oos_spot1d_btc.json"
+    start = dt.date(2024, 1, 1)
+    end = dt.date(2026, 9, 24)
+    wanted = []
+    d = start
+    while d <= end:
+        wanted.append(d.isoformat())
+        d += dt.timedelta(days=1)
+    rows = []
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        futures = {pool.submit(pull_metric_day, day): day for day in wanted}
+        for fut in as_completed(futures):
+            row = fut.result()
+            if row is not None:
+                rows.append(row)
+    rows.sort(key=lambda r: r["day_ms"])
+    save_json(out_m, rows)
+    # The exit open of an entry on 2026-09-24 is 2026-09-25.
+    end_ms = int(dt.datetime(2026, 9, 25, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    start_ms = int(dt.datetime(2024, 1, 1, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    bars = klines("BTCUSDT", "1d", start_ms, end_ms)
+    save_json(out_d, [[t, *bars[t]] for t in sorted(bars)])
+    print(f"oos metrics {len(rows)} daily {len(bars)}", flush=True)
+
+
 def main() -> None:
     DATA.mkdir(parents=True, exist_ok=True)
     jobs = []
@@ -340,4 +401,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if "--oos" in sys.argv:
+        pull_oos()
+    else:
+        main()

@@ -151,10 +151,13 @@ def summarise(name: str, trades: list[dict], pool: list[float], min_n: int, note
     }
 
 
-def _trade(coin: str, entry_ms: int, exit_ms: int, bars: dict[int, tuple], fee: float = FEE) -> dict | None:
+def _trade(
+    coin: str, entry_ms: int, exit_ms: int, bars: dict[int, tuple], fee: float = FEE,
+    start_ms: int = SCREEN_START_MS, end_ms: int = SCREEN_END_MS,
+) -> dict | None:
     if entry_ms not in bars or exit_ms not in bars:
         return None
-    if not in_screen(entry_ms):
+    if not (start_ms <= int(entry_ms) < end_ms):
         return None
     entry_open = bars[entry_ms][0]
     exit_open = bars[exit_ms][0]
@@ -279,7 +282,10 @@ def season_slots(bars: dict[str, dict[int, tuple]]) -> dict[int, list[dict]]:
     return out
 
 
-def daily_forward(daily: dict[int, tuple], signal_days: list[int], hold_days: int = 1) -> list[dict]:
+def daily_forward(
+    daily: dict[int, tuple], signal_days: list[int], hold_days: int = 1, fee: float = FEE,
+    start_ms: int = SCREEN_START_MS, end_ms: int = SCREEN_END_MS,
+) -> list[dict]:
     """Enter the daily open `hold` days after the signal day? No: enter the next open after the signal day.
 
     `signal_days` are the UTC midnights on which the signal is known at the close.
@@ -292,7 +298,7 @@ def daily_forward(daily: dict[int, tuple], signal_days: list[int], hold_days: in
             continue
         entry = day + DAY_MS
         exit_ = entry + hold_days * DAY_MS
-        trade = _trade("BTCUSDT", entry, exit_, daily)
+        trade = _trade("BTCUSDT", entry, exit_, daily, fee=fee, start_ms=start_ms, end_ms=end_ms)
         if trade is not None:
             trades.append(trade)
     return trades
@@ -324,11 +330,16 @@ def ratio_signals(metrics: list[dict], key: str, q: float, below: bool) -> list[
     days = sorted(metrics, key=lambda m: m["day_ms"])
     out: list[int] = []
     for i, row in enumerate(days):
-        hist = [days[j][key] for j in range(i) if row["day_ms"] - 90 * DAY_MS <= days[j]["day_ms"] < row["day_ms"]]
+        hist = [
+            days[j][key] for j in range(i)
+            if days[j][key] is not None and row["day_ms"] - 90 * DAY_MS <= days[j]["day_ms"] < row["day_ms"]
+        ]
         thr = rank_threshold(hist, q, 30)
         if thr is None:
             continue
         value = row[key]
+        if value is None:
+            continue
         if below and value < thr:
             out.append(row["day_ms"])
         if not below and value > thr:

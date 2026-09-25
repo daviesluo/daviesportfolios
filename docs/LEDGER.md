@@ -8,6 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
+**fp5 LS-FADE out of sample is not run.** The pre-registration is frozen
+(`docs/agents/reviews/2026-09-25-fp5-prereg-ls-fade.md`, sha256 `1dcaaac0…`,
+2026-09-25 00:35:51Z). Next: `python3 docs/agents/scripts/fp5/fetch.py --oos`,
+then `python3 docs/agents/scripts/fp5/ls_fade_test.py`, twice, byte-identical.
+Do not read 2024–2026 prices before that. No testing row. No push to main.
+
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
 risk and a verification step on each. It is a PROPOSAL: nothing in it
@@ -830,7 +836,19 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-### [2026-09-25 00:28 UTC] Platform: Cursor | Model: Grok 4.7
+### [2026-09-25 00:36 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 screen is scored; only LS-FADE goes forward, and its test is frozen before the later years.**
+The 2023 screen (fifteen ideas, protocol `c17a3c34…`) passed one: retail long/short ratio below its own
+trailing 10th, next-day BTC, 60 trades, +$33.76, mean +56.3 bps against a null p95 of +51.5 bps. The other
+fourteen fail that hurdle, including the volume climax (the null is higher) and the Coinbase premium (16
+trades, under the count). Fear-and-greed's published cut of 20 never printed in 2023 (low 25). The perp
+never closed 10 bps under the index. The pre-registration is
+`reviews/2026-09-25-fp5-prereg-ls-fade.md`, sha256 `1dcaaac05388eadfbd569a07ccbff7111f921a5a5b9fbc24044a4a57eac9a414`,
+frozen 00:35:51Z. The out-of-sample pull has not been started. The 00:27 section's header was written one
+minute ahead of its commit and is corrected to 00:27.
+
+### [2026-09-25 00:27 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, a fourth Binance search, protocol only.** Davies asked for new Binance strategies by the
 research method (pre-registration, frozen inputs, hashes, pins), on a branch, with no testing or
