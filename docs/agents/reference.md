@@ -2891,6 +2891,74 @@ sample: **−$735.32 on 493 trades**, 55 won and 438 lost. Both halves lose. Str
 95th percentile is +$869.02. The write-up is `reviews/2026-09-25-polymarket-fp5-hot.md`. Not a paper test
 and not a live row. Not a rerun of WX or of CLIM.
 
+### 3.51 PEER, other cities' latest temperature, fails its bar (2026-09-25)
+
+The next round, eight rules each frozen before its prices were scored. On the daily temperature
+markets, with no forecast, PEER buys the bucket that contains the median of other cities' latest
+resolved midpoints. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-peer.md`. Out of
+sample: **−$547.64 on 489 trades**, 70 won and 419 lost. One half is positive. Stress −$783.48.
+The null's 95th percentile is +$1,273.39. The write-up is `reviews/2026-09-25-polymarket-fp5-peer.md`.
+Not a paper test and not a live row. Not a rerun of YDAY or CLIM.
+
+### 3.52 DIURNAL, yesterday's low plus the month's range, fails its bar (2026-09-25)
+
+Highest-temperature markets only. The target is the latest resolved low plus the median same-month
+gap from low to high. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-diurnal.md`. Out of
+sample: **+$138.53 on 43 trades**, 7 won and 36 lost. Both halves are positive. Stress +$116.55.
+The null's 95th percentile is +$407.27. August is 133% of the profit; without it the remainder is
+−$45.13. The write-up is `reviews/2026-09-25-polymarket-fp5-diurnal.md`. Not a paper test and not a
+live row. Not retried with August removed. Not a rerun of WX.
+
+### 3.53 SHIFT, the histogram of temperature changes, fails its bar (2026-09-25)
+
+Every linked past step is added to yesterday's midpoint, and yesterday's own bracket is not bought.
+Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-shift.md`. Out of sample: **+$259.95 on
+1,064 trades**, 146 won and 918 lost. The first half is −$769.07. Stress −$223.71. The null's 95th
+percentile is +$1,658.33. July is 228% of the profit. The write-up is
+`reviews/2026-09-25-polymarket-fp5-shift.md`. Not a paper test and not a live row. Not a rerun of JUMP.
+
+### 3.54 NEXT, the bucket yesterday's bucket moved to, fails its bar (2026-09-25)
+
+The trade is the other bucket that followed yesterday's bucket most often. A stay is not bought.
+Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-next.md`. Out of sample: **+$27.38 on 292
+trades**, 46 won and 246 lost. The second half is −$224.42. Stress −$84.75. The null's 95th percentile
+is +$656.17. May is several times the profit. The write-up is
+`reviews/2026-09-25-polymarket-fp5-next.md`. Not a paper test and not a live row. Not a rerun of YDAY.
+
+### 3.55 BACK, one bucket from yesterday toward the month, fails its bar (2026-09-25)
+
+The median bucket itself is not the trade. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-back.md`. Out of sample: **+$314.61 on 114 trades**, 12 won
+and 102 lost. The first half is −$182.18. Stress +$269.90. The null's 95th percentile is +$496.39.
+July is 139% of the profit. The write-up is `reviews/2026-09-25-polymarket-fp5-back.md`. Not a paper
+test and not a live row. Not a rerun of CLIM or HOT.
+
+### 3.56 MEAN3, the mean of the last three temperatures, fails its bar (2026-09-25)
+
+The target is the arithmetic mean of the last three resolved midpoints, not a month's median and not
+an added step. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-mean3.md`. Out of sample:
+**+$299.85 on 670 trades**, 123 won and 547 lost. The first half is −$169.17. Stress +$22.78. The
+null's 95th percentile is +$1,203.14. April is 130% of the profit. The write-up is
+`reviews/2026-09-25-polymarket-fp5-mean3.md`. Not a paper test and not a live row. Not a rerun of CLIM
+or JUMP.
+
+### 3.57 DRIFT, one bucket on the side past steps took, fails its bar (2026-09-25)
+
+The side is the majority of every linked step, and the target moves one listed bucket, not by the
+size of the last step. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-drift.md`. Out of
+sample: **+$660.42 on 251 trades**, 29 won and 222 lost. Both halves are positive. Stress +$558.41.
+The null's 95th percentile is +$773.30. April is 77% of the profit; without it +$154.94 remains.
+The 4% a year on a $55 peak passes. The write-up is `reviews/2026-09-25-polymarket-fp5-drift.md`.
+Not a paper test and not a live row. Not retried with April removed. Not a rerun of JUMP.
+
+### 3.58 AGREE, the three-day mean and other cities together, fails its bar (2026-09-25)
+
+The trade exists only when MEAN3's target and PEER's target are the same bucket. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-agree.md`. Out of sample: **−$513.33 on 193 trades**, 34 won
+and 159 lost. One half is positive. Stress −$590.72. The null's 95th percentile is +$654.26. The
+write-up is `reviews/2026-09-25-polymarket-fp5-agree.md`. Not a paper test and not a live row. Not a
+forecast. MEAN3 and PEER, run on their own, also fail.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,82 @@
+{
+  "prereg": "reviews/2026-09-25-polymarket-fp5-prereg-shift.md",
+  "result": {
+    "IS": {
+      "cost": 200.190628,
+      "fees": 8.571157,
+      "lost": 32,
+      "pnl": -160.642252,
+      "pnl_per_dollar": -0.802446,
+      "sold_out": 0,
+      "trades": 34,
+      "won": 2
+    },
+    "OOS": {
+      "cost": 6923.182032,
+      "fees": 283.038612,
+      "lost": 918,
+      "pnl": 259.949931,
+      "pnl_per_dollar": 0.037548,
+      "sold_out": 0,
+      "trades": 1064,
+      "won": 146
+    },
+    "OOS1": {
+      "cost": 4373.024837,
+      "fees": 172.069073,
+      "lost": 543,
+      "pnl": -769.071349,
+      "pnl_per_dollar": -0.175867,
+      "sold_out": 0,
+      "trades": 635,
+      "won": 92
+    },
+    "OOS2": {
+      "cost": 2550.157195,
+      "fees": 110.969539,
+      "lost": 375,
+      "pnl": 1029.02128,
+      "pnl_per_dollar": 0.403513,
+      "sold_out": 0,
+      "trades": 429,
+      "won": 54
+    },
+    "bar": {
+      "1_oos_pos_and_both_halves": false,
+      "2_beats_null_p95": false,
+      "3_stress_pos": false,
+      "4_at_least_80_trades": true,
+      "5_not_one_month": false,
+      "6_beats_cash": true
+    },
+    "counts": {
+      "events": 11586,
+      "filled": 1098,
+      "no_trade": 1508,
+      "under_min_fill": 8980
+    },
+    "null": {
+      "draws": 10000,
+      "mean": -289.29503,
+      "p95": 1658.333262
+    },
+    "oos_by_month": {
+      "2026-01": -141.481216,
+      "2026-02": -272.03927,
+      "2026-03": -410.191922,
+      "2026-04": -159.754763,
+      "2026-05": 259.361595,
+      "2026-06": -234.732826,
+      "2026-07": 592.133084,
+      "2026-08": 268.127523,
+      "2026-09": 358.527725
+    },
+    "oos_days": 253.0,
+    "oos_peak_capital": 147.332812,
+    "oos_return_per_year_on_peak": 2.545438,
+    "passes": false,
+    "prints_incomplete": 0,
+    "stress_OOS_pnl": -223.713321
+  },
+  "rule": "SHIFT"
+}
