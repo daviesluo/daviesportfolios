@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp62–fp69 protocols only. No return has been computed.** Eight screens frozen together, each a different input from the sixty-one closed rounds: the low under yesterday's close, the base share of the high's hour, the return from hour 8 to hour 15, ETH's range over BTC's range, the return of the hour after the high, the sum of hourly ranges over the day's range, crosses of yesterday's close, and hours that extend the day's high or low. Pins passed on synthetic bars. The open and yesterday's low do not enter the undercut. Quote does not enter the high's base share. Hours outside 8 through 15 do not enter the middle return. The close does not enter the range ratio. A high in hour 23 is not a print. A sign change that stays on one side of yesterday's close is not a cross. An hour that only beats the previous hour does not extend the running extreme. VOL-CLOCK and BASE-CHG stay closed, including the later years, and both neighbours lost. CLOSE-HIGHS had 28 trades and LAST-EXT had 19. The count stays 30. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp61 stay closed. No 2023 number was computed. No pull request. Main was not pushed.
+**fp70 protocol only. No return of this rule has been computed.** PRIOR-LOC is frozen: today's close inside yesterday's high-to-low range, long BTC the next day. Pins passed on synthetic bars. Today's open, high and low do not enter. Yesterday's close does not enter. A flat prior range is not a print. AFTER-HIGH was scored and produced no fill, so it does not count, and the 90-print window is not widened. The fp62–fp69 screen files are on disk and are not in this commit. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp69 stay closed. No 2023 number of this rule was computed. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 04:28 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp70 protocol only. No return of this rule has been computed.** PRIOR-LOC is frozen: today's close inside yesterday's high-to-low range, long BTC the next day. Pins passed on synthetic bars. Today's open, high and low do not enter. Yesterday's close does not enter. A flat prior range is not a print. AFTER-HIGH was scored and produced no fill, so it does not count, and the 90-print window is not widened. The fp62–fp69 screen files are on disk and are not in this commit. IMPACT, PEAK, BAL-CHG, BODY and fp30–fp69 stay closed. No 2023 number of this rule was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 04:22 UTC] Platform: Cursor | Model: Grok 4.7
 

@@ -760,6 +760,7 @@ before touching migration state.
 | `docs/agents/scripts/fp67/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The sum of BTC's hourly ranges over the day's range, long BTC the next day. The fill is fp5's. |
 | `docs/agents/scripts/fp68/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hourly closes crossed the previous close, long BTC the next day. The fill is fp5's. |
 | `docs/agents/scripts/fp69/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | How many of BTC's hours extend the day's high or low, long BTC the next day. The fill is fp5's. |
+| `docs/agents/scripts/fp70/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Where BTC's close sits in the previous day's range, long BTC the next day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
