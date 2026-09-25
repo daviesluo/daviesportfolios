@@ -1,0 +1,39 @@
+{
+  "code_sha256": {
+    "fp10_common": "04232ae11c4d3146c7f8609db45152a455c5a804ae95eea79edb8ed595d0af0e",
+    "fp10_measure": "a0cff97f140a7be23b983bd6f5b09390cae1ed5d56b23d56363017c6ff8e7a49",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ETH-LEAD",
+      "mean_gross_bps": 5.1413,
+      "mean_net_bps": -14.849,
+      "min_n": 30,
+      "n": 117,
+      "note": "ETH 8h return above its own trailing 90th. Next 8h bar of BTC.",
+      "null_p95_bps": 6.1198,
+      "passes_screen": false,
+      "total_pnl_usd": -17.3733
+    },
+    {
+      "idea": "TVL-UP",
+      "mean_gross_bps": 28.5661,
+      "mean_net_bps": 8.529,
+      "min_n": 30,
+      "n": 53,
+      "note": "DeFi TVL daily change above its own trailing 90th. Next day, one day.",
+      "null_p95_bps": 56.525,
+      "passes_screen": false,
+      "total_pnl_usd": 4.5204
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "btc_8h": "c115781ef8b40b2ab860d28e5c595d437745a9723b8d3e9b4eb6760f3cfa44bd",
+    "eth_8h": "d8bedc8d00544cae3b84b077e07f78f413f4c4c04f18b507f312c63cc0344428",
+    "tvl": "84a870999979088c717b5352d0838933ad20f3990fc13357ec4b28f9c47cd068"
+  },
+  "passed": [],
+  "protocol_sha256": "c7e90256b7b55fc3038527dc927d382be1d4e40cfb343eda129b3b189ba34118"
+}

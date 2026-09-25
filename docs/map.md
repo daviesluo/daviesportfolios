@@ -700,7 +700,7 @@ before touching migration state.
 | `docs/agents/scripts/fp7/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The next Binance screen: MVRV, active addresses, and BTC's share of BTC+ETH volume. The fill is fp5's. The screen is `docs/agents/backtests/fp7/screen_2023.json`. |
 | `docs/agents/scripts/fp8/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Exchange outflow, hash-rate drops, and quarterly-futures backwardation. The fill is fp5's. The screen is `docs/agents/backtests/fp8/screen_2023.json`. |
 | `docs/agents/scripts/fp9/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The gap between Deribit DVOL and 30-day realized vol, and 8h cross-sectional dispersion. The fill is fp5's. The screen is `docs/agents/backtests/fp9/screen_2023.json`. |
-| `docs/agents/scripts/fp10/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | ETH's last 8h return as a signal for BTC, and a rich day in DeFi TVL. The fill is fp5's. The protocol is `docs/agents/reviews/2026-09-25-fp10-protocol.md`. |
+| `docs/agents/scripts/fp10/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | ETH's last 8h return as a signal for BTC, and a rich day in DeFi TVL. The fill is fp5's. The screen is `docs/agents/backtests/fp10/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

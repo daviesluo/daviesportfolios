@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp10 protocol is written and not scored.** Two rules, not the closed
-families: ETH's last 8h return as a signal for BTC, and a rich day in DeFi
-TVL. No return has been computed. fp5 through fp9 stay closed. No testing
-row. No pull request. No push to main.
+**fp10 failed the 2023 screen and is discarded** (§3.39). Do not score the
+low tails, and do not replace ETH with a second coin. fp5 through fp9 stay
+closed. The next search is not written. No testing row. No pull request. No
+push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -834,6 +834,14 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:15 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp10 screen: nothing passes.** Protocol was `8adc1bf`, before any return.
+Two scores matched (`20cd47a6…`). ETH-LEAD 117 trades, −14.85 bps against a
+null of +6.12, −$17.37. TVL-UP 53 trades, +8.53 bps against +56.53, +$4.52.
+Reference §3.39. The low tails are not candidates, and a second coin is not
+the next version. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:13 UTC] Platform: Cursor | Model: Grok 4.7
 

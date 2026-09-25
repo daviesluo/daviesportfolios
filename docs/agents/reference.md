@@ -2797,6 +2797,16 @@ its own trailing 90th, long BTC for the next 8h: 138 trades, mean −8.1 bps,
 null +4.9 bps. **Nothing here is fit to add.** The lower tails are not
 candidates, and DVOL's level stays closed with them.
 
+### 3.39 ETH's last bar, and DeFi TVL: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp10-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp10/screen_2023.json`). ETH's 8h return
+above its own trailing 90th, long BTC for the next 8h: 117 trades, mean
+−14.8 bps, null p95 +6.1 bps. DeFi TVL's daily change above its own trailing
+90th: 53 trades, mean +8.5 bps, null +56.5 bps. **Nothing here is fit to
+add.** The lower tails are not candidates, and a second coin is not the next
+version of the ETH bar.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
