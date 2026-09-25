@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp229_common": "446bb3397b3eb0282d9221563e3e33fcc898a2280319ccdf2ec5605af9cb7387",
+    "fp229_measure": "21cc38f98264d67d7c79bdc0cc2344624062cd3ef29d507599eab5eb3d3f0896",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "SLD",
+      "mean_gross_bps": -382.3787,
+      "mean_net_bps": -401.5948,
+      "min_n": 30,
+      "n": 177,
+      "note": "Spot's finished ten-day return was strictly above the USDT return. The next spot open is sold and bought back fourteen days later. One spot leg. The USDT book is a signal. Funding cash is not added. The null is that fourteen-day spot short on every day.",
+      "null_p95_bps": -254.4862,
+      "passes_screen": false,
+      "total_pnl_usd": -710.8227
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "17256f8d90bfbb46ca7202c024cf03a6ab35aff60748082b7877ed1aed0c9940"
+  },
+  "passed": [],
+  "protocol_sha256": "344f168501e592949f804fc0a33305dcfb7dc8192457d05704dc562098ad8faa"
+}

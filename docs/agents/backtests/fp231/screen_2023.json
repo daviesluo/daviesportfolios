@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp231_common": "00ec231e5d68ce72c457923bf6f5329f50c27a221ae316a9c6d2f2de00b56044",
+    "fp231_measure": "7b391d9595a40f1bad20fa2eb8b48f45049a84eb8a0983f502df4b371ff50519",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "QNEW",
+      "mean_gross_bps": 782.7995,
+      "mean_net_bps": 761.2554,
+      "min_n": 30,
+      "n": 40,
+      "note": "The most recently listed quarterly is bought during its first fourteen days and sold eleven days later, before expiry. One leg. Funding cash is not added. The null is that eleven-day long on every later day of that contract.",
+      "null_p95_bps": 599.9328,
+      "passes_screen": true,
+      "total_pnl_usd": 304.5022
+    }
+  ],
+  "input_sha256": {
+    "BTCUSD_230630": "b02ddb9b7a39c298293c12afe001caa6bcdf0394b068a6c3e2cb613f4702a45c",
+    "BTCUSD_230929": "c5a89cec465e0151d44fbf0b6d7bd5bcc6ac089e786c47ff7ae15743102ff1be",
+    "BTCUSD_231229": "b93780e92115db5bb43e63f54ba289f5f8484a385f11986ffcb42ea03d587426"
+  },
+  "passed": [
+    "QNEW"
+  ],
+  "protocol_sha256": "41062bc441c7b44046e60320dcbd650b828153a962c58636a18736d926f0effe"
+}

@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp230_common": "319583c44b26197f36e86faa4eef57b5a0862ea159a71dacfc18318a33830c01",
+    "fp230_measure": "7c24a6e3d6b867c8ad590a877ea7c48a6d632572e44d0e2a138e1da80971b3c7",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CMF",
+      "mean_gross_bps": 512.2342,
+      "mean_net_bps": 491.2307,
+      "min_n": 30,
+      "n": 96,
+      "note": "The coin-margined twelve-day return finished negative and below the spot twelve-day return. The next coin-margined open is bought and sold twelve days later. One coin-margined leg. Spot is a signal. Funding cash is not added. The null is that twelve-day long on every day.",
+      "null_p95_bps": 480.976,
+      "passes_screen": true,
+      "total_pnl_usd": 471.5815
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "spot": "82afceed15bca0fdd3b7f1fcce2ae1a98c05f449deb9c31c867699e5ca86f124"
+  },
+  "passed": [
+    "CMF"
+  ],
+  "protocol_sha256": "a52b72bc29f384a3377fd0f8cc9b82fa01f0a21ff37d56cd206fcf55c0118c07"
+}

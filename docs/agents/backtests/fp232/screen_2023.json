@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp232_common": "32b6481b5a9cb1551abb41a8795f1cbe5d933d00e6e137e5773114de8b0a7556",
+    "fp232_measure": "b2619adb1df6031aa39a4c8ba2484667ec7088991dd24eb5c1b7c9e48533d91f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMFD",
+      "mean_gross_bps": -155.834,
+      "mean_net_bps": -175.5027,
+      "min_n": 30,
+      "n": 206,
+      "note": "The USDT close finished above its close nine days earlier. The next open is sold and bought back nine days later. One USDT-perpetual leg. Funding cash is not added. The null is that nine-day short on every day.",
+      "null_p95_bps": -177.8873,
+      "passes_screen": false,
+      "total_pnl_usd": -361.5356
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "9a782b2973b763a2882ecc9bc5520a558999571f8ae6a8fcce122fabdfa29830"
+}

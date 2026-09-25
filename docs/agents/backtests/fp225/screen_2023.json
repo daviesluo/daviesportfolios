@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp225_common": "00c527e01890e571fe5d83f9f24932509e0712fb0d228630c04d3af487437b55",
+    "fp225_measure": "2e05bb0aa43b9468b1b0fe17f84d307d6c1ffd0f3212f73b97bc1868a1d1f16e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "QFAR",
+      "mean_gross_bps": 236.5158,
+      "mean_net_bps": 216.0632,
+      "min_n": 30,
+      "n": 56,
+      "note": "The front quarterly is bought when 21 to 35 days remain and sold ten days later, before expiry. One leg. Funding cash is not added. The null is that ten-day long whenever the sale is still before expiry.",
+      "null_p95_bps": 454.864,
+      "passes_screen": false,
+      "total_pnl_usd": 120.9954
+    }
+  ],
+  "input_sha256": {
+    "BTCUSD_230331": "139821125581b8d8dc948b8f14241128600101218b6e0d879e1706d2f1e931f6",
+    "BTCUSD_230630": "b02ddb9b7a39c298293c12afe001caa6bcdf0394b068a6c3e2cb613f4702a45c",
+    "BTCUSD_230929": "c5a89cec465e0151d44fbf0b6d7bd5bcc6ac089e786c47ff7ae15743102ff1be",
+    "BTCUSD_231229": "b93780e92115db5bb43e63f54ba289f5f8484a385f11986ffcb42ea03d587426"
+  },
+  "passed": [],
+  "protocol_sha256": "23cd14034b4cbbdb6a60b074938930f039aee13334aa3c38e5ffaae6763930b5"
+}
