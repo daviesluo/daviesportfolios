@@ -8017,6 +8017,93 @@ No return of this round has been computed. The next eight are not
 frozen. This is not a testing row. No later-year bar is requested as
 an entry.
 
+### 3.388 Fair-value files counted before a cause (2026-09-25)
+
+Davies, 2026-09-25: the redemption round is recorded. Do not retest
+leveraged-token net asset value, the staking exchange rate already
+scored as WBRAT, PEOPLE's bid, ANT's three cheap days, or a coin-swap
+ratio with no overlapping open. The next round still needs eight
+scored rules. Download the fair-value file first and count at least
+30 days of overlap with that contract's daily bars. Write the cause
+only after that count. Freeze the rule only after the cause. Overlap
+under 30 days is not one of the eight. The eight causes have to
+differ. They cannot be redemption, par, realised price, another
+venue's close, a funding sign, or purchasing-power parity. The fill
+is that contract's own open. The discount known before the entry
+already has to exceed the 20 bp round trip. The threshold stays at
+least 25 bp. A negative mean, or a gap inside 20 bps, is not taken
+out of sample. No testing row.
+
+No return was computed. No file was both a same-unit price and 25 bp
+cheap on 30 days. Nothing was frozen. Nothing was scored. Nothing
+was taken out of sample.
+
+**Cambridge's open download is not a coin price.**
+`https://ccaf.io/cbeci/api/v1.4.0/download/data` is HTTP 200, a gzip
+CSV. The columns are power MAX, MIN and GUESS in GW and annualised
+consumption MAX, MIN and GUESS in TWh, from 2010-07-18. The file has
+365 dates in 2023. The unit is not USD per BTC, so those 365 dates
+are not an overlap that can enter the eight.
+`https://cbeci.org/api/v1.0.5/download/data` is the same family: on
+2023-01-01 the GUESS column is 92.2295, next to the v1.4.0
+annualised-consumption scale, not next to the coin's price. The
+cost was not built by multiplying gigawatts by 0.05. Not frozen.
+
+**The cost-of-minting chart did not download.**
+`https://ccaf.io/cbnsi/cbeci/mining_map/mining_data` describes
+Costbtc as daily electricity expenditure divided by that day's
+bitcoin rewards, at a default 0.05 USD/kWh. The page's script calls
+`https://ccaf.io/cbeci/api/charts/bitcoin_cost_of_minting/daily/`
+plus that price, and
+`https://ccaf.io/cbeci/api/charts/profitability_threshold`. Both
+return HTTP 400, "Invalid recaptcha response". Wayback CDX for
+`ccaf.io/cbeci/api/charts/bitcoin_cost_of_minting/*` is `[]`. The
+finished USD series was not in the response. Not frozen.
+
+**A third-party minting-cost file overlaps and is never 25 bp cheap.**
+`https://raw.githubusercontent.com/xodn348/BTC_EXP/main/data/raw/costs/Historical%20Cost%20to%20Mine%20One%20BTC%20(daily).csv`
+carries the Cambridge header "Average electricity cost assumption:
+0.05 USD/kWh" and the columns Lower bound, Estimated, and Upper
+bound cost of minting USD. The repository's `fetch_costs.py` does
+not download this file. Its formulas both read the estimated column
+and rebuild a cost from annualised TWh. Against BTCUSDT daily bars
+the file has a value on 365 days in 2023. The central estimate on
+day D is compared with that day's close, and the next day's open
+has to exist inside 2023. That is 364 days. Zero of them are 25 bp
+cheap. The richest discount is −3095.0454 bps on 2023-01-01, cost
+11473.7905 against close 16616.75. The upper bound is 111 of those
+364 days and was not used: it is the maximum consumption case of
+the same electricity sentence, which is a threshold swap. Not
+frozen. MacroMicro's chart
+`https://en.macromicro.me/charts/29435/bitcoin-production-total-cost`
+is that same sentence. Its data URL returned a challenge page, not
+a CSV.
+
+**Other downloaded files are the wrong unit or a single print.**
+FRED `APU000072610`, saved beside that cost file, is USD per kWh.
+It has 12 monthly observations in 2023. Twelve is under 30, and a
+kilowatt-hour price is not the coin. Digiconomist
+`https://digiconomist.net/bitcoin-energy-consumption/` is HTTP 200.
+The page shows one current annual electricity total,
+$10,221,786,078, at 5 cents per kWh. It has no daily USD-per-BTC
+file. Coin Metrics' community catalog still has 32 metrics.
+PriceUSD and the ReferenceRate columns are market prices.
+CapMVRVCur is a ratio. CapRealUSD is not in the catalog. Blockchain.com
+`miners-revenue` is the miners' USD revenue, which is the coin
+price times the reward, not a cost. Not frozen.
+
+**Not opened again.** Leveraged-token net asset value, the earn
+exchange-rate URL, PEOPLE, ANT, MC against BEAMX, par, realised
+price, another venue's close, a funding sign, purchasing power,
+gold divided by a stablecoin, an official FX rate divided by a
+stablecoin, and another staking rate. Capriole's energy value uses
+a fiat factor fit to the coin's own history and an energy price
+index, and the chart page does not publish a CSV.
+
+No return of this round has been computed. The next eight are not
+frozen. This is not a testing row. No later-year bar is requested as
+an entry.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
