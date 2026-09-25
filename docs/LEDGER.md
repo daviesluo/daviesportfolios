@@ -836,6 +836,11 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
+### [2026-09-25 00:53 UTC] Platform: Cursor | Model: Grok 4.7
+
+**The search is on the branch, not on main.** `cursor/binance-fp5-search-7bc0`
+was pushed with the research at `0beda80`. No testing row. Main was not pushed.
+
 ### [2026-09-25 00:52 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp7 screen: nothing passes.** Protocol was already committed. Two scores
