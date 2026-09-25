@@ -7269,6 +7269,64 @@ before the freeze was 168 against 182. The scored book is 168 and 182. The
 rule was not changed. This is not a testing row and it is not taken out of
 sample.
 
+### 3.360 Settled funding and SOFR are frozen, with no return (2026-09-25)
+
+Davies, 2026-09-25: the eight public daily closes are recorded. All eight
+failed. The next rules do not buy because this contract's close finished
+under another venue's spot or futures close, and they do not switch to
+another exchange's daily close. The external series has to be published
+at the decision and absent from the daily bar being traded. Each rule
+names the fair value the price paid is cheap against. The fill is that
+contract's own open. A book ticker is not read.
+
+Two sources are used. The first is Binance settled funding,
+`GET /fapi/v1/fundingRate` or `GET /dapi/v1/fundingRate` on
+`https://www.binance.com`. `fundingTime` is the settlement time. A stamp
+that is not strictly earlier than the daily open is not used. The vision
+monthly zip matches this history on the USD-M books (1188 stamps, no rate
+mismatch). The coin-margined monthly zip omits the last day of each month
+(39 stamps). Those stamps are in the history endpoint and the overlap
+matches, so the stored series is the history endpoint. The second source
+is the New York Fed SOFR,
+`https://markets.newyorkfed.org/api/rates/secured/sofr/search.json`,
+page `https://www.newyorkfed.org/markets/reference-rates/sofr`. Publication
+is 13:00 UTC on the next effective date in the series, not the effective
+date. The eight-hour carry is `percent / 100 * (8 / 24) / 360`.
+
+The cheap-to-index rules buy when the last settled rate is negative: the
+contract finished below the index in the funding formula. The
+cheap-to-SOFR rules buy when that rate is strictly below the published
+eight-hour SOFR carry: the contract finished cheap to the cash-and-carry.
+Funding cash is not added. The hold is two days, the shortest hold that
+is not one day and the first line where each of these sets has at least
+30 spans and the edge-off set is at least as long. The other trade is the
+same book and the same side with that edge off. ETHUSDT funding below
+zero had 27 spans and was not shipped. BNBUSDT is the next USDT book on
+that fair value. BNBUSDT funding below SOFR was the longer set, 294
+against 70, and was not shipped. The short side was not taken. The
+constant 0.01% interest rate was not used as a threshold.
+
+Option end-of-hour summaries were not used. A daily file is an archive of
+a finished day, so it is not treated as a same-night print. With the file
+lagged a full extra day and a real traded open, no BTC or ETH call or put
+reached 30 spans. That clock was not pulled forward.
+
+Counts of spans, taken before this freeze, with no profit computed:
+
+| Rule | Spans | Edge off | Fillable |
+| --- | ---: | ---: | ---: |
+| UZERO | 36 | 328 | 364 |
+| CZERO | 37 | 321 | 358 |
+| EZERO | 40 | 318 | 358 |
+| BZERO | 102 | 262 | 364 |
+| USOFR | 126 | 238 | 364 |
+| CSOFR | 76 | 282 | 358 |
+| ESOFR | 120 | 244 | 364 |
+| MSOFR | 84 | 274 | 358 |
+
+No later-year return of these rules has been computed. No testing row is
+added. The next eight are not frozen.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
