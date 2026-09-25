@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp71–fp78 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. No later year was pulled. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp70, and the previous round's eight named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp79–fp86 are frozen and not yet scored.** Eight screens are written down. No return of these rules has been computed. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 04:57 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp79–fp86 protocols only. No return of these rules has been computed.** Eight screens frozen together: the return of the earliest maximum-quote hour, where the day's VWAP sits between the low and the high, the largest gap from an hourly close to the next hour's open, the quote share of hours 12 through 17, the close of the high's hour over the day's open, the quote-weighted mean of the 24 hourly returns, the lower median of the 24 hourly closes over the day's open, and the mean overlap of consecutive hourly ranges. Pins passed on synthetic bars. The low is not stored for the busiest hour. The open is not an input to the VWAP's place in the range, and the close is not stored. Yesterday's close does not enter the intraday gap. Hours 18 through 23 do not enter the noon numerator, and a missing hour outside that block is still not a print. The high price selects the hour and is not the numerator. The weighted return does not reduce to the busiest hour. The minimum close does not decide the median. A partial overlap is a fraction, and the sum of the ranges does not enter. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 04:44 UTC] Platform: Cursor | Model: Grok 4.7
 
