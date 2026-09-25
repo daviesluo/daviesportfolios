@@ -835,6 +835,18 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 04:07 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight temperature rules frozen and not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). The 03:51 section ran MED, VAR, NEAR, RICH, YDAY, CLIM, JUMP and HOT; none cleared the bar, and none of them is reopened. This round's eight each have a fill walk. No price of these rules and no return have been read. VOL, COPY, ROUND, FADE, POST, HITS, POISSON and PACE stay failed. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. A same-bucket gap between cities, a weekday split of CLIM, and the reverse of JUMP were not run (`reviews/2026-09-25-polymarket-fp5-round9-kills.md`).
+- PEER (`reviews/2026-09-25-polymarket-fp5-prereg-peer.md`): the bucket that contains other cities' latest midpoints. Self-check 37.224048.
+- DIURNAL (`reviews/2026-09-25-polymarket-fp5-prereg-diurnal.md`): yesterday's low plus the month's median daily range, highs only. Self-check 21.913065.
+- SHIFT (`reviews/2026-09-25-polymarket-fp5-prereg-shift.md`): the bracket the histogram of past changes points at, yesterday's bracket excluded. Self-check 60.998571.
+- NEXT (`reviews/2026-09-25-polymarket-fp5-prereg-next.md`): the other bucket yesterday's bucket most often moved to. Self-check 33.093261.
+- BACK (`reviews/2026-09-25-polymarket-fp5-prereg-back.md`): one listed bucket from yesterday toward the month median, never the median bucket. Self-check 80.464091.
+- MEAN3 (`reviews/2026-09-25-polymarket-fp5-prereg-mean3.md`): the bucket that contains the mean of the last three midpoints. Self-check 17.457778.
+- DRIFT (`reviews/2026-09-25-polymarket-fp5-prereg-drift.md`): one listed bucket on the side past steps mostly took. Self-check 25.354286.
+- AGREE (`reviews/2026-09-25-polymarket-fp5-prereg-agree.md`): the three-day mean and the other cities' median, only when they name one bucket. Self-check 42.226579.
+
 ### [2026-09-25 03:51 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5, eight rules were run on the full sample and none clears the bar.** The 03:42 section froze them before any price of the rule was scored. This section is those runs. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. VOL, COPY, ROUND, FADE, POST, HITS, POISSON and PACE were not retuned. The search file is not written: nothing passed. Each run was repeated and the two files matched.
