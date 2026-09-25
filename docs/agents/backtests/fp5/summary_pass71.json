@@ -1,0 +1,59 @@
+{
+  "inputs_sha256": {
+    "inventory_cost.json": "6f8f67f5b5da9b4a68d5515d60a55202e9b673a9bb064735690941472b6a87d5"
+  },
+  "kills": {
+    "rxcost_2025": {
+      "btc_bps": -37184.2,
+      "candle_bar_clear": false,
+      "edge": "inventory_average_cost",
+      "edge_off_bps": -72048.4,
+      "eth_bps": -34999.7,
+      "execution_bars": 1829,
+      "fill": "uk_4h_printed_open_to_next_open",
+      "long_days": 964,
+      "month_share": null,
+      "name": "rxcost_2025",
+      "null_p50_bps": -38080.2,
+      "null_p95_bps": -34108.1,
+      "pool_bps": -36091.9,
+      "signals_without_open": 0,
+      "source": "sec_inventory_cost",
+      "stress_bps": -74651.9,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 964,
+      "unit": "USD per coin",
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random long-both null; pooled P&L does not exceed 400 bps"
+    },
+    "rxmnav_2025": {
+      "btc_bps": -776.7,
+      "candle_bar_clear": false,
+      "edge": "equity_cap_per_coin",
+      "edge_off_bps": -72048.4,
+      "eth_bps": -818.3,
+      "execution_bars": 1829,
+      "fill": "uk_4h_printed_open_to_next_open",
+      "long_days": 15,
+      "month_share": null,
+      "name": "rxmnav_2025",
+      "null_p50_bps": -594.0,
+      "null_p95_bps": 29.7,
+      "pool_bps": -797.5,
+      "signals_without_open": 0,
+      "source": "equity_market_cap",
+      "stress_bps": -1397.5,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 15,
+      "unit": "USD per coin",
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random long-both null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed at 2026-09-25 16:19:22 UTC, before its own result. Pass 70's eight rules were not a price edge. rxust, rxbei, rxdxy, rxcpi, and rxdebt are one sentence: a macro number changed, so buy both books. rxdvol and rxdmed are one sentence: implied volatility is lower, so buy both books. Volatility points are not a price. rxfund is a funding percent and a sign bet, not a USD price. Pass 70's only control was a random long-both null, so the timing test was side selection. That family is not rerun. Pass 69 bought when the UK open was below another venue's close of the same coin. It is not rerun. Pass 68 priced the UK book's own opens. It is not rerun. Passes 62 through 67 are not rerun and their signs are not flipped. Every fill is a printed UK four-hour open to the next UK four-hour open. The books are BTC-USD and ETH-USD, region=UK, the same pull as pass 62. EEA candles are not read. No other pair is stood in. The UK open is the price paid. It is not the fair value. Fair value is USD per coin. discount_bps = (fair_usd / uk_open - 1) * 10000. Both books are bought only when both discounts are strictly positive. The inventory rule uses Strategy's 8-K average purchase price and the ETH cost line of Bitmine's table. The capitalization rule uses the common-share count, the coin count, and the common close. Class B, 19640250 shares, is included because it converts one for one. The two sets share no bar. Counts before any return were 964 and 15, out of 1,829 bars, indices 432 through 2260. The 15 capitalization bars sit inside the pass 70 CPI set of 1,405 and the debt set of 1,349. Jaccard is 0.011 and 0.011. Those sets are not this price, and those rules are not rerun. Two already-scored sets of 2 bars sit inside the 964. The 964 is not those sets. Coin Metrics realized price stays below every BTC open in this window, so both-below is not a rule. The latest lot price was not frozen. Option-implied spot and an ETF implied coin price were not frozen. No threshold, lag, tenor, or second issuer was added to make eight rules. The edge-off control is the same long-both fill with the cheapness filter turned off. It is not a ninth rule. The null remains 500 long-both draws from the 1,829-bar window, seed 20260925, index 474. Beating a negative edge-off pool or a negative null while the pool stays negative is not close to a pass. No rule here selects the same entry bars as one already scored, and none is a subset of one. No pair has Jaccard at or above 0.75. The 60-trip gate is not lowered. rxcost is -36091.9 bps over 964 trips, edge-off -72048.4, null p95 -34108.1 rxmnav is -797.5 bps over 15 trips, edge-off -72048.4, null p95 29.7. No testing row is opened. A numeric clear on these UK opens is still not paper testing, because no order of this account was shown crossing the book. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass. Pass 72 is not opened. No further published USD price was left that is not a rewrite of a banned sentence.",
+  "reached_preregistration": false,
+  "rules": {
+    "rxcost_rule_sha256": "3bc258f5411269373fa3473c945987d497ad6e094d029f0d50edc83b581da173",
+    "rxmnav_rule_sha256": "b21d6cc70d17bacd2dc5680ad0f0df25b195c44c5c54a96f839a57433f2aff5a"
+  }
+}
