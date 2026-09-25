@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp145–fp152 are scored. Nothing passes the house bar.** Eight market statistics, each long BTC for one day, each with fills. UMCMJMP has 26 trades. The count stays 30. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
+**fp153–fp160 are protocols only. No return has been computed.** Eight mechanisms, none of them a day-over-day jump above its own 90th long BTC for one day: hedged cash-and-carry (BASBOOK), a funding short that keeps the hold's funding (FNCARRY), an open-to-close long after taker parity (TAKSESS), an overnight long after open interest rose (OINIGHT), five-day momentum held two days (MOM5), an up day then a two-percent stop (UPSTOP), a long when the 00:00 funding rate is the richest (PEAK0), and a long after the taker ratio crosses up through one until it returns (TAKX). The count stays 30. No percentile window is used, and none is shrunk. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 08:19 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp153–fp160 are protocols only. No return has been computed.** Pins printed fp153 through fp160 pins ok before this commit. Eight mechanisms, and none of them is today minus yesterday above its own 90th, long BTC for one day. BASBOOK is long spot and short the perpetual when the premium close is above zero, and the short keeps the hold's 08:00 and 16:00 funding. FNCARRY shorts the perpetual after the three funding rates sum to more than zero, and keeps that hold's 08:00 and 16:00 funding. TAKSESS buys the next open and sells that day's close when the last taker ratio is above one. OINIGHT buys the close and sells the next open when dollar open interest rose through the day. MOM5 buys the next open and sells the open two days later when the close is above the close five days earlier. UPSTOP longs the day after an up candle and exits at 2% under the open when the low trades there. PEAK0 longs one day when the 00:00 funding rate is strictly the richest of the three. TAKX longs the day after the taker ratio crosses up through one and exits when a later last print is back at or under one, capped at five days. The count stays 30. No percentile is used, so no window was shrunk. No sign of a killed rule is flipped. fp145–fp152 stay closed. UMCMJMP stays at 26 trades. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:59 UTC] Platform: Cursor | Model: Grok 4.7
 
