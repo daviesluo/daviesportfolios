@@ -238,8 +238,9 @@ that follow from that evidence, in short:
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
 - **The set that is live is ONE row**: `trend-4h-live` ("Trend 4h ·
-  Revolut X · live") on Revolut X, BTC/ETH/SOL/AVAX, four equal $12.50
-  slots, $50, created 2026-09-24 22:51:15 UTC by `0054_go_live.sql` and
+  Revolut X · live") on Revolut X, BTC/ETH/SOL/AVAX, four equal $25
+  slots, $100 (raised from $50 on 2026-09-25, on Davies' word), created
+  2026-09-24 22:51:15 UTC by `0054_go_live.sql` and
   armed the same evening (`live_confirmed_at` 22:53:09.568 UTC) on
   Davies' word (§3.31, §4.34). That set is the allocation study's
   answer (§3.11) and the go-live brief's (`docs/agents/go-live.md`),
@@ -269,10 +270,12 @@ that follow from that evidence, in short:
   migration was applied as `0054_go_live.sql` at 2026-09-24 22:51:15 UTC:
   a NEW row `trend-4h-live` ("Trend 4h · Revolut X · live"), with
   `trend-4h` kept paper as its same-venue control. The row was created
-  unarmed, with a $15 cap (one slot); arming (`live_confirmed_at`
+  unarmed, with a $15 cap (one $12.50 slot); arming (`live_confirmed_at`
   22:53:09.568 UTC) was the one statement run in the conversation where
-  Davies said go. The cap stays $15 until the first round trip has been
-  read back, then rises to $30, and to $75 after a clean week. The
+  Davies said go. On 2026-09-25 he set the funded capital to $100. A slot
+  is the capital divided by the coins, so it is $25, and the one-slot cap
+  moved with it to $25. The later steps of $30 and $75 were written for
+  the $50 book and are not the next raises. The
   audit's D1–D10 and the $50 validation's D11/D12 are fixed and pinned
   (§4.32–§4.33).
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,

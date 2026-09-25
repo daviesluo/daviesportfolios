@@ -47,7 +47,7 @@ list stays the short version; the plan is the reasoning behind it.
      account; `_shared/polymarket.ts` stays GET-only until the design is agreed. The design says: order signing (the
      CLOB's EIP-712 orders and L2 headers), a dry-run first, caps, the kill switch, reconciliation by order id, and
      reading the account's actual reward payouts to compare with the formula — the one thing paper cannot show.
-   - **G4 — trend-4h is LIVE at $50: `0054_go_live.sql` applied 2026-09-24 22:51:15 UTC, armed 22:53:09 UTC** on
+   - **G4 — trend-4h is LIVE at $100: `0054_go_live.sql` applied 2026-09-24 22:51:15 UTC, armed 22:53:09 UTC; funded capital raised 2026-09-25 02:42 UTC** on
      Davies' word ("验证没问题的话就上线，并盯着上线情况", 22:35; at 22:40: "上线后的买卖不需要找我确认，如果真的需要你帮忙盯
      着就行" — no confirmation of his for any trade after the go-live; the session watches, and the read-back is the
      session's). The first bar it can enter on closes 2026-09-25 00:00 UTC; nothing is held and no live order exists.
@@ -59,8 +59,11 @@ list stays the short version; the plan is the reasoning behind it.
      banners and the admin badge show only when the site is open). The queries, one per check, are in the Cursor
      project store's `internal/trend-4h-watch.md`. **The first buy's read-back** (before its exit): the fee fields the
      venue sent or `feeDerived`, `filled_base` in whole `base_step`s (D11), `fromAccount` (D12), and the coin's balance
-     against the book (the probe, booleans only); after the sell: the book flat and the account under one step. **Cap
-     steps:** 15 → 30 once that first round trip reads back clean, → 75 after seven clean days; each is one statement
+     against the book (the probe, booleans only); after the sell: the book flat and the account under one step. **Cap:**
+     one slot. On the $50 book that was 15, with later steps 30 then 75 written for that book. Davies raised the funded
+     capital to $100 on 2026-09-25 (the account's available USD equalled 100). A slot is `capital_usd / symbols`
+     (`slotUsdOf`), so the slot is $25 and `max_exposure_usd` moved with it to 25 — still one position, not the whole
+     book. The 30 and 75 steps are not the next raises. A later change is one statement
      (`update public.agent_risk set max_exposure_usd = … where id = 1;`), and Davies is told when it runs. In the Claude Code session the move below was refused by the tool's permission
      layer (it is the act of going live), so it is Davies' to allow or to run himself. The verification: paper
      `trend-4h` healthy (30 decisions in 24 h, the last at 20:00, flat after its three exits) with params identical to
@@ -835,6 +838,16 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 02:42 UTC] Platform: Cursor | Model: Grok 4.7
+
+**trend-4h-live's funded capital is $100, and the one-slot cap moved with the slot.** Davies, in this conversation:
+the only live Revolut X row should be funded at $100, and that account should hold exactly $100. `slotUsdOf` is
+`capital_usd / symbols`, so $100 on four coins is a $25 entry, which does not fit under 15. The same path that armed
+the row (one `update` each, no migration file, no order): `agent_strategies.capital_usd` 50 → 100 on `trend-4h-live`,
+`agent_risk.max_exposure_usd` 15 → 25. `live_confirmed_at` stayed 22:53:09.568, `global_pause` false, live orders 0.
+The probe (`only=revx`, request 33657) answered 200 and the USD row's available equalled 100 (`usd_available_eq_100`
+true); the amount was not read out. The ticks at 02:43:00 and 02:44:01 were both HTTP 200, 7 strategies, `errors` empty, and `ops_errors` since the update is 0. The 30 and 75 cap steps were written for the $50 book and are not the next raises.
 
 ### [2026-09-25 00:30 UTC] Platform: Cursor | Model: Grok 4.7
 
