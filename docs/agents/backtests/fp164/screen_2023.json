@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp164_common": "3f8b3eec0727d93089983dec49571b3410c3f831e372567b8f22ca767f0e2159",
+    "fp164_measure": "62bb6c846837ebe1efe22f40b4c6199671ccf2096ad682a5cde71a8aa168dadd",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BRKHI",
+      "mean_gross_bps": 152.7803,
+      "mean_net_bps": 132.4951,
+      "min_n": 30,
+      "n": 70,
+      "note": "The high breaks yesterday's high and the range is the widest of four days. Buy yesterday's high, or the open if it is already through, and sell the close.",
+      "null_p95_bps": 64.3265,
+      "passes_screen": true,
+      "total_pnl_usd": 92.7466
+    }
+  ],
+  "input_sha256": {
+    "spot_ohlc": "fe6b2cad76362b04daf6bbb04d9523f0d01d462e6056c8e4d84b740d4afebab8"
+  },
+  "passed": [
+    "BRKHI"
+  ],
+  "protocol_sha256": "497e395745359b330e8b2e94c5a9511bdd258c458dc52638ca33b0f76acc47ce"
+}

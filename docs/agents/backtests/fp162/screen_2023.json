@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp162_common": "c139136c6563934911d46ef8610544c92201797e6562b37648da754da91eae87",
+    "fp162_measure": "adcd9257c697e513a4b4b4dab2c148795a1f5ac38c0e61f4c35c1dcd8a0d26de",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ACCUM",
+      "mean_gross_bps": 11.5339,
+      "mean_net_bps": -8.4691,
+      "min_n": 30,
+      "n": 71,
+      "note": "Dollar open interest rose and the candle closed under its open. Next open, long BTC for one day.",
+      "null_p95_bps": 45.9676,
+      "passes_screen": false,
+      "total_pnl_usd": -6.0131
+    }
+  ],
+  "input_sha256": {
+    "oi_ends": "1f91eadfd5d384ae80e1a9890973ff2838511e434d1b7e39ec3960aa6f751461",
+    "spot_open_close": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "7e69ba8775b320603467f9e7f296dc055f2f1d2ae82590827ebb32a48c630130"
+}

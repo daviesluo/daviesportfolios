@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp168_common": "c2ae25dc5af3c43e0fe5387565d248f16cf113d5a20286ef6b93137a004a1319",
+    "fp168_measure": "e142da0cb9445ced6ddec6ca68877622d7f167e23732e780182fe326fa2576a5",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FLOW",
+      "mean_gross_bps": 81.4455,
+      "mean_net_bps": 61.3028,
+      "min_n": 30,
+      "n": 96,
+      "note": "Dollar open interest rose and the taker ratio rose. Next open, long BTC, and sell the open two days later.",
+      "null_p95_bps": 88.5715,
+      "passes_screen": false,
+      "total_pnl_usd": 58.8506
+    }
+  ],
+  "input_sha256": {
+    "oi_ends": "1f91eadfd5d384ae80e1a9890973ff2838511e434d1b7e39ec3960aa6f751461",
+    "spot_open": "0fa288ab5f14f738c157ee486add54f641aa8136bab4fdb12308d7148f9c2817",
+    "taker_ends": "31ddde56b05d5e8644ddb1f38759071a3b901d0e5248961515578f0f3bd609d7"
+  },
+  "passed": [],
+  "protocol_sha256": "bba8abc236cd724361a5feb53bd116b336dc1a0d0f999d0328d5e0e6b3ce78a1"
+}

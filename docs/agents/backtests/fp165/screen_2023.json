@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp165_common": "519c5364950ef2fe53512b0dacf463f0c18e82fe05797bb1e3357b318f03096f",
+    "fp165_measure": "59e7fa3ed9ed7d153d36156c80d8bb42cd3a020e010161f827b9c27b56a96165",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FAILSH",
+      "mean_gross_bps": -7.4638,
+      "mean_net_bps": -27.4289,
+      "min_n": 30,
+      "n": 85,
+      "note": "The high broke yesterday's high and the close finished under it. Next day, short BTC from the open to the next open. The funding cash is not added.",
+      "null_p95_bps": -5.6316,
+      "passes_screen": false,
+      "total_pnl_usd": -23.3146
+    }
+  ],
+  "input_sha256": {
+    "spot_open_high_close": "be80949c70b9caa9547f8523f1a6c39c62ded316a8af1fcee9eb5e3624e492d6"
+  },
+  "passed": [],
+  "protocol_sha256": "a93ea56d7110f1c29dab53e11b267ed6a83d9665723503401ac8f7b78a985148"
+}

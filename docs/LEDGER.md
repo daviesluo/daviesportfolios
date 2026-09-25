@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp161–fp168 are protocols only. No return has been computed.** Eight mechanisms, and none of them is today minus yesterday above its own 90th. FNCLIMB longs one day after the three funding rates rise through the day, and does not add the funding cash. ACCUM longs one day after dollar open interest rose on a down candle. TAKTGT buys the next open and sells at 2% above it when the high reaches it, otherwise the close, after the taker ratio rose. BRKHI buys yesterday's high when that break is also the widest range of four days, and sells the close. FAILSH shorts the next day after a break that closed back under yesterday's high. VOL3 longs three days after base volume beats the volume ten days earlier. WIDE4 longs the next session after the widest range of four days. FLOW longs two days after open interest and the taker ratio both rose. The count stays 30. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. No testing row. No pull request. Main was not pushed.
+**fp161–fp168 are scored. BRKHI passes the 2023 screen. The later years are not read.** The pre-registration is `docs/agents/reviews/2026-09-25-fp164-prereg-brkhi.md`, sha256 `28a3d44d…`, frozen 2026-09-25T08:45:36Z. Seven mechanisms fail. The count stays 30. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 08:46 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp161–fp168 are scored. BRKHI passes the 2023 screen. The later years are not read.** The protocol was `587361b`, pushed before any of these returns. Each screen file was written twice and the copies matched. FNCLIMB 47 / file gross +25.6943 / file mean +5.663 / null +66.6563 / +$2.6616 (`4bbeed6d…`). ACCUM 71 / file gross +11.5339 / file mean −8.4691 / null +45.9676 / −$6.0131 (`ce635637…`). TAKTGT 181 / file gross +18.1385 / file mean −1.8777 / null +13.1105 / −$3.3987 (`9c471ad2…`). BRKHI 70 / file gross +152.7803 / file mean +132.4951 / null +64.3265 / +$92.7466 (`74e2a3be…`), screen pass. The null pool is 170 breaks. FAILSH 85 / file gross −7.4638 / file mean −27.4289 / null −5.6316 / −$23.3146 (`b0d7f220…`). VOL3 179 / file gross +100.3977 / file mean +80.2171 / null +105.9313 / +$143.5886 (`3adfe17e…`). WIDE4 100 / file gross +59.5503 / file mean +39.4513 / null +43.1007 / +$39.4513 (`7ce8d049…`). FLOW 96 / file gross +81.4455 / file mean +61.3028 / null +88.5715 / +$58.8506 (`844a8ce8…`). Every rule has fills. FNCLIMB, VOL3, WIDE4 and FLOW are positive and under their own null. ACCUM, TAKTGT and FAILSH have a negative mean. BRKHI's mean is positive and above its null. Three BRKHI fills were recomputed from the stored prices and matched. The pre-registration is `docs/agents/reviews/2026-09-25-fp164-prereg-brkhi.md`, sha256 `28a3d44d6ab9e50ca2ddb180084cc1036bf1cb650b1deaf2e0f85ec84715da09`, frozen 2026-09-25T08:45:36Z, BTCUSDT bid 84306.00000000, ask 84306.01000000, half-spread 5.930775627881614e-08. No daily bar after 2023-12-31 was requested. The screen file stops on 2023-12-31. The width is the finished day's range and the buy is a price inside that day; that is the fill the screen ran, and it was not rewritten as a next-day entry after the number was seen. Reference §3.190–§3.197. No percentile was used. No sign of a killed rule was flipped. No count was lowered. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No liquidation file was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 08:37 UTC] Platform: Cursor | Model: Grok 4.7
 

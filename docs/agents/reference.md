@@ -4696,6 +4696,104 @@ positive; it lost to the null. The null starts the same exit on a random day.
 Taker prints through 2024-01-04 and opens through 2024-01-05 were exits only.
 The cap stayed at five days. The count stays 30.
 
+### 3.190 A rising funding path: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp161-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp161/screen_2023.json`,
+sha256 `4bbeed6d…`). The 00:00 funding rate strictly under the 08:00 rate, and
+that rate strictly under the 16:00 rate, long BTC for one day, funding cash
+not added: 47 trades, mean +5.663 bps, null p95 +66.6563 bps, +$2.6616. The
+file's gross is +25.6943 bps. **Nothing here is fit to add.** Forty-seven
+trades clear 30, and the mean was positive and under the null. The null is
+every one-day long. A flat step did not fire. The funding cash was not added.
+
+### 3.191 Open interest up on a down day: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp162-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp162/screen_2023.json`,
+sha256 `ce635637…`). Dollar open interest higher at the last print than the
+first, and the close under the open, long BTC for one day: 71 trades, mean
+−8.4691 bps, null p95 +45.9676 bps, −$6.0131. The file's gross is +11.5339
+bps. **Nothing here is fit to add.** Seventy-one trades clear 30, and the
+mean was negative and under the null. The null is every one-day long.
+Yesterday was not read. An up candle did not fire.
+
+### 3.192 A two-percent target after the taker ratio rose: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp163-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp163/screen_2023.json`,
+sha256 `9c471ad2…`). The last taker ratio strictly above the first, then a
+long that sells at 2% above the next open when the high reaches it, otherwise
+at the close: 181 trades, mean −1.8777 bps, null p95 +13.1105 bps, −$3.3987.
+The file's gross is +18.1385 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative and under the null. The null is that same
+target on every day. Two percent was not refit. One was not the cut.
+
+### 3.193 A wide break of yesterday's high: the screen passes, the later years are not read (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp164-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp164/screen_2023.json`,
+sha256 `74e2a3be…`). A break of yesterday's high that is also strictly wider
+than each of the three prior days, buying yesterday's high or the open if it
+is already through, and selling the close: 70 trades, mean +132.4951 bps,
+null p95 +64.3265 bps, +$92.7466. The file's gross is +152.7803 bps. The null
+is the same stop on every break, and that pool has 170 days. The screen's
+last bar is 2023-12-31. Three fills were recomputed from the stored open,
+high, low and close and matched. **The 2023 screen passes.** The
+pre-registration (`reviews/2026-09-25-fp164-prereg-brkhi.md`, sha256
+`28a3d44d…`, frozen 2026-09-25T08:45:36Z, BTCUSDT bid 84306.00000000, ask
+84306.01000000, half-spread 5.930775627881614e-08) is frozen before any daily
+bar after 2023-12-31 is read. The later years are not scored in this note.
+The width is the finished day's range. The buy is a price inside that day.
+That is the fill the screen ran.
+
+### 3.194 A short after a failed break: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp165-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp165/screen_2023.json`,
+sha256 `b0d7f220…`). The high broke yesterday's high and the close finished
+under it, then a one-day short, funding cash not added: 85 trades, mean
+−27.4289 bps, null p95 −5.6316 bps, −$23.3146. The file's gross is −7.4638
+bps. **Nothing here is fit to add.** Eighty-five trades clear 30, and the
+mean was negative and under the null. The null is a one-day short on every
+day. A close equal to the broken high did not fire.
+
+### 3.195 Volume above ten days earlier, held three days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp166-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp166/screen_2023.json`,
+sha256 `3adfe17e…`). Base volume strictly above the volume ten days earlier,
+long from the next open to the open three days later: 179 trades, mean
++80.2171 bps, null p95 +105.9313 bps, +$143.5886. The file's gross is
++100.3977 bps. **Nothing here is fit to add.** The count cleared and the
+mean was positive and under the null. The null is every three-day long.
+Opens through 2024-01-03 were exits only. Ten days and three days were not
+refit.
+
+### 3.196 The widest range of four days, then a session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp167-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp167/screen_2023.json`,
+sha256 `7ce8d049…`). A range strictly wider than each of the three prior
+days, long the next day from the open to the close: 100 trades, mean
++39.4513 bps, null p95 +43.1007 bps, +$39.4513. The file's gross is +59.5503
+bps. **Nothing here is fit to add.** One hundred trades clear 30, and the
+mean was positive and under the null. The null is every open-to-close
+session. A tie did not fire. The buy of yesterday's high on the wide day
+itself was a different rule.
+
+### 3.197 Inventory and the taker ratio both up, held two days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp168-protocol.md`) was committed before any
+return (`587361b`). Two runs matched (`backtests/fp168/screen_2023.json`,
+sha256 `844a8ce8…`). Dollar open interest up and the taker ratio up, long
+from the next open to the open two days later: 96 trades, mean +61.3028 bps,
+null p95 +88.5715 bps, +$58.8506. The file's gross is +81.4455 bps.
+**Nothing here is fit to add.** The count cleared and the mean was positive
+and under the null. The null is every two-day long. Opens through 2024-01-02
+were exits only. Either condition alone was not scored. Two days was not
+refit.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

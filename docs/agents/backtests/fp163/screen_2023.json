@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp163_common": "803ab051da99e3926b42740d1178cb77698b086dcef8581133a9ab0f22ece070",
+    "fp163_measure": "620fdcc79a2346dca6aa0bf5877fdc3841915434f44750d0e0aa3a120f835aa0",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TAKTGT",
+      "mean_gross_bps": 18.1385,
+      "mean_net_bps": -1.8777,
+      "min_n": 30,
+      "n": 181,
+      "note": "The taker ratio rose through the day. Next day, buy the open, sell at 2% above it when the high reaches it, otherwise sell the close.",
+      "null_p95_bps": 13.1105,
+      "passes_screen": false,
+      "total_pnl_usd": -3.3987
+    }
+  ],
+  "input_sha256": {
+    "spot_open_high_close": "be80949c70b9caa9547f8523f1a6c39c62ded316a8af1fcee9eb5e3624e492d6",
+    "taker_ends": "31ddde56b05d5e8644ddb1f38759071a3b901d0e5248961515578f0f3bd609d7"
+  },
+  "passed": [],
+  "protocol_sha256": "5f9d5b420ba7b0a2ce05b665c1a9252b3899cc5742652a53f3c789517e452c66"
+}
