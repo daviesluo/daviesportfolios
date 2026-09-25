@@ -8,13 +8,13 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp21 failed the 2023 screen and is discarded** (§3.50). The count cleared
-and the mean was positive; it lost to the null. Do not score a close under
-the VWAP, and do not score the 80th. GAP-UP stays dead (§3.49). Do not
-reopen CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day
-range, the taker share, dispersion, or skew. fp5 through fp20 stay closed,
-including LS-FADE. The next search is not written. No testing row. No pull
-request. No push to main.
+**fp22 protocol is frozen. No return has been computed.** VOL-HHI is the
+Herfindahl of the day's 24 hourly quote shares, long BTC the next day. Do
+not score an even day. VWAP-PREM stays dead (§3.50): do not score a close
+under the VWAP or the 80th. Do not reopen GAP-UP, CLOSE-LOC, PAIR-CORR,
+AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
+dispersion, or skew. fp5 through fp21 stay closed, including LS-FADE. The
+screen is the next step. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +837,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:17 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp22 protocol only. No return has been computed.** A different family from
+the seventeen closed rounds: the Herfindahl of BTC's 24 hourly quote
+shares, long BTC the next day. VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR,
+AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
+dispersion and skew stay closed. An even day is not a candidate.
+`pin_test.py` passed before this commit. The screen is the next step. No
+pull request. Main was not pushed.
 
 ### [2026-09-25 02:14 UTC] Platform: Cursor | Model: Grok 4.7
 
