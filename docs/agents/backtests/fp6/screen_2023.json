@@ -1,0 +1,146 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp6_common": "327b108e32cb2e064d2125b22aced57594ef665e71d3e92040bddffad0a551bf",
+    "fp6_measure": "330e915902dd9a95d6866e2a29ff12610fe810ef61b5d7336517f961ffe9af6a"
+  },
+  "ideas": [
+    {
+      "idea": "USDC-CHEAP",
+      "mean_gross_bps": 31.3498,
+      "mean_net_bps": 11.3072,
+      "min_n": 30,
+      "n": 13,
+      "note": "candidate",
+      "null_p95_bps": -10.8002,
+      "passes_screen": false,
+      "total_pnl_usd": 1.4699
+    },
+    {
+      "idea": "BTCUSDC-GAP",
+      "mean_gross_bps": null,
+      "mean_net_bps": null,
+      "min_n": 30,
+      "n": 0,
+      "note": "candidate",
+      "null_p95_bps": null,
+      "passes_screen": false,
+      "total_pnl_usd": 0
+    },
+    {
+      "idea": "FUND-GAP",
+      "mean_gross_bps": 20.0296,
+      "mean_net_bps": 0.0095,
+      "min_n": 30,
+      "n": 158,
+      "note": "candidate",
+      "null_p95_bps": 3.7357,
+      "passes_screen": false,
+      "total_pnl_usd": 0.015
+    },
+    {
+      "idea": "MONDAY",
+      "mean_gross_bps": 14.4052,
+      "mean_net_bps": -5.6036,
+      "min_n": 30,
+      "n": 52,
+      "note": "candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": -2.9139
+    },
+    {
+      "idea": "QUIET",
+      "mean_gross_bps": 2.0155,
+      "mean_net_bps": -17.9685,
+      "min_n": 30,
+      "n": 37,
+      "note": "candidate",
+      "null_p95_bps": 74.5602,
+      "passes_screen": false,
+      "total_pnl_usd": -6.6484
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-TUE",
+      "mean_gross_bps": 79.037,
+      "mean_net_bps": 58.8991,
+      "min_n": 30,
+      "n": 52,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": 30.6275
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-WED",
+      "mean_gross_bps": 41.5634,
+      "mean_net_bps": 21.5003,
+      "min_n": 30,
+      "n": 52,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": 11.1802
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-THU",
+      "mean_gross_bps": -40.9623,
+      "mean_net_bps": -60.8605,
+      "min_n": 30,
+      "n": 52,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": -31.6475
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-FRI",
+      "mean_gross_bps": 49.5832,
+      "mean_net_bps": 29.5041,
+      "min_n": 30,
+      "n": 52,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": 15.3422
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-SAT",
+      "mean_gross_bps": 12.8494,
+      "mean_net_bps": -7.1563,
+      "min_n": 30,
+      "n": 52,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 59.5312,
+      "passes_screen": false,
+      "total_pnl_usd": -3.7213
+    },
+    {
+      "cleared_hurdle": false,
+      "idea": "WEEKDAY-SUN",
+      "mean_gross_bps": 41.7827,
+      "mean_net_bps": 21.7192,
+      "min_n": 30,
+      "n": 53,
+      "note": "spent control, not a candidate",
+      "null_p95_bps": 56.525,
+      "passes_screen": false,
+      "total_pnl_usd": 11.5112
+    }
+  ],
+  "input_sha256": {
+    "binance_funding": "794a8de8bc80a7e6a9cbec8b83ec2029a848ddb8706de8f71c74c76c9561e8f4",
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "btc_8h": "c115781ef8b40b2ab860d28e5c595d437745a9723b8d3e9b4eb6760f3cfa44bd",
+    "btcusdc": "2b63d68d229f11d92f9e9cd72ce22eb7a1a9643eebb8900dcab95cdba42b017a",
+    "deribit_funding": "b8cf36dac106578b742a93ba55058f05e9456d8a55c246a18bf21b855da8a070",
+    "usdc": "53fcec205fbb18cdfca3b178cd631fc74024b3b5aa53b69905c08f72d6092dbc"
+  },
+  "passed": [],
+  "protocol_sha256": "63acae17d32029d92beb33305f34a90fc648777463c5446df482161e2cda6d9e"
+}

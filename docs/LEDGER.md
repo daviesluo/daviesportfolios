@@ -8,12 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp6's 2023 screen is not run.** The protocol is
-`docs/agents/reviews/2026-09-25-fp6-protocol.md`, committed before any return
-of those five rules. Next: `python3 docs/agents/scripts/fp6/fetch.py`, then
-`python3 docs/agents/scripts/fp6/measure.py`. Do not read 2024–2026 prices for
-these rules. LS-FADE stays discarded (reference §3.34). No testing row. No
-push to main.
+**fp6's five rules failed the 2023 screen and are discarded.** None is fit
+to add (reference §3.35). Do not lower USDC-CHEAP's count, do not adopt
+Tuesday, do not flip FUND-GAP or QUIET. The next search is not written yet.
+No testing row. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +834,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:49 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp6 screen: nothing passes.** Protocol `63acae17…` was already committed.
+Two scores of `measure.py` matched (`02556a8c…`). USDC-CHEAP 13 trades,
++11.3 bps, above its null, under the count of 30 — the count stays. BTCUSDC-GAP
+no day (archive bars start 2023-03-12, no gaps). FUND-GAP 158 trades, +0.01 bps
+against a null of +3.7, with 15 Deribit holes skipped. MONDAY −5.6 bps.
+QUIET −18.0 bps. Tuesday is the closest control at +58.9 against +59.5 and is
+spent, as are the other weekdays. Reference §3.35. No testing row.
 
 ### [2026-09-25 00:44 UTC] Platform: Cursor | Model: Grok 4.7
 

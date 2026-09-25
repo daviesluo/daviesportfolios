@@ -2749,6 +2749,22 @@ means the veto did not fire. Five of the six conditions fail. **Not fit to add
 to testing.** The threshold is not reused, and the other fourteen screen rules
 stay dead.
 
+#### 3.35 The search after LS-FADE: five rules, none clears the 2023 screen (2026-09-25)
+
+LS-FADE was discarded (§3.34). The next protocol
+(`reviews/2026-09-25-fp6-protocol.md`) froze five rules that are not that rule
+and not a sign flip of it, and committed them before any of their returns.
+The screen is `backtests/fp6/screen_2023.json`. Two runs matched.
+
+USDC under par by one round trip: 13 trades, mean +11.3 bps, above its null,
+and under the count of 30. The count was not lowered. BTCUSDC cheap versus
+BTCUSDT by one round trip: no day. Binance funding minus Deribit's 8h rate,
+below its own 10th: 158 trades, mean +0.01 bps, under a null of +3.7 bps.
+Monday: 52 trades, mean −5.6 bps. A quiet BTC day: 37 trades, mean −18.0 bps.
+Tuesday through Sunday were scored only so a better weekday could not be
+chosen afterwards. Tuesday came closest (+58.9 bps against a null of +59.5)
+and still failed, and it is spent. **Nothing here is fit to add.**
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
