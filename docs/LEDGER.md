@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp153–fp160 are scored. Nothing passes the house bar.** Eight mechanisms, each with fills. None is a day-over-day jump above its own 90th, long BTC for one day. The count stays 30. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
+**fp161–fp168 are protocols only. No return has been computed.** Eight mechanisms, and none of them is today minus yesterday above its own 90th. FNCLIMB longs one day after the three funding rates rise through the day, and does not add the funding cash. ACCUM longs one day after dollar open interest rose on a down candle. TAKTGT buys the next open and sells at 2% above it when the high reaches it, otherwise the close, after the taker ratio rose. BRKHI buys yesterday's high when that break is also the widest range of four days, and sells the close. FAILSH shorts the next day after a break that closed back under yesterday's high. VOL3 longs three days after base volume beats the volume ten days earlier. WIDE4 longs the next session after the widest range of four days. FLOW longs two days after open interest and the taker ratio both rose. The count stays 30. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 08:37 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp161–fp168 are protocols only. No return has been computed.** Pins printed fp161 through fp168 pins ok before this commit. Eight mechanisms, and none of them is today minus yesterday above its own 90th, long BTC for one day. FNCLIMB longs one day after the 00:00 funding rate is strictly under the 08:00 rate and that rate is strictly under the 16:00 rate. The funding cash is not added. ACCUM longs one day after the last dollar open interest is above the first and the close is under the open. TAKTGT buys the next open after the last taker ratio is above the first, and sells at 2% above the open when the high reaches it, otherwise at the close. BRKHI buys yesterday's high, or the open when the open is already through, on a day that breaks that high and is strictly wider than each of the three days before it, and sells the close. FAILSH shorts the next open to the open after that, after a high breaks yesterday's high and the close finishes back under it. VOL3 buys the next open and sells the open three days later when base volume is strictly above the volume ten days earlier. WIDE4 buys the next open and sells that close after a range strictly wider than each of the three prior days. FLOW buys the next open and sells the open two days later when dollar open interest rose and the taker ratio rose. The null of each rule is the same payoff on a larger pool, so the rule is a subset. The count stays 30. No percentile is used. No sign of a killed rule is flipped. BASBOOK, FNCARRY, TAKSESS, OINIGHT, MOM5, UPSTOP, PEAK0 and TAKX stay closed. fp145–fp152 stay closed. UMCMJMP stays at 26 trades. No on-chain chart is read. No option file is read. No mempool chart is read. No hourly price bar is read. No liquidation file is read. No later year is in the request. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 08:24 UTC] Platform: Cursor | Model: Grok 4.7
 
