@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp79–fp86 are scored. Nothing passes the house bar.** Eight rules have fills and all eight fail the 2023 screen. No later year was pulled. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp78, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
+**fp87–fp94 are frozen and not yet scored.** Eight screens are written down and none of them has a 2023 return. AFTER-HIGH stays closed with no fill, and the 90-print window was not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp86, and the previous rounds' named ideas stay closed. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 05:13 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp87–fp94 protocols only. No return of these rules has been computed.** Eight screens frozen together: how far the close finished above the day's VWAP in units of the day's range, how far the low held above the previous day's high, the worst hourly return, the last hour's average trade versus the day's, quote in the hour of the high over quote in the hour of the low, the opening hour's quote over the last hour's, the last hour's range over the day's range, and the last close over the first hour's close. Pins passed on synthetic bars. The open is not an input to STRETCH and the close is scaled by the range, not by the VWAP. Today's high is not an input to HOLD and the close is not stored. The low price is not stored for WORST-RET and the day's open is not the denominator. LAST-SIZE is not the day's average-size level and yesterday is not read. HL-QUOTE's denominator is the low hour's quote, not the day's total. ENDS does not read hours 1–22 and a missing hour 13 is still a print. TAIL-BAR does not select the widest hour and the sum of ranges does not enter. REST does not use hour 0's open and does not read hours 1–22. AFTER-HIGH stays closed with no fill, and the 90-print window is not widened. IMPACT, PEAK, BAL-CHG, BODY, fp30–fp86, and the previous rounds' named ideas stay closed. No 2023 number of these rules was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 05:01 UTC] Platform: Cursor | Model: Grok 4.7
 
