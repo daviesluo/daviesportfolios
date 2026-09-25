@@ -1,0 +1,18 @@
+Family: long the next day when Bitcoin's market-value to realized-value ratio is below its own trailing 30-day median.
+Frozen 2026-09-25 01:36:51 UTC, before any MVRV value or next-day return of this rule was computed.
+Not fear-and-greed, not the exchange-flow rule (that rule lost; this series is CapMVRVCur, not coins moving between exchanges), not the one-hour VWAP discount, and not transaction count.
+Low means the market price is cheap against realized value. The sign is that definition. It is not a flipped activity rule.
+
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by Bitcoin's CapMVRVCur.
+Series: CoinMetrics community CapMVRVCur, asset btc, frequency 1d.
+Long the next UTC day when date D's ratio is strictly below the median of the previous 30 printed days.
+Execution days are 2017-01-01 through 2017-12-31 whose previous calendar day has a ratio and a 30-day median.
+Prices are CoinMetrics community PriceUSD for btc and for eth, not Binance, because Binance's 2017 listing does not cover the year.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+A loss kills the family. A gain is not a pass: these are reference-rate closes, not prints through a price.
+Screen only: 2017. No other year is scored. If the ratio or either price is missing for the year, record the gap and do not move the year.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to high MVRV. Do not change the window.

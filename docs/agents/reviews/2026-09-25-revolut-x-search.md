@@ -68,6 +68,14 @@ Same-venue structure. PAXG-USD and XAUT-USD differ by a median 16 bps in June–
 
 No testing row. PR5, `trend-4h` and `pmrw.ts` were not edited.
 
+## Continuation: exchange flow and MVRV, still nothing
+
+`flow_rule.txt` (sha256 `19bd6e9c…`) and `mvrv_rule.txt` (sha256 `30e507a7…`) were hashed before their own results. Numbers are in `backtests/fp5/summary_pass4.json`. `reached_preregistration` is still false.
+
+Bitcoin's exchange dollar outflow minus inflow, above the 80th percentile of 2021-10-03 through 2021-12-31, long BTC and ETH the next day in 2022 only: 60 long days, 82 trips, pooled −8,219 bps, stress −9,859, null p95 +653. June is −3,553 and November −2,101. A loss kills the family. The sign is not flipped to inflow, and 2023 is not added.
+
+Bitcoin MVRV below its own trailing 30-day median, long the next day in 2017 only, on CoinMetrics reference rates: pooled +6,217 bps, stress +5,617, both books positive, and 136 long days that are only 30 trips. March 2017 is 46% of the pool. The random-day null's p95 is +21,073, so the gain is the year, not the ratio. The sign is not flipped, and the year is not moved.
+
 ## Reproduce
 
-From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json` is the record of what they returned.
+From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json` and `summary_pass4.json` are the records of what they returned.

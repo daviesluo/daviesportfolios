@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 01:37 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. `docs/agents/scripts/fp5/flow_rule.txt` and `mvrv_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass4.json`. Exchange dollar outflow above its late-2021 80th percentile, long the next day in 2022, is −8,219 bps pooled over 82 trips. Bitcoin's MVRV below its trailing 30-day median, long the next day in 2017, is +6,217 bps and still fails: 30 trips, March is 46% of it, and a random-day null's p95 is +21,073. `reached_preregistration` stays false.
+
 ### [2026-09-25 01:27 UTC] Platform: Cursor | Model: Grok 4.7
 
 **The Revolut X search kept going and still has nothing for a testing row.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Each rule in `docs/agents/scripts/fp5/*_rule.txt` was hashed before its own result. The record is `docs/agents/backtests/fp5/summary_pass3.json` and the continuation section of `reviews/2026-09-25-revolut-x-search.md`. Two sentiment screens beat a random-day null and still die: the long/short-ratio rule because one month is 60% of the P&L, and extreme fear because one month is 52%. The on-chain transaction-count rule is positive with a month share of 0.35 and still under the null. The only print test, a 38 bp through-fill bid on VVV-USD and STRK-USD, loses on VVV (−1,673 bps over 253 trips); the pair was frozen together, so STRK's positive book is not split out. `reached_preregistration` stays false.

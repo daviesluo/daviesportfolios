@@ -2731,6 +2731,8 @@ Later the same morning, still with `reached_preregistration` false (`screen_pass
 
 The same morning, still with `reached_preregistration` false (`backtests/fp5/summary_pass3.json`): Friday round-number pinning, the next day after a positive S&P session, a one-hour VWAP discount, a bottom-quintile long/short ratio (positive, and one month is 60% of it), stablecoin-supply expansion (10 entries), CME gap-downs, extreme fear (positive, and one month is 52%), a weak hash rate, a stronger pound, and a high on-chain transaction count (positive, and under the random-day null) all fail their own bars. PAXG versus XAUT is a 16 bp median gap; buying the cheap token at a 40 bp gap is 16 trips and loses. The one print test, a 38 bp through-fill bid on VVV-USD and STRK-USD over July–September except the screened VVV day, loses on VVV (−1,673 bps, 253 trips) and the pre-registered pair is −130 bps with stress −1,732. STRK alone is not a result.
 
+Still later, still with `reached_preregistration` false (`backtests/fp5/summary_pass4.json`): bitcoin exchange outflow above its late-2021 80th percentile loses −8,219 bps over 82 trips in 2022, and bitcoin MVRV below its trailing 30-day median makes +6,217 bps in 2017 while failing the trip count (30), the month share (March is 46%) and the random-day null (p95 +21,073). Neither sign is flipped.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

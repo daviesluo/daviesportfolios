@@ -1,0 +1,18 @@
+Family: long the next day when bitcoin's dollar outflow from exchanges exceeds its own pre-window 80th percentile.
+Frozen 2026-09-25 01:35:36 UTC, before any exchange-flow value or next-day return of this rule was computed.
+Not stablecoin supply (that series is stablecoin float), not on-chain transaction count, not hash rate, not the futures long/short ratio, and not fear-and-greed.
+The signal is dollars of BTC leaving exchanges minus dollars of BTC entering them. It is not the coin's price.
+
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by the one BTC flow series.
+Series: CoinMetrics community FlowOutExUSD minus FlowInExUSD, asset btc, frequency 1d.
+q80 is the 80th percentile of that net-out series on the 90 UTC dates 2021-10-03 through 2021-12-31 inclusive.
+Long the next UTC day when date D's net-out is strictly above q80.
+Execution days are 2022-01-01 through 2022-12-31 whose previous calendar day has a flow print.
+Cost 20 bps times the absolute change in position. Stress 40 bps times the same change.
+Prices are Binance daily closes (BTCUSDT, ETHUSDT). A loss kills the family. A gain is not a pass.
+Screen only: 2022. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to inflow. Do not change the percentile. Do not add 2023.
