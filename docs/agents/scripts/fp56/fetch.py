@@ -87,7 +87,7 @@ def main() -> None:
     if os.environ.get("FP56_OOS"):
         raise SystemExit("this pull does not request a later year")
     hour_end = c.fp5.SCREEN_END_MS - 1
-    hourly = klines("1h", c.HOUR_MS, hour_end, (4))
+    hourly = klines("1h", c.HOUR_MS, hour_end, (4,))
     if any(t >= c.fp5.SCREEN_END_MS for t in hourly):
         raise SystemExit("an hourly bar opened on or after 2024-01-01")
     daily = klines("1d", c.fp5.DAY_MS, c.fp5.SCREEN_END_MS, (1,))
