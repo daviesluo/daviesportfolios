@@ -8,30 +8,36 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp30–fp37 screens failed. All eight are dead.** Protocol was `1f9c4e5`,
-before any return. Two scores matched on each file (§3.59–§3.66). None
-cleared: TURN 10 trades (the count stays 30), +70.98 bps against a null of
-+117.12, +$7.10. RET-HHI 30, +36.73 against +75.19, +$11.02. LATE-VOL 34,
-+9.39 against +76.29, +$3.19. LOW-LIFT 43, +45.49 against +66.23, +$19.56.
-TRD-CHG 41, +38.31 against +70.16, +$15.71. OPEN-VWAP 44, +42.06 against
-+63.98, +$18.50. OPEN-LOC 42, +0.03 against +67.42, +$0.01. REL 44, +18.75
-against +63.98, +$8.25. Every mean that was positive lost to the null.
-OPEN-VWAP and REL share the null because both have 44 trades on the same
-pool and the same seed. Do not lower TURN's count. Do not score a quieter
-day, a spread-out move, a heavier early block, a lower low, a day the trade
-count did not rise, the level of the trade count, an open under yesterday's
-VWAP, an open low in yesterday's range, or a day ETH outruns BTC. Do not
-score any of their 80ths or 95ths. PEAK stays dead (§3.58). Do not score a
-close under the prior 30-day high, and do not score its 80th. IMPACT stays
-dead, including the later years (§3.57). Do not promote its 80th or its
-95th. BAL-CHG stays dead (§3.56). Do not score a day the address count did
-not rise, do not score its 80th, and do not score the level of `AdrBalCnt`.
-BODY stays dead, including the later years (§3.55). Do not promote its 80th.
-Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI,
-VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
-quiet-day range, the taker share, dispersion, or skew. fp5 through fp37 stay
-closed, including LS-FADE. The next rule is not written. No testing row. No
-pull request. No push to main.
+**fp38–fp45 are frozen and not yet scored.** Eight screens, each long BTC
+the next day, fill fp5's `net_return`. Protocols
+`docs/agents/reviews/2026-09-25-fp38-protocol.md` through `fp45`, written
+before any return. HALF-DIFF is the second twelve hours' return minus the
+first twelve. INSIDE counts hourly bars sitting inside the previous hour.
+HI-LOWS counts hours whose low is strictly above the previous hour's low.
+STREAK counts consecutive daily closes that finished above the prior close,
+and a day that did not rise stays in the history. AMIHUD is the absolute
+open-to-close return divided by quote volume. UP-VOL is the share of quote
+volume in hours that closed up. OPEN-DRIVE is the first hour's return.
+YDAY-HIGH is today's close divided by yesterday's high, minus 1. Pins
+passed on synthetic bars. Score only after this protocol commit is on the
+remote: fetch, measure twice, compare the JSON files. A 2023 pass still
+needs a pre-registration before any 2024 price, and the other seven are
+still scored in the same round. Do not lower the count of 30. Do not flip a
+sign. Do not score an 80th or a 95th on a failed screen. fp30–fp37 stay
+dead (§3.59–§3.66). Do not score a quieter day, a spread-out move, a heavier
+early block, a lower low, a day the trade count did not rise, the level of
+the trade count, an open under yesterday's VWAP, an open low in yesterday's
+range, or a day ETH outruns BTC. Do not lower TURN's count. PEAK stays dead
+(§3.58). Do not score a close under the prior 30-day high, and do not score
+its 80th. IMPACT stays dead, including the later years (§3.57). Do not
+promote its 80th or its 95th. BAL-CHG stays dead (§3.56). Do not score a
+day the address count did not rise, do not score its 80th, and do not score
+the level of `AdrBalCnt`. BODY stays dead, including the later years
+(§3.55). Do not promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net
+exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR,
+AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker share,
+dispersion, or skew. fp5 through fp37 stay closed, including LS-FADE. No
+testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -854,6 +860,22 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:26 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp38–fp45 protocols only. No return has been computed.** Eight screens
+frozen together, each a different input from the thirty-seven closed rounds:
+the second half's return minus the first half's, the count of hourly inside
+bars, the count of hours that lift the low, consecutive rising daily closes,
+absolute return per unit of quote volume, the share of quote volume in up
+hours, the first hour's return, and the close versus yesterday's high. Pins
+passed on synthetic bars. fp30 through fp37 stay closed, and their unscored
+sides are not candidates. IMPACT stays closed, including the later years,
+and its 80th and 95th are not candidates. PEAK stays closed. A close under
+the prior 30-day high is not a candidate, and neither is its 80th. BAL-CHG
+stays closed, including the level of the address count. BODY stays closed,
+including the later years, and its 80th is not a candidate. No 2023 number
+was computed. No pull request. Main was not pushed.
 
 ### [2026-09-25 03:17 UTC] Platform: Cursor | Model: Grok 4.7
 
