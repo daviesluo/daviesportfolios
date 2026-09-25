@@ -5982,7 +5982,7 @@ sha256 `65e67393…`). Three finished two-day spot rises, back to back, then
 buy the coin-margined perpetual for three days: 55 trades, mean +178.4819
 bps, null p95 +151.7253 bps, +$98.165. The file's gross is +198.8592 bps.
 The count cleared, the mean is positive, and the mean is above the null.
-**The 2023 screen passes. The later years are not scored. This is not a
+**The 2023 screen passes. The later years are §3.283. This is not a
 testing row.** It is not four consecutive higher closes. One coin-margined
 leg. Spot is a signal, not a second leg. Funding cash is not added. The null
 is that three-day long on every day. A count taken before the freeze, with
@@ -5996,7 +5996,7 @@ sha256 `6b1fd9b5…`). Two finished five-day coin-margined declines, back to
 back, then buy the USDT perpetual for eighteen days: 64 trades, mean
 +758.9861 bps, null p95 +704.8709 bps, +$485.7511. The file's gross is
 +780.5256 bps. The count cleared, the mean is positive, and the mean is
-above the null. **The 2023 screen passes. The later years are not scored.
+above the null. **The 2023 screen passes. The later years are §3.284.
 This is not a testing row.** One USDT-perpetual leg. The coin-margined book
 is a signal, not a second leg. Funding cash is not added. The null is that
 eighteen-day long on every day. A count taken before the freeze, with no
@@ -6014,6 +6014,52 @@ and the mean was positive; it lost to the null. One spot leg. The USDT book
 is a signal, not a second leg. Funding cash is not added. The null is that
 twenty-one-day long on every day. A count taken before the freeze, with no
 profit computed, was 53. The scored book is 53. The rule was not changed.
+
+### 3.283 Three finished two-day spot rises, held three days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp246-prereg-trip.md`, sha256
+`a6760c1a…`, frozen 2026-09-25T12:24:44Z, BTCUSD_PERP bid 84187.9, ask
+84188.0, half-spread 5.939092233854178e-07) was frozen before any daily open
+from 2024-01-01 was read as an entry. Spot and the USDT perpetual were not
+this spread. The buy and the sell were not moved. Two out-of-sample runs
+matched (`backtests/fp246/trip_oos.json`, sha256 `10a7fdf1…`). 2023
+reproduces: 55 trades, +$98.165. Entries from 2024-01-01 through 2026-09-22:
+123 trades, −$51.1106, mean −$0.415533, null p95 +$0.6731 on 996 three-day
+coin-margined longs with the three-rise filter off. 2024 is −$8.824 and
+2025-01-01 through 2026-09-22 is −$42.2866. Doubled costs are −$75.5839.
+November 2024 is +$27.3743; without it the total is −$78.4849. Annualised
+on the locked $100 over 998 days it is −0.186928. The last entry is
+2026-09-22. The last stored coin-margined bar is the 2026-09-25 open, an
+exit. Spot closes used as the signal stop on 2026-09-21. No bar on
+2026-09-26 was stored. The count clears 30. Both later windows are
+negative, the mean is under the null, doubled costs are negative, the
+total without the best month is negative, and the annualised total does
+not clear 4%. **The rule fails.** It was not rewritten. It is not a
+testing row. It is not four consecutive higher closes. The next search
+does not inherit the three two-day rises or the three-day hold.
+
+### 3.284 Two finished five-day coin-margined declines, held eighteen days: the later years fail (2026-09-25)
+
+The pre-registration (`reviews/2026-09-25-fp247-prereg-cfal.md`, sha256
+`4952f9d1…`, frozen 2026-09-25T12:24:44Z, BTCUSDT USDT-perpetual bid
+84212.8, ask 84212.9, half-spread 5.937336166111754e-07) was frozen before
+any daily open from 2024-01-01 was read as an entry. The coin-margined
+book and spot were not this spread. The buy and the sell were not moved.
+Two out-of-sample runs matched (`backtests/fp247/cfal_oos.json`, sha256
+`1679d359…`). 2023 reproduces: 64 trades, +$485.7511. Entries from
+2024-01-01 through 2026-09-07: 215 trades, +$95.8119, mean +$0.445637,
+null p95 +$2.444 on 981 eighteen-day USDT longs with the two-decline
+filter off. 2024 is +$362.9586 and 2025-01-01 through 2026-09-07 is
+−$267.1467. Doubled costs are +$52.6633. August 2026 is +$101.8726,
+106.33% of the total; without it the total is −$6.0608. Annualised on the
+locked $100 over 998 days it is 0.350414. The last entry is 2026-09-07.
+The last stored USDT bar is the 2026-09-25 open, an exit. Coin-margined
+closes used as the signal stop on 2026-09-06. No bar on 2026-09-26 was
+stored. The count clears 30, doubled costs are positive, and the
+annualised total clears 4%. 2025–2026 is negative, the mean is under the
+null, and one month is more than 40% of the profit. **The rule fails.**
+It was not rewritten. It is not a testing row. The next search does not
+inherit the two five-day declines or the eighteen-day hold.
 
 ### 4. Design consequences (decided by the evidence above)
 
