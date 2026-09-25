@@ -2749,6 +2749,8 @@ Still later, still with `reached_preregistration` false (`screen_pass11.py`, `ba
 
 Still later, still with `reached_preregistration` false (`screen_pass12.py`, `backtests/fp5/summary_pass12.json`): a jump in Deribit BTC DVOL, long the next day in 2022, is −3,574 bps over 66 trips, both books negative. A jump in the US 10-year yield, long the next day in 2018, is −2,081 bps over 31 trips, both books negative. The yield rule keeps a change only against the previous calendar day, so a Monday print is never a signal and the screen has 192 execution days. Neither sign is flipped and neither year is extended.
 
+Still later, still with `reached_preregistration` false (`screen_pass13.py`, `backtests/fp5/summary_pass13.json`): a jump in outstanding WBTC, counted in tokens and not in dollars, long the next day in 2020, is −11,569 bps over 45 trips, both books negative. A jump in average Bitcoin block size, long the next day in 2018, is −5,964 bps over 68 trips, both books negative. Neither sign is flipped and neither year is extended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

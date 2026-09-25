@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "block_size_2018": {
+      "btc_bps": -5007.9,
+      "candle_bar_clear": false,
+      "eth_bps": -6919.9,
+      "execution_days": 365,
+      "long_days": 84,
+      "month_share": null,
+      "name": "block_size_2018",
+      "null_p50_bps": -4955.9,
+      "null_p95_bps": 1544.6,
+      "pool_bps": -5963.9,
+      "stress_bps": -8683.9,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 68,
+      "why": "pooled P&L is not positive; doubled cost is not positive; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    },
+    "wbtc_mint_2020": {
+      "btc_bps": -11278.9,
+      "candle_bar_clear": false,
+      "eth_bps": -11859.4,
+      "execution_days": 366,
+      "long_days": 67,
+      "month_share": null,
+      "name": "wbtc_mint_2020",
+      "null_p50_bps": 1482.6,
+      "null_p95_bps": 6816.0,
+      "pool_bps": -11569.1,
+      "stress_bps": -13369.1,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 45,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "block_rule_sha256": "0260e15cd49e45c3553aa197a6bf443d27077fa65939757a29a42af9978c0a3b",
+    "wbtc_rule_sha256": "33536e4448482bee4c793c2ff676eef0a28ba6812e15cb9f6ed46088a18610dd"
+  }
+}
