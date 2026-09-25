@@ -3021,6 +3021,99 @@ first 30 days have no prior window, so there are 427 distances. **Nothing
 here is fit to add.** The count cleared and the mean was positive; it lost
 to the null. A close under the prior high and the 80th are not candidates.
 
+### 3.59 Hourly sign changes: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp30-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp30/screen_2023.json`). Sign changes of
+the hourly return, a flat hour keeping the previous non-zero sign, above its
+own trailing 90th, long spot the next day: 10 trades, mean +71.0 bps, null
+p95 +117.1 bps. The gross move was +91.1 bps. The hourly grid has one hole,
+2023-03-24 13:00 UTC, and that day is not a print. The daily grid has no
+hole. **Nothing here is fit to add.** The count does not clear, and it is
+not lowered. The mean was positive and lost to the null. A quieter day and
+the 80th are not candidates.
+
+### 3.60 Concentration of the hourly move: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp31-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp31/screen_2023.json`). The Herfindahl
+of the day's absolute hourly returns, above its own trailing 90th, long spot
+the next day: 30 trades, mean +36.7 bps, null p95 +75.2 bps. The gross move
+was +56.8 bps. The hourly grid has one hole, 2023-03-24 13:00 UTC, and that
+day is not a print. The daily grid has no hole. **Nothing here is fit to
+add.** The count cleared and the mean was positive; it lost to the null. A
+day whose move is spread out, and the 80th, are not candidates.
+
+### 3.61 Late quote volume versus the early hours: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp32-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp32/screen_2023.json`). Quote volume in
+hours 18–23 divided by hours 0–5, minus 1, above its own trailing 90th, long
+spot the next day: 34 trades, mean +9.4 bps, null p95 +76.3 bps. The gross
+move was +29.4 bps. The hourly grid has one hole, 2023-03-24 13:00 UTC, and
+that day is not a print. The daily grid has no hole. **Nothing here is fit
+to add.** The count cleared and the mean was positive; it lost to the null.
+A day the early block is heavier, and the 80th, are not candidates.
+
+### 3.62 Today's low over yesterday's low: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp33-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp33/screen_2023.json`). Today's low
+divided by yesterday's low, minus 1, above its own trailing 90th, long spot
+the next day: 43 trades, mean +45.5 bps, null p95 +66.2 bps. The gross move
+was +65.6 bps. The daily grid has no hole. The first day has no prior low,
+so there are 456 lifts. **Nothing here is fit to add.** The count cleared
+and the mean was positive; it lost to the null. A lower low and the 80th are
+not candidates.
+
+### 3.63 The rise in the trade count: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp34-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp34/screen_2023.json`). Today's trade
+count minus yesterday's, above its own trailing 90th and only when the count
+rose, long spot the next day: 41 trades, mean +38.3 bps, null p95 +70.2 bps.
+The gross move was +58.4 bps. The daily grid has no hole. The first day has
+no prior count, so there are 456 changes. **Nothing here is fit to add.**
+The count cleared and the mean was positive; it lost to the null. A day the
+count did not rise, the level of the count, and the 80th, are not
+candidates.
+
+### 3.64 The open versus yesterday's VWAP: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp35-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp35/screen_2023.json`). Today's open
+divided by yesterday's VWAP, minus 1, above its own trailing 90th, long spot
+at the next open: 44 trades, mean +42.1 bps, null p95 +64.0 bps. The gross
+move was +62.2 bps. The daily grid has no hole. The first day has no prior
+VWAP, so there are 456 distances. **Nothing here is fit to add.** The count
+cleared and the mean was positive; it lost to the null. An open under
+yesterday's VWAP, and the 80th, are not candidates.
+
+### 3.65 The open inside yesterday's range: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp36-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp36/screen_2023.json`). Where today's
+open sits in yesterday's high-low range, above its own trailing 90th, long
+spot at the next open: 42 trades, mean +0.0 bps, null p95 +67.4 bps, +$0.01.
+The file's mean is +0.0326 bps, so the sign is positive. The gross move was
++20.1 bps. The daily grid has no hole. The first day has no prior range, so
+there are 456 locations. **Nothing here is fit to add.** The count cleared
+and the mean was positive; it lost to the null. An open low in yesterday's
+range, and the 80th, are not candidates.
+
+### 3.66 BTC's daily return minus ETH's: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp37-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp37/screen_2023.json`). BTC's
+close-to-close return minus ETH's on the same day, above its own trailing
+90th, long spot the next day: 44 trades, mean +18.8 bps, null p95 +64.0 bps.
+The gross move was +38.8 bps. The null matches §3.64 because both rules have
+44 trades on the same BTC pool and the same seed. BTC and ETH each have no
+hole. The first day has no prior close, so there are 456 differences.
+**Nothing here is fit to add.** The count cleared and the mean was positive;
+it lost to the null. A day ETH outruns BTC, and the 80th, are not
+candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

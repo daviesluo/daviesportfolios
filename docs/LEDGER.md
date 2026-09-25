@@ -8,32 +8,30 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp30–fp37 are frozen and not yet scored.** Eight screens, each long BTC
-the next day, fill fp5's `net_return`. Protocols
-`docs/agents/reviews/2026-09-25-fp30-protocol.md` through `fp37`, written
-before any return. TURN counts sign changes of the 24 hourly returns; a
-flat hour keeps the previous non-zero sign. RET-HHI is the Herfindahl of
-the absolute hourly returns. LATE-VOL is quote volume in hours 18–23 over
-hours 0–5, minus 1. LOW-LIFT is today's low over yesterday's low, minus 1.
-TRD-CHG is the rise in the trade count. OPEN-VWAP is today's open over
-yesterday's VWAP, minus 1, filled at the next open. OPEN-LOC is where
-today's open sits in yesterday's range, filled at the next open. REL is
-BTC's close-to-close return minus ETH's. Pins passed on synthetic bars.
-Score only after this protocol commit is on the remote: fetch, measure
-twice, compare the JSON files. A 2023 pass still needs a pre-registration
-before any 2024 price, and the other seven are still scored in the same
-round. Do not lower the count of 30. Do not flip a sign. Do not score an
-80th or a 95th on a failed screen. PEAK stays dead (§3.58): 48 trades,
-+18.22 bps against a null of +60.96, +$8.75. Do not score a close under the
-prior 30-day high, and do not score its 80th. IMPACT stays dead, including
-the later years (§3.57). Do not promote its 80th or its 95th. BAL-CHG stays
-dead (§3.56). Do not score a day the count did not rise, do not score its
-80th, and do not score the level of `AdrBalCnt`. BODY stays dead, including
-the later years (§3.55). Do not promote its 80th. Do not reopen EXCH-BAL,
-FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP,
-CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the
-taker share, dispersion, or skew. fp5 through fp29 stay closed, including
-LS-FADE. No testing row. No pull request. No push to main.
+**fp30–fp37 screens failed. All eight are dead.** Protocol was `1f9c4e5`,
+before any return. Two scores matched on each file (§3.59–§3.66). None
+cleared: TURN 10 trades (the count stays 30), +70.98 bps against a null of
++117.12, +$7.10. RET-HHI 30, +36.73 against +75.19, +$11.02. LATE-VOL 34,
++9.39 against +76.29, +$3.19. LOW-LIFT 43, +45.49 against +66.23, +$19.56.
+TRD-CHG 41, +38.31 against +70.16, +$15.71. OPEN-VWAP 44, +42.06 against
++63.98, +$18.50. OPEN-LOC 42, +0.03 against +67.42, +$0.01. REL 44, +18.75
+against +63.98, +$8.25. Every mean that was positive lost to the null.
+OPEN-VWAP and REL share the null because both have 44 trades on the same
+pool and the same seed. Do not lower TURN's count. Do not score a quieter
+day, a spread-out move, a heavier early block, a lower low, a day the trade
+count did not rise, the level of the trade count, an open under yesterday's
+VWAP, an open low in yesterday's range, or a day ETH outruns BTC. Do not
+score any of their 80ths or 95ths. PEAK stays dead (§3.58). Do not score a
+close under the prior 30-day high, and do not score its 80th. IMPACT stays
+dead, including the later years (§3.57). Do not promote its 80th or its
+95th. BAL-CHG stays dead (§3.56). Do not score a day the address count did
+not rise, do not score its 80th, and do not score the level of `AdrBalCnt`.
+BODY stays dead, including the later years (§3.55). Do not promote its 80th.
+Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow, UP-SHARE, VOL-HHI,
+VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the
+quiet-day range, the taker share, dispersion, or skew. fp5 through fp37 stay
+closed, including LS-FADE. The next rule is not written. No testing row. No
+pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -856,6 +854,24 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 03:17 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp30–fp37 screens: nothing passes.** Protocol was `1f9c4e5`. Each file was
+scored twice and the two copies matched. TURN 10 / +70.98 / null +117.12 /
++$7.10 (`365fb7cc…`). RET-HHI 30 / +36.73 / +75.19 / +$11.02 (`a0f9fcd4…`).
+LATE-VOL 34 / +9.39 / +76.29 / +$3.19 (`edc05b70…`). LOW-LIFT 43 / +45.49 /
++66.23 / +$19.56 (`83a3ff72…`). TRD-CHG 41 / +38.31 / +70.16 / +$15.71
+(`1818f821…`). OPEN-VWAP 44 / +42.06 / +63.98 / +$18.50 (`9acfacc9…`).
+OPEN-LOC 42 / +0.03 / +67.42 / +$0.01 (`42f1ce98…`; the file's mean is
++0.0326 bps). REL 44 / +18.75 / +63.98 / +$8.25 (`172b3255…`). Every fill
+matched fp5's `net_return`. Hourly bars are 10,967 with the one known hole
+at 2023-03-24 13:00 UTC. Daily bars are 458 with no hole, and ETH matches
+BTC. The daily-open file hash matches the earlier open-only pulls
+(`43688a4b…`). Reference §3.59–§3.66. No neighbour was scored. No sign was
+flipped. No later year was read. IMPACT stays closed, including the later
+years, and its 80th and 95th are not candidates. PEAK, BAL-CHG and BODY stay
+closed. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 03:14 UTC] Platform: Cursor | Model: Grok 4.7
 

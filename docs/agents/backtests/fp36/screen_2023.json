@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp36_common": "a147a93b8dff293a72bae4aa3030e30715f2ebef19dad4e512a2f0e2b2462891",
+    "fp36_measure": "156a5528807e9b83b7b844aa24db10379568a1a4a55cd51cd2da47e92eb61d66",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-LOC",
+      "mean_gross_bps": 20.0527,
+      "mean_net_bps": 0.0326,
+      "min_n": 30,
+      "n": 42,
+      "note": "Where the open sits in yesterday's range, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 67.4226,
+      "passes_screen": false,
+      "total_pnl_usd": 0.0137
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "3dd2d73ad7770f9d2c4cc767ff5daf640f6b81041f6baca69dbe25aff4f98f0d"
+  },
+  "passed": [],
+  "protocol_sha256": "09b5e192a8a69e6e44ab150df9ada9c7a9a58704988d6ae55caea560e06c1fb4"
+}

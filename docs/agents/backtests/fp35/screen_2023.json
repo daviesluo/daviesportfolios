@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp35_common": "372da689ea45d16a1eaad3ec12edd8cda3f464183064f264e92b0b45a57f31a7",
+    "fp35_measure": "7bb2ce15707cc23fcd748a27c8209f7b5cde85897c3489cf9465ad447ccd85ec",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OPEN-VWAP",
+      "mean_gross_bps": 62.1596,
+      "mean_net_bps": 42.0554,
+      "min_n": 30,
+      "n": 44,
+      "note": "Open versus yesterday's VWAP, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 63.9818,
+      "passes_screen": false,
+      "total_pnl_usd": 18.5044
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "a54712dd4c2ccf1127760bbb61dee8e45b498a2ae237968b6d6b50eb520d9a96"
+  },
+  "passed": [],
+  "protocol_sha256": "aca346c0346b6f1a455c359b3de0cc4d32aff573a54ad8966b85abc161170f46"
+}

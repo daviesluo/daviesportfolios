@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp34_common": "dc21b0135256d9f4dcd24b862a68b9c4c9fcb533fe18553a80d33945a4b780e2",
+    "fp34_measure": "7b4af282485b0fc2cdc7fd58c581d935e440ce91c3dc873d3858fdecfd3339e4",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "TRD-CHG",
+      "mean_gross_bps": 58.4019,
+      "mean_net_bps": 38.3052,
+      "min_n": 30,
+      "n": 41,
+      "note": "Rise in the trade count, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 70.1636,
+      "passes_screen": false,
+      "total_pnl_usd": 15.7051
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "b4704cd535b8721b61b55fe275f01e858b659c3c28cf50aff29300da4eb5630e"
+  },
+  "passed": [],
+  "protocol_sha256": "2a1273b2e29af10260af150d0fde9c1230286a06a7141617a87e3be5a52f098e"
+}

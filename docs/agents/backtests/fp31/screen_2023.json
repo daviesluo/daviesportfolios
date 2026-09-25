@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp31_common": "ebc10d71df6e96915a26cbe67e8b1f73e80d82008943de36c202483d171ac89b",
+    "fp31_measure": "7e80c1b78bc8b1383a32e37057a14ffbf3d5886fc81202dcb3cda68776d00e97",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "RET-HHI",
+      "mean_gross_bps": 56.826,
+      "mean_net_bps": 36.7325,
+      "min_n": 30,
+      "n": 30,
+      "note": "Herfindahl of absolute hourly returns, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 75.189,
+      "passes_screen": false,
+      "total_pnl_usd": 11.0197
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "2be9b24abf4bf5b381d350c142b17753848c28743dcca42c540e74ffdcfb4f1a"
+  },
+  "passed": [],
+  "protocol_sha256": "05d95b8e90cfe89e6d565ac6a3dc4d18d7babeca21006317f266336c9c39b76c"
+}

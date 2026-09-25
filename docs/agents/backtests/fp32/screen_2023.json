@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp32_common": "7a1c9a43f8dc9a5b493123509999084b2632f62607ade2a1398b6330b52cdc16",
+    "fp32_measure": "5e47bc9d023bf5b49d970844463f5a801d4e90171dc02b74c05e636e4a138549",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LATE-VOL",
+      "mean_gross_bps": 29.4256,
+      "mean_net_bps": 9.3868,
+      "min_n": 30,
+      "n": 34,
+      "note": "Last six hours' quote volume over the first six, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 76.2921,
+      "passes_screen": false,
+      "total_pnl_usd": 3.1915
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "4888de75d495a976a56eefe22477ddd3b4034dfa8c6525621841aafd877ed45e"
+  },
+  "passed": [],
+  "protocol_sha256": "fc3c125419b428a84c700c8d0bd218e5b57ba11df2edf4522980bcd7655746d6"
+}
