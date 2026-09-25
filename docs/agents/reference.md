@@ -7596,6 +7596,18 @@ negative. It sits 5.3141 bps above that cutoff. Nothing here is fit to add.
 The later years are not scored. This is not a testing row. The 1 bp line
 was not moved. USDC and BETH were not added after this result.
 
+### 3.374 EREAL is pre-registered. No later-year return has been computed (2026-09-25)
+
+The 2023 screen cleared the edge-off trade by 216.3812 bps. The
+pre-registration is `docs/agents/reviews/2026-09-25-fp321-prereg-ereal.md`,
+frozen before any later-year bar is requested as an entry. The coin-margined
+book was read twice. The first read was discarded. The kept read is bid
+2673.58, ask 2673.59, half-spread 1.8701481344745498e-06, book time
+1790351725110. The hold stays two days. The last entry is 2026-09-23 and the
+exit open is 2026-09-25. The gap that voids the rule is 20 bps, not 10. A
+missing day is not filled in. WBRAT and WBPAR are not pre-registered. No
+later-year return of EREAL has been computed. This is not a testing row.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
