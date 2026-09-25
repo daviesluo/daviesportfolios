@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 01:55 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Funding and the taker ratio stay killed. `docs/agents/scripts/fp5/vix_rule.txt` and `etf_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass6.json`. The VIX close above its trailing 80th percentile, long the next day in 2019–2020, is +2,396 bps and still fails: 17 trips, April 2020 is larger than the pool, and the null's p95 is +5,685. US spot-bitcoin ETF creation above its trailing 20-session median, long the next day in 2025, is +595 bps and fails the doubled cost. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 01:47 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. `docs/agents/scripts/fp5/funding_rule.txt` and `taker_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass5.json`. BTC perpetual funding below its trailing bottom decile, long the next day in 2021, is +6,209 bps and still fails: 14 trips. The taker buy/sell ratio below its trailing bottom quintile, long the next day in 2024, is −2,390 bps over 53 trips. Neither sign is flipped. `reached_preregistration` stays false.

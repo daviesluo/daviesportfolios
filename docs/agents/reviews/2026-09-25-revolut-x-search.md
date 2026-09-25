@@ -86,6 +86,16 @@ BTCUSDT perpetual taker buy/sell volume ratio, the last print of the UTC day, st
 
 The cost check is closed-form. On both rules the gap between the 20 bp charge and the doubled charge is 40 bps times the trip count (an entry and an exit). An independent sum of the long days' closes matches the funding pool to the tenth of a basis point. The first funding entry, 2021-03-26, is a signal of 0.00031828 against a threshold of 0.00033506, and that day's BTC close over the previous close is 727.54 bps by hand.
 
+## Continuation: VIX and ETF creations, still nothing
+
+`vix_rule.txt` (sha256 `f2a128d9…`) and `etf_rule.txt` (sha256 `097ba003…`) were hashed before their own results. Numbers are in `backtests/fp5/summary_pass6.json`. `screen_pass6.py` checks those hashes and exits if a fresh run disagrees with the summary. `reached_preregistration` is still false. Funding and the taker ratio stay killed; neither sign was reopened.
+
+The VIX close strictly above the 202nd of the previous 252 sessions, long BTC and ETH the next UTC day in 2019 and 2020 only: 88 long days, 17 trips, pooled +2,395.9 bps, stress +1,715.9, both books positive. April 2020 is +3,343.9, larger than the pool. The random-day null's p95 is +5,684.6. The trip bar is 60. The sign is not flipped to a low VIX, the percentile is not moved, 2021 is not added, and April is not dropped.
+
+US spot-bitcoin ETF net creation, the Farside Total column, strictly above the median of the previous 20 sessions, long the next UTC day in 2025 only: 118 long days, 47 trips, pooled +595.3 bps, stress −1,284.7. BTC is −2,089.9 and ETH is +3,280.6. May is +1,593.0, 2.7 times the pool. The null's p95 is +1,773.2. The sign is not flipped to net outflow, the window is not moved, and 2024 and 2026 are not added.
+
+The same cost check holds: the gap between the two charges is 40 bps times the trip count on both rules. An independent sum matches the VIX pool to the tenth of a basis point. The first VIX entry, 2019-01-01, is a 2018-12-31 close of 25.42 against a threshold of 20.47, and that day's BTC close over the previous close is 254.50 bps by hand. Binance's 2025 daily files are timestamped in microseconds; 2018–2020 stay in milliseconds. The loader divides on that, and `1735689600000000` is 2025-01-01.
+
 ## Reproduce
 
-From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json`, `summary_pass4.json` and `summary_pass5.json` are the records of what they returned. `python3 docs/agents/scripts/fp5/screen_pass5.py --check` rebuilds the last of those from `backtests/inputs/fp5_2026-09-25/pass5/`.
+From the repository root: `python3 docs/agents/scripts/fp5/screen.py --check` and `python3 docs/agents/scripts/fp5/screen_pass2.py --check`. Input hashes are the `inputs_sha256` objects in `docs/agents/backtests/fp5/summary.json` and `docs/agents/backtests/fp5/summary_pass2.json`. The continuation's frozen rule texts are the `*_rule.txt` files beside those screens; `summary_pass3.json` through `summary_pass6.json` are the records of what they returned. `python3 docs/agents/scripts/fp5/screen_pass5.py --check` rebuilds pass 5 from `backtests/inputs/fp5_2026-09-25/pass5/`. `python3 docs/agents/scripts/fp5/screen_pass6.py --check` rebuilds pass 6 from `pass6/`.
