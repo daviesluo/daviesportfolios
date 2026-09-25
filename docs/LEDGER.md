@@ -836,6 +836,34 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 21:25 UTC] Platform: Cursor | Model: Grok 4.7
+**Eight maker sentences were written and none was hashed.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The 21:15 line that pass 77 was not opened is the state at that clock. This round opened pass 77. `rxpar` stays one sentence: a bid one quote step under the published dollar, and a sell at that dollar. USDC-USD and USDT-USD are its two books. It is not rerun and it is not rescored. A different stablecoin, a different quote currency, and gold collateral stay closed. Pass 74's three triangles stay closed. Pass 72's six forwards stay closed. A taker comparison with an external dollar price stays closed. The 60-trip gate, both books, 40% of any month, doubled cost, the random null, and 400 bps stay where they are. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass.
+
+A later round that scores a resting buy keeps a buy that never reaches its exit. That buy is marked to the last hour whose volume is strictly above zero, at that hour's close, and that P&L is inside the pool. Completed round trips are not the whole score. `rxpar` dropped those opens. The hashed record stays as it was. The mark is not applied backwards, and the numeric clear on that record stays short of paper testing.
+
+The pair list was read again at 2026-09-25 21:23:17 UTC, `GET https://revx.revolut.com/api/1.0/public/configuration/pairs`. 455 pairs: 307 USD, 64 GBP, 61 EUR, 23 USDC. UK tickers, `GET /api/1.0/public/tickers?region=UK`, were read from 21:23:28 UTC through 21:24:37 UTC. 306 USD names returned a last. `PUMP-USD` returned 400. Two lasts sit within 50 bp of 1. USDC-USD last 1.0001, bid 1.0000, ask 1.0001. USDT-USD last 1.0002, bid 0.9998, ask 1.0002. FIL-USD last 1.0363 is 363 bp from 1. It is not a published one-dollar redemption.
+
+Eight sentences were written before any close was joined to a P&L. None names a limit on a UK book this account trades, with that level still there at the exit, on two books that are one rule. No rule text was hashed. No screen was written. No summary was written.
+
+A further dollar redemption, or a bid placed deeper than 0.9999, is `rxpar`. The two books are already scored. No third name in the 306 lasts publishes a redemption at 1.
+
+USDC-GBP and USDT-GBP are on the pair list. An official pound against those books is the same par with the quote currency changed.
+
+PAXG-USD last 4284.1, bid 4279.64, ask 4284.05. XAUT-USD last 4288.09, bid 4283.71, ask 4287.70. An ounce of gold is the backing sentence. The two lasts differ by 9.3135 bp. The PAXG ask/bid is 10.3046 bp and the XAUT ask/bid is 9.3144 bp. Buying either ask and selling the other bid is through the wrong side of the touch, −0.7936 bp and −18.7980 bp.
+
+MSOL-USD is the only liquid-staking base in the 307. Last 171.399, bid 168.965, ask 171.621, 24h quote volume 73.08. SOL-USD last 121.21. The dollar level is a rate times SOL, so it moves when SOL moves. Spot is not shorted. One book is not both books. The ask/bid is 157.1923 bp.
+
+A one-for-one wrapper has no book. WBTC, WETH, cbBTC, stETH, wstETH, and JitoSOL are not among the 307 USD bases.
+
+An issuer share whose published dollar is not the one-dollar peg has no print here. BENJI last 0.001461, HONEY 0.001424, SKY 0.075534, FAI 0.00252372, SYRUP 0.21873, ONDO 0.5391, SWELL 0.0008889. USDY, BUIDL, and OUSG are not in the pair list.
+
+A resting triangle is pass 74's three sentences. The 23 names quoted in USDC are the major coins.
+
+A resting bid at the CME CF rate, the real-time index, the Coin Metrics midnight rate, or another venue's last of the same coin is not a level this account can sell. A later UK close is the coin's own move. A four-hour forward, a macro number, a funding percent, a company cost, and the UK book's own shape stop in the same place.
+
+`reached_preregistration` stays false. No sign is flipped. No testing row is opened. No order of this account was shown crossing the book, so paper testing stays closed. A zero-trip variant was not used to fill a slot. This is not eight scored rules. Pass 78 is not opened. Branch `cursor/revolut-x-search-d133`.
+
+
 ### [2026-09-25 21:15 UTC] Platform: Cursor | Model: Grok 4.7
 **One maker bid at the published dollar was scored. Seven rules were not opened.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. The 20:53 line that pass 76 was not opened is the state at that clock. This round opened pass 76. The execution is a limit buy, not a taker. The fee is the maker fee this account pays. The 20 bp taker charge is not put on the resting order. The 9 bp taker schedule is not used to clear the gate. Pass 74's three triangles are not rerun. Pass 72's six forwards are not rerun. A price compared with the UK ask at the same moment, and a reference that sits below a later trade because the coin moved, are not rerun. CME CF, the real-time index, and the Coin Metrics midnight rate stay in that sentence. The 60-trip gate, both books, 40% of any month, doubled cost, the random null, and 400 bps were not loosened. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass.
 
