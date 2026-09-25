@@ -2769,6 +2769,59 @@ percentile is +$109.34. March is 88 % of the profit. The write-up is
 `reviews/2026-09-25-polymarket-fp5-fade.md`. Not a paper test and not a live row. Not retried by
 following the move, at another lag, with a wider band, or with March removed.
 
+### 3.38 POST, the historically likely bracket on a flat open, fails its bar (2026-09-25)
+
+The same search's fifth test, and the first of the round Davies asked to run together. On the Elon tweet
+ladders (series 10000) and the Trump Truth Social ladders (series 11108), one hour after the window
+opens, the rule buys the bracket past windows of the same length landed in most often, and only when at
+least two live brackets are within 3¢. It sells a day before the end when the shown price has risen, and
+otherwise holds. Pre-registered before any opening price (`reviews/2026-09-25-polymarket-fp5-prereg-post.md`).
+Out of sample: **$0 on 0 trades**. In sample is the same. Of 212 windows, 138 opened more than 3¢ apart.
+Seven candidates never filled $2. The write-up is `reviews/2026-09-25-polymarket-fp5-post.md`. Not a
+paper test and not a live row. Not retried with a wider band, a later clock, or the flat-book test dropped.
+
+### 3.39 HITS, the bracket whose hit rate clears its price by the most, fails its bar (2026-09-25)
+
+The same round. One hour after the open the rule buys the single bracket whose past hit rate most exceeds
+the shown price after the fee and one tick, and holds to settlement. The flat-book test is not required.
+Pre-registered before any return of this rule (`reviews/2026-09-25-polymarket-fp5-prereg-hits.md`). Out
+of sample: **−$68.66 on 9 trades**, 0 won. Both halves lose. Stress −$89.64. The null's 95th percentile
+is +$109.91. In sample loses too (−$81.20 on 15). The write-up is `reviews/2026-09-25-polymarket-fp5-hits.md`.
+Not a paper test and not a live row. Not retried by requiring the mode, or by widening the hour.
+
+### 3.40 POISSON, one bracket against a Poisson at the prior mean, fails its bar (2026-09-25)
+
+The same round. The fair value is a Poisson whose mean is the average of past winning midpoints, and the
+rule buys the one bracket that clears its shown price by the most after the fee and one tick, held to
+settlement. Pre-registered before any return of this rule
+(`reviews/2026-09-25-polymarket-fp5-prereg-poisson.md`). Out of sample: **+$115.24 on 26 trades**, 2 won
+and 24 lost. One half is negative (−$43.96 on 5). Stress +$109.86. The null's 95th percentile is
++$225.27. January is 185 % of the total; without it the remainder is −$97.83. Stress and +4.61 % a year
+on a $36 peak pass. The write-up is `reviews/2026-09-25-polymarket-fp5-poisson.md`. Not a paper test and
+not a live row. Not retried with another distribution, another mean, or January removed.
+
+### 3.41 PACE, the bracket the tracker points at with 48 hours left, fails its bar (2026-09-25)
+
+The same round. With 48 hours left the rule adds the tracker's count so far to the average remainder from
+past windows of the same length, and buys that bracket when it clears the shown price after the fee and
+one tick. Pre-registered before any pace or any return (`reviews/2026-09-25-polymarket-fp5-prereg-pace.md`).
+Out of sample: **−$69.01 on 7 trades**, 0 won. The second half has no trade. Stress −$82.21. The null's
+95th percentile equals the loss. In sample loses too (−$20 on 2). The write-up is
+`reviews/2026-09-25-polymarket-fp5-pace.md`. Not a paper test and not a live row. Not retried at 24 hours
+or at 72.
+
+### 3.42 Six rules in the same round die on arithmetic and are not run (2026-09-25)
+
+Written with the freezes, before any return. A Polymarket–Betfair gap is not a keyless two-leg book:
+Betfair's historical files are a purchased package, the free football close is one price and not the same
+contract, and one leg is the information bet S5 and B13 already refused. An overlapping week does not
+force a bracket to zero: 58 posts in two days is wider than a 20-wide bracket. Buying the dearest bracket
+because it is the dearest has a negative edge at every price. A geopolitics quote has no queue in the
+public tape, so a fill cannot be built. A second grid of the same week exists five times, all ending in
+2025, so the out-of-sample count is zero. Buying NO on a rare bracket is FAV's 0.90–0.99 entry and stays
+failed. The note is `reviews/2026-09-25-polymarket-fp5-round8-kills.md`, and the Betfair kill is also in
+the POST pre-registration. None is a paper test or a live row.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

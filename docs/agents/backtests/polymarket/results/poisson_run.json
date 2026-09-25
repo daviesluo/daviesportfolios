@@ -1,0 +1,83 @@
+{
+  "prereg": "reviews/2026-09-25-polymarket-fp5-prereg-poisson.md",
+  "result": {
+    "IS": {
+      "cost": 74.999996,
+      "fees": 0.0,
+      "lost": 9,
+      "pnl": -74.999996,
+      "pnl_per_dollar": -1.0,
+      "sold_out": 0,
+      "trades": 9,
+      "won": 0
+    },
+    "OOS": {
+      "cost": 204.939647,
+      "fees": 3.404169,
+      "lost": 24,
+      "pnl": 115.240837,
+      "pnl_per_dollar": 0.562316,
+      "sold_out": 0,
+      "trades": 26,
+      "won": 2
+    },
+    "OOS1": {
+      "cost": 162.608647,
+      "fees": 1.777556,
+      "lost": 19,
+      "pnl": 159.19845,
+      "pnl_per_dollar": 0.979028,
+      "sold_out": 0,
+      "trades": 21,
+      "won": 2
+    },
+    "OOS2": {
+      "cost": 42.331,
+      "fees": 1.626613,
+      "lost": 5,
+      "pnl": -43.957613,
+      "pnl_per_dollar": -1.038426,
+      "sold_out": 0,
+      "trades": 5,
+      "won": 0
+    },
+    "bar": {
+      "1_oos_pos_and_both_halves": false,
+      "2_beats_null_p95": false,
+      "3_stress_pos": true,
+      "4_at_least_80_trades": false,
+      "5_not_one_month": false,
+      "6_beats_cash": true
+    },
+    "counts": {
+      "events": 212,
+      "filled": 35,
+      "no_trade": 69,
+      "outside_window": 25,
+      "under_min_fill": 108
+    },
+    "null": {
+      "draws": 10000,
+      "mean": -2.931814,
+      "p95": 225.274225
+    },
+    "oos_by_month": {
+      "2025-12": -4.999999,
+      "2026-01": 213.075556,
+      "2026-02": 27.864658,
+      "2026-03": -30.122219,
+      "2026-04": -15.986142,
+      "2026-05": -30.633403,
+      "2026-06": -10.377,
+      "2026-07": -10.4545,
+      "2026-08": -23.126113
+    },
+    "oos_days": 253.0,
+    "oos_peak_capital": 36.044444,
+    "oos_return_per_year_on_peak": 4.612543,
+    "passes": false,
+    "prints_incomplete": 0,
+    "stress_OOS_pnl": 109.855058
+  },
+  "rule": "POISSON"
+}
