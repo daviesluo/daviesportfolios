@@ -1,0 +1,50 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp7_common": "932e818944f5870edbc484ee6456b017f04697cd7d5a6e81fc862e242f123a72",
+    "fp7_measure": "02504d0f8703b55703b19c2fca3796d930e1349f9f40ebe6e445352ebfead845"
+  },
+  "ideas": [
+    {
+      "idea": "MVRV",
+      "mean_gross_bps": 146.0283,
+      "mean_net_bps": 125.7565,
+      "min_n": 30,
+      "n": 13,
+      "note": "candidate",
+      "null_p95_bps": 129.241,
+      "passes_screen": false,
+      "total_pnl_usd": 16.3484
+    },
+    {
+      "idea": "ADDR",
+      "mean_gross_bps": -10.83,
+      "mean_net_bps": -30.7884,
+      "min_n": 30,
+      "n": 51,
+      "note": "candidate",
+      "null_p95_bps": 58.6614,
+      "passes_screen": false,
+      "total_pnl_usd": -15.7021
+    },
+    {
+      "idea": "BTC-SHARE",
+      "mean_gross_bps": 55.7964,
+      "mean_net_bps": 35.7049,
+      "min_n": 30,
+      "n": 40,
+      "note": "candidate",
+      "null_p95_bps": 67.5914,
+      "passes_screen": false,
+      "total_pnl_usd": 14.282
+    }
+  ],
+  "input_sha256": {
+    "addr": "8c0761c5934b8dc2a049ce99580f62b016180f956a3f4830a483646120f4988d",
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "eth_1d": "e62ea5eb96bc5b84c932b240697d96055726a53d9c0f7c511baa3e2214e24764",
+    "mvrv": "63b6f43234ae7542afa4b4cfd5d1b880c4e50bf387db6a3227284fb633d62157"
+  },
+  "passed": [],
+  "protocol_sha256": "cf3fa3dd80e67bf9d9c3f58b8cf8b6ebcd6e206b2691951dc5d74fe2c285f0da"
+}

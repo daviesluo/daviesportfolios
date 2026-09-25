@@ -2765,6 +2765,18 @@ Tuesday through Sunday were scored only so a better weekday could not be
 chosen afterwards. Tuesday came closest (+58.9 bps against a null of +59.5)
 and still failed, and it is spent. **Nothing here is fit to add.**
 
+#### 3.36 MVRV, active addresses, BTC volume share: none clears the 2023 screen (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp7-protocol.md`) was committed before any
+return. Two runs of the screen matched (`backtests/fp7/screen_2023.json`).
+
+MVRV under the published line of 1: 13 trades, mean +125.8 bps, null p95
++129.2 bps, and under the count of 30. Active addresses above their own
+trailing 90th: 51 trades, mean −30.8 bps. BTC's share of BTC+ETH quote volume
+above its own trailing 90th: 40 trades, mean +35.7 bps against a null of
++67.6 bps. **Nothing here is fit to add.** Together with §3.34 and §3.35,
+this pass of the search does not add a testing row.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

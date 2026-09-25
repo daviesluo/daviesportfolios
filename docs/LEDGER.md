@@ -8,12 +8,11 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp7's 2023 screen is not run.** The protocol is
-`docs/agents/reviews/2026-09-25-fp7-protocol.md`, committed before any return
-of MVRV, active addresses or BTC's volume share. Next:
-`python3 docs/agents/scripts/fp7/fetch.py`, then
-`python3 docs/agents/scripts/fp7/measure.py`. fp6 stays discarded (§3.35),
-including Tuesday. No testing row. No push to main.
+**This Binance search did not find a rule fit to add.** LS-FADE failed its
+frozen later-year bar (§3.34). The fp6 screen failed, and Tuesday is spent
+(§3.35). The fp7 screen failed: MVRV, active addresses and BTC's volume share
+all lost to the null (§3.36). Do not retune those cuts, do not flip a sign,
+do not add a testing row. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +835,14 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 00:52 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp7 screen: nothing passes.** Protocol was already committed. Two scores
+matched (`3d2971e9…`). MVRV 13 trades, +125.8 bps against a null of +129.2,
+and under 30. ADDR 51 trades, −30.8 bps. BTC-SHARE 40 trades, +35.7 bps
+against +67.6. Reference §3.36. Across §3.34–§3.36 nothing is fit to add to
+testing. No testing row.
 
 ### [2026-09-25 00:50 UTC] Platform: Cursor | Model: Grok 4.7
 
