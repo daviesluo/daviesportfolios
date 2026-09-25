@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5, branch `cursor/polymarket-fp5-b50c`:** HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15 and FH05 were run on the full sample and none clears the bar. Do not retune them. Do not retune REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 or CORNERS. Do not lower CONGEST to a gap of 1. The next round starts only when Davies sends it. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
+**fp5, branch `cursor/polymarket-fp5-b50c`:** ARM, WALK, K9, TIRED, YRFI, XIN, HR05 and K35 are frozen and not yet scored. Do not open their price files until this freeze is pushed. Do not retune them after the run. Do not reopen HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15 or FH05. Do not retune REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 or CORNERS. Do not lower CONGEST to a gap of 1. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,21 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 05:57 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight Major League Baseball rules are frozen and not yet scored.** The Premier League family is stopped. Branch `cursor/polymarket-fp5-b50c`, not main. No price-history file of these rules was opened and no return was computed. Question text, `sportsMarketType`, line and outcomes were read so the parser keeps the moneyline, the first-inning run (Yes/No and Yes Run/No Run), extra innings, home runs at 0.5 and strikeouts at 3.5. Settlement prices were not used. Stats-file counts (not prices) set the gaps: an ERA gap of 1.5 over six starts fires on 1979 of 4758 finals from 2025-04-01, walks per nine at 1.5 on 1373, strikeouts per nine at 2 on 1831, and a last-start pitch gap of 15 with both starts inside six days on 1113. A first-inning run happened in 2404 of 4758 games. Extra innings happened in 413 of 4758. HTLEAD, HTDRAW, CORN6, HTWIN, CLEAN, SHWIN, TEAM15, FH05 and the earlier failed rules were not reopened. CONGEST was not rerun at a gap of 1. `agents/pmrw.ts`, PR5 and trend-4h were not touched. Considered and not run: `reviews/2026-09-25-polymarket-fp5-round13-kills.md`.
+
+- ARM: lower ERA over the last six starts, gap 1.5, buy that club to win. `arm_test.py --self-check` prints `HOT 1.0 14.638156`. A one-run gap does not trade. Pre-registration: `reviews/2026-09-25-polymarket-fp5-prereg-arm.md`.
+- WALK: fewer walks per nine, last six, gap 1.5. Pin `HOT 1.0 14.638156`. A one-walk gap does not trade. `reviews/2026-09-25-polymarket-fp5-prereg-walk.md`.
+- K9: more strikeouts per nine, last six, gap 2. Pin `HOT 1.0 14.638156`. A one-strikeout gap does not trade. `reviews/2026-09-25-polymarket-fp5-prereg-k9.md`.
+- TIRED: fewer pitches in the last start, gap 15, both starts within six days. Pin `HOT 1.0 14.638156`. A ten-pitch gap does not trade, and a start older than six days does not trade. `reviews/2026-09-25-polymarket-fp5-prereg-tired.md`.
+- YRFI: a first-inning run. The fair value is 1-(1-r1)*(1-r2), last ten known first innings, at least eight. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-yrfi.md`.
+- XIN: extra innings, the average of the two clubs' rates over the last 40 games, at least 20 each. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-xin.md`.
+- HR05: one batter, home runs over 0.5 only. The fair value is how often he homered in up to 20 appearances, at least 10. A 1.5 line does not trade. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-hr05.md`.
+- K35: one pitcher, strikeouts over 3.5 only. The fair value is how often his last starts, up to 10 and at least 8, reached four strikeouts. A 4.5 line does not trade. Pin `Y 1.0 14.638156`. `reviews/2026-09-25-polymarket-fp5-prereg-k35.md`.
+
+The shared quotes are `scripts/mlb_score.py`. The puller is `scripts/mlb_inputs.py` (self-check prints `16` for innings pitched `5.1`, and it does not keep an odds column). Prints are `scripts/mlb_pick.py`. The decision clock is first pitch (`startTime`), one hour before. The sample window stays on `endDate`, which is often about a week after first pitch. The full-sample pull and the scoring runs are the next step, after this commit is pushed.
 
 ### [2026-09-25 05:30 UTC] Platform: Cursor | Model: Grok 4.7
 
