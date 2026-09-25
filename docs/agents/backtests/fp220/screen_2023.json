@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp220_common": "1cc0926d3a3e5e729c73f2d4960284d6f73a0c3ec78ba923dfcfc18a8dcef672",
+    "fp220_measure": "d279e8ad10137ceb46df6a6f6ee64bd443e19b164555a94b3433a83ad99442a9",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BRD",
+      "mean_gross_bps": 296.6595,
+      "mean_net_bps": 276.0868,
+      "min_n": 30,
+      "n": 81,
+      "note": "At least five of the seven finished sessions closed below their open. The next open is bought and sold seven days later. One USDT-perpetual leg. Funding cash is not added. The null is that seven-day long on every day the seven sessions exist.",
+      "null_p95_bps": 284.8539,
+      "passes_screen": false,
+      "total_pnl_usd": 223.6303
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "702a3cea970f3ac8278d7aaafdc1413b627fb06ee76363c989f6fc1a62c32596"
+}

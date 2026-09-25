@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp224_common": "300aceb5490a7f587a3cb3b80ba8e5f89634df422ff92528ad5748be53be01c0",
+    "fp224_measure": "31659c3705e24ac348d2e66c754e056e132a1d831c244ccf0d7ddf7afd6deeab",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CMS",
+      "mean_gross_bps": -96.0698,
+      "mean_net_bps": -115.8579,
+      "min_n": 30,
+      "n": 171,
+      "note": "The coin-margined seven-day return finished strictly below the USDT return. The next open is sold and bought back seven days later. One coin-margined leg. Funding cash is not added. The null is that seven-day short on every day both returns exist.",
+      "null_p95_bps": -128.2059,
+      "passes_screen": false,
+      "total_pnl_usd": -198.117
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd",
+    "um": "17256f8d90bfbb46ca7202c024cf03a6ab35aff60748082b7877ed1aed0c9940"
+  },
+  "passed": [],
+  "protocol_sha256": "05ee3b9a4594bfe64fc6bbab729d2c25ee39ee18d2c595ebb1560413fe6da66b"
+}

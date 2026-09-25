@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp217_common": "4518fa4afc0c5374c966e2c82a36c880a8dfdfa98a427f8007387a8ad88aaadc",
+    "fp217_measure": "e836707e94bf2ac1dc303c3f93cec902e31dd90f55cd09ef99e68469669aba73",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MONX",
+      "mean_gross_bps": 93.6132,
+      "mean_net_bps": 73.4461,
+      "min_n": 30,
+      "n": 52,
+      "note": "Monday's open is bought and Friday's open is sold. One USDT-perpetual leg. Funding cash is not added. The null is that four-day long on every day.",
+      "null_p95_bps": 202.8863,
+      "passes_screen": false,
+      "total_pnl_usd": 38.192
+    }
+  ],
+  "input_sha256": {
+    "um": "3570ff4f90a7b259966b1929a9c33183da3240aa3d5802cc2b61cca9567d5580"
+  },
+  "passed": [],
+  "protocol_sha256": "4ce82f333a16b3eff1d540bb8f88e628f81223af92591303f0a090d852ef035b"
+}

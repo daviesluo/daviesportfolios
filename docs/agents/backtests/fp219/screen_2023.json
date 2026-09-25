@@ -1,0 +1,28 @@
+{
+  "code_sha256": {
+    "fp219_common": "d0f1158cc9a449e21eece10f0cfc7db6cf70ddc88a3fc032cf513ba5efc03d64",
+    "fp219_measure": "a1f0d34ecbba8de2ac3f4a34e0e5cfad66badc924e51398b1deace6af6bf0d0e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "XEXP",
+      "mean_gross_bps": 958.5785,
+      "mean_net_bps": 936.6832,
+      "min_n": 30,
+      "n": 112,
+      "note": "The front quarterly is bought when 7 to 35 days remain and sold at the expiry open. One leg. Funding cash is not added. The null holds that contract to expiry whenever at least seven days remain.",
+      "null_p95_bps": 1588.5237,
+      "passes_screen": false,
+      "total_pnl_usd": 1049.0852
+    }
+  ],
+  "input_sha256": {
+    "BTCUSD_230331": "139821125581b8d8dc948b8f14241128600101218b6e0d879e1706d2f1e931f6",
+    "BTCUSD_230630": "b02ddb9b7a39c298293c12afe001caa6bcdf0394b068a6c3e2cb613f4702a45c",
+    "BTCUSD_230929": "c5a89cec465e0151d44fbf0b6d7bd5bcc6ac089e786c47ff7ae15743102ff1be",
+    "BTCUSD_231229": "b93780e92115db5bb43e63f54ba289f5f8484a385f11986ffcb42ea03d587426"
+  },
+  "passed": [],
+  "protocol_sha256": "24790057c75d9a65ea61dc035ba31c82c995c8354ff3a638b9e7cfc598b68a69"
+}

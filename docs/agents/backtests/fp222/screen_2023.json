@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp222_common": "bf4a5931e501694533fb0e3ec4f4ce0e0d1278999d80fa102ffdd3f289fad389",
+    "fp222_measure": "a7e98672885461c549fd10474ab9cced18b615cfd710502e80b567be1569280f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FRI7",
+      "mean_gross_bps": 207.0796,
+      "mean_net_bps": 186.6858,
+      "min_n": 30,
+      "n": 51,
+      "note": "Friday's open is bought and the next Friday's open is sold. One USDT-perpetual leg. Funding cash is not added. The null is that seven-day long on every day.",
+      "null_p95_bps": 345.5275,
+      "passes_screen": false,
+      "total_pnl_usd": 95.2098
+    }
+  ],
+  "input_sha256": {
+    "um": "3570ff4f90a7b259966b1929a9c33183da3240aa3d5802cc2b61cca9567d5580"
+  },
+  "passed": [],
+  "protocol_sha256": "779a696b472a470020899bed0e7970d3e3acbfa46daee64ca79e8b17eb37dd4f"
+}
