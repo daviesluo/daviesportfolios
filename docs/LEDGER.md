@@ -10,7 +10,9 @@ and is opened only when a closed item is reopened or audited.
 
 **BRKHI is void. The later years were recorded and the rule is not a testing row.** The buy is a price inside the day, and the four-day width uses that day's finished high and low, which are not known at the buy. The rule was not rewritten and was not run again. Entries 2024-01-01 through 2026-09-24 stay in the research record: 146 trades, +$97.4032. No pull request. Main was not pushed.
 
-**fp169–fp176 are scored. LAG6 and C3 pass the 2023 screen. The later years are not read.** Pre-registrations are frozen. OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL and HHSH stay void. No testing row was armed.
+**LAG6 and C3 fail the pre-registered later years. Neither is a testing row.** The buys and the sells were not moved. LAG6 entries 2024-01-01 through 2026-09-23: 462 trades, −$13.8381. C3 entries 2024-01-01 through 2026-09-22: 327 trades, +$41.3727, and the other bars fail. No pull request. Main was not pushed.
+
+**fp169–fp176 are scored.** OUTNEXT, FNTROUGH, THRU, STOPLOW, COIL and HHSH stayed void on the 2023 screen. BRKHI stays void.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -834,6 +836,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:15 UTC] Platform: Cursor | Model: Grok 4.7
+
+**LAG6 and C3 fail the pre-registered later years. Neither is a testing row.** The pre-registrations were `1d89d57`'s files, sha256 `e81b2cdb…` and `b3104fbd…`, frozen 2026-09-25T09:05:29Z, before this pull. The rule files' hashes are the screens'. 2023 reproduces: LAG6 179 trades, +$119.336; C3 119 trades, +$149.937. LAG6 entries 2024-01-01 through 2026-09-23: 462 trades, −$13.8381, mean −$0.029953, null p95 +$0.1922 on 997 two-day longs (`9ea5ae61…`). 2024 +$67.6248. 2025-01-01 through 2026-09-23 −$81.4628. Doubled costs −$106.1183. February 2024 +$48.4589, without it −$62.2969. Annualised −0.05061. C3 entries 2024-01-01 through 2026-09-22: 327 trades, +$41.3727, mean +$0.126522, null p95 +$0.4109 on 996 three-day longs (`e1568aa8…`). 2024 +$52.658. 2025-01-01 through 2026-09-22 −$11.2853. Doubled costs −$24.0447. February 2024 +$77.7938, share 1.8803, without it −$36.421. Annualised 0.151313. Two runs of each file matched. Each daily grid has 999 bars. The last stored bar is the 2026-09-25 open, and it is an exit. No bar on 2026-09-26 was stored. No open on 2026-09-25 was an entry. Every fill was recomputed from the stored opens. The buys and the sells were not moved, and 2024 was not used to change either rule. Reference §3.203 and §3.205. No count was lowered. BRKHI stays void. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:06 UTC] Platform: Cursor | Model: Grok 4.7
 

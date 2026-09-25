@@ -138,6 +138,55 @@ def pull_funding(last_day_ms: int) -> dict[int, tuple]:
 
 
 
+def pull_oos(start_ms: int, end_ms: int) -> dict[int, tuple]:
+    """Daily bars from 2024-01-01 through the 2026-09-25 open.
+
+    That last bar is an exit open. It is not an entry. A bar on 2026-09-26
+    is not requested and is not stored.
+    """
+    exit_open = int(datetime.datetime(2026, 9, 25, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+    start_open = int(datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc).timestamp() * 1000)
+    if int(start_ms) != start_open or int(end_ms) != exit_open:
+        raise SystemExit("the out-of-sample pull is not the frozen window")
+    request_end = end_ms + c.fp5.DAY_MS - 1
+    cursor = start_ms
+    rows: dict[int, tuple] = {}
+    while cursor <= end_ms:
+        url = (
+            f"{MARKET}/api/v3/klines?symbol=BTCUSDT&interval=1d"
+            f"&startTime={cursor}&endTime={request_end}&limit=1000"
+        )
+        batch = json.loads(get(url))
+        if not batch:
+            break
+        for kline in batch:
+            open_ms = int(kline[0])
+            if open_ms < start_ms or open_ms > end_ms:
+                continue
+            if open_ms >= exit_open + c.fp5.DAY_MS:
+                raise SystemExit("a bar on 2026-09-26 was returned")
+            if len(kline) < 5:
+                raise SystemExit("a kline is missing the close")
+            rows[open_ms] = (float(kline[1]), float(kline[2]), float(kline[3]), float(kline[4]))
+        nxt = int(batch[-1][0]) + c.fp5.DAY_MS
+        if nxt <= cursor:
+            break
+        cursor = nxt
+        if len(batch) < 1000:
+            break
+    if not rows or min(rows) != start_ms or max(rows) != end_ms:
+        raise SystemExit("the out-of-sample daily grid does not span the window")
+    t = start_ms
+    while t <= end_ms:
+        if t not in rows:
+            raise SystemExit("the out-of-sample grid is missing a day")
+        t += c.fp5.DAY_MS
+    if any(day >= exit_open + c.fp5.DAY_MS for day in rows):
+        raise SystemExit("a bar on 2026-09-26 was stored")
+    save("oos_1d/BTCUSDT.json", rows)
+    return rows
+
+
 def main() -> None:
     if os.environ.get("FP174_OOS"):
         raise SystemExit("this pull does not request a later year")

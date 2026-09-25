@@ -4866,7 +4866,7 @@ cleared and the mean was negative. The null is every session. Yesterday is
 not the comparison. The coil is known at that close. The buy is the next
 open.
 
-### 3.203 A range wider than six days earlier, held two days: the 2023 screen passes (2026-09-25)
+### 3.203 A range wider than six days earlier, held two days: the later years fail (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp174-protocol.md`) was committed before any
 return (`f48437a`). Two runs matched (`backtests/fp174/screen_2023.json`,
@@ -4880,8 +4880,21 @@ The screen's last stored bar is 2024-01-02, and that bar is an exit. The
 pre-registration (`reviews/2026-09-25-fp174-prereg-lag6.md`, sha256
 `e81b2cdb…`, frozen 2026-09-25T09:05:29Z, BTCUSDT bid 84598.00000000, ask
 84598.01000000, half-spread 5.910304855747668e-08) was frozen before any
-daily open from 2024-01-01 was read as an entry. The later years are not
-read. It is not a testing row.
+daily open from 2024-01-01 was read as an entry. The buy and the sell were
+not moved. Two out-of-sample runs matched (`backtests/fp174/lag6_oos.json`,
+sha256 `9ea5ae61…`). 2023 reproduces: 179 trades, +$119.336. Entries from
+2024-01-01 through 2026-09-23: 462 trades, −$13.8381, mean −$0.029953, null
+p95 +$0.1922 on 997 two-day longs with the range filter off. 2024 is
++$67.6248 and 2025-01-01 through 2026-09-23 is −$81.4628. Doubled costs are
+−$106.1183. February 2024 is +$48.4589; without it the total is −$62.2969.
+Annualised on the locked $100 over 998 days it is −0.05061. The daily grid
+has 999 bars and the last stored bar is the 2026-09-25 open, an exit. No bar
+on 2026-09-26 was stored. No open on 2026-09-25 was an entry. Every fill was
+recomputed from the stored opens. The count clears 30. The total is
+negative, 2025–2026 is negative, the mean is under the null, and doubled
+costs are negative. **The rule fails.** It was not rewritten. It is not a
+testing row. The next search does not inherit the six-day range or the
+two-day hold.
 
 ### 3.204 Two higher highs, then a one-day short: none clears (2026-09-25)
 
@@ -4895,7 +4908,7 @@ The count cleared and the mean was negative and under the null. The null is
 every one-day short. The two highs are known at that close. The short is the
 next open. This is not a long.
 
-### 3.205 A close above the prior three closes, held three days: the 2023 screen passes (2026-09-25)
+### 3.205 A close above the prior three closes, held three days: the later years fail (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp176-protocol.md`) was committed before any
 return (`f48437a`). Two runs matched (`backtests/fp176/screen_2023.json`,
@@ -4909,8 +4922,22 @@ low and close are not read to decide the entry. The screen's last stored bar
 is 2024-01-03, and that bar is an exit. The pre-registration
 (`reviews/2026-09-25-fp176-prereg-c3.md`, sha256 `b3104fbd…`, frozen
 2026-09-25T09:05:29Z, the same BTCUSDT book as §3.203) was frozen before any
-daily open from 2024-01-01 was read as an entry. The later years are not
-read. It is not a testing row.
+daily open from 2024-01-01 was read as an entry. The buy and the sell were
+not moved. Two out-of-sample runs matched (`backtests/fp176/c3_oos.json`,
+sha256 `e1568aa8…`). 2023 reproduces: 119 trades, +$149.937. Entries from
+2024-01-01 through 2026-09-22: 327 trades, +$41.3727, mean +$0.126522, null
+p95 +$0.4109 on 996 three-day longs with the close filter off. 2024 is
++$52.658 and 2025-01-01 through 2026-09-22 is −$11.2853. Doubled costs are
+−$24.0447. February 2024 is +$77.7938, 188.03% of the total; without it the
+total is −$36.421. Annualised on the locked $100 over 998 days it is
+0.151313. The daily grid has 999 bars and the last stored bar is the
+2026-09-25 open, an exit. No bar after 2026-09-25 was stored. No open on
+2026-09-25 was an entry. Every fill was recomputed from the stored opens.
+The count clears 30 and the annualised total clears 4%. The 2025–2026 window
+is negative, the mean is under the null, doubled costs are negative, and
+one month is more than 40% of the profit. **The rule fails.** It was not
+rewritten. It is not a testing row. The next search does not inherit the
+three-close filter or the three-day hold.
 
 ### 4. Design consequences (decided by the evidence above)
 
