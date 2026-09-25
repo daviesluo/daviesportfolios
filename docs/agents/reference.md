@@ -5040,6 +5040,104 @@ missing day is not a signal. The two highs and the close are known before
 the buy. The buy is the next open. The entry day's high, low and close are
 not the signal.
 
+### 3.214 Bids rose and asks fell, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp185-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp185/screen_2023.json`,
+sha256 `336ea6b3…`). Bid notional strictly higher at the last snapshot than
+the first, and ask notional strictly lower, then the next session from open
+to close: 69 trades, mean −4.5388 bps, null p95 +48.5409 bps, −$3.1317. The
+file's gross is +15.4722 bps. **Nothing here is fit to add.** The count
+cleared and the mean was negative. The null is every session. Three book
+files were absent and were not filled in. The two snapshots are known before
+the next open. The high and the low are not read. The buy is the next open.
+
+### 3.215 The book flipped to the bid, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp186-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp186/screen_2023.json`,
+sha256 `8e209580…`). The first snapshot had ask notional strictly above bid
+notional, and the last had bid notional strictly above ask notional, then
+the next session from open to close: 59 trades, mean +19.4835 bps, null p95
++53.4821 bps, +$11.4953. The file's gross is +39.5425 bps. **Nothing here is
+fit to add.** The count cleared and the mean was positive and under the
+null. The null is every session. This is not the change in the size of each
+side. An equal side does not fire. The high and the low are not read. The
+buy is the next open.
+
+### 3.216 Spot finished under the index, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp187-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp187/screen_2023.json`,
+sha256 `b5d304aa…`). The spot close strictly under the index close, then the
+next session from open to close: 194 trades, mean +13.7261 bps, null p95
++26.7615 bps, +$26.6286. The file's gross is +33.7736 bps. **Nothing here is
+fit to add.** The count cleared and the mean was positive and under the
+null. The null is every session. This is not the premium index and it is not
+the perpetual. A missing index day is not a print. The high and the low are
+not read. The buy is the next open.
+
+### 3.217 The coin-margined close under the USDT close, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp188-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp188/screen_2023.json`,
+sha256 `40a0c19a…`). The coin-margined perpetual close strictly under the
+USDT perpetual close, then the next session from open to close: 98 trades,
+mean +3.4297 bps, null p95 +42.544 bps, +$3.3611. The file's gross is
++23.4566 bps. **Nothing here is fit to add.** The count cleared and the mean
+was positive and under the null. The null is every session. This is not a
+volume ratio. A missing leg is not a print. The high and the low are not
+read. The buy is the next open.
+
+### 3.218 USDT funding under coin-margined funding, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp189-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp189/screen_2023.json`,
+sha256 `54557f67…`). The last aligned USDT funding rate strictly under the
+coin-margined rate, then the next session from open to close, funding cash
+not added: 158 trades, mean +6.5448 bps, null p95 +31.329 bps, +$10.3408.
+The file's gross is +26.5779 bps. **Nothing here is fit to add.** The count
+cleared and the mean was positive and under the null. The null is every
+session. This is not a jump and it is not a 90-day window. An equal pair
+does not fire. The buy is the next open.
+
+### 3.219 Coin-margined buyers and USDT sellers, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp190-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp190/screen_2023.json`,
+sha256 `bccdde5b…`). The coin-margined taker-buy share strictly above one
+half and the USDT share strictly under one half, then the next session from
+open to close: 46 trades, mean +2.2957 bps, null p95 +58.8221 bps, +$1.056.
+The file's gross is +22.3203 bps. **Nothing here is fit to add.** The count
+cleared and the mean was positive and under the null. The null is every
+session. Each share uses its own book. An equal half does not fire. This is
+not the spot taker-buy share. The high and the low are not read. The buy is
+the next open.
+
+### 3.220 The close above the day's average trade, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp191-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp191/screen_2023.json`,
+sha256 `7e1fdc48…`). The spot close strictly above that day's quote volume
+divided by base volume, then the next session from open to close: 193
+trades, mean +16.2521 bps, null p95 +24.5793 bps, +$31.3665. The file's
+gross is +36.3046 bps. **Nothing here is fit to add.** The count cleared and
+the mean was positive and under the null. The null is every session. The
+high and the low are not read. The taker-buy share is not read. An equal
+average does not fire. The buy is the next open.
+
+### 3.221 The perpetual's average trade under the mark, then the next session: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp192-protocol.md`) was committed before any
+return (`5f9d59b`). Two runs matched (`backtests/fp192/screen_2023.json`,
+sha256 `4731d1f6…`). The USDT perpetual's quote volume divided by base volume
+strictly under the mark close, then the next session from open to close: 194
+trades, mean +14.7638 bps, null p95 +26.7615 bps, +$28.6418. The file's
+gross is +34.8134 bps. **Nothing here is fit to add.** The count cleared and
+the mean was positive and under the null. The null is every session. The
+perpetual's close is not the comparison. The high and the low are not read.
+An equal mark does not fire. The buy is the next open.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

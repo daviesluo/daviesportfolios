@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp189_common": "f4b181a1c4f421f453bcd2a0567cab11d6980a648f886a00411109d96ce45c31",
+    "fp189_measure": "91dbafd507ac734125d3b4688fde5a0c19d2d038d0c9105cc2c663e3981f9c08",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMLT",
+      "mean_gross_bps": 26.5779,
+      "mean_net_bps": 6.5448,
+      "min_n": 30,
+      "n": 158,
+      "note": "The last aligned USDT funding rate finished strictly under the coin-margined rate. Next day, long BTC from the open to the close. The funding cash is not added.",
+      "null_p95_bps": 31.329,
+      "passes_screen": false,
+      "total_pnl_usd": 10.3408
+    }
+  ],
+  "input_sha256": {
+    "cm_funding": "d21ec699cb145cf78c7b6f0890090df1994350f6e6861f81e1dccbe8a87fd5e3",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27",
+    "um_funding": "e5900af0aa7cf0ba39afad35edcbbab591dec1cbfdc88604200498b468232d50"
+  },
+  "passed": [],
+  "protocol_sha256": "c6841bced5514cd21e40549e108e040a774636b6eecd37e861f382e44eb824f5"
+}

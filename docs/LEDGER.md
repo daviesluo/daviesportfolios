@@ -14,7 +14,7 @@ and is opened only when a closed item is reopened or audited.
 
 **fp177–fp184 fail the 2023 screen. None is a testing row.** The protocol was `85075b2`, pushed before any of these returns. Two runs of each screen matched. ENGULF 42 trades, −$17.9164. UPWICK 79 trades, −$27.8004. LIFT 99 trades, +$8.0113, under its null. REVCLOSE 58 trades, −$13.9068. LHLL 97 trades, −$46.4808. DIP 37 trades, −$6.2639. BODYGT 103 trades, +$7.7782, under its null. DELAY 44 trades, +$1.2985, under its null. The count stays 30. No rule was rewritten. BRKHI stays void. No pull request. Main was not pushed.
 
-**fp185–fp192 are protocols only. No return of these rules has been computed.** Eight mechanisms. Each entry uses a print that has already happened. None reads a high, a low, a wick, or an engulfing body. BIDUP, BKFLIP, SPOTIDX, XBOOK, UMLT, CMBUY, ABOVEVW and UNDMARK. The count stays 30. BRKHI, LAG6, C3 and fp177–fp184 stay closed.
+**fp185–fp192 fail the 2023 screen. None is a testing row.** The protocol was `5f9d59b`, pushed before any of these returns. Two runs of each screen matched. BIDUP 69 trades, −$3.1317. BKFLIP 59 trades, +$11.4953, under its null. SPOTIDX 194 trades, +$26.6286, under its null. XBOOK 98 trades, +$3.3611, under its null. UMLT 158 trades, +$10.3408, under its null. CMBUY 46 trades, +$1.056, under its null. ABOVEVW 193 trades, +$31.3665, under its null. UNDMARK 194 trades, +$28.6418, under its null. The count stays 30. No rule was rewritten. BRKHI, LAG6, C3 and fp177–fp184 stay closed. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -838,6 +838,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 09:40 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp185–fp192 fail the 2023 screen. None is a testing row.** The protocol was `5f9d59b`, pushed before any of these returns. Each screen file was written twice and the copies matched. `FP185_OOS` aborts the scorer. BIDUP 69 / file gross +15.4722 / file mean −4.5388 / null +48.5409 / −$3.1317 (`336ea6b3…`). BKFLIP 59 / file gross +39.5425 / file mean +19.4835 / null +53.4821 / +$11.4953 (`8e209580…`). SPOTIDX 194 / file gross +33.7736 / file mean +13.7261 / null +26.7615 / +$26.6286 (`b5d304aa…`). XBOOK 98 / file gross +23.4566 / file mean +3.4297 / null +42.544 / +$3.3611 (`40a0c19a…`). UMLT 158 / file gross +26.5779 / file mean +6.5448 / null +31.329 / +$10.3408 (`54557f67…`). CMBUY 46 / file gross +22.3203 / file mean +2.2957 / null +58.8221 / +$1.056 (`bccdde5b…`). ABOVEVW 193 / file gross +36.3046 / file mean +16.2521 / null +24.5793 / +$31.3665 (`7e1fdc48…`). UNDMARK 194 / file gross +34.8134 / file mean +14.7638 / null +26.7615 / +$28.6418 (`4731d1f6…`). Every rule has fills. Every fill was recomputed from the stored prices and matched. BIDUP has a negative mean. The other seven have a positive mean under their own null. The entry of each rule uses a print that has already closed. The buy is the next open. The entry day's high, low and close are not read to decide the entry. No rule reads a high, a low, a wick, or an engulfing body. Reference §3.214–§3.221. No percentile was used. No sign of a killed rule was flipped. No count was lowered. The six-day range, the two-day hold, the three-close filter and the three-day hold stay closed. LAG6, C3 and fp177–fp184 stay failed and were not rewritten. BRKHI stays void. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No liquidation file was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 09:38 UTC] Platform: Cursor | Model: Grok 4.7
 

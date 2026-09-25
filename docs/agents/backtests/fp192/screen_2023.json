@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp192_common": "80766bead7c0a00645f5f3a3d9615de51cd0dda08b6452fcc9ae7c77d955ae11",
+    "fp192_measure": "6331f4639df48a5693afd35af2ea56c983d67960bf86ec08b05c329ddafcb178",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UNDMARK",
+      "mean_gross_bps": 34.8134,
+      "mean_net_bps": 14.7638,
+      "min_n": 30,
+      "n": 194,
+      "note": "The USDT perpetual's average trade finished strictly under the mark close. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 26.7615,
+      "passes_screen": false,
+      "total_pnl_usd": 28.6418
+    }
+  ],
+  "input_sha256": {
+    "mark": "8ada6b0515014a88bafcea869e940d6d1e64adfed057e552f96d347732f9d5ed",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27",
+    "um": "aed9a4f4adc801da6ab850399f1341d247e8810bb45d35088567183c01fb1afe"
+  },
+  "passed": [],
+  "protocol_sha256": "cdfdefd58809ed20be3ffa111af54e42f0a69fe3a7fc9751a4fd2e8aa8c36216"
+}

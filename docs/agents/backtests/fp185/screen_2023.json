@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp185_common": "b5544d28831fc428c805b6c3ddba90e5bee21631139040e87265ff4d5e561262",
+    "fp185_measure": "629a953c9897fc26252a4e2c90e4fded6132ffe8a665465e7d4011ebd987ed05",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BIDUP",
+      "mean_gross_bps": 15.4722,
+      "mean_net_bps": -4.5388,
+      "min_n": 30,
+      "n": 69,
+      "note": "Bid notional rose and ask notional fell through the day. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 48.5409,
+      "passes_screen": false,
+      "total_pnl_usd": -3.1317
+    }
+  ],
+  "input_sha256": {
+    "book": "c320ad98724856f5c31bd94d6792984f5596bc046876d5df0d6eab0b6449b607",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27"
+  },
+  "passed": [],
+  "protocol_sha256": "5e048cbc72ae3d74ab17cbe27f00fee31d9a6b037d8ad29efc296adb780968c7"
+}

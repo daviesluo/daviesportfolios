@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp190_common": "57dcf1506195925dd1fab9bec4188667b2d52679d1cea5504dc52c5ce0a70d13",
+    "fp190_measure": "b238fd55dbe8e3ff8f13791f9440c1520536ed2075c49c39270a1a08ac7bac76",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CMBUY",
+      "mean_gross_bps": 22.3203,
+      "mean_net_bps": 2.2957,
+      "min_n": 30,
+      "n": 46,
+      "note": "The coin-margined taker-buy share finished strictly above one half and the USDT share strictly under one half. Next day, long BTC from the open to the close.",
+      "null_p95_bps": 58.8221,
+      "passes_screen": false,
+      "total_pnl_usd": 1.056
+    }
+  ],
+  "input_sha256": {
+    "cm": "283c20686c7a3858fcef2da01632175059f88350f5e92308f426d860af9a0e70",
+    "spot": "9c09ba7161b8f3e214015abd0eb54b5de6663808796ce160a4ecd8ede629bd27",
+    "um": "2ed82fe89f1dcc6958aee52d6192e86b15793c424128f82f6cb08096100679c5"
+  },
+  "passed": [],
+  "protocol_sha256": "7b36cb960de4cc67d5a5cd41ddcf65a83fef33aba8a530f36571f0cb2174eced"
+}
