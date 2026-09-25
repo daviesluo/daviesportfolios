@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp244_common": "7e4c3497513326334a61de52a2462ef2dc054cab5f7b483a7ffa25e22d739afe",
+    "fp244_measure": "cd318629aedc0ecdf3e9ff90a7ac7e1fcbc68bc01bc4baf164b7489d59e91e4b",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CALM",
+      "mean_gross_bps": 108.6554,
+      "mean_net_bps": 88.4583,
+      "min_n": 30,
+      "n": 161,
+      "note": "The absolute nine-day coin-margined return finished smaller than the absolute nine-day return before it. The next open is bought and sold six days later. One coin-margined leg. Funding cash is not added. The null is that six-day long on every day.",
+      "null_p95_bps": 230.6992,
+      "passes_screen": false,
+      "total_pnl_usd": 142.4179
+    }
+  ],
+  "input_sha256": {
+    "cm": "6bdb42d0cc4f99273510fc9f1bdf25127ff07aa0534acdc25d40aabaa2337ebd"
+  },
+  "passed": [],
+  "protocol_sha256": "805fb145ca61cc361c5fad8d55911a10538a00db551583c36dacd73b6e4e093d"
+}

@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp243_common": "b05f4a9d494ba6a1d183e8ae38d178da2b1a83ba017487e199ccfa3889afa38a",
+    "fp243_measure": "0ba9df1559bdb715afaf2bfa8bd7e601ce5eec72d8a3e88b63772b6bba747b0e",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "AHEAD",
+      "mean_gross_bps": 392.992,
+      "mean_net_bps": 372.2267,
+      "min_n": 30,
+      "n": 171,
+      "note": "Spot's finished seven-day return was above the coin-margined seven-day return. The next USDT open is bought and sold twelve days later. One USDT-perpetual leg. Funding cash is not added. The null is that twelve-day long on every day.",
+      "null_p95_bps": 437.1806,
+      "passes_screen": false,
+      "total_pnl_usd": 636.5077
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "spot": "cbdce341d9c36e030adec830d7356ade5d2fdb1a1abdf1147447ca21344bfc79",
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "afe2906e1444ecae2092cc106a0d95106be76b925572cc72a7f174d835d713c9"
+}

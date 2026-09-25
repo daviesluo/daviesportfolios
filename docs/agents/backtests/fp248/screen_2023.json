@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp248_common": "86e93a6698961ec320647cfc8e9fb9544f90e3b5e67ced2d7aaf4534cbcff56f",
+    "fp248_measure": "02d77b9581d2ad713a4120cfcee20d7706f1199ea662a2ea2004755d570072a3",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BOUN",
+      "mean_gross_bps": 593.8978,
+      "mean_net_bps": 572.7312,
+      "min_n": 30,
+      "n": 53,
+      "note": "Yesterday's USDT close finished above the prior close and below the close five days earlier. The next spot open is bought and sold twenty-one days later. One spot leg. Funding cash is not added. The null is that twenty-one-day long on every day.",
+      "null_p95_bps": 820.5322,
+      "passes_screen": false,
+      "total_pnl_usd": 303.5475
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611",
+    "um": "4839a196d75d57acb85e5bcdade9c3278a12d77a926bb3d535380ffbaa8d098c"
+  },
+  "passed": [],
+  "protocol_sha256": "624b42ea5f944fbfdee95a9566704b90ecf9c7556883495597bbd339f0b520a6"
+}
