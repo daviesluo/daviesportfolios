@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp218_common": "0b28ec72b02b28e31fc57bd7eed1996e15597cbefad48b87168388f9c99f130a",
+    "fp218_measure": "66ee20c639f33aef6fc3f483502d253fb4ce844282e3a28b3e07362ea92b0377",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MTH",
+      "mean_gross_bps": 833.6112,
+      "mean_net_bps": 811.9657,
+      "min_n": 30,
+      "n": 84,
+      "note": "A UTC day numbered 1 through 7 is bought and sold at the next month's first open. One USDT-perpetual leg. Funding cash is not added. The null draws, within each hold length the rule used, that many opens held exactly that many days.",
+      "null_p95_bps": 946.023,
+      "passes_screen": false,
+      "total_pnl_usd": 682.0512
+    }
+  ],
+  "input_sha256": {
+    "um": "3570ff4f90a7b259966b1929a9c33183da3240aa3d5802cc2b61cca9567d5580"
+  },
+  "passed": [],
+  "protocol_sha256": "817d3e38c41d15b4806b220adef4525bfb91b841d5ab39e468618feef64a2b26"
+}

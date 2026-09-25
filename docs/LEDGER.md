@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**MTH's recorded 2023 comparison is not a pass. The same-length null is frozen and not yet scored. The other seven of fp217–fp224 fail.** The first protocol was `3acc6ef`. MTH's 84 trades, mean +811.9657 bps against a null of +787.6951 bps, +$682.0512, stay on record in `docs/agents/backtests/fp218/screen_2023.json` (`b028983e`). That null included holds shorter than 22 days. The same-length null is `docs/agents/reviews/2026-09-25-fp218-matched-protocol.md`. No return of that null has been computed. The later years are not scored. MONX 52 trades, +$38.192, mean under its null. XEXP 112 trades, +$1049.0852, mean under its null. BRD 81 trades, +$223.6303, mean under its null. SMO 204 trades, +$356.3532, mean under its null. FRI7 51 trades, +$95.2098, mean under its null. FWK 135 trades, +$349.8649, mean under its null. CMS 171 trades, −$198.117, mean negative and above its null. Each position is one leg. The count stays 30. No pull request. Main was not pushed.
+**MTH is void. The same-length null fails the 2023 screen. It is not a testing row.** The matched protocol was `5dc446a`, pushed before this return. Two runs matched. The 84 trades are unchanged: mean +811.9657 bps, gross +833.6112 bps, +$682.0512, against a same-length null of +946.023 bps (`dde12644`). The mean is positive and under that null. The earlier seven-day-floor file stays on record and is not a pass (`b028983e`). The later years are not scored. MONX, XEXP, BRD, SMO, FRI7, FWK and CMS stay failed. The count stays 30. No pull request. Main was not pushed.
 
 **fp209–fp216 fail the 2023 screen. None is a testing row.** The protocol was `59e8e3c`, pushed before any of these returns. Two runs of each screen matched. SVW 187 trades, −$64.7057. UCR 190 trades, −$64.5864. FND 134 trades, −$47.422. CAL 173 trades, −$53.467, the mean negative and above its null. FCH 47 trades, −$15.4583. MRK 184 trades, −$64.244. LVL 176 trades, −$60.4221. SCM 143 trades, −$48.535. Every gross was positive and every mean was negative. Each trade is long one contract and short another. Each null is that spread with the extra filter off, not an unconditional long and not an unconditional short. The count stays 30. No rule was rewritten. fp201–fp208 were not flipped into longs. The book was not read. The three missing book days were not filled in. No pull request. Main was not pushed.
 
@@ -846,6 +846,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 11:26 UTC] Platform: Cursor | Model: Grok 4.7
+
+**MTH is void. The same-length null fails the 2023 screen. It is not a testing row.** The matched protocol was `5dc446a`, pushed before this return. Two runs of `docs/agents/scripts/fp218/measure.py` matched, and the written file matched them. `docs/agents/backtests/fp218/screen_2023_matched.json`, sha256 `dde12644…`. The 84 trades are the trades in `screen_2023.json`: file gross +833.6112 bps, file mean +811.9657 bps, +$682.0512. The null p95 is +946.023 bps. The mean is positive and under that null. The later years were not scored. The seven-day-floor comparison stays `b028983e` and is not a pass. The count stays 30. Reference §3.254. No pull request. Main was not pushed.
 
 ### [2026-09-25 11:23 UTC] Platform: Cursor | Model: Grok 4.7
 

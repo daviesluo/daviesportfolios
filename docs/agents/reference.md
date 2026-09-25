@@ -5506,8 +5506,7 @@ and sell the next month's first open: 84 trades, mean +811.9657 bps, null p95
 +787.6951 bps, +$682.0512. The file's gross is +833.6112 bps. **That comparison
 is not a pass.** The strategy hold is 22 to 31 days. The null sold at the next
 month's open whenever at least seven days remained, so the pool also contains
-shorter holds. The same-length null is frozen in
-`reviews/2026-09-25-fp218-matched-protocol.md` and is not yet scored. The later
+shorter holds. The same-length null is §3.254. It does not pass. The later
 years are not scored. This is not a testing row. One leg. Funding cash is not
 added. The trades were not changed. A count taken before the first freeze, with
 no profit computed, was 84. The scored book is 84.
@@ -5592,6 +5591,19 @@ cash is not added. A missing coin-margined day was not filled in. The null
 is that seven-day short on every day both returns exist. A count taken before
 the freeze, with no profit computed, was 171. The scored book is 171. The
 rule was not changed.
+
+### 3.254 The same-length month hold: the 2023 screen fails, and the rule is void (2026-09-25)
+
+The matched protocol (`reviews/2026-09-25-fp218-matched-protocol.md`) was
+committed before this return (`5dc446a`). Two runs matched
+(`backtests/fp218/screen_2023_matched.json`, sha256 `dde12644…`). The 84
+trades are the same trades as §3.247: mean +811.9657 bps, gross +833.6112
+bps, +$682.0512. The null draws, within each hold from 22 to 31 days, that
+many opens held exactly that many days. Its p95 is +946.023 bps. **The mean
+is positive and under that null. The 2023 screen fails. MTH is void. The
+later years are not scored. This is not a testing row.** One leg. The trades
+were not changed. The count stays 30. A span count taken before the matched
+freeze, with no profit of this null computed, was 84 against a pool of 3395.
 
 ### 4. Design consequences (decided by the evidence above)
 
