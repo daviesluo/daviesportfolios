@@ -6508,6 +6508,20 @@ profit. **The rule fails.** It was not rewritten. It is not a testing row.
 The next search does not inherit the three-day absolute comparison or the
 twenty-one-day hold.
 
+### 3.315 Eight more single-leg rules, frozen before any 2023 return (2026-09-25)
+
+LOUDER's later years are recorded in §3.314 and the rule is void. LASTUP
+stays void. UNDER, STALE, FASTER, BACK, INUP and LEDSP are not taken out of
+sample. fp273 through fp280 are frozen in the same commit as this note,
+before any return of those rules. None uses the opposite side as the other
+trade. Each null is another trade held the same number of days. A count of
+spans, with no profit computed: DRIFT 131 and 131, ABOVE 51 and 51, DEEPCM
+134 and 134, BOTHUP 187 and 187, COOLED 66 and 66, BOTHDOWN 141 and 141,
+RISE 225 and 225, LAGSP 174 and 174. The screen count stays 30. A pass of
+2023 is not a testing row. The later years of these eight are not scored by
+this note. LS-FADE's 60-trade reproduction, the control, doubled costs, and
+the rule that no month is above 40% of the profit are not relaxed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
