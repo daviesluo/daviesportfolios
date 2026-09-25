@@ -708,6 +708,7 @@ before touching migration state.
 | `docs/agents/scripts/fp15/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The ratio of 7-day to 30-day realized vol, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp15/screen_2023.json`. |
 | `docs/agents/scripts/fp16/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Lag-1 correlation of BTC's 24 hourly returns, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp16/screen_2023.json`. |
 | `docs/agents/scripts/fp17/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Average BTC trade size, long BTC the next day. The fill is fp5's. The screen is `docs/agents/backtests/fp17/screen_2023.json`. |
+| `docs/agents/scripts/fp18/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | 30-day BTC–ETH return correlation, long BTC the next day. The fill is fp5's. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |
