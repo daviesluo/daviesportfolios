@@ -1,0 +1,253 @@
+{
+ "best_hour": {
+  "BTC": {
+   "binance_mean": 22.19,
+   "binance_t": 2.04,
+   "hour": 15,
+   "n": 31,
+   "revx_mean": 22.16,
+   "revx_t": 2.09
+  },
+  "ETH": {
+   "binance_mean": 26.76,
+   "binance_t": 2.29,
+   "hour": 15,
+   "n": 31,
+   "revx_mean": 26.47,
+   "revx_t": 2.26
+  },
+  "SOL": {
+   "binance_mean": 20.55,
+   "binance_t": 1.96,
+   "hour": 15,
+   "n": 31,
+   "revx_mean": 22.0,
+   "revx_t": 2.06
+  },
+  "XRP": {
+   "binance_mean": 24.71,
+   "binance_t": 2.44,
+   "hour": 15,
+   "n": 31,
+   "revx_mean": 25.04,
+   "revx_t": 2.41
+  }
+ },
+ "book": {
+  "btc_imbalance": 0.0012,
+  "max_orders_on_a_level": 4,
+  "sui_spread_bps": 24.32
+ },
+ "cross_section_reversal_mean_bps": 5.29,
+ "daily": {
+  "AVAX": {
+   "jump_median_continuation_bps": 17.17,
+   "jump_n": 158,
+   "quiet_excess_bps": -35.44,
+   "rho1": 0.048,
+   "volume_median_signed_bps": -2.75,
+   "volume_n": 108
+  },
+  "BTC": {
+   "jump_median_continuation_bps": 43.6,
+   "jump_n": 55,
+   "quiet_excess_bps": -23.83,
+   "rho1": -0.06,
+   "volume_median_signed_bps": 12.99,
+   "volume_n": 68
+  },
+  "ETH": {
+   "jump_median_continuation_bps": 9.44,
+   "jump_n": 132,
+   "quiet_excess_bps": -51.04,
+   "rho1": -0.025,
+   "volume_median_signed_bps": -27.52,
+   "volume_n": 63
+  },
+  "LTC": {
+   "jump_median_continuation_bps": 7.52,
+   "jump_n": 105,
+   "quiet_excess_bps": -30.34,
+   "rho1": -0.014,
+   "volume_median_signed_bps": 25.18,
+   "volume_n": 119
+  },
+  "SOL": {
+   "jump_median_continuation_bps": 20.37,
+   "jump_n": 152,
+   "quiet_excess_bps": -66.15,
+   "rho1": -0.004,
+   "volume_median_signed_bps": 20.16,
+   "volume_n": 77
+  },
+  "XRP": {
+   "jump_median_continuation_bps": -43.44,
+   "jump_n": 124,
+   "quiet_excess_bps": -50.82,
+   "rho1": 0.011,
+   "volume_median_signed_bps": 23.89,
+   "volume_n": 51
+  }
+ },
+ "five_day_ratio": {
+  "AVAX": {
+   "mean": -12.05,
+   "median": -55.57,
+   "n": 184
+  },
+  "ETH": {
+   "mean": 12.22,
+   "median": -1.09,
+   "n": 203
+  },
+  "LTC": {
+   "mean": -13.38,
+   "median": -35.51,
+   "n": 205
+  },
+  "SOL": {
+   "mean": 7.82,
+   "median": -52.24,
+   "n": 204
+  },
+  "XRP": {
+   "mean": 50.74,
+   "median": 13.56,
+   "n": 201
+  }
+ },
+ "gbp_cross_residual": {
+  "ETH": {
+   "abs_p95": 18.63,
+   "corr_with_btc": 0.925,
+   "n": 733
+  },
+  "SOL": {
+   "abs_p95": 17.28,
+   "corr_with_btc": 0.935,
+   "n": 733
+  },
+  "SUI": {
+   "abs_p95": 37.56,
+   "corr_with_btc": 0.751,
+   "n": 733
+  },
+  "XRP": {
+   "abs_p95": 16.16,
+   "corr_with_btc": 0.92,
+   "n": 733
+  }
+ },
+ "index_gap_clears_taker": [
+  "SUI/USD"
+ ],
+ "inputs_sha256": {
+  "july_bn_1h.json.gz": "befb3e662f9dcbac21e307717ea883bfd3081b5574a9a5283d4a4ad34215cc0e",
+  "july_revx_1h.json.gz": "50dfb81cdc7210494f61394de8246bfe74bed11eaa3d6d36fd9482d253c825eb",
+  "pass2/books.json": "34f5f2453ab09621133832c36b6ee77e9693a9a5ad64c55a392acd5d80a604f5",
+  "pass2/daily_usd.json.gz": "543e0ef15ea8e2d3fe7575b796904b709d9909a49dfc2c868ed49a9d856dae8c",
+  "pass2/july_gbp_1h.json.gz": "133f5ae0e8a9dba27e48cccf2fdcda7c3c3b2c69e25a02460136ccce02c642d3",
+  "pass2/prints_30m.json.gz": "d61dd8821412e075498b201c58127734093afaf49cb65bb3d93eade1dcf91677",
+  "pass2/prints_gbp_lead.json.gz": "a7d4039c44e3a4cc2bf11cde287fc933a7bb583514dacc41a7f6c8f0e26e8aa9",
+  "pass2/probes.json": "e91086e391551944a74e9c6abccfacf94063322b731545ab71293d4847616ce1",
+  "pass2/sol_bn_1d.json.gz": "b542680c33003c3b7208e32f31cce36549b734f382a7292996f4c41355001c04",
+  "tickers_uk.json.gz": "d772f858bcd25e06ae8bd2cae735e8e3fe4951a5458c16e3a2a474277404b8da"
+ },
+ "kills": {
+  "best_hour_is_binances": true,
+  "btc_and_eth_prints_do_not_lead_each_other": true,
+  "btc_book_is_balanced_and_the_queue_is_thin": true,
+  "cross_section_reversal_under_a_round_trip": true,
+  "daily_autocorr_is_noise": true,
+  "five_day_ratio_momentum_misses_two_legs": true,
+  "gbp_cross_residual_inside_a_round_trip": true,
+  "gbp_prints_do_not_lead_usd": true,
+  "index_gap_clears_taker_on_at_most_one_liquid_book": true,
+  "jump_continuation_misses_the_trip_or_the_stress_bar": true,
+  "large_print_30m_median_does_not_pay": true,
+  "probes_are_not_a_maker_edge": true,
+  "quiet_days_do_not_break_out": true,
+  "ratio_does_not_revert_inside_an_hour": true,
+  "sol_weekend_is_binances": true,
+  "volume_surprise_under_doubled_costs": true
+ },
+ "lead": {
+  "cross_coin": {
+   "mean": -2.869,
+   "median": -2.98,
+   "n": 1024
+  },
+  "gbp_conditioned": {
+   "mean": 0.887,
+   "median": 0.234,
+   "n": 3572
+  },
+  "mean_diff": 1.568,
+  "usd_control": {
+   "mean": -0.681,
+   "median": -2.317,
+   "n": 1016
+  }
+ },
+ "prints_30m": {
+  "BTC-USD": {
+   "mean": -5.914,
+   "median": 0.453,
+   "n": 276
+  },
+  "ETH-USD": {
+   "mean": 37.225,
+   "median": -2.636,
+   "n": 893
+  },
+  "XRP-USD": {
+   "mean": 7.53,
+   "median": 12.113,
+   "n": 310
+  },
+  "pooled": {
+   "mean": 22.951,
+   "median": 0.685,
+   "n": 1479
+  }
+ },
+ "probes_m15_adverse_bps": [
+  35.15,
+  29.86,
+  26.12
+ ],
+ "ratio_toward_bps": {
+  "ETH": {
+   "median_toward_bps": 0.79,
+   "n": 317
+  },
+  "LTC": {
+   "median_toward_bps": 3.09,
+   "n": 470
+  },
+  "PEPE": {
+   "median_toward_bps": 5.59,
+   "n": 502
+  },
+  "SOL": {
+   "median_toward_bps": 3.42,
+   "n": 365
+  },
+  "SUI": {
+   "median_toward_bps": 5.51,
+   "n": 459
+  },
+  "XRP": {
+   "median_toward_bps": 2.05,
+   "n": 335
+  }
+ },
+ "reached_preregistration": false,
+ "weekend_sol": {
+  "n_weekend": 131,
+  "sol_binance_weekday_mean_bps": 28.25,
+  "sol_binance_weekend_mean_bps": 12.9,
+  "sol_revx_weekday_mean_bps": 27.33,
+  "sol_revx_weekend_mean_bps": 15.79
+ }
+}

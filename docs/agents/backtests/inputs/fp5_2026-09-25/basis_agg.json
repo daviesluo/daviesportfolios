@@ -1,0 +1,22 @@
+{
+  "read_at_utc": "2026-09-25T00:25:00Z",
+  "source": "read-only aggregate of public.agent_basis. No order, no key printed.",
+  "window": "ts > now() - interval '14 days' at the read",
+  "by_symbol": [
+    {"symbol": "BTC/USD", "n": 1221, "med_bps": -0.06, "p05": -1.52, "p95": 1.29, "n_ge_20": 0, "n_ge_40": 0},
+    {"symbol": "ETH/USD", "n": 1221, "med_bps": 0.11, "p05": -1.78, "p95": 1.85, "n_ge_20": 0, "n_ge_40": 0},
+    {"symbol": "SOL/USD", "n": 1221, "med_bps": 0.26, "p05": -1.54, "p95": 2.06, "n_ge_20": 2, "n_ge_40": 1},
+    {"symbol": "AVAX/USD", "n": 995, "med_bps": 0.45, "p05": -2.30, "p95": 2.72, "n_ge_20": 2, "n_ge_40": 1},
+    {"symbol": "SUI/USD", "n": 983, "med_bps": -0.99, "p05": -10.76, "p95": 9.48, "n_ge_20": 14, "n_ge_40": 1},
+    {"symbol": "XRP/USD", "n": 497, "med_bps": -0.10, "p05": -3.06, "p95": 2.78, "n_ge_20": 3, "n_ge_40": 0, "t1": "2026-09-22T12:05:01Z"}
+  ],
+  "sui_tight_revert": {
+    "rule": "abs(basis_bps) >= 20 and spread_bps < 5, next 5-minute sample",
+    "n": 9,
+    "mean_abs_basis": 23.52,
+    "med_abs_next_basis": 4.95,
+    "med_abs_basis_shrink_bps": 19.42,
+    "med_abs_mid_move_bps": 28.18,
+    "revx_taker_bps": 9
+  }
+}

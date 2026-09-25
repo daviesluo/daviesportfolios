@@ -1,0 +1,230 @@
+{
+ "gbp_implied_abs_bps": {
+  "max": 22.48,
+  "median": 1.0,
+  "n": 64,
+  "p90": 4.1
+ },
+ "inputs_sha256": {
+  "basis_agg.json": "efc735fc1116cdd985c5cc340861c5c017978c399a6163b32c71224d7776fbfb",
+  "july_bn_1h.json.gz": "befb3e662f9dcbac21e307717ea883bfd3081b5574a9a5283d4a4ad34215cc0e",
+  "july_revx_1h.json.gz": "50dfb81cdc7210494f61394de8246bfe74bed11eaa3d6d36fd9482d253c825eb",
+  "kraken_ticker.json.gz": "fbcfdf560a531a73d29c3cfa85e2ae540cc8d47e2823f02bd2fbba4b18f22881",
+  "live_reads.json": "2486dcc95f6e61927a1ea52169bee05f14261987b3defcc107efb69d5c8dddbc",
+  "m1/ALEO.json.gz": "0778db827adedaf2c8359ef7c3106949b99d69c3293c10cc4375b65cf5cefc7b",
+  "m1/AURORA.json.gz": "88b1e413a252fbbd467a5574c93243defa10aa84f3aac987ba6f186478b568d4",
+  "m1/FET.json.gz": "68f3798b22a6108dab438878aced7c9a5ccfc7a7a90ca835462c922d661e78a4",
+  "m1/NEAR.json.gz": "a3d95c5bc0f7db599b834a20c0f7992d624b43cb30241cd3ea71e061d33468d6",
+  "m1/NEON.json.gz": "b40fe500b9002cc43a2dc05d318835bf634bca60ddb6f4d5d7db7f8cdc454266",
+  "m1/QNT.json.gz": "ed7cfab8d1fad7642e68985e1ae0962ba6792e871b331463d173085a52aff349",
+  "m1/STRK.json.gz": "e603b806c928f43c0f4d05cf15f4c8b10017699cce759be641e9d304f83e1bd2",
+  "m1/VVV.json.gz": "39d95f39c2ce878df8ff2d230cff8f07398744d69448c413157e2329695081bf",
+  "pairs.json.gz": "958b4cb8882fec233a74368a0a3402eb14d28a539f32ec3a8db2075948c85a92",
+  "tickers_uk.json.gz": "d772f858bcd25e06ae8bd2cae735e8e3fe4951a5458c16e3a2a474277404b8da"
+ },
+ "july_2026_hourly_vs_binance_bps": {
+  "BTC": {
+   "median_bps": -8.44,
+   "median_next_hour_toward_zero_when_abs_ge_40": 36.69,
+   "n": 745,
+   "n_abs_ge_40": 1,
+   "p05": -15.77,
+   "p95": -3.34
+  },
+  "ETH": {
+   "median_bps": -8.24,
+   "median_next_hour_toward_zero_when_abs_ge_40": 40.41,
+   "n": 745,
+   "n_abs_ge_40": 1,
+   "p05": -15.84,
+   "p95": -0.44
+  },
+  "LTC": {
+   "median_bps": -8.41,
+   "median_next_hour_toward_zero_when_abs_ge_40": 39.76,
+   "n": 745,
+   "n_abs_ge_40": 2,
+   "p05": -14.61,
+   "p95": -4.03
+  },
+  "PEPE": {
+   "median_bps": -9.89,
+   "median_next_hour_toward_zero_when_abs_ge_40": 28.37,
+   "n": 745,
+   "n_abs_ge_40": 45,
+   "p05": -40.17,
+   "p95": 22.22
+  },
+  "SOL": {
+   "median_bps": -8.47,
+   "median_next_hour_toward_zero_when_abs_ge_40": 42.64,
+   "n": 745,
+   "n_abs_ge_40": 2,
+   "p05": -18.21,
+   "p95": 0.0
+  },
+  "SUI": {
+   "median_bps": -6.86,
+   "median_next_hour_toward_zero_when_abs_ge_40": 46.56,
+   "n": 745,
+   "n_abs_ge_40": 16,
+   "p05": -19.14,
+   "p95": 19.96
+  },
+  "XRP": {
+   "median_bps": -8.15,
+   "median_next_hour_toward_zero_when_abs_ge_40": 80.81,
+   "n": 745,
+   "n_abs_ge_40": 4,
+   "p05": -16.65,
+   "p95": -0.94
+  }
+ },
+ "july_hour_15_utc": {
+  "BTC": {
+   "binance_mean_bps": 22.19,
+   "binance_t": 2.04,
+   "revx_mean_bps": 22.16,
+   "revx_n": 31,
+   "revx_t": 2.09
+  },
+  "ETH": {
+   "binance_mean_bps": 26.76,
+   "binance_t": 2.29,
+   "revx_mean_bps": 26.47,
+   "revx_n": 31,
+   "revx_t": 2.26
+  },
+  "SOL": {
+   "binance_mean_bps": 20.55,
+   "binance_t": 1.96,
+   "revx_mean_bps": 22.0,
+   "revx_n": 31,
+   "revx_t": 2.06
+  },
+  "XRP": {
+   "binance_mean_bps": 24.71,
+   "binance_t": 2.44,
+   "revx_mean_bps": 25.04,
+   "revx_n": 31,
+   "revx_t": 2.41
+  }
+ },
+ "kills": {
+  "deribit_carry_under_a_round_trip": true,
+  "eur_books_are_not_on_the_uk_region": true,
+  "fresh_xrp_gap_is_not_45bps": true,
+  "gbp_implied_fx_inside_a_few_bps": true,
+  "hour_15_is_not_a_revolut_edge": true,
+  "july_major_basis_under_a_round_trip": true,
+  "kraken_touch_basis_does_not_pay_a_hedge": true,
+  "no_wide_book_clears_maker_budget": true,
+  "pepe_reversion_fails_doubled_costs": true,
+  "sui_revert_is_smaller_than_the_move": true
+ },
+ "maker_bar_h_over_sigma": 2.7,
+ "reached_preregistration": false,
+ "universe": {
+  "pairs": 455,
+  "quotes": {
+   "EUR": 61,
+   "GBP": 64,
+   "USD": 307,
+   "USDC": 23
+  },
+  "stables_and_gold": [
+   "PAXG/GBP",
+   "PAXG/USD",
+   "USDC/GBP",
+   "USDC/USD",
+   "USDT/GBP",
+   "USDT/USD",
+   "XAUT/GBP",
+   "XAUT/USD"
+  ],
+  "uk_tickers": 393,
+  "usdc_quote_volume_usd": 87583.0
+ },
+ "wide_books_2026_09_23": [
+  {
+   "bars": 1441,
+   "base": "NEON",
+   "clears": false,
+   "h_over_sigma": 1.359,
+   "half_spread_bps": 339.57,
+   "qv_usd": 370398.0,
+   "sigma_1m_bps": 249.86,
+   "traded_minutes": 780
+  },
+  {
+   "bars": 1441,
+   "base": "ALEO",
+   "clears": false,
+   "h_over_sigma": 0.663,
+   "half_spread_bps": 53.94,
+   "qv_usd": 392987.0,
+   "sigma_1m_bps": 81.4,
+   "traded_minutes": 147
+  },
+  {
+   "bars": 1429,
+   "base": "AURORA",
+   "clears": false,
+   "h_over_sigma": 1.135,
+   "half_spread_bps": 230.39,
+   "qv_usd": 123001.0,
+   "sigma_1m_bps": 202.97,
+   "traded_minutes": 458
+  },
+  {
+   "bars": 1441,
+   "base": "NEAR",
+   "clears": false,
+   "h_over_sigma": 0.962,
+   "half_spread_bps": 37.42,
+   "qv_usd": 304971.0,
+   "sigma_1m_bps": 38.89,
+   "traded_minutes": 169
+  },
+  {
+   "bars": 1441,
+   "base": "VVV",
+   "clears": false,
+   "h_over_sigma": 1.583,
+   "half_spread_bps": 38.27,
+   "qv_usd": 187414.0,
+   "sigma_1m_bps": 24.17,
+   "traded_minutes": 65
+  },
+  {
+   "bars": 1441,
+   "base": "STRK",
+   "clears": false,
+   "h_over_sigma": 1.714,
+   "half_spread_bps": 38.17,
+   "qv_usd": 199987.0,
+   "sigma_1m_bps": 22.27,
+   "traded_minutes": 120
+  },
+  {
+   "bars": 1441,
+   "base": "QNT",
+   "clears": false,
+   "h_over_sigma": 0.954,
+   "half_spread_bps": 14.0,
+   "qv_usd": 215263.0,
+   "sigma_1m_bps": 14.67,
+   "traded_minutes": 140
+  },
+  {
+   "bars": 1441,
+   "base": "FET",
+   "clears": false,
+   "h_over_sigma": 0.518,
+   "half_spread_bps": 10.76,
+   "qv_usd": 204940.0,
+   "sigma_1m_bps": 20.79,
+   "traded_minutes": 96
+  }
+ ]
+}

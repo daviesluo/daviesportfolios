@@ -1,0 +1,49 @@
+{
+  "note": "Single public reads on 2026-09-25. Not a backtest. The all-symbol Binance bookTicker dump taken a few minutes earlier disagreed with these single-symbol reads and is not an input.",
+  "xrp_venues_utc": "2026-09-25T00:22:32Z",
+  "xrp": {
+    "coinbase_bid": 1.5516,
+    "coinbase_ask": 1.5518,
+    "kraken_bid": 1.55163,
+    "kraken_ask": 1.5518,
+    "binance_usdt_bid": 1.552,
+    "binance_usdt_ask": 1.5521
+  },
+  "revx_vs_binance_utc": "2026-09-25T00:23Z",
+  "revx_vs_binance_bps": {
+    "XRP/USD": -4.18,
+    "XLM/USD": -6.65,
+    "SUI/USD": -27.6,
+    "FET/USD": -6.49,
+    "QNT/USD": -7.28,
+    "BTC/USD": -3.15,
+    "LTC/USD": -1.96,
+    "ONDO/USD": -12.48,
+    "STG/USD": 25.9,
+    "CVC/USD": 53.71,
+    "ETH/USD": -2.8,
+    "SOL/USD": -3.66
+  },
+  "revx_spread_bps": {
+    "XRP/USD": 3.86,
+    "SUI/USD": 0.97,
+    "STG/USD": 16.91,
+    "CVC/USD": 141.49,
+    "BTC/USD": 2.13
+  },
+  "uk_vs_eea_bps": {
+    "BTC/USD": 0.0,
+    "ETH/USD": 0.0,
+    "SOL/USD": 0.0,
+    "XRP/USD": -1.94,
+    "SUI/USD": 9.74,
+    "SUI/USD_uk_spread_bps": 66.19
+  },
+  "deribit_btc_perp_funding_value": {
+    "instrument": "BTC-PERPETUAL",
+    "start": "2026-09-24",
+    "end": "2026-09-25",
+    "value": 9.451107605129718e-05
+  },
+  "eur_on_uk": "GET tickers BTC-EUR,ETH-EUR,USDC-EUR region=UK returned 400 Couldn't find currency pair. The same symbols on region=EEA returned 200."
+}

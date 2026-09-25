@@ -1,0 +1,103 @@
+{
+ "read_after_utc": "2026-09-25T00:47:10Z",
+ "books": [
+  {
+   "sym": "BTC-USD",
+   "spr": 1.66,
+   "bid_notional_10bp": 3094504.0,
+   "ask_notional_10bp": 3098279.0,
+   "bid_levels_10bp": 10,
+   "ask_levels_10bp": 8,
+   "counts_seen": [
+    1,
+    2
+   ]
+  },
+  {
+   "sym": "ETH-USD",
+   "spr": 1.3,
+   "bid_notional_10bp": 1434435.0,
+   "ask_notional_10bp": 1436256.0,
+   "bid_levels_10bp": 7,
+   "ask_levels_10bp": 8,
+   "counts_seen": [
+    1,
+    2
+   ]
+  },
+  {
+   "sym": "SOL-USD",
+   "spr": 2.81,
+   "bid_notional_10bp": 1291219.0,
+   "ask_notional_10bp": 706383.0,
+   "bid_levels_10bp": 8,
+   "ask_levels_10bp": 7,
+   "counts_seen": [
+    1,
+    2
+   ]
+  },
+  {
+   "sym": "XRP-USD",
+   "spr": 5.82,
+   "bid_notional_10bp": 97717.0,
+   "ask_notional_10bp": 673379.0,
+   "bid_levels_10bp": 4,
+   "ask_levels_10bp": 4,
+   "counts_seen": [
+    1,
+    2,
+    4
+   ]
+  },
+  {
+   "sym": "LTC-USD",
+   "spr": 8.96,
+   "bid_notional_10bp": 104500.0,
+   "ask_notional_10bp": 24148.0,
+   "bid_levels_10bp": 3,
+   "ask_levels_10bp": 2,
+   "counts_seen": [
+    1,
+    2
+   ]
+  },
+  {
+   "sym": "SUI-USD",
+   "spr": 24.32,
+   "bid_notional_10bp": 0,
+   "ask_notional_10bp": 0,
+   "bid_levels_10bp": 0,
+   "ask_levels_10bp": 0,
+   "counts_seen": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "sym": "NEON-USD",
+   "spr": 82.25,
+   "bid_notional_10bp": 0,
+   "ask_notional_10bp": 0,
+   "bid_levels_10bp": 0,
+   "ask_levels_10bp": 0,
+   "counts_seen": [
+    1,
+    2
+   ]
+  },
+  {
+   "sym": "QNT-USD",
+   "spr": 29.68,
+   "bid_notional_10bp": 0,
+   "ask_notional_10bp": 0,
+   "bid_levels_10bp": 0,
+   "ask_levels_10bp": 0,
+   "counts_seen": [
+    1,
+    3
+   ]
+  }
+ ]
+}

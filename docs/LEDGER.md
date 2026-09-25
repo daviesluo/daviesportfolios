@@ -836,6 +836,21 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 00:53 UTC] Platform: Cursor | Model: Grok 4.7
+
+**A new Revolut X search found nothing worth a testing row** (reference §3.34, review
+`reviews/2026-09-25-revolut-x-search.md`). Public endpoints, UK prints for two weeks, one order-book
+read, and a read-only `agent_basis` / maker-probe aggregate. No order, no new row, and no edit to
+PR5, `trend-4h` or `pmrw.ts`. Two screens (`docs/agents/scripts/fp5/screen.py`,
+`docs/agents/scripts/fp5/screen_pass2.py`) reproduce the summaries and exit if a kill flips.
+`reached_preregistration` is false on both, so there is no frozen test and no paper spec. What died
+after the first arithmetic pass: GBP books moving apart from each other (residual 16–19 bps), every
+hour of the clock, coin/BTC ratio reversion, a six-coin hourly long-short, daily autocorrelation,
+jumps, volume spikes, five-day ratio momentum, quiet-range breakouts, the SOL weekend (it matches
+Binance), 30-minute markouts of large prints (median +0.7 bps, n = 1,479), GBP prints leading USD
+(median +0.2 bps, n = 3,572), and BTC leading ETH. Three probe follow-ups are 26–35 bps adverse.
+Not worth adding.
+
 ### [2026-09-25 00:08 UTC] Platform: Cursor | Model: Grok 4.7
 
 **PR5's per-minute record is writing, and the deploy did not cross the 00:00 close.** The bar that closes at 00:00 is
