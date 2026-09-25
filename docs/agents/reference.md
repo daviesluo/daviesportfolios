@@ -2952,6 +2952,16 @@ fee series has 457 prints and no hole. The daily grid has no hole. **Nothing
 here is fit to add.** The count cleared; the mean was negative and lost to
 the null. A cheap-fee day and the 80th are not candidates.
 
+### 3.54 Coins held on exchanges: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp25-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp25/screen_2023.json`). Exchange-held
+BTC, above its own trailing 90th, long spot the next day: 77 trades, mean
++9.4 bps, null p95 +46.6 bps. The gross move was +29.4 bps. The stock series
+has 457 prints and no hole. The daily grid has no hole. **Nothing here is
+fit to add.** The count cleared and the mean was positive; it lost to the
+null. A thin stock and the 80th are not candidates.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

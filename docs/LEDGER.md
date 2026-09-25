@@ -8,14 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp25 protocol is written and not scored.** EXCH-BAL is the stock of BTC
-held on exchanges, above its own trailing 90th, long BTC the next day.
-FEE-HIGH stays dead (§3.53). Do not score a thin stock, and do not score the
-80th. The count stays 30. Do not reopen the net exchange flow, UP-SHARE,
-VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
-RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
-through fp24 stay closed, including LS-FADE. The screen is the next step.
-No testing row. No pull request. No push to main.
+**fp25 failed the 2023 screen and is discarded** (§3.54). 77 trades. The
+positive mean lost to the null. Do not score a thin stock, and do not score
+the 80th. The count stays 30. FEE-HIGH stays dead (§3.53). Do not reopen the
+net exchange flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
+PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
+share, dispersion, or skew. fp5 through fp24 stay closed, including LS-FADE.
+The next search is not written. No testing row. No pull request. No push to
+main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -838,6 +838,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:33 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp25 screen: nothing passes.** Protocol was `04b9962`. Two scores matched
+(`ec0bf559…`). EXCH-BAL 77 trades, +9.40 bps against a null of +46.58,
++$7.23. Gross before costs was +29.43 bps. The stock series has 457 prints
+and no hole. Reference §3.54. The count cleared. The mean was positive and
+lost to the null. A thin stock and the 80th are not candidates. No testing
+row. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:32 UTC] Platform: Cursor | Model: Grok 4.7
 

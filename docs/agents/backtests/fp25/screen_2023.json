@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp25_common": "68fea40b0c80425966e8b82d7b3ae48cf98f974265ae5e866cea80a8516496bf",
+    "fp25_measure": "360e0c9d9c0df6499f80e53a5ae8080780aa63f780acf1b8dc2aae0626e59bd8",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "EXCH-BAL",
+      "mean_gross_bps": 29.4344,
+      "mean_net_bps": 9.3956,
+      "min_n": 30,
+      "n": 77,
+      "note": "Exchange-held BTC above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 46.5844,
+      "passes_screen": false,
+      "total_pnl_usd": 7.2346
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "stock": "4b2fa790b545100d821f2fde46a56c3d44eee304330701cf5e04e6879293ee9d"
+  },
+  "passed": [],
+  "protocol_sha256": "141849124c68464e402284a97fc9b433434caadc906fef97bd24782102d3ebe2"
+}
