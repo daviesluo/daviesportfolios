@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp142_common": "246747934b3b9859bd2e2d11d0c3523b72be46bd7f37240dfe1b65bd476de76c",
+    "fp142_measure": "276f4fb3180747557df1680e690a28748cf1ca885ea0f2d0d60075838d94397d",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FUNDGAP",
+      "mean_gross_bps": null,
+      "mean_net_bps": null,
+      "min_n": 30,
+      "n": 0,
+      "note": "Last aligned USDT-margined funding minus coin-margined funding, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": null,
+      "passes_screen": false,
+      "total_pnl_usd": 0
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "funding_gap": "02ee0a60a0fa86718488d0f8a2d8ed7f7eee3756466791450cca56883856f376"
+  },
+  "passed": [],
+  "protocol_sha256": "ebbdafcc3cc487439de302094787bc677b24908449d65763cb373853e4b46ec9"
+}

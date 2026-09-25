@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp137_common": "f6cfb68b7e5bdd4bdd3ef359aa577f74ea9547a9f732f5507c934cecc55efaf0",
+    "fp137_measure": "79798eb272a324d573337444a0b9c984a7c258780e01ca35e8af35479dc9f2cf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FRJMP",
+      "mean_gross_bps": 10.2925,
+      "mean_net_bps": -9.7081,
+      "min_n": 30,
+      "n": 38,
+      "note": "Sum of today's three BTC funding rates minus yesterday's sum, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 65.8998,
+      "passes_screen": false,
+      "total_pnl_usd": -3.6891
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "funding_three": "fa796f38069cbdc8313210bd3d547aa048986163d79cf4bf0bd0feab7b41a3ee"
+  },
+  "passed": [],
+  "protocol_sha256": "67bd7447bccd96ba19a6e1a9394818a289b95755db321c1887e2d72839f60ee0"
+}

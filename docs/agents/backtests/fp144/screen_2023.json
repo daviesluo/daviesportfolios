@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp144_common": "fa97b75d693f3196c07f6337f0d0cbb07b536c86c36e33d105ab86d016dc0be6",
+    "fp144_measure": "b1060e8459d146ded25aa39d5c48d7e33797e80345a2c6f661956f76c979cbe5",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "FRIN",
+      "mean_gross_bps": -7.2289,
+      "mean_net_bps": -27.1945,
+      "min_n": 30,
+      "n": 42,
+      "note": "The 16:00 BTC funding rate minus the 00:00 rate, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 67.4226,
+      "passes_screen": false,
+      "total_pnl_usd": -11.4217
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "funding_ends": "9a96a09c4e12feef6d25a74f25b52d5272866a6d868d1ad13188bbb2f1817386"
+  },
+  "passed": [],
+  "protocol_sha256": "9bf39beb324268b7b3b319a761ec7e37741278206a25685f84174a72f622066b"
+}

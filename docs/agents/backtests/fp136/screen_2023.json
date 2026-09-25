@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp136_common": "84dfb38365fb6c27490910a4e0255c35b58592e87bc862403d04ed1a37ca99f9",
+    "fp136_measure": "b3f323cbdd773a46f3fe7622eed2417fbb16b4ef8d3953bf66f0fea84a813226",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "OIRNG",
+      "mean_gross_bps": 69.77,
+      "mean_net_bps": 49.6506,
+      "min_n": 30,
+      "n": 19,
+      "note": "Intraday dollar open interest, maximum minus minimum, divided by the last print, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 90.987,
+      "passes_screen": false,
+      "total_pnl_usd": 9.4336
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "oi_range": "8e27f98d3c2efd45f30107c9266f3da862a6db9f0159ea34a9c52f0ce9b40cd2"
+  },
+  "passed": [],
+  "protocol_sha256": "47e610473529736513906df5002c72c01a9946608ba80b9cbc393a1a22e24400"
+}

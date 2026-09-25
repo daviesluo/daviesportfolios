@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp144 is a protocol only. No return of FRIN has been computed.** FUNDGAP was measured at 0 trades and does not count: its holes mean a trailing 90 calendar days never held 90 prints. The window was not shrunk and the reciprocal was not scored. OIRNG's second pull wrote 450 days and has not been scored. The other six of fp137–fp143 have local screen files that are not committed. Next: fetch FRIN, score OIRNG and FRIN twice, then one result commit of the rules that have fills. The count stays 30. The window stays 90 days and 90 prints. No later year has been read as a signal. No testing row. No pull request. Main was not pushed.
+**fp136–fp141, fp143 and fp144 are scored. Nothing passes the house bar.** Eight market statistics, each long BTC for one day, each with fills. FUNDGAP had 0 trades and does not count. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
@@ -832,6 +832,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 07:43 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp136–fp141, fp143 and fp144 are scored. Nothing passes the house bar.** Protocols for fp136–fp143 were `746224b`. The OIRNG pull that leaves a non-positive day out was `dc6ffe5`. The FRIN protocol was `981791f`, pushed before any return of that rule. Each counted screen file was written twice and the copies matched. OIRNG 19 / file gross +69.77 / file mean +49.6506 / null +90.987 / +$9.4336 (`6d5b5fe5…`). FRJMP 38 / file gross +10.2925 / file mean −9.7081 / null +65.8998 / −$3.6891 (`f22c515a…`). BASERNG 27 / file gross +111.332 / file mean +91.1295 / null +81.2895 / +$24.605 (`68afeee2…`). TAKRNG 56 / file gross +0.1677 / file mean −19.8126 / null +54.2382 / −$11.0951 (`4d9feffa…`). MIXJMP 32 / file gross +26.6922 / file mean +6.6589 / null +72.2613 / +$2.1308 (`f2f187d3…`). RNGRAT 35 / file gross +5.0975 / file mean −14.8927 / null +78.4258 / −$5.2124 (`622a1a52…`). DRET 44 / file gross +64.3584 / file mean +44.2498 / null +63.9818 / +$19.4699 (`45086a9e…`). FRIN 42 / file gross −7.2289 / file mean −27.1945 / null +67.4226 / −$11.4217 (`a402aa12…`). FUNDGAP had 442 prints and 0 trades (`519b4367…`). It does not count. The coin-margined monthly files omit each month's last calendar day, so no trailing 90 calendar days held 90 prints. The window was not shrunk and the reciprocal was not scored. OIRNG, MIXJMP and DRET are positive and under their own null. BASERNG is positive and above its null, and 27 trades are under 30. The count stays 30. FRJMP, TAKRNG, RNGRAT and FRIN have a negative mean. Every counted rule has fills. The null is BTC's own one-day holds. Reference §3.165–§3.173. Liquidation snapshots were not scored. No sign was flipped. No count was lowered. The window was not shrunk. fp128–fp135 stay closed. No on-chain chart was read. No option file was read. No mempool chart was read. No hourly price bar was read. No later year was read as a signal. No testing row. No pull request. Main was not pushed.
 
 ### [2026-09-25 07:37 UTC] Platform: Cursor | Model: Grok 4.7
 

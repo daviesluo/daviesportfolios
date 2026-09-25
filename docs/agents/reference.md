@@ -4428,6 +4428,103 @@ file's gross is −1.8146 bps. **Nothing here is fit to add.** Thirty-one
 trades clear 30, and the mean was negative and under the null. Neither
 level was scored. The reciprocal was not scored.
 
+### 3.165 Dollar open-interest range: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp136-protocol.md`) was committed before any
+return. The pull that leaves a non-positive day out (`dc6ffe5`) was also
+committed before the return. Two runs matched (`backtests/fp136/screen_2023.json`,
+sha256 `6d5b5fe5…`). Intraday dollar open interest, maximum minus minimum
+over the last print, long BTC for one day: 19 trades, mean +49.6506 bps,
+null p95 +90.987 bps, +$9.4336. The file's gross is +69.77 bps. **Nothing
+here is fit to add.** The mean was positive and under the null, and 19
+trades are under 30. The count stays 30. Seven non-positive days were not
+filled in. The level and the day-over-day change were not scored.
+
+### 3.166 The funding jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp137-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp137/screen_2023.json`, sha256
+`f22c515a…`). Today's three USDT-margined funding rates minus yesterday's
+sum, long BTC for one day: 38 trades, mean −9.7081 bps, null p95 +65.8998
+bps, −$3.6891. The file's gross is +10.2925 bps. **Nothing here is fit to
+add.** Thirty-eight trades clear 30, and the mean was negative and under
+the null. 2022-10-01 is stored and is not a print. The funding range was
+not scored.
+
+### 3.167 Premium high minus low: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp138-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp138/screen_2023.json`, sha256
+`68afeee2…`). The premium-index high minus the low, long BTC for one day:
+27 trades, mean +91.1295 bps, null p95 +81.2895 bps, +$24.605. The file's
+gross is +111.332 bps. **Nothing here is fit to add.** The mean was above
+the null, and 27 trades are under 30. The count stays 30. 2022-10-02 and
+2023-02-24 were not filled in. The premium level was not scored.
+
+### 3.168 Taker-ratio range: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp139-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp139/screen_2023.json`, sha256
+`4d9feffa…`). The intraday range of the taker long/short volume ratio, long
+BTC for one day: 56 trades, mean −19.8126 bps, null p95 +54.2382 bps,
+−$11.0951. The file's gross is +0.1677 bps. **Nothing here is fit to add.**
+Fifty-six trades clear 30, and the mean was negative and under the null.
+The taker-ratio level was not scored.
+
+### 3.169 The quote-mix jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp140-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp140/screen_2023.json`, sha256
+`f2f187d3…`). Today's spot quote over the USDT perpetual's quote, minus
+yesterday's ratio, long BTC for one day: 32 trades, mean +6.6589 bps, null
+p95 +72.2613 bps, +$2.1308. The file's gross is +26.6922 bps. **Nothing
+here is fit to add.** Thirty-two trades clear 30, and the mean was positive
+and under the null. 2022-10-01 is stored and is not a print. The ratio's
+level was not scored.
+
+### 3.170 The range jump: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp141-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp141/screen_2023.json`, sha256
+`622a1a52…`). Today's range over yesterday's range, minus one, long BTC for
+one day: 35 trades, mean −14.8927 bps, null p95 +78.4258 bps, −$5.2124. The
+file's gross is +5.0975 bps. **Nothing here is fit to add.** Thirty-five
+trades clear 30, and the mean was negative and under the null. 2022-10-01
+is stored and is not a print. The range level was not scored.
+
+### 3.171 USDT funding minus coin-margined funding: no fill (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp142-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp142/screen_2023.json`, sha256
+`519b4367…`). The last aligned USDT-margined funding rate minus the
+coin-margined rate, long BTC for one day: 0 trades. The file has no mean
+and no null. The total is 0. **This run does not count.** A scored rule
+with no fill is not one of the eight. 442 prints, and the coin-margined
+monthly files omit each month's last calendar day, so no trailing 90
+calendar days held 90 prints. The window was not shrunk. The reciprocal
+was not scored.
+
+### 3.172 Close-to-close return: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp143-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp143/screen_2023.json`, sha256
+`45086a9e…`). The spot close over the previous close, minus one, long BTC
+for one day: 44 trades, mean +44.2498 bps, null p95 +63.9818 bps, +$19.4699.
+The file's gross is +64.3584 bps. **Nothing here is fit to add.**
+Forty-four trades clear 30, and the mean was positive and under the null.
+2022-10-01 is stored and is not a print. The fill uses the next daily open.
+
+### 3.173 The intraday funding change: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp144-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp144/screen_2023.json`, sha256
+`a402aa12…`). The 16:00 USDT-margined funding rate minus the 00:00 rate,
+long BTC for one day: 42 trades, mean −27.1945 bps, null p95 +67.4226 bps,
+−$11.4217. The file's gross is −7.2289 bps. **Nothing here is fit to add.**
+Forty-two trades clear 30, and the mean was negative and under the null.
+The 08:00 rate was not an input. The coin-margined book was not read. The
+funding level, the funding range, and the day-to-day jump were not scored.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

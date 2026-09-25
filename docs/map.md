@@ -826,15 +826,15 @@ before touching migration state.
 | `docs/agents/scripts/fp133/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | On-chain output volume that UTC day, in BTC, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp133/screen_2023.json`. |
 | `docs/agents/scripts/fp134/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The intraday range of the unspent-output count, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp134/screen_2023.json`. |
 | `docs/agents/scripts/fp135/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Median confirmation time divided by the average, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp135/screen_2023.json`. |
-| `docs/agents/scripts/fp136/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Intraday dollar open interest, maximum minus minimum over the last print, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp137/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Today's three BTC funding rates minus yesterday's sum, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp138/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The BTC premium-index high minus the low, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp139/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The intraday range of the taker long/short volume ratio, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp140/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in spot quote volume over the USDT perpetual's quote volume, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp141/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in BTC's daily range, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp142/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | USDT-margined BTC funding minus coin-margined funding, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp143/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close-to-close return, long BTC for one day. The fill is fp5's. |
-| `docs/agents/scripts/fp144/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 16:00 BTC funding rate minus the 00:00 rate, long BTC for one day. The fill is fp5's. |
+| `docs/agents/scripts/fp136/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Intraday dollar open interest, maximum minus minimum over the last print, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp136/screen_2023.json`. |
+| `docs/agents/scripts/fp137/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | Today's three BTC funding rates minus yesterday's sum, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp137/screen_2023.json`. |
+| `docs/agents/scripts/fp138/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The BTC premium-index high minus the low, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp138/screen_2023.json`. |
+| `docs/agents/scripts/fp139/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The intraday range of the taker long/short volume ratio, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp139/screen_2023.json`. |
+| `docs/agents/scripts/fp140/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in spot quote volume over the USDT perpetual's quote volume, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp140/screen_2023.json`. |
+| `docs/agents/scripts/fp141/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The jump in BTC's daily range, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp141/screen_2023.json`. |
+| `docs/agents/scripts/fp142/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | USDT-margined BTC funding minus coin-margined funding, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp142/screen_2023.json`. |
+| `docs/agents/scripts/fp143/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | BTC's close-to-close return, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp143/screen_2023.json`. |
+| `docs/agents/scripts/fp144/common.py`, `pin_test.py`, `fetch.py`, `measure.py` | The 16:00 BTC funding rate minus the 00:00 rate, long BTC for one day. The fill is fp5's. The screen is `docs/agents/backtests/fp144/screen_2023.json`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
 | `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), and the ledger protocol they follow (`.agents/skills/ledger/`). |

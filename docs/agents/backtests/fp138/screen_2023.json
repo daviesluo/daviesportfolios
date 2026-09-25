@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp138_common": "0f7f306417e781b1af89d98e6ba9006f3471367f3f135437d80d385f8e0db523",
+    "fp138_measure": "fd5ae08313f982f5cea20d791f9c1e27b84a487fa57692a9edcba6e537a2cbcf",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BASERNG",
+      "mean_gross_bps": 111.332,
+      "mean_net_bps": 91.1295,
+      "min_n": 30,
+      "n": 27,
+      "note": "Premium-index high minus low, above its own trailing 90th. Next day, long BTC for one day.",
+      "null_p95_bps": 81.2895,
+      "passes_screen": false,
+      "total_pnl_usd": 24.605
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "premium_hl": "e99d8ed95ffd400624e8001dbfd4d9f8e0d48f7da8ccd63cd50d4a312facac50"
+  },
+  "passed": [],
+  "protocol_sha256": "7582ab275f7b5fe039898a4b7dec46b7e20e719ed7cfb220a59c05fdb1603d71"
+}
