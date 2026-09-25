@@ -1,0 +1,44 @@
+{
+  "kills": {
+    "cm_volume_ratio_2021": {
+      "btc_bps": 5381.7,
+      "candle_bar_clear": false,
+      "eth_bps": 7411.1,
+      "execution_days": 365,
+      "long_days": 74,
+      "month_share": 0.294,
+      "name": "cm_volume_ratio_2021",
+      "null_p50_bps": 909.9,
+      "null_p95_bps": 6582.5,
+      "pool_bps": 6396.4,
+      "stress_bps": 3676.4,
+      "top_month": "2021-09",
+      "top_month_bps": 1880.1,
+      "trips": 68,
+      "why": "does not beat the random-day null"
+    },
+    "eth_btc_quote_2018": {
+      "btc_bps": -5531.1,
+      "candle_bar_clear": false,
+      "eth_bps": -4287.5,
+      "execution_days": 365,
+      "long_days": 74,
+      "month_share": null,
+      "name": "eth_btc_quote_2018",
+      "null_p50_bps": -4492.1,
+      "null_p95_bps": 1632.7,
+      "pool_bps": -4909.3,
+      "stress_bps": -7229.3,
+      "top_month": null,
+      "top_month_bps": null,
+      "trips": 58,
+      "why": "pooled P&L is not positive; doubled cost is not positive; fewer than 60 round trips; one book is not positive; does not beat the random-day null; pooled P&L does not exceed 400 bps"
+    }
+  },
+  "note": "Each rule was hashed before its own result. Daily closes can kill a rule. Neither is a pass.",
+  "reached_preregistration": false,
+  "rules": {
+    "cmvol_rule_sha256": "4a3c8777c418c9f7f6da6fa5edff28ea161d2d597b935c32ec6c2c0dca1d991f",
+    "pairvol_rule_sha256": "207fabcf3865fce002722935e07c4669f9df10522c892f236d27e9a64883cf84"
+  }
+}
