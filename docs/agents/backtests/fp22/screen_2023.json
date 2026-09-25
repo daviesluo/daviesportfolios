@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp22_common": "4afe914d1ef5b111619ec1d59246f6998c7d55ddffbda3dff0610d341baa2321",
+    "fp22_measure": "33c489a5e0ed84af6d442aad7dd1f6af35de0590d73fad221716ebf0fc8c884d",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "VOL-HHI",
+      "mean_gross_bps": 88.7299,
+      "mean_net_bps": 68.5726,
+      "min_n": 30,
+      "n": 29,
+      "note": "Herfindahl of the day's 24 hourly quote shares, above its own trailing 90th. Next day, long BTC.",
+      "null_p95_bps": 79.175,
+      "passes_screen": false,
+      "total_pnl_usd": 19.8861
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "43688a4b99426807e2cdf12cb0aec027f9bfc91af060377938901e14450a3d3b",
+    "btc_1h": "4888de75d495a976a56eefe22477ddd3b4034dfa8c6525621841aafd877ed45e"
+  },
+  "passed": [],
+  "protocol_sha256": "d78b4a082f98dcc7772acaa09b24d5ed8ed5734c18f749f2c98bcf1bd7d61dfd"
+}
