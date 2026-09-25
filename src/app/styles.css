@@ -1622,26 +1622,31 @@ body {
   }
 
   /* --- Modals: full-screen page on mobile ---
-     100dvh, centered in the fixed backdrop, stops above the browser's
-     bottom toolbar. The page then shows through under the subpage, and
-     the safe-area padding sits empty while the last row is clipped above
-     it (Davies, 2026-09-25, iPhone 16 Pro). The backdrop is the large
-     viewport and a hair off opaque, so the layer paints under that
-     toolbar instead of being clipped as a solid fixed box. The page
-     itself is stretched to the backdrop, and the scroller — not the
-     frame — keeps the last row clear of the home indicator. */
+     A viewport height is the wrong size here (Davies, 2026-09-25, iPhone
+     16 Pro). 100dvh stops above the toolbar and the page shows through.
+     100lvh is taller than the visible screen: iOS 26 clips that overflow
+     and the title slides off the top, and the scroller cannot bring the
+     last row back because the clipped part is the scroller itself. Anchor
+     to all four edges instead. A hair of transparency is what lets a
+     fixed layer paint under the floating toolbar; a solid one is clipped
+     at the toolbar's top. The shadow is only paint, for the band the
+     clip still leaves. The header stays put; the body scrolls. */
   .modal-backdrop {
     align-items: stretch;
     justify-items: stretch;
     padding: 0;
     top: 0;
-    bottom: auto;
-    height: 100lvh;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: auto;
     max-height: none;
     background: rgba(15, 24, 21, 0.99);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    box-shadow: 0 80px 0 80px rgba(15, 24, 21, 0.99);
   }
+  body.modal-open { background: #0f1815; }
   .modal,
   .modal.size-sm,
   .modal.size-md,
@@ -1656,6 +1661,7 @@ body {
     height: auto;
     max-height: none;
     min-height: 0;
+    overflow: hidden;
     background-color: rgba(15, 24, 21, 0.99);
     /* Reserve room for the iOS status bar / dynamic island so the modal
        header isn't hidden underneath. Match the main app's top inset
@@ -1810,7 +1816,7 @@ body {
         #000 0,
         rgba(0,0,0,0.55) 12px,
         rgba(0,0,0,0) 56px),
-      #0f1815;
+      rgba(15, 24, 21, 0.99);
   }
 }
 
@@ -2167,12 +2173,14 @@ body {
 
 /* A scoreboard label is its name and, beside it, what else the figure holds.
    REALIZED's name stays the same size and tracking as every other title.
-   The fees are the smaller parenthetical; they drop under the name when the
-   column cannot hold both, instead of shrinking the title (Davies, 2026-09-25). */
+   The fees stay on that same line, smaller, in parentheses. Only the fees
+   get smaller when the column is narrow (Davies, 2026-09-25). */
 .sb-label.ag-sb-label { flex-direction: row; align-items: baseline; flex-wrap: nowrap; gap: 6px; min-width: 0; max-width: 100%; }
-.ag-sb-name { white-space: nowrap; }
+.ag-sb-name { flex: 0 0 auto; white-space: nowrap; }
 .ag-sb-aside { font-size: 8px; line-height: 1.3; white-space: nowrap; }
-.ag-sb-realised .sb-label.ag-sb-label { flex-wrap: wrap; gap: 2px 4px; }
+.ag-sb-realised { container-type: inline-size; }
+.ag-sb-realised .sb-label.ag-sb-label { flex-wrap: nowrap; gap: 4px; }
+.ag-sb-realised .ag-sb-aside { font-size: clamp(6px, calc((100cqi - 92px) / 11), 8px); }
 /* Five cells — FUNDED, DEPLOYED, TODAY, UNREALIZED, REALIZED (Davies, 2026-09-24) — each three rows of one grid:
    label, figure, what is under the figure. Rows are shared (subgrid), so the figures stand on one line and so do the
    lines under them, whatever each label says. A phone gives FUNDED the top row and the other four two rows of two. */

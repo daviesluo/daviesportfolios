@@ -46,6 +46,7 @@ function acquireBodyLock() {
     s.right = '0';
     s.width = '100%';
     s.overflow = 'hidden';
+    document.body.classList.add('modal-open');
   }
   bodyLockCount += 1;
 }
@@ -59,6 +60,7 @@ function releaseBodyLock() {
     s.right = savedBodyStyles.right;
     s.width = savedBodyStyles.width;
     s.overflow = savedBodyStyles.overflow;
+    document.body.classList.remove('modal-open');
     window.scrollTo(0, savedScrollY);
   }
 }

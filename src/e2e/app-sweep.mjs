@@ -329,7 +329,7 @@ const AGENTS_RW = (dayStartMs) => {
       { day: iso(dayStartMs - 3 * D).slice(0, 10), phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1, markets: 16, runningUsd: 9.8 },
     ],
     recent: [
-      { ts: iso(NOW_MS - 20 * 60e3), minute: iso(NOW_MS - 21 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'ask', price: 0.46, size: 20 },
+      { ts: iso(NOW_MS - 20 * 60e3), minute: iso(NOW_MS - 21 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'ask', price: 0.46, size: 20.129 },
       { ts: iso(NOW_MS - 50 * 60e3), minute: iso(NOW_MS - 51 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'bid', price: 0.44, size: 20 },
       { ts: iso(NOW_MS - 2 * 3600e3), minute: iso(NOW_MS - 2 * 3600e3 - 60e3), cond: '0xa1', q: 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', side: 'bid', price: 0.43, size: 10 },
       { ts: iso(NOW_MS - 3 * 3600e3), minute: iso(NOW_MS - 3 * 3600e3 - 60e3), cond: '0xa1', q: 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', side: 'bid', price: 0.43, size: 10 },
@@ -1618,18 +1618,27 @@ async function run() {
         const aside = el.querySelector('.ag-sb-aside');
         const asideSize = aside ? parseFloat(getComputedStyle(aside).fontSize) : null;
         const nameSize = names[0] ? parseFloat(getComputedStyle(names[0]).fontSize) : 0;
+        const nameEl = el.querySelector('.ag-sb-realised .ag-sb-name');
+        const asideEl = el.querySelector('.ag-sb-realised .ag-sb-aside');
+        const nr = nameEl?.getBoundingClientRect();
+        const ar = asideEl?.getBoundingClientRect();
+        // A smaller fee sits on the title's baseline, so its top is a few pixels lower.
+        // Wrapped, it starts back at the left, under the title. Beside means it starts at
+        // the title's right edge and the two boxes still overlap vertically.
+        const sameLine = !!(nr && ar && ar.left >= nr.right - 1 && ar.top < nr.bottom && nr.top < ar.bottom);
         return {
           overflow: Math.round(el.scrollWidth - el.clientWidth), outside,
           labelH: label ? Math.round(label.getBoundingClientRect().height) : 0,
           titlesMatch: sizes.length >= 2 && sizes.every((s) => s === sizes[0]) && tracks.every((t) => t === tracks[0]),
           feesSmaller: asideSize != null && asideSize < nameSize - 0.1,
+          sameLine,
         };
       });
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
       const sbFit = await boardFits('.ag-modepanel > .ag-scoreboard');
-      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.08)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller) {
-        ok(S('agents'), 'five cells, FUNDED first, no total; REALIZED\'s title matches the others and the fees sit smaller, in parentheses, inside the frame');
+      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.08)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller && sbFit.sameLine) {
+        ok(S('agents'), 'five cells, FUNDED first, no total; REALIZED\'s title matches the others and the fees sit beside it on one line, smaller, in parentheses, inside the frame');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}; fit ${JSON.stringify(sbFit)}`);
       const meters = await page.locator('.ag-sb-meter').count();
       if (meters === 0) ok(S('agents'), 'DEPLOYED has no progress bar');
@@ -1761,7 +1770,7 @@ async function run() {
         && rDays.length === 4 && /· today$/.test(rDays[0]) && /^\d{1,2} Sep$/.test(rDays[1]) && /warm-up$/.test(rDays[3])
         && /\$296\.00/.test(rFirstDay) && /\+\$12\.50/.test(rFirstDay) && (narrow || (/\b2\b/.test(rFirstDay) && /\+\$6\.10/.test(rFirstDay)))
         && /^When \([A-Z]+\),Market,Side,Shares,Price$/.test(rFillHeads.join(',')) && rFillEq < 1.5
-        && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill) && rFirstFill.indexOf('20') < rFirstFill.indexOf('46¢')
+        && rFills === 5 && /Bank of Canada/.test(rFirstFill) && /sold Yes/.test(rFirstFill) && /46¢/.test(rFirstFill) && rFirstFill.indexOf('20.13') < rFirstFill.indexOf('46¢') && !/20\.129/.test(rFirstFill)
         && rTiles.join(',') === 'WORST CASE,TOP SHARE,QUOTING TODAY,POSITIONS STILL HELD' && /WORST CASE \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /QUOTING TODAY/.test(rBar) && /POSITIONS STILL HELD/.test(rBar) && !/if rewards were halved/.test(rBar)
         && rNote === 0 && rMeta === 0 && rWhen === '' && !/Day \d+ of 14/.test(rBar) && await page.locator('.ag-rw-run').count() === 0
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(rFoot) && rWarn === 0
@@ -1909,7 +1918,7 @@ async function run() {
       const paperInk = await page.locator('.ag-detail .ag-detail-head .ag-badge-paper').first().evaluate((el) => { const cs = getComputedStyle(el); return [cs.color, cs.borderTopStyle]; }).catch(() => ['', '']);
       const detailFit = await boardFits('.ag-detail .ag-scoreboard-sm');
       if (detailSb.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && detailVals.slice(0, 2).join(' | ') === '$100.00 | $21.50(21.50%)'
-        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.titlesMatch && detailFit.feesSmaller) {
+        && paperInk[0] === 'rgb(232, 228, 218)' && paperInk[1] === 'dashed' && detailFit.overflow <= 1 && detailFit.outside.length === 0 && detailFit.labelH > 0 && detailFit.titlesMatch && detailFit.feesSmaller && detailFit.sameLine) {
         ok(S('agents'), 'the strategy scoreboard reads FUNDED $100.00, then DEPLOYED $21.50 (21.50% of it), without (Paper); PAPER is neutral and dashed; REALIZED\'s title matches the others and stays inside the frame');
       } else fail(S('agents'), `strategy scoreboard ${detailSb.join(',')} = ${detailVals.join(' | ')}, paper badge ${paperInk.join(' ')}, fit ${JSON.stringify(detailFit)}`);
       // One table on the detail, not three: the positions table and the decisions table said the same
@@ -2336,13 +2345,29 @@ async function run() {
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
 
-    // A phone subpage fills its backdrop. 100dvh, centered, left a band of the
-    // home page under the browser toolbar and an empty safe-area inside the
-    // frame (Davies, 2026-09-25, iPhone 16 Pro). Headless Chrome has no
-    // toolbar, so the pin stretches the backdrop past the viewport: the old
-    // modal stays 100dvh and the new one meets the backdrop's edges.
+    // A phone subpage fills its backdrop, and the title stays inside it.
+    // 100dvh left a band under the toolbar. 100lvh (`bottom: auto`) slid the
+    // title off the top and still clipped the bottom (Davies, 2026-09-25,
+    // iPhone 16 Pro). Anchoring is `bottom: 0`. Headless Chrome has no
+    // toolbar, so a second pin stretches the backdrop past the viewport and
+    // requires the modal to meet it.
     if (vp.name === 'phone') {
       const phoneFills = async (title) => {
+        const anchored = await page.evaluate(() => {
+          const bds = [...document.querySelectorAll('.modal-backdrop')];
+          const bd = bds[bds.length - 1];
+          const modal = bd?.querySelector('.modal');
+          const titleEl = modal?.querySelector('.modal-title');
+          if (!bd || !modal || !titleEl) return null;
+          const br = bd.getBoundingClientRect();
+          const tr = titleEl.getBoundingClientRect();
+          return {
+            bottom: getComputedStyle(bd).bottom,
+            titleIn: tr.height > 8 && tr.top >= br.top - 1 && tr.bottom <= br.bottom + 1 && tr.top < br.top + 140,
+          };
+        });
+        if (anchored?.bottom === '0px' && anchored.titleIn) ok(S('modal'), `${title} is anchored to the screen and its title stays on it`);
+        else fail(S('modal'), `${title} anchor ${JSON.stringify(anchored)}`);
         const tag = await page.addStyleTag({ content: '.modal-backdrop{height:940px!important;min-height:940px!important;bottom:auto!important;}' });
         await page.waitForTimeout(80);
         const geom = await page.evaluate(() => {

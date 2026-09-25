@@ -839,6 +839,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 21:16 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: a phone subpage still left a blank band under it and the title slid off the top; REALIZED and its fees stay on one line; Reward quotes fill shares print to two places.**
+- On an iPhone 16 Pro the modal stopped about 62px short of the screen and the page behind showed through. Transaction history's title was off the top. `100lvh` is taller than the visible screen: iOS 26 clips that overflow, the title moves off the top, and the last row cannot scroll back because the clipped part is the scroller. The backdrop is anchored to all four edges. A hair of transparency lets a fixed layer paint under the toolbar, and a paint-only shadow covers the band that remains. The header stays; the body scrolls. Headless Chrome has no toolbar, so the pin is `bottom: 0` with the title inside the frame. The `100lvh` rule set `bottom: auto` and fails that pin.
+- REALIZED G/L stays the same size and tracking as the other scoreboard titles. `(incl. fees …)` stays on that same line, smaller. Only the fees shrink when the column is narrow. The sweep requires the fees to start at the title's right edge and still overlap it.
+- A fill's shares on Reward quotes print to two decimal places. A size of 20.129 reads 20.13.
+
 ### [2026-09-25 20:42 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: every agents page refreshes itself every minute, and each strategy page has the list's refresh button beside close.**

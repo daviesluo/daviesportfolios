@@ -1119,6 +1119,18 @@ export function fmtCents(p) {
   return `${Number.isInteger(c) ? c.toFixed(0) : c.toFixed(1)}¢`;
 }
 
+/**
+ * A fill's shares on the Reward quotes page, to two decimal places. The
+ * venue's size is a long float; the fills table does not print it raw.
+ * @param {number | null | undefined} size
+ */
+export function rwShareText(size) {
+  if (size == null) return '—';
+  const n = Number(size);
+  if (!Number.isFinite(n)) return '—';
+  return n.toFixed(2);
+}
+
 /** What a market's inventory is, as a holder reads it: YES shares, or NO shares for a short YES. @param {number | null | undefined} net */
 export function rwHeldText(net) {
   const x = Number(net) || 0;

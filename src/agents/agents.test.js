@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -961,6 +961,8 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   });
   it('writes a price in cents and a holding as the side it is long', () => {
     expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);
+    // A fill's size arrives as a long float. Two places; the raw tail is the bug.
+    expect([rwShareText(20.129), rwShareText(20), rwShareText(1.2), rwShareText(null)]).toEqual(['20.13', '20.00', '1.20', '—']);
     expect([rwHeldText(20), rwHeldText(-20), rwHeldText(0), rwHeldText(2.5)]).toEqual(['20 Yes', '20 No', '—', '2.50 Yes']);
   });
   it('prints realised and unrealised, and rewards and orders, so every part adds up to the total printed beside it', () => {

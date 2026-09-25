@@ -100,7 +100,7 @@ apart on two tabs.
   capital its strategies are allotted, then **deployed**, what they hold,
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
-  sit with it, smaller, in parentheses. TESTING's scoreboard adds
+  sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
   Stablecoin quotes and Reward quotes with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
   in its yellow, where the same strategies run as paper twins, deciding
@@ -136,7 +136,7 @@ apart on two tabs.
   total sits in one market, how many markets it is quoting today, how many
   positions are still held); the days, including the UTC day still open,
   with the same worst case as the tile above,
-  then today's quotes, and the latest fills, shares then price. The foot
+  then today's quotes, and the latest fills, shares to two decimal places, then price. The foot
   is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
@@ -261,8 +261,8 @@ Below 1020 px wide the page becomes one column: the header, the board or
 heat map, the sidebar, then Market Conditions as a 3 × 3 grid. An open
 modal holds the page still behind it, so dragging inside the modal
 doesn't scroll the board, and closing it puts you back where you were.
-On a phone the modal fills the screen, including the strip under the
-browser's toolbar.
+On a phone the modal fills the screen, title included, down through the
+strip under the browser's toolbar.
 
 ## Installing it
 
