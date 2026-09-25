@@ -8,13 +8,14 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp22 failed the 2023 screen and is discarded** (§3.51). 29 trades, under
-30, and the positive mean lost to the null. Do not score an even day, and
-do not score the 80th. The count stays 30. VWAP-PREM stays dead (§3.50).
-Do not reopen GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO,
-the quiet-day range, the taker share, dispersion, or skew. fp5 through
-fp21 stay closed, including LS-FADE. The next search is not written. No
-testing row. No pull request. No push to main.
+**fp23 protocol is frozen. No return has been computed.** UP-SHARE is the
+share of the day's hours that closed above their own open, long BTC the
+next day. Do not score a day of mostly down hours. VOL-HHI stays dead
+(§3.51): do not score an even day or the 80th, and the count stays 30.
+Do not reopen VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR,
+RV-RATIO, the quiet-day range, the taker share, dispersion, or skew. fp5
+through fp22 stay closed, including LS-FADE. The screen is the next step.
+No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -837,6 +838,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:20 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp23 protocol only. No return has been computed.** A different family from
+the eighteen closed rounds: the share of BTC's hours that closed above
+their own open, long BTC the next day. VOL-HHI, VWAP-PREM, GAP-UP,
+CLOSE-LOC, PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range,
+the taker share, dispersion and skew stay closed. A day of mostly down
+hours is not a candidate. `pin_test.py` passed before this commit. The
+screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:18 UTC] Platform: Cursor | Model: Grok 4.7
 
