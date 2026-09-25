@@ -8,17 +8,18 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp27 screen failed. BAL-CHG is dead.** The daily change in the number of
-addresses holding BTC, above its own trailing 90th, long BTC the next day:
-48 trades, +21.42 bps against a null of +60.96, +$10.28 (§3.56). The count
-cleared and the mean was positive; it lost to the null. Do not score a day
-the count did not rise, and do not score the 80th. Do not score the level
-of `AdrBalCnt`. BODY stays dead, including the later years (§3.55). Do not
-promote its 80th. Do not reopen EXCH-BAL, FEE-HIGH, the net exchange flow,
-UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
+**fp28 protocol is written and not scored.** IMPACT is the population
+correlation, inside one UTC day, of hourly quote volume and the absolute
+hourly move, above its own trailing 90th, long BTC the next day. BAL-CHG
+stays dead (§3.56). Do not score a day the count did not rise, do not score
+its 80th, and do not score the level of `AdrBalCnt`. BODY stays dead,
+including the later years (§3.55). Do not promote its 80th. Do not score a
+day whose volume and moves do not line up, and do not score the 80th. The
+count of trades stays 30. Do not reopen EXCH-BAL, FEE-HIGH, the net exchange
+flow, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC, PAIR-CORR, AVG-SIZE,
 AC-HOUR, RV-RATIO, the quiet-day range, the taker share, dispersion, or
-skew. fp5 through fp27 stay closed, including LS-FADE. The next rule is not
-written. No testing row. No pull request. No push to main.
+skew. fp5 through fp27 stay closed, including LS-FADE. The screen is the
+next step. No testing row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -841,6 +842,21 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 02:51 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp28 protocol only. No return has been computed.** A different family from
+the twenty-three closed rounds: the population correlation, inside one UTC
+day, of hourly quote volume and the absolute hourly move, long BTC the next
+day. This is not the count of up hours, not the hourly autocorrelation, and
+not how concentrated the volume is. BAL-CHG stays closed. Its 80th is not a
+candidate, and the level of the address count is not a candidate. BODY stays
+closed, including the later years, and its 80th neighbor is not a candidate.
+EXCH-BAL, FEE-HIGH, UP-SHARE, VOL-HHI, VWAP-PREM, GAP-UP, CLOSE-LOC,
+PAIR-CORR, AVG-SIZE, AC-HOUR, RV-RATIO, the quiet-day range, the taker
+share, dispersion and skew stay closed. A day whose volume and moves do not
+line up is not a candidate. `pin_test.py` passed before this commit. The
+screen is the next step. No pull request. Main was not pushed.
 
 ### [2026-09-25 02:45 UTC] Platform: Cursor | Model: Grok 4.7
 
