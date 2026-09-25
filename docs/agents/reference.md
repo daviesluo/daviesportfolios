@@ -2749,7 +2749,7 @@ means the veto did not fire. Five of the six conditions fail. **Not fit to add
 to testing.** The threshold is not reused, and the other fourteen screen rules
 stay dead.
 
-#### 3.35 The search after LS-FADE: five rules, none clears the 2023 screen (2026-09-25)
+### 3.35 The search after LS-FADE: five rules, none clears the 2023 screen (2026-09-25)
 
 LS-FADE was discarded (§3.34). The next protocol
 (`reviews/2026-09-25-fp6-protocol.md`) froze five rules that are not that rule
@@ -2765,7 +2765,7 @@ Tuesday through Sunday were scored only so a better weekday could not be
 chosen afterwards. Tuesday came closest (+58.9 bps against a null of +59.5)
 and still failed, and it is spent. **Nothing here is fit to add.**
 
-#### 3.36 MVRV, active addresses, BTC volume share: none clears the 2023 screen (2026-09-25)
+### 3.36 MVRV, active addresses, BTC volume share: none clears the 2023 screen (2026-09-25)
 
 The protocol (`reviews/2026-09-25-fp7-protocol.md`) was committed before any
 return. Two runs of the screen matched (`backtests/fp7/screen_2023.json`).
@@ -2776,6 +2776,16 @@ trailing 90th: 51 trades, mean −30.8 bps. BTC's share of BTC+ETH quote volume
 above its own trailing 90th: 40 trades, mean +35.7 bps against a null of
 +67.6 bps. **Nothing here is fit to add.** Together with §3.34 and §3.35,
 this pass of the search does not add a testing row.
+
+### 3.37 Exchange outflow, hash rate, quarterly backwardation: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp8-protocol.md`) was committed before any
+return. Two runs matched (`backtests/fp8/screen_2023.json`). Net coins leaving
+exchanges, above their own trailing 90th: 42 trades, mean +31.1 bps, null p95
++67.4 bps. Hash rate under its own trailing 10th: 10 trades, mean +42.1 bps,
+null +117.1 bps. The dated quarterly future more than a round trip under spot:
+no day, on 360 days where both closes existed. **Nothing here is fit to add.**
+The cuts are not reused, and the rich side of the basis is not a candidate.
 
 ### 4. Design consequences (decided by the evidence above)
 

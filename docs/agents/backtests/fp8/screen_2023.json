@@ -1,0 +1,51 @@
+{
+  "code_sha256": {
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24",
+    "fp8_common": "584d51ac5429ca4c426ed0e57e9af86134193307f5afda9019d67033cf7a78a3",
+    "fp8_measure": "604176ea820ce8d0ae1d0145debbdf91c4278b9b8604cba2934d8f7b998d84c0"
+  },
+  "ideas": [
+    {
+      "idea": "FLOW-OUT",
+      "mean_gross_bps": 51.2244,
+      "mean_net_bps": 31.1421,
+      "min_n": 30,
+      "n": 42,
+      "note": "candidate",
+      "null_p95_bps": 67.4226,
+      "passes_screen": false,
+      "total_pnl_usd": 13.0797
+    },
+    {
+      "idea": "HASH-DROP",
+      "mean_gross_bps": 62.1884,
+      "mean_net_bps": 42.0841,
+      "min_n": 30,
+      "n": 10,
+      "note": "candidate",
+      "null_p95_bps": 117.1159,
+      "passes_screen": false,
+      "total_pnl_usd": 4.2084
+    },
+    {
+      "idea": "BASIS-BACK",
+      "mean_gross_bps": null,
+      "mean_net_bps": null,
+      "min_n": 30,
+      "n": 0,
+      "note": "candidate",
+      "null_p95_bps": null,
+      "passes_screen": false,
+      "total_pnl_usd": 0
+    }
+  ],
+  "input_sha256": {
+    "btc_1d": "11052871e94e2e0f308af12ddd904849117ca070b49e6e67584f285dcc014f1e",
+    "flow_in": "b8db933032f6e2fa5b1de66eda27239e128cf4f8ea9a627909c028300ca0c75b",
+    "flow_out": "2a6348a29ced8c80b8c34e0c7b3f7dc697807c0968c64adc83acb3fc043aae73",
+    "futures": "f07008a5cb86b84ea1a55ff3f91223001c9c4eea7db58a1222ae922088a29df1",
+    "hashrate": "a9a0c489a6e3fa106db68f38f3a351c102aa8af3fa413a625989f777712da0a1"
+  },
+  "passed": [],
+  "protocol_sha256": "12c7a5e2dd8d080dfd9b35f531206a4a8496514178070c797ceb3073d925e557"
+}

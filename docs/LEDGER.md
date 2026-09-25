@@ -8,12 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp8's 2023 screen is not run.** The closed rounds stay closed (§3.34–§3.36):
-do not revive LS-FADE, the weekday controls, MVRV, active addresses or BTC's
-volume share. The next protocol is `docs/agents/reviews/2026-09-25-fp8-protocol.md`,
-committed before any return of exchange outflow, hash-rate drops or quarterly
-backwardation. Next: `python3 docs/agents/scripts/fp8/fetch.py`, then
-`python3 docs/agents/scripts/fp8/measure.py`. No testing row. No push to main.
+**fp8 failed the 2023 screen and is discarded** (§3.37). Do not lower the
+basis cut, do not score the rich side, do not flip outflow or hash rate.
+fp5 through fp7 stay closed. The next search is not written. No testing row.
+No push to main. No pull request.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +834,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:04 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp8 screen: nothing passes.** Protocol was `01ce855`, before any return.
+Two scores matched (`279833ba…`). FLOW-OUT 42 trades, +31.14 bps against a
+null of +67.42, +$13.08. HASH-DROP 10 trades, +42.08 bps against +117.12,
++$4.21. BASIS-BACK 0 trades on 360 days where both closes existed. Reference
+§3.37. The cuts stay. The next search is not written. No testing row. No pull
+request. Main was not pushed.
 
 ### [2026-09-25 00:57 UTC] Platform: Cursor | Model: Grok 4.7
 
