@@ -835,6 +835,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:42 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5 ROUND was run and it fails. Not a testing candidate.** The 02:38 section froze the rule and said the run was next. This section is that run. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. COPY and VOL were not retuned.
+- Out of sample: **−$691.320703 on 245 trades**. OOS1 −$838.28 on 158, OOS2 +$146.96 on 87. Stress −$1,132.27. Null 95th +$2,716.63. In sample −$377.46 on 92. YES −$99.94 on 122, NO −$591.38 on 123, read after the run and not promoted. September is +$487.82 inside a loss; dropping it was not done, and it would make the loss larger. Only the trade count passes.
+- The pull: 369 ladders, 793 round strikes, no incomplete tape. Input sha256 `40a147eba1f9949e1e7534977473d59942b497d2c9e175cf85fcefd30620a3d1`. Both runs sha256 `18c83ca54e984cf5412feb7554519077a0d1f5640960a17f2c1c5be072d02b2d`. `round_test.py` is still the freeze's blob. Write-up: `reviews/2026-09-25-polymarket-fp5-round.md`. The line through the two neighbors is not retried at a finer modulus or on one side only.
+
 ### [2026-09-25 02:38 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp5 ROUND pre-registration frozen, not yet run** (branch `cursor/polymarket-fp5-b50c`; not on main). COPY failed in the 02:31 section and is not being retuned: the page cap stays, and August stays in the sum. VOL stays failed. The next rule buys a $10,000 Bitcoin strike when it sits off the straight line through the strike below it and the strike above it by more than the taker fee and one tick, and holds to settlement. No spot and no volatility. The rule is `reviews/2026-09-25-polymarket-fp5-prereg-round-strike.md`. `round_test.py --self-check` passes (hand fill +11.36113). No decision-time price and no return have been read. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched.

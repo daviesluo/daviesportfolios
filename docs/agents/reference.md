@@ -2747,6 +2747,17 @@ Not a paper test and not a live row. The copy family stops: the leaderboard has 
 and this as-of ranking fails too. Not retried with a higher page cap, a different top N, or August
 removed.
 
+### 3.36 ROUND, a $10,000 strike against the two beside it, fails its bar (2026-09-25)
+
+The same search's third test. A multiple of $10,000 on the daily Bitcoin ladder is bought when it sits
+off the straight line through the strikes on either side by more than the taker fee and one tick, and
+held to settlement. No spot and no volatility. Pre-registered before any price of the rule
+(`reviews/2026-09-25-polymarket-fp5-prereg-round-strike.md`). Out of sample: **−$691.32 on 245 trades**.
+One half is positive. Stress −$1,132.27. The null's 95th percentile is +$2,716.63. Both the YES buys and
+the NO buys lose. In sample loses too (−$377.46 on 92). The write-up is
+`reviews/2026-09-25-polymarket-fp5-round.md`. Not a paper test and not a live row. Not retried at a
+finer modulus, on one side only, or with September removed.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
