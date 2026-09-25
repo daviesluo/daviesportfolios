@@ -8,12 +8,12 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp16 failed the 2023 screen and is discarded** (§3.45). Do not lower the
-count of 30, do not score the negative tail, and do not score the 80th.
-Do not reopen RV-RATIO, the quiet-day range, DVOL minus realized vol,
-dispersion, or skew. fp5 through fp15 stay closed, including LS-FADE. The
-next search is not written. No testing row. No pull request. No push to
-main.
+**fp17 protocol is written. No return has been computed.** The rule is BTC's
+average trade size, quote volume divided by the trade count, long the next
+day when that size is above its own trailing 90th. The small-trade tail is
+not a candidate. Do not reopen fp5 through fp16, including LS-FADE,
+RV-RATIO and AC-HOUR. The screen is the next step. No testing row. No pull
+request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,15 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-25 01:58 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp17 protocol only. No return has been computed.** A different family from
+the twelve closed rounds: average trade size, quote volume divided by the
+trade count, long spot the next day. AC-HOUR, RV-RATIO, the quiet-day
+range and the taker share stay closed. The small-trade tail is not a
+candidate. `pin_test.py` passed before this commit. The screen is the next
+step. No pull request. Main was not pushed.
 
 ### [2026-09-25 01:53 UTC] Platform: Cursor | Model: Grok 4.7
 
