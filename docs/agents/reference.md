@@ -7503,6 +7503,66 @@ other's fair value. Another venue's last trade of the same coin is not the
 fair value. A rule that cannot say how many basis points separate the two
 prices, in one unit, is not run. The fill stays that contract's own open.
 
+### 3.370 Three same-unit discounts. No return has been computed (2026-09-25)
+
+Davies, 2026-09-25: the next round has to change because of §3.369. A fair
+value has to be the same unit as the price it is compared with, and the rule
+has to be able to say how many basis points cheap that price was. Copying
+"the close finished under another venue's close" onto another exchange is
+not a new rule. Copying a funding sign, or funding versus SOFR, onto another
+contract is not a new rule either.
+
+This round is three rules, not eight. Padding the list with the same
+sentence on another coin, another threshold, or another book is the failure
+§3.369 records. The discount is `(fair − close) / close` in basis points.
+The close is the previous day's bar. The entry open is the fill only. A
+fair-value stamp that is not strictly earlier than the entry is not used. A
+missing fair value or a missing close is neither trade. The other trade is
+the same leg with the discount below the threshold. It is not the opposite
+side and it is not an unconditional hold. When the edge-off set is longer,
+the cutoff is the house p95 of samples of the rule's count, not the edge-off
+mean. The screen count stays 30. The month bar and the doubled-cost bar are
+not added to the 2023 screen.
+
+**EREAL** (fp321). Fair value is the Coin Metrics realized ETH price in USD,
+`CapMrktCurUSD / CapMVRVCur / SplyCur`, published at `AssetEODCompletionTime`.
+Buy ETHUSD_PERP for two days when the previous close is at least 1 bp under
+that price. Count with no profit computed: 31 rule, 325 edge-off, 2 neither,
+358 fillable. Five basis points selects the same 31 days and is not a second
+rule. The protocol is `docs/agents/reviews/2026-09-25-fp321-protocol.md`.
+
+**WBRAT** (fp322). Fair value is Binance's published WBETH exchange rate,
+ETH per WBETH, from the public exchange-rate history for project `BETH`.
+Buy WBETHETH for two days when the previous close is at least 25 bp under
+that rate. At 1 bp the cheap set was longer, 209 against 23. At 10 bp it was
+147 against 85. The short was not taken. Count with no profit computed: 43
+rule, 189 edge-off, 1 neither, 233 fillable. The protocol is
+`docs/agents/reviews/2026-09-25-fp322-protocol.md`.
+
+**WBPAR** (fp323). Fair value is the standing par of 1 BTC per WBTC, already
+stated on `https://wbtc.network/` before every 2023 open. Buy WBTCBTC for two
+days when the previous close is at least 1 bp under that par. Ten basis
+points is the same sentence and is not a second rule. Count with no profit
+computed: 167 rule, 196 edge-off, 1 neither, 364 fillable. The protocol is
+`docs/agents/reviews/2026-09-25-fp323-protocol.md`.
+
+Counted and not shipped, with no profit computed. BTC realized price against
+BTCUSD_PERP had 12 cheap days at 1 bp through a 13-day hold. The thermocap
+price, cumulative `IssTotUSD` divided by `SplyCur` from the first priced
+day, had 0 cheap days. The constructed series has 4920 points and the last
+value is about 2800.79 USD, above every 2023 close that was compared. Fees
+were not added to manufacture a pass. USDCUSDT against a par of 1 was the
+longer set at 1 bp, 185 against 109, and the quote is USDT. BETHETH against
+a par of 1 was 281 against 0 at 1 bp. Both are the WBPAR sentence. LBMA gold
+and the ECB dollar fix were not paired with a USDT quote, because the units
+differ. Funding signs, funding versus SOFR, and another venue's last trade
+are not in this round. Spot, the coin-margined book and the USDT book are
+not each other's fair value.
+
+No return of these rules has been computed. No book ticker was frozen. No
+later-year bar is requested as an entry. None is a testing row. fp313–fp320
+stay inside 2023.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
