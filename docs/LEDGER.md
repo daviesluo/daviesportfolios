@@ -8,10 +8,10 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp9 failed the 2023 screen and is discarded** (§3.38). Do not score the
-low tail of the variance gap or of dispersion. fp5 through fp8 stay closed.
-The next search is not written. No testing row. No pull request. No push to
-main.
+**fp10 protocol is written and not scored.** Two rules, not the closed
+families: ETH's last 8h return as a signal for BTC, and a rich day in DeFi
+TVL. No return has been computed. fp5 through fp9 stay closed. No testing
+row. No pull request. No push to main.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -835,7 +835,15 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
-### [2026-09-25 01:11 UTC] Platform: Cursor | Model: Grok 4.7
+### [2026-09-25 01:13 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp10 protocol only. No return has been computed.** A different family from
+the five closed rounds: ETH's last 8h return, long BTC for the next 8h, and
+a rich day in DeFi TVL, long BTC the next day. `pin_test.py` passed before
+this commit. The screen is the next step. No pull request. Main was not
+pushed.
+
+### [2026-09-25 01:12 UTC] Platform: Cursor | Model: Grok 4.7
 
 **fp9 screen: nothing passes.** Protocol was `55d6f20`, before any return.
 The section below was stamped 01:09 and the commit landed at 01:10; that
