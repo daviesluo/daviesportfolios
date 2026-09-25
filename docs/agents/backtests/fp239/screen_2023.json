@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp239_common": "1c6148bc479f965b48917830bc0c1e5c1dbf2fc3e95e469e942c635494204406",
+    "fp239_measure": "26cc6427fb776a94e95c405a4a4e159fd68d536050c00e1071450b3309c930da",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "QUIET",
+      "mean_gross_bps": 352.6189,
+      "mean_net_bps": 331.9343,
+      "min_n": 30,
+      "n": 179,
+      "note": "The absolute three-day USDT return finished smaller than the absolute three-day return before it. The next open is bought and sold thirteen days later. One USDT-perpetual leg. Funding cash is not added. The null is that thirteen-day long on every day.",
+      "null_p95_bps": 451.1356,
+      "passes_screen": false,
+      "total_pnl_usd": 594.1624
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "439316d07cbecaf72071505bf793ed1ece8d03c2ccd5bde2be5c1bba8495d1a7"
+}

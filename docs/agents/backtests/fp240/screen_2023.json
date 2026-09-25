@@ -1,0 +1,26 @@
+{
+  "code_sha256": {
+    "fp240_common": "91a22b41389a2d73853d58ee55e165f49361a641f8736df641a4b8f8299ea7ca",
+    "fp240_measure": "1cd2145d0a44b70d35b25c27d768d0822dc2506a3914af2362b6bf1197559120",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "LEAD",
+      "mean_gross_bps": 196.1993,
+      "mean_net_bps": 175.8273,
+      "min_n": 30,
+      "n": 177,
+      "note": "The coin-margined eight-day return finished above spot's eight-day return. The next spot open is bought and sold five days later. One spot leg. Funding cash is not added. The null is that five-day long on every day.",
+      "null_p95_bps": 178.24,
+      "passes_screen": false,
+      "total_pnl_usd": 311.2143
+    }
+  ],
+  "input_sha256": {
+    "cm": "5d587c0f1e2db0433b02dacde9979743ed171ab3868f2ca125b17cfdef619274",
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "passed": [],
+  "protocol_sha256": "5bcf6191c006dab9571dad49b7e6fa727d8efda089d4b103dd13b07709a0a422"
+}

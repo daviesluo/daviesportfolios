@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp234_common": "403dbb33f7a52ce8d1d9adb11f3ca3fa0ad989176e707422c252fa95a7f3496f",
+    "fp234_measure": "6b491ef692e83fc6cf10d69ad75ce65f86c81c6091cfd890ee443807e615e438",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "UMSH",
+      "mean_gross_bps": -82.8535,
+      "mean_net_bps": -102.668,
+      "min_n": 30,
+      "n": 82,
+      "note": "A finished four-day rise was followed by a finished four-day fall. The next USDT open is sold and bought back eleven days later. One USDT-perpetual leg. Funding cash is not added. The null is that eleven-day short on every day.",
+      "null_p95_bps": -139.9677,
+      "passes_screen": false,
+      "total_pnl_usd": -84.1878
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "c980219dc807fb5465599ff439e27aa65dc650c84d4a5a2f0d1d33beca60cb42"
+}

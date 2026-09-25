@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp233_common": "8b365680660211859d65a60f881bff47b3e00a81643027239ae5d29574ab952f",
+    "fp233_measure": "cffd8d29088cacfe9dc768a88de4f3e117e7f5c13363e1d6a3c9180a0c8aaa29",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "HI10",
+      "mean_gross_bps": 390.1485,
+      "mean_net_bps": 369.3889,
+      "min_n": 30,
+      "n": 74,
+      "note": "Yesterday's spot close was above each of the ten prior closes. The next open is bought and sold eight days later. One spot leg. Funding cash is not added. The null is that eight-day long on every day.",
+      "null_p95_bps": 329.1859,
+      "passes_screen": true,
+      "total_pnl_usd": 273.3478
+    }
+  ],
+  "input_sha256": {
+    "spot": "beb097a6486d16902f3d6eb076b7ba80691bb3b006ebdb246c88953c02952611"
+  },
+  "passed": [
+    "HI10"
+  ],
+  "protocol_sha256": "d94d68d58be96e8999f2aec7f5b34ee3d3a6e7a5be074f12d4cf68099aeefd69"
+}

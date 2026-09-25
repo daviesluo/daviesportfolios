@@ -1,0 +1,25 @@
+{
+  "code_sha256": {
+    "fp236_common": "280975e5ee66652e27f02c42d8c459a73eb63df36cc2320b79258e5b61a3cc06",
+    "fp236_measure": "ca26905932daec0661415bcab71c07c2b47ee5ba67a488e71250db578f5dbc3f",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BNC",
+      "mean_gross_bps": 331.2037,
+      "mean_net_bps": 310.5619,
+      "min_n": 30,
+      "n": 59,
+      "note": "A finished two-day rise sat inside a finished eight-day fall. The next USDT open is bought and sold ten days later. One USDT-perpetual leg. Funding cash is not added. The null is that ten-day long on every day.",
+      "null_p95_bps": 479.0876,
+      "passes_screen": false,
+      "total_pnl_usd": 183.2315
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [],
+  "protocol_sha256": "040a5db91f973aaa7b91f1f5fb9a8df01b9985008a5128592afabc0e36b644f7"
+}

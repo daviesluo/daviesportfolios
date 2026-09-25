@@ -1,0 +1,27 @@
+{
+  "code_sha256": {
+    "fp237_common": "884fd0074a981457a461cb6422a9a5cf0f4fe81ab32b1cf81a593b6fdba121f2",
+    "fp237_measure": "2c11792979df5fb0d688b682a66d885e16644b3de37b25c9de523af7717a7aff",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "STEP",
+      "mean_gross_bps": 207.938,
+      "mean_net_bps": 187.5425,
+      "min_n": 30,
+      "n": 112,
+      "note": "Two finished three-day rises, back to back. The next USDT open is bought and sold four days later. One USDT-perpetual leg. Funding cash is not added. The null is that four-day long on every day.",
+      "null_p95_bps": 158.3111,
+      "passes_screen": true,
+      "total_pnl_usd": 210.0476
+    }
+  ],
+  "input_sha256": {
+    "um": "283196f98573a786604922085b32208bbee3d6d2768133aebb52b3b05cddcd8c"
+  },
+  "passed": [
+    "STEP"
+  ],
+  "protocol_sha256": "03daafe2a559ba72d70ad7ffe815099855c71dce329b28253dc75d08ce39e98a"
+}

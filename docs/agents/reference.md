@@ -5756,6 +5756,113 @@ the mean is under the null, and one month is more than 40% of the profit.
 search does not inherit the first-fourteen-days filter or the eleven-day
 hold.
 
+### 3.265 Ten higher spot closes, held eight days: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp233-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp233/screen_2023.json`,
+sha256 `8e98355f…`). Yesterday's spot close was above each of the ten prior
+closes, then buy spot for eight days: 74 trades, mean +369.3889 bps, null
+p95 +329.1859 bps, +$273.3478. The file's gross is +390.1485 bps. The count
+cleared, the mean is positive, and the mean is above the null. **The 2023
+screen passes. The later years are not scored. This is not a testing row.**
+One spot leg. Funding cash is not added. The null is that eight-day long on
+every day. A count taken before the freeze, with no profit computed, was 74.
+The scored book is 74. The rule was not changed.
+
+### 3.266 A four-day rise then a four-day fall, short eleven days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp234-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp234/screen_2023.json`,
+sha256 `762e961e…`). A finished four-day rise was followed by a finished
+four-day fall, then short the USDT perpetual for eleven days: 82 trades,
+mean −102.668 bps, null p95 −139.9677 bps, −$84.1878. The file's gross is
+−82.8535 bps. **Nothing here is fit to add.** The count cleared. The mean
+was negative, so it does not pass. The mean is above that null. One short
+leg. Funding cash is not added. The null is that eleven-day short on every
+day. A count taken before the freeze, with no profit computed, was 82. The
+scored book is 82. The rule was not changed.
+
+### 3.267 Spot, USDT and coin-margined each rose for six days: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp235-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp235/screen_2023.json`,
+sha256 `566b04fa…`). Spot, the USDT perpetual and the coin-margined perpetual
+each finished a six-day rise, then buy the coin-margined perpetual for seven
+days: 203 trades, mean +175.5563 bps, null p95 +244.2694 bps, +$356.3792.
+The file's gross is +195.9277 bps. **Nothing here is fit to add.** The count
+cleared and the mean was positive; it lost to the null. One coin-margined
+leg. Spot and the USDT book are signals, not a second leg. Funding cash is
+not added. The null is that seven-day long on every day. A count taken
+before the freeze, with no profit computed, was 203. The scored book is 203.
+The rule was not changed.
+
+### 3.268 A two-day rise inside an eight-day fall: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp236-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp236/screen_2023.json`,
+sha256 `289e9e51…`). A finished two-day rise sat inside a finished eight-day
+fall, then buy the USDT perpetual for ten days: 59 trades, mean +310.5619
+bps, null p95 +479.0876 bps, +$183.2315. The file's gross is +331.2037 bps.
+**Nothing here is fit to add.** The count cleared and the mean was positive;
+it lost to the null. One USDT-perpetual leg. Funding cash is not added. The
+null is that ten-day long on every day. A count taken before the freeze,
+with no profit computed, was 59. The scored book is 59. The rule was not
+changed.
+
+### 3.269 Two finished three-day rises, held four days: the 2023 screen passes (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp237-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp237/screen_2023.json`,
+sha256 `ff0517d5…`). Two finished three-day rises, back to back, then buy
+the USDT perpetual for four days: 112 trades, mean +187.5425 bps, null p95
++158.3111 bps, +$210.0476. The file's gross is +207.938 bps. The count
+cleared, the mean is positive, and the mean is above the null. **The 2023
+screen passes. The later years are not scored. This is not a testing row.**
+It is not four consecutive higher closes. One USDT-perpetual leg. Funding
+cash is not added. The null is that four-day long on every day. A count
+taken before the freeze, with no profit computed, was 112. The scored book
+is 112. The rule was not changed.
+
+### 3.270 Yesterday's open above the prior close: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp238-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp238/screen_2023.json`,
+sha256 `6c37947a…`). Yesterday's USDT open finished above the close of the
+day before, then buy the USDT perpetual for six days: 96 trades, mean
++178.2574 bps, null p95 +235.1411 bps, +$171.1271. The file's gross is
++198.6343 bps. **Nothing here is fit to add.** The count cleared and the
+mean was positive; it lost to the null. One USDT-perpetual leg. Funding
+cash is not added. The null is that six-day long on every day. A count
+taken before the freeze, with no profit computed, was 96. The scored book
+is 96. The rule was not changed.
+
+### 3.271 A smaller absolute three-day return: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp239-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp239/screen_2023.json`,
+sha256 `d169cae5…`). The absolute three-day USDT return finished smaller
+than the absolute three-day return before it, then buy the USDT perpetual
+for thirteen days: 179 trades, mean +331.9343 bps, null p95 +451.1356 bps,
++$594.1624. The file's gross is +352.6189 bps. **Nothing here is fit to
+add.** The count cleared and the mean was positive; it lost to the null.
+The comparison uses closes. One USDT-perpetual leg. Funding cash is not
+added. The null is that thirteen-day long on every day. A count taken
+before the freeze, with no profit computed, was 179. The scored book is
+179. The rule was not changed.
+
+### 3.272 Coin-margined return finished above spot: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp240-protocol.md`) was committed before any
+return (`55f8480`). Two runs matched (`backtests/fp240/screen_2023.json`,
+sha256 `d26ae687…`). The coin-margined eight-day return finished above
+spot's eight-day return, then buy spot for five days: 177 trades, mean
++175.8273 bps, null p95 +178.24 bps, +$311.2143. The file's gross is
++196.1993 bps. **Nothing here is fit to add.** The count cleared and the
+mean was positive; it lost to the null. One spot leg. The coin-margined
+book is a signal, not a second leg. Funding cash is not added. The null is
+that five-day long on every day. A count taken before the freeze, with no
+profit computed, was 177. The scored book is 177. The rule was not changed.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
