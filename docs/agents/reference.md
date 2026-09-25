@@ -2737,7 +2737,9 @@ Still later, still with `reached_preregistration` false (`screen_pass5.py`, `bac
 
 Still later, still with `reached_preregistration` false (`screen_pass6.py`, `backtests/fp5/summary_pass6.json`): the VIX close above its trailing 252-session 80th percentile, long the next day in 2019–2020, is +2,396 bps and still fails (17 trips, April 2020 is larger than the pool, and the random-day null's p95 is +5,685). US spot-bitcoin ETF net creation above its trailing 20-session median, long the next day in 2025, is +595 bps and fails the doubled cost, the trip count, the BTC book, the null and the month share. Neither sign is flipped.
 
-Still later, still with `reached_preregistration` false (`screen_pass7.py`, `backtests/fp5/summary_pass7.json`): long the UTC Monday in 2022–2023 is −4,199 bps over 104 trips, both books negative. BTC perpetual open interest falling into its trailing bottom quintile, long the next day in 2021, clears every numeric gate on daily closes (+9,186 bps, 63 trips, stress +6,666, February is 25%, null p95 +6,658). Closes cannot pass. The sign is not flipped and the year is not extended.
+Still later, still with `reached_preregistration` false (`screen_pass7.py`, `backtests/fp5/summary_pass7.json`): long the UTC Monday in 2022–2023 is −4,199 bps over 104 trips, both books negative. BTC perpetual open interest falling into its trailing bottom quintile, long the next day in 2021, clears every numeric gate on daily closes (+9,186 bps, 63 trips, stress +6,666, February is 25%, null p95 +6,658). Closes cannot pass. The sign is not flipped and the year is not extended. That open-interest rule stays killed and is not promoted.
+
+Still later, still with `reached_preregistration` false (`screen_pass8.py`, `backtests/fp5/summary_pass8.json`): BTC spot average trade size in its trailing top quintile, long the next day in 2023, is +3,781 bps and still fails, because 107 long days are 35 trips. BTC perpetual bid-over-ask depth at the 1% band, in its trailing top quintile, long the next day in 2024, is −3,958 bps over 65 trips, both books negative. Neither sign is flipped.
 
 ## 4. Design consequences (decided by the evidence above)
 

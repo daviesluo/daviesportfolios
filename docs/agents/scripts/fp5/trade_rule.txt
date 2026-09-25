@@ -1,0 +1,23 @@
+Family: long the next day when the average BTC spot trade was in its own trailing top quintile.
+Frozen 2026-09-25 02:06:04 UTC, before any average-trade-size value or next-day return of this rule was computed.
+Not the volume-spike test (that asked whether a high-volume day's price move continued).
+Not the futures taker buy/sell ratio (that column was killed). Not the long/short-account ratio.
+The series is quote volume divided by the number of trades. Total volume is not the signal.
+
+Spot cannot short. Long or flat. Books: BTC and ETH, both driven by one BTCUSDT spot series.
+Prices and the size series are Binance spot daily klines for BTCUSDT. ETHUSDT supplies the ETH book only.
+Column locked here, before any file of this rule is opened: quote asset volume is field 8 (1-based), number of trades is field 9.
+The day's size is quote volume divided by the number of trades. A day with no trades, or a line with fewer than 9 fields, is missing.
+Sort the previous 90 printed sizes ascending. The threshold is the 72nd (1-based), index 71.
+Long the next UTC day when date D's size is strictly above that threshold. Otherwise flat.
+Execution days are 2023-01-01 through 2023-12-31 whose previous calendar day has a size and 90 earlier sizes.
+The long day earns that day's close over the previous close.
+Cost 20 bps on each change from flat to long and 20 bps on each change from long to flat.
+A position still long on the last screen day is charged the exit that day and earns no further return.
+Stress doubles each charge. A loss kills the family. A gain is not a pass: these are daily closes, not prints through a price.
+Screen only: 2023. No other year is scored.
+Null: the same number of long days, random execution days in the screen, 500 draws, seed 20260925.
+Kill unless pooled equal-weight P&L > 0, stress > 0, round trips >= 60, both books > 0,
+P&L > null p95, no calendar month is more than 40% of pooled P&L, and pooled P&L exceeds 400 bps.
+Round trip = an entry from flat to long.
+Do not flip the sign to a small average trade. Do not change the quintile. Do not add 2024.

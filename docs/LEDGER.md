@@ -836,6 +836,10 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-25 02:08 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Monday and the open-interest drop stay killed. The open-interest rule that cleared its candle arithmetic is not promoted. `docs/agents/scripts/fp5/trade_rule.txt` and `depth_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass8.json`. BTC spot average trade size in its trailing top quintile, long the next day in 2023, is +3,781 bps and still fails: 35 trips. BTC perpetual bid depth over ask depth at the 1% band, in its trailing top quintile, long the next day in 2024, is −3,958 bps over 65 trips, both books negative. Neither sign is flipped. `reached_preregistration` stays false.
+
 ### [2026-09-25 02:01 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Two more Revolut X families missed the testing bar.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. VIX and the ETF net-creation rule stay killed. `docs/agents/scripts/fp5/monday_rule.txt` and `oi_rule.txt` were hashed before their own results. The record is `docs/agents/backtests/fp5/summary_pass7.json`. Long the UTC Monday in 2022–2023 is −4,199 bps over 104 trips, both books negative. BTC perpetual open interest in its trailing bottom quintile, long the next day in 2021, clears the candle arithmetic (+9,186 bps, 63 trips, stress still positive, February is 25% of the pool, above the null's p95). Daily closes cannot pass, so `reached_preregistration` stays false. Neither sign is flipped.
