@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp315_common": "11ffaa16e54b1b05e22a37df40777e17c428e83e17b8be0d6005e7f6384a52b9",
+    "fp315_measure": "cc91fe48778d7bc8aa5afaf81d85a8a09330d45e2ad45810f8ec16356d9189d0",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "EZERO",
+      "mean_gross_bps": 97.4371,
+      "mean_net_bps": 77.2624,
+      "min_n": 30,
+      "n": 40,
+      "note": "Fair value is the price index inside Binance's funding formula for ETHUSD_PERP. The last settled funding rate is negative, so that contract finished below the index. Buy the ETH coin-margined book for two days. The other trade buys it for two days when that rate is not negative. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 91.0283,
+      "passes_screen": false,
+      "total_pnl_usd": 30.905
+    }
+  ],
+  "input_sha256": {
+    "cm": "c97166060de492c939ef9110308a5b949c89cd186722b80c7548e03d7f437076",
+    "fund": "415cce57aa4a4cb99fd9ca7fdf9e5597ceb33eb3fcb4a1a0bb52b880babd072e"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 15.0088,
+  "null_n": 318,
+  "passed": [],
+  "protocol_sha256": "177a0a9ae27f7cc2b8772daccfaa73eb560a7c4bca22a2f467b5585f01591ab8"
+}

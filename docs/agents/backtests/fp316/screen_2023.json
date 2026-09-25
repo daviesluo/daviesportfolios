@@ -1,0 +1,29 @@
+{
+  "code_sha256": {
+    "fp316_common": "dbcca1f8393ccf76f4d3b9eeaba9e184a4510d00cbce175424a3c0a2848f92c0",
+    "fp316_measure": "edba55c5ec052e665a86d602f3079ad75ebb21b72e44d5fd556106185ce3ae7a",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "BZERO",
+      "mean_gross_bps": 6.9668,
+      "mean_net_bps": -13.0271,
+      "min_n": 30,
+      "n": 102,
+      "note": "Fair value is the price index inside Binance's funding formula for BNBUSDT. The last settled funding rate is negative, so that contract finished below the index. Buy the BNB USDT book for two days. The other trade buys it for two days when that rate is not negative. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 39.6216,
+      "passes_screen": false,
+      "total_pnl_usd": -13.2877
+    }
+  ],
+  "input_sha256": {
+    "fund": "6fa05c92903bcd6d6580a34b884537bdf4aea529de4dee219a11b9bd080c93eb",
+    "um": "4775fe53adcb5f1c3cfb6d344d933ce49d15335cf966ddd6c6d84176fce90c47"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 3.4842,
+  "null_n": 262,
+  "passed": [],
+  "protocol_sha256": "c794b7c9a16db0d770aaf8fb65f03adc92e4a3c18eefaf8b6c75dd62963080a2"
+}

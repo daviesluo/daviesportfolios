@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp319_common": "1d7450b49be6a446234455c1b2401d0e13d1d3b2fcad24b8e901aa24aab1ae11",
+    "fp319_measure": "44352d78ca62ac3d54326dcf477d6d1e8a02ab05898ad5085d7be57be286c785",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "ESOFR",
+      "mean_gross_bps": 48.8949,
+      "mean_net_bps": 28.8172,
+      "min_n": 30,
+      "n": 120,
+      "note": "Fair value is the price index grossed up by the already-published SOFR carry. The last settled ETHUSDT funding rate is strictly below that eight-hour SOFR rate, so the contract finished cheap to the cash-and-carry. Buy the ETH USDT book for two days. The other trade buys it for two days when the settled rate is not below that SOFR rate. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 53.7766,
+      "passes_screen": false,
+      "total_pnl_usd": 34.5806
+    }
+  ],
+  "input_sha256": {
+    "fund": "5f8fe4f4cbfe9c1d77e03ccd5766de7ed9f43aaaeb0e49c2e7623a13e6f5efdd",
+    "sofr": "a45592354542b5366501ea47ef70ee0b489b396dcff5bd501987dacf8084190e",
+    "um": "286c89143f862befd56919699101a4862cfa979d955e466329530341c905658d"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 17.0696,
+  "null_n": 244,
+  "passed": [],
+  "protocol_sha256": "334aaafda7eb420e7ebade8ef48555a5313812468aad7580b1650958cb4e2dae"
+}

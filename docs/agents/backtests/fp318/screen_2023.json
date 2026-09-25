@@ -1,0 +1,30 @@
+{
+  "code_sha256": {
+    "fp318_common": "3bce9cbaef840d4c6ebb13e2fcbffef8d132b49159b74dfd7ce73943ff577ac7",
+    "fp318_measure": "5eae65914dc9fce7f8ce14b6a98ba9e408ed8f5dd4929e4724926350d419b28c",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "CSOFR",
+      "mean_gross_bps": 98.1899,
+      "mean_net_bps": 78.0137,
+      "min_n": 30,
+      "n": 76,
+      "note": "Fair value is the price index grossed up by the already-published SOFR carry. The last settled BTCUSD_PERP funding rate is strictly below that eight-hour SOFR rate, so the contract finished cheap to the cash-and-carry. Buy the coin-margined book for two days. The other trade buys it for two days when the settled rate is not below that SOFR rate. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 81.4942,
+      "passes_screen": false,
+      "total_pnl_usd": 59.2904
+    }
+  ],
+  "input_sha256": {
+    "cm": "f89e4d58c336c3ec4a124e1d003de4368075cdae05c5e712b66e496c5a4aafeb",
+    "fund": "2203f1d19f429562cba1868bf8879ff7da0cfd40813ad6cf24d545b29273d921",
+    "sofr": "a45592354542b5366501ea47ef70ee0b489b396dcff5bd501987dacf8084190e"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 27.105,
+  "null_n": 282,
+  "passed": [],
+  "protocol_sha256": "2518c5b3dbf7d52d6e0614085780c558b12d33b3776be0eb0cde564bb797913b"
+}

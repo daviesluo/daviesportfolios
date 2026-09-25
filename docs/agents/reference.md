@@ -7327,6 +7327,137 @@ Counts of spans, taken before this freeze, with no profit computed:
 No later-year return of these rules has been computed. No testing row is
 added. The next eight are not frozen.
 
+### 3.361 Negative settled BTCUSDT funding: the 2023 screen passes by 70.2341 bps (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp313-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp313/screen_2023.json`,
+sha256 `a32c2166…`). Fair value is the price index inside Binance's funding
+formula for BTCUSDT. The last settled funding rate is negative, so that
+contract finished below the index, then buy the USDT book for two days: 36
+trades, mean +154.5807 bps, null p95 +84.3466 bps, +$55.6491. The file's
+gross is +174.9102 bps. The three screen bars pass. The gap over the house
+p95 is 70.2341 bps, strictly more than 20. The edge-off set has 328 trades
+and a mean of +23.8721 bps. The cutoff is the house p95, not that mean. One
+USDT leg. Funding cash is not added. A count taken before the freeze was 36
+against 328. The scored book is 36 and 328. The rule was not changed. This
+is not a testing row. The later years are not scored in this commit.
+
+### 3.362 Negative settled BTCUSD_PERP funding: the 2023 screen passes by 47.6347 bps (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp314-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp314/screen_2023.json`,
+sha256 `2fe0b86a…`). Fair value is the price index inside Binance's funding
+formula for BTCUSD_PERP. The last settled funding rate is negative, so that
+contract finished below the index, then buy the coin-margined book for two
+days: 37 trades, mean +148.1885 bps, null p95 +100.5538 bps, +$54.8298. The
+file's gross is +168.5052 bps. The three screen bars pass. The gap over the
+house p95 is 47.6347 bps, strictly more than 20. The edge-off set has 321
+trades and a mean of +25.2015 bps. The cutoff is the house p95, not that
+mean. One coin-margined leg. Funding cash is not added. The coin-margined
+book is missing 2023-08-28 through 2023-08-31. Those days are not filled in.
+A count taken before the freeze was 37 against 321. The scored book is 37
+and 321. The rule was not changed. This is not a testing row. The later
+years are not scored in this commit.
+
+### 3.363 Negative settled ETHUSD_PERP funding: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp315-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp315/screen_2023.json`,
+sha256 `9a746398…`). Fair value is the price index inside Binance's funding
+formula for ETHUSD_PERP. The last settled funding rate is negative, so that
+contract finished below the index, then buy the ETH coin-margined book for
+two days: 40 trades, mean +77.2624 bps, null p95 +91.0283 bps, +$30.905. The
+file's gross is +97.4371 bps. **Nothing here is fit to add.** The mean is
+positive and under the null. The gap is −13.7659 bps. One coin-margined leg.
+Funding cash is not added. The edge-off set has 318 trades and a mean of
++15.0088 bps. The cutoff is the house p95, not that mean. The coin-margined
+book is missing 2023-08-28 through 2023-08-31. Those days are not filled in.
+A count taken before the freeze was 40 against 318. The scored book is 40
+and 318. The rule was not changed. This is not a testing row and it is not
+taken out of sample.
+
+### 3.364 Negative settled BNBUSDT funding: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp316-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp316/screen_2023.json`,
+sha256 `758c7ecf…`). Fair value is the price index inside Binance's funding
+formula for BNBUSDT. The last settled funding rate is negative, so that
+contract finished below the index, then buy the BNB USDT book for two days:
+102 trades, mean −13.0271 bps, null p95 +39.6216 bps, −$13.2877. The file's
+gross is +6.9668 bps. **Nothing here is fit to add.** The mean is negative
+and under the null. The gap is −52.6487 bps. One USDT leg. Funding cash is
+not added. The edge-off set has 262 trades and a mean of +3.4842 bps. The
+cutoff is the house p95, not that mean. A count taken before the freeze was
+102 against 262. The scored book is 102 and 262. The rule was not changed.
+This is not a testing row and it is not taken out of sample.
+
+### 3.365 BTCUSDT funding below published SOFR: the 2023 screen passes by 42.5238 bps (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp317-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp317/screen_2023.json`,
+sha256 `66131f17…`). Fair value is the price index grossed up by the
+already-published SOFR carry. The last settled BTCUSDT funding rate is
+strictly below that eight-hour SOFR rate, so the contract finished cheap to
+the cash-and-carry, then buy the USDT book for two days: 126 trades, mean
++85.9699 bps, null p95 +43.4461 bps, +$108.3221. The file's gross is
++106.1621 bps. The three screen bars pass. The gap over the house p95 is
+42.5238 bps, strictly more than 20. The edge-off set has 238 trades and a
+mean of +10.7679 bps. The cutoff is the house p95, not that mean. One USDT
+leg. Funding cash is not added. A count taken before the freeze was 126
+against 238. The scored book is 126 and 238. The rule was not changed. This
+is not a testing row. The later years are not scored in this commit.
+
+### 3.366 BTCUSD_PERP funding below published SOFR: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp318-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp318/screen_2023.json`,
+sha256 `e87a8f55…`). Fair value is the price index grossed up by the
+already-published SOFR carry. The last settled BTCUSD_PERP funding rate is
+strictly below that eight-hour SOFR rate, so the contract finished cheap to
+the cash-and-carry, then buy the coin-margined book for two days: 76 trades,
+mean +78.0137 bps, null p95 +81.4942 bps, +$59.2904. The file's gross is
++98.1899 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. The gap is −3.4805 bps. One coin-margined leg. Funding cash is not
+added. The edge-off set has 282 trades and a mean of +27.105 bps. The cutoff
+is the house p95, not that mean. The coin-margined book is missing 2023-08-28
+through 2023-08-31. Those days are not filled in. A count taken before the
+freeze was 76 against 282. The scored book is 76 and 282. The rule was not
+changed. This is not a testing row and it is not taken out of sample.
+
+### 3.367 ETHUSDT funding below published SOFR: none clears (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp319-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp319/screen_2023.json`,
+sha256 `f194d17e…`). Fair value is the price index grossed up by the
+already-published SOFR carry. The last settled ETHUSDT funding rate is
+strictly below that eight-hour SOFR rate, so the contract finished cheap to
+the cash-and-carry, then buy the ETH USDT book for two days: 120 trades,
+mean +28.8172 bps, null p95 +53.7766 bps, +$34.5806. The file's gross is
++48.8949 bps. **Nothing here is fit to add.** The mean is positive and under
+the null. The gap is −24.9594 bps. One USDT leg. Funding cash is not added.
+The edge-off set has 244 trades and a mean of +17.0696 bps. The cutoff is
+the house p95, not that mean. A count taken before the freeze was 120
+against 244. The scored book is 120 and 244. The rule was not changed. This
+is not a testing row and it is not taken out of sample.
+
+### 3.368 ETHUSD_PERP funding below published SOFR: the 2023 screen passes by 43.1351 bps (2026-09-25)
+
+The protocol (`reviews/2026-09-25-fp320-protocol.md`) was committed before any
+return (`24e60b7`). Two runs matched (`backtests/fp320/screen_2023.json`,
+sha256 `0a937832…`). Fair value is the price index grossed up by the
+already-published SOFR carry. The last settled ETHUSD_PERP funding rate is
+strictly below that eight-hour SOFR rate, so the contract finished cheap to
+the cash-and-carry, then buy the ETH coin-margined book for two days: 84
+trades, mean +86.4984 bps, null p95 +43.3633 bps, +$72.6586. The file's
+gross is +106.6916 bps. The three screen bars pass. The gap over the house
+p95 is 43.1351 bps, strictly more than 20. The edge-off set has 274 trades
+and a mean of +2.1804 bps. The cutoff is the house p95, not that mean. One
+coin-margined leg. Funding cash is not added. The coin-margined book is
+missing 2023-08-28 through 2023-08-31. Those days are not filled in. A count
+taken before the freeze was 84 against 274. The scored book is 84 and 274.
+The rule was not changed. This is not a testing row. The later years are
+not scored in this commit.
+
 ### 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

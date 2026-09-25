@@ -1,0 +1,32 @@
+{
+  "code_sha256": {
+    "fp320_common": "d365a18a35924965cf57ee42ab5e7e0eb9261a68f57a159acddde1faa294e2c6",
+    "fp320_measure": "8e45062fe5bc65ee135a328f3775a111862f17ff7f31b0f5498b2914409a54a6",
+    "fp5_common": "48e2af1190d6960258f6db2f8972649fc284275c24dfffaa14d8757c96cfde24"
+  },
+  "ideas": [
+    {
+      "idea": "MSOFR",
+      "mean_gross_bps": 106.6916,
+      "mean_net_bps": 86.4984,
+      "min_n": 30,
+      "n": 84,
+      "note": "Fair value is the price index grossed up by the already-published SOFR carry. The last settled ETHUSD_PERP funding rate is strictly below that eight-hour SOFR rate, so the contract finished cheap to the cash-and-carry. Buy the ETH coin-margined book for two days. The other trade buys it for two days when the settled rate is not below that SOFR rate. Same prices, same side, the edge turned off. One leg. Funding cash is not added. The null is not an unconditional hold and it is not the opposite side. The traded open is the fill only. Another venue's close is not an input. A book ticker is not read.",
+      "null_p95_bps": 43.3633,
+      "passes_screen": true,
+      "total_pnl_usd": 72.6586
+    }
+  ],
+  "input_sha256": {
+    "cm": "c97166060de492c939ef9110308a5b949c89cd186722b80c7548e03d7f437076",
+    "fund": "415cce57aa4a4cb99fd9ca7fdf9e5597ceb33eb3fcb4a1a0bb52b880babd072e",
+    "sofr": "a45592354542b5366501ea47ef70ee0b489b396dcff5bd501987dacf8084190e"
+  },
+  "null_kind": "other_regime",
+  "null_mean_bps": 2.1804,
+  "null_n": 274,
+  "passed": [
+    "MSOFR"
+  ],
+  "protocol_sha256": "6b31f126d91773ce20257271b3213582b6327d06693b220b01247ebe7019f63a"
+}
