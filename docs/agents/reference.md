@@ -3026,6 +3026,65 @@ Out of sample: **−$96.80 on 34 trades**, 8 won and 26 lost. Both halves lose. 
 The null's 95th percentile is +$132.57. The write-up is `reviews/2026-09-25-polymarket-fp5-margin.md`.
 Not a paper test and not a live row. Not FORM5.
 
+### 3.68 REF, this referee's home-win rate, fails its bar (2026-09-25)
+
+Eight prior matches of this referee. Buy the home side only. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-ref.md`. Out of sample: **−$88.49 on 85 trades**, 23 won
+and 62 lost. One half is positive. Stress −$101.80. The null's 95th percentile is +$279.35. The
+write-up is `reviews/2026-09-25-polymarket-fp5-ref.md`. Not a paper test and not a live row. Not VENUE.
+
+### 3.69 SOT, shots on target over six matches, fails its bar (2026-09-25)
+
+A gap of 1.5 shots on target per game. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-sot.md`. Out of sample: **−$111.51 on 29 trades**, 8 won
+and 21 lost. Both halves lose. Stress −$114.93. The null's 95th percentile is +$119.50. The
+write-up is `reviews/2026-09-25-polymarket-fp5-sot.md`. Not a paper test and not a live row. Not FORM5.
+
+### 3.70 FOUL, fewer fouls over six matches, fails its bar (2026-09-25)
+
+A gap of two fouls per game. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-foul.md`.
+Out of sample: **−$46.80 on 41 trades**, 11 won and 30 lost. One half is positive. Stress −$54.36.
+The null's 95th percentile is +$183.60. The write-up is `reviews/2026-09-25-polymarket-fp5-foul.md`.
+Not a paper test and not a live row. Not SOT.
+
+### 3.71 CARD, fewer yellow cards over six matches, fails its bar (2026-09-25)
+
+A gap of 0.8 yellow cards per game. Red cards are not counted. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-card.md`. Out of sample: **−$106.34 on 37 trades**, 6 won
+and 31 lost. Both halves lose. Stress −$112.09. The null's 95th percentile is +$190.10. The
+write-up is `reviews/2026-09-25-polymarket-fp5-card.md`. Not a paper test and not a live row. Not FOUL.
+
+### 3.72 SPREAD15, a full-time win by two or more, fails its bar (2026-09-25)
+
+The -1.5 cover only. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-spread15.md`. Out of
+sample: **−$432.96 on 113 trades**, 9 won and 104 lost. Both halves lose. Stress −$465.00. The
+null's 95th percentile is +$577.53. The write-up is `reviews/2026-09-25-polymarket-fp5-spread15.md`.
+Not a paper test and not a live row. Not MARGIN.
+
+### 3.73 BTTS, both teams to score, fails its bar (2026-09-25)
+
+The average of the two clubs' rates. Buy yes only. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-btts.md`. Out of sample: **−$137.81 on 94 trades**, 44 won
+and 50 lost. One half is positive. Stress −$144.60. The null's 95th percentile is +$142.14. The
+write-up is `reviews/2026-09-25-polymarket-fp5-btts.md`. Not a paper test and not a live row.
+
+### 3.74 OVER35, four or more goals, fails its bar (2026-09-25)
+
+The full-time over 3.5 only. Pre-registered in `reviews/2026-09-25-polymarket-fp5-prereg-over35.md`.
+Out of sample: **−$71.26 on 61 trades**, 17 won and 44 lost. Both halves lose. Stress −$77.50. The
+null's 95th percentile is +$198.59. The write-up is `reviews/2026-09-25-polymarket-fp5-over35.md`.
+Not a paper test and not a live row. Not BTTS.
+
+### 3.75 CORNERS, one full-time corner over, fails its bar (2026-09-25)
+
+Each club's last eight matches, pooled. Pre-registered in
+`reviews/2026-09-25-polymarket-fp5-prereg-corners.md`. Out of sample: **+$9.25 on 38 trades**, 18 won
+and 20 lost. The second half is −$51.77. Stress +$1.39. The null's 95th percentile is +$109.07.
+May is 456% of the profit; without it −$32.94 remains. The 4% a year on a $30 peak passes. The
+write-up is `reviews/2026-09-25-polymarket-fp5-corners.md`. Not a paper test and not a live row. Not
+retried with May or the second half removed. One August fill was recomputed with the fee formula
+and matched the scorer (−$10.307).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

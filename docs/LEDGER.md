@@ -8,7 +8,7 @@ and is opened only when a closed item is reopened or audited.
 
 ## What remains right now
 
-**fp5, branch `cursor/polymarket-fp5-b50c`:** REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 and CORNERS are frozen and not yet scored. After this freeze is the branch tip, pull the full sample with `scripts/stat_inputs.py`, pick prints, score each rule twice, and keep a run only when the two files match. Do not retune a threshold. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
+**fp5, branch `cursor/polymarket-fp5-b50c`:** REF, SOT, FOUL, CARD, SPREAD15, BTTS, OVER35 and CORNERS were run on the full sample and none clears the bar. Do not retune them. Do not lower CONGEST to a gap of 1. The next round starts only when Davies sends it. Do not push main. Do not open a pull request. `agents/pmrw.ts` stays frozen.
 
 **The full plan is `docs/improvement-plan.md`** — 28 items in four
 tiers, written 2026-09-05 from a whole-repository review, with cost,
@@ -836,6 +836,19 @@ Closed operations move verbatim into `docs/handover.md`, whose Part 2
 Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
+
+### [2026-09-25 05:08 UTC] Platform: Cursor | Model: Grok 4.7
+
+**fp5, eight Premier League stat rules were run on the full sample and none clears the bar.** The 05:00 section froze them. Branch `cursor/polymarket-fp5-b50c`, not main. No testing or live row. `agents/pmrw.ts`, PR5 and trend-4h were not touched. ELO, FORM5, TABLE, REST, VENUE, STREAK3, DRAWBASE, H2H, MARGIN, CONGEST and the earlier failed rules were not reopened. The search file is not written: nothing passed. Each run was repeated and the two files matched. The shared input sha256 is `2f75f25b8e6cf8db7ba64e81adf4d2ab2eeffaa49eed0d5cacc656ebfc9c33e0` (1,397 contracts: 410 moneylines, 249 spreads, 326 both-teams, 293 overs, 119 corner events; 810 scores). One corner fill was recomputed with the fee formula and matched the scorer (−$10.307), and May's 14 CORNERS trades sum to the May figure (+$42.188811). `stat_score.py` blob `924b342e0314264b23d2fe8c15ca876871defff6`.
+
+- REF: **−$88.486333 on 85 trades**, 23 won and 62 lost. One half is positive. Picked-file sha256 `941b7325d1129e0a221bba192aeaa180878bcb433a04a52a76eaf1c60913a1da`. Both runs sha256 `4afee54b5be31bc5fae3ac1c14e24c6ef7b75b42bf2d4df2d0d74e4c12bdf2db`. `ref_test.py` blob `4f60300f9fb80dc07f401417398a948d1458d367`. Write-up: `reviews/2026-09-25-polymarket-fp5-ref.md`.
+- SOT: **−$111.506756 on 29 trades**, 8 won and 21 lost. Both halves lose. Picked-file sha256 `cacee7e7f2cdd2f46ae926867c7ccb891bb98f4f081a70c67ac8d2b6561e86b1`. Both runs sha256 `ae047dfbcb36336c2d5ea3e19370d1b67e82ca3a14ff2f31d0c10813ca75db76`. `sot_test.py` blob `933db9303207547478ce795a63e1a84b7c993785`. Write-up: `reviews/2026-09-25-polymarket-fp5-sot.md`.
+- FOUL: **−$46.799359 on 41 trades**, 11 won and 30 lost. One half is positive. Picked-file sha256 `723df7af17a1f0de0bdf22ed0c0092802372bdae0aa540a14a61c666b7a6dea0`. Both runs sha256 `be889d8fdffb9fe67b913d1e7215f382a7a7813d8643ff06255a42818b2e9fd2`. `foul_test.py` blob `fccb6d22c22d551ad045b4a94966ac1b2efe6d71`. Write-up: `reviews/2026-09-25-polymarket-fp5-foul.md`.
+- CARD: **−$106.338527 on 37 trades**, 6 won and 31 lost. Both halves lose. Picked-file sha256 `636e5602f94a43f67b033f611b5824063e9f628196d1558a1298063a68c22d5b`. Both runs sha256 `7c151b5bfe893f856a82aca1f14c25b506ec5b33294892851094619aab1d2a7d`. `card_test.py` blob `6defd7470343e030be425dcbf580db9d4048c1f2`. Write-up: `reviews/2026-09-25-polymarket-fp5-card.md`.
+- SPREAD15: **−$432.957597 on 113 trades**, 9 won and 104 lost. Both halves lose. Picked-file sha256 `357a55eca866be91373d09b7ba32493c9238265a23e7fc6a49f601ec7b130164`. Both runs sha256 `f94907dae68fd230beae4d44ab5abb02e5199b3883f631bf1760b7204c0781dc`. `spread15_test.py` blob `4f6b9a5968cc3f872b63d43eae65fc17d1297ece`. Write-up: `reviews/2026-09-25-polymarket-fp5-spread15.md`.
+- BTTS: **−$137.81417 on 94 trades**, 44 won and 50 lost. One half is positive. Picked-file sha256 `addd14ae803ccde0ccaff3670eccd50445be96afe0a7a73232c086ebe5f1bf43`. Both runs sha256 `72ab8c299fdad5c91999092450ef937b08d651ee0d403f8b0f46aae0cfe5cd95`. `btts_test.py` blob `03096113de434b1e092b42f2719c21243ffce303`. Write-up: `reviews/2026-09-25-polymarket-fp5-btts.md`.
+- OVER35: **−$71.256944 on 61 trades**, 17 won and 44 lost. Both halves lose. Picked-file sha256 `4c3d6071dc3fe2a9f1b2b60596c598e6e7eeb43fd0fcd6e9d12c32d1b8d402f0`. Both runs sha256 `16922b884aac3f154617b00faf93faaae30134f3e859ef40a2170c57f3aa3500`. `over35_test.py` blob `b9685614db1277d7b16839baea4359f28a72fc16`. Write-up: `reviews/2026-09-25-polymarket-fp5-over35.md`.
+- CORNERS: **+$9.250825 on 38 trades**, 18 won and 20 lost. The second half is −$51.774409. Stress +$1.387908. The null's 95th percentile is +$109.073477. May is 456% of the profit; without it −$32.937986. The 4% a year on a $30 peak passes (ratio 0.444868). Picked-file sha256 `70b96de57bda96f4d9c7ad5f827678c04e77cc5a2bc7851242efba0d5495ef64`. Both runs sha256 `faa453bbdfe6cf45ae89a62dfb633d192379f3598ec957f8cf6600ef4191afe9`. `corner_test.py` blob `1ad54cd3b26748b7c5fab224445ba7b818cc0329`. Write-up: `reviews/2026-09-25-polymarket-fp5-corners.md`.
 
 ### [2026-09-25 05:00 UTC] Platform: Cursor | Model: Grok 4.7
 
