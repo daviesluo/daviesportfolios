@@ -750,6 +750,15 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(split.live.map((r) => r.id)).toEqual(['trend-4h-live']);
     expect(split.testing.map((r) => r.id)).toEqual(['momentum-1d', 'trend-4h', 'trend-4h-binance']);
     expect(splitStrategyRows(strategyRows({ strategies: [row('x', 'revx', 'paper', 40, [0, 0, 0, 0, 0, 0], { holdsLive: true })] }, NOW)).live.length).toBe(1);
+    // A live row paused (or relabelled) once flat still carries real money it made: its fills keep it on LIVE, so its
+    // realised dollars are never added into TESTING's paper totals. A paper row's own fills do not move it.
+    const stopped = { ...rows[3], mode: 'paused', holdsLive: false, positions: [], otherBooks: [{ symbol: 'SOL/USD', book: 'live', base: 0, fills: 2 }] };
+    expect(strategyTab(stopped)).toBe('live');
+    expect(strategyTab({ mode: 'paper', positions: [{ symbol: 'SOL/USD', book: 'paper', base: 0, fills: 4 }] })).toBe('testing');
+    expect(strategyTab({ mode: 'paused', positions: [{ symbol: 'SOL/USD', book: 'live', base: 0, fills: 0 }] })).toBe('testing');
+    const afterLive = { ...dash, strategies: [...rows.slice(0, 3), stopped] };
+    for (const k of keys) expect(scoreboardView(afterLive, 'testing')[k]).toBe(dash.totals.byMode.paper[k]);
+    expect(scoreboardView(afterLive, 'live').realisedUsd).toBe(0.3);
   });
   it('says what each total covers, and what each percent is of', () => {
     expect([scoreboardView(dash, 'live').strategies, scoreboardView(dash, 'testing').strategies, scoreboardView(dash).strategies]).toEqual([1, 3, 4]);
@@ -817,22 +826,29 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(defaultAgentsTab(null)).toBe('testing');
   });
   it('says whether the live rows may buy — armed, awaiting arming or nothing live — with the pause beside it', () => {
-    expect(liveArming(dash)).toEqual({ state: 'unarmed', since: null, paused: false, count: 1 });
+    expect(liveArming(dash)).toEqual({ state: 'unarmed', since: null, paused: false, count: 1, holding: true });
     const armed = { ...dash, risk: { ...dash.risk, live_confirmed_at: '2026-09-25T09:00:00Z' } };
-    expect(liveArming(armed)).toEqual({ state: 'armed', since: '2026-09-25T09:00:00Z', paused: false, count: 1 });
+    expect(liveArming(armed)).toEqual({ state: 'armed', since: '2026-09-25T09:00:00Z', paused: false, count: 1, holding: true });
     expect(liveArming({ ...armed, risk: { ...armed.risk, global_pause: true } })).toMatchObject({ state: 'armed', paused: true });
     // The switch left on after the last live row went is not "armed": there is nothing for it to arm.
-    expect(liveArming({ ...armed, strategies: rows.slice(0, 3) })).toEqual({ state: 'none', since: null, paused: false, count: 0 });
+    expect(liveArming({ ...armed, strategies: rows.slice(0, 3) })).toEqual({ state: 'none', since: null, paused: false, count: 0, holding: false });
     // A row on LIVE only because it still holds real coins under a paper or paused label can never buy: it is winding
     // down, and "awaiting arming" would say arming could change that.
     const winding = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], mode: 'paused', windingDown: true }] };
-    expect(liveArming(winding)).toEqual({ state: 'winding', since: null, paused: false, count: 1 });
+    expect(liveArming(winding)).toEqual({ state: 'winding', since: null, paused: false, count: 1, holding: true });
     expect(agentsTabsView(winding).live).toMatchObject({ text: 'Real money · selling what it holds', tone: 'winding' });
     const words = (d, extra = 0) => { const v = agentsTabsView(d, extra); return [v.live.count, v.live.text, v.live.tone, v.testing.count, v.testing.text, v.testing.tone]; };
     // TESTING's count takes in the two paper tests' rows, and its line says how many of the rows are strategies — the
     // ones its totals add up — and how many are tests.
     expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper · 5 strategies', 'paper']);
-    expect(words(dash)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    // Unarmed stops buys only: a live row still holding coins is selling them, and "not trading yet" is for a flat one.
+    expect(words(dash)).toEqual([1, 'Real money · selling what it holds', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    const flat = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], holdsLive: false }] };
+    expect(words(flat)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    // A live row paused once flat can neither buy nor sell: stopped, not winding down.
+    const stopped = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], mode: 'paused', holdsLive: false, otherBooks: [{ symbol: 'SOL/USD', book: 'live', base: 0, fills: 2 }] }] };
+    expect(liveArming(stopped)).toEqual({ state: 'stopped', since: null, paused: false, count: 1, holding: false });
+    expect(words(stopped)).toEqual([1, 'Real money · stopped', 'paused', 3, 'Paper · 3 strategies', 'paper']);
     expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · 3 strategies', 'paper']);
     expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · 5 strategies', 'paper']);
     expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper · 2 strategies', 'paper']);
@@ -853,10 +869,10 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
       'venue-revx': 'live+testing',              // Revolut X has rows on both tabs
       'venue-binance': 'testing',                // Binance's rows are all paper
       'winding-down-momentum-1d': 'testing',     // a paused paper row winds down where it is listed
-      'pending-trend-4h-live': 'live',
+      'pending-trend-4h-live': 'live+testing',   // real money in an unknown state, whichever tab is open
     });
     expect(alertsFor(busy, 'live', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'pending-trend-4h-live']);
-    expect(alertsFor(busy, 'testing', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'venue-binance', 'winding-down-momentum-1d']);
+    expect(alertsFor(busy, 'testing', now).map((a) => a.id)).toEqual(['global-pause', 'venue-revx', 'venue-binance', 'winding-down-momentum-1d', 'pending-trend-4h-live']);
     // A venue no row trades on still says its fault, on both tabs: nothing is known about whom it concerns.
     expect(alertsFor({ risk: {}, venues: [{ id: 'binance', note: 'down' }], strategies: [] }, 'live').map((a) => a.id)).toEqual(['venue-binance']);
     // A live venue without a key, and a row still holding real coins under a paper label, are LIVE's.

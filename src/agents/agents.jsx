@@ -1233,8 +1233,8 @@ function AgentsModal({ hideValues, onClose }) {
   const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
-  // The two paper tests are listed on TESTING and added into no total: the tab's count, its venue cards and their own
-  // rows say so.
+  // The two paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
+  // count); LIVE never does.
   const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : [])], [quotes, rw]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   const tabsView = React.useMemo(() => agentsTabsView(dash, tests.length), [dash, tests]);

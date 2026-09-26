@@ -31,7 +31,8 @@ How the less obvious parts work, and why they are built the way they are.
   there is no arbitrage in it, and the record keeps saying so. Positions
   and P&L are derived from fills in one place (the `agents` Edge
   Function). The page has two tabs at the top, LIVE (real money: a row
-  labelled live, or one still holding real coins) and TESTING (paper),
+  labelled live, one still holding real coins, or one that has traded
+  them) and TESTING (paper),
   each leading with its own scoreboard (funded, deployed, today since
   00:00 UTC, unrealised and realised G/L; fees on realised),
   venue cards and table. LIVE is that tab's strategy rows. TESTING adds

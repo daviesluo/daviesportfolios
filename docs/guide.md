@@ -92,7 +92,11 @@ places stay when the number is not whole.
   arrow keys, to switch. Each says how many strategies it lists and what
   money is on it. LIVE is real money: **trading** once live trading is
   switched on (a green dot), **not trading yet** before that (amber),
-  **paused** under the global pause, or **nothing is live**. TESTING is
+  **selling what it holds** when it can no longer buy but still holds
+  coins its exits will sell, **stopped** when a strategy that traded real
+  money is off and holds nothing, **paused** under the global pause, or
+  **nothing is live**. A strategy that has traded real money stays on
+  LIVE, and a live order that needs a person shows on both tabs. TESTING is
   paper, and counts every row as a strategy. The page opens on LIVE while
   anything is live, else on TESTING, and stays on the tab you pick while
   it is open. Every Agents page, the tabs and the pages opened over them,

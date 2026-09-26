@@ -455,14 +455,22 @@ export function strategyRows(dash, nowMs) {
 export const AGENT_TABS = /** @type {const} */ (['live', 'testing']);
 
 /**
- * The tab a strategy row sits on. LIVE is real money: a row labelled live, or one still holding real coins under
- * another label (`holdsLive`, the tick's own book rule — real coins outrank the label). Everything else, a paused
- * row included, is being measured, and sits on TESTING.
- * @param {{ mode?: string, holdsLive?: boolean } | null | undefined} s
+ * Whether a row has traded real money at all: a live-book line with fills, open or closed. A row's dollars add up
+ * every book it has, so a live row that is paused or relabelled once flat still carries real realised dollars and
+ * fees, and they are LIVE's; on TESTING they would be summed into the paper totals.
+ * @param {{ positions?: any[], otherBooks?: any[] } | null | undefined} s
+ */
+const tradedLive = (s) => [...(s?.positions ?? []), ...(s?.otherBooks ?? [])].some((l) => l?.book === 'live' && Number(l?.fills) > 0);
+
+/**
+ * The tab a strategy row sits on. LIVE is real money: a row labelled live, one still holding real coins under
+ * another label (`holdsLive`, the tick's own book rule — real coins outrank the label), or one that has traded real
+ * money (`tradedLive`). Everything else, a paused row included, is being measured, and sits on TESTING.
+ * @param {{ mode?: string, holdsLive?: boolean, positions?: any[], otherBooks?: any[] } | null | undefined} s
  * @returns {AgentsTab}
  */
 export function strategyTab(s) {
-  return s?.mode === 'live' || !!s?.holdsLive ? 'live' : 'testing';
+  return s?.mode === 'live' || !!s?.holdsLive || tradedLive(s) ? 'live' : 'testing';
 }
 
 /** The dashboard's strategies on one tab, in the payload's order. @param {any} dash @param {AgentsTab} tab */
@@ -478,17 +486,19 @@ export function defaultAgentsTab(dash) {
 /**
  * Whether the live rows may buy. `live_confirmed_at` is one switch in `agent_risk` for every row labelled live: set,
  * the loop may open live positions (armed); unset, it refuses every live entry and the exits still run. A LIVE row
- * that is not labelled live is winding its real coins down and can never buy, whatever the switch says. The global
- * pause outranks all of it, and is reported beside them rather than folded in.
+ * that is not labelled live can never buy, whatever the switch says: it is winding its real coins down, or, flat,
+ * it is a record of real money that has stopped. The global pause outranks all of it, and is reported beside them
+ * rather than folded in. `holding` says whether any LIVE row still holds real coins, which the exits will sell.
  * @param {any} dash
- * @returns {{ state: 'none' | 'winding' | 'armed' | 'unarmed', since: string | null, paused: boolean, count: number }}
+ * @returns {{ state: 'none' | 'winding' | 'stopped' | 'armed' | 'unarmed', since: string | null, paused: boolean, count: number, holding: boolean }}
  */
 export function liveArming(dash) {
   const onLive = tabStrategies(dash, 'live');
   const labelled = onLive.filter((/** @type {any} */ s) => s?.mode === 'live').length;
+  const holding = onLive.some((/** @type {any} */ s) => !!s?.holdsLive);
   const since = labelled > 0 ? dash?.risk?.live_confirmed_at ?? null : null;
-  const state = onLive.length === 0 ? 'none' : labelled === 0 ? 'winding' : since ? 'armed' : 'unarmed';
-  return { state, since, paused: !!dash?.risk?.global_pause, count: onLive.length };
+  const state = onLive.length === 0 ? 'none' : labelled === 0 ? (holding ? 'winding' : 'stopped') : since ? 'armed' : 'unarmed';
+  return { state, since, paused: !!dash?.risk?.global_pause, count: onLive.length, holding };
 }
 
 /** "1 strategy", "6 strategies". @param {number} n @param {string} one @param {string} many */
@@ -504,11 +514,13 @@ export function agentsTabsView(dash, tests = 0) {
   const strategies = tabStrategies(dash, 'testing').length;
   const arming = liveArming(dash);
   // Plain words, for anyone reading the page (Davies, 2026-09-24): "armed" and "awaiting arming" were the loop's.
+  // Unarmed, a row that holds coins is still selling them: its floor and its rule's exit run whatever the switch says.
   const liveWords = arming.state === 'none' ? 'Nothing is live'
     : arming.paused ? 'Real money · paused'
-      : arming.state === 'winding' ? 'Real money · selling what it holds'
-        : arming.state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
-  const tone = arming.state === 'none' ? 'none' : arming.paused ? 'paused' : arming.state;
+      : arming.state === 'stopped' ? 'Real money · stopped'
+        : arming.state === 'winding' || (arming.state === 'unarmed' && arming.holding) ? 'Real money · selling what it holds'
+          : arming.state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
+  const tone = arming.state === 'none' ? 'none' : arming.paused || arming.state === 'stopped' ? 'paused' : arming.state;
   return {
     live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count, text: liveWords, tone },
     testing: {
@@ -994,7 +1006,8 @@ export function agentsAlerts(dash, now = Date.now()) {
     out.push({
       id: `pending-${s.id}`, tone: 'fault', label: `${strategyName(s)}: a live order needs a person`,
       text: `${stuck.length} live ${stuck.length === 1 ? 'order was' : 'orders were'} written before the venue was called and never heard back, and the venue does not list ${stuck.length === 1 ? 'it' : 'them'}: the outcome is unknown. Settle from the venue's own history — write the fill in, or mark it rejected. The loop will not guess.`,
-      tabs: ['live'],
+      // Real money in an unknown state is shown whichever tab is open: the row it is on can be either.
+      tabs: [...AGENT_TABS],
     });
   }
   return out;

@@ -2292,13 +2292,14 @@ async function run() {
 
       agentsMode = 'live-unarmed';
       await openAgentsPage(page);
-      await waitFor(async () => /not trading yet/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
+      await waitFor(async () => /selling what it holds/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
       await page.waitForTimeout(150);
       const u0 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-live-unarmed');
-      // In plain words, and amber: it is the state before the go, not a fault (Davies, 2026-09-24).
-      if (opened(u0) === 'live' && barText(u0) === `LIVE 1 Real money · not trading yet unarmed / ${TESTING_BAR}` && !u0.arming && sbText(u0) === LIVE_SB && u0.alerts.length === 0) {
-        ok(T('unarmed'), 'not on yet: the LIVE tab says so, and there is no banner and no live-trading box');
+      // In plain words, and amber: not a fault (Davies, 2026-09-24). Unarmed stops buys only, and this row holds ETH, which
+      // its floor and its rule's exit still sell — so the tab says that, not "not trading yet" (a flat row's words).
+      if (opened(u0) === 'live' && barText(u0) === `LIVE 1 Real money · selling what it holds unarmed / ${TESTING_BAR}` && !u0.arming && sbText(u0) === LIVE_SB && u0.alerts.length === 0) {
+        ok(T('unarmed'), 'buying off while it holds coins: the LIVE tab says it is still selling them, with no banner and no live-trading box');
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
