@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweRow, rweView, rwInventoryCost, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwInventoryCost, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -989,9 +989,10 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   });
   it("RW-E is a row of its own (Davies, 2026-09-26): RW's row read from RW-E's summary, under its own id and name", () => {
     const e = rweRow(r);
-    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes · no same-day', 'polymarket', 'paper', 'every 5 minutes']);
+    // Its replay runs every minute since 0060, as RW does (Davies: "every min").
+    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes (no same-day)', 'polymarket', 'paper', 'every minute']);
     // Every cell is RW's function of the same summary: the two rows are one implementation read from two arms.
-    expect({ ...e, id: RW_ROW_ID, name: 'Reward quotes', nextText: 'every minute' }).toEqual(rwRow(r));
+    expect({ ...e, id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(r));
     expect(rweRow({ ...r, finished: true, running: false })?.nextText).toBe('finished');
     expect(rweRow(null)).toBe(null);
     expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
@@ -1175,28 +1176,22 @@ describe('the Agents page kept across a reload', () => {
   });
 });
 
-describe('rweView: RW-E beside RW on its page', () => {
-  const e = {
-    since: '2026-09-27T00:00:00.000Z', started: true, running: true, lagMinutes: 4,
-    rw: { totalUsd: 27.7, stressUsd: -3.1, rewardUsd: 60, fills: 40 }, e: { totalUsd: 31.4, stressUsd: 9.5, rewardUsd: 38, fills: 12 },
-    excludedToday: [{ cond: 'x', q: 'Will the highest temperature in Seoul be 19°C on September 28?' }], check: { days: 3, maxUsd: 0.002, ok: true },
-  };
-  it('the two rows, what is left out today, and the check, in plain words', () => {
-    const v = rweView(e);
-    if (!v) throw new Error('no view');
-    expect(v.rows.map((r) => [r.name, r.totalUsd, r.stressUsd])).toEqual([['Every market', 27.7, -3.1], ['Without same-day markets', 31.4, 9.5]]);
-    expect([v.since, v.started, v.excludedText, v.checkText, v.checkWarn, v.stoppedText])
-      .toEqual(['2026-09-27', true, "1 of today's markets end today and are left out", "the replay matches RW's own 3 days", null, '']);
+describe('rweCheckWarn: what is left of RW-E on the page besides its own row', () => {
+  // The section beside RW went (Davies, 2026-09-26); the one thing kept is the alarm that RW-E's figures are not the
+  // replay of RW they claim to be.
+  const e = { since: '2026-09-27T00:00:00.000Z', started: true, running: true, lagMinutes: 4, check: { days: 3, maxUsd: 0.002, ok: true } };
+  it('says nothing while the replay equals RW, or before a day has closed', () => {
+    expect(rweCheckWarn(e)).toBe(null);
+    expect(rweCheckWarn({ ...e, check: { days: 0, maxUsd: 0, ok: false } })).toBe(null);
+    expect(rweCheckWarn(null)).toBe(null);
+    expect(rweCheckWarn({})).toBe(null);
   });
-  it('before its first day it has no rows; a replay that missed RW, or stopped, says so', () => {
-    expect(rweView({ ...e, started: false, rw: null, e: null })).toMatchObject({ started: false, rows: [] });
-    expect(rweView({ ...e, check: { days: 2, maxUsd: 0.03, ok: false } })).toMatchObject({ checkText: null, checkWarn: "the replay differs from RW's own days by $0.03" });
-    expect(rweView({ ...e, check: { days: 0, maxUsd: 0, ok: false } })?.checkText).toBe("the replay has closed none of RW's days yet");
-    expect(rweView({ ...e, running: false, lagMinutes: 40 })?.stoppedText).toBe('the replay is behind: its last minute is 40 min old');
-    expect(rweView({ ...e, excludedToday: [] })?.excludedText).toBe('No market chosen today ends today');
-    expect(rweView(null)).toBe(null);
+  it('names the gap once the replay differs from RW', () => {
+    expect(rweCheckWarn({ ...e, check: { days: 2, maxUsd: 0.03, ok: false } }))
+      .toBe("The replay differs from RW's own days by $0.03, so these figures are not RW's rule on RW's data.");
   });
 });
+
 
 describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
   // The dashboard's `quotes.live` as quotesLiveSummary shapes it: live and armed, one rung holding, in USD.

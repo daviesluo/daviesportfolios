@@ -1349,28 +1349,15 @@ export function rwInventoryCost(markets) {
 }
 
 /**
- * RW-E beside RW on RW's page (pre-registration `reviews/2026-09-26-polymarket-rw-end-prereg.md`): the same quotes without
- * the markets that end on the day they are chosen, and RW itself, both from one replay of what RW's engine stored, since
- * RW-E's twelve days began. `since` is that first day (`YYYY-MM-DD`, UTC). null keeps the section off the page: no
- * replay has run yet.
- * @param {any} e  the dashboard's `rw.e`
+ * The one thing left of RW-E's section on RW's page (Davies, 2026-09-26: the section went): a warning, on RW-E's own
+ * page, when the replay's copy of RW no longer equals RW's own closed days — RW-E's figures come from that replay, so
+ * a gap there means they are not RW's rule on RW's data. null while they agree, and before a day has closed.
+ * @param {any} e  the dashboard's `rwe.e`
  */
-export function rweView(e) {
-  if (!e) return null;
-  const since = typeof e.since === 'string' ? e.since.slice(0, 10) : null;
-  const rows = e.started && e.rw && e.e ? [
-    { id: 'rw', name: 'Every market', ...e.rw },
-    { id: 'e', name: 'Without same-day markets', ...e.e },
-  ] : [];
-  const n = (e.excludedToday ?? []).length;
-  const days = Number(e.check?.days) || 0;
-  return {
-    since, started: !!e.started && rows.length === 2, rows,
-    excludedText: n === 0 ? 'No market chosen today ends today' : `${n} of today's markets end today and are left out`,
-    checkText: days === 0 ? "the replay has closed none of RW's days yet" : e.check.ok ? `the replay matches RW's own ${days} ${days === 1 ? 'day' : 'days'}` : null,
-    checkWarn: days > 0 && !e.check.ok ? `the replay differs from RW's own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}` : null,
-    stoppedText: e.running || !since ? '' : `the replay is behind: its last minute is ${e.lagMinutes} min old`,
-  };
+export function rweCheckWarn(e) {
+  const days = Number(e?.check?.days) || 0;
+  if (days === 0 || e.check.ok) return null;
+  return `The replay differs from RW's own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}, so these figures are not RW's rule on RW's data.`;
 }
 
 /**
@@ -1446,12 +1433,12 @@ export const RWE_ROW_ID = '__rwe';
  * RW-E as a row of TESTING STRATEGIES (Davies, 2026-09-26: two testing strategies, to compare): RW without the markets
  * that end on the day they are chosen. The dashboard's `rwe` has `rw`'s shape, read from the replay's own arm — its own
  * positions, fills and days in the same market data RW's engine read — so its row and its page are RW's, in RW's cells.
- * The replay runs every five minutes. null keeps it off the table.
+ * The replay runs every minute (`0060`), as RW does. null keeps it off the table.
  * @param {any} r  the dashboard's `rwe`
  */
 export function rweRow(r) {
   const row = rwRow(r);
-  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes · no same-day', nextText: r.finished ? 'finished' : 'every 5 minutes' };
+  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes (no same-day)', nextText: r.finished ? 'finished' : 'every minute' };
 }
 
 /**

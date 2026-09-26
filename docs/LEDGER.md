@@ -37,8 +37,9 @@ list stays the short version; the plan is the reasoning behind it.
    `agents-pmrw-every-minute` and `agents-pmrw-select`; spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`;
    reference §3.33 and §4 item 36). RW-E, RW without the markets that end on the day they are quoted, is judged with
    it on 09-27 → 10-08 (`reviews/2026-09-26-polymarket-rw-end-prereg.md`, frozen): `agents/pmrw_e.ts` replays RW's
-   stored minutes every five minutes (`0056`) in two arms, `rw` (whose days must equal `pm_rw_days` to under a cent)
-   and `e`, into `pm_rw_e_days`; RW's page shows both, and RW-E is a TESTING row of its own (`rweArmSummary`).
+   stored minutes every minute (`0056`, every five until `0060`) in two arms, `rw` (whose days must equal
+   `pm_rw_days` to under a cent) and `e`, into `pm_rw_e_days`; RW-E is a TESTING row of its own with RW's page
+   (`rweArmSummary`), which warns only when that check fails.
    - **Daily health:** `pm_rw_state.last_error` empty and `last_minute` within ~3 min; today's `pm_rw_selection`
      present by ~00:05 UTC; `pm_rw_days` gains a row a day; `net._http_response` has no 546 (CPU) or 5xx for
      `action=pmrw-select`; the page shows no "fills and total differ" warning; `pm_rw_e_state.last_error` empty, its
@@ -216,6 +217,9 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - "No stablecoin book left in the UK" is true: Revolut X's public pair list (455 pairs, both regions, read 2026-09-26) has no stablecoin base but USDC and USDT, and no USDT/USDC book (its USDC-quoted books are all coins); the UK side has USDC/GBP, USDT/GBP, USDC/USD and USDT/USD. The gold tokens PAXG and XAUT were closed in §3.29.
 - Binance was already answered: §3.29's ZF, PR5's mechanism on Binance's zero-fee stablecoin books, fails (pooled +$88.74, 2.6 %/yr, stress −$51.03; EURI's books lost $439), and its zero-fee USD fiat books exclude UK residents. Bitget: a read-only feasibility study is running in this session (access for a UK and Irish resident, fees, its stablecoin books' spreads from the public API); nothing registered, nothing committed.
 - Jev on the live row stays on: since v2 (`0047`) `trend-4h-live` has had one entry signal (SOL, the 09-25 08:00 bar), P = 0.58, entered; the gate has vetoed nothing. On trend-4h the v2 gate passed its bar (§4.21: worst window unchanged), and the paper control carries the same gate.
+
+**Davies, next: take RW-E's section off the pages, name it "Reward quotes (no same-day)" and run it every minute; drop "· venue" from every strategy name and tag each strategy page with its venue beside PAPER.**
+- RW-E's row is "Reward quotes (no same-day)", the bracket on a line of its own, and its replay runs every minute from `0060` (Davies: "every min"; a run replays only what RW decided since the last, under the `pmrw-e` lease). The RW-E section is gone from RW's page and from RW-E's; RW-E's page keeps one line, shown only when the replay's copy of RW stops equalling RW's closed days (`rweCheckWarn`). `RWE_STALE_MINUTES` is RW's five plus three (it was 15 for the five-minute cadence). The sweep reads the two-line name, "every minute", and both pages without the section.
 
 ### [2026-09-26 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

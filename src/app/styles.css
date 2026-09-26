@@ -2108,6 +2108,8 @@ body {
 .ag-posline .hl-strong { color: var(--chalk); }
 .ag-name-btn { all: unset; cursor: pointer; font: inherit; color: inherit; display: block; }
 .ag-name-btn:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 2px; border-radius: 2px; }
+/* "Reward quotes (no same-day)": the bracketed qualifier on its own line (Davies, 2026-09-26). */
+.ag-name-qual { display: block; }
 .ag-basis-now { font-variant-numeric: tabular-nums; }
 .ag-basis-now.is-wide { color: var(--chalk); font-weight: 700; }
 .ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }
@@ -2284,7 +2286,7 @@ body {
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
-.ag-rw-e-line, .ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
+.ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
 /* Shares and price are the same width; the question takes the rest. */
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }

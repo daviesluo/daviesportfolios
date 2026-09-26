@@ -145,24 +145,22 @@ places stay when the number is not whole.
   made, each on its own line; a status row (the pessimistic total, how much of the
   total sits in one market, how many markets it is quoting today, how many
   positions are still held); the days, including the UTC day still open,
-  with the same worst case as the tile above; then **without same-day
-  markets**: the same quotes without the markets that end on the day
-  they are chosen (they gave back most of their rewards to traders who
-  knew the outcome), beside every market, both since 27 Sep, with how
-  many of today's markets are left out; then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
+  with the same worst case as the tile above; then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
   is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
-- **Reward quotes · no same-day.** The last row: the same quotes without
-  the markets that end on the day they are chosen, so the two rows can be
+- **Reward quotes (no same-day).** The last row: the same quotes without
+  the markets that end on the day they are chosen (they gave back most of
+  their rewards to traders who knew the outcome), so the two rows can be
   compared side by side. It holds its own positions and makes its own
   profit and loss, worked out from the same order books and trades the
-  row above reads; it is brought up to date every five minutes. Its page
+  row above reads, and it is brought up to date every minute. Its page
   is the same page as Reward quotes, for these quotes, starting with the
-  fourteen days (it has no warm-up).
+  fourteen days (it has no warm-up). A warning appears there only if its
+  copy of Reward quotes stops matching the real one.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

@@ -663,6 +663,7 @@ before touching migration state.
 | `0057_book_levels.sql` | Adds the stablecoin books' record: its table, its minute job and its 35-day prune. |
 | `0058_book_levels_timing.sql` | Moves the books' reads to 40 s into the minute, and lets a row say how long its book stood still. |
 | `0059_jev_shadow_paper_rows.sql` | Puts the Jev gate of `trend-1h`, `momentum-1d` and their Binance twins in shadow: asked and recorded, no veto. |
+| `0060_pmrw_e_every_minute.sql` | Runs RW-E's replay every minute instead of every five. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -735,7 +736,7 @@ pg_cron → pg_net → Edge Functions (no browser needed)
  ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
- ├─ agents ?action=pmrw-e  every 5 min   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
+ ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
 ```

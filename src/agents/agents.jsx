@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweRow, rweView, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -451,47 +451,6 @@ function RwBar({ v, r, usd }) {
 }
 
 /**
- * RW-E beside RW (Davies, 2026-09-26: fix it where it can be fixed): the same quotes without the markets that end on the
- * day they are chosen, and every market, each since RW-E's twelve days began, from one replay of RW's stored record.
- * @param {{ e: any, m: (s: string) => string }} props
- */
-function RwEPanel({ e, m }) {
-  const v = rweView(e);
-  if (!v) return null;
-  /** @param {number | null | undefined} x */
-  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  return (
-    <section className="ag-section ag-rw-e">
-      <div className="ag-section-title mono">WITHOUT SAME-DAY MARKETS</div>
-      <div className="ag-rw-e-line dim">The same quotes without the markets that end on the day they are chosen, pre-registered as RW-E and judged from {v.since ? dayLabel(v.since) : 'its first day'}.</div>
-      {v.started ? (
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Since {v.since ? dayLabel(v.since) : ''}</th><th className="hl-th">Total</th><th className="hl-th">WORST CASE</th><th className="hl-th ag-ph">Rewards</th><th className="hl-th ag-ph">Fills</th>
-            </tr></thead>
-            <tbody>
-              {v.rows.map((x) => (
-                <tr key={x.id}>
-                  <td className="hl-strong">{x.name}</td>
-                  <td className="ag-gl" style={{ color: pctColor(x.totalUsd) }}>{usd(x.totalUsd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(x.stressUsd) }}>{usd(x.stressUsd)}</td>
-                  <td className="ag-gl ag-ph" style={{ color: pctColor(x.rewardUsd) }}>{usd(x.rewardUsd)}</td>
-                  <td className="ag-ph">{x.fills}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : <div className="ag-rw-e-line dim">It starts {v.since ? dayLabel(v.since) : ''} 00:00 UTC.</div>}
-      <div className="ag-rw-e-line dim">{v.excludedText}{v.checkText ? ` · ${v.checkText}` : ''}</div>
-      {v.checkWarn && <div className="ag-warn-line">{v.checkWarn}</div>}
-      {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
-    </section>
-  );
-}
-
-/**
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
  * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
  * bid and ask, our share of the pool), and the fills with the prints that proved them.
@@ -528,6 +487,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
       </div>
       {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
+      {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
       <section className="ag-section ag-rw-days">
@@ -553,7 +513,6 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
           </table>
         </div>
       </section>
-      <RwEPanel e={r.e} m={m} />
       <section className="ag-section ag-rw-markets">
         <div className="ag-section-title mono">QUOTES</div>
         <div className="hl-scroll">
@@ -633,11 +592,17 @@ const COLUMNS = [
  * The status as a coloured dot beside the name — green running, amber stale, grey paused — with the words in its
  * title.
  */
+/** A name with a qualifier in brackets, "Reward quotes (no same-day)", puts the qualifier on a line of its own. */
+function NameText({ name }) {
+  const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
+  return q ? <>{q[1]} <span className="ag-name-qual">{q[2]}</span></> : <>{name}</>;
+}
+
 function NameCell({ r, m, onOpen }) {
   return (
     <div className="ag-name-wrap">
       <span className={`ag-dot ag-dot-${r.status.tone}`} title={r.status.detail} role="img" aria-label={r.status.detail} />
-      <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}>{r.name}</button>
+      <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}><NameText name={r.name} /></button>
       <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
     </div>
   );

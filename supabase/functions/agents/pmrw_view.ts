@@ -144,8 +144,11 @@ export function rwSummary(input: {
 export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
 export type RweDaysRow = { day: string; arm: "rw" | "e"; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string; detail: { excluded?: string[]; check?: Record<string, number> | null } | null };
 
-/** How long the replay may trail the clock before the page says it has stopped: it runs every five minutes, two behind RW. */
-export const RWE_STALE_MINUTES = 15;
+/**
+ * How long the replay may trail the clock before the page says it has stopped. It runs every minute (`0060`; every
+ * five until then) and replays up to the last minute RW has decided, which itself may trail by RW_STALE_MINUTES.
+ */
+export const RWE_STALE_MINUTES = RW_STALE_MINUTES + 3;
 
 /**
  * RW-E beside RW on RW's page (pre-registration `reviews/2026-09-26-polymarket-rw-end-prereg.md`): both arms of the
