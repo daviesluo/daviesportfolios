@@ -118,7 +118,9 @@ list stays the short version; the plan is the reasoning behind it.
    fast the stale side is taken today; our loop is a one-minute cron), resolution basis risk (METAR against Weather
    Underground's whole degrees), fees near 0.9–0.99, depth and capital lock, power, and pre-registers at most ten
    hypotheses under the fp5 rules; it stops for review and a freeze on `main`. Any live version opens positions only
-   from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist.
+   from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist. **Phase 1 is done and its one
+   hypothesis, USLATE (US stations only), is frozen on `main` by `ad6ec6e3`** (`reviews/2026-09-26-pmlate-prereg-uslate.md`);
+   phase 2 runs it exactly as frozen on 2026-03 → 08 and writes the study. A fail closes PMLATE.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -233,6 +235,8 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - What is left late is mostly resolution risk: 12 September buckets the reports had decided resolved the other way (9 on 09-20) and carried $36k of the late stale-side cost against $8k of edge elsewhere; over 12,874 market-days the reports missed the winning bucket on 1.8 %, in clusters (05-17 → 05-21, 09-20). The post tracker's count at the close missed the result on 24 of 380 windows, always low (19 of them Trump's).
 - One hypothesis survives and is pre-registered, not yet frozen on `main`: USLATE (`reviews/2026-09-26-pmlate-prereg-uslate.md`), US stations only, 2026-03 → 08, $100 a bucket; its power check says a pass is unlikely and small (~$2.7k a year at September's rate). Scripts, phase 1's results and the pull manifest: `backtests/pmlate/`. Next: the coordinator reviews, freezes, and phase 2 pulls the test period's prints and runs it.
 - The container's disk was full (0 bytes free on `/`, the shared scratchpad ~21 GB, mostly older studies' folders); this study's pulls are gzipped (~70 MB).
+- Reviewed and frozen on `main` by `ad6ec6e3`, the commit that adds the pre-registration (its disclosures stand: the test period's winning buckets were read for the basis check, none of its prices or prints; the US-only split was chosen on September). Phase 2 runs it as frozen. The disk: the coordinator deleted closed studies' raw pulls from the scratchpad (the 3-year Kraken bundle, DRAW-X's and the CV check's, Bitget's year of prints), 9.4 GB free.
+- The fifteen same-day market-days behind RW's stress loss, read from RW's engine state at ~21:30 UTC: eleven temperatures −$31.69 of stress; the other four −$45.97 — Trump's Truth Social post count −$26.29 and MrBeast's week-one views −$25.43 (the same mechanism: a public counter the takers watch), UMich sentiment +$5.31 (RW stopped quoting at its end date, before the release) and a broadcast word, "Fumble", +$0.44. PMLATE took in the counters; releases and broadcast words were left out, each with its reason.
 
 ### [2026-09-26 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
