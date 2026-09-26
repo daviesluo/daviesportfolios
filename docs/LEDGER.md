@@ -265,6 +265,12 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - **The probe's answer (01:02 UTC 09-27, reference §6):** the key works from the functions' egress, in the header, on all three reads; `@MrBeast` resolves to its known id and `@MrBeastGaming` to `UCIPPMRA040LQr5QPyJEbmXA`; subscriber counts come rounded to three significant figures, channel view counts exact. **The view counter did not move in 30 s** on a nine-hour-old video gaining ~13,000 views a minute (seven reads 5 s apart, the same 6,987,687 each time, while the item's etag changed three times): the API publishes views in batches, and the recorder's first job is to measure how far apart.
 - The one-second rule is in CLAUDE.md and the skill (all three copies). YouTube's own quota binds before it: 10,000 units a day is one read every 8.6 s on average, so a recorder reads every second only around a market's deadline (what-remains item 5d).
 
+### [2026-09-26 22:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**USLATE phase 2 (the PMLATE research agent, on the coordinator's word): run the frozen test on 2026-03 → 08.**
+- The test input is built by the frozen command and committed before the test runs: `backtests/pmlate/inputs/uslate_2026-03_2026-08.json.gz` (sha256 `98ecd9a2…`, rebuilt byte-identical, in `MANIFEST.json`) — 2,256 US market-days, every print walk complete (5,049 pages), every station's reports present, 12,711 buckets the reports decided. Nothing of it has been scored.
+- One deviation, named in the study: four US events (NYC's and Miami's lows of 05-22 and 05-23) were archived by Polymarket four days early and never resolved (every market `closed: false`, no payout, $5–$60 traded). The pre-registration's universe is resolved events; the frozen input script reads only the event's `closed` flag, and the frozen test would stop at `1.0 - None` on them. `scripts/uslate_events.py`, which lists the events the print pull walks, leaves them out, so the input script counts them under `no_prints_file`.
+
 ### [2026-09-26 22:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: turn RW's same-day loss round — be the informed taker once the day's result is known (PMLATE, a research agent's phase 1, on its own branch; nothing placed, public data only).**

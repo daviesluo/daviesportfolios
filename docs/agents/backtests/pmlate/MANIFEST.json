@@ -1,5 +1,9 @@
 {
  "committed": {
+  "inputs/uslate_2026-03_2026-08.json.gz": {
+   "bytes": 1774430,
+   "sha256": "98ecd9a2144f4980ff06e1b08b99bbc7218ac29bdd98519aaee01deb447b1803"
+  },
   "inputs/uslate_exploration_2026-09.json.gz": {
    "bytes": 315806,
    "sha256": "9746aeb1cf4ed8d6d3a15d0fb50558df719dd8992542de9b572f378e835a87a9"
@@ -128,6 +132,14 @@
    "bytes": 2883,
    "sha256": "9d447ccc3019720143770b932196d10da5823defb51e91d9573558d5afc69335"
   },
+  "scripts/uslate_check.py": {
+   "bytes": 5601,
+   "sha256": "0b1e05ad418cc673bb7a2dd9de04cd9347667be8496756088c2513b3c020e121"
+  },
+  "scripts/uslate_events.py": {
+   "bytes": 2509,
+   "sha256": "11a681fc3d5599b453fb89fc4fe2ade18aa78c77a5d06706404ec01e83415a98"
+  },
   "scripts/uslate_inputs.py": {
    "bytes": 5302,
    "sha256": "388ce2d14ea4a9e9a6638580cc5c7ecd85478e174b81f5d8c6c6a48ef880783e"
@@ -196,14 +208,14 @@
    "files": 60
   },
   "obs/": {
-   "bytes": 7915365,
-   "digest": "eca4751e049603f57aad34024bb619ffc7770b159ed9863f85d19fa388e03911",
-   "files": 55
+   "bytes": 8318596,
+   "digest": "927e2ec96ca4751a0b9933a7c1cfe35c28a5f530790e30515ae4bae0c9a72520",
+   "files": 56
   },
   "prints/": {
-   "bytes": 33598103,
-   "digest": "7817600ece70a312dd8ba8998d2a65043ec3852413684565e7f9c564b24d5ce5",
-   "files": 2697
+   "bytes": 104858566,
+   "digest": "b7c3b5bf27dbe89dc3f802706852b348f534f594e5475c69b3731394e3d094bf",
+   "files": 4953
   },
   "rw/events.json.gz": {
    "bytes": 20745,
@@ -212,6 +224,10 @@
   "rw/mechanism.json.gz": {
    "bytes": 11776,
    "sha256": "2b67e4fef2481f8dfcff458755cef16aab6be1b67216784b9f10a9b094f074a3"
+  },
+  "univ/events_2026-03-01_2026-09-01.json.gz": {
+   "bytes": 17916336,
+   "sha256": "ad743a1e12e49f4c178a58fe96b5d97b439fd2765ad0bccbcc22e748cbb35dfc"
   },
   "univ/events_2026-09-01_2026-09-27.json.gz": {
    "bytes": 4766381,
@@ -234,8 +250,8 @@
    "sha256": "9746aeb1cf4ed8d6d3a15d0fb50558df719dd8992542de9b572f378e835a87a9"
   }
  },
- "raw_total_bytes": 71879134,
- "raw_total_files": 4489,
+ "raw_total_bytes": 161459164,
+ "raw_total_files": 6747,
  "sources": {
   "count/desc/ev_<event>.json.gz": "GET https://gamma-api.polymarket.com/events/<event> (count_measure.py)",
   "count/prints/ev_<event>.json.gz": "GET https://data-api.polymarket.com/v2/trades?event_id=<event>&limit=1000&cursor=\u2026&_=<ms> (count_prints.py)",
