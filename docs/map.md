@@ -578,6 +578,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
+| `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW: RW's stored minutes replayed in two arms, RW itself (checked against its own days) and RW without the markets that end on the day they are quoted. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it: the dashboard's summary, from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
@@ -659,6 +660,7 @@ before touching migration state.
 | `0054_go_live.sql` | Adds the first live row, `trend-4h-live` (Revolut X, BTC/ETH/SOL/AVAX, four equal slots), unarmed, and sets the live caps for its first round trip. |
 | `0055_quote_minutes.sql` | Adds PR5's per-minute record of the inputs each decided minute read: GBP/USD, the USD book's median, and the prints. |
 | `0056_pm_rw_e.sql` | Adds RW-E's replay beside RW: its state and day tables, its lease and its cron job. |
+| `0057_book_levels.sql` | Adds the stablecoin books' record: its table, its minute job and its 35-day prune. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -732,6 +734,7 @@ pg_cron → pg_net → Edge Functions (no browser needed)
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every 5 min   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
+ ├─ agents ?action=books  every minute   Revolut X's four stablecoin books, top five levels, when they change → agent_book_levels
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
 ```
 

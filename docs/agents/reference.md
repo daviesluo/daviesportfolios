@@ -2886,6 +2886,8 @@ an account that quotes, and whether this one may is the review's §0.
           -- R5: the latest fills, with the prints that proved them
           select f.*, p.side as print_side, p.oi, p.price as print_price from public.pm_rw_fills f join public.pm_rw_prints p on p.id = f.print_id order by f.ts desc limit 50;
 
+37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item).
+
 ## 5. Questions that blocked the build — answered 2026-09-20
 
 1. **The Ed25519 private key** is in the secrets store as `REVOLUT_X_PRIVATE_KEY`, pasted as the bare base64 of the 48-byte PKCS#8 DER (the probe reports `keyForm: pkcs8-b64`). `Revolut_X_API_kEY` is the 64-char id; both spellings are read.
