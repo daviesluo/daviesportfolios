@@ -140,8 +140,11 @@ places stay when the number is not whole.
   made, each on its own line; a status row (the pessimistic total, how much of the
   total sits in one market, how many markets it is quoting today, how many
   positions are still held); the days, including the UTC day still open,
-  with the same worst case as the tile above,
-  then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
+  with the same worst case as the tile above; then **without same-day
+  markets**: the same quotes without the markets that end on the day
+  they are chosen (they gave back most of their rewards to traders who
+  knew the outcome), beside every market, both since 27 Sep, with how
+  many of today's markets are left out; then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
   is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from

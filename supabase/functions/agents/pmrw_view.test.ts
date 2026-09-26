@@ -4,7 +4,8 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { accTotal, newAcc, RW_RUN_START, stepRw, summarize, type Acc, type RwState } from "./pmrw.ts";
-import { rwFillBook, rwSummary, type RwFillRow } from "./pmrw_view.ts";
+import { rweSummary, rwFillBook, rwSummary, type RwFillRow } from "./pmrw_view.ts";
+import { newRweState, RWE_START } from "./pmrw_e.ts";
 import type { PmPrint } from "../_shared/polymarket_public.ts";
 
 Deno.test("rwFillBook: average cost, and realised + net × (mark − cost) is the engine's cash + net × mark for any mark", () => {
@@ -109,4 +110,35 @@ Deno.test("rwSummary: what a run wrote after the state the page read stays out �
   assertAlmostEquals(r.mismatchUsd, 0, 1e-9);
   assertEquals(r.recent.filter((f) => f.minute === ahead.minute), []);
   assertEquals(r.days, []);
+});
+
+Deno.test("rweSummary: RW and RW-E since 27 Sep from the same replay, today's markets left out, and the check against RW's own days", () => {
+  const st = newRweState();
+  st.lastDecided = RWE_START + 60 * 60e3;
+  st.dayOf = RWE_START;
+  const a = (reward: number, cash: number, net: number, lastM: number) => ({ ...newAcc(), reward, cash, net, lastM, fills: 3, tickCost: 0.1 });
+  st.arms.rw.acc = { x: a(10, -4.9, 10, 0.5) };       // 10 − 4.9 + 10 × 0.5 = 10.1
+  st.arms.e.acc = { x: a(6, 0, 0, 0.5) };             // 6
+  st.checkMaxUsd = 0.004;
+  const days = [
+    { day: "2026-09-25", arm: "rw" as const, total: 3, stress_total: 1, reward: 4, fills: 1, capital: 100, detail: { check: { total: 0.004 } } },
+    { day: "2026-09-26", arm: "rw" as const, total: 7, stress_total: 5, reward: 8, fills: 2, capital: 100, detail: { check: { total: 0.001 } } },
+    { day: "2026-09-26", arm: "e" as const, total: 5, stress_total: 4, reward: 5, fills: 2, capital: 80, detail: { excluded: [] } },
+  ];
+  const sel = (cond: string, end: string | null) => ({ day: "2026-09-27", cond, rank: 1, rate: 50, v: 3, min_size: 20, capital: 20, q: `m ${cond}`, cat: null, end_date: end });
+  const now = RWE_START + 62 * 60e3;
+  const r = rweSummary({ state: { state: st, last_minute: new Date(st.lastDecided).toISOString(), last_error: null }, days, selection: [sel("x", "2026-09-27T20:00:00Z"), sel("y", "2026-10-20T00:00:00Z"), sel("z", null)], nowMs: now })!;
+  assertEquals([r.started, r.running, r.lagMinutes], [true, true, 2]);
+  assertAlmostEquals(r.rw!.totalUsd, 10.1 - 7, 1e-12);
+  assertAlmostEquals(r.e!.totalUsd, 6 - 5, 1e-12);
+  assertEquals([r.rw!.fills, r.e!.fills], [1, 1]);
+  assertEquals(r.excludedToday.map((x) => x.cond), ["x"]);
+  assertEquals(r.check, { days: 2, maxUsd: 0.004, ok: true });
+  // Before the twelve days begin there is nothing to compare; a replay that missed RW by a cent says so.
+  const early = { ...st, lastDecided: RWE_START - 60e3 };
+  const r0 = rweSummary({ state: { state: early, last_minute: new Date(early.lastDecided).toISOString(), last_error: null }, days, selection: [], nowMs: RWE_START })!;
+  assertEquals([r0.started, r0.rw, r0.e], [false, null, null]);
+  const off = { ...st, checkMaxUsd: 0.02 };
+  assertEquals(rweSummary({ state: { state: off, last_minute: new Date(st.lastDecided).toISOString(), last_error: null }, days, selection: [], nowMs: now })!.check.ok, false);
+  assertEquals(rweSummary({ state: null, days, selection: [], nowMs: now }), null);
 });

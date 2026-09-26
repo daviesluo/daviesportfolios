@@ -328,6 +328,13 @@ const AGENTS_RW = (dayStartMs) => {
       { day: iso(dayStartMs - 2 * D).slice(0, 10), phase: 'run', totalUsd: 13.3, stressUsd: 5, rewardUsd: 13.6, fills: 1, capitalUsd: 288.2, markets: 16, runningUsd: 13.3 },
       { day: iso(dayStartMs - 3 * D).slice(0, 10), phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1, markets: 16, runningUsd: 9.8 },
     ],
+    // RW-E beside it (pmrw_view.ts's rweSummary): the same replay's two arms since the day before this one.
+    e: {
+      since: iso(dayStartMs - D), started: true, lastMinute: iso(NOW_MS - 7 * 60e3), lagMinutes: 7, lastError: null, running: true,
+      rw: { totalUsd: 27.7, stressUsd: -3.1, rewardUsd: 60, fills: 40, capitalUsd: 290 }, e: { totalUsd: 31.4, stressUsd: 9.5, rewardUsd: 38, fills: 12, capitalUsd: 180 },
+      excludedToday: [{ cond: '0xa1', q: 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', endDate: iso(dayStartMs + 20 * 3600e3) }],
+      diverged: 0, check: { days: 2, maxUsd: 0.002, ok: true },
+    },
     recent: [
       { ts: iso(NOW_MS - 20 * 60e3), minute: iso(NOW_MS - 21 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'ask', price: 0.46, size: 20.129 },
       { ts: iso(NOW_MS - 50 * 60e3), minute: iso(NOW_MS - 51 * 60e3), cond: '0xc3', q: 'Will the Bank of Canada make no change to the target for the overnight rate?', side: 'bid', price: 0.44, size: 20 },
@@ -1764,7 +1771,7 @@ async function run() {
       if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
         && rSplitLines.length === 2 && rSplitLines[0].text === 'rewards +$41.60' && rSplitLines[1].text === 'orders +$0.40'
         && rSplitLines.every((l) => l.oneLine && l.fits) && rSplitLines[1].top > rSplitLines[0].top + 2
-        && rSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
+        && rSections.join(',') === 'STATUS,DAYS,WITHOUT SAME-DAY MARKETS,QUOTES,FILLS' && rMarkets === 4 && /Los Angeles/.test(rFirst) && /20 Yes/.test(rFirst)
         && (narrow || /43¢ \/ 45¢/.test(rFirst)) && /held from an earlier day/.test(rHeldRow) && /20 No/.test(rHeldRow)
         && rDayHeads.join(',') === 'Day (UTC),Costs,Fills,WORST CASE,Rewards,Total'
         && rDays.length === 4 && /· today$/.test(rDays[0]) && /^\d{1,2} Sep$/.test(rDays[1]) && /warm-up$/.test(rDays[3])
@@ -1777,6 +1784,15 @@ async function run() {
         && (narrow ? rPh === 0 : rPh > 0) && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
         ok(S('agents'), `its page: FUNDED first, realised stays inside its cell, STATUS is worst case, top share, quoting today and positions still held, the open day leads the days, 4 quotes, 4 days, 5 fills; ${narrow ? 'the phone drops the side columns' : 'every column'}`);
       } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${JSON.stringify(rSplitLines)}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, side columns shown ${rPh}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+      // RW-E beside RW (Davies, 2026-09-26): both arms of one replay since RW-E's first day, what is left out today, the check.
+      const eRows = (await page.locator('.ag-rw-e tbody tr').allInnerTexts()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const eHead = ((await page.locator('.ag-rw-e thead th').first().textContent().catch(() => '')) || '').trim();
+      const eLines = (await page.locator('.ag-rw-e .ag-rw-e-line').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      if (eRows.length === 2 && /^Every market \+\$27\.70 -\$3\.10/.test(eRows[0]) && /^Without same-day markets \+\$31\.40 \+\$9\.50/.test(eRows[1])
+        && /^Since \d{1,2} Sep$/.test(eHead) && eLines.some((l) => l === "1 of today's markets end today and are left out · the replay matches RW's own 2 days")
+        && await page.locator('.ag-rw-e .ag-warn-line').count() === 0) {
+        ok(S('agents'), 'RW-E beside RW: every market +$27.70 (worst case -$3.10) against without same-day markets +$31.40 (+$9.50), one left out today, the replay matching RW');
+      } else fail(S('agents'), `RW-E section: head "${eHead}", rows ${JSON.stringify(eRows)}, lines ${JSON.stringify(eLines)}`);
       const rHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (rHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the reward page has the same refresh button beside close');
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);

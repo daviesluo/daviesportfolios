@@ -1251,6 +1251,31 @@ export function rwInventoryCost(markets) {
 }
 
 /**
+ * RW-E beside RW on RW's page (pre-registration `reviews/2026-09-26-polymarket-rw-end-prereg.md`): the same quotes without
+ * the markets that end on the day they are chosen, and RW itself, both from one replay of what RW's engine stored, since
+ * RW-E's twelve days began. `since` is that first day (`YYYY-MM-DD`, UTC). null keeps the section off the page: no
+ * replay has run yet.
+ * @param {any} e  the dashboard's `rw.e`
+ */
+export function rweView(e) {
+  if (!e) return null;
+  const since = typeof e.since === 'string' ? e.since.slice(0, 10) : null;
+  const rows = e.started && e.rw && e.e ? [
+    { id: 'rw', name: 'Every market', ...e.rw },
+    { id: 'e', name: 'Without same-day markets', ...e.e },
+  ] : [];
+  const n = (e.excludedToday ?? []).length;
+  const days = Number(e.check?.days) || 0;
+  return {
+    since, started: !!e.started && rows.length === 2, rows,
+    excludedText: n === 0 ? 'No market chosen today ends today' : `${n} of today's markets end today and are left out`,
+    checkText: days === 0 ? "the replay has closed none of RW's days yet" : e.check.ok ? `the replay matches RW's own ${days} ${days === 1 ? 'day' : 'days'}` : null,
+    checkWarn: days > 0 && !e.check.ok ? `the replay differs from RW's own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}` : null,
+    stoppedText: e.running || !since ? '' : `the replay is behind: its last minute is ${e.lagMinutes} min old`,
+  };
+}
+
+/**
  * RW's paper test (reference §4 item 36): minimum-size quotes on both sides of Polymarket's rewarded markets, a
  * portfolio re-chosen each UTC day, run on paper for fourteen days after a warm-up. `r` is the dashboard's `rw`; null
  * keeps it off the page (its tables are not there yet, or it has no state). The total, its rewards and its orders

@@ -91,7 +91,8 @@ import { deribitProbe } from "./deribit.ts";
 import { QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { runQuotesConvert, runQuotesLive, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
-import { rwSummary, type RwDayRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
+import { rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
+import { runPmrwE } from "./pmrw_e.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -720,7 +721,18 @@ async function dashboard(now: number) {
       ]);
       const last = st[0]?.last_minute;
       const latest = last ? await d.select<RwMinuteRow>("pm_rw_minutes", `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
-      return rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
+      const out = rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
+      // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
+      const e = await (async () => {
+        try {
+          const [es, ed] = await Promise.all([
+            d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error"),
+            d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,detail&order=day.asc,arm.asc&limit=100"),
+          ]);
+          return rweSummary({ state: es[0] ?? null, days: ed, selection, nowMs: now });
+        } catch { return null; }
+      })();
+      return out && { ...out, e };
     } catch { return null; }
   })();
 
@@ -1146,6 +1158,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));

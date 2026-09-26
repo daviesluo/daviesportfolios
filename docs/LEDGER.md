@@ -855,6 +855,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-26 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: fix PR5's live path being off the page and RW's same-day loss where they can be fixed, run the plans worth running, then slim the ledger.**
+- RW's same-day loss is fixed beside RW, not in it (its test is frozen): RW-E runs as a replay of RW's stored minutes every five minutes (`agents/pmrw_e.ts`, migration `0056`, cron `agents-pmrw-e`), from RW's start, in two arms — RW itself, whose closed days must equal `pm_rw_days` to under a cent, and RW-E. RW's page shows both since 27 Sep, with today's markets left out and the check. One deviation from the pre-registration's method, recorded in reference §4 item 36: a minute is applied from what the engine recorded of it (decision and fills), not by re-running `stepRw` on the stored inputs, which cannot say which prints were public when the engine decided or which day's selection a midnight minute used; a market RW-E holds differently from RW runs through `stepRw` and is named in `diverged`. Pinned in `pmrw_e.test.ts` against the engine itself: the rw arm is RW to the last bit, and the e arm equals the engine run with the same-day market removed from the selection (the test fails when the exclusion is removed).
+- The research plans, judged: PR6 (USD stablecoins at par), funding crowding (UZERO / USOFR as a spot trade) and DRAW-X (DRAWBASE on four unseen leagues) are worth one test each; each is pre-registered first and frozen on `main` before any outcome is computed. The order-book recorder is next. PR5's live path stays gated by its own review on 10-21 and Davies' word (G5).
+
 ### [2026-09-26 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: verify what Cursor shipped (the live row, the page, the testing strategies) and review the fp5 research.**

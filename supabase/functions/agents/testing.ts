@@ -57,6 +57,9 @@ const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
   pm_rw_fills: { columns: ["cond", "minute", "ts", "side", "price", "size", "print_id"], key: "cond,minute,print_id" },
   pm_rw_days: { columns: ["day", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day" },
   pm_rw_settlements: { columns: ["cond", "closed_time", "payout", "net", "cash", "settled_at"], key: "cond" },
+  // RW-E's replay beside it (0056).
+  pm_rw_e_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
+  pm_rw_e_days: { columns: ["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day,arm" },
 };
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
@@ -127,7 +130,11 @@ export function schemaRefusal(table: string, r: Row): string | null {
   if (table in PMRW_TABLES) {
     const unknown = Object.keys(r).find((c) => !PMRW_TABLES[table].columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
-    if (table === "pm_rw_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "pm_rw_state" || table === "pm_rw_e_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "pm_rw_e_days") {
+      return notNull(["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"]) ?? check("arm", ["rw", "e"].includes(String(r.arm)))
+        ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
+    }
     if (table === "pm_rw_selection") {
       return notNull(["day", "cond", "rank", "yes", "tick", "v", "min_size", "rate", "per_dollar_day", "capital"])
         ?? check("rank", Number(r.rank) > 0) ?? check("tick", Number(r.tick) > 0) ?? check("v", Number(r.v) > 0)

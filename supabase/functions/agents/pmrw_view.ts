@@ -8,6 +8,7 @@
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
 import { accCapital, accTotal, RW_RUN_END, RW_RUN_START, rwPhase, snapshot, type Acc, type RwState } from "./pmrw.ts";
+import { RWE_CHECK_USD, RWE_START, type RweState } from "./pmrw_e.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -131,5 +132,48 @@ export function rwSummary(input: {
     todayUsd: total - baseline, heldUsd: held, open, fills: snap.fills, quoting: input.selection.length,
     bestMarketUsd: Number.isFinite(best) ? best : null,
     markets, days, recent,
+  };
+}
+
+export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
+export type RweDaysRow = { day: string; arm: "rw" | "e"; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; detail: { excluded?: string[]; check?: Record<string, number> | null } | null };
+
+/** How long the replay may trail the clock before the page says it has stopped: it runs every five minutes, two behind RW. */
+export const RWE_STALE_MINUTES = 15;
+
+/**
+ * RW-E beside RW on RW's page (pre-registration `reviews/2026-09-26-polymarket-rw-end-prereg.md`): both arms of the
+ * replay from 2026-09-27 00:00, when RW-E's twelve days begin, to the last minute replayed. Each arm's figure is its
+ * running total now less its running total at the close of 09-26, when the two arms are one; both come from the same
+ * replay, so the pair is always read at the same minute. `excludedToday` is today's selection's markets that end today.
+ * `check` is the largest gap between the replay's rw arm and RW's own closed days: under a cent, or the replay is not one.
+ */
+export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[]; selection: RwSelRow[]; nowMs: number }) {
+  const st = input.state?.state as RweState | undefined;
+  if (!st || typeof st !== "object" || !("arms" in st) || !input.state?.last_minute) return null;
+  const base = new Map(input.days.filter((d) => String(d.day).slice(0, 10) === new Date(RWE_START - DAY).toISOString().slice(0, 10)).map((d) => [d.arm, d]));
+  const started = st.lastDecided >= RWE_START;
+  const arm = (k: "rw" | "e") => {
+    const a = st.arms[k];
+    const now = snapshot({ acc: a.acc } as unknown as RwState, a.dayActive);
+    const b = base.get(k);
+    if (!started || !b) return null;
+    return {
+      totalUsd: now.total - Number(b.total), stressUsd: now.stress - Number(b.stress_total),
+      rewardUsd: now.reward - Number(b.reward), fills: now.fills - Number(b.fills), capitalUsd: now.capital,
+    };
+  };
+  const day0 = Math.floor(input.nowMs / DAY) * DAY;
+  const excludedToday = input.selection
+    .filter((s) => s.end_date && Date.parse(s.end_date) < day0 + DAY && String(s.day).slice(0, 10) === new Date(day0).toISOString().slice(0, 10))
+    .map((s) => ({ cond: s.cond, q: s.q ?? "", endDate: s.end_date }));
+  const checked = input.days.filter((d) => d.arm === "rw" && d.detail?.check);
+  const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
+  return {
+    since: new Date(RWE_START).toISOString(), started, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
+    running: st.dayOf < RW_RUN_END && lagMinutes <= RWE_STALE_MINUTES,
+    rw: arm("rw"), e: arm("e"),
+    excludedToday, diverged: st.diverged.length,
+    check: { days: checked.length, maxUsd: st.checkMaxUsd, ok: checked.length > 0 && st.checkMaxUsd < RWE_CHECK_USD },
   };
 }

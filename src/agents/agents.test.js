@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rweView, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -1135,5 +1135,28 @@ describe('the Agents page kept across a reload', () => {
       fetchAgentsChart('s1', 'ETH/USD', /** @type {any} */ (fetchImpl)),
     ]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('rweView: RW-E beside RW on its page', () => {
+  const e = {
+    since: '2026-09-27T00:00:00.000Z', started: true, running: true, lagMinutes: 4,
+    rw: { totalUsd: 27.7, stressUsd: -3.1, rewardUsd: 60, fills: 40 }, e: { totalUsd: 31.4, stressUsd: 9.5, rewardUsd: 38, fills: 12 },
+    excludedToday: [{ cond: 'x', q: 'Will the highest temperature in Seoul be 19°C on September 28?' }], check: { days: 3, maxUsd: 0.002, ok: true },
+  };
+  it('the two rows, what is left out today, and the check, in plain words', () => {
+    const v = rweView(e);
+    if (!v) throw new Error('no view');
+    expect(v.rows.map((r) => [r.name, r.totalUsd, r.stressUsd])).toEqual([['Every market', 27.7, -3.1], ['Without same-day markets', 31.4, 9.5]]);
+    expect([v.since, v.started, v.excludedText, v.checkText, v.checkWarn, v.stoppedText])
+      .toEqual(['2026-09-27', true, "1 of today's markets end today and are left out", "the replay matches RW's own 3 days", null, '']);
+  });
+  it('before its first day it has no rows; a replay that missed RW, or stopped, says so', () => {
+    expect(rweView({ ...e, started: false, rw: null, e: null })).toMatchObject({ started: false, rows: [] });
+    expect(rweView({ ...e, check: { days: 2, maxUsd: 0.03, ok: false } })).toMatchObject({ checkText: null, checkWarn: "the replay differs from RW's own days by $0.03" });
+    expect(rweView({ ...e, check: { days: 0, maxUsd: 0, ok: false } })?.checkText).toBe("the replay has closed none of RW's days yet");
+    expect(rweView({ ...e, running: false, lagMinutes: 40 })?.stoppedText).toBe('the replay is behind: its last minute is 40 min old');
+    expect(rweView({ ...e, excludedToday: [] })?.excludedText).toBe('No market chosen today ends today');
+    expect(rweView(null)).toBe(null);
   });
 });
