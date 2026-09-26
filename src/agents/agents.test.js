@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, rwBarTileKeys, rweView, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweRow, rweView, rwInventoryCost, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -937,6 +937,18 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
   });
 });
 
+describe('fmtUsd4 — one trip\'s P&L on the quote pages, to four places like the price beside it', () => {
+  it('prints what the cent hid (Davies, 2026-09-26: a $1.72 round trip that made +$0.0023 read "$0")', () => {
+    expect(fmtUsd4(0.0022793346577876495)).toBe('+$0.0023');
+    expect(fmtUsd(0.0022793346577876495, true)).toBe('$0');     // what the cell printed before
+    expect(fmtUsd4(0.13262071942488218)).toBe('+$0.1326');
+    expect(fmtUsd4(-0.00123)).toBe('-$0.0012');
+    expect(fmtUsd4(0)).toBe('$0');
+    expect(fmtUsd4(-0.00001)).toBe('$0');
+    expect(fmtUsd4(null)).toBe('—');
+  });
+});
+
 describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', () => {
   // Davies, 2026-09-24: the Polymarket paper test sits in the testing table beside the quote test, in the same cells.
   const r = { phase: 'run', dayOfRun: 3, runStart: '2026-09-25T00:00:00.000Z', runEnd: '2026-10-09T00:00:00.000Z', startedAt: '2026-09-24T19:31:00Z',
@@ -959,6 +971,30 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(rwRow({ ...r, markets: [{ net: -20, avgCost: 0.66 }], heldUsd: 14.4 })?.unrealisedPct).toBeCloseTo((-1 / shortNo) * 100, 12);
     expect(row?.status).toMatchObject({ tone: 'running', detail: 'quoting 16 markets · last minute decided 2 min ago' });
     expect(venueLabel('polymarket')).toBe('Polymarket');
+  });
+  it("Polymarket's card is every test on it summed: RW and RW-E (the first version kept RW's card and dropped RW-E's)", () => {
+    // RW as above; RW-E the sweep's figures: $235 at work, 5.60 deployed, today 7.50, unrealised −1.20 on D's No (cost
+    // 20 × 0.34), realised 23.60 = rewards 23.20 + orders 0.40.
+    const e = { ...r, capitalUsd: 235, totalUsd: 22.4, rewardUsd: 23.2, realisedUsd: 23.6, unrealisedUsd: -1.2, todayUsd: 7.5, heldUsd: 5.6, open: 1,
+      markets: [{ net: -20, avgCost: 0.66 }] };
+    const tests = [rwRow(r), rweRow(e)];
+    const pm = venueRows({ strategies: [], venues: [] }, 'testing', tests).find((c) => c.id === 'polymarket');
+    expect([pm?.capitalUsd, pm?.valueUsd, pm?.todayUsd, pm?.unrealisedUsd, pm?.realisedUsd, pm?.tests]).toEqual([531, 45.6, 27.5, -2.2, 84.6, 2]);
+    // Unrealised on the two inventories' cost (40 + 6.8); realised and today on the capital; the split adds up to realised.
+    expect(pm?.unrealisedPct).toBeCloseTo((-2.2 / 46.8) * 100, 12);
+    expect(pm?.realisedPct).toBeCloseTo((84.6 / 531) * 100, 12);
+    expect([pm?.test?.rewards?.realisedUsd, pm?.test?.orders?.realisedUsd]).toEqual([62 + 23.2, (61 - 62) + 0.4]);
+    // One test on a venue is that test's own card, as before.
+    expect(venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r)])[0]).toMatchObject({ tests: 1, capitalUsd: 296, test: { id: RW_ROW_ID } });
+  });
+  it("RW-E is a row of its own (Davies, 2026-09-26): RW's row read from RW-E's summary, under its own id and name", () => {
+    const e = rweRow(r);
+    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes · no same-day', 'polymarket', 'paper', 'every 5 minutes']);
+    // Every cell is RW's function of the same summary: the two rows are one implementation read from two arms.
+    expect({ ...e, id: RW_ROW_ID, name: 'Reward quotes', nextText: 'every minute' }).toEqual(rwRow(r));
+    expect(rweRow({ ...r, finished: true, running: false })?.nextText).toBe('finished');
+    expect(rweRow(null)).toBe(null);
+    expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });

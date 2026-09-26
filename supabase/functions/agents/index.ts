@@ -91,7 +91,8 @@ import { deribitProbe } from "./deribit.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
-import { rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
+import { rweArmSummary, rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
+import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE } from "./pmrw_e.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -798,8 +799,9 @@ async function dashboard(now: number) {
   })();
 
   // RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES with a page of its own.
-  // Its own tables; missing ones (before the migration) or no state yet leave it off the page.
-  const rw = await (async () => {
+  // Its own tables; missing ones (before the migration) or no state yet leave it off the page. RW-E, the replay's other
+  // arm (`0056`), is a row of its own beside it (Davies, 2026-09-26), read from the same records.
+  const { rw, rwe } = await (async () => {
     try {
       // The state first: the engine saves it after the fills and day rows it counts, so every read after it holds all
       // of those, and `rwSummary` leaves out anything a later run wrote.
@@ -814,17 +816,22 @@ async function dashboard(now: number) {
       const latest = last ? await d.select<RwMinuteRow>("pm_rw_minutes", `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
       const out = rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
       // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
-      const e = await (async () => {
+      const reads = await (async () => {
         try {
-          const [es, ed] = await Promise.all([
+          return await Promise.all([
             d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error"),
-            d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,detail&order=day.asc,arm.asc&limit=100"),
+            d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
+            // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
+            d.select<RweSelRow>("pm_rw_selection", "select=day,cond,tick,v,min_size,rate,end_date&order=day.asc,cond.asc&limit=1000"),
           ]);
-          return rweSummary({ state: es[0] ?? null, days: ed, selection, nowMs: now });
         } catch { return null; }
       })();
-      return out && { ...out, e };
-    } catch { return null; }
+      const e = reads ? rweSummary({ state: reads[0][0] ?? null, days: reads[1], selection, nowMs: now }) : null;
+      const arm = reads
+        ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now })
+        : null;
+      return { rw: out && { ...out, e }, rwe: arm && { ...arm, e } };
+    } catch { return { rw: null, rwe: null }; }
   })();
 
   return {
@@ -846,6 +853,7 @@ async function dashboard(now: number) {
     quotes,
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
     rw,
+    rwe,
   };
 }
 

@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, rwBarTileKeys, rweView, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweRow, rweView, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -328,7 +328,7 @@ function LadderCell({ c, m }) {
   return (
     <span className="ag-qheld">
       <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price))}
-      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtUsd(c.unrealisedUsd, true))}</span>}
+      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtUsd4(c.unrealisedUsd))}</span>}
     </span>
   );
 }
@@ -406,7 +406,7 @@ function QuotesDetail({ q, m, at }) {
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
                   <td className="ag-ph dim">{t.how ?? '—'}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd(t.pnlUsd, true))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd4(t.pnlUsd))}</td>
                 </tr>
               ))}
             </tbody>
@@ -495,9 +495,11 @@ function RwEPanel({ e, m }) {
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
  * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
  * bid and ask, our share of the pool), and the fills with the prints that proved them.
+ * @param {{ r: any, m: (s: string) => string, at: any, row?: any }} props
  */
-function RwDetail({ r, m, at }) {
-  const row = rwRow(r);
+function RwDetail({ r, m, at, row: rowIn = null }) {
+  // RW-E's page is RW's page read from the replay's arm (`rweRow`); RW's own is `rwRow`.
+  const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
   const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
@@ -511,7 +513,7 @@ function RwDetail({ r, m, at }) {
         <ModeBadge mode="paper" />
         <StatusDot status={row.status} />
       </div>
-      <h3 className="ag-detail-title mono sr-only">Reward quotes</h3>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       {/* Realised's rewards and orders (rwRow) and the bar's total, rewards and orders (rwView) come to the cent from
           one split of one total (rwSplit). Unrealised is the figure alone: its split is not shown (Davies, 2026-09-24). */}
       <div className="ag-scoreboard ag-scoreboard-sm">
@@ -1276,9 +1278,11 @@ function AgentsModal({ hideValues, onClose }) {
   const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
-  // The two paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
+  // RW-E, RW without the markets that end on the day they are chosen, is a row of its own after it (Davies, 2026-09-26).
+  const rwe = React.useMemo(() => rweRow(dash?.rwe), [dash]);
+  // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : [])], [quotes, rw]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : [])], [quotes, rw, rwe]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1294,6 +1298,7 @@ function AgentsModal({ hideValues, onClose }) {
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
+  const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1371,6 +1376,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <RwDetail r={dash.rw} m={m} at={dash.at} />
+        </div>
+      </Modal>
+    )}
+    {rweOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">{rwe.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <RwDetail r={dash.rwe} m={m} at={dash.at} row={rwe} />
         </div>
       </Modal>
     )}

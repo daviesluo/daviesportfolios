@@ -8,7 +8,7 @@
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
 import { accCapital, accTotal, RW_RUN_END, RW_RUN_START, rwPhase, snapshot, type Acc, type RwState } from "./pmrw.ts";
-import { RWE_CHECK_USD, RWE_START, type RweState } from "./pmrw_e.ts";
+import { excludedByDay, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -60,6 +60,10 @@ const fillOrder = (a: RwFillRow, b: RwFillRow) =>
 export function rwSummary(input: {
   state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[];
   firstMinute: string | null; nowMs: number;
+  /** How old the last decided minute may be before the page says it has stopped (RW's own 5 by default). */
+  staleMinutes?: number;
+  /** Markets whose own fills are not on record (RW-E's `diverged`): their fill P&L is open while they are, closed once settled. */
+  approx?: ReadonlySet<string>;
 }) {
   const st = input.state?.state as RwState | undefined;
   if (!st || typeof st !== "object" || !("acc" in st) || !input.state?.last_minute) return null;
@@ -81,8 +85,10 @@ export function rwSummary(input: {
     const book = rwFillBook(byCond.get(cond) ?? []);
     const mark = a.settled ?? a.lastM ?? 0;
     const settledPart = a.settled != null ? book.net * (a.settled - book.avgCost) : 0;
-    const mRealised = a.reward + book.realised + settledPart;
-    const mUnrealised = a.settled != null ? 0 : book.net * (mark - book.avgCost);
+    // A market whose fills are not on record has no average cost to split by: its fill P&L is all open until it settles.
+    const own = input.approx?.has(cond) ? accTotal(a) - a.reward : null;
+    const mRealised = own != null ? a.reward + (a.settled != null ? own : 0) : a.reward + book.realised + settledPart;
+    const mUnrealised = own != null ? (a.settled != null ? 0 : own) : a.settled != null ? 0 : book.net * (mark - book.avgCost);
     realised += mRealised; unrealised += mUnrealised;
     const holding = a.settled == null && a.net !== 0;
     if (holding) { open++; held += a.net > 0 ? a.net * mark : -a.net * (1 - mark); }
@@ -95,7 +101,7 @@ export function rwSummary(input: {
     markets.push({
       cond, q: s?.q ?? meta?.q ?? "", cat: s?.cat ?? meta?.cat ?? null, rank: s ? Number(s.rank) : null, quoting: !!s,
       ratePerDay: s ? Number(s.rate) : meta?.rate ?? null, endDate: s?.end_date ?? null,
-      net: a.net, avgCost: book.net !== 0 ? book.avgCost : null, mark: a.lastM, settled: a.settled,
+      net: a.net, avgCost: own == null && book.net !== 0 ? book.avgCost : null, mark: a.lastM, settled: a.settled,
       rewardUsd: a.reward, fillsPnlUsd: total - a.reward, totalUsd: total, fills: a.fills, capitalUsd: accCapital(a),
       bid: row && row.qb !== false ? n(row.b) : null, ask: row && row.qa !== false ? n(row.a) : null,
       share: ours != null && ours > 0 && others != null ? ours / (ours + others) : null,
@@ -126,7 +132,7 @@ export function rwSummary(input: {
     phase, runStart: new Date(RW_RUN_START).toISOString(), runEnd: new Date(RW_RUN_END).toISOString(),
     dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
     startedAt: input.firstMinute, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
-    running: !over && lagMinutes <= RW_STALE_MINUTES, finished: over,
+    running: !over && lagMinutes <= (input.staleMinutes ?? RW_STALE_MINUTES), finished: over,
     capitalUsd: capital, totalUsd: total, stressUsd: snap.stress, rewardUsd: snap.reward, fillsPnlUsd: total - snap.reward,
     realisedUsd: realised, unrealisedUsd: unrealised, mismatchUsd: realised + unrealised - total,
     todayUsd: total - baseline, heldUsd: held, open, fills: snap.fills, quoting: input.selection.length,
@@ -136,7 +142,7 @@ export function rwSummary(input: {
 }
 
 export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
-export type RweDaysRow = { day: string; arm: "rw" | "e"; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; detail: { excluded?: string[]; check?: Record<string, number> | null } | null };
+export type RweDaysRow = { day: string; arm: "rw" | "e"; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string; detail: { excluded?: string[]; check?: Record<string, number> | null } | null };
 
 /** How long the replay may trail the clock before the page says it has stopped: it runs every five minutes, two behind RW. */
 export const RWE_STALE_MINUTES = 15;
@@ -176,4 +182,41 @@ export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[
     excludedToday, diverged: st.diverged.length,
     check: { days: checked.length, maxUsd: st.checkMaxUsd, ok: checked.length > 0 && st.checkMaxUsd < RWE_CHECK_USD },
   };
+}
+
+/**
+ * RW-E as a strategy of its own on the page (Davies, 2026-09-26: "两个testing策略"): the replay's `e` arm, in the
+ * shape of the dashboard's `rw`, so its row and its page are RW's row and page read from the other arm. It is RW's
+ * summary run on what RW-E holds: the arm's own accounts, its own closed days (`pm_rw_e_days`, arm `e`), and RW's fills
+ * less those RW-E did not make, which are the market-days it leaves out (the replay's own `excludedByDay`, over every
+ * day's selection) and the markets it had to run through the rule itself (`diverged`, whose fills are not on record).
+ * Today's quotes are RW's less today's left-out markets. null until the replay has a state.
+ */
+export function rweArmSummary(input: {
+  rwState: RwStateRow | null; eState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
+  days: RweDaysRow[]; fills: RwFillRow[]; nowMs: number;
+}) {
+  const st = input.eState?.state as RweState | undefined;
+  if (!st || typeof st !== "object" || !("arms" in st) || !input.eState?.last_minute) return null;
+  const excluded = excludedByDay(input.selectionAll);
+  const dayOf = (minute: string) => new Date(Math.floor(Date.parse(minute) / DAY) * DAY).toISOString().slice(0, 10);
+  const diverged = new Set(st.diverged);
+  const out = (cond: string, day: string) => excluded.get(day)?.has(cond) ?? false;
+  const today = new Date(Math.floor(st.dayOf / DAY) * DAY).toISOString().slice(0, 10);
+  const rw = input.rwState?.state as RwState | undefined;
+  return rwSummary({
+    state: {
+      state: { acc: st.arms.e.acc, dayActive: st.arms.e.dayActive, lastDecided: st.lastDecided, dayOf: st.dayOf, meta: rw?.meta ?? {} },
+      last_minute: input.eState.last_minute, last_error: input.eState.last_error,
+    },
+    selection: input.today.filter((s) => !out(s.cond, String(s.day).slice(0, 10))),
+    latest: input.latest.filter((r) => !out(r.cond, today)),
+    days: input.days.filter((d) => d.arm === "e").map((d) => ({
+      day: String(d.day).slice(0, 10), total: d.total, stress_total: d.stress_total, reward: d.reward, fills: d.fills, capital: d.capital,
+      markets: d.markets ?? 0, detail: null,
+    })),
+    fills: input.fills.filter((f) => !diverged.has(f.cond) && !out(f.cond, dayOf(f.minute))),
+    // The replay starts where RW's fourteen days do; the warm-up before them is RW's alone.
+    firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+  });
 }

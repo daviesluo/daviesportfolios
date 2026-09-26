@@ -6,10 +6,13 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { accStress, accTotal, runPmrw, type RwState } from "./pmrw.ts";
 import { excludedByDay, newRweState, replayMinutes, runPmrwE, type RweState } from "./pmrw_e.ts";
+import { rweArmSummary, rwSummary, type RwMinuteRow, type RwSelRow } from "./pmrw_view.ts";
 import type { PmLevel } from "../_shared/polymarket_public.ts";
 import { memDb, type Row } from "./testing.ts";
 
 const A = { cond: "0xaaa", yes: "101", no: "102" }, B = { cond: "0xbbb", yes: "201", no: "202" };
+// C ends at noon on 10-01: quoted on 09-30 (it does not end that day) and, when chosen again, left out by RW-E on 10-01.
+const C = { cond: "0xccc", yes: "301", no: "302" };
 const T0 = Date.UTC(2026, 8, 30, 23, 50);              // ten minutes before a UTC midnight inside the fourteen days
 
 type World = {
@@ -57,24 +60,39 @@ function selection(withB: boolean): Row[] {
     ({ day: "2026-09-30", cond: m.cond, rank, yes: m.yes, tick: 0.01, v: 3, min_size: 20, rate: 144, per_dollar_day: 1, capital: 20, q: `market ${m.cond}`, cat: "weather_fees", end_date: end, selected_at: "2026-09-30T00:00:01.000Z" } as Row);
   return [row(A, 1, "2026-10-20T00:00:00.000Z"), ...(withB ? [row(B, 2, "2026-09-30T20:00:00.000Z")] : [])];
 }
-function seed(withB: boolean) {
+/** A portfolio over the midnight: 09-30's A (and B, C), and 10-01's A (and C) when named. */
+function portfolio(o: { b: boolean; c: "none" | "first" | "both" }): Row[] {
+  const row = (day: string, m: typeof A, rank: number, end: string) =>
+    ({ day, cond: m.cond, rank, yes: m.yes, tick: 0.01, v: 3, min_size: 20, rate: 144, per_dollar_day: 1, capital: 20, q: `market ${m.cond}`, cat: "weather_fees", end_date: end, selected_at: `${day}T00:00:01.000Z` } as Row);
+  const cEnd = "2026-10-01T12:00:00.000Z";
+  return [
+    ...selection(o.b),
+    ...(o.c !== "none" ? [row("2026-09-30", C, 3, cEnd)] : []),
+    row("2026-10-01", A, 1, "2026-10-20T00:00:00.000Z"),
+    ...(o.c === "both" ? [row("2026-10-01", C, 2, cEnd)] : []),
+  ];
+}
+function seed(withB: boolean | Row[]) {
   return memDb({
     agent_locks: ["pmrw", "pmrw-select", "pmrw-e"].map((name) => ({ name, lease_until: new Date(0).toISOString(), holder: null } as Row)),
     pm_rw_state: [], pm_rw_minutes: [], pm_rw_prints: [], pm_rw_fills: [], pm_rw_days: [], pm_rw_settlements: [], pm_rw_e_state: [], pm_rw_e_days: [],
-    pm_rw_selection: selection(withB),
+    pm_rw_selection: typeof withB === "boolean" ? selection(withB) : withB,
   }, { now: () => Date.now() });
 }
 function world(): World {
-  const w: World = { books: { [A.yes]: book(), [B.yes]: book() }, prints: [], closed: [], now: 0, cache: new Map() };
+  const w: World = { books: { [A.yes]: book(), [B.yes]: book(), [C.yes]: book() }, prints: [], closed: [], now: 0, cache: new Map() };
   const s = T0 / 1000;
   // A: a SELL through the bid (0.49) twice, then a BUY through the ask (0.51). B: a BUY through the ask, then the same
   // again after midnight, when it is no longer selected.
   w.prints.push(print(A, s + 30, "SELL", 0.45, 30, "0xa1"), print(A, s + 150, "SELL", 0.44, 10, "0xa2"), print(A, s + 400, "BUY", 0.57, 50, "0xa3"));
   w.prints.push(print(B, s + 90, "BUY", 0.56, 25, "0xb1"), print(B, s + 330, "BUY", 0.58, 5, "0xb2"));
+  // C: a SELL through the bid before midnight, then after it a BUY through the ask and a SELL through the bid again.
+  // A market nobody selects is never read, so the tests without C do not see these.
+  w.prints.push(print(C, s + 60, "SELL", 0.45, 20, "0xc1"), print(C, s + 900, "BUY", 0.57, 20, "0xc2"), print(C, s + 1260, "SELL", 0.44, 20, "0xc3"));
   return w;
 }
 /** The engine minute by minute from T0 to `minutes` later; B resolves NO at 00:12, which the run at 00:20 reads. */
-async function runEngine(withB: boolean, minutes = 32) {
+async function runEngine(withB: boolean | Row[], minutes = 32) {
   const { db, tables } = seed(withB);
   const w = world();
   for (let k = 0; k <= minutes; k++) {
@@ -166,4 +184,44 @@ Deno.test("a market is left out on the days its scheduled end falls inside, and 
   const ex = excludedByDay(sel);
   assertEquals([...(ex.get("2026-09-27") ?? [])], ["x"]);
   assertEquals([...(ex.get("2026-09-28") ?? [])], ["y"]);
+});
+
+Deno.test("RW-E's own row: the replay's e arm, summarised as RW's row is, equals RW's summary of the engine run without the left-out market-days", async () => {
+  // RW as it ran: A throughout, B on 09-30 (it ends that day), C on 09-30 and again on 10-01 (it ends at noon that day).
+  const all = await runEngine(portfolio({ b: true, c: "both" }));
+  // What RW-E is, computed the other way: the engine run with B out of 09-30 and C out of 10-01, and nothing else changed.
+  const truth = await runEngine(portfolio({ b: false, c: "first" }));
+  all.tables.pm_rw_e_state.push({ id: 1, state: { ...newRweState(), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30) }, last_minute: null } as Row);
+  const rwLast = Date.parse(String(all.tables.pm_rw_state[0].last_minute));
+  const run = await runPmrwE({ db: all.db, now: rwLast + 125_000, holder: "e" });
+  assertEquals(run.errors, []);
+  assertEquals(Date.parse(String(truth.tables.pm_rw_state[0].last_minute)), rwLast);
+
+  // The world does what the test needs: RW traded C again on 10-01, on a day RW-E holds C without quoting it.
+  assert(all.tables.pm_rw_fills.some((f) => f.cond === C.cond && String(f.minute) >= "2026-10-01"));
+  assert(all.tables.pm_rw_fills.some((f) => f.cond === C.cond && String(f.minute) < "2026-10-01"));
+
+  const nowMs = rwLast + 180_000;
+  const on = (t: Row[], day: string) => t.filter((x) => String(x.day).slice(0, 10) === day) as unknown as RwSelRow[];
+  const latestOf = (t: Record<string, Row[]>) => t.pm_rw_minutes.filter((r) => Date.parse(String(r.minute)) === rwLast) as unknown as RwMinuteRow[];
+  const e = rweArmSummary({
+    rwState: all.tables.pm_rw_state[0] as never, eState: all.tables.pm_rw_e_state[0] as never, selectionAll: all.tables.pm_rw_selection as never,
+    today: on(all.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(all.tables), days: all.tables.pm_rw_e_days as never,
+    fills: all.tables.pm_rw_fills as never, nowMs,
+  })!;
+  const t = rwSummary({
+    state: truth.tables.pm_rw_state[0] as never, selection: on(truth.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(truth.tables),
+    days: truth.tables.pm_rw_days as never, fills: truth.tables.pm_rw_fills as never, firstMinute: null, nowMs,
+  })!;
+  for (const k of ["totalUsd", "stressUsd", "rewardUsd", "fillsPnlUsd", "realisedUsd", "unrealisedUsd", "heldUsd", "todayUsd", "capitalUsd"] as const) {
+    assertAlmostEquals(Number(e[k]), Number(t[k]), 1e-9, k);
+  }
+  assertEquals([e.open, e.fills, e.quoting], [t.open, t.fills, t.quoting]);
+  assertAlmostEquals(e.mismatchUsd, 0, 1e-9);
+  const book = (x: typeof e) => x.markets.map((m) => [m.cond, m.net, m.quoting, m.fills, m.avgCost == null ? null : Number(Number(m.avgCost).toFixed(12)), Number(Number(m.totalUsd).toFixed(9))]);
+  assertEquals(book(e), book(t));
+  assertEquals(e.days.map((d) => [d.day, d.fills, Number(d.totalUsd.toFixed(9))]), t.days.map((d) => [d.day, d.fills, Number(d.totalUsd.toFixed(9))]));
+  // C is RW-E's held position on 10-01, not quoted there; B is nowhere in it.
+  assert(e.markets.some((m) => m.cond === C.cond && m.net !== 0 && !m.quoting));
+  assert(!e.markets.some((m) => m.cond === B.cond));
 });

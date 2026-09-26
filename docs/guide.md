@@ -106,11 +106,11 @@ places stay when the number is not whole.
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
-  Stablecoin quotes and Reward quotes with the other strategies. Then a card per exchange —
+  Stablecoin quotes and both Reward quotes rows with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
   in its yellow, where the same strategies run as paper twins, deciding
   alike and filled at Binance's own prices, and on TESTING Polymarket in
-  its blue, whose card is Reward quotes — showing the same figures for
+  its blue, whose card is its two Reward quotes rows added together — showing the same figures for
   that exchange (**funded (Paper)** on TESTING; the accounts' real
   balances are not shown). A bar above the cards shows each exchange's
   share; a slice too narrow for the name shows the percent alone. Then one
@@ -156,6 +156,13 @@ places stay when the number is not whole.
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
+- **Reward quotes · no same-day.** The last row: the same quotes without
+  the markets that end on the day they are chosen, so the two rows can be
+  compared side by side. It holds its own positions and makes its own
+  profit and loss, worked out from the same order books and trades the
+  row above reads; it is brought up to date every five minutes. Its page
+  is the same page as Reward quotes, for these quotes, starting with the
+  fourteen days (it has no warm-up).
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

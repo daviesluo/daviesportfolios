@@ -32,6 +32,16 @@ export const venueHue = (id) => VENUE_HUES[id] ?? 'rgba(244,239,227,0.6)';
 /** Signed USD. A whole number of dollars is an integer ("$100", "$0"); cents stay ("+$1.50"). */
 export const fmtUsd = (n, signed = false) => dropDot00(fmtMoney(n, { signed, compact: false }));
 
+/**
+ * Signed USD to four places, for one trip's or one rung's P&L on the quote pages, where the price beside it has four
+ * too (Davies, 2026-09-26: a $1.72 round trip that made +$0.0023 read "$0" to the cent). Zero is still "$0".
+ * @param {number | null | undefined} n
+ */
+export const fmtUsd4 = (n) => {
+  const s = fmtMoney(n, { signed: true, compact: false, precision: 4 });
+  return /^[+-]?\$0[.,]0000$/.test(s) ? '$0' : s;
+};
+
 /** @param {number | null | undefined} n */
 export const fmtPctSigned = (n, precision = 1) => (n == null || isNaN(n) ? '—' : dropDot00((n > 0 ? '+' : '') + n.toFixed(precision) + '%'));
 
@@ -892,15 +902,30 @@ export function venueRows(dash, tab = null, tests = []) {
       balanceUsd: v.balances?.USD ?? null, balances: v.balances ?? null, canTrade: !!v.canTrade, feeBps: v.feeBps ?? null, note: v.note ?? null,
     };
   });
-  for (const t of tests) {
-    if (!t?.venueId || ids.includes(t.venueId) || cards.some((c) => c.id === t.venueId)) continue;
-    const capital = Number(t.capitalUsd) || 0, value = Number(t.valueUsd) || 0;
+  // A venue no strategy trades on is its paper tests' card, every test on it summed: Polymarket carries RW and RW-E
+  // since 2026-09-26, and its card must read what TESTING's scoreboard adds for it (the first version kept the first
+  // test's card and dropped the second).
+  for (const id of [...new Set(tests.map((t) => t?.venueId).filter((x) => x && !ids.includes(x)))]) {
+    const ts = tests.filter((t) => t?.venueId === id);
+    const sum = (/** @type {(t: any) => unknown} */ f) => ts.reduce((a, t) => a + (Number(f(t)) || 0), 0);
+    const capital = sum((t) => t.capitalUsd), value = sum((t) => t.valueUsd);
+    const unrealised = sum((t) => t.unrealisedUsd), realised = sum((t) => t.realisedUsd), today = sum((t) => t.todayUsd);
+    // Each test's unrealised percent is on its own base (RW's: what its inventory cost); the card's, on those summed.
+    const base = sum((t) => t.unrealisedBaseUsd);
+    const test = ts.length === 1 ? ts[0] : {
+      venueId: id,
+      ...(ts.every((t) => t.rewards && t.orders) ? {
+        rewards: { realisedUsd: sum((t) => t.rewards.realisedUsd), unrealisedUsd: sum((t) => t.rewards.unrealisedUsd) },
+        orders: { realisedUsd: sum((t) => t.orders.realisedUsd), unrealisedUsd: sum((t) => t.orders.unrealisedUsd) },
+      } : {}),
+    };
     cards.push({
-      id: t.venueId, label: venueLabel(t.venueId), test: t,
-      capitalUsd: capital, valueUsd: value, costUsd: 0, unrealisedUsd: t.unrealisedUsd ?? 0, realisedUsd: t.realisedUsd ?? 0, feesUsd: null,
-      unrealisedPct: t.unrealisedPct ?? null, realisedPct: t.realisedPct ?? null, todayPct: t.todayPct ?? null, deployedPct: pct(value, capital),
-      unrealisedOf: t.unrealisedOf ?? 'deployed',
-      strategies: 0, tests: 1, live: 0, todayUsd: t.todayUsd ?? 0, apart: [],
+      id, label: venueLabel(id), test,
+      capitalUsd: capital, valueUsd: value, costUsd: 0, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: null,
+      unrealisedPct: ts.length === 1 ? ts[0].unrealisedPct ?? null : pct(unrealised, base), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
+      deployedPct: pct(value, capital),
+      unrealisedOf: ts[0]?.unrealisedOf ?? 'deployed',
+      strategies: 0, tests: ts.length, live: 0, todayUsd: today, apart: [],
       balanceUsd: null, balances: null, canTrade: false, feeBps: null, note: null,
     });
   }
@@ -1400,7 +1425,7 @@ export function rwRow(r) {
     capitalUsd: capital,
     valueUsd: held,
     todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
-    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, rwInventoryCost(r.markets)),
+    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, rwInventoryCost(r.markets)), unrealisedBaseUsd: rwInventoryCost(r.markets),
     realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
     rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
     orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
@@ -1412,6 +1437,21 @@ export function rwRow(r) {
         ? { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` }
         : { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` },
   };
+}
+
+/** RW-E's paper test's id among the table's rows. */
+export const RWE_ROW_ID = '__rwe';
+
+/**
+ * RW-E as a row of TESTING STRATEGIES (Davies, 2026-09-26: two testing strategies, to compare): RW without the markets
+ * that end on the day they are chosen. The dashboard's `rwe` has `rw`'s shape, read from the replay's own arm — its own
+ * positions, fills and days in the same market data RW's engine read — so its row and its page are RW's, in RW's cells.
+ * The replay runs every five minutes. null keeps it off the table.
+ * @param {any} r  the dashboard's `rwe`
+ */
+export function rweRow(r) {
+  const row = rwRow(r);
+  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes · no same-day', nextText: r.finished ? 'finished' : 'every 5 minutes' };
 }
 
 /**

@@ -346,6 +346,30 @@ const AGENTS_RW = (dayStartMs) => {
 };
 
 /**
+ * RW-E as a row of its own (Davies, 2026-09-26): `rwe`, RW's shape read from the replay's own arm. Consistent with
+ * AGENTS_RW, as `rweArmSummary` would build it: 0xa1 ends today, so RW-E does not quote it today, made none of its fills
+ * (both are today's) and holds none of it; the other three markets are RW's to the cent. So rewards are 14.10 + 3.10 +
+ * 6 = 23.20 and fill P&L 0.40 − 1.20 = −0.80, total 22.40; realised is the rewards and C's round trip (23.60),
+ * unrealised is D's −1.20; D's 20 No held at 72¢ is 5.60 deployed; its three fills are C's two and D's one; its closed
+ * days are the fourteen days' only (the replay starts with them), 7.80 then 7.10, so today is 22.40 − 14.90 = 7.50.
+ */
+const AGENTS_RWE = (dayStartMs) => {
+  const D = 86400e3, rw = AGENTS_RW(dayStartMs);
+  const iso = (ms) => new Date(ms).toISOString();
+  return {
+    ...rw, startedAt: rw.runStart, lastMinute: iso(NOW_MS - 7 * 60e3), lagMinutes: 7,
+    capitalUsd: 235, totalUsd: 22.4, stressUsd: 12.1, rewardUsd: 23.2, fillsPnlUsd: -0.8, realisedUsd: 23.6, unrealisedUsd: -1.2, mismatchUsd: 0,
+    todayUsd: 7.5, heldUsd: 5.6, open: 1, fills: 3, quoting: 2, bestMarketUsd: 14.1,
+    markets: rw.markets.filter((m) => m.cond !== '0xa1'),
+    days: [
+      { day: iso(dayStartMs - D).slice(0, 10), phase: 'run', totalUsd: 7.1, stressUsd: 4.4, rewardUsd: 7.4, fills: 1, capitalUsd: 231.2, markets: 13, runningUsd: 14.9 },
+      { day: iso(dayStartMs - 2 * D).slice(0, 10), phase: 'run', totalUsd: 7.8, stressUsd: 3.1, rewardUsd: 8.2, fills: 0, capitalUsd: 226.5, markets: 14, runningUsd: 7.8 },
+    ],
+    recent: rw.recent.filter((f) => f.cond !== '0xa1'),
+  };
+};
+
+/**
  * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
  * THREE rows that run since `0046`, all on Revolut X and all reading
  * Kraken's candles, with the 4-hour row carrying its five symbols, a
@@ -447,6 +471,7 @@ const AGENTS_DASHBOARD = (() => {
         postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } },
     rw: AGENTS_RW(dayStartMs),
+    rwe: AGENTS_RWE(dayStartMs),
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
       binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
@@ -1099,7 +1124,7 @@ async function run() {
       const bad = reads.find((r) => !r.drawn || r.loading);
       const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
       if (!hidden) {
-        if (first && !bad && first.realised === '+$54.76' && asks === 1) {
+        if (first && !bad && first.realised === '+$78.36' && asks === 1) {
           ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
         } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
       } else {
@@ -1544,16 +1569,16 @@ async function run() {
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
-      if (money(head) === 54.76 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the two tests (${(head || '').trim()})`);
-      else fail(S('agents'), `headline read "${head}", wanted +$54.76`);
+      if (money(head) === 78.36 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the three tests (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$78.36`);
       const rows = await page.locator('.ag-row').count();
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
       // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies), and RW's paper test on Polymarket
       // since 2026-09-24 (Davies).
-      if (rows === 8) ok(S('agents'), 'eight rows — the three 0046 leaves, their Binance twins (0049), the quote test and RW, the deleted ones absent');
-      else fail(S('agents'), `expected 8 rows (six strategies, the quote test and RW), got ${rows}`);
+      if (rows === 9) ok(S('agents'), 'nine rows — the three 0046 leaves, their Binance twins (0049), the quote test, RW and RW-E, the deleted ones absent');
+      else fail(S('agents'), `expected 9 rows (six strategies, the quote test, RW and RW-E), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1722,26 +1747,35 @@ async function run() {
       if (qLive === 'Live path: dry run · 12 orders it would have sent today') ok(S('agents'), `its live path says it is dry-run: "${qLive}"`);
       else fail(S('agents'), `quote page live line "${qLive}"`);
       if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
-        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
-        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
+        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.1400$/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, ''))
+        && /\+\$0\.1000$/.test(qFirst.trim()) && qStacked === 2) {
+        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.1400), and all 7 round trips, newest first, each P&L to four places like its prices');
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
       const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the quote page has the same refresh button beside close');
       else fail(S('agents'), `quote page actions ${qHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the quote page returns to the list');
+      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the quote page returns to the list');
       else fail(S('agents'), 'the quote page did not close back to the list');
       // RW's paper test on Polymarket (Davies, 2026-09-24): the last row of TESTING STRATEGIES, in a strategy's cells,
       // with its own badge; the fixture's figures are rwSummary's own (AGENTS_RW).
       const rwRowEl = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes")') });
       const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const lastName = ((await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').last().textContent().catch(() => '')) || '').trim();
+      const testNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
-      if (await rwRowEl.count() === 1 && lastName === 'Reward quotes' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
+      if (await rwRowEl.count() === 1 && testNames.slice(-2).join('|') === 'Reward quotes|Reward quotes · no same-day' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
         && /2 open · \$296 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42(?!\d)/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the last testing row: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1, realised +$42, every minute');
-      } else fail(S('agents'), `RW row "${rwRowText}", last row "${lastName}", Polymarket badges ${rwBadge}`);
+        ok(S('agents'), 'RW is the testing row before RW-E: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1, realised +$42, every minute');
+      } else fail(S('agents'), `RW row "${rwRowText}", testing rows ${testNames.join(' | ')}, Polymarket badges ${rwBadge}`);
+      // RW-E, the last row (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
+      // today 7.50 on $235 (+3.19%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60 (+10.04%).
+      const rweRowEl = page.locator('.ag-strategies-testing .ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes · no same-day")') });
+      const rweRowText = (await rweRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$235 cap/.test(rweRowText)
+        && /\+\$7\.50 \(\+3\.19%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+10\.04%\)/.test(rweRowText) && /every 5 minutes/.test(rweRowText)) {
+        ok(S('agents'), 'RW-E is the last testing row: Polymarket, 1 open of $235, today +$7.50 (+3.19%), unrealised -$1.20 (-17.65%), realised +$23.60 (+10.04%), every 5 minutes');
+      } else fail(S('agents'), `RW-E row "${rweRowText}"`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -1820,8 +1854,32 @@ async function run() {
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 8) ok(S('agents'), 'closing the RW page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the RW page returns to the list');
       else fail(S('agents'), 'the RW page did not close back to the list');
+      // RW-E's page is RW's page read from the replay's arm: its title, the same scoreboard and sections, today and its two
+      // closed days (the replay starts with the fourteen days: no warm-up row), the three markets it has, and its fills.
+      await rweRowEl.first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      const eTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const eLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
+      const eSplit = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-split-line').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const eSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
+      const eDays = (await page.locator('.ag-rw-days tbody tr td:first-child').allTextContents()).map((t) => t.trim());
+      const eFirstDay = ((await page.locator('.ag-rw-days tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const eMarkets = await page.locator('.ag-rw-markets tbody tr').count();
+      const eFills = await page.locator('.ag-rw-fills tbody tr').count();
+      const eWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
+      await shot(page, 'agents-rwe');
+      if (eTitle === 'Reward quotes · no same-day' && eLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
+        && eSplit.join('|') === 'rewards +$23.20|orders +$0.40' && eSections.join(',') === 'STATUS,DAYS,WITHOUT SAME-DAY MARKETS,QUOTES,FILLS'
+        && eDays.length === 3 && /· today$/.test(eDays[0]) && !eDays.some((d) => /warm-up/.test(d)) && /\+\$7\.50/.test(eFirstDay)
+        && eMarkets === 3 && eFills === 3 && eWarn === 0) {
+        ok(S('agents'), "RW-E's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills");
+      } else fail(S('agents'), `RW-E page: title "${eTitle}", labels ${eLabels.join(',')}, split ${eSplit.join('|')}, sections ${eSections.join(',')}, days ${eDays.join(' | ')} (first "${eFirstDay}"), markets ${eMarkets}, fills ${eFills}, warnings ${eWarn}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the RW-E page returns to the list');
+      else fail(S('agents'), 'the RW-E page did not close back to the list');
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
       if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');
@@ -1836,10 +1894,11 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Four Revolut X: the three strategies and the quote test; then RW on Polymarket, last.
-      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 2].startsWith('Revolut X') && badges[badges.length - 1] === 'Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X and RW on Polymarket');
+      // Four Revolut X: the three strategies and the quote test; then RW and RW-E on Polymarket, last.
+      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 3].startsWith('Revolut X') && badges.slice(-2).join('|') === 'Polymarket|Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X, and RW and RW-E on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW on Polymarket $14.40 — 89 % and 11 %.
+      // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW and RW-E on Polymarket $20.00
+      // (14.40 + 5.60) — 86 % and 14 %.
       // The bar shows the venue and its percent when that line fits the slice, and the percent alone when it does not.
       // A fixed cutoff left the middle of "Polymarket" on a slice that was still a bit wider than the cutoff.
       const shareGeom = await page.locator('.ag-share').evaluateAll((els) => els.map((el) => {
@@ -1854,13 +1913,13 @@ async function run() {
         };
       }));
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && /Revolut X: 89%/.test(shareGeom[0].title) && /Polymarket: 11%/.test(shareGeom[2].title)
+        && shareGeom[1].text === '' && /Revolut X: 86%/.test(shareGeom[0].title) && /Polymarket: 14%/.test(shareGeom[2].title)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '89%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '86%', { timeout: 2000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -1868,20 +1927,22 @@ async function run() {
         return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
       }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
       await squeeze.evaluate((el) => el.remove());
-      if (squeezed && squeezedFit.text === '89%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      if (squeezed && squeezedFit.text === '86%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
-      // Polymarket's card is RW's own row (Davies, 2026-09-24: Polymarket in TESTING's venues), so it reads what the row
-      // reads; realised splits into its rewards and what its orders made, which add up to it as printed.
+      // Polymarket's card is its two tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
+      // row of its own), so it reads what TESTING's scoreboard adds for it: funded 296 + 235; deployed 14.40 + 5.60 (3.77 %
+      // of 531); today 12.50 + 7.50; unrealised −1 − 1.20 on the two inventories' cost, 15.40 of RW's (A's 20 Yes at 43¢,
+      // D's 20 No at 34¢) and 6.80 of RW-E's (D's): −2.20 on 22.20; realised 42 + 23.60 = rewards 41.60 + 23.20 and
+      // orders 0.40 + 0.40. The first version kept RW's card and dropped RW-E's.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
-      const rwRowCells = (await rwRowEl.first().locator('.ag-gl').allTextContents()).map((t) => t.trim());
-      if (pm && pm.meta === '1 strategy' && pm.pairs['funded (Paper)'] === '$296' && pm.pairs.deployed === '$14.40 (4.86%)'
-        && [pm.pairs.today, pm.pairs.unrealised, pm.pairs.realised].join(' | ') === rwRowCells.join(' | ') && !pm.bases.unrealised
-        && pm.pairs.rewards === '+$41.60' && pm.pairs.orders === '+$0.40' && !('fees' in pm.pairs)) {
-        ok(S('agents'), `Polymarket's card is Reward quotes: funded (Paper) $296, deployed $14.40 (4.86%), the row's ${rwRowCells.join(' / ')}, realised = rewards +$41.60 + orders +$0.40`);
-      } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}, RW row cells ${rwRowCells.join(' | ')}`);
+      if (pm && pm.meta === '2 strategies' && pm.pairs['funded (Paper)'] === '$531' && pm.pairs.deployed === '$20 (3.77%)'
+        && pm.pairs.today === '+$20 (+3.77%)' && pm.pairs.unrealised === '-$2.20 (-9.91%)' && pm.pairs.realised === '+$65.60 (+12.35%)' && !pm.bases.unrealised
+        && pm.pairs.rewards === '+$64.80' && pm.pairs.orders === '+$0.80' && !('fees' in pm.pairs)) {
+        ok(S('agents'), "Polymarket's card is RW and RW-E summed: funded (Paper) $531, deployed $20 (3.77%), today +$20, unrealised -$2.20 (-9.91%), realised +$65.60 = rewards +$64.80 + orders +$0.80");
+      } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
       else fail(S('agents'), `Revolut X card still has an apart note (${revxApart})`);
@@ -1912,7 +1973,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 2 && nexts[rows - 2] === 'every minute' && nexts[rows - 1] === 'every minute') ok(S('agents'), 'every rule counts down to its next bar close; the quote test and RW, last, decide every minute');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 3 && nexts[rows - 3] === 'every minute' && nexts[rows - 2] === 'every minute' && nexts[rows - 1] === 'every 5 minutes') ok(S('agents'), 'every rule counts down to its next bar close; the quote test and RW decide every minute, and RW-E, last, replays every five');
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -2217,9 +2278,10 @@ async function run() {
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      const PAPER_SB = 'FUNDED=$1,856 | DEPLOYED=$135.65(7.31%) | TODAY=+$13.04(+0.70%) | UNREALIZED G/L=+$0.64(+0.48%) | REALIZED G/L [(incl. fees $0.08)]=+$54.76(+2.95%)';
+      // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: $235, 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60 realised.
+      const PAPER_SB = 'FUNDED=$2,091 | DEPLOYED=$141.25(6.76%) | TODAY=+$20.54(+0.98%) | UNREALIZED G/L=-$0.56(-0.40%) | REALIZED G/L [(incl. fees $0.08)]=+$78.36(+3.75%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 8 Paper · 8 strategies paper';
+      const TESTING_BAR = 'TESTING 9 Paper · 9 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
@@ -2238,7 +2300,7 @@ async function run() {
       const winH = vpWidth > 760 ? Math.round(0.85 * (page.viewportSize()?.height ?? 0)) : (page.viewportSize()?.height ?? 0);
       await clickTab('testing');
       const n2 = await readAgentsPanel(page);
-      if (n2.rows.length === 8 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 8 rows, scoreboard and venue cards as they were');
+      if (n2.rows.length === 9 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 9 rows, scoreboard and venue cards as they were');
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
@@ -2287,7 +2349,7 @@ async function run() {
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
-      if (a1.rows.length === 8 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+      if (a1.rows.length === 9 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
         ok(T('armed'), `TESTING is the paper rows alone (8, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
@@ -2297,7 +2359,7 @@ async function run() {
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      if (both.join(',') === '190600,14815,1324,114,5506') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the two tests: $1,906.00 funded, $148.15 deployed, +$13.24 today, +$1.14 unrealised, +$55.06 realised');
+      if (both.join(',') === '214100,15375,2074,-6,7866') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the three tests: $2,141.00 funded, $153.75 deployed, +$20.74 today, -$0.06 unrealised, +$78.66 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
@@ -2341,7 +2403,7 @@ async function run() {
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
-      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 8) ok(T('unarmed'), 'TESTING carries no banner either');
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 9) ok(T('unarmed'), 'TESTING carries no banner either');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
@@ -2363,7 +2425,7 @@ async function run() {
       } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
-      if (p1.rows.length === 8 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
+      if (p1.rows.length === 9 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
