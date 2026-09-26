@@ -1,0 +1,212 @@
+{
+ "USDC-USD 2025-10-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 11,
+   "UK": 210
+  },
+  "uk_filtered": 210,
+  "uk_unfiltered": 210
+ },
+ "USDC-USD 2025-11-26": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 4,
+  "rows_by_region": {
+   "EEA": 311,
+   "UK": 26
+  },
+  "uk_filtered": 26,
+  "uk_unfiltered": 26
+ },
+ "USDC-USD 2025-11-27": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 254,
+   "UK": 29
+  },
+  "uk_filtered": 29,
+  "uk_unfiltered": 29
+ },
+ "USDC-USD 2025-12-16": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 204,
+   "UK": 11
+  },
+  "uk_filtered": 11,
+  "uk_unfiltered": 11
+ },
+ "USDC-USD 2025-12-17": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 185,
+   "UK": 27
+  },
+  "uk_filtered": 27,
+  "uk_unfiltered": 27
+ },
+ "USDC-USD 2026-01-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 263,
+   "UK": 9
+  },
+  "uk_filtered": 9,
+  "uk_unfiltered": 9
+ },
+ "USDC-USD 2026-03-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 178,
+   "UK": 33
+  },
+  "uk_filtered": 33,
+  "uk_unfiltered": 33
+ },
+ "USDC-USD 2026-05-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 4,
+  "rows_by_region": {
+   "EEA": 268,
+   "UK": 61
+  },
+  "uk_filtered": 61,
+  "uk_unfiltered": 61
+ },
+ "USDC-USD 2026-07-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 3,
+  "rows_by_region": {
+   "EEA": 257,
+   "UK": 10
+  },
+  "uk_filtered": 10,
+  "uk_unfiltered": 10
+ },
+ "USDC-USD 2026-09-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 6,
+  "rows_by_region": {
+   "EEA": 533,
+   "UK": 60
+  },
+  "uk_filtered": 60,
+  "uk_unfiltered": 60
+ },
+ "USDT-USD 2025-10-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 71
+  },
+  "uk_filtered": 71,
+  "uk_unfiltered": 71
+ },
+ "USDT-USD 2025-11-26": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 85
+  },
+  "uk_filtered": 85,
+  "uk_unfiltered": 85
+ },
+ "USDT-USD 2025-11-27": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 2,
+  "rows_by_region": {
+   "UK": 120
+  },
+  "uk_filtered": 120,
+  "uk_unfiltered": 120
+ },
+ "USDT-USD 2025-12-16": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 58
+  },
+  "uk_filtered": 58,
+  "uk_unfiltered": 58
+ },
+ "USDT-USD 2025-12-17": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 76
+  },
+  "uk_filtered": 76,
+  "uk_unfiltered": 76
+ },
+ "USDT-USD 2026-01-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 2,
+  "rows_by_region": {
+   "UK": 130
+  },
+  "uk_filtered": 130,
+  "uk_unfiltered": 130
+ },
+ "USDT-USD 2026-03-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 2,
+  "rows_by_region": {
+   "UK": 104
+  },
+  "uk_filtered": 104,
+  "uk_unfiltered": 104
+ },
+ "USDT-USD 2026-05-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 96
+  },
+  "uk_filtered": 96,
+  "uk_unfiltered": 96
+ },
+ "USDT-USD 2026-07-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 75
+  },
+  "uk_filtered": 75,
+  "uk_unfiltered": 75
+ },
+ "USDT-USD 2026-09-15": {
+  "in_filtered_not_unfiltered": 0,
+  "in_unfiltered_not_filtered": 0,
+  "pages": 1,
+  "rows_by_region": {
+   "UK": 67
+  },
+  "uk_filtered": 67,
+  "uk_unfiltered": 67
+ }
+}

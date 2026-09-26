@@ -2744,6 +2744,31 @@ rebounds (one trade entered 2020-03-13 made +$34.41), and UZERO's 11 bp a held d
 check said this data cannot resolve. Funding crowding as a BTC spot trade is closed at this account's cost ("no large
 edge, a small one not ruled out"); fp5's four funding screens stay set aside, and no paper row is proposed.
 
+### 3.35 PR5's rule at par on Revolut X's USD stablecoin books: it makes money, not enough (2026-09-26)
+
+The fp5 review ranked this second: PR5's frozen rule with its fair value pinned at 1.0000, 0 % bids and asks 1, 2 and
+3 ticks either side of par on the UK USDC-USD and USDT-USD books, where the fair value cannot move against a quote.
+The pre-registration (`reviews/2026-09-26-pr6-revx-usd-par-prereg.md`, frozen at `714a71c0` before any fill was
+computed) scores the part of the keyless UK tape the venue's own candles confirm (USDC-USD from 2025-11-27, USDT-USD
+from 2025-12-17), with PR5's simulator imported unchanged, a whole-day circular-shift null and a bar that asks 8 %/yr
+on the quotes' capital over the window and over its last three months. The run is `backtests/pr6/` (every input and
+pre-freeze script hashed as frozen; the candles the power check read kept gzipped in `inputs/candles/`, since the venue
+drops them after a year; two runs byte-identical, reproduced on `main`; all 8,341 trips checked against the raw
+prints); the write-up is `…-pr6-study.md`.
+
+| | result | condition |
+|---|---|---|
+| P&L | +$37.14 on 8,341 round trips, +1.0 bp a dollar filled | passes |
+| against the shift null | p95 −$130.65 (a twin enters at a traded price, so this shows only that the limit entries beat it) | passes |
+| stress (one tick worse, double stop cost) | −$8.41 | **fails** |
+| months | 10 of 11 positive, the largest 21.8 % | passes |
+| worth money | 3.86 %/yr over the window, 1.84 %/yr in the last three months, against 8 % | **fails** |
+
+**FAIL.** Exits at par earned +$68.02 (1.9 bps each), and the 427 positions (5.1 %) that saw no print back through par
+within a day hit the 24-hour stop for −$30.65, 45 % of that. Even with no stops the exits alone miss 8 %/yr. The books
+tightened in the week of 2026-08-24, as PR5's GBP books did; the last four weeks made $0.055 a day. No paper test; the
+par books are not tried again with other rungs, sizes or guards without a new pre-registration.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,22 @@
+{
+ "candle_hours": 8791,
+ "candle_pages_failed": 0,
+ "days_failed": [],
+ "days_ok": 366,
+ "dup_identical": 0,
+ "dup_with_different_fields": 0,
+ "first_day": "2025-09-25",
+ "last_day": "2026-09-25",
+ "max_pages_a_day": 5,
+ "pages": 456,
+ "raw_rows": 30848,
+ "rows_not_uk_dropped": 0,
+ "rows_outside_request_window": 0,
+ "sides": {
+  "buy": 17244,
+  "sell": 13604
+ },
+ "symbol": "USDT-USD",
+ "symbol_mismatch": 0,
+ "unique_prints": 30848
+}
