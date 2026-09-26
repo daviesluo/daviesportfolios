@@ -1,0 +1,73 @@
+Daily prints 2026-09-14 .. 09-25 (UTC). gap = median buy-sell gap within 60 s (bps); off = median print vs reference (bps)
+USDSUSDT
+  2026-09-14 n=   278 quoteVol=      10,297 gap=  1.0 off=  +1.0
+  2026-09-15 n=   279 quoteVol=      13,337 gap=  1.0 off=  +2.0
+  2026-09-16 n=   339 quoteVol=      35,728 gap=  1.0 off=  +1.0
+  2026-09-17 n=   274 quoteVol=       7,109 gap=  1.0 off=  +1.0
+  2026-09-18 n=   315 quoteVol=      18,075 gap=  1.0 off=  +5.0
+  2026-09-19 n=   254 quoteVol=       3,432 gap=  1.0 off=  +4.0
+  2026-09-20 n=   358 quoteVol=      37,806 gap=  1.0 off=  +4.0
+  2026-09-21 n=   419 quoteVol=      40,468 gap=  1.0 off=  +0.0
+  2026-09-22 n=   309 quoteVol=      11,382 gap=  1.0 off=  +3.0
+  2026-09-23 n=   432 quoteVol=      75,546 gap=  1.0 off=  +3.0
+  2026-09-24 n=   215 quoteVol=      47,652 gap=-17.0 off=  -8.0
+USDEUSDC
+  2026-09-14 n=   247 quoteVol=       4,188 gap=  6.0 off=  -1.0
+  2026-09-15 n=   276 quoteVol=       5,794 gap=  2.0 off=  -3.0
+  2026-09-16 n=   340 quoteVol=       9,997 gap=  1.0 off=  -4.0
+  2026-09-17 n=   299 quoteVol=       6,389 gap=  8.0 off=  +1.0
+  2026-09-18 n=   363 quoteVol=       6,117 gap=  1.0 off=  -2.0
+  2026-09-19 n=   549 quoteVol=      11,010 gap=  1.0 off=  +1.0
+  2026-09-20 n=   351 quoteVol=       7,585 gap=  1.0 off=  +3.0
+  2026-09-21 n=   491 quoteVol=       9,141 gap=  1.0 off=  -3.0
+  2026-09-22 n=  1246 quoteVol=     242,671 gap=  2.0 off= -10.0
+  2026-09-23 n=   523 quoteVol=      22,240 gap=  4.0 off=  -3.0
+  2026-09-24 n=   271 quoteVol=       3,366 gap=  2.0 off=  -3.0
+USDCEUR
+  2026-09-14 n=  3005 quoteVol=     264,103 gap=  1.2 off=  +5.2
+  2026-09-15 n=  2691 quoteVol=     253,365 gap=  1.2 off=  +6.9
+  2026-09-16 n=  4113 quoteVol=     445,500 gap=  1.2 off=  +9.2
+  2026-09-17 n=  3518 quoteVol=     274,751 gap=  1.1 off=  +7.9
+  2026-09-18 n=  2394 quoteVol=     234,988 gap=  1.1 off=  +4.9
+  2026-09-19 n=  1283 quoteVol=     156,745 gap=  1.1 off=  +5.2
+  2026-09-20 n=  2021 quoteVol=     128,522 gap=  1.1 off=  +7.0
+  2026-09-21 n=  3396 quoteVol=     271,268 gap=  1.1 off=  +5.2
+  2026-09-22 n=  3356 quoteVol=     335,250 gap=  1.1 off=  +8.7
+  2026-09-23 n=  2239 quoteVol=     210,673 gap=  1.1 off=  +7.7
+  2026-09-24 n=  1687 quoteVol=     131,740 gap=  1.1 off=  +6.9
+USDTEUR
+  2026-09-14 n=  3763 quoteVol=     703,822 gap=  1.2 off=  +5.5
+  2026-09-15 n=  3382 quoteVol=     906,315 gap=  1.2 off=  +8.1
+  2026-09-16 n=  5095 quoteVol=     661,985 gap=  1.2 off= +11.8
+  2026-09-17 n=  4019 quoteVol=     879,069 gap=  1.1 off= +13.5
+  2026-09-18 n=  3351 quoteVol=     930,947 gap=  1.1 off=  +5.8
+  2026-09-19 n=  1924 quoteVol=     423,290 gap=  1.1 off=  +5.6
+  2026-09-20 n=  2184 quoteVol=     341,893 gap=  1.1 off=  +5.3
+  2026-09-21 n=  4175 quoteVol=     943,315 gap=  1.1 off=  +6.6
+  2026-09-22 n=  4958 quoteVol=   1,063,339 gap=  1.1 off=  +8.7
+  2026-09-23 n=  4056 quoteVol=   1,154,045 gap=  1.1 off=  +5.5
+  2026-09-24 n=  3323 quoteVol=     547,181 gap=  1.1 off=  +5.7
+USDTUSD
+  2026-09-14 n=  2002 quoteVol=   3,130,621 gap=  1.0 off=  -3.0
+  2026-09-15 n=  2073 quoteVol=     399,999 gap=  1.0 off=  -4.9
+  2026-09-16 n=  1595 quoteVol=     214,451 gap=  1.7 off=  -7.1
+  2026-09-17 n=  1494 quoteVol=      82,141 gap=  1.7 off=  -8.8
+  2026-09-18 n=  1473 quoteVol=     139,229 gap=  1.7 off=  -7.3
+  2026-09-19 n=  1440 quoteVol=      45,959 gap=  2.7 off=  -3.9
+  2026-09-20 n=  1495 quoteVol=      44,852 gap=  1.8 off=  -3.0
+  2026-09-21 n=  1602 quoteVol=     679,262 gap=  1.6 off=  -2.0
+  2026-09-22 n=  2673 quoteVol=   2,649,340 gap=  1.5 off=  -2.0
+  2026-09-23 n=  1706 quoteVol=     560,297 gap=  1.7 off=  -1.9
+  2026-09-24 n=  1059 quoteVol=      32,381 gap=  0.9 off=  -2.9
+USDCUSD
+  2026-09-14 n=  1419 quoteVol=      69,800 gap=  2.0 off=  -1.0
+  2026-09-15 n=  1572 quoteVol=      30,000 gap=  2.8 off=  -1.0
+  2026-09-16 n=  1352 quoteVol=     125,052 gap=  2.9 off=  -1.9
+  2026-09-17 n=  1375 quoteVol=      21,050 gap=  2.9 off=  -1.9
+  2026-09-18 n=  1664 quoteVol=     616,903 gap=  2.9 off=  -1.9
+  2026-09-19 n=  1801 quoteVol=     501,950 gap=  2.9 off=  -1.9
+  2026-09-20 n=  1848 quoteVol=     906,033 gap=  2.9 off=  -1.0
+  2026-09-21 n=  1595 quoteVol=     437,771 gap=  2.7 off=  -1.0
+  2026-09-22 n=  1726 quoteVol=     601,800 gap=  1.6 off=  -0.9
+  2026-09-23 n=  1463 quoteVol=      73,576 gap=  2.8 off=  -1.9
+  2026-09-24 n=   934 quoteVol=      11,502 gap=  2.9 off=  -1.9

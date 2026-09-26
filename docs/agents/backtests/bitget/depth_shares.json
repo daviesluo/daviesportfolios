@@ -1,0 +1,58 @@
+{
+ "USDCEUR": {
+  "days": 103,
+  "snapshots": 998040,
+  "share_one_tick": 0.6506,
+  "share_le_two_ticks": 0.7661,
+  "share_gt_10bps": 0.0272,
+  "share_gt_30bps": 0.0016
+ },
+ "USDCUSD": {
+  "days": 88,
+  "snapshots": 461395,
+  "share_one_tick": 0.0268,
+  "share_le_two_ticks": 0.04,
+  "share_gt_10bps": 0.0025,
+  "share_gt_30bps": 0.0023
+ },
+ "USDEUSDC": {
+  "days": 103,
+  "snapshots": 778517,
+  "share_one_tick": 0.6795,
+  "share_le_two_ticks": 0.7913,
+  "share_gt_10bps": 0.0267,
+  "share_gt_30bps": 0.0004
+ },
+ "USDSUSDT": {
+  "days": 103,
+  "snapshots": 829850,
+  "share_one_tick": 0.6726,
+  "share_le_two_ticks": 0.733,
+  "share_gt_10bps": 0.1186,
+  "share_gt_30bps": 0.0326
+ },
+ "USDTBRL": {
+  "days": 103,
+  "snapshots": 996262,
+  "share_one_tick": 0.2336,
+  "share_le_two_ticks": 0.2475,
+  "share_gt_10bps": 0.1248,
+  "share_gt_30bps": 0.0326
+ },
+ "USDTEUR": {
+  "days": 103,
+  "snapshots": 997995,
+  "share_one_tick": 0.7629,
+  "share_le_two_ticks": 0.8478,
+  "share_gt_10bps": 0.0207,
+  "share_gt_30bps": 0.001
+ },
+ "USDTUSD": {
+  "days": 103,
+  "snapshots": 802231,
+  "share_one_tick": 0.0683,
+  "share_le_two_ticks": 0.087,
+  "share_gt_10bps": 0.0081,
+  "share_gt_30bps": 0.0011
+ }
+}

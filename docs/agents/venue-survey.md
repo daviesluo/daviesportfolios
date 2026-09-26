@@ -641,6 +641,40 @@ then priced where a backtest can price them.
   Revolut X and Kraken never came near the cost of crossing (reference
   §2c), and Binance's book adds a third price, not a free one.
 
+
+## 12. Bitget, read-only (2026-09-26): don't register
+
+Davies offered to open a Bitget account. A read-only study asked whether
+it is worth it; its sources, each with its URL and the date read, are in
+`backtests/bitget/sources.md`, its scripts in `scripts/bitget/`, and its
+results beside the sources (the year of public prints and depth it read,
+294 MB, is not kept: Bitget's keyless download serves it again).
+
+- **Access.** Bitget's Terms (2026-09-15) bar 29 countries, not the UK
+  or Ireland. It serves the UK through promotions Archax approved under
+  s21 (relaunch 2024-11-12) and claims nothing more; the FCA's site finds
+  no Bitget entry, so there is no Ombudsman and no FSCS, and the UK regime
+  of 2027-10-25 will need authorisation. An Irish resident has no lawful
+  route: ESMA's CASP register (2026-09-24) has no Bitget entity, Bitget
+  EU's MiCAR application in Austria is pending, and the transition ended
+  2026-07-01. Not verified: API access and the EUR books for a UK account.
+- **Fees.** 0.10 % maker and taker at the base tier, 0.08 % paid in BGB;
+  0 % maker only at VIP7. Zero-fee books: USDC/USDT, USDT/USD, USDC/USD
+  (whose excluded list names Cyprus, not the UK) and two USDGO books.
+- **The books PR5's mechanism needs are not there.** No GBP book. The
+  EUR books (USDC/EUR, USDT/EUR) are a tick wide, 1.1–1.2 bps between a
+  buy and a sell print within 60 s in every month of a year of prints,
+  against the 9–24 bps that paid on Revolut X's GBP books, and a quote
+  there pays 10 bps a side. The free USD books are 1–3 bps wide: the
+  family that already failed (Binance's zero-fee books, §3.29; PR6,
+  §3.35). BRL and VND need those countries' bank rails.
+- **Counterparty.** On 2026-09-24 Bitget lost $387.5M from its hot
+  wallets; withdrawals resume in phases 09-28 → 10-02, fiat last.
+- **Verdict: don't register.** No book he may trade has PR5's spread at a
+  fee it can beat, Ireland has no lawful route, the UK route is
+  unregistered, and the venue has just been drained. Nothing was
+  pre-registered: nothing survived to be tested.
+
 ## Sources
 
 All read 2026-09-22 or 2026-09-23 (UTC). "Via search" means the page
