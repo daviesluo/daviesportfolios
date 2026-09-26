@@ -622,6 +622,14 @@ Read these as a checklist before pushing.
   file, or folding a config into `package.json`, still leaves it in the
   listing he reads. He said so twice; the third round moved the npm project
   itself into `src/`.
+- **One row's newest record from a window over every row.** The Agents
+  page took each strategy's last decision from the 120 newest overall. By
+  midday those were the hourly rows' alone, and both daily rows wore a
+  "stale" dot for half of every day while deciding on time (2026-09-26);
+  the tick's observation reads had already been fixed for the same reason.
+  A row's own newest thing is its own query. And read a record's state
+  before the records it counts: RW's engine writes fills before the state
+  that includes them, so a parallel read paired two runs on one page.
 
 ## Third-party reviews
 
