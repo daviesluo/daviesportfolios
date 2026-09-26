@@ -104,13 +104,21 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **A study in flight (2026-09-26, this session; nothing committed yet).** (Bitget reported the same evening: don't
-   register, `venue-survey.md` §12.) A fourth Binance-first
+5. **Two studies in flight (2026-09-26, this session; nothing of either committed yet).** (Bitget reported the same evening: don't
+   register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
    2021-01-06), an idea table, a power check and at most ten pre-registered hypotheses, Holm-corrected, under the fp5
    review's rules; it stops for review and a freeze on `main` before any test runs, then phase 2 runs them as frozen.
-   If this session ends first, it is started again from these words.
+   If this session ends first, each is started again from these words.
+   (b) PMLATE (Davies, the same evening): turn RW's same-day loss around and be the informed taker — once a daily
+   temperature market's result is effectively known from the station's observations, take the stale liquidity
+   quoters still rest on the losing side. Not WX (a day-ahead forecast rule, failed): same-day observations. Phase 1
+   measures the mechanism on RW's own stored minutes and prints, then latency (observation publication against how
+   fast the stale side is taken today; our loop is a one-minute cron), resolution basis risk (METAR against Weather
+   Underground's whole degrees), fees near 0.9–0.99, depth and capital lock, power, and pre-registers at most ten
+   hypotheses under the fp5 rules; it stops for review and a freeze on `main`. Any live version opens positions only
+   from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -230,6 +238,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - RW-E's row is "Reward quotes (no same-day)", the bracket on a line of its own, and its replay runs every minute from `0060` (Davies: "every min"; a run replays only what RW decided since the last, under the `pmrw-e` lease). The RW-E section is gone from RW's page and from RW-E's; RW-E's page keeps one line, shown only when the replay's copy of RW stops equalling RW's closed days (`rweCheckWarn`). `RWE_STALE_MINUTES` is RW's five plus three (it was 15 for the five-minute cadence). The sweep reads the two-line name, "every minute", and both pages without the section.
 - No strategy's name says its venue from `0061` ("Trend 4h", "Trend 1h", "Momentum 30d" on Revolut X and on Binance; the live row "Trend 4h · live", shown without " · live"); the migration fails if any name still carries one. Every strategy and test page's head reads PAPER or LIVE, then the venue's tag in its colours (`VenueBadge`). The sweep finds each row by name AND venue and checks the tag on the four pages it opens; `.claude/CLAUDE.md` quotes the live row's new name.
 - Davies, then: Binance still has no strategy of its own — another research agent, please; and his Binance account DOES support futures. What the record says is narrower: the API key's futures permission is off (reference §4 table, 2026-09-23), a setting on the key. A fourth Binance-first search (fp6) is running, and a Bitget feasibility study beside it: what-remains item 5.
+- Davies, then: turn RW's same-day loss into a strategy of its own — be the informed taker once a temperature market's result is known. A research agent runs its phase 1 (what-remains item 5b); nothing is committed until its preregs are reviewed and frozen here.
 - Bitget reported: **don't register** (`venue-survey.md` §12; scripts `scripts/bitget/`, results and sources `backtests/bitget/`). Its terms do not bar the UK or Ireland, but its UK route is s21 promotions approved by Archax with no FCA registration, and an Irish resident has no lawful route (no Bitget entity on ESMA's CASP register; its MiCAR application is pending). It has no GBP book; its EUR books are a tick wide (1.1–1.2 bps between a buy and a sell print within 60 s, every month for a year) at 10 bps a side, and its free USD books are the 1–3 bps family that already failed. It lost $387.5M from its hot wallets on 2026-09-24.
 - Davies, then: both Reward quotes rows get a $1,000 cap, as every other strategy has one. The dashboard's RW and RW-E summaries carry `fundedUsd` (`RW_FUNDED_USD`, `pmrw_view.ts`), and `rwRow` takes its cap, FUNDED and the base of today's and realised's percents from it; what the markets have at work stays in the days table (the spec's capital: $165–$798 a day so far, the $798 RW's open 26 Sep; the commit message's "$165-$529" counted closed days only), and the frozen rule and the verdict's capital are untouched. The rule does not read the cap, so RW's page warns on a day its markets need more than $1,000 (`rwOverCapText`, pinned): a $1,000 account could not have placed every quote on such a day. TESTING's funded is $3,560 in the sweep's fixture and the Polymarket card's $2,000, each figure worked out by hand in the sweep; the three unit pins fail on the old row.
 
