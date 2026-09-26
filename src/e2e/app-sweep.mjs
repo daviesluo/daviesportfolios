@@ -311,7 +311,7 @@ const AGENTS_RW = (dayStartMs) => {
   return {
     phase: 'run', runStart: iso(runStart), runEnd: iso(runStart + 14 * D), dayOfRun: 3, startedAt: iso(runStart - 5 * 3600e3),
     lastMinute: iso(NOW_MS - 2 * 60e3), lagMinutes: 2, lastError: null, running: true, finished: false,
-    capitalUsd: 296, totalUsd: 41, stressUsd: 17.2, rewardUsd: 41.6, fillsPnlUsd: -0.6, realisedUsd: 42, unrealisedUsd: -1, mismatchUsd: 0,
+    capitalUsd: 296, fundedUsd: 1000, totalUsd: 41, stressUsd: 17.2, rewardUsd: 41.6, fillsPnlUsd: -0.6, realisedUsd: 42, unrealisedUsd: -1, mismatchUsd: 0,
     todayUsd: 12.5, heldUsd: 14.4, open: 2, fills: 5, quoting: 3, bestMarketUsd: 18.6,
     markets: [
       mk('0xa1', 1, 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', 205,
@@ -358,7 +358,7 @@ const AGENTS_RWE = (dayStartMs) => {
   const iso = (ms) => new Date(ms).toISOString();
   return {
     ...rw, startedAt: rw.runStart, lastMinute: iso(NOW_MS - 7 * 60e3), lagMinutes: 7,
-    capitalUsd: 235, totalUsd: 22.4, stressUsd: 12.1, rewardUsd: 23.2, fillsPnlUsd: -0.8, realisedUsd: 23.6, unrealisedUsd: -1.2, mismatchUsd: 0,
+    capitalUsd: 235, fundedUsd: 1000, totalUsd: 22.4, stressUsd: 12.1, rewardUsd: 23.2, fillsPnlUsd: -0.8, realisedUsd: 23.6, unrealisedUsd: -1.2, mismatchUsd: 0,
     todayUsd: 7.5, heldUsd: 5.6, open: 1, fills: 3, quoting: 2, bestMarketUsd: 14.1,
     markets: rw.markets.filter((m) => m.cond !== '0xa1'),
     days: [
@@ -1800,11 +1800,12 @@ async function run() {
       const testNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
       if (await rwRowEl.count() === 1 && testNames.slice(-2).join('|') === 'Reward quotes|Reward quotes (no same-day)' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
-        && /2 open · \$296 cap/.test(rwRowText) && /\+\$12\.50/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42(?!\d)/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the testing row before RW-E: Polymarket, 2 open of $296, counted in the scoreboard, today +$12.50, unrealised -$1, realised +$42, every minute');
+        && /2 open · \$1,000 cap/.test(rwRowText) && /\+\$12\.50 \(\+1\.25%\)/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42 \(\+4\.20%\)/.test(rwRowText) && /every minute/.test(rwRowText)) {
+        ok(S('agents'), 'RW is the testing row before RW-E: Polymarket, 2 open of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", testing rows ${testNames.join(' | ')}, Polymarket badges ${rwBadge}`);
       // RW-E, the last row (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
-      // today 7.50 on $235 (+3.19%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60 (+10.04%).
+      // today 7.50 on its $1,000 cap (+0.75%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60
+      // (+2.36%). $235 is what it has at work today, in its days table, not its cap (Davies, 2026-09-26).
       // Its name is "Reward quotes (no same-day)", the bracket on a line of its own (Davies, 2026-09-26), and its replay
       // runs every minute (0060), as RW does.
       const rweRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes (no same-day)') });
@@ -1813,10 +1814,10 @@ async function run() {
         const q = b.querySelector('.ag-name-qual');
         return { q: q?.textContent ?? '', below: !!q && q.getBoundingClientRect().top > b.getBoundingClientRect().top + 4 };
       }).catch(() => ({ q: '', below: false }));
-      if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$235 cap/.test(rweRowText)
+      if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$1,000 cap/.test(rweRowText)
         && rweName.q === '(no same-day)' && rweName.below
-        && /\+\$7\.50 \(\+3\.19%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+10\.04%\)/.test(rweRowText) && /every minute/.test(rweRowText)) {
-        ok(S('agents'), 'RW-E is the last testing row: "Reward quotes" over "(no same-day)", Polymarket, 1 open of $235, today +$7.50 (+3.19%), unrealised -$1.20 (-17.65%), realised +$23.60 (+10.04%), every minute');
+        && /\+\$7\.50 \(\+0\.75%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+2\.36%\)/.test(rweRowText) && /every minute/.test(rweRowText)) {
+        ok(S('agents'), 'RW-E is the last testing row: "Reward quotes" over "(no same-day)", Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
       } else fail(S('agents'), `RW-E row "${rweRowText}", qualifier ${JSON.stringify(rweName)}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
@@ -1972,15 +1973,15 @@ async function run() {
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
       // Polymarket's card is its two tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
-      // row of its own), so it reads what TESTING's scoreboard adds for it: funded 296 + 235; deployed 14.40 + 5.60 (3.77 %
-      // of 531); today 12.50 + 7.50; unrealised −1 − 1.20 on the two inventories' cost, 15.40 of RW's (A's 20 Yes at 43¢,
+      // row of its own), so it reads what TESTING's scoreboard adds for it: funded their two $1,000 caps (Davies,
+      // 2026-09-26); deployed 14.40 + 5.60 (1 % of 2,000); today 12.50 + 7.50 (1 %); unrealised −1 − 1.20 on the two inventories' cost, 15.40 of RW's (A's 20 Yes at 43¢,
       // D's 20 No at 34¢) and 6.80 of RW-E's (D's): −2.20 on 22.20; realised 42 + 23.60 = rewards 41.60 + 23.20 and
       // orders 0.40 + 0.40. The first version kept RW's card and dropped RW-E's.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
-      if (pm && pm.meta === '2 strategies' && pm.pairs['funded (Paper)'] === '$531' && pm.pairs.deployed === '$20 (3.77%)'
-        && pm.pairs.today === '+$20 (+3.77%)' && pm.pairs.unrealised === '-$2.20 (-9.91%)' && pm.pairs.realised === '+$65.60 (+12.35%)' && !pm.bases.unrealised
+      if (pm && pm.meta === '2 strategies' && pm.pairs['funded (Paper)'] === '$2,000' && pm.pairs.deployed === '$20 (1%)'
+        && pm.pairs.today === '+$20 (+1%)' && pm.pairs.unrealised === '-$2.20 (-9.91%)' && pm.pairs.realised === '+$65.60 (+3.28%)' && !pm.bases.unrealised
         && pm.pairs.rewards === '+$64.80' && pm.pairs.orders === '+$0.80' && !('fees' in pm.pairs)) {
-        ok(S('agents'), "Polymarket's card is RW and RW-E summed: funded (Paper) $531, deployed $20 (3.77%), today +$20, unrealised -$2.20 (-9.91%), realised +$65.60 = rewards +$64.80 + orders +$0.80");
+        ok(S('agents'), "Polymarket's card is RW and RW-E summed: funded (Paper) $2,000, deployed $20 (1%), today +$20 (+1%), unrealised -$2.20 (-9.91%), realised +$65.60 (+3.28%) = rewards +$64.80 + orders +$0.80");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
@@ -2328,8 +2329,10 @@ async function run() {
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
-      // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: $235, 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60 realised.
-      const PAPER_SB = 'FUNDED=$2,091 | DEPLOYED=$141.25(6.76%) | TODAY=+$20.54(+0.98%) | UNREALIZED G/L=-$0.56(-0.40%) | REALIZED G/L [(incl. fees $0.08)]=+$78.36(+3.75%)';
+      // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
+      // realised; and each Reward quotes row is funded $1,000 (the same day): 1,380 + 180 + 2,000 = $3,560 funded, so
+      // deployed 141.25 is 3.97 % of it, today 20.54 is 0.58 % and realised 78.36 is 2.20 %.
+      const PAPER_SB = 'FUNDED=$3,560 | DEPLOYED=$141.25(3.97%) | TODAY=+$20.54(+0.58%) | UNREALIZED G/L=-$0.56(-0.40%) | REALIZED G/L [(incl. fees $0.08)]=+$78.36(+2.20%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 9 Paper · 9 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
@@ -2413,7 +2416,7 @@ async function run() {
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      if (both.join(',') === '214100,15375,2074,-6,7866') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the three tests: $2,141.00 funded, $153.75 deployed, +$20.74 today, -$0.06 unrealised, +$78.66 realised');
+      if (both.join(',') === '361000,15375,2074,-6,7866') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the three tests: $3,610.00 funded, $153.75 deployed, +$20.74 today, -$0.06 unrealised, +$78.66 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);

@@ -15,6 +15,13 @@ const DAY = 86400e3, M = 60e3;
 export const RW_RECENT_FILLS = 25;
 /** The engine decides two minutes behind the clock; a last decided minute older than this means it has stopped. */
 export const RW_STALE_MINUTES = 5;
+/**
+ * What RW and RW-E are each funded with on the page (Davies, 2026-09-26: "两个Reward quotes策略都设置一个1000 usd的
+ * cap"), as every other strategy has a capital of its own: the row's cap, its FUNDED, and the base of its today and
+ * realised percents. The frozen rule keeps its own $300 of quotes a day; what its quotes and inventory tie up is
+ * `capitalUsd`, which the days table shows and the verdict reads (the spec's capital). Nothing here changes a decision.
+ */
+export const RW_FUNDED_USD = 1000;
 
 export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
 export type RwSelRow = { day: string; cond: string; rank: number; rate: number | string; v: number | string; min_size: number | string; capital: number | string; q: string | null; cat: string | null; end_date: string | null };
@@ -133,7 +140,7 @@ export function rwSummary(input: {
     dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
     startedAt: input.firstMinute, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
     running: !over && lagMinutes <= (input.staleMinutes ?? RW_STALE_MINUTES), finished: over,
-    capitalUsd: capital, totalUsd: total, stressUsd: snap.stress, rewardUsd: snap.reward, fillsPnlUsd: total - snap.reward,
+    capitalUsd: capital, fundedUsd: RW_FUNDED_USD, totalUsd: total, stressUsd: snap.stress, rewardUsd: snap.reward, fillsPnlUsd: total - snap.reward,
     realisedUsd: realised, unrealisedUsd: unrealised, mismatchUsd: realised + unrealised - total,
     todayUsd: total - baseline, heldUsd: held, open, fills: snap.fills, quoting: input.selection.length,
     bestMarketUsd: Number.isFinite(best) ? best : null,

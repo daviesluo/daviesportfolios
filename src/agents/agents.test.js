@@ -953,16 +953,19 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   // Davies, 2026-09-24: the Polymarket paper test sits in the testing table beside the quote test, in the same cells.
   const r = { phase: 'run', dayOfRun: 3, runStart: '2026-09-25T00:00:00.000Z', runEnd: '2026-10-09T00:00:00.000Z', startedAt: '2026-09-24T19:31:00Z',
     lastMinute: '2026-09-27T10:02:00Z', lagMinutes: 2, running: true, finished: false, lastError: null,
-    capitalUsd: 296, totalUsd: 60, stressUsd: 24, rewardUsd: 62, fillsPnlUsd: -2, realisedUsd: 61, unrealisedUsd: -1, mismatchUsd: 0,
+    capitalUsd: 296, fundedUsd: 1000, totalUsd: 60, stressUsd: 24, rewardUsd: 62, fillsPnlUsd: -2, realisedUsd: 61, unrealisedUsd: -1, mismatchUsd: 0,
     todayUsd: 20, heldUsd: 40, open: 3, fills: 12, quoting: 16, bestMarketUsd: 12,
     markets: [{ net: 100, avgCost: 0.4 }], days: [], recent: [] };
   it('fills the cells a strategy row has, on paper, at Polymarket', () => {
     const row = rwRow(r);
     expect([row?.id, row?.name, row?.venueId, row?.venue, row?.mode, row?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
-    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([296, 40, 3]);
-    // Today and realised on the capital at work; unrealised on inventory cost, the same base as every other row.
-    expect(row?.todayPct).toBeCloseTo((20 / 296) * 100, 12);
-    expect(row?.realisedPct).toBeCloseTo((61 / 296) * 100, 12);
+    // Its cap is the $1,000 it is funded with (Davies, 2026-09-26), not the $296 its markets have at work today, which
+    // stays in the days table; today and realised are on the cap, unrealised on inventory cost, as on every other row.
+    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([1000, 40, 3]);
+    expect(row?.todayPct).toBeCloseTo((20 / 1000) * 100, 12);
+    expect(row?.realisedPct).toBeCloseTo((61 / 1000) * 100, 12);
+    // A payload from before the cap (a kept copy) still reads, on the capital at work.
+    expect(rwRow({ ...r, fundedUsd: undefined })?.capitalUsd).toBe(296);
     expect(rwInventoryCost(r.markets)).toBeCloseTo(40, 12);
     expect(row?.unrealisedPct).toBeCloseTo((-1 / 40) * 100, 12);
     expect(row?.unrealisedOf).toBeUndefined();
@@ -973,19 +976,20 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(venueLabel('polymarket')).toBe('Polymarket');
   });
   it("Polymarket's card is every test on it summed: RW and RW-E (the first version kept RW's card and dropped RW-E's)", () => {
-    // RW as above; RW-E the sweep's figures: $235 at work, 5.60 deployed, today 7.50, unrealised −1.20 on D's No (cost
-    // 20 × 0.34), realised 23.60 = rewards 23.20 + orders 0.40.
+    // RW as above; RW-E the sweep's figures: $235 at work and $1,000 funded, 5.60 deployed, today 7.50, unrealised −1.20
+    // on D's No (cost 20 × 0.34), realised 23.60 = rewards 23.20 + orders 0.40.
     const e = { ...r, capitalUsd: 235, totalUsd: 22.4, rewardUsd: 23.2, realisedUsd: 23.6, unrealisedUsd: -1.2, todayUsd: 7.5, heldUsd: 5.6, open: 1,
       markets: [{ net: -20, avgCost: 0.66 }] };
     const tests = [rwRow(r), rweRow(e)];
     const pm = venueRows({ strategies: [], venues: [] }, 'testing', tests).find((c) => c.id === 'polymarket');
-    expect([pm?.capitalUsd, pm?.valueUsd, pm?.todayUsd, pm?.unrealisedUsd, pm?.realisedUsd, pm?.tests]).toEqual([531, 45.6, 27.5, -2.2, 84.6, 2]);
-    // Unrealised on the two inventories' cost (40 + 6.8); realised and today on the capital; the split adds up to realised.
+    // Funded is the two caps, $1,000 each (Davies, 2026-09-26), not the $296 + $235 the two have at work today.
+    expect([pm?.capitalUsd, pm?.valueUsd, pm?.todayUsd, pm?.unrealisedUsd, pm?.realisedUsd, pm?.tests]).toEqual([2000, 45.6, 27.5, -2.2, 84.6, 2]);
+    // Unrealised on the two inventories' cost (40 + 6.8); realised and today on the funded; the split adds up to realised.
     expect(pm?.unrealisedPct).toBeCloseTo((-2.2 / 46.8) * 100, 12);
-    expect(pm?.realisedPct).toBeCloseTo((84.6 / 531) * 100, 12);
+    expect(pm?.realisedPct).toBeCloseTo((84.6 / 2000) * 100, 12);
     expect([pm?.test?.rewards?.realisedUsd, pm?.test?.orders?.realisedUsd]).toEqual([62 + 23.2, (61 - 62) + 0.4]);
     // One test on a venue is that test's own card, as before.
-    expect(venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r)])[0]).toMatchObject({ tests: 1, capitalUsd: 296, test: { id: RW_ROW_ID } });
+    expect(venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r)])[0]).toMatchObject({ tests: 1, capitalUsd: 1000, test: { id: RW_ROW_ID } });
   });
   it("RW-E is a row of its own (Davies, 2026-09-26): RW's row read from RW-E's summary, under its own id and name", () => {
     const e = rweRow(r);
@@ -1058,8 +1062,9 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(printed(row?.rewards.unrealisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(row?.unrealisedUsd));
     expect(row?.rewards.realisedUsd).toBe(view?.rewardUsd);                                  // one rewards figure on the page
     expect(printed(row?.orders.realisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(view?.ordersUsd));
-    // The row the table shows and the page's scoreboard are one object: the realised the table prints is the page's.
-    expect(row?.realisedPct).toBeCloseTo((55.76 / 296) * 100, 12);
+    // The row the table shows and the page's scoreboard are one object: the realised the table prints is the page's,
+    // on the $1,000 cap.
+    expect(row?.realisedPct).toBeCloseTo((55.76 / 1000) * 100, 12);
   });
 });
 

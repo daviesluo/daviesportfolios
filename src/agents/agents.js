@@ -1386,8 +1386,10 @@ export function rwView(r) {
 }
 
 /**
- * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is what its
- * markets have at work today (each market's first quote and its largest inventory, the spec's capital); unrealised is
+ * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is the $1,000
+ * it is funded with (the dashboard's `fundedUsd`; Davies, 2026-09-26: a cap like every other strategy's), the base of
+ * its today and realised percents; what its markets have at work each day (each market's first quote and its largest
+ * inventory, the spec's capital) stays in its days table. A payload from before `fundedUsd` falls back to that. Unrealised is
  * the open inventory at the adjusted mid against its average cost, as a percent of what it holds; realised is the
  * rewards and what closed trades made. Realised and unrealised come to the cent from `rwSplit`, against the total
  * RW's page prints beside them, so wherever the two show they add up to it; the split is on the row too, for the page's
@@ -1396,7 +1398,7 @@ export function rwView(r) {
  */
 export function rwRow(r) {
   if (!r) return null;
-  const capital = Number(r.capitalUsd) || 0, held = Number(r.heldUsd) || 0;
+  const capital = Number(r.fundedUsd) || Number(r.capitalUsd) || 0, held = Number(r.heldUsd) || 0;
   const pct = (usd, base) => (base > 0 ? (Number(usd) / base) * 100 : null);
   const quoting = Number(r.quoting) || 0;
   const split = rwSplit(r);
