@@ -1,0 +1,252 @@
+{
+ "committed": {
+  "inputs/uslate_exploration_2026-09.json.gz": {
+   "bytes": 315806,
+   "sha256": "9746aeb1cf4ed8d6d3a15d0fb50558df719dd8992542de9b572f378e835a87a9"
+  },
+  "results/awc_receipt_lags.json": {
+   "bytes": 5046,
+   "sha256": "6f3509a0ddad414a88b82aea70ca3ae6681f7ef681449978d7e06f859a197501"
+  },
+  "results/phase1_basis.json": {
+   "bytes": 54535,
+   "sha256": "ba85ae4efd35d44c9f9269af5b163752e9a0968d083d63b4fecc2c375f6a1da3"
+  },
+  "results/phase1_counts.json": {
+   "bytes": 66301,
+   "sha256": "eb6dd1225e23dd984287b1466b277a941e105543695bc4100159d8262c804875"
+  },
+  "results/phase1_temperature.json": {
+   "bytes": 14018,
+   "sha256": "6440d01f34ca4c56790237a9e11c88296db0528f7ad93e739bce313062168ff2"
+  },
+  "results/phase1_universe.json": {
+   "bytes": 4372,
+   "sha256": "36fe1b78e503b7816bc5c0656a2830e0d55390a6f4ee1dbae4b1c6ec576fe778"
+  },
+  "results/rw_mechanism.json": {
+   "bytes": 31361,
+   "sha256": "3ab610b7cfe239c08a8a696060a071369417dd81352c1160baf71f5c9c43ef02"
+  },
+  "results/rw_record.json": {
+   "bytes": 4349,
+   "sha256": "c78fb22d89c6b46a527708689b44d9d122accd37eb236c269189d52e53b48928"
+  },
+  "results/uslate_exploration_2026-09.json": {
+   "bytes": 5006,
+   "sha256": "f65ccf41c8bce1301c34f4f4eec05eccf9a557bf663cc7eeb63d3925ea0d3fbf"
+  },
+  "rw_conds.txt": {
+   "bytes": 938,
+   "sha256": "bceed7a57f17ff588a225797b377ffbc0c1c7481617278d4e84bf766656e3b32"
+  },
+  "scripts/basis.py": {
+   "bytes": 5384,
+   "sha256": "54298148dcfe2a460c8c3b2ffb3be434ecdf86d514b4bf168840202178219def"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 4554,
+   "sha256": "7781f48f5c2899dc1d292b3fb9c336ecbd9f4162028f0d1a7dcf82f9eef545f1"
+  },
+  "scripts/common.py": {
+   "bytes": 8920,
+   "sha256": "3671473018143421c791d3131226a8cae6fbc8960a871a0bc022ed053361d9bf"
+  },
+  "scripts/count_common.py": {
+   "bytes": 2823,
+   "sha256": "7dce6b1d7bd2556279a0af6c320a840bec1bc2c557091af0d0bf0cc90a8fdb65"
+  },
+  "scripts/count_measure.py": {
+   "bytes": 10480,
+   "sha256": "bbc36a8912e9310074d0607350900d12c234d2cef11b41f69c2bf7e2d57b132a"
+  },
+  "scripts/count_prints.py": {
+   "bytes": 3491,
+   "sha256": "8daed363995b8c75061715147f33bc067def1ccc7301c22ccf6b2c68cc996ffe"
+  },
+  "scripts/count_universe.py": {
+   "bytes": 3264,
+   "sha256": "aab03976d78ef86b5227dd1faa6875f061b18dadd15e3238baad1a8c1239fc0f"
+  },
+  "scripts/explore.py": {
+   "bytes": 12930,
+   "sha256": "f1dba49b6c9141a8ad59999e2c8059baab1ce552871e48a92b94fd8cfaf5c3ab"
+  },
+  "scripts/lags.py": {
+   "bytes": 2326,
+   "sha256": "b77e990610792620b4f91565e18b6f3d41c8fc06635dc4edb26b4c6f4d1bb773"
+  },
+  "scripts/metar.py": {
+   "bytes": 5909,
+   "sha256": "c3072921cdb32263fb1a738d781966a09c3171af3c27bf81e7244720b8410000"
+  },
+  "scripts/obs_pull.py": {
+   "bytes": 2891,
+   "sha256": "e00e7a430dc94d0b30a15e04b4198b5973fdbcf8d6446f8e49a6b8a772c65b77"
+  },
+  "scripts/phase1_results.py": {
+   "bytes": 10452,
+   "sha256": "8ce10392a0c688718337c64f1acd212588c2855164ee76c88c2305fdce20c6a8"
+  },
+  "scripts/prints_pull.py": {
+   "bytes": 3265,
+   "sha256": "a277d1d14924ab38c00d1317f7d2f5a59da653a7809f40fe8a31b3847841f307"
+  },
+  "scripts/probe_trades_params.py": {
+   "bytes": 748,
+   "sha256": "85c17326d68eb7801dbc38d13b39582170bbe50a6c96478b6c9d451fc9cac15d"
+  },
+  "scripts/rw_counts.py": {
+   "bytes": 6089,
+   "sha256": "c4bfa1c77e20ae9e984f21657be4b45736566a741bd8b3e8362e40c9c5cd029d"
+  },
+  "scripts/rw_events.py": {
+   "bytes": 2558,
+   "sha256": "e57acfc006d428344c8e8751e222c93e7dea7b9bc9df0003b75d0a991d5577ed"
+  },
+  "scripts/rw_mechanism.py": {
+   "bytes": 6615,
+   "sha256": "57f7024286fc230068883de60183b7711606d48f8720f6e4820ec1c34a5019d6"
+  },
+  "scripts/rw_window.py": {
+   "bytes": 1546,
+   "sha256": "dbb8fbf084b8f4ea724b4a65d1551edd9814923e87a24e3ffd6dc068f631e43f"
+  },
+  "scripts/stations.py": {
+   "bytes": 4696,
+   "sha256": "0aea060990996bf42ae684ec2b3febed964be6543ba799365f51bde2817ec09a"
+  },
+  "scripts/tag_coverage.py": {
+   "bytes": 584,
+   "sha256": "f033c63c8ecaf33afc0fbb4da16c6054a77af35a6afe9058f9be0356292cb720"
+  },
+  "scripts/universe.py": {
+   "bytes": 3106,
+   "sha256": "6d06285d5064f9cd02e986e7e79719891eedbaa299a307f644931a6bd575a030"
+  },
+  "scripts/universe_wx.py": {
+   "bytes": 2883,
+   "sha256": "9d447ccc3019720143770b932196d10da5823defb51e91d9573558d5afc69335"
+  },
+  "scripts/uslate_inputs.py": {
+   "bytes": 5302,
+   "sha256": "388ce2d14ea4a9e9a6638580cc5c7ecd85478e174b81f5d8c6c6a48ef880783e"
+  },
+  "scripts/uslate_test.py": {
+   "bytes": 9339,
+   "sha256": "e3c2ac24c9a138a0fb8d453e836207c81813f3bd3278a1787017c367244725ae"
+  }
+ },
+ "raw_pulls_not_committed": {
+  "awc/": {
+   "bytes": 1501653,
+   "digest": "71c164a5f8ff58b0d3967b0a7f11715b7fa78369ad8787ecfc521e35a997075f",
+   "files": 460
+  },
+  "basis_all.json.gz": {
+   "bytes": 4437,
+   "sha256": "9f5c0282d232e7324501eec658516b50c5bb5b9cd58a4dc00efd102cb11a57fc"
+  },
+  "count/desc/": {
+   "bytes": 206120,
+   "digest": "08169a8ff87a3f74cfb61d888c566ee9b9efde857e8640ddf05f6a819d7e199f",
+   "files": 403
+  },
+  "count/prints/": {
+   "bytes": 6718711,
+   "digest": "fa8b4d4510b0bb6baf40d739e71f20f90680d7cbf87edfc3c5f2d03acc9c55f1",
+   "files": 403
+  },
+  "count/rw_count_markets.json.gz": {
+   "bytes": 3546,
+   "sha256": "3d4599dad35f4e70a908f12856c74fbf50cb4801c1236c813032d9b89e3c211a"
+  },
+  "count/universe_2025-09-26_2026-09-27.json.gz": {
+   "bytes": 1490251,
+   "sha256": "f8cbb95a56f822f340c0056449eb614c89e2da4f177db3097598a88188526159"
+  },
+  "count/universe_2025-09-26_2026-09-27.json.tmp": {
+   "bytes": 4571136,
+   "sha256": "2933df81ccf3546ca6457f8635bc8c29cc7a10047d97119cc4b5d18fb50f7f28"
+  },
+  "count/xt/": {
+   "bytes": 657394,
+   "digest": "023469f29ba65a5eb9718b59b9f662b6a53aa270dc7c1380ad05603728d53a24",
+   "files": 396
+  },
+  "count/xt_realDonaldTrump_2026-09-18T16_2026-09-25T15.json.gz": {
+   "bytes": 1967,
+   "sha256": "8288a1ab172dd17f5d13c4485066068cfbd86c563ae845340903d2d0101806aa"
+  },
+  "count_measure.json.gz": {
+   "bytes": 89932,
+   "sha256": "3715fa0f451544357798d9ecf6d80ed33898e8bbf77ae7f7e3293543f4cf03cc"
+  },
+  "count_measure2.json.gz": {
+   "bytes": 93846,
+   "sha256": "6baec769de0bc7c226232ffed81181b12c217b7b637eccef2678ae021e7ce9ab"
+  },
+  "explore_sep.json.gz": {
+   "bytes": 850106,
+   "sha256": "de038c9367781da146928867a212b009f599e9b49285a59ceb4e6065dc8384d6"
+  },
+  "iem/": {
+   "bytes": 849597,
+   "digest": "94bd5d8e45184434cf0cab2818dad1c9367bfa852d44445e6e5b498c1705f291",
+   "files": 60
+  },
+  "obs/": {
+   "bytes": 7915365,
+   "digest": "eca4751e049603f57aad34024bb619ffc7770b159ed9863f85d19fa388e03911",
+   "files": 55
+  },
+  "prints/": {
+   "bytes": 33598103,
+   "digest": "7817600ece70a312dd8ba8998d2a65043ec3852413684565e7f9c564b24d5ce5",
+   "files": 2697
+  },
+  "rw/events.json.gz": {
+   "bytes": 20745,
+   "sha256": "379d891671931fe9a95823757baf4e3c92e0edba4444d6b6d54fd90681010712"
+  },
+  "rw/mechanism.json.gz": {
+   "bytes": 11776,
+   "sha256": "2b67e4fef2481f8dfcff458755cef16aab6be1b67216784b9f10a9b094f074a3"
+  },
+  "univ/events_2026-09-01_2026-09-27.json.gz": {
+   "bytes": 4766381,
+   "sha256": "8a76131bfc741be5d2a8ad84679c9effcf91b02dea6846f68f3d11cae367b0ce"
+  },
+  "univ/events_wx.json.gz": {
+   "bytes": 6716647,
+   "sha256": "1427caed769c4d75c4c678aa053357c55a55e16293eb906fa223e2d9ff1db426"
+  },
+  "uslate_sep_all.json.gz": {
+   "bytes": 1489654,
+   "sha256": "56560628d574fa97f6906f7d53405d6d61b40753e95e918abed939ee42f12292"
+  },
+  "uslate_sep_all_result.json": {
+   "bytes": 5961,
+   "sha256": "a1078d4473611fc5e3f111f3586cf0141d7fe04bfe45a5d44d4eaf6ed5063f61"
+  },
+  "uslate_sep_us.json.gz": {
+   "bytes": 315806,
+   "sha256": "9746aeb1cf4ed8d6d3a15d0fb50558df719dd8992542de9b572f378e835a87a9"
+  }
+ },
+ "raw_total_bytes": 71879134,
+ "raw_total_files": 4489,
+ "sources": {
+  "count/desc/ev_<event>.json.gz": "GET https://gamma-api.polymarket.com/events/<event> (count_measure.py)",
+  "count/prints/ev_<event>.json.gz": "GET https://data-api.polymarket.com/v2/trades?event_id=<event>&limit=1000&cursor=\u2026&_=<ms> (count_prints.py)",
+  "count/universe_<from>_<to>.json.gz": "GET https://gamma-api.polymarket.com/events?tag_id=972|146&closed=true&end_date_min=\u2026&end_date_max=\u2026&limit=100&offset=<k> (count_universe.py)",
+  "count/xt/xt_<handle>_<start>_<end>.json.gz": "GET https://xtracker.polymarket.com/api/users/<handle>/posts?startDate=<iso>&endDate=<iso> (count_common.xt_posts)",
+  "obs/<ICAO>.json.gz": "GET https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py?station=<id>&data=metar&report_type=3|4&tz=Etc/UTC&format=onlycomma&\u2026 ; GET https://aviationweather.gov/api/data/metar?ids=<ICAO>&format=json&date=<end>&hours=72 (obs_pull.py, metar.py)",
+  "prints/<condition>.json.gz": "GET https://data-api.polymarket.com/v2/trades?condition=<condition>&limit=1000&cursor=\u2026&_=<ms> (common.prints_of)",
+  "prints/ev_<event>.json.gz": "GET https://data-api.polymarket.com/v2/trades?event_id=<event>&limit=1000&cursor=\u2026&_=<ms> (prints_pull.py)",
+  "rw/events.json.gz": "GET https://gamma-api.polymarket.com/markets?condition_ids=\u2026 and /events/<id> (rw_events.py)",
+  "univ/events_<from>_<to>.json.gz": "GET https://gamma-api.polymarket.com/events?tag_id=103040&end_date_min=<day>T00:00:00Z&end_date_max=<day+1>T00:00:00Z&limit=100&offset=<k> (universe.py)",
+  "univ/events_wx.json.gz": "fp4's committed polymarket/inputs/wx_inputs.json.gz + GET https://gamma-api.polymarket.com/markets?closed=true&condition_ids=\u2026 (universe_wx.py)"
+ },
+ "study": "PMLATE (phase 1): the informed taker on Polymarket's same-day temperature and count markets"
+}

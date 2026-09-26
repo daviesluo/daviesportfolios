@@ -1,0 +1,240 @@
+{
+ "bar": {
+  "1_total_and_halves_positive": true,
+  "2_above_null_p95": true,
+  "3_stress_positive": true,
+  "4_at_least_60_buckets_on_25_dates": false,
+  "5_date_bootstrap_p5_positive": true,
+  "6_best_date_under_40pct_and_rest_positive": true,
+  "7_worth_money_4pct_a_year_on_peak_capital": true
+ },
+ "best_date": {
+  "date": "2026-09-03",
+  "pnl": 69.077702
+ },
+ "by_date": {
+  "2026-09-01": 16.628538,
+  "2026-09-02": 0.152983,
+  "2026-09-03": 69.077702,
+  "2026-09-05": 31.464744,
+  "2026-09-06": 0.556102,
+  "2026-09-08": 0.213906,
+  "2026-09-13": 1.271232,
+  "2026-09-14": 0.0951,
+  "2026-09-18": 7.9137,
+  "2026-09-19": 28.174499,
+  "2026-09-20": 34.570284,
+  "2026-09-22": 1.867059,
+  "2026-09-24": 1.778428,
+  "2026-09-25": 0.544846
+ },
+ "date_bootstrap": {
+  "draws": 2000,
+  "p5": 81.865845,
+  "p50": 187.319848
+ },
+ "descriptive": {
+  "by_source": {
+   "nws": {
+    "annualised_on_peak": 2.267622,
+    "bucket_deaths": 54,
+    "cost": 3686.589762,
+    "dates": 14,
+    "fees": 8.653556,
+    "fills": 267,
+    "peak_capital": 1202.934954,
+    "pnl": 194.309124,
+    "wrong_bucket_deaths": 0,
+    "wrong_cost": 0,
+    "wrong_pnl": 0
+   }
+  },
+  "g_min_0.005": {
+   "annualised_on_peak": 2.151383,
+   "bucket_deaths": 62,
+   "cost": 3828.817064,
+   "dates": 15,
+   "fees": 8.192272,
+   "fills": 248,
+   "peak_capital": 1207.909954,
+   "pnl": 185.111196,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "g_min_0.02": {
+   "annualised_on_peak": 2.324236,
+   "bucket_deaths": 42,
+   "cost": 2655.750808,
+   "dates": 11,
+   "fees": 8.426111,
+   "fills": 186,
+   "peak_capital": 1148.617612,
+   "pnl": 190.167453,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "g_min_0.05": {
+   "annualised_on_peak": 2.494296,
+   "bucket_deaths": 23,
+   "cost": 1946.614871,
+   "dates": 6,
+   "fees": 8.608205,
+   "fills": 182,
+   "peak_capital": 1100.0,
+   "pnl": 195.44346,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "lag_p50_plus_60s": {
+   "annualised_on_peak": 5.035463,
+   "bucket_deaths": 106,
+   "cost": 6783.007152,
+   "dates": 22,
+   "fees": 19.007953,
+   "fills": 361,
+   "peak_capital": 1278.621289,
+   "pnl": 458.629354,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "lag_p90_plus_300s": {
+   "annualised_on_peak": 2.164786,
+   "bucket_deaths": 51,
+   "cost": 3619.96027,
+   "dates": 13,
+   "fees": 8.295666,
+   "fills": 240,
+   "peak_capital": 1202.934954,
+   "pnl": 185.497329,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "lag_p90_plus_600s": {
+   "annualised_on_peak": 2.122716,
+   "bucket_deaths": 47,
+   "cost": 3551.14627,
+   "dates": 12,
+   "fees": 8.119623,
+   "fills": 245,
+   "peak_capital": 1202.934954,
+   "pnl": 181.892376,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "non_us_only": {
+   "annualised_on_peak": null,
+   "bucket_deaths": 0,
+   "cost": 0,
+   "dates": 0,
+   "fees": 0,
+   "fills": 0,
+   "peak_capital": 0.0,
+   "pnl": 0,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "share_100pct": {
+   "annualised_on_peak": 2.638317,
+   "bucket_deaths": 54,
+   "cost": 4058.676125,
+   "dates": 14,
+   "fees": 9.862688,
+   "fills": 193,
+   "peak_capital": 1205.869908,
+   "pnl": 226.625031,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "uncapped": {
+   "annualised_on_peak": 0.617864,
+   "bucket_deaths": 54,
+   "cost": 33935.726563,
+   "dates": 14,
+   "fees": 50.385158,
+   "fills": 1410,
+   "peak_capital": 23912.23463,
+   "pnl": 1052.431529,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  },
+  "us_only": {
+   "annualised_on_peak": 2.267622,
+   "bucket_deaths": 54,
+   "cost": 3686.589762,
+   "dates": 14,
+   "fees": 8.653556,
+   "fills": 267,
+   "peak_capital": 1202.934954,
+   "pnl": 194.309124,
+   "wrong_bucket_deaths": 0,
+   "wrong_cost": 0,
+   "wrong_pnl": 0
+  }
+ },
+ "halves": {
+  "first": 119.365208,
+  "second": 74.943916
+ },
+ "input": {
+  "buckets_decided": 3020,
+  "counts": {
+   "buckets_decided": 3020,
+   "events": 550,
+   "no_metar_station": 48
+  },
+  "events": 550,
+  "from": "2026-09-01",
+  "stations": "us",
+  "to": "2026-09-27"
+ },
+ "null": {
+  "draws": 10000,
+  "mean": -8.963261,
+  "p95": 119.927874,
+  "p_value": 0.0
+ },
+ "passes": false,
+ "primary": {
+  "annualised_on_peak": 2.267622,
+  "bucket_deaths": 54,
+  "cost": 3686.589762,
+  "dates": 14,
+  "fees": 8.653556,
+  "fills": 267,
+  "peak_capital": 1202.934954,
+  "pnl": 194.309124,
+  "wrong_bucket_deaths": 0,
+  "wrong_cost": 0,
+  "wrong_pnl": 0
+ },
+ "rule": {
+  "cap_usd": 100.0,
+  "extra_s": 90,
+  "g_min": 0.01,
+  "lag": "station p90 AWC receipt delay",
+  "seed": 20260926,
+  "share": 0.5
+ },
+ "stress": {
+  "annualised_on_peak": 1.964937,
+  "bucket_deaths": 54,
+  "cost": 3688.04247,
+  "dates": 14,
+  "fees": 15.756672,
+  "fills": 267,
+  "peak_capital": 1202.937919,
+  "pnl": 168.372976,
+  "wrong_bucket_deaths": 0,
+  "wrong_cost": 0,
+  "wrong_pnl": 0
+ }
+}

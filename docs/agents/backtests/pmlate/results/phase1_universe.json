@@ -1,0 +1,253 @@
+{
+ "count_family_events_2025-09-26_to_2026-09-26": {
+  "posts:None": {
+   "events": 6,
+   "volume_usd": 1208604
+  },
+  "posts:andrew-tate-tweets": {
+   "events": 7,
+   "volume_usd": 1000556
+  },
+  "posts:cz-tweets": {
+   "events": 53,
+   "volume_usd": 1388522
+  },
+  "posts:elon-tweet-daily": {
+   "events": 11,
+   "volume_usd": 35808340
+  },
+  "posts:elon-tweet-mention": {
+   "events": 13,
+   "volume_usd": 128094
+  },
+  "posts:elon-tweets": {
+   "events": 106,
+   "volume_usd": 1176266742
+  },
+  "posts:elon-tweets-48h": {
+   "events": 116,
+   "volume_usd": 193658344
+  },
+  "posts:khamenei-daily-tweets": {
+   "events": 55,
+   "volume_usd": 1134894
+  },
+  "posts:nycmayor-tweets": {
+   "events": 54,
+   "volume_usd": 960941
+  },
+  "posts:ted-cruz-daily-tweets": {
+   "events": 54,
+   "volume_usd": 1090004
+  },
+  "posts:trump-truth-social": {
+   "events": 65,
+   "volume_usd": 12914710
+  },
+  "posts:whitehouse-daily-tweets": {
+   "events": 55,
+   "volume_usd": 4458913
+  },
+  "posts:zelenskyy-tweets": {
+   "events": 54,
+   "volume_usd": 1210299
+  },
+  "youtube:100m-views-on-a-mrbeast-video": {
+   "events": 3,
+   "volume_usd": 351122
+  },
+  "youtube:None": {
+   "events": 56,
+   "volume_usd": 17882781
+  },
+  "youtube:all-in-podcast": {
+   "events": 2,
+   "volume_usd": 72291
+  },
+  "youtube:googl-kpis": {
+   "events": 1,
+   "volume_usd": 14946
+  },
+  "youtube:greg-goes-all-in": {
+   "events": 3,
+   "volume_usd": 23556
+  },
+  "youtube:gta-vi-extended-look-views": {
+   "events": 3,
+   "volume_usd": 2596724
+  },
+  "youtube:marques-brownlee-views-day-1": {
+   "events": 2,
+   "volume_usd": 110778
+  },
+  "youtube:marques-brownlee-views-week-1": {
+   "events": 1,
+   "volume_usd": 193805
+  },
+  "youtube:mrbeast-gaming-mentions": {
+   "events": 6,
+   "volume_usd": 122243
+  },
+  "youtube:mrbeast-gaming-views": {
+   "events": 8,
+   "volume_usd": 738019
+  },
+  "youtube:mrbeast-mentions": {
+   "events": 15,
+   "volume_usd": 1209582
+  },
+  "youtube:mrbeast-views-day-1": {
+   "events": 124,
+   "volume_usd": 61685047
+  },
+  "youtube:mrbeast-views-week-1": {
+   "events": 33,
+   "volume_usd": 29981875
+  },
+  "youtube:outdoor-boys-new-video": {
+   "events": 1,
+   "volume_usd": 34493
+  },
+  "youtube:pewdiepie-views-day-1": {
+   "events": 1,
+   "volume_usd": 63589
+  },
+  "youtube:pewdiepie-views-week-1": {
+   "events": 1,
+   "volume_usd": 123484
+  },
+  "youtube:rogan-mentions": {
+   "events": 33,
+   "volume_usd": 1624734
+  },
+  "youtube:sidemen-views-day-1": {
+   "events": 3,
+   "volume_usd": 67736
+  },
+  "youtube:sidemen-views-week-1": {
+   "events": 2,
+   "volume_usd": 519308
+  },
+  "youtube:stokes-twins-views-day-1": {
+   "events": 2,
+   "volume_usd": 275650
+  },
+  "youtube:stokes-twins-views-week-1": {
+   "events": 3,
+   "volume_usd": 380714
+  },
+  "youtube:top-twitch-streamer": {
+   "events": 1,
+   "volume_usd": 3036
+  },
+  "youtube:vegas-matt": {
+   "events": 2,
+   "volume_usd": 5164
+  },
+  "youtube:will-mrbeast-hit-billion-views": {
+   "events": 7,
+   "volume_usd": 2910174
+  },
+  "youtube:will-mrbeast-hit-million-subscribers": {
+   "events": 7,
+   "volume_usd": 2949046
+  },
+  "youtube:youtube-music-views": {
+   "events": 4,
+   "volume_usd": 7829
+  }
+ },
+ "temperature_events_by_month": {
+  "2025-01": {
+   "US": 9,
+   "non-US": 8
+  },
+  "2025-02": {
+   "US": 28,
+   "non-US": 28
+  },
+  "2025-03": {
+   "US": 31,
+   "non-US": 31
+  },
+  "2025-04": {
+   "US": 30,
+   "non-US": 30
+  },
+  "2025-05": {
+   "US": 30,
+   "non-US": 31
+  },
+  "2025-06": {
+   "US": 30,
+   "non-US": 30
+  },
+  "2025-07": {
+   "US": 31,
+   "non-US": 31
+  },
+  "2025-08": {
+   "US": 31,
+   "non-US": 31
+  },
+  "2025-09": {
+   "US": 30,
+   "non-US": 30
+  },
+  "2025-10": {
+   "US": 31,
+   "non-US": 31
+  },
+  "2025-11": {
+   "US": 30,
+   "non-US": 30
+  },
+  "2025-12": {
+   "US": 85,
+   "non-US": 85
+  },
+  "2026-01": {
+   "US": 144,
+   "non-US": 144
+  },
+  "2026-02": {
+   "US": 169,
+   "non-US": 198
+  },
+  "2026-03": {
+   "HKO": 14,
+   "US": 216,
+   "non-US": 465
+  },
+  "2026-04": {
+   "HKO": 38,
+   "US": 348,
+   "non-US": 1020
+  },
+  "2026-05": {
+   "HKO": 61,
+   "US": 409,
+   "non-US": 1266
+  },
+  "2026-06": {
+   "HKO": 60,
+   "US": 379,
+   "non-US": 1163
+  },
+  "2026-07": {
+   "HKO": 62,
+   "US": 402,
+   "non-US": 1208
+  },
+  "2026-08": {
+   "HKO": 62,
+   "US": 502,
+   "non-US": 1600
+  },
+  "2026-09": {
+   "HKO": 52,
+   "US": 572,
+   "non-US": 2020
+  }
+ }
+}

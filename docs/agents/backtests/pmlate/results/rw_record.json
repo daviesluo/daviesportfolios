@@ -1,0 +1,29 @@
+{
+ "note": "RW's paper record for its same-day market-days before 2026-09-27 00:00 UTC, read 2026-09-26 ~21:30 UTC from production with SELECT only (project flmvxigozjuizpckllvk). pnl_at_payout = RW's fills settled at each market's payout (three not yet settled at the read — NYC 58-59 lo 09-26, Paris 14 and 15 lo 09-26 — taken at the reports' verdict, 0). The report timelines are in rw_mechanism.json.",
+ "queries": {
+  "temperature_fills": "with k(cond,label,dead_obs,dead_pub,payout_known) as (values …) select k.label, count(f.*), sum(bid shares), sum(ask shares), sum(case when side='bid' then size*(payout-price) else size*(price-payout) end), … from k left join public.pm_rw_fills f on f.cond=k.cond and f.ts < '2026-09-27' group by k.label, k.cond",
+  "rewards": "select sum(reward) from public.pm_rw_minutes where cond = <cond> and minute < '2026-09-27'",
+  "count_fills_by_hour": "select left(cond,10), date_trunc('hour', ts), side, count(*), sum(size), avg(price), min(ts), max(ts) from public.pm_rw_fills where cond in (<Trump 100-119>, <MrBeast 70-80M>) and ts < '2026-09-27' group by 1,2,3"
+ },
+ "temperature_market_days": [
+  {"market": "Austin 94-95F high 09-24", "fills": 10, "bid_shares": 106.77, "ask_shares": 40, "pnl_at_payout": -8.55, "reward": 0.41, "fills_in_15min_before_receipt": 3, "fills_after_receipt": 0},
+  {"market": "Los Angeles 76-77F high 09-24 (won)", "fills": 24, "bid_shares": 123.39, "ask_shares": 160.54, "pnl_at_payout": -24.90, "reward": 2.24},
+  {"market": "San Francisco 78-79F high 09-24", "fills": 26, "bid_shares": 161.84, "ask_shares": 148.35, "pnl_at_payout": 6.93, "reward": 1.48},
+  {"market": "Jinan 24C high 09-25", "fills": 8, "bid_shares": 83.57, "ask_shares": 8.69, "pnl_at_payout": -10.69, "reward": 6.18},
+  {"market": "Jinan 26C+ high 09-25 (won)", "fills": 7, "bid_shares": 30, "ask_shares": 55, "pnl_at_payout": 9.36, "reward": 4.50},
+  {"market": "Qingdao 22C high 09-25 (won)", "fills": 26, "bid_shares": 123.14, "ask_shares": 197.41, "pnl_at_payout": -6.48, "reward": 11.06},
+  {"market": "Paris 12C low 09-25", "fills": 4, "bid_shares": 65, "ask_shares": 0, "pnl_at_payout": -1.66, "reward": 4.05},
+  {"market": "Paris 13C low 09-25", "fills": 3, "bid_shares": 60, "ask_shares": 0, "pnl_at_payout": -3.26, "reward": 4.55},
+  {"market": "Seoul 18C low 09-25", "fills": 24, "bid_shares": 165.76, "ask_shares": 157.66, "pnl_at_payout": 1.93, "reward": 31.25},
+  {"market": "Seoul 19C low 09-25 (won)", "fills": 20, "bid_shares": 98.13, "ask_shares": 170.52, "pnl_at_payout": -10.32, "reward": 28.19},
+  {"market": "Wellington 15C high 09-26 (won)", "fills": 59, "bid_shares": 278.65, "ask_shares": 340.27, "pnl_at_payout": -26.79, "reward": 5.30},
+  {"market": "NYC 58-59F low 09-26", "fills": 5, "bid_shares": 60, "ask_shares": 22.15, "pnl_at_payout": -10.05, "reward": 2.30, "fills_after_receipt": 1},
+  {"market": "Paris 14C low 09-26", "fills": 5, "bid_shares": 49.03, "ask_shares": 0, "pnl_at_payout": -19.10, "reward": 6.85},
+  {"market": "Paris 15C low 09-26", "fills": 6, "bid_shares": 40, "ask_shares": 49.13, "pnl_at_payout": 7.15, "reward": 2.00}
+ ],
+ "temperature_totals": {"market_days": 14, "fills": 227, "pnl_at_payout": -96.43, "reward": 110.36},
+ "count_market_days": {
+  "Trump 100-119 posts, 18-25 Sep (won)": {"ask_fills": [[ "2026-09-25 01:56:44", 20.0, 0.586], ["2026-09-25 03:45:35", 1.1, 0.879], ["2026-09-25 10:19:45 .. 10:23:57", 41.7, 0.629], ["2026-09-25 14:17:38", 20.0, 0.958], ["2026-09-25 15:50:50 .. 15:58:45", 40.0, 0.996]], "bid_fills": [["2026-09-25 09:36:06", 2.5, 0.521], ["2026-09-25 13:51:14", 1.1, 0.723], ["2026-09-25 15:32:02 .. 15:50:24", 42.3, 0.987]], "coordinator_figures": {"rewards": 2.20, "fills": -27.23, "stress": -26.29, "fills_n": 13}},
+  "MrBeast 70-80M week-1 views (won)": {"ask_shares_by_hour_utc_26sep": {"01": [30.1, 0.607], "02": [62.5, 0.510], "03": [239.7, 0.634], "04": [30.4, 0.670], "05": [20.0, 0.880], "06": [70.1, 0.917], "08": [54.0, 0.980], "09": [53.6, 0.989], "11": [13.8, 0.995]}, "bid_shares_by_hour_utc_26sep": {"00": [60.0, 0.653], "02": [40.0, 0.635], "03": [186.2, 0.618], "05": [40.0, 0.899], "06": [80.0, 0.924], "07": [25.3, 0.957], "08": [40.0, 0.977], "09": [20.0, 0.989], "10": [20.0, 0.989]}, "coordinator_figures": {"rewards": 25.79, "fills": -31.04, "stress": -25.43, "fills_n": 72}}
+ }
+}

@@ -1,0 +1,4867 @@
+{
+ "basis": {
+  "agree_at_close": 356,
+  "agree_at_end": 350,
+  "agree_now": 359,
+  "events": 380,
+  "no_tracker_posts": 18
+ },
+ "by_family": {
+  "elon (sampled)": {
+   "events": 11,
+   "groups": {
+    "informative_held": {
+     "bucket_deaths": 4,
+     "late_100pct_of_prints_uncapped": {
+      "capture+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      }
+     },
+     "windows": {
+      "before_post": {
+       "cost_usd": 378502.76,
+       "net_edge_usd": 269651.46,
+       "share_of_post_edge": null,
+       "stale_prints": 1852
+      },
+      "post+0_60": {
+       "cost_usd": 217246.13,
+       "net_edge_usd": 1887.75,
+       "share_of_post_edge": 0.989,
+       "stale_prints": 50
+      },
+      "post+120_300": {
+       "cost_usd": 22126.04,
+       "net_edge_usd": 21.04,
+       "share_of_post_edge": 0.011,
+       "stale_prints": 12
+      },
+      "post+1h+": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": 0.0,
+       "stale_prints": 0
+      },
+      "post+300_3600": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": 0.0,
+       "stale_prints": 0
+      },
+      "post+60_120": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": 0.0,
+       "stale_prints": 0
+      }
+     }
+    },
+    "other_held": {
+     "bucket_deaths": 74,
+     "late_100pct_of_prints_uncapped": {
+      "capture+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      }
+     },
+     "windows": {
+      "before_post": {
+       "cost_usd": 724009.98,
+       "net_edge_usd": 33031.67,
+       "share_of_post_edge": null,
+       "stale_prints": 2190
+      },
+      "post+0_60": {
+       "cost_usd": 583942.02,
+       "net_edge_usd": 1381.93,
+       "share_of_post_edge": 0.973,
+       "stale_prints": 167
+      },
+      "post+120_300": {
+       "cost_usd": 5209.79,
+       "net_edge_usd": 4.95,
+       "share_of_post_edge": 0.0035,
+       "stale_prints": 5
+      },
+      "post+1h+": {
+       "cost_usd": 18144.22,
+       "net_edge_usd": 17.87,
+       "share_of_post_edge": 0.0126,
+       "stale_prints": 36
+      },
+      "post+300_3600": {
+       "cost_usd": 6328.13,
+       "net_edge_usd": 6.33,
+       "share_of_post_edge": 0.0045,
+       "stale_prints": 15
+      },
+      "post+60_120": {
+       "cost_usd": 9421.5,
+       "net_edge_usd": 9.17,
+       "share_of_post_edge": 0.0065,
+       "stale_prints": 16
+      }
+     }
+    },
+    "wrong": {
+     "bucket_deaths": 0,
+     "late_100pct_of_prints_uncapped": {},
+     "windows": {
+      "before_post": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+0_60": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+120_300": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+1h+": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+300_3600": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+60_120": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      }
+     }
+    }
+   }
+  },
+  "seven smaller series (every event)": {
+   "events": 374,
+   "groups": {
+    "informative_held": {
+     "bucket_deaths": 105,
+     "late_100pct_of_prints_uncapped": {
+      "capture+60s g>=0.005": {
+       "bucket_deaths_with_prints": 9,
+       "cost_usd": 33384.19,
+       "net_edge_usd": 744.79
+      },
+      "capture+60s g>=0.01": {
+       "bucket_deaths_with_prints": 8,
+       "cost_usd": 19989.37,
+       "net_edge_usd": 652.0
+      },
+      "capture+60s g>=0.02": {
+       "bucket_deaths_with_prints": 6,
+       "cost_usd": 13307.1,
+       "net_edge_usd": 569.41
+      },
+      "capture+60s g>=0.05": {
+       "bucket_deaths_with_prints": 4,
+       "cost_usd": 2454.43,
+       "net_edge_usd": 249.11
+      },
+      "post+120s g>=0.005": {
+       "bucket_deaths_with_prints": 27,
+       "cost_usd": 59846.35,
+       "net_edge_usd": 1702.17
+      },
+      "post+120s g>=0.01": {
+       "bucket_deaths_with_prints": 22,
+       "cost_usd": 39427.69,
+       "net_edge_usd": 1571.04
+      },
+      "post+120s g>=0.02": {
+       "bucket_deaths_with_prints": 15,
+       "cost_usd": 26407.33,
+       "net_edge_usd": 1419.9
+      },
+      "post+120s g>=0.05": {
+       "bucket_deaths_with_prints": 10,
+       "cost_usd": 7221.38,
+       "net_edge_usd": 863.22
+      },
+      "post+300s g>=0.005": {
+       "bucket_deaths_with_prints": 13,
+       "cost_usd": 42976.15,
+       "net_edge_usd": 1293.4
+      },
+      "post+300s g>=0.01": {
+       "bucket_deaths_with_prints": 12,
+       "cost_usd": 29565.73,
+       "net_edge_usd": 1202.91
+      },
+      "post+300s g>=0.02": {
+       "bucket_deaths_with_prints": 11,
+       "cost_usd": 18835.11,
+       "net_edge_usd": 1078.21
+      },
+      "post+300s g>=0.05": {
+       "bucket_deaths_with_prints": 8,
+       "cost_usd": 6059.98,
+       "net_edge_usd": 744.28
+      },
+      "post+60s g>=0.005": {
+       "bucket_deaths_with_prints": 45,
+       "cost_usd": 80988.31,
+       "net_edge_usd": 2510.18
+      },
+      "post+60s g>=0.01": {
+       "bucket_deaths_with_prints": 39,
+       "cost_usd": 54004.48,
+       "net_edge_usd": 2332.72
+      },
+      "post+60s g>=0.02": {
+       "bucket_deaths_with_prints": 27,
+       "cost_usd": 36316.74,
+       "net_edge_usd": 2126.06
+      },
+      "post+60s g>=0.05": {
+       "bucket_deaths_with_prints": 16,
+       "cost_usd": 15054.52,
+       "net_edge_usd": 1504.41
+      }
+     },
+     "windows": {
+      "before_post": {
+       "cost_usd": 34830.63,
+       "net_edge_usd": 14454.14,
+       "share_of_post_edge": null,
+       "stale_prints": 771
+      },
+      "post+0_60": {
+       "cost_usd": 76106.05,
+       "net_edge_usd": 4835.77,
+       "share_of_post_edge": 0.63,
+       "stale_prints": 335
+      },
+      "post+120_300": {
+       "cost_usd": 67683.01,
+       "net_edge_usd": 540.8,
+       "share_of_post_edge": 0.0705,
+       "stale_prints": 188
+      },
+      "post+1h+": {
+       "cost_usd": 22371.5,
+       "net_edge_usd": 168.39,
+       "share_of_post_edge": 0.0219,
+       "stale_prints": 111
+      },
+      "post+300_3600": {
+       "cost_usd": 144224.1,
+       "net_edge_usd": 1293.45,
+       "share_of_post_edge": 0.1685,
+       "stale_prints": 500
+      },
+      "post+60_120": {
+       "cost_usd": 35187.02,
+       "net_edge_usd": 837.51,
+       "share_of_post_edge": 0.1091,
+       "stale_prints": 92
+      }
+     }
+    },
+    "other_held": {
+     "bucket_deaths": 1500,
+     "late_100pct_of_prints_uncapped": {
+      "capture+60s g>=0.005": {
+       "bucket_deaths_with_prints": 20,
+       "cost_usd": 31450.53,
+       "net_edge_usd": 335.94
+      },
+      "capture+60s g>=0.01": {
+       "bucket_deaths_with_prints": 16,
+       "cost_usd": 27687.71,
+       "net_edge_usd": 310.58
+      },
+      "capture+60s g>=0.02": {
+       "bucket_deaths_with_prints": 7,
+       "cost_usd": 1688.2,
+       "net_edge_usd": 36.86
+      },
+      "capture+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.005": {
+       "bucket_deaths_with_prints": 60,
+       "cost_usd": 146596.64,
+       "net_edge_usd": 1924.36
+      },
+      "post+120s g>=0.01": {
+       "bucket_deaths_with_prints": 44,
+       "cost_usd": 90487.77,
+       "net_edge_usd": 1533.55
+      },
+      "post+120s g>=0.02": {
+       "bucket_deaths_with_prints": 19,
+       "cost_usd": 23354.06,
+       "net_edge_usd": 705.21
+      },
+      "post+120s g>=0.05": {
+       "bucket_deaths_with_prints": 5,
+       "cost_usd": 1516.13,
+       "net_edge_usd": 200.39
+      },
+      "post+300s g>=0.005": {
+       "bucket_deaths_with_prints": 36,
+       "cost_usd": 128992.89,
+       "net_edge_usd": 1735.38
+      },
+      "post+300s g>=0.01": {
+       "bucket_deaths_with_prints": 27,
+       "cost_usd": 78031.58,
+       "net_edge_usd": 1385.48
+      },
+      "post+300s g>=0.02": {
+       "bucket_deaths_with_prints": 14,
+       "cost_usd": 21988.04,
+       "net_edge_usd": 672.62
+      },
+      "post+300s g>=0.05": {
+       "bucket_deaths_with_prints": 5,
+       "cost_usd": 1516.13,
+       "net_edge_usd": 200.39
+      },
+      "post+60s g>=0.005": {
+       "bucket_deaths_with_prints": 82,
+       "cost_usd": 175171.22,
+       "net_edge_usd": 2287.7
+      },
+      "post+60s g>=0.01": {
+       "bucket_deaths_with_prints": 61,
+       "cost_usd": 112910.09,
+       "net_edge_usd": 1854.37
+      },
+      "post+60s g>=0.02": {
+       "bucket_deaths_with_prints": 27,
+       "cost_usd": 27985.63,
+       "net_edge_usd": 809.3
+      },
+      "post+60s g>=0.05": {
+       "bucket_deaths_with_prints": 9,
+       "cost_usd": 1676.54,
+       "net_edge_usd": 211.52
+      }
+     },
+     "windows": {
+      "before_post": {
+       "cost_usd": 393772.96,
+       "net_edge_usd": 7550.57,
+       "share_of_post_edge": null,
+       "stale_prints": 1790
+      },
+      "post+0_60": {
+       "cost_usd": 289578.73,
+       "net_edge_usd": 1058.96,
+       "share_of_post_edge": 0.2165,
+       "stale_prints": 589
+      },
+      "post+120_300": {
+       "cost_usd": 295232.68,
+       "net_edge_usd": 522.95,
+       "share_of_post_edge": 0.1069,
+       "stale_prints": 866
+      },
+      "post+1h+": {
+       "cost_usd": 519763.51,
+       "net_edge_usd": 2140.41,
+       "share_of_post_edge": 0.4376,
+       "stale_prints": 1940
+      },
+      "post+300_3600": {
+       "cost_usd": 327978.17,
+       "net_edge_usd": 577.85,
+       "share_of_post_edge": 0.1181,
+       "stale_prints": 599
+      },
+      "post+60_120": {
+       "cost_usd": 197835.97,
+       "net_edge_usd": 590.77,
+       "share_of_post_edge": 0.1208,
+       "stale_prints": 340
+      }
+     }
+    },
+    "wrong": {
+     "bucket_deaths": 4,
+     "late_100pct_of_prints_uncapped": {
+      "capture+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "capture+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+120s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+300s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.005": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.01": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.02": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      },
+      "post+60s g>=0.05": {
+       "bucket_deaths_with_prints": 0,
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0
+      }
+     },
+     "windows": {
+      "before_post": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+0_60": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+120_300": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+1h+": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+300_3600": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      },
+      "post+60_120": {
+       "cost_usd": 0.0,
+       "net_edge_usd": 0.0,
+       "share_of_post_edge": null,
+       "stale_prints": 0
+      }
+     }
+    }
+   }
+  }
+ },
+ "capture_lag_s": {
+  "n": 36555,
+  "p10": 31.469000101089478,
+  "p50": 150.5239999294281,
+  "p90": 286.70099997520447,
+  "p99": 257273.19099998474
+ },
+ "tracker_vs_result": [
+  [
+   "cz-tweets",
+   "# posts September 15 - September 22, 2026?",
+   [
+    20,
+    39
+   ],
+   24,
+   24,
+   24
+  ],
+  [
+   "zelenskyy-tweets",
+   "# posts September 15 - September 22, 2026?",
+   [
+    80,
+    99
+   ],
+   93,
+   93,
+   93
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "# posts September 15 - September 22, 2026?",
+   [
+    100,
+    119
+   ],
+   101,
+   101,
+   101
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "# posts September 15 - September 22, 2026?",
+   [
+    200,
+    null
+   ],
+   205,
+   206,
+   206
+  ],
+  [
+   "trump-truth-social",
+   "l posts September 15 - September 22, 2026?",
+   [
+    80,
+    99
+   ],
+   96,
+   96,
+   98
+  ],
+  [
+   "nycmayor-tweets",
+   "# posts September 15 - September 22, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "khamenei-daily-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "zelenskyy-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    100,
+    119
+   ],
+   108,
+   108,
+   108
+  ],
+  [
+   "nycmayor-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    200,
+    null
+   ],
+   286,
+   272,
+   286
+  ],
+  [
+   "cz-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    20,
+    39
+   ],
+   20,
+   20,
+   20
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "# posts September 18 - September 25, 2026?",
+   [
+    100,
+    119
+   ],
+   116,
+   116,
+   116
+  ],
+  [
+   "trump-truth-social",
+   "l posts September 18 - September 25, 2026?",
+   [
+    100,
+    119
+   ],
+   94,
+   94,
+   102
+  ],
+  [
+   "elon-tweets-48h",
+   "usk # tweets January 8 - January 10, 2026?",
+   [
+    190,
+    214
+   ],
+   202,
+   202,
+   202
+  ],
+  [
+   "trump-truth-social",
+   "cial posts February 6 - February 13, 2026?",
+   [
+    120,
+    139
+   ],
+   123,
+   123,
+   123
+  ],
+  [
+   "elon-tweets-48h",
+   "sk # tweets February 7 - February 9, 2026?",
+   [
+    115,
+    139
+   ],
+   121,
+   121,
+   121
+  ],
+  [
+   "trump-truth-social",
+   "ial posts February 10 - February 17, 2026?",
+   [
+    120,
+    139
+   ],
+   131,
+   131,
+   131
+  ],
+  [
+   "elon-tweets",
+   " # tweets February 10 - February 17, 2026?",
+   [
+    240,
+    259
+   ],
+   256,
+   256,
+   256
+  ],
+  [
+   "trump-truth-social",
+   "ial posts February 13 - February 20, 2026?",
+   [
+    120,
+    139
+   ],
+   129,
+   129,
+   129
+  ],
+  [
+   "trump-truth-social",
+   "ial posts February 17 - February 24, 2026?",
+   [
+    120,
+    139
+   ],
+   129,
+   129,
+   129
+  ],
+  [
+   "elon-tweets",
+   " # tweets February 20 - February 27, 2026?",
+   [
+    300,
+    319
+   ],
+   311,
+   311,
+   311
+  ],
+  [
+   "trump-truth-social",
+   " Social posts February 24 - March 3, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "trump-truth-social",
+   " Social posts February 27 - March 6, 2026?",
+   [
+    200,
+    null
+   ],
+   216,
+   216,
+   216
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts March 3 - March 10, 2026?",
+   [
+    160,
+    179
+   ],
+   160,
+   160,
+   160
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts March 6 - March 13, 2026?",
+   [
+    80,
+    99
+   ],
+   87,
+   87,
+   87
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts March 10 - March 17, 2026?",
+   [
+    100,
+    119
+   ],
+   93,
+   106,
+   106
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts March 17 - March 24, 2026?",
+   [
+    80,
+    99
+   ],
+   92,
+   93,
+   93
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts March 17 - March 24, 2026?",
+   [
+    80,
+    99
+   ],
+   97,
+   97,
+   97
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts March 17 - March 24, 2026?",
+   [
+    180,
+    199
+   ],
+   182,
+   182,
+   182
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts March 17 - March 24, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts March 13 - March 20, 2026?",
+   [
+    100,
+    119
+   ],
+   102,
+   102,
+   102
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts March 20 - March 27, 2026?",
+   [
+    100,
+    119
+   ],
+   97,
+   97,
+   97
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts March 20 - March 27, 2026?",
+   [
+    20,
+    39
+   ],
+   23,
+   23,
+   23
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts March 20 - March 27, 2026?",
+   [
+    null,
+    19
+   ],
+   17,
+   17,
+   17
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts March 20 - March 27, 2026?",
+   [
+    60,
+    79
+   ],
+   65,
+   65,
+   65
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts March 20 - March 27, 2026?",
+   [
+    20,
+    39
+   ],
+   25,
+   25,
+   25
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts March 20 - March 27, 2026?",
+   [
+    120,
+    139
+   ],
+   126,
+   128,
+   128
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts March 20 - March 27, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "elon-tweets-48h",
+   "n Musk # tweets March 21 - March 23, 2026?",
+   [
+    90,
+    114
+   ],
+   93,
+   93,
+   93
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts March 24 - March 31, 2026?",
+   [
+    100,
+    119
+   ],
+   116,
+   116,
+   116
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts March 24 - March 31, 2026?",
+   [
+    null,
+    19
+   ],
+   9,
+   9,
+   9
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts March 24 - March 31, 2026?",
+   [
+    20,
+    39
+   ],
+   36,
+   36,
+   36
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts March 24 - March 31, 2026?",
+   [
+    100,
+    119
+   ],
+   99,
+   99,
+   99
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts March 24 - March 31, 2026?",
+   [
+    160,
+    179
+   ],
+   172,
+   172,
+   172
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts March 24 - March 31, 2026?",
+   [
+    60,
+    79
+   ],
+   76,
+   76,
+   76
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts March 24 - March 31, 2026?",
+   [
+    null,
+    19
+   ],
+   12,
+   12,
+   12
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts March 27 - April 3, 2026?",
+   [
+    80,
+    99
+   ],
+   87,
+   87,
+   87
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts March 27 - April 3, 2026?",
+   [
+    null,
+    19
+   ],
+   19,
+   19,
+   19
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts March 27 - April 3, 2026?",
+   [
+    null,
+    19
+   ],
+   15,
+   15,
+   15
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts March 27 - April 3, 2026?",
+   [
+    80,
+    99
+   ],
+   86,
+   86,
+   86
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts March 27 - April 3, 2026?",
+   [
+    80,
+    99
+   ],
+   80,
+   80,
+   80
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts March 27 - April 3, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts March 27 - April 3, 2026?",
+   [
+    200,
+    null
+   ],
+   208,
+   206,
+   208
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts March 31 - April 7, 2026?",
+   [
+    60,
+    79
+   ],
+   61,
+   61,
+   61
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts March 31 - April 7, 2026?",
+   [
+    20,
+    39
+   ],
+   26,
+   26,
+   26
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts March 31 - April 7, 2026?",
+   [
+    80,
+    99
+   ],
+   81,
+   81,
+   81
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts March 31 - April 7, 2026?",
+   [
+    10,
+    14
+   ],
+   10,
+   10,
+   10
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts March 31 - April 7, 2026?",
+   [
+    60,
+    79
+   ],
+   70,
+   70,
+   70
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts March 31 - April 7, 2026?",
+   [
+    200,
+    null
+   ],
+   201,
+   201,
+   201
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts March 31 - April 7, 2026?",
+   [
+    20,
+    39
+   ],
+   27,
+   27,
+   27
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts April 3 - April 10, 2026?",
+   [
+    140,
+    159
+   ],
+   156,
+   156,
+   156
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts April 3 - April 10, 2026?",
+   [
+    60,
+    79
+   ],
+   67,
+   67,
+   67
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts April 3 - April 10, 2026?",
+   [
+    20,
+    24
+   ],
+   20,
+   20,
+   20
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts April 3 - April 10, 2026?",
+   [
+    100,
+    119
+   ],
+   108,
+   108,
+   108
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 3 - April 10, 2026?",
+   [
+    40,
+    59
+   ],
+   55,
+   56,
+   56
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts April 3 - April 10, 2026?",
+   [
+    20,
+    39
+   ],
+   23,
+   23,
+   23
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts April 3 - April 10, 2026?",
+   [
+    40,
+    59
+   ],
+   56,
+   56,
+   56
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts April 7 - April 14, 2026?",
+   [
+    60,
+    79
+   ],
+   68,
+   68,
+   68
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts April 7 - April 14, 2026?",
+   [
+    120,
+    139
+   ],
+   129,
+   129,
+   129
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts April 7 - April 14, 2026?",
+   [
+    15,
+    19
+   ],
+   19,
+   19,
+   19
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts April 7 - April 14, 2026?",
+   [
+    80,
+    99
+   ],
+   83,
+   83,
+   83
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 7 - April 14, 2026?",
+   [
+    60,
+    79
+   ],
+   70,
+   70,
+   70
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts April 7 - April 14, 2026?",
+   [
+    140,
+    159
+   ],
+   154,
+   154,
+   154
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts April 7 - April 14, 2026?",
+   [
+    20,
+    39
+   ],
+   37,
+   37,
+   37
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts April 10 - April 17, 2026?",
+   [
+    80,
+    99
+   ],
+   84,
+   84,
+   84
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts April 10 - April 17, 2026?",
+   [
+    140,
+    159
+   ],
+   138,
+   138,
+   138
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts April 10 - April 17, 2026?",
+   [
+    200,
+    null
+   ],
+   203,
+   203,
+   203
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts April 10 - April 17, 2026?",
+   [
+    80,
+    99
+   ],
+   92,
+   92,
+   92
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts April 10 - April 17, 2026?",
+   [
+    20,
+    39
+   ],
+   37,
+   37,
+   37
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts April 10 - April 17, 2026?",
+   [
+    null,
+    4
+   ],
+   2,
+   2,
+   2
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 10 - April 17, 2026?",
+   [
+    40,
+    59
+   ],
+   42,
+   42,
+   42
+  ],
+  [
+   "elon-tweets-48h",
+   "n Musk # tweets April 11 - April 13, 2026?",
+   [
+    115,
+    139
+   ],
+   134,
+   134,
+   134
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts April 14 - April 21, 2026?",
+   [
+    180,
+    199
+   ],
+   185,
+   185,
+   185
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts April 14 - April 21, 2026?",
+   [
+    120,
+    139
+   ],
+   126,
+   126,
+   126
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts April 14 - April 21, 2026?",
+   [
+    180,
+    199
+   ],
+   191,
+   191,
+   191
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 14 - April 21, 2026?",
+   [
+    20,
+    39
+   ],
+   29,
+   29,
+   29
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts April 14 - April 21, 2026?",
+   [
+    10,
+    14
+   ],
+   13,
+   13,
+   13
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts April 14 - April 21, 2026?",
+   [
+    20,
+    39
+   ],
+   22,
+   22,
+   22
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts April 14 - April 21, 2026?",
+   [
+    80,
+    99
+   ],
+   84,
+   84,
+   84
+  ],
+  [
+   "elon-tweets-48h",
+   "n Musk # tweets April 16 - April 18, 2026?",
+   [
+    65,
+    89
+   ],
+   74,
+   74,
+   74
+  ],
+  [
+   "khamenei-daily-tweets",
+   "hamenei # posts April 17 - April 24, 2026?",
+   [
+    10,
+    14
+   ],
+   12,
+   12,
+   12
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts April 17 - April 24, 2026?",
+   [
+    80,
+    99
+   ],
+   80,
+   80,
+   80
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts April 17 - April 24, 2026?",
+   [
+    140,
+    159
+   ],
+   145,
+   145,
+   145
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts April 17 - April 24, 2026?",
+   [
+    200,
+    null
+   ],
+   198,
+   198,
+   198
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts April 17 - April 24, 2026?",
+   [
+    20,
+    39
+   ],
+   23,
+   23,
+   23
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 17 - April 24, 2026?",
+   [
+    20,
+    39
+   ],
+   23,
+   23,
+   23
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts April 17 - April 24, 2026?",
+   [
+    160,
+    179
+   ],
+   160,
+   160,
+   160
+  ],
+  [
+   "nycmayor-tweets",
+   "C Mayor # posts April 21 - April 28, 2026?",
+   [
+    20,
+    39
+   ],
+   31,
+   31,
+   31
+  ],
+  [
+   "trump-truth-social",
+   "th Social posts April 21 - April 28, 2026?",
+   [
+    120,
+    139
+   ],
+   123,
+   123,
+   123
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e House # posts April 21 - April 28, 2026?",
+   [
+    160,
+    179
+   ],
+   162,
+   162,
+   162
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 21 - April 28, 2026?",
+   [
+    20,
+    39
+   ],
+   25,
+   25,
+   25
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ed Cruz # posts April 21 - April 28, 2026?",
+   [
+    100,
+    119
+   ],
+   117,
+   117,
+   117
+  ],
+  [
+   "zelenskyy-tweets",
+   "lenskyy # posts April 21 - April 28, 2026?",
+   [
+    80,
+    99
+   ],
+   81,
+   81,
+   81
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 24 - May 1, 2026?",
+   [
+    null,
+    19
+   ],
+   19,
+   19,
+   19
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts April 24 - May 1, 2026?",
+   [
+    60,
+    79
+   ],
+   68,
+   68,
+   68
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts April 24 - May 1, 2026?",
+   [
+    60,
+    79
+   ],
+   72,
+   72,
+   72
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts April 24 - May 1, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts April 24 - May 1, 2026?",
+   [
+    80,
+    99
+   ],
+   80,
+   80,
+   80
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts April 24 - May 1, 2026?",
+   [
+    180,
+    199
+   ],
+   193,
+   193,
+   193
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts April 28 - May 5, 2026?",
+   [
+    80,
+    99
+   ],
+   95,
+   95,
+   95
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts April 28 - May 5, 2026?",
+   [
+    20,
+    39
+   ],
+   22,
+   22,
+   22
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts April 28 - May 5, 2026?",
+   [
+    20,
+    39
+   ],
+   31,
+   31,
+   31
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts April 28 - May 5, 2026?",
+   [
+    160,
+    179
+   ],
+   159,
+   161,
+   161
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts April 28 - May 5, 2026?",
+   [
+    100,
+    119
+   ],
+   103,
+   103,
+   103
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts April 28 - May 5, 2026?",
+   [
+    null,
+    4
+   ],
+   4,
+   4,
+   4
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts April 28 - May 5, 2026?",
+   [
+    160,
+    179
+   ],
+   173,
+   173,
+   173
+  ],
+  [
+   "trump-truth-social",
+   " # Truth Social posts May 1 - May 8, 2026?",
+   [
+    160,
+    179
+   ],
+   158,
+   158,
+   158
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 1 - May 8, 2026?",
+   [
+    100,
+    119
+   ],
+   108,
+   108,
+   108
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 1 - May 8, 2026?",
+   [
+    180,
+    199
+   ],
+   181,
+   181,
+   181
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 1 - May 8, 2026?",
+   [
+    20,
+    39
+   ],
+   27,
+   27,
+   27
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 1 - May 8, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 1 - May 8, 2026?",
+   [
+    5,
+    9
+   ],
+   5,
+   5,
+   5
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 1 - May 8, 2026?",
+   [
+    140,
+    159
+   ],
+   157,
+   157,
+   157
+  ],
+  [
+   "trump-truth-social",
+   "# Truth Social posts May 5 - May 12, 2026?",
+   [
+    200,
+    null
+   ],
+   227,
+   215,
+   227
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 5 - May 12, 2026?",
+   [
+    180,
+    199
+   ],
+   190,
+   190,
+   190
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 5 - May 12, 2026?",
+   [
+    20,
+    39
+   ],
+   25,
+   25,
+   25
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 5 - May 12, 2026?",
+   [
+    null,
+    19
+   ],
+   19,
+   19,
+   19
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 5 - May 12, 2026?",
+   [
+    80,
+    99
+   ],
+   82,
+   82,
+   82
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 5 - May 12, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 5 - May 12, 2026?",
+   [
+    120,
+    139
+   ],
+   138,
+   138,
+   138
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 8 - May 15, 2026?",
+   [
+    200,
+    null
+   ],
+   208,
+   209,
+   209
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 8 - May 15, 2026?",
+   [
+    20,
+    39
+   ],
+   21,
+   21,
+   21
+  ],
+  [
+   "trump-truth-social",
+   "# Truth Social posts May 8 - May 15, 2026?",
+   [
+    180,
+    199
+   ],
+   176,
+   176,
+   176
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 8 - May 15, 2026?",
+   [
+    100,
+    119
+   ],
+   105,
+   105,
+   105
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 8 - May 15, 2026?",
+   [
+    null,
+    19
+   ],
+   11,
+   11,
+   11
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 8 - May 15, 2026?",
+   [
+    80,
+    99
+   ],
+   96,
+   96,
+   96
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 12 - May 19, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 12 - May 19, 2026?",
+   [
+    20,
+    39
+   ],
+   30,
+   30,
+   30
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 12 - May 19, 2026?",
+   [
+    180,
+    199
+   ],
+   190,
+   190,
+   190
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 12 - May 19, 2026?",
+   [
+    20,
+    39
+   ],
+   21,
+   21,
+   21
+  ],
+  [
+   "trump-truth-social",
+   " Truth Social posts May 12 - May 19, 2026?",
+   [
+    200,
+    null
+   ],
+   100,
+   100,
+   100
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 12 - May 19, 2026?",
+   [
+    100,
+    119
+   ],
+   103,
+   103,
+   103
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 12 - May 19, 2026?",
+   [
+    80,
+    99
+   ],
+   85,
+   85,
+   85
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 15 - May 22, 2026?",
+   [
+    140,
+    159
+   ],
+   152,
+   152,
+   152
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 15 - May 22, 2026?",
+   [
+    160,
+    179
+   ],
+   171,
+   171,
+   171
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 15 - May 22, 2026?",
+   [
+    40,
+    59
+   ],
+   48,
+   48,
+   48
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 15 - May 22, 2026?",
+   [
+    null,
+    4
+   ],
+   2,
+   2,
+   2
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 15 - May 22, 2026?",
+   [
+    60,
+    79
+   ],
+   70,
+   70,
+   70
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 15 - May 22, 2026?",
+   [
+    null,
+    19
+   ],
+   17,
+   17,
+   17
+  ],
+  [
+   "trump-truth-social",
+   " Truth Social posts May 15 - May 22, 2026?",
+   [
+    200,
+    null
+   ],
+   68,
+   68,
+   68
+  ],
+  [
+   "elon-tweets",
+   "Elon Musk # tweets May 15 - May 22, 2026?",
+   [
+    280,
+    299
+   ],
+   290,
+   290,
+   290
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 19 - May 26, 2026?",
+   [
+    null,
+    4
+   ],
+   15,
+   0,
+   15
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 19 - May 26, 2026?",
+   [
+    40,
+    59
+   ],
+   129,
+   33,
+   129
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 19 - May 26, 2026?",
+   [
+    null,
+    19
+   ],
+   15,
+   3,
+   15
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 19 - May 26, 2026?",
+   [
+    20,
+    39
+   ],
+   52,
+   13,
+   52
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 19 - May 26, 2026?",
+   [
+    140,
+    159
+   ],
+   173,
+   54,
+   173
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 19 - May 26, 2026?",
+   [
+    80,
+    99
+   ],
+   98,
+   18,
+   98
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 19 - May 26, 2026?",
+   [
+    null,
+    19
+   ],
+   15,
+   15,
+   15
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 19 - May 26, 2026?",
+   [
+    80,
+    99
+   ],
+   98,
+   98,
+   98
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 19 - May 26, 2026?",
+   [
+    120,
+    139
+   ],
+   129,
+   129,
+   129
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts May 19 - May 26, 2026?",
+   [
+    15,
+    19
+   ],
+   15,
+   15,
+   15
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 19 - May 26, 2026?",
+   [
+    40,
+    59
+   ],
+   52,
+   52,
+   52
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 19 - May 26, 2026?",
+   [
+    160,
+    179
+   ],
+   173,
+   173,
+   173
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 26 - June 2, 2026?",
+   [
+    null,
+    19
+   ],
+   15,
+   15,
+   15
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 26 - June 2, 2026?",
+   [
+    20,
+    39
+   ],
+   33,
+   33,
+   33
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 26 - June 2, 2026?",
+   [
+    60,
+    79
+   ],
+   77,
+   77,
+   77
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 26 - June 2, 2026?",
+   [
+    120,
+    139
+   ],
+   137,
+   137,
+   137
+  ],
+  [
+   "trump-truth-social",
+   " Truth Social posts May 26 - June 2, 2026?",
+   [
+    200,
+    null
+   ],
+   200,
+   200,
+   200
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 26 - June 2, 2026?",
+   [
+    140,
+    159
+   ],
+   156,
+   156,
+   156
+  ],
+  [
+   "elon-tweets-48h",
+   "Elon Musk # tweets May 28 - May 30, 2026?",
+   [
+    40,
+    64
+   ],
+   51,
+   53,
+   53
+  ],
+  [
+   "trump-truth-social",
+   " Truth Social posts May 29 - June 5, 2026?",
+   [
+    200,
+    null
+   ],
+   232,
+   232,
+   232
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts May 29 - June 5, 2026?",
+   [
+    80,
+    99
+   ],
+   94,
+   94,
+   94
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts May 29 - June 5, 2026?",
+   [
+    20,
+    39
+   ],
+   31,
+   31,
+   31
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts May 29 - June 5, 2026?",
+   [
+    160,
+    179
+   ],
+   176,
+   177,
+   177
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts May 29 - June 5, 2026?",
+   [
+    100,
+    119
+   ],
+   106,
+   106,
+   106
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts May 29 - June 5, 2026?",
+   [
+    null,
+    19
+   ],
+   6,
+   6,
+   6
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 2 - June 9, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "trump-truth-social",
+   " Truth Social posts June 2 - June 9, 2026?",
+   [
+    120,
+    139
+   ],
+   124,
+   124,
+   124
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 2 - June 9, 2026?",
+   [
+    100,
+    119
+   ],
+   108,
+   108,
+   108
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "White House # posts June 2 - June 9, 2026?",
+   [
+    180,
+    199
+   ],
+   185,
+   185,
+   185
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 2 - June 9, 2026?",
+   [
+    40,
+    59
+   ],
+   45,
+   45,
+   45
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 2 - June 9, 2026?",
+   [
+    null,
+    19
+   ],
+   7,
+   7,
+   7
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 2 - June 9, 2026?",
+   [
+    120,
+    139
+   ],
+   129,
+   129,
+   129
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts June 5 - June 12, 2026?",
+   [
+    100,
+    119
+   ],
+   116,
+   116,
+   116
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 5 - June 12, 2026?",
+   [
+    null,
+    19
+   ],
+   14,
+   14,
+   14
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts June 5 - June 12, 2026?",
+   [
+    180,
+    199
+   ],
+   188,
+   188,
+   188
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 5 - June 12, 2026?",
+   [
+    40,
+    59
+   ],
+   53,
+   53,
+   53
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 5 - June 12, 2026?",
+   [
+    100,
+    119
+   ],
+   108,
+   108,
+   108
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 5 - June 12, 2026?",
+   [
+    40,
+    59
+   ],
+   59,
+   59,
+   59
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 5 - June 12, 2026?",
+   [
+    null,
+    4
+   ],
+   2,
+   2,
+   2
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts June 9 - June 16, 2026?",
+   [
+    200,
+    null
+   ],
+   248,
+   234,
+   248
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 9 - June 16, 2026?",
+   [
+    80,
+    99
+   ],
+   96,
+   96,
+   96
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 9 - June 16, 2026?",
+   [
+    60,
+    79
+   ],
+   66,
+   66,
+   66
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 9 - June 16, 2026?",
+   [
+    null,
+    4
+   ],
+   2,
+   2,
+   2
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 9 - June 16, 2026?",
+   [
+    null,
+    19
+   ],
+   12,
+   12,
+   12
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts June 9 - June 16, 2026?",
+   [
+    120,
+    139
+   ],
+   119,
+   119,
+   119
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 9 - June 16, 2026?",
+   [
+    60,
+    79
+   ],
+   63,
+   64,
+   64
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 12 - June 19, 2026?",
+   [
+    100,
+    119
+   ],
+   114,
+   116,
+   116
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 12 - June 19, 2026?",
+   [
+    null,
+    19
+   ],
+   16,
+   16,
+   16
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts June 12 - June 19, 2026?",
+   [
+    140,
+    159
+   ],
+   139,
+   139,
+   139
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts June 12 - June 19, 2026?",
+   [
+    200,
+    null
+   ],
+   233,
+   222,
+   233
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 12 - June 19, 2026?",
+   [
+    100,
+    119
+   ],
+   109,
+   109,
+   109
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 12 - June 19, 2026?",
+   [
+    10,
+    14
+   ],
+   12,
+   12,
+   12
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 12 - June 19, 2026?",
+   [
+    60,
+    79
+   ],
+   66,
+   66,
+   66
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 16 - June 23, 2026?",
+   [
+    null,
+    19
+   ],
+   16,
+   16,
+   16
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 16 - June 23, 2026?",
+   [
+    80,
+    99
+   ],
+   82,
+   82,
+   82
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts June 16 - June 23, 2026?",
+   [
+    180,
+    199
+   ],
+   191,
+   191,
+   191
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 16 - June 23, 2026?",
+   [
+    40,
+    59
+   ],
+   52,
+   52,
+   52
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 16 - June 23, 2026?",
+   [
+    10,
+    14
+   ],
+   11,
+   11,
+   11
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts June 16 - June 23, 2026?",
+   [
+    160,
+    179
+   ],
+   167,
+   167,
+   167
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 16 - June 23, 2026?",
+   [
+    80,
+    99
+   ],
+   84,
+   84,
+   84
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts June 19 - June 26, 2026?",
+   [
+    180,
+    199
+   ],
+   194,
+   194,
+   194
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 19 - June 26, 2026?",
+   [
+    40,
+    59
+   ],
+   52,
+   52,
+   52
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 19 - June 26, 2026?",
+   [
+    60,
+    79
+   ],
+   65,
+   65,
+   65
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 19 - June 26, 2026?",
+   [
+    null,
+    19
+   ],
+   9,
+   9,
+   9
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts June 19 - June 26, 2026?",
+   [
+    160,
+    179
+   ],
+   156,
+   156,
+   156
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 19 - June 26, 2026?",
+   [
+    40,
+    59
+   ],
+   59,
+   59,
+   59
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 23 - June 30, 2026?",
+   [
+    60,
+    79
+   ],
+   62,
+   62,
+   62
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 23 - June 30, 2026?",
+   [
+    80,
+    99
+   ],
+   80,
+   80,
+   80
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts June 23 - June 30, 2026?",
+   [
+    180,
+    199
+   ],
+   190,
+   190,
+   190
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 23 - June 30, 2026?",
+   [
+    60,
+    79
+   ],
+   62,
+   62,
+   62
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 23 - June 30, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts June 23 - June 30, 2026?",
+   [
+    140,
+    159
+   ],
+   146,
+   146,
+   146
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 23 - June 30, 2026?",
+   [
+    20,
+    39
+   ],
+   21,
+   21,
+   21
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts June 26 - July 3, 2026?",
+   [
+    200,
+    null
+   ],
+   210,
+   210,
+   210
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 26 - July 3, 2026?",
+   [
+    20,
+    39
+   ],
+   28,
+   28,
+   28
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts June 26 - July 3, 2026?",
+   [
+    120,
+    139
+   ],
+   119,
+   119,
+   119
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 26 - July 3, 2026?",
+   [
+    60,
+    79
+   ],
+   67,
+   67,
+   67
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 26 - July 3, 2026?",
+   [
+    60,
+    79
+   ],
+   69,
+   69,
+   69
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 26 - July 3, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 26 - July 3, 2026?",
+   [
+    100,
+    119
+   ],
+   117,
+   117,
+   117
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts June 30 - July 7, 2026?",
+   [
+    80,
+    99
+   ],
+   91,
+   91,
+   91
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts June 30 - July 7, 2026?",
+   [
+    5,
+    9
+   ],
+   7,
+   7,
+   7
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts June 30 - July 7, 2026?",
+   [
+    200,
+    null
+   ],
+   231,
+   218,
+   231
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts June 30 - July 7, 2026?",
+   [
+    20,
+    39
+   ],
+   21,
+   21,
+   21
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts June 30 - July 7, 2026?",
+   [
+    200,
+    null
+   ],
+   288,
+   213,
+   288
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts June 30 - July 7, 2026?",
+   [
+    60,
+    79
+   ],
+   69,
+   69,
+   69
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts June 30 - July 7, 2026?",
+   [
+    120,
+    139
+   ],
+   124,
+   124,
+   124
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 3 - July 10, 2026?",
+   [
+    20,
+    39
+   ],
+   21,
+   21,
+   21
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts July 3 - July 10, 2026?",
+   [
+    200,
+    null
+   ],
+   190,
+   190,
+   230
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 3 - July 10, 2026?",
+   [
+    120,
+    139
+   ],
+   137,
+   137,
+   137
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 3 - July 10, 2026?",
+   [
+    40,
+    59
+   ],
+   56,
+   56,
+   56
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts July 3 - July 10, 2026?",
+   [
+    200,
+    null
+   ],
+   286,
+   244,
+   286
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 3 - July 10, 2026?",
+   [
+    10,
+    14
+   ],
+   12,
+   12,
+   12
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 3 - July 10, 2026?",
+   [
+    80,
+    99
+   ],
+   90,
+   90,
+   90
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 7 - July 14, 2026?",
+   [
+    5,
+    9
+   ],
+   5,
+   5,
+   5
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 7 - July 14, 2026?",
+   [
+    20,
+    39
+   ],
+   25,
+   25,
+   25
+  ],
+  [
+   "trump-truth-social",
+   "Truth Social posts July 7 - July 14, 2026?",
+   [
+    160,
+    179
+   ],
+   167,
+   167,
+   167
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 7 - July 14, 2026?",
+   [
+    140,
+    159
+   ],
+   148,
+   148,
+   148
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "hite House # posts July 7 - July 14, 2026?",
+   [
+    200,
+    null
+   ],
+   210,
+   205,
+   211
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 7 - July 14, 2026?",
+   [
+    40,
+    59
+   ],
+   44,
+   44,
+   44
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 7 - July 14, 2026?",
+   [
+    100,
+    119
+   ],
+   102,
+   102,
+   102
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 10 - July 17, 2026?",
+   [
+    100,
+    119
+   ],
+   106,
+   106,
+   106
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 10 - July 17, 2026?",
+   [
+    20,
+    39
+   ],
+   26,
+   26,
+   26
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 10 - July 17, 2026?",
+   [
+    40,
+    59
+   ],
+   45,
+   45,
+   45
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts July 10 - July 17, 2026?",
+   [
+    200,
+    null
+   ],
+   227,
+   221,
+   227
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 10 - July 17, 2026?",
+   [
+    100,
+    119
+   ],
+   112,
+   112,
+   112
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts July 10 - July 17, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 14 - July 21, 2026?",
+   [
+    100,
+    119
+   ],
+   107,
+   107,
+   107
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts July 14 - July 21, 2026?",
+   [
+    100,
+    119
+   ],
+   113,
+   113,
+   113
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 14 - July 21, 2026?",
+   [
+    5,
+    9
+   ],
+   7,
+   7,
+   7
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 14 - July 21, 2026?",
+   [
+    20,
+    39
+   ],
+   28,
+   28,
+   28
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 14 - July 21, 2026?",
+   [
+    40,
+    59
+   ],
+   42,
+   42,
+   42
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 14 - July 21, 2026?",
+   [
+    80,
+    99
+   ],
+   91,
+   91,
+   91
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts July 14 - July 21, 2026?",
+   [
+    200,
+    null
+   ],
+   205,
+   205,
+   205
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 17 - July 24, 2026?",
+   [
+    100,
+    119
+   ],
+   107,
+   107,
+   107
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 17 - July 24, 2026?",
+   [
+    80,
+    99
+   ],
+   87,
+   87,
+   87
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 17 - July 24, 2026?",
+   [
+    5,
+    9
+   ],
+   8,
+   8,
+   8
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 17 - July 24, 2026?",
+   [
+    40,
+    59
+   ],
+   42,
+   42,
+   42
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 17 - July 24, 2026?",
+   [
+    20,
+    39
+   ],
+   24,
+   24,
+   24
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts July 17 - July 24, 2026?",
+   [
+    180,
+    199
+   ],
+   191,
+   191,
+   191
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts July 17 - July 24, 2026?",
+   [
+    120,
+    139
+   ],
+   128,
+   128,
+   128
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 21 - July 28, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts July 21 - July 28, 2026?",
+   [
+    200,
+    null
+   ],
+   204,
+   204,
+   204
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts July 21 - July 28, 2026?",
+   [
+    180,
+    199
+   ],
+   63,
+   194,
+   194
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 21 - July 28, 2026?",
+   [
+    40,
+    59
+   ],
+   40,
+   40,
+   40
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 21 - July 28, 2026?",
+   [
+    null,
+    19
+   ],
+   16,
+   16,
+   16
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 21 - July 28, 2026?",
+   [
+    60,
+    79
+   ],
+   76,
+   76,
+   76
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 21 - July 28, 2026?",
+   [
+    80,
+    99
+   ],
+   93,
+   93,
+   93
+  ],
+  [
+   "trump-truth-social",
+   "ruth Social posts July 24 - July 31, 2026?",
+   [
+    160,
+    179
+   ],
+   162,
+   162,
+   162
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "ite House # posts July 24 - July 31, 2026?",
+   [
+    200,
+    null
+   ],
+   204,
+   204,
+   204
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 24 - July 31, 2026?",
+   [
+    120,
+    139
+   ],
+   128,
+   128,
+   128
+  ],
+  [
+   "zelenskyy-tweets",
+   "Zelenskyy # posts July 24 - July 31, 2026?",
+   [
+    80,
+    99
+   ],
+   81,
+   81,
+   81
+  ],
+  [
+   "nycmayor-tweets",
+   "NYC Mayor # posts July 24 - July 31, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 24 - July 31, 2026?",
+   [
+    20,
+    39
+   ],
+   23,
+   23,
+   23
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts July 28 - August 4, 2026?",
+   [
+    160,
+    179
+   ],
+   147,
+   147,
+   147
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 28 - August 4, 2026?",
+   [
+    120,
+    139
+   ],
+   131,
+   131,
+   131
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts July 28 - August 4, 2026?",
+   [
+    20,
+    39
+   ],
+   32,
+   32,
+   32
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts July 28 - August 4, 2026?",
+   [
+    80,
+    99
+   ],
+   82,
+   82,
+   82
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 28 - August 4, 2026?",
+   [
+    5,
+    9
+   ],
+   7,
+   7,
+   7
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 28 - August 4, 2026?",
+   [
+    20,
+    39
+   ],
+   27,
+   27,
+   27
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts July 28 - August 4, 2026?",
+   [
+    200,
+    null
+   ],
+   214,
+   203,
+   214
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts July 31 - August 7, 2026?",
+   [
+    null,
+    19
+   ],
+   18,
+   18,
+   18
+  ],
+  [
+   "khamenei-daily-tweets",
+   "Khamenei # posts July 31 - August 7, 2026?",
+   [
+    5,
+    9
+   ],
+   7,
+   7,
+   7
+  ],
+  [
+   "zelenskyy-tweets",
+   "elenskyy # posts July 31 - August 7, 2026?",
+   [
+    60,
+    79
+   ],
+   69,
+   69,
+   69
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "te House # posts July 31 - August 7, 2026?",
+   [
+    180,
+    199
+   ],
+   185,
+   185,
+   185
+  ],
+  [
+   "trump-truth-social",
+   "uth Social posts July 31 - August 7, 2026?",
+   [
+    200,
+    null
+   ],
+   215,
+   211,
+   215
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "Ted Cruz # posts July 31 - August 7, 2026?",
+   [
+    140,
+    159
+   ],
+   141,
+   141,
+   141
+  ],
+  [
+   "nycmayor-tweets",
+   "YC Mayor # posts July 31 - August 7, 2026?",
+   [
+    20,
+    39
+   ],
+   33,
+   33,
+   33
+  ],
+  [
+   "zelenskyy-tweets",
+   "enskyy # posts August 4 - August 11, 2026?",
+   [
+    60,
+    79
+   ],
+   62,
+   62,
+   62
+  ],
+  [
+   "khamenei-daily-tweets",
+   "amenei # posts August 4 - August 11, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "nycmayor-tweets",
+   " Mayor # posts August 4 - August 11, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "d Cruz # posts August 4 - August 11, 2026?",
+   [
+    160,
+    179
+   ],
+   162,
+   162,
+   162
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 4 - August 11, 2026?",
+   [
+    null,
+    19
+   ],
+   6,
+   6,
+   6
+  ],
+  [
+   "trump-truth-social",
+   "h Social posts August 4 - August 11, 2026?",
+   [
+    180,
+    199
+   ],
+   188,
+   188,
+   188
+  ],
+  [
+   "whitehouse-daily-tweets",
+   " House # posts August 4 - August 11, 2026?",
+   [
+    180,
+    199
+   ],
+   182,
+   182,
+   182
+  ],
+  [
+   "elon-tweets",
+   " Musk # tweets August 4 - August 11, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "nycmayor-tweets",
+   " Mayor # posts August 7 - August 14, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "zelenskyy-tweets",
+   "enskyy # posts August 7 - August 14, 2026?",
+   [
+    60,
+    79
+   ],
+   64,
+   64,
+   64
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 7 - August 14, 2026?",
+   [
+    null,
+    19
+   ],
+   10,
+   10,
+   10
+  ],
+  [
+   "trump-truth-social",
+   "h Social posts August 7 - August 14, 2026?",
+   [
+    180,
+    199
+   ],
+   173,
+   173,
+   173
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "d Cruz # posts August 7 - August 14, 2026?",
+   [
+    160,
+    179
+   ],
+   163,
+   165,
+   165
+  ],
+  [
+   "khamenei-daily-tweets",
+   "amenei # posts August 7 - August 14, 2026?",
+   [
+    null,
+    4
+   ],
+   2,
+   2,
+   2
+  ],
+  [
+   "whitehouse-daily-tweets",
+   " House # posts August 7 - August 14, 2026?",
+   [
+    200,
+    null
+   ],
+   203,
+   203,
+   203
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " Cruz # posts August 11 - August 18, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 11 - August 18, 2026?",
+   [
+    null,
+    19
+   ],
+   16,
+   16,
+   16
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "House # posts August 11 - August 18, 2026?",
+   [
+    180,
+    199
+   ],
+   183,
+   183,
+   183
+  ],
+  [
+   "trump-truth-social",
+   " Social posts August 11 - August 18, 2026?",
+   [
+    200,
+    null
+   ],
+   141,
+   141,
+   141
+  ],
+  [
+   "nycmayor-tweets",
+   "Mayor # posts August 11 - August 18, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "zelenskyy-tweets",
+   "nskyy # posts August 11 - August 18, 2026?",
+   [
+    60,
+    79
+   ],
+   60,
+   60,
+   60
+  ],
+  [
+   "khamenei-daily-tweets",
+   "menei # posts August 11 - August 18, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "elon-tweets",
+   "Musk # tweets August 11 - August 18, 2026?",
+   [
+    160,
+    179
+   ],
+   160,
+   160,
+   160
+  ],
+  [
+   "trump-truth-social",
+   " Social posts August 14 - August 21, 2026?",
+   [
+    200,
+    null
+   ],
+   62,
+   62,
+   145
+  ],
+  [
+   "nycmayor-tweets",
+   "Mayor # posts August 14 - August 21, 2026?",
+   [
+    20,
+    39
+   ],
+   32,
+   32,
+   32
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "House # posts August 14 - August 21, 2026?",
+   [
+    160,
+    179
+   ],
+   168,
+   168,
+   168
+  ],
+  [
+   "khamenei-daily-tweets",
+   "menei # posts August 14 - August 21, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "zelenskyy-tweets",
+   "nskyy # posts August 14 - August 21, 2026?",
+   [
+    40,
+    59
+   ],
+   51,
+   51,
+   51
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 14 - August 21, 2026?",
+   [
+    20,
+    39
+   ],
+   20,
+   20,
+   20
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " Cruz # posts August 14 - August 21, 2026?",
+   [
+    140,
+    159
+   ],
+   155,
+   155,
+   155
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 18 - August 25, 2026?",
+   [
+    20,
+    39
+   ],
+   26,
+   26,
+   26
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " Cruz # posts August 18 - August 25, 2026?",
+   [
+    140,
+    159
+   ],
+   155,
+   155,
+   155
+  ],
+  [
+   "trump-truth-social",
+   " Social posts August 18 - August 25, 2026?",
+   [
+    200,
+    null
+   ],
+   235,
+   210,
+   235
+  ],
+  [
+   "nycmayor-tweets",
+   "Mayor # posts August 18 - August 25, 2026?",
+   [
+    20,
+    39
+   ],
+   28,
+   28,
+   28
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "House # posts August 18 - August 25, 2026?",
+   [
+    200,
+    null
+   ],
+   208,
+   208,
+   208
+  ],
+  [
+   "zelenskyy-tweets",
+   "nskyy # posts August 18 - August 25, 2026?",
+   [
+    140,
+    159
+   ],
+   143,
+   143,
+   143
+  ],
+  [
+   "khamenei-daily-tweets",
+   "menei # posts August 18 - August 25, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 21 - August 28, 2026?",
+   [
+    20,
+    39
+   ],
+   32,
+   32,
+   32
+  ],
+  [
+   "trump-truth-social",
+   " Social posts August 21 - August 28, 2026?",
+   [
+    200,
+    null
+   ],
+   266,
+   206,
+   267
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " Cruz # posts August 21 - August 28, 2026?",
+   [
+    160,
+    179
+   ],
+   146,
+   175,
+   175
+  ],
+  [
+   "zelenskyy-tweets",
+   "nskyy # posts August 21 - August 28, 2026?",
+   [
+    200,
+    null
+   ],
+   203,
+   203,
+   203
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "House # posts August 21 - August 28, 2026?",
+   [
+    180,
+    199
+   ],
+   173,
+   195,
+   195
+  ],
+  [
+   "nycmayor-tweets",
+   "Mayor # posts August 21 - August 28, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "use # posts August 25 - September 1, 2026?",
+   [
+    160,
+    179
+   ],
+   166,
+   166,
+   166
+  ],
+  [
+   "zelenskyy-tweets",
+   "kyy # posts August 25 - September 1, 2026?",
+   [
+    100,
+    119
+   ],
+   111,
+   111,
+   111
+  ],
+  [
+   "nycmayor-tweets",
+   "yor # posts August 25 - September 1, 2026?",
+   [
+    20,
+    39
+   ],
+   36,
+   36,
+   36
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ruz # posts August 25 - September 1, 2026?",
+   [
+    160,
+    179
+   ],
+   169,
+   169,
+   169
+  ],
+  [
+   "trump-truth-social",
+   "ocial posts August 25 - September 1, 2026?",
+   [
+    200,
+    null
+   ],
+   220,
+   213,
+   220
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 25 - September 1, 2026?",
+   [
+    40,
+    59
+   ],
+   44,
+   44,
+   44
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "ruz # posts August 28 - September 4, 2026?",
+   [
+    140,
+    159
+   ],
+   147,
+   147,
+   147
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "use # posts August 28 - September 4, 2026?",
+   [
+    180,
+    199
+   ],
+   183,
+   183,
+   183
+  ],
+  [
+   "cz-tweets",
+   "CZ # posts August 28 - September 4, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   34,
+   34
+  ],
+  [
+   "nycmayor-tweets",
+   "yor # posts August 28 - September 4, 2026?",
+   [
+    20,
+    39
+   ],
+   29,
+   29,
+   29
+  ],
+  [
+   "zelenskyy-tweets",
+   "kyy # posts August 28 - September 4, 2026?",
+   [
+    60,
+    79
+   ],
+   63,
+   63,
+   63
+  ],
+  [
+   "trump-truth-social",
+   "ocial posts August 28 - September 4, 2026?",
+   [
+    180,
+    199
+   ],
+   168,
+   168,
+   168
+  ],
+  [
+   "trump-truth-social",
+   "ial posts September 1 - September 8, 2026?",
+   [
+    180,
+    199
+   ],
+   184,
+   184,
+   184
+  ],
+  [
+   "cz-tweets",
+   "Z # posts September 1 - September 8, 2026?",
+   [
+    20,
+    39
+   ],
+   38,
+   38,
+   38
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "e # posts September 1 - September 8, 2026?",
+   [
+    200,
+    null
+   ],
+   202,
+   202,
+   202
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "z # posts September 1 - September 8, 2026?",
+   [
+    120,
+    139
+   ],
+   127,
+   127,
+   127
+  ],
+  [
+   "nycmayor-tweets",
+   "r # posts September 1 - September 8, 2026?",
+   [
+    20,
+    39
+   ],
+   33,
+   33,
+   33
+  ],
+  [
+   "zelenskyy-tweets",
+   "y # posts September 1 - September 8, 2026?",
+   [
+    60,
+    79
+   ],
+   73,
+   73,
+   73
+  ],
+  [
+   "trump-truth-social",
+   "al posts September 4 - September 11, 2026?",
+   [
+    160,
+    179
+   ],
+   170,
+   170,
+   170
+  ],
+  [
+   "whitehouse-daily-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    200,
+    null
+   ],
+   197,
+   197,
+   228
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    120,
+    139
+   ],
+   113,
+   125,
+   125
+  ],
+  [
+   "zelenskyy-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    60,
+    79
+   ],
+   71,
+   71,
+   77
+  ],
+  [
+   "khamenei-daily-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "nycmayor-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   39,
+   39
+  ],
+  [
+   "cz-tweets",
+   " # posts September 4 - September 11, 2026?",
+   [
+    20,
+    39
+   ],
+   34,
+   36,
+   36
+  ],
+  [
+   "khamenei-daily-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    null,
+    4
+   ],
+   1,
+   1,
+   1
+  ],
+  [
+   "trump-truth-social",
+   "al posts September 8 - September 15, 2026?",
+   [
+    100,
+    119
+   ],
+   104,
+   104,
+   104
+  ],
+  [
+   "zelenskyy-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    80,
+    99
+   ],
+   84,
+   85,
+   85
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    120,
+    139
+   ],
+   133,
+   133,
+   133
+  ],
+  [
+   "whitehouse-daily-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    200,
+    null
+   ],
+   204,
+   207,
+   207
+  ],
+  [
+   "nycmayor-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    20,
+    39
+   ],
+   37,
+   37,
+   37
+  ],
+  [
+   "cz-tweets",
+   " # posts September 8 - September 15, 2026?",
+   [
+    null,
+    19
+   ],
+   18,
+   18,
+   18
+  ],
+  [
+   "whitehouse-daily-tweets",
+   "# posts September 11 - September 18, 2026?",
+   [
+    160,
+    179
+   ],
+   176,
+   176,
+   176
+  ],
+  [
+   "nycmayor-tweets",
+   "# posts September 11 - September 18, 2026?",
+   [
+    20,
+    39
+   ],
+   35,
+   35,
+   35
+  ],
+  [
+   "cz-tweets",
+   "# posts September 11 - September 18, 2026?",
+   [
+    20,
+    39
+   ],
+   26,
+   26,
+   26
+  ],
+  [
+   "zelenskyy-tweets",
+   "# posts September 11 - September 18, 2026?",
+   [
+    80,
+    99
+   ],
+   91,
+   91,
+   91
+  ],
+  [
+   "ted-cruz-daily-tweets",
+   "# posts September 11 - September 18, 2026?",
+   [
+    80,
+    99
+   ],
+   96,
+   96,
+   96
+  ],
+  [
+   "trump-truth-social",
+   "l posts September 11 - September 18, 2026?",
+   [
+    80,
+    99
+   ],
+   93,
+   93,
+   93
+  ]
+ ]
+}

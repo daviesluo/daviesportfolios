@@ -1,0 +1,1716 @@
+[
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     89
+    ],
+    "obs": "2026-09-24T16:53:00Z",
+    "payout": 0.0,
+    "prints": 30,
+    "receipt_after_obs_s": 213.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     90,
+     91
+    ],
+    "obs": "2026-09-24T17:53:00Z",
+    "payout": 0.0,
+    "prints": 11,
+    "receipt_after_obs_s": 224.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     92,
+     93
+    ],
+    "obs": "2026-09-24T19:53:00Z",
+    "payout": 0.0,
+    "prints": 105,
+    "receipt_after_obs_s": 214.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     94,
+     95
+    ],
+    "obs": "2026-09-24T20:53:00Z",
+    "payout": 0.0,
+    "prints": 231,
+    "receipt_after_obs_s": 213.0,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     96,
+     97
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 303,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     98,
+     99
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 266,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     100,
+     101
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 74,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     102,
+     103
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 50,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     104,
+     105
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 10,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     106,
+     107
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     108,
+     null
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Austin",
+  "date": "2026-09-24",
+  "event": "1062925",
+  "final": 97,
+  "hl": "highest",
+  "max_gap_h": 1.0,
+  "reports": 24,
+  "source": "nws",
+  "station": "KAUS",
+  "winner": [
+   96,
+   97
+  ]
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     71
+    ],
+    "obs": "2026-09-24T07:21:00Z",
+    "payout": 0.0,
+    "prints": 31,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     72,
+     73
+    ],
+    "obs": "2026-09-24T17:53:00Z",
+    "payout": 0.0,
+    "prints": 138,
+    "receipt_after_obs_s": 223.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     74,
+     75
+    ],
+    "obs": "2026-09-24T18:53:00Z",
+    "payout": 0.0,
+    "prints": 353,
+    "receipt_after_obs_s": 201.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.08,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     76,
+     77
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 702,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     78,
+     79
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 827,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     80,
+     81
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 571,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     82,
+     83
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 368,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     84,
+     85
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 222,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     86,
+     87
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 115,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     88,
+     89
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 17,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     90,
+     null
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 3,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Los Angeles",
+  "date": "2026-09-24",
+  "event": "1063682",
+  "final": 77,
+  "hl": "highest",
+  "max_gap_h": 1.0,
+  "reports": 34,
+  "source": "nws",
+  "station": "KLAX",
+  "winner": [
+   76,
+   77
+  ]
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     67
+    ],
+    "obs": "2026-09-24T17:56:00Z",
+    "payout": 0.0,
+    "prints": 54,
+    "receipt_after_obs_s": 247.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     68,
+     69
+    ],
+    "obs": "2026-09-24T18:56:00Z",
+    "payout": 0.0,
+    "prints": 121,
+    "receipt_after_obs_s": 255.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     70,
+     71
+    ],
+    "obs": "2026-09-24T19:56:00Z",
+    "payout": 0.0,
+    "prints": 136,
+    "receipt_after_obs_s": 251.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     72,
+     73
+    ],
+    "obs": "2026-09-24T19:56:00Z",
+    "payout": 0.0,
+    "prints": 109,
+    "receipt_after_obs_s": 251.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     74,
+     75
+    ],
+    "obs": "2026-09-24T20:56:00Z",
+    "payout": 0.0,
+    "prints": 234,
+    "receipt_after_obs_s": 255.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     76,
+     77
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 359,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     78,
+     79
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 459,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     80,
+     81
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 125,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     82,
+     83
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 57,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     84,
+     85
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 29,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     86,
+     null
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 9,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "San Francisco",
+  "date": "2026-09-24",
+  "event": "1063683",
+  "final": 76,
+  "hl": "highest",
+  "max_gap_h": 1.0,
+  "reports": 24,
+  "source": "nws",
+  "station": "KSFO",
+  "winner": [
+   76,
+   77
+  ]
+ },
+ {
+  "agrees": null,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     16
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 3,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     17,
+     17
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 2,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     18,
+     18
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 2,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     19,
+     19
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     20,
+     20
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 2,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     21,
+     21
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     22,
+     22
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 3,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     23,
+     23
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 27,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     24,
+     24
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 41,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     25,
+     25
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 33,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     26,
+     null
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 29,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Jinan",
+  "date": "2026-09-25",
+  "event": "1072642",
+  "final": null,
+  "hl": "highest",
+  "max_gap_h": 0,
+  "reports": 0,
+  "source": "wu",
+  "station": "ZSJN",
+  "winner": [
+   26,
+   null
+  ]
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     9
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 77,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     10,
+     10
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 44,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     11,
+     11
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 83,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     12,
+     12
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 61,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     13,
+     13
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 34,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     14,
+     14
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 55,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     15,
+     15
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 33,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     16,
+     16
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 25,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     17,
+     17
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 67,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     18,
+     18
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 72,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     19,
+     null
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 96,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Paris",
+  "date": "2026-09-25",
+  "event": "1067475",
+  "final": 19,
+  "hl": "lowest",
+  "max_gap_h": 0.5,
+  "reports": 25,
+  "source": "nws",
+  "station": "LFPB",
+  "winner": [
+   19,
+   null
+  ]
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     19
+    ],
+    "obs": "2026-09-24T16:00:00Z",
+    "payout": 0.0,
+    "prints": 22,
+    "receipt_after_obs_s": 391.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 2.1,
+    "stale_prints_after_receipt": 4,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     20,
+     20
+    ],
+    "obs": "2026-09-24T16:00:00Z",
+    "payout": 0.0,
+    "prints": 75,
+    "receipt_after_obs_s": 391.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 2.02,
+    "stale_prints_after_receipt": 4,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     21,
+     21
+    ],
+    "obs": "2026-09-24T16:00:00Z",
+    "payout": 0.0,
+    "prints": 183,
+    "receipt_after_obs_s": 391.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 3.62,
+    "stale_prints_after_receipt": 4,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     22,
+     22
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 470,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     23,
+     23
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 313,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     24,
+     24
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 133,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     25,
+     25
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 51,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     26,
+     26
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 51,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     27,
+     27
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 2,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     28,
+     28
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     29,
+     null
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Qingdao",
+  "date": "2026-09-25",
+  "event": "1067605",
+  "final": 22,
+  "hl": "highest",
+  "max_gap_h": 1.0,
+  "reports": 24,
+  "source": "nws",
+  "station": "ZSQD",
+  "winner": [
+   22,
+   22
+  ]
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     15
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 18,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     16,
+     16
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 24,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     17,
+     17
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 45,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     18,
+     18
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 108,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     19,
+     19
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 114,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     20,
+     20
+    ],
+    "obs": "2026-09-24T21:30:00Z",
+    "payout": 0.0,
+    "prints": 66,
+    "receipt_after_obs_s": 267.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.21,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     21,
+     21
+    ],
+    "obs": "2026-09-24T18:30:00Z",
+    "payout": 0.0,
+    "prints": 7,
+    "receipt_after_obs_s": 269.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.11,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     22,
+     22
+    ],
+    "obs": "2026-09-24T15:00:00Z",
+    "payout": 0.0,
+    "prints": 3,
+    "receipt_after_obs_s": 271.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.02,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     23,
+     23
+    ],
+    "obs": "2026-09-24T15:00:00Z",
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": 271.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.02,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     24,
+     24
+    ],
+    "obs": "2026-09-24T15:00:00Z",
+    "payout": 0.0,
+    "prints": 1,
+    "receipt_after_obs_s": 271.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.02,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     25,
+     null
+    ],
+    "obs": "2026-09-24T15:00:00Z",
+    "payout": 0.0,
+    "prints": 9,
+    "receipt_after_obs_s": 271.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 1.14,
+    "stale_prints_after_receipt": 7,
+    "state": "dead"
+   }
+  ],
+  "city": "Seoul (Incheon)",
+  "date": "2026-09-25",
+  "event": "1067476",
+  "final": 19,
+  "hl": "lowest",
+  "max_gap_h": 0.5,
+  "reports": 48,
+  "source": "nws",
+  "station": "RKSI",
+  "winner": [
+   19,
+   19
+  ]
+ },
+ {
+  "agrees": null,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     53
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 11,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     54,
+     55
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 33,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     56,
+     57
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 63,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     58,
+     59
+    ],
+    "obs": "2026-09-26T07:51:00Z",
+    "payout": null,
+    "prints": 69,
+    "receipt_after_obs_s": 189.0,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0.09,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     60,
+     61
+    ],
+    "obs": "2026-09-26T06:51:00Z",
+    "payout": null,
+    "prints": 46,
+    "receipt_after_obs_s": 188.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.09,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     62,
+     63
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 11,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.02,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     64,
+     65
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 14,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.14,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     66,
+     67
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 2,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.07,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     68,
+     69
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 4,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.05,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     70,
+     71
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 4,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.04,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     72,
+     null
+    ],
+    "obs": "2026-09-26T04:51:00Z",
+    "payout": null,
+    "prints": 1,
+    "receipt_after_obs_s": 191.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   }
+  ],
+  "city": "New York City",
+  "date": "2026-09-26",
+  "event": "1073088",
+  "final": 57,
+  "hl": "lowest",
+  "max_gap_h": 1.0,
+  "reports": 18,
+  "source": "nws",
+  "station": "KLGA",
+  "winner": null
+ },
+ {
+  "agrees": null,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     10
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 33,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     11,
+     11
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 11,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     12,
+     12
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 38,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     13,
+     13
+    ],
+    "obs": null,
+    "payout": null,
+    "prints": 51,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     14,
+     14
+    ],
+    "obs": "2026-09-26T04:00:00Z",
+    "payout": null,
+    "prints": 90,
+    "receipt_after_obs_s": 371.0,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     15,
+     15
+    ],
+    "obs": "2026-09-26T03:30:00Z",
+    "payout": null,
+    "prints": 40,
+    "receipt_after_obs_s": 366.0,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     16,
+     16
+    ],
+    "obs": "2026-09-26T02:30:00Z",
+    "payout": null,
+    "prints": 271,
+    "receipt_after_obs_s": 364.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     17,
+     17
+    ],
+    "obs": "2026-09-25T23:30:00Z",
+    "payout": null,
+    "prints": 3,
+    "receipt_after_obs_s": 365.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     18,
+     18
+    ],
+    "obs": "2026-09-25T23:00:00Z",
+    "payout": null,
+    "prints": 4,
+    "receipt_after_obs_s": 136.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.06,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     19,
+     19
+    ],
+    "obs": "2026-09-25T22:00:00Z",
+    "payout": null,
+    "prints": 2,
+    "receipt_after_obs_s": 140.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.05,
+    "stale_prints_after_receipt": 1,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     20,
+     null
+    ],
+    "obs": "2026-09-25T22:00:00Z",
+    "payout": null,
+    "prints": 4,
+    "receipt_after_obs_s": 140.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   }
+  ],
+  "city": "Paris",
+  "date": "2026-09-26",
+  "event": "1072551",
+  "final": 13,
+  "hl": "lowest",
+  "max_gap_h": 0.5,
+  "reports": 47,
+  "source": "nws",
+  "station": "LFPB",
+  "winner": null
+ },
+ {
+  "agrees": true,
+  "buckets": [
+   {
+    "bucket": [
+     null,
+     9
+    ],
+    "obs": "2026-09-25T12:00:00Z",
+    "payout": 0.0,
+    "prints": 58,
+    "receipt_after_obs_s": 263.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.53,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     10,
+     10
+    ],
+    "obs": "2026-09-25T12:00:00Z",
+    "payout": 0.0,
+    "prints": 61,
+    "receipt_after_obs_s": 263.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.06,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     11,
+     11
+    ],
+    "obs": "2026-09-25T12:00:00Z",
+    "payout": 0.0,
+    "prints": 61,
+    "receipt_after_obs_s": 263.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     12,
+     12
+    ],
+    "obs": "2026-09-25T21:00:00Z",
+    "payout": 0.0,
+    "prints": 38,
+    "receipt_after_obs_s": 259.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     13,
+     13
+    ],
+    "obs": "2026-09-25T22:00:00Z",
+    "payout": 0.0,
+    "prints": 144,
+    "receipt_after_obs_s": 260.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0.3,
+    "stale_prints_after_receipt": 2,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     14,
+     14
+    ],
+    "obs": "2026-09-26T01:30:00Z",
+    "payout": 0.0,
+    "prints": 577,
+    "receipt_after_obs_s": 260.0,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 2.52,
+    "stale_prints_after_receipt": 30,
+    "state": "dead"
+   },
+   {
+    "bucket": [
+     15,
+     15
+    ],
+    "obs": null,
+    "payout": 1.0,
+    "prints": 659,
+    "receipt_after_obs_s": null,
+    "rw": true,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     16,
+     16
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 414,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     17,
+     17
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 156,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     18,
+     18
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 34,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   },
+   {
+    "bucket": [
+     19,
+     null
+    ],
+    "obs": null,
+    "payout": 0.0,
+    "prints": 5,
+    "receipt_after_obs_s": null,
+    "rw": false,
+    "stale_net_edge_after_receipt_usd": 0,
+    "stale_prints_after_receipt": 0,
+    "state": null
+   }
+  ],
+  "city": "Wellington",
+  "date": "2026-09-26",
+  "event": "1072648",
+  "final": 15,
+  "hl": "highest",
+  "max_gap_h": 0.5,
+  "reports": 48,
+  "source": "nws",
+  "station": "NZWN",
+  "winner": [
+   15,
+   15
+  ]
+ }
+]

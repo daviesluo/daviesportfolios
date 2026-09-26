@@ -226,6 +226,14 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-26 22:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: turn RW's same-day loss round — be the informed taker once the day's result is known (PMLATE, a research agent's phase 1, on its own branch; nothing placed, public data only).**
+- The mechanism is real and faster than a one-minute loop. September's temperature markets (2,537 market-days): where a report decided a bucket the market still priced, the first cut came a median 273 s before aviationweather.gov received the report; 97.9 % of those came before a loop acting two minutes after it, and 8.2 % of the stale side's edge was left later. Post counts: on Elon's markets 97–99 % of the stale side's edge goes within 60 s of the post; the seven smaller series leave ~$1k a year after the tracker's capture. View counts have no keyless history.
+- What is left late is mostly resolution risk: 12 September buckets the reports had decided resolved the other way (9 on 09-20) and carried $36k of the late stale-side cost against $8k of edge elsewhere; over 12,874 market-days the reports missed the winning bucket on 1.8 %, in clusters (05-17 → 05-21, 09-20). The post tracker's count at the close missed the result on 24 of 380 windows, always low (19 of them Trump's).
+- One hypothesis survives and is pre-registered, not yet frozen on `main`: USLATE (`reviews/2026-09-26-pmlate-prereg-uslate.md`), US stations only, 2026-03 → 08, $100 a bucket; its power check says a pass is unlikely and small (~$2.7k a year at September's rate). Scripts, phase 1's results and the pull manifest: `backtests/pmlate/`. Next: the coordinator reviews, freezes, and phase 2 pulls the test period's prints and runs it.
+- The container's disk was full (0 bytes free on `/`, the shared scratchpad ~21 GB, mostly older studies' folders); this study's pulls are gzipped (~70 MB).
+
 ### [2026-09-26 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies (two screenshots, Saturday ~20:50 BST): why the 24H futures chart says OPEN at 20:50 and why the S&P one has a line at 20:55; is "no stablecoin book left in the UK" true; would Binance or Bitget do; why the live row keeps Jev's gate.**
