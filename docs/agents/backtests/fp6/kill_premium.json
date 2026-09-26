@@ -1,0 +1,139 @@
+{
+ "bySymbol": {
+  "BTCUSDT": {
+   "m10_p10": {
+    "mean_bp": 0.128,
+    "median_bp": 0.082,
+    "p90_abs_bp": 2.703,
+    "settlements": 1090
+   },
+   "m10_p30": {
+    "mean_bp": 0.084,
+    "median_bp": 0.118,
+    "p90_abs_bp": 2.523,
+    "settlements": 1090
+   },
+   "m30_p10": {
+    "mean_bp": 0.139,
+    "median_bp": 0.084,
+    "p90_abs_bp": 2.667,
+    "settlements": 1090
+   }
+  },
+  "DOGEUSDT": {
+   "m10_p10": {
+    "mean_bp": 0.084,
+    "median_bp": 0.1,
+    "p90_abs_bp": 3.888,
+    "settlements": 1090
+   },
+   "m10_p30": {
+    "mean_bp": 0.025,
+    "median_bp": 0.1,
+    "p90_abs_bp": 3.786,
+    "settlements": 1090
+   },
+   "m30_p10": {
+    "mean_bp": 0.146,
+    "median_bp": 0.12,
+    "p90_abs_bp": 3.739,
+    "settlements": 1090
+   }
+  },
+  "ETHUSDT": {
+   "m10_p10": {
+    "mean_bp": 0.137,
+    "median_bp": 0.141,
+    "p90_abs_bp": 3.26,
+    "settlements": 1090
+   },
+   "m10_p30": {
+    "mean_bp": 0.025,
+    "median_bp": 0.059,
+    "p90_abs_bp": 3.248,
+    "settlements": 1090
+   },
+   "m30_p10": {
+    "mean_bp": 0.15,
+    "median_bp": 0.125,
+    "p90_abs_bp": 3.299,
+    "settlements": 1090
+   }
+  },
+  "SOLUSDT": {
+   "m10_p10": {
+    "mean_bp": 0.113,
+    "median_bp": 0.044,
+    "p90_abs_bp": 3.182,
+    "settlements": 1090
+   },
+   "m10_p30": {
+    "mean_bp": -0.03,
+    "median_bp": -0.103,
+    "p90_abs_bp": 3.145,
+    "settlements": 1090
+   },
+   "m30_p10": {
+    "mean_bp": 0.044,
+    "median_bp": 0.001,
+    "p90_abs_bp": 3.163,
+    "settlements": 1090
+   }
+  }
+ },
+ "months": [
+  "2025-09",
+  "2026-08"
+ ],
+ "what": "change of the premium index (close of the minute) across each 8-hour settlement, bp of price; positive = the perpetual richer after the settlement than before",
+ "zipSha256": {
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2025-09.zip": "f44d64874043c609064e73b1c95c13facfde3bba0f41c5b12c8ce2a2c6b83cee",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2025-10.zip": "acce214cab8c87ec32cceb37905ad01e7b6c9c2778beab39fa7cf76f475b2cc6",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2025-11.zip": "dbbba41a48fc5914b816e9dc9e26dcba8bce688eb25dc91914731426b45be4ac",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2025-12.zip": "415bd9fed65e77be571c76c91573fe8e8809aa13ea1677e2de408cf490bd5320",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-01.zip": "187e87788bd3f88dedacf6cd3bc2032f3ad46de69b06e3c2abfff0d5a5dd1264",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-02.zip": "356dc1ecc6a6dd9876575b3105c6f69001f3d85a4d26474a627e8c9f31ebe959",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-03.zip": "dcfa8a2de6574ac62a0fd79490a6edcf592f7d447f1e3692a0926f3dd866f987",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-04.zip": "9cd2c4958975ce65c400ba712b6284758708504c61d36b7bc8a553199169176b",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-05.zip": "0bbf683a08edf87a3e81ba54270e36e49e2e4cff70569e966cacc44b8d4c1dd0",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-06.zip": "65cfda4a76f46e080536d88e36d7336586696b1bce3bd7d7c7d9407af056bd5b",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-07.zip": "f0633cfe18a4a033b3f1cd6c79f0905a0c438b76c6163aba9b574d44396fe03e",
+  "data/futures/um/monthly/premiumIndexKlines/BTCUSDT/1m/BTCUSDT-1m-2026-08.zip": "9473bc6581a3fed84f524c6c2dfcfa07f90201d9280286b6ed274d8bf511fdf5",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2025-09.zip": "bfc7abe533a171184f49d2f5ededab934dc2e81bbf873034929c094a8ae0235e",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2025-10.zip": "a8c3e5e2114a51929fc45f8c85372612652c742e3506a98c8a9510430ab2812f",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2025-11.zip": "3923fa8cbb225144ee27f0419626e7c1908903e784d5a83fe1f28497a7121555",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2025-12.zip": "0c9c6435b0304e69bc8ad1201e5beb58d4d288137636633d9a01c106b08240db",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-01.zip": "b5ce4e39b1e87a6c7edbd9b9ee3f8c84177453fa1d6177a3032825133aa51aa2",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-02.zip": "43d1f7ccbaac18c98825e9409eecc1bfa21a931fe3d9420af4b5517d30114de0",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-03.zip": "a0c632c4859fdf083b96dbbd2b520f111c55407f066c79d6e6d9728d0d9a0ebb",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-04.zip": "9929e737d4ae06d24f6c09b92956dee802af5e60df8da65be956b9b85dc989cd",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-05.zip": "f08ef0021ab3623692dad0869ef2acbc4b5dd036e1982b159a3b2ae93feb81cc",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-06.zip": "cbc00321ec7e7bd5967a21524f02e4f2100034233c207d97310f698b0adb6030",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-07.zip": "0e4c7a50c7b4567957c2fd40871f3782285a25c0069805362a119a6fa584f70f",
+  "data/futures/um/monthly/premiumIndexKlines/DOGEUSDT/1m/DOGEUSDT-1m-2026-08.zip": "78b24fd49ffd5315bcc7c888e4787a8afe9aef777cca67a44085444e43006c35",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2025-09.zip": "07f09df87c4f51a17b81004d0c8cf52e43dfd5784f6b183ba98158bc93c2ce09",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2025-10.zip": "8371cf29c49bdd85721b03c81a4c85dcc5f3ec76bb4c43cb148d93067015142a",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2025-11.zip": "fa46de300cff8c12d670dfa968ddd4e30b03319e68e6d145bccaa967f948d2ba",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2025-12.zip": "8d913f6f9eb0003f6241f353ae6d2d1a9dd822f459ba56ec7bede9b683a3209f",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-01.zip": "553a52cfe06a9456c122bd8bb8a55f39c6007a944b2c3dee1c19049c0f0a4789",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-02.zip": "0e6aa75b188bfbadf05dc20c2d3b6e397715952565e31635f2623f2df18f2038",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-03.zip": "ca23c0bf2e40a79aa66a55455f636d474c25423e592196883b52e3bf6c5761d1",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-04.zip": "86d034034129e5c0fb47f6d883ba06663e1a6859e770e1e86fe32bdfd64c1ce0",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-05.zip": "112c461f03eb5054ae60e53db426b4e979fbdbac8869388963a905488878cf7d",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-06.zip": "e9aabe8158dc71cb1db9d097f5b3e04e31f22a1aec3a6b76812314c393d0ef3c",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-07.zip": "39b872287d69c182594d769f12b59eff43cd3e0e556fc1a8bd44b7af44a99a0a",
+  "data/futures/um/monthly/premiumIndexKlines/ETHUSDT/1m/ETHUSDT-1m-2026-08.zip": "d0caefda65d362815573a16e8f361b5d35970421078ea22d0df303b0fb5b0b00",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2025-09.zip": "78025cdd87f2ea9f9db74a0c8ea72a31e2ec743e5975f1da79ec641332e4d767",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2025-10.zip": "4df875968510cdb7800f3110cdc756d14fc280729dcfe56108a2f91ab18a403e",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2025-11.zip": "b9844fe0db04f692391900e02c65c1997c26c67d8c472524889b482ba6e16d93",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2025-12.zip": "e6df39360f9b561d597c8c66513143d2d2877494655c6588ca6b6e4fdab1f017",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-01.zip": "534b70e171bd93f1fa4d032acc4975ea4da9d9550dea3cea3e97ff634d73c6ed",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-02.zip": "25995f7cadac364b32b9b76805dcb3d8e3da84fb6032b33b717e40fd6eefe1f7",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-03.zip": "43da1b7c6e7ef34adcbf1ef1545e9537eca38b647d67f2f407cafc4120a23473",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-04.zip": "d57b9acd7a6bfb18ef930b99a386d6fc1796918c4a4b4c49458fabb995608b7d",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-05.zip": "4701217e45ad53329334090fcda8cc9b06a3d16b7d83e03770008f0b21d31c6a",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-06.zip": "a505a2886c32bbc3c6f10afd640c057c49a67bcda2d15144bd02a5ef0ed28e17",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-07.zip": "ebdb77dfce2a9f8e4f5d362167fd9d4cde27a9b5f206ee3833b99c71cd824aa4",
+  "data/futures/um/monthly/premiumIndexKlines/SOLUSDT/1m/SOLUSDT-1m-2026-08.zip": "a3ad01be5495fd4fdcd0dd134a605c87fecb50c595e613cea5e79967fe166885"
+ }
+}
