@@ -235,6 +235,15 @@ Trading 212 instead of staying flat; holdings that don't trade overnight
 stay flat. Hover to read both returns at that moment, with its date or
 time.
 
+On 24H, dashed lines mark the US market's OPEN (9:30 in New York, 14:30
+UK time for most of the year) and CLOSE (16:00 in New York, 21:00 UK
+time) with extended hours on; with them off, only the OPEN, while the
+market is open. Each is drawn only when that moment falls inside the
+window. Only the times the market traded are drawn, so at the weekend
+the window holds just the end of Friday's session: the futures' last
+hour or so, the S&P's last few minutes. The faint vertical lines are the
+time axis's gridlines, one under each time label.
+
 ### INVESTMENT
 
 - **Value** is the portfolio in dollars. Its right-hand end is the

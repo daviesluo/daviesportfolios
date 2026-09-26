@@ -217,6 +217,12 @@ export function findRegularCloseIdx(series, mh) {
 // AND so it runs against the SAME (possibly overnight-spliced) series the
 // markers are rendered on — keying off the raw Yahoo series would mis-place
 // the marker once the recorded overnight line shifts today's bars right.
+// The bar must be where the open HAPPENED: the first bar at or after it,
+// with the bar before it earlier than the open, or a first bar stamped at
+// the open itself. A series that begins after the open does not contain
+// it: the perf chart's trailing 24H window on a Saturday evening holds
+// Friday's last hour of futures, and "OPEN" was drawn on its first bar
+// (20:50 BST, Davies 2026-09-26); so was the futures' Sunday reopen.
 // Returns -1 when no open bar is in the series.
 /**
  * @param {Array<{date?: string, close?: number}> | null} series
@@ -227,13 +233,16 @@ export function findRegularOpenIdx(series, mh) {
   const last = series[series.length - 1];
   const todayDay = (last && typeof last.date === 'string') ? last.date.slice(0, 10) : '';
   if (!todayDay) return -1;
+  const pad = (/** @type {number} */ n) => String(n).padStart(2, '0');
+  // UTC wall-clock stamps compare as strings: `YYYY-MM-DDTHH:MM`.
+  const openAt = `${todayDay}T${pad(mh.openHh)}:${pad(mh.openMm)}`;
+  let prev = '';
   for (let i = 0; i < series.length; i++) {
     const d = series[i] && series[i].date;
     if (typeof d !== 'string' || d.length < 16) continue;
-    if (d.slice(0, 10) !== todayDay) continue;
-    const hh = parseInt(d.slice(11, 13), 10);
-    const mm = parseInt(d.slice(14, 16), 10);
-    if ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh) return i;
+    const at = d.slice(0, 16);
+    if (at >= openAt) return (at === openAt || (prev !== '' && prev < openAt)) ? i : -1;
+    prev = at;
   }
   return -1;
 }

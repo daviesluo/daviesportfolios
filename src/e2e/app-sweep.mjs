@@ -1295,6 +1295,33 @@ async function run() {
       }
     }
 
+    // ---- 4b. 24H with extended hours: an OPEN only where the open is --
+    // The futures chart marks the regular session's OPEN and CLOSE. The
+    // fixture's session starts at 14:00 UTC, after the 13:30 open, with
+    // no bar before it, so this window does not contain the open and
+    // nothing may be labelled OPEN. The first build put "OPEN" on the
+    // window's first point whenever it came after the open: on Saturday
+    // 2026-09-26 it labelled Friday 20:50 BST, the first bar of a window
+    // that held Friday's last hour of futures (Davies' screenshot).
+    await page.locator('#perf-tab-sp:visible').first().click();
+    await page.locator('.ext-switch:visible').first().click();
+    await page.waitForTimeout(900);
+    await page.locator('.perf-range-btn:visible:text-is("24H")').first().click();
+    await page.waitForTimeout(500);
+    const marks = await page.evaluate(() => {
+      const panel = [...document.querySelectorAll('.perf-chart-wrap')]
+        .find((w) => w.getBoundingClientRect().width > 0)?.closest('.panel');
+      return {
+        futures: /FUT/.test(panel?.querySelector('.view-tab.is-on')?.textContent || ''),
+        texts: [...(panel?.querySelectorAll('svg text') || [])].map((t) => (t.textContent || '').trim()),
+      };
+    });
+    if (!marks.futures) fail(S('markers/24H-ext'), 'extended hours did not switch the panel to the futures view');
+    else if (marks.texts.includes('OPEN')) fail(S('markers/24H-ext'), `"OPEN" drawn in a window that starts after the open (${marks.texts.join(' ')})`);
+    else ok(S('markers/24H-ext'), 'no OPEN in a futures window that starts after the open');
+    await page.locator('.ext-switch:visible').first().click();
+    await page.waitForTimeout(700);
+
     // ---- 5. heat map, with extended hours off and then on -----------
     await page.locator('.view-toggle .view-switch:visible').first().click();
     await page.waitForTimeout(700);

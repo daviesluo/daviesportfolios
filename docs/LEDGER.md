@@ -209,6 +209,14 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-26 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies (two screenshots, Saturday ~20:50 BST): why the 24H futures chart says OPEN at 20:50 and why the S&P one has a line at 20:55; is "no stablecoin book left in the UK" true; would Binance or Bitget do; why the live row keeps Jev's gate.**
+- The 24H chart put "OPEN" on the first point of any window that began after the regular open: on Saturday the trailing 24 hours of futures hold Friday 20:50–21:55 BST only, and the open (14:30 BST) was outside. The perf chart had its own copy of the ticker modal's open scan; both now call `findRegularOpenIdx`, which also requires the bar before the open bar to be earlier than the open (or the first bar to be stamped at it), so a window that starts after the open draws no OPEN, and neither does the futures' Sunday reopen. Pinned in `chart_geometry.test.js` (the old scan returns 0 where −1 is right) and by the sweep's new `markers/24H-ext`, whose fixture session starts at 14:00 UTC with nothing before it: run against the old bundle it FAILS ("OPEN" drawn), against the new it passes. The 20:55 line on the S&P chart is the time axis's gridline under its one label: of that window the cash index traded only Friday 20:50–21:00 BST, three points. Not changed. `docs/guide.md` says what the markers mean and what a weekend 24H holds.
+- "No stablecoin book left in the UK" is true: Revolut X's public pair list (455 pairs, both regions, read 2026-09-26) has no stablecoin base but USDC and USDT, and no USDT/USDC book (its USDC-quoted books are all coins); the UK side has USDC/GBP, USDT/GBP, USDC/USD and USDT/USD. The gold tokens PAXG and XAUT were closed in §3.29.
+- Binance was already answered: §3.29's ZF, PR5's mechanism on Binance's zero-fee stablecoin books, fails (pooled +$88.74, 2.6 %/yr, stress −$51.03; EURI's books lost $439), and its zero-fee USD fiat books exclude UK residents. Bitget: a read-only feasibility study is running in this session (access for a UK and Irish resident, fees, its stablecoin books' spreads from the public API); nothing registered, nothing committed.
+- Jev on the live row stays on: since v2 (`0047`) `trend-4h-live` has had one entry signal (SOL, the 09-25 08:00 bar), P = 0.58, entered; the gate has vetoed nothing. On trend-4h the v2 gate passed its bar (§4.21: worst window unchanged), and the paper control carries the same gate.
+
 ### [2026-09-26 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: fix PR5's live path being off the page and RW's same-day loss where they can be fixed, run the plans worth running, then slim the ledger.**

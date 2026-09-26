@@ -327,6 +327,29 @@ describe('findRegularOpenIdx', () => {
     expect(findRegularOpenIdx(series, mh)).toBe(1);
   });
 
+  it('returns -1 when the series starts after the open: the window does not contain it', () => {
+    // Davies' screenshot, Saturday 2026-09-26 ~20:50 BST: the trailing 24H
+    // window of S&P futures holds Friday's last hour only (the market shut
+    // at 22:00 BST). Its first bar, 19:50 UTC, is not an open, and the
+    // chart drew "OPEN" on it. Friday's open was at 13:30 UTC, outside.
+    const friday = ['19:50', '19:55', '20:00', '20:05', '20:55']
+      .map((t, i) => ({ date: `2026-09-25T${t}`, close: 6000 + i }));
+    expect(findRegularOpenIdx(friday, mh)).toBe(-1);
+    // Sunday evening: the futures reopen at 22:00 UTC. That is not the
+    // regular open either.
+    const sunday = [{ date: '2026-09-27T22:00', close: 1 }, { date: '2026-09-27T22:05', close: 2 }];
+    expect(findRegularOpenIdx(sunday, mh)).toBe(-1);
+  });
+
+  it('counts a first bar stamped at the open, and a crossing from the previous day', () => {
+    // The window can begin exactly at the open…
+    expect(findRegularOpenIdx([{ date: '2026-06-04T13:30' }, { date: '2026-06-04T13:35' }], mh)).toBe(0);
+    // …and on a regular-hours series the bar before today's open is
+    // yesterday's last one; the open bar may itself be missing.
+    expect(findRegularOpenIdx([{ date: '2026-06-03T19:55' }, { date: '2026-06-04T13:30' }], mh)).toBe(1);
+    expect(findRegularOpenIdx([{ date: '2026-06-03T19:55' }, { date: '2026-06-04T13:45' }], mh)).toBe(1);
+  });
+
   it('skips short / malformed dates and guards null / empty / null mh', () => {
     expect(findRegularOpenIdx([{ date: '2026-06-04' }, { date: '2026-06-04T13:30', close: 9 }], mh)).toBe(1);
     expect(findRegularOpenIdx(null, mh)).toBe(-1);

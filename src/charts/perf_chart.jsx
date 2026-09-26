@@ -26,7 +26,7 @@ import {
   panelRangeLabel,
   resampleToSlots,
 } from './ytd.js';
-import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx } from './chart_geometry.js';
+import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx, findRegularOpenIdx } from './chart_geometry.js';
 import { depositSeries } from './deposit_series.js';
 import {
   readCachedPriceSnapshots, refreshPriceSnapshots, mergeRecordedBars,
@@ -1320,21 +1320,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
             when S&P fetch fell back to another ticker, so use the
             portfolio index map as backup. */}
         {rangeKey === '1D' && (variantKey === 'reg' || variantKey === 'ext') && (() => {
-          let openIdx = -1, closeIdx = -1;
-          // OPEN is scoped to the most-recent calendar date in the
-          // data so a yesterday-afternoon bar (whose UTC hour also
-          // satisfies hh > openHh) doesn't steal the match.
-          const lastDay = spYtd.length > 0 ? spYtd[spYtd.length - 1].date.slice(0, 10) : null;
-          for (let i = 0; i < spYtd.length; i++) {
-            const d = spYtd[i].date;
-            if (d.length < 16) continue;
-            if (lastDay && d.slice(0, 10) !== lastDay) continue;
-            const hh = parseInt(d.slice(11, 13), 10);
-            const mm = parseInt(d.slice(14, 16), 10);
-            if (openIdx < 0 && ((hh === mh.openHh && mm >= mh.openMm) || hh > mh.openHh)) {
-              openIdx = i;
-            }
-          }
+          let closeIdx = -1;
+          // OPEN is the bar where the series crosses the latest day's
+          // regular open, and only when the window contains that
+          // crossing: the helper the ticker modal uses, not a copy of
+          // it. The copy put "OPEN" on the first point of any window
+          // that began after the open (a Saturday's 24H, 2026-09-26).
+          const openIdx = findRegularOpenIdx(spYtd, mh);
           // CLOSE only matters in 'ext' mode — walk backwards and
           // find the bar whose timestamp is the regular close itself
           // (e.g. 20:00 UTC for EDT). Previously we allowed +5 min of
