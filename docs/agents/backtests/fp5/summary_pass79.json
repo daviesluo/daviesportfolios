@@ -1,0 +1,433 @@
+{
+  "fill": "later UK public trade print, after the queued order",
+  "frozen_at": "2026-09-25 23:57:45 UTC",
+  "maker_fee_bps": 0,
+  "pass78_fill_reused": false,
+  "queue": "signal print is not a fill; bid is one quote step under it; a later sell at or under that bid fills; a buy before that cancels",
+  "reached_preregistration": false,
+  "rules": [
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2385.6716703451,
+          "exits": 352,
+          "marks": 1,
+          "stress_bps": 2384.7006687088,
+          "trips": 353
+        },
+        "XRP-USD": {
+          "bps": 979.5836721581,
+          "exits": 75,
+          "marks": 1,
+          "stress_bps": 870.1338097475,
+          "trips": 76
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 6.5914583099,
+        "book": "BTC-USD",
+        "entry_ms": 1781656542958,
+        "entry_price": "65721.42",
+        "exit_ms": 1781656876420,
+        "exit_price": "65764.74",
+        "kind": "exit",
+        "stress_bps": 6.5884141596
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.6840151605,
+      "null_defined": true,
+      "null_p95_bps": 832.0627464916,
+      "pool_bps": 1682.6276712516,
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxbounce",
+      "rule_sha256": "0cc9f9ce559acaf300a8345d661eb2dbac4143949a73c8eead3b8a47eaa89fc1",
+      "source": "Roll 1984 Journal of Finance 39(4); https://hftradingbook.com/data/bid-ask-bounce",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1627.4172392281,
+      "testing_row": false,
+      "trips": 76,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 11616, acted 1296, fills 353, cancels 943, exits 352, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 6543, acted 220, fills 76, cancels 144, exits 75, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2602.3984632782,
+          "exits": 371,
+          "marks": 1,
+          "stress_bps": 2601.3555613443,
+          "trips": 372
+        },
+        "XRP-USD": {
+          "bps": 1046.4600965893,
+          "exits": 65,
+          "marks": 1,
+          "stress_bps": 951.819627779,
+          "trips": 66
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 0.4949422235,
+        "book": "BTC-USD",
+        "entry_ms": 1781657516416,
+        "entry_price": "65664.23",
+        "exit_ms": 1781657530950,
+        "exit_price": "65667.48",
+        "kind": "exit",
+        "stress_bps": 0.4918963503
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.8491373658,
+      "null_defined": true,
+      "null_p95_bps": 1001.9137516258,
+      "pool_bps": 1824.4292799338,
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxadverse",
+      "rule_sha256": "e513edd57d7ee994ae96346e8156a1f884cdfcd95708e5bdc576b7f533cba027",
+      "source": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4175306",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1776.5875945617,
+      "testing_row": false,
+      "trips": 66,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 27352, acted 1067, fills 372, cancels 695, exits 371, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 10684, acted 164, fills 66, cancels 98, exits 65, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 3017.9977012469,
+          "exits": 355,
+          "marks": 1,
+          "stress_bps": 3016.9810186818,
+          "trips": 356
+        },
+        "XRP-USD": {
+          "bps": 1172.215303526,
+          "exits": 84,
+          "marks": 1,
+          "stress_bps": 1028.2600969244,
+          "trips": 85
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.5894239947,
+        "book": "BTC-USD",
+        "entry_ms": 1781663916706,
+        "entry_price": "65804.43",
+        "exit_ms": 1781669597777,
+        "exit_price": "65828.05",
+        "kind": "exit",
+        "stress_bps": 3.5863841406
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.5491085854,
+      "null_defined": false,
+      "null_p95_bps": null,
+      "pool_bps": 2095.1065023864,
+      "reached_preregistration": false,
+      "reasons": [
+        "pooled P&L does not beat the null p95",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rximpact",
+      "rule_sha256": "8c21dfc5ab2817a6223efa88f6801a64fa5f4e2ee8f9dc645bf5ff5b73d43c9c",
+      "source": "https://arxiv.org/abs/2608.21888",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 2022.6205578031,
+      "testing_row": false,
+      "trips": 85,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 7447, acted 579, fills 356, cancels 223, exits 355, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 1263, acted 153, fills 85, cancels 68, exits 84, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 1461.7407975057,
+          "exits": 198,
+          "marks": 1,
+          "stress_bps": 1461.1700025622,
+          "trips": 199
+        },
+        "XRP-USD": {
+          "bps": 1708.0451107691,
+          "exits": 44,
+          "marks": 1,
+          "stress_bps": 1645.1189365761,
+          "trips": 45
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 6.614850339,
+        "book": "XRP-USD",
+        "entry_ms": 1781659730361,
+        "entry_price": "1.2094",
+        "exit_ms": 1781659735939,
+        "exit_price": "1.2102",
+        "kind": "exit",
+        "stress_bps": 4.9607275734
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.7135962444,
+      "null_defined": true,
+      "null_p95_bps": 720.6083960072,
+      "pool_bps": 1584.8929541374,
+      "reached_preregistration": false,
+      "reasons": [
+        "lesser trip count is under 60",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxround",
+      "rule_sha256": "83575d8f2acea4eb1f96b1ffd569fbff90437867202d6dd4f16a4729cdb764a4",
+      "source": "https://doi.org/10.1016/j.econlet.2017.07.035",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1553.1444695691,
+      "testing_row": false,
+      "trips": 45,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 7712, acted 528, fills 199, cancels 329, exits 198, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 2496, acted 101, fills 45, cancels 56, exits 44, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2428.6636192662,
+          "exits": 264,
+          "marks": 1,
+          "stress_bps": 2427.9067049029,
+          "trips": 265
+        },
+        "XRP-USD": {
+          "bps": 650.8141395676,
+          "exits": 55,
+          "marks": 1,
+          "stress_bps": 568.1845107794,
+          "trips": 56
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 6.614850339,
+        "book": "XRP-USD",
+        "entry_ms": 1781659730361,
+        "entry_price": "1.2094",
+        "exit_ms": 1781659735939,
+        "exit_price": "1.2102",
+        "kind": "exit",
+        "stress_bps": 4.9607275734
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.4543966492,
+      "null_defined": true,
+      "null_p95_bps": 866.972152643,
+      "pool_bps": 1539.7388794169,
+      "reached_preregistration": false,
+      "reasons": [
+        "lesser trip count is under 60",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxgap",
+      "rule_sha256": "a7e2c3c7baaecf70f0956d7f067522bf519da4e331d4cf04334298ab5f42bc5c",
+      "source": "https://hftradingbook.com/strategies/intraday-mean-reversion",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1498.0456078412,
+      "testing_row": false,
+      "trips": 56,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 1858, acted 666, fills 265, cancels 401, exits 264, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 4341, acted 137, fills 56, cancels 81, exits 55, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "ETH-USD",
+        "SOL-USD"
+      ],
+      "books_detail": {
+        "ETH-USD": {
+          "bps": 3664.6636871482,
+          "exits": 263,
+          "marks": 0,
+          "stress_bps": 3640.8889555582,
+          "trips": 263
+        },
+        "SOL-USD": {
+          "bps": 2606.004121084,
+          "exits": 172,
+          "marks": 1,
+          "stress_bps": 2569.526321321,
+          "trips": 173
+        }
+      },
+      "edge_off_bps": 4484.3191657985,
+      "first_trip": {
+        "base_bps": 23.3908358047,
+        "book": "SOL-USD",
+        "entry_ms": 1781694220141,
+        "entry_price": "71.823",
+        "exit_ms": 1781695278014,
+        "exit_price": "71.991",
+        "kind": "exit",
+        "stress_bps": 23.1120516819
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.4503442293,
+      "null_defined": true,
+      "null_p95_bps": 2690.4691144188,
+      "pool_bps": 3135.3339041161,
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxlag",
+      "rule_sha256": "6d131a5dab3cd7271b7101671ff89c5f82158e4034f56ce9eba7d0f85c2a5937",
+      "source": "https://www.sotofranco.dev/articles/posts/btc-eth-lead-lag",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 3105.2076384396,
+      "testing_row": false,
+      "trips": 173,
+      "why": "ETH-USD prints 39035, sells 16234, buys 22801, signals 2739, acted 774, fills 263, cancels 511, exits 263, marks 0, left_working 0 SOL-USD prints 43569, sells 16055, buys 27514, signals 1978, acted 518, fills 173, cancels 345, exits 172, marks 1, left_working 0 leader BTC-USD up-buy of at least 1 bp; ETH window 60000 ms; SOL window 60000 ms"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 1574.3016514108,
+          "exits": 185,
+          "marks": 0,
+          "stress_bps": 1573.8031393815,
+          "trips": 185
+        },
+        "XRP-USD": {
+          "bps": 2280.7093050354,
+          "exits": 130,
+          "marks": 0,
+          "stress_bps": 2086.9754161794,
+          "trips": 130
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 82.6910489017,
+        "book": "BTC-USD",
+        "entry_ms": 1782087098332,
+        "entry_price": "63415.57",
+        "exit_ms": 1782090179191,
+        "exit_price": "63939.96",
+        "kind": "exit",
+        "stress_bps": 82.6878820631
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-09",
+      "month_share": 0.4580033345,
+      "null_defined": false,
+      "null_p95_bps": null,
+      "pool_bps": 1927.5054782231,
+      "reached_preregistration": false,
+      "reasons": [
+        "pooled P&L does not beat the null p95",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxmonday",
+      "rule_sha256": "4ec36944b527ca4374b1300babc68eb002a3b6e5af49143e3c713638f6b2b032",
+      "source": "https://www.sciencedirect.com/science/article/pii/S1544612318304240",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1830.3892777804,
+      "testing_row": false,
+      "trips": 130,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 6876, acted 596, fills 185, cancels 411, exits 185, marks 0, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, signals 2352, acted 404, fills 130, cancels 274, exits 130, marks 0, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2090.2716341724,
+          "exits": 304,
+          "marks": 0,
+          "stress_bps": 2089.4166693636,
+          "trips": 304
+        },
+        "XRP-USD": {
+          "bps": 871.4399979305,
+          "exits": 37,
+          "marks": 0,
+          "stress_bps": 818.0529843944,
+          "trips": 37
+        }
+      },
+      "edge_off_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 1.8582519333,
+        "book": "BTC-USD",
+        "entry_ms": 1781655339424,
+        "entry_price": "65653.1",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 1.855205336
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-09",
+      "month_share": 0.4329073227,
+      "null_defined": true,
+      "null_p95_bps": 630.9544204783,
+      "pool_bps": 1480.8558160515,
+      "reached_preregistration": false,
+      "reasons": [
+        "lesser trip count is under 60",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxquiet",
+      "rule_sha256": "49897e6bfb938bc8499420674cda8271d4c3110a2cb0610355ce908bc6a50053",
+      "source": "https://learn.greeks.live/area/stale-price/",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1453.734826879,
+      "testing_row": false,
+      "trips": 37,
+      "why": "BTC-USD prints 78098, sells 38969, buys 39129, signals 2641, acted 1049, fills 304, cancels 744, exits 304, marks 0, left_working 1 XRP-USD prints 40107, sells 17228, buys 22879, signals 593, acted 93, fills 37, cancels 56, exits 37, marks 0, left_working 0"
+    }
+  ],
+  "rules_scored": 8,
+  "rxpar_rescored": false,
+  "stress": "one quote step worse on the entry print and on the exit print",
+  "tape_sha256": {
+    "BTC-USD": "dcecbcd76c2267b0c9e9e0f7be22e2328a4848554b78696cb9bd4c8ad0b18728",
+    "ETH-USD": "bf23bb83f7756613aa84ac57f1e3176b5215aaa330bfdfc60b79ac3d272dd64c",
+    "SOL-USD": "5b6876685fa50687a0d58055a324329ff288c516eeb9f043084cce70f3b5ebe2",
+    "XRP-USD": "ec1625249955dfba0041f5bde7313cc7ec61fe40c46646638f13d8d672ee0395"
+  },
+  "testing_row": false
+}
