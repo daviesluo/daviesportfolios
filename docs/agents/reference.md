@@ -2721,6 +2721,29 @@ concentrated in politics (2.7) and mentions (5.6); sports pays 50-50 on 11 games
 of one day and with the rewards computed from the published formula; what Polymarket actually pays is visible only to
 an account that quotes, and whether this one may is the review's §0.
 
+### 3.34 Funding crowding as a BTC spot trade at Revolut X's cost: both rules fail (2026-09-26)
+
+fp5's Binance search found two funding screens that passed their 2023 tests against sound nulls and were never tried
+on another year: UZERO (the last settled BTCUSDT funding rate below zero) and USOFR (below the eight-hour SOFR carry).
+The fp5 review (`reviews/2026-09-26-fp5-review.md`) ranked them third of what is worth running. The pre-registration
+(`reviews/2026-09-26-fund-crowding-prereg.md`, frozen at `98862d04` before any return was computed) keeps both signals
+word for word and changes only the trade, to what this account can hold: a BTC spot long bought at 00:00 UTC and held
+48 hours, one at a time, at 10.5 bp a side. The test is 2024-01 → 2026-09 (the shift null there, Holm across the two);
+2019-09 → 2022-12 must replicate by sign, because at 3.9 % a day its null has too little power. The run is
+`backtests/fund/` (inputs keyless, their hashes re-pulled exactly; three runs byte-identical, reproduced on `main`;
+a second implementation sharing no code agreed to four decimals); the write-up is `…-fund-crowding-study.md`.
+
+| rule | 2024-01 → 2026-09 | shift-null p | second half | 2019-09 → 2022-12 | excess a held day: 2019–22 · 2023 · 2024–26 |
+|---|---|---|---|---|---|
+| UZERO | +$36.73 on $100 a trade, 40 entries | 0.226 | −$0.88 | +$166.71, 68 entries | +56 · +42 · +11 bp |
+| USOFR | +$11.36, 74 entries; −$4.19 at double cost | 0.779 | −$15.17 | +$150.50, 72 entries | +39 · +13 · −6 bp |
+
+**FAIL, both.** Neither beats the shift null in the test window (Holm needs 0.025; the smaller p is 0.226), and neither
+makes money in its second half. The edge was there before 2024 and is not since: 2019–22's profit came from a few
+rebounds (one trade entered 2020-03-13 made +$34.41), and UZERO's 11 bp a held day in 2024–26 is the size the power
+check said this data cannot resolve. Funding crowding as a BTC spot trade is closed at this account's cost ("no large
+edge, a small one not ruled out"); fp5's four funding screens stay set aside, and no paper row is proposed.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

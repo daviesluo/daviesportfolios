@@ -23,8 +23,8 @@ list stays the short version; the plan is the reasoning behind it.
    (`docs/agents/reviews/2026-09-26-fp5-review.md`; the three branches stay unmerged). 1. RW-E — frozen, judged
    with RW on 10-09 (item 2). 2. PR6, USD stablecoins at par on Revolut X, on ten months of public prints with PR5's
    frozen simulator (frozen: `reviews/2026-09-26-pr6-revx-usd-par-prereg.md`; running). 3. Funding crowding (the
-   frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs, on the never-used 2024–26 and 2019–22 data
-   (frozen: `reviews/2026-09-26-fund-crowding-prereg.md`; running). 4. DRAW-X, DRAWBASE on four unseen leagues
+   frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs: FAILED 2026-09-26, both rules (reference
+   §3.34, `reviews/2026-09-26-fund-crowding-study.md`); closed. 4. DRAW-X, DRAWBASE on four unseen leagues
    (frozen: `reviews/2026-09-26-draw-x-prereg.md`; running). Davies said run what is worth running (2026-09-26); each
    result lands on `main` with its study and a ledger line. 5. Four weeks of Revolut X's UK order book for a queue
    model (RECORDING since 2026-09-26, `0057`, one book at a time from `0058`; pre-register the queue model before
@@ -124,7 +124,7 @@ list stays the short version; the plan is the reasoning behind it.
      `docs/commit-map-2026-09-24.md` maps the old hashes. Every clone runs `sh bin/setup.sh` once, or the ledger hook
      is off there.
 
-In flight: the phase-2 runs of FUND, PR6 and DRAW-X (item 1), in worktree agents of the 2026-09-26 Claude Code
+In flight: the phase-2 runs of PR6 and DRAW-X (item 1), in worktree agents of the 2026-09-26 Claude Code
 session; each result lands on `main` with its study and a ledger line. If that session is gone, the frozen
 pre-registrations on `main` are the whole brief: run phase 2 again from them.
 
@@ -225,6 +225,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - PR6 and DRAW-X pre-registered and frozen as their agents wrote them (`reviews/2026-09-26-pr6-revx-usd-par-prereg.md`, `reviews/2026-09-26-draw-x-prereg.md`). PR6: PR5's frozen simulator at par on USDC-USD and USDT-USD, on the part of the UK tape the venue's candles confirm (from 2025-11-27 and 2025-12-17), a whole-day circular-shift null, and 8 %/yr on the quotes' capital over the window AND its last three months; its power check says that last condition decides it and that the counts make a pass unlikely. DRAW-X: DRAWBASE's code with two fixes (kickoff is `startTime`; a match not played at its listed kickoff is dropped) on La Liga, the Bundesliga, Ligue 1 and Serie A, 1,554 matches; it sees only an edge of about five points or more, in at least three leagues (its condition 7, kept at review). A fail of either closes the idea; a pass is a paper test.
 - FUND pre-registered and frozen (`reviews/2026-09-26-fund-crowding-prereg.md`): fp5's UZERO / USOFR funding signals, word for word, as a BTC spot long for 48 h at Revolut X's cost, on 2024-01 → 2026-09 (the test: the shift null there, Holm across the two) and 2019-09 → 2022-12 (a replication by sign; its null test has too little power at 3.9 % a day — decided at review, from the power check alone, before any return). It can see an edge the size 2023 showed, not one merely worth money.
 - The research plans, judged: PR6 (USD stablecoins at par), funding crowding (UZERO / USOFR as a spot trade) and DRAW-X (DRAWBASE on four unseen leagues) are worth one test each; each is pre-registered first and frozen on `main` before any outcome is computed. The order-book recorder is next. PR5's live path stays gated by its own review on 10-21 and Davies' word (item 4).
+- FUND ran and FAILS, both rules (reference §3.34, `reviews/2026-09-26-fund-crowding-study.md`, `backtests/fund/`, reproduced byte for byte on `main`: `fund.json` sha256 `3964e667…`, 19 pins pass). In 2024-01 → 2026-09 neither beats the shift null (UZERO p 0.226, USOFR 0.779) and both lose in the second half; 2019–22 replicates by sign. The excess over the null per held day fell from +56 bp (2019–22) to +42 (2023) to +11 (2024–26) for UZERO, and +39 → +13 → −6 for USOFR. Funding crowding as a spot trade is closed at this account's cost; no paper row.
 - The ledger is slimmed, on Davies' word ("LEDGER.md 已经 3,600 多行，按规矩应该保持很短"): 3,659 lines to about 340. The what-remains list as it stood and the 152 history sections of 2026-09-22 → 09-24 moved word for word to `docs/handover.md` Part 2, under "LEDGER.md, archived 2026-09-26", oldest first. A script checked that every moved section and the whole old list arrived intact, and that nothing else in the handover changed. The list was rewritten to what is open: fp5's runs, RW and RW-E's verdict, the live row, PR5, and Davies' own decisions. One old item closed on the way: every maker probe filled since `0050` (ids 12–16, 09-25 and 09-26) carries a `fill_minute` whose volume is above zero.
 
 ### [2026-09-26 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)

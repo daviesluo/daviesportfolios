@@ -1,0 +1,4112 @@
+{
+ "bar": {
+  "USOFR": {
+   "1_profit_each_window": true,
+   "2_profit_each_half": false,
+   "3_shift_null_primary_holm": false,
+   "4_double_cost_each_window": false,
+   "5_not_one_month": false,
+   "6_worth_money_primary": true,
+   "7_enough_trades": true,
+   "pass": false
+  },
+  "UZERO": {
+   "1_profit_each_window": true,
+   "2_profit_each_half": false,
+   "3_shift_null_primary_holm": false,
+   "4_double_cost_each_window": true,
+   "5_not_one_month": true,
+   "6_worth_money_primary": true,
+   "7_enough_trades": true,
+   "pass": false
+  }
+ },
+ "buy_and_hold_one_round_trip": {
+  "2023": {
+   "binance_usd": 155.0808,
+   "coinbase_usd": 155.2643
+  },
+  "primary": {
+   "binance_usd": 99.2101,
+   "coinbase_usd": 99.1281
+  },
+  "second": {
+   "binance_usd": 63.4656,
+   "coinbase_usd": 63.4514
+  }
+ },
+ "costs_per_side": {
+  "base": 0.00105,
+  "stress": 0.0021
+ },
+ "counts_check": {
+  "counts": {
+   "USOFR 2023": {
+    "days_held": 175,
+    "entries": 29,
+    "entries_by_half": [
+     21,
+     8
+    ],
+    "signal_days": 126,
+    "signal_days_by_half": [
+     60,
+     66
+    ]
+   },
+   "USOFR primary": {
+    "days_held": 496,
+    "entries": 74,
+    "entries_by_half": [
+     33,
+     41
+    ],
+    "signal_days": 366,
+    "signal_days_by_half": [
+     157,
+     209
+    ]
+   },
+   "USOFR second": {
+    "days_held": 317,
+    "entries": 72,
+    "entries_by_half": [
+     21,
+     51
+    ],
+    "signal_days": 211,
+    "signal_days_by_half": [
+     66,
+     145
+    ]
+   },
+   "UZERO 2023": {
+    "days_held": 63,
+    "entries": 20,
+    "entries_by_half": [
+     11,
+     9
+    ],
+    "signal_days": 36,
+    "signal_days_by_half": [
+     14,
+     22
+    ]
+   },
+   "UZERO primary": {
+    "days_held": 200,
+    "entries": 40,
+    "entries_by_half": [
+     21,
+     19
+    ],
+    "signal_days": 140,
+    "signal_days_by_half": [
+     53,
+     87
+    ]
+   },
+   "UZERO second": {
+    "days_held": 264,
+    "entries": 68,
+    "entries_by_half": [
+     21,
+     47
+    ],
+    "signal_days": 171,
+    "signal_days_by_half": [
+     65,
+     106
+    ]
+   }
+  },
+  "every_uzero_day_is_a_usofr_day": true,
+  "matches_frozen_table": true,
+  "signal_days_by_year_uzero_usofr": {
+   "2019": [
+    22,
+    22
+   ],
+   "2020": [
+    43,
+    44
+   ],
+   "2021": [
+    29,
+    29
+   ],
+   "2022": [
+    77,
+    116
+   ],
+   "2023": [
+    36,
+    126
+   ],
+   "2024": [
+    29,
+    88
+   ],
+   "2025": [
+    41,
+    145
+   ],
+   "2026": [
+    70,
+    133
+   ]
+  },
+  "trade_length_min_max": {
+   "USOFR primary": [
+    2,
+    48
+   ],
+   "USOFR second": [
+    2,
+    18
+   ],
+   "UZERO primary": [
+    2,
+    20
+   ],
+   "UZERO second": [
+    2,
+    13
+   ]
+  },
+  "uzero_primary_days_feb_to_apr_2026": 55
+ },
+ "holm_primary": {
+  "USOFR": {
+   "clears": false,
+   "p": "685/879",
+   "p_float": 0.779295
+  },
+  "UZERO": {
+   "clears": false,
+   "p": "199/879",
+   "p_float": 0.226394
+  }
+ },
+ "inputs_sha256": {
+  "coinbase_btcusd_open.json.gz": "c9b79e458b42f81bf63f3662217de1527b95f83884327bd8a3adc96d5b638b54",
+  "funding_btcusdt.json.gz": "5ecd4eef77a79741aba92bb50bbf58389f21f15c2df0ced3f9896b4a4b460449",
+  "sofr.json.gz": "8ef002928f4cc2463c52f6aa078d2328287a6aebd9584a492afc81afa974c224",
+  "spot_btcusdt_open.json.gz": "29fc616237e4481bef1e9685bab4a456b8f85c529acf8a22fcdcd759ee6d7ade"
+ },
+ "power_check": {
+  "mde": {
+   "USOFR 2023": {
+    "sd_of_S_usd": 21.7,
+    "smallest_edge_per_held_day_bp": 34.8,
+    "smallest_edge_per_trade_bp": 210.0
+   },
+   "USOFR primary": {
+    "sd_of_S_usd": 39.0,
+    "smallest_edge_per_held_day_bp": 22.1,
+    "smallest_edge_per_trade_bp": 147.8
+   },
+   "USOFR second": {
+    "sd_of_S_usd": 59.7,
+    "smallest_edge_per_held_day_bp": 52.8,
+    "smallest_edge_per_trade_bp": 232.5
+   },
+   "UZERO 2023": {
+    "sd_of_S_usd": 16.5,
+    "smallest_edge_per_held_day_bp": 73.2,
+    "smallest_edge_per_trade_bp": 230.6
+   },
+   "UZERO primary": {
+    "sd_of_S_usd": 31.3,
+    "smallest_edge_per_held_day_bp": 43.8,
+    "smallest_edge_per_trade_bp": 219.1
+   },
+   "UZERO second": {
+    "sd_of_S_usd": 56.1,
+    "smallest_edge_per_held_day_bp": 59.6,
+    "smallest_edge_per_trade_bp": 231.2
+   }
+  },
+  "vol": {
+   "2023": {
+    "annual_sd_pct": 43.6,
+    "daily_sd_pct": 2.28,
+    "lag1_autocorrelation": 0.008,
+    "two_day_sd_over_sqrt2_one_day": 1.006
+   },
+   "primary": {
+    "annual_sd_pct": 47.3,
+    "daily_sd_pct": 2.473,
+    "lag1_autocorrelation": -0.049,
+    "two_day_sd_over_sqrt2_one_day": 0.975
+   },
+   "second": {
+    "annual_sd_pct": 74.7,
+    "daily_sd_pct": 3.908,
+    "lag1_autocorrelation": -0.081,
+    "two_day_sd_over_sqrt2_one_day": 0.959
+   }
+  }
+ },
+ "prereg": {
+  "frozen_at": "98862d04",
+  "path": "docs/agents/reviews/2026-09-26-fund-crowding-prereg.md",
+  "sha256": "a0a85db1e6b3f775143180be6d6de9efb246dcf73893b96525f82b03a20a2ab8"
+ },
+ "results": {
+  "USOFR": {
+   "2023": {
+    "N": 364,
+    "S_halves_usd": [
+     46.8281,
+     29.245
+    ],
+    "S_stress_usd": 69.8299,
+    "S_usd": 76.0731,
+    "annualised_on_100_pct": 76.0731,
+    "best_month": "2023-10",
+    "best_month_share": 0.3371,
+    "best_month_usd": 25.6433,
+    "coinbase": {
+     "S_halves_usd": [
+      46.8309,
+      29.2511
+     ],
+     "S_usd": 76.082,
+     "trades_left_out": 0
+    },
+    "days_held": 175,
+    "days_in_window": 365,
+    "entries": 29,
+    "halves": [
+     [
+      "2023-01-01",
+      "2023-07-01"
+     ],
+     [
+      "2023-07-02",
+      "2023-12-30"
+     ]
+    ],
+    "in_market_pct": 47.95,
+    "mean_net_per_held_day_bp": 43.47,
+    "mean_net_per_trade_bp": 262.32,
+    "months_usd": {
+     "2023-01": 16.8496,
+     "2023-02": -0.3749,
+     "2023-03": 17.8352,
+     "2023-04": 3.5616,
+     "2023-05": -2.7514,
+     "2023-06": 11.708,
+     "2023-07": -1.4881,
+     "2023-08": -1.3376,
+     "2023-09": 6.4273,
+     "2023-10": 25.6433
+    },
+    "null": {
+     "count_ge": 40,
+     "entries_min_max": [
+      29,
+      30
+     ],
+     "k_from": 60,
+     "k_to": 304,
+     "mean_usd": 52.6419,
+     "p": "41/246",
+     "p05_usd": 19.157,
+     "p50_usd": 52.8495,
+     "p95_usd": 86.9079,
+     "p975_usd": 89.0644,
+     "p_float": 0.166667,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 21.0315,
+     "shifts": 245
+    },
+    "signal_days": 126,
+    "trades": [
+     {
+      "coinbase_net_bp": 107.35,
+      "days": 4,
+      "entry": "2023-01-02",
+      "entry_open": 16617.17,
+      "exit": "2023-01-06",
+      "exit_open": 16831.85,
+      "gross_bp": 129.19,
+      "net_bp": 107.94,
+      "stress_net_bp": 86.74
+     },
+     {
+      "coinbase_net_bp": 1580.12,
+      "days": 4,
+      "entry": "2023-01-10",
+      "entry_open": 17179.04,
+      "exit": "2023-01-14",
+      "exit_open": 19930.01,
+      "gross_bp": 1601.35,
+      "net_bp": 1577.02,
+      "stress_net_bp": 1552.73
+     },
+     {
+      "coinbase_net_bp": 169.75,
+      "days": 2,
+      "entry": "2023-02-13",
+      "entry_open": 21782.37,
+      "exit": "2023-02-15",
+      "exit_open": 22199.84,
+      "gross_bp": 191.65,
+      "net_bp": 170.27,
+      "stress_net_bp": 148.94
+     },
+     {
+      "coinbase_net_bp": -209.91,
+      "days": 4,
+      "entry": "2023-02-24",
+      "entry_open": 23940.2,
+      "exit": "2023-02-28",
+      "exit_open": 23492.09,
+      "gross_bp": -187.18,
+      "net_bp": -207.76,
+      "stress_net_bp": -228.31
+     },
+     {
+      "coinbase_net_bp": -909.71,
+      "days": 6,
+      "entry": "2023-03-04",
+      "entry_open": 22354.34,
+      "exit": "2023-03-10",
+      "exit_open": 20362.21,
+      "gross_bp": -891.16,
+      "net_bp": -910.27,
+      "stress_net_bp": -929.34
+     },
+     {
+      "coinbase_net_bp": 2214.33,
+      "days": 4,
+      "entry": "2023-03-11",
+      "entry_open": 20150.69,
+      "exit": "2023-03-15",
+      "exit_open": 24670.41,
+      "gross_bp": 2242.96,
+      "net_bp": 2217.28,
+      "stress_net_bp": 2191.65
+     },
+     {
+      "coinbase_net_bp": 32.71,
+      "days": 2,
+      "entry": "2023-03-22",
+      "entry_open": 28107.81,
+      "exit": "2023-03-24",
+      "exit_open": 28295.42,
+      "gross_bp": 66.75,
+      "net_bp": 45.63,
+      "stress_net_bp": 24.55
+     },
+     {
+      "coinbase_net_bp": 294.83,
+      "days": 4,
+      "entry": "2023-03-26",
+      "entry_open": 27462.96,
+      "exit": "2023-03-30",
+      "exit_open": 28348.6,
+      "gross_bp": 322.49,
+      "net_bp": 300.83,
+      "stress_net_bp": 279.22
+     },
+     {
+      "coinbase_net_bp": 134.27,
+      "days": 2,
+      "entry": "2023-03-31",
+      "entry_open": 28028.53,
+      "exit": "2023-04-02",
+      "exit_open": 28452.74,
+      "gross_bp": 151.35,
+      "net_bp": 130.05,
+      "stress_net_bp": 108.8
+     },
+     {
+      "coinbase_net_bp": 704.47,
+      "days": 7,
+      "entry": "2023-04-05",
+      "entry_open": 28165.47,
+      "exit": "2023-04-12",
+      "exit_open": 30200.43,
+      "gross_bp": 722.5,
+      "net_bp": 700.01,
+      "stress_net_bp": 677.56
+     },
+     {
+      "coinbase_net_bp": 115.54,
+      "days": 4,
+      "entry": "2023-04-13",
+      "entry_open": 29888.07,
+      "exit": "2023-04-17",
+      "exit_open": 30304.66,
+      "gross_bp": 139.38,
+      "net_bp": 118.11,
+      "stress_net_bp": 96.89
+     },
+     {
+      "coinbase_net_bp": -560.2,
+      "days": 2,
+      "entry": "2023-04-20",
+      "entry_open": 28797.1,
+      "exit": "2023-04-22",
+      "exit_open": 27262.84,
+      "gross_bp": -532.78,
+      "net_bp": -552.64,
+      "stress_net_bp": -572.46
+     },
+     {
+      "coinbase_net_bp": 197.06,
+      "days": 4,
+      "entry": "2023-04-23",
+      "entry_open": 27816.85,
+      "exit": "2023-04-27",
+      "exit_open": 28415.29,
+      "gross_bp": 215.14,
+      "net_bp": 193.71,
+      "stress_net_bp": 172.32
+     },
+     {
+      "coinbase_net_bp": -101.43,
+      "days": 2,
+      "entry": "2023-04-28",
+      "entry_open": 29472.77,
+      "exit": "2023-04-30",
+      "exit_open": 29230.45,
+      "gross_bp": -82.22,
+      "net_bp": -103.02,
+      "stress_net_bp": -123.79
+     },
+     {
+      "coinbase_net_bp": 271.83,
+      "days": 5,
+      "entry": "2023-05-02",
+      "entry_open": 28068.26,
+      "exit": "2023-05-07",
+      "exit_open": 28848.19,
+      "gross_bp": 277.87,
+      "net_bp": 256.31,
+      "stress_net_bp": 234.79
+     },
+     {
+      "coinbase_net_bp": -323.36,
+      "days": 14,
+      "entry": "2023-05-09",
+      "entry_open": 27668.8,
+      "exit": "2023-05-23",
+      "exit_open": 26849.28,
+      "gross_bp": -296.19,
+      "net_bp": -316.55,
+      "stress_net_bp": -336.86
+     },
+     {
+      "coinbase_net_bp": 126.93,
+      "days": 2,
+      "entry": "2023-05-25",
+      "entry_open": 26329.0,
+      "exit": "2023-05-27",
+      "exit_open": 26705.93,
+      "gross_bp": 143.16,
+      "net_bp": 121.88,
+      "stress_net_bp": 100.65
+     },
+     {
+      "coinbase_net_bp": -335.45,
+      "days": 2,
+      "entry": "2023-05-31",
+      "entry_open": 27694.39,
+      "exit": "2023-06-02",
+      "exit_open": 26817.93,
+      "gross_bp": -316.48,
+      "net_bp": -336.79,
+      "stress_net_bp": -357.06
+     },
+     {
+      "coinbase_net_bp": -353.2,
+      "days": 12,
+      "entry": "2023-06-07",
+      "entry_open": 27230.07,
+      "exit": "2023-06-19",
+      "exit_open": 26339.98,
+      "gross_bp": -326.88,
+      "net_bp": -347.17,
+      "stress_net_bp": -367.42
+     },
+     {
+      "coinbase_net_bp": 1418.13,
+      "days": 4,
+      "entry": "2023-06-20",
+      "entry_open": 26844.35,
+      "exit": "2023-06-24",
+      "exit_open": 30688.51,
+      "gross_bp": 1432.02,
+      "net_bp": 1408.04,
+      "stress_net_bp": 1384.1
+     },
+     {
+      "coinbase_net_bp": 109.02,
+      "days": 2,
+      "entry": "2023-06-29",
+      "entry_open": 30077.4,
+      "exit": "2023-07-01",
+      "exit_open": 30471.99,
+      "gross_bp": 131.19,
+      "net_bp": 109.94,
+      "stress_net_bp": 88.73
+     },
+     {
+      "coinbase_net_bp": -32.22,
+      "days": 12,
+      "entry": "2023-07-07",
+      "entry_open": 29895.42,
+      "exit": "2023-07-19",
+      "exit_open": 29859.14,
+      "gross_bp": -12.14,
+      "net_bp": -33.09,
+      "stress_net_bp": -54.0
+     },
+     {
+      "coinbase_net_bp": -264.61,
+      "days": 3,
+      "entry": "2023-07-22",
+      "entry_open": 29901.72,
+      "exit": "2023-07-25",
+      "exit_open": 29176.5,
+      "gross_bp": -242.53,
+      "net_bp": -263.0,
+      "stress_net_bp": -283.43
+     },
+     {
+      "coinbase_net_bp": 27.43,
+      "days": 2,
+      "entry": "2023-07-28",
+      "entry_open": 29222.78,
+      "exit": "2023-07-30",
+      "exit_open": 29352.9,
+      "gross_bp": 44.53,
+      "net_bp": 23.46,
+      "stress_net_bp": 2.43
+     },
+     {
+      "coinbase_net_bp": 121.77,
+      "days": 2,
+      "entry": "2023-07-31",
+      "entry_open": 29281.09,
+      "exit": "2023-08-02",
+      "exit_open": 29705.99,
+      "gross_bp": 145.11,
+      "net_bp": 123.83,
+      "stress_net_bp": 102.59
+     },
+     {
+      "coinbase_net_bp": -136.0,
+      "days": 13,
+      "entry": "2023-08-20",
+      "entry_open": 26100.01,
+      "exit": "2023-09-02",
+      "exit_open": 25805.04,
+      "gross_bp": -113.02,
+      "net_bp": -133.76,
+      "stress_net_bp": -154.45
+     },
+     {
+      "coinbase_net_bp": 645.96,
+      "days": 37,
+      "entry": "2023-09-03",
+      "entry_open": 25869.52,
+      "exit": "2023-10-10",
+      "exit_open": 27590.12,
+      "gross_bp": 665.11,
+      "net_bp": 642.73,
+      "stress_net_bp": 620.41
+     },
+     {
+      "coinbase_net_bp": -254.57,
+      "days": 2,
+      "entry": "2023-10-11",
+      "entry_open": 27390.12,
+      "exit": "2023-10-13",
+      "exit_open": 26759.63,
+      "gross_bp": -230.19,
+      "net_bp": -250.68,
+      "stress_net_bp": -271.14
+     },
+     {
+      "coinbase_net_bp": 2817.35,
+      "days": 12,
+      "entry": "2023-10-14",
+      "entry_open": 26862.0,
+      "exit": "2023-10-26",
+      "exit_open": 34496.05,
+      "gross_bp": 2841.95,
+      "net_bp": 2815.01,
+      "stress_net_bp": 2788.13
+     }
+    ],
+    "without_best_month_usd": 50.4298
+   },
+   "primary": {
+    "N": 997,
+    "S_halves_usd": [
+     26.5259,
+     -15.1654
+    ],
+    "S_stress_usd": -4.187,
+    "S_usd": 11.3605,
+    "annualised_on_100_pct": 4.1549,
+    "best_month": "2024-05",
+    "best_month_share": 1.5125,
+    "best_month_usd": 17.1826,
+    "coinbase": {
+     "S_halves_usd": [
+      26.046,
+      -15.403
+     ],
+     "S_usd": 10.643,
+     "trades_left_out": 0
+    },
+    "days_held": 496,
+    "days_in_window": 998,
+    "entries": 74,
+    "halves": [
+     [
+      "2024-01-01",
+      "2025-05-12"
+     ],
+     [
+      "2025-05-13",
+      "2026-09-23"
+     ]
+    ],
+    "in_market_pct": 49.7,
+    "mean_net_per_held_day_bp": 2.29,
+    "mean_net_per_trade_bp": 15.35,
+    "months_usd": {
+     "2024-02": 5.216,
+     "2024-04": -5.0925,
+     "2024-05": 17.1826,
+     "2024-06": -3.9121,
+     "2024-07": 3.4576,
+     "2024-08": -8.7974,
+     "2024-09": 0.6958,
+     "2024-10": 4.4847,
+     "2025-01": 10.7869,
+     "2025-02": -12.5816,
+     "2025-03": -1.6742,
+     "2025-04": 16.7602,
+     "2025-05": 5.0995,
+     "2025-06": 0.8271,
+     "2025-07": 11.9862,
+     "2025-08": -7.5063,
+     "2025-09": 1.6028,
+     "2025-10": -9.4108,
+     "2025-11": 2.6226,
+     "2025-12": -0.935,
+     "2026-01": -24.4037,
+     "2026-02": 5.8461,
+     "2026-04": 5.3394,
+     "2026-05": 2.0133,
+     "2026-06": -5.6198,
+     "2026-07": 0.2233,
+     "2026-08": 1.5576,
+     "2026-09": -4.4079
+    },
+    "null": {
+     "count_ge": 684,
+     "entries_min_max": [
+      74,
+      75
+     ],
+     "k_from": 60,
+     "k_to": 937,
+     "mean_usd": 39.3969,
+     "p": "685/879",
+     "p05_usd": -22.0087,
+     "p50_usd": 39.1602,
+     "p95_usd": 99.0307,
+     "p975_usd": 109.0,
+     "p_float": 0.779295,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 36.4391,
+     "shifts": 878
+    },
+    "signal_days": 366,
+    "trades": [
+     {
+      "coinbase_net_bp": 521.36,
+      "days": 2,
+      "entry": "2024-02-09",
+      "entry_open": 45288.66,
+      "exit": "2024-02-11",
+      "exit_open": 47751.08,
+      "gross_bp": 543.72,
+      "net_bp": 521.6,
+      "stress_net_bp": 499.53
+     },
+     {
+      "coinbase_net_bp": -520.4,
+      "days": 14,
+      "entry": "2024-04-17",
+      "entry_open": 63793.4,
+      "exit": "2024-05-01",
+      "exit_open": 60672.01,
+      "gross_bp": -489.3,
+      "net_bp": -509.25,
+      "stress_net_bp": -529.16
+     },
+     {
+      "coinbase_net_bp": 795.41,
+      "days": 2,
+      "entry": "2024-05-03",
+      "entry_open": 59060.6,
+      "exit": "2024-05-05",
+      "exit_open": 63892.03,
+      "gross_bp": 818.05,
+      "net_bp": 795.35,
+      "stress_net_bp": 772.71
+     },
+     {
+      "coinbase_net_bp": -287.15,
+      "days": 2,
+      "entry": "2024-05-06",
+      "entry_open": 64012.0,
+      "exit": "2024-05-08",
+      "exit_open": 62312.07,
+      "gross_bp": -265.56,
+      "net_bp": -285.99,
+      "stress_net_bp": -306.36
+     },
+     {
+      "coinbase_net_bp": 1206.58,
+      "days": 8,
+      "entry": "2024-05-15",
+      "entry_open": 61577.49,
+      "exit": "2024-05-23",
+      "exit_open": 69166.62,
+      "gross_bp": 1232.45,
+      "net_bp": 1208.89,
+      "stress_net_bp": 1185.37
+     },
+     {
+      "coinbase_net_bp": -147.8,
+      "days": 2,
+      "entry": "2024-06-20",
+      "entry_open": 64974.37,
+      "exit": "2024-06-22",
+      "exit_open": 64143.56,
+      "gross_bp": -127.87,
+      "net_bp": -148.58,
+      "stress_net_bp": -169.24
+     },
+     {
+      "coinbase_net_bp": -238.17,
+      "days": 2,
+      "entry": "2024-06-24",
+      "entry_open": 63210.01,
+      "exit": "2024-06-26",
+      "exit_open": 61806.01,
+      "gross_bp": -222.12,
+      "net_bp": -242.63,
+      "stress_net_bp": -263.1
+     },
+     {
+      "coinbase_net_bp": -9.23,
+      "days": 3,
+      "entry": "2024-07-06",
+      "entry_open": 56628.79,
+      "exit": "2024-07-09",
+      "exit_open": 56714.61,
+      "gross_bp": 15.15,
+      "net_bp": -5.85,
+      "stress_net_bp": -26.82
+     },
+     {
+      "coinbase_net_bp": 478.13,
+      "days": 2,
+      "entry": "2024-07-13",
+      "entry_open": 57889.09,
+      "exit": "2024-07-15",
+      "exit_open": 60797.91,
+      "gross_bp": 502.48,
+      "net_bp": 480.45,
+      "stress_net_bp": 458.46
+     },
+     {
+      "coinbase_net_bp": 139.03,
+      "days": 10,
+      "entry": "2024-07-16",
+      "entry_open": 64724.06,
+      "exit": "2024-07-26",
+      "exit_open": 65799.95,
+      "gross_bp": 166.23,
+      "net_bp": 144.9,
+      "stress_net_bp": 123.62
+     },
+     {
+      "coinbase_net_bp": -278.35,
+      "days": 4,
+      "entry": "2024-07-27",
+      "entry_open": 67908.0,
+      "exit": "2024-07-31",
+      "exit_open": 66188.0,
+      "gross_bp": -253.28,
+      "net_bp": -273.73,
+      "stress_net_bp": -294.13
+     },
+     {
+      "coinbase_net_bp": -513.92,
+      "days": 2,
+      "entry": "2024-08-01",
+      "entry_open": 64628.01,
+      "exit": "2024-08-03",
+      "exit_open": 61498.34,
+      "gross_bp": -484.26,
+      "net_bp": -504.22,
+      "stress_net_bp": -524.14
+     },
+     {
+      "coinbase_net_bp": -1112.55,
+      "days": 2,
+      "entry": "2024-08-04",
+      "entry_open": 60697.99,
+      "exit": "2024-08-06",
+      "exit_open": 54018.82,
+      "gross_bp": -1100.39,
+      "net_bp": -1119.06,
+      "stress_net_bp": -1137.69
+     },
+     {
+      "coinbase_net_bp": 739.15,
+      "days": 42,
+      "entry": "2024-08-07",
+      "entry_open": 56022.0,
+      "exit": "2024-09-18",
+      "exit_open": 60313.99,
+      "gross_bp": 766.13,
+      "net_bp": 743.54,
+      "stress_net_bp": 721.0
+     },
+     {
+      "coinbase_net_bp": 236.27,
+      "days": 3,
+      "entry": "2024-09-19",
+      "entry_open": 61759.98,
+      "exit": "2024-09-22",
+      "exit_open": 63348.97,
+      "gross_bp": 257.28,
+      "net_bp": 235.77,
+      "stress_net_bp": 214.29
+     },
+     {
+      "coinbase_net_bp": -171.18,
+      "days": 6,
+      "entry": "2024-09-25",
+      "entry_open": 64262.7,
+      "exit": "2024-10-01",
+      "exit_open": 63327.6,
+      "gross_bp": -145.51,
+      "net_bp": -166.18,
+      "stress_net_bp": -186.81
+     },
+     {
+      "coinbase_net_bp": -264.05,
+      "days": 5,
+      "entry": "2024-10-05",
+      "entry_open": 62086.0,
+      "exit": "2024-10-10",
+      "exit_open": 60636.01,
+      "gross_bp": -233.55,
+      "net_bp": -254.03,
+      "stress_net_bp": -274.48
+     },
+     {
+      "coinbase_net_bp": 703.34,
+      "days": 4,
+      "entry": "2024-10-12",
+      "entry_open": 62539.99,
+      "exit": "2024-10-16",
+      "exit_open": 67074.14,
+      "gross_bp": 725.0,
+      "net_bp": 702.5,
+      "stress_net_bp": 680.05
+     },
+     {
+      "coinbase_net_bp": 392.53,
+      "days": 2,
+      "entry": "2025-01-05",
+      "entry_open": 98220.51,
+      "exit": "2025-01-07",
+      "exit_open": 102235.6,
+      "gross_bp": 408.78,
+      "net_bp": 386.95,
+      "stress_net_bp": 365.16
+     },
+     {
+      "coinbase_net_bp": 836.98,
+      "days": 6,
+      "entry": "2025-01-10",
+      "entry_open": 92552.49,
+      "exit": "2025-01-16",
+      "exit_open": 100497.35,
+      "gross_bp": 858.42,
+      "net_bp": 835.64,
+      "stress_net_bp": 812.91
+     },
+     {
+      "coinbase_net_bp": -297.92,
+      "days": 2,
+      "entry": "2025-01-18",
+      "entry_open": 104077.47,
+      "exit": "2025-01-20",
+      "exit_open": 101331.57,
+      "gross_bp": -263.83,
+      "net_bp": -284.26,
+      "stress_net_bp": -304.64
+     },
+     {
+      "coinbase_net_bp": 143.61,
+      "days": 2,
+      "entry": "2025-01-28",
+      "entry_open": 102082.83,
+      "exit": "2025-01-30",
+      "exit_open": 103733.25,
+      "gross_bp": 161.67,
+      "net_bp": 140.36,
+      "stress_net_bp": 119.08
+     },
+     {
+      "coinbase_net_bp": -8.87,
+      "days": 2,
+      "entry": "2025-02-03",
+      "entry_open": 97700.59,
+      "exit": "2025-02-05",
+      "exit_open": 97763.14,
+      "gross_bp": 6.4,
+      "net_bp": -14.59,
+      "stress_net_bp": -35.54
+     },
+     {
+      "coinbase_net_bp": -31.17,
+      "days": 2,
+      "entry": "2025-02-06",
+      "entry_open": 96612.44,
+      "exit": "2025-02-08",
+      "exit_open": 96506.8,
+      "gross_bp": -10.93,
+      "net_bp": -31.89,
+      "stress_net_bp": -52.8
+     },
+     {
+      "coinbase_net_bp": -4.86,
+      "days": 11,
+      "entry": "2025-02-09",
+      "entry_open": 96444.75,
+      "exit": "2025-02-20",
+      "exit_open": 96644.37,
+      "gross_bp": 20.7,
+      "net_bp": -0.32,
+      "stress_net_bp": -21.3
+     },
+     {
+      "coinbase_net_bp": -1217.49,
+      "days": 6,
+      "entry": "2025-02-22",
+      "entry_open": 96181.99,
+      "exit": "2025-02-28",
+      "exit_open": 84708.57,
+      "gross_bp": -1192.89,
+      "net_bp": -1211.36,
+      "stress_net_bp": -1229.8
+     },
+     {
+      "coinbase_net_bp": 643.99,
+      "days": 6,
+      "entry": "2025-03-01",
+      "entry_open": 84349.95,
+      "exit": "2025-03-07",
+      "exit_open": 89931.88,
+      "gross_bp": 661.76,
+      "net_bp": 639.39,
+      "stress_net_bp": 617.07
+     },
+     {
+      "coinbase_net_bp": -964.79,
+      "days": 3,
+      "entry": "2025-03-08",
+      "entry_open": 86801.74,
+      "exit": "2025-03-11",
+      "exit_open": 78595.86,
+      "gross_bp": -945.36,
+      "net_bp": -964.35,
+      "stress_net_bp": -983.31
+     },
+     {
+      "coinbase_net_bp": 597.11,
+      "days": 10,
+      "entry": "2025-03-14",
+      "entry_open": 81115.78,
+      "exit": "2025-03-24",
+      "exit_open": 86082.5,
+      "gross_bp": 612.3,
+      "net_bp": 590.04,
+      "stress_net_bp": 567.82
+     },
+     {
+      "coinbase_net_bp": -438.11,
+      "days": 11,
+      "entry": "2025-03-25",
+      "entry_open": 87498.16,
+      "exit": "2025-04-05",
+      "exit_open": 83889.87,
+      "gross_bp": -412.38,
+      "net_bp": -432.5,
+      "stress_net_bp": -452.57
+     },
+     {
+      "coinbase_net_bp": -493.43,
+      "days": 5,
+      "entry": "2025-04-06",
+      "entry_open": 83537.99,
+      "exit": "2025-04-11",
+      "exit_open": 79607.3,
+      "gross_bp": -470.53,
+      "net_bp": -490.52,
+      "stress_net_bp": -510.47
+     },
+     {
+      "coinbase_net_bp": 21.32,
+      "days": 2,
+      "entry": "2025-04-12",
+      "entry_open": 83423.83,
+      "exit": "2025-04-14",
+      "exit_open": 83760.0,
+      "gross_bp": 40.3,
+      "net_bp": 19.23,
+      "stress_net_bp": -1.78
+     },
+     {
+      "coinbase_net_bp": 2149.24,
+      "days": 25,
+      "entry": "2025-04-15",
+      "entry_open": 84591.58,
+      "exit": "2025-05-10",
+      "exit_open": 102971.99,
+      "gross_bp": 2172.84,
+      "net_bp": 2147.31,
+      "stress_net_bp": 2121.82
+     },
+     {
+      "coinbase_net_bp": 845.13,
+      "days": 10,
+      "entry": "2025-05-13",
+      "entry_open": 102791.32,
+      "exit": "2025-05-23",
+      "exit_open": 111696.22,
+      "gross_bp": 866.31,
+      "net_bp": 843.51,
+      "stress_net_bp": 820.77
+     },
+     {
+      "coinbase_net_bp": -339.05,
+      "days": 4,
+      "entry": "2025-05-26",
+      "entry_open": 109004.2,
+      "exit": "2025-05-30",
+      "exit_open": 105589.75,
+      "gross_bp": -313.24,
+      "net_bp": -333.56,
+      "stress_net_bp": -353.84
+     },
+     {
+      "coinbase_net_bp": 352.49,
+      "days": 7,
+      "entry": "2025-06-05",
+      "entry_open": 104696.86,
+      "exit": "2025-06-12",
+      "exit_open": 108645.13,
+      "gross_bp": 377.11,
+      "net_bp": 355.35,
+      "stress_net_bp": 333.62
+     },
+     {
+      "coinbase_net_bp": -466.48,
+      "days": 10,
+      "entry": "2025-06-13",
+      "entry_open": 105671.74,
+      "exit": "2025-06-23",
+      "exit_open": 100963.87,
+      "gross_bp": -445.52,
+      "net_bp": -465.56,
+      "stress_net_bp": -485.56
+     },
+     {
+      "coinbase_net_bp": 190.13,
+      "days": 5,
+      "entry": "2025-06-25",
+      "entry_open": 106083.0,
+      "exit": "2025-06-30",
+      "exit_open": 108356.93,
+      "gross_bp": 214.35,
+      "net_bp": 192.93,
+      "stress_net_bp": 171.54
+     },
+     {
+      "coinbase_net_bp": 348.79,
+      "days": 2,
+      "entry": "2025-07-02",
+      "entry_open": 105681.13,
+      "exit": "2025-07-04",
+      "exit_open": 109584.77,
+      "gross_bp": 369.38,
+      "net_bp": 347.63,
+      "stress_net_bp": 325.92
+     },
+     {
+      "coinbase_net_bp": 851.41,
+      "days": 8,
+      "entry": "2025-07-05",
+      "entry_open": 107984.25,
+      "exit": "2025-07-13",
+      "exit_open": 117420.0,
+      "gross_bp": 873.81,
+      "net_bp": 851.0,
+      "stress_net_bp": 828.23
+     },
+     {
+      "coinbase_net_bp": -23.35,
+      "days": 2,
+      "entry": "2025-08-05",
+      "entry_open": 115055.03,
+      "exit": "2025-08-07",
+      "exit_open": 114992.27,
+      "gross_bp": -5.45,
+      "net_bp": -26.42,
+      "stress_net_bp": -47.34
+     },
+     {
+      "coinbase_net_bp": -442.16,
+      "days": 6,
+      "entry": "2025-08-16",
+      "entry_open": 117342.04,
+      "exit": "2025-08-22",
+      "exit_open": 112500.0,
+      "gross_bp": -412.64,
+      "net_bp": -432.76,
+      "stress_net_bp": -452.83
+     },
+     {
+      "coinbase_net_bp": -290.54,
+      "days": 4,
+      "entry": "2025-08-28",
+      "entry_open": 111262.01,
+      "exit": "2025-09-01",
+      "exit_open": 108246.36,
+      "gross_bp": -271.04,
+      "net_bp": -291.45,
+      "stress_net_bp": -311.82
+     },
+     {
+      "coinbase_net_bp": -117.98,
+      "days": 2,
+      "entry": "2025-09-04",
+      "entry_open": 111705.72,
+      "exit": "2025-09-06",
+      "exit_open": 110660.0,
+      "gross_bp": -93.61,
+      "net_bp": -114.4,
+      "stress_net_bp": -135.13
+     },
+     {
+      "coinbase_net_bp": 90.66,
+      "days": 5,
+      "entry": "2025-09-12",
+      "entry_open": 115482.69,
+      "exit": "2025-09-17",
+      "exit_open": 116788.96,
+      "gross_bp": 113.11,
+      "net_bp": 91.9,
+      "stress_net_bp": 70.73
+     },
+     {
+      "coinbase_net_bp": -343.03,
+      "days": 3,
+      "entry": "2025-09-21",
+      "entry_open": 115685.63,
+      "exit": "2025-09-24",
+      "exit_open": 111998.8,
+      "gross_bp": -318.69,
+      "net_bp": -339.0,
+      "stress_net_bp": -359.27
+     },
+     {
+      "coinbase_net_bp": 525.23,
+      "days": 3,
+      "entry": "2025-09-30",
+      "entry_open": 114311.97,
+      "exit": "2025-10-03",
+      "exit_open": 120529.35,
+      "gross_bp": 543.9,
+      "net_bp": 521.78,
+      "stress_net_bp": 499.7
+     },
+     {
+      "coinbase_net_bp": -971.9,
+      "days": 14,
+      "entry": "2025-10-10",
+      "entry_open": 121662.41,
+      "exit": "2025-10-24",
+      "exit_open": 110078.19,
+      "gross_bp": -952.16,
+      "net_bp": -971.14,
+      "stress_net_bp": -990.08
+     },
+     {
+      "coinbase_net_bp": 295.31,
+      "days": 2,
+      "entry": "2025-10-25",
+      "entry_open": 111004.9,
+      "exit": "2025-10-27",
+      "exit_open": 114559.41,
+      "gross_bp": 320.21,
+      "net_bp": 298.56,
+      "stress_net_bp": 276.96
+     },
+     {
+      "coinbase_net_bp": -273.27,
+      "days": 4,
+      "entry": "2025-10-29",
+      "entry_open": 112898.44,
+      "exit": "2025-11-02",
+      "exit_open": 110098.1,
+      "gross_bp": -248.04,
+      "net_bp": -268.5,
+      "stress_net_bp": -288.91
+     },
+     {
+      "coinbase_net_bp": -77.17,
+      "days": 2,
+      "entry": "2025-11-06",
+      "entry_open": 103885.16,
+      "exit": "2025-11-08",
+      "exit_open": 103339.09,
+      "gross_bp": -52.56,
+      "net_bp": -73.43,
+      "stress_net_bp": -94.26
+     },
+     {
+      "coinbase_net_bp": 343.32,
+      "days": 23,
+      "entry": "2025-11-22",
+      "entry_open": 85129.42,
+      "exit": "2025-12-15",
+      "exit_open": 88172.16,
+      "gross_bp": 357.43,
+      "net_bp": 335.7,
+      "stress_net_bp": 314.02
+     },
+     {
+      "coinbase_net_bp": -44.96,
+      "days": 2,
+      "entry": "2025-12-16",
+      "entry_open": 86432.08,
+      "exit": "2025-12-18",
+      "exit_open": 86243.23,
+      "gross_bp": -21.85,
+      "net_bp": -42.78,
+      "stress_net_bp": -63.67
+     },
+     {
+      "coinbase_net_bp": -50.41,
+      "days": 2,
+      "entry": "2025-12-24",
+      "entry_open": 87486.0,
+      "exit": "2025-12-26",
+      "exit_open": 87225.27,
+      "gross_bp": -29.8,
+      "net_bp": -50.72,
+      "stress_net_bp": -71.59
+     },
+     {
+      "coinbase_net_bp": 187.73,
+      "days": 2,
+      "entry": "2026-01-02",
+      "entry_open": 88839.05,
+      "exit": "2026-01-04",
+      "exit_open": 90628.01,
+      "gross_bp": 201.37,
+      "net_bp": 179.97,
+      "stress_net_bp": 158.61
+     },
+     {
+      "coinbase_net_bp": 156.15,
+      "days": 7,
+      "entry": "2026-01-07",
+      "entry_open": 93747.97,
+      "exit": "2026-01-14",
+      "exit_open": 95413.99,
+      "gross_bp": 177.71,
+      "net_bp": 156.36,
+      "stress_net_bp": 135.06
+     },
+     {
+      "coinbase_net_bp": -658.2,
+      "days": 8,
+      "entry": "2026-01-16",
+      "entry_open": 95604.81,
+      "exit": "2026-01-24",
+      "exit_open": 89600.26,
+      "gross_bp": -628.06,
+      "net_bp": -647.72,
+      "stress_net_bp": -667.34
+     },
+     {
+      "coinbase_net_bp": -2119.88,
+      "days": 19,
+      "entry": "2026-01-31",
+      "entry_open": 84260.5,
+      "exit": "2026-02-19",
+      "exit_open": 66461.0,
+      "gross_bp": -2112.44,
+      "net_bp": -2128.98,
+      "stress_net_bp": -2145.5
+     },
+     {
+      "coinbase_net_bp": 591.64,
+      "days": 48,
+      "entry": "2026-02-20",
+      "entry_open": 67003.73,
+      "exit": "2026-04-09",
+      "exit_open": 71069.93,
+      "gross_bp": 606.86,
+      "net_bp": 584.61,
+      "stress_net_bp": 562.41
+     },
+     {
+      "coinbase_net_bp": 528.7,
+      "days": 20,
+      "entry": "2026-04-10",
+      "entry_open": 71787.98,
+      "exit": "2026-04-30",
+      "exit_open": 75780.0,
+      "gross_bp": 556.08,
+      "net_bp": 533.94,
+      "stress_net_bp": 511.84
+     },
+     {
+      "coinbase_net_bp": 749.85,
+      "days": 10,
+      "entry": "2026-05-01",
+      "entry_open": 76346.58,
+      "exit": "2026-05-11",
+      "exit_open": 82210.07,
+      "gross_bp": 768.01,
+      "net_bp": 745.42,
+      "stress_net_bp": 722.88
+     },
+     {
+      "coinbase_net_bp": -338.24,
+      "days": 6,
+      "entry": "2026-05-14",
+      "entry_open": 79313.61,
+      "exit": "2026-05-20",
+      "exit_open": 76834.36,
+      "gross_bp": -312.59,
+      "net_bp": -332.91,
+      "stress_net_bp": -353.19
+     },
+     {
+      "coinbase_net_bp": 181.26,
+      "days": 2,
+      "entry": "2026-05-23",
+      "entry_open": 75539.5,
+      "exit": "2026-05-25",
+      "exit_open": 77064.96,
+      "gross_bp": 201.94,
+      "net_bp": 180.54,
+      "stress_net_bp": 159.18
+     },
+     {
+      "coinbase_net_bp": -399.78,
+      "days": 2,
+      "entry": "2026-05-26",
+      "entry_open": 77322.01,
+      "exit": "2026-05-28",
+      "exit_open": 74449.31,
+      "gross_bp": -371.52,
+      "net_bp": -391.72,
+      "stress_net_bp": -411.88
+     },
+     {
+      "coinbase_net_bp": -110.18,
+      "days": 17,
+      "entry": "2026-06-05",
+      "entry_open": 63885.99,
+      "exit": "2026-06-22",
+      "exit_open": 63312.0,
+      "gross_bp": -89.85,
+      "net_bp": -110.64,
+      "stress_net_bp": -131.38
+     },
+     {
+      "coinbase_net_bp": -452.67,
+      "days": 4,
+      "entry": "2026-06-24",
+      "entry_open": 62734.57,
+      "exit": "2026-06-28",
+      "exit_open": 60029.01,
+      "gross_bp": -431.27,
+      "net_bp": -451.34,
+      "stress_net_bp": -471.38
+     },
+     {
+      "coinbase_net_bp": 483.75,
+      "days": 2,
+      "entry": "2026-07-01",
+      "entry_open": 58624.71,
+      "exit": "2026-07-03",
+      "exit_open": 61560.0,
+      "gross_bp": 500.69,
+      "net_bp": 478.66,
+      "stress_net_bp": 456.68
+     },
+     {
+      "coinbase_net_bp": 43.19,
+      "days": 2,
+      "entry": "2026-07-19",
+      "entry_open": 64834.21,
+      "exit": "2026-07-21",
+      "exit_open": 65255.51,
+      "gross_bp": 64.98,
+      "net_bp": 43.87,
+      "stress_net_bp": 22.8
+     },
+     {
+      "coinbase_net_bp": -385.97,
+      "days": 3,
+      "entry": "2026-07-22",
+      "entry_open": 66556.15,
+      "exit": "2026-07-25",
+      "exit_open": 64140.0,
+      "gross_bp": -363.02,
+      "net_bp": -383.24,
+      "stress_net_bp": -403.41
+     },
+     {
+      "coinbase_net_bp": -114.44,
+      "days": 2,
+      "entry": "2026-07-26",
+      "entry_open": 64375.01,
+      "exit": "2026-07-28",
+      "exit_open": 63755.86,
+      "gross_bp": -96.18,
+      "net_bp": -116.95,
+      "stress_net_bp": -137.69
+     },
+     {
+      "coinbase_net_bp": 203.09,
+      "days": 4,
+      "entry": "2026-08-04",
+      "entry_open": 63520.0,
+      "exit": "2026-08-08",
+      "exit_open": 64923.2,
+      "gross_bp": 220.91,
+      "net_bp": 199.47,
+      "stress_net_bp": 178.07
+     },
+     {
+      "coinbase_net_bp": -42.93,
+      "days": 2,
+      "entry": "2026-08-15",
+      "entry_open": 63043.56,
+      "exit": "2026-08-17",
+      "exit_open": 62900.0,
+      "gross_bp": -22.77,
+      "net_bp": -43.7,
+      "stress_net_bp": -64.59
+     },
+     {
+      "coinbase_net_bp": -214.71,
+      "days": 4,
+      "entry": "2026-09-06",
+      "entry_open": 79831.75,
+      "exit": "2026-09-10",
+      "exit_open": 78306.43,
+      "gross_bp": -191.07,
+      "net_bp": -211.64,
+      "stress_net_bp": -232.18
+     },
+     {
+      "coinbase_net_bp": -230.82,
+      "days": 2,
+      "entry": "2026-09-23",
+      "entry_open": 86208.57,
+      "exit": "2026-09-25",
+      "exit_open": 84410.24,
+      "gross_bp": -208.6,
+      "net_bp": -229.14,
+      "stress_net_bp": -249.64
+     }
+    ],
+    "without_best_month_usd": -5.822
+   },
+   "second": {
+    "N": 1207,
+    "S_halves_usd": [
+     112.6474,
+     37.8488
+    ],
+    "S_stress_usd": 135.0763,
+    "S_usd": 150.4962,
+    "annualised_on_100_pct": 45.4728,
+    "best_month": "2020-03",
+    "best_month_share": 0.28,
+    "best_month_usd": 42.1415,
+    "coinbase": {
+     "S_halves_usd": [
+      111.8606,
+      38.0452
+     ],
+     "S_usd": 149.9058,
+     "trades_left_out": 0
+    },
+    "days_held": 317,
+    "days_in_window": 1208,
+    "entries": 72,
+    "halves": [
+     [
+      "2019-09-11",
+      "2021-05-05"
+     ],
+     [
+      "2021-05-06",
+      "2022-12-30"
+     ]
+    ],
+    "in_market_pct": 26.24,
+    "mean_net_per_held_day_bp": 47.48,
+    "mean_net_per_trade_bp": 209.02,
+    "months_usd": {
+     "2019-10": 30.4778,
+     "2019-11": 1.8536,
+     "2019-12": 7.5297,
+     "2020-03": 42.1415,
+     "2020-04": 11.5497,
+     "2020-05": 3.4427,
+     "2020-06": 0.2039,
+     "2020-09": 0.1162,
+     "2020-10": 15.3322,
+     "2021-05": 1.4015,
+     "2021-06": 7.963,
+     "2021-07": 16.477,
+     "2021-09": -5.1481,
+     "2022-01": 11.8379,
+     "2022-02": 13.8739,
+     "2022-03": 14.944,
+     "2022-04": -4.2392,
+     "2022-05": -13.0266,
+     "2022-06": -28.7325,
+     "2022-07": 11.9529,
+     "2022-08": -5.1129,
+     "2022-09": -0.5425,
+     "2022-10": 5.9392,
+     "2022-11": 7.0293,
+     "2022-12": 3.2318
+    },
+    "null": {
+     "count_ge": 31,
+     "entries_min_max": [
+      72,
+      73
+     ],
+     "k_from": 60,
+     "k_to": 1147,
+     "mean_usd": 25.6144,
+     "p": "32/1089",
+     "p05_usd": -77.2093,
+     "p50_usd": 23.7431,
+     "p95_usd": 133.3345,
+     "p975_usd": 153.9398,
+     "p_float": 0.029385,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 64.4206,
+     "shifts": 1088
+    },
+    "signal_days": 211,
+    "trades": [
+     {
+      "coinbase_net_bp": 227.01,
+      "days": 7,
+      "entry": "2019-10-03",
+      "entry_open": 8360.0,
+      "exit": "2019-10-10",
+      "exit_open": 8562.15,
+      "gross_bp": 241.81,
+      "net_bp": 220.32,
+      "stress_net_bp": 198.88
+     },
+     {
+      "coinbase_net_bp": 2832.74,
+      "days": 3,
+      "entry": "2019-10-25",
+      "entry_open": 7412.41,
+      "exit": "2019-10-28",
+      "exit_open": 9528.23,
+      "gross_bp": 2854.43,
+      "net_bp": 2827.46,
+      "stress_net_bp": 2800.55
+     },
+     {
+      "coinbase_net_bp": 183.47,
+      "days": 6,
+      "entry": "2019-11-23",
+      "entry_open": 7268.23,
+      "exit": "2019-11-29",
+      "exit_open": 7418.52,
+      "gross_bp": 206.78,
+      "net_bp": 185.36,
+      "stress_net_bp": 164.0
+     },
+     {
+      "coinbase_net_bp": 305.35,
+      "days": 3,
+      "entry": "2019-12-04",
+      "entry_open": 7292.71,
+      "exit": "2019-12-07",
+      "exit_open": 7527.8,
+      "gross_bp": 322.36,
+      "net_bp": 300.71,
+      "stress_net_bp": 279.1
+     },
+     {
+      "coinbase_net_bp": -146.03,
+      "days": 4,
+      "entry": "2019-12-12",
+      "entry_open": 7210.0,
+      "exit": "2019-12-16",
+      "exit_open": 7119.6,
+      "gross_bp": -125.38,
+      "net_bp": -146.1,
+      "stress_net_bp": -166.77
+     },
+     {
+      "coinbase_net_bp": 433.15,
+      "days": 4,
+      "entry": "2019-12-17",
+      "entry_open": 6891.44,
+      "exit": "2019-12-21",
+      "exit_open": 7188.01,
+      "gross_bp": 430.35,
+      "net_bp": 408.46,
+      "stress_net_bp": 386.63
+     },
+     {
+      "coinbase_net_bp": 193.33,
+      "days": 9,
+      "entry": "2019-12-27",
+      "entry_open": 7202.0,
+      "exit": "2020-01-05",
+      "exit_open": 7354.19,
+      "gross_bp": 211.32,
+      "net_bp": 189.9,
+      "stress_net_bp": 168.52
+     },
+     {
+      "coinbase_net_bp": 3341.21,
+      "days": 11,
+      "entry": "2020-03-13",
+      "entry_open": 4800.01,
+      "exit": "2020-03-24",
+      "exit_open": 6465.25,
+      "gross_bp": 3469.24,
+      "net_bp": 3440.99,
+      "stress_net_bp": 3412.79
+     },
+     {
+      "coinbase_net_bp": 762.06,
+      "days": 6,
+      "entry": "2020-03-29",
+      "entry_open": 6236.65,
+      "exit": "2020-04-04",
+      "exit_open": 6732.97,
+      "gross_bp": 795.81,
+      "net_bp": 773.16,
+      "stress_net_bp": 750.56
+     },
+     {
+      "coinbase_net_bp": 698.42,
+      "days": 4,
+      "entry": "2020-04-05",
+      "entry_open": 6857.41,
+      "exit": "2020-04-09",
+      "exit_open": 7360.26,
+      "gross_bp": 733.29,
+      "net_bp": 710.78,
+      "stress_net_bp": 688.31
+     },
+     {
+      "coinbase_net_bp": -573.0,
+      "days": 2,
+      "entry": "2020-04-10",
+      "entry_open": 7283.54,
+      "exit": "2020-04-12",
+      "exit_open": 6876.84,
+      "gross_bp": -558.38,
+      "net_bp": -578.19,
+      "stress_net_bp": -597.95
+     },
+     {
+      "coinbase_net_bp": 348.84,
+      "days": 3,
+      "entry": "2020-04-14",
+      "entry_open": 6838.04,
+      "exit": "2020-04-17",
+      "exit_open": 7101.99,
+      "gross_bp": 386.0,
+      "net_bp": 364.21,
+      "stress_net_bp": 342.47
+     },
+     {
+      "coinbase_net_bp": 657.68,
+      "days": 7,
+      "entry": "2020-04-18",
+      "entry_open": 7026.78,
+      "exit": "2020-04-25",
+      "exit_open": 7505.0,
+      "gross_bp": 680.57,
+      "net_bp": 658.16,
+      "stress_net_bp": 635.8
+     },
+     {
+      "coinbase_net_bp": -245.74,
+      "days": 2,
+      "entry": "2020-05-19",
+      "entry_open": 9733.93,
+      "exit": "2020-05-21",
+      "exit_open": 9511.43,
+      "gross_bp": -228.58,
+      "net_bp": -249.08,
+      "stress_net_bp": -269.54
+     },
+     {
+      "coinbase_net_bp": 591.03,
+      "days": 6,
+      "entry": "2020-05-26",
+      "entry_open": 8900.35,
+      "exit": "2020-06-01",
+      "exit_open": 9448.27,
+      "gross_bp": 615.62,
+      "net_bp": 593.35,
+      "stress_net_bp": 571.12
+     },
+     {
+      "coinbase_net_bp": 5.41,
+      "days": 2,
+      "entry": "2020-06-16",
+      "entry_open": 9426.05,
+      "exit": "2020-06-18",
+      "exit_open": 9465.13,
+      "gross_bp": 41.46,
+      "net_bp": 20.39,
+      "stress_net_bp": -0.63
+     },
+     {
+      "coinbase_net_bp": 121.66,
+      "days": 3,
+      "entry": "2020-09-16",
+      "entry_open": 10785.23,
+      "exit": "2020-09-19",
+      "exit_open": 10933.4,
+      "gross_bp": 137.38,
+      "net_bp": 116.12,
+      "stress_net_bp": 94.89
+     },
+     {
+      "coinbase_net_bp": -516.24,
+      "days": 3,
+      "entry": "2020-09-20",
+      "entry_open": 11080.64,
+      "exit": "2020-09-23",
+      "exit_open": 10529.61,
+      "gross_bp": -497.29,
+      "net_bp": -517.23,
+      "stress_net_bp": -537.12
+     },
+     {
+      "coinbase_net_bp": 420.71,
+      "days": 2,
+      "entry": "2020-09-24",
+      "entry_open": 10241.46,
+      "exit": "2020-09-26",
+      "exit_open": 10686.57,
+      "gross_bp": 434.62,
+      "net_bp": 412.73,
+      "stress_net_bp": 390.88
+     },
+     {
+      "coinbase_net_bp": -20.55,
+      "days": 3,
+      "entry": "2020-10-05",
+      "entry_open": 10666.62,
+      "exit": "2020-10-08",
+      "exit_open": 10666.4,
+      "gross_bp": -0.21,
+      "net_bp": -21.18,
+      "stress_net_bp": -42.12
+     },
+     {
+      "coinbase_net_bp": 1565.55,
+      "days": 8,
+      "entry": "2020-10-30",
+      "entry_open": 13455.69,
+      "exit": "2020-11-07",
+      "exit_open": 15579.93,
+      "gross_bp": 1578.69,
+      "net_bp": 1554.4,
+      "stress_net_bp": 1530.16
+     },
+     {
+      "coinbase_net_bp": 141.37,
+      "days": 2,
+      "entry": "2021-05-20",
+      "entry_open": 36671.23,
+      "exit": "2021-05-22",
+      "exit_open": 37263.35,
+      "gross_bp": 161.47,
+      "net_bp": 140.15,
+      "stress_net_bp": 118.88
+     },
+     {
+      "coinbase_net_bp": -38.23,
+      "days": 2,
+      "entry": "2021-06-10",
+      "entry_open": 37388.05,
+      "exit": "2021-06-12",
+      "exit_open": 37331.98,
+      "gross_bp": -15.0,
+      "net_bp": -35.94,
+      "stress_net_bp": -56.85
+     },
+     {
+      "coinbase_net_bp": 763.06,
+      "days": 4,
+      "entry": "2021-06-13",
+      "entry_open": 35546.12,
+      "exit": "2021-06-17",
+      "exit_open": 38349.0,
+      "gross_bp": 788.52,
+      "net_bp": 765.89,
+      "stress_net_bp": 743.3
+     },
+     {
+      "coinbase_net_bp": 68.86,
+      "days": 9,
+      "entry": "2021-06-21",
+      "entry_open": 35600.17,
+      "exit": "2021-06-30",
+      "exit_open": 35911.72,
+      "gross_bp": 87.51,
+      "net_bp": 66.35,
+      "stress_net_bp": 45.23
+     },
+     {
+      "coinbase_net_bp": 415.63,
+      "days": 2,
+      "entry": "2021-07-03",
+      "entry_open": 33786.54,
+      "exit": "2021-07-05",
+      "exit_open": 35288.13,
+      "gross_bp": 444.43,
+      "net_bp": 422.52,
+      "stress_net_bp": 400.66
+     },
+     {
+      "coinbase_net_bp": -306.34,
+      "days": 8,
+      "entry": "2021-07-06",
+      "entry_open": 33690.15,
+      "exit": "2021-07-14",
+      "exit_open": 32729.12,
+      "gross_bp": -285.26,
+      "net_bp": -305.64,
+      "stress_net_bp": -325.97
+     },
+     {
+      "coinbase_net_bp": -454.67,
+      "days": 2,
+      "entry": "2021-07-15",
+      "entry_open": 32820.03,
+      "exit": "2021-07-17",
+      "exit_open": 31383.86,
+      "gross_bp": -437.59,
+      "net_bp": -457.65,
+      "stress_net_bp": -477.67
+     },
+     {
+      "coinbase_net_bp": 2569.99,
+      "days": 11,
+      "entry": "2021-07-19",
+      "entry_open": 31778.57,
+      "exit": "2021-07-30",
+      "exit_open": 40018.49,
+      "gross_bp": 2592.92,
+      "net_bp": 2566.5,
+      "stress_net_bp": 2540.14
+     },
+     {
+      "coinbase_net_bp": -582.02,
+      "days": 2,
+      "entry": "2021-07-31",
+      "entry_open": 42206.36,
+      "exit": "2021-08-02",
+      "exit_open": 39850.27,
+      "gross_bp": -558.23,
+      "net_bp": -578.04,
+      "stress_net_bp": -597.8
+     },
+     {
+      "coinbase_net_bp": -516.09,
+      "days": 2,
+      "entry": "2021-09-27",
+      "entry_open": 43160.9,
+      "exit": "2021-09-29",
+      "exit_open": 41025.01,
+      "gross_bp": -494.87,
+      "net_bp": -514.81,
+      "stress_net_bp": -534.7
+     },
+     {
+      "coinbase_net_bp": -206.57,
+      "days": 4,
+      "entry": "2022-01-13",
+      "entry_open": 43902.65,
+      "exit": "2022-01-17",
+      "exit_open": 43071.66,
+      "gross_bp": -189.28,
+      "net_bp": -209.86,
+      "stress_net_bp": -230.4
+     },
+     {
+      "coinbase_net_bp": 1391.98,
+      "days": 13,
+      "entry": "2022-01-24",
+      "entry_open": 36244.55,
+      "exit": "2022-02-06",
+      "exit_open": 41382.6,
+      "gross_bp": 1417.61,
+      "net_bp": 1393.65,
+      "stress_net_bp": 1369.75
+     },
+     {
+      "coinbase_net_bp": 103.75,
+      "days": 2,
+      "entry": "2022-02-08",
+      "entry_open": 43839.99,
+      "exit": "2022-02-10",
+      "exit_open": 44372.71,
+      "gross_bp": 121.51,
+      "net_bp": 100.28,
+      "stress_net_bp": 79.09
+     },
+     {
+      "coinbase_net_bp": -94.69,
+      "days": 2,
+      "entry": "2022-02-12",
+      "entry_open": 42373.73,
+      "exit": "2022-02-14",
+      "exit_open": 42053.65,
+      "gross_bp": -75.54,
+      "net_bp": -96.36,
+      "stress_net_bp": -117.13
+     },
+     {
+      "coinbase_net_bp": -232.24,
+      "days": 8,
+      "entry": "2022-02-19",
+      "entry_open": 39974.45,
+      "exit": "2022-02-27",
+      "exit_open": 39116.73,
+      "gross_bp": -214.57,
+      "net_bp": -235.09,
+      "stress_net_bp": -255.58
+     },
+     {
+      "coinbase_net_bp": 1619.39,
+      "days": 3,
+      "entry": "2022-02-28",
+      "entry_open": 37699.08,
+      "exit": "2022-03-03",
+      "exit_open": 43892.99,
+      "gross_bp": 1642.99,
+      "net_bp": 1618.56,
+      "stress_net_bp": 1594.19
+     },
+     {
+      "coinbase_net_bp": 1018.72,
+      "days": 2,
+      "entry": "2022-03-08",
+      "entry_open": 37988.01,
+      "exit": "2022-03-10",
+      "exit_open": 41941.7,
+      "gross_bp": 1040.77,
+      "net_bp": 1017.61,
+      "stress_net_bp": 994.5
+     },
+     {
+      "coinbase_net_bp": -54.71,
+      "days": 5,
+      "entry": "2022-03-11",
+      "entry_open": 39422.01,
+      "exit": "2022-03-16",
+      "exit_open": 39280.33,
+      "gross_bp": -35.94,
+      "net_bp": -56.84,
+      "stress_net_bp": -77.7
+     },
+     {
+      "coinbase_net_bp": 436.89,
+      "days": 2,
+      "entry": "2022-03-22",
+      "entry_open": 41002.26,
+      "exit": "2022-03-24",
+      "exit_open": 42882.76,
+      "gross_bp": 458.63,
+      "net_bp": 436.69,
+      "stress_net_bp": 414.8
+     },
+     {
+      "coinbase_net_bp": 98.25,
+      "days": 2,
+      "entry": "2022-03-25",
+      "entry_open": 43991.46,
+      "exit": "2022-03-27",
+      "exit_open": 44511.27,
+      "gross_bp": 118.16,
+      "net_bp": 96.94,
+      "stress_net_bp": 75.75
+     },
+     {
+      "coinbase_net_bp": 95.5,
+      "days": 3,
+      "entry": "2022-04-13",
+      "entry_open": 40074.95,
+      "exit": "2022-04-16",
+      "exit_open": 40551.9,
+      "gross_bp": 119.01,
+      "net_bp": 97.79,
+      "stress_net_bp": 76.6
+     },
+     {
+      "coinbase_net_bp": -101.06,
+      "days": 3,
+      "entry": "2022-04-19",
+      "entry_open": 40801.13,
+      "exit": "2022-04-22",
+      "exit_open": 40480.01,
+      "gross_bp": -78.7,
+      "net_bp": -99.52,
+      "stress_net_bp": -120.29
+     },
+     {
+      "coinbase_net_bp": -421.47,
+      "days": 4,
+      "entry": "2022-04-23",
+      "entry_open": 39709.19,
+      "exit": "2022-04-27",
+      "exit_open": 38112.64,
+      "gross_bp": -402.06,
+      "net_bp": -422.2,
+      "stress_net_bp": -442.29
+     },
+     {
+      "coinbase_net_bp": -1535.01,
+      "days": 2,
+      "entry": "2022-05-08",
+      "entry_open": 35472.4,
+      "exit": "2022-05-10",
+      "exit_open": 30074.23,
+      "gross_bp": -1521.79,
+      "net_bp": -1539.58,
+      "stress_net_bp": -1557.33
+     },
+     {
+      "coinbase_net_bp": 345.48,
+      "days": 3,
+      "entry": "2022-05-12",
+      "entry_open": 29103.94,
+      "exit": "2022-05-15",
+      "exit_open": 30086.74,
+      "gross_bp": 337.69,
+      "net_bp": 316.0,
+      "stress_net_bp": 294.36
+     },
+     {
+      "coinbase_net_bp": -74.72,
+      "days": 2,
+      "entry": "2022-05-27",
+      "entry_open": 29201.35,
+      "exit": "2022-05-29",
+      "exit_open": 29031.33,
+      "gross_bp": -58.22,
+      "net_bp": -79.08,
+      "stress_net_bp": -99.89
+     },
+     {
+      "coinbase_net_bp": -351.81,
+      "days": 2,
+      "entry": "2022-06-08",
+      "entry_open": 31125.32,
+      "exit": "2022-06-10",
+      "exit_open": 30109.93,
+      "gross_bp": -326.23,
+      "net_bp": -346.52,
+      "stress_net_bp": -366.77
+     },
+     {
+      "coinbase_net_bp": -2880.89,
+      "days": 6,
+      "entry": "2022-06-13",
+      "entry_open": 26574.53,
+      "exit": "2022-06-19",
+      "exit_open": 18970.79,
+      "gross_bp": -2861.29,
+      "net_bp": -2876.26,
+      "stress_net_bp": -2891.21
+     },
+     {
+      "coinbase_net_bp": 730.6,
+      "days": 3,
+      "entry": "2022-06-23",
+      "entry_open": 19988.0,
+      "exit": "2022-06-26",
+      "exit_open": 21491.18,
+      "gross_bp": 752.04,
+      "net_bp": 729.49,
+      "stress_net_bp": 706.98
+     },
+     {
+      "coinbase_net_bp": -387.08,
+      "days": 2,
+      "entry": "2022-06-27",
+      "entry_open": 21038.08,
+      "exit": "2022-06-29",
+      "exit_open": 20281.28,
+      "gross_bp": -359.73,
+      "net_bp": -379.95,
+      "stress_net_bp": -400.13
+     },
+     {
+      "coinbase_net_bp": -367.63,
+      "days": 3,
+      "entry": "2022-07-01",
+      "entry_open": 19942.21,
+      "exit": "2022-07-04",
+      "exit_open": 19315.83,
+      "gross_bp": -314.1,
+      "net_bp": -334.42,
+      "stress_net_bp": -354.69
+     },
+     {
+      "coinbase_net_bp": 704.06,
+      "days": 2,
+      "entry": "2022-07-06",
+      "entry_open": 20175.84,
+      "exit": "2022-07-08",
+      "exit_open": 21624.99,
+      "gross_bp": 718.26,
+      "net_bp": 695.78,
+      "stress_net_bp": 673.34
+     },
+     {
+      "coinbase_net_bp": 276.8,
+      "days": 2,
+      "entry": "2022-07-14",
+      "entry_open": 20234.87,
+      "exit": "2022-07-16",
+      "exit_open": 20830.04,
+      "gross_bp": 294.13,
+      "net_bp": 272.54,
+      "stress_net_bp": 250.99
+     },
+     {
+      "coinbase_net_bp": 565.7,
+      "days": 2,
+      "entry": "2022-07-17",
+      "entry_open": 21195.6,
+      "exit": "2022-07-19",
+      "exit_open": 22432.58,
+      "gross_bp": 583.6,
+      "net_bp": 561.4,
+      "stress_net_bp": 539.24
+     },
+     {
+      "coinbase_net_bp": 224.18,
+      "days": 3,
+      "entry": "2022-08-05",
+      "entry_open": 22622.41,
+      "exit": "2022-08-08",
+      "exit_open": 23174.39,
+      "gross_bp": 244.0,
+      "net_bp": 222.51,
+      "stress_net_bp": 201.06
+     },
+     {
+      "coinbase_net_bp": -458.58,
+      "days": 5,
+      "entry": "2022-08-13",
+      "entry_open": 24401.7,
+      "exit": "2022-08-18",
+      "exit_open": 23342.66,
+      "gross_bp": -434.0,
+      "net_bp": -454.07,
+      "stress_net_bp": -474.1
+     },
+     {
+      "coinbase_net_bp": -305.63,
+      "days": 7,
+      "entry": "2022-08-20",
+      "entry_open": 20834.39,
+      "exit": "2022-08-27",
+      "exit_open": 20239.14,
+      "gross_bp": -285.71,
+      "net_bp": -306.08,
+      "stress_net_bp": -326.42
+     },
+     {
+      "coinbase_net_bp": 27.52,
+      "days": 5,
+      "entry": "2022-08-28",
+      "entry_open": 20037.6,
+      "exit": "2022-09-02",
+      "exit_open": 20132.64,
+      "gross_bp": 47.43,
+      "net_bp": 26.35,
+      "stress_net_bp": 5.32
+     },
+     {
+      "coinbase_net_bp": -545.66,
+      "days": 3,
+      "entry": "2022-09-04",
+      "entry_open": 19832.45,
+      "exit": "2022-09-07",
+      "exit_open": 18790.61,
+      "gross_bp": -525.32,
+      "net_bp": -545.2,
+      "stress_net_bp": -565.03
+     },
+     {
+      "coinbase_net_bp": 1051.55,
+      "days": 2,
+      "entry": "2022-09-08",
+      "entry_open": 19292.85,
+      "exit": "2022-09-10",
+      "exit_open": 21361.62,
+      "gross_bp": 1072.3,
+      "net_bp": 1049.07,
+      "stress_net_bp": 1025.89
+     },
+     {
+      "coinbase_net_bp": -429.35,
+      "days": 8,
+      "entry": "2022-09-15",
+      "entry_open": 20227.17,
+      "exit": "2022-09-23",
+      "exit_open": 19401.63,
+      "gross_bp": -408.13,
+      "net_bp": -428.26,
+      "stress_net_bp": -448.34
+     },
+     {
+      "coinbase_net_bp": -128.85,
+      "days": 4,
+      "entry": "2022-09-24",
+      "entry_open": 19288.57,
+      "exit": "2022-09-28",
+      "exit_open": 19078.1,
+      "gross_bp": -109.12,
+      "net_bp": -129.87,
+      "stress_net_bp": -150.57
+     },
+     {
+      "coinbase_net_bp": -218.21,
+      "days": 2,
+      "entry": "2022-10-10",
+      "entry_open": 19439.96,
+      "exit": "2022-10-12",
+      "exit_open": 19060.0,
+      "gross_bp": -195.45,
+      "net_bp": -216.02,
+      "stress_net_bp": -236.55
+     },
+     {
+      "coinbase_net_bp": 809.86,
+      "days": 10,
+      "entry": "2022-10-21",
+      "entry_open": 19041.92,
+      "exit": "2022-10-31",
+      "exit_open": 20627.48,
+      "gross_bp": 832.67,
+      "net_bp": 809.94,
+      "stress_net_bp": 787.27
+     },
+     {
+      "coinbase_net_bp": -158.09,
+      "days": 3,
+      "entry": "2022-11-01",
+      "entry_open": 20490.74,
+      "exit": "2022-11-04",
+      "exit_open": 20207.12,
+      "gross_bp": -138.41,
+      "net_bp": -159.1,
+      "stress_net_bp": -179.75
+     },
+     {
+      "coinbase_net_bp": 309.79,
+      "days": 18,
+      "entry": "2022-11-10",
+      "entry_open": 15922.68,
+      "exit": "2022-11-28",
+      "exit_open": 16428.77,
+      "gross_bp": 317.84,
+      "net_bp": 296.2,
+      "stress_net_bp": 274.6
+     },
+     {
+      "coinbase_net_bp": 569.66,
+      "days": 2,
+      "entry": "2022-11-29",
+      "entry_open": 16212.18,
+      "exit": "2022-12-01",
+      "exit_open": 17165.53,
+      "gross_bp": 588.05,
+      "net_bp": 565.83,
+      "stress_net_bp": 543.67
+     },
+     {
+      "coinbase_net_bp": -12.43,
+      "days": 2,
+      "entry": "2022-12-03",
+      "entry_open": 17092.13,
+      "exit": "2022-12-05",
+      "exit_open": 17106.65,
+      "gross_bp": 8.5,
+      "net_bp": -12.5,
+      "stress_net_bp": -33.45
+     },
+     {
+      "coinbase_net_bp": 397.23,
+      "days": 8,
+      "entry": "2022-12-07",
+      "entry_open": 17088.96,
+      "exit": "2022-12-15",
+      "exit_open": 17804.01,
+      "gross_bp": 418.43,
+      "net_bp": 396.57,
+      "stress_net_bp": 374.76
+     },
+     {
+      "coinbase_net_bp": 87.6,
+      "days": 6,
+      "entry": "2022-12-17",
+      "entry_open": 16631.5,
+      "exit": "2022-12-23",
+      "exit_open": 16821.9,
+      "gross_bp": 114.48,
+      "net_bp": 93.26,
+      "stress_net_bp": 72.09
+     },
+     {
+      "coinbase_net_bp": -156.89,
+      "days": 5,
+      "entry": "2022-12-26",
+      "entry_open": 16832.11,
+      "exit": "2022-12-31",
+      "exit_open": 16607.48,
+      "gross_bp": -133.45,
+      "net_bp": -154.15,
+      "stress_net_bp": -174.81
+     }
+    ],
+    "without_best_month_usd": 108.3547
+   }
+  },
+  "UZERO": {
+   "2023": {
+    "N": 364,
+    "S_halves_usd": [
+     43.4205,
+     -0.6102
+    ],
+    "S_stress_usd": 38.5249,
+    "S_usd": 42.8103,
+    "annualised_on_100_pct": 42.8103,
+    "best_month": "2023-03",
+    "best_month_share": 0.6212,
+    "best_month_usd": 26.5939,
+    "coinbase": {
+     "S_halves_usd": [
+      43.2528,
+      -0.6835
+     ],
+     "S_usd": 42.5693,
+     "trades_left_out": 0
+    },
+    "days_held": 63,
+    "days_in_window": 365,
+    "entries": 20,
+    "halves": [
+     [
+      "2023-01-01",
+      "2023-07-01"
+     ],
+     [
+      "2023-07-02",
+      "2023-12-30"
+     ]
+    ],
+    "in_market_pct": 17.26,
+    "mean_net_per_held_day_bp": 67.95,
+    "mean_net_per_trade_bp": 214.05,
+    "months_usd": {
+     "2023-01": 10.8394,
+     "2023-02": 1.2339,
+     "2023-03": 26.5939,
+     "2023-04": -0.1387,
+     "2023-05": -0.4571,
+     "2023-06": 5.3491,
+     "2023-07": -0.8148,
+     "2023-08": -5.5403,
+     "2023-09": 1.1136,
+     "2023-10": 4.6314
+    },
+    "null": {
+     "count_ge": 14,
+     "entries_min_max": [
+      20,
+      21
+     ],
+     "k_from": 60,
+     "k_to": 304,
+     "mean_usd": 16.119,
+     "p": "15/246",
+     "p05_usd": -9.2096,
+     "p50_usd": 15.2772,
+     "p95_usd": 42.9864,
+     "p975_usd": 47.9418,
+     "p_float": 0.060976,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 16.1976,
+     "shifts": 245
+    },
+    "signal_days": 36,
+    "trades": [
+     {
+      "coinbase_net_bp": 1085.65,
+      "days": 2,
+      "entry": "2023-01-12",
+      "entry_open": 17943.26,
+      "exit": "2023-01-14",
+      "exit_open": 19930.01,
+      "gross_bp": 1107.24,
+      "net_bp": 1083.94,
+      "stress_net_bp": 1060.69
+     },
+     {
+      "coinbase_net_bp": 121.34,
+      "days": 2,
+      "entry": "2023-02-26",
+      "entry_open": 23157.07,
+      "exit": "2023-02-28",
+      "exit_open": 23492.09,
+      "gross_bp": 144.67,
+      "net_bp": 123.39,
+      "stress_net_bp": 102.15
+     },
+     {
+      "coinbase_net_bp": 11.97,
+      "days": 2,
+      "entry": "2023-03-04",
+      "entry_open": 22354.34,
+      "exit": "2023-03-06",
+      "exit_open": 22430.24,
+      "gross_bp": 33.95,
+      "net_bp": 12.9,
+      "stress_net_bp": -8.1
+     },
+     {
+      "coinbase_net_bp": 2214.33,
+      "days": 4,
+      "entry": "2023-03-11",
+      "entry_open": 20150.69,
+      "exit": "2023-03-15",
+      "exit_open": 24670.41,
+      "gross_bp": 2242.96,
+      "net_bp": 2217.28,
+      "stress_net_bp": 2191.65
+     },
+     {
+      "coinbase_net_bp": 426.34,
+      "days": 2,
+      "entry": "2023-03-28",
+      "entry_open": 27124.9,
+      "exit": "2023-03-30",
+      "exit_open": 28348.6,
+      "gross_bp": 451.14,
+      "net_bp": 429.21,
+      "stress_net_bp": 407.33
+     },
+     {
+      "coinbase_net_bp": -99.05,
+      "days": 4,
+      "entry": "2023-04-05",
+      "entry_open": 28165.47,
+      "exit": "2023-04-09",
+      "exit_open": 27938.38,
+      "gross_bp": -80.63,
+      "net_bp": -101.44,
+      "stress_net_bp": -122.2
+     },
+     {
+      "coinbase_net_bp": 642.68,
+      "days": 2,
+      "entry": "2023-04-10",
+      "entry_open": 28323.76,
+      "exit": "2023-04-12",
+      "exit_open": 30200.43,
+      "gross_bp": 662.58,
+      "net_bp": 640.21,
+      "stress_net_bp": 617.89
+     },
+     {
+      "coinbase_net_bp": -560.2,
+      "days": 2,
+      "entry": "2023-04-20",
+      "entry_open": 28797.1,
+      "exit": "2023-04-22",
+      "exit_open": 27262.84,
+      "gross_bp": -532.78,
+      "net_bp": -552.64,
+      "stress_net_bp": -572.46
+     },
+     {
+      "coinbase_net_bp": 68.1,
+      "days": 2,
+      "entry": "2023-05-16",
+      "entry_open": 27162.15,
+      "exit": "2023-05-18",
+      "exit_open": 27405.62,
+      "gross_bp": 89.64,
+      "net_bp": 68.47,
+      "stress_net_bp": 47.35
+     },
+     {
+      "coinbase_net_bp": -116.62,
+      "days": 2,
+      "entry": "2023-05-21",
+      "entry_open": 27102.42,
+      "exit": "2023-05-23",
+      "exit_open": 26849.28,
+      "gross_bp": -93.4,
+      "net_bp": -114.18,
+      "stress_net_bp": -134.92
+     },
+     {
+      "coinbase_net_bp": 530.76,
+      "days": 2,
+      "entry": "2023-06-21",
+      "entry_open": 28308.0,
+      "exit": "2023-06-23",
+      "exit_open": 29884.92,
+      "gross_bp": 557.06,
+      "net_bp": 534.91,
+      "stress_net_bp": 512.81
+     },
+     {
+      "coinbase_net_bp": -80.85,
+      "days": 2,
+      "entry": "2023-07-08",
+      "entry_open": 30344.7,
+      "exit": "2023-07-10",
+      "exit_open": 30160.71,
+      "gross_bp": -60.63,
+      "net_bp": -81.48,
+      "stress_net_bp": -102.29
+     },
+     {
+      "coinbase_net_bp": 105.72,
+      "days": 4,
+      "entry": "2023-08-20",
+      "entry_open": 26100.01,
+      "exit": "2023-08-24",
+      "exit_open": 26432.71,
+      "gross_bp": 127.47,
+      "net_bp": 106.23,
+      "stress_net_bp": 85.02
+     },
+     {
+      "coinbase_net_bp": -663.86,
+      "days": 2,
+      "entry": "2023-08-30",
+      "entry_open": 27716.34,
+      "exit": "2023-09-01",
+      "exit_open": 25940.77,
+      "gross_bp": -640.62,
+      "net_bp": -660.26,
+      "stress_net_bp": -679.85
+     },
+     {
+      "coinbase_net_bp": -67.34,
+      "days": 4,
+      "entry": "2023-09-03",
+      "entry_open": 25869.52,
+      "exit": "2023-09-07",
+      "exit_open": 25759.95,
+      "gross_bp": -42.35,
+      "net_bp": -63.24,
+      "stress_net_bp": -84.09
+     },
+     {
+      "coinbase_net_bp": -49.7,
+      "days": 2,
+      "entry": "2023-09-09",
+      "entry_open": 25910.5,
+      "exit": "2023-09-11",
+      "exit_open": 25841.6,
+      "gross_bp": -26.59,
+      "net_bp": -47.51,
+      "stress_net_bp": -68.39
+     },
+     {
+      "coinbase_net_bp": 264.2,
+      "days": 10,
+      "entry": "2023-09-13",
+      "entry_open": 25840.1,
+      "exit": "2023-09-23",
+      "exit_open": 26580.14,
+      "gross_bp": 286.39,
+      "net_bp": 264.81,
+      "stress_net_bp": 243.28
+     },
+     {
+      "coinbase_net_bp": -45.51,
+      "days": 2,
+      "entry": "2023-09-29",
+      "entry_open": 27021.39,
+      "exit": "2023-10-01",
+      "exit_open": 26962.57,
+      "gross_bp": -21.77,
+      "net_bp": -42.7,
+      "stress_net_bp": -63.59
+     },
+     {
+      "coinbase_net_bp": -43.05,
+      "days": 7,
+      "entry": "2023-10-02",
+      "entry_open": 27992.58,
+      "exit": "2023-10-09",
+      "exit_open": 27917.06,
+      "gross_bp": -26.98,
+      "net_bp": -47.9,
+      "stress_net_bp": -68.78
+     },
+     {
+      "coinbase_net_bp": 512.04,
+      "days": 4,
+      "entry": "2023-10-18",
+      "entry_open": 28395.91,
+      "exit": "2023-10-22",
+      "exit_open": 29909.8,
+      "gross_bp": 533.14,
+      "net_bp": 511.04,
+      "stress_net_bp": 488.99
+     }
+    ],
+    "without_best_month_usd": 16.2164
+   },
+   "primary": {
+    "N": 997,
+    "S_halves_usd": [
+     37.6115,
+     -0.8842
+    ],
+    "S_stress_usd": 28.259,
+    "S_usd": 36.7272,
+    "annualised_on_100_pct": 13.4323,
+    "best_month": "2024-05",
+    "best_month_share": 0.3901,
+    "best_month_usd": 14.3285,
+    "coinbase": {
+     "S_halves_usd": [
+      37.5355,
+      -0.9158
+     ],
+     "S_usd": 36.6197,
+     "trades_left_out": 0
+    },
+    "days_held": 200,
+    "days_in_window": 998,
+    "entries": 40,
+    "halves": [
+     [
+      "2024-01-01",
+      "2025-05-12"
+     ],
+     [
+      "2025-05-13",
+      "2026-09-23"
+     ]
+    ],
+    "in_market_pct": 20.04,
+    "mean_net_per_held_day_bp": 18.36,
+    "mean_net_per_trade_bp": 91.82,
+    "months_usd": {
+     "2024-04": -0.986,
+     "2024-05": 14.3285,
+     "2024-07": -1.1905,
+     "2024-08": 6.315,
+     "2024-09": 4.1305,
+     "2024-10": 4.3337,
+     "2025-01": 1.9978,
+     "2025-02": 0.3781,
+     "2025-03": -3.0801,
+     "2025-04": 11.3845,
+     "2025-06": 5.518,
+     "2025-09": -2.8275,
+     "2025-10": -4.4464,
+     "2025-11": 3.8471,
+     "2025-12": -3.2357,
+     "2026-02": -1.8263,
+     "2026-03": 0.8392,
+     "2026-04": 3.6915,
+     "2026-05": 7.4542,
+     "2026-06": -9.8984
+    },
+    "null": {
+     "count_ge": 198,
+     "entries_min_max": [
+      40,
+      41
+     ],
+     "k_from": 60,
+     "k_to": 937,
+     "mean_usd": 14.0763,
+     "p": "199/879",
+     "p05_usd": -36.6122,
+     "p50_usd": 14.3451,
+     "p95_usd": 60.727,
+     "p975_usd": 69.121,
+     "p_float": 0.226394,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 29.3367,
+     "shifts": 878
+    },
+    "signal_days": 140,
+    "trades": [
+     {
+      "coinbase_net_bp": 206.2,
+      "days": 2,
+      "entry": "2024-04-19",
+      "entry_open": 63470.09,
+      "exit": "2024-04-21",
+      "exit_open": 64940.58,
+      "gross_bp": 231.68,
+      "net_bp": 210.22,
+      "stress_net_bp": 188.8
+     },
+     {
+      "coinbase_net_bp": -311.49,
+      "days": 2,
+      "entry": "2024-04-24",
+      "entry_open": 66414.0,
+      "exit": "2024-04-26",
+      "exit_open": 64498.33,
+      "gross_bp": -288.44,
+      "net_bp": -308.82,
+      "stress_net_bp": -329.15
+     },
+     {
+      "coinbase_net_bp": 795.41,
+      "days": 2,
+      "entry": "2024-05-03",
+      "entry_open": 59060.6,
+      "exit": "2024-05-05",
+      "exit_open": 63892.03,
+      "gross_bp": 818.05,
+      "net_bp": 795.35,
+      "stress_net_bp": 772.71
+     },
+     {
+      "coinbase_net_bp": 631.8,
+      "days": 3,
+      "entry": "2024-05-18",
+      "entry_open": 67024.0,
+      "exit": "2024-05-21",
+      "exit_open": 71446.62,
+      "gross_bp": 659.86,
+      "net_bp": 637.49,
+      "stress_net_bp": 615.18
+     },
+     {
+      "coinbase_net_bp": -124.43,
+      "days": 2,
+      "entry": "2024-07-16",
+      "entry_open": 64724.06,
+      "exit": "2024-07-18",
+      "exit_open": 64087.99,
+      "gross_bp": -98.27,
+      "net_bp": -119.05,
+      "stress_net_bp": -139.77
+     },
+     {
+      "coinbase_net_bp": 17.1,
+      "days": 11,
+      "entry": "2024-08-11",
+      "entry_open": 60923.51,
+      "exit": "2024-08-22",
+      "exit_open": 61156.03,
+      "gross_bp": 38.17,
+      "net_bp": 17.11,
+      "stress_net_bp": -3.91
+     },
+     {
+      "coinbase_net_bp": 618.04,
+      "days": 3,
+      "entry": "2024-08-23",
+      "entry_open": 60375.83,
+      "exit": "2024-08-26",
+      "exit_open": 64219.99,
+      "gross_bp": 636.71,
+      "net_bp": 614.39,
+      "stress_net_bp": 592.12
+     },
+     {
+      "coinbase_net_bp": -602.95,
+      "days": 5,
+      "entry": "2024-09-02",
+      "entry_open": 57301.77,
+      "exit": "2024-09-07",
+      "exit_open": 53962.97,
+      "gross_bp": -582.67,
+      "net_bp": -602.43,
+      "stress_net_bp": -622.14
+     },
+     {
+      "coinbase_net_bp": 893.48,
+      "days": 8,
+      "entry": "2024-09-08",
+      "entry_open": 54160.86,
+      "exit": "2024-09-16",
+      "exit_open": 59132.0,
+      "gross_bp": 917.85,
+      "net_bp": 894.94,
+      "stress_net_bp": 872.09
+     },
+     {
+      "coinbase_net_bp": 119.29,
+      "days": 2,
+      "entry": "2024-09-25",
+      "entry_open": 64262.7,
+      "exit": "2024-09-27",
+      "exit_open": 65173.99,
+      "gross_bp": 141.81,
+      "net_bp": 120.53,
+      "stress_net_bp": 99.3
+     },
+     {
+      "coinbase_net_bp": 434.29,
+      "days": 2,
+      "entry": "2024-10-13",
+      "entry_open": 63206.23,
+      "exit": "2024-10-15",
+      "exit_open": 66084.0,
+      "gross_bp": 455.3,
+      "net_bp": 433.37,
+      "stress_net_bp": 411.48
+     },
+     {
+      "coinbase_net_bp": 197.1,
+      "days": 2,
+      "entry": "2025-01-10",
+      "entry_open": 92552.49,
+      "exit": "2025-01-12",
+      "exit_open": 94599.99,
+      "gross_bp": 221.23,
+      "net_bp": 199.78,
+      "stress_net_bp": 178.39
+     },
+     {
+      "coinbase_net_bp": -8.87,
+      "days": 2,
+      "entry": "2025-02-03",
+      "entry_open": 97700.59,
+      "exit": "2025-02-05",
+      "exit_open": 97763.14,
+      "gross_bp": 6.4,
+      "net_bp": -14.59,
+      "stress_net_bp": -35.54
+     },
+     {
+      "coinbase_net_bp": 68.04,
+      "days": 2,
+      "entry": "2025-02-12",
+      "entry_open": 95778.21,
+      "exit": "2025-02-14",
+      "exit_open": 96608.13,
+      "gross_bp": 86.65,
+      "net_bp": 65.49,
+      "stress_net_bp": 44.38
+     },
+     {
+      "coinbase_net_bp": -9.65,
+      "days": 2,
+      "entry": "2025-02-22",
+      "entry_open": 96181.99,
+      "exit": "2025-02-24",
+      "exit_open": 96258.0,
+      "gross_bp": 7.9,
+      "net_bp": -13.09,
+      "stress_net_bp": -34.04
+     },
+     {
+      "coinbase_net_bp": 328.26,
+      "days": 4,
+      "entry": "2025-03-01",
+      "entry_open": 84349.95,
+      "exit": "2025-03-05",
+      "exit_open": 87281.98,
+      "gross_bp": 347.6,
+      "net_bp": 325.9,
+      "stress_net_bp": 304.23
+     },
+     {
+      "coinbase_net_bp": -61.21,
+      "days": 2,
+      "entry": "2025-03-16",
+      "entry_open": 84338.44,
+      "exit": "2025-03-18",
+      "exit_open": 84010.02,
+      "gross_bp": -38.94,
+      "net_bp": -59.84,
+      "stress_net_bp": -80.69
+     },
+     {
+      "coinbase_net_bp": -579.01,
+      "days": 5,
+      "entry": "2025-03-25",
+      "entry_open": 87498.16,
+      "exit": "2025-03-30",
+      "exit_open": 82648.53,
+      "gross_bp": -554.26,
+      "net_bp": -574.07,
+      "stress_net_bp": -593.84
+     },
+     {
+      "coinbase_net_bp": -289.82,
+      "days": 2,
+      "entry": "2025-04-07",
+      "entry_open": 78430.0,
+      "exit": "2025-04-09",
+      "exit_open": 76322.42,
+      "gross_bp": -268.72,
+      "net_bp": -289.14,
+      "stress_net_bp": -309.51
+     },
+     {
+      "coinbase_net_bp": 1104.14,
+      "days": 7,
+      "entry": "2025-04-20",
+      "entry_open": 85077.0,
+      "exit": "2025-04-27",
+      "exit_open": 94628.0,
+      "gross_bp": 1122.63,
+      "net_bp": 1099.3,
+      "stress_net_bp": 1076.01
+     },
+     {
+      "coinbase_net_bp": 327.8,
+      "days": 10,
+      "entry": "2025-04-28",
+      "entry_open": 93749.29,
+      "exit": "2025-05-08",
+      "exit_open": 97030.5,
+      "gross_bp": 350.0,
+      "net_bp": 328.29,
+      "stress_net_bp": 306.62
+     },
+     {
+      "coinbase_net_bp": 543.2,
+      "days": 4,
+      "entry": "2025-06-07",
+      "entry_open": 104288.43,
+      "exit": "2025-06-11",
+      "exit_open": 110274.39,
+      "gross_bp": 573.98,
+      "net_bp": 551.8,
+      "stress_net_bp": 529.66
+     },
+     {
+      "coinbase_net_bp": -281.01,
+      "days": 2,
+      "entry": "2025-09-21",
+      "entry_open": 115685.63,
+      "exit": "2025-09-23",
+      "exit_open": 112650.99,
+      "gross_bp": -262.32,
+      "net_bp": -282.75,
+      "stress_net_bp": -303.13
+     },
+     {
+      "coinbase_net_bp": -450.42,
+      "days": 11,
+      "entry": "2025-10-13",
+      "entry_open": 114958.81,
+      "exit": "2025-10-24",
+      "exit_open": 110078.19,
+      "gross_bp": -424.55,
+      "net_bp": -444.64,
+      "stress_net_bp": -464.69
+     },
+     {
+      "coinbase_net_bp": 387.77,
+      "days": 7,
+      "entry": "2025-11-24",
+      "entry_open": 86830.0,
+      "exit": "2025-12-01",
+      "exit_open": 90360.01,
+      "gross_bp": 406.54,
+      "net_bp": 384.71,
+      "stress_net_bp": 362.93
+     },
+     {
+      "coinbase_net_bp": -459.5,
+      "days": 2,
+      "entry": "2025-12-04",
+      "entry_open": 93429.95,
+      "exit": "2025-12-06",
+      "exit_open": 89330.04,
+      "gross_bp": -438.82,
+      "net_bp": -458.88,
+      "stress_net_bp": -478.89
+     },
+     {
+      "coinbase_net_bp": 134.53,
+      "days": 2,
+      "entry": "2025-12-07",
+      "entry_open": 89236.8,
+      "exit": "2025-12-09",
+      "exit_open": 90634.35,
+      "gross_bp": 156.61,
+      "net_bp": 135.3,
+      "stress_net_bp": 114.04
+     },
+     {
+      "coinbase_net_bp": -1574.54,
+      "days": 16,
+      "entry": "2026-02-03",
+      "entry_open": 78738.6,
+      "exit": "2026-02-19",
+      "exit_open": 66461.0,
+      "gross_bp": -1559.29,
+      "net_bp": -1576.99,
+      "stress_net_bp": -1594.66
+     },
+     {
+      "coinbase_net_bp": 74.91,
+      "days": 3,
+      "entry": "2026-02-20",
+      "entry_open": 67003.73,
+      "exit": "2026-02-23",
+      "exit_open": 67643.39,
+      "gross_bp": 95.47,
+      "net_bp": 74.29,
+      "stress_net_bp": 53.15
+     },
+     {
+      "coinbase_net_bp": 1320.85,
+      "days": 8,
+      "entry": "2026-02-25",
+      "entry_open": 64058.15,
+      "exit": "2026-03-05",
+      "exit_open": 72666.77,
+      "gross_bp": 1343.88,
+      "net_bp": 1320.08,
+      "stress_net_bp": 1296.33
+     },
+     {
+      "coinbase_net_bp": 972.15,
+      "days": 10,
+      "entry": "2026-03-07",
+      "entry_open": 68114.02,
+      "exit": "2026-03-17",
+      "exit_open": 74884.67,
+      "gross_bp": 994.02,
+      "net_bp": 970.95,
+      "stress_net_bp": 947.94
+     },
+     {
+      "coinbase_net_bp": -563.15,
+      "days": 2,
+      "entry": "2026-03-18",
+      "entry_open": 73909.37,
+      "exit": "2026-03-20",
+      "exit_open": 69930.01,
+      "gross_bp": -538.41,
+      "net_bp": -558.26,
+      "stress_net_bp": -578.07
+     },
+     {
+      "coinbase_net_bp": -15.82,
+      "days": 4,
+      "entry": "2026-03-21",
+      "entry_open": 70510.73,
+      "exit": "2026-03-25",
+      "exit_open": 70556.74,
+      "gross_bp": 6.53,
+      "net_bp": -14.47,
+      "stress_net_bp": -35.41
+     },
+     {
+      "coinbase_net_bp": -315.83,
+      "days": 4,
+      "entry": "2026-03-27",
+      "entry_open": 68820.31,
+      "exit": "2026-03-31",
+      "exit_open": 66797.38,
+      "gross_bp": -293.94,
+      "net_bp": -314.31,
+      "stress_net_bp": -334.62
+     },
+     {
+      "coinbase_net_bp": -157.03,
+      "days": 4,
+      "entry": "2026-04-01",
+      "entry_open": 68284.49,
+      "exit": "2026-04-05",
+      "exit_open": 67300.42,
+      "gross_bp": -144.11,
+      "net_bp": -164.79,
+      "stress_net_bp": -185.42
+     },
+     {
+      "coinbase_net_bp": 528.7,
+      "days": 20,
+      "entry": "2026-04-10",
+      "entry_open": 71787.98,
+      "exit": "2026-04-30",
+      "exit_open": 75780.0,
+      "gross_bp": 556.08,
+      "net_bp": 533.94,
+      "stress_net_bp": 511.84
+     },
+     {
+      "coinbase_net_bp": 749.85,
+      "days": 10,
+      "entry": "2026-05-01",
+      "entry_open": 76346.58,
+      "exit": "2026-05-11",
+      "exit_open": 82210.07,
+      "gross_bp": 768.01,
+      "net_bp": 745.42,
+      "stress_net_bp": 722.88
+     },
+     {
+      "coinbase_net_bp": -137.19,
+      "days": 4,
+      "entry": "2026-06-05",
+      "entry_open": 63885.99,
+      "exit": "2026-06-09",
+      "exit_open": 63086.0,
+      "gross_bp": -125.22,
+      "net_bp": -145.94,
+      "stress_net_bp": -166.61
+     },
+     {
+      "coinbase_net_bp": -359.54,
+      "days": 5,
+      "entry": "2026-06-15",
+      "entry_open": 65746.45,
+      "exit": "2026-06-20",
+      "exit_open": 63543.9,
+      "gross_bp": -335.01,
+      "net_bp": -355.28,
+      "stress_net_bp": -375.51
+     },
+     {
+      "coinbase_net_bp": -489.5,
+      "days": 2,
+      "entry": "2026-06-24",
+      "entry_open": 62734.57,
+      "exit": "2026-06-26",
+      "exit_open": 59794.64,
+      "gross_bp": -468.63,
+      "net_bp": -488.62,
+      "stress_net_bp": -508.58
+     }
+    ],
+    "without_best_month_usd": 22.3988
+   },
+   "second": {
+    "N": 1207,
+    "S_halves_usd": [
+     112.52,
+     54.1914
+    ],
+    "S_stress_usd": 152.0967,
+    "S_usd": 166.7115,
+    "annualised_on_100_pct": 50.3723,
+    "best_month": "2020-03",
+    "best_month_share": 0.2528,
+    "best_month_usd": 42.1415,
+    "coinbase": {
+     "S_halves_usd": [
+      111.6639,
+      54.118
+     ],
+     "S_usd": 165.7819,
+     "trades_left_out": 0
+    },
+    "days_held": 264,
+    "days_in_window": 1208,
+    "entries": 68,
+    "halves": [
+     [
+      "2019-09-11",
+      "2021-05-05"
+     ],
+     [
+      "2021-05-06",
+      "2022-12-30"
+     ]
+    ],
+    "in_market_pct": 21.85,
+    "mean_net_per_held_day_bp": 63.15,
+    "mean_net_per_trade_bp": 245.16,
+    "months_usd": {
+     "2019-10": 30.4778,
+     "2019-11": 1.8536,
+     "2019-12": 7.4024,
+     "2020-03": 42.1415,
+     "2020-04": 11.5497,
+     "2020-05": 3.4427,
+     "2020-06": 0.2039,
+     "2020-09": 0.1162,
+     "2020-10": 15.3322,
+     "2021-05": 1.4015,
+     "2021-06": 7.963,
+     "2021-07": 16.477,
+     "2021-09": -5.1481,
+     "2022-01": 11.8379,
+     "2022-02": 13.8739,
+     "2022-03": 14.944,
+     "2022-04": -4.2392,
+     "2022-05": 3.16,
+     "2022-06": -11.9775,
+     "2022-07": -0.6188,
+     "2022-08": -6.0226,
+     "2022-09": 7.8005,
+     "2022-10": 1.4829,
+     "2022-11": -2.7576,
+     "2022-12": 6.0145
+    },
+    "null": {
+     "count_ge": 6,
+     "entries_min_max": [
+      68,
+      69
+     ],
+     "k_from": 60,
+     "k_to": 1147,
+     "mean_usd": 18.2604,
+     "p": "7/1089",
+     "p05_usd": -73.3162,
+     "p50_usd": 18.1628,
+     "p95_usd": 106.2894,
+     "p975_usd": 120.0009,
+     "p_float": 0.006428,
+     "percentile_rule": "sorted[int(q * (M - 1))]",
+     "sd_usd": 55.1391,
+     "shifts": 1088
+    },
+    "signal_days": 171,
+    "trades": [
+     {
+      "coinbase_net_bp": 227.01,
+      "days": 7,
+      "entry": "2019-10-03",
+      "entry_open": 8360.0,
+      "exit": "2019-10-10",
+      "exit_open": 8562.15,
+      "gross_bp": 241.81,
+      "net_bp": 220.32,
+      "stress_net_bp": 198.88
+     },
+     {
+      "coinbase_net_bp": 2832.74,
+      "days": 3,
+      "entry": "2019-10-25",
+      "entry_open": 7412.41,
+      "exit": "2019-10-28",
+      "exit_open": 9528.23,
+      "gross_bp": 2854.43,
+      "net_bp": 2827.46,
+      "stress_net_bp": 2800.55
+     },
+     {
+      "coinbase_net_bp": 183.47,
+      "days": 6,
+      "entry": "2019-11-23",
+      "entry_open": 7268.23,
+      "exit": "2019-11-29",
+      "exit_open": 7418.52,
+      "gross_bp": 206.78,
+      "net_bp": 185.36,
+      "stress_net_bp": 164.0
+     },
+     {
+      "coinbase_net_bp": 305.35,
+      "days": 3,
+      "entry": "2019-12-04",
+      "entry_open": 7292.71,
+      "exit": "2019-12-07",
+      "exit_open": 7527.8,
+      "gross_bp": 322.36,
+      "net_bp": 300.71,
+      "stress_net_bp": 279.1
+     },
+     {
+      "coinbase_net_bp": -146.03,
+      "days": 4,
+      "entry": "2019-12-12",
+      "entry_open": 7210.0,
+      "exit": "2019-12-16",
+      "exit_open": 7119.6,
+      "gross_bp": -125.38,
+      "net_bp": -146.1,
+      "stress_net_bp": -166.77
+     },
+     {
+      "coinbase_net_bp": 433.15,
+      "days": 4,
+      "entry": "2019-12-17",
+      "entry_open": 6891.44,
+      "exit": "2019-12-21",
+      "exit_open": 7188.01,
+      "gross_bp": 430.35,
+      "net_bp": 408.46,
+      "stress_net_bp": 386.63
+     },
+     {
+      "coinbase_net_bp": 173.66,
+      "days": 8,
+      "entry": "2019-12-27",
+      "entry_open": 7202.0,
+      "exit": "2020-01-04",
+      "exit_open": 7345.0,
+      "gross_bp": 198.56,
+      "net_bp": 177.16,
+      "stress_net_bp": 155.81
+     },
+     {
+      "coinbase_net_bp": 3341.21,
+      "days": 11,
+      "entry": "2020-03-13",
+      "entry_open": 4800.01,
+      "exit": "2020-03-24",
+      "exit_open": 6465.25,
+      "gross_bp": 3469.24,
+      "net_bp": 3440.99,
+      "stress_net_bp": 3412.79
+     },
+     {
+      "coinbase_net_bp": 762.06,
+      "days": 6,
+      "entry": "2020-03-29",
+      "entry_open": 6236.65,
+      "exit": "2020-04-04",
+      "exit_open": 6732.97,
+      "gross_bp": 795.81,
+      "net_bp": 773.16,
+      "stress_net_bp": 750.56
+     },
+     {
+      "coinbase_net_bp": 698.42,
+      "days": 4,
+      "entry": "2020-04-05",
+      "entry_open": 6857.41,
+      "exit": "2020-04-09",
+      "exit_open": 7360.26,
+      "gross_bp": 733.29,
+      "net_bp": 710.78,
+      "stress_net_bp": 688.31
+     },
+     {
+      "coinbase_net_bp": -573.0,
+      "days": 2,
+      "entry": "2020-04-10",
+      "entry_open": 7283.54,
+      "exit": "2020-04-12",
+      "exit_open": 6876.84,
+      "gross_bp": -558.38,
+      "net_bp": -578.19,
+      "stress_net_bp": -597.95
+     },
+     {
+      "coinbase_net_bp": 348.84,
+      "days": 3,
+      "entry": "2020-04-14",
+      "entry_open": 6838.04,
+      "exit": "2020-04-17",
+      "exit_open": 7101.99,
+      "gross_bp": 386.0,
+      "net_bp": 364.21,
+      "stress_net_bp": 342.47
+     },
+     {
+      "coinbase_net_bp": 657.68,
+      "days": 7,
+      "entry": "2020-04-18",
+      "entry_open": 7026.78,
+      "exit": "2020-04-25",
+      "exit_open": 7505.0,
+      "gross_bp": 680.57,
+      "net_bp": 658.16,
+      "stress_net_bp": 635.8
+     },
+     {
+      "coinbase_net_bp": -245.74,
+      "days": 2,
+      "entry": "2020-05-19",
+      "entry_open": 9733.93,
+      "exit": "2020-05-21",
+      "exit_open": 9511.43,
+      "gross_bp": -228.58,
+      "net_bp": -249.08,
+      "stress_net_bp": -269.54
+     },
+     {
+      "coinbase_net_bp": 591.03,
+      "days": 6,
+      "entry": "2020-05-26",
+      "entry_open": 8900.35,
+      "exit": "2020-06-01",
+      "exit_open": 9448.27,
+      "gross_bp": 615.62,
+      "net_bp": 593.35,
+      "stress_net_bp": 571.12
+     },
+     {
+      "coinbase_net_bp": 5.41,
+      "days": 2,
+      "entry": "2020-06-16",
+      "entry_open": 9426.05,
+      "exit": "2020-06-18",
+      "exit_open": 9465.13,
+      "gross_bp": 41.46,
+      "net_bp": 20.39,
+      "stress_net_bp": -0.63
+     },
+     {
+      "coinbase_net_bp": 121.66,
+      "days": 3,
+      "entry": "2020-09-16",
+      "entry_open": 10785.23,
+      "exit": "2020-09-19",
+      "exit_open": 10933.4,
+      "gross_bp": 137.38,
+      "net_bp": 116.12,
+      "stress_net_bp": 94.89
+     },
+     {
+      "coinbase_net_bp": -516.24,
+      "days": 3,
+      "entry": "2020-09-20",
+      "entry_open": 11080.64,
+      "exit": "2020-09-23",
+      "exit_open": 10529.61,
+      "gross_bp": -497.29,
+      "net_bp": -517.23,
+      "stress_net_bp": -537.12
+     },
+     {
+      "coinbase_net_bp": 420.71,
+      "days": 2,
+      "entry": "2020-09-24",
+      "entry_open": 10241.46,
+      "exit": "2020-09-26",
+      "exit_open": 10686.57,
+      "gross_bp": 434.62,
+      "net_bp": 412.73,
+      "stress_net_bp": 390.88
+     },
+     {
+      "coinbase_net_bp": -20.55,
+      "days": 3,
+      "entry": "2020-10-05",
+      "entry_open": 10666.62,
+      "exit": "2020-10-08",
+      "exit_open": 10666.4,
+      "gross_bp": -0.21,
+      "net_bp": -21.18,
+      "stress_net_bp": -42.12
+     },
+     {
+      "coinbase_net_bp": 1565.55,
+      "days": 8,
+      "entry": "2020-10-30",
+      "entry_open": 13455.69,
+      "exit": "2020-11-07",
+      "exit_open": 15579.93,
+      "gross_bp": 1578.69,
+      "net_bp": 1554.4,
+      "stress_net_bp": 1530.16
+     },
+     {
+      "coinbase_net_bp": 141.37,
+      "days": 2,
+      "entry": "2021-05-20",
+      "entry_open": 36671.23,
+      "exit": "2021-05-22",
+      "exit_open": 37263.35,
+      "gross_bp": 161.47,
+      "net_bp": 140.15,
+      "stress_net_bp": 118.88
+     },
+     {
+      "coinbase_net_bp": -38.23,
+      "days": 2,
+      "entry": "2021-06-10",
+      "entry_open": 37388.05,
+      "exit": "2021-06-12",
+      "exit_open": 37331.98,
+      "gross_bp": -15.0,
+      "net_bp": -35.94,
+      "stress_net_bp": -56.85
+     },
+     {
+      "coinbase_net_bp": 763.06,
+      "days": 4,
+      "entry": "2021-06-13",
+      "entry_open": 35546.12,
+      "exit": "2021-06-17",
+      "exit_open": 38349.0,
+      "gross_bp": 788.52,
+      "net_bp": 765.89,
+      "stress_net_bp": 743.3
+     },
+     {
+      "coinbase_net_bp": 68.86,
+      "days": 9,
+      "entry": "2021-06-21",
+      "entry_open": 35600.17,
+      "exit": "2021-06-30",
+      "exit_open": 35911.72,
+      "gross_bp": 87.51,
+      "net_bp": 66.35,
+      "stress_net_bp": 45.23
+     },
+     {
+      "coinbase_net_bp": 415.63,
+      "days": 2,
+      "entry": "2021-07-03",
+      "entry_open": 33786.54,
+      "exit": "2021-07-05",
+      "exit_open": 35288.13,
+      "gross_bp": 444.43,
+      "net_bp": 422.52,
+      "stress_net_bp": 400.66
+     },
+     {
+      "coinbase_net_bp": -306.34,
+      "days": 8,
+      "entry": "2021-07-06",
+      "entry_open": 33690.15,
+      "exit": "2021-07-14",
+      "exit_open": 32729.12,
+      "gross_bp": -285.26,
+      "net_bp": -305.64,
+      "stress_net_bp": -325.97
+     },
+     {
+      "coinbase_net_bp": -454.67,
+      "days": 2,
+      "entry": "2021-07-15",
+      "entry_open": 32820.03,
+      "exit": "2021-07-17",
+      "exit_open": 31383.86,
+      "gross_bp": -437.59,
+      "net_bp": -457.65,
+      "stress_net_bp": -477.67
+     },
+     {
+      "coinbase_net_bp": 2569.99,
+      "days": 11,
+      "entry": "2021-07-19",
+      "entry_open": 31778.57,
+      "exit": "2021-07-30",
+      "exit_open": 40018.49,
+      "gross_bp": 2592.92,
+      "net_bp": 2566.5,
+      "stress_net_bp": 2540.14
+     },
+     {
+      "coinbase_net_bp": -582.02,
+      "days": 2,
+      "entry": "2021-07-31",
+      "entry_open": 42206.36,
+      "exit": "2021-08-02",
+      "exit_open": 39850.27,
+      "gross_bp": -558.23,
+      "net_bp": -578.04,
+      "stress_net_bp": -597.8
+     },
+     {
+      "coinbase_net_bp": -516.09,
+      "days": 2,
+      "entry": "2021-09-27",
+      "entry_open": 43160.9,
+      "exit": "2021-09-29",
+      "exit_open": 41025.01,
+      "gross_bp": -494.87,
+      "net_bp": -514.81,
+      "stress_net_bp": -534.7
+     },
+     {
+      "coinbase_net_bp": -206.57,
+      "days": 4,
+      "entry": "2022-01-13",
+      "entry_open": 43902.65,
+      "exit": "2022-01-17",
+      "exit_open": 43071.66,
+      "gross_bp": -189.28,
+      "net_bp": -209.86,
+      "stress_net_bp": -230.4
+     },
+     {
+      "coinbase_net_bp": 1391.98,
+      "days": 13,
+      "entry": "2022-01-24",
+      "entry_open": 36244.55,
+      "exit": "2022-02-06",
+      "exit_open": 41382.6,
+      "gross_bp": 1417.61,
+      "net_bp": 1393.65,
+      "stress_net_bp": 1369.75
+     },
+     {
+      "coinbase_net_bp": 103.75,
+      "days": 2,
+      "entry": "2022-02-08",
+      "entry_open": 43839.99,
+      "exit": "2022-02-10",
+      "exit_open": 44372.71,
+      "gross_bp": 121.51,
+      "net_bp": 100.28,
+      "stress_net_bp": 79.09
+     },
+     {
+      "coinbase_net_bp": -94.69,
+      "days": 2,
+      "entry": "2022-02-12",
+      "entry_open": 42373.73,
+      "exit": "2022-02-14",
+      "exit_open": 42053.65,
+      "gross_bp": -75.54,
+      "net_bp": -96.36,
+      "stress_net_bp": -117.13
+     },
+     {
+      "coinbase_net_bp": -232.24,
+      "days": 8,
+      "entry": "2022-02-19",
+      "entry_open": 39974.45,
+      "exit": "2022-02-27",
+      "exit_open": 39116.73,
+      "gross_bp": -214.57,
+      "net_bp": -235.09,
+      "stress_net_bp": -255.58
+     },
+     {
+      "coinbase_net_bp": 1619.39,
+      "days": 3,
+      "entry": "2022-02-28",
+      "entry_open": 37699.08,
+      "exit": "2022-03-03",
+      "exit_open": 43892.99,
+      "gross_bp": 1642.99,
+      "net_bp": 1618.56,
+      "stress_net_bp": 1594.19
+     },
+     {
+      "coinbase_net_bp": 1018.72,
+      "days": 2,
+      "entry": "2022-03-08",
+      "entry_open": 37988.01,
+      "exit": "2022-03-10",
+      "exit_open": 41941.7,
+      "gross_bp": 1040.77,
+      "net_bp": 1017.61,
+      "stress_net_bp": 994.5
+     },
+     {
+      "coinbase_net_bp": -54.71,
+      "days": 5,
+      "entry": "2022-03-11",
+      "entry_open": 39422.01,
+      "exit": "2022-03-16",
+      "exit_open": 39280.33,
+      "gross_bp": -35.94,
+      "net_bp": -56.84,
+      "stress_net_bp": -77.7
+     },
+     {
+      "coinbase_net_bp": 436.89,
+      "days": 2,
+      "entry": "2022-03-22",
+      "entry_open": 41002.26,
+      "exit": "2022-03-24",
+      "exit_open": 42882.76,
+      "gross_bp": 458.63,
+      "net_bp": 436.69,
+      "stress_net_bp": 414.8
+     },
+     {
+      "coinbase_net_bp": 98.25,
+      "days": 2,
+      "entry": "2022-03-25",
+      "entry_open": 43991.46,
+      "exit": "2022-03-27",
+      "exit_open": 44511.27,
+      "gross_bp": 118.16,
+      "net_bp": 96.94,
+      "stress_net_bp": 75.75
+     },
+     {
+      "coinbase_net_bp": 95.5,
+      "days": 3,
+      "entry": "2022-04-13",
+      "entry_open": 40074.95,
+      "exit": "2022-04-16",
+      "exit_open": 40551.9,
+      "gross_bp": 119.01,
+      "net_bp": 97.79,
+      "stress_net_bp": 76.6
+     },
+     {
+      "coinbase_net_bp": -101.06,
+      "days": 3,
+      "entry": "2022-04-19",
+      "entry_open": 40801.13,
+      "exit": "2022-04-22",
+      "exit_open": 40480.01,
+      "gross_bp": -78.7,
+      "net_bp": -99.52,
+      "stress_net_bp": -120.29
+     },
+     {
+      "coinbase_net_bp": -421.47,
+      "days": 4,
+      "entry": "2022-04-23",
+      "entry_open": 39709.19,
+      "exit": "2022-04-27",
+      "exit_open": 38112.64,
+      "gross_bp": -402.06,
+      "net_bp": -422.2,
+      "stress_net_bp": -442.29
+     },
+     {
+      "coinbase_net_bp": 345.48,
+      "days": 3,
+      "entry": "2022-05-12",
+      "entry_open": 29103.94,
+      "exit": "2022-05-15",
+      "exit_open": 30086.74,
+      "gross_bp": 337.69,
+      "net_bp": 316.0,
+      "stress_net_bp": 294.36
+     },
+     {
+      "coinbase_net_bp": -351.81,
+      "days": 2,
+      "entry": "2022-06-08",
+      "entry_open": 31125.32,
+      "exit": "2022-06-10",
+      "exit_open": 30109.93,
+      "gross_bp": -326.23,
+      "net_bp": -346.52,
+      "stress_net_bp": -366.77
+     },
+     {
+      "coinbase_net_bp": -1583.21,
+      "days": 5,
+      "entry": "2022-06-14",
+      "entry_open": 22485.27,
+      "exit": "2022-06-19",
+      "exit_open": 18970.79,
+      "gross_bp": -1563.01,
+      "net_bp": -1580.71,
+      "stress_net_bp": -1598.38
+     },
+     {
+      "coinbase_net_bp": 730.6,
+      "days": 3,
+      "entry": "2022-06-23",
+      "entry_open": 19988.0,
+      "exit": "2022-06-26",
+      "exit_open": 21491.18,
+      "gross_bp": 752.04,
+      "net_bp": 729.49,
+      "stress_net_bp": 706.98
+     },
+     {
+      "coinbase_net_bp": -367.63,
+      "days": 3,
+      "entry": "2022-07-01",
+      "entry_open": 19942.21,
+      "exit": "2022-07-04",
+      "exit_open": 19315.83,
+      "gross_bp": -314.1,
+      "net_bp": -334.42,
+      "stress_net_bp": -354.69
+     },
+     {
+      "coinbase_net_bp": 276.8,
+      "days": 2,
+      "entry": "2022-07-14",
+      "entry_open": 20234.87,
+      "exit": "2022-07-16",
+      "exit_open": 20830.04,
+      "gross_bp": 294.13,
+      "net_bp": 272.54,
+      "stress_net_bp": 250.99
+     },
+     {
+      "coinbase_net_bp": -61.24,
+      "days": 2,
+      "entry": "2022-08-13",
+      "entry_open": 24401.7,
+      "exit": "2022-08-15",
+      "exit_open": 24305.25,
+      "gross_bp": -39.53,
+      "net_bp": -60.42,
+      "stress_net_bp": -81.27
+     },
+     {
+      "coinbase_net_bp": -333.72,
+      "days": 2,
+      "entry": "2022-08-16",
+      "entry_open": 24093.04,
+      "exit": "2022-08-18",
+      "exit_open": 23342.66,
+      "gross_bp": -311.45,
+      "net_bp": -331.78,
+      "stress_net_bp": -352.06
+     },
+     {
+      "coinbase_net_bp": 310.36,
+      "days": 4,
+      "entry": "2022-08-20",
+      "entry_open": 20834.39,
+      "exit": "2022-08-24",
+      "exit_open": 21529.11,
+      "gross_bp": 333.45,
+      "net_bp": 311.77,
+      "stress_net_bp": 290.14
+     },
+     {
+      "coinbase_net_bp": -547.08,
+      "days": 2,
+      "entry": "2022-08-25",
+      "entry_open": 21368.05,
+      "exit": "2022-08-27",
+      "exit_open": 20239.14,
+      "gross_bp": -528.32,
+      "net_bp": -548.19,
+      "stress_net_bp": -568.01
+     },
+     {
+      "coinbase_net_bp": 27.52,
+      "days": 5,
+      "entry": "2022-08-28",
+      "entry_open": 20037.6,
+      "exit": "2022-09-02",
+      "exit_open": 20132.64,
+      "gross_bp": 47.43,
+      "net_bp": 26.35,
+      "stress_net_bp": 5.32
+     },
+     {
+      "coinbase_net_bp": 1051.55,
+      "days": 2,
+      "entry": "2022-09-08",
+      "entry_open": 19292.85,
+      "exit": "2022-09-10",
+      "exit_open": 21361.62,
+      "gross_bp": 1072.3,
+      "net_bp": 1049.07,
+      "stress_net_bp": 1025.89
+     },
+     {
+      "coinbase_net_bp": -269.2,
+      "days": 2,
+      "entry": "2022-09-24",
+      "entry_open": 19288.57,
+      "exit": "2022-09-26",
+      "exit_open": 18809.13,
+      "gross_bp": -248.56,
+      "net_bp": -269.02,
+      "stress_net_bp": -289.43
+     },
+     {
+      "coinbase_net_bp": 66.08,
+      "days": 3,
+      "entry": "2022-10-22",
+      "entry_open": 19164.37,
+      "exit": "2022-10-25",
+      "exit_open": 19330.6,
+      "gross_bp": 86.74,
+      "net_bp": 65.58,
+      "stress_net_bp": 44.46
+     },
+     {
+      "coinbase_net_bp": 83.1,
+      "days": 2,
+      "entry": "2022-10-26",
+      "entry_open": 20079.02,
+      "exit": "2022-10-28",
+      "exit_open": 20295.11,
+      "gross_bp": 107.62,
+      "net_bp": 86.42,
+      "stress_net_bp": 65.26
+     },
+     {
+      "coinbase_net_bp": -5.54,
+      "days": 2,
+      "entry": "2022-10-29",
+      "entry_open": 20591.84,
+      "exit": "2022-10-31",
+      "exit_open": 20627.48,
+      "gross_bp": 17.31,
+      "net_bp": -3.71,
+      "stress_net_bp": -24.68
+     },
+     {
+      "coinbase_net_bp": -185.72,
+      "days": 2,
+      "entry": "2022-11-01",
+      "entry_open": 20490.74,
+      "exit": "2022-11-03",
+      "exit_open": 20151.84,
+      "gross_bp": -165.39,
+      "net_bp": -186.02,
+      "stress_net_bp": -206.61
+     },
+     {
+      "coinbase_net_bp": 232.65,
+      "days": 4,
+      "entry": "2022-11-10",
+      "entry_open": 15922.68,
+      "exit": "2022-11-14",
+      "exit_open": 16331.78,
+      "gross_bp": 256.93,
+      "net_bp": 235.41,
+      "stress_net_bp": 213.94
+     },
+     {
+      "coinbase_net_bp": -253.94,
+      "days": 8,
+      "entry": "2022-11-15",
+      "entry_open": 16617.72,
+      "exit": "2022-11-23",
+      "exit_open": 16227.96,
+      "gross_bp": -234.54,
+      "net_bp": -255.03,
+      "stress_net_bp": -275.47
+     },
+     {
+      "coinbase_net_bp": -66.06,
+      "days": 2,
+      "entry": "2022-11-24",
+      "entry_open": 16603.11,
+      "exit": "2022-11-26",
+      "exit_open": 16521.35,
+      "gross_bp": -49.24,
+      "net_bp": -70.12,
+      "stress_net_bp": -90.95
+     },
+     {
+      "coinbase_net_bp": -12.43,
+      "days": 2,
+      "entry": "2022-12-03",
+      "entry_open": 17092.13,
+      "exit": "2022-12-05",
+      "exit_open": 17106.65,
+      "gross_bp": 8.5,
+      "net_bp": -12.5,
+      "stress_net_bp": -33.45
+     },
+     {
+      "coinbase_net_bp": 151.3,
+      "days": 2,
+      "entry": "2022-12-08",
+      "entry_open": 16836.64,
+      "exit": "2022-12-10",
+      "exit_open": 17128.56,
+      "gross_bp": 173.38,
+      "net_bp": 152.04,
+      "stress_net_bp": 130.75
+     },
+     {
+      "coinbase_net_bp": 322.5,
+      "days": 2,
+      "entry": "2022-12-13",
+      "entry_open": 17208.93,
+      "exit": "2022-12-15",
+      "exit_open": 17804.01,
+      "gross_bp": 345.8,
+      "net_bp": 324.09,
+      "stress_net_bp": 302.44
+     },
+     {
+      "coinbase_net_bp": 136.13,
+      "days": 4,
+      "entry": "2022-12-17",
+      "entry_open": 16631.5,
+      "exit": "2022-12-21",
+      "exit_open": 16896.15,
+      "gross_bp": 159.13,
+      "net_bp": 137.81,
+      "stress_net_bp": 116.55
+     }
+    ],
+    "without_best_month_usd": 124.57
+   }
+  }
+ },
+ "scripts_sha256": {
+  "fetch.py": "6954c73e1223006076b12be35455581f226c8aa6c07c8a961d11c4a7b92d323a",
+  "score.py": "0e8eaba4f3f1415656db979d71aec216883203e9ec5518f90a5d13cf757db05e",
+  "test_score.py": "cd8ef7335aea6385091be178fa94fa7be87b0d5e18b043e01e9cba6bd96d554f"
+ },
+ "study": "FUND: funding crowding as a BTC spot trade at Revolut X's costs",
+ "verdict": {
+  "USOFR": "fail",
+  "UZERO": "fail"
+ },
+ "windows": {
+  "2023": {
+   "first_entry": "2023-01-01",
+   "last_entry": "2023-12-30",
+   "last_open": "2024-01-01"
+  },
+  "primary": {
+   "first_entry": "2024-01-01",
+   "last_entry": "2026-09-23",
+   "last_open": "2026-09-25"
+  },
+  "second": {
+   "first_entry": "2019-09-11",
+   "last_entry": "2022-12-30",
+   "last_open": "2023-01-01"
+  }
+ }
+}
