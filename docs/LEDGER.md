@@ -839,6 +839,11 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-26 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: verify what Cursor shipped (the live row, the page, the testing strategies) and review the fp5 research.**
+- RW's page could show a split that disagreed with its own total for a minute. A run upserts the fills of the minutes it decides, and the row of a day it closes, before it saves the state that counts them; the dashboard read all of them at once, so a read between the two paired a new fill with the old state (seen on production: $0.081). The dashboard now reads `pm_rw_state` first, and `rwSummary` keeps only fills at or before `lastDecided` and days before `dayOf`. Pinned in `pmrw_view.test.ts` (fails on the old code: a mismatch of $0.20 and a day row that is not closed).
+
 ### [2026-09-26 05:29 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: the phone subpage is still not the screen.** Three screenshots at 06:13, iPhone 16 Pro, 1206×2622.

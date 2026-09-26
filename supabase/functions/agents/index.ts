@@ -694,8 +694,10 @@ async function dashboard(now: number) {
   // Its own tables; missing ones (before the migration) or no state yet leave it off the page.
   const rw = await (async () => {
     try {
-      const [st, selection, days, fills, first] = await Promise.all([
-        d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error"),
+      // The state first: the engine saves it after the fills and day rows it counts, so every read after it holds all
+      // of those, and `rwSummary` leaves out anything a later run wrote.
+      const st = await d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error");
+      const [selection, days, fills, first] = await Promise.all([
         d.select<RwSelRow>("pm_rw_selection", `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
         d.select<RwDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
         d.selectAll<RwFillRow>("pm_rw_fills", "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc"),

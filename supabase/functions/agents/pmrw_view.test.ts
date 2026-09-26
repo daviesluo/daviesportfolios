@@ -99,3 +99,14 @@ Deno.test("rwSummary: the warm-up's fills stay out of the fourteen days, a split
   assertEquals(rwSummary({ ...args, state: null, fills: [], nowMs: T }), null);
   assertEquals(rwSummary({ ...args, state: { state: {}, last_minute: null, last_error: null }, fills: [], nowMs: T }), null);
 });
+
+Deno.test("rwSummary: what a run wrote after the state the page read stays out — a later minute's fill, the row of a day it has not closed", () => {
+  const w = world();
+  // A run writes the fills of the minutes it decides, and a closing day's row, before it saves the state that counts them.
+  const ahead = { cond: COND, minute: new Date(T + 3 * 60e3).toISOString(), ts: new Date(T + 3 * 60e3 + 20e3).toISOString(), side: "bid" as const, price: 0.49, size: 20, print_id: "z" };
+  const closing = { day: "2026-09-27", total: 99, stress_total: 9, reward: 99, fills: 9, capital: 300, markets: 16, detail: { phase: "run" } };
+  const r = rwSummary({ state: { state: w.st, last_minute: new Date(T + 2 * 60e3).toISOString(), last_error: null }, selection: w.selection, latest: [], days: [closing], fills: [...w.fills, ahead], firstMinute: null, nowMs: T + 5 * 60e3 })!;
+  assertAlmostEquals(r.mismatchUsd, 0, 1e-9);
+  assertEquals(r.recent.filter((f) => f.minute === ahead.minute), []);
+  assertEquals(r.days, []);
+});

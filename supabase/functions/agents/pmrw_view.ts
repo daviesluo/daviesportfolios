@@ -64,8 +64,12 @@ export function rwSummary(input: {
   if (!st || typeof st !== "object" || !("acc" in st) || !input.state?.last_minute) return null;
   const phase = rwPhase(st.dayOf);
   const inPhase = (minute: string) => (phase === "warm-up" ? Date.parse(minute) < RW_RUN_START : Date.parse(minute) >= RW_RUN_START);
+  // A run writes the fills of the minutes it decides, and the row of a day it closes, before it saves the state that
+  // counts them; a page read between the two sees records the state does not hold yet. The dashboard reads the state
+  // first, and the page shows only what that state has decided.
+  const decided = (minute: string) => Date.parse(minute) <= st.lastDecided;
   const byCond = new Map<string, RwFillRow[]>();
-  for (const f of input.fills.filter((x) => inPhase(x.minute)).sort(fillOrder)) (byCond.get(f.cond) ?? byCond.set(f.cond, []).get(f.cond)!).push(f);
+  for (const f of input.fills.filter((x) => inPhase(x.minute) && decided(x.minute)).sort(fillOrder)) (byCond.get(f.cond) ?? byCond.set(f.cond, []).get(f.cond)!).push(f);
 
   const snap = snapshot(st, st.dayActive ?? []);
   const sel = new Map(input.selection.map((s) => [s.cond, s]));
@@ -100,7 +104,7 @@ export function rwSummary(input: {
   markets.sort((x, y) => (x.rank == null ? 1 : 0) - (y.rank == null ? 1 : 0) || Number(x.rank ?? 0) - Number(y.rank ?? 0) || String(x.cond).localeCompare(String(y.cond)));
 
   // Closed days, each against the day before in the same phase: the warm-up starts at nothing, and so does the run.
-  const asc = [...input.days].sort((a, b) => a.day.localeCompare(b.day));
+  const asc = input.days.filter((d) => Date.parse(d.day) < st.dayOf).sort((a, b) => a.day.localeCompare(b.day));
   const days = asc.map((d, i) => {
     const p = d.detail?.phase ?? rwPhase(Date.parse(d.day));
     const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day))) === p ? asc[i - 1] : null;
