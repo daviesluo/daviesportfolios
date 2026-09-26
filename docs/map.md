@@ -662,6 +662,7 @@ before touching migration state.
 | `0056_pm_rw_e.sql` | Adds RW-E's replay beside RW: its state and day tables, its lease and its cron job. |
 | `0057_book_levels.sql` | Adds the stablecoin books' record: its table, its minute job and its 35-day prune. |
 | `0058_book_levels_timing.sql` | Moves the books' reads to 40 s into the minute, and lets a row say how long its book stood still. |
+| `0059_jev_shadow_paper_rows.sql` | Puts the Jev gate of `trend-1h`, `momentum-1d` and their Binance twins in shadow: asked and recorded, no veto. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

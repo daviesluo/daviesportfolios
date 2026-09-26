@@ -308,8 +308,11 @@ that follow from that evidence, in short:
   decides every state exactly as v2 does; momentum-1d's replies still
   follow the 4-hour words, so its only deterministic threshold (0.77)
   refuses almost every entry, and it loses to a random veto under the
-  trail. So every row asks v2, and keeping that gate on the two paper rows
-  or shadowing them is Davies' call. A wording lives in `jev_rows.ts`,
+  trail. So every row asks v2. **On the two paper rows (and their Binance
+  twins) the gate is in shadow since 2026-09-26** (`0059`, Davies: "这个听你的吧"):
+  the model is asked on every entry and its answer recorded, the reason
+  says whether it would have vetoed, and the rulebook enters; the live row
+  and its control keep the gate. A wording lives in `jev_rows.ts`,
   not in `_shared/agents_strategy.ts`, because six committed results pin
   that file's hash; a second wording for a row needs a new
   pre-registration.
