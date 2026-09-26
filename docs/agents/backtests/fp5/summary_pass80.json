@@ -1,0 +1,444 @@
+{
+  "every_sell_queue": "pass 79: every sell posts one quote step under itself; a later sell at or under that bid fills; a buy cancels; exit is one step above the fill",
+  "every_sell_queue_bps": 1687.4610546575,
+  "frozen_at": "2026-09-26 00:07:26 UTC",
+  "maker_fee_bps": 0,
+  "pass78_fill_reused": false,
+  "pass79_filters_reused": false,
+  "reached_preregistration": false,
+  "rules": [
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2247.5256857158,
+          "exits": 336,
+          "marks": 1,
+          "stress_bps": 2246.5861267713,
+          "trips": 337
+        },
+        "XRP-USD": {
+          "bps": 1197.0352879683,
+          "exits": 83,
+          "marks": 1,
+          "stress_bps": 1075.7947769949,
+          "trips": 84
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.756381966,
+      "null_defined": true,
+      "null_p95_bps": 969.0017061497,
+      "pool_bps": 1722.2804868421,
+      "queue_exit": "every aggressor sell posts a bid at the triggering print; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxat",
+      "rule_sha256": "98d811ebd330955c1c570ae687678ef40ecd94bd934849dbd3a294bcd405e9da",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1661.1904518831,
+      "testing_row": false,
+      "trips": 84,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 34.8194321845,
+      "why": "every aggressor sell posts a bid at the triggering print; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 1131, fills 337, cancels 794, time_cancels 0, exits 336, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 218, fills 84, cancels 134, time_cancels 0, exits 83, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2330.7667450439,
+          "exits": 372,
+          "marks": 1,
+          "stress_bps": 2329.7364667248,
+          "trips": 373
+        },
+        "XRP-USD": {
+          "bps": 1089.0076899518,
+          "exits": 82,
+          "marks": 1,
+          "stress_bps": 966.4809547051,
+          "trips": 83
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 1.8582519333,
+        "book": "BTC-USD",
+        "entry_ms": 1781655339424,
+        "entry_price": "65653.1",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 1.855205336
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.6289214315,
+      "null_defined": true,
+      "null_p95_bps": 874.624872975,
+      "pool_bps": 1709.8872174979,
+      "queue_exit": "every aggressor sell posts a bid at the previous print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxprev",
+      "rule_sha256": "d21dd5cfdfb836cbfa26978804696d5870785ac02f08fba7ec30364a0d2248da",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1648.108710715,
+      "testing_row": false,
+      "trips": 83,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 22.4261628403,
+      "why": "every aggressor sell posts a bid at the previous print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 1307, fills 373, cancels 934, time_cancels 0, exits 372, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 231, fills 83, cancels 148, time_cancels 0, exits 82, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2379.1382739546,
+          "exits": 351,
+          "marks": 1,
+          "stress_bps": 2378.1699533982,
+          "trips": 352
+        },
+        "XRP-USD": {
+          "bps": 306.787746685,
+          "exits": 40,
+          "marks": 1,
+          "stress_bps": 247.6970571771,
+          "trips": 41
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.6078986067,
+      "null_defined": true,
+      "null_p95_bps": 354.8985719408,
+      "pool_bps": 1342.9630103198,
+      "queue_exit": "every aggressor sell posts a bid at the round unit strictly below the triggering print; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "lesser trip count is under 60",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxfloor",
+      "rule_sha256": "316610f8c2051882ae86b50a20fd222cdc0dffd1a97a930f1b65688829cdaefa",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1312.9335052877,
+      "testing_row": false,
+      "trips": 41,
+      "versus_every_sell_queue": "less",
+      "versus_every_sell_queue_bps": -344.4980443378,
+      "why": "every aggressor sell posts a bid at the round unit strictly below the triggering print; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 1297, fills 352, cancels 945, time_cancels 0, exits 351, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 273, fills 41, cancels 232, time_cancels 0, exits 40, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 367.2056569936,
+          "exits": 87,
+          "marks": 0,
+          "stress_bps": 366.9355824417,
+          "trips": 87
+        },
+        "XRP-USD": {
+          "bps": 15.6528141009,
+          "exits": 3,
+          "marks": 0,
+          "stress_bps": 10.7141373096,
+          "trips": 3
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-07",
+      "month_share": 0.6280218852,
+      "null_defined": true,
+      "null_p95_bps": 21.4330664892,
+      "pool_bps": 191.4292355473,
+      "queue_exit": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy does not cancel the bid; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "lesser trip count is under 60",
+        "one month is more than 40% of pooled P&L",
+        "pooled P&L does not exceed 400 bps"
+      ],
+      "rule": "rxstay",
+      "rule_sha256": "4a5e857900fc350933858d60ea0ffda0907c5ee645a0bdff7978bbe910d2d4e4",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 188.8248598757,
+      "testing_row": false,
+      "trips": 3,
+      "versus_every_sell_queue": "less",
+      "versus_every_sell_queue_bps": -1496.0318191103,
+      "why": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy does not cancel the bid; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 88, fills 87, cancels 0, time_cancels 0, exits 87, marks 0, left_working 1 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 4, fills 3, cancels 0, time_cancels 0, exits 3, marks 0, left_working 1"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2430.8818750796,
+          "exits": 366,
+          "marks": 1,
+          "stress_bps": 2429.8663830781,
+          "trips": 367
+        },
+        "XRP-USD": {
+          "bps": 1226.9623988868,
+          "exits": 87,
+          "marks": 1,
+          "stress_bps": 1097.5941606901,
+          "trips": 88
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.6926827286,
+      "null_defined": true,
+      "null_p95_bps": 1005.8525823028,
+      "pool_bps": 1828.9221369832,
+      "queue_exit": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; a print strictly later than the book's quiet cutoff cancels the bid and does not fill; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxclock",
+      "rule_sha256": "eb19186b8796ba70d0cc60922aee8c65bbafbb44a2d1bffb05ec69e9a5b14247",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1763.7302718841,
+      "testing_row": false,
+      "trips": 88,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 141.4610823256,
+      "why": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; a print strictly later than the book's quiet cutoff cancels the bid and does not fill; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 1525, fills 367, cancels 903, time_cancels 255, exits 366, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 250, fills 88, cancels 160, time_cancels 2, exits 87, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2388.9665994204,
+          "exits": 353,
+          "marks": 1,
+          "stress_bps": 2387.9925505964,
+          "trips": 354
+        },
+        "XRP-USD": {
+          "bps": 986.1626195265,
+          "exits": 76,
+          "marks": 1,
+          "stress_bps": 875.0676145333,
+          "trips": 77
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.6820754506,
+      "null_defined": true,
+      "null_p95_bps": 845.7910128445,
+      "pool_bps": 1687.5646094735,
+      "queue_exit": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus two quote steps",
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxtwo",
+      "rule_sha256": "abc2ae731c2f56e94855ddd10f9969868535452b2cc867a2f2915324ea22bce6",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1631.5300825648,
+      "testing_row": false,
+      "trips": 77,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 0.1035548159,
+      "why": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus two quote steps BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 1297, fills 354, cancels 943, time_cancels 0, exits 353, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 221, fills 77, cancels 144, time_cancels 0, exits 76, marks 1, left_working 0"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": -385.7200560107,
+          "exits": 4752,
+          "marks": 0,
+          "stress_bps": -400.0143623325,
+          "trips": 4752
+        },
+        "XRP-USD": {
+          "bps": 6122.2678031008,
+          "exits": 2167,
+          "marks": 0,
+          "stress_bps": 2721.1838306512,
+          "trips": 2167
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 3.0878194435,
+        "book": "BTC-USD",
+        "entry_ms": 1781654690615,
+        "entry_price": "65645.03",
+        "exit_ms": 1781656289934,
+        "exit_price": "65665.3",
+        "kind": "exit",
+        "stress_bps": 3.0847722844
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.8195120207,
+      "null_defined": true,
+      "null_p95_bps": 3354.6884777212,
+      "pool_bps": 2868.273873545,
+      "queue_exit": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the next aggressor buy at that buy's price",
+      "reached_preregistration": false,
+      "reasons": [
+        "one book is not positive",
+        "pooled P&L does not beat the null p95",
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxnext",
+      "rule_sha256": "fe091ade61b7cd6bfe42421a8c799a70cc0bf4639d54d13f63b4c9a0e23740cd",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1160.5847341594,
+      "testing_row": false,
+      "trips": 2167,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 1180.8128188875,
+      "why": "every aggressor sell posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the next aggressor buy at that buy's price BTC-USD prints 78098, sells 38969, buys 39129, triggers 38969, acted 11617, fills 4752, cancels 6864, time_cancels 0, exits 4752, marks 0, left_working 1 XRP-USD prints 40107, sells 17228, buys 22879, triggers 17228, acted 6544, fills 2167, cancels 4376, time_cancels 0, exits 2167, marks 0, left_working 1"
+    },
+    {
+      "books": [
+        "BTC-USD",
+        "XRP-USD"
+      ],
+      "books_detail": {
+        "BTC-USD": {
+          "bps": 2268.8552159939,
+          "exits": 372,
+          "marks": 1,
+          "stress_bps": 2267.8152013402,
+          "trips": 373
+        },
+        "XRP-USD": {
+          "bps": 1118.9449533823,
+          "exits": 105,
+          "marks": 1,
+          "stress_bps": 958.4924177603,
+          "trips": 106
+        }
+      },
+      "every_sell_queue_bps": 1687.4610546575,
+      "first_trip": {
+        "base_bps": 0.3484122292,
+        "book": "BTC-USD",
+        "entry_ms": 1781657500993,
+        "entry_price": "65726.74",
+        "exit_ms": 1781658489894,
+        "exit_price": "65729.03",
+        "kind": "exit",
+        "stress_bps": 0.3453692751
+      },
+      "maker_fee_bps": 0,
+      "month": "2026-08",
+      "month_share": 0.65637986,
+      "null_defined": true,
+      "null_p95_bps": 976.6702664709,
+      "pool_bps": 1693.9000846881,
+      "queue_exit": "every aggressor buy posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step",
+      "reached_preregistration": false,
+      "reasons": [
+        "one month is more than 40% of pooled P&L"
+      ],
+      "rule": "rxpost",
+      "rule_sha256": "0cd7c0d38d614202e81993d6b2c5e3f5d5a57015b58618c40da585ba3294dc8f",
+      "stress": "entry print plus one quote step, exit print minus one quote step",
+      "stress_bps": 1613.1538095503,
+      "testing_row": false,
+      "trips": 106,
+      "versus_every_sell_queue": "more",
+      "versus_every_sell_queue_bps": 6.4390300305,
+      "why": "every aggressor buy posts a bid at the triggering print minus one quote step; a buy before the fill cancels the bid; exit is the first later buy at or above the fill plus one quote step BTC-USD prints 78098, sells 38969, buys 39129, triggers 39129, acted 3293, fills 373, cancels 2920, time_cancels 0, exits 372, marks 1, left_working 0 XRP-USD prints 40107, sells 17228, buys 22879, triggers 22879, acted 526, fills 106, cancels 420, time_cancels 0, exits 105, marks 1, left_working 0"
+    }
+  ],
+  "rules_scored": 8,
+  "rxpar_rescored": false,
+  "stress": "one quote step worse on the entry print and on the exit print",
+  "testing_row": false
+}

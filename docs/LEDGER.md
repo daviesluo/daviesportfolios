@@ -836,6 +836,31 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-26 00:08 UTC] Platform: Cursor | Model: Grok 4.7
+**Eight different queues or exits were scored. None cleared every gate.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Pass 79's filters are not reused. The profit on that round sat on the every-sell queue, one quote step under the sell, and a swapped signal is not a new rule. `rxpar` is not recomputed. Pass 78's fill is not reused. `reached_preregistration` stays false. No testing row is opened. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass. The undefined nulls on `rximpact` and `rxmonday` stay failures. Those queues were not rewritten so the null could be drawn.
+
+The eight texts were hashed at 2026-09-26 00:07:26 UTC, before any score-stretch print was joined to a P&L. Books are BTC-USD and XRP-USD. The print that posts the bid is not a fill. Stress is one quote step worse on the entry print and one quote step worse on the exit print, including where the exit itself is two steps or the next buy at any price. The comparison is the pass-79 every-sell queue on these two books. It was recomputed from `screen_pass79.queue_walk` and matched 1687.4610546575 bp. Beating that number is not a gate. The 40% month gate was not widened.
+
+Hashes: `rxat` 98d811ebd330955c1c570ae687678ef40ecd94bd934849dbd3a294bcd405e9da, `rxprev` d21dd5cfdfb836cbfa26978804696d5870785ac02f08fba7ec30364a0d2248da, `rxfloor` 316610f8c2051882ae86b50a20fd222cdc0dffd1a97a930f1b65688829cdaefa, `rxstay` 4a5e857900fc350933858d60ea0ffda0907c5ee645a0bdff7978bbe910d2d4e4, `rxclock` eb19186b8796ba70d0cc60922aee8c65bbafbb44a2d1bffb05ec69e9a5b14247, `rxtwo` abc2ae731c2f56e94855ddd10f9969868535452b2cc867a2f2915324ea22bce6, `rxnext` fe091ade61b7cd6bfe42421a8c799a70cc0bf4639d54d13f63b4c9a0e23740cd, `rxpost` 0cd7c0d38d614202e81993d6b2c5e3f5d5a57015b58618c40da585ba3294dc8f.
+
+`rxat`. Bid at the sell's own price. A buy cancels. Exit is the fill plus one quote step. Lesser 84. Pool 1722.2804868421. Stress 1661.1904518831. Null p95 969.0017061497. August is 0.756381966. 34.8194321845 bp more than the every-sell queue. The month gate fails. BTC acted 1131, fills 337, cancels 794, 2247.5256857158 bp. XRP acted 218, fills 84, cancels 134, 1197.0352879683 bp.
+
+`rxprev`. Bid at the previous print minus one quote step. A buy cancels. Exit is the fill plus one quote step. Lesser 83. Pool 1709.8872174979. Stress 1648.108710715. Null p95 874.624872975. August is 0.6289214315. 22.4261628403 bp more. The month gate fails.
+
+`rxfloor`. Bid at the round unit strictly below the sell. Not the pass-79 round-print filter. Lesser 41. Pool 1342.9630103198. Stress 1312.9335052877. Null p95 354.8985719408. August is 0.6078986067. 344.4980443378 bp less. The trip count is under 60 and the month gate fails.
+
+`rxstay`. Bid one quote step under the sell, and a buy does not cancel it. Lesser 3. Pool 191.4292355473. Stress 188.8248598757. Null p95 21.4330664892. July is 0.6280218852. 1496.0318191103 bp less. BTC acted 88, fills 87, left_working 1, 367.2056569936 bp. XRP acted 4, fills 3, left_working 1, 15.6528141009 bp. Under 60 trips, under 400 bp, and the month gate fails.
+
+`rxclock`. Bid one quote step under the sell. A buy cancels, and so does a print strictly later than the quiet cutoff, 322180 ms on BTC and 1072376 ms on XRP. Lesser 88. Pool 1828.9221369832. Stress 1763.7302718841. Null p95 1005.8525823028. August is 0.6926827286. 141.4610823256 bp more. BTC time_cancels 255. XRP time_cancels 2. The month gate fails.
+
+`rxtwo`. Same join and cancel as the every-sell queue. Exit is the fill plus two quote steps. Stress is still one step on each print. Lesser 77. Pool 1687.5646094735. Stress 1631.5300825648. Null p95 845.7910128445. August is 0.6820754506. 0.1035548159 bp more. BTC 354 trips and XRP 77 trips, the same counts as the every-sell queue. The month gate fails.
+
+`rxnext`. Same join and cancel. Exit is the next aggressor buy at that buy's price. Lesser 2167. Pool 2868.273873545. Stress 1160.5847341594. Null p95 3354.6884777212. August is 0.8195120207. 1180.8128188875 bp more. BTC is -385.7200560107 bp over 4752 trips. XRP is 6122.2678031008 bp over 2167. One book is not positive, the null gate fails, and the month gate fails.
+
+`rxpost`. After every aggressor buy, the bid is that buy minus one quote step. A sell does not post. Exit is the fill plus one quote step. Lesser 106. Pool 1693.9000846881. Stress 1613.1538095503. Null p95 976.6702664709. August is 0.65637986. 6.4390300305 bp more. The first BTC fill is 2026-06-17 00:51:40.993 UTC at 65726.74, exit 01:08:09.894 UTC at 65729.03, which is 0.3484122292 bp, and 0.3453692751 bp after one step each way. The month gate fails.
+
+No rule cleared every gate. A numeric clear would still not be a testing row, and there is not one. No order of this account was shown crossing the book. The record is `summary_pass80.json`. Branch `cursor/revolut-x-search-d133`.
+
 ### [2026-09-25 23:59 UTC] Platform: Cursor | Model: Grok 4.7
 **The same eight mechanisms were scored behind a queue. None cleared every gate.** No order, no new row, no edit to PR5, `trend-4h` or `pmrw.ts`, and this was not pushed to `main`. Pass 78 stays the record of the rejected fill. That fill treated the signal sell as our bid. It is not reused. A public print is not this account's order. `rxpar` is not recomputed. An hourly close is not a fill. `reached_preregistration` stays false. No testing row is opened. The five earlier numeric clears and the confirmation-time fall after a higher day stay void. The pass 67 result of +263.2 bps over 17 trips stays not close to a pass.
 
