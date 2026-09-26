@@ -1428,6 +1428,18 @@ export function rwRow(r) {
   };
 }
 
+/**
+ * A warning for the day RW's (or RW-E's) markets need more than its $1,000 cap (Davies, 2026-09-26). The cap is the
+ * page's funded figure only: the rule is frozen for its test and does not read it, so on such a day a $1,000 account
+ * could not have placed every quote the paper engine placed. null while what is at work fits under the cap.
+ * @param {any} r  the dashboard's `rw` or `rwe`
+ */
+export function rwOverCapText(r) {
+  const atWork = Number(r?.capitalUsd) || 0, funded = Number(r?.fundedUsd) || 0;
+  if (!(funded > 0) || atWork <= funded) return null;
+  return `Its markets need ${fmtUsd(atWork)} today, more than its ${fmtUsd(funded)} cap. The rule is frozen for its test and does not read the cap, so a ${fmtUsd(funded)} account could not have placed every one of these quotes.`;
+}
+
 /** RW-E's paper test's id among the table's rows. */
 export const RWE_ROW_ID = '__rwe';
 

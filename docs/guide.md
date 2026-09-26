@@ -142,7 +142,8 @@ places stay when the number is not whole.
   day, decided every minute from the public order books and trades. Its row
   reads like a strategy's, on a cap of $1,000, as each Reward quotes row
   has (what its markets have at work each day is the days table's Costs
-  column); realised is
+  column; on a day that goes over $1,000 its page says so, because the
+  test's rule does not know about the cap); realised is
   the rewards and what closed trades made, unrealised what it still holds
   (in Yes or No shares) at the mid. Tap it for its page: the same
   scoreboard, with realised split into the rewards and what its orders

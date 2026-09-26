@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwInventoryCost, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwInventoryCost, rwOverCapText, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -1178,6 +1178,22 @@ describe('the Agents page kept across a reload', () => {
       fetchAgentsChart('s1', 'ETH/USD', /** @type {any} */ (fetchImpl)),
     ]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('rwOverCapText: the day a Reward quotes row needs more than its cap', () => {
+  // The cap is the page's (Davies, 2026-09-26); the frozen rule does not read it. On 26 Sep RW's markets had $797.81 at
+  // work; a day above $1,000 is one a $1,000 account could not have run as the paper engine did, and the page says so.
+  it('says nothing while what is at work fits under the cap', () => {
+    expect(rwOverCapText({ capitalUsd: 797.81, fundedUsd: 1000 })).toBe(null);
+    expect(rwOverCapText({ capitalUsd: 1000, fundedUsd: 1000 })).toBe(null);
+    expect(rwOverCapText({ capitalUsd: 1200 })).toBe(null);   // a payload from before the cap
+    expect(rwOverCapText(null)).toBe(null);
+  });
+  it('names both figures once the markets need more', () => {
+    // Dollars above a thousand print whole, as everywhere on the page.
+    expect(rwOverCapText({ capitalUsd: 1050.2, fundedUsd: 1000 })).toBe(
+      'Its markets need $1,050 today, more than its $1,000 cap. The rule is frozen for its test and does not read the cap, so a $1,000 account could not have placed every one of these quotes.');
   });
 });
 
