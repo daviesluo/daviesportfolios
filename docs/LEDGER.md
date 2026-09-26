@@ -110,6 +110,14 @@ list stays the short version; the plan is the reasoning behind it.
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
    2021-01-06), an idea table, a power check and at most ten pre-registered hypotheses, Holm-corrected, under the fp5
    review's rules; it stops for review and a freeze on `main` before any test runs, then phase 2 runs them as frozen.
+   **Phase 1 is done and frozen on `main` by `d856fd2e`** (`reviews/2026-09-26-fp6-prereg-family.md` and its five
+   files): H2 ETH spot against its quarterly, H3 spot/perp carry on the top-40 altcoins, H4 the live trend rule long
+   and short on perpetuals through the house backtester, H5 short after "Binance Will Delist", H6 short a new perpetual
+   for thirty days; Holm over the five. H1 (BTC/ETH perpetual carry) was withdrawn on its own counts: no settlement has
+   paid above the 0.0100 % floor since 2025. **Access, before any result:** every one has a derivative leg; a
+   UK-registered retail account may not be sold one (FCA PS20/10, COBS 22.6.5R), Binance told EU users it would stop
+   serving them from 2026-07-01, and the account's registered country and investor category can only be read in its
+   app. A pass says a rule would have paid, not that this account may run it: that is Davies' and Binance's.
    If this session ends first, each is started again from these words.
    (b) PMLATE (Davies, the same evening): turn RW's same-day loss around and be the informed taker — once a daily
    temperature market's result is effectively known from the station's observations, take the stale liquidity
@@ -235,6 +243,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - What is left late is mostly resolution risk: 12 September buckets the reports had decided resolved the other way (9 on 09-20) and carried $36k of the late stale-side cost against $8k of edge elsewhere; over 12,874 market-days the reports missed the winning bucket on 1.8 %, in clusters (05-17 → 05-21, 09-20). The post tracker's count at the close missed the result on 24 of 380 windows, always low (19 of them Trump's).
 - One hypothesis survives and is pre-registered, not yet frozen on `main`: USLATE (`reviews/2026-09-26-pmlate-prereg-uslate.md`), US stations only, 2026-03 → 08, $100 a bucket; its power check says a pass is unlikely and small (~$2.7k a year at September's rate). Scripts, phase 1's results and the pull manifest: `backtests/pmlate/`. Next: the coordinator reviews, freezes, and phase 2 pulls the test period's prints and runs it.
 - The container's disk was full (0 bytes free on `/`, the shared scratchpad ~21 GB, mostly older studies' folders); this study's pulls are gzipped (~70 MB).
+- fp6's phase 1 (the fourth Binance search, a research agent's branch) came in unchanged and is frozen on `main` by `d856fd2e`: five hypotheses with a derivative leg each, H1 withdrawn on arithmetic, the access findings stated before any result (what-remains item 5a). Phase 2 runs the five as frozen.
 - Reviewed and frozen on `main` by `ad6ec6e3`, the commit that adds the pre-registration (its disclosures stand: the test period's winning buckets were read for the basis check, none of its prices or prints; the US-only split was chosen on September). Phase 2 runs it as frozen. The disk: the coordinator deleted closed studies' raw pulls from the scratchpad (the 3-year Kraken bundle, DRAW-X's and the CV check's, Bitget's year of prints), 9.4 GB free.
 - The fifteen same-day market-days behind RW's stress loss, read from RW's engine state at ~21:30 UTC: eleven temperatures −$31.69 of stress; the other four −$45.97 — Trump's Truth Social post count −$26.29 and MrBeast's week-one views −$25.43 (the same mechanism: a public counter the takers watch), UMich sentiment +$5.31 (RW stopped quoting at its end date, before the release) and a broadcast word, "Fumble", +$0.44. PMLATE took in the counters; releases and broadcast words were left out, each with its reason.
 
