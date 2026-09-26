@@ -555,6 +555,19 @@ export async function runDashboard(now = Date.now()) {
   }
 }
 
+const DECISION_SELECT = "select=id,ts,strategy_id,venue,symbol,mode,state,numbers,answers,provider,model,latency_ms,cost_usd,rule_action,rule_reason,final_action,final_reason,risk_allowed,risk_reason";
+
+/**
+ * Each row's newest decision, each by its own query on (strategy_id, ts). One window over all of them, the 120 newest, is
+ * the hourly rows' alone by midday: a daily row's midnight decision fell out of it, and the row's dot read stale for half
+ * of every day while it decided on time (2026-09-26). The tick reads its observations one pair at a time for the same
+ * reason. A row whose query fails keeps what the window has for it.
+ */
+export async function newestDecisions<T>(ids: string[], newest: (id: string) => Promise<T[]>): Promise<Map<string, T>> {
+  const got = await Promise.all(ids.map(async (id) => [id, (await newest(id).catch(() => [] as T[]))[0]] as const));
+  return new Map(got.filter((x): x is readonly [string, T] => x[1] !== undefined));
+}
+
 async function dashboard(now: number) {
   const d = db();
   const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
@@ -572,7 +585,7 @@ async function dashboard(now: number) {
     // adverse-selection median needs all of them, not a window.
     d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc,id.asc").catch(() => [] as ProbeSummaryRow[]),
     d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
-    d.select<DecisionRow>("agent_decisions", "select=id,ts,strategy_id,venue,symbol,mode,state,numbers,answers,provider,model,latency_ms,cost_usd,rule_action,rule_reason,final_action,final_reason,risk_allowed,risk_reason&order=ts.desc&limit=120"),
+    d.select<DecisionRow>("agent_decisions", `${DECISION_SELECT}&order=ts.desc&limit=120`),
     d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
@@ -622,6 +635,8 @@ async function dashboard(now: number) {
   // so a retired row that is already flat contributes nothing to `totals` or `byMode` — the page's aggregates keep the
   // meaning they had when a retired row simply disappeared (`0038`).
   const shown = strategies.filter((s) => !s.retired_at || books.get(s.id)!.holdsAnything);
+  const lastDecisions = await newestDecisions(shown.map((s) => s.id), (id) =>
+    d.select<DecisionRow>("agent_decisions", `strategy_id=eq.${encodeURIComponent(id)}&${DECISION_SELECT}&order=ts.desc&limit=1`));
   const out = shown.map((s) => {
     const b = books.get(s.id)!;
     const positions = b.positions.map((p) => {
@@ -633,7 +648,7 @@ async function dashboard(now: number) {
     addTotals(byMode.live, b.byMode.live);
     const agg = b.agg;
     const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
-    const last = recentDecisions.find(mine) ?? null;
+    const last = lastDecisions.get(s.id) ?? recentDecisions.find(mine) ?? null;
     const barMs = decisionBarMs(s.kind);
     return {
       id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,

@@ -6,7 +6,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
-  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS,
+  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -622,4 +622,27 @@ Deno.test("crashReport — an agents.crash row names the action and the top of t
   assertEquals(lines.length, 12);                       // the top of the stack, where the throw happened
   assertEquals(lines[1], "    at frame0 (index.ts:0:1)");
   assertEquals(crashReport("", "boom"), { message: "boom", context: { action: null, name: "string", stack: null } });
+});
+
+Deno.test("newestDecisions: a daily row keeps its midnight decision when the hourly rows fill the newest 120", async () => {
+  // A day as production has it at 16:12: two hourly rows and three 4-hour rows since 04:00, the daily row once at 00:00.
+  const day = Date.UTC(2026, 8, 26);
+  const rows: Array<{ strategy_id: string; ts: string }> = [{ strategy_id: "momentum-1d", ts: new Date(day + 6e3).toISOString() }];
+  for (let h = 0; h <= 16; h++) {
+    for (const id of ["trend-1h", "trend-1h-binance"]) for (let k = 0; k < 3; k++) rows.push({ strategy_id: id, ts: new Date(day + h * 3600e3 + 4e3 + k).toISOString() });
+    if (h % 4 === 0) for (const id of ["trend-4h", "trend-4h-binance", "trend-4h-live"]) for (let k = 0; k < 4; k++) rows.push({ strategy_id: id, ts: new Date(day + h * 3600e3 + 5e3 + k).toISOString() });
+  }
+  const byTs = (a: { ts: string }, b: { ts: string }) => b.ts.localeCompare(a.ts);
+  // What the page read before: the 120 newest overall, and each row's first among them.
+  const window = [...rows].sort(byTs).slice(0, 120);
+  assertEquals(window.find((r) => r.strategy_id === "momentum-1d"), undefined);
+  // Each row by its own query, as PostgREST answers `strategy_id=eq.X&order=ts.desc&limit=1`; a query that fails is skipped.
+  const got = await newestDecisions(["momentum-1d", "trend-1h", "trend-4h-live", "gone"], async (id) => {
+    if (id === "gone") throw new Error("503");
+    return rows.filter((r) => r.strategy_id === id).sort(byTs).slice(0, 1);
+  });
+  assertEquals(got.get("momentum-1d")?.ts, "2026-09-26T00:00:06.000Z");
+  assertEquals(got.get("trend-1h")?.ts, new Date(day + 16 * 3600e3 + 4e3 + 2).toISOString());
+  assertEquals(got.get("trend-4h-live")?.ts, new Date(day + 16 * 3600e3 + 5e3 + 3).toISOString());
+  assertEquals(got.has("gone"), false);
 });

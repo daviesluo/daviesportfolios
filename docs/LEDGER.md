@@ -843,6 +843,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 
 **Davies: verify what Cursor shipped (the live row, the page, the testing strategies) and review the fp5 research.**
 - RW's page could show a split that disagreed with its own total for a minute. A run upserts the fills of the minutes it decides, and the row of a day it closes, before it saves the state that counts them; the dashboard read all of them at once, so a read between the two paired a new fill with the old state (seen on production: $0.081). The dashboard now reads `pm_rw_state` first, and `rwSummary` keeps only fills at or before `lastDecided` and days before `dayOf`. Pinned in `pmrw_view.test.ts` (fails on the old code: a mismatch of $0.20 and a day row that is not closed).
+- The two `momentum-1d` rows wore an amber dot ("last reading … ago") for about half of every day while deciding on time at 00:00. The dashboard took each row's last decision from the 120 newest overall, which by midday are the hourly and 4-hour rows' alone (at 16:12 they reached back only to 04:00); a daily row's state changes a few times a day, so the observation clock did not cover it (24 green minutes in 12 hours). Each row's newest decision is now its own query on `(strategy_id, ts)` (`newestDecisions`), as the tick already reads observations one pair at a time; pinned in `index.test.ts` with that day's shape.
 
 ### [2026-09-26 05:29 UTC] Platform: Cursor | Model: Grok 4.7
 
