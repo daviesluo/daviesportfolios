@@ -220,6 +220,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 
 **Davies, next: take RW-E's section off the pages, name it "Reward quotes (no same-day)" and run it every minute; drop "· venue" from every strategy name and tag each strategy page with its venue beside PAPER.**
 - RW-E's row is "Reward quotes (no same-day)", the bracket on a line of its own, and its replay runs every minute from `0060` (Davies: "every min"; a run replays only what RW decided since the last, under the `pmrw-e` lease). The RW-E section is gone from RW's page and from RW-E's; RW-E's page keeps one line, shown only when the replay's copy of RW stops equalling RW's closed days (`rweCheckWarn`). `RWE_STALE_MINUTES` is RW's five plus three (it was 15 for the five-minute cadence). The sweep reads the two-line name, "every minute", and both pages without the section.
+- No strategy's name says its venue from `0061` ("Trend 4h", "Trend 1h", "Momentum 30d" on Revolut X and on Binance; the live row "Trend 4h · live", shown without " · live"); the migration fails if any name still carries one. Every strategy and test page's head reads PAPER or LIVE, then the venue's tag in its colours (`VenueBadge`). The sweep finds each row by name AND venue and checks the tag on the four pages it opens; `.claude/CLAUDE.md` quotes the live row's new name.
 
 ### [2026-09-26 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

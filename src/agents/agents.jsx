@@ -348,6 +348,7 @@ function QuotesDetail({ q, m, at }) {
     <div className="ag-detail ag-quotes-detail">
       <div className="ag-detail-head">
         <ModeBadge mode="paper" />
+        <VenueBadge id="revx" />
         <StatusDot status={row.status} />
       </div>
       <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
@@ -470,6 +471,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
     <div className="ag-detail ag-rw-detail">
       <div className="ag-detail-head">
         <ModeBadge mode="paper" />
+        <VenueBadge id={row.venueId} />
         <StatusDot status={row.status} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
@@ -1145,6 +1147,7 @@ function Detail({ s, dash, m, nowMs, gen }) {
     <div className="ag-detail">
       <div className="ag-detail-head">
         <ModeBadge mode={s.mode} />
+        <VenueBadge id={s.venue} />
         <StatusDot status={status} />
         <Countdown at={s.nextDecisionAt} label={s.kind === 'dislocation-1m' ? 'next read' : 'next decision'} />
       </div>

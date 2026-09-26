@@ -118,7 +118,9 @@ places stay when the number is not whole.
   its exchange, what it has deployed (the same dollars the scoreboard calls
   deployed), today, unrealised and realised gain, and a countdown
   to its next decision; the tab says the mode, so a row does not, and a
-  live strategy's name does not carry "live". With nothing live, LIVE says
+  live strategy's name does not carry "live". A name does not carry its
+  exchange either: the exchange column says it, so the same strategy on
+  Revolut X and on Binance has one name on two rows. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
 - **Stablecoin quotes.** The last row of the testing strategies: a
@@ -164,7 +166,8 @@ places stay when the number is not whole.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as
-  on the list. It shows its own scoreboard and positions, a
+  on the list. Its head says PAPER or LIVE, then its exchange in that
+  exchange's colour, as every strategy's and test's page does. It shows its own scoreboard and positions, a
   countdown to the next decision, and **LIVE STATE**: what the loop sees
   for each coin right now (trend, strength, breakout, volatility,
   momentum, position, unrealised gain, time held) and when that last

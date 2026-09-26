@@ -403,7 +403,8 @@ const AGENTS_DASHBOARD = (() => {
   });
   const strat = (id, kind, venue, symbols, capitalUsd, over = {}) => ({
     id, kind, venue, signalVenue: 'kraken', nextDecisionAt: new Date(NOW_MS + 2 * 3600e3 + 13 * 60e3).toISOString(),
-    name: `${KIND_NAME[kind]} · ${({ revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken' })[venue]}`,
+    // No venue in the name since 0061 (Davies, 2026-09-26): the table's venue column and the page's tag say it.
+    name: KIND_NAME[kind],
     description: 'Fixture strategy.', symbols, mode: 'paper', capitalUsd,
     params: { fast: 20, slow: 100 }, updatedAt: at,
     costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0,
@@ -684,7 +685,7 @@ const AGENTS_LIVE = (armed) => {
     base: 0.005, avgCost: 2400, mark: 2500, costUsd: 12, valueUsd: 12.5, unrealisedUsd: 0.5, realisedUsd: 0.3, feesUsd: 0.03, todayUsd: 0.2,
     openedAt: NOW_MS - 6 * 3600e3, highWater: 2520, fills: 3 };
   const liveRow = {
-    ...paperRow, id: 'trend-4h-live', name: 'Trend 4h · Revolut X · live', mode: 'live', capitalUsd: 50, symbols,
+    ...paperRow, id: 'trend-4h-live', name: 'Trend 4h · live', mode: 'live', capitalUsd: 50, symbols,
     holdsLive: true, windingDown: false, todayByBook: { paper: 0, live: 0.2 }, otherBooks: [],
     costUsd: 12, valueUsd: 12.5, unrealisedUsd: 0.5, realisedUsd: 0.3, feesUsd: 0.03, todayUsd: 0.2, ordersToday: 1,
     positions: symbols.map((s) => (s === 'ETH/USD' ? eth : like(s, {}))),
@@ -2015,11 +2016,17 @@ async function run() {
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
-      const named = ['Trend 4h · Revolut X', 'Trend 1h · Revolut X', 'Momentum 30d · Revolut X', 'Trend 4h · Binance', 'Trend 1h · Binance', 'Momentum 30d · Binance'];
-      const gone = /Dislocation|Rotation|Momentum 30d · Kraken|Trend 4h · Kraken/;
-      if (named.every((n) => names.some((t) => t.trim() === n)) && !names.some((t) => gone.test(t)) && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
-        ok(S('agents'), 'every running rulebook is named on its row, once, with its sub-line — and every retired one is off the page');
-      } else fail(S('agents'), `names ${names.join(' | ')}; sub-lines ${subs.join(' | ')}`);
+      // A name no longer says its venue (Davies, 2026-09-26): each rulebook is its name on Revolut X and on Binance, and
+      // the venue column tells the two apart.
+      const named = await page.locator('.ag-row').evaluateAll((els) => els.map((r) => [
+        (r.querySelector('.ag-name-btn')?.textContent || '').trim(), (r.querySelector('.ag-venue')?.textContent || '').trim()]));
+      const wantNamed = ['Trend 4h', 'Trend 1h', 'Momentum 30d'].flatMap((n) => [[n, 'Revolut X'], [n, 'Binance']]);
+      const gone = /Dislocation|Rotation|Kraken/;
+      const venueInName = /·\s*(Revolut X|Binance|Kraken|Polymarket)/;
+      if (wantNamed.every(([n, v]) => named.filter(([a, b]) => a === n && b === v).length === 1) && !named.some(([a]) => gone.test(a) || venueInName.test(a))
+        && subs.length === names.length && subs.every((t) => /^\d+ open · /.test(t))) {
+        ok(S('agents'), 'every running rulebook is named on its row, once a venue, with no venue in the name and its sub-line — and every retired one is off the page');
+      } else fail(S('agents'), `names ${JSON.stringify(named)}; sub-lines ${subs.join(' | ')}`);
       // Deployed, immediately right of Venue, is the scoreboard's DEPLOYED in dollars: the rows add up to it.
       const depSel = vpWidth > 760 ? 'td.ag-col-deployed .ag-deployed' : '.ag-card-strategy .ag-deployed';
       const depHeads = vpWidth > 760 ? (await page.locator('.ag-strategies thead th').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()) : [];
@@ -2035,7 +2042,7 @@ async function run() {
         if (thBases === 0 && headLine === wantHeads) ok(S('agents'), 'the strategy table heading is the column name alone, with no "% of …" under it');
         else fail(S('agents'), `heading bases ${thBases}, heads ${headLine}`);
       }
-      const trendDep = (await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h · Revolut X') }).locator('.ag-deployed').first().textContent().catch(() => '')).trim();
+      const trendDep = (await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h') }).filter({ has: page.locator('.ag-venue-revx') }).locator('.ag-deployed').first().textContent().catch(() => '')).trim();
       if (depHeadOk && depCells.length === rows && depSum === sbDepUsd && trendDep === '$21.50') {
         ok(S('agents'), `Deployed sits beside Venue and adds up to the scoreboard ($${(sbDepUsd / 100).toFixed(2)}); Trend 4h is $21.50`);
       } else fail(S('agents'), `deployed heads ${depHeads.join(' | ')}, cells ${depCells.join(' | ')} (sum ${depSum}) vs scoreboard ${sbDepUsd}, trend "${trendDep}"`);
@@ -2043,11 +2050,16 @@ async function run() {
       if (tableScroll <= 0) ok(S('agents'), vpWidth > 760 ? `the strategy table fits its width on desktop (overflow ${tableScroll}px)` : 'no table to overflow on a phone');
       else fail(S('agents'), `the strategy table overflows by ${tableScroll}px at ${vpWidth}px`);
       // By NAME, not by index: a migration that adds a row must not silently point this at a different strategy.
-      await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h · Revolut X') }).first().click();
+      await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h') }).filter({ has: page.locator('.ag-venue-revx') }).first().click();
       await page.waitForSelector('.ag-detail', { timeout: 5_000 });
       const title = await page.locator('.ag-detail-title').first().textContent().catch(() => '');
-      if (/Trend 4h · Revolut X/.test(title || '')) ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
+      if ((title || '').trim() === 'Trend 4h') ok(S('agents'), `the row with a book opens its detail (${(title || '').trim()})`);
       else fail(S('agents'), `detail title "${title}"`);
+      // Its venue is a tag beside PAPER (Davies, 2026-09-26), in the venue's own colours, as on its row.
+      const headTags = await page.locator('.ag-detail .ag-detail-head').first().evaluate((h) => [...h.children].slice(0, 2).map((c) => [c.className, (c.textContent || '').trim()])).catch(() => []);
+      if (headTags.length === 2 && /ag-badge-paper/.test(headTags[0][0]) && /ag-venue-revx/.test(headTags[1][0]) && headTags[1][1] === 'Revolut X') {
+        ok(S('agents'), 'the strategy page says PAPER, then Revolut X in its colours');
+      } else fail(S('agents'), `strategy page head ${JSON.stringify(headTags)}`);
       // A strategy's own scoreboard leads with FUNDED, then DEPLOYED as a percent of it, no "(Paper)": that label lives on
       // the venue card's funded row. Its PAPER badge is neutral and dashed, never Binance's yellow.
       const detailSb = (await page.locator('.ag-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
@@ -2204,7 +2216,7 @@ async function run() {
       await page.waitForTimeout(200);
       await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
-      await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h · Revolut X') }).first().click();
+      await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h') }).filter({ has: page.locator('.ag-venue-revx') }).first().click();
       await page.waitForSelector('.ag-poscard', { timeout: 5_000 });
       const hasDigits = (/** @type {string} */ t) => /\d/.test(t);
       const cardVals = (await page.locator('.ag-poscard .pc-row span:last-child').allTextContents()).map((t) => t.trim());
@@ -2342,13 +2354,17 @@ async function run() {
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
-      for (const [name, sel] of [['Trend 4h · Revolut X', '.ag-detail'], ['Stablecoin quotes', '.ag-quotes-detail'], ['Reward quotes', '.ag-rw-detail']]) {
-        await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).first().click();
+      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no same-day)', 'polymarket', '.ag-rw-detail']]) {
+        await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
         await page.waitForTimeout(350);
         const h = await topModalHeight();
         if (h === winH) ok(T('size'), `${name}'s page opens in the same window, ${h}px`);
         else fail(T('size'), `${name}'s page is ${h}px tall, the list ${winH}px`);
+        // Every page carries its venue's tag beside its PAPER badge (Davies, 2026-09-26).
+        const tags = await page.locator(`${sel} .ag-detail-head`).last().evaluate((hd) => [...hd.children].slice(0, 2).map((c) => c.className)).catch(() => []);
+        if (tags.length === 2 && /ag-badge-paper/.test(tags[0]) && tags[1].includes(`ag-venue-${venue}`)) ok(T('venue-tag'), `${name}'s page: PAPER, then its venue`);
+        else fail(T('venue-tag'), `${name}'s page head ${JSON.stringify(tags)}`);
         await page.locator('.ag-detail-close').last().click().catch(() => {});
         await page.waitForTimeout(300);
       }
@@ -2365,7 +2381,7 @@ async function run() {
       else fail(T('armed'), `bar ${barText(a0)}, open ${opened(a0)}`);
       const lr = a0.rows[0];
       // Its name without " · live" (Davies, 2026-09-24): the tab says it. No mode badge either.
-      if (a0.rows.length === 1 && lr.name === 'Trend 4h · Revolut X' && lr.badges === 0 && lr.venue === 'Revolut X' && lr.sub === '1 open · $50 cap'
+      if (a0.rows.length === 1 && lr.name === 'Trend 4h' && lr.badges === 0 && lr.venue === 'Revolut X' && lr.sub === '1 open · $50 cap'
         && lr.gl.join(' | ') === '+$0.20 (+0.40%) | +$0.50 (+4.17%) | +$0.30 (+0.60%)' && sbText(a0) === LIVE_SB && a0.sections.join('|') === 'LIVE STRATEGIES') {
         ok(T('armed'), `LIVE is the live row alone, named without " · live", and its scoreboard is that row's figures (${sbText(a0)})`);
       } else fail(T('armed'), `LIVE: rows ${JSON.stringify(a0.rows)}, scoreboard ${sbText(a0)}, sections ${a0.sections.join('|')}`);
@@ -2417,7 +2433,7 @@ async function run() {
       const dCard = ((await page.locator('.ag-detail .ag-poscard .pc-ticker').first().textContent().catch(() => '')) || '').trim();
       const dH = await topModalHeight();
       await shot(page, 'agents-tabs-live-detail');
-      if (dTitle === 'Trend 4h · Revolut X' && dMode === 'LIVE' && dSb.join(' | ') === '$50 | $12.50(25%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
+      if (dTitle === 'Trend 4h' && dMode === 'LIVE' && dSb.join(' | ') === '$50 | $12.50(25%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
         ok(T('armed'), 'the live row opens its own page, titled without " · live", in the same window: LIVE, FUNDED $50, the same figures as its row and LIVE\'s scoreboard, its ETH position');
       } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}", window ${dH} of ${a0.modalHeight}`);
       await page.locator('.ag-detail-close').click().catch(() => {});

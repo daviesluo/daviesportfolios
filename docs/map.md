@@ -664,6 +664,7 @@ before touching migration state.
 | `0058_book_levels_timing.sql` | Moves the books' reads to 40 s into the minute, and lets a row say how long its book stood still. |
 | `0059_jev_shadow_paper_rows.sql` | Puts the Jev gate of `trend-1h`, `momentum-1d` and their Binance twins in shadow: asked and recorded, no veto. |
 | `0060_pmrw_e_every_minute.sql` | Runs RW-E's replay every minute instead of every five. |
+| `0061_strategy_names_without_venue.sql` | Drops the venue from every strategy's name; the page's venue column and tag say it. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

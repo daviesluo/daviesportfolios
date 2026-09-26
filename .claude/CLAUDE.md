@@ -238,7 +238,7 @@ that follow from that evidence, in short:
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
 - **The set that is live is ONE row**: `trend-4h-live` ("Trend 4h ·
-  Revolut X · live") on Revolut X, BTC/ETH/SOL/AVAX, four equal $25
+  live"; no name says its venue since `0061`) on Revolut X, BTC/ETH/SOL/AVAX, four equal $25
   slots, $100 (raised from $50 on 2026-09-25, on Davies' word), created
   2026-09-24 22:51:15 UTC by `0054_go_live.sql` and
   armed the same evening (`live_confirmed_at` 22:53:09.568 UTC) on
@@ -268,7 +268,7 @@ that follow from that evidence, in short:
   `live_confirmed_at` stops live BUYS only; exits stay armed, and
   `global_pause` is the one switch that outranks an exit. The go-live
   migration was applied as `0054_go_live.sql` at 2026-09-24 22:51:15 UTC:
-  a NEW row `trend-4h-live` ("Trend 4h · Revolut X · live"), with
+  a NEW row `trend-4h-live` (then "Trend 4h · Revolut X · live"), with
   `trend-4h` kept paper as its same-venue control. The row was created
   unarmed, with a $15 cap (one $12.50 slot); arming (`live_confirmed_at`
   22:53:09.568 UTC) was the one statement run in the conversation where
