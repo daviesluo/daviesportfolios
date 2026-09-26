@@ -14,6 +14,16 @@ risk and a verification step on each. It is a PROPOSAL: nothing in it
 has been executed, and nothing should be until Davies confirms. This
 list stays the short version; the plan is the reasoning behind it.
 
+000000000000000. **fp5 reviewed (2026-09-26): nothing to put money on; what is worth running, in order**
+   (`docs/agents/reviews/2026-09-26-fp5-review.md`; the three branches stay unmerged). 1. RW-E — frozen, judged
+   with RW on 10-09 (G2). 2. PR6, USD stablecoins at par on Revolut X, on twelve months of public prints with PR5's
+   frozen simulator. 3. Funding crowding (the frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs, on
+   the never-used 2024–26 and 2020–22 data. 4. DRAW-X, DRAWBASE on four unseen leagues. 5. Four weeks of Revolut X's
+   UK order book for a queue model. 6. PR5's live path after its dry-run (Davies' go). Each needs its own
+   pre-registration, under the review's rules for a round (a power check first, at most ten hypotheses, nulls with
+   replacement or by circular shift, fills at the resting limit, fees from each market's schedule). Start one only on
+   Davies' word.
+
 00000000000000. **HANDOVER, 2026-09-24 ~20:30 UTC: ONE Cursor session on this repository, rotating between Opus 5.5 and
    Grok 4.7 — goals and plan, in priority order.** Everything is committed and pushed (`main` at the commit that adds
    this item; CI green on `9f3e8a6`, the last code commit). Read `.claude/CLAUDE.md`, the working-with-davies skill and
@@ -853,6 +863,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 - The UI and PR5 fixes since `9f3e8a6` were reviewed adversarially (all gates green on `main`, 333 sweep checks, screenshots of LIVE, TESTING, a strategy page and both test pages at 1400 and 390 px read by eye). PR5's executor fix and `0055` hold (replay byte for byte with and without the minute table). One defect was live for any browser that writes a decimal comma: `dropDot00` read "-$0,50" as a signed zero and printed a loss under a dollar as "$0,50". It now treats either mark as a fraction and drops ",00" too; pinned in `agents.test.js` (the old code printed "$0,50").
 - The tabs split by row while a row's dollars add every book it has: a live row paused or relabelled once flat would have moved to TESTING with its real realised dollars and fees summed into the paper totals, LIVE reading "Nothing is live", and a pending live order's banner (LIVE only) hidden. A row that has traded real money now stays on LIVE (`tradedLive`: a live-book line with fills), and once nothing on LIVE can buy or holds anything the tab says "Real money · stopped"; a pending live order's banner shows on both tabs. And "not trading yet" was printed for an unarmed row that holds coins, which its floor and its rule's exit still sell: it now reads "Real money · selling what it holds", as a winding-down row does (the sweep's unarmed fixture holds ETH, so its check moved with it). Pinned in `agents.test.js`; three of its cases fail on the old code. Not changed, being Davies' own choices on the page: TESTING's unrealised base (strategies' cost plus the tests' deployed), RW's rewards inside REALIZED, the WORST CASE and Costs labels. Left as notes: TESTING's TODAY sums three definitions (PR5 counts exited trips only), rows can miss their scoreboard by a cent outside RW (`splitCents` is RW's alone), and the page never reads `agent_quote_live_*`, so PR5's live trading would show nowhere on LIVE — that must be built before PR5 leaves dry-run.
 - RW-E pre-registered (`reviews/2026-09-26-polymarket-rw-end-prereg.md`, reference §4 item 36, G2): the run so far put all of RW's stress loss in the 15 markets that end on the day they are chosen (rewards $147.84, fills −$128.53, stress −$77.61; the other 15 together +$60.86 of stress), which is RW's failing condition today. Frozen before any minute of 09-27 exists; judged with RW's verdict by exact replay of the stored tables.
+- fp5 reviewed: the three branches (`cursor/revolut-x-search-d133`, `cursor/binance-fp5-search-7bc0`, `cursor/polymarket-fp5-b50c`) read end to end, key results re-run from their inputs, and the claims that decide a verdict checked in their code (a resting bid booked at the aggressor's print in Revolut X passes 78–80; a null drawn without replacement in Binance's `common.py`; a 0.07 fallback fee rate in Polymarket's early input scripts). Nothing is worth money; `docs/agents/reviews/2026-09-26-fp5-review.md` keeps the causes and the order of what is worth running, and the new top item lists it.
 
 ### [2026-09-26 05:29 UTC] Platform: Cursor | Model: Grok 4.7
 
