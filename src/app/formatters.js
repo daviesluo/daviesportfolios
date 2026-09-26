@@ -105,13 +105,16 @@ export const fmtMoney = (n, opts = {}) => {
  * A whole number is written as an integer. Only a trailing ".00" is removed,
  * so "1.20" and "21.50%" stay, and "20.00" / "$100.00" / "+25.00%" do not.
  * A sign on a value that rounds to zero is dropped ("-$0.00" → "$0", "+0.00%" → "0%").
+ * `fmtMoney` writes the browser's own decimal mark, so ",00" is a trailing zero
+ * too (a comma group always has three digits, so "$1,000" is never touched), and
+ * a zero followed by either mark is a fraction: "-$0,50" keeps its sign.
  * The homepage formatters do not call this; the Agents page does.
  * @param {string} text
  */
 export function dropDot00(text) {
   return String(text)
-    .replace(/(\d)\.00(?!\d)/g, '$1')
-    .replace(/[+-](\$)?0(?![\d.])/g, (_, dollar) => `${dollar || ''}0`);
+    .replace(/(\d)[.,]00(?!\d)/g, '$1')
+    .replace(/[+-](\$)?0(?![\d.,])/g, (_, dollar) => `${dollar || ''}0`);
 }
 
 /**

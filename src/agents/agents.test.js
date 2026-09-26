@@ -9,6 +9,7 @@ import {
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
+import { dropDot00 } from '../app/formatters.js';
 
 const NOW = Date.parse('2026-09-20T12:00:00Z');
 
@@ -69,6 +70,12 @@ describe('formatting', () => {
     expect(fmtUsd(0)).toBe('$0');
     expect(fmtUsd(-0.004)).toBe('$0');
     expect(fmtUsd(1.2)).toBe('$1.20');
+    // A browser that writes a decimal comma: a loss under a dollar keeps its minus (it read "$0,50"), and ",00" goes.
+    expect(dropDot00('-$0,50')).toBe('-$0,50');
+    expect(dropDot00('-$0,00')).toBe('$0');
+    expect(dropDot00('+$1.234,00')).toBe('+$1.234');
+    expect(dropDot00('$1,000')).toBe('$1,000');
+    expect(dropDot00('-$1,000.00')).toBe('-$1,000');
     expect(fmtPctSigned(25, 2)).toBe('+25%');
     expect(fmtPctSigned(21.5, 2)).toBe('+21.50%');
     expect(fmtPctSigned(0, 2)).toBe('0%');
