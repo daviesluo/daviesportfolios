@@ -104,7 +104,16 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Davies' to decide or to do; nothing waits on them:**
+5. **Two studies in flight (2026-09-26, this session; nothing of either committed yet).** (a) Bitget, read-only
+   feasibility (Davies offered to open an account): access for a UK and Irish resident, fees, its stablecoin books'
+   spreads from the public API; he is told whether to register only after it reports. (b) A fourth Binance-first
+   search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
+   futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
+   2021-01-06), an idea table, a power check and at most ten pre-registered hypotheses, Holm-corrected, under the fp5
+   review's rules; it stops for review and a freeze on `main` before any test runs, then phase 2 runs them as frozen.
+   If this session ends first, both are started again from these words.
+
+6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
      cheap insurance: the site served the repository, `auth`'s source included, until 2026-09-18, and nothing
      suggests anyone read it (five failed logins in the auth table's whole history). Changing the secret re-prompts
@@ -221,6 +230,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 **Davies, next: take RW-E's section off the pages, name it "Reward quotes (no same-day)" and run it every minute; drop "· venue" from every strategy name and tag each strategy page with its venue beside PAPER.**
 - RW-E's row is "Reward quotes (no same-day)", the bracket on a line of its own, and its replay runs every minute from `0060` (Davies: "every min"; a run replays only what RW decided since the last, under the `pmrw-e` lease). The RW-E section is gone from RW's page and from RW-E's; RW-E's page keeps one line, shown only when the replay's copy of RW stops equalling RW's closed days (`rweCheckWarn`). `RWE_STALE_MINUTES` is RW's five plus three (it was 15 for the five-minute cadence). The sweep reads the two-line name, "every minute", and both pages without the section.
 - No strategy's name says its venue from `0061` ("Trend 4h", "Trend 1h", "Momentum 30d" on Revolut X and on Binance; the live row "Trend 4h · live", shown without " · live"); the migration fails if any name still carries one. Every strategy and test page's head reads PAPER or LIVE, then the venue's tag in its colours (`VenueBadge`). The sweep finds each row by name AND venue and checks the tag on the four pages it opens; `.claude/CLAUDE.md` quotes the live row's new name.
+- Davies, then: Binance still has no strategy of its own — another research agent, please; and his Binance account DOES support futures. What the record says is narrower: the API key's futures permission is off (reference §4 table, 2026-09-23), a setting on the key. A fourth Binance-first search (fp6) is running, and a Bitget feasibility study beside it: what-remains item 5.
 
 ### [2026-09-26 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
