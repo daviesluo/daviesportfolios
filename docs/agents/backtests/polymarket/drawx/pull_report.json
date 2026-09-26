@@ -1,0 +1,203 @@
+{
+  "closed_six_part_events": 1574,
+  "differences_from_freeze": [],
+  "dropped": [
+    {
+      "reason": "game_start_moved",
+      "slug": "bun-hsv-b04-2026-01-13"
+    },
+    {
+      "reason": "no_score_row",
+      "slug": "bun-pad-wol-2026-05-25"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "bun-pau-lei-2026-01-10"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "bun-wer-hof-2026-01-10"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "fl1-asm-nan-2026-02-13"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "fl1-nic-se-2026-05-29"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "fl1-olm-psg-2025-09-21"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "fl1-olm-psg-2025-09-22"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "fl1-se-nic-2026-05-26"
+    },
+    {
+      "reason": "game_start_moved",
+      "slug": "lal-cel-rea-2026-03-07"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-get-bet-2026-03-07"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-get-vil-2026-02-15"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-lev-vil-2025-12-14"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-osa-mal-2026-03-06"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-ray-mad-2026-02-14"
+    },
+    {
+      "reason": "game_start_moved",
+      "slug": "lal-ray-ovi-2026-02-07"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-sev-gir-2026-02-07"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "lal-val-ovi-2025-09-29"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "sea-lec-ata-2026-04-04"
+    },
+    {
+      "reason": "kickoff_differs",
+      "slug": "sea-udi-com-2026-04-06"
+    }
+  ],
+  "dropped_by_reason": {
+    "game_start_moved": 3,
+    "kickoff_differs": 16,
+    "no_score_row": 1
+  },
+  "frozen_kept_sha256": "0b270caef14143f7aa64bf9785e2699d49562c3aa88b50ea1ee16a1fd82b0a42",
+  "frozen_listed_sha256": "90bc93a55b5d685c5c152694466eb7ce072ac63aa42312142378d709bdcbf1a4",
+  "kept": 1554,
+  "kept_by_league": {
+    "bundesliga": 339,
+    "laliga": 441,
+    "ligue1": 347,
+    "seriea": 427
+  },
+  "kept_sha256": "0b270caef14143f7aa64bf9785e2699d49562c3aa88b50ea1ee16a1fd82b0a42",
+  "listed": 1574,
+  "listed_by_league": {
+    "bundesliga": 343,
+    "laliga": 450,
+    "ligue1": 352,
+    "seriea": 429
+  },
+  "listed_sha256": "90bc93a55b5d685c5c152694466eb7ce072ac63aa42312142378d709bdcbf1a4",
+  "picked": 550,
+  "prints_incomplete": [],
+  "prints_read_from_v2": [],
+  "pull_seconds": 315,
+  "pull_started": "2026-09-26 18:48:49 UTC",
+  "score_files": {
+    "bundesliga": [
+      {
+        "bytes": 156414,
+        "rows": 306,
+        "sha256": "a295c58033cfe6393cbbc28f7db85671839b960c5f1153fd3678e20ad2adb92e",
+        "url": "https://www.football-data.co.uk/mmz4281/2425/D1.csv"
+      },
+      {
+        "bytes": 159944,
+        "rows": 306,
+        "sha256": "618301a4b39918225a8ccc57f0f839d675e1abd92fa3a3ccd9a67acd7c79dd7f",
+        "url": "https://www.football-data.co.uk/mmz4281/2526/D1.csv"
+      },
+      {
+        "bytes": 17760,
+        "rows": 36,
+        "sha256": "49dbabf8d7fdae44a2ecad46676b81e4c5684a89729f283a37a415ca391f590a",
+        "url": "https://www.football-data.co.uk/mmz4281/2627/D1.csv"
+      }
+    ],
+    "laliga": [
+      {
+        "bytes": 192863,
+        "rows": 380,
+        "sha256": "c086e96d6a53f6e6c0fce4e35db0d1728c773b4362323da0161a34769e315a36",
+        "url": "https://www.football-data.co.uk/mmz4281/2425/SP1.csv"
+      },
+      {
+        "bytes": 197653,
+        "rows": 380,
+        "sha256": "4ca2e285f3ee0702f6bc55fcaa4f5a15cb3aef6220735a1d15398131e21d63f5",
+        "url": "https://www.football-data.co.uk/mmz4281/2526/SP1.csv"
+      },
+      {
+        "bytes": 33311,
+        "rows": 69,
+        "sha256": "cd180e04621abee4aeb9725d984882d719ec5f943d2874b8d2215a05cac88dfa",
+        "url": "https://www.football-data.co.uk/mmz4281/2627/SP1.csv"
+      }
+    ],
+    "ligue1": [
+      {
+        "bytes": 154703,
+        "rows": 306,
+        "sha256": "fe6ae6a0c30d05f0ac88e0fc4a31452c7203e2b444703dfa941e22f38f20ab63",
+        "url": "https://www.football-data.co.uk/mmz4281/2425/F1.csv"
+      },
+      {
+        "bytes": 158471,
+        "rows": 306,
+        "sha256": "898b7ddcd373cfe955ae353b1a98cf7f1c8757ca10b69d53039f4e098e88f192",
+        "url": "https://www.football-data.co.uk/mmz4281/2526/F1.csv"
+      },
+      {
+        "bytes": 21896,
+        "rows": 45,
+        "sha256": "bc57be01ab0acee3272362becd742646b785037802e0d6ce69a0971866a03a1a",
+        "url": "https://www.football-data.co.uk/mmz4281/2627/F1.csv"
+      }
+    ],
+    "seriea": [
+      {
+        "bytes": 191722,
+        "rows": 380,
+        "sha256": "79d87a5b18771e066ac7419b7876bfd9771a68ca117a9712375d6bc9685abee3",
+        "url": "https://www.football-data.co.uk/mmz4281/2425/I1.csv"
+      },
+      {
+        "bytes": 196217,
+        "rows": 380,
+        "sha256": "709ae279617d16af226312bcceac941e71241745ddaf950bdac2b83afad4fcbb",
+        "url": "https://www.football-data.co.uk/mmz4281/2526/I1.csv"
+      },
+      {
+        "bytes": 24049,
+        "rows": 50,
+        "sha256": "2a3948d226909991d95cc799a37ed9cc68ae1156b5f0a0fc658f57dae2a1d039",
+        "url": "https://www.football-data.co.uk/mmz4281/2627/I1.csv"
+      }
+    ]
+  },
+  "score_rows": {
+    "bundesliga": 648,
+    "laliga": 829,
+    "ligue1": 657,
+    "seriea": 810
+  },
+  "screen_price_missing": []
+}

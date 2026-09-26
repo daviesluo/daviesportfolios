@@ -25,8 +25,8 @@ list stays the short version; the plan is the reasoning behind it.
    2026-09-26 (reference §3.35, `reviews/2026-09-26-pr6-study.md`: +$37 but stress −$8, 3.9 %/yr); closed.
    3. Funding crowding (the frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs: FAILED 2026-09-26,
    both rules (reference §3.34, `reviews/2026-09-26-fund-crowding-study.md`); closed. 4. DRAW-X, DRAWBASE on four
-   unseen leagues (frozen: `reviews/2026-09-26-draw-x-prereg.md`; running). Davies said run what is worth running
-   (2026-09-26); each result lands on `main` with its study and a ledger line. 5. Four weeks of Revolut X's UK order book for a queue
+   unseen leagues: FAILED 2026-09-26, −$1,188.82 on 495 trades, every league losing (reference §3.36,
+   `reviews/2026-09-26-draw-x-study.md`); DRAWBASE closed. 5. Four weeks of Revolut X's UK order book for a queue
    model (RECORDING since 2026-09-26, `0057`, one book at a time from `0058`; pre-register the queue model before
    reading it; four weeks run to ~10-24). 6. PR5's live path after its dry-run (Davies' go). Each needs its own
    pre-registration, under the review's rules for a round (a power check first, at most ten hypotheses, nulls with
@@ -123,10 +123,6 @@ list stays the short version; the plan is the reasoning behind it.
    - A clone made before `main`'s history was rewritten (2026-09-24) must be re-cloned or reset to `origin/main`;
      `docs/commit-map-2026-09-24.md` maps the old hashes. Every clone runs `sh bin/setup.sh` once, or the ledger hook
      is off there.
-
-In flight: the phase-2 run of DRAW-X (item 1), in a worktree agent of the 2026-09-26 Claude Code
-session; its result lands on `main` with its study and a ledger line. If that session is gone, the frozen
-pre-registration on `main` is the whole brief: run phase 2 again from it.
 
 ## Machine and platform setup
 
@@ -227,6 +223,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - The research plans, judged: PR6 (USD stablecoins at par), funding crowding (UZERO / USOFR as a spot trade) and DRAW-X (DRAWBASE on four unseen leagues) are worth one test each; each is pre-registered first and frozen on `main` before any outcome is computed. The order-book recorder is next. PR5's live path stays gated by its own review on 10-21 and Davies' word (item 4).
 - FUND ran and FAILS, both rules (reference §3.34, `reviews/2026-09-26-fund-crowding-study.md`, `backtests/fund/`, reproduced byte for byte on `main`: `fund.json` sha256 `3964e667…`, 19 pins pass). In 2024-01 → 2026-09 neither beats the shift null (UZERO p 0.226, USOFR 0.779) and both lose in the second half; 2019–22 replicates by sign. The excess over the null per held day fell from +56 bp (2019–22) to +42 (2023) to +11 (2024–26) for UZERO, and +39 → +13 → −6 for USOFR. Funding crowding as a spot trade is closed at this account's cost; no paper row.
 - PR6 ran and FAILS (reference §3.35, `reviews/2026-09-26-pr6-study.md`, `backtests/pr6/`, reproduced byte for byte on `main`: `pr6.json` sha256 `a9cefc21…`). PR5's rule at par on USDC-USD and USDT-USD makes +$37.14 on 8,341 round trips, beats its shift null and is positive in 10 of 11 months, but the stress arm loses $8.41 and it earns 3.86 %/yr (1.84 % in the last three months) against the 8 % bar: 5.1 % of positions wait a day for a print back through par and are stopped, taking 45 % of what the exits at par made. The UK hourly candles its power check read are kept in `inputs/candles/` (the venue drops them after a year). No paper test.
+- DRAW-X ran and FAILS, seven conditions of nine (reference §3.36, `reviews/2026-09-26-draw-x-study.md`, `backtests/polymarket/drawx/`, reproduced byte for byte on `main`: `drawx.json` sha256 `44724d0e…`, and its self-check reproduces DRAWBASE's own result). DRAWBASE's rule on La Liga, the Bundesliga, Ligue 1 and Serie A lost $1,188.82 on 495 trades, −24.5 % a dollar, in every league and both halves: the draws it buys are mostly those of matches with a clear favourite, and they came 15.2 % of the time at an average 19.9¢. DRAWBASE is closed; so are FUND and PR6, and of the fp5 plans only RW-E (item 2), the book record and PR5's live path remain.
 - The ledger is slimmed, on Davies' word ("LEDGER.md 已经 3,600 多行，按规矩应该保持很短"): 3,659 lines to about 340. The what-remains list as it stood and the 152 history sections of 2026-09-22 → 09-24 moved word for word to `docs/handover.md` Part 2, under "LEDGER.md, archived 2026-09-26", oldest first. A script checked that every moved section and the whole old list arrived intact, and that nothing else in the handover changed. The list was rewritten to what is open: fp5's runs, RW and RW-E's verdict, the live row, PR5, and Davies' own decisions. One old item closed on the way: every maker probe filled since `0050` (ids 12–16, 09-25 and 09-26) carries a `fill_minute` whose volume is above zero.
 
 ### [2026-09-26 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)

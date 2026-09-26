@@ -2769,6 +2769,32 @@ within a day hit the 24-hour stop for −$30.65, 45 % of that. Even with no stop
 tightened in the week of 2026-08-24, as PR5's GBP books did; the last four weeks made $0.055 a day. No paper test; the
 par books are not tried again with other rungs, sizes or guards without a new pre-registration.
 
+### 3.36 DRAWBASE on four leagues it had never seen: it loses in every one (2026-09-26)
+
+fp5's DRAWBASE bought the Premier League draw an hour before kickoff whenever the league's draw rate so far beat the
+screen price plus a tick and the fee, and made +$361.59 out of sample in 2026 while losing in 2025; the fp5 review
+read it as one season's draw rate. DRAW-X (`reviews/2026-09-26-draw-x-prereg.md`, frozen at `714a71c0`) ran
+DRAWBASE's own code with two fixes (kickoff is the event's `startTime`; a match not played at its listed kickoff is
+dropped) on La Liga, the Bundesliga, Ligue 1 and Serie A, 1,554 matches from 2025-08-15 to 2026-09-20, fills copied
+from other takers' prints, with a ninth condition added at review: the three leagues other than the best must beat
+their own null. The run is `backtests/polymarket/drawx/` (its self-check reproduces DRAWBASE's committed result byte
+for byte; two runs byte-identical, reproduced on `main`; 20 sampled trades' 39 fills found again in the venue's
+trades; payouts agree with the scores on all 1,554 matches); the write-up is `…-draw-x-study.md`.
+
+| league | trades | the draw came | mean fill | P&L |
+|---|---:|---:|---:|---:|
+| La Liga | 126 | 11.1 % | 18.6¢ | −$554.24 |
+| Bundesliga | 130 | 16.2 % | 19.2¢ | −$129.48 |
+| Ligue 1 | 61 | 13.1 % | 16.7¢ | −$154.06 |
+| Serie A | 178 | 18.0 % | 22.4¢ | −$351.04 |
+| **all** | **495** | **15.2 %** | **19.9¢** | **−$1,188.82** (−24.5 % a dollar; null p95 +$722.59) |
+
+**FAIL**, seven conditions of nine: every league and both halves lose, and the loss is not the fee (the 324 trades
+with no fee lost 21.4 % a dollar). Across all 1,554 matches the market was about right (screen 25.3¢, draws 24.6 %);
+the rule buys only draws priced under the league's average, which are mostly matches with a clear favourite, and
+those came even less often than their price. The Premier League profit was one league's and one season's; DRAWBASE
+is closed, and no paper test follows.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
