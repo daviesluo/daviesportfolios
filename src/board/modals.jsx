@@ -44,17 +44,29 @@ function phoneModal() {
   return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches;
 }
 
-/** How much of a `100vh` page sits past the visible bottom (the toolbar). */
+/** How tall the page has to be to reach the physical bottom, and how much of
+ *  that the toolbar covers. The probe is not a child of `body`: the top
+ *  modal is `body`'s last child, and a probe there would steal that. */
 function measureModalUnder() {
   const probe = document.createElement('div');
   probe.style.cssText = 'position:absolute;left:0;top:0;height:100vh;width:0;visibility:hidden;pointer-events:none';
-  document.body.appendChild(probe);
-  const full = probe.getBoundingClientRect().height;
+  document.documentElement.appendChild(probe);
+  const vh = probe.getBoundingClientRect().height;
+  probe.style.height = '100lvh';
+  const lvh = probe.getBoundingClientRect().height;
   probe.remove();
   const vv = window.visualViewport;
   const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+  const layout = Math.max(vh, lvh, window.innerHeight, visibleBottom);
+  // `screen.height` is the device in CSS pixels on iOS. Some browsers
+  // report it in device pixels, about three times the page, which would
+  // make this page three screens tall. Only trust it when it is close
+  // to the layout viewport.
+  const screenH = window.screen?.height || 0;
+  const full = screenH > layout && screenH < layout * 1.4 ? screenH : layout;
   const under = Math.max(0, Math.round(full - visibleBottom));
   document.documentElement.style.setProperty('--modal-under', `${under}px`);
+  document.documentElement.style.setProperty('--modal-h', `${Math.round(full)}px`);
 }
 
 function onModalViewport() {
@@ -112,6 +124,7 @@ function releaseBodyLock() {
   if (phoneLock) {
     document.documentElement.classList.remove('modal-open');
     document.documentElement.style.removeProperty('--modal-under');
+    document.documentElement.style.removeProperty('--modal-h');
     document.removeEventListener('touchmove', blockBackgroundScroll);
     window.removeEventListener('scroll', holdPhoneScroll);
     window.visualViewport?.removeEventListener('resize', onModalViewport);
@@ -139,22 +152,44 @@ function Modal({ children, onClose, size = "md" }) {
 
   // Lock body scroll while any modal is mounted so iOS Safari's bouncy
   // overscroll can't drag the underlying page. See acquireBodyLock.
-  React.useEffect(() => {
+  // Layout, not passive: on a phone this hides the board before paint,
+  // so the subpage is not one frame of the homepage with the modal
+  // below it.
+  React.useLayoutEffect(() => {
     acquireBodyLock();
     return releaseBodyLock;
   }, []);
 
   const downOnBackdrop = React.useRef(false);
+  const backdropRef = React.useRef(/** @type {HTMLDivElement | null} */ (null));
 
-  return (
-    <div className="modal-backdrop"
+  // The top modal is ordinary flow (it has to be, on iOS 26). Ones under
+  // it stay absolutely placed in the same rectangle so a ticker page can
+  // sit on the holding list without lengthening the document.
+  React.useLayoutEffect(() => {
+    const mark = () => {
+      const all = [...document.querySelectorAll('.modal-backdrop')];
+      const top = all[all.length - 1];
+      for (const node of all) node.classList.toggle('is-top', node === top);
+    };
+    mark();
+    return () => {
+      const node = backdropRef.current;
+      if (node) node.classList.remove('is-top');
+      queueMicrotask(mark);
+    };
+  }, []);
+
+  return createPortal(
+    <div className="modal-backdrop" ref={backdropRef}
       onMouseDown={(e) => { downOnBackdrop.current = e.target === e.currentTarget; }}
       onClick={() => { if (downOnBackdrop.current) onClose(); }}
     >
       <div className={`modal size-${size}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

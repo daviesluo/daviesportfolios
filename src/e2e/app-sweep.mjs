@@ -2345,13 +2345,15 @@ async function run() {
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
 
-    // A phone subpage is ordinary flow, one large viewport tall, not a fixed
-    // layer. position:fixed is what iOS 26 clips above the toolbar, and a
-    // fixed layer taller than the screen slid the title off the top
-    // (Davies, 2026-09-25, iPhone 16 Pro). The body must not be position:fixed
-    // either: that shift is the title leaving the screen. Headless Chrome
-    // has no toolbar, so a second pin stretches the backdrop past the
-    // viewport and requires the modal to meet it.
+    // A phone subpage is ordinary flow, as tall as the screen, not a fixed
+    // or absolute layer. iOS 26 clips both of those above the toolbar, and
+    // a layer taller than the screen slid the title off the top (Davies,
+    // 2026-09-25 and 2026-09-26, iPhone 16 Pro). The body must not be
+    // position:fixed either. The board is out of the document, and the
+    // header does not shrink — a shrinking header clipped the title down
+    // to the bottoms of the letters. Headless Chrome has no toolbar, so a
+    // second pin stretches the backdrop past the viewport and requires the
+    // modal to meet it.
     if (vp.name === 'phone') {
       const phoneFills = async (title) => {
         const anchored = await page.evaluate(() => {
@@ -2359,19 +2361,25 @@ async function run() {
           const bd = bds[bds.length - 1];
           const modal = bd?.querySelector('.modal');
           const titleEl = modal?.querySelector('.modal-title');
-          if (!bd || !modal || !titleEl) return null;
+          const head = modal?.querySelector('.modal-head');
+          if (!bd || !modal || !titleEl || !head) return null;
           const br = bd.getBoundingClientRect();
           const tr = titleEl.getBoundingClientRect();
           const cs = getComputedStyle(bd);
           const vh = window.innerHeight;
           return {
             position: cs.position,
+            top: bd.classList.contains('is-top'),
             bodyPos: getComputedStyle(document.body).position,
+            root: getComputedStyle(document.getElementById('root')).display,
+            headShrink: getComputedStyle(head).flexShrink,
             covers: br.top <= 1 && br.bottom >= vh - 1 && br.height >= vh - 1,
-            titleIn: tr.height > 8 && tr.top >= 0 && tr.top < 140 && tr.bottom <= br.bottom + 1,
+            titleIn: tr.height >= 16 && tr.top >= 0 && tr.top < 140 && tr.bottom <= br.bottom + 1,
           };
         });
-        if (anchored?.position === 'absolute' && anchored.bodyPos !== 'fixed' && anchored.covers && anchored.titleIn) ok(S('modal'), `${title} fills the screen in page flow and its title stays on it`);
+        const pageFlow = anchored?.position === 'relative' && anchored.top && anchored.bodyPos !== 'fixed'
+          && anchored.root === 'none' && anchored.headShrink === '0' && anchored.covers && anchored.titleIn;
+        if (pageFlow) ok(S('modal'), `${title} fills the screen in page flow and its title stays on it`);
         else fail(S('modal'), `${title} anchor ${JSON.stringify(anchored)}`);
         const tag = await page.addStyleTag({ content: '.modal-backdrop{height:940px!important;min-height:940px!important;bottom:auto!important;}' });
         await page.waitForTimeout(80);

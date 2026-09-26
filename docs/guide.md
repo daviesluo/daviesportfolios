@@ -262,8 +262,8 @@ Below 1020 px wide the page becomes one column: the header, the board or
 heat map, the sidebar, then Market Conditions as a 3 × 3 grid. An open
 modal holds the page still behind it, so dragging inside the modal
 doesn't scroll the board, and closing it puts you back where you were.
-On a phone the modal fills the screen, title included, down through the
-strip under the browser's toolbar.
+On a phone the modal is the page, title included, down through the
+strip under the browser's toolbar. The board is not sitting behind it.
 
 ## Installing it
 

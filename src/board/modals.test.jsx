@@ -35,6 +35,13 @@ function renderModal(over = {}) {
 beforeEach(() => cleanup());
 
 describe('EditTickerModal — Move holding', () => {
+  it('portals the page onto document.body, not into the render container', () => {
+    const { container } = renderModal();
+    const bd = document.body.querySelector('.modal-backdrop');
+    expect(bd?.parentElement).toBe(document.body);
+    expect(bd != null && container.contains(bd)).toBe(false);
+  });
+
   it('shows a "Move holding" button next to Delete', () => {
     renderModal();
     expect(screen.getByRole('button', { name: /Move holding/i })).toBeInTheDocument();

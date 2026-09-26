@@ -839,6 +839,13 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-26 05:29 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: the phone subpage is still not the screen.** Three screenshots at 06:13, iPhone 16 Pro, 1206×2622.
+- The backdrop was still `position: absolute`. iOS 26 clips that the same way it clips `position: fixed`: the strip around the floating toolbar stays the page behind, and a layer taller than the screen shoves the title off. Measured on the transaction-history shot, the title's ink is 30 device pixels against 59 for "Holding list" — the header had shrunk and `overflow: hidden` kept the bottoms of the letters. `flex-shrink` on that header is 1 by default, and `overflow: hidden` lets it shrink below its text.
+- The top modal is now ordinary flow (`position: relative`), as tall as the screen, portaled to `body`, and the board (`#root`) is not in the document while it is open. A modal under it stays absolute in the same rectangle. The header does not shrink. The body scrolls, with padding for the strip the toolbar covers.
+- The sweep requires `position: relative`, the board `display: none`, the header `flex-shrink: 0`, and the title at least 16px inside the frame. Absolute fails that. Headless Chrome has no toolbar; the phone is the check.
+
 ### [2026-09-26 03:31 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: the phone subpage still left a blank band under it, and the title still left the top.**
