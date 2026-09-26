@@ -126,8 +126,13 @@ places stay when the number is not whole.
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
   tie up; its dot turns amber if it stops. Tap it for its page: the same
-  scoreboard, then each book's six rungs (the price each quotes, or what
-  it holds and has made at the last trade) and the latest round trips.
+  scoreboard, a line saying what its live path is doing (in dry run, how
+  many orders it would have sent today), then each book's six rungs (the
+  price each quotes, or what it holds and has made at the last trade) and
+  the latest round trips. Once its live path sends a real order, it is
+  also a row of LIVE — its real-money book, in LIVE's totals and its
+  Revolut X card, in dollars at the day's pound rate — and a live order
+  of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
 - **Reward quotes.** After it, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the

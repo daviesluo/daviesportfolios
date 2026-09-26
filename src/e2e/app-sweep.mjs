@@ -441,7 +441,11 @@ const AGENTS_DASHBOARD = (() => {
     // `recent` is every trip, newest first.
     quotes: { startedAt: '2026-09-23T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
       realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
-      ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS },
+      ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS,
+      // Its live executor (`0052`) in dry-run, as quotesLiveSummary shapes it: no money, what it would have sent today.
+      live: { dryRun: true, armed: false, armedAt: null, entryBook: 'dry_run', why: '', running: true, lagMinutes: 0, lastError: null,
+        postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
+        openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } },
     rw: AGENTS_RW(dayStartMs),
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
@@ -507,7 +511,7 @@ const AGENTS_NOT_READY = {
  * `live` / `live-unarmed` (a row trading real money, armed or not), and
  * `rw-cents` (RW's figures where each part rounds on its own).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -598,6 +602,20 @@ function readAgentsPanel(page) {
  * beside its total 18.6098, $18.61. Worked by hand (largest remainder, `rwSplit`): rewards $48.72, closed orders
  * +$7.04, open orders −$21.53, so realised +$55.76, orders −$14.49, total +$34.23; the market $18.41 + $0.20 = $18.61.
  */
+/**
+ * PR5's live executor trading real money (Davies, 2026-09-26), nothing else live: armed, one rung holding.
+ *   capital £50 × 1.35 = $67.50; cost $50.00, marked $50.40: unrealised +$0.40 (+0.80 % on cost);
+ *   realised +$0.27 (+0.40 % of $67.50), today +$0.54 (+0.80 % of $67.50)
+ */
+const AGENTS_PR5_LIVE = () => {
+  const d = AGENTS_DASHBOARD;
+  return {
+    ...d,
+    quotes: { ...d.quotes, live: { ...d.quotes.live, dryRun: false, armed: true, armedAt: '2026-09-17T09:00:00.000Z', entryBook: 'live', postsToday: { dryRun: 0, live: 31 },
+      tradedLive: true, openOrders: 5, heldRungs: 1, fills: 4, realisedUsd: 0.27, todayUsd: 0.54, unrealisedUsd: 0.4, costUsd: 50, valueUsd: 50.4, feesUsd: 0 } },
+  };
+};
+
 const AGENTS_RW_CENTS = () => {
   const d = AGENTS_DASHBOARD, rw = d.rw;
   return {
@@ -736,6 +754,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'paused') return json(AGENTS_PAUSED());
       if (agentsMode === 'live' || agentsMode === 'live-unarmed') return json(AGENTS_LIVE(agentsMode === 'live'));
       if (agentsMode === 'rw-cents') return json(AGENTS_RW_CENTS());
+      if (agentsMode === 'pr5-live') return json(AGENTS_PR5_LIVE());
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -1697,8 +1716,11 @@ async function run() {
       const qHeld = (await page.locator('.ag-quotes-detail .ag-ladder .ag-qheld').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const qTrips = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').count();
       const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
+      const qLive = ((await page.locator('.ag-quotes-detail .ag-quotes-live-line').textContent().catch(() => '')) || '').trim();
       await shot(page, 'agents-quotes');
       const qStacked = await page.locator('.modal').count();
+      if (qLive === 'Live path: dry run · 12 orders it would have sent today') ok(S('agents'), `its live path says it is dry-run: "${qLive}"`);
+      else fail(S('agents'), `quote page live line "${qLive}"`);
       if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.14/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, '')) && qStacked === 2) {
         ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.14), and all 7 round trips, newest first');
@@ -2326,6 +2348,26 @@ async function run() {
 
       // ---- RW's parts add up to the total printed beside them (the ops read, 2026-09-24) ----------------------
       // AGENTS_RW_CENTS: figures whose parts, each rounded alone, missed their total by a cent.
+      // PR5's live executor trading real money, and nothing else live (Davies, 2026-09-26): a LIVE row of its own, in
+      // LIVE's totals and its Revolut X card; the page opens on LIVE; its paper test stays on TESTING.
+      agentsMode = 'pr5-live';
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
+      await page.waitForTimeout(150);
+      const p0 = await readAgentsPanel(page);
+      const pNames = (await page.locator('.ag-strategies-live .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
+      const sb0 = sbText(p0);
+      if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes'
+        && /^FUNDED=\$67\.50 \| DEPLOYED=\$50\.40\(74\.67%\) \| TODAY=\+\$0\.54\(\+0\.80%\) \| UNREALIZED G\/L=\+\$0\.40\(\+0\.80%\)/.test(sb0) && /REALIZED G\/L[^=]*=\+\$0\.27\(\+0\.40%\)$/.test(sb0)) {
+        ok(T('pr5-live'), `PR5 trading real money is LIVE's row, and LIVE opens on it: ${sb0}`);
+      } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
+      await clickTab('testing');
+      const p1 = await readAgentsPanel(page);
+      if (p1.rows.length === 8 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
+      else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
       agentsMode = 'rw-cents';
       await openAgentsPage(page);
       const rwRowC = page.locator('.ag-modepanel .ag-row', { has: page.locator('.ag-name-btn:text-is("Reward quotes")') });

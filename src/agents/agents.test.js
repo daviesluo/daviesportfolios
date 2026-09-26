@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, RW_ROW_ID, rwBarTileKeys, rweView, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, rwBarTileKeys, rweView, rwInventoryCost, rwRow, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -783,7 +783,8 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(testing.unrealisedOf).toBe('cost and deployed');
     expect(testing.unrealisedBase).toBeCloseTo(29.9 + 99.75 + 14.4, 10);   // the three paper rows' cost, plus what the tests hold
     expect(testing.unrealisedPct).toBeCloseTo(testing.unrealisedUsd / testing.unrealisedBase * 100, 9);
-    expect(scoreboardView(dash, 'live', [q, w]).capitalUsd).toBe(50);
+    // Each tab adds the rows its caller hands it: the page hands TESTING the paper tests and LIVE only PR5's live executor.
+    expect(scoreboardView(dash, 'live').capitalUsd).toBe(50);
     const cards = venueRows(dash, 'testing', [q, w]);
     const revx = cards.find((c) => c.id === 'revx');
     const pm = cards.find((c) => c.id === 'polymarket');
@@ -1158,5 +1159,48 @@ describe('rweView: RW-E beside RW on its page', () => {
     expect(rweView({ ...e, running: false, lagMinutes: 40 })?.stoppedText).toBe('the replay is behind: its last minute is 40 min old');
     expect(rweView({ ...e, excludedToday: [] })?.excludedText).toBe('No market chosen today ends today');
     expect(rweView(null)).toBe(null);
+  });
+});
+
+describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
+  // The dashboard's `quotes.live` as quotesLiveSummary shapes it: live and armed, one rung holding, in USD.
+  const ql = {
+    dryRun: false, armed: true, entryBook: 'live', running: true, lagMinutes: 0, postsToday: { dryRun: 0, live: 7 }, lossStopped: false,
+    capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: true, openOrders: 1, heldRungs: 1, pending: [], fills: 3,
+    realisedUsd: 0.0135, todayUsd: 0.027, unrealisedUsd: 0.0135, costUsd: 4.97475, valueUsd: 4.98825, feesUsd: 0,
+  };
+  const paperRow = { id: 'trend-4h', venue: 'revx', mode: 'paper', capitalUsd: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 1, feesUsd: 0, todayUsd: 0, positions: [] };
+  it('is a LIVE row from its first real order, in USD, with its percents on its own bases; dry-run keeps it off', () => {
+    const r = quotesLiveRow(ql);
+    if (!r) throw new Error('no row');
+    expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.openPositions, r.holdsLive, r.armed]).toEqual([QUOTES_LIVE_ROW_ID, 'Stablecoin quotes', 'live', 'revx', 67.5, 1, true, true]);
+    expect(r.unrealisedPct).toBeCloseTo(0.0135 / 4.97475 * 100, 9);
+    expect(r.realisedPct).toBeCloseTo(0.0135 / 67.5 * 100, 9);
+    expect(quotesLiveRow({ ...ql, tradedLive: false, entryBook: 'dry_run', dryRun: true })).toBe(null);
+    expect(quotesLiveRow(null)).toBe(null);
+  });
+  it("puts LIVE first and counts it there, in LIVE's totals, with the tab saying what its switch allows", () => {
+    const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [paperRow], quotes: { live: ql } };
+    expect(defaultAgentsTab(dash)).toBe('live');
+    expect(defaultAgentsTab({ ...dash, quotes: { live: { ...ql, tradedLive: false, entryBook: 'dry_run' } } })).toBe('testing');
+    const v = agentsTabsView(dash, 2);
+    expect([v.live.count, v.live.text, v.live.tone]).toEqual([1, 'Real money · trading', 'armed']);
+    expect(agentsTabsView({ ...dash, quotes: { live: { ...ql, armed: false } } }, 2).live.text).toBe('Real money · selling what it holds');
+    expect(agentsTabsView({ ...dash, quotes: { live: { ...ql, armed: false, heldRungs: 0 } } }, 2).live.text).toBe('Real money · not trading yet');
+    const r = /** @type {any} */ (quotesLiveRow(ql));
+    const live = scoreboardView(dash, 'live', [r]);
+    expect([live.capitalUsd, live.valueUsd, live.unrealisedOf]).toEqual([67.5, 4.98825, 'cost']);
+    expect(live.unrealisedPct).toBeCloseTo(0.0135 / 4.97475 * 100, 9);
+    const cards = venueRows(dash, 'live', [r]);
+    expect(cards.map((c) => [c.id, c.capitalUsd])).toEqual([['revx', 67.5]]);
+  });
+  it('says on its page what the live path is doing, and raises a live order that needs a person on both tabs', () => {
+    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: false, postsToday: { dryRun: 12, live: 0 } })).toBe('Live path: dry run · 12 orders it would have sent today');
+    expect(quotesLiveText(ql)).toBe('Live path: live and armed · on LIVE');
+    expect(quotesLiveText({ ...ql, armed: false })).toBe('Live path: live, buying off · its exits still run · on LIVE');
+    const dash = { risk: {}, venues: [], strategies: [], quotes: { live: { ...ql, pending: [{ id: 9, ts: '2026-10-22T11:50:00Z' }], lossStopped: true } } };
+    const ids = (tab) => alertsFor(dash, tab).map((a) => a.id);
+    expect(ids('live')).toEqual(['pending-quotes-live', 'loss-stop-quotes-live']);
+    expect(ids('testing')).toEqual(['pending-quotes-live']);
   });
 });

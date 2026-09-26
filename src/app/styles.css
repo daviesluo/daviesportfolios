@@ -2284,7 +2284,7 @@ body {
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
-.ag-rw-e-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
+.ag-rw-e-line, .ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
 /* Shares and price are the same width; the question takes the rest. */
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }

@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, RW_ROW_ID, rwBarTileKeys, rweView, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, rwBarTileKeys, rweView, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -361,6 +361,7 @@ function QuotesDetail({ q, m, at }) {
         <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} />
       </div>
       {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
+      {quotesLiveText(q.live) && <div className="ag-quotes-live-line dim">{quotesLiveText(q.live)}</div>}
       <section className="ag-section ag-quote-books">
         <div className="ag-section-title mono">BOOKS</div>
         <div className="ag-quotes-cards">
@@ -1279,6 +1280,11 @@ function AgentsModal({ hideValues, onClose }) {
   // count); LIVE never does.
   const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : [])], [quotes, rw]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
+  // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
+  // Revolut X card; its paper test stays on TESTING.
+  const quotesLive = React.useMemo(() => quotesLiveRow(dash?.quotes?.live), [dash]);
+  const liveExtras = React.useMemo(() => (quotesLive ? [quotesLive] : []), [quotesLive]);
+  const liveRows = React.useMemo(() => [...split.live, ...liveExtras], [split, liveExtras]);
   const tabsView = React.useMemo(() => agentsTabsView(dash, tests.length), [dash, tests]);
   // The page opens on LIVE while anything trades real money, else on TESTING, and follows the data until a tab is
   // clicked; from then on the click holds, through every refresh and every page opened over the list.
@@ -1286,10 +1292,10 @@ function AgentsModal({ hideValues, onClose }) {
   const tab = tabChoice ?? defaultAgentsTab(dash);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
-  const quotesOpen = selected === QUOTES_ROW_ID && !!dash?.quotes;
+  const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const notReady = !!dash?.notReady;
-  const tabRows = tab === 'live' ? split.live : testing;
+  const tabRows = tab === 'live' ? liveRows : testing;
 
   return (
     <>
@@ -1308,15 +1314,15 @@ function AgentsModal({ hideValues, onClose }) {
         {notReady && <NotReady dash={dash} />}
         {dash && !notReady && (
           <div className={`ag-modepanel ag-modepanel-${tab}`} role="tabpanel" id="ag-modepanel" aria-labelledby={`ag-modetab-${tab}`}>
-            {tab === 'live' && split.live.length === 0 ? (
+            {tab === 'live' && liveRows.length === 0 ? (
               <>
                 <Alerts dash={dash} tab={tab} />
                 <LiveEmpty />
               </>
             ) : (
               <>
-                <Scoreboard dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
-                <VenueSplit dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : []} />
+                <Scoreboard dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : liveExtras} />
+                <VenueSplit dash={dash} tab={tab} m={m} tests={tab === 'testing' ? tests : liveExtras} />
                 <Alerts dash={dash} tab={tab} />
                 <section className={`ag-section ag-strategies ag-strategies-${tab}`}>
                   <div className="ag-section-title mono">{tab === 'live' ? 'LIVE STRATEGIES' : 'TESTING STRATEGIES'}</div>

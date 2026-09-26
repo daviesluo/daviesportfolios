@@ -480,7 +480,7 @@ export function tabStrategies(dash, tab) {
 
 /** The tab the page opens on: LIVE while anything trades real money, else TESTING. @param {any} dash @returns {AgentsTab} */
 export function defaultAgentsTab(dash) {
-  return tabStrategies(dash, 'live').length > 0 ? 'live' : 'testing';
+  return tabStrategies(dash, 'live').length > 0 || !!quotesLiveRow(dash?.quotes?.live) ? 'live' : 'testing';
 }
 
 /**
@@ -513,16 +513,22 @@ const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 export function agentsTabsView(dash, tests = 0) {
   const strategies = tabStrategies(dash, 'testing').length;
   const arming = liveArming(dash);
+  // PR5's live executor is a LIVE row of its own once it trades real money; with no strategy on LIVE, its own switch
+  // and what it holds say what kind of money is on the tab.
+  const pr5 = quotesLiveRow(dash?.quotes?.live);
   // Plain words, for anyone reading the page (Davies, 2026-09-24): "armed" and "awaiting arming" were the loop's.
   // Unarmed, a row that holds coins is still selling them: its floor and its rule's exit run whatever the switch says.
-  const liveWords = arming.state === 'none' ? 'Nothing is live'
+  const pr5State = !pr5 ? 'none' : pr5.armed ? 'armed' : pr5.holdsLive ? 'winding' : 'unarmed';
+  const state = arming.state === 'none' ? pr5State : arming.state;
+  const holding = arming.state === 'none' ? !!pr5?.holdsLive : arming.holding;
+  const liveWords = state === 'none' ? 'Nothing is live'
     : arming.paused ? 'Real money · paused'
-      : arming.state === 'stopped' ? 'Real money · stopped'
-        : arming.state === 'winding' || (arming.state === 'unarmed' && arming.holding) ? 'Real money · selling what it holds'
-          : arming.state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
-  const tone = arming.state === 'none' ? 'none' : arming.paused || arming.state === 'stopped' ? 'paused' : arming.state;
+      : state === 'stopped' ? 'Real money · stopped'
+        : state === 'winding' || (state === 'unarmed' && holding) ? 'Real money · selling what it holds'
+          : state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
+  const tone = state === 'none' ? 'none' : arming.paused || state === 'stopped' ? 'paused' : state;
   return {
-    live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count, text: liveWords, tone },
+    live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count + (pr5 ? 1 : 0), text: liveWords, tone },
     testing: {
       id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests,
       text: `Paper · ${counted(strategies + tests, 'strategy', 'strategies')}`, tone: 'paper',
@@ -656,18 +662,21 @@ function sumRows(strategies) {
  */
 export function scoreboardView(dash, tab = null, tests = []) {
   const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
-  const extra = tab === 'testing' ? tests : [];
+  // The rows a tab adds beyond its strategies: TESTING's paper tests, LIVE's live executor. Only the caller knows which.
+  const extra = tab ? tests : [];
   const t = sumRows([...rows, ...extra]);
   const capital = t.capitalUsd;
   const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
-  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' || s?.scoreDeployed ? (Number(s.valueUsd) || 0) : (Number(s.costUsd) || 0)), 0);
+  // A paper test's unrealised is on what it has deployed; a row with a cost of its own (the live executor) is on its cost,
+  // which `cost` already holds.
+  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' || s?.scoreDeployed ? (Number(s.valueUsd) || 0) - (Number(s.costUsd) || 0) : 0), 0);
   return {
     strategies: rows.length, tests: extra.length,
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
     todayUsd: today, todayPct: pct(today, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, extra.length ? unrealisedBase : cost),
-    unrealisedBase, unrealisedOf: extra.length ? 'cost and deployed' : 'cost',
+    unrealisedBase, unrealisedOf: extra.some((s) => s?.unrealisedOf === 'deployed' || s?.scoreDeployed) ? 'cost and deployed' : 'cost',
     realisedUsd: realised, realisedPct: pct(realised, capital),
     deployedPct: pct(value, capital),
     dayStart: dash?.dayStart ?? null,
@@ -854,13 +863,15 @@ export function venueRows(dash, tab = null, tests = []) {
   const by = Object.fromEntries(ids.map((id) => {
     const on = rows.filter((/** @type {any} */ s) => s?.venue === id);
     const folded = tests.filter((t) => t?.venueId === id);
-    const cost = on.reduce((a, s) => a + (s.costUsd ?? 0), 0);
-    const deployed = folded.reduce((a, s) => a + (Number(s.valueUsd) || 0), 0);
+    // As the scoreboard: a paper test's unrealised is on what it has deployed, a row with a cost of its own on its cost.
+    const isDeployed = (/** @type {any} */ t) => t?.unrealisedOf === 'deployed' || !!t?.scoreDeployed;
+    const cost = [...on, ...folded.filter((t) => !isDeployed(t))].reduce((a, s) => a + (Number(s.costUsd) || 0), 0);
+    const deployed = folded.filter(isDeployed).reduce((a, s) => a + (Number(s.valueUsd) || 0), 0);
     return [id, {
       ...sumRows([...on, ...folded]), strategies: on.length, tests: folded.length,
-      live: on.filter((/** @type {any} */ s) => s.mode === 'live').length,
-      unrealisedBase: folded.length ? cost + deployed : cost,
-      unrealisedOf: folded.length ? 'cost and deployed' : 'cost',
+      live: [...on, ...folded].filter((/** @type {any} */ s) => s.mode === 'live').length,
+      unrealisedBase: cost + deployed,
+      unrealisedOf: folded.some(isDeployed) ? 'cost and deployed' : 'cost',
     }];
   }));
   const venues = Object.fromEntries((dash?.venues ?? []).map((v) => [v.id, v]));
@@ -1000,6 +1011,22 @@ export function agentsAlerts(dash, now = Date.now()) {
         tabs: [strategyTab(s)],
       });
   }
+  const ql = dash?.quotes?.live;
+  if (ql?.pending?.length) {
+    const n = ql.pending.length;
+    out.push({
+      id: 'pending-quotes-live', tone: 'fault', label: 'Stablecoin quotes: a live order needs a person',
+      text: `${n} live ${n === 1 ? 'order was' : 'orders were'} written before Revolut X was called and never heard back, and the venue does not list ${n === 1 ? 'it' : 'them'}: the outcome is unknown. Settle from the venue's own history — write the fill in, or mark it rejected. The executor will not guess, and that rung places nothing until then.`,
+      tabs: [...AGENT_TABS],
+    });
+  }
+  if (ql?.tradedLive && ql?.lossStopped) {
+    out.push({
+      id: 'loss-stop-quotes-live', tone: 'paused', label: 'Stablecoin quotes stopped for the day',
+      text: "Today's loss reached its limit (1 % of its capital): no new live quotes until 00:00 UTC. What it holds is still sold by its exits and its 24-hour stop.",
+      tabs: ['live'],
+    });
+  }
   for (const s of strategies) {
     const stuck = (s?.recentOrders ?? []).filter((o) => o?.state === 'pending' && o?.mode === 'live' && now - Date.parse(o.ts) > PENDING_ALERT_MS);
     if (!stuck.length) continue;
@@ -1095,6 +1122,52 @@ export function quotesRow(q) {
       ? { label: 'paper', running: true, tone: 'running', detail: `quoting · last minute decided ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: v.stoppedText },
   };
+}
+
+/** PR5's live executor's id among LIVE's rows. */
+export const QUOTES_LIVE_ROW_ID = '__quotes_live';
+
+/**
+ * PR5's live executor as a row of LIVE (Davies, 2026-09-26: its real-money trades must show there before it leaves
+ * dry-run). From its first real order, or once entries go to its live book, it is real money: its fills per rung, in
+ * USD at the paper books' last GBP/USD, unrealised on the cost of what it holds, realised and today on its capital
+ * (today is the figure its own daily loss stop reads). null while it is dry-run only.
+ * @param {any} q  the dashboard's `quotes.live`
+ */
+export function quotesLiveRow(q) {
+  if (!q || !(q.tradedLive || q.entryBook === 'live')) return null;
+  const capital = Number(q.capitalUsd) || 0, cost = Number(q.costUsd) || 0;
+  /** @param {unknown} usd @param {number} base */
+  const pct = (usd, base) => (base > 0 && usd != null ? (Number(usd) / base) * 100 : null);
+  return {
+    id: QUOTES_LIVE_ROW_ID,
+    name: 'Stablecoin quotes',
+    venue: venueLabel('revx'),
+    venueId: 'revx',
+    mode: 'live',
+    capitalUsd: capital, costUsd: cost, valueUsd: Number(q.valueUsd) || 0, feesUsd: Number(q.feesUsd) || 0,
+    todayUsd: Number(q.todayUsd) || 0, todayPct: pct(q.todayUsd, capital),
+    unrealisedUsd: Number(q.unrealisedUsd) || 0, unrealisedPct: pct(q.unrealisedUsd, cost),
+    realisedUsd: Number(q.realisedUsd) || 0, realisedPct: pct(q.realisedUsd, capital),
+    nextText: 'every minute',
+    openPositions: Number(q.heldRungs) || 0, openOrders: Number(q.openOrders) || 0,
+    holdsLive: (Number(q.heldRungs) || 0) > 0, armed: !!q.armed,
+    status: q.running
+      ? { label: 'live', running: true, tone: 'running', detail: q.armed ? 'quoting real money' : 'buying off · its exits still run' }
+      : { label: 'live', running: false, tone: 'stale', detail: `its last turn was ${q.lagMinutes ?? '?'} min ago` },
+  };
+}
+
+/**
+ * The live executor's line on PR5's page: dry-run says what it would have sent today; live says whether it is armed.
+ * @param {any} q  the dashboard's `quotes.live`
+ */
+export function quotesLiveText(q) {
+  if (!q) return null;
+  const posts = Number(q.postsToday?.dryRun) || 0;
+  if (q.dryRun && !q.tradedLive) return `Live path: dry run · ${posts} ${posts === 1 ? 'order' : 'orders'} it would have sent today`;
+  if (q.dryRun) return 'Live path: back in dry run · what it traded is on LIVE';
+  return q.armed ? 'Live path: live and armed · on LIVE' : 'Live path: live, buying off · its exits still run · on LIVE';
 }
 
 /** A price in GBP a coin, as the book quotes it: four places. @param {number | null | undefined} p */

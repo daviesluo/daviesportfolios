@@ -450,7 +450,9 @@ that follow from that evidence, in short:
   day of dry-run watched against the paper engine: `update
   public.agent_quote_live_config set dry_run = false, live_confirmed_at =
   now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
-  stay armed); `global_pause` cancels everything.
+  stay armed); `global_pause` cancels everything. From its first real
+  order it is also a row of LIVE (`quotesLiveRow`, 2026-09-26): its
+  real-money book from its own fills, in LIVE's totals.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims one second
   INTO its minute, never a bar start; a dislocation decision the minute).

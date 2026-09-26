@@ -6,7 +6,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
-  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions,
+  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -645,4 +645,36 @@ Deno.test("newestDecisions: a daily row keeps its midnight decision when the hou
   assertEquals(got.get("trend-1h")?.ts, new Date(day + 16 * 3600e3 + 4e3 + 2).toISOString());
   assertEquals(got.get("trend-4h-live")?.ts, new Date(day + 16 * 3600e3 + 5e3 + 3).toISOString());
   assertEquals(got.has("gone"), false);
+});
+
+Deno.test("quotesLiveSummary: PR5's real-money book from its live fills, in USD at the paper books' rate; dry-run only says so", () => {
+  const now = Date.UTC(2026, 9, 22, 12, 0), day = Date.UTC(2026, 9, 22), yesterday = day - 3600e3;
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: iso(now - 3600e3), mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", state: "filled",
+    filled_base: 0, avg_fill_price: null, price: 0.738, fee_gbp: 0, filled_at: null, ...over,
+  });
+  const orders = [
+    o(1, { filled_base: 10, avg_fill_price: 0.738, filled_at: iso(yesterday) }),                                  // bought yesterday at 0.7380 …
+    o(2, { leg: "exit", filled_base: 10, avg_fill_price: 0.739, filled_at: iso(now - 600e3) }),                   // … sold today at 0.7390: +£0.01
+    o(3, { k: 0.002, filled_base: 5, avg_fill_price: 0.737, filled_at: iso(now - 300e3) }),                       // holds 5 from 0.7370
+    o(4, { book: "USDT-GBP", rung_side: "ask", state: "pending", ts: iso(now - 5 * 60e3), price: 0.741 }),       // never heard back
+    o(5, { mode: "dry_run", filled_base: 99, avg_fill_price: 0.5 }),                                                // not money
+  ];
+  const paper = { state: { books: { "USDC-GBP": { lastX: 1.35, lastPrint: { ticks: 7390 } }, "USDT-GBP": { lastX: 1.35, lastPrint: { ticks: 7400 } } } }, last_minute: iso(now), updated_at: iso(now), last_error: null };
+  const cfg = { dry_run: false, live_confirmed_at: iso(now - 86400e3), capital_gbp: 50 };
+  const st = { state: { entryBook: "live", why: "", posts: { dry_run: 0, live: 7 }, lossStopped: false }, updated_at: iso(now - 30e3), last_error: null };
+  const r = quotesLiveSummary({ config: cfg, state: st, orders, paper, nowMs: now, dayStartMs: day })!;
+  assertEquals([r.tradedLive, r.dryRun, r.armed, r.running, r.entryBook], [true, false, true, true, "live"]);
+  assertEquals([r.fills, r.openOrders, r.heldRungs, r.pending.map((p) => p.id)], [3, 1, 1, [4]]);
+  assertAlmostEquals(r.capitalUsd!, 67.5, 1e-9);
+  assertAlmostEquals(r.realisedUsd!, 0.01 * 1.35, 1e-12);
+  assertAlmostEquals(r.unrealisedUsd!, 5 * (0.739 - 0.737) * 1.35, 1e-12);
+  assertAlmostEquals(r.todayUsd!, (0.01 + 5 * (0.739 - 0.737)) * 1.35, 1e-12);        // the loss stop's own figure
+  assertAlmostEquals(r.costUsd!, 5 * 0.737 * 1.35, 1e-12);
+  assertAlmostEquals(r.valueUsd!, 5 * 0.739 * 1.35, 1e-12);
+  // In dry-run with nothing sent: no money, what it would have sent today, and whether it is keeping up.
+  const dry = quotesLiveSummary({ config: { ...cfg, dry_run: true, live_confirmed_at: null }, state: { ...st, state: { entryBook: "dry_run", posts: { dry_run: 12, live: 0 } }, updated_at: iso(now - 10 * 60e3) }, orders: [], paper, nowMs: now, dayStartMs: day })!;
+  assertEquals([dry.tradedLive, dry.dryRun, dry.armed, dry.postsToday.dryRun, dry.running, dry.lagMinutes], [false, true, false, 12, false, 10]);
+  assertEquals(quotesLiveSummary({ config: null, state: null, orders: [], paper: null, nowMs: now, dayStartMs: day }), null);
 });

@@ -88,8 +88,8 @@ import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
-import { QUOTE_TICK, runQuotes } from "./quotes.ts";
-import { runQuotesConvert, runQuotesLive, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
+import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
+import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
 import { rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
 import { runPmrwE } from "./pmrw_e.ts";
@@ -455,6 +455,73 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
   };
 }
 
+/** A live executor order as the page reads it (`agent_quote_live_orders`, `0052`). */
+export type QuoteLiveOrderView = {
+  id: number; ts: string; mode: string; book: string; rung_side: string | null; k: number | string | null; leg: string; state: string;
+  filled_base: number | string; avg_fill_price: number | string | null; price: number | string; fee_gbp: number | string; filled_at: string | null;
+};
+type QuoteLiveConfigRow = { dry_run: boolean; live_confirmed_at: string | null; capital_gbp: number | string };
+type QuoteLiveStateRow = { state: { entryBook?: string | null; why?: string; posts?: { dry_run?: number; live?: number }; lossStopped?: boolean }; updated_at: string; last_error: string | null };
+
+/** A live order written before the venue was called and not heard back this long after: the outcome is a person's to settle. */
+export const QUOTES_LIVE_PENDING_MS = 2 * 60e3;
+/** The executor writes its state every minute: older than this, it has stopped. */
+export const QUOTES_LIVE_STALE_MS = 3 * 60e3;
+
+/**
+ * PR5's live executor (`quotes_live.ts`, `0052`) for the page. In dry-run it only says so, and what it would have sent
+ * today. Once it has sent a real order, the book it trades: each rung's fills by the executor's own `rungBook`, marked by
+ * its own `markedGbp` at the paper engine's last print, as the paper rungs are; TODAY is the figure the executor's own
+ * daily loss stop reads (realised today plus what is held, marked), as a strategy row's is its own loss limit's. GBP
+ * becomes USD at the paper books' last GBP/USD, so LIVE can add it to the strategies.
+ */
+export function quotesLiveSummary(input: { config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number }) {
+  const cfg = input.config;
+  if (!cfg) return null;
+  const live = input.orders.filter((o) => o.mode === "live");
+  const books = input.paper?.state.books ?? {};
+  const x = QUOTE_BOOKS.map((b) => books[b]?.lastX).find((v) => v != null && v > 0) ?? null;
+  let realised = 0, today = 0, unrealised = 0, cost = 0, value = 0, fees = 0, heldRungs = 0, unmarked = 0;
+  for (const b of QUOTE_BOOKS) {
+    const mark = books[b]?.lastPrint?.ticks != null ? books[b].lastPrint!.ticks! * QUOTE_TICK : null;
+    for (const side of ["bid", "ask"] as const) for (const k of QUOTE_RUNGS) {
+      const fills = live.filter((o) => o.book === b && o.rung_side === side && Number(o.k) === k && Number(o.filled_base) > 0).map((o) => ({
+        id: o.id, ts: Date.parse(o.filled_at ?? o.ts), leg: o.leg as LiveLeg, base: Number(o.filled_base), price: Number(o.avg_fill_price ?? o.price), feeGbp: Number(o.fee_gbp || 0),
+      }));
+      if (!fills.length) continue;
+      const rb = rungBook(side, fills, input.dayStartMs);
+      realised += rb.realisedGbp;
+      fees += fills.reduce((a, f) => a + f.feeGbp, 0);
+      const marked = markedGbp(side, rb, mark);
+      today += rb.realisedTodayGbp + marked;
+      if (rb.held > 0) {
+        heldRungs++;
+        if (mark == null) unmarked++;
+        unrealised += marked;
+        cost += rb.held * rb.avgEntry;
+        value += rb.held * (mark ?? rb.avgEntry);
+      }
+    }
+  }
+  const usd = (gbp: number) => (x == null ? null : gbp * x);
+  const age = input.state ? input.nowMs - Date.parse(input.state.updated_at) : Infinity;
+  const open = live.filter((o) => ["pending", "new", "partially_filled"].includes(o.state));
+  return {
+    dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at, armedAt: cfg.live_confirmed_at,
+    entryBook: input.state?.state.entryBook ?? null, why: input.state?.state.why ?? "",
+    running: age <= QUOTES_LIVE_STALE_MS, lagMinutes: Number.isFinite(age) ? Math.round(age / 60e3) : null, lastError: input.state?.last_error ?? null,
+    postsToday: { dryRun: Number(input.state?.state.posts?.dry_run ?? 0), live: Number(input.state?.state.posts?.live ?? 0) },
+    lossStopped: !!input.state?.state.lossStopped,
+    capitalGbp: Number(cfg.capital_gbp), x, capitalUsd: usd(Number(cfg.capital_gbp)),
+    // Real money has moved once the executor has sent a live order, filled or not.
+    tradedLive: live.length > 0,
+    openOrders: open.length, heldRungs, unmarked,
+    pending: live.filter((o) => o.state === "pending" && input.nowMs - Date.parse(o.ts) > QUOTES_LIVE_PENDING_MS).map((o) => ({ id: o.id, ts: o.ts })),
+    fills: live.filter((o) => Number(o.filled_base) > 0).length,
+    realisedUsd: usd(realised), todayUsd: usd(today), unrealisedUsd: usd(unrealised), costUsd: usd(cost), valueUsd: usd(value), feesUsd: usd(fees),
+  };
+}
+
 /**
  * Everything the Agents page shows, computed here and nowhere else:
  * positions and P&L come from `positionFromFills` over the filled orders,
@@ -702,7 +769,20 @@ async function dashboard(now: number) {
         d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
         d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
       ]);
-      return quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs);
+      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs);
+      // Its live executor (`0052`): the real-money book it trades, once it trades one. Its own tables; before they
+      // exist, the page shows the paper test alone.
+      const live = await (async () => {
+        try {
+          const [cfg, lst, orders] = await Promise.all([
+            d.select<QuoteLiveConfigRow>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"),
+            d.select<QuoteLiveStateRow>("agent_quote_live_state", "id=eq.1&select=state,updated_at,last_error"),
+            d.selectAll<QuoteLiveOrderView>("agent_quote_live_orders", "mode=eq.live&select=id,ts,mode,book,rung_side,k,leg,state,filled_base,avg_fill_price,price,fee_gbp,filled_at&order=id.asc"),
+          ]);
+          return quotesLiveSummary({ config: cfg[0] ?? null, state: lst[0] ?? null, orders, paper: st[0] ?? null, nowMs: now, dayStartMs });
+        } catch { return null; }
+      })();
+      return summary && { ...summary, live };
     } catch { return null; }
   })();
 
