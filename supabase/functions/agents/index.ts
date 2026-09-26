@@ -93,7 +93,7 @@ import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, typ
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
 import { rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
 import { runPmrwE } from "./pmrw_e.ts";
-import { runBooks } from "./books.ts";
+import { booksDelayMs, runBooks } from "./books.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -287,6 +287,16 @@ async function runQuotesAction(wait: boolean) {
     await reportServerError("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date().toISOString() } });
   }
   return { ...paper, live };
+}
+
+/**
+ * The stablecoin books' recorder (books.ts): its own cron job, called at the top of the minute like the tick. It waits
+ * until `BOOKS_START_MS` into the minute, when the tick's and PR5's public reads are done, and then reads one book at a
+ * time.
+ */
+async function runBooksAction(wait: boolean) {
+  if (wait) await new Promise((r) => setTimeout(r, booksDelayMs(Date.now())));
+  return await runBooks({ db: db() });
 }
 
 /** The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise. */
@@ -1240,7 +1250,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    if (action === "books" && req.method === "POST" && operator) return json(200, await runBooks({ db: db(), now: Date.now() }));
+    if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
     if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
