@@ -25,34 +25,99 @@ import { cleanSells, netPosition, realizedGain, toLedgerRows, fromLedgerRows } f
 // On iOS Safari, `overflow: hidden` on <body> alone does NOT stop the
 // page underneath from scrolling — the user's screenshot showed two
 // scrollbars (the modal-body's *and* the home page's) and dragging the
-// modal area still scrolled the home page in the background. The only
-// reliable lock is `position: fixed` on <body> with the saved scroll
-// offset pinned via `top`, restored on release. This trick is also
-// what Bootstrap / Material-UI ship for the same reason.
+// modal area still scrolled the home page in the background. On a wide
+// window the lock is `position: fixed` on <body> with the saved scroll
+// offset pinned via `top`, restored on release.
+//
+// On a phone that lock is the bug (Davies, 2026-09-25, iPhone 16 Pro).
+// iOS 26 clips a position:fixed layer above the floating toolbar, so the
+// page shows through underneath, and a fixed layer taller than the screen
+// shoves the title off the top. The homepage fills that strip because it
+// is ordinary flow at `100vh`. A phone modal does the same: scroll to the
+// top, cover that screen with an absolute page, and don't fix the body.
 let bodyLockCount = 0;
 let savedScrollY = 0;
+let phoneLock = false;
 let savedBodyStyles = { position: '', top: '', left: '', right: '', width: '', overflow: '' };
+
+function phoneModal() {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 760px)').matches;
+}
+
+/** How much of a `100vh` page sits past the visible bottom (the toolbar). */
+function measureModalUnder() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;left:0;top:0;height:100vh;width:0;visibility:hidden;pointer-events:none';
+  document.body.appendChild(probe);
+  const full = probe.getBoundingClientRect().height;
+  probe.remove();
+  const vv = window.visualViewport;
+  const visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+  const under = Math.max(0, Math.round(full - visibleBottom));
+  document.documentElement.style.setProperty('--modal-under', `${under}px`);
+}
+
+function onModalViewport() {
+  if (phoneLock && bodyLockCount > 0) measureModalUnder();
+}
+
+/** A drag that isn't on the modal's own scroller must not move the board. */
+function blockBackgroundScroll(e) {
+  const el = e.target instanceof Element ? e.target : null;
+  if (el?.closest('.modal-body')) return;
+  if (e.cancelable) e.preventDefault();
+}
+
+function holdPhoneScroll() {
+  const a = document.activeElement;
+  const typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT');
+  if (!typing && window.scrollY !== 0) window.scrollTo(0, 0);
+}
+
 function acquireBodyLock() {
   if (bodyLockCount === 0) {
     savedScrollY = window.scrollY || window.pageYOffset || 0;
-    const s = document.body.style;
-    savedBodyStyles = {
-      position: s.position, top: s.top, left: s.left, right: s.right,
-      width: s.width, overflow: s.overflow,
-    };
-    s.position = 'fixed';
-    s.top = `-${savedScrollY}px`;
-    s.left = '0';
-    s.right = '0';
-    s.width = '100%';
-    s.overflow = 'hidden';
+    phoneLock = phoneModal();
     document.body.classList.add('modal-open');
+    if (phoneLock) {
+      // Don't set overflow:hidden. On iOS that clips the page to the layout
+      // viewport, which is the blank band under the toolbar.
+      window.scrollTo(0, 0);
+      document.documentElement.classList.add('modal-open');
+      measureModalUnder();
+      document.addEventListener('touchmove', blockBackgroundScroll, { passive: false });
+      window.addEventListener('scroll', holdPhoneScroll);
+      window.visualViewport?.addEventListener('resize', onModalViewport);
+      window.visualViewport?.addEventListener('scroll', onModalViewport);
+    } else {
+      const s = document.body.style;
+      savedBodyStyles = {
+        position: s.position, top: s.top, left: s.left, right: s.right,
+        width: s.width, overflow: s.overflow,
+      };
+      s.position = 'fixed';
+      s.top = `-${savedScrollY}px`;
+      s.left = '0';
+      s.right = '0';
+      s.width = '100%';
+      s.overflow = 'hidden';
+    }
   }
   bodyLockCount += 1;
 }
 function releaseBodyLock() {
   bodyLockCount -= 1;
-  if (bodyLockCount === 0) {
+  if (bodyLockCount > 0) return;
+  bodyLockCount = 0;
+  if (phoneLock) {
+    document.documentElement.classList.remove('modal-open');
+    document.documentElement.style.removeProperty('--modal-under');
+    document.removeEventListener('touchmove', blockBackgroundScroll);
+    window.removeEventListener('scroll', holdPhoneScroll);
+    window.visualViewport?.removeEventListener('resize', onModalViewport);
+    window.visualViewport?.removeEventListener('scroll', onModalViewport);
+    phoneLock = false;
+  } else {
     const s = document.body.style;
     s.position = savedBodyStyles.position;
     s.top = savedBodyStyles.top;
@@ -60,9 +125,9 @@ function releaseBodyLock() {
     s.right = savedBodyStyles.right;
     s.width = savedBodyStyles.width;
     s.overflow = savedBodyStyles.overflow;
-    document.body.classList.remove('modal-open');
-    window.scrollTo(0, savedScrollY);
   }
+  document.body.classList.remove('modal-open');
+  window.scrollTo(0, savedScrollY);
 }
 
 function Modal({ children, onClose, size = "md" }) {
@@ -73,8 +138,7 @@ function Modal({ children, onClose, size = "md" }) {
   }, [onClose]);
 
   // Lock body scroll while any modal is mounted so iOS Safari's bouncy
-  // overscroll can't drag the underlying page. See acquireBodyLock for
-  // why `position: fixed` rather than just `overflow: hidden`.
+  // overscroll can't drag the underlying page. See acquireBodyLock.
   React.useEffect(() => {
     acquireBodyLock();
     return releaseBodyLock;

@@ -2345,12 +2345,13 @@ async function run() {
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');
 
-    // A phone subpage fills its backdrop, and the title stays inside it.
-    // 100dvh left a band under the toolbar. 100lvh (`bottom: auto`) slid the
-    // title off the top and still clipped the bottom (Davies, 2026-09-25,
-    // iPhone 16 Pro). Anchoring is `bottom: 0`. Headless Chrome has no
-    // toolbar, so a second pin stretches the backdrop past the viewport and
-    // requires the modal to meet it.
+    // A phone subpage is ordinary flow, one large viewport tall, not a fixed
+    // layer. position:fixed is what iOS 26 clips above the toolbar, and a
+    // fixed layer taller than the screen slid the title off the top
+    // (Davies, 2026-09-25, iPhone 16 Pro). The body must not be position:fixed
+    // either: that shift is the title leaving the screen. Headless Chrome
+    // has no toolbar, so a second pin stretches the backdrop past the
+    // viewport and requires the modal to meet it.
     if (vp.name === 'phone') {
       const phoneFills = async (title) => {
         const anchored = await page.evaluate(() => {
@@ -2361,12 +2362,16 @@ async function run() {
           if (!bd || !modal || !titleEl) return null;
           const br = bd.getBoundingClientRect();
           const tr = titleEl.getBoundingClientRect();
+          const cs = getComputedStyle(bd);
+          const vh = window.innerHeight;
           return {
-            bottom: getComputedStyle(bd).bottom,
-            titleIn: tr.height > 8 && tr.top >= br.top - 1 && tr.bottom <= br.bottom + 1 && tr.top < br.top + 140,
+            position: cs.position,
+            bodyPos: getComputedStyle(document.body).position,
+            covers: br.top <= 1 && br.bottom >= vh - 1 && br.height >= vh - 1,
+            titleIn: tr.height > 8 && tr.top >= 0 && tr.top < 140 && tr.bottom <= br.bottom + 1,
           };
         });
-        if (anchored?.bottom === '0px' && anchored.titleIn) ok(S('modal'), `${title} is anchored to the screen and its title stays on it`);
+        if (anchored?.position === 'absolute' && anchored.bodyPos !== 'fixed' && anchored.covers && anchored.titleIn) ok(S('modal'), `${title} fills the screen in page flow and its title stays on it`);
         else fail(S('modal'), `${title} anchor ${JSON.stringify(anchored)}`);
         const tag = await page.addStyleTag({ content: '.modal-backdrop{height:940px!important;min-height:940px!important;bottom:auto!important;}' });
         await page.waitForTimeout(80);

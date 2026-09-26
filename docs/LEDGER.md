@@ -839,6 +839,12 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 2026-09-21 sections under Part 2's "LEDGER.md history, archived
 2026-09-22", oldest first.
 
+### [2026-09-26 03:31 UTC] Platform: Cursor | Model: Grok 4.7
+
+**Davies: the phone subpage still left a blank band under it, and the title still left the top.**
+- Anchoring a fixed layer and giving it a hair of transparency did not cover the strip under the toolbar. iOS 26 clips `position: fixed` above that toolbar, and fixing the body to lock the scroll is what shoves the title off the top. A phone subpage is now ordinary flow, one large viewport tall, the way the homepage already fills that strip. On a phone the body is not `position: fixed`. The last row can scroll clear of the toolbar.
+- The sweep requires the backdrop to be absolute, the body not fixed, the box to cover the screen and the title to sit in the top of it. A fixed layer fails that. Headless Chrome has no toolbar; the phone is the check.
+
 ### [2026-09-25 22:13 UTC] Platform: Cursor | Model: Grok 4.7
 
 **Davies: in agents mode, a number that is already a whole number is written as an integer, without .00.**
