@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Two studies in flight (2026-09-26, this session; nothing of either committed yet).** (Bitget reported the same evening: don't
+5. **Studies in flight (2026-09-26, this session).** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -129,6 +129,11 @@ list stays the short version; the plan is the reasoning behind it.
    from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist. **Phase 1 is done and its one
    hypothesis, USLATE (US stations only), is frozen on `main` by `ad6ec6e3`** (`reviews/2026-09-26-pmlate-prereg-uslate.md`);
    phase 2 runs it exactly as frozen on 2026-03 → 08 and writes the study. A fail closes PMLATE.
+   (c) A speed study (Davies: PMLATE's problem is speed — why once a minute, how fast can we go, would it help): the
+   edge left at each reaction time on September's data (seen already), each keyless weather source's latency after
+   the observation, measured live, and what each architecture could do — pg_cron every N seconds (1 s is the floor on
+   pg_cron 1.6.4), a loop inside one Edge call (2 s CPU, 150–400 s wall), or an always-on worker holding Polymarket's
+   WebSocket. Measurements only; a rule out of it is pre-registered, not priced.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
