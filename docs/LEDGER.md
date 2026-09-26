@@ -16,14 +16,16 @@ list stays the short version; the plan is the reasoning behind it.
 
 000000000000000. **fp5 reviewed (2026-09-26): nothing to put money on; what is worth running, in order**
    (`docs/agents/reviews/2026-09-26-fp5-review.md`; the three branches stay unmerged). 1. RW-E — frozen, judged
-   with RW on 10-09 (G2). 2. PR6, USD stablecoins at par on Revolut X, on twelve months of public prints with PR5's
-   frozen simulator. 3. Funding crowding (the frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs, on
-   the never-used 2024–26 and 2020–22 data. 4. DRAW-X, DRAWBASE on four unseen leagues. 5. Four weeks of Revolut X's
-   UK order book for a queue model (RECORDING since 2026-09-26, `0057`, one book at a time from `0058`; pre-register
-   the queue model before reading it; four weeks run to ~10-24). 6. PR5's live path after its dry-run (Davies' go). Each needs its own
+   with RW on 10-09 (G2). 2. PR6, USD stablecoins at par on Revolut X, on ten months of public prints with PR5's
+   frozen simulator (frozen: `reviews/2026-09-26-pr6-revx-usd-par-prereg.md`; running). 3. Funding crowding (the
+   frozen UZERO / USOFR signals) as a BTC spot trade at Revolut X costs, on the never-used 2024–26 and 2019–22 data
+   (frozen: `reviews/2026-09-26-fund-crowding-prereg.md`; running). 4. DRAW-X, DRAWBASE on four unseen leagues
+   (frozen: `reviews/2026-09-26-draw-x-prereg.md`; running). Davies said run what is worth running (2026-09-26); each
+   result lands on `main` with its study and a ledger line. 5. Four weeks of Revolut X's UK order book for a queue
+   model (RECORDING since 2026-09-26, `0057`, one book at a time from `0058`; pre-register the queue model before
+   reading it; four weeks run to ~10-24). 6. PR5's live path after its dry-run (Davies' go). Each needs its own
    pre-registration, under the review's rules for a round (a power check first, at most ten hypotheses, nulls with
-   replacement or by circular shift, fills at the resting limit, fees from each market's schedule). Start one only on
-   Davies' word.
+   replacement or by circular shift, fills at the resting limit, fees from each market's schedule).
 
 00000000000000. **HANDOVER, 2026-09-24 ~20:30 UTC: ONE Cursor session on this repository, rotating between Opus 5.5 and
    Grok 4.7 — goals and plan, in priority order.** Everything is committed and pushed (`main` at the commit that adds
@@ -863,6 +865,7 @@ Everything before 2026-09-22 lives there already — the 2026-09-05 →
 - PR5's live executor is on the page (before it leaves dry-run, as the review asked): the dashboard reads `agent_quote_live_*` (`quotesLiveSummary`: each rung's live fills by the executor's own `rungBook` and `markedGbp`, in USD at the paper books' last GBP/USD; TODAY is its loss stop's own figure). From its first real order it is a row of LIVE (`quotesLiveRow`), in LIVE's scoreboard and Revolut X card, the page opens on LIVE, and a pending live order of its shows on both tabs (its loss stop on LIVE). In dry-run its page says so with the orders it would have sent today. Pinned in `index.test.ts` against hand-worked numbers and in `agents.test.js`; the sweep's `pr5-live` scenario checks LIVE's row and totals and that TESTING's do not move.
 - The stablecoin books are recorded (plan 5 of the fp5 review): `agents/books.ts`, migration `0057`, cron `agents-books-every-minute` — the top five levels a side of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP from the keyless public book, stored when they change, pruned after 35 days (reference §4 item 37). Its queue model is pre-registered before anyone reads the table.
 - The recorder's first version lost three books of four to 429 every minute (18:16–18:20 UTC): it sent all four at once at :00, where the tick also reads the public bucket (about a token a second). The tick and PR5 reported no error in those minutes. From `0058` it reads 40 s into the minute, one book every 1.25 s in an order that turns each minute, stops at the first 429, and its cron call has 58 s. Each row now says when its book was read to the instant, and how long and how often it was seen unchanged (`seen_until`, `reads`). Pinned in `books.test.ts`; the old code puts four requests in flight where the pin allows one.
+- PR6 and DRAW-X pre-registered and frozen as their agents wrote them (`reviews/2026-09-26-pr6-revx-usd-par-prereg.md`, `reviews/2026-09-26-draw-x-prereg.md`). PR6: PR5's frozen simulator at par on USDC-USD and USDT-USD, on the part of the UK tape the venue's candles confirm (from 2025-11-27 and 2025-12-17), a whole-day circular-shift null, and 8 %/yr on the quotes' capital over the window AND its last three months; its power check says that last condition decides it and that the counts make a pass unlikely. DRAW-X: DRAWBASE's code with two fixes (kickoff is `startTime`; a match not played at its listed kickoff is dropped) on La Liga, the Bundesliga, Ligue 1 and Serie A, 1,554 matches; it sees only an edge of about five points or more, in at least three leagues (its condition 7, kept at review). A fail of either closes the idea; a pass is a paper test.
 - FUND pre-registered and frozen (`reviews/2026-09-26-fund-crowding-prereg.md`): fp5's UZERO / USOFR funding signals, word for word, as a BTC spot long for 48 h at Revolut X's cost, on 2024-01 → 2026-09 (the test: the shift null there, Holm across the two) and 2019-09 → 2022-12 (a replication by sign; its null test has too little power at 3.9 % a day — decided at review, from the power check alone, before any return). It can see an edge the size 2023 showed, not one merely worth money.
 - The research plans, judged: PR6 (USD stablecoins at par), funding crowding (UZERO / USOFR as a spot trade) and DRAW-X (DRAWBASE on four unseen leagues) are worth one test each; each is pre-registered first and frozen on `main` before any outcome is computed. The order-book recorder is next. PR5's live path stays gated by its own review on 10-21 and Davies' word (G5).
 
