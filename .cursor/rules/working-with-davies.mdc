@@ -629,6 +629,14 @@ Read these as a checklist before pushing.
   A row's own newest thing is its own query. And read a record's state
   before the records it counts: RW's engine writes fills before the state
   that includes them, so a parallel read paired two runs on one page.
+- **A new reader of a shared, rate-limited endpoint joins the queue.**
+  Revolut X's public endpoints give about a token a second; the tick reads
+  them from :00 and PR5 from :25. The stablecoin books' recorder sent its
+  four reads at once at :00 and lost three to 429 every minute until it
+  read at :40, one book every 1.25 s, giving way at the first 429
+  (2026-09-26). Before adding a reader, list who else reads that bucket and
+  when; after the deploy, read the new job's own answers, not only that it
+  ran.
 
 ## Third-party reviews
 
