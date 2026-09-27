@@ -216,8 +216,9 @@ list stays the short version; the plan is the reasoning behind it.
 
 5a. **The TESTING review is done (2026-09-27, `docs/agents/reviews/2026-09-27-testing-portfolio-review.md`, appendices
    A–C beside it; reference §3.43).** The set is sound and keeps all nine rows; its one defect is fixed (`0068`, §4
-   item 41). What is worth adding is measurement, ranked; Davies was asked on 2026-09-27 which to run. Deadlines hold
-   whatever he picks:
+   item 41). What is worth adding is measurement, ranked. **Davies picked all of it on 2026-09-27** (MX-1, RW-NEXT with
+   RW-C built, QUEUE, PR5-R and the lower ones), and asked that the probe bug be ruled out of the live strategies:
+   done the same night, neither live path has it (reference §4 item 41). Deadlines:
    1. **MX-1**, maker-first execution of the rows' own orders, read from the probes (draft: appendix A §6). First R2:
       every probe records the UK touch at +15/30/60 min, filled or not, because `agent_basis` is pruned at 30 days.
       Then freeze the draft. Paper only; a pass moves `trend-1h` alone, and the live row only on his word.
@@ -364,6 +365,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: run every addition the review ranked, and make sure the probe bug is not in the live strategies.**
+- Audited both live paths (reference §4 item 41). `trend-4h-live` is filled by the venue, never by `tradedThrough`; its one probe resolved after it opened; the trail's high-water counts the fill bar from its start as the backtest does, and on Kraken's trades no high-water of the ten trend entries came from before a fill. PR5's live path (dry-run) places each paper decision 28.8–33.4 s after the paper counts it live (150 orders); none of the 9 paper fills fell in that window. Nothing to fix; the PR5 gap is settled before it goes live.
 
 ### [2026-09-27 22:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
