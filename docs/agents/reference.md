@@ -3046,6 +3046,27 @@ clock skew −0.5 s at 30 ms, a public book in 24 ms. The geoblock answered **`b
 is on polymarket.com and answers for the frontend, where Ireland is close-only, so it cannot show the API's Irish
 exemption. Only an order can; with the wallet empty and no strategy passed, none has been sent.
 
+### The YouTube key (2026-09-27)
+
+One run of `GET /functions/v1/agents?action=probe&only=youtube` (`agents/youtube.ts`), fired the same way at 01:02 UTC,
+a minute after the deploy. Read-only: the client can call `channels`, `playlistItems` and `videos` and nothing else,
+and the key travels in the `X-Goog-Api-Key` header, never in a URL. Twelve units of the 10,000 a day.
+
+| Check | Result |
+|---|---|
+| Key | form `google-api-key` (`AIza` + 35); accepted in the header on every call (all 200), so the Data API v3 is enabled for its project and no referrer or IP restriction blocks Supabase's egress |
+| Handles | `@MrBeast` → `UCX6OQ3DkcsbYNE6H8uQQuVA`, the known id; `@MrBeastGaming` → `UCIPPMRA040LQr5QPyJEbmXA`. `forHandle` resolves a handle for 1 unit |
+| Channel statistics | `subscriberCount` comes rounded to three significant figures (518,000,000; 60,100,000), as the channel page shows it; `viewCount` is exact (140,927,554,036 and 11,834,120,021); `videoCount` 1,003 and 182 |
+| Uploads | `playlistItems` on the uploads playlist (`UU` + the id's tail) gives `videoId` and `videoPublishedAt` to the second (MrBeast's two newest long videos at 16:00:01 UTC, Gaming's newest at 2026-09-26 16:00:04). A Short is an upload like any other (MrBeast's 2026-09-18 upload is 40 s long) |
+| Video statistics | `viewCount`, `likeCount`, `favoriteCount`, `commentCount`, six videos in one call for 1 unit (up to 50 an id list) |
+| **Does the counter move between reads seconds apart?** | **No.** Gaming's newest video, nine hours old and averaging ~13,000 views a minute, read seven times 5 s apart (01:02:44.7 → 01:03:14.9 UTC): `viewCount` 6,987,687 on every read, while the item's `etag` changed three times in the 30 s. The API publishes the view count in batches at least 30 s apart; how far apart is what a recorder has to measure before any rule assumes a reaction time |
+
+**What it means.** The key works from where the functions run, and costs a unit a read. A study of the view-count
+markets cannot price a reaction faster than the counter's own update: a loop reading every second learns of a batch
+within a second of the API publishing it, and nothing earlier. At the default quota, one read every 8.6 s is the
+average the key allows over a day; reading every second is affordable only in windows (a 15-minute window is 900
+units).
+
 ## Sources
 
 - TypeSafe: https://docs.typesafe.ai/models · https://docs.typesafe.ai/api · https://docs.typesafe.ai/confidence · https://docs.typesafe.ai/concepts/state · https://docs.typesafe.ai/model-jaggedness/jev-1.13 · https://typesafe.ai/blog/introducing-system-one-models-and-jev · https://docs.typesafe.ai/llms.txt
