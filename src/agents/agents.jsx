@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwOverCapText, rwRow, rwShareText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -491,7 +491,6 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
       {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
       {row.id.startsWith(RWX_ROW_PREFIX) && rwxCheckWarn(r) && <div className="ag-warn-line">{rwxCheckWarn(r)}</div>}
-      {rwOverCapText(r) && <div className="ag-warn-line">{rwOverCapText(r)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
       <section className="ag-section ag-rw-days">
@@ -884,9 +883,9 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
-            <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Symbol</th><th className="hl-th ag-ph">Venue</th><th className="hl-th">Side</th>
-            <th className="hl-th">Price</th><th className="hl-th ag-ph">Size</th><th className="hl-th ag-ph">Cost</th>
-            <th className="hl-th">State</th><th className="hl-th ag-ph">Fill</th><th className="hl-th ag-ph">Fee</th><th className="hl-th ag-ph">Mode</th>
+            <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Symbol</th><th className="hl-th ag-ph">Venue</th><th className="hl-th ag-ph">Mode</th>
+            <th className="hl-th">Side</th><th className="hl-th">Price</th><th className="hl-th ag-ph">Size</th><th className="hl-th ag-ph">Cost</th>
+            <th className="hl-th">State</th><th className="hl-th ag-ph">Fill</th><th className="hl-th ag-ph">Fee</th>
           </tr></thead>
           <tbody>
             {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={11}>No orders on this pair in the window.</td></tr>}
@@ -895,6 +894,7 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
                 <td className="dim">{fmtChartStamp(o.ts)}</td>
                 <td className="hl-strong">{symbol}</td>
                 <td className="ag-ph"><VenueBadge id={o.venue ?? venue} /></td>
+                <td className="ag-ph"><ModeBadge mode={o.mode} /></td>
                 <td>
                   <span className={`ag-side ag-side-${o.side}`}><span className="ag-side-mark" aria-hidden="true" />{o.side}</span>
                 </td>
@@ -904,7 +904,6 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
                 <td><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
                 <td className="ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
                 <td className="dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
-                <td className="ag-ph"><ModeBadge mode={o.mode} /></td>
               </tr>
             ))}
           </tbody>

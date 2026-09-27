@@ -2180,12 +2180,15 @@ async function run() {
       else fail(S('agents'), `orders table: ${ordRowsN} rows, sides ${sides.join(' | ')}`);
       // It IS the old ORDERS table, moved: same eleven columns in the same order, with two changes — Cost for
       // Notional, and the side wearing the chart's arrow instead of a word badge.
-      const want = ['When', 'Symbol', 'Venue', 'Side', 'Price', 'Size', 'Cost', 'State', 'Fill', 'Fee', 'Mode'];
+      // Mode beside Venue (Davies, 2026-09-27).
+      const want = ['When', 'Symbol', 'Venue', 'Mode', 'Side', 'Price', 'Size', 'Cost', 'State', 'Fill', 'Fee'];
       const arrows = await page.locator('.ag-fills tbody .ag-side .ag-side-mark').count();
       const oldSideBadges = await page.locator('.ag-fills tbody .txn-badge').count();
-      if (heads.length === 11 && heads.slice(1).join(',') === want.slice(1).join(',') && /^When \((BST|GMT)\)$/.test(heads[0] || '') && arrows === ordRowsN && oldSideBadges === 0) {
+      // The row's fourth cell holds the mode badge, beside the venue's.
+      const modeBeside = await page.locator('.ag-fills tbody tr').first().locator('td').nth(3).locator('.ag-badge').count();
+      if (heads.length === 11 && heads.slice(1).join(',') === want.slice(1).join(',') && /^When \((BST|GMT)\)$/.test(heads[0] || '') && arrows === ordRowsN && oldSideBadges === 0 && modeBeside === 1) {
         ok(S('agents'), `the ORDERS table, moved under the chart: Cost for Notional, the chart's arrow for the side badge, UK local time ("${heads[0]}")`);
-      } else fail(S('agents'), `order table headers: ${heads.join(' | ')}; arrows ${arrows}, old badges ${oldSideBadges}`);
+      } else fail(S('agents'), `order table headers: ${heads.join(' | ')}; arrows ${arrows}, old badges ${oldSideBadges}, mode beside venue ${modeBeside}`);
       const restingState = await page.locator('.ag-fills tbody tr').first().locator('.ag-state-pill').textContent().catch(() => '');
       if ((restingState || '').trim() === 'new') ok(S('agents'), 'the resting order is on the table with its state');
       else fail(S('agents'), `first row state "${restingState}"`);
