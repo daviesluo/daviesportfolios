@@ -1461,6 +1461,36 @@ export function rweRow(r) {
 }
 
 /**
+ * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md`): RW-E with no weather
+ * markets, with a pause after a jump, and with both, each from 2026-09-28. Each is a row of its own after RW-E's, read the
+ * same way: the dashboard's `rwx` is a list in `rw`'s shape, one entry per variant, each with its `id` (x1–x3), its
+ * `name` and the replay's `checks`. A row's id is `__rwx-` and the variant's. An empty or absent list adds no row.
+ * @param {any} list  the dashboard's `rwx`
+ */
+export function rwxRows(list) {
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((r) => {
+    const row = r && r.id && r.name ? rwRow(r) : null;
+    return row ? [{ ...row, id: `${RWX_ROW_PREFIX}${r.id}`, name: String(r.name), nextText: r.finished ? 'finished' : 'every minute' }] : [];
+  });
+}
+
+/** The prefix of RW-E's variants' ids among the table's rows. */
+export const RWX_ROW_PREFIX = '__rwx-';
+
+/**
+ * A warning on a variant's page when its replay no longer reproduces RW's own days or RW-E's: its figures come from
+ * that replay, so either gap means they are not the variant's rule on RW's data. null while both agree.
+ * @param {any} r  one entry of the dashboard's `rwx`
+ */
+export function rwxCheckWarn(r) {
+  const c = r?.checks;
+  if (!c || c.ok) return null;
+  const gap = Math.max(Number(c.rwMaxUsd) || 0, Number(c.eMaxUsd) || 0);
+  return `The replay differs from RW's or RW-E's own days by ${fmtUsd(gap)}, so these figures are not this rule on RW's data.`;
+}
+
+/**
  * Whether what is shown is paper money only: every strategy (on `venue`, if one is named) is paper and holds no
  * live coins. A paused row keeps the book it traded in, so a paused row still holding live coins is not paper.
  * A venue card labels its funded figure "(Paper)" only while this holds, so the label cannot outlive the day a

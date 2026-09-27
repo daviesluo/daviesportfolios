@@ -32,7 +32,7 @@ list stays the short version; the plan is the reasoning behind it.
    pre-registration, under the review's rules for a round (a power check first, at most ten hypotheses, nulls with
    replacement or by circular shift, fills at the resting limit, fees from each market's schedule).
 
-2. **RW (Polymarket reward quotes, paper) and RW-E: the verdict on or after 2026-10-09 00:05 UTC.** RW runs by itself
+2. **RW (Polymarket reward quotes, paper), RW-E and RW-E's three variants: the verdicts on or after 2026-10-09 00:05 UTC.** RW runs by itself
    since 2026-09-24 19:30 UTC: fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC (`agents/pmrw.ts`, `0053`, the calls
    `pmrw` and `pmrw-select` of `edge-calls-every-minute` since `0063`; spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`;
    reference §3.33 and §4 item 36). RW-E, RW without the markets that end on the day they are quoted, is judged with
@@ -62,18 +62,24 @@ list stays the short version; the plan is the reasoning behind it.
         with the full prints and report both.
      d. RW-E by its own pre-registration's bar, from `pm_rw_e_days` (arm `e`), after the check that arm `rw`
         equals `pm_rw_days` on every day.
-     e. A migration re-schedules `edge-calls-every-minute` without its `pmrw`, `pmrw-select` and `pmrw-e` rows
-        (`0063`'s list, every other row unchanged; the tables stay); the page rows stay as a record until Davies says
-        otherwise.
+     d2. RW-X1–X3 by their pre-registration's bar (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`: 09-28 →
+        10-08, the change over the eleven days from the 09-27 row), from `pm_rw_x_days` (arms `x1`–`x3`), after its
+        two checks: arm `rw` equals `pm_rw_days` and arm `e` equals `pm_rw_e_days`' `e` on every day, to under a cent.
+     e. A migration re-schedules `edge-calls-every-minute` without its `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x`
+        rows (`0064`'s list, every other row unchanged; the tables stay); the page rows stay as a record until Davies
+        says otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
    - **RW-E's variants (Davies, 2026-09-27: study a/b/c, track the ones worth it as TESTING rows the way RW-E is).**
-     Research done (history 19:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
-     **Pre-registered and frozen 2026-09-27** (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`): RW-X1 "Reward
-     quotes (no weather)", RW-X2 "Reward quotes (pause on jumps)" (15 ¢, 60 minutes), RW-X3 both; RW-E from 09-27
-     plus each rule from 2026-09-28 00:00 UTC, judged on 09-28 → 10-08 with RW's and RW-E's verdicts. Next: the
-     forward replay (`runPmrwX` in `agents/pmrw_x.ts`, its own state and day rows by a migration, its call a row of
-     `edge-calls-every-minute`), the check (its `rw` arm equals RW's days, its `e` arm RW-E's version-2 days), and
-     the three rows on the page. Do not read a market-level figure of 09-28 or later before 10-09.
+     Research done (history 18:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
+     **Pre-registered and frozen 2026-09-27 18:25 UTC** (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`):
+     RW-X1 "Reward quotes (no weather)", RW-X2 "Reward quotes (pause on jumps)" (15 ¢, 60 minutes), RW-X3 both; RW-E
+     from 09-27 plus each rule from 2026-09-28 00:00 UTC, judged on 09-28 → 10-08 with RW's and RW-E's verdicts.
+     **Tracked from `0064`**: `agents?action=pmrw-x` (`runPmrwX`, a row of `edge-calls-every-minute`) replays RW's
+     stored minutes every minute from RW's start into `pm_rw_x_state` / `pm_rw_x_days`; three TESTING rows after
+     RW-E's (`rwxArmSummaries`), counted in TESTING's totals and the Polymarket card as RW and RW-E are.
+     **Daily health:** `pm_rw_x_state.last_error` empty, `last_minute` within ~3 min of RW's; in its state
+     `checkMaxUsd` (arm `rw` against RW's days) and `checkEMaxUsd` (arm `e` against RW-E's, over `checkEDays` days)
+     both under $0.01; each arm's `diverged` read. Do not read a market-level figure of 09-28 or later before 10-09.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -315,14 +321,24 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
-### [2026-09-27 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-27 19:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-E's three variants run forward from their frozen pre-registration and are TESTING rows (`0064`).**
+- `agents?action=pmrw-x` (`runPmrwX`, `agents/pmrw_x.ts`) replays RW's stored minutes every minute from RW's start into `pm_rw_x_state` / `pm_rw_x_days`, arms `rw`, `e`, `x1`–`x3` as frozen (`RWX_SPECS`, pinned). Two checks on every run: arm `rw` against `pm_rw_days`; arm `e` against RW-E's own `pm_rw_e_days`, over every day both have closed (RW-E's replay may close a day a minute later). `replayArms` and `armQuotes` are as the freezing commit left them but for the page's record of each paused span, which the accounts never read (the freezing commit's own pause test still pins them).
+- The page: three rows after RW-E's, "Reward quotes (no weather)", "(pause on jumps)", "(no weather, pause on jumps)", each with RW's page read from its arm (`rwxArmSummaries`: its accounts and days; RW's fills less the market-days its rules leave out, the minutes it was paused and the markets it ran itself); counted in TESTING's scoreboard and the Polymarket card like RW and RW-E. Until 09-28 each equals RW-E.
+- Evidence: `pmrw_e.test.ts` — x1's page equals RW's page of the engine run without its weather markets, x2 (no jump) equals RW-E's, x3 equals x1. Five counterfactuals on the page's filters each fail a test (three this one, two the round trip below). `pmrw_x.test.ts` — the driver's days and checks on a closed-form midnight (x1 drops the weather market at 00:00, x2 pauses at the 00:03 jump and not at the one before midnight), a planted 5 ¢ gap caught a run later, and a round trip RW made while x2 was paused kept off x2's page. The sweep carries the three rows (371 checks green).
+- RW-E's version-2 replay caught up at 18:28: its 09-25 and 09-26 rows now equal RW's (+$148.09, +$219.72), check 0.
+- Two headers of this session (now 18:20 and 18:05) had been written an hour and 45 minutes ahead of the clock; corrected to their commits' times.
+- HARVEST phase 1 has reported (item 5g); it is integrated next.
+
+### [2026-09-27 18:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **RW-E's three fixes measured on the days before its twelve; a deviation in RW-E's own replay found and fixed; a lapsed sign-in now returns to the login form.**
 - The variants, run by `agents?action=pmrw-x-research` over 2026-09-25 00:00 → 09-27 00:00 (RW-E's rule applied throughout; the replay's `rw` arm reproduced RW's day rows to the cent). Total / stress: RW +$219.72 / −$28.53; RW-E +$200.66 / +$49.13; (a) cap 2N +$172.77 / +$44.10 and cap N +$102.62 / +$9.24 — worse on both, because RW's reward is the smaller side's score and a capped side earns nothing; (b) a pause after the adjusted mid moves 8–15 ¢ in a minute, for an hour, +$194 to +$206 / +$52.34 to +$66.69 (20 ¢: no effect, +$48.55; 3–5 ¢: +$139–142 / +$17–33, far too eager; a day's pause +$117.66 / +$22.42); (c) no weather markets +$196.77 / +$62.58; (b)+(c) with 15 ¢ +$205.66 / +$73.03. Two days: hypotheses to track, not evidence. (a) is dropped.
 - **Deviation in RW-E, fixed**: its pre-registration removes nothing before 2026-09-27 00:00 so that it enters its twelve days holding what RW held; replay version 1 removed the same-day markets from 09-25, entering them without RW's positions in 09-26's same-day markets (which settle inside them and count in RW's figure). Replay version 2 (`RWE_STATE_VERSION`) applies the rule from 09-27 only and replays a version-1 state again from RW's start; pinned, failing on version 1. Reference §4 item 36 has it.
 - Signed out (Davies: go back to the login page, not an error inside it): `auth.js` `signOut` / `onSignOut` / `noteAuthStatus`; App returns to the password form when the token lapses (a timer at its expiry, and a check whenever the page is shown or focused) and when the agents page or the board's data call answers 401 (a 403 is not a sign-out). A save refused by a 401 keeps its pending-save mirror and is replayed after the next sign-in. The token lasts 24 h (`auth`'s `TOKEN_TTL_MS`) and dies with the tab (sessionStorage). The app tests no longer reach the network: the Agents prefetch had been calling production with the tests' made-up tokens, and its 401 now signs the app out.
 
-### [2026-09-27 18:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-27 18:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies asked for RW-E's three ways to cut its stress to be studied, and the ones worth it tracked as TESTING rows the way RW-E is: (a) a smaller inventory cap, (b) no quotes once a market is being decided, (c) which markets to pick. The research tool is built.**
 - `agents/pmrw_x.ts`: RW-E's replay with any number of arms — RW-E's own rule, an inventory cap below RW's 3N (`stepRw`'s new `invCap`, RW's 3 by default, which RW and RW-E never pass), a pause after the adjusted mid jumps, categories left out. An arm with RW-E's rule reproduces RW-E account for account on the engine's own record (pinned in `pmrw_e.test.ts`). `agents?action=pmrw-x-research` (operator only) runs arms over RW's days before RW-E's twelve and never past 2026-09-27 00:00, so a variant is chosen on days RW-E's pre-registration already read and frozen before any minute it is judged on.

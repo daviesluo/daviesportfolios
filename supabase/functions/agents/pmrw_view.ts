@@ -8,7 +8,8 @@
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
 import { accCapital, accTotal, RW_RUN_END, RW_RUN_START, rwPhase, snapshot, type Acc, type RwState } from "./pmrw.ts";
-import { excludedByDay, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
+import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
+import { RWX_NAMES, RWX_SPECS, type RwxStored } from "./pmrw_x.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -231,4 +232,63 @@ export function rweArmSummary(input: {
     // The replay starts where RW's fourteen days do; the warm-up before them is RW's alone.
     firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
   });
+}
+
+/** A replayed variant's closed days, as `pm_rw_x_days` holds them. */
+export type RwxDaysRow = { day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
+
+/**
+ * RW-E's variants as strategies of their own on the page (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-
+ * prereg.md`): each arm of the variants' replay in the shape of the dashboard's `rw`, as `rweArmSummary` makes RW-E's —
+ * its own accounts and closed days, and RW's fills less those it did not make: the market-days its rules leave out, the
+ * minutes it was paused, and the markets it ran through the rule itself, whose fills are not on record. `checks` are the
+ * replay's two: its `rw` arm against RW's days and its `e` arm against RW-E's. Empty until the replay has a state.
+ */
+export function rwxArmSummaries(input: {
+  rwState: RwStateRow | null; xState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
+  days: RwxDaysRow[]; fills: RwFillRow[]; nowMs: number;
+}) {
+  const st = input.xState?.state as RwxStored | undefined;
+  if (!st || typeof st !== "object" || !("arms" in st) || !input.xState?.last_minute) return [];
+  const xState = input.xState;
+  const excluded = excludedByDay(input.selectionAll);
+  const rw = input.rwState?.state as RwState | undefined;
+  const dayMs = (day: string) => Date.parse(`${day}T00:00:00Z`);
+  const today = new Date(Math.floor(st.dayOf / DAY) * DAY).toISOString().slice(0, 10);
+  // The replay's two checks (the pre-registration's): its rw arm against RW's own days, its e arm against RW-E's.
+  const checks = {
+    rwMaxUsd: st.checkMaxUsd, eMaxUsd: st.checkEMaxUsd ?? 0, eDays: st.checkEDays ?? 0,
+    ok: st.checkMaxUsd < RWE_CHECK_USD && (st.checkEMaxUsd ?? 0) < RWE_CHECK_USD,
+  };
+  const out = [];
+  for (const spec of RWX_SPECS) {
+    if (spec.id === "e" || !st.arms[spec.id]) continue;
+    const a = st.arms[spec.id];
+    const diverged = new Set(a.diverged);
+    // Left out for a whole day: RW-E's rule from its first day, the arm's categories from its own.
+    const leftOut = (cond: string, day: string) => {
+      const t = dayMs(day);
+      if (spec.noSameDayFrom !== null && t >= spec.noSameDayFrom && (excluded.get(day)?.has(cond) ?? false)) return true;
+      const cat = spec.noCats && t >= spec.from ? metaFor(input.selectionAll, cond, t)?.cat : null;
+      return !!cat && spec.noCats!.includes(String(cat));
+    };
+    const paused = (cond: string, ms: number) => (a.pauses?.[cond] ?? []).some(([f, u]) => ms >= f && ms < u);
+    const summary = rwSummary({
+      state: {
+        state: { acc: a.acc, dayActive: a.dayActive, lastDecided: st.lastDecided, dayOf: st.dayOf, meta: rw?.meta ?? {} },
+        last_minute: xState.last_minute, last_error: xState.last_error,
+      },
+      selection: input.today.filter((x) => !leftOut(x.cond, String(x.day).slice(0, 10))),
+      latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute))),
+      days: input.days.filter((d) => d.arm === spec.id).map((d) => ({
+        day: String(d.day).slice(0, 10), total: d.total, stress_total: d.stress_total, reward: d.reward, fills: d.fills, capital: d.capital,
+        markets: d.markets ?? 0, detail: null,
+      })),
+      fills: input.fills.filter((f) => !diverged.has(f.cond) && !leftOut(f.cond, new Date(Math.floor(Date.parse(f.minute) / DAY) * DAY).toISOString().slice(0, 10))
+        && !paused(f.cond, Date.parse(f.minute))),
+      firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+    });
+    if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks });
+  }
+  return out;
 }

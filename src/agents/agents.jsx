@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwOverCapText, rwRow, rwShareText, rwTodayRow, rwView, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwOverCapText, rwRow, rwShareText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -458,7 +458,8 @@ function RwBar({ v, r, usd }) {
  * @param {{ r: any, m: (s: string) => string, at: any, row?: any }} props
  */
 function RwDetail({ r, m, at, row: rowIn = null }) {
-  // RW-E's page is RW's page read from the replay's arm (`rweRow`); RW's own is `rwRow`.
+  // RW-E's page is RW's page read from the replay's arm (`rweRow`), and each of its variants' from its own (`rwxRows`);
+  // RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
@@ -490,6 +491,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
       {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
       {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
+      {row.id.startsWith(RWX_ROW_PREFIX) && rwxCheckWarn(r) && <div className="ag-warn-line">{rwxCheckWarn(r)}</div>}
       {rwOverCapText(r) && <div className="ag-warn-line">{rwOverCapText(r)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
@@ -1249,9 +1251,11 @@ function AgentsModal({ hideValues, onClose }) {
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
   // RW-E, RW without the markets that end on the day they are chosen, is a row of its own after it (Davies, 2026-09-26).
   const rwe = React.useMemo(() => rweRow(dash?.rwe), [dash]);
+  // RW-E's variants, each a row of its own after it (Davies, 2026-09-27).
+  const rwx = React.useMemo(() => rwxRows(dash?.rwx), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : [])], [quotes, rw, rwe]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx], [quotes, rw, rwe, rwx]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1268,6 +1272,8 @@ function AgentsModal({ hideValues, onClose }) {
   const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
+  const rwxRow = rwx.find((x) => x.id === selected) ?? null;
+  const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1358,6 +1364,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <RwDetail r={dash.rwe} m={m} at={dash.at} row={rwe} />
+        </div>
+      </Modal>
+    )}
+    {rwxRow && rwxOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">{rwxRow.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <RwDetail r={rwxOpen} m={m} at={dash.at} row={rwxRow} />
         </div>
       </Modal>
     )}

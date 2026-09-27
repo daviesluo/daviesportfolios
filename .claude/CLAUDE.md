@@ -526,7 +526,7 @@ that follow from that evidence, in short:
   minutes, so a read that must be current carries a parameter no earlier
   read carried; and an Edge request gets 2 s of CPU, so the selection asks
   Gamma only about the markets it takes. After 10-09 both calls do nothing;
-  the verdict's migration takes them (and `pmrw-e`) out of
+  the verdict's migration takes them (and `pmrw-e`, `pmrw-x`) out of
   `edge-calls-every-minute`. On the Agents page it is
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
   page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's

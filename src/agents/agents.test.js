@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, rwBarTileKeys, rweCheckWarn, rweRow, rwInventoryCost, rwOverCapText, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwOverCapText, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -1017,6 +1017,26 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(rweRow(null)).toBe(null);
     expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
   });
+  it("RW-E's variants are rows of their own after it (Davies, 2026-09-27): RW's row read from each variant's summary, under its id and name", () => {
+    const list = [
+      { ...r, id: 'x1', name: 'Reward quotes (no weather)', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'x2', name: 'Reward quotes (pause on jumps)', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+    ];
+    const rows = rwxRows(list);
+    expect(rows.map((x) => [x.id, x.name, x.venueId, x.mode, x.nextText])).toEqual([
+      [`${RWX_ROW_PREFIX}x1`, 'Reward quotes (no weather)', 'polymarket', 'paper', 'every minute'],
+      [`${RWX_ROW_PREFIX}x2`, 'Reward quotes (pause on jumps)', 'polymarket', 'paper', 'finished'],
+    ]);
+    // Every cell is RW's function of the same summary, as RW-E's row is.
+    expect({ ...rows[0], id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(list[0]));
+    // Ids never meet RW's or RW-E's; nothing, or an entry without an id or name, adds no row.
+    expect(rows.some((x) => x.id === RW_ROW_ID || x.id === RWE_ROW_ID)).toBe(false);
+    expect([rwxRows(undefined), rwxRows(null), rwxRows([]), rwxRows([null, { ...r, name: 'x' }, { ...r, id: 'x3' }])]).toEqual([[], [], [], []]);
+    // Five tests on Polymarket are one card, every one summed.
+    const pm = venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r), rweRow(r), ...rows]).find((c) => c.id === 'polymarket');
+    expect([pm?.tests, pm?.capitalUsd]).toEqual([4, 4000]);
+    expect(pm?.realisedUsd).toBeCloseTo(4 * Number(rwRow(r)?.realisedUsd), 9);
+  });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
     expect(rwRow({ ...r, running: false, finished: true })).toMatchObject({ nextText: 'finished', status: { tone: 'paused', detail: 'the fourteen days are over' } });
@@ -1229,6 +1249,16 @@ describe('rweCheckWarn: what is left of RW-E on the page besides its own row', (
   });
 });
 
+
+describe("rwxCheckWarn: a variant's page says when its replay is not RW's rule on RW's data", () => {
+  it('says nothing while both checks hold, and names the larger gap when one does not', () => {
+    expect(rwxCheckWarn({ checks: { rwMaxUsd: 0, eMaxUsd: 0.001, eDays: 2, ok: true } })).toBe(null);
+    expect(rwxCheckWarn(null)).toBe(null);
+    expect(rwxCheckWarn({})).toBe(null);
+    expect(rwxCheckWarn({ checks: { rwMaxUsd: 0.002, eMaxUsd: 0.05, eDays: 2, ok: false } }))
+      .toBe("The replay differs from RW's or RW-E's own days by $0.05, so these figures are not this rule on RW's data.");
+  });
+});
 
 describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
   // The dashboard's `quotes.live` as quotesLiveSummary shapes it: live and armed, one rung holding, in USD.

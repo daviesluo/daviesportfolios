@@ -3120,6 +3120,25 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
       which nothing changed, and its figures are the pre-registration's. Pinned in `pmrw_e.test.ts` (a same-day
       market before the twelve days is RW's in both arms; it fails on version 1). Found while building the variants'
       replay (`agents/pmrw_x.ts`), whose RW-E arm is RW-E from 09-27 00:00 as the pre-registration says.
+    - **RW-E's three variants are tracked beside it from 2026-09-28 (migration `0064`, `agents/pmrw_x.ts`,
+      `reviews/2026-09-27-polymarket-rw-variants-prereg.md`).** Davies asked for the three ways to cut RW-E's stress on
+      the first day of its test to be studied — (a) a smaller inventory cap, (b) no quotes while a market is being
+      decided, (c) which markets to pick — and the ones worth it tracked as TESTING rows the way RW-E is. The research
+      (`agents?action=pmrw-x-research`, which never reads past 2026-09-27 00:00) ran 24 configurations over RW's two
+      days before RW-E's twelve; its `rw` arm reproduced RW's day rows to the cent, and the table is the
+      pre-registration's. (a) is not tracked: both caps lowered the total and the stress, because RW's reward is the
+      smaller side's score and a side the cap has stopped earns nothing. Tracked, each RW-E plus one rule from
+      2026-09-28 00:00 UTC: **x1 "Reward quotes (no weather)"** quotes no market whose category is `weather_fees`;
+      **x2 "Reward quotes (pause on jumps)"** quotes nothing in a market for the hour after its adjusted mid moves 15 ¢
+      or more between two minutes; **x3** both. The pre-registration was frozen (`6d084928`, 18:25 UTC) before any
+      minute they are judged on existed: 09-28 → 10-08, eleven days, RW-E's bar plus a seventh condition (stress above
+      RW-E's). `agents?action=pmrw-x` replays RW's stored minutes every minute from RW's start into `pm_rw_x_state` /
+      `pm_rw_x_days`, with two checks run on every pass: its `rw` arm against `pm_rw_days` and its `e` arm against
+      RW-E's own `pm_rw_e_days` (version 2), each under a cent or the variants' figures are void. A later change to
+      `pmrw_x.ts` may add bookkeeping for the page (the paused spans, already) and nothing else. On the Agents page each
+      is a row of TESTING STRATEGIES after RW-E's, with RW's page read from its arm (`rwxArmSummaries`), counted in
+      TESTING's scoreboard and the Polymarket card like the other two; a variant's page says so if either check fails.
+      Until 09-28 each variant is RW-E to the cent. Reported beside RW's and RW-E's verdicts on or after 10-09.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;

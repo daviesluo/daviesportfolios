@@ -60,6 +60,9 @@ const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
   // RW-E's replay beside it (0056).
   pm_rw_e_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
   pm_rw_e_days: { columns: ["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day,arm" },
+  // RW-E's variants beside it (0064).
+  pm_rw_x_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
+  pm_rw_x_days: { columns: ["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day,arm" },
   // The stablecoin books' record (0057).
   agent_book_levels: { columns: ["book", "ts", "bids", "asks", "seen_until", "reads"], key: "book,ts" },
 };
@@ -145,13 +148,14 @@ export function schemaRefusal(table: string, r: Row): string | null {
   if (table in PMRW_TABLES) {
     const unknown = Object.keys(r).find((c) => !PMRW_TABLES[table].columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
-    if (table === "pm_rw_state" || table === "pm_rw_e_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "pm_rw_state" || table === "pm_rw_e_state" || table === "pm_rw_x_state") return check("id", r.id === 1) ?? notNull(["state"]);
     if (table === "agent_book_levels") {
       return notNull(["book", "ts", "bids", "asks"]) ?? check("book", ["USDC-USD", "USDT-USD", "USDC-GBP", "USDT-GBP"].includes(String(r.book)))
         ?? check("reads", r.reads == null || Number(r.reads) >= 1);
     }
-    if (table === "pm_rw_e_days") {
-      return notNull(["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"]) ?? check("arm", ["rw", "e"].includes(String(r.arm)))
+    if (table === "pm_rw_e_days" || table === "pm_rw_x_days") {
+      const arms = table === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3"];
+      return notNull(["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"]) ?? check("arm", arms.includes(String(r.arm)))
         ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
     }
     if (table === "pm_rw_selection") {

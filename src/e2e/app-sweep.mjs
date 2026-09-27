@@ -370,6 +370,15 @@ const AGENTS_RWE = (dayStartMs) => {
 };
 
 /**
+ * RW-E's variants as rows of their own (Davies, 2026-09-27): `rwx`, one entry per variant in `rwe`'s shape, as
+ * `rwxArmSummaries` builds them. A variant is RW-E until its own rule first leaves something out, so each carries
+ * RW-E's figures to the cent (AGENTS_RWE) under its own id and name, with both of the replay's checks holding.
+ */
+const AGENTS_RWX = (dayStartMs) => [
+  ['x1', 'Reward quotes (no weather)'], ['x2', 'Reward quotes (pause on jumps)'], ['x3', 'Reward quotes (no weather, pause on jumps)'],
+].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
+
+/**
  * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
  * THREE rows that run since `0046`, all on Revolut X and all reading
  * Kraken's candles, with the 4-hour row carrying its five symbols, a
@@ -473,6 +482,7 @@ const AGENTS_DASHBOARD = (() => {
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } },
     rw: AGENTS_RW(dayStartMs),
     rwe: AGENTS_RWE(dayStartMs),
+    rwx: AGENTS_RWX(dayStartMs),
     byVenue: {
       revx: { ...book, capitalUsd: 180, strategies: 3, live: 0 },     // 100 + 40 + 40, and the only book there is
       binance: { ...zero, capitalUsd: 180, strategies: 3, live: 0 },  // the twins' capital, nothing held yet. Kraken is the signal venue only.
@@ -1132,7 +1142,7 @@ async function run() {
       const bad = reads.find((r) => !r.drawn || r.loading);
       const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
       if (!hidden) {
-        if (first && !bad && first.realised === '+$78.36' && asks === 1) {
+        if (first && !bad && first.realised === '+$149.16' && asks === 1) {
           ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
         } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
       } else {
@@ -1604,16 +1614,17 @@ async function run() {
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
-      if (money(head) === 78.36 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the three tests (${(head || '').trim()})`);
-      else fail(S('agents'), `headline read "${head}", wanted +$78.36`);
+      // 78.36 before RW-E's three variants, each realising RW-E's 23.60 (Davies, 2026-09-27).
+      if (money(head) === 149.16 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the six tests (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$149.16`);
       const rows = await page.locator('.ag-row').count();
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies), and RW's paper test on Polymarket
-      // since 2026-09-24 (Davies).
-      if (rows === 9) ok(S('agents'), 'nine rows — the three 0046 leaves, their Binance twins (0049), the quote test, RW and RW-E, the deleted ones absent');
-      else fail(S('agents'), `expected 9 rows (six strategies, the quote test, RW and RW-E), got ${rows}`);
+      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies), RW's paper test on Polymarket
+      // since 2026-09-24, RW-E since 2026-09-26 and its three variants since 2026-09-27 (Davies).
+      if (rows === 12) ok(S('agents'), 'twelve rows — the three 0046 leaves, their Binance twins (0049), the quote test, RW, RW-E and its three variants, the deleted ones absent');
+      else fail(S('agents'), `expected 12 rows (six strategies, the quote test, RW, RW-E and three variants), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -1791,19 +1802,19 @@ async function run() {
       else fail(S('agents'), `quote page actions ${qHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the quote page returns to the list');
+      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the quote page returns to the list');
       else fail(S('agents'), 'the quote page did not close back to the list');
-      // RW's paper test on Polymarket (Davies, 2026-09-24): the last row of TESTING STRATEGIES, in a strategy's cells,
-      // with its own badge; the fixture's figures are rwSummary's own (AGENTS_RW).
+      // RW's paper test on Polymarket (Davies, 2026-09-24): a row of TESTING STRATEGIES, in a strategy's cells, with its
+      // own badge, before RW-E and RW-E's three variants; the fixture's figures are rwSummary's own (AGENTS_RW).
       const rwRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') });
       const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const testNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
-      if (await rwRowEl.count() === 1 && testNames.slice(-2).join('|') === 'Reward quotes|Reward quotes (no same-day)' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
+      if (await rwRowEl.count() === 1 && testNames.slice(-5).join('|') === 'Reward quotes|Reward quotes (no same-day)|Reward quotes (no weather)|Reward quotes (pause on jumps)|Reward quotes (no weather, pause on jumps)' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
         && /2 open · \$1,000 cap/.test(rwRowText) && /\+\$12\.50 \(\+1\.25%\)/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42 \(\+4\.20%\)/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the testing row before RW-E: Polymarket, 2 open of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
+        ok(S('agents'), 'RW is the testing row before RW-E and its three variants: Polymarket, 2 open of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", testing rows ${testNames.join(' | ')}, Polymarket badges ${rwBadge}`);
-      // RW-E, the last row (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
+      // RW-E, the row after RW (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
       // today 7.50 on its $1,000 cap (+0.75%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60
       // (+2.36%). $235 is what it has at work today, in its days table, not its cap (Davies, 2026-09-26).
       // Its name is "Reward quotes (no same-day)", the bracket on a line of its own (Davies, 2026-09-26), and its replay
@@ -1817,7 +1828,7 @@ async function run() {
       if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$1,000 cap/.test(rweRowText)
         && rweName.q === '(no same-day)' && rweName.below
         && /\+\$7\.50 \(\+0\.75%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+2\.36%\)/.test(rweRowText) && /every minute/.test(rweRowText)) {
-        ok(S('agents'), 'RW-E is the last testing row: "Reward quotes" over "(no same-day)", Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
+        ok(S('agents'), 'RW-E is the testing row after RW: "Reward quotes" over "(no same-day)", Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
       } else fail(S('agents'), `RW-E row "${rweRowText}", qualifier ${JSON.stringify(rweName)}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
@@ -1894,7 +1905,7 @@ async function run() {
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the RW page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the RW page returns to the list');
       else fail(S('agents'), 'the RW page did not close back to the list');
       // RW-E's page is RW's page read from the replay's arm: its title, the same scoreboard and sections, today and its two
       // closed days (the replay starts with the fourteen days: no warm-up row), the three markets it has, and its fills.
@@ -1918,8 +1929,47 @@ async function run() {
       } else fail(S('agents'), `RW-E page: title "${eTitle}", labels ${eLabels.join(',')}, split ${eSplit.join('|')}, sections ${eSections.join(',')}, days ${eDays.join(' | ')} (first "${eFirstDay}"), markets ${eMarkets}, fills ${eFills}, warnings ${eWarn}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 9) ok(S('agents'), 'closing the RW-E page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
+      // RW-E's three variants (Davies, 2026-09-27), the last rows: RW's cells read from each variant's arm, here RW-E's
+      // figures to the cent (AGENTS_RWX), each bracket on a line of its own that fits the row, the longest included.
+      const xRows = [];
+      for (const [name, qual] of [['Reward quotes (no weather)', '(no weather)'], ['Reward quotes (pause on jumps)', '(pause on jumps)'], ['Reward quotes (no weather, pause on jumps)', '(no weather, pause on jumps)']]) {
+        const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
+        const text = (await el.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+        const geo = await el.first().locator('.ag-name-btn').evaluate((b) => {
+          const q = b.querySelector('.ag-name-qual');
+          const cell = b.closest('td, .ag-card-strategy')?.getBoundingClientRect();
+          const r = q?.getBoundingClientRect();
+          return { q: q?.textContent ?? '', below: !!q && !!r && r.top > b.getBoundingClientRect().top + 4, fits: !!cell && !!r && r.right <= cell.right + 1 };
+        }).catch(() => ({ q: '', below: false, fits: false }));
+        xRows.push({ name, n: await el.count(), pm: await el.first().locator('.ag-venue-polymarket').count(), text, ...geo, qualOk: geo.q === qual });
+      }
+      await page.locator('.ag-strategies-testing .ag-row').last().scrollIntoViewIfNeeded().catch(() => {});
+      await shot(page, 'agents-rwx-rows');
+      if (xRows.every((x) => x.n === 1 && x.pm === 1 && x.qualOk && x.below && x.fits && /1 open · \$1,000 cap/.test(x.text)
+        && /\+\$7\.50 \(\+0\.75%\)/.test(x.text) && /-\$1\.20 \(-17\.65%\)/.test(x.text) && /\+\$23\.60 \(\+2\.36%\)/.test(x.text) && /every minute/.test(x.text))) {
+        ok(S('agents'), 'RW-E\'s three variants are the last testing rows: "Reward quotes" over "(no weather)", "(pause on jumps)" and "(no weather, pause on jumps)", each on Polymarket, 1 open of its $1,000 cap, RW-E\'s figures, every minute');
+      } else fail(S('agents'), `variant rows ${JSON.stringify(xRows)}`);
+      // A variant's page is RW's page read from its arm: its title, RW-E's figures, no warning while both checks hold.
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes (no weather, pause on jumps)') }).first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      const xTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const xSplit = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-split-line').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const xSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
+      const xMarkets = await page.locator('.ag-rw-markets tbody tr').count();
+      const xFills = await page.locator('.ag-rw-fills tbody tr').count();
+      const xWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
+      const xOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
+      await shot(page, 'agents-rwx');
+      if (xTitle === 'Reward quotes (no weather, pause on jumps)' && xSplit.join('|') === 'rewards +$23.20|orders +$0.40' && xSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
+        && xMarkets === 3 && xFills === 3 && xWarn === 0 && xOverflow >= 0 && xOverflow <= 1) {
+        ok(S('agents'), "a variant's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, 3 markets, 3 fills, no warning");
+      } else fail(S('agents'), `variant page: title "${xTitle}", split ${xSplit.join('|')}, sections ${xSections.join(',')}, markets ${xMarkets}, fills ${xFills}, warnings ${xWarn}, overflow ${xOverflow}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), "closing a variant's page returns to the list");
+      else fail(S('agents'), "a variant's page did not close back to the list");
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
       if ((pageTitle || '').trim() === 'Agents (beta)') ok(S('agents'), 'the page is titled Agents (beta), as the menu entry that opened it');
@@ -1934,11 +1984,11 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Four Revolut X: the three strategies and the quote test; then RW and RW-E on Polymarket, last.
-      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 3].startsWith('Revolut X') && badges.slice(-2).join('|') === 'Polymarket|Polymarket') ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X, and RW and RW-E on Polymarket');
+      // Four Revolut X: the three strategies and the quote test; then RW, RW-E and its three variants on Polymarket, last.
+      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 6].startsWith('Revolut X') && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X, and RW, RW-E and its three variants on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW and RW-E on Polymarket $20.00
-      // (14.40 + 5.60) — 86 % and 14 %.
+      // Deployed value, by card: Revolut X $121.25 (its strategy plus the quote test) and RW, RW-E and its three variants
+      // on Polymarket $36.80 (14.40 + 4 × 5.60) — 77 % and 23 % of $158.05.
       // The bar shows the venue and its percent when that line fits the slice, and the percent alone when it does not.
       // A fixed cutoff left the middle of "Polymarket" on a slice that was still a bit wider than the cutoff.
       const shareGeom = await page.locator('.ag-share').evaluateAll((els) => els.map((el) => {
@@ -1953,13 +2003,13 @@ async function run() {
         };
       }));
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && /Revolut X: 86%/.test(shareGeom[0].title) && /Polymarket: 14%/.test(shareGeom[2].title)
+        && shareGeom[1].text === '' && /Revolut X: 77%/.test(shareGeom[0].title) && /Polymarket: 23%/.test(shareGeom[2].title)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '86%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '77%', { timeout: 2000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -1967,21 +2017,22 @@ async function run() {
         return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
       }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
       await squeeze.evaluate((el) => el.remove());
-      if (squeezed && squeezedFit.text === '86%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      if (squeezed && squeezedFit.text === '77%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
-      // Polymarket's card is its two tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
-      // row of its own), so it reads what TESTING's scoreboard adds for it: funded their two $1,000 caps (Davies,
-      // 2026-09-26); deployed 14.40 + 5.60 (1 % of 2,000); today 12.50 + 7.50 (1 %); unrealised −1 − 1.20 on the two inventories' cost, 15.40 of RW's (A's 20 Yes at 43¢,
-      // D's 20 No at 34¢) and 6.80 of RW-E's (D's): −2.20 on 22.20; realised 42 + 23.60 = rewards 41.60 + 23.20 and
-      // orders 0.40 + 0.40. The first version kept RW's card and dropped RW-E's.
+      // Polymarket's card is its tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
+      // row of its own; 2026-09-27: so are its three variants), so it reads what TESTING's scoreboard adds for it: funded
+      // their five $1,000 caps (Davies, 2026-09-26); deployed 14.40 + 4 × 5.60 = 36.80 (0.74 % of 5,000); today 12.50 +
+      // 4 × 7.50 = 42.50 (0.85 %); unrealised −1 − 4 × 1.20 = −5.80 on the inventories' cost, 15.40 of RW's (A's 20 Yes at
+      // 43¢, D's 20 No at 34¢) and 6.80 of each of the others (D's): −5.80 on 42.60; realised 42 + 4 × 23.60 = 136.40 =
+      // rewards 41.60 + 4 × 23.20 and orders 0.40 + 4 × 0.40. The first version kept RW's card and dropped RW-E's.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
-      if (pm && pm.meta === '2 strategies' && pm.pairs['funded (Paper)'] === '$2,000' && pm.pairs.deployed === '$20 (1%)'
-        && pm.pairs.today === '+$20 (+1%)' && pm.pairs.unrealised === '-$2.20 (-9.91%)' && pm.pairs.realised === '+$65.60 (+3.28%)' && !pm.bases.unrealised
-        && pm.pairs.rewards === '+$64.80' && pm.pairs.orders === '+$0.80' && !('fees' in pm.pairs)) {
-        ok(S('agents'), "Polymarket's card is RW and RW-E summed: funded (Paper) $2,000, deployed $20 (1%), today +$20 (+1%), unrealised -$2.20 (-9.91%), realised +$65.60 (+3.28%) = rewards +$64.80 + orders +$0.80");
+      if (pm && pm.meta === '5 strategies' && pm.pairs['funded (Paper)'] === '$5,000' && pm.pairs.deployed === '$36.80 (0.74%)'
+        && pm.pairs.today === '+$42.50 (+0.85%)' && pm.pairs.unrealised === '-$5.80 (-13.62%)' && pm.pairs.realised === '+$136.40 (+2.73%)' && !pm.bases.unrealised
+        && pm.pairs.rewards === '+$134.40' && pm.pairs.orders === '+$2' && !('fees' in pm.pairs)) {
+        ok(S('agents'), "Polymarket's card is RW, RW-E and its three variants summed: funded (Paper) $5,000, deployed $36.80 (0.74%), today +$42.50 (+0.85%), unrealised -$5.80 (-13.62%), realised +$136.40 (+2.73%) = rewards +$134.40 + orders +$2");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
@@ -2013,7 +2064,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 3 && nexts[rows - 3] === 'every minute' && nexts[rows - 2] === 'every minute' && nexts[rows - 1] === 'every minute') ok(S('agents'), 'every rule counts down to its next bar close; the quote test, RW and RW-E, last, decide every minute');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 6 && nexts.slice(rows - 6).every((t) => t === 'every minute')) ok(S('agents'), 'every rule counts down to its next bar close; the quote test, RW, RW-E and its three variants, last, decide every minute');
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -2330,11 +2381,13 @@ async function run() {
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
-      // realised; and each Reward quotes row is funded $1,000 (the same day): 1,380 + 180 + 2,000 = $3,560 funded, so
-      // deployed 141.25 is 3.97 % of it, today 20.54 is 0.58 % and realised 78.36 is 2.20 %.
-      const PAPER_SB = 'FUNDED=$3,560 | DEPLOYED=$141.25(3.97%) | TODAY=+$20.54(+0.58%) | UNREALIZED G/L=-$0.56(-0.40%) | REALIZED G/L [(incl. fees $0.08)]=+$78.36(+2.20%)';
+      // realised; and each Reward quotes row is funded $1,000 (the same day). Its three variants (2026-09-27) add RW-E's
+      // figures three times more: 1,380 + 180 + 5,000 = $6,560 funded, so deployed 141.25 + 16.80 = 158.05 is 2.41 % of
+      // it, today 20.54 + 22.50 = 43.04 is 0.66 %, realised 78.36 + 70.80 = 149.16 is 2.27 %; unrealised −0.56 − 3.60 =
+      // −4.16 is on the strategies' cost and the tests' deployed value, 139.75 + 16.80 = 156.55 (−2.66 %).
+      const PAPER_SB = 'FUNDED=$6,560 | DEPLOYED=$158.05(2.41%) | TODAY=+$43.04(+0.66%) | UNREALIZED G/L=-$4.16(-2.66%) | REALIZED G/L [(incl. fees $0.08)]=+$149.16(+2.27%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 9 Paper · 9 strategies paper';
+      const TESTING_BAR = 'TESTING 12 Paper · 12 strategies paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
@@ -2353,11 +2406,11 @@ async function run() {
       const winH = vpWidth > 760 ? Math.round(0.85 * (page.viewportSize()?.height ?? 0)) : (page.viewportSize()?.height ?? 0);
       await clickTab('testing');
       const n2 = await readAgentsPanel(page);
-      if (n2.rows.length === 9 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 9 rows, scoreboard and venue cards as they were');
+      if (n2.rows.length === 12 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 12 rows, scoreboard and venue cards as they were');
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
-      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no same-day)', 'polymarket', '.ag-rw-detail']]) {
+      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no same-day)', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no weather, pause on jumps)', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
         await page.waitForTimeout(350);
@@ -2406,8 +2459,8 @@ async function run() {
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
-      if (a1.rows.length === 9 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
-        ok(T('armed'), `TESTING is the paper rows alone (8, none live), and its scoreboard is theirs (${sbText(a1)})`);
+      if (a1.rows.length === 12 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+        ok(T('armed'), `TESTING is the paper rows alone (12, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
       if (a1.venues.length === 3 && rv && bn && rv.meta === '4 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$121.25 (8.79%)'
@@ -2416,7 +2469,7 @@ async function run() {
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      if (both.join(',') === '361000,15375,2074,-6,7866') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the three tests: $3,610.00 funded, $153.75 deployed, +$20.74 today, -$0.06 unrealised, +$78.66 realised');
+      if (both.join(',') === '661000,17055,4324,-366,14946') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the six tests: $6,610.00 funded, $170.55 deployed, +$43.24 today, -$3.66 unrealised, +$149.46 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
@@ -2460,7 +2513,7 @@ async function run() {
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
-      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 9) ok(T('unarmed'), 'TESTING carries no banner either');
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 12) ok(T('unarmed'), 'TESTING carries no banner either');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
@@ -2482,7 +2535,7 @@ async function run() {
       } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
-      if (p1.rows.length === 9 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
+      if (p1.rows.length === 12 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);

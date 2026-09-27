@@ -583,8 +583,8 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW: RW's stored minutes replayed in two arms, RW itself (checked against its own days) and RW without the markets that end on the day they are quoted. |
-| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — and the research that picks them on RW's days before RW-E's twelve. |
-| `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, and RW-E's row read the same way from the replay's arm: from the engine's own state and records by the engine's own functions. |
+| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks. |
+| `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, and RW-E's and its variants' rows read the same way from their replays' arms: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
@@ -671,6 +671,7 @@ before touching migration state.
 | `0061_strategy_names_without_venue.sql` | Drops the venue from every strategy's name; the page's venue column and tag say it. |
 | `0062_view_markets_recorder.sql` | Adds the view-count recorder's tables (channels, uploads, counters, view markets, their books, the key's daily units) and its minute job. |
 | `0063_one_minute_batch.sql` | Replaces the nine jobs that each queued an Edge call with one that queues every call due in its minute in one statement, so pg_net takes them as one batch. |
+| `0064_pm_rw_x.sql` | Adds the forward replay of RW-E's three variants: its state and day tables, its lease, and its call in the one-minute job. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -750,6 +751,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
+ ├─ agents ?action=pmrw-x  every minute   RW's stored minutes replayed, RW-E's three variants → pm_rw_x_*
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache

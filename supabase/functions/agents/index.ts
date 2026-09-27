@@ -101,10 +101,10 @@ import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
-import { rweArmSummary, rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
+import { rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE } from "./pmrw_e.ts";
-import { parseRwxSpecs, researchRwx } from "./pmrw_x.ts";
+import { parseRwxSpecs, researchRwx, runPmrwX } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -812,7 +812,7 @@ async function dashboard(now: number) {
   // RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES with a page of its own.
   // Its own tables; missing ones (before the migration) or no state yet leave it off the page. RW-E, the replay's other
   // arm (`0056`), is a row of its own beside it (Davies, 2026-09-26), read from the same records.
-  const { rw, rwe } = await (async () => {
+  const { rw, rwe, rwx } = await (async () => {
     try {
       // The state first: the engine saves it after the fills and day rows it counts, so every read after it holds all
       // of those, and `rwSummary` leaves out anything a later run wrote.
@@ -833,7 +833,7 @@ async function dashboard(now: number) {
             d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error"),
             d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
             // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
-            d.select<RweSelRow>("pm_rw_selection", "select=day,cond,tick,v,min_size,rate,end_date&order=day.asc,cond.asc&limit=1000"),
+            d.select<RweSelRow>("pm_rw_selection", "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
           ]);
         } catch { return null; }
       })();
@@ -841,8 +841,18 @@ async function dashboard(now: number) {
       const arm = reads
         ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now })
         : null;
-      return { rw: out && { ...out, e }, rwe: arm && { ...arm, e } };
-    } catch { return { rw: null, rwe: null }; }
+      // RW-E's variants (`0064`): rows of their own after it (Davies, 2026-09-27), read from their replay's own tables.
+      const rwx = !reads ? [] : await (async () => {
+        try {
+          const [xs, xdays] = await Promise.all([
+            d.select<RweStateRow>("pm_rw_x_state", "id=eq.1&select=state,last_minute,last_error"),
+            d.select<RwxDaysRow>("pm_rw_x_days", "select=day,arm,total,stress_total,reward,fills,capital,markets&order=day.asc,arm.asc&limit=200"),
+          ]);
+          return rwxArmSummaries({ rwState: st[0] ?? null, xState: xs[0] ?? null, selectionAll: reads[2], today: selection, latest, days: xdays, fills, nowMs: now });
+        } catch { return []; }
+      })();
+      return { rw: out && { ...out, e }, rwe: arm && { ...arm, e }, rwx };
+    } catch { return { rw: null, rwe: null, rwx: [] }; }
   })();
 
   return {
@@ -865,6 +875,7 @@ async function dashboard(now: number) {
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
     rw,
     rwe,
+    rwx,
   };
 }
 
@@ -1280,6 +1291,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    if (action === "pmrw-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.
     if (action === "pmrw-x-research" && req.method === "POST" && operator) {
       const body = await req.json().catch(() => null);

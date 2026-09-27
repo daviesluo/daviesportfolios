@@ -30,7 +30,10 @@ export type RwxSpec = {
   invCap?: number;                            // a side stops quoting at invCap × N of inventory its way (RW's is 3)
   pause?: { cents: number; minutes: number }; // after the adjusted mid moves `cents` or more between minutes, not quoted for `minutes`
 };
-export type RwxArmState = { acc: Record<string, Acc>; dayActive: string[]; diverged: string[]; pausedUntil: Record<string, number>; lastMid: Record<string, number> };
+export type RwxArmState = {
+  acc: Record<string, Acc>; dayActive: string[]; diverged: string[]; pausedUntil: Record<string, number>; lastMid: Record<string, number>;
+  pauses?: Record<string, Array<[number, number]>>;   // bookkeeping for the page: each market's paused spans, [from, until) in ms
+};
 export type RwxState = { lastDecided: number; dayOf: number; arms: Record<string, RwxArmState>; checkMaxUsd: number };
 export type RwxDayOut = { day: string; arm: string; total: number; stress_total: number; reward: number; fills: number; capital: number; markets: number; detail: Record<string, unknown> };
 
@@ -52,7 +55,14 @@ function armQuotes(spec: RwxSpec, a: RwxArmState, c: string, t: number, recorded
     if (spec.noCats && cat !== null && spec.noCats.includes(cat)) q = false;
     if (spec.pause && mid !== null) {
       const prev = a.lastMid[c];
-      if (prev !== undefined && Math.abs(mid - prev) * 100 >= spec.pause.cents - 1e-9) a.pausedUntil[c] = t + spec.pause.minutes * M;
+      if (prev !== undefined && Math.abs(mid - prev) * 100 >= spec.pause.cents - 1e-9) {
+        a.pausedUntil[c] = t + spec.pause.minutes * M;
+        // The page's record of the span (a jump inside a pause extends the last span); the accounts never read it.
+        const spans = ((a.pauses ??= {})[c] ??= []);
+        const last = spans.at(-1);
+        if (last && last[1] >= t) last[1] = a.pausedUntil[c];
+        else spans.push([t, a.pausedUntil[c]]);
+      }
       if ((a.pausedUntil[c] ?? 0) > t) q = false;
     }
   }
@@ -259,4 +269,97 @@ export async function researchRwx(db: Db, specs: RwxSpec[], untilMs?: number): P
     };
   }
   return { until: iso(until), minutes, checkMaxUsd: st.checkMaxUsd, arms };
+}
+
+/** RW-X's first minute: 2026-09-28 00:00 UTC, the first its pre-registration judges. */
+export const RWX_START = Date.UTC(2026, 8, 28);
+/**
+ * The arms the forward replay runs, frozen by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`: `e` is RW-E (its
+ * rule from RW-E's first minute), the second check; `x1`–`x3` are RW-E plus each rule from RW-X's first minute.
+ */
+export const RWX_SPECS: RwxSpec[] = [
+  { id: "e", noSameDayFrom: RWE_START, from: RWE_START },
+  { id: "x1", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"] },
+  { id: "x2", noSameDayFrom: RWE_START, from: RWX_START, pause: { cents: 15, minutes: 60 } },
+  { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
+];
+/** The page's names, in the style of "Reward quotes (no same-day)". */
+export const RWX_NAMES: Record<string, string> = {
+  x1: "Reward quotes (no weather)", x2: "Reward quotes (pause on jumps)", x3: "Reward quotes (no weather, pause on jumps)",
+};
+/** The replay's rule version: a stored state of another is replayed again from RW's start. */
+export const RWX_STATE_VERSION = 1;
+/** Minutes replayed in one run at most, as RW-E's. */
+export const RWX_MAX_MINUTES = 720;
+export const RWX_LEASE_MS = 240e3;
+
+export type RwxStored = RwxState & { version: number; checkEMaxUsd: number; checkEDays?: number };
+export type RwxReport = { skipped?: string; minutes: number; from: number | null; to: number | null; days: number; errors: string[] };
+
+/**
+ * One run of the forward replay: take the lease, replay what RW has decided since the last run (at most
+ * `RWX_MAX_MINUTES`), write the days it closed and the state. Its `e` arm's closed days are checked against RW-E's own
+ * (`pm_rw_e_days`, arm `e`), the pre-registration's second check, on every run and over every day both have closed:
+ * RW-E's replay runs beside this one and may close a day a minute later. The `rw` arm is checked against RW's days
+ * inside the replay, which RW has always closed first.
+ */
+export async function runPmrwX(d: { db: Db; now: number; holder: string }): Promise<RwxReport> {
+  const report: RwxReport = { minutes: 0, from: null, to: null, days: 0, errors: [] };
+  const held = await d.db.claim("agent_locks", `name=eq.pmrw-x&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RWX_LEASE_MS), holder: d.holder });
+  if (!held.length) return { ...report, skipped: "another run holds the pmrw-x lease" };
+  try {
+    const [own] = await d.db.select<{ state: RwxStored | Record<string, never> }>("pm_rw_x_state", "id=eq.1&select=state");
+    const stored = own?.state && "arms" in own.state ? own.state as RwxStored : null;
+    const st: RwxStored = stored && stored.version === RWX_STATE_VERSION ? stored : { ...newRwxState(RWX_SPECS), version: RWX_STATE_VERSION, checkEMaxUsd: 0 };
+    if (st.dayOf >= RW_RUN_END) return { ...report, skipped: "the fourteen days are over" };
+    const [rw] = await d.db.select<{ last_minute: string | null }>("pm_rw_state", "id=eq.1&select=last_minute");
+    const rwLast = rw?.last_minute ? Date.parse(rw.last_minute) : NaN;
+    if (!Number.isFinite(rwLast)) return { ...report, skipped: "RW has decided nothing yet" };
+    const from = st.lastDecided + M;
+    const to = Math.min(rwLast, from + (RWX_MAX_MINUTES - 1) * M, RW_RUN_END - M);
+    if (to < from) return { ...report, skipped: "nothing new from RW" };
+    const lo = encodeURIComponent(iso(from)), hi = encodeURIComponent(iso(to)), hiPrints = encodeURIComponent(iso(to + M));
+    const [rows, fills, prints, selection, settlements, rwDays, eDays, xeDays] = await Promise.all([
+      d.db.selectAll<RweMinuteRow>("pm_rw_minutes", `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,quoting,tick,bb,ba,ab,aa,q1,q2,m,b,a,reward&order=minute.asc,cond.asc`),
+      d.db.selectAll<RweFillRow>("pm_rw_fills", `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc`),
+      d.db.selectAll<RwePrintRow>("pm_rw_prints", `ts=gte.${lo}&ts=lte.${hiPrints}&select=id,cond,ts,side,oi,price,size&order=ts.asc,id.asc`),
+      d.db.select<RweSelRow>("pm_rw_selection", `day=lte.${dayStr(to)}&select=day,cond,tick,v,min_size,rate,end_date,q,cat&order=day.asc,cond.asc&limit=1000`),
+      d.db.select<RweSettlement>("pm_rw_settlements", "select=cond,payout,settled_at&order=cond.asc&limit=1000"),
+      d.db.select<RweDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills&order=day.asc&limit=100"),
+      d.db.select<RweDayRow & { arm: string }>("pm_rw_e_days", "arm=eq.e&select=day,arm,total,stress_total,reward,fills&order=day.asc&limit=100"),
+      d.db.select<RweDayRow>("pm_rw_x_days", "arm=eq.e&select=day,total,stress_total,reward,fills&order=day.asc&limit=100"),
+    ]);
+    const out = replayArms(st, to, { rows, fills, prints, selection, settlements, rwDays }, RWX_SPECS);
+    // The second check: the e arm is RW-E, day for day, over every day both have closed. A row of a day this state has
+    // not closed is an older version's, and is not read.
+    const eOwn = new Map(eDays.map((x) => [String(x.day).slice(0, 10), x]));
+    const mine = new Map<string, { total: number | string; stress_total: number | string; reward: number | string; fills: number | string }>();
+    for (const x of xeDays) if (Date.parse(`${String(x.day).slice(0, 10)}T00:00:00Z`) < st.dayOf) mine.set(String(x.day).slice(0, 10), x);
+    for (const x of out.days) if (x.arm === "e") mine.set(x.day, x);
+    const gapOf = (x: { total: number | string; stress_total: number | string; reward: number | string; fills: number | string }, own: RweDayRow) => ({
+      total: Number(x.total) - Number(own.total), stress: Number(x.stress_total) - Number(own.stress_total),
+      reward: Number(x.reward) - Number(own.reward), fills: Number(x.fills) - Number(own.fills),
+    });
+    let eMax = 0, eDaysChecked = 0;
+    for (const [day, x] of mine) {
+      const own = eOwn.get(day);
+      if (!own) continue;
+      const g = gapOf(x, own);
+      eMax = Math.max(eMax, Math.abs(g.total), Math.abs(g.stress), Math.abs(g.reward), Math.abs(g.fills));
+      eDaysChecked++;
+    }
+    for (const x of out.days) if (x.arm === "e") { const own = eOwn.get(x.day); x.detail.checkE = own ? gapOf(x, own) : null; }
+    st.checkEMaxUsd = eMax;
+    st.checkEDays = eDaysChecked;
+    if (out.days.length) await d.db.upsert("pm_rw_x_days", out.days.map((x) => ({ ...x, closed_at: iso(d.now) })), "day,arm");
+    await d.db.upsert("pm_rw_x_state", [{ id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: null }], "id");
+    return { ...report, minutes: out.minutes, from, to, days: out.days.length };
+  } catch (e) {
+    const m = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    report.errors.push(m);
+    try { await d.db.update("pm_rw_x_state", "id=eq.1", { last_error: m, updated_at: iso(d.now) }); } catch { /* the error is in the report */ }
+    return report;
+  } finally {
+    try { await d.db.update("agent_locks", `name=eq.pmrw-x&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* the lease expires on its own */ }
+  }
 }
