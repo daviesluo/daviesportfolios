@@ -1,0 +1,216 @@
+{
+ "comments_read": 14576,
+ "events": [
+  {
+   "T_utc": "2025-11-01T16:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "63143",
+   "flags": [
+    "uma_dispute: <70M",
+    "disputed <70M: paid 0.0, statuses ['proposed', 'disputed', 'proposed', 'resolved'], mid at T-1h 0.001, T 0.0005, T+15m 0.0005"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-week-1-713",
+   "winner": [
+    70000000.0,
+    80000000.0
+   ]
+  },
+  {
+   "T_utc": "2025-11-09T17:00:10Z",
+   "comments": [
+    {
+     "body": "Exact 70m views \ud83d\ude02",
+     "t_minus_T_s": -3533
+    },
+    {
+     "body": "This resolves on Jan 31 2026 correct?",
+     "t_minus_T_s": 11662
+    }
+   ],
+   "comments_matched": 2,
+   "event": "67222",
+   "flags": [
+    "uma_dispute: <25M",
+    "disputed <25M: paid 0.0, statuses ['proposed', 'disputed', 'proposed', 'resolved'], mid at T-1h 0.0005, T 0.0005, T+15m 0.0005"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-764",
+   "winner": [
+    25000000.0,
+    30000000.0
+   ]
+  },
+  {
+   "T_utc": "2025-11-23T17:00:10Z",
+   "comments": [
+    {
+     "body": "its been 24 h since video posted",
+     "t_minus_T_s": 1098
+    },
+    {
+     "body": "why does less than 25 keep getting disputed",
+     "t_minus_T_s": 4922
+    },
+    {
+     "body": "How many days left to resolve?",
+     "t_minus_T_s": 25916
+    }
+   ],
+   "comments_matched": 3,
+   "event": "77993",
+   "flags": [
+    "uma_dispute: <25M",
+    "disputed <25M: paid 0.0, statuses ['proposed', 'disputed', 'proposed', 'resolved'], mid at T-1h 0.0005, T 0.0005, T+15m 0.0005"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-377",
+   "winner": [
+    25000000.0,
+    30000000.0
+   ]
+  },
+  {
+   "T_utc": "2025-12-27T17:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "103217",
+   "flags": [
+    "uma_dispute: <60M",
+    "disputed <60M: paid 0.0, statuses ['proposed', 'disputed', 'proposed', 'resolved'], mid at T-1h 0.0005, T 0.0005, T+15m 0.0005"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-week-1-883",
+   "winner": [
+    90000000.0,
+    100000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-02-22T17:00:10Z",
+   "comments": [
+    {
+     "body": "No, it stopped generating good view counts 90 minutes ago",
+     "t_minus_T_s": -1683
+    },
+    {
+     "body": "It's 24 hours after the video is posted and MrBeast videos are always posted at 12:00:01 ET",
+     "t_minus_T_s": 2861
+    }
+   ],
+   "comments_matched": 2,
+   "event": "221785",
+   "flags": [
+    "window_conflict: rules 48 h, title 24 h; resolved on 24 h by the close times"
+   ],
+   "slug": "of-views-of-mrbeast-i-built-10-schools-around-the-world-video-day-1",
+   "winner": [
+    18000000.0,
+    20000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-02-28T17:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "221848",
+   "flags": [
+    "stale_prints_edge_ge_5c_after_T+10m 2, gross $4.55, first at T+6479 s"
+   ],
+   "slug": "of-views-of-mrbeast-video-on-week-1-lower-brackets-339",
+   "winner": [
+    null,
+    45000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-02-28T17:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "227688",
+   "flags": [
+    "stale_prints_edge_ge_5c_after_T+10m 1, gross $31.54, first at T+5293 s"
+   ],
+   "slug": "of-views-of-mrbeast-video-on-week-1-even-lower-brackets",
+   "winner": [
+    41000000.0,
+    null
+   ]
+  },
+  {
+   "T_utc": "2026-03-08T17:00:10Z",
+   "comments": [
+    {
+     "body": "Check my post from earlier - Yes, this is exactly what I'm referring to, and it can go up with millions after the SYNC. I learned this by mistake in the past :/",
+     "t_minus_T_s": 28098
+    },
+    {
+     "body": "When will market resolve? Tomorrow morning?",
+     "t_minus_T_s": 45985
+    }
+   ],
+   "comments_matched": 2,
+   "event": "241960",
+   "flags": [
+    "close_spread_h 5.16: late ['25\u201330M', '30\u201335M']",
+    "stale_prints_edge_ge_5c_after_T+10m 19, gross $645.49, first at T+26689 s, winner's YES as low as 0.250"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-863",
+   "winner": [
+    25000000.0,
+    30000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-03-09T17:00:10Z",
+   "comments": [
+    {
+     "body": "Guys someone tell me which time will these poll will end this is sucks to find exact time",
+     "t_minus_T_s": 6861
+    },
+    {
+     "body": "That\u2019s a good question where do you see the exact end time/start time",
+     "t_minus_T_s": 8487
+    }
+   ],
+   "comments_matched": 2,
+   "event": "253523",
+   "flags": [
+    "uma_dispute: <30M",
+    "disputed <30M: paid 0.0, statuses ['proposed', 'disputed', 'proposed'], mid at T-1h 0.0005, T 0.0005, T+15m 0.0005"
+   ],
+   "slug": "of-views-of-mrbeast-video-day-2-299",
+   "winner": [
+    42000000.0,
+    46000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-03-28T16:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "276384",
+   "flags": [
+    "close_spread_h 3.13: late ['80-90M']"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-week-1-465",
+   "winner": [
+    80000000.0,
+    90000000.0
+   ]
+  },
+  {
+   "T_utc": "2026-04-05T16:00:10Z",
+   "comments": [],
+   "comments_matched": 0,
+   "event": "325501",
+   "flags": [
+    "close_spread_h 6.48: late ['<25M', '30\u201335M']"
+   ],
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-395",
+   "winner": [
+    30000000.0,
+    35000000.0
+   ]
+  }
+ ],
+ "events_examined": 92,
+ "events_flagged": 11
+}

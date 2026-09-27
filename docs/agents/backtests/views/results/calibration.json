@@ -1,0 +1,580 @@
+{
+ "events": 92,
+ "horizons": {
+  "T-15m": {
+   "bins": [
+    {
+     "bin": "[0.00,0.02)",
+     "events": 92,
+     "markets": 534,
+     "mean_mid": 0.0007,
+     "paid_minus_mid": -0.0007,
+     "se": 0.0012,
+     "share_paid": 0.0,
+     "z": -0.62
+    },
+    {
+     "bin": "[0.02,0.05)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.0316,
+     "paid_minus_mid": -0.0316,
+     "se": 0.0875,
+     "share_paid": 0.0,
+     "z": -0.36
+    },
+    {
+     "bin": "[0.05,0.10)",
+     "events": 3,
+     "markets": 3,
+     "mean_mid": 0.0658,
+     "paid_minus_mid": -0.0658,
+     "se": 0.1432,
+     "share_paid": 0.0,
+     "z": -0.46
+    },
+    {
+     "bin": "[0.10,0.20)",
+     "events": 3,
+     "markets": 3,
+     "mean_mid": 0.1602,
+     "paid_minus_mid": -0.1602,
+     "se": 0.2117,
+     "share_paid": 0.0,
+     "z": -0.76
+    },
+    {
+     "bin": "[0.20,0.35)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.2295,
+     "paid_minus_mid": -0.2295,
+     "se": 0.4205,
+     "share_paid": 0.0,
+     "z": -0.55
+    },
+    {
+     "bin": "[0.65,0.80)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.795,
+     "paid_minus_mid": 0.205,
+     "se": 0.4037,
+     "share_paid": 1.0,
+     "z": 0.51
+    },
+    {
+     "bin": "[0.80,0.90)",
+     "events": 3,
+     "markets": 3,
+     "mean_mid": 0.8475,
+     "paid_minus_mid": 0.1525,
+     "se": 0.2076,
+     "share_paid": 1.0,
+     "z": 0.73
+    },
+    {
+     "bin": "[0.90,0.95)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.9378,
+     "paid_minus_mid": 0.0622,
+     "se": 0.1208,
+     "share_paid": 1.0,
+     "z": 0.52
+    },
+    {
+     "bin": "[0.95,0.98)",
+     "events": 3,
+     "markets": 3,
+     "mean_mid": 0.974,
+     "paid_minus_mid": 0.026,
+     "se": 0.0919,
+     "share_paid": 1.0,
+     "z": 0.28
+    },
+    {
+     "bin": "[0.98,1.00)",
+     "events": 80,
+     "markets": 80,
+     "mean_mid": 0.998,
+     "paid_minus_mid": 0.002,
+     "se": 0.005,
+     "share_paid": 1.0,
+     "z": 0.4
+    }
+   ],
+   "brier": 0.00045,
+   "brier_if_each_bin_priced_at_its_rate": 0.0,
+   "markets": 636
+  },
+  "T-1h": {
+   "bins": [
+    {
+     "bin": "[0.00,0.02)",
+     "events": 92,
+     "markets": 528,
+     "mean_mid": 0.0008,
+     "paid_minus_mid": -0.0008,
+     "se": 0.0012,
+     "share_paid": 0.0,
+     "z": -0.65
+    },
+    {
+     "bin": "[0.02,0.05)",
+     "events": 2,
+     "markets": 2,
+     "mean_mid": 0.0217,
+     "paid_minus_mid": -0.0217,
+     "se": 0.1031,
+     "share_paid": 0.0,
+     "z": -0.21
+    },
+    {
+     "bin": "[0.05,0.10)",
+     "events": 7,
+     "markets": 7,
+     "mean_mid": 0.0684,
+     "paid_minus_mid": -0.0684,
+     "se": 0.0954,
+     "share_paid": 0.0,
+     "z": -0.72
+    },
+    {
+     "bin": "[0.10,0.20)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.1335,
+     "paid_minus_mid": 0.8665,
+     "se": 0.3401,
+     "share_paid": 1.0,
+     "z": 2.55
+    },
+    {
+     "bin": "[0.20,0.35)",
+     "events": 3,
+     "markets": 3,
+     "mean_mid": 0.2948,
+     "paid_minus_mid": 0.0385,
+     "se": 0.2633,
+     "share_paid": 0.3333,
+     "z": 0.15
+    },
+    {
+     "bin": "[0.35,0.50)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.4311,
+     "paid_minus_mid": -0.1811,
+     "se": 0.2476,
+     "share_paid": 0.25,
+     "z": -0.73
+    },
+    {
+     "bin": "[0.50,0.65)",
+     "events": 5,
+     "markets": 5,
+     "mean_mid": 0.567,
+     "paid_minus_mid": 0.033,
+     "se": 0.2216,
+     "share_paid": 0.6,
+     "z": 0.15
+    },
+    {
+     "bin": "[0.65,0.80)",
+     "events": 2,
+     "markets": 2,
+     "mean_mid": 0.75,
+     "paid_minus_mid": 0.25,
+     "se": 0.3062,
+     "share_paid": 1.0,
+     "z": 0.82
+    },
+    {
+     "bin": "[0.80,0.90)",
+     "events": 2,
+     "markets": 2,
+     "mean_mid": 0.8818,
+     "paid_minus_mid": -0.3818,
+     "se": 0.2283,
+     "share_paid": 0.5,
+     "z": -1.67
+    },
+    {
+     "bin": "[0.90,0.95)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.9295,
+     "paid_minus_mid": 0.0705,
+     "se": 0.128,
+     "share_paid": 1.0,
+     "z": 0.55
+    },
+    {
+     "bin": "[0.95,0.98)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.9644,
+     "paid_minus_mid": 0.0356,
+     "se": 0.0927,
+     "share_paid": 1.0,
+     "z": 0.38
+    },
+    {
+     "bin": "[0.98,1.00)",
+     "events": 74,
+     "markets": 74,
+     "mean_mid": 0.9973,
+     "paid_minus_mid": 0.0027,
+     "se": 0.0061,
+     "share_paid": 1.0,
+     "z": 0.45
+    }
+   ],
+   "brier": 0.00695,
+   "brier_if_each_bin_priced_at_its_rate": 0.0049,
+   "markets": 636
+  },
+  "T-3h": {
+   "bins": [
+    {
+     "bin": "[0.00,0.02)",
+     "events": 92,
+     "markets": 506,
+     "mean_mid": 0.0012,
+     "paid_minus_mid": -0.0012,
+     "se": 0.0016,
+     "share_paid": 0.0,
+     "z": -0.79
+    },
+    {
+     "bin": "[0.02,0.05)",
+     "events": 12,
+     "markets": 12,
+     "mean_mid": 0.0301,
+     "paid_minus_mid": -0.0301,
+     "se": 0.0493,
+     "share_paid": 0.0,
+     "z": -0.61
+    },
+    {
+     "bin": "[0.05,0.10)",
+     "events": 8,
+     "markets": 8,
+     "mean_mid": 0.0758,
+     "paid_minus_mid": -0.0758,
+     "se": 0.0936,
+     "share_paid": 0.0,
+     "z": -0.81
+    },
+    {
+     "bin": "[0.10,0.20)",
+     "events": 6,
+     "markets": 6,
+     "mean_mid": 0.1492,
+     "paid_minus_mid": 0.1842,
+     "se": 0.1454,
+     "share_paid": 0.3333,
+     "z": 1.27
+    },
+    {
+     "bin": "[0.20,0.35)",
+     "events": 8,
+     "markets": 8,
+     "mean_mid": 0.2875,
+     "paid_minus_mid": -0.1625,
+     "se": 0.16,
+     "share_paid": 0.125,
+     "z": -1.02
+    },
+    {
+     "bin": "[0.35,0.50)",
+     "events": 5,
+     "markets": 6,
+     "mean_mid": 0.4438,
+     "paid_minus_mid": -0.1105,
+     "se": 0.2028,
+     "share_paid": 0.3333,
+     "z": -0.54
+    },
+    {
+     "bin": "[0.50,0.65)",
+     "events": 4,
+     "markets": 4,
+     "mean_mid": 0.5463,
+     "paid_minus_mid": -0.0463,
+     "se": 0.2489,
+     "share_paid": 0.5,
+     "z": -0.19
+    },
+    {
+     "bin": "[0.65,0.80)",
+     "events": 8,
+     "markets": 8,
+     "mean_mid": 0.7206,
+     "paid_minus_mid": 0.1544,
+     "se": 0.1586,
+     "share_paid": 0.875,
+     "z": 0.97
+    },
+    {
+     "bin": "[0.80,0.90)",
+     "events": 5,
+     "markets": 5,
+     "mean_mid": 0.8396,
+     "paid_minus_mid": -0.0396,
+     "se": 0.1641,
+     "share_paid": 0.8,
+     "z": -0.24
+    },
+    {
+     "bin": "[0.90,0.95)",
+     "events": 8,
+     "markets": 8,
+     "mean_mid": 0.9213,
+     "paid_minus_mid": 0.0787,
+     "se": 0.0952,
+     "share_paid": 1.0,
+     "z": 0.83
+    },
+    {
+     "bin": "[0.95,0.98)",
+     "events": 15,
+     "markets": 15,
+     "mean_mid": 0.9703,
+     "paid_minus_mid": 0.0297,
+     "se": 0.0438,
+     "share_paid": 1.0,
+     "z": 0.68
+    },
+    {
+     "bin": "[0.98,1.00)",
+     "events": 50,
+     "markets": 50,
+     "mean_mid": 0.9973,
+     "paid_minus_mid": 0.0027,
+     "se": 0.0073,
+     "share_paid": 1.0,
+     "z": 0.37
+    }
+   ],
+   "brier": 0.01177,
+   "brier_if_each_bin_priced_at_its_rate": 0.00977,
+   "markets": 636
+  },
+  "T-5m": {
+   "bins": [
+    {
+     "bin": "[0.00,0.02)",
+     "events": 92,
+     "markets": 541,
+     "mean_mid": 0.0008,
+     "paid_minus_mid": -0.0008,
+     "se": 0.0012,
+     "share_paid": 0.0,
+     "z": -0.65
+    },
+    {
+     "bin": "[0.02,0.05)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.03,
+     "paid_minus_mid": -0.03,
+     "se": 0.1706,
+     "share_paid": 0.0,
+     "z": -0.18
+    },
+    {
+     "bin": "[0.10,0.20)",
+     "events": 2,
+     "markets": 2,
+     "mean_mid": 0.1202,
+     "paid_minus_mid": 0.3798,
+     "se": 0.23,
+     "share_paid": 0.5,
+     "z": 1.65
+    },
+    {
+     "bin": "[0.20,0.35)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.315,
+     "paid_minus_mid": -0.315,
+     "se": 0.4645,
+     "share_paid": 0.0,
+     "z": -0.68
+    },
+    {
+     "bin": "[0.65,0.80)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.685,
+     "paid_minus_mid": 0.315,
+     "se": 0.4645,
+     "share_paid": 1.0,
+     "z": 0.68
+    },
+    {
+     "bin": "[0.80,0.90)",
+     "events": 2,
+     "markets": 2,
+     "mean_mid": 0.8415,
+     "paid_minus_mid": -0.3415,
+     "se": 0.2582,
+     "share_paid": 0.5,
+     "z": -1.32
+    },
+    {
+     "bin": "[0.95,0.98)",
+     "events": 1,
+     "markets": 1,
+     "mean_mid": 0.965,
+     "paid_minus_mid": 0.035,
+     "se": 0.1838,
+     "share_paid": 1.0,
+     "z": 0.19
+    },
+    {
+     "bin": "[0.98,1.00)",
+     "events": 87,
+     "markets": 87,
+     "mean_mid": 0.9979,
+     "paid_minus_mid": 0.0021,
+     "se": 0.0049,
+     "share_paid": 1.0,
+     "z": 0.43
+    }
+   ],
+   "brier": 0.00256,
+   "brier_if_each_bin_priced_at_its_rate": 0.00157,
+   "markets": 636
+  },
+  "T-6h": {
+   "bins": [
+    {
+     "bin": "[0.00,0.02)",
+     "events": 92,
+     "markets": 484,
+     "mean_mid": 0.0017,
+     "paid_minus_mid": 0.0004,
+     "se": 0.0019,
+     "share_paid": 0.0021,
+     "z": 0.19
+    },
+    {
+     "bin": "[0.02,0.05)",
+     "events": 16,
+     "markets": 17,
+     "mean_mid": 0.0299,
+     "paid_minus_mid": 0.029,
+     "se": 0.0413,
+     "share_paid": 0.0588,
+     "z": 0.7
+    },
+    {
+     "bin": "[0.05,0.10)",
+     "events": 10,
+     "markets": 12,
+     "mean_mid": 0.0687,
+     "paid_minus_mid": -0.0687,
+     "se": 0.073,
+     "share_paid": 0.0,
+     "z": -0.94
+    },
+    {
+     "bin": "[0.10,0.20)",
+     "events": 13,
+     "markets": 13,
+     "mean_mid": 0.1376,
+     "paid_minus_mid": -0.1376,
+     "se": 0.0955,
+     "share_paid": 0.0,
+     "z": -1.44
+    },
+    {
+     "bin": "[0.20,0.35)",
+     "events": 12,
+     "markets": 12,
+     "mean_mid": 0.2618,
+     "paid_minus_mid": 0.1549,
+     "se": 0.1269,
+     "share_paid": 0.4167,
+     "z": 1.22
+    },
+    {
+     "bin": "[0.35,0.50)",
+     "events": 7,
+     "markets": 7,
+     "mean_mid": 0.3884,
+     "paid_minus_mid": 0.1831,
+     "se": 0.1842,
+     "share_paid": 0.5714,
+     "z": 0.99
+    },
+    {
+     "bin": "[0.50,0.65)",
+     "events": 8,
+     "markets": 8,
+     "mean_mid": 0.5841,
+     "paid_minus_mid": -0.2091,
+     "se": 0.1743,
+     "share_paid": 0.375,
+     "z": -1.2
+    },
+    {
+     "bin": "[0.65,0.80)",
+     "events": 11,
+     "markets": 11,
+     "mean_mid": 0.721,
+     "paid_minus_mid": -0.0846,
+     "se": 0.1352,
+     "share_paid": 0.6364,
+     "z": -0.63
+    },
+    {
+     "bin": "[0.80,0.90)",
+     "events": 17,
+     "markets": 17,
+     "mean_mid": 0.8571,
+     "paid_minus_mid": 0.1429,
+     "se": 0.0849,
+     "share_paid": 1.0,
+     "z": 1.68
+    },
+    {
+     "bin": "[0.90,0.95)",
+     "events": 6,
+     "markets": 6,
+     "mean_mid": 0.9218,
+     "paid_minus_mid": 0.0782,
+     "se": 0.1096,
+     "share_paid": 1.0,
+     "z": 0.71
+    },
+    {
+     "bin": "[0.95,0.98)",
+     "events": 9,
+     "markets": 9,
+     "mean_mid": 0.9644,
+     "paid_minus_mid": -0.1866,
+     "se": 0.0618,
+     "share_paid": 0.7778,
+     "z": -3.02
+    },
+    {
+     "bin": "[0.98,1.00)",
+     "events": 40,
+     "markets": 40,
+     "mean_mid": 0.9957,
+     "paid_minus_mid": 0.0043,
+     "se": 0.0103,
+     "share_paid": 1.0,
+     "z": 0.41
+    }
+   ],
+   "brier": 0.02334,
+   "brier_if_each_bin_priced_at_its_rate": 0.01973,
+   "markets": 636
+  }
+ }
+}

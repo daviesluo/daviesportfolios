@@ -2901,6 +2901,30 @@ the one rule left standing is USLATE-FAST (`reviews/2026-09-27-speed-prereg-usla
 publication + 0.25 s, a 28-day forward test that needs a 1 s `tgftp` recorder built first, on Davies' word, with a bar
 that includes beating USLATE on the same days. Expected: $7–13 a day before traps.
 
+### 3.40 VIEWS: the YouTube view-count markets on history — calibrated near the deadline, little left after it (2026-09-27)
+
+Davies asked whether the view strategy is promising. A research agent answered on history first
+(`reviews/2026-09-27-views-phase1.md`, `backtests/views/`; keyless reads only; `scripts/run_all.py` re-runs every
+analysis twice byte-identical, and the coordinator re-ran it on the committed inputs: identical). The universe is the
+353 closed events under Gamma's YouTube tag: 202 view counts, $113.0M traded (MrBeast 164 events, $99.3M); the split was
+fixed from metadata before any print was read (125 exploration events to 2026-05, 77 held out, unread). Every deadline
+T is an estimate (MrBeast posts at ~12:00:10 ET; 92 deadlines at high confidence).
+
+| winner's midpoint (92 deadlines) | T − 6 h | T − 1 h | T − 15 min | T | T + 5 min |
+|---|---:|---:|---:|---:|---:|
+| median | 0.9625 | 0.9985 | 0.9995 | 0.9995 | 0.9995 |
+| winner under 0.8 | 22.8 % | 8.7 % | 1.1 % | 1.1 % | 0 % |
+| the favourite wins | 88.0 % | 96.7 % | 100 % | 100 % | 100 % |
+
+**Not promising as money; nothing pre-registered.** The price is calibrated at every horizon (Brier 0.0233, 0.0070,
+0.00045 at T − 6 h, − 1 h, − 15 min). After T the stale side held $3,271.40 of gross edge on 10 of 92 deadlines in 547
+days; PMLATE's fill at T + 1 s makes +$253.59 on $400 of peak capital with 66.5 % on one contested date (2026-03-08), and
+the one real flip (2026-04-09, at T + 17 s) was 92 % taken within 60 s. Depth fell from $935k an event in the
+exploration months to $104k since June. A trajectory rule can only be tested forward, and at a realistic effect (mean ÷
+s.d. 0.1–0.2 a deadline against a calibrated market) needs 157–625 deadlines, 35–139 weeks. The recorder (§4 item 38)
+keeps recording as measurement for four to six weeks; a last-batch taker earns a forward pre-registration only if at
+least three close calls show the market a batch behind by more than 2 s and paying more than $20 each.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

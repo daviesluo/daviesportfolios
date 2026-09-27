@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies of 2026-09-26/27, this session: WXSRC and VIEWS in flight; the speed study, fp6 and PMLATE done; the view recorder running.** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: WXSRC in flight; VIEWS, the speed study, fp6 and PMLATE done; the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -165,7 +165,12 @@ list stays the short version; the plan is the reasoning behind it.
    under tag 146 (MrBeast day-1…week-1, Gaming, others; ~157 MrBeast events, ~$92M traded): how efficient the price is
    near the deadline, what stale side is left once the last batch before T fixes the count (PMLATE's question), the
    resolution risk, a forward-test design for trajectory and batch-reaction rules, and what the recorder should record
-   differently. At most five pre-registrations; then the freeze.
+   differently. At most five pre-registrations; then the freeze. **Done 2026-09-27 (reference §3.40): not promising as money, no
+   pre-registration.** The market is calibrated near T (the winner's median 0.9985 at T − 1 h, the favourite won all
+   92 dated deadlines from T − 15 min); after T $3,271 of stale edge in 547 days, +$253.59 at T + 1 s with 66.5 % on
+   one contested date; depth fell from $935k to $104k an event since June. The recorder keeps recording 4–6 weeks as
+   measurement; its changes (1 s from T − 6 to T + 6 min, batch brackets if today's jitter allows, freezes, the
+   resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -272,6 +277,16 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**VIEWS phase 1 (what-remains item 5f on `main`; a research agent on its own branch `worktree-agent-ada7daf3e11ed5a5f`, not pushed): Polymarket's YouTube view-count markets on history. Not promising as money; no pre-registration.**
+- Write-up `reviews/2026-09-27-views-phase1.md`; scripts, committed inputs and results in `backtests/views/` (`scripts/run_all.py` re-runs every analysis from the committed files, twice, byte-identical; raw pulls stay out of git, hashed in `MANIFEST.json`). Keyless reads only: Gamma, the data API, the CLOB's `/prices-history`, comments; no key, nothing placed, YouTube not read.
+- Universe: 353 closed tag-146 events, 202 of them view counts ($113.0M, MrBeast 164 events / $99.3M). Split decided from Gamma's metadata before any print was read: exploration = 125 events with deadlines before 2026-06-01; held out = 77 (2026-06-01 → 09-26), no price or print of theirs requested. Every T is estimated: MrBeast posts at 12:00 ET (28 day-1 markets: 8.3 prints a minute before, 283 and 541 in the first two minutes after), P = 12:00:10 ET, 92 deadlines high confidence.
+- Near T (92 deadlines): the winner's midpoint median 0.9625 at T − 6 h and 0.9985 at T − 1 h; the favourite wins 88 % / 97 % / 100 % at T − 6 h / − 1 h / − 15 min; calibrated at every horizon. Close calls (winner < 0.95 at T − 15 min): 8 of 92.
+- After T: $3,271.40 of stale-side edge on 10 deadlines in 547 days; PMLATE's fill at T + 1 s makes +$253.59, 66.5 % on one contested date. Resolution risk is real: freezes, "sync" jumps, bots (organised in close calls), rules naming the wrong video or window, 7 early-proposal disputes on lowest brackets.
+- Power: the held-out months would give ~7 deadlines with a fill against the fp5 bar's 25 dates; a forward last-batch taker needs 15–31 weeks (0.39 close calls a week), a trajectory rule 16–35 weeks at a plausible edge. Markets are 9× thinner per event now ($104k against $935k).
+- Recommended: run the recorder 4–6 weeks as measurement, with 1 s reads from T − 6 min to T + 6 min, freeze flags, Gamma's resolution record after T and `liveStreamingDetails`. For the coordinator: `videos.list` on 25 named ids and the channels' uploads playlists would make every T exact (`results/publish_times_needed.json`).
 
 ### [2026-09-27 02:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

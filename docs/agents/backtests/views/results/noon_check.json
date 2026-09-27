@@ -1,0 +1,313 @@
+{
+ "events": [
+  {
+   "event": "21363",
+   "first_minute_with_5_prints": 14,
+   "posted_et": "2025-03-22 Sat",
+   "prints_11_50_to_12_00": 2,
+   "prints_12_00_to_12_10": 7,
+   "slug": "of-views-of-next-mrbeast-video"
+  },
+  {
+   "event": "21578",
+   "first_minute_with_5_prints": 12,
+   "posted_et": "2025-04-12 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 1,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-3-24"
+  },
+  {
+   "event": "25119",
+   "first_minute_with_5_prints": 12,
+   "posted_et": "2025-05-24 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 4,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-may-23"
+  },
+  {
+   "event": "25592",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-06-07 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 106,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1"
+  },
+  {
+   "event": "27235",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-06-21 Sat",
+   "prints_11_50_to_12_00": 3,
+   "prints_12_00_to_12_10": 103,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-723"
+  },
+  {
+   "event": "30789",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-07-19 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 20,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-179"
+  },
+  {
+   "event": "34036",
+   "first_minute_with_5_prints": 0,
+   "posted_et": "2025-08-01 Fri",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 68,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-888"
+  },
+  {
+   "event": "38318",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-08-30 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 23,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-796"
+  },
+  {
+   "event": "41135",
+   "first_minute_with_5_prints": -7,
+   "posted_et": "2025-09-13 Sat",
+   "prints_11_50_to_12_00": 8,
+   "prints_12_00_to_12_10": 33,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-523"
+  },
+  {
+   "event": "45014",
+   "first_minute_with_5_prints": 14,
+   "posted_et": "2025-09-27 Sat",
+   "prints_11_50_to_12_00": 3,
+   "prints_12_00_to_12_10": 13,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-621"
+  },
+  {
+   "event": "52030",
+   "first_minute_with_5_prints": 3,
+   "posted_et": "2025-10-04 Sat",
+   "prints_11_50_to_12_00": 4,
+   "prints_12_00_to_12_10": 162,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-916"
+  },
+  {
+   "event": "55974",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-10-11 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 41,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-529"
+  },
+  {
+   "event": "60505",
+   "first_minute_with_5_prints": -8,
+   "posted_et": "2025-10-25 Sat",
+   "prints_11_50_to_12_00": 20,
+   "prints_12_00_to_12_10": 344,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-221"
+  },
+  {
+   "event": "67222",
+   "first_minute_with_5_prints": 0,
+   "posted_et": "2025-11-08 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 241,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-764"
+  },
+  {
+   "event": "77993",
+   "first_minute_with_5_prints": 0,
+   "posted_et": "2025-11-22 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 155,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-377"
+  },
+  {
+   "event": "89513",
+   "first_minute_with_5_prints": 5,
+   "posted_et": "2025-12-06 Sat",
+   "prints_11_50_to_12_00": 4,
+   "prints_12_00_to_12_10": 38,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-276"
+  },
+  {
+   "event": "101116",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2025-12-20 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 91,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-486"
+  },
+  {
+   "event": "117921",
+   "first_minute_with_5_prints": 20,
+   "posted_et": "2026-01-07 Wed",
+   "prints_11_50_to_12_00": 4,
+   "prints_12_00_to_12_10": 3,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-883"
+  },
+  {
+   "event": "152019",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2026-01-24 Sat",
+   "prints_11_50_to_12_00": 3,
+   "prints_12_00_to_12_10": 119,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-716"
+  },
+  {
+   "event": "189850",
+   "first_minute_with_5_prints": 3,
+   "posted_et": "2026-02-07 Sat",
+   "prints_11_50_to_12_00": 7,
+   "prints_12_00_to_12_10": 104,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-563"
+  },
+  {
+   "event": "210593",
+   "first_minute_with_5_prints": -1,
+   "posted_et": "2026-02-21 Sat",
+   "prints_11_50_to_12_00": 6,
+   "prints_12_00_to_12_10": 226,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-567"
+  },
+  {
+   "event": "241960",
+   "first_minute_with_5_prints": 0,
+   "posted_et": "2026-03-07 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 60,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-863"
+  },
+  {
+   "event": "276385",
+   "first_minute_with_5_prints": 5,
+   "posted_et": "2026-03-21 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 150,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-659"
+  },
+  {
+   "event": "325501",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2026-04-04 Sat",
+   "prints_11_50_to_12_00": 2,
+   "prints_12_00_to_12_10": 36,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-395"
+  },
+  {
+   "event": "375276",
+   "first_minute_with_5_prints": 3,
+   "posted_et": "2026-04-18 Sat",
+   "prints_11_50_to_12_00": 0,
+   "prints_12_00_to_12_10": 31,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-147"
+  },
+  {
+   "event": "424261",
+   "first_minute_with_5_prints": 0,
+   "posted_et": "2026-05-02 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 26,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-966"
+  },
+  {
+   "event": "472231",
+   "first_minute_with_5_prints": 1,
+   "posted_et": "2026-05-16 Sat",
+   "prints_11_50_to_12_00": 1,
+   "prints_12_00_to_12_10": 56,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-947"
+  },
+  {
+   "event": "527142",
+   "first_minute_with_5_prints": -9,
+   "posted_et": "2026-05-30 Sat",
+   "prints_11_50_to_12_00": 10,
+   "prints_12_00_to_12_10": 17,
+   "slug": "of-views-of-next-mrbeast-video-on-day-1-631"
+  }
+ ],
+ "first_minute_counts": {
+  "-1": 1,
+  "-7": 1,
+  "-8": 1,
+  "-9": 1,
+  "0": 5,
+  "1": 9,
+  "12": 2,
+  "14": 2,
+  "20": 1,
+  "3": 3,
+  "5": 2
+ },
+ "minutes_from_12_00_ET": {
+  "-1": 10,
+  "-10": 3,
+  "-11": 62,
+  "-12": 29,
+  "-13": 12,
+  "-14": 21,
+  "-15": 12,
+  "-16": 59,
+  "-17": 5,
+  "-18": 54,
+  "-19": 13,
+  "-2": 5,
+  "-20": 4,
+  "-21": 32,
+  "-22": 43,
+  "-23": 3,
+  "-24": 1,
+  "-25": 0,
+  "-26": 12,
+  "-27": 5,
+  "-28": 18,
+  "-29": 4,
+  "-3": 9,
+  "-30": 8,
+  "-4": 2,
+  "-5": 7,
+  "-6": 3,
+  "-7": 23,
+  "-8": 11,
+  "-9": 10,
+  "0": 283,
+  "1": 541,
+  "10": 157,
+  "11": 274,
+  "12": 158,
+  "13": 187,
+  "14": 146,
+  "15": 378,
+  "16": 106,
+  "17": 136,
+  "18": 292,
+  "19": 142,
+  "2": 219,
+  "20": 362,
+  "21": 136,
+  "22": 110,
+  "23": 217,
+  "24": 206,
+  "25": 206,
+  "26": 140,
+  "27": 141,
+  "28": 151,
+  "29": 160,
+  "3": 194,
+  "30": 259,
+  "31": 245,
+  "32": 174,
+  "33": 267,
+  "34": 197,
+  "35": 168,
+  "36": 165,
+  "37": 159,
+  "38": 153,
+  "39": 104,
+  "4": 134,
+  "5": 207,
+  "6": 123,
+  "7": 284,
+  "8": 159,
+  "9": 134
+ }
+}

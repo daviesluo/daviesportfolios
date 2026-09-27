@@ -1,0 +1,8 @@
+0 Oregon vs. USC bid 0.86 ask 0.88 mid {'mid': '0.87'} last_trade 0.130 history_last [{'t': 1790477416, 'p': 0.89}, {'t': 1790477416, 'p': 0.89}]
+0 Texas A&M vs. LSU bid None ask 0.001 mid {'mid': '0.0005'} last_trade 0.999 history_last [{'t': 1790477416, 'p': 0.0005}, {'t': 1790477416, 'p': 0.0005}]
+0 UFC Fight Night: Raoni Barcelos vs. Raul Rosas Jr. (Bantamwe bid None ask 0.001 mid {'mid': '0.0005'} last_trade 0.999 history_last [{'t': 1790477414, 'p': 0.0005}, {'t': 1790477414, 'p': 0.0005}]
+0 Missouri vs. Mississippi State bid 0.58 ask 0.59 mid {'mid': '0.585'} last_trade 0.380 history_last [{'t': 1790477413, 'p': 0.645}, {'t': 1790477413, 'p': 0.645}]
+1 Oregon vs. USC bid 0.96 ask 0.97 mid {'mid': '0.965'} last_trade 0.040 history_last [{'t': 1790477487, 'p': 0.945}, {'t': 1790477487, 'p': 0.945}]
+1 Texas A&M vs. LSU bid None ask 0.001 mid {'mid': '0.0005'} last_trade 0.999 history_last [{'t': 1790477487, 'p': 0.0005}, {'t': 1790477487, 'p': 0.0005}]
+1 UFC Fight Night: Raoni Barcelos vs. Raul Rosas Jr. (Bantamwe bid None ask 0.001 mid {'mid': '0.0005'} last_trade 0.999 history_last [{'t': 1790477485, 'p': 0.0005}, {'t': 1790477485, 'p': 0.0005}]
+1 Missouri vs. Mississippi State bid 0.51 ask 0.52 mid {'mid': '0.515'} last_trade 0.510 history_last [{'t': 1790477485, 'p': 0.515}, {'t': 1790477485, 'p': 0.515}]

@@ -1,0 +1,101 @@
+{
+ "a_post_T_taker_held_out": {
+  "expected_deadlines_with_a_fill": 7.0,
+  "expected_pnl_usd_scaled_by_volume": 19.55,
+  "fp5_bar": "needs fills on >= 25 dates with no date over 40 %: the expected count of dates with a fill is the expected deadlines with a fill, far under 25 -> no power; not pre-registered",
+  "held_out_deadlines": 64
+ },
+ "b_forward_last_batch_taker": {
+  "close_calls_per_week": 0.391,
+  "weeks_to_12_close_calls": 30.7,
+  "weeks_to_25_close_calls": 63.9,
+  "weeks_to_6_close_calls": 15.3
+ },
+ "c_forward_trajectory_rule": {
+  "mu_over_sigma_0.1": {
+   "deadlines": 625,
+   "weeks": 138.9
+  },
+  "mu_over_sigma_0.2": {
+   "deadlines": 157,
+   "weeks": 34.9
+  },
+  "mu_over_sigma_0.3": {
+   "deadlines": 70,
+   "weeks": 15.6
+  },
+  "mu_over_sigma_0.5": {
+   "deadlines": 25,
+   "weeks": 5.6
+  }
+ },
+ "deadline_rate_per_week_last_8_weeks": 4.5,
+ "events_by_month_mrbeast_gaming": {
+  "2024-11": 1,
+  "2025-03": 1,
+  "2025-04": 1,
+  "2025-05": 1,
+  "2025-06": 2,
+  "2025-07": 1,
+  "2025-08": 3,
+  "2025-09": 4,
+  "2025-10": 6,
+  "2025-11": 7,
+  "2025-12": 4,
+  "2026-01": 6,
+  "2026-02": 18,
+  "2026-03": 16,
+  "2026-04": 14,
+  "2026-05": 14,
+  "2026-06": 20,
+  "2026-07": 11,
+  "2026-08": 19,
+  "2026-09": 24
+ },
+ "exploration": {
+  "best_date_share": 0.6648,
+  "close_call_rate": 0.087,
+  "close_calls": 8,
+  "deadlines_high_confidence": 92,
+  "deadlines_with_a_post_T_fill": 10,
+  "post_T_fill_rate": 0.1087,
+  "post_T_rule_pnl_per_deadline_usd": 2.76,
+  "post_T_rule_pnl_usd": 253.59
+ },
+ "last_8_weeks": {
+  "2026-W32": 1,
+  "2026-W33": 7,
+  "2026-W34": 1,
+  "2026-W35": 6,
+  "2026-W36": 2,
+  "2026-W37": 7,
+  "2026-W38": 6,
+  "2026-W39": 6
+ },
+ "mean_volume_per_event_usd": {
+  "exploration_2025-03_2026-05": 935088,
+  "held_out_2026-06_2026-09": 103647
+ },
+ "volume_by_month_mrbeast_gaming_usd": {
+  "2024-11": 902844,
+  "2025-03": 620580,
+  "2025-04": 290194,
+  "2025-05": 1151664,
+  "2025-06": 4228330,
+  "2025-07": 1968608,
+  "2025-08": 2709685,
+  "2025-09": 3285518,
+  "2025-10": 6052367,
+  "2025-11": 13429148,
+  "2025-12": 9643694,
+  "2026-01": 11826968,
+  "2026-02": 15225902,
+  "2026-03": 2803732,
+  "2026-04": 10538162,
+  "2026-05": 7864105,
+  "2026-06": 2880061,
+  "2026-07": 838096,
+  "2026-08": 1542026,
+  "2026-09": 2409708
+ }
+}

@@ -1,0 +1,367 @@
+{
+ "cited": [
+  {
+   "text": "gonna be annoying if the live counter is above 55m but the youtube view counter is under 55m since it takes a couple minutes to update",
+   "utc": "2025-06-22T14:51:23Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "View freeze confirmed",
+   "utc": "2025-07-20T15:57:25Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "Thanks a lot for the help, I made a lil analyser with chatGPT that pulls views from the YouTube API, then predicts what the view count would be at the 24h mark. It re-evaluates it prediction every 5 mins, and I can see the market reacting pretty much exactly like that, however I dont have the speed ",
+   "utc": "2025-08-17T18:04:50Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "counter is frozen due to bot checking",
+   "utc": "2025-11-22T23:24:58Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "why does less than 25 keep getting disputed",
+   "utc": "2025-11-23T18:22:12Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "Which website is UMA using for the view count of the videos? It says YouTube, but how can they see the exact number at exactly 24 hours?",
+   "utc": "2025-12-14T16:16:58Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "What happens if its very close? What counts as evidence? A archive link at or after the timer ran out? Or API call at exactly the time? Or the poly classic of whatever the UMA wants?",
+   "utc": "2026-01-14T16:45:29Z",
+   "where": "ev_159857"
+  },
+  {
+   "text": "It's 24 hours after the video is posted and MrBeast videos are always posted at 12:00:01 ET",
+   "utc": "2026-02-22T17:47:51Z",
+   "where": "ev_221785"
+  },
+  {
+   "text": "Yes, this is exactly what I'm referring to, and it can go up with millions after the SYNC. I learned this by mistake in the past :/",
+   "utc": "2026-03-08T11:23:21Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "Why the views still stuck on 41.9M?",
+   "utc": "2026-03-09T14:39:55Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "Those 5 min boosts aren't bots, though, that's just the API catching up. A little over 200k vph is normal at this point for peak hour traffic.",
+   "utc": "2026-03-26T17:15:35Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "I use my tool. It is 95%+ accuracy when it request 15 second per time and est/predict the view gain in freeze time (5-10 minutes) and do +/- to get a final number and write record into a file.",
+   "utc": "2026-04-06T14:49:05Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "i have an idea，they bet 70-71 ，we can buy bot views to 71-72",
+   "utc": "2026-04-09T14:38:46Z",
+   "where": "series_10321"
+  },
+  {
+   "text": "Livecounts just try to make a smooth chart, what counts is the update from youtube every 5min",
+   "utc": "2026-04-09T16:02:07Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "you should dispute.. I have clear screenshots of the counter with timestamps",
+   "utc": "2026-04-09T16:24:14Z",
+   "where": "series_10061"
+  },
+  {
+   "text": "Nobody's disputing this. Do you really want to lose an additional $750?",
+   "utc": "2026-04-09T17:00:29Z",
+   "where": "series_10061"
+  }
+ ],
+ "comments": 14576,
+ "span_utc": [
+  "2023-12-04T20:17:43Z",
+  "2026-05-31T23:32:29Z"
+ ],
+ "themes": {
+  "api_and_live_counters": {
+   "comments": 43,
+   "examples": [
+    {
+     "text": "ViewStats Chrome Extension, based on previous statistics, has already confirmed it'll be around low-mid 20s. Sayonara Yes's.",
+     "utc": "2024-11-21T22:39:35Z",
+     "where": "ev_14613"
+    },
+    {
+     "text": "gonna be annoying if the live counter is above 55m but the youtube view counter is under 55m since it takes a couple minutes to update",
+     "utc": "2025-06-22T14:51:23Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "livecounts . io",
+     "utc": "2025-08-17T18:03:32Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "fr bro? on live counts they cancel like 10k views sometimes every 5 minutes. Go watch it yourself if you don't trust me. As i said though, the big bursts will propably come in the final days. And views have already been ",
+     "utc": "2025-10-15T04:55:08Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "I am not sure about its accuracy, but according to Viewstats, this video is pretty stronger than the previous one. So..",
+     "utc": "2025-12-22T08:36:40Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "IMPORTANT ADVICE: Exactly less than 24 hours left. The 7-day window closes officially tomorrow around 11:30 PM ET, (video dropped moments before SB broadcast ended, even using youtube API, results are lower 100M).  For t",
+     "utc": "2026-02-15T04:53:17Z",
+     "where": "ev_189701"
+    },
+    {
+     "text": "Those 5 min boosts aren't bots, though, that's just the API catching up. A little over 200k vph is normal at this point for peak hour traffic.",
+     "utc": "2026-03-26T17:15:35Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Livecounts just try to make a smooth chart, what counts is the update from youtube every 5min",
+     "utc": "2026-04-09T16:02:07Z",
+     "where": "series_10061"
+    }
+   ],
+   "pattern": "\\bapi\\b|live ?count|viewstats|social ?blade|mixerno|stats site"
+  },
+  "bots_and_removal": {
+   "comments": 883,
+   "examples": [
+    {
+     "text": "this is type of market likes was tiktok with trump before. When yes will be at attractive price with attractive liquidity someone rig views with bot like always. Beting NO at this type of market is stupid IMO",
+     "utc": "2024-11-20T22:18:30Z",
+     "where": "ev_14613"
+    },
+    {
+     "text": "They’re the bots views r gonna freeze",
+     "utc": "2025-07-20T15:55:57Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "the top no holder botted the pewdiepie video yesterday",
+     "utc": "2025-10-13T14:35:24Z",
+     "where": "series_10352"
+    },
+    {
+     "text": "say ni hao in comments if you want chinese tg to turn on view bot",
+     "utc": "2026-01-31T13:00:53Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "Do you see he make the video + 500k in 10 mins in 2 days ago? If he decide to run the bot 8-10 hours he can add 10m+ easy. He has 50k to secure and that is a reason. Maybe people put 90m low because they thought he is sc",
+     "utc": "2026-03-14T03:51:55Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "maybe there will be no bots today. He already made a killing going big on 75-76 when it was for almost nothing.",
+     "utc": "2026-03-26T06:15:44Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "i have an idea，they bet 70-71 ，we can buy bot views to 71-72",
+     "utc": "2026-04-09T14:38:46Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "I mean to be fair it isn't even the person botting fault then. They just didn't do enough research to consider that 75mil+ is just way out of reach even with possible botting",
+     "utc": "2026-05-06T02:05:04Z",
+     "where": "series_10061"
+    }
+   ],
+   "pattern": "\\bbot(?:s|ted|ting)?\\b|viewbot|fake views|remov\\w* (?:the )?(?:bot|views)|views? (?:just )?disappear"
+  },
+  "dispute_and_evidence": {
+   "comments": 36,
+   "examples": [
+    {
+     "text": "Careful buying so many 99.9 cent shares, 50-penis, aren't you worried someone might dispute? 😂",
+     "utc": "2023-12-05T23:46:19Z",
+     "where": "ev_902967"
+    },
+    {
+     "text": "what is dispute window ?",
+     "utc": "2025-06-22T16:07:47Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "why didn't you dispute it then lol, too late now",
+     "utc": "2025-06-22T18:05:43Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "I mean, that much I guessed. But when the 24h hours are up, is there still a dispute window etc?",
+     "utc": "2025-08-14T14:45:37Z",
+     "where": "ev_37189"
+    },
+    {
+     "text": "why does less than 25 keep getting disputed",
+     "utc": "2025-11-23T18:22:12Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Not gonna lie though the language in the contract is kinda vague. First 7 days doesnt specifically state 168 hours. it means we could have all of saturday instead of only til 5pm. The source of resolution is the youtube ",
+     "utc": "2026-01-31T08:29:29Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "Dispute P4 lol",
+     "utc": "2026-02-16T06:31:45Z",
+     "where": "ev_189701"
+    },
+    {
+     "text": "Yeah but what can you do? Can't really dispute it can you? Even proving some views are botted. Have they changed a resolution before due to botted views? How do you get the real count? Feel like you just have to accept b",
+     "utc": "2026-03-10T17:06:57Z",
+     "where": "series_10061"
+    }
+   ],
+   "pattern": "disput|screenshot|archive link|what counts as evidence|which website is uma|exact number at exactly"
+  },
+  "five_minute_updates": {
+   "comments": 22,
+   "examples": [
+    {
+     "text": "Final hour, need 16k+ views on each 5 minute update for 45+ to win",
+     "utc": "2025-05-25T15:02:49Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "YouTube updates view counts every 5 minutes. At the start of the last hour, the video had 53.03 million views. To surpass 55 million views, it needs to average at least 167,000 views every 5 minutes.",
+     "utc": "2025-06-22T15:04:07Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Actually the rate has been falling steadily, the Europeans gave it a slight boost before work around 7 AM GMT, but the rate is now back to 40/5min which is 480 an hour. If it keeps falling it will go to around 300k an ho",
+     "utc": "2025-08-14T06:32:09Z",
+     "where": "ev_37189"
+    },
+    {
+     "text": "Thanks a lot for the help, I made a lil analyser with chatGPT that pulls views from the YouTube API, then predicts what the view count would be at the 24h mark. It re-evaluates it prediction every 5 mins, and I can see t",
+     "utc": "2025-08-17T18:04:50Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "fr bro? on live counts they cancel like 10k views sometimes every 5 minutes. Go watch it yourself if you don't trust me. As i said though, the big bursts will propably come in the final days. And views have already been ",
+     "utc": "2025-10-15T04:55:08Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "At the current rate, 130,000 views every 5 minutes, a project that will end with 40,652,749 views. But I suppose the rate will increase as many people are waking up.",
+     "utc": "2025-12-07T10:33:20Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "97m just DONE rate of change increasing every 5 minutes, this shit is cooking",
+     "utc": "2026-02-16T01:04:21Z",
+     "where": "ev_189701"
+    },
+    {
+     "text": "Correction after 15min passed from last sample, someone bought ~150K views.. it was not batched, I followed it very closely for the past 2+ hours seeing it going up every 5 min, and sample every 15 min into my excel.. th",
+     "utc": "2026-03-10T16:46:08Z",
+     "where": "series_10061"
+    }
+   ],
+   "pattern": "every (?:5|five) ?min|5 minute update|updates? (?:the )?(?:view )?count every|each 5 minute"
+  },
+  "freeze": {
+   "comments": 32,
+   "examples": [
+    {
+     "text": "Views were frozen for a while but usually a big jumps on the view count will follow ! I think the 55-60m is still possible !",
+     "utc": "2025-06-22T15:17:30Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "They’re the bots views r gonna freeze",
+     "utc": "2025-07-20T15:55:57Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "counter is frozen due to bot checking",
+     "utc": "2025-11-22T23:24:58Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Youtube views bugged right now? It is not updating for me",
+     "utc": "2026-03-11T17:51:41Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Recent view data and comment/like ratio suggests bots are being banned. Frozen Handrail might dump soon",
+     "utc": "2026-03-13T14:44:42Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "No bro I am still here. Just watch. Comeback after a hour instead 5 minutes, your head will feel more relax. This is not over. Youtube may delete view one more time or some sus vote will be frozen.",
+     "utc": "2026-03-25T12:22:55Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "At viewstat and my memory it is about 100,000 for now and if celebrities end at exact 79,000,000 so no reason for this to be 80,000,000+ with view bot being deleted tomorrow (even not). I hope crime team is not strong en",
+     "utc": "2026-04-10T13:01:50Z",
+     "where": "series_10321"
+    },
+    {
+     "text": "YouTube not updating the views is making this bet a doozy lmaoool",
+     "utc": "2026-05-03T13:20:56Z",
+     "where": "ev_424261"
+    }
+   ],
+   "pattern": "\\bfroze\\b|\\bfrozen\\b(?!-)|freez|stuck (?:views|on)|views? (?:still )?stuck|not updat|stopped updat"
+  },
+  "sync_jump": {
+   "comments": 15,
+   "examples": [
+    {
+     "text": "Wait for the The \"Sync Jump\" Final Hope Your only path to victory now is a \"Super Sync\". Because YouTube's verification systems often batch views, especially as the U.S. lunch hour peaks (which is happening right now), t",
+     "utc": "2026-02-27T15:27:26Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Wait for the SYNC JUMP",
+     "utc": "2026-02-27T15:28:01Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Wait for the SYNC, everything can change after this update. History tends to repeat itself:P",
+     "utc": "2026-03-08T08:33:50Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "No, wait for the SYNC, everything can change after this update. I've seen this a few times in the past",
+     "utc": "2026-03-08T11:18:26Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "It can jump millions in a split second when YouTube starts to synchronise",
+     "utc": "2026-03-08T11:20:13Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Yes, this is exactly what I'm referring to, and it can go up with millions after the SYNC. I learned this by mistake in the past :/",
+     "utc": "2026-03-08T11:23:21Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Bro idk what sync ur talking about but that is unlikely to happen.. just go online and look at live viewer count since YouTube itself is a bit late",
+     "utc": "2026-03-08T11:27:29Z",
+     "where": "series_10061"
+    },
+    {
+     "text": "Yes it is possible if the YouTube synchronisation sets in",
+     "utc": "2026-03-08T14:53:24Z",
+     "where": "series_10061"
+    }
+   ],
+   "pattern": "\\bsync(?:hroni[sz]\\w*)?\\b(?! with)"
+  }
+ }
+}
