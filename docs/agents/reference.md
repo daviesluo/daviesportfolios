@@ -2925,6 +2925,33 @@ s.d. 0.1–0.2 a deadline against a calibrated market) needs 157–625 deadlines
 keeps recording as measurement for four to six weeks; a last-batch taker earns a forward pre-registration only if at
 least three close calls show the market a batch behind by more than 2 s and paying more than $20 each.
 
+### 3.41 WXSRC: each temperature city's fastest source, and the weather models — the race is already run (2026-09-27)
+
+Davies asked, after PMLATE, whether the data source or a weather model (Google's newest) leaves room, city by city. A
+research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/`; the coordinator re-ran
+`station_edge.py`, `takers.py` and `candidates_explore.py`: byte-identical) found nothing to pre-register.
+
+- **Who is first.** At 48 of 49 METAR stations behind the 51 open cities, the first stale-side taker acts before
+  `tgftp`, the fastest keyless source, has the deciding report: a median 55 s after the observation, and 3–10 s at the
+  p10 at US stations, which only the ASOS one-minute reading allows. In September $49,420.53 of the stale side's edge
+  went before a 1 s keyless taker could act, and $12,128.59 after.
+- **Hong Kong** ($4.05M traded in September, outside PMLATE): the Observatory's since-midnight CSV picks the winner on
+  48 of 48 events but is public a median 511 s after its ten-minute slot, while 82 % of first stale prints come before
+  the slot ends; a 1 s taker on it made +$20.67 in 24 days. **Toronto's** SWOB-ML is the one keyless feed sometimes level
+  with the takers (median 82 s; +$41.84 at its median write).
+- **FASTSRC** (the six stations where a keyless source arrives about with the takers) was drafted and withdrawn before any
+  freeze: with `tgftp`'s measured lead outside the US (1.4 s) and USLATE-FAST's 3 s print margin, September gives
+  −$122.63 on 43 buckets (z −0.91).
+- **Models.** Google's WeatherNext 3 (released 2026-09-03: hourly runs, 0.05°, 64 members; allowlist, free for internal
+  use; a 2026 archive) reaches users 7 h 10 min – 8 h 10 min after its initial time, staler intraday than HRRR (51–74
+  min). HRRR's fresh run plus the day's reports, fitted in-sample, still loses to the price (Brier 0.114 / 0.078 against
+  0.089 / 0.057 at 17Z / 20Z); every month with markets to 2026-09-10 is seen (fp4's WX), so a model test records
+  forward.
+- **What would pay** is a keyed source as fast as the takers. Upper bounds at 15–60 s after the observation: the FAA's
+  SWIM SCDS at 11 US stations ~$77 a day at 60 s (unverified whether it carries METARs or one-minute readings),
+  Météo-France DPObs (Paris) ~$11 a day, KMA's minute data (Seoul, Busan) $4–8. Each needs Davies' free sign-up, then a
+  day's measurement, then a pre-registration (ledger item 6).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

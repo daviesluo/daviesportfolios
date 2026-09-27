@@ -1,0 +1,127 @@
+{
+ "committed": {
+  "results/candidates_2026-09.json": {
+   "bytes": 32804,
+   "sha256": "014a76a436233eed79a19a616c2bdc88f10c7b58e073e4ff822b1d5930f4f7f2"
+  },
+  "results/cities_open.json": {
+   "bytes": 262292,
+   "sha256": "37468e4749badd8effbd2d34cfa340938b85aac902f47f554c42b72b305004a1"
+  },
+  "results/hko_edge_2026-09.json": {
+   "bytes": 3242,
+   "sha256": "0b096d491e5eea721752310e95a382ebcc4bae8cce8449682acd592f24260d5b"
+  },
+  "results/intraday_explore_2026-09.json": {
+   "bytes": 2833,
+   "sha256": "b59acd92338744440c0703f0fa868e319482e5812a99724047f35ed948589fe0"
+  },
+  "results/live_latency.json": {
+   "bytes": 8461,
+   "sha256": "b88919560b3b0e5886767965896882a9be5735af9f62fc386174be05cd042989"
+  },
+  "results/source_table.json": {
+   "bytes": 60293,
+   "sha256": "73a32bf44318000f97b692d6451e70c0e599b0206c0eea07811db63ddffe8bf4"
+  },
+  "results/station_edge_2026-09.json": {
+   "bytes": 109183,
+   "sha256": "fe6d44c8c25349e87d9f519f5bf754d3b373e1bddb34fac8a658f5226fc60dc3"
+  },
+  "results/takers_2026-09.json": {
+   "bytes": 14164,
+   "sha256": "d2ca3e254eead352b19fb34167e6df2825eb62bea37bd96e2d2b6d906628a582"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 4084,
+   "sha256": "11a2f4f7d424605f405fe89538d5ac64fabb2fc260e5069856e090795d78ef06"
+  },
+  "scripts/candidates_explore.py": {
+   "bytes": 11697,
+   "sha256": "87f500a3eef87050ea786618606891a9ddfe3037822ba1a493ff703c5b79710b"
+  },
+  "scripts/cities.py": {
+   "bytes": 4583,
+   "sha256": "072cc08d23b074b36086abe88937c04555d98832ce236c700cf04e7520cec713"
+  },
+  "scripts/hko_archive.py": {
+   "bytes": 3960,
+   "sha256": "3f5c57f6813e0de53406585fea0ec0f49df3b3c869ace3018c8cd0194abecd6a"
+  },
+  "scripts/hko_edge.py": {
+   "bytes": 13819,
+   "sha256": "ce02479158a8be4bd68fe4b1d2a3a08b5aa509e6a5c640ac5c97a08bdcc24a74"
+  },
+  "scripts/hko_publish_probe.py": {
+   "bytes": 2188,
+   "sha256": "4f073454c584c3859f588b092f04899d68e38fe54cbf3e19c68f54116a607a19"
+  },
+  "scripts/hrrr_points.py": {
+   "bytes": 5150,
+   "sha256": "79e4ed5bdc72ca74c8a89743d9da910a6bc4f05600ec343f61867e6cf5e623b9"
+  },
+  "scripts/intraday_explore.py": {
+   "bytes": 10281,
+   "sha256": "dfea85b02f3b15b82e0a343f6efceb7c1112f315634497ce2c0d6a03546883c2"
+  },
+  "scripts/live_latency.py": {
+   "bytes": 3948,
+   "sha256": "970fd77143ea3dbe296420939229a1394d8c80675ce95f92adcb8866863b3233"
+  },
+  "scripts/poll_live.py": {
+   "bytes": 8513,
+   "sha256": "bbc41b6060d9f7d844c1aed3657baf8416e6e1eb9ef208098f9d4c1b2b016cf5"
+  },
+  "scripts/source_table.py": {
+   "bytes": 13269,
+   "sha256": "5d173b9a5779b9601de4d36af8204008dce9304b1c7b8ae68658ef378395785c"
+  },
+  "scripts/station_edge.py": {
+   "bytes": 11863,
+   "sha256": "074ddb99b08a878721fa03cd8bd5f970aa0c4700dd1f67d2e0b9731159199431"
+  },
+  "scripts/takers.py": {
+   "bytes": 3048,
+   "sha256": "4edb17ac44b30a26386da78012bd37015d7cbbec519d8b9d64c2ef607f15b04c"
+  },
+  "scripts/wxcommon.py": {
+   "bytes": 1930,
+   "sha256": "c0994f049590cb908157229d83db0ac69428b0f381f84abf8342d21b18cce523"
+  }
+ },
+ "pmlate_raw_pulls_read": "PMLATE's September pulls (univ/events_2026-09-01_2026-09-27.json.gz, prints/ev_<event>.json.gz, obs/<ICAO>.json.gz), hashed in backtests/pmlate/MANIFEST.json; read, never changed",
+ "raw_pulls_not_committed": {
+  "cities_open_20260927T014213Z.json.gz": {
+   "bytes": 1013178,
+   "sha256": "7f2de6440eef32dd8d43a90b2a19489f9d36f4848d5d5cb16fd6d846b9954c99"
+  },
+  "hko/": {
+   "bytes": 51258,
+   "digest": "ae73d44e55800af41971af1c8e247ed5f159a31f445df94abb166b46bd7fd1b7",
+   "files": 11
+  },
+  "hrrr/": {
+   "bytes": 53577,
+   "digest": "4ae53a01eb03172f8868a8ef122523a9eaf6e648a0ab6fc292b2aeee1452a65d",
+   "files": 52
+  },
+  "live/": {
+   "bytes": 774355,
+   "digest": "a958c0aeba6e79b7a8cd10790d4f4274c7ae99b6acdf60a8ab56c54a201d56d8",
+   "files": 5
+  },
+  "om/": {
+   "bytes": 85429,
+   "digest": "4b2231ed890c5c604bb22cd322882dcde84b175082f81f2a3ba300599ca0218a",
+   "files": 281
+  }
+ },
+ "sources": {
+  "cities_open_<stamp>.json.gz": "GET https://gamma-api.polymarket.com/events?tag_id=103040&closed=false&limit=100&offset=<k>&_=<ms> (cities.py)",
+  "hko/sincemidnight_<day>.json.gz (and the first three pulls, sincemidnight_<from>_<to>.json.gz)": "GET https://api.data.gov.hk/v1/historical-archive/list-file-versions?url=<the HKO since-midnight CSV>&start=<d>&end=<d>, then get-file?url=\u2026&time=<stamp> (302 to the archive's S3 object) (hko_archive.py; hko_edge.py keeps each slot's first capture)",
+  "hrrr/<YYYYmmddHH>.json.gz": "GET https://noaa-hrrr-bdp-pds.s3.amazonaws.com/hrrr.<d>/conus/hrrr.t<HH>z.wrfsfcf<FF>.grib2.idx, then a Range GET of its TMP:2 m above ground message, decoded with ecCodes (hrrr_points.py)",
+  "live/": "poll_live.py's JSON lines: obs.jsonl, polls.jsonl, clock.jsonl, run.jsonl (HKO CSVs, MSC SWOB-ML CYYZ, tgftp CYYZ/VHHH, AWC CYYZ/VHHH, data-api.binance.vision's server time); hko_publish_probe.py's hko_probe.jsonl (the HKO since-midnight CSV every 2 s, cache-busted)",
+  "om/<model>/<station>/<run>.json.gz": "GET https://single-runs-api.open-meteo.com/v1/forecast?latitude=\u2026&longitude=\u2026&hourly=temperature_2m&models=<model>&run=<run>&forecast_hours=30&timezone=GMT (the first intraday_explore.py; abandoned when the host throttled, kept as pulled)"
+ },
+ "study": "WXSRC (phase 1): the fastest source of the deciding observation per temperature city, and weather models"
+}

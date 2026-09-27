@@ -1,0 +1,149 @@
+{
+ "decisions_utc_to_hrrr_run": {
+  "17": 15,
+  "20": 18
+ },
+ "groups": {
+  "hrrr@17Z": {
+   "abs_gap": {
+    "n": 1747,
+    "p50": 0.1,
+    "p75": 0.2,
+    "p90": 0.3,
+    "p99": 0.6
+   },
+   "best_blend_in_sample": {
+    "brier": 0.08919,
+    "model_weight": 0.0
+   },
+   "brier_market": 0.08919,
+   "brier_model": 0.12352,
+   "buckets_scored": 1747,
+   "events": 275,
+   "fit": {
+    "mu_F": 0.8,
+    "sigma_F": 3.3
+   },
+   "gap_ge_10pts": {
+    "model_higher": 377,
+    "model_side_right": 236,
+    "n": 784
+   },
+   "loglik": -496.91,
+   "winner_prob_market_mean": 0.4251,
+   "winner_prob_model_mean": 0.2088
+  },
+  "hrrr@17Z_mu_by_station": {
+   "abs_gap": {
+    "n": 1747,
+    "p50": 0.1,
+    "p75": 0.1,
+    "p90": 0.3,
+    "p99": 0.5
+   },
+   "best_blend_in_sample": {
+    "brier": 0.08915,
+    "model_weight": 0.05
+   },
+   "brier_market": 0.08919,
+   "brier_model": 0.11362,
+   "buckets_scored": 1747,
+   "events": 275,
+   "fit": {
+    "mu_F_by_station": {
+     "KATL": -0.8,
+     "KAUS": 2.6,
+     "KBKF": 0.4,
+     "KDAL": 3.0,
+     "KHOU": -2.6,
+     "KLAX": -0.4,
+     "KLGA": -1.0,
+     "KMIA": 1.6,
+     "KORD": -1.4,
+     "KSEA": 0.0,
+     "KSFO": 6.6
+    },
+    "sigma_F": 3.3
+   },
+   "gap_ge_10pts": {
+    "model_higher": 341,
+    "model_side_right": 217,
+    "n": 706
+   },
+   "loglik": -425.697,
+   "winner_prob_market_mean": 0.4251,
+   "winner_prob_model_mean": 0.2473
+  },
+  "hrrr@20Z": {
+   "abs_gap": {
+    "n": 1613,
+    "p50": 0.1,
+    "p75": 0.2,
+    "p90": 0.3,
+    "p99": 0.7
+   },
+   "best_blend_in_sample": {
+    "brier": 0.05703,
+    "model_weight": 0.0
+   },
+   "brier_market": 0.05703,
+   "brier_model": 0.1011,
+   "buckets_scored": 1613,
+   "events": 275,
+   "fit": {
+    "mu_F": -0.4,
+    "sigma_F": 3.9
+   },
+   "gap_ge_10pts": {
+    "model_higher": 278,
+    "model_side_right": 153,
+    "n": 592
+   },
+   "loglik": -330.031,
+   "winner_prob_market_mean": 0.6429,
+   "winner_prob_model_mean": 0.4441
+  },
+  "hrrr@20Z_mu_by_station": {
+   "abs_gap": {
+    "n": 1613,
+    "p50": 0.0,
+    "p75": 0.1,
+    "p90": 0.3,
+    "p99": 0.6
+   },
+   "best_blend_in_sample": {
+    "brier": 0.05697,
+    "model_weight": 0.05
+   },
+   "brier_market": 0.05703,
+   "brier_model": 0.07849,
+   "buckets_scored": 1613,
+   "events": 275,
+   "fit": {
+    "mu_F_by_station": {
+     "KATL": -2.8,
+     "KAUS": 2.2,
+     "KBKF": 0.2,
+     "KDAL": 1.0,
+     "KHOU": -7.4,
+     "KLAX": -4.0,
+     "KLGA": -4.8,
+     "KMIA": -2.2,
+     "KORD": -3.2,
+     "KSEA": 0.2,
+     "KSFO": 6.6
+    },
+    "sigma_F": 3.9
+   },
+   "gap_ge_10pts": {
+    "model_higher": 209,
+    "model_side_right": 173,
+    "n": 444
+   },
+   "loglik": -253.301,
+   "winner_prob_market_mean": 0.6429,
+   "winner_prob_model_mean": 0.55
+  }
+ },
+ "sample": "closed US highest-temperature events, 2026-09-01 \u2192 09-26 (PMLATE's exploration month)"
+}

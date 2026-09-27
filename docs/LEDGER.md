@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies of 2026-09-26/27, this session: WXSRC in flight; VIEWS, the speed study, fp6 and PMLATE done; the view recorder running.** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -160,7 +160,11 @@ list stays the short version; the plan is the reasoning behind it.
    allowed), against when the stale side is taken; and a survey of weather models (Google's, from primary sources;
    HRRR / NBM / ECMWF AIFS / ICON-D2 / AROME): can a model's intraday prediction of the day's extreme beat the price
    after fees, and can that be backtested. At most five pre-registrations, then the coordinator's freeze. Research
-   only: no key, no sign-up, nothing placed; a source that needs a key is a step for Davies.
+   only: no key, no sign-up, nothing placed; a source that needs a key is a step for Davies. **Phase 1 done, nothing
+   to freeze** (`reviews/2026-09-27-wxsrc-study.md`): the one keyless candidate (FASTSRC) was withdrawn on its own
+   power check; what is left needs Davies' free sign-ups first (FAA SWIM SCDS, Météo-France DPObs, KMA API Hub, the
+   WeatherNext 3 allowlist), then a measurement of each feed, then a pre-registration (study §C2, "What Davies must
+   do or decide"). Reference §3.41.
    (f) VIEWS phase 1 (Davies, 2026-09-27: is the view strategy promising?): a research agent on the closed view events
    under tag 146 (MrBeast day-1…week-1, Gaming, others; ~157 MrBeast events, ~$92M traded): how efficient the price is
    near the deadline, what stale side is left once the last batch before T fixes the count (PMLATE's question), the
@@ -173,6 +177,10 @@ list stays the short version; the plan is the reasoning behind it.
    resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
 
 6. **Davies' to decide or to do; nothing waits on them:**
+   - WXSRC's keyed weather feeds, each an optional free sign-up that only then gets a day's measurement and a
+     pre-registration (reference §3.41): the FAA's SWIFT portal and SWIM SCDS agreement (11 US stations; non-NAS use;
+     idle subscriptions end after 60 days), Météo-France's API portal (Paris), KMA's API Hub (Seoul, Busan), and
+     Google's WeatherNext 3 allowlist (5–7 business days, then a Google Cloud project; BigQuery free to 1 TiB a month).
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
      cheap insurance: the site served the repository, `auth`'s source included, until 2026-09-18, and nothing
      suggests anyone read it (five failed logins in the auth table's whole history). Changing the secret re-prompts
@@ -277,6 +285,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**WXSRC phase 1 (item 5e; a research agent on its own branch, not pushed): the race for the report is already run, the models are already in the price, and nothing is left to pre-register.**
+- Per city (`reviews/2026-09-27-wxsrc-study.md` §A4, `backtests/wxsrc/results/source_table.json`, all 51 open cities): at 48 of 49 METAR stations the first stale-side taker acts before `tgftp`, the fastest keyless source, has the deciding report (a median 55 s after the observation; US takers 3–10 s at the p10, the ASOS one-minute value). In September $49,420.53 of the stale side's edge went before a 1 s keyless taker could act, $12,128.59 after. Hong Kong ($4.05 M traded, left out by PMLATE): 82 % of first stale prints come before the ten-minute slot holding the deciding minute has ended; the Observatory's CSV is public a median 511 s after it; a 1 s taker there made +$20.67 in 24 days. Toronto's SWOB-ML is the one keyless feed sometimes level with the takers (written 50–363 s after the observation, median 82 s).
+- Models: Google's WeatherNext 3 (2026-09-03; hourly runs, 0.05° station head, 64 members, allowlist, free licence, 2026 archive) reaches users 7 h 10 min – 8 h 10 min after its initial time. HRRR's fresh run plus the day's reports, flattered in-sample, still loses to the price intraday (Brier 0.114 / 0.078 against 0.089 / 0.057). Every month with markets up to 2026-09-10 is seen (fp4's WX), so a model test records forward.
+- FASTSRC (the six stations where a keyless source arrives with the takers) was drafted and withdrawn before any freeze: with `tgftp`'s measured lead outside the US (1.4 s, not the US 7.7 s) and USLATE-FAST's 3 s print margin, September gives −$122.63 on 43 buckets (z −0.91 over 56 days). What would pay is a keyed source as fast as the takers (September bounds at 15–60 s: US $77–104 a day, Paris $11, Seoul and Busan $4–8): FAA SWIM SCDS, Météo-France DPObs and KMA's API Hub each need Davies' free sign-up, then a day's measurement of whether the feed carries the report's reading and how fast, then a pre-registration. Nothing placed, no key used, nothing built; the live poll (02:00–03:08 UTC) is stopped.
 
 ### [2026-09-27 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

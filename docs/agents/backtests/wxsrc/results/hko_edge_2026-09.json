@@ -1,0 +1,184 @@
+{
+ "basis": {
+  "agree": 48
+ },
+ "basis_disagreements": [],
+ "bucket_deaths": {
+  "informative_held": 35,
+  "other_held": 179,
+  "trap": 0
+ },
+ "by_kind": {
+  "highest": {
+   "edge_after_capture": 207.49,
+   "edge_after_slot_0": 6359.42,
+   "informative_held": 23
+  },
+  "lowest": {
+   "edge_after_capture": 460.45,
+   "edge_after_slot_0": 668.62,
+   "informative_held": 12
+  }
+ },
+ "capture_after_slot_s": {
+  "n": 214,
+  "p10": 480.0,
+  "p25": 480.0,
+  "p50": 540.0,
+  "p75": 540.0,
+  "p90": 540.0
+ },
+ "events": 48,
+ "first_stale_print_before_capture_share": 1.0,
+ "first_stale_print_before_slot_share": 0.8235,
+ "first_stale_print_vs_slot_s_informative": {
+  "n": 34,
+  "p10": -593.0,
+  "p25": -584.0,
+  "p50": -495.0,
+  "p75": -105.0,
+  "p90": 423.0
+ },
+ "first_stale_print_wallets_top": [
+  [
+   "ad4a40b7",
+   3
+  ],
+  [
+   "4e6a079d",
+   2
+  ],
+  [
+   "f537b9f8",
+   2
+  ],
+  [
+   "be44ba81",
+   2
+  ],
+  [
+   "869a5861",
+   1
+  ],
+  [
+   "febab430",
+   1
+  ],
+  [
+   "269b1689",
+   1
+  ],
+  [
+   "18e20e74",
+   1
+  ]
+ ],
+ "live_public_after_slot_s": {
+  "first_seen_p50": 511.3,
+  "last_modified_median": 438.0
+ },
+ "net_edge_hour_before_slot_usd_informative": 13492.91,
+ "net_edge_left_after_capture_usd": {
+  "all_held": {
+   "0": 667.94,
+   "1": 667.94,
+   "30": 661.51,
+   "300": 595.32,
+   "5": 666.62,
+   "60": 657.42
+  },
+  "informative_held": {
+   "0": 469.55,
+   "1": 469.55,
+   "30": 468.33,
+   "300": 443.74,
+   "5": 468.65,
+   "60": 466.91
+  }
+ },
+ "net_edge_left_after_live_public_usd": {
+  "all_held": 668.59,
+  "informative_held": 469.1
+ },
+ "net_edge_left_after_slot_usd": {
+  "all_held": {
+   "-120": 8061.1,
+   "-300": 9784.76,
+   "-60": 7510.93,
+   "-600": 11742.28,
+   "0": 7028.04,
+   "120": 6031.56,
+   "1200": 497.91,
+   "1800": 478.55,
+   "240": 5439.73,
+   "300": 4604.3,
+   "3600": 323.55,
+   "420": 1880.57,
+   "480": 683.28,
+   "540": 662.99,
+   "60": 6261.9,
+   "600": 648.47,
+   "660": 615.49,
+   "720": 606.42,
+   "900": 590.39
+  },
+  "informative_held": {
+   "-120": 7567.16,
+   "-300": 9134.64,
+   "-60": 7048.86,
+   "-600": 10944.42,
+   "0": 6576.02,
+   "120": 5586.08,
+   "1200": 425.05,
+   "1800": 414.7,
+   "240": 5024.91,
+   "300": 4218.35,
+   "3600": 282.03,
+   "420": 1579.9,
+   "480": 473.35,
+   "540": 468.25,
+   "60": 5814.03,
+   "600": 465.02,
+   "660": 461.77,
+   "720": 453.34,
+   "900": 441.96
+  }
+ },
+ "sample": "closed Hong Kong events, target dates 2026-09-01 \u2192 09-26 (PMLATE's exploration month)",
+ "uslate_fill_model": {
+  "arms": {
+   "archive_capture": {
+    "best_date": "2026-09-04",
+    "best_date_share": 0.516,
+    "buckets_filled": 4,
+    "cost_usd": 400.0,
+    "dates": 4,
+    "per_day_usd": 0.86,
+    "pnl_usd": 20.67,
+    "sd_per_day_usd": 2.43
+   },
+   "live_first_seen": {
+    "best_date": "2026-09-04",
+    "best_date_share": 0.516,
+    "buckets_filled": 4,
+    "cost_usd": 400.0,
+    "dates": 4,
+    "per_day_usd": 0.86,
+    "pnl_usd": 20.67,
+    "sd_per_day_usd": 2.43
+   },
+   "live_last_modified": {
+    "best_date": "2026-09-04",
+    "best_date_share": 0.323,
+    "buckets_filled": 13,
+    "cost_usd": 1164.76,
+    "dates": 10,
+    "per_day_usd": 1.37,
+    "pnl_usd": 32.99,
+    "sd_per_day_usd": 2.63
+   }
+  },
+  "days": 24
+ },
+ "volume_usd": 4046779.73
+}
