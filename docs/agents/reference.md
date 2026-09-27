@@ -3170,6 +3170,15 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
     minute's batch for as long as it runs past the minute: keep such calls short, and read the tick's next decisions
     after a long one.
 
+    **Applied 2026-09-27 16:39 UTC and read back.** `net._http_response.created` is the worker's batch transaction's
+    start, so the batches of a minute can be counted: in the six hours before, 143 minutes of 357 were split, a second
+    batch starting as late as 56.7 s into its minute; in the job's first four minutes (16:40–16:43) none was, and
+    every batch began within 0.44 s of its minute. pg_net keeps responses for six hours; a split minute shows here:
+
+        with b as (select created, count(*) as n from net._http_response group by created)
+        select date_trunc('minute', created) as minute, count(*) as batches, sum(n) as calls
+        from b group by 1 having count(*) > 1 order by 1;
+
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 
