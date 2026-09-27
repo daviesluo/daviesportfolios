@@ -2795,6 +2795,44 @@ the rule buys only draws priced under the league's average, which are mostly mat
 those came even less often than their price. The Premier League profit was one league's and one season's; DRAWBASE
 is closed, and no paper test follows.
 
+### 3.37 PMLATE: the informed taker after a US station's report fails on one date, and the source binds, not the loop (2026-09-27)
+
+RW's paper quotes lose on the markets that end the day they are quoted: once the day's result is known, the side that
+fills is the losing one. PMLATE turned that round and took what the losing side still offers once a report has
+decided a temperature bucket. Phase 1 (`backtests/pmlate/`) found the mechanism real and fast. On September's 2,537
+temperature market-days the first cut of a decided bucket came a median 273 s before aviationweather.gov (AWC) had the
+report. What the stale side leaves later is mostly resolution risk: over 12,874 market-days the reports missed the
+winning bucket on 1.8 %, in clusters. One hypothesis survived, USLATE (`reviews/2026-09-26-pmlate-prereg-uslate.md`,
+frozen at `ad6ec6e3`): US stations only, from the station's p90 AWC delay + 90 s, half of each later stale print, $100
+a bucket, held to resolution.
+
+| condition (2026-03 → 08, 2,256 US market-days) | result |
+|---|---|
+| total and each half > 0 | +$715.73; +$404.53 / +$311.20 |
+| above the null's p95 | p95 +$240.57; no draw of 10,000 reached the total |
+| stress > 0 | +$652.98 |
+| ≥ 60 buckets on ≥ 25 dates | 131 on 55 |
+| date bootstrap p5 > 0 | +$9.53 |
+| **best date ≤ 40 % of the total** | **2026-05-06, +$412.31: 57.6 %** |
+| worth money | 149.6 % a year on a $948.85 peak |
+
+**FAIL** on condition 6 (`reviews/2026-09-26-pmlate-uslate-study.md`). The date is one bucket. New York's low of 05-06
+resolved on a 23:48 special report given in whole degrees (14 °C, 57 °F), while the routine report three minutes
+later read 58 °F. Three buckets whose reports disagreed with the resolution lost their $100 cap each (−$301.89).
+
+**Speed, priced at 1 s after the freeze (no bar).**
+- At the station's p90 delay + 2 s the rule makes +$735.24, $19.51 more than the frozen run, and the same date is
+  still 56.1 % of it.
+- At the median delay + 2 s it makes +$2,681.79, nearly all of it from two stations, KBKF and KLGA, whose AWC
+  delivery has long tails.
+- With no source delay at all (a bound, not a rule) it would make +$22,040.30.
+- At US stations the first cut came a median 60 s after the observation, 163 s before AWC had the report. The
+  takers read a faster feed.
+
+The loop does not bind; the source does. PMLATE is closed. A return starts by finding which keyless feed delivers a US
+report first, pre-registered at 1 s. Reproduced on `main`: the frozen script (sha256 `e3c2ac24…`) run on the committed
+input (`98ecd9a2…`) gives the committed result byte for byte (`1aec3e0f…`).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

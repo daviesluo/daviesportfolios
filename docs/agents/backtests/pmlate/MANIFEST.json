@@ -36,9 +36,33 @@
    "bytes": 4349,
    "sha256": "c78fb22d89c6b46a527708689b44d9d122accd37eb236c269189d52e53b48928"
   },
+  "results/uslate_2026-03_2026-08.json": {
+   "bytes": 6591,
+   "sha256": "1aec3e0ffe1a67fef7915eb8e30e8029e3f55aac692b99b15f982c53144cf7f8"
+  },
+  "results/uslate_check_2026-03_2026-08.json": {
+   "bytes": 14456,
+   "sha256": "e599af7b0a46e2d929a7b8440e856b5121bb2b672c4ddef1f0162ed1f8851944"
+  },
+  "results/uslate_describe_2026-03_2026-08.json": {
+   "bytes": 7666,
+   "sha256": "138957f07e595f9c3dc1b5a601fba1e637b1cbd5ef0f54e2ec3014d35189c991"
+  },
   "results/uslate_exploration_2026-09.json": {
    "bytes": 5006,
    "sha256": "f65ccf41c8bce1301c34f4f4eec05eccf9a557bf663cc7eeb63d3925ea0d3fbf"
+  },
+  "results/uslate_nonus_2026-03_2026-08.json": {
+   "bytes": 9979,
+   "sha256": "6d355bd113353b301b670f9d9242a569d157ace96369ced3eaa5ae168d92fe1d"
+  },
+  "results/uslate_speed_2026-03_2026-08.json": {
+   "bytes": 6273,
+   "sha256": "7578390c79bb0e10177e0aa318b6f79d429cadeca931ba05b196e64954abb41c"
+  },
+  "results/uslate_speed_nonus_2026-03_2026-08.json": {
+   "bytes": 12448,
+   "sha256": "b31e45b2bca4fa5b79bc68036a611b426b28bc8aa61ecbcd2dd8668a31bba424"
   },
   "rw_conds.txt": {
    "bytes": 938,
@@ -136,6 +160,10 @@
    "bytes": 5601,
    "sha256": "0b1e05ad418cc673bb7a2dd9de04cd9347667be8496756088c2513b3c020e121"
   },
+  "scripts/uslate_describe.py": {
+   "bytes": 7826,
+   "sha256": "2533b349fb1db8b59110269dd47c740f70504678f9b2428e755fd7e52e620bbe"
+  },
   "scripts/uslate_events.py": {
    "bytes": 2509,
    "sha256": "11a681fc3d5599b453fb89fc4fe2ade18aa78c77a5d06706404ec01e83415a98"
@@ -143,6 +171,10 @@
   "scripts/uslate_inputs.py": {
    "bytes": 5302,
    "sha256": "388ce2d14ea4a9e9a6638580cc5c7ecd85478e174b81f5d8c6c6a48ef880783e"
+  },
+  "scripts/uslate_speed.py": {
+   "bytes": 6459,
+   "sha256": "36aaca124a21cce67c1ced844d24bbc2bdbb4adf8be260dabc35fb8f581972b7"
   },
   "scripts/uslate_test.py": {
    "bytes": 9339,
@@ -213,9 +245,9 @@
    "files": 56
   },
   "prints/": {
-   "bytes": 104858566,
-   "digest": "b7c3b5bf27dbe89dc3f802706852b348f534f594e5475c69b3731394e3d094bf",
-   "files": 4953
+   "bytes": 340589719,
+   "digest": "4abdd5bdfb30ab31d18fac9ca24398eb474de1515174ac22b3dca842e3772995",
+   "files": 12194
   },
   "rw/events.json.gz": {
    "bytes": 20745,
@@ -237,6 +269,10 @@
    "bytes": 6716647,
    "sha256": "1427caed769c4d75c4c678aa053357c55a55e16293eb906fa223e2d9ff1db426"
   },
+  "uslate_nonus_2026-03_2026-08.json.gz": {
+   "bytes": 7131042,
+   "sha256": "3089f3e76516804adec55369a8fa1919b129c26331b301d1ecb9515701ea6613"
+  },
   "uslate_sep_all.json.gz": {
    "bytes": 1489654,
    "sha256": "56560628d574fa97f6906f7d53405d6d61b40753e95e918abed939ee42f12292"
@@ -250,8 +286,8 @@
    "sha256": "9746aeb1cf4ed8d6d3a15d0fb50558df719dd8992542de9b572f378e835a87a9"
   }
  },
- "raw_total_bytes": 161459164,
- "raw_total_files": 6747,
+ "raw_total_bytes": 404321359,
+ "raw_total_files": 13989,
  "sources": {
   "count/desc/ev_<event>.json.gz": "GET https://gamma-api.polymarket.com/events/<event> (count_measure.py)",
   "count/prints/ev_<event>.json.gz": "GET https://data-api.polymarket.com/v2/trades?event_id=<event>&limit=1000&cursor=\u2026&_=<ms> (count_prints.py)",

@@ -1,0 +1,304 @@
+{
+ "arms": {
+  "frozen_p90_plus_90s": {
+   "best_date": {
+    "date": "2026-05-06",
+    "pnl": 412.308963,
+    "share_of_total": 0.5761,
+    "total_without_it": 303.419354
+   },
+   "by_station": {
+    "KATL": -98.767125,
+    "KAUS": 44.555554,
+    "KBKF": 187.148876,
+    "KDAL": 26.773111,
+    "KDEN": -93.579771,
+    "KHOU": 27.055622,
+    "KLAX": 2.574167,
+    "KLGA": 463.406223,
+    "KMIA": 23.099688,
+    "KORD": 5.536105,
+    "KSEA": 114.934728,
+    "KSFO": 12.991139
+   },
+   "date_bootstrap_p5": 9.531944,
+   "dates_positive": 52,
+   "fills_n": 611,
+   "halves": {
+    "first": 404.53304,
+    "second": 311.195276
+   },
+   "null_p95": 240.57458,
+   "summary": {
+    "annualised_on_peak": 1.496321,
+    "bucket_deaths": 131,
+    "cost": 7481.418729,
+    "dates": 55,
+    "fees": 22.785354,
+    "fills": 611,
+    "peak_capital": 948.851987,
+    "pnl": 715.728317,
+    "wrong_bucket_deaths": 3,
+    "wrong_cost": 300.0,
+    "wrong_pnl": -301.88589
+   }
+  },
+  "observation_plus_2s_bound": {
+   "best_date": {
+    "date": "2026-07-02",
+    "pnl": 618.287057,
+    "share_of_total": 0.0281,
+    "total_without_it": 21422.013992
+   },
+   "by_station": {
+    "KATL": 2275.808858,
+    "KAUS": 1235.564306,
+    "KBKF": 2694.994866,
+    "KDAL": 1273.18715,
+    "KDEN": -77.053854,
+    "KHOU": 1480.006107,
+    "KLAX": 1440.729068,
+    "KLGA": 4207.731575,
+    "KMIA": 3221.934899,
+    "KORD": 1181.63712,
+    "KSEA": 1541.29618,
+    "KSFO": 1564.464774
+   },
+   "date_bootstrap_p5": 20163.975857,
+   "dates_positive": 182,
+   "fills_n": 9564,
+   "halves": {
+    "first": 11211.222501,
+    "second": 10829.078549
+   },
+   "null_p95": 1059.51675,
+   "summary": {
+    "annualised_on_peak": 10.642993,
+    "bucket_deaths": 3122,
+    "cost": 254335.193098,
+    "dates": 182,
+    "fees": 707.14329,
+    "fills": 9564,
+    "peak_capital": 4107.984287,
+    "pnl": 22040.301049,
+    "wrong_bucket_deaths": 3,
+    "wrong_cost": 300.0,
+    "wrong_pnl": -300.559448
+   }
+  },
+  "p50_plus_2s": {
+   "best_date": {
+    "date": "2026-05-06",
+    "pnl": 435.786502,
+    "share_of_total": 0.1625,
+    "total_without_it": 2246.007378
+   },
+   "by_station": {
+    "KATL": -98.767125,
+    "KAUS": 45.812146,
+    "KBKF": 1570.747878,
+    "KDAL": 70.751513,
+    "KDEN": -93.566426,
+    "KHOU": 27.055622,
+    "KLAX": 3.177961,
+    "KLGA": 969.289803,
+    "KMIA": 49.865798,
+    "KORD": 4.09909,
+    "KSEA": 119.124239,
+    "KSFO": 14.203382
+   },
+   "date_bootstrap_p5": 1770.130922,
+   "dates_positive": 129,
+   "fills_n": 1330,
+   "halves": {
+    "first": 1071.814535,
+    "second": 1609.979345
+   },
+   "null_p95": 534.673959,
+   "summary": {
+    "annualised_on_peak": 5.548448,
+    "bucket_deaths": 412,
+    "cost": 30002.868646,
+    "dates": 132,
+    "fees": 86.285265,
+    "fills": 1330,
+    "peak_capital": 958.802014,
+    "pnl": 2681.79388,
+    "wrong_bucket_deaths": 3,
+    "wrong_cost": 300.0,
+    "wrong_pnl": -301.88589
+   }
+  },
+  "p50_plus_60s_preregistered_descriptive": {
+   "best_date": {
+    "date": "2026-05-06",
+    "pnl": 412.308963,
+    "share_of_total": 0.1918,
+    "total_without_it": 1736.82975
+   },
+   "by_station": {
+    "KATL": -98.767125,
+    "KAUS": 44.555554,
+    "KBKF": 1436.877853,
+    "KDAL": 26.773111,
+    "KDEN": -93.579771,
+    "KHOU": 27.055622,
+    "KLAX": 2.574167,
+    "KLGA": 628.123982,
+    "KMIA": 40.111663,
+    "KORD": 5.536105,
+    "KSEA": 115.674171,
+    "KSFO": 14.203382
+   },
+   "date_bootstrap_p5": 1305.01334,
+   "dates_positive": 112,
+   "fills_n": 1083,
+   "halves": {
+    "first": 866.687711,
+    "second": 1282.451002
+   },
+   "null_p95": 497.779104,
+   "summary": {
+    "annualised_on_peak": 4.493048,
+    "bucket_deaths": 320,
+    "cost": 22481.82982,
+    "dates": 115,
+    "fees": 69.839079,
+    "fills": 1083,
+    "peak_capital": 948.851987,
+    "pnl": 2149.138713,
+    "wrong_bucket_deaths": 3,
+    "wrong_cost": 300.0,
+    "wrong_pnl": -301.88589
+   }
+  },
+  "p90_plus_2s": {
+   "best_date": {
+    "date": "2026-05-06",
+    "pnl": 412.308963,
+    "share_of_total": 0.5608,
+    "total_without_it": 322.930798
+   },
+   "by_station": {
+    "KATL": -98.767125,
+    "KAUS": 45.812146,
+    "KBKF": 187.276721,
+    "KDAL": 26.868161,
+    "KDEN": -93.566426,
+    "KHOU": 27.055622,
+    "KLAX": 3.177961,
+    "KLGA": 463.406223,
+    "KMIA": 36.395452,
+    "KORD": 5.536105,
+    "KSEA": 117.84154,
+    "KSFO": 14.203382
+   },
+   "date_bootstrap_p5": 31.321282,
+   "dates_positive": 57,
+   "fills_n": 628,
+   "halves": {
+    "first": 421.437164,
+    "second": 313.802597
+   },
+   "null_p95": 246.935042,
+   "summary": {
+    "annualised_on_peak": 1.537112,
+    "bucket_deaths": 139,
+    "cost": 8032.806451,
+    "dates": 60,
+    "fees": 23.700976,
+    "fills": 628,
+    "peak_capital": 948.851987,
+    "pnl": 735.239761,
+    "wrong_bucket_deaths": 3,
+    "wrong_cost": 300.0,
+    "wrong_pnl": -301.88589
+   }
+  }
+ },
+ "delay_s": {
+  "loop_share_of_1s_delay_at_median_station": 0.0074,
+  "loop_share_of_frozen_delay_at_median_station": 0.2503,
+  "station_p50_over_market_days": {
+   "p10": 197.2,
+   "p50": 214.6,
+   "p90": 270.0
+  },
+  "station_p90_over_market_days": {
+   "p10": 246.1,
+   "p50": 269.6,
+   "p90": 436.4
+  }
+ },
+ "input": {
+  "days": 184,
+  "events": 2256,
+  "file": "uslate_2026-03_2026-08.json.gz",
+  "from": "2026-03-01",
+  "stations": "us",
+  "to": "2026-09-01"
+ },
+ "note": "added after the freeze; descriptive; no bar",
+ "station_delays_s": {
+  "KATL": {
+   "market_days": 194,
+   "p50": 270.0,
+   "p90": 302.0
+  },
+  "KAUS": {
+   "market_days": 170,
+   "p50": 213.8,
+   "p90": 247.3
+  },
+  "KBKF": {
+   "market_days": 166,
+   "p50": 621.8,
+   "p90": 3599.7
+  },
+  "KDAL": {
+   "market_days": 194,
+   "p50": 214.6,
+   "p90": 250.8
+  },
+  "KDEN": {
+   "market_days": 5,
+   "p50": null,
+   "p90": 250.8
+  },
+  "KHOU": {
+   "market_days": 171,
+   "p50": 214.1,
+   "p90": 246.1
+  },
+  "KLAX": {
+   "market_days": 171,
+   "p50": 214.5,
+   "p90": 249.1
+  },
+  "KLGA": {
+   "market_days": 315,
+   "p50": 197.2,
+   "p90": 436.4
+  },
+  "KMIA": {
+   "market_days": 312,
+   "p50": 216.1,
+   "p90": 315.2
+  },
+  "KORD": {
+   "market_days": 194,
+   "p50": 190.6,
+   "p90": 250.5
+  },
+  "KSEA": {
+   "market_days": 193,
+   "p50": 214.8,
+   "p90": 246.0
+  },
+  "KSFO": {
+   "market_days": 171,
+   "p50": 253.1,
+   "p90": 269.6
+  }
+ }
+}

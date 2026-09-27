@@ -1,0 +1,408 @@
+{
+ "arms_concentration": {
+  "g_min_0.005": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 412.308963,
+   "best_date_share": 0.5649,
+   "total": 729.840447,
+   "total_without_best_date": 317.531484
+  },
+  "g_min_0.02": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 412.308963,
+   "best_date_share": 0.5961,
+   "total": 691.650837,
+   "total_without_best_date": 279.341874
+  },
+  "g_min_0.05": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 412.308963,
+   "best_date_share": 0.6237,
+   "total": 661.08615,
+   "total_without_best_date": 248.777187
+  },
+  "lag_p50_plus_60s": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 412.308963,
+   "best_date_share": 0.1918,
+   "total": 2149.138713,
+   "total_without_best_date": 1736.82975
+  },
+  "lag_p90_plus_300s": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 390.109752,
+   "best_date_share": 0.6305,
+   "total": 618.733852,
+   "total_without_best_date": 228.6241
+  },
+  "lag_p90_plus_600s": {
+   "best_date": "2026-08-13",
+   "best_date_pnl": 132.257408,
+   "best_date_share": 1.501,
+   "total": 88.11368,
+   "total_without_best_date": -44.143728
+  },
+  "primary": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 412.308963,
+   "best_date_share": 0.5761,
+   "total": 715.728317,
+   "total_without_best_date": 303.419353
+  },
+  "share_100pct": {
+   "best_date": "2026-05-06",
+   "best_date_pnl": 727.117926,
+   "best_date_share": 0.5566,
+   "total": 1306.450816,
+   "total_without_best_date": 579.33289
+  },
+  "uncapped": {
+   "best_date": "2026-03-07",
+   "best_date_pnl": 6895.169892,
+   "best_date_share": 0.7082,
+   "total": 9735.590174,
+   "total_without_best_date": 2840.420282
+  }
+ },
+ "best_date_buckets": [
+  {
+   "avg_price": 0.194046,
+   "bucket": [
+    58,
+    59
+   ],
+   "city": "New York City",
+   "cost": 100.0,
+   "date": "2026-05-06",
+   "event": "446694",
+   "fills": 41,
+   "first_fill": "2026-05-07T03:57:50Z",
+   "hl": "lowest",
+   "lag_p90_s": 436.4,
+   "last_fill": "2026-05-07T04:04:50Z",
+   "payout_yes": 0.0,
+   "pnl": 412.308963,
+   "report_obs": "2026-05-07T03:48:00Z",
+   "reports_final": 57,
+   "shares": 515.341,
+   "source": "wu",
+   "state": "dead",
+   "station": "KLGA"
+  }
+ ],
+ "best_dates": [
+  {
+   "bucket_deaths": 1,
+   "date": "2026-05-06",
+   "pnl": 412.308963,
+   "share_of_total": 0.5761
+  },
+  {
+   "bucket_deaths": 4,
+   "date": "2026-08-13",
+   "pnl": 152.423736,
+   "share_of_total": 0.213
+  },
+  {
+   "bucket_deaths": 27,
+   "date": "2026-05-19",
+   "pnl": 92.248586,
+   "share_of_total": 0.1289
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-07-05",
+   "pnl": 83.884854,
+   "share_of_total": 0.1172
+  },
+  {
+   "bucket_deaths": 6,
+   "date": "2026-07-22",
+   "pnl": 55.233633,
+   "share_of_total": 0.0772
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-06-19",
+   "pnl": 43.782158,
+   "share_of_total": 0.0612
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-05-01",
+   "pnl": 32.866537,
+   "share_of_total": 0.0459
+  },
+  {
+   "bucket_deaths": 6,
+   "date": "2026-05-17",
+   "pnl": 27.597906,
+   "share_of_total": 0.0386
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-06-21",
+   "pnl": 24.85148,
+   "share_of_total": 0.0347
+  },
+  {
+   "bucket_deaths": 2,
+   "date": "2026-05-31",
+   "pnl": 6.167142,
+   "share_of_total": 0.0086
+  }
+ ],
+ "bucket_deaths": 131,
+ "by_month": {
+  "2026-03": {
+   "bucket_deaths": 11,
+   "pnl": -86.00474
+  },
+  "2026-04": {
+   "bucket_deaths": 3,
+   "pnl": 6.762594
+  },
+  "2026-05": {
+   "bucket_deaths": 46,
+   "pnl": 483.775186
+  },
+  "2026-06": {
+   "bucket_deaths": 20,
+   "pnl": 86.318769
+  },
+  "2026-07": {
+   "bucket_deaths": 18,
+   "pnl": 156.901077
+  },
+  "2026-08": {
+   "bucket_deaths": 33,
+   "pnl": 67.97543
+  }
+ },
+ "by_source": {
+  "nws": {
+   "bucket_deaths": 23,
+   "pnl": -93.639302
+  },
+  "wu": {
+   "bucket_deaths": 108,
+   "pnl": 809.367618
+  }
+ },
+ "by_state": {
+  "dead": {
+   "bucket_deaths": 126,
+   "pnl": 680.547733
+  },
+  "locked": {
+   "bucket_deaths": 5,
+   "pnl": 35.180584
+  }
+ },
+ "by_station": {
+  "KATL": {
+   "bucket_deaths": 4,
+   "pnl": -98.767125
+  },
+  "KAUS": {
+   "bucket_deaths": 8,
+   "pnl": 44.555554
+  },
+  "KBKF": {
+   "bucket_deaths": 23,
+   "pnl": 187.148876
+  },
+  "KDAL": {
+   "bucket_deaths": 7,
+   "pnl": 26.773111
+  },
+  "KDEN": {
+   "bucket_deaths": 5,
+   "pnl": -93.579771
+  },
+  "KHOU": {
+   "bucket_deaths": 6,
+   "pnl": 27.055622
+  },
+  "KLAX": {
+   "bucket_deaths": 7,
+   "pnl": 2.574167
+  },
+  "KLGA": {
+   "bucket_deaths": 18,
+   "pnl": 463.406223
+  },
+  "KMIA": {
+   "bucket_deaths": 25,
+   "pnl": 23.099688
+  },
+  "KORD": {
+   "bucket_deaths": 7,
+   "pnl": 5.536105
+  },
+  "KSEA": {
+   "bucket_deaths": 10,
+   "pnl": 114.934728
+  },
+  "KSFO": {
+   "bucket_deaths": 11,
+   "pnl": 12.991139
+  }
+ },
+ "dates_negative": 3,
+ "dates_positive": 52,
+ "fill_delay_after_observation_s": {
+  "p10": 703,
+  "p50": 4063,
+  "p90": 25258
+ },
+ "fill_gross_edge": {
+  "p10": 0.01,
+  "p50": 0.025,
+  "p90": 0.86
+ },
+ "fills": 611,
+ "input_stats": {
+  "decided_buckets_by_state": {
+   "dead": 12458,
+   "locked": 253
+  },
+  "decided_buckets_with_a_stale_print_after_their_report": 7212,
+  "events": 2256,
+  "events_by_month": {
+   "2026-03": 216,
+   "2026-04": 348,
+   "2026-05": 409,
+   "2026-06": 379,
+   "2026-07": 402,
+   "2026-08": 502
+  },
+  "events_by_source": {
+   "nws": 198,
+   "wu": 2058
+  },
+  "events_by_station": {
+   "KATL": 194,
+   "KAUS": 170,
+   "KBKF": 166,
+   "KDAL": 194,
+   "KDEN": 5,
+   "KHOU": 171,
+   "KLAX": 171,
+   "KLGA": 315,
+   "KMIA": 312,
+   "KORD": 194,
+   "KSEA": 193,
+   "KSFO": 171
+  },
+  "stations_without_a_september_lag": [
+   "KDEN"
+  ],
+  "walks_complete": 2256
+ },
+ "top_ten_buckets_share_of_total": 1.1939,
+ "total": 715.728317,
+ "total_without_best_date": 303.419353,
+ "total_without_best_two_dates": 150.995617,
+ "verdict_failed_buckets": [
+  {
+   "avg_price": 0.929927,
+   "bucket": [
+    78,
+    79
+   ],
+   "city": "Denver",
+   "cost": 100.0,
+   "date": "2026-03-24",
+   "event": "289216",
+   "fills": 11,
+   "first_fill": "2026-03-24T21:05:59Z",
+   "hl": "highest",
+   "lag_p90_s": 250.8,
+   "last_fill": "2026-03-24T21:20:49Z",
+   "payout_yes": 1.0,
+   "pnl": -100.0,
+   "report_obs": "2026-03-24T20:53:00Z",
+   "reports_final": 80,
+   "shares": 107.5354,
+   "source": "wu",
+   "state": "dead",
+   "station": "KDEN"
+  },
+  {
+   "avg_price": 0.789875,
+   "bucket": [
+    72,
+    73
+   ],
+   "city": "Atlanta",
+   "cost": 100.0,
+   "date": "2026-08-27",
+   "event": "913574",
+   "fills": 19,
+   "first_fill": "2026-08-27T16:39:57Z",
+   "hl": "lowest",
+   "lag_p90_s": 302.0,
+   "last_fill": "2026-08-27T21:59:55Z",
+   "payout_yes": 1.0,
+   "pnl": -100.51924,
+   "report_obs": "2026-08-27T13:30:00Z",
+   "reports_final": 71,
+   "shares": 126.6024,
+   "source": "nws",
+   "state": "dead",
+   "station": "KATL"
+  },
+  {
+   "avg_price": 0.63296,
+   "bucket": [
+    80,
+    81
+   ],
+   "city": "Miami",
+   "cost": 100.0,
+   "date": "2026-05-27",
+   "event": "515782",
+   "fills": 14,
+   "first_fill": "2026-05-27T10:30:25Z",
+   "hl": "lowest",
+   "lag_p90_s": 315.2,
+   "last_fill": "2026-05-27T11:52:18Z",
+   "payout_yes": 1.0,
+   "pnl": -101.36665,
+   "report_obs": "2026-05-27T08:53:00Z",
+   "reports_final": 79,
+   "shares": 157.9878,
+   "source": "wu",
+   "state": "dead",
+   "station": "KMIA"
+  }
+ ],
+ "worst_dates": [
+  {
+   "bucket_deaths": 1,
+   "date": "2026-08-10",
+   "pnl": 0.152128
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-06-01",
+   "pnl": 0.010081
+  },
+  {
+   "bucket_deaths": 2,
+   "date": "2026-03-24",
+   "pnl": -98.951408
+  },
+  {
+   "bucket_deaths": 1,
+   "date": "2026-08-27",
+   "pnl": -100.51924
+  },
+  {
+   "bucket_deaths": 3,
+   "date": "2026-05-27",
+   "pnl": -100.756805
+  }
+ ]
+}

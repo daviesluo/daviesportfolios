@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies in flight (2026-09-26, this session).** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: fp6 and the speed study in flight, PMLATE closed, the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -126,9 +126,11 @@ list stays the short version; the plan is the reasoning behind it.
    fast the stale side is taken today; our loop is a one-minute cron), resolution basis risk (METAR against Weather
    Underground's whole degrees), fees near 0.9–0.99, depth and capital lock, power, and pre-registers at most ten
    hypotheses under the fp5 rules; it stops for review and a freeze on `main`. Any live version opens positions only
-   from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist. **Phase 1 is done and its one
-   hypothesis, USLATE (US stations only), is frozen on `main` by `ad6ec6e3`** (`reviews/2026-09-26-pmlate-prereg-uslate.md`);
-   phase 2 runs it exactly as frozen on 2026-03 → 08 and writes the study. A fail closes PMLATE.
+   from Ireland under Davies' attestation (CLAUDE.md), and its order path does not exist. **Closed: its one hypothesis,
+   USLATE (US stations only, frozen by `ad6ec6e3`), ran on 2026-03 → 08 and fails condition 6 of 7**
+   (`reviews/2026-09-26-pmlate-uslate-study.md`): +$715.73 on 131 buckets over 55 dates, but one date is 57.6 % of it
+   (NYC's low of 05-06, which resolved on a special report read in whole degrees). At a 1 s loop it is +$735.24 with
+   the same date 56.1 %: AWC's delay binds, not the loop's. Nothing goes to paper.
    (c) A speed study (Davies: PMLATE's problem is speed — why once a minute, how fast can we go, would it help): the
    edge left at each reaction time on September's data (seen already), each keyless weather source's latency after
    the observation, measured live, and what each architecture could do — pg_cron every N seconds (1 s is the floor on
@@ -258,6 +260,13 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - Around each deadline (posting time + hours counted) it reads that video and its markets' books every second, 15 minutes before to 3 after, every 10 s in the hour before; a run reads until 56 s into its minute. Change-only rows (`ts`, `seen_until`, `reads`), so each API batch is placed to a second. Quota ~2,300 units a day plus ~1,350 a deadline; windows stop reading YouTube past 9,000 in the Pacific day, everything past 9,800. Nothing is pruned: a study, pre-registered first, reads it after 4–6 weeks.
 - First deadline it can catch: MrBeast Gaming's day-1 market, 2026-09-27 16:00:04 UTC (the video was posted 09-26 16:00:04). Pinned in `views.test.ts` (14 cases: the rules' parsing, the video a market counts, the windows, change-only rows across runs, a whole hot minute against fakes of Gamma, the CLOB and the Data API, the budgets, the lease, no key; the open rows read page by page, which a single 1,000-row read failed for thirty tokens; and a run that starts late still stops 56 s into its minute). The strict double knows the seven new tables.
 
+### [2026-09-27 01:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**USLATE phase 2, finished after the session limit (the coordinator: price speed at 1 s, Davies' standing rule, as descriptive arms; the primary, the bar and the verdict stay as frozen).**
+- At a 1 s loop (the station's p90 AWC delay + 2 s) the frozen rule makes +$735.24, $19.51 more than at + 90 s, and 2026-05-06 is still 56.1 % of it: the loop does not bind. At ten of the twelve stations the rule makes +$65 frozen, +$85 at 1 s and +$142 at the median delay + 2 s, against +$15,138 for a source with no delay (a bound, not a rule). By the time AWC has a typical report, the stale side is gone.
+- The median-delay arm's +$2,681.79 is nearly all KBKF (p90 3,600 s) and KLGA (p90 436 s), whose AWC delivery has long tails. In September at US stations the first cut came a median 60 s after the observation, 163 s before AWC had the report. The source binds. If the idea is ever reopened, the first question is which keyless feed delivers a US report first, priced at 1 s (study's "Speed at one second"; `scripts/uslate_speed.py`, `results/uslate_speed_*.json`, each byte-identical twice).
+- Non-US report (the pre-registered arm 5, not a test): +$1.11 on 1,404 buckets over 170 dates, because 83 verdict failures cost −$7,895.63; the US-only split held. Its 7.1 MB input stays out of git (sha256 `3089f3e7…`, in `MANIFEST.json`).
+
 ### [2026-09-26 23:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: "YOUTUBE_API_KEY 加好了"; and every speed assumption in a study is one second (pg_cron 1.6.4 runs jobs every 1–59 s), an always-on Cloudflare Worker below that.**
@@ -270,6 +279,8 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 **USLATE phase 2 (the PMLATE research agent, on the coordinator's word): run the frozen test on 2026-03 → 08.**
 - The test input is built by the frozen command and committed before the test runs: `backtests/pmlate/inputs/uslate_2026-03_2026-08.json.gz` (sha256 `98ecd9a2…`, rebuilt byte-identical, in `MANIFEST.json`) — 2,256 US market-days, every print walk complete (5,049 pages), every station's reports present, 12,711 buckets the reports decided. Nothing of it has been scored.
 - One deviation, named in the study: four US events (NYC's and Miami's lows of 05-22 and 05-23) were archived by Polymarket four days early and never resolved (every market `closed: false`, no payout, $5–$60 traded). The pre-registration's universe is resolved events; the frozen input script reads only the event's `closed` flag, and the frozen test would stop at `1.0 - None` on them. `scripts/uslate_events.py`, which lists the events the print pull walks, leaves them out, so the input script counts them under `no_prints_file`.
+- **USLATE fails, condition 6 of 7, and PMLATE is closed** (`reviews/2026-09-26-pmlate-uslate-study.md`, `backtests/pmlate/results/uslate_2026-03_2026-08.json`, sha256 `1aec3e0f…`, two runs byte-identical). +$715.73 on 611 fills (131 buckets, 55 dates, a $949 peak), both halves positive, above its null's p95 ($240.57), stress +$652.98, date-bootstrap p5 +$9.53; but 2026-05-06 is 57.6 % of it, against a 40 % limit. That date is one bucket: NYC's low, where a 23:48 special report gave whole degrees only, 14°C, which is 57°F (the routine report three minutes later read 14.4°C, 58°F). The market resolved on the special, and the dead 58–59°F bucket's YES traded at 93–94¢ for almost seven minutes after the loop could act. The three buckets where the reports and the source disagreed each lost the $100 cap (−$301.89).
+- Determinism: twenty fills (seed 20260926) all match prints in a fresh cache-busted pull, and every one of the 131 filled markets' payouts agrees with Gamma.
 
 ### [2026-09-26 22:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

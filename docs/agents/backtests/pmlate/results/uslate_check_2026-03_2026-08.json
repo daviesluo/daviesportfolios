@@ -1,0 +1,717 @@
+{
+ "fills": 611,
+ "input": "uslate_2026-03_2026-08.json.gz",
+ "samples": [
+  {
+   "bucket": [
+    48,
+    49
+   ],
+   "cond": "0xf194f3d781f3d3ec2b92af211623afb1ac673f4fea7e862c1417d5229302879c",
+   "date": "2026-03-14",
+   "event": "262794",
+   "fill_index": 16,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.99,
+    "side": "BUY",
+    "size": 86.4242,
+    "ts": 1773511121,
+    "tx_tail": "5f7895af82"
+   },
+   "fresh_prints": 1106,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1773511121,
+    1,
+    0.01,
+    86.4242
+   ],
+   "iso": "2026-03-14T17:58:41Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.272451,
+   "pnl_input": 0.272451,
+   "price": 0.99,
+   "shares": 27.245101,
+   "state": "dead",
+   "ts": 1773511121
+  },
+  {
+   "bucket": [
+    84,
+    85
+   ],
+   "cond": "0x76c6e6677e4bf1487f86170b144b2cee8fed27fad6fa8f86e1ab577e864a53ee",
+   "date": "2026-03-25",
+   "event": "292597",
+   "fill_index": 36,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9868947066,
+    "side": "BUY",
+    "size": 522.92,
+    "ts": 1774472683,
+    "tx_tail": "a1d7fdab2f"
+   },
+   "fresh_prints": 238,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1774472683,
+    1,
+    0.013105,
+    522.92
+   ],
+   "iso": "2026-03-25T21:04:43Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 1.327902,
+   "pnl_input": 1.327902,
+   "price": 0.986895,
+   "shares": 101.327902,
+   "state": "dead",
+   "ts": 1774472683
+  },
+  {
+   "bucket": [
+    74,
+    75
+   ],
+   "cond": "0x937f3ecc82d1ea980f4aaba7ad5bb34ccd049ec768f2c5ff77c0816c52c43366",
+   "date": "2026-04-04",
+   "event": "322593",
+   "fill_index": 47,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.864,
+    "side": "BUY",
+    "size": 5.7014,
+    "ts": 1775343733,
+    "tx_tail": "6cb2c8367b"
+   },
+   "fresh_prints": 612,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1775343733,
+    1,
+    0.136,
+    5.7014
+   ],
+   "iso": "2026-04-04T23:02:13Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.370947,
+   "pnl_input": 0.370947,
+   "price": 0.864,
+   "shares": 2.8507,
+   "state": "dead",
+   "ts": 1775343733
+  },
+  {
+   "bucket": [
+    82,
+    83
+   ],
+   "cond": "0xdc5369beb48ed409a27f2d90d56ea18a39ee878a042e233174ca1e09aa1d07e6",
+   "date": "2026-04-20",
+   "event": "390817",
+   "fill_index": 53,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9810872607,
+    "side": "BUY",
+    "size": 2775.03172,
+    "ts": 1776702348,
+    "tx_tail": "e237aa2134"
+   },
+   "fresh_prints": 771,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1776702348,
+    1,
+    0.018913,
+    2775.0317
+   ],
+   "iso": "2026-04-20T16:25:48Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 1.795314,
+   "pnl_input": 1.795314,
+   "price": 0.981087,
+   "shares": 99.821524,
+   "state": "dead",
+   "ts": 1776702348
+  },
+  {
+   "bucket": [
+    58,
+    59
+   ],
+   "cond": "0xc324aa81820ac8fac12c7ff2a13de2aa2be6013a16620b400f8828bbcdf052e0",
+   "date": "2026-05-06",
+   "event": "446694",
+   "fill_index": 74,
+   "fresh_match": {
+    "oi": 0,
+    "price": 0.936,
+    "side": "SELL",
+    "size": 5.0,
+    "ts": 1778126574,
+    "tx_tail": "a2150890e6"
+   },
+   "fresh_prints": 455,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1778126574,
+    1,
+    0.936,
+    5.0
+   ],
+   "iso": "2026-05-07T04:02:54Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 2.332512,
+   "pnl_input": 2.332512,
+   "price": 0.064,
+   "shares": 2.5,
+   "state": "dead",
+   "ts": 1778126574
+  },
+  {
+   "bucket": [
+    74,
+    75
+   ],
+   "cond": "0x8462422052404f6662036852778398367815939241a3a1824c428c821a0d15d1",
+   "date": "2026-05-17",
+   "event": "481556",
+   "fill_index": 117,
+   "fresh_match": {
+    "oi": 0,
+    "price": 0.02,
+    "side": "SELL",
+    "size": 2.0,
+    "ts": 1779064720,
+    "tx_tail": "9c5d034071"
+   },
+   "fresh_prints": 104,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779064720,
+    1,
+    0.02,
+    2.0
+   ],
+   "iso": "2026-05-18T00:38:40Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.01902,
+   "pnl_input": 0.01902,
+   "price": 0.98,
+   "shares": 1.0,
+   "state": "dead",
+   "ts": 1779064720
+  },
+  {
+   "bucket": [
+    76,
+    77
+   ],
+   "cond": "0x11203129720888b62791150c8ccc8a3990a5bf030aaee27555e75e6e6d8fd199",
+   "date": "2026-05-17",
+   "event": "486830",
+   "fill_index": 131,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9439999773,
+    "side": "BUY",
+    "size": 2.118642,
+    "ts": 1779060197,
+    "tx_tail": "769ce8ccc3"
+   },
+   "fresh_prints": 238,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779060197,
+    1,
+    0.056,
+    2.1186
+   ],
+   "iso": "2026-05-17T23:23:17Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.056521,
+   "pnl_input": 0.056521,
+   "price": 0.944,
+   "shares": 1.0593,
+   "state": "dead",
+   "ts": 1779060197
+  },
+  {
+   "bucket": [
+    88,
+    89
+   ],
+   "cond": "0x4e2e5097b7a8af4b0af8df261ede53a588c6a36085bcae3649ece171e69b97fe",
+   "date": "2026-05-19",
+   "event": "503656",
+   "fill_index": 189,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.98,
+    "side": "BUY",
+    "size": 5.102,
+    "ts": 1779231324,
+    "tx_tail": "19af4b766b"
+   },
+   "fresh_prints": 8,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779231324,
+    1,
+    0.02,
+    5.102
+   ],
+   "iso": "2026-05-19T22:55:24Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.04852,
+   "pnl_input": 0.04852,
+   "price": 0.98,
+   "shares": 2.551,
+   "state": "dead",
+   "ts": 1779231324
+  },
+  {
+   "bucket": [
+    null,
+    85
+   ],
+   "cond": "0xbaa3ebf88a7d81eb750c3cfbe49eb865ca3e73190dc272e46980dedd218b26c7",
+   "date": "2026-05-19",
+   "event": "503658",
+   "fill_index": 205,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.75,
+    "side": "BUY",
+    "size": 8.0,
+    "ts": 1779231618,
+    "tx_tail": "2e6f87e8dd"
+   },
+   "fresh_prints": 26,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779231618,
+    1,
+    0.25,
+    8.0
+   ],
+   "iso": "2026-05-19T23:00:18Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.9625,
+   "pnl_input": 0.9625,
+   "price": 0.75,
+   "shares": 4.0,
+   "state": "dead",
+   "ts": 1779231618
+  },
+  {
+   "bucket": [
+    78,
+    79
+   ],
+   "cond": "0x896cbab0a5275b97efaee586b2da980708c4e3f6661173ffe4a18f67100a0c31",
+   "date": "2026-05-19",
+   "event": "503660",
+   "fill_index": 231,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.99,
+    "side": "BUY",
+    "size": 5.0,
+    "ts": 1779229175,
+    "tx_tail": "37ea70be74"
+   },
+   "fresh_prints": 9,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779229175,
+    1,
+    0.01,
+    5.0
+   ],
+   "iso": "2026-05-19T22:19:35Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.023763,
+   "pnl_input": 0.023763,
+   "price": 0.99,
+   "shares": 2.5,
+   "state": "dead",
+   "ts": 1779229175
+  },
+  {
+   "bucket": [
+    null,
+    65
+   ],
+   "cond": "0x71df0026c8b9816d2e38fae3e9f5d1a7bf08a677062530d2eb5710d37eea3372",
+   "date": "2026-05-23",
+   "event": "509231",
+   "fill_index": 234,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.988,
+    "side": "BUY",
+    "size": 43.65,
+    "ts": 1779564027,
+    "tx_tail": "6fcdfa9748"
+   },
+   "fresh_prints": 202,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779564027,
+    1,
+    0.012,
+    43.65
+   ],
+   "iso": "2026-05-23T19:20:27Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.248962,
+   "pnl_input": 0.248962,
+   "price": 0.988,
+   "shares": 21.825,
+   "state": "dead",
+   "ts": 1779564027
+  },
+  {
+   "bucket": [
+    70,
+    71
+   ],
+   "cond": "0x16505505f2c1d4e70f0550fb8629550b20e1b18a063bb9e618e1dc4ae90f56dc",
+   "date": "2026-05-23",
+   "event": "509231",
+   "fill_index": 252,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.97,
+    "side": "BUY",
+    "size": 87.63,
+    "ts": 1779566416,
+    "tx_tail": "36755d146b"
+   },
+   "fresh_prints": 123,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1779566416,
+    1,
+    0.03,
+    87.63
+   ],
+   "iso": "2026-05-23T20:00:16Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 1.238602,
+   "pnl_input": 1.238602,
+   "price": 0.97,
+   "shares": 43.391198,
+   "state": "dead",
+   "ts": 1779566416
+  },
+  {
+   "bucket": [
+    88,
+    89
+   ],
+   "cond": "0xaec4b6ff4555c7c97ce856baf566868806182b78fa61ca51b4f835dd754a23f2",
+   "date": "2026-06-02",
+   "event": "543496",
+   "fill_index": 317,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9799999608,
+    "side": "BUY",
+    "size": 10.20408,
+    "ts": 1780423437,
+    "tx_tail": "0118e1af28"
+   },
+   "fresh_prints": 410,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1780423437,
+    1,
+    0.02,
+    10.2041
+   ],
+   "iso": "2026-06-02T18:03:57Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.097041,
+   "pnl_input": 0.097041,
+   "price": 0.98,
+   "shares": 5.10205,
+   "state": "dead",
+   "ts": 1780423437
+  },
+  {
+   "bucket": [
+    68,
+    69
+   ],
+   "cond": "0xd3be29f68fe3d80b1d1f856311c723d79b1dfe3ff13dd8d2484c8a8469a5711d",
+   "date": "2026-06-17",
+   "event": "599387",
+   "fill_index": 380,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9634296488,
+    "side": "BUY",
+    "size": 15.569361,
+    "ts": 1781759006,
+    "tx_tail": "bae0114794"
+   },
+   "fresh_prints": 651,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1781759006,
+    1,
+    0.03657,
+    15.5694
+   ],
+   "iso": "2026-06-18T05:03:26Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.270973,
+   "pnl_input": 0.270973,
+   "price": 0.96343,
+   "shares": 7.7847,
+   "state": "dead",
+   "ts": 1781759006
+  },
+  {
+   "bucket": [
+    66,
+    67
+   ],
+   "cond": "0xf37cc2ecab9b5e2084d4f5f7834e81b29bda91ab3608ddc1de998e4576523260",
+   "date": "2026-07-07",
+   "event": "671423",
+   "fill_index": 418,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.99,
+    "side": "BUY",
+    "size": 10.101,
+    "ts": 1783409258,
+    "tx_tail": "33920dcf5e"
+   },
+   "fresh_prints": 158,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1783409258,
+    1,
+    0.01,
+    10.101
+   ],
+   "iso": "2026-07-07T07:27:38Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.048005,
+   "pnl_input": 0.048005,
+   "price": 0.99,
+   "shares": 5.0505,
+   "state": "dead",
+   "ts": 1783409258
+  },
+  {
+   "bucket": [
+    76,
+    77
+   ],
+   "cond": "0x811e10707ddd265f30c7e28ef7fc5d2623236aaf67d81a4a1d66352842cf593e",
+   "date": "2026-08-13",
+   "event": "836380",
+   "fill_index": 507,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9699999981,
+    "side": "BUY",
+    "size": 5.154633,
+    "ts": 1786655314,
+    "tx_tail": "aca24b9129"
+   },
+   "fresh_prints": 188,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1786655314,
+    1,
+    0.03,
+    5.1546
+   ],
+   "iso": "2026-08-13T21:08:34Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.073569,
+   "pnl_input": 0.073569,
+   "price": 0.97,
+   "shares": 2.5773,
+   "state": "dead",
+   "ts": 1786655314
+  },
+  {
+   "bucket": [
+    78,
+    79
+   ],
+   "cond": "0x4e31f137e184a40af0fb05fa3e9cef2440bd2621377f03f5b7fe0005c837d8b6",
+   "date": "2026-08-13",
+   "event": "836380",
+   "fill_index": 517,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.21,
+    "side": "BUY",
+    "size": 5.0,
+    "ts": 1786656391,
+    "tx_tail": "4b827d2659"
+   },
+   "fresh_prints": 383,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1786656391,
+    1,
+    0.79,
+    5.0
+   ],
+   "iso": "2026-08-13T21:26:31Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 1.954263,
+   "pnl_input": 1.954263,
+   "price": 0.21,
+   "shares": 2.5,
+   "state": "dead",
+   "ts": 1786656391
+  },
+  {
+   "bucket": [
+    90,
+    91
+   ],
+   "cond": "0x00308dc1b68ab3e0226f9f5f02db0d0e34aed7507dc5f0eaf81a4112d4b7497a",
+   "date": "2026-08-26",
+   "event": "907395",
+   "fill_index": 556,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.9849999982,
+    "side": "BUY",
+    "size": 2.812133,
+    "ts": 1787761333,
+    "tx_tail": "8d5bc17219"
+   },
+   "fresh_prints": 1902,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1787761333,
+    1,
+    0.015,
+    2.8121
+   ],
+   "iso": "2026-08-26T16:22:13Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.020052,
+   "pnl_input": 0.020052,
+   "price": 0.985,
+   "shares": 1.40605,
+   "state": "dead",
+   "ts": 1787761333
+  },
+  {
+   "bucket": [
+    72,
+    73
+   ],
+   "cond": "0x57b550f8308c12c9fc22cb792aa6e8598b085cb6a72a87898666dae6bcf22574",
+   "date": "2026-08-31",
+   "event": "929696",
+   "fill_index": 593,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.99,
+    "side": "BUY",
+    "size": 20.49,
+    "ts": 1788229323,
+    "tx_tail": "496dafbf6c"
+   },
+   "fresh_prints": 9,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1788229323,
+    1,
+    0.01,
+    20.49
+   ],
+   "iso": "2026-09-01T02:22:03Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.097379,
+   "pnl_input": 0.097379,
+   "price": 0.99,
+   "shares": 10.245,
+   "state": "dead",
+   "ts": 1788229323
+  },
+  {
+   "bucket": [
+    84,
+    85
+   ],
+   "cond": "0x0a07862f7a613e06f48569c95695726129e44f7d808ec9ed81e19ed69fe70496",
+   "date": "2026-08-31",
+   "event": "929768",
+   "fill_index": 600,
+   "fresh_match": {
+    "oi": 1,
+    "price": 0.96,
+    "side": "BUY",
+    "size": 30.94,
+    "ts": 1788206137,
+    "tx_tail": "3d4e847fed"
+   },
+   "fresh_prints": 115,
+   "fresh_walk_complete": true,
+   "input_print": [
+    1788206137,
+    1,
+    0.04,
+    30.94
+   ],
+   "iso": "2026-08-31T19:55:37Z",
+   "payout_yes_gamma": 0.0,
+   "payout_yes_input": 0.0,
+   "pnl_from_gamma_payout": 0.589098,
+   "pnl_input": 0.589098,
+   "price": 0.96,
+   "shares": 15.47,
+   "state": "dead",
+   "ts": 1788206137
+  }
+ ],
+ "seed": 20260926,
+ "summary": {
+  "largest_pnl_difference": 0.0,
+  "markets_with_a_fill": 131,
+  "matched_to_a_fresh_print": 20,
+  "sampled_fills": 20,
+  "sampled_payouts_agree": 20,
+  "their_payouts_agree_with_gamma": 131,
+  "their_payouts_gamma_missing": 0,
+  "traced_to_an_input_print": 20
+ }
+}
