@@ -308,8 +308,8 @@ that follow from that evidence, in short:
   decides every state exactly as v2 does; momentum-1d's replies still
   follow the 4-hour words, so its only deterministic threshold (0.77)
   refuses almost every entry, and it loses to a random veto under the
-  trail. So every row asks v2. **On the two paper rows (and their Binance
-  twins) the gate is in shadow since 2026-09-26** (`0059`, Davies: "这个听你的吧"):
+  trail. So every row asks v2. **On the two paper rows the gate is in
+  shadow since 2026-09-26** (`0059`, Davies: "这个听你的吧"):
   the model is asked on every entry and its answer recorded, the reason
   says whether it would have vetoed, and the rulebook enters; the live row
   and its control keep the gate. A wording lives in `jev_rows.ts`,
@@ -346,26 +346,35 @@ that follow from that evidence, in short:
   capital to a row that earns it makes its orders bigger. The gate still
   refuses an entry more than 10 % over its slot (`ORDER_SLOT_TOLERANCE`,
   reference §4.26).
-- **SIX ROWS run after migration `0049` (2026-09-23)**: the three Revolut X
-  rows `0046` left (§3.17, §4.22) and, from `0049`, their paper twins on
-  Binance (`*-binance`: Davies' word, the same strategies shown on Binance —
-  the same decisions filled at Binance's touch and 10 bps; for the page, not
-  evidence, and paper only by constraint, §4.29). The Revolut X rows: `trend-4h`
-  on Revolut X (the live candidate, $100),
-  `momentum-1d` on Revolut X (paper, $40) and `trend-1h` on Revolut X
-  (paper, $40 — kept for feedback speed, 31.7–56.1 fills per 90 days
-  against the live row's 14.6–26.8, and because at 0.63 it is the only row
-  with no near-duplicate; its return is inside chance and inside the
-  spread error bar and is NOT read as evidence). Row capital $440 → $280;
-  no cap moves. **`trend-4h-kraken` was DELETED by `0046`** (Davies'
+- **FOUR ROWS run since migration `0065` (2026-09-27)**: the live row and
+  the three Revolut X paper rows `0046` left (§3.17, §4.22): `trend-4h`
+  (the live row's same-venue control), `momentum-1d` and `trend-1h` (kept
+  for feedback speed, 31.7–56.1 fills per 90 days against the live row's
+  14.6–26.8, and because at 0.63 it is the only row with no
+  near-duplicate; its return is inside chance and inside the spread error
+  bar and is NOT read as evidence). **The paper rows run at ten times their
+  size since `0066`** (Davies, 2026-09-27, so they are not a sliver of
+  VENUES): `trend-4h` $1,000, the other two $400, their paper book scaled
+  from its first order, `paper_exposure_usd` $3,000 and a paper daily loss
+  limit of its own, `paper_daily_loss_limit_usd` $50 (the live row keeps
+  $25 and $5). A paper fill is at the touch whatever its size, so their
+  prices and percentages are unchanged. **The Binance twins (`*-binance`,
+  `0049`) were DELETED by `0065`** (Davies: keep them only if they beat
+  the Revolut X rows): they made no decision of their own (315 of 315, 132
+  of 135 and 12 of 15 paired decisions equal, every difference a position
+  held from before they existed), their fills were no better (−1.0 bps a
+  fill on four pairs, and a 10 bps fee against 9) and a Binance row cannot
+  be live (§4 item 29's addendum). **`trend-4h-kraken` was DELETED by `0046`** (Davies'
   word): it made no decision of its own — 50 of 50 paired decisions matched
   `trend-4h` exactly — nothing read its fill path, that path's accuracy was
   measured keylessly in 18 minutes (79 % / 91 % of resting orders reached
   in 1 / 5 minutes against the loop's model's 82 % / 92 %), and it paid
   4.44× the fee for identical fills. **Kraken is a SIGNAL venue only from
   here**: every rule reads its candles; nothing executes there, and the
-  page is swept in that shape. **VENUES shows Revolut X and Binance, not
-  Kraken** (Davies, 2026-09-23): each card is its venue's paper book —
+  page is swept in that shape. **VENUES shows Revolut X, and Polymarket
+  for its tests; not Kraken, and not Binance since `0065`** (Davies,
+  2026-09-23 and 2026-09-27; Binance returns with a strategy of its own):
+  each card is its venue's paper book —
   "funded (Paper)" is the rows' capital, "deployed" (no label: one on
   funded is enough, Davies 2026-09-23) what they hold;
   no real balance is shown, and the page says "Agents (beta)" — and PAPER
@@ -479,8 +488,9 @@ that follow from that evidence, in short:
   read-back fails leaves the row open. The fills query is paged. The
   daily loss limit blocks new risk only, never an exit; a resting exit
   order never outranks a stop (it is cancelled first); a re-quote passes
-  the same gate as any order. Paper twins have their own exposure cap
-  (`paper_exposure_usd`) so they measure independently. The pre-live
+  the same gate as any order. Paper rows have their own exposure cap
+  (`paper_exposure_usd`) and daily loss limit (`paper_daily_loss_limit_usd`,
+  `0066`) so they measure independently. The pre-live
   review that found these is `docs/agents/reviews/`, its status §4.17.
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).

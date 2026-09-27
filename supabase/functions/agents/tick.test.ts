@@ -634,6 +634,30 @@ Deno.test("paper twins are capped by their own exposure number, so they do not c
   assert(String(w2.mem.tables.agent_decisions[0].risk_reason).includes("exposure"));
 });
 
+Deno.test("a paper book's day loss is judged against the paper limit, so paper at ten times the size neither trips on nor loosens the live $5", async () => {
+  // Long ETH since an hour ago at 20 % over the mark: about $8 down today, over the live $5, under a $50 paper limit.
+  const mark = world().quote.bid;
+  const losing = (over: Row = {}) => longSince(ONE_H, mark * 1.2, 50 / (mark * 1.2), { symbol: "ETH/USD", ...over });
+  const two = (over: Partial<StrategyRow> = {}) => [strategy({ symbols: ["BTC/USD", "ETH/USD"], ...over })];
+  const btcOf = (w: ReturnType<typeof world>) => w.mem.tables.agent_decisions.find((x) => x.symbol === "BTC/USD")!;
+  const w = world({ strategies: two(), orders: [losing()], risk: { paper_daily_loss_limit_usd: 50 } });
+  await tick(w.deps);
+  assertEquals([btcOf(w).final_action, btcOf(w).risk_allowed], ["enter", true]);
+  // With no paper number the live $5 applies to paper, as before `0066`, and the entry is refused.
+  const w2 = world({ strategies: two(), orders: [losing()], risk: { paper_daily_loss_limit_usd: null } });
+  await tick(w2.deps);
+  assertEquals(btcOf(w2).risk_allowed, false);
+  assert(String(btcOf(w2).risk_reason).includes("daily loss limit"), String(btcOf(w2).risk_reason));
+  // A live book keeps the live $5 whatever the paper number says.
+  const w3 = world({
+    strategies: two({ mode: "live" }), canTrade: true, orders: [losing({ mode: "live" })],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z", paper_daily_loss_limit_usd: 50 },
+  });
+  await tick(w3.deps);
+  assertEquals([btcOf(w3).mode, btcOf(w3).risk_allowed], ["live", false]);
+  assert(String(btcOf(w3).risk_reason).includes("daily loss limit"), String(btcOf(w3).risk_reason));
+});
+
 Deno.test("an entry is one slot of its row — its capital over the positions it can hold — with no fixed cap on top", async () => {
   // Four coins on $100 is four $25 slots. Until 2026-09-23 a fixed per-order cap (`agent_risk.max_order_usd`, $20) sat on
   // top, so every slot came out at $20 whatever the row's capital said, and this row placed four $20 orders.

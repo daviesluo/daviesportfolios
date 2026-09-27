@@ -672,6 +672,8 @@ before touching migration state.
 | `0062_view_markets_recorder.sql` | Adds the view-count recorder's tables (channels, uploads, counters, view markets, their books, the key's daily units) and its minute job. |
 | `0063_one_minute_batch.sql` | Replaces the nine jobs that each queued an Edge call with one that queues every call due in its minute in one statement, so pg_net takes them as one batch. |
 | `0064_pm_rw_x.sql` | Adds the forward replay of RW-E's three variants: its state and day tables, its lease, and its call in the one-minute job. |
+| `0065_delete_binance_twins.sql` | Deletes the three Binance paper twins and their records: they decided nothing of their own and filled no better. |
+| `0066_paper_rows_x10.sql` | Puts the three paper strategy rows at ten times their size, their paper book with them, and gives paper books their own exposure and daily loss limits. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

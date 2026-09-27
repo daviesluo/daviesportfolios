@@ -128,6 +128,8 @@ export type StrategyRow = {
 };
 export type RiskRow = {
   global_pause: boolean; max_exposure_usd: number; paper_exposure_usd: number | null; daily_loss_limit_usd: number;
+  /** The paper books' own daily loss limit (`0066`); absent or null, paper shares the live number. */
+  paper_daily_loss_limit_usd?: number | null;
   max_orders_per_day: number; live_confirmed_at: string | null;
 };
 /**
@@ -1183,11 +1185,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   }
   // The caps, per venue account and per mode. Paper twins measure independently, so their
   // exposure cap is its own number: with the live cap they would crowd each other out of the book.
+  // Their daily loss limit is its own number too (`0066`): the paper rows run at ten times the live row's size, and the
+  // live row's $5 would stop their entries on an ordinary day, so they would no longer be the rule they record.
   // The per-order limit is the row's own slot (with the re-quote tolerance), not a number in `agent_risk`.
   const limitsFor = (mode: string, s: StrategyRow) => ({
     maxOrderUsd: slotUsdOf(s) * ORDER_SLOT_TOLERANCE,
     maxExposureUsd: mode === "paper" && risk.paper_exposure_usd != null ? Number(risk.paper_exposure_usd) : Number(risk.max_exposure_usd),
-    dailyLossLimitUsd: Number(risk.daily_loss_limit_usd), maxOrdersPerDay: Number(risk.max_orders_per_day), globalPause: !!risk.global_pause,
+    dailyLossLimitUsd: mode === "paper" && risk.paper_daily_loss_limit_usd != null ? Number(risk.paper_daily_loss_limit_usd) : Number(risk.daily_loss_limit_usd),
+    maxOrdersPerDay: Number(risk.max_orders_per_day), globalPause: !!risk.global_pause,
   });
   // The caps are counted in the book the order will be written to; `mode` stays the row's LABEL, because that
   // is what `riskGate`'s paused test asks about — whether this rulebook may take new risk, not which book it is in.

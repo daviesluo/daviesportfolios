@@ -93,7 +93,9 @@ list stays the short version; the plan is the reasoning behind it.
 3. **`trend-4h-live` is LIVE on Revolut X at $100** (BTC/ETH/SOL/AVAX, four $25 slots; `0054_go_live.sql` applied
    2026-09-24 22:51:15 UTC, armed 22:53:09 UTC; capital 50 → 100 and `max_exposure_usd` 15 → 25 on 2026-09-25
    02:42 UTC, both on Davies' word). Its first live buy was SOL at the 2026-09-25 12:00 UTC bar, read back and
-   still held on 09-26. The paper `trend-4h` is its same-venue control. Davies: no confirmation of his
+   still held on 09-26. The paper `trend-4h` is its same-venue control, at ten times its size since `0066` ($1,000,
+   five $200 slots; `trend-1h` and `momentum-1d` $400; paper caps $3,000 and $50 a day of their own; the live
+   row's $25 and $5 untouched), and the Binance twins are gone (`0065`). Davies: no confirmation of his
    for any trade after the go-live ("上线后的买卖不需要找我确认，如果真的需要你帮忙盯着就行"); a session watches when asked
    and reports, never asks. **When asked to look (read-only):** after a 4h close + 3 min (00:03, 04:03 … 20:03 UTC)
    the live row's four decisions beside `trend-4h`'s (same `rule_action` per coin), `agent_orders` where
