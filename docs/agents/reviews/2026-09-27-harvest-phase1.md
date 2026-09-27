@@ -86,7 +86,7 @@ column "held-out dates" in the power table is empty for it): PMLATE read those m
   * tweet markets (972), mentions (100343), earthquakes (103038, 100184) and awards (18), with scheduled ends in
     2026-02-01 → 09-25;
   * daily temperature (103040) for 2026-02-28 → 06-02.
-* **The split, fixed from that record before any print was read** (`inputs/split.json`, committed as `aa9cca32` ahead
+* **The split, fixed from that record before any print was read** (`inputs/split.json`, committed as `429ebc27` on `main`, `aa9cca32` on the study's branch, ahead
   of every print pull):
   * an event is **exploration** when every market of it closed in [2026-03-01, 2026-06-01);
   * it is **held out** when every market closed in [2026-06-01, 2026-09-25);

@@ -119,7 +119,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE); the view recorder running.** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -196,16 +196,22 @@ list stays the short version; the plan is the reasoning behind it.
    resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
    (g) HARVEST (Davies, 2026-09-27: the research drifted — the idea is to eat the orders liquidity providers leave
    once a result is essentially confirmed, not to compete with the market; temperature markets included; and add
-   the new kinds of market RW now selects). **Phase 1 is running as a research agent in its own worktree**: history
-   ending before 2026-09-25 only, keyless public reads, no orders, no RW tables. Two modes per category: A, take
-   the losing side's resting orders after the public confirmation; B, rest a bid on the confirmed winner for the late
-   takers who buy the loser (seen once, below). Trap rate, capital lock, net a day, best date's share. Categories: data
-   releases, post counts, earthquakes (USGS), mentions (NO at the event's end), awards, and the temperature markets
-   still open after their day has ended. It stops at measurement, a power check and at most five DRAFT
-   pre-registrations. Integrate: read its review, re-run its scripts from the committed inputs, commit on `main`,
-   report to Davies in Chinese.
+   the new kinds of market RW now selects). **Phase 1 done 2026-09-27, integrated on `main` (`429ebc27` … `6618ee31`;
+   reference §3.42, `reviews/2026-09-27-harvest-phase1.md`): not worth money, nothing pre-registered.** Where the
+   market agrees with the source the late book pays 0.1–0.5 ¢ a dollar, which one trap in 220–830 markets erases
+   (measured: 1 in 136 earthquakes, 1 in 152 temperature, 1 in 243 mention proposals); the late money sits in one or
+   two contested market-days per category, USLATE's failed shape; the economic releases are a 10-second race. The
+   re-run on the committed inputs is byte-identical. **A defect it found in closed work**: PMLATE's
+   `count_common.xt_posts` reads one page (100 posts) of the post tracker, so PMLATE phase 1's count basis and SPEED's
+   `count_edge.py` truncated every window above 100 posts (every Elon Musk window, Trump's busier weeks);
+   `harvest/scripts/hcommon.xt_posts` pages. No running strategy reads either; re-run SPEED's post-count figures with
+   the paged reader before any post-count idea is taken up again.
 
 6. **Davies' to decide or to do; nothing waits on them:**
+   - HARVEST's one lead (reference §3.42): a forward recorder of UMA proposals and disputes on the harvest categories,
+     with the book at C + 60 s, to see what rests after a confirmation and whether a proposal is safe to follow. Public
+     reads only, nothing placed, like the view recorder; build it only on his word. The econ-release race (FAST-A) is
+     the racing he ruled out. Any harvest opens a position: Ireland only, under his attestation.
    - WXSRC's keyed weather feeds (reference §3.41, §6 "The weather feeds"). Read 2026-09-27 by the `weather`
      function's probe: **Météo-France** — the stored `METEO_FRANCE_API_KEY` is an access token that expired six
      minutes after issue; store instead a long-lived **API Key** from the portal's "Générer Token" page (as
@@ -320,6 +326,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**HARVEST phase 1 reported and is on `main`: after a public confirmation the late book pays pennies unless the confirmation is contested; nothing pre-registered.**
+- The agent's seven commits, cherry-picked in order (`429ebc27` … `6618ee31`, each with `-x` naming its branch hash; the split commit keeps its 17:46 UTC author time, before any print pull). The coordinator re-ran `scripts/run_all.py` on the committed inputs: every result file's hash equals the committed one, the second run is byte-identical, and the five confirmation steps re-run offline reproduce every committed unit (the committed inputs hold the units whose event walks were complete, a subset of the re-run's). 21 MB, in line with fp6 and the Polymarket search.
+- Result, map row and reference §3.42; item 5(g) closed; the recorder it suggests is under item 6; the PMLATE one-page defect is recorded under 5(g).
+- The variants' replay started in production at 19:01 (`0064` applied, the job's list has `pmrw-x`, the state catching up from 09-25 at 720 minutes a run).
 
 ### [2026-09-27 19:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

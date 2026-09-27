@@ -2957,6 +2957,40 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
   news). The Météo-France credential stored was an access token that had expired before it was first read. Neither
   feed has been measured against the takers yet.
 
+### 3.42 HARVEST: the other side of the book after a public confirmation — pennies, unless the confirmation is contested (2026-09-27)
+
+Davies turned the Polymarket research back to what he asked for: not forecasting and not racing the market, but the
+orders left on the book once a public source has essentially confirmed the result, temperature included, and the kinds
+of market RW now selects. A research agent measured it on history (`reviews/2026-09-27-harvest-phase1.md`,
+`backtests/harvest/`; keyless reads only, nothing placed, no RW table read). The split was fixed from Gamma's records
+before any print was read (`429ebc27`): 2026-03-01 → 05-31 is exploration (92 days), 06-01 → 09-24 held out and unread.
+The coordinator re-ran `scripts/run_all.py` on the committed inputs: every result byte-identical to the committed
+files, twice, and the five confirmation steps re-run offline reproduce every committed unit.
+
+Two modes per market, from C, the first instant a public, timestamped source confirms the outcome: **A** takes the
+stale orders that still sell the confirmed winner below 1; **B** rests a bid on the winner for the late takers who sell
+it. A market whose source was wrong is a trap.
+
+| | economic releases | post counts | mentions | earthquakes | temperature, after the day |
+|---|---:|---:|---:|---:|---:|
+| markets | 187 | 2,316 | 4,104 | 136 | 4,700 |
+| A pool a day from C + 60 s (without the top market-day) | $218.59 ($9.12) | $42.74 | $60.33 | $45.90 | $172.12 ($16.89) |
+| A at $100 a market, half of each print | $4.00 | $3.07 | $2.57 | $1.20 | $0.87 |
+| B: a tick above every late print (ceiling) / a bid at 99 ¢ | $20.26 / $0.12 | $1.39 / $0.23 | $15.01 / $3.04 | $1.02 / −$0.57 | $1.67 / −$1.95 |
+| traps | 0 of 187 | 0 of 2,316 | 17 of 4,133 first UMA proposals overturned | 1 of 136 | 31 of 4,700 |
+
+**Not worth money; nothing pre-registered.** Where the market agrees with the source, the late book pays 0.1–0.5 ¢ a
+dollar, which one trap in 220–830 markets erases, against measured trap rates of 1 in 136 (earthquakes), 1 in 152
+(temperature) and 1 in 243 (mention proposals). The late money is where the market still doubts the source, and each
+category's pool rests on one or two market-days (the April FOMC dissent count, New York's 7 March high, one Elon Musk
+week, a M6.5 at the threshold), USLATE's failed shape; where the source was wrong the same trade loses almost the
+whole dollar. After an economic release the stale side goes in 10–60 s, and in the first 10 s by May (83 %): FAST-A
+(release + 3 s) has z 4.6 but is a race, and the held-out months hold about 14 release dates against the 25 the bar
+needs. Found beside it: PMLATE's `count_common.xt_posts` read one page (100 posts) of the post tracker, so phase 1's
+count basis and SPEED's post-count edge truncated every window above 100 posts; the tracker's history cannot
+reproduce 14 of 207 results; a tsunami centre's first magnitude is not USGS's. The one lead is a forward recorder of
+UMA proposals and the book at C + 60 s, which is Davies' call (ledger item 6).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
