@@ -2,7 +2,7 @@
 // client: who may call, which probe parts run, and the probe itself with every transport injected.
 
 import { constantTimeEqual } from "../_shared/token.ts";
-import { MF_KEY_NAMES, meteoFranceProbe } from "./meteofrance.ts";
+import { MF_APP_ID_NAMES, MF_KEY_NAMES, meteoFranceProbe } from "./meteofrance.ts";
 import { faaProbe, faaScrubList, faaSecrets, scrubDeep, type FaaSession } from "./faa_swim.ts";
 
 /** Only the scheduler's bearer (pg_net with the Vault `cron_secret`): nothing here is for the page. */
@@ -33,9 +33,12 @@ export type WeatherProbeDeps = {
   now?: () => number;
 };
 
+/** The portal login's name. The API never reads it; it is kept out of reports like the rest. */
+export const MF_USER_NAMES = ["METEO_FRANCE_USERNAME", "Meteo_France_USERNAME", "METEOFRANCE_USERNAME"];
+
 /** Every weather secret's value, for scrubbing whatever a request returns. */
 export function weatherSecrets(env: Record<string, string>): string[] {
-  return [...MF_KEY_NAMES, "METEO_FRANCE_USERNAME", "Meteo_France_USERNAME", "METEOFRANCE_USERNAME"].map((n) => env[n] ?? "").concat(faaScrubList(faaSecrets(env)));
+  return [...MF_KEY_NAMES, ...MF_APP_ID_NAMES, ...MF_USER_NAMES].map((n) => env[n] ?? "").concat(faaScrubList(faaSecrets(env)));
 }
 
 /** Every part asked for, read-only. The report is scrubbed of every weather secret once more at the end. */
@@ -43,11 +46,15 @@ export async function runWeatherProbe(only: Set<string> | null, deps: WeatherPro
   const want = (p: string) => !only || only.has(p);
   const out: Record<string, unknown> = { at: new Date((deps.now ?? Date.now)()).toISOString(), parts: only ? [...only] : [...WEATHER_PROBE_PARTS] };
   const mfKey = envFirst(MF_KEY_NAMES, deps.env);
-  const mfUser = envFirst(["METEO_FRANCE_USERNAME", "Meteo_France_USERNAME", "METEOFRANCE_USERNAME"], deps.env);
+  const mfAppId = envFirst(MF_APP_ID_NAMES, deps.env);
+  const mfUser = envFirst(MF_USER_NAMES, deps.env);
   if (want("meteofrance")) {
-    out.meteofrance = mfKey
-      ? { usernameSet: mfUser !== "", ...(await meteoFranceProbe({ key: mfKey, fetchImpl: deps.fetchImpl }, { now: deps.now, secrets: mfUser ? [mfUser] : [] })) }
-      : { error: "METEO_FRANCE_API_KEY is not set", usernameSet: mfUser !== "" };
+    out.meteofrance = mfKey || mfAppId
+      ? {
+        usernameSet: mfUser !== "", applicationIdSet: mfAppId !== "",
+        ...(await meteoFranceProbe({ key: mfKey, appId: mfAppId || undefined, fetchImpl: deps.fetchImpl }, { now: deps.now, secrets: mfUser ? [mfUser] : [] })),
+      }
+      : { error: "neither METEO_FRANCE_API_KEY nor METEO_FRANCE_APPLICATION_ID is set", usernameSet: mfUser !== "" };
   }
   if (want("faa")) out.faa = await faaProbe({ env: deps.env, tlsReach: deps.tlsReach, session: deps.session, now: deps.now });
   return scrubDeep(out, weatherSecrets(deps.env));

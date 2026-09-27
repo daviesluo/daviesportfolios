@@ -31,16 +31,23 @@ const STATIONS = [
 ].join("\n");
 
 /** A gateway that takes the key in `accept` and answers like DPObs v1, recording every request it saw. */
-function gateway(accept: "apikey" | "bearer", now: number, opts: { echo?: boolean; formats?: string[] } = {}) {
+function gateway(accept: "apikey" | "bearer", now: number, opts: { echo?: boolean; formats?: string[]; version?: "v1" | "v2"; credential?: string; appId?: string; minted?: string } = {}) {
+  const credential = opts.credential ?? KEY;
   const seen: { method: string; url: string; headers: Record<string, string> }[] = [];
   const fetchImpl = (async (input: URL | RequestInfo, init?: RequestInit) => {
     const url = new URL(String(input));
     const headers = Object.fromEntries(new Headers(init?.headers).entries());
     seen.push({ method: init?.method ?? "GET", url: url.toString(), headers });
-    const okAuth = accept === "apikey" ? headers.apikey === KEY : headers.authorization === `Bearer ${KEY}`;
+    if (url.pathname === "/token") {
+      const okApp = opts.appId && headers.authorization === `Basic ${opts.appId}` && String(init?.body) === "grant_type=client_credentials";
+      return okApp
+        ? new Response(JSON.stringify({ access_token: opts.minted, scope: "default", token_type: "Bearer", expires_in: 3600 }), { status: 200 })
+        : new Response(`{"error_description":"A valid OAuth client could not be found for client_id: planted","error":"invalid_client"}`, { status: 401 });
+    }
+    const okAuth = accept === "apikey" ? headers.apikey === credential : headers.authorization === `Bearer ${credential}`;
     const echo = opts.echo ? ` echo apikey=${headers.apikey ?? ""} auth=${headers.authorization ?? ""} ${SUB} ${OWNER} ${IP}` : "";
     if (!okAuth) return new Response(`{"code":"900902","message":"Missing Credentials"${echo ? `,"x":"${echo}"` : ""}}`, { status: 401 });
-    if (!url.pathname.startsWith("/public/DPObs/v1/")) return new Response("no such version" + echo, { status: 403 });
+    if (!url.pathname.startsWith(`/public/DPObs/${opts.version ?? "v1"}/`)) return new Response("no such version" + echo, { status: 403 });
     if (url.pathname.endsWith("/liste-stations")) return new Response(STATIONS + (opts.echo ? `\n99999999;;${echo};0;0;0;x;x` : ""), { status: 200, headers: { "content-type": "text/csv" } });
     if (url.pathname.endsWith("/station/infrahoraire-6m")) {
       const f = url.searchParams.get("format") ?? "";
@@ -153,4 +160,52 @@ Deno.test("readingRow: kelvin to °C to a tenth, delays in seconds, an absent te
 Deno.test("pastSteps: the six-minute steps before now, newest first, the step still forming left out", () => {
   assertEquals(pastSteps(Date.parse("2026-09-27T05:02:30Z"), 3), ["2026-09-27T04:54:00Z", "2026-09-27T04:48:00Z", "2026-09-27T04:42:00Z"]);
   assertEquals(pastSteps(Date.parse("2026-09-27T05:00:00Z"), 1), ["2026-09-27T04:54:00Z"]);
+});
+
+/** A JWT in the portal's shape for `context`, issued at `iat` and good for `life` seconds. */
+const jwt = (context: string, iat: number, life: number, tag: string) => [
+  b64url({ alg: "RS256", typ: "JWT" }),
+  b64url({ sub: SUB, keytype: "PRODUCTION", tierInfo: { "100ReqPerMin": {} }, subscribedAPIs: [{ name: "DonneesPubliquesObservation", context, version: context.slice(-2), subscriptionTier: "100ReqPerMin" }], iat, exp: iat + life }),
+  `planted-${tag}-signature-0123456789`,
+].join(".");
+
+Deno.test("meteoFranceProbe: a stored token that has expired is reported, and nothing is asked with it", async () => {
+  // The first key stored (2026-09-27) was an access token issued 04:07:46 for 365 s; the first probe read it at 04:50.
+  const stale = jwt("/public/DPObs/v2", Date.parse("2026-09-27T04:07:46Z") / 1000, 365, "stale");
+  const g = gateway("bearer", NOW, { credential: stale, version: "v2" });
+  const out = await meteoFranceProbe({ key: stale, fetchImpl: g.fetchImpl }, { now: () => Date.parse("2026-09-27T04:50:45Z") });
+  assertEquals(g.seen.length, 0);
+  assertEquals(out.calls, 0);
+  const form = out.keyForm as Record<string, unknown>;
+  assertEquals([form.expired, form.lifetimeS, form.expiresAt], [true, 365, "2026-09-27T04:13:51.000Z"]);
+  assert(String(out.skipped).includes("METEO_FRANCE_APPLICATION_ID"));
+});
+
+Deno.test("meteoFranceProbe: the application ID mints a token, asked as a bearer on the version it names first", async () => {
+  const APP_ID = "cGxhbnRlZC1jb25zdW1lci1rZXk6cGxhbnRlZC1jb25zdW1lci1zZWNyZXQ=";
+  const minted = jwt("/public/DPObs/v2", NOW / 1000 - 5, 3600, "minted");
+  const g = gateway("bearer", NOW, { credential: minted, version: "v2", appId: APP_ID, minted, formats: ["csv", "geojson"] });
+  const out = await meteoFranceProbe({ key: "", appId: APP_ID, fetchImpl: g.fetchImpl, tokenUrl: "https://portail-api.meteofrance.fr/token" }, { now: () => NOW });
+  assertEquals(g.seen[0].method, "POST");
+  assertEquals(out.credential, "client_credentials");
+  assertEquals((out.token as { expiresInS: number }).expiresInS, 3600);
+  assertEquals(out.version, "v2");
+  assertEquals((out.access as { version: string; auth: string }[])[0], { ...(out.access as Record<string, unknown>[])[0], version: "v2", auth: "bearer" });
+  assertEquals((out.latest as { format: string }).format, "geojson");
+  const text = JSON.stringify(out);
+  assert(!leaks(text, APP_ID) && !leaks(text, minted), "a credential in the report");
+  for (const r of g.seen.slice(1)) {
+    assertEquals(r.method, "GET");
+    assert(!leaks(r.url, minted), `token in a URL: ${r.url}`);
+  }
+});
+
+Deno.test("meteoFranceProbe: a refused application ID stops at the token, with the portal's reason and no credential", async () => {
+  const APP_ID = "cGxhbnRlZC13cm9uZy1pZA==";
+  const g = gateway("bearer", NOW, { appId: "something-else", minted: "x" });
+  const out = await meteoFranceProbe({ key: "", appId: APP_ID, fetchImpl: g.fetchImpl, tokenUrl: "https://portail-api.meteofrance.fr/token" }, { now: () => NOW });
+  assertEquals(g.seen.length, 1);
+  assertEquals((out.token as { status: number }).status, 401);
+  assert(String((out.token as { error: string }).error).includes("invalid_client"));
+  assert(!JSON.stringify(out).includes(APP_ID));
 });

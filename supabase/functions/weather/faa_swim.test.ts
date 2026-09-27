@@ -22,10 +22,10 @@ const ENV: Record<string, string> = {
   FAA_SWIM_SUBSCRIPTION_NAME: "planted-subscription-name",
   FAA_SWIM_PRODUCT: "ITWS Alerts + Standard",
   FAA_SWIM_FILTER: "all-planted-stations",
-  FAA_SWIM_JUMPSTART: "planted-jumpstart-token",
+  FAA_SWIM_PROTOCOL: "tcps",
   UNRELATED_SECRET: "must-not-be-read",
 };
-const SECRET_VALUES = Object.entries(ENV).filter(([k]) => k.startsWith("FAA_SWIM_") && !["FAA_SWIM_VPN", "FAA_SWIM_PORT"].includes(k)).map(([, v]) => v);
+const SECRET_VALUES = Object.entries(ENV).filter(([k]) => k.startsWith("FAA_SWIM_") && !["FAA_SWIM_VPN", "FAA_SWIM_PORT", "FAA_SWIM_PROTOCOL"].includes(k)).map(([, v]) => v);
 
 const itws = (i: number): FaaMessage => ({
   destination: `ITWS/CONFIGURED_ALERTS/KORD/${i}`,
@@ -149,6 +149,35 @@ Deno.test("scrubDeep, faaScrubList: longest first, the VPN and port kept, short 
   assertEquals(scrubDeep({ a: "user.name and user", b: [1, "user.name"] }, ["user", "user.name"]), { a: "[redacted] and [redacted]", b: [1, "[redacted]"] });
   assertEquals(scrubDeep("ab cd", ["ab"]), "ab cd");
   const list = faaScrubList(faaSecrets(ENV));
-  assert(!list.includes("ITWS") && !list.includes("55443"));
-  assertEquals(list.length, 12);
+  assert(!list.includes("ITWS") && !list.includes("55443") && !list.includes("tcps"));
+  assertEquals(list.length, 11);
+});
+
+Deno.test("faaRoles, faaForms: the fourteen names the other tool stored on 2026-09-27, read as the probe read them", () => {
+  // The names as `?action=probe&only=faa` listed them at 04:51 UTC; the values here are planted.
+  const stored: Record<string, string> = {
+    FAA_SWIM_CONNECTION_FACTORY: "planted.factory.name1", FAA_SWIM_CONNECTION_PASSWORD: "planted-password-000001",
+    FAA_SWIM_CONNECTION_USERNAME: "planted.conn.user01", FAA_SWIM_EMAIL: "planted@example.org",
+    FAA_SWIM_FILTERS: "planted1", FAA_SWIM_HOST: "ems9.swim.faa.gov", FAA_SWIM_JMS_CONNECTION_URL: "tcps://ems9.swim.faa.gov:55443",
+    FAA_SWIM_MESSAGE_VPN: "ITWS", FAA_SWIM_PORT: "55443", FAA_SWIM_PRODUCT: "ITWS", FAA_SWIM_PROTOCOL: "tcps",
+    FAA_SWIM_QUEUE_NAME: "planted.conn.user01.ITWS.00000000-0000-4000-8000-000000000000.OUT", FAA_SWIM_SERVICES: "plant1",
+    FAA_SWIM_SUBSCRIPTION_ID: "00000000-0000-4000-8000-000000000001",
+  };
+  const roles = faaRoles(Object.keys(stored));
+  assertEquals(roles, {
+    url: "FAA_SWIM_JMS_CONNECTION_URL", host: "FAA_SWIM_HOST", port: "FAA_SWIM_PORT", vpn: "FAA_SWIM_MESSAGE_VPN",
+    queue: "FAA_SWIM_QUEUE_NAME", user: "FAA_SWIM_CONNECTION_USERNAME", password: "FAA_SWIM_CONNECTION_PASSWORD",
+    factory: "FAA_SWIM_CONNECTION_FACTORY",
+  });
+  const forms = scrubDeep(faaForms(stored, roles), faaScrubList(stored, roles));
+  // the scheme, the product and the VPN survive the scrub (the 04:51 report had them all "[redacted]")
+  assertEquals(forms.FAA_SWIM_JMS_CONNECTION_URL.scheme, "tcps");
+  assertEquals(forms.FAA_SWIM_MESSAGE_VPN.product, "ITWS");
+  assertEquals(forms.FAA_SWIM_QUEUE_NAME.product, "ITWS");
+  assertEquals(forms.FAA_SWIM_PRODUCT.value, "ITWS");
+  assertEquals(forms.FAA_SWIM_PROTOCOL.value, "tcps");
+  const text = JSON.stringify(forms);
+  for (const k of ["FAA_SWIM_CONNECTION_PASSWORD", "FAA_SWIM_CONNECTION_USERNAME", "FAA_SWIM_EMAIL", "FAA_SWIM_QUEUE_NAME", "FAA_SWIM_SUBSCRIPTION_ID", "FAA_SWIM_HOST", "FAA_SWIM_FILTERS", "FAA_SWIM_SERVICES", "FAA_SWIM_CONNECTION_FACTORY"]) {
+    assert(!text.includes(stored[k]), `${k} in the forms`);
+  }
 });

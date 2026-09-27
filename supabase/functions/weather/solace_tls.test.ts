@@ -4,7 +4,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import net from "node:net";
 import tls from "node:tls";
-import { DenoTlsStream, disarmSolaceTls, installSolaceTls } from "./solace_tls.ts";
+import { DenoTlsStream, disarmSolaceTls, installSolaceTls, stringBytes } from "./solace_tls.ts";
 
 /** A TLS connection stand-in: serves `chunks` to reads, records writes, and counts closes. */
 function fakeConn(chunks: Uint8Array[]) {
@@ -88,4 +88,18 @@ Deno.test("installSolaceTls: an armed socket records its target (a string port) 
   await e.closed;
   assertEquals(asked, { hostname: "ems.example.gov", port: 55443 });
   disarmSolaceTls();
+});
+
+Deno.test("DenoTlsStream: a frame written as an \"ascii\" binary string goes out one byte a character, as Node sends it", async () => {
+  // solclientjs writes every SMF frame with write(frame, "ascii"). Encoded as UTF-8, each byte above 0x7F became two,
+  // and SCDS refused the login with "400 Header Parse Error" (2026-09-27).
+  const f = fakeConn([]);
+  const s = new DenoTlsStream("ems.example.gov", 55443, async () => f.conn);
+  const e = events(s);
+  const frame = String.fromCharCode(0x03, 0x8c, 0x00, 0xff, 0xe9, 0x41);
+  s.write(frame, "ascii");
+  await e.closed;
+  assertEquals([...f.writes[0]], [0x03, 0x8c, 0x00, 0xff, 0xe9, 0x41]);
+  assertEquals([...stringBytes("\u00e9", "latin1")], [0xe9]);
+  assertEquals([...stringBytes("\u00e9", "utf8")], [0xc3, 0xa9]);
 });

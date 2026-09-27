@@ -550,8 +550,12 @@ that follow from that evidence, in short:
   the probe and by the view-count recorder (`agents?action=views`, `0062`,
   reference §4 item 38); and the weather feeds another tool stored on
   2026-09-27 on Davies' sign-ups: `METEO_FRANCE_API_KEY` +
-  `METEO_FRANCE_USERNAME` (Météo-France's DPObs, Paris-Le Bourget's
-  6-minute readings, 50 requests a minute) and fourteen `FAA_SWIM_*` (the
+  `METEO_FRANCE_USERNAME` (Météo-France's DPObs v2, Paris-Le Bourget's
+  6-minute readings, 100 requests a minute; the key first stored was an
+  access token that lived six minutes, so the API needs a long-lived API
+  key there or the portal's `METEO_FRANCE_APPLICATION_ID`, from which the
+  function mints its own tokens; the username is the portal login,
+  `daviesluo`, which the API never reads) and fourteen `FAA_SWIM_*` (the
   FAA's SWIM SCDS subscription: ITWS, a Solace queue reached over SMF on
   TLS only; a subscription idle for 60 days may be disabled), read by the
   `weather` function. Never print them, never move them.

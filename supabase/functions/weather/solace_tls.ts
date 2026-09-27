@@ -19,6 +19,20 @@ type ConnectTls = (o: { hostname: string; port: number; caCerts?: string[] }) =>
   close(): void;
 }>;
 
+/**
+ * A string's bytes as Node writes them. solclientjs builds each SMF frame as a "binary string" (one character per byte)
+ * and writes it with `"ascii"`, which Node encodes as latin1: one byte per character, the low eight bits. UTF-8 would
+ * split every byte above 0x7F in two, and SCDS answered exactly that with "400 Header Parse Error" (2026-09-27).
+ */
+export function stringBytes(s: string, enc: string): Uint8Array {
+  if (/^(ascii|latin1|binary)$/i.test(enc)) {
+    const out = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 0xff;
+    return out;
+  }
+  return new TextEncoder().encode(s);
+}
+
 /** The part of a Node TLS socket that solclientjs uses: events, write, end, destroy, setNoDelay, bufferSize. */
 export class DenoTlsStream extends EventEmitter {
   bufferSize = 0;
@@ -59,7 +73,7 @@ export class DenoTlsStream extends EventEmitter {
   }
 
   write(data: Uint8Array | string, enc?: unknown, cb?: unknown): boolean {
-    const bytes = typeof data === "string" ? new TextEncoder().encode(data) : new Uint8Array(data);
+    const bytes = typeof data === "string" ? stringBytes(data, typeof enc === "string" ? enc : "utf8") : new Uint8Array(data);
     const done = typeof enc === "function" ? enc : typeof cb === "function" ? cb : null;
     this.#writes = this.#writes.then(async () => {
       let off = 0;

@@ -116,6 +116,8 @@ export function faaForms(values: Record<string, string>, roles: Partial<Record<F
       f.product = (SCDS_PRODUCTS as readonly string[]).find((p) => v.toUpperCase().split(/[._-]/).includes(p)) ?? null;
     } else if (role === "user") {
       f.hasAt = v.includes("@");
+    } else if (role === null && isPublicSetting(v)) {
+      f.value = v;   // a port, a protocol or a product: public, and what the setting is for
     }
     out[name] = f;
   }
@@ -129,7 +131,20 @@ export function faaForms(values: Record<string, string>, roles: Partial<Record<F
  */
 export function faaScrubList(values: Record<string, string>, roles: Partial<Record<FaaRole, string>> = faaRoles(Object.keys(values))): string[] {
   const keep = new Set([roles.vpn, roles.port].filter(Boolean));
-  return Object.entries(values).filter(([n, v]) => !keep.has(n) && !/^\d{1,6}$/.test(v.trim())).map(([, v]) => v);
+  return Object.entries(values).filter(([n, v]) => !keep.has(n) && !isPublicSetting(v)).map(([, v]) => v);
+}
+
+/** Protocol names the settings may hold; with SCDS's product names and port numbers, the only values left unscrubbed. */
+export const PUBLIC_PROTOCOLS = ["tcp", "tcps", "smf", "smfs", "ssl", "tls", "jms"] as const;
+
+/**
+ * A value from a closed public vocabulary: a port number, a protocol's name or one of SCDS's products. The tool that
+ * stored the secrets kept `FAA_SWIM_PROTOCOL` ("tcps"-like, 4 characters) and `FAA_SWIM_PRODUCT` (4) beside the VPN;
+ * scrubbed, they took the URL's scheme and every product name in the report with them (probe of 2026-09-27 04:51).
+ */
+export function isPublicSetting(v: string): boolean {
+  const t = v.trim();
+  return /^\d{1,6}$/.test(t) || (PUBLIC_PROTOCOLS as readonly string[]).includes(t.toLowerCase()) || (SCDS_PRODUCTS as readonly string[]).includes(t.toUpperCase());
 }
 
 /** Every string in `x`, however deep, with each secret replaced. */

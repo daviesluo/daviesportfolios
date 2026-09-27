@@ -12,6 +12,13 @@ export const MF_BASE = "https://public-api.meteofrance.fr/public/DPObs";
 export const MF_VERSIONS = ["v1", "v2"] as const;
 export type MfVersion = typeof MF_VERSIONS[number];
 export const MF_KEY_NAMES = ["METEO_FRANCE_API_KEY", "Meteo_France_API_KEY", "METEOFRANCE_API_KEY", "meteo_france_api_key"];
+/**
+ * The portal's OAuth2 "application ID" (the Basic credential its token page shows), from which the function can mint
+ * an access token whenever it needs one. The first key stored (2026-09-27) was such a token, valid six minutes: it
+ * had expired forty minutes before the first probe read it, and every request came back 401 "Invalid Credentials".
+ */
+export const MF_APP_ID_NAMES = ["METEO_FRANCE_APPLICATION_ID", "Meteo_France_APPLICATION_ID", "METEOFRANCE_APPLICATION_ID"];
+export const MF_TOKEN_URL = "https://portail-api.meteofrance.fr/token";
 /** Paris-Le Bourget, the station behind Polymarket's Paris market (WXSRC's table: LFPB). */
 export const MF_STATION_MATCH = /BOURGET/i;
 /** Readings come every six minutes, on the minute (:00, :06 … :54), so the METAR's :00 and :30 are among them. */
@@ -22,7 +29,7 @@ export const MF_PROBE_HISTORY = 10;
 export const KELVIN = 273.15;
 
 export type MfAuth = "apikey" | "bearer";
-export type MfEnv = { key: string; base?: string; fetchImpl?: typeof fetch };
+export type MfEnv = { key: string; appId?: string; base?: string; tokenUrl?: string; fetchImpl?: typeof fetch };
 export type MfReply = { ok: boolean; status: number; text: string; contentType: string; error?: string };
 
 /** `s` with every occurrence of each secret replaced; run BEFORE any cut, or a cut could keep part of one. */
@@ -50,7 +57,7 @@ const isoSec = (x: unknown): string | null => (typeof x === "number" && Number.i
  * APIs it is subscribed to and at what rate; those claims are reported, while the subject, the application's owner and
  * any IP or referrer it is pinned to are not (whether a pin is set is: a pin would block Supabase's egress).
  */
-export function mfKeyForm(key: string): Record<string, unknown> {
+export function mfKeyForm(key: string, now: number = Date.now()): Record<string, unknown> {
   const parts = key.split(".");
   if (parts.length === 3 && parts.every((p) => /^[A-Za-z0-9_-]+={0,2}$/.test(p))) {
     const h = b64urlJson(parts[0]), p = b64urlJson(parts[1]);
@@ -59,6 +66,8 @@ export function mfKeyForm(key: string): Record<string, unknown> {
       return {
         form: "jwt", length: key.length, alg: h.alg ?? null,
         issuedAt: isoSec(p.iat), expiresAt: isoSec(p.exp), keyType: p.keytype ?? null,
+        expired: typeof p.exp === "number" ? p.exp * 1000 <= now : null,
+        lifetimeS: typeof p.exp === "number" && typeof p.iat === "number" ? p.exp - p.iat : null,
         tiers: p.tierInfo && typeof p.tierInfo === "object" ? Object.keys(p.tierInfo as object) : [],
         subscribedApis: apis.map((a) => ({ name: a?.name ?? null, context: a?.context ?? null, version: a?.version ?? null, tier: a?.subscriptionTier ?? null })),
         ipPinned: typeof p.permittedIP === "string" ? p.permittedIP.trim() !== "" : null,
@@ -153,6 +162,27 @@ export function pastSteps(now: number, n: number): string[] {
   return Array.from({ length: n }, (_, i) => new Date(top - (i + 1) * MF_STEP_MS).toISOString().replace(/\.\d{3}Z$/, "Z"));
 }
 
+/** An access token by the client-credentials flow, from the application ID. Nothing but the token comes back. */
+export async function mfClientToken(env: MfEnv): Promise<{ ok: true; token: string; expiresInS: number | null } | { ok: false; status: number; error: string }> {
+  try {
+    const res = await (env.fetchImpl ?? fetch)(env.tokenUrl ?? MF_TOKEN_URL, {
+      method: "POST",
+      headers: { Authorization: `Basic ${env.appId}`, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+      body: "grant_type=client_credentials",
+      redirect: "manual",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const text = await res.text();
+    let j: Record<string, unknown> | null = null;
+    try { j = JSON.parse(text); } catch { /* the text is the error */ }
+    const token = typeof j?.access_token === "string" ? j.access_token : "";
+    if (!res.ok || !token) return { ok: false, status: res.status, error: scrubText(text, [env.appId ?? "", token]).replace(/\s+/g, " ").slice(0, 300) };
+    return { ok: true, token, expiresInS: typeof j?.expires_in === "number" ? j.expires_in : null };
+  } catch (e) {
+    return { ok: false, status: 0, error: scrubText(e instanceof Error ? e.message : String(e), [env.appId ?? ""]).slice(0, 300) };
+  }
+}
+
 const median = (xs: number[]): number | null => {
   if (!xs.length) return null;
   const s = [...xs].sort((a, b) => a - b), m = Math.floor(s.length / 2);
@@ -166,18 +196,49 @@ const median = (xs: number[]): number | null => {
  */
 export async function meteoFranceProbe(env: MfEnv, opts: { now?: () => number; history?: number; secrets?: string[] } = {}): Promise<Record<string, unknown>> {
   const now = opts.now ?? Date.now;
-  const secrets = [env.key, ...(opts.secrets ?? [])];
+  const secrets = [env.key, env.appId ?? "", ...(opts.secrets ?? [])];
   let calls = 0;
-  const get = (path: string, params: Record<string, string>, auth: MfAuth) => { calls++; return mfGet(env, path, params, auth); };
-  const out: Record<string, unknown> = { keyForm: mfKeyForm(env.key), transport: "header" };
+  const out: Record<string, unknown> = { transport: "header" };
+  // Nothing below quotes a credential; this makes sure of it for whatever an upstream echoed.
+  const finish = () => { out.calls = calls; return JSON.parse(scrubText(JSON.stringify(out), secrets)) as Record<string, unknown>; };
 
-  // Which version answers, under which header. The station list is the cheapest read both versions share.
+  // The credential: a token minted from the application ID when there is one, else the stored key as it is.
+  let key = env.key;
+  let auths: readonly MfAuth[] = ["apikey", "bearer"];
+  if (env.appId) {
+    calls++;
+    const t = await mfClientToken(env);
+    out.credential = "client_credentials";
+    if (!t.ok) {
+      out.token = { status: t.status, error: t.error };
+      return finish();
+    }
+    key = t.token;
+    secrets.push(key);
+    auths = ["bearer"];
+    out.token = { status: 200, expiresInS: t.expiresInS };
+  } else {
+    out.credential = "stored key";
+  }
+  const form = mfKeyForm(key, now());
+  out.keyForm = form;
+  if (form.expired === true) {
+    out.skipped = `the ${env.appId ? "minted" : "stored"} credential is a token that expired at ${form.expiresAt}; a long-lived API key (METEO_FRANCE_API_KEY) or the portal's application ID (METEO_FRANCE_APPLICATION_ID) is needed`;
+    return finish();
+  }
+  const reqEnv: MfEnv = { ...env, key };
+  const get = (path: string, params: Record<string, string>, auth: MfAuth) => { calls++; return mfGet(reqEnv, path, params, auth); };
+
+  // Which version answers, under which header. The key's own claim names its version: that one is asked first.
+  const subscribed = ((form.subscribedApis ?? []) as { context?: unknown }[])
+    .map((a) => /\/(v\d+)$/.exec(String(a?.context ?? ""))?.[1]).filter((v): v is string => Boolean(v));
+  const versions = [...MF_VERSIONS].sort((a, b) => Number(!subscribed.includes(a)) - Number(!subscribed.includes(b)));
   const tried: Record<string, unknown>[] = [];
   let chosen: { version: MfVersion; auth: MfAuth; path: string; rows: Record<string, string>[] } | null = null;
-  for (const version of MF_VERSIONS) {
+  for (const version of versions) {
     // Once a header works, the other version is asked under that header only: the header question is settled.
-    const auths: readonly MfAuth[] = chosen ? [chosen.auth] : ["apikey", "bearer"];
-    for (const auth of auths) {
+    const tryAuths: readonly MfAuth[] = chosen ? [chosen.auth] : auths;
+    for (const auth of tryAuths) {
       let r: MfReply | null = null, path = "";
       for (const p of ["liste-stations", "list-stations"]) {
         path = `/${version}/${p}`;
@@ -194,20 +255,14 @@ export async function meteoFranceProbe(env: MfEnv, opts: { now?: () => number; h
     }
   }
   out.access = tried;
-  if (!chosen) {
-    out.calls = calls;
-    return out;
-  }
+  if (!chosen) return finish();
   out.version = chosen.version;
   out.auth = chosen.auth;
   out.stationList = { path: chosen.path, rows: chosen.rows.length, fields: Object.keys(chosen.rows[0] ?? {}) };
   const stations = findStations(chosen.rows, MF_STATION_MATCH);
   out.stations = stations;
   const station = stations.find((s) => /^\d{8}$/.test(s.id)) ?? stations[0];
-  if (!station) {
-    out.calls = calls;
-    return out;
-  }
+  if (!station) return finish();
 
   // The newest reading, in the first format the version serves.
   const path6 = `/${chosen.version}/station/infrahoraire-6m`;
@@ -242,7 +297,5 @@ export async function meteoFranceProbe(env: MfEnv, opts: { now?: () => number; h
     const lags = rows.map((x) => x.insertLagS).filter((x): x is number => typeof x === "number");
     out.history = { steps: rows.length, rows, insertLagS: { min: lags.length ? Math.min(...lags) : null, median: median(lags), max: lags.length ? Math.max(...lags) : null } };
   }
-  out.calls = calls;
-  // Nothing above quotes the key; this makes sure of it for whatever an upstream echoed.
-  return JSON.parse(scrubText(JSON.stringify(out), secrets));
+  return finish();
 }
