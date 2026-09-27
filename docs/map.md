@@ -578,7 +578,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/views.ts` | Records Polymarket's view-count markets and the YouTube counters they resolve on: every minute, and every second around each market's deadline, stored when they change. Reads only. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
-| `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
+| `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
@@ -669,6 +669,7 @@ before touching migration state.
 | `0060_pmrw_e_every_minute.sql` | Runs RW-E's replay every minute instead of every five. |
 | `0061_strategy_names_without_venue.sql` | Drops the venue from every strategy's name; the page's venue column and tag say it. |
 | `0062_view_markets_recorder.sql` | Adds the view-count recorder's tables (channels, uploads, counters, view markets, their books, the key's daily units) and its minute job. |
+| `0063_one_minute_batch.sql` | Replaces the nine jobs that each queued an Edge call with one that queues every call due in its minute in one statement, so pg_net takes them as one batch. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -740,7 +741,7 @@ Browser (React PWA)
  │                   dp.portfolioCache (first-paint board), dp.schema
  └─ IndexedDB        chart_store.js: chart series, MA history, YTD cache
 
-pg_cron → pg_net → Edge Functions (no browser needed)
+pg_cron → pg_net → Edge Functions (no browser needed; one job queues every call due in a minute, in one statement)
  ├─ snapshot-record    every 5 min   board prices → price_snapshots
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
  ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
@@ -749,6 +750,7 @@ pg_cron → pg_net → Edge Functions (no browser needed)
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
+ ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
 ```
 

@@ -434,9 +434,9 @@ that follow from that evidence, in short:
   0 % quotes 0.1 / 0.2 / 0.3 % either side of interbank on Revolut X's
   USDC/GBP and USDT/GBP books — passed on nine months of public prints it
   never saw, in a market that tightened in the week of 2026-08-24 (plan
-  with ~$0.42 a day on $1,200, not the backtest's 82 %/yr). Its own cron
-  job, `agents?action=quotes`, runs the frozen rule one minute behind the
-  clock (`quotes.ts`, replayed trip for trip against the simulator in
+  with ~$0.42 a day on $1,200, not the backtest's 82 %/yr). Its own call,
+  `agents?action=quotes` (every minute), runs the frozen rule one minute
+  behind the clock (`quotes.ts`, replayed trip for trip against the simulator in
   `quotes.test.ts`), public reads only, into its own `agent_quote_*`
   tables; nothing of the strategy rows reads them. Four weeks, then the
   spec's six conditions decide (`reviews/2026-09-23-pr5-paper-test-spec.md`).
@@ -525,8 +525,9 @@ that follow from that evidence, in short:
   shaped it: the data API and Gamma are cached by CloudFront for five
   minutes, so a read that must be current carries a parameter no earlier
   read carried; and an Edge request gets 2 s of CPU, so the selection asks
-  Gamma only about the markets it takes. After 10-09 both jobs do nothing;
-  a migration unschedules them with the verdict. On the Agents page it is
+  Gamma only about the markets it takes. After 10-09 both calls do nothing;
+  the verdict's migration takes them (and `pmrw-e`) out of
+  `edge-calls-every-minute`. On the Agents page it is
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
   page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's
   scoreboard includes it, on the Polymarket card rather than Revolut X's.
@@ -574,6 +575,16 @@ that follow from that evidence, in short:
   the venue binds PR5 and nothing binds the crypto rows: the loop stays
   at a minute and no Worker is deployed until a source faster than every
   keyless one is found.
+- **Every recurring Edge call is a row of ONE cron job,
+  `edge-calls-every-minute`** (`0063`, 2026-09-27), which queues every call
+  due in its minute in one statement. pg_net 0.20 runs a batch until every
+  request of it has answered and only then reads its queue again, so a call
+  queued by a job of its own waits behind the slowest call already running
+  (`books` ~44 s, a view window ~56 s): with nine jobs the tick started more
+  than 5 s late in 145 of 1,393 minutes. A new recurring call is a new row
+  of that job's list; `src/cron_jobs.test.js` fails on a second job that
+  calls pg_net. A call fired by hand through pg_net waits for the batch in
+  flight and holds the next minute's for as long as it runs past the minute.
 
 ## Git workflow
 

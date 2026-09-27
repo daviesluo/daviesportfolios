@@ -33,8 +33,8 @@ list stays the short version; the plan is the reasoning behind it.
    replacement or by circular shift, fills at the resting limit, fees from each market's schedule).
 
 2. **RW (Polymarket reward quotes, paper) and RW-E: the verdict on or after 2026-10-09 00:05 UTC.** RW runs by itself
-   since 2026-09-24 19:30 UTC: fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC (`agents/pmrw.ts`, `0053`, cron
-   `agents-pmrw-every-minute` and `agents-pmrw-select`; spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`;
+   since 2026-09-24 19:30 UTC: fourteen days, 2026-09-25 00:00 → 10-09 00:00 UTC (`agents/pmrw.ts`, `0053`, the calls
+   `pmrw` and `pmrw-select` of `edge-calls-every-minute` since `0063`; spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`;
    reference §3.33 and §4 item 36). RW-E, RW without the markets that end on the day they are quoted, is judged with
    it on 09-27 → 10-08 (`reviews/2026-09-26-polymarket-rw-end-prereg.md`, frozen): `agents/pmrw_e.ts` replays RW's
    stored minutes every minute (`0056`, every five until `0060`) in two arms, `rw` (whose days must equal
@@ -62,8 +62,9 @@ list stays the short version; the plan is the reasoning behind it.
         with the full prints and report both.
      d. RW-E by its own pre-registration's bar, from `pm_rw_e_days` (arm `e`), after the check that arm `rw`
         equals `pm_rw_days` on every day.
-     e. A migration unschedules `agents-pmrw-every-minute`, `agents-pmrw-select` and `agents-pmrw-e` (the tables
-        stay); the page rows stay as a record until Davies says otherwise.
+     e. A migration re-schedules `edge-calls-every-minute` without its `pmrw`, `pmrw-select` and `pmrw-e` rows
+        (`0063`'s list, every other row unchanged; the tables stay); the page rows stay as a record until Davies says
+        otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
@@ -153,6 +154,10 @@ list stays the short version; the plan is the reasoning behind it.
    recorder is `0062` / `agents/views.ts` (reference §4 item 38), recording from its deploy on 2026-09-27.** The API's
    counter moves in batches (none in 30 s on a video gaining ~13,000 views a minute); how far apart is the first thing
    its record says. A study of it is pre-registered before it reads the tables (~2026-10-25 → 11-08).
+   **Its first deadline, read (2026-09-27 16:00 UTC, reference §4 item 38):** the counter moves in five-minute batches
+   landing 2 min 20 s – 2 min 45 s after each mark; the count at T was fixed 1 min 48 s before it, and the market was
+   decided forty minutes before, with nothing left to take. The window covered 87 % of its seconds; its last 20 s were
+   lost to pg_net's batch wait, which `0063` removes (reference §4 item 39).
    (e) WXSRC (Davies, 2026-09-27, on PMLATE's result: keep researching the data source, and weather models such as
    Google's newest; every city's source differs): a research agent's phase 1. Per open temperature city, the station,
    the resolution source and the fastest trustworthy source of the deciding observation (national 1- and 10-minute
@@ -291,6 +296,15 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The view recorder's first deadline was read, and its last 20 s had gone to pg_net: nine cron jobs' calls ran in batches, and a call that missed the first batch waited up to 56 s. `0063` queues every call due in a minute from one job, in one statement.**
+- The deadline (MrBeast Gaming's `PyLGTmWz37U`, counted at 16:00:04 UTC; reference §4 item 38): the API's counter moves in five-minute batches, landing 2 min 20 s – 2 min 45 s after each mark in three to five steps; the count at T, 15,912,406, was fixed at 15:58:16; the winning bucket (15–17.5M) was bid 0.999 with no ask from 15:21 at the latest. Decided forty minutes early, nothing left to take. 938 reads in the 18-minute window (87 %); two reads at 16:00 refused with a `myRating` error, not seen before or since; 2,024 units used by 16:05.
+- The gap: 15:58:55 → 15:59:44. pg_net 0.20's worker (its `worker.c`, read at the tag) runs a batch until every request of it has answered before it reads the queue again, and the 15:59 view call committed just after the worker had taken `books` (~44 s). Over the 24 hours to 16:40 UTC the Edge logs show the tick starting more than 5 s late in 145 of 1,393 runs (the latest 56.8 s), the view recorder in 88 of 873, the board's snapshot in 23 of 279 (reference §4 item 39 has every call). The live row's decisions and protective checks ran up to a minute late in those minutes.
+- `0063` replaces the nine jobs with `edge-calls-every-minute`, whose one statement queues every call due in its minute, each exactly as its old job sent it. Checked on production before the push, with nothing queued: the filter over seven sample minutes gives 9, 6, 9, 6, 8, 8 and 6 calls, the old schedules exactly; `explain` plans one scan with the vault read once; the unschedule list matches the nine jobs by name. `src/cron_jobs.test.js` replays every migration's cron calls: it fails on the tree without `0063` (nine jobs) and on a changed call (the overnight recorder's hours widened), and passes with it.
+- CLAUDE.md: a new recurring Edge call is a row of that job's list, never a job of its own; a call fired by hand through pg_net holds the next minute's batch for as long as it runs past the minute. Item 2e now edits that list.
+- Next: after `migrations.yml` applies `0063`, read `cron.job` (one pg_net job), its runs (`SELECT 6`, `8` or `9`), the Edge logs (every call starting within about a second of :00), the live row's decisions and `ops_errors`.
 
 ### [2026-09-27 06:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

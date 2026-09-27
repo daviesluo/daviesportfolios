@@ -3020,7 +3020,7 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
 
 30. **A resting order is filled only by a trade through its price (2026-09-23, migration `0050`).** §3.26 found that Revolut X's UK 1-minute candles move on quotes while nothing trades, and that the tick filled a resting paper order and resolved a maker probe on such a minute: all three probes on record were. One function now decides both (`tradedThrough` in agents/tick.ts): the minute must have traded (volume > 0) and gone strictly THROUGH the price — below a bid, above an ask — because a print AT the price fills the queue ahead of an order that joined the touch, not the order. What is left leans optimistic, never the other way: a traded minute's extreme can still be a quote, and the only exact source, the public trade tape, returns the last 100 prints across every pair, which a once-a-minute loop cannot read whole. A filled probe now keeps the minute that proved it (`fill_minute`), because the venue keeps its 1-minute candles 28 days and a verdict without its input could not be re-judged after that. `0050` corrected probes 1–3 to the trade-proven minutes and cleared their marks, which the loop had taken at the wrong moments and no public record can replace. No active row places a resting order today (Revolut X and Binance both take the touch), so the probes are what this changes; they are what §3.23 said could reopen resting orders on Revolut X. The backtester's resting fill (`_shared/agents_strategy.ts`) keeps the old touch test: its hash is pinned by committed results, and it reads Kraken's and Coinbase's candles, which do not move on quotes (§3.26).
 
-31. **PR5's quotes run on paper, from their own cron job (2026-09-23, migration `0051`).** Davies: if PR3's longer test passes, paper-test it; §3.27 passed. `agents?action=quotes` runs every minute (`agents-quotes-every-minute`), waits until 25 s into the minute so its Revolut X reads (about three a minute: the two books' new prints, and the order book when an order goes live) do not land on the tick's, and runs **PR5's rule one minute behind the clock**, so a minute's prints are complete before it is decided and every decision still uses only what was known when it would have been made. `stepMinute` (agents/quotes.ts) is the frozen simulator's minute, and `quotes.test.ts` replays that simulator's golden windows — both books in March and in September, and three 24-hour stops — trip for trip and order for order; counting a touch as a fill, or letting fair read an unfinished hour, fails all five. It is a notebook like the maker probes: its only venue calls are public reads, it writes no `agent_orders`, and nothing of the strategy rows reads its tables. What it stores is every input beside every conclusion — each UK print (`agent_quote_prints`), each GBP/USD minute from Yahoo and each USD-book hour (`agent_quote_inputs`), every order, refusal, fill, exit and stop (`agent_quote_events`), each round trip with the prints that proved it (`agent_quote_trips`) — and, when an order goes live, the order book it met, the evidence of whether a post-only order would have been accepted. After four weeks the decision is the spec's (`reviews/2026-09-23-pr5-paper-test-spec.md`): the frozen simulator replays the stored inputs and reproduces the loop's trips (±5 %) and P&L (±10 %); P&L beats the same-period null's p95 and 8 %/yr on $1,200; at least 90 % of fills met a book that would have accepted them; no day over 700 orders; and the weekly buy−sell gap is read beside it. A live test needs about £450 plus $300 each of USDC and USDT on Revolut X, and Davies' explicit go. The go-live draft is unnumbered since this took `0051` (`go_live.sql.draft`).
+31. **PR5's quotes run on paper, from their own cron job (2026-09-23, migration `0051`).** Davies: if PR3's longer test passes, paper-test it; §3.27 passed. `agents?action=quotes` runs every minute (`agents-quotes-every-minute`; since `0063` a call of `edge-calls-every-minute`), waits until 25 s into the minute so its Revolut X reads (about three a minute: the two books' new prints, and the order book when an order goes live) do not land on the tick's, and runs **PR5's rule one minute behind the clock**, so a minute's prints are complete before it is decided and every decision still uses only what was known when it would have been made. `stepMinute` (agents/quotes.ts) is the frozen simulator's minute, and `quotes.test.ts` replays that simulator's golden windows — both books in March and in September, and three 24-hour stops — trip for trip and order for order; counting a touch as a fill, or letting fair read an unfinished hour, fails all five. It is a notebook like the maker probes: its only venue calls are public reads, it writes no `agent_orders`, and nothing of the strategy rows reads its tables. What it stores is every input beside every conclusion — each UK print (`agent_quote_prints`), each GBP/USD minute from Yahoo and each USD-book hour (`agent_quote_inputs`), every order, refusal, fill, exit and stop (`agent_quote_events`), each round trip with the prints that proved it (`agent_quote_trips`) — and, when an order goes live, the order book it met, the evidence of whether a post-only order would have been accepted. After four weeks the decision is the spec's (`reviews/2026-09-23-pr5-paper-test-spec.md`): the frozen simulator replays the stored inputs and reproduces the loop's trips (±5 %) and P&L (±10 %); P&L beats the same-period null's p95 and 8 %/yr on $1,200; at least 90 % of fills met a book that would have accepted them; no day over 700 orders; and the weekly buy−sell gap is read beside it. A live test needs about £450 plus $300 each of USDC and USDT on Revolut X, and Davies' explicit go. The go-live draft is unnumbered since this took `0051` (`go_live.sql.draft`).
     - **Its first evening, reconciled minute by minute (2026-09-24).** The live design predicted 128 orders for 09-23 15:09 → 24:00; the engine recorded 116.
       - `backtests/pr5_live/reconcile_first_day.py` replays the frozen simulator on the stored inputs and counts orders by minute. The stored inputs match what the design pulled, hour by hour. One GBP/USD minute the pull lacks is added, at the value of the minute before it.
       - The counts are identical in every minute up to 21:47, on both books. The whole gap is USDT-GBP's re-price at 21:48 and its reversal at 21:58: twelve orders.
@@ -3130,6 +3130,46 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
           select video_id, ts, seen_until, views, reads from public.yt_video_reads where video_id = 'PyLGTmWz37U' order by ts;
           -- The books of that video's markets over the same minutes
           select b.token, m.label, b.ts, b.seen_until, b.bids->0 as best_bid, b.asks->0 as best_ask from public.pm_view_books b join public.pm_view_markets m on m.yes = b.token where m.event_slug like '%gaming%' order by b.ts;
+
+
+   **The first deadline, read (2026-09-27, MrBeast Gaming's next video on day 1: `PyLGTmWz37U`, posted 09-26
+   16:00:04, counted at 09-27 16:00:04 UTC).** From 478 rows of its counter, 14:30–16:10:
+   - **The counter moves in five-minute batches**, each landing 2 min 20 s – 2 min 45 s after a five-minute mark
+     (x2:21–x2:44, x7:20–x7:52) and arriving in three to five steps over 10–25 s, as if the API's copies caught up one
+     after another; it never went down. Likes and comments move between batches (426 of the 478 rows changed only them).
+   - **The count at the deadline was fixed 1 min 48 s before it:** 15,912,406 from 15:58:16 until the next batch at
+     16:02:21. The market's winning bucket (15–17.5M) had a 0.999 bid and no ask from 15:21 at the latest, and its
+     neighbours only 0.001 asks: the market was decided forty minutes before its deadline, with nothing left to take.
+   - **Coverage:** 938 reads in the 18-minute second-by-second window (87 %). Each minute loses about six seconds (a
+     run stops at :56 and the next begins at :01–:02), and one gap of 49 s, 15:58:55 → 15:59:44, cost the last 20 s
+     before the deadline: the 15:59 run reached the function 43.8 s late, held by pg_net behind `books` (item 39).
+     The 16:00 run had two reads refused by the API with a `myRating` error on a plain id list, not seen before or
+     since. Units: 55 a minute in the window; 2,024 used of the Pacific day by 16:05.
+
+39. **Every call pg_cron makes through pg_net goes out from one job, in one statement a minute (migration `0063`,
+    2026-09-27).** pg_net 0.20's worker (`src/worker.c` at the tag) is woken when a transaction that queued a request
+    commits; it takes what the queue holds then as one batch, runs it until every request of it has answered, and
+    only then reads the queue again. Nine cron jobs each queued their own call at :00 (six every minute, three every
+    five), and a call that committed a moment after the worker had taken the others waited for the slowest of them:
+    `quotes` answers after ~28 s and `books` after ~44 s (both wait inside the minute on purpose), a view run with a
+    deadline's window open after 56 s. In the 24 hours to 2026-09-27 16:40 UTC the Edge logs show the tick starting
+    more than 5 s into its minute in 145 of 1,393 runs (at :28, :43–:44 and :55–:56; the latest 56.8 s), `quotes` in
+    116 of 1,399, `books` in 109 of 1,308, `pmrw` in 123 of 1,404, `pmrw-e` in 155 of 1,188, the view recorder in 88
+    of 873, `pmrw-select` in 27 of 280, the board's snapshot in 23 of 279 and the overnight recorder in 7 of 120. The
+    tick was late more often at five-minute marks, where three more jobs raced (41 of 280, against 105 of 1,120). At
+    15:59 the view call reached its function at 15:59:43.851, 5 ms after `books` answered. The live row's decisions
+    and protective checks ran up to a minute late in those minutes.
+
+    `0063` replaces the nine jobs with `edge-calls-every-minute`: one statement over a list of calls, each exactly as
+    its old job sent it, filtered to those due in the minute (every minute, or every fifth; the overnight recorder
+    until 09:55 UTC). The rows one statement queues commit together, so the worker takes them together.
+    `src/cron_jobs.test.js` replays the migrations' cron calls and pins that one job queues pg_net calls and that each
+    old job's call is in its list unchanged. A batch still lasts as long as its slowest call; every call ends inside
+    its minute except `pmrw-select`, which may run to its 290 s lease (36 s at most in those 24 hours). A call fired
+    by hand through pg_net waits for the batch in flight (to :44, or :56 in a view window) and holds the next
+    minute's batch for as long as it runs past the minute: keep such calls short, and read the tick's next decisions
+    after a long one.
+
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 
