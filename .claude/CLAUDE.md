@@ -36,7 +36,7 @@ Client — the web app is an npm project in `src/`, so run these there:
 from the root: `deno check supabase/functions/` and
 `deno test --allow-env --no-check supabase/functions/`. `sh bin/setup.sh`
 prepares a fresh clone (the ledger hook, `npm ci` in `src/`);
-`sh bin/gates.sh` runs every CI gate in CI's order.
+`sh bin/gates.sh` runs the CI gates the change can break (`--full`: every one).
 
 Non-obvious caveats:
 
@@ -605,12 +605,16 @@ that follow from that evidence, in short:
 - **PR only when he asks.** `@codex` only reviews PRs — e.g. a new
   Edge Function, anything that touches `auth` or migration state, if
   he wants that second look. Don't open one otherwise.
-- Run `sh bin/gates.sh` before every push: it runs every gate CI runs,
-  in CI's order, and stops at the first failure. Push only when it ends
-  with `all gates green`. A change of Markdown alone (or of the agents'
-  instruction folders) runs just the two unit-test suites, the only
-  checks that read Markdown, in a minute or two; `--full` forces every
-  gate (Davies, 2026-09-24).
+- Run `sh bin/gates.sh` before every push, and push only when it ends
+  with `all gates green`. It runs the gates the change can break,
+  chosen by the paths it touches against `origin/main` (Davies,
+  2026-09-27: the full run had reached twelve minutes): `src/` or
+  `dist/` every web gate; an Edge Function the Deno checks and the unit
+  tests; a migration, `docs/` or Markdown the unit tests (and the Edge
+  tests for `docs/`, whose pre-registrations and fixtures they read);
+  anything else every gate. Checks that do not depend on each other run
+  at once; the browser sweep runs alone. `--full` forces every gate. CI
+  runs every gate on every push either way.
 - Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
   every push. If a push leaves `main` red, fix-up commit on `main` is
   the next priority — don't move on to new features while CI is broken.
@@ -656,8 +660,9 @@ the function's pure helpers from `index.test.ts` would bind a port.
 
 ## Testing
 
-The npm commands run in `src/`; `sh bin/gates.sh` runs all of them, then
-the Edge Function checks, from anywhere in the repository.
+The npm commands run in `src/`; `sh bin/gates.sh` runs the ones the
+change can break, and the Edge Function checks when they can be broken,
+from anywhere in the repository (`--full`: every one).
 
 - `npm run typecheck` — tsc with `checkJs` + `strictNullChecks`, no type
   errors should slip through. The `useState(null)` / `useRef(null)` slots

@@ -210,6 +210,13 @@ list stays the short version; the plan is the reasoning behind it.
    the paged reader before any post-count idea is taken up again.
 
 6. **Davies' to decide or to do; nothing waits on them:**
+   - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
+     19:00 UTC, was served from about 19:40). Pages builds every push and clones the whole repository (118 MB of files,
+     most of it study data under `docs/`, and 277 MB of history) to publish `dist/` alone, one build at a time, so a
+     run of pushes queues. The cut is his to click: Workers & Pages → `daviesportfolios` → Settings → Build → **Build
+     watch paths** → Include `dist/*` (Exclude empty). A push that does not change `dist/` then builds nothing; one
+     that does still clones. Faster still, on his word: publish `dist/` from a GitHub Action with `wrangler pages deploy`
+     (a Cloudflare API token and account id as repo secrets, Pages' own Git builds switched off) — seconds, not minutes.
    - HARVEST's one lead (reference §3.42): a forward recorder of UMA proposals and disputes on the harvest categories,
      with the book at C + 60 s, to see what rests after a confirmation and whether a proposal is safe to follow. Public
      reads only, nothing placed, like the view recorder; build it only on his word. The econ-release race (FAST-A) is
@@ -328,6 +335,15 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 19:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' five asks of the evening: the variants renamed, the phone's "% of" lines gone, the Binance twins deleted, the paper rows at ten times their size, and faster gates.**
+- Names (his word): RW-E is "Reward quotes variant-1" and x1–x3 "variant-2" to "-4", one line each; the rule a row changes is not on the site (`rweRow`, `RWX_NAMES`; reference §4 item 36 keeps the mapping). The phone's strategy cards lost their "% of cap" / "% of cost" lines (`FigLabel` takes a name only). Sweep: each name one line inside its row at both widths, and no "% of" on any strategy row or card (373 checks).
+- Binance twins (his word: keep them only if they beat the Revolut X rows): measured on production, they decided nothing of their own (315/315, 132/135, 12/15 paired decisions; every difference a position held from before they existed) and filled no better (−1.0 bps a fill on four SOL pairs, a 10 bps fee against 9); a Binance row cannot be live. `0065` deletes them with their records (dry-run first: 7 probes, 7 orders, 465 decisions, 1,263 observations, 3 rows). VENUES then has no Binance card. The sweep's fixture keeps its Binance rows, so the page's second-venue path stays tested.
+- ×10 (his word): `0066` puts `trend-4h` (paper) at $1,000 and `trend-1h` / `momentum-1d` at $400, scales their paper book from its first order (orders' sizes and fees, probes' sizes; `request` untouched), and moves the paper caps to $3,000 of exposure and a new `paper_daily_loss_limit_usd` of $50 — the paper books had shared the live row's $5, which at ten times the size would refuse their entries. `limitsFor` reads the paper number for paper books only; pinned in `tick.test.ts` with its counterfactual (the old shared limit fails it). The live row is not touched. Reference §4 item 40.
+- Gates (his ask: every change ran every gate): `bin/gates.sh` now runs the gates the paths can break (src/dist every web gate; Edge the Deno checks and unit tests; migrations the unit tests; docs and Markdown the unit and Edge tests; anything else every gate), the independent checks at once and the browser sweep alone; `--full` as before. CI still runs everything. CLAUDE.md, the skill and its two Cursor copies, and the map say so.
+- Cloudflare Pages: `ac006ca8` (pushed 19:00) was still not served at 19:31 (the site served `d9422f0e`'s bundle); Davies sees "Building" on every push for a long time. The fix is his to click (item 6).
 
 ### [2026-09-27 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

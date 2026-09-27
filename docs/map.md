@@ -689,7 +689,7 @@ before touching migration state.
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
-| `bin/gates.sh` | Every CI gate, in CI's order; a Markdown-only change runs the unit tests alone. |
+| `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
 | `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit. |
@@ -784,7 +784,7 @@ and a Cloudflare Pages account (optional, only for deploys).
 git clone https://github.com/daviesluo/daviesportfolios
 cd daviesportfolios
 sh bin/setup.sh          # the ledger hook, the ledger path, npm ci in src/
-sh bin/gates.sh          # every gate below, in CI's order
+sh bin/gates.sh          # the gates below this change can break (--full: all)
 
 cd src                   # the web app is an npm project here
 npm run dev              # Vite dev server at http://localhost:5173
