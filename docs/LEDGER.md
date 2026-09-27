@@ -99,8 +99,8 @@ list stays the short version; the plan is the reasoning behind it.
    2026-09-24 22:51:15 UTC, armed 22:53:09 UTC; capital 50 → 100 and `max_exposure_usd` 15 → 25 on 2026-09-25
    02:42 UTC, both on Davies' word). Its first live buy was SOL at the 2026-09-25 12:00 UTC bar, read back and
    still held on 09-26. The paper `trend-4h` is its same-venue control, at ten times its size since `0066` ($1,000,
-   five $200 slots; `trend-1h` and `momentum-1d` $400; paper caps $3,000 and $50 a day of their own; the live
-   row's $25 and $5 untouched), and the Binance twins are gone (`0065`). Davies: no confirmation of his
+   five $200 slots; `trend-1h` and `momentum-1d` $1,000 too since `0067`, three $333 slots; paper caps $5,000 and
+   $100 a day of their own; the live row's $25 and $5 untouched), and the Binance twins are gone (`0065`). Davies: no confirmation of his
    for any trade after the go-live ("上线后的买卖不需要找我确认，如果真的需要你帮忙盯着就行"); a session watches when asked
    and reports, never asks. **When asked to look (read-only):** after a 4h close + 3 min (00:03, 04:03 … 20:03 UTC)
    the live row's four decisions beside `trend-4h`'s (same `rule_action` per coin), `agent_orders` where
@@ -344,6 +344,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 21:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: `trend-1h` and `momentum-1d` at $1,000 too, "所有数字全部乘2.5", to compare with Trend 4h.**
+- `0067` sets both to $1,000 and scales their paper book × 2.5 from its first order (orders' sizes and fees, probes' sizes; `request` untouched), and moves the paper caps with the paper capital ($1,800 → $3,000): exposure $3,000 → $5,000, daily loss $50 → $100. Dry-run on production first (2 rows, 12 orders, 6 probes, the risk row); the live row is not touched. Reference §4 item 40.
 
 ### [2026-09-27 21:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

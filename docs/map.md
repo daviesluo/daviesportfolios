@@ -676,6 +676,7 @@ before touching migration state.
 | `0064_pm_rw_x.sql` | Adds the forward replay of RW-E's three variants: its state and day tables, its lease, and its call in the one-minute job. |
 | `0065_delete_binance_twins.sql` | Deletes the three Binance paper twins and their records: they decided nothing of their own and filled no better. |
 | `0066_paper_rows_x10.sql` | Puts the three paper strategy rows at ten times their size, their paper book with them, and gives paper books their own exposure and daily loss limits. |
+| `0067_paper_rows_x2_5.sql` | Puts `trend-1h` and `momentum-1d` at $1,000 as `trend-4h` is, their paper book with them, and moves the paper caps with the paper capital. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

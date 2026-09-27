@@ -352,12 +352,12 @@ that follow from that evidence, in short:
   for feedback speed, 31.7–56.1 fills per 90 days against the live row's
   14.6–26.8, and because at 0.63 it is the only row with no
   near-duplicate; its return is inside chance and inside the spread error
-  bar and is NOT read as evidence). **The paper rows run at ten times their
-  size since `0066`** (Davies, 2026-09-27, so they are not a sliver of
-  VENUES): `trend-4h` $1,000, the other two $400, their paper book scaled
-  from its first order, `paper_exposure_usd` $3,000 and a paper daily loss
-  limit of its own, `paper_daily_loss_limit_usd` $50 (the live row keeps
-  $25 and $5). A paper fill is at the touch whatever its size, so their
+  bar and is NOT read as evidence). **The paper rows run at $1,000 each**
+  (Davies, 2026-09-27: ten times their size by `0066` so they are not a
+  sliver of VENUES, then `trend-1h` and `momentum-1d` × 2.5 by `0067` to
+  compare on one capital), their paper book scaled from its first order,
+  `paper_exposure_usd` $5,000 and a paper daily loss limit of its own,
+  `paper_daily_loss_limit_usd` $100 (the live row keeps $25 and $5). A paper fill is at the touch whatever its size, so their
   prices and percentages are unchanged. **The Binance twins (`*-binance`,
   `0049`) were DELETED by `0065`** (Davies: keep them only if they beat
   the Revolut X rows): they made no decision of their own (315 of 315, 132
