@@ -6,7 +6,7 @@
 // the app-level token that gates the actual data.
 
 import { SB_ANON, EDGE_DATA_URL } from '../app/supabase_config.js';
-import { getAppToken } from '../app/auth.js';
+import { getAppToken, noteAuthStatus } from '../app/auth.js';
 import { detectCurrency } from './fx.js';
 import { INITIAL_PORTFOLIO } from './data.js';
 import { reportError } from '../app/ops_error.js';
@@ -108,8 +108,9 @@ export async function loadPortfolioRemote() {
       // Route to ops_errors so the admin badge surfaces the failure
       // alongside other operational signals (auth.unexpected,
       // render.crash, etc.). Status 401 is special-cased — it's the
-      // normal "token expired" path the user fixes by re-auth'ing,
-      // not a backend incident worth flagging.
+      // normal "token expired" path, which signs this browser out and
+      // returns it to the login form, not a backend incident worth flagging.
+      noteAuthStatus(res.status);
       if (res.status !== 401) {
         reportError('data.load.failed', { context: { status: res.status } });
       }
@@ -199,6 +200,8 @@ export async function savePortfolioRemote(p) {
       return { ok: false, conflict: true };
     }
     if (!res.ok) {
+      // A 401 signs out; the pending-save mirror replays the edit after the next login.
+      noteAuthStatus(res.status);
       if (res.status !== 401) {
         reportError('data.save.failed', { context: { status: res.status } });
       }

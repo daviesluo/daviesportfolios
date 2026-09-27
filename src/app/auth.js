@@ -31,6 +31,33 @@ export function setAppToken(t) {
   else   sessionStorage.removeItem(APP_TOKEN_KEY);
 }
 
+// Signing out (Davies, 2026-09-27: a signed-out page goes back to the login
+// form, never an error inside the page). The token lapses 24 h after it was
+// issued (the `auth` function's TOKEN_TTL_MS) and dies with the tab. App
+// returns to the form the moment it lapses, and any call that answers 401 to
+// a token this browser still holds signs it out the same way.
+/** @type {Set<() => void>} */
+const signOutListeners = new Set();
+
+/** Forget the token and tell the app, which shows the password form. The next 401 finds no token and does nothing. */
+export function signOut() {
+  setAppToken("");
+  for (const fn of [...signOutListeners]) {
+    try { fn(); } catch { /* one listener failing keeps no one signed in */ }
+  }
+}
+
+/** Run `fn` when this browser signs out; returns the unsubscribe. @param {() => void} fn */
+export function onSignOut(fn) {
+  signOutListeners.add(fn);
+  return () => { signOutListeners.delete(fn); };
+}
+
+/** A reply to a call made with the app token: 401 means the token is no longer good. @param {number} status */
+export function noteAuthStatus(status) {
+  if (status === 401 && getAppToken()) signOut();
+}
+
 // Synchronous: pull the `?pwd=` out of the URL and strip it from history
 // (so it never lingers in the browser bar / back-stack), returning the raw
 // password or null when absent. The old collectPassword() also popped a

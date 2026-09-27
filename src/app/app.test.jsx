@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, cleanup, waitFor } from '@testing-library/react';
+import { render, cleanup, waitFor, act } from '@testing-library/react';
 
 // Mock heavy children + network calls so the smoke test doesn't
 // pull the whole live-prices Edge chain into the test process.
@@ -104,6 +104,7 @@ vi.mock('./auth.js', async () => {
 });
 
 import App from './app.jsx';
+import { noteAuthStatus } from './auth.js';
 import { refreshPrices } from '../prices/yahoo_fetch.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
@@ -114,7 +115,13 @@ beforeEach(() => {
   cleanup();
   sessionStorage.clear();
   vi.clearAllMocks();
+  // No test here reaches the network. The Agents prefetch was calling the
+  // production function with the tests' made-up tokens, and since a 401 now
+  // signs the app out (Davies, 2026-09-27) that reply unmounted the board a
+  // test was reading. Anything not mocked above gets a 503.
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"no network in tests"}', { status: 503 })));
 });
+afterEach(() => { vi.unstubAllGlobals(); });
 
 describe('App — smoke render', () => {
   it('mounts without throwing when no token is present', () => {
@@ -374,4 +381,35 @@ describe('App — the last-shown prices on a reload', () => {
     await waitFor(() => expect(JSON.parse(localStorage.getItem('dp.lastPrices') || '{}').data?.NVDA?.lastPrice).toBe(141));
     vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
   }, 10000);
+});
+
+// Signed out (Davies, 2026-09-27): the app goes back to its login form, never
+// an error card inside the page — when the token lapses while the page is
+// open, and when any call answers 401 to the token it holds.
+describe('App — signed out', () => {
+  function setToken(msFromNow) {
+    const payload = btoa(JSON.stringify({ role: 'ro', exp: Date.now() + msFromNow }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+
+  it('returns to the password form when the token lapses while the page is open', async () => {
+    setToken(300);
+    const { queryByPlaceholderText } = render(<App />);
+    // Signed in: the token is good for 0.3 s, so the page is the app, not the form.
+    expect(queryByPlaceholderText('Password')).toBeNull();
+    await waitFor(() => expect(queryByPlaceholderText('Password')).not.toBeNull(), { timeout: 4000 });
+    expect(sessionStorage.getItem('dp.token')).toBeNull();
+  });
+
+  it('returns to the password form when a call answers 401, and a 403 leaves it signed in', async () => {
+    setToken(3600e3);
+    const { queryByPlaceholderText } = render(<App />);
+    expect(queryByPlaceholderText('Password')).toBeNull();
+    act(() => noteAuthStatus(403));
+    expect(queryByPlaceholderText('Password')).toBeNull();
+    act(() => noteAuthStatus(401));
+    await waitFor(() => expect(queryByPlaceholderText('Password')).not.toBeNull());
+    expect(sessionStorage.getItem('dp.token')).toBeNull();
+  });
 });

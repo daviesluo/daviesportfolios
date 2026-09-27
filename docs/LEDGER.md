@@ -66,6 +66,12 @@ list stays the short version; the plan is the reasoning behind it.
         (`0063`'s list, every other row unchanged; the tables stay); the page rows stay as a record until Davies says
         otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
+   - **RW-E's variants (Davies, 2026-09-27: study a/b/c, track the ones worth it as TESTING rows the way RW-E is).**
+     Research done (history 19:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
+     Next: a pre-registration frozen on `main` before the first minute it is judged on (09-28 00:00 UTC, or the next
+     midnight if later), then the forward replay (`agents/pmrw_x.ts`, arms on RW-E from 09-27 and each rule from its
+     start), a migration for its state and day rows and its call in `edge-calls-every-minute`, and the page's rows,
+     named like "Reward quotes (no same-day)".
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -306,6 +312,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-E's three fixes measured on the days before its twelve; a deviation in RW-E's own replay found and fixed; a lapsed sign-in now returns to the login form.**
+- The variants, run by `agents?action=pmrw-x-research` over 2026-09-25 00:00 → 09-27 00:00 (RW-E's rule applied throughout; the replay's `rw` arm reproduced RW's day rows to the cent). Total / stress: RW +$219.72 / −$28.53; RW-E +$200.66 / +$49.13; (a) cap 2N +$172.77 / +$44.10 and cap N +$102.62 / +$9.24 — worse on both, because RW's reward is the smaller side's score and a capped side earns nothing; (b) a pause after the adjusted mid moves 8–15 ¢ in a minute, for an hour, +$194 to +$206 / +$52.34 to +$66.69 (20 ¢: no effect, +$48.55; 3–5 ¢: +$139–142 / +$17–33, far too eager; a day's pause +$117.66 / +$22.42); (c) no weather markets +$196.77 / +$62.58; (b)+(c) with 15 ¢ +$205.66 / +$73.03. Two days: hypotheses to track, not evidence. (a) is dropped.
+- **Deviation in RW-E, fixed**: its pre-registration removes nothing before 2026-09-27 00:00 so that it enters its twelve days holding what RW held; replay version 1 removed the same-day markets from 09-25, entering them without RW's positions in 09-26's same-day markets (which settle inside them and count in RW's figure). Replay version 2 (`RWE_STATE_VERSION`) applies the rule from 09-27 only and replays a version-1 state again from RW's start; pinned, failing on version 1. Reference §4 item 36 has it.
+- Signed out (Davies: go back to the login page, not an error inside it): `auth.js` `signOut` / `onSignOut` / `noteAuthStatus`; App returns to the password form when the token lapses (a timer at its expiry, and a check whenever the page is shown or focused) and when the agents page or the board's data call answers 401 (a 403 is not a sign-out). A save refused by a 401 keeps its pending-save mirror and is replayed after the next sign-in. The token lasts 24 h (`auth`'s `TOKEN_TTL_MS`) and dies with the tab (sessionStorage). The app tests no longer reach the network: the Agents prefetch had been calling production with the tests' made-up tokens, and its 401 now signs the app out.
 
 ### [2026-09-27 18:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

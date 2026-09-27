@@ -3,7 +3,7 @@
 // in one place) and turns it into the rows the modal renders. Nothing here
 // touches the DOM; `agents.test.js` pins the shaping.
 import { SB_ANON, EDGE_AGENTS_URL } from '../app/supabase_config.js';
-import { getAppToken } from '../app/auth.js';
+import { getAppToken, noteAuthStatus } from '../app/auth.js';
 import { dropDot00, fmtMoney, formatAgo } from '../app/formatters.js';
 import { Storage } from '../app/storage.js';
 
@@ -82,8 +82,13 @@ export function parseAgentsErrorBody(text) {
   return raw;
 }
 
-/** The error a failed agents call throws: the status and the body ride along. @param {string} scope @param {number} status @param {string} text */
+/**
+ * The error a failed agents call throws: the status and the body ride along. A 401 is this browser's token lapsing,
+ * which signs it out and returns the app to its login form rather than showing an error card (Davies, 2026-09-27).
+ * @param {string} scope @param {number} status @param {string} text
+ */
 function agentsFetchError(scope, status, text) {
+  noteAuthStatus(status);
   const message = parseAgentsErrorBody(text);
   const err = /** @type {any} */ (new Error(`agents ${scope}: ${status} ${message.slice(0, 200)}`));
   err.status = status;

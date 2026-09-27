@@ -12,7 +12,10 @@ and no INVESTMENT chart, and a `VIEWER` badge where the `EDIT` switch
 would be. Type either into the prompt, or pass it once
 as `?pwd=…` in the URL, which the page removes as soon as it reads it.
 The signed token then lasts for the browser session, so a reload or an
-update doesn't ask again.
+update doesn't ask again. It ends 24 hours after signing in, or when the
+tab or app is closed; when it ends, the page goes back to the password
+prompt by itself, with any unsaved edit kept and saved after the next
+sign-in.
 
 ## The header
 

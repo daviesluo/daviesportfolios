@@ -12,7 +12,7 @@ import { usMarketPhase, usMarketHoursUtc, isWeekendDeadZone } from '../prices/ma
 import { Storage } from './storage.js';
 import { POSITION_COORDS } from '../portfolio/positions.js';
 import { INITIAL_PORTFOLIO } from '../portfolio/data.js';
-import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate } from './auth.js';
+import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate, onSignOut, signOut } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from '../portfolio/portfolio_remote.js';
 import { shownPricesOf, withShownPrices, withoutPriced } from '../portfolio/shown_prices.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
@@ -252,6 +252,27 @@ function App() {
       .catch(() => { if (!cancelled) setAuth(null); });
     return () => { cancelled = true; };
   }, [pwInput, auth]);
+
+  // Signed out → back to the password form (Davies, 2026-09-27), never an error
+  // inside the page: when the token lapses, again whenever the page is shown or
+  // focused (a sleeping phone's timers do not fire on time), and when any call
+  // answers 401 (`noteAuthStatus`).
+  useEffect(() => {
+    if (typeof auth?.isReadOnly !== 'boolean') return undefined;   // signed in, not locked out or refused
+    const off = onSignOut(() => { setAuth(undefined); setPwInput(null); });
+    const check = () => { if (!decodeAppToken(getAppToken())) signOut(); };
+    const exp = decodeAppToken(getAppToken())?.exp;
+    const timer = exp ? setTimeout(check, Math.min(2 ** 31 - 1, Math.max(0, exp - Date.now()) + 1000)) : null;
+    const onShown = () => { if (document.visibilityState === 'visible') check(); };
+    document.addEventListener('visibilitychange', onShown);
+    window.addEventListener('focus', check);
+    return () => {
+      off();
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onShown);
+      window.removeEventListener('focus', check);
+    };
+  }, [auth]);
 
   // No token, no URL password, nothing typed yet → themed login form.
   if (auth === undefined && pwInput == null) {

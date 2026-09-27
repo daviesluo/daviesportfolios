@@ -4,7 +4,7 @@
 // silently fall back to re-prompting for the password on every reload,
 // which is exactly the bug we already shipped once.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { decodeAppToken, getAppToken, setAppToken } from './auth.js';
+import { decodeAppToken, getAppToken, setAppToken, onSignOut, signOut, noteAuthStatus } from './auth.js';
 
 // Browser-shaped sessionStorage stub — `vi.stubGlobal` works around
 // `sessionStorage` being a non-configurable getter in some node envs.
@@ -78,5 +78,36 @@ describe('getAppToken / setAppToken', () => {
     setAppToken('zzz');
     setAppToken(null);
     expect(getAppToken()).toBe('');
+  });
+});
+
+// Signing out (Davies, 2026-09-27): a lapsed token returns the app to its
+// login form instead of an error inside the page. The App side is pinned in
+// app.test.jsx; these pin the module's half.
+describe('signOut / noteAuthStatus', () => {
+  it('forgets the token and tells every listener, and a listener that throws stops no other', () => {
+    setAppToken('a.b');
+    const seen = [];
+    const offs = [onSignOut(() => seen.push(1)), onSignOut(() => { throw new Error('boom'); }), onSignOut(() => seen.push(3))];
+    signOut();
+    expect(getAppToken()).toBe('');
+    expect(seen).toEqual([1, 3]);
+    offs.forEach((off) => off());
+    signOut();
+    expect(seen).toEqual([1, 3]);
+  });
+
+  it('a 401 to a token this browser holds signs out; a 403, a 500, a 200 or no token does not', () => {
+    setAppToken('a.b');
+    const seen = [];
+    const off = onSignOut(() => seen.push('out'));
+    noteAuthStatus(403); noteAuthStatus(500); noteAuthStatus(200);
+    expect([getAppToken(), seen]).toEqual(['a.b', []]);
+    noteAuthStatus(401);
+    expect([getAppToken(), seen]).toEqual(['', ['out']]);
+    // Many calls failing at once: the first signs out, the rest find no token.
+    noteAuthStatus(401); noteAuthStatus(401);
+    expect(seen).toEqual(['out']);
+    off();
   });
 });

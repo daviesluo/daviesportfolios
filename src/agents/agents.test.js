@@ -10,6 +10,7 @@ import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
 import { dropDot00 } from '../app/formatters.js';
+import { onSignOut } from '../app/auth.js';
 
 const NOW = Date.parse('2026-09-20T12:00:00Z');
 
@@ -101,6 +102,21 @@ describe('fetchAgentsDashboard', () => {
     expect(await fetchAgentsDashboard(fetchImpl)).toEqual({ at: 'x', strategies: [] });
     const bad = vi.fn(async () => new Response('{"error":"unauthorised"}', { status: 401 }));
     await expect(fetchAgentsDashboard(bad)).rejects.toThrow(/401 .*unauthorised/);
+  });
+
+  it('a 401 signs this browser out, so the app shows its login form instead of an error card (Davies, 2026-09-27)', async () => {
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const seen = [];
+    const off = onSignOut(() => seen.push('out'));
+    const denied = vi.fn(async () => new Response('{"error":"invalid token"}', { status: 401 }));
+    await expect(fetchAgentsDashboard(denied)).rejects.toThrow(/401/);
+    expect([sessionStorage.getItem('dp.token'), seen]).toEqual([null, ['out']]);
+    // A 403 is an answer to a good token (an operator action), not a lapsed one: it signs nothing out.
+    sessionStorage.setItem('dp.token', 'tok.sig');
+    const forbidden = vi.fn(async () => new Response('{"error":"forbidden"}', { status: 403 }));
+    await expect(fetchAgentsDashboard(forbidden)).rejects.toThrow(/403/);
+    expect([sessionStorage.getItem('dp.token'), seen]).toEqual(['tok.sig', ['out']]);
+    off();
   });
 });
 
