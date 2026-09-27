@@ -2951,6 +2951,10 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
   SWIM SCDS at 11 US stations ~$77 a day at 60 s (unverified whether it carries METARs or one-minute readings),
   Météo-France DPObs (Paris) ~$11 a day, KMA's minute data (Seoul, Busan) $4–8. Each needs Davies' free sign-up, then a
   day's measurement, then a pre-registration (ledger item 6).
+- **The sign-ups, read (2026-09-27, §6 "The weather feeds").** The FAA subscription taken is ITWS, and ITWS carries no
+  surface temperature: sixteen products, all wind shear, microburst, gust front, tornado, precipitation, hazard text
+  and storm motion. The Météo-France credential stored was an access token that had expired before it was first read.
+  Neither feed has been measured against the takers yet.
 
 ## 4. Design consequences (decided by the evidence above)
 
@@ -3230,6 +3234,35 @@ markets cannot price a reaction faster than the counter's own update: a loop rea
 within a second of the API publishing it, and nothing earlier. At the default quota, one read every 8.6 s is the
 average the key allows over a day; reading every second is affordable only in windows (a 15-minute window is 900
 units).
+
+### The weather feeds (2026-09-27)
+
+Davies signed up for two of WXSRC's keyed feeds (§3.41) and another tool stored what they issued. The `weather`
+function's probe (`weather?action=probe&only=meteofrance|faa`: `weather/meteofrance.ts`, `weather/faa_swim.ts` over
+Solace's client and `weather/solace_tls.ts`) read both from where they live, fired through pg_net with the Vault
+`cron_secret`. Read-only: GETs to Météo-France; for the FAA a login, a bind to the subscriber's own queue and messages
+read without acknowledgement. No value of any credential is in any report.
+
+| Check | Result |
+|---|---|
+| Météo-France key (04:50 UTC) | a 1,526-character JWT that is an OAuth2 **access token**, not an API key: issued 04:07:46, expiring 04:13:51 UTC (365 s), key type PRODUCTION, subscribed to `DonneesPubliquesObservation` at `/public/DPObs/v2`, tier `100ReqPerMin` |
+| Météo-France requests | the v1 and v2 station lists under `apikey` and under `Bearer`: all four 401 `900901 Invalid Credentials`, the token 37 minutes dead |
+| Météo-France username | `daviesluo` (Davies), the portal's login; the API never reads it |
+| What would last | an **API Key** from the portal's "Générer Token" page with a long validity (`METEO_FRANCE_API_KEY`, sent as `apikey`), or the page's OAuth2 **application ID** (`METEO_FRANCE_APPLICATION_ID`), from which the probe mints an hour's token by `client_credentials` |
+| FAA secrets | fourteen `FAA_SWIM_*`: `CONNECTION_FACTORY`, `CONNECTION_PASSWORD`, `CONNECTION_USERNAME`, `EMAIL`, `FILTERS`, `HOST`, `JMS_CONNECTION_URL`, `MESSAGE_VPN` (ITWS), `PORT` (55443), `PRODUCT` (ITWS), `PROTOCOL` (tcps), `QUEUE_NAME`, `SERVICES`, `SUBSCRIPTION_ID` |
+| FAA reach | TLS to the SCDS host on 55443 from the Edge in 391–393 ms |
+| FAA login, 04:51 | `400 Header Parse Error`: ours. solclientjs writes each SMF frame as a binary string with `write(frame, "ascii")`, which Node sends one byte a character; the Deno shim encoded it as UTF-8. Fixed and pinned (`stringBytes`) |
+| FAA login, 06:38 and 06:48 | session up in 637–639 ms, the queue bound in 484–971 ms; 20, then 200 messages, left unacknowledged |
+| What the queue holds | only seconds: the oldest message was sent 8 s before the bind; the median message was 5.1 s old when it reached us. A reader has to stay connected |
+| What ITWS carries | 200 messages from 25 terminal areas (ATL, BNA, C90, CLT, CMH, CVG, D01, D10, DTW, I90, M98, MCI, MCO, MEM, MIA, MSY, N90, NCT, OKC, PCT, PHL, SDF, SJU, T75, TUL), every one ITWS's `itws_msg` XML: 9832 Microburst TRACON Map, 9833 Gust Front TRACON Map, 9834 Gust Front ETI, 9838 Tornado Detections, 9839 Tornado Alert, 9840 Configured Alerts, 9847 AP Status, 9848 AP Indicated Precipitation, 9849 Precipitation 5nm, 9850 Precipitation TRACON, 9857 Hazard Text 5nm, 9858 Hazard Text TRACON, 9893 Microburst ATIS, 9894 Wind Shear ATIS, 9911 SM SEP 5nm, 9912 SM SEP TRACON. **No temperature** |
+
+**What it means.** The FAA's feed works from where the functions run, and the path to it (Solace's own client, over a
+TLS stream of Deno's) is proven end to end. But ITWS is the terminal weather system's hazard products: nothing in it is
+a surface observation, so it cannot tell a temperature market anything. The METAR on SWIM is CSS-Wx's product, which
+the FAA said in 2024 would reach non-NAS consumers "via ... SCDS" (FPAW 2024); SCDS's 2019 guide lists only STDDS, ITWS,
+TFMS, TBFM, FDPS and AIM FNS. Whether the SWIFT Portal now offers a METAR product is a look at its New Subscription
+list, Davies' step; the probe reads any product without a change. Météo-France is not yet read at all: it needs one of
+the two credentials above.
 
 ## Sources
 

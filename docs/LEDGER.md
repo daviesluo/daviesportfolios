@@ -177,11 +177,14 @@ list stays the short version; the plan is the reasoning behind it.
    resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
 
 6. **Davies' to decide or to do; nothing waits on them:**
-   - WXSRC's keyed weather feeds (reference §3.41). **Done 2026-09-27:** Météo-France's DPObs key and an FAA SCDS
-     subscription to ITWS (history, 04:45 UTC); the `weather` function's probe reads them first. Open: KMA's API Hub
-     (Seoul, Busan: needs a Korean phone number) and Google's WeatherNext 3 allowlist (5–7 business days, then a
-     Google Cloud project). If ITWS carries no temperature, the FAA leg needs a METAR product (CSS-Wx) in the SWIFT
-     Portal instead. An SCDS subscription idle for 60 days may be disabled.
+   - WXSRC's keyed weather feeds (reference §3.41, §6 "The weather feeds"). Read 2026-09-27 by the `weather`
+     function's probe: **Météo-France** — the stored `METEO_FRANCE_API_KEY` is an access token that expired six
+     minutes after issue; store instead a long-lived **API Key** from the portal's "Générer Token" page (as
+     `METEO_FRANCE_API_KEY`) or the page's OAuth2 **application ID** (as `METEO_FRANCE_APPLICATION_ID`), then re-run
+     `weather?action=probe&only=meteofrance`. **FAA** — the ITWS subscription works end to end but carries no
+     temperature; the FAA leg needs a METAR product (CSS-Wx) if the SWIFT Portal's product list offers one (the probe
+     reads any product as it is). An SCDS subscription idle for 60 days may be disabled; ITWS can lapse. Still open:
+     KMA's API Hub (Seoul, Busan: needs a Korean phone number) and Google's WeatherNext 3 allowlist.
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
      cheap insurance: the site served the repository, `auth`'s source included, until 2026-09-18, and nothing
      suggests anyone read it (five failed logins in the auth table's whole history). Changing the secret re-prompts
@@ -293,7 +296,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - **Météo-France: the stored `METEO_FRANCE_API_KEY` is an OAuth2 access token, not an API key.** Its claims: issued 04:07:46, expiring 04:13:51 UTC (365 s), key type PRODUCTION, subscribed to `DonneesPubliquesObservation` at `/public/DPObs/v2`, tier `100ReqPerMin`. Read at 04:50 it had been dead 37 minutes: all four requests (v1 and v2, `apikey` and `Bearer`) came back 401 `900901 Invalid Credentials`. Davies (06:30): the portal username is `daviesluo`; the API never reads it. What works for good is either an **API Key** generated on the portal's "Générer Token" page with a long validity, stored as `METEO_FRANCE_API_KEY`, or the page's OAuth2 **application ID** (the Basic credential in its cURL command), stored as `METEO_FRANCE_APPLICATION_ID`, from which the probe now mints its own token. An expired token is now reported and asks nothing; the key's own version (v2) is asked first.
 - **FAA: every name read right, TLS reached, the SMF login refused with `400 Header Parse Error`.** The fourteen names: `CONNECTION_FACTORY`, `CONNECTION_PASSWORD`, `CONNECTION_USERNAME` (19 characters, no `@`), `EMAIL`, `FILTERS`, `HOST` (17, `…faa.gov`), `JMS_CONNECTION_URL` (port 55443), `MESSAGE_VPN` (4), `PORT` (55443), `PRODUCT` (4), `PROTOCOL` (4), `QUEUE_NAME` (65, six dotted segments, names the VPN), `SERVICES`, `SUBSCRIPTION_ID` (36). TLS handshake 393 ms from the Edge. The refusal was ours: solclientjs writes each SMF frame as a binary string with `write(frame, "ascii")`, which Node sends one byte a character, and the Deno shim encoded it as UTF-8, doubling every byte above 0x7F. Fixed (`stringBytes`), pinned by a test that fails on the old write. Also: the tool stored `PROTOCOL` and `PRODUCT` as secrets, and scrubbing them took the URL's scheme and every product name out of the report; values from a closed public vocabulary (ports, protocol names, SCDS's products) are no longer scrubbed, pinned on the fourteen names as stored.
 - **The second FAA run (06:38 UTC, after the fix) went through**: TLS 391 ms, SMF session up in 637 ms, the queue bound in 484 ms, twenty messages in under a second, left unacknowledged. Every one was ITWS's own `itws_msg` XML (products 9833/9834/9838/9839/9847/9848/9850/9858/9893/9894/9912; sites MIA, T75, MSY, D01, TUL); none carries a temperature. The oldest was sent 8 s before the bind: the queue holds seconds, not hours, so a reader must stay connected or lose what arrives while it is away. The report now groups messages by product with ITWS's own product name, reads up to 200, and keeps SCDS's service names (`Alert`, `Standard`) readable where the stored settings had scrubbed them.
-- Next: redeploy, one more `only=faa` for ITWS's full product list; the Météo-France part waits for one of the two credentials above.
+- **The third FAA run (06:48 UTC) settles it: ITWS carries no temperature.** 200 messages from 25 terminal areas, sixteen products, every one ITWS's hazard output (microburst, gust front, tornado, configured alerts, AP status and indicated precipitation, precipitation 5nm/TRACON, hazard text, microburst and wind-shear ATIS, storm motion/extrapolated position); median 5.1 s old on arrival. Reference §6 "The weather feeds" has the table. The METAR on SWIM is CSS-Wx's product; whether the SWIFT Portal offers it to this account is Davies' look at its product list. No recorder is built: the one feed that works carries nothing a temperature market reads, and the other has no working credential.
 
 ### [2026-09-27 04:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

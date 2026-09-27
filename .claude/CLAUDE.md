@@ -557,8 +557,10 @@ that follow from that evidence, in short:
   function mints its own tokens; the username is the portal login,
   `daviesluo`, which the API never reads) and fourteen `FAA_SWIM_*` (the
   FAA's SWIM SCDS subscription: ITWS, a Solace queue reached over SMF on
-  TLS only; a subscription idle for 60 days may be disabled), read by the
-  `weather` function. Never print them, never move them.
+  TLS only, holding seconds of messages; a subscription idle for 60 days
+  may be disabled; ITWS carries no temperature, only terminal hazard
+  products, reference §6), read by the `weather` function. Never print
+  them, never move them.
 - **A study prices speed at one second** (Davies, 2026-09-26): pg_cron 1.6.4
   on the project runs a job every 1–59 seconds, so a strategy that needs to
   act faster than a minute is studied at 1 s, not at the minute the loop
