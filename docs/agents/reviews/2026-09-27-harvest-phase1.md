@@ -40,8 +40,8 @@ confirmation steps offline from the committed source pulls (identical units).
     following UMA's first proposal, 17 of 4,133 mention markets (those 17 carried $52.3M of volume).
   * The economic releases (0 of 187) and the post counts (0 of 2,316 verifiable) had none. Those samples cannot show
     a rate below one in 60 and one in 770.
-  * The post tracker's own history cannot reproduce 14 of 207 results (8 of 22 Trump weeks), and one week's markets
-    were resolved days before its window ended.
+  * The post tracker's own history cannot reproduce 14 of 207 results (8 of 22 Trump weeks), and one week's first
+    listing was closed without UMA, days before its window ended, at outcomes no count supports.
 * **At a size this account could hold, it is dollars a day.** Take half of every late stale offer, $100 a market, from
   C + 60 s: $0.87–4.00 a day per category. A resting bid at 99 ¢: −$1.95 to +$3.04 a day. The ceiling for a maker
   first in the queue at every print, a tick better: $1.02–20.26 a day, and the $20.26 is 86 % one market-day.
@@ -215,8 +215,10 @@ market (Mode A) and $0.10–2.73 a day (Mode B).
 * **Even paged, the tracker's history cannot reproduce 14 of 207 results.** They carry $4.5M of volume, among them 8 of
   22 Trump weeks ($4.2M of the series' $7.4M). Trump's May 12–19 week holds 100 posts, none after May 17 12:30, and
   resolved "200+".
-* **The whole May 19–26 week was resolved early, without UMA,** on every series: Ted Cruz's on May 20, Elon's on May
-  25, with winners no tracker count supports.
+* **The first listing of the May 19–26 week was closed without UMA** on every series, days before its window ended:
+  seven events on May 20 and Elon's weekly on May 25 ($238k). Elon's May 18–20 window ($48k) went the same way just
+  after its end. Most closed at outcomes no tracker count supports. Replacement events for the same windows were
+  listed on May 20 and resolved normally (Elon's weekly at 260–279, the tracker's 260).
 * Those events are `record_ok: false`: left out, neither harvest nor trap. They are this category's real risk: the
   counter a harvester reads may not be the one the market settles on.
 
@@ -455,8 +457,8 @@ held-out/exploration events.
     truncated every window above 100 posts. That is every Elon window and Trump's busier weeks. `hcommon.xt_posts` is
     the paged reader.
   * **The tracker's history is not the counter as it stood:** 14 of 207 exploration windows cannot reproduce their
-    results, and the May 19–26 week was resolved early without UMA. Any count study should check its record against
-    each result, as `counts_units.py` does.
+    results, among them the first listing of the May 19–26 week, closed without UMA at outcomes no count supports and
+    replaced by new events. Any count study should check its record against each result, as `counts_units.py` does.
   * **A USGS `pt` first estimate is not a USGS magnitude:** any earthquake rule should count only authoritative
     solutions.
 * **Numbers to recompute** if a later session widens the window: `results/summary.json` (the table above),
