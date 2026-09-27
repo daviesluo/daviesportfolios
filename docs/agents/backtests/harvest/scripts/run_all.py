@@ -15,6 +15,8 @@ import subprocess
 import sys
 import tempfile
 
+sys.dont_write_bytecode = True
+
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 S = os.path.join(ROOT, "scripts")
 I = os.path.join(ROOT, "inputs")
