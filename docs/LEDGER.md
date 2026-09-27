@@ -218,10 +218,14 @@ list stays the short version; the plan is the reasoning behind it.
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
      19:00 UTC, was served from about 19:40). Watch paths Include `dist/*` is the dashboard cut (a push that does not
      change `dist/` then builds nothing; one that does still clones). `.github/workflows/pages-deploy.yml` Direct-Uploads
-     the committed `dist/` via Wrangler (`pages deploy dist --project-name=daviesportfolios --branch=<ref>`). Repo
-     secrets still to add: `CLOUDFLARE_API_TOKEN` (Account → Cloudflare Pages → Edit) and `CLOUDFLARE_ACCOUNT_ID`. Git
-     integration can stay on `dist/*` or be disconnected later so the two do not both publish; the workflow does not
-     change the dashboard.
+     the committed `dist/` via Wrangler (`pages deploy dist --project-name=daviesportfolios --branch=<ref>`). **Done
+     2026-09-27 (his, through another tool):** the watch paths (Include `dist/*`) and both secrets,
+     `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`; the first upload, run by hand at 20:36 UTC, took 19 s.
+     **Left, his click:** Pages' own Git build still publishes every `dist/` push too. Two deployers mean that when two
+     such pushes land minutes apart, the Git build of the first can finish after the upload of the second and serve
+     the older bundle until the second's Git build ends. Turning off the Git build's automatic deployments (Settings →
+     Build → Branch control), or disconnecting the repository, leaves the upload alone; it deploys `main` only, so a
+     branch then has no preview. No session can change these settings: the Cloudflare connector has no Pages tools.
    - HARVEST's one lead (reference §3.42): a forward recorder of UMA proposals and disputes on the harvest categories,
      with the book at C + 60 s, to see what rests after a confirmation and whether a proposal is safe to follow. Public
      reads only, nothing placed, like the view recorder; build it only on his word. The econ-release race (FAST-A) is
@@ -347,6 +351,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - Until now variant-1 (RW-E) showed RW's record from 09-25 and x1–x3 RW-E's, so all four read the same before their rules began. Each replay now keeps an arm's accounts as its first minute begins (`base`: RW-E's `e` at 09-27 00:00, `pmrw_x.ts`'s arms at their `from`), and `rwSummary` takes `since`: every total, day, fill and market is the change since that minute, a position held then carried in at that minute's mark, a market settled before it left out. The running total less `base`'s equals the pre-registrations' own reading (running total less the close of the day before), pinned equal. Before its minute a row is `notStarted`: NEXT reads "28 Sep 01:00 BST" beside a grey dot whose words say "starts …", and its page's three tables say so.
 - The rules are unchanged; RW-E's replay is version 3 and the variants' version 2 only so each replays once from RW's start and keeps the base it had already passed. Their day rows are rewritten with the same values; verify on production after the deploy that both checks stay under a cent and `base` is present.
 - Evidence: `pmrw_e.test.ts` (a replay across 09-27 00:00 keeps exactly the accounts of 23:59's end, in both replays; by hand, a position bought at 49 ¢ before the minute and sold at 53 ¢ after it counts 0.60 from the 50 ¢ mark, plus two rewards: +0.80, equal to `rweSummary`'s reading), `pmrw_view.test.ts` (a short carried in at 30 ¢ and marked at 25 ¢, a new market, a market settled before the minute, days and today, all by hand), `pmrw_x.test.ts` (the round trip x2 sat out, now from 00:00), the counterfactual (no `since`: two tests fail), and `agents.test.js` / the sweep's `rwx-waiting` scenario at both widths.
+- Cloudflare (Davies, through another tool, 20:35): the watch paths and both secrets are set, and `pages-deploy.yml` (Cursor's, `7a163bd4`) uploads `dist/`; this session's own draft of the same job was dropped for it. Item 6 now says what is left: one deployer, by turning off the Git build's automatic deployments.
 
 ### [2026-09-27 20:24 UTC] Platform: Cursor | Model: Grok 4.6
 
