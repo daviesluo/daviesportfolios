@@ -1,5 +1,8 @@
-# Catches type errors and broken builds before Cloudflare Pages tries to deploy
-# them. Runs on every PR and every push to main.
+# Catches type errors and broken builds before the committed bundle is
+# published. Cloudflare Pages may still Git-build on watch paths `dist/*`;
+# pages-deploy.yml Direct-Uploads the same committed dist/ via Wrangler
+# so a Pages builder does not have to clone the repository.
+# Runs on every PR and every push to main.
 
 name: check
 

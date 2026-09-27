@@ -211,12 +211,12 @@ list stays the short version; the plan is the reasoning behind it.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
-     19:00 UTC, was served from about 19:40). Pages builds every push and clones the whole repository (118 MB of files,
-     most of it study data under `docs/`, and 277 MB of history) to publish `dist/` alone, one build at a time, so a
-     run of pushes queues. The cut is his to click: Workers & Pages → `daviesportfolios` → Settings → Build → **Build
-     watch paths** → Include `dist/*` (Exclude empty). A push that does not change `dist/` then builds nothing; one
-     that does still clones. Faster still, on his word: publish `dist/` from a GitHub Action with `wrangler pages deploy`
-     (a Cloudflare API token and account id as repo secrets, Pages' own Git builds switched off) — seconds, not minutes.
+     19:00 UTC, was served from about 19:40). Watch paths Include `dist/*` is the dashboard cut (a push that does not
+     change `dist/` then builds nothing; one that does still clones). `.github/workflows/pages-deploy.yml` Direct-Uploads
+     the committed `dist/` via Wrangler (`pages deploy dist --project-name=daviesportfolios --branch=<ref>`). Repo
+     secrets still to add: `CLOUDFLARE_API_TOKEN` (Account → Cloudflare Pages → Edit) and `CLOUDFLARE_ACCOUNT_ID`. Git
+     integration can stay on `dist/*` or be disconnected later so the two do not both publish; the workflow does not
+     change the dashboard.
    - HARVEST's one lead (reference §3.42): a forward recorder of UMA proposals and disputes on the harvest categories,
      with the book at C + 60 s, to see what rests after a confirmation and whether a proposal is safe to follow. Public
      reads only, nothing placed, like the view recorder; build it only on his word. The econ-release race (FAST-A) is
@@ -335,6 +335,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 20:24 UTC] Platform: Cursor | Model: Grok 4.6
+
+**Direct-Upload the committed `dist/` from GitHub Actions, so Cloudflare's builders do not clone the repository.** Item 6 asked for this on his word after Pages spent ~40 minutes cloning 118 MB of files to publish one folder. `.github/workflows/pages-deploy.yml` runs on a `dist/**` / `wrangler.jsonc` push to `main` (and `workflow_dispatch`), checks out shallow, and runs `cloudflare/wrangler-action@v4.1.3` (`pages deploy dist --project-name=daviesportfolios --branch=<ref>`). No npm build — `check.yml` already gates freshness. Secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are documented at the top of the file and skipped (warning, exit 0) until he adds them; token permission is Account → Cloudflare Pages → Edit. The dashboard Git integration is left as it is (watch paths `dist/*`, or disconnect later). Map, check.yml header and CLAUDE.md name the new workflow.
 
 ### [2026-09-27 19:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

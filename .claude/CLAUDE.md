@@ -615,9 +615,13 @@ that follow from that evidence, in short:
   anything else every gate. Checks that do not depend on each other run
   at once; the browser sweep runs alone. `--full` forces every gate. CI
   runs every gate on every push either way.
-- Cloudflare Pages and the `typecheck-and-build` GitHub Action run on
-  every push. If a push leaves `main` red, fix-up commit on `main` is
-  the next priority — don't move on to new features while CI is broken.
+- Cloudflare Pages Git builds (watch paths `dist/*` when set in the
+  dashboard) and `.github/workflows/pages-deploy.yml` (Wrangler Direct
+  Upload of the committed `dist/`) publish a `dist/` change. The Action
+  is the path that does not clone the whole repository on Cloudflare's
+  builders. `check.yml` still runs on every push. If a push leaves
+  `main` red, fix-up commit on `main` is the next priority — don't
+  move on to new features while CI is broken.
 - Never force-push `main` and never bypass hooks (`--no-verify`)
   without explicit user confirmation in the same message. The one
   force-push so far (2026-09-24, Davies' word) rewrote every commit to

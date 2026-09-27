@@ -399,18 +399,20 @@ How the less obvious parts work, and why they are built the way they are.
 - **Build / CI** — Vite production bundle; Vitest for unit and component
   tests (`jsdom` + `@testing-library/react`); `tsc --noEmit` for
   type-checking; ESLint; knip; size-limit; Playwright for the browser
-  sweep. Four GitHub Actions workflows: `check.yml` (every push: bundle
+  sweep. Five GitHub Actions workflows: `check.yml` (every push: bundle
   freshness, type-check, lint, unit tests, build, browser sweep,
   bundle-size budget, dead-code scan, dependency audit),
   `edge-functions.yml` (`deno check` + `deno test`, then on push to main
   an auto-deploy of every function whose folder changed, or of all of them
   when `supabase/functions/_shared/` changed),
   `migrations.yml` (PR-time SQL lint; on main, `supabase db push` applies
-  any new migration against production's `schema_migrations`) and
+  any new migration against production's `schema_migrations`),
+  `pages-deploy.yml` (on a `dist/` change to `main`, or by hand: Wrangler
+  Direct Upload of the committed `dist/`, no Pages Git clone) and
   `healthcheck.yml` (every 10 minutes: pings the production functions and
   checks the live site's shell and chunks). Each opens or bumps a GitHub
   issue when it fails.
-- **Hosting** — Cloudflare Pages auto-deploys from `main`. `_headers`
+- **Hosting** — Cloudflare Pages publishes `dist/` from `main`. `_headers`
   pins cache rules so iOS PWA can't get stuck on a stale `index.html`
   pointing at deleted hashed bundles. **A chunk that fails to load never
   takes the app down** (found the hard way on 2026-09-21): Pages answers a
@@ -696,6 +698,7 @@ before touching migration state.
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Every 10 minutes: pings the functions and checks the live site's code; opens an issue when something is down. |
+| `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
 | `.github/SECURITY.md`, `CODEOWNERS`, `dependabot.yml`, `pull_request_template.md` | How to report a vulnerability, who reviews what, dependency updates, the PR layout. |
 | `docs/README.md` | The front page GitHub shows on the repository's home page: what the project is, screenshots, how it is built. |
 | `docs/guide.md` | How to use each part of the site. |
@@ -927,7 +930,13 @@ because they reached for Workers mechanisms (`assets.directory` in
 `wrangler.jsonc`, `.assetsignore`) that a Pages project ignores, or for
 `_redirects`, which cannot beat a real static asset.
 
-Cloudflare Pages will auto-deploy on every push to `main`.
+A push that changes `dist/` is published two ways, until one is turned
+off: Cloudflare's Git-connected builder (set its Build watch paths
+Include to `dist/*` so a non-site push builds nothing there; a `dist/`
+push still clones the repository) and `.github/workflows/pages-deploy.yml`,
+which Direct-Uploads the committed folder with Wrangler and does not
+clone. Disconnect the Git integration later if both publishing the same
+bundle is waste; the workflow does not change that dashboard setting.
 
 ### 6. Visit
 
@@ -945,7 +954,10 @@ under `Storage.migrate()` in `storage.js`). Edge Functions auto-deploy
 via `.github/workflows/edge-functions.yml` on every push to `main` that
 changes a function's folder (all of them when `_shared/` changes), gated
 by `deno test`; manual paste-into-dashboard is only needed when the
-deploy secrets are missing.
+deploy secrets are missing. The committed `dist/` is Direct-Uploaded by
+`.github/workflows/pages-deploy.yml` when that folder (or `wrangler.jsonc`)
+changes on `main`; it needs `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` as repository secrets.
 
 When a PR is open, its description is maintained with the branch: every
 push that changes the diff rewrites the summary in the same step, and
