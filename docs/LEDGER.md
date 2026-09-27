@@ -68,10 +68,12 @@ list stays the short version; the plan is the reasoning behind it.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
    - **RW-E's variants (Davies, 2026-09-27: study a/b/c, track the ones worth it as TESTING rows the way RW-E is).**
      Research done (history 19:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
-     Next: a pre-registration frozen on `main` before the first minute it is judged on (09-28 00:00 UTC, or the next
-     midnight if later), then the forward replay (`agents/pmrw_x.ts`, arms on RW-E from 09-27 and each rule from its
-     start), a migration for its state and day rows and its call in `edge-calls-every-minute`, and the page's rows,
-     named like "Reward quotes (no same-day)".
+     **Pre-registered and frozen 2026-09-27** (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`): RW-X1 "Reward
+     quotes (no weather)", RW-X2 "Reward quotes (pause on jumps)" (15 ¢, 60 minutes), RW-X3 both; RW-E from 09-27
+     plus each rule from 2026-09-28 00:00 UTC, judged on 09-28 → 10-08 with RW's and RW-E's verdicts. Next: the
+     forward replay (`runPmrwX` in `agents/pmrw_x.ts`, its own state and day rows by a migration, its call a row of
+     `edge-calls-every-minute`), the check (its `rw` arm equals RW's days, its `e` arm RW-E's version-2 days), and
+     the three rows on the page. Do not read a market-level figure of 09-28 or later before 10-09.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
