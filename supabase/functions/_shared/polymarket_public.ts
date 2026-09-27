@@ -1,5 +1,5 @@
 // Keyless reads of Polymarket's public endpoints, for the paper test of RW (agents/pmrw.ts, reference §3.33 and the
-// spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`).
+// spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`), and for the view-count recorder (agents/views.ts).
 //
 // Nothing here reads a credential, signs anything or calls an order endpoint: the account's credentialed read-only
 // client is `polymarket.ts`, and this file does not import it. Every call goes to one of three documented hosts,
@@ -176,6 +176,17 @@ export async function pmPrints(cond: string, sinceSec: number, o: PmPublicOpts &
     if (!cursor || !rows.length || oldest < sinceSec) { complete = true; break; }
   }
   return { prints: [...out.values()].sort(printOrder), complete };
+}
+
+/**
+ * Gamma's open events under one tag, each with its markets (`/events?tag_id=&closed=false`), a hundred at most. The
+ * view-count recorder (`agents/views.ts`) finds its markets this way; a copy up to five minutes old only delays when a
+ * new market is first recorded.
+ */
+export async function pmOpenEventsByTag(tagId: string, o: PmPublicOpts = {}): Promise<Array<Record<string, unknown>>> {
+  const q = new URLSearchParams({ tag_id: tagId, closed: "false", limit: "100" });
+  const d = await call("GET", `${PM_GAMMA}/events?${q}`, undefined, o);
+  return Array.isArray(d) ? d.filter((e): e is Record<string, unknown> => !!e && typeof e === "object") : [];
 }
 
 /** RW's order for prints of one second: the order rw_test.py read them in (a sorted list of [ts, side, oi, price, size]). */

@@ -19,6 +19,11 @@
 //                             the order it would send; with it, it sends
 //                             only when the executor is live and armed.
 //                             Operator only; never the minute loop's.
+//   POST ?action=views      — the view-count recorder (views.ts, 0062):
+//                             Polymarket's view markets, their YES books and
+//                             the YouTube counters they resolve on, every
+//                             minute and every second around each market's
+//                             deadline. Reads only. pg_cron every minute.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -53,7 +58,9 @@
 //                             geoblock's answer for this region, and with L2
 //                             the account's keys, closed-only flag, collateral,
 //                             open orders; one public book. GETs only (reference
-//                             §2d). Places nothing anywhere. Cron or admin.
+//                             §2d). YouTube (`only=youtube`): the channels behind
+//                             the view markets and one video's counter read seven
+//                             times 5 s apart. Places nothing anywhere. Cron or admin.
 //
 // Auth: `Authorization: Bearer <CRON_SECRET>` (pg_cron / pg_net, the same
 // Vault secret every other scheduled function uses) OR an `x-app-token`
@@ -90,6 +97,7 @@ import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { youtubeProbe } from "./youtube.ts";
+import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
@@ -1049,6 +1057,11 @@ export async function runJevBatch(
   return { at: new Date().toISOString(), transport, version, kind, calls, repeats, costUsd, results };
 }
 
+/** The YouTube Data API key (`youtube.ts`), under any spelling the secrets store kept; empty when it is not set. */
+export function youtubeKey(read?: (n: string) => string | undefined): string {
+  return envAny(["YOUTUBE_API_KEY", "YouTube_API_KEY", "Youtube_API_KEY", "youtube_api_key"], read);
+}
+
 /** The probe's parts, each a credential of its own. `?only=binance,deribit` runs just those; anything unknown is dropped. */
 export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit", "polymarket", "youtube"] as const;
 export function probeParts(only: string | null): Set<string> | null {
@@ -1232,7 +1245,7 @@ export async function runProbe(only: Set<string> | null = null, f: typeof fetch 
 
   // --- YouTube: public view counts behind Polymarket's view markets (youtube.ts). The key rides in a header, never a URL.
   if (want("youtube")) {
-    const key = envAny(["YOUTUBE_API_KEY", "YouTube_API_KEY", "Youtube_API_KEY", "youtube_api_key"]);
+    const key = youtubeKey();
     out.youtube = key ? await youtubeProbe({ key, fetchImpl: f }, { sleep: opts.sleep }) : { error: "YOUTUBE_API_KEY is not set" };
   }
   return out;
@@ -1267,6 +1280,11 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
+    // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
+    if (action === "views" && req.method === "POST" && operator) {
+      const key = youtubeKey();
+      return json(200, await runViews({ db: db(), holder: crypto.randomUUID(), yt: key ? { key } : null }));
+    }
     if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
     if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
     if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));

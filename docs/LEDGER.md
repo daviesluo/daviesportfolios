@@ -140,7 +140,10 @@ list stays the short version; the plan is the reasoning behind it.
    part verifies the key read-only; then a recorder of what nobody can pull later — the view counter of each video
    with an open Polymarket view market (MrBeast, MrBeast Gaming) and those markets' books — every second around each
    market's deadline and once a minute otherwise, inside the key's 10,000 units a day. Record only, no orders; a rule
-   out of it is pre-registered after 4–6 weeks of it.
+   out of it is pre-registered after 4–6 weeks of it. **The key works (probe 09-27 01:02 UTC, reference §6); the
+   recorder is `0062` / `agents/views.ts` (reference §4 item 38), recording from its deploy on 2026-09-27.** The API's
+   counter moves in batches (none in 30 s on a video gaining ~13,000 views a minute); how far apart is the first thing
+   its record says. A study of it is pre-registered before it reads the tables (~2026-10-25 → 11-08).
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -247,6 +250,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 01:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The view-count recorder (what-remains item 5d), on the key the probe verified: `0062`, `agents/views.ts`, `agents?action=views` every minute.**
+- Records what nobody can pull later: each tracked video's counter (uploads of the last eight days and every video a market names), the channels' totals (every fifth minute), and the YES book of every open view market (a NO book is its mirror, checked on a live market). Markets come from Gamma's YouTube tag (146) every fifth minute, with what each event's rules name: the handle, the video when named, the hours counted ("first 24 hours", "first 7 days"); a "next video" market counts the channel's first upload after its creation that is not a Short.
+- Around each deadline (posting time + hours counted) it reads that video and its markets' books every second, 15 minutes before to 3 after, every 10 s in the hour before; a run reads until 56 s into its minute. Change-only rows (`ts`, `seen_until`, `reads`), so each API batch is placed to a second. Quota ~2,300 units a day plus ~1,350 a deadline; windows stop reading YouTube past 9,000 in the Pacific day, everything past 9,800. Nothing is pruned: a study, pre-registered first, reads it after 4–6 weeks.
+- First deadline it can catch: MrBeast Gaming's day-1 market, 2026-09-27 16:00:04 UTC (the video was posted 09-26 16:00:04). Pinned in `views.test.ts` (14 cases: the rules' parsing, the video a market counts, the windows, change-only rows across runs, a whole hot minute against fakes of Gamma, the CLOB and the Data API, the budgets, the lease, no key; the open rows read page by page, which a single 1,000-row read failed for thirty tokens; and a run that starts late still stops 56 s into its minute). The strict double knows the seven new tables.
 
 ### [2026-09-26 23:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

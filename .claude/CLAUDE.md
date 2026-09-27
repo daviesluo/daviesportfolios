@@ -540,8 +540,9 @@ that follow from that evidence, in short:
   `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` — read by
   the probe only; and `YOUTUBE_API_KEY` (Davies, 2026-09-26), a Google API
   key for the YouTube Data API's public view counts, sent in the
-  `X-Goog-Api-Key` header and never in a URL, 10,000 units a day. Never
-  print them, never move them.
+  `X-Goog-Api-Key` header and never in a URL, 10,000 units a day, read by
+  the probe and by the view-count recorder (`agents?action=views`, `0062`,
+  reference §4 item 38). Never print them, never move them.
 - **A study prices speed at one second** (Davies, 2026-09-26): pg_cron 1.6.4
   on the project runs a job every 1–59 seconds, so a strategy that needs to
   act faster than a minute is studied at 1 s, not at the minute the loop

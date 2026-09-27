@@ -63,6 +63,19 @@ const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
   // The stablecoin books' record (0057).
   agent_book_levels: { columns: ["book", "ts", "bids", "asks", "seen_until", "reads"], key: "book,ts" },
 };
+/** The view-count recorder's tables as 0062 creates them: their columns, the unique key each upsert names, and the defaults a proposed row takes. */
+const VIEWS_TABLES: Record<string, { columns: string[]; key: string; defaults: Row }> = {
+  yt_channels: { columns: ["channel_id", "handle", "title", "uploads", "first_seen"], key: "channel_id", defaults: {} },
+  yt_videos: { columns: ["video_id", "channel_id", "title", "published_at", "duration_s", "short", "first_seen"], key: "video_id", defaults: { short: false } },
+  yt_video_reads: { columns: ["video_id", "ts", "views", "likes", "comments", "seen_until", "reads"], key: "video_id,ts", defaults: { reads: 1 } },
+  yt_channel_reads: { columns: ["channel_id", "ts", "subscribers", "views", "videos", "seen_until", "reads"], key: "channel_id,ts", defaults: { reads: 1 } },
+  pm_view_markets: {
+    columns: ["cond", "yes", "no", "event_slug", "event_start", "label", "question", "handle", "video_id", "window_h", "last_seen", "first_seen"],
+    key: "cond", defaults: {},
+  },
+  pm_view_books: { columns: ["token", "ts", "bids", "asks", "seen_until", "reads"], key: "token,ts", defaults: { reads: 1 } },
+  yt_quota: { columns: ["day", "units"], key: "day", defaults: { units: 0 } },
+};
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -160,6 +173,17 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
     }
     return notNull(["cond", "payout", "net", "cash"]) ?? check("payout", Number(r.payout) >= 0 && Number(r.payout) <= 1);
+  }
+  if (table in VIEWS_TABLES) {
+    const unknown = Object.keys(r).find((c) => !VIEWS_TABLES[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (table === "yt_channels") return notNull(["channel_id"]);
+    if (table === "yt_videos") return notNull(["video_id", "channel_id", "published_at", "short"]);
+    if (table === "yt_video_reads") return notNull(["video_id", "ts", "views", "seen_until", "reads"]) ?? check("views", Number(r.views) >= 0) ?? check("reads", Number(r.reads) >= 1);
+    if (table === "yt_channel_reads") return notNull(["channel_id", "ts", "seen_until", "reads"]) ?? check("reads", Number(r.reads) >= 1);
+    if (table === "pm_view_markets") return notNull(["cond", "yes", "no", "event_slug", "last_seen"]) ?? check("window_h", r.window_h == null || Number(r.window_h) > 0);
+    if (table === "pm_view_books") return notNull(["token", "ts", "bids", "asks", "seen_until", "reads"]) ?? check("reads", Number(r.reads) >= 1);
+    return notNull(["day", "units"]) ?? check("units", Number(r.units) >= 0);
   }
   if (table === "agent_decisions") {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
@@ -334,7 +358,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
       if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)
-        || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key)) {
+        || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -344,7 +368,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // Postgres checks NOT NULL on the row an upsert PROPOSES, before it looks for the conflict: an ON CONFLICT
         // update that leaves out a not-null column is refused even when the row exists. The paper RW tables are held
         // to that (their decisions are written as upserts onto rows recorded a minute earlier).
-        const why = schemaRefusal(table, table in PMRW_TABLES ? r : cur ? { ...cur, ...r } : r);
+        // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in.
+        const why = schemaRefusal(table, table in PMRW_TABLES ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
       }
       for (const r of list) {
