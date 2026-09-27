@@ -1,0 +1,986 @@
+{
+ "band_from_60s": {
+  "A_clean_0.95_plus": {
+   "dates": 32,
+   "edge_per_dollar": 0.0051,
+   "markets": 89,
+   "net": 2434.32,
+   "net_per_day": 26.46,
+   "notional": 477287.69,
+   "trap_net": -259.71
+  },
+  "A_contested_below_0.95": {
+   "dates": 16,
+   "edge_per_dollar": 0.18941,
+   "markets": 23,
+   "net": 7789.01,
+   "net_per_day": 84.66,
+   "notional": 41122.82,
+   "trap_net": -110.49
+  },
+  "B_clean_0.95_plus": {
+   "dates": 32,
+   "edge_per_dollar": 0.00363,
+   "markets": 90,
+   "net": 911.52,
+   "net_per_day": 9.91,
+   "notional": 251212.26,
+   "trap_net": -758.5
+  },
+  "B_contested_below_0.95": {
+   "dates": 18,
+   "edge_per_dollar": 0.32089,
+   "markets": 25,
+   "net": 6393.28,
+   "net_per_day": 69.49,
+   "notional": 19923.37,
+   "trap_net": -191.49
+  }
+ },
+ "category": "quakes",
+ "closed_before_C_units": 0,
+ "days": 92.0,
+ "events": 21,
+ "excluded_events": [],
+ "kinds": null,
+ "lock_all_markets_median_h": 13.31,
+ "market_concentration_from_C": {
+  "A_positive_markets": 88,
+  "A_top": [
+   [
+    3707.61,
+    "0x2a51e1c61ad85d8082c4d51dcfbd63e5120bb0cbbfc54df3f589c3566faf8488"
+   ],
+   [
+    1875.54,
+    "0xaca616c49b67a19911755080e0e06fecfd0b716b1eaa8350a93232ee9669ffa7"
+   ],
+   [
+    1763.5,
+    "0xcba7b2db2b1464ff12bd82cb3a6537c9d54e173949b94b8b43b470c11e267765"
+   ],
+   [
+    1540.88,
+    "0xad0e5d10ea802629494e672c631721d12ddf6131e2ea6fd48b27552c2ec58816"
+   ],
+   [
+    655.45,
+    "0xa8f80c8e8ca060436b60aa03d66fe40a5e0437b18a43cf0a0d6798f09c7f054b"
+   ]
+  ],
+  "A_top1_share": 0.276,
+  "A_top5_share": 0.7103,
+  "B_positive_markets": 89,
+  "B_top": [
+   [
+    3075.91,
+    "0x2a51e1c61ad85d8082c4d51dcfbd63e5120bb0cbbfc54df3f589c3566faf8488"
+   ],
+   [
+    942.08,
+    "0x0b60438b6b15a57c2fe99dbb515c9842927d581f63cd797a3412fe72b2f3a61d"
+   ],
+   [
+    833.51,
+    "0xa8f80c8e8ca060436b60aa03d66fe40a5e0437b18a43cf0a0d6798f09c7f054b"
+   ],
+   [
+    609.59,
+    "0xcba7b2db2b1464ff12bd82cb3a6537c9d54e173949b94b8b43b470c11e267765"
+   ],
+   [
+    412.81,
+    "0xaca616c49b67a19911755080e0e06fecfd0b716b1eaa8350a93232ee9669ffa7"
+   ]
+  ],
+  "B_top1_share": 0.3542,
+  "B_top5_share": 0.6764
+ },
+ "mode_a_rule": {
+  "1": {
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 0.2859,
+    "best_usd": 149.33,
+    "dates": 25,
+    "total": 522.35,
+    "without_best": 373.02
+   },
+   "cost": 4331.69,
+   "fills": 241,
+   "lock_median_h": 48.74,
+   "markets": 54,
+   "peak_capital": 814.96,
+   "pnl": 522.35,
+   "pnl_per_day": 5.68,
+   "trap_pnl": -100.73
+  },
+  "300": {
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 0.3901,
+    "best_usd": 61.52,
+    "dates": 24,
+    "total": 157.7,
+    "without_best": 96.19
+   },
+   "cost": 3449.24,
+   "fills": 210,
+   "lock_median_h": 46.9,
+   "markets": 49,
+   "peak_capital": 547.01,
+   "pnl": 157.7,
+   "pnl_per_day": 1.71,
+   "trap_pnl": -55.24
+  },
+  "60": {
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 0.3929,
+    "best_usd": 88.39,
+    "dates": 25,
+    "total": 224.97,
+    "without_best": 136.58
+   },
+   "cost": 3902.62,
+   "fills": 228,
+   "lock_median_h": 46.9,
+   "markets": 52,
+   "peak_capital": 638.67,
+   "pnl": 224.97,
+   "pnl_per_day": 2.45,
+   "trap_pnl": -57.72
+  }
+ },
+ "mode_b_by_price_from_60s": {
+  "0.95-0.99": {
+   "net": 622.54,
+   "prints": 415,
+   "shares": 45483.28
+  },
+  "0.99-0.998": {
+   "net": 166.63,
+   "prints": 820,
+   "shares": 98227.5
+  },
+  "<0.95": {
+   "net": 6393.28,
+   "prints": 402,
+   "shares": 28724.41
+  },
+  ">=0.998": {
+   "net": 122.35,
+   "prints": 814,
+   "shares": 109177.17
+  }
+ },
+ "mode_b_rule_level": {
+  "1s_b0.95": {
+   "at_level_shares": 1271.72,
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 1.211,
+    "best_usd": 21.05,
+    "dates": 19,
+    "total": 17.38,
+    "without_best": -3.67
+   },
+   "cost": 2330.29,
+   "fills": 87,
+   "lock_median_h": 46.9,
+   "markets": 26,
+   "peak_capital": 575.78,
+   "pnl": 17.38,
+   "pnl_per_day": 0.19,
+   "trap_pnl": -100.0
+  },
+  "1s_b0.99": {
+   "at_level_shares": 6095.34,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 6.06,
+    "dates": 30,
+    "total": -48.64,
+    "without_best": -54.7
+   },
+   "cost": 5184.34,
+   "fills": 181,
+   "lock_median_h": 46.9,
+   "markets": 59,
+   "peak_capital": 1096.52,
+   "pnl": -48.64,
+   "pnl_per_day": -0.53,
+   "trap_pnl": -100.0
+  },
+  "1s_b0.995": {
+   "at_level_shares": 3651.18,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 3.02,
+    "dates": 30,
+    "total": -69.92,
+    "without_best": -72.94
+   },
+   "cost": 6085.05,
+   "fills": 192,
+   "lock_median_h": 48.74,
+   "markets": 65,
+   "peak_capital": 1161.47,
+   "pnl": -69.92,
+   "pnl_per_day": -0.76,
+   "trap_pnl": -100.0
+  },
+  "1s_b0.999": {
+   "at_level_shares": 60230.02,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 0.62,
+    "dates": 32,
+    "total": -93.21,
+    "without_best": -93.83
+   },
+   "cost": 6883.95,
+   "fills": 221,
+   "lock_median_h": 48.74,
+   "markets": 74,
+   "peak_capital": 1400.0,
+   "pnl": -93.21,
+   "pnl_per_day": -1.01,
+   "trap_pnl": -100.0
+  },
+  "300s_b0.95": {
+   "at_level_shares": 936.42,
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": null,
+    "best_usd": 21.05,
+    "dates": 17,
+    "total": -1.01,
+    "without_best": -22.07
+   },
+   "cost": 1980.73,
+   "fills": 69,
+   "lock_median_h": 46.9,
+   "markets": 24,
+   "peak_capital": 505.85,
+   "pnl": -1.01,
+   "pnl_per_day": -0.01,
+   "trap_pnl": -100.0
+  },
+  "300s_b0.99": {
+   "at_level_shares": 5389.91,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 6.06,
+    "dates": 29,
+    "total": -52.26,
+    "without_best": -58.32
+   },
+   "cost": 4826.45,
+   "fills": 134,
+   "lock_median_h": 45.8,
+   "markets": 55,
+   "peak_capital": 980.89,
+   "pnl": -52.26,
+   "pnl_per_day": -0.57,
+   "trap_pnl": -100.0
+  },
+  "300s_b0.995": {
+   "at_level_shares": 3651.18,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 3.02,
+    "dates": 29,
+    "total": -71.06,
+    "without_best": -74.08
+   },
+   "cost": 5858.51,
+   "fills": 143,
+   "lock_median_h": 48.74,
+   "markets": 62,
+   "peak_capital": 1134.92,
+   "pnl": -71.06,
+   "pnl_per_day": -0.77,
+   "trap_pnl": -100.0
+  },
+  "300s_b0.999": {
+   "at_level_shares": 59199.02,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 0.62,
+    "dates": 32,
+    "total": -93.39,
+    "without_best": -94.01
+   },
+   "cost": 6706.9,
+   "fills": 175,
+   "lock_median_h": 48.74,
+   "markets": 73,
+   "peak_capital": 1400.0,
+   "pnl": -93.39,
+   "pnl_per_day": -1.02,
+   "trap_pnl": -100.0
+  },
+  "60s_b0.95": {
+   "at_level_shares": 1045.6,
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 3.5515,
+    "best_usd": 21.05,
+    "dates": 18,
+    "total": 5.93,
+    "without_best": -15.12
+   },
+   "cost": 2112.63,
+   "fills": 73,
+   "lock_median_h": 46.9,
+   "markets": 25,
+   "peak_capital": 575.78,
+   "pnl": 5.93,
+   "pnl_per_day": 0.06,
+   "trap_pnl": -100.0
+  },
+  "60s_b0.99": {
+   "at_level_shares": 6095.34,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 6.06,
+    "dates": 30,
+    "total": -50.11,
+    "without_best": -56.18
+   },
+   "cost": 5038.65,
+   "fills": 160,
+   "lock_median_h": 46.9,
+   "markets": 59,
+   "peak_capital": 1045.91,
+   "pnl": -50.11,
+   "pnl_per_day": -0.54,
+   "trap_pnl": -100.0
+  },
+  "60s_b0.995": {
+   "at_level_shares": 3651.18,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 3.02,
+    "dates": 30,
+    "total": -70.4,
+    "without_best": -73.42
+   },
+   "cost": 5990.0,
+   "fills": 172,
+   "lock_median_h": 48.74,
+   "markets": 65,
+   "peak_capital": 1161.47,
+   "pnl": -70.4,
+   "pnl_per_day": -0.77,
+   "trap_pnl": -100.0
+  },
+  "60s_b0.999": {
+   "at_level_shares": 60230.02,
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": null,
+    "best_usd": 0.62,
+    "dates": 32,
+    "total": -93.3,
+    "without_best": -93.93
+   },
+   "cost": 6788.92,
+   "fills": 199,
+   "lock_median_h": 48.74,
+   "markets": 74,
+   "peak_capital": 1400.0,
+   "pnl": -93.3,
+   "pnl_per_day": -1.01,
+   "trap_pnl": -100.0
+  }
+ },
+ "mode_b_rule_tick_ahead": {
+  "1": {
+   "concentration": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4577,
+    "best_usd": 164.02,
+    "dates": 32,
+    "total": 358.34,
+    "without_best": 194.32
+   },
+   "cost": 6883.69,
+   "fills": 229,
+   "lock_median_h": 48.74,
+   "markets": 74,
+   "peak_capital": 1400.0,
+   "pnl": 358.34,
+   "pnl_per_day": 3.9,
+   "trap_pnl": -100.0
+  },
+  "300": {
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": 0.4354,
+    "best_usd": 86.02,
+    "dates": 32,
+    "total": 197.55,
+    "without_best": 111.53
+   },
+   "cost": 6706.63,
+   "fills": 179,
+   "lock_median_h": 48.74,
+   "markets": 73,
+   "peak_capital": 1400.0,
+   "pnl": 197.55,
+   "pnl_per_day": 2.15,
+   "trap_pnl": -100.0
+  },
+  "60": {
+   "concentration": {
+    "best_date": "2026-03-30",
+    "best_share": 0.4118,
+    "best_usd": 82.92,
+    "dates": 32,
+    "total": 201.34,
+    "without_best": 118.42
+   },
+   "cost": 6788.57,
+   "fills": 202,
+   "lock_median_h": 48.74,
+   "markets": 74,
+   "peak_capital": 1400.0,
+   "pnl": 201.34,
+   "pnl_per_day": 2.19,
+   "trap_pnl": -100.0
+  }
+ },
+ "mode_b_takers_from_60s": {
+  "top5_share": 0.2102,
+  "top_wallet_share": 0.049,
+  "wallets": 903
+ },
+ "pool": {
+  "0": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4602,
+    "best_usd": 5972.74,
+    "dates": 32,
+    "total": 12979.23,
+    "without_best": 7006.49
+   },
+   "A_dates": 32,
+   "A_fee_ok": 56.75,
+   "A_gross_ok": 13492.18,
+   "A_net": 12979.23,
+   "A_net_per_day": 141.08,
+   "A_notional": 537504.38,
+   "A_prints": 3717,
+   "A_shares": 552312.41,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5399,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7734.5,
+    "without_best": 3558.51
+   },
+   "B_dates": 32,
+   "B_net": 7734.5,
+   "B_net_per_day": 84.07,
+   "B_ok": 8684.49,
+   "B_prints": 2496,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284181.61,
+   "B_tick_ahead": 7173.28,
+   "B_trap": -949.99
+  },
+  "1": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4602,
+    "best_usd": 5972.74,
+    "dates": 32,
+    "total": 12979.23,
+    "without_best": 7006.49
+   },
+   "A_dates": 32,
+   "A_fee_ok": 56.75,
+   "A_gross_ok": 13492.18,
+   "A_net": 12979.23,
+   "A_net_per_day": 141.08,
+   "A_notional": 537504.38,
+   "A_prints": 3717,
+   "A_shares": 552312.41,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5399,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7734.5,
+    "without_best": 3558.51
+   },
+   "B_dates": 32,
+   "B_net": 7734.5,
+   "B_net_per_day": 84.07,
+   "B_ok": 8684.49,
+   "B_prints": 2496,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284181.61,
+   "B_tick_ahead": 7173.28,
+   "B_trap": -949.99
+  },
+  "10": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4608,
+    "best_usd": 5923.38,
+    "dates": 32,
+    "total": 12855.75,
+    "without_best": 6932.37
+   },
+   "A_dates": 32,
+   "A_fee_ok": 55.29,
+   "A_gross_ok": 13367.24,
+   "A_net": 12855.75,
+   "A_net_per_day": 139.74,
+   "A_notional": 536939.88,
+   "A_prints": 3705,
+   "A_shares": 551622.97,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.54,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7732.74,
+    "without_best": 3556.75
+   },
+   "B_dates": 32,
+   "B_net": 7732.74,
+   "B_net_per_day": 84.05,
+   "B_ok": 8682.72,
+   "B_prints": 2495,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284163.96,
+   "B_tick_ahead": 7171.69,
+   "B_trap": -949.99
+  },
+  "1800": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.7808,
+    "best_usd": 3706.35,
+    "dates": 31,
+    "total": 4746.62,
+    "without_best": 1040.27
+   },
+   "A_dates": 31,
+   "A_fee_ok": 21.46,
+   "A_gross_ok": 5128.32,
+   "A_net": 4746.62,
+   "A_net_per_day": 51.59,
+   "A_notional": 406724.61,
+   "A_prints": 2898,
+   "A_shares": 413162.3,
+   "A_trap": -360.24,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5858,
+    "best_usd": 2694.15,
+    "dates": 32,
+    "total": 4599.3,
+    "without_best": 1905.15
+   },
+   "B_dates": 32,
+   "B_net": 4599.3,
+   "B_net_per_day": 49.99,
+   "B_ok": 5543.49,
+   "B_prints": 2091,
+   "B_rebate_ub": 13.37,
+   "B_shares": 257709.61,
+   "B_tick_ahead": 4197.64,
+   "B_trap": -944.19
+  },
+  "2": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4606,
+    "best_usd": 5972.74,
+    "dates": 32,
+    "total": 12966.96,
+    "without_best": 6994.22
+   },
+   "A_dates": 32,
+   "A_fee_ok": 56.75,
+   "A_gross_ok": 13479.91,
+   "A_net": 12966.96,
+   "A_net_per_day": 140.95,
+   "A_notional": 537365.65,
+   "A_prints": 3716,
+   "A_shares": 552161.41,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5399,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7734.5,
+    "without_best": 3558.51
+   },
+   "B_dates": 32,
+   "B_net": 7734.5,
+   "B_net_per_day": 84.07,
+   "B_ok": 8684.49,
+   "B_prints": 2496,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284181.61,
+   "B_tick_ahead": 7173.28,
+   "B_trap": -949.99
+  },
+  "3": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4606,
+    "best_usd": 5972.74,
+    "dates": 32,
+    "total": 12966.96,
+    "without_best": 6994.22
+   },
+   "A_dates": 32,
+   "A_fee_ok": 56.75,
+   "A_gross_ok": 13479.91,
+   "A_net": 12966.96,
+   "A_net_per_day": 140.95,
+   "A_notional": 537365.65,
+   "A_prints": 3716,
+   "A_shares": 552161.41,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5399,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7734.5,
+    "without_best": 3558.51
+   },
+   "B_dates": 32,
+   "B_net": 7734.5,
+   "B_net_per_day": 84.07,
+   "B_ok": 8684.49,
+   "B_prints": 2496,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284181.61,
+   "B_tick_ahead": 7173.28,
+   "B_trap": -949.99
+  },
+  "300": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5289,
+    "best_usd": 4339.99,
+    "dates": 32,
+    "total": 8205.63,
+    "without_best": 3865.65
+   },
+   "A_dates": 32,
+   "A_fee_ok": 33.71,
+   "A_gross_ok": 8604.59,
+   "A_net": 8205.63,
+   "A_net_per_day": 89.19,
+   "A_notional": 482781.47,
+   "A_prints": 3338,
+   "A_shares": 492695.43,
+   "A_trap": -365.24,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5885,
+    "best_usd": 4011.51,
+    "dates": 32,
+    "total": 6816.68,
+    "without_best": 2805.16
+   },
+   "B_dates": 32,
+   "B_net": 6816.68,
+   "B_net_per_day": 74.09,
+   "B_ok": 7766.67,
+   "B_prints": 2367,
+   "B_rebate_ub": 15.43,
+   "B_shares": 276192.26,
+   "B_tick_ahead": 6310.71,
+   "B_trap": -949.99
+  },
+  "5": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.4606,
+    "best_usd": 5972.74,
+    "dates": 32,
+    "total": 12966.96,
+    "without_best": 6994.22
+   },
+   "A_dates": 32,
+   "A_fee_ok": 56.75,
+   "A_gross_ok": 13479.91,
+   "A_net": 12966.96,
+   "A_net_per_day": 140.95,
+   "A_notional": 537365.65,
+   "A_prints": 3716,
+   "A_shares": 552161.41,
+   "A_trap": -456.2,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5399,
+    "best_usd": 4175.99,
+    "dates": 32,
+    "total": 7734.5,
+    "without_best": 3558.51
+   },
+   "B_dates": 32,
+   "B_net": 7734.5,
+   "B_net_per_day": 84.07,
+   "B_ok": 8684.49,
+   "B_prints": 2496,
+   "B_rebate_ub": 16.44,
+   "B_shares": 284181.61,
+   "B_tick_ahead": 7173.28,
+   "B_trap": -949.99
+  },
+  "60": {
+   "A_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5153,
+    "best_usd": 5268.36,
+    "dates": 32,
+    "total": 10223.33,
+    "without_best": 4954.97
+   },
+   "A_dates": 32,
+   "A_fee_ok": 42.63,
+   "A_gross_ok": 10636.16,
+   "A_net": 10223.33,
+   "A_net_per_day": 111.12,
+   "A_notional": 518410.51,
+   "A_prints": 3560,
+   "A_shares": 530356.09,
+   "A_trap": -370.19,
+   "B_by_date": {
+    "best_date": "2026-03-20",
+    "best_share": 0.5569,
+    "best_usd": 4068.17,
+    "dates": 32,
+    "total": 7304.8,
+    "without_best": 3236.63
+   },
+   "B_dates": 32,
+   "B_net": 7304.8,
+   "B_net_per_day": 79.4,
+   "B_ok": 8254.79,
+   "B_prints": 2451,
+   "B_rebate_ub": 15.61,
+   "B_shares": 281612.35,
+   "B_tick_ahead": 6769.06,
+   "B_trap": -949.99
+  }
+ },
+ "pool_by_event_from_C": {
+  "A": {
+   "events_positive": 19,
+   "top": [
+    [
+     "232616",
+     4431.86,
+     0.3415
+    ],
+    [
+     "311332",
+     2401.24,
+     0.185
+    ],
+    [
+     "289952",
+     2146.21,
+     0.1654
+    ],
+    [
+     "263705",
+     2089.24,
+     0.161
+    ],
+    [
+     "314273",
+     453.41,
+     0.0349
+    ]
+   ],
+   "total": 12979.23
+  },
+  "B": {
+   "events_positive": 20,
+   "top": [
+    [
+     "232616",
+     3950.2,
+     0.5107
+    ],
+    [
+     "289952",
+     1038.6,
+     0.1343
+    ],
+    [
+     "489083",
+     942.08,
+     0.1218
+    ],
+    [
+     "311332",
+     515.79,
+     0.0667
+    ],
+    [
+     "314273",
+     364.68,
+     0.0471
+    ]
+   ],
+   "total": 7734.5
+  }
+ },
+ "pool_by_kind": {
+  "0": {
+   "dead": {
+    "A_net": 5867.14,
+    "A_prints": 2270,
+    "B_net": 2900.9,
+    "B_prints": 1563
+   },
+   "dead_trap": {
+    "A_net": -456.2,
+    "A_prints": 35,
+    "B_net": -949.99,
+    "B_prints": 55
+   },
+   "end": {
+    "A_net": 355.82,
+    "A_prints": 656,
+    "B_net": 1078.98,
+    "B_prints": 404
+   },
+   "locked": {
+    "A_net": 7212.47,
+    "A_prints": 756,
+    "B_net": 4704.61,
+    "B_prints": 474
+   }
+  },
+  "300": {
+   "dead": {
+    "A_net": 2420.6,
+    "A_prints": 1965,
+    "B_net": 2176.29,
+    "B_prints": 1450
+   },
+   "dead_trap": {
+    "A_net": -365.24,
+    "A_prints": 32,
+    "B_net": -949.99,
+    "B_prints": 55
+   },
+   "end": {
+    "A_net": 352.47,
+    "A_prints": 649,
+    "B_net": 1077.95,
+    "B_prints": 402
+   },
+   "locked": {
+    "A_net": 5797.8,
+    "A_prints": 692,
+    "B_net": 4512.42,
+    "B_prints": 460
+   }
+  },
+  "60": {
+   "dead": {
+    "A_net": 3612.16,
+    "A_prints": 2132,
+    "B_net": 2571.52,
+    "B_prints": 1521
+   },
+   "dead_trap": {
+    "A_net": -370.19,
+    "A_prints": 33,
+    "B_net": -949.99,
+    "B_prints": 55
+   },
+   "end": {
+    "A_net": 355.35,
+    "A_prints": 653,
+    "B_net": 1078.98,
+    "B_prints": 404
+   },
+   "locked": {
+    "A_net": 6626.01,
+    "A_prints": 742,
+    "B_net": 4604.29,
+    "B_prints": 471
+   }
+  }
+ },
+ "print_sizes_from_60s": {
+  "A": {
+   "max": 11105.82,
+   "n": 3560,
+   "p50": 22.908666,
+   "p90": 349.8
+  },
+  "B": {
+   "max": 10000.0,
+   "n": 2451,
+   "p50": 17.24,
+   "p90": 255.89
+  }
+ },
+ "profile_net_by_seconds_after_C": {
+  "A": {
+   "0-2": 12.27,
+   "10-60": 2632.42,
+   "1800-close": 4746.62,
+   "300-1800": 3459.02,
+   "5-10": 111.21,
+   "60-300": 2017.7
+  },
+  "B": {
+   "10-60": 427.94,
+   "1800-close": 4599.3,
+   "300-1800": 2217.37,
+   "5-10": 1.76,
+   "60-300": 488.12
+  }
+ },
+ "trap_events": 1,
+ "trap_list": [
+  {
+   "A_net_from_C": -456.2,
+   "B_net_from_C": -949.99,
+   "cond": "0xd209fe5344554583cd49d429fef48f230c429bd817f7c5ba10d89cdbef34f9cd",
+   "event": "462482",
+   "q": "Will there be exactly 6 earthquakes of magnitude 5.5 or higher worldwide from May 11 - 17?",
+   "r": 0,
+   "w": 1
+  }
+ ],
+ "trap_rate_units": 0.0074,
+ "trap_units": 1,
+ "units": 136,
+ "unverifiable_events": 0,
+ "unverifiable_units": 0
+}

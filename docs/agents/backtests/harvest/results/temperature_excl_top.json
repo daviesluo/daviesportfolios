@@ -1,0 +1,1278 @@
+{
+ "band_from_60s": {
+  "A_clean_0.95_plus": {
+   "dates": 47,
+   "edge_per_dollar": 0.00273,
+   "markets": 158,
+   "net": 749.0,
+   "net_per_day": 8.14,
+   "notional": 273982.47,
+   "trap_net": 0.0
+  },
+  "A_contested_below_0.95": {
+   "dates": 7,
+   "edge_per_dollar": 0.2054,
+   "markets": 10,
+   "net": 804.61,
+   "net_per_day": 8.75,
+   "notional": 3917.31,
+   "trap_net": -8.15
+  },
+  "B_clean_0.95_plus": {
+   "dates": 88,
+   "edge_per_dollar": 0.00126,
+   "markets": 2806,
+   "net": 2775.07,
+   "net_per_day": 30.16,
+   "notional": 2195241.44,
+   "trap_net": 0.0
+  },
+  "B_contested_below_0.95": {
+   "dates": 12,
+   "edge_per_dollar": 0.33433,
+   "markets": 16,
+   "net": 2262.44,
+   "net_per_day": 24.59,
+   "notional": 6767.02,
+   "trap_net": -50.13
+  }
+ },
+ "category": "temperature",
+ "closed_before_C_units": 5662,
+ "days": 92.0,
+ "events": 764,
+ "excluded_events": [
+  "247562"
+ ],
+ "kinds": null,
+ "lock_all_markets_median_h": 3.32,
+ "market_concentration_from_C": {
+  "A_positive_markets": 164,
+  "A_top": [
+   [
+    518.55,
+    "0xc324aa81820ac8fac12c7ff2a13de2aa2be6013a16620b400f8828bbcdf052e0"
+   ],
+   [
+    473.92,
+    "0x502dcb9dfcb46d7eb6db09e60238f824a0c1663c99ac3e260f48ebd6bf81b59d"
+   ],
+   [
+    138.89,
+    "0xe6bb1a34f9bac2d88efcd8341e29371a11328b29833d329483dca149b71f34bf"
+   ],
+   [
+    104.09,
+    "0xc894843caff2d64243a5eb3fd84cd6fd6b0c188e330af913a7766f5dffed910d"
+   ],
+   [
+    94.49,
+    "0xc9714d2a0cc55cde8fabc66cf9812d48781f6ad2a79d850c0096f2abbabb64b7"
+   ]
+  ],
+  "A_top1_share": 0.3211,
+  "A_top5_share": 0.8236,
+  "B_positive_markets": 2808,
+  "B_top": [
+   [
+    1067.78,
+    "0xfd64c883137197013ea27400cfffce8cf13fbb3e016a56c6d0a434bd82ca6aaa"
+   ],
+   [
+    1055.6,
+    "0xc6103d983fb3db4858354855252c34b639cd7555f004d82539512c406687762c"
+   ],
+   [
+    388.33,
+    "0xc9714d2a0cc55cde8fabc66cf9812d48781f6ad2a79d850c0096f2abbabb64b7"
+   ],
+   [
+    272.14,
+    "0xc324aa81820ac8fac12c7ff2a13de2aa2be6013a16620b400f8828bbcdf052e0"
+   ],
+   [
+    99.96,
+    "0xfa0109824bc507d51d2963387c85fb015392bbd54656c2e58b784a49642dd86f"
+   ]
+  ],
+  "B_top1_share": 0.2094,
+  "B_top5_share": 0.5656
+ },
+ "mode_a_rule": {
+  "1": {
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": 0.7606,
+    "best_usd": 59.51,
+    "dates": 17,
+    "total": 78.24,
+    "without_best": 18.73
+   },
+   "cost": 1701.47,
+   "fills": 158,
+   "lock_median_h": 3.55,
+   "markets": 28,
+   "peak_capital": 200.0,
+   "pnl": 78.24,
+   "pnl_per_day": 0.85,
+   "trap_pnl": -4.07
+  },
+  "300": {
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": 0.3579,
+    "best_usd": 8.3,
+    "dates": 16,
+    "total": 23.18,
+    "without_best": 14.89
+   },
+   "cost": 1358.34,
+   "fills": 144,
+   "lock_median_h": 3.55,
+   "markets": 25,
+   "peak_capital": 200.0,
+   "pnl": 23.18,
+   "pnl_per_day": 0.25,
+   "trap_pnl": -4.07
+  },
+  "60": {
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": 0.7786,
+    "best_usd": 59.33,
+    "dates": 17,
+    "total": 76.2,
+    "without_best": 16.87
+   },
+   "cost": 1549.46,
+   "fills": 149,
+   "lock_median_h": 3.55,
+   "markets": 28,
+   "peak_capital": 200.0,
+   "pnl": 76.2,
+   "pnl_per_day": 0.83,
+   "trap_pnl": -4.07
+  }
+ },
+ "mode_b_by_price_from_60s": {
+  "0.95-0.99": {
+   "net": 356.03,
+   "prints": 77,
+   "shares": 11735.22
+  },
+  "0.99-0.998": {
+   "net": 273.88,
+   "prints": 196,
+   "shares": 53479.94
+  },
+  "<0.95": {
+   "net": 2262.44,
+   "prints": 248,
+   "shares": 14982.32
+  },
+  ">=0.998": {
+   "net": 2145.15,
+   "prints": 12612,
+   "shares": 2132801.35
+  }
+ },
+ "mode_b_rule_level": {
+  "1s_b0.95": {
+   "at_level_shares": 38.0,
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": null,
+    "best_usd": 10.53,
+    "dates": 12,
+    "total": -158.53,
+    "without_best": -169.05
+   },
+   "cost": 988.02,
+   "fills": 41,
+   "lock_median_h": 3.07,
+   "markets": 16,
+   "peak_capital": 200.0,
+   "pnl": -158.53,
+   "pnl_per_day": -1.72,
+   "trap_pnl": -200.0
+  },
+  "1s_b0.99": {
+   "at_level_shares": 3592.86,
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": null,
+    "best_usd": 2.02,
+    "dates": 20,
+    "total": -181.72,
+    "without_best": -183.74
+   },
+   "cost": 2009.55,
+   "fills": 56,
+   "lock_median_h": 3.28,
+   "markets": 32,
+   "peak_capital": 200.0,
+   "pnl": -181.72,
+   "pnl_per_day": -1.98,
+   "trap_pnl": -200.0
+  },
+  "1s_b0.995": {
+   "at_level_shares": 288.85,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 3.03,
+    "dates": 34,
+    "total": -177.85,
+    "without_best": -180.89
+   },
+   "cost": 4607.64,
+   "fills": 152,
+   "lock_median_h": 3.19,
+   "markets": 71,
+   "peak_capital": 503.96,
+   "pnl": -177.85,
+   "pnl_per_day": -1.93,
+   "trap_pnl": -200.0
+  },
+  "1s_b0.999": {
+   "at_level_shares": 2097790.81,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 0.85,
+    "dates": 48,
+    "total": -192.1,
+    "without_best": -192.94
+   },
+   "cost": 8095.98,
+   "fills": 249,
+   "lock_median_h": 3.19,
+   "markets": 138,
+   "peak_capital": 658.6,
+   "pnl": -192.1,
+   "pnl_per_day": -2.09,
+   "trap_pnl": -200.0
+  },
+  "300s_b0.95": {
+   "at_level_shares": 38.0,
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": null,
+    "best_usd": 10.53,
+    "dates": 12,
+    "total": -160.12,
+    "without_best": -170.64
+   },
+   "cost": 957.77,
+   "fills": 32,
+   "lock_median_h": 3.07,
+   "markets": 16,
+   "peak_capital": 200.0,
+   "pnl": -160.12,
+   "pnl_per_day": -1.74,
+   "trap_pnl": -200.0
+  },
+  "300s_b0.99": {
+   "at_level_shares": 3341.02,
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": null,
+    "best_usd": 2.02,
+    "dates": 20,
+    "total": -182.3,
+    "without_best": -184.32
+   },
+   "cost": 1952.14,
+   "fills": 52,
+   "lock_median_h": 3.28,
+   "markets": 31,
+   "peak_capital": 200.0,
+   "pnl": -182.3,
+   "pnl_per_day": -1.98,
+   "trap_pnl": -200.0
+  },
+  "300s_b0.995": {
+   "at_level_shares": 288.49,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 3.03,
+    "dates": 33,
+    "total": -179.01,
+    "without_best": -182.05
+   },
+   "cost": 4376.88,
+   "fills": 139,
+   "lock_median_h": 3.23,
+   "markets": 69,
+   "peak_capital": 503.96,
+   "pnl": -179.01,
+   "pnl_per_day": -1.95,
+   "trap_pnl": -200.0
+  },
+  "300s_b0.999": {
+   "at_level_shares": 2027941.55,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 0.85,
+    "dates": 47,
+    "total": -192.5,
+    "without_best": -193.35
+   },
+   "cost": 7691.42,
+   "fills": 230,
+   "lock_median_h": 3.18,
+   "markets": 134,
+   "peak_capital": 658.6,
+   "pnl": -192.5,
+   "pnl_per_day": -2.09,
+   "trap_pnl": -200.0
+  },
+  "60s_b0.95": {
+   "at_level_shares": 38.0,
+   "concentration": {
+    "best_date": "2026-05-07",
+    "best_share": null,
+    "best_usd": 10.53,
+    "dates": 12,
+    "total": -158.53,
+    "without_best": -169.05
+   },
+   "cost": 988.02,
+   "fills": 40,
+   "lock_median_h": 3.07,
+   "markets": 16,
+   "peak_capital": 200.0,
+   "pnl": -158.53,
+   "pnl_per_day": -1.72,
+   "trap_pnl": -200.0
+  },
+  "60s_b0.99": {
+   "at_level_shares": 3592.86,
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": null,
+    "best_usd": 2.02,
+    "dates": 20,
+    "total": -181.72,
+    "without_best": -183.74
+   },
+   "cost": 2009.55,
+   "fills": 58,
+   "lock_median_h": 3.28,
+   "markets": 32,
+   "peak_capital": 200.0,
+   "pnl": -181.72,
+   "pnl_per_day": -1.98,
+   "trap_pnl": -200.0
+  },
+  "60s_b0.995": {
+   "at_level_shares": 288.85,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 3.03,
+    "dates": 34,
+    "total": -178.2,
+    "without_best": -181.24
+   },
+   "cost": 4537.39,
+   "fills": 150,
+   "lock_median_h": 3.19,
+   "markets": 71,
+   "peak_capital": 503.96,
+   "pnl": -178.2,
+   "pnl_per_day": -1.94,
+   "trap_pnl": -200.0
+  },
+  "60s_b0.999": {
+   "at_level_shares": 2095463.89,
+   "concentration": {
+    "best_date": "2026-03-27",
+    "best_share": null,
+    "best_usd": 0.85,
+    "dates": 48,
+    "total": -192.17,
+    "without_best": -193.01
+   },
+   "cost": 8025.85,
+   "fills": 245,
+   "lock_median_h": 3.19,
+   "markets": 138,
+   "peak_capital": 658.6,
+   "pnl": -192.17,
+   "pnl_per_day": -2.09,
+   "trap_pnl": -200.0
+  }
+ },
+ "mode_b_rule_tick_ahead": {
+  "1": {
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": 0.7491,
+    "best_usd": 94.42,
+    "dates": 48,
+    "total": 126.03,
+    "without_best": 31.62
+   },
+   "cost": 7951.78,
+   "fills": 353,
+   "lock_median_h": 3.19,
+   "markets": 138,
+   "peak_capital": 658.46,
+   "pnl": 126.03,
+   "pnl_per_day": 1.37,
+   "trap_pnl": -68.76
+  },
+  "300": {
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": 0.7751,
+    "best_usd": 94.42,
+    "dates": 47,
+    "total": 121.8,
+    "without_best": 27.39
+   },
+   "cost": 7534.53,
+   "fills": 331,
+   "lock_median_h": 3.18,
+   "markets": 134,
+   "peak_capital": 658.46,
+   "pnl": 121.8,
+   "pnl_per_day": 1.32,
+   "trap_pnl": -55.96
+  },
+  "60": {
+   "concentration": {
+    "best_date": "2026-04-30",
+    "best_share": 0.6151,
+    "best_usd": 94.42,
+    "dates": 48,
+    "total": 153.49,
+    "without_best": 59.07
+   },
+   "cost": 7868.78,
+   "fills": 349,
+   "lock_median_h": 3.19,
+   "markets": 138,
+   "peak_capital": 658.46,
+   "pnl": 153.49,
+   "pnl_per_day": 1.67,
+   "trap_pnl": -56.09
+  }
+ },
+ "mode_b_takers_from_60s": {
+  "top5_share": 0.5234,
+  "top_wallet_share": 0.251,
+  "wallets": 3762
+ },
+ "pool": {
+  "0": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6178,
+    "best_usd": 992.58,
+    "dates": 50,
+    "total": 1606.64,
+    "without_best": 614.06
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.98,
+   "A_gross_ok": 1674.77,
+   "A_net": 1606.64,
+   "A_net_per_day": 17.46,
+   "A_notional": 282523.04,
+   "A_prints": 1632,
+   "A_shares": 292048.14,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.14,
+    "without_best": 3952.25
+   },
+   "B_dates": 88,
+   "B_net": 5037.14,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.89,
+   "B_prints": 13205,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216654.04,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "1": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6178,
+    "best_usd": 992.58,
+    "dates": 50,
+    "total": 1606.62,
+    "without_best": 614.04
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.98,
+   "A_gross_ok": 1674.75,
+   "A_net": 1606.62,
+   "A_net_per_day": 17.46,
+   "A_notional": 282500.14,
+   "A_prints": 1631,
+   "A_shares": 292025.22,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.14,
+    "without_best": 3952.25
+   },
+   "B_dates": 88,
+   "B_net": 5037.14,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.89,
+   "B_prints": 13205,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216654.04,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "10": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6181,
+    "best_usd": 992.48,
+    "dates": 50,
+    "total": 1605.65,
+    "without_best": 613.17
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.97,
+   "A_gross_ok": 1673.77,
+   "A_net": 1605.65,
+   "A_net_per_day": 17.45,
+   "A_notional": 282019.95,
+   "A_prints": 1626,
+   "A_shares": 291544.04,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5036.97,
+    "without_best": 3952.07
+   },
+   "B_dates": 88,
+   "B_net": 5036.97,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.72,
+   "B_prints": 13199,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216478.07,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "1800": {
+   "A_by_date": {
+    "best_date": "2026-03-08",
+    "best_share": 0.2695,
+    "best_usd": 147.12,
+    "dates": 41,
+    "total": 545.92,
+    "without_best": 398.8
+   },
+   "A_dates": 41,
+   "A_fee_ok": 16.28,
+   "A_gross_ok": 570.29,
+   "A_net": 545.92,
+   "A_net_per_day": 5.93,
+   "A_notional": 225770.97,
+   "A_prints": 1097,
+   "A_shares": 234167.63,
+   "A_trap": -8.09,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.3392,
+    "best_usd": 1081.63,
+    "dates": 88,
+    "total": 3188.83,
+    "without_best": 2107.2
+   },
+   "B_dates": 88,
+   "B_net": 3188.83,
+   "B_net_per_day": 34.66,
+   "B_ok": 3227.84,
+   "B_prints": 11049,
+   "B_rebate_ub": 20.46,
+   "B_shares": 1993329.54,
+   "B_tick_ahead": 1171.99,
+   "B_trap": -39.01
+  },
+  "2": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6178,
+    "best_usd": 992.58,
+    "dates": 50,
+    "total": 1606.62,
+    "without_best": 614.04
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.98,
+   "A_gross_ok": 1674.75,
+   "A_net": 1606.62,
+   "A_net_per_day": 17.46,
+   "A_notional": 282500.14,
+   "A_prints": 1631,
+   "A_shares": 292025.22,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.14,
+    "without_best": 3952.25
+   },
+   "B_dates": 88,
+   "B_net": 5037.14,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.89,
+   "B_prints": 13205,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216654.04,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "3": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6178,
+    "best_usd": 992.58,
+    "dates": 50,
+    "total": 1606.6,
+    "without_best": 614.02
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.98,
+   "A_gross_ok": 1674.73,
+   "A_net": 1606.6,
+   "A_net_per_day": 17.46,
+   "A_notional": 282477.21,
+   "A_prints": 1630,
+   "A_shares": 292002.26,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.14,
+    "without_best": 3952.25
+   },
+   "B_dates": 88,
+   "B_net": 5037.14,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.89,
+   "B_prints": 13205,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216654.04,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "300": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.2584,
+    "best_usd": 205.87,
+    "dates": 49,
+    "total": 796.72,
+    "without_best": 590.85
+   },
+   "A_dates": 49,
+   "A_fee_ok": 27.57,
+   "A_gross_ok": 832.43,
+   "A_net": 796.72,
+   "A_net_per_day": 8.66,
+   "A_notional": 267236.41,
+   "A_prints": 1532,
+   "A_shares": 275919.18,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2233,
+    "best_usd": 1084.87,
+    "dates": 88,
+    "total": 4858.13,
+    "without_best": 3773.26
+   },
+   "B_dates": 88,
+   "B_net": 4858.13,
+   "B_net_per_day": 52.81,
+   "B_ok": 4908.15,
+   "B_prints": 12823,
+   "B_rebate_ub": 30.64,
+   "B_shares": 2143809.46,
+   "B_tick_ahead": 2629.97,
+   "B_trap": -50.01
+  },
+  "5": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6178,
+    "best_usd": 992.58,
+    "dates": 50,
+    "total": 1606.58,
+    "without_best": 613.99
+   },
+   "A_dates": 50,
+   "A_fee_ok": 59.98,
+   "A_gross_ok": 1674.71,
+   "A_net": 1606.58,
+   "A_net_per_day": 17.46,
+   "A_notional": 282454.25,
+   "A_prints": 1629,
+   "A_shares": 291979.28,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.03,
+    "without_best": 3952.13
+   },
+   "B_dates": 88,
+   "B_net": 5037.03,
+   "B_net_per_day": 54.75,
+   "B_ok": 5098.77,
+   "B_prints": 13202,
+   "B_rebate_ub": 32.12,
+   "B_shares": 2216537.13,
+   "B_tick_ahead": 2731.49,
+   "B_trap": -61.75
+  },
+  "60": {
+   "A_by_date": {
+    "best_date": "2026-05-07",
+    "best_share": 0.6114,
+    "best_usd": 949.81,
+    "dates": 50,
+    "total": 1553.61,
+    "without_best": 603.81
+   },
+   "A_dates": 50,
+   "A_fee_ok": 58.05,
+   "A_gross_ok": 1619.81,
+   "A_net": 1553.61,
+   "A_net_per_day": 16.89,
+   "A_notional": 277899.77,
+   "A_prints": 1589,
+   "A_shares": 287369.91,
+   "A_trap": -8.15,
+   "B_by_date": {
+    "best_date": "2026-04-17",
+    "best_share": 0.2154,
+    "best_usd": 1084.89,
+    "dates": 88,
+    "total": 5037.51,
+    "without_best": 3952.61
+   },
+   "B_dates": 88,
+   "B_net": 5037.51,
+   "B_net_per_day": 54.76,
+   "B_ok": 5087.64,
+   "B_prints": 13133,
+   "B_rebate_ub": 31.89,
+   "B_shares": 2212998.83,
+   "B_tick_ahead": 2735.6,
+   "B_trap": -50.13
+  }
+ },
+ "pool_by_event_from_C": {
+  "A": {
+   "events_positive": 95,
+   "top": [
+    [
+     "446694",
+     992.58,
+     0.6178
+    ],
+    [
+     "247561",
+     147.12,
+     0.0916
+    ],
+    [
+     "376651",
+     139.51,
+     0.0868
+    ],
+    [
+     "429680",
+     94.85,
+     0.059
+    ],
+    [
+     "251746",
+     65.42,
+     0.0407
+    ]
+   ],
+   "total": 1606.64
+  },
+  "B": {
+   "events_positive": 700,
+   "top": [
+    [
+     "379791",
+     1069.94,
+     0.2124
+    ],
+    [
+     "422431",
+     1062.03,
+     0.2108
+    ],
+    [
+     "429680",
+     404.69,
+     0.0803
+    ],
+    [
+     "446694",
+     339.39,
+     0.0674
+    ],
+    [
+     "306331",
+     125.38,
+     0.0249
+    ]
+   ],
+   "total": 5037.14
+  }
+ },
+ "pool_by_kind": {
+  "0": {
+   "alive": {
+    "A_net": 1094.56,
+    "A_prints": 1520,
+    "B_net": 4776.86,
+    "B_prints": 12630
+   },
+   "alive_trap": {
+    "A_net": -5.43,
+    "A_prints": 18,
+    "B_net": -2.63,
+    "B_prints": 5
+   },
+   "dead": {
+    "A_net": 519.44,
+    "A_prints": 73,
+    "B_net": 314.92,
+    "B_prints": 397
+   },
+   "dead_trap": {
+    "A_net": -2.72,
+    "A_prints": 18,
+    "B_net": -59.12,
+    "B_prints": 101
+   },
+   "locked": {
+    "A_net": 0.8,
+    "A_prints": 3,
+    "B_net": 7.11,
+    "B_prints": 72
+   }
+  },
+  "300": {
+   "alive": {
+    "A_net": 647.54,
+    "A_prints": 1431,
+    "B_net": 4678.33,
+    "B_prints": 12280
+   },
+   "alive_trap": {
+    "A_net": -5.43,
+    "A_prints": 18,
+    "B_net": -2.02,
+    "B_prints": 4
+   },
+   "dead": {
+    "A_net": 156.53,
+    "A_prints": 62,
+    "B_net": 223.73,
+    "B_prints": 372
+   },
+   "dead_trap": {
+    "A_net": -2.72,
+    "A_prints": 18,
+    "B_net": -48.0,
+    "B_prints": 99
+   },
+   "locked": {
+    "A_net": 0.8,
+    "A_prints": 3,
+    "B_net": 6.09,
+    "B_prints": 68
+   }
+  },
+  "60": {
+   "alive": {
+    "A_net": 1041.54,
+    "A_prints": 1479,
+    "B_net": 4766.06,
+    "B_prints": 12564
+   },
+   "alive_trap": {
+    "A_net": -5.43,
+    "A_prints": 18,
+    "B_net": -2.02,
+    "B_prints": 4
+   },
+   "dead": {
+    "A_net": 519.43,
+    "A_prints": 71,
+    "B_net": 314.47,
+    "B_prints": 393
+   },
+   "dead_trap": {
+    "A_net": -2.72,
+    "A_prints": 18,
+    "B_net": -48.12,
+    "B_prints": 100
+   },
+   "locked": {
+    "A_net": 0.8,
+    "A_prints": 3,
+    "B_net": 7.11,
+    "B_prints": 72
+   }
+  }
+ },
+ "print_sizes_from_60s": {
+  "A": {
+   "max": 19745.08,
+   "n": 1589,
+   "p50": 10.0,
+   "p90": 210.42084
+  },
+  "B": {
+   "max": 198144.96268,
+   "n": 13133,
+   "p50": 11.11,
+   "p90": 217.91
+  }
+ },
+ "profile_net_by_seconds_after_C": {
+  "A": {
+   "0-2": 0.02,
+   "10-60": 52.03,
+   "1800-close": 545.92,
+   "2-5": 0.04,
+   "300-1800": 250.79,
+   "5-10": 0.93,
+   "60-300": 756.9
+  },
+  "B": {
+   "10-60": -0.54,
+   "1800-close": 3188.83,
+   "2-5": 0.12,
+   "300-1800": 1669.31,
+   "5-10": 0.06,
+   "60-300": 179.37
+  }
+ },
+ "trap_events": 17,
+ "trap_list": [
+  {
+   "A_net_from_C": -0.03,
+   "B_net_from_C": 0.0,
+   "cond": "0x3d8364e849e9e682f098db808507c30f96fb8112cd9accb76255714781e7a9bc",
+   "event": "289216",
+   "q": "Will the highest temperature in Denver be between 78-79\u00b0F on March 24?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": -0.39,
+   "B_net_from_C": 0.0,
+   "cond": "0xb2b120140876fb4c260d6041dab09fa43961f3fdbf98717e7d1f1429c350e624",
+   "event": "289216",
+   "q": "Will the highest temperature in Denver be between 80-81\u00b0F on March 24?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": -0.14,
+   "B_net_from_C": 0.0,
+   "cond": "0xd353459b1d930008335a8ed63188b8d68eafa737e1a23546fe203d41bbe819ec",
+   "event": "296016",
+   "q": "Will the highest temperature in Denver be between 76-77\u00b0F on March 26?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": -4.73,
+   "B_net_from_C": 0.0,
+   "cond": "0x143f998a63aa0cc784e5cf89e8d7e6634b3a5a2a7c8136b0839397f5e9018cf1",
+   "event": "302823",
+   "q": "Will the highest temperature in Denver be 80\u00b0F or higher on March 28?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x8083d9d29ca07b02a640a7c4389e2506afd064f1f9c3b6879dc277fc9e3cd5b5",
+   "event": "486830",
+   "q": "Will the highest temperature in Miami be between 90-91\u00b0F on May 17?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x04ad2306fa4bb8b621e0c293cedce9d96c39843a49dc4f54e2ada19f1e254379",
+   "event": "486851",
+   "q": "Will the highest temperature in Denver be between 72-73\u00b0F on May 17?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x6e59ddbdd97aed2fb56d874ada64a0f8f8488dbe2875990fbff59f9e22862421",
+   "event": "486851",
+   "q": "Will the highest temperature in Denver be 71\u00b0F or below on May 17?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x59b0069e3f5b9c24abc77f0d362986e41e0b70dabb142e54c09a09d48578e574",
+   "event": "490236",
+   "q": "Will the highest temperature in Atlanta be between 88-89\u00b0F on May 18?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x8f58431e69c3c878e1000046bae4abab01f3625bbd74903c4adbcd36a34c24d4",
+   "event": "483560",
+   "q": "Will the lowest temperature in New York City be between 66-67\u00b0F on May 18?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xb7a2866887d3cc65a496f0fdea3ba1d6c0529bcc5b0f50e3c11b2177a31b4608",
+   "event": "490236",
+   "q": "Will the highest temperature in Atlanta be between 86-87\u00b0F on May 18?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xd30bfe9a0c0fbfea981264700e37e047161455f710ba640d0c0562a59a10ec5d",
+   "event": "483560",
+   "q": "Will the lowest temperature in New York City be between 68-69\u00b0F on May 18?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x317ddb7c9290e024b6dff673ab920ee49548741bea890f40763163a11e6b6e59",
+   "event": "486933",
+   "q": "Will the lowest temperature in Miami be between 74-75\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x3e523d8887de802953abc2c8050c13173519083da9af8ce210dbb963d08b2b79",
+   "event": "493658",
+   "q": "Will the highest temperature in New York City be between 90-91\u00b0F on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x7a2ea09b670b5990f876bfaa2e070eb49bcd647a73e9cc19b414881d402f51b1",
+   "event": "493660",
+   "q": "Will the highest temperature in Atlanta be between 88-89\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xa3b386cf5b4028bcdebf920ced28559921a5c0a2bb7a829eb964a46528e34d94",
+   "event": "493661",
+   "q": "Will the highest temperature in Miami be 77\u00b0F or below on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xb8748f93af6c20f23d091f4897065b883aa7a9f7b107289db768efdfa61da163",
+   "event": "493661",
+   "q": "Will the highest temperature in Miami be between 86-87\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xc67f822160d9ef05a0c5eaa1b7723775140edebcff6b2b08e10e4e0a35722b88",
+   "event": "486933",
+   "q": "Will the lowest temperature in Miami be between 80-81\u00b0F on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xd9a4247a44a3f9d773c90eded615ac32070612d8a5dd0e0a01c51ee0f1f79b2f",
+   "event": "493660",
+   "q": "Will the highest temperature in Atlanta be between 96-97\u00b0F on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xf14c28f01dcd71835218e20976f4ce861f7ad9965063ee8157189844e27058c0",
+   "event": "493658",
+   "q": "Will the highest temperature in New York City be between 94-95\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x028a2ec601c08a78112fb034e7b0643a0c687ba74f31249e76002619b01e338b",
+   "event": "493659",
+   "q": "Will the highest temperature in Dallas be between 84-85\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x89ad25ba1d5d4adfdf84a3660ce5abe25320cc5eeb062e38c78bc7015ec99d42",
+   "event": "493662",
+   "q": "Will the highest temperature in Chicago be between 78-79\u00b0F on May 19?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xaecd18f99ec0bb58f663d1c7c8cc2a8dabad86901f76039ceb8ae9cef0cdbbac",
+   "event": "493662",
+   "q": "Will the highest temperature in Chicago be between 72-73\u00b0F on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xd74f33f968a6b7049080f82aef7cf42fde100e9ce84571532799eb2da57384f7",
+   "event": "493659",
+   "q": "Will the highest temperature in Dallas be 73\u00b0F or below on May 19?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x15a523fcba96c0a2159e320f4baa0228bea910638be72504650955bdffd2792f",
+   "event": "490339",
+   "q": "Will the lowest temperature in Miami be 73\u00b0F or below on May 20?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0x97bfa5cc815eac37554ec24f635ab4e2ce3009b527bad49c7c2e6534aaaab216",
+   "event": "490339",
+   "q": "Will the lowest temperature in Miami be between 86-87\u00b0F on May 20?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xb9a5a8c56ff396fd72b15bc38aafbba0349c28060898af1b3d807c39622c5eee",
+   "event": "493762",
+   "q": "Will the lowest temperature in New York City be between 56-57\u00b0F on May 21?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xd3463287c9d91b524a9aa0426d343f00565f80b7ea1e03cddcbad9cbf33b652c",
+   "event": "493763",
+   "q": "Will the lowest temperature in Miami be between 78-79\u00b0F on May 21?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xf4e0aa8676bc422ddd49b1040fe76d6a80ec9f51d9badb6d83714b41190248b4",
+   "event": "493762",
+   "q": "Will the lowest temperature in New York City be 49\u00b0F or below on May 21?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": 0.0,
+   "B_net_from_C": 0.0,
+   "cond": "0xff75dc573000388ceded1e9c98628a37f0bceb9679980407cc1c43a4cfc8f7e7",
+   "event": "493763",
+   "q": "Will the lowest temperature in Miami be 73\u00b0F or below on May 21?",
+   "r": 0,
+   "w": 1
+  },
+  {
+   "A_net_from_C": -0.16,
+   "B_net_from_C": -2.63,
+   "cond": "0x680c283d2913b2608b4cbba503471c6a6b98a191c301720b23f0955987ba3e95",
+   "event": "515782",
+   "q": "Will the lowest temperature in Miami be between 78-79\u00b0F on May 27?",
+   "r": 1,
+   "w": 0
+  },
+  {
+   "A_net_from_C": -2.69,
+   "B_net_from_C": -59.12,
+   "cond": "0x77c7c0862fbae1760f86480ee676382e8cc7d0c33636928ea63773999c6a6771",
+   "event": "515782",
+   "q": "Will the lowest temperature in Miami be between 80-81\u00b0F on May 27?",
+   "r": 0,
+   "w": 1
+  }
+ ],
+ "trap_rate_units": 0.0066,
+ "trap_units": 31,
+ "units": 4698,
+ "unverifiable_events": 0,
+ "unverifiable_units": 0
+}

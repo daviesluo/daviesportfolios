@@ -1,0 +1,666 @@
+{
+ "note": "exploration only; held-out projections scale by the category's held-out/exploration event ratio",
+ "rules": {
+  "counts": {
+   "CLEAN-A": {
+    "bootstrap_p5": 32.87,
+    "concentration": {
+     "best_date": "2026-04-07",
+     "best_share": 0.0951,
+     "best_usd": 4.26,
+     "dates": 43,
+     "total": 44.81,
+     "without_best": 40.54
+    },
+    "date_mean": 1.04,
+    "date_sd": 1.23,
+    "dates": 43,
+    "fills": 270,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 49.91,
+     "expected_dates": 63.5,
+     "expected_null_p95": 99.15,
+     "expected_total": 66.17,
+     "min_detectable_per_date": 0.25,
+     "scale": 1.477
+    },
+    "null_mean": -1.26,
+    "null_p95": 81.87,
+    "null_sd": 50.53,
+    "peak_capital": 400.0,
+    "total": 44.81,
+    "trap_pnl": 0.0,
+    "z_vs_null": 0.91
+   },
+   "CONTEST-A": {
+    "bootstrap_p5": 67.4,
+    "concentration": {
+     "best_date": "2026-05-12",
+     "best_share": 0.6393,
+     "best_usd": 171.3,
+     "dates": 7,
+     "total": 267.95,
+     "without_best": 96.64
+    },
+    "date_mean": 38.28,
+    "date_sd": 61.01,
+    "dates": 7,
+    "fills": 34,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": 73.01,
+     "expected_dates": 10.3,
+     "expected_null_p95": 148.36,
+     "expected_total": 395.66,
+     "min_detectable_per_date": 31.22,
+     "scale": 1.477
+    },
+    "null_mean": -3.97,
+    "null_p95": 122.95,
+    "null_sd": 77.15,
+    "peak_capital": 110.66,
+    "total": 267.95,
+    "trap_pnl": 0.0,
+    "z_vs_null": 3.52
+   },
+   "PATIENT-B": {
+    "bootstrap_p5": 12.84,
+    "concentration": {
+     "best_date": "2026-03-10",
+     "best_share": 0.193,
+     "best_usd": 4.04,
+     "dates": 20,
+     "total": 20.94,
+     "without_best": 16.9
+    },
+    "date_mean": 1.05,
+    "date_sd": 1.21,
+    "dates": 20,
+    "fills": 63,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 20.19,
+     "expected_dates": 29.5,
+     "expected_null_p95": 77.12,
+     "expected_total": 30.92,
+     "min_detectable_per_date": 0.37,
+     "scale": 1.477
+    },
+    "null_mean": 0.0,
+    "null_p95": 63.46,
+    "null_sd": 38.58,
+    "peak_capital": 381.16,
+    "total": 20.94,
+    "trap_pnl": 0.0,
+    "z_vs_null": 0.54
+   },
+   "TICK-B": {
+    "bootstrap_p5": 57.43,
+    "concentration": {
+     "best_date": "2026-03-27",
+     "best_share": 0.2487,
+     "best_usd": 31.85,
+     "dates": 41,
+     "total": 128.08,
+     "without_best": 96.22
+    },
+    "date_mean": 3.12,
+    "date_sd": 7.21,
+    "dates": 41,
+    "fills": 207,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 96.61,
+     "expected_dates": 60.5,
+     "expected_null_p95": 174.41,
+     "expected_total": 189.13,
+     "min_detectable_per_date": 1.52,
+     "scale": 1.477
+    },
+    "null_mean": 0.0,
+    "null_p95": 143.53,
+    "null_sd": 87.25,
+    "peak_capital": 700.0,
+    "total": 128.08,
+    "trap_pnl": 0.0,
+    "z_vs_null": 1.47
+   }
+  },
+  "econ": {
+   "CLEAN-A": {
+    "bootstrap_p5": 19.0,
+    "concentration": {
+     "best_date": "2026-04-29",
+     "best_share": 0.2542,
+     "best_usd": 8.21,
+     "dates": 10,
+     "total": 32.28,
+     "without_best": 24.07
+    },
+    "date_mean": 3.23,
+    "date_sd": 2.83,
+    "dates": 10,
+    "fills": 105,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": 23.92,
+     "expected_dates": 12.5,
+     "expected_null_p95": 84.2,
+     "expected_total": 40.35,
+     "min_detectable_per_date": 1.32,
+     "scale": 1.25
+    },
+    "null_mean": -0.81,
+    "null_p95": 75.4,
+    "null_sd": 46.33,
+    "peak_capital": 916.7,
+    "total": 32.28,
+    "trap_pnl": 0.0,
+    "z_vs_null": 0.71
+   },
+   "CONTEST-A": {
+    "bootstrap_p5": 150.32,
+    "concentration": {
+     "best_date": "2026-04-29",
+     "best_share": 0.619,
+     "best_usd": 233.38,
+     "dates": 5,
+     "total": 377.03,
+     "without_best": 143.65
+    },
+    "date_mean": 75.41,
+    "date_sd": 89.84,
+    "dates": 5,
+    "fills": 27,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": 101.85,
+     "expected_dates": 6.2,
+     "expected_null_p95": 250.27,
+     "expected_total": 471.29,
+     "min_detectable_per_date": 59.11,
+     "scale": 1.25
+    },
+    "null_mean": -5.73,
+    "null_p95": 224.51,
+    "null_sd": 139.97,
+    "peak_capital": 200.0,
+    "total": 377.03,
+    "trap_pnl": 0.0,
+    "z_vs_null": 2.73
+   },
+   "FAST-A": {
+    "bootstrap_p5": 896.89,
+    "concentration": {
+     "best_date": "2026-03-18",
+     "best_share": 0.2453,
+     "best_usd": 338.15,
+     "dates": 11,
+     "total": 1378.4,
+     "without_best": 1040.25
+    },
+    "date_mean": 125.31,
+    "date_sd": 98.72,
+    "dates": 11,
+    "fills": 382,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": 1120.84,
+     "expected_dates": 13.8,
+     "expected_null_p95": 537.08,
+     "expected_total": 1723.0,
+     "min_detectable_per_date": 43.79,
+     "scale": 1.25
+    },
+    "null_mean": -18.83,
+    "null_p95": 482.6,
+    "null_sd": 304.82,
+    "peak_capital": 1800.0,
+    "total": 1378.4,
+    "trap_pnl": 0.0,
+    "z_vs_null": 4.58
+   },
+   "PATIENT-B": {
+    "bootstrap_p5": 6.54,
+    "concentration": {
+     "best_date": "2026-03-06",
+     "best_share": 0.2861,
+     "best_usd": 3.18,
+     "dates": 8,
+     "total": 11.11,
+     "without_best": 7.93
+    },
+    "date_mean": 1.39,
+    "date_sd": 1.06,
+    "dates": 8,
+    "fills": 24,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": 8.39,
+     "expected_dates": 10.0,
+     "expected_null_p95": 52.25,
+     "expected_total": 13.89,
+     "min_detectable_per_date": 0.55,
+     "scale": 1.25
+    },
+    "null_mean": 0.0,
+    "null_p95": 46.73,
+    "null_sd": 28.41,
+    "peak_capital": 314.68,
+    "total": 11.11,
+    "trap_pnl": 0.0,
+    "z_vs_null": 0.39
+   },
+   "TICK-B": {
+    "bootstrap_p5": 144.41,
+    "concentration": {
+     "best_date": "2026-04-29",
+     "best_share": 0.8653,
+     "best_usd": 1612.86,
+     "dates": 10,
+     "total": 1863.97,
+     "without_best": 251.11
+    },
+    "date_mean": 186.4,
+    "date_sd": 503.18,
+    "dates": 10,
+    "fills": 168,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": -596.47,
+     "expected_dates": 12.5,
+     "expected_null_p95": 479.07,
+     "expected_total": 2329.96,
+     "min_detectable_per_date": 234.12,
+     "scale": 1.25
+    },
+    "null_mean": 0.0,
+    "null_p95": 428.5,
+    "null_sd": 260.48,
+    "peak_capital": 1261.53,
+    "total": 1863.97,
+    "trap_pnl": 0.0,
+    "z_vs_null": 7.16
+   }
+  },
+  "mentions": {
+   "CLEAN-A": {
+    "bootstrap_p5": 223.14,
+    "concentration": {
+     "best_date": "2026-05-01",
+     "best_share": 0.0598,
+     "best_usd": 16.17,
+     "dates": 83,
+     "total": 270.26,
+     "without_best": 254.09
+    },
+    "date_mean": 3.26,
+    "date_sd": 3.26,
+    "dates": 83,
+    "fills": 2313,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 573.7,
+     "expected_dates": 199.2,
+     "expected_null_p95": 311.87,
+     "expected_total": 648.62,
+     "min_detectable_per_date": 0.38,
+     "scale": 2.4
+    },
+    "null_mean": -4.45,
+    "null_p95": 203.76,
+    "null_sd": 126.57,
+    "peak_capital": 1858.97,
+    "total": 270.26,
+    "trap_pnl": 0.0,
+    "z_vs_null": 2.17
+   },
+   "CONTEST-A": {
+    "bootstrap_p5": 66.73,
+    "concentration": {
+     "best_date": "2026-05-19",
+     "best_share": 0.2285,
+     "best_usd": 24.2,
+     "dates": 19,
+     "total": 105.92,
+     "without_best": 81.72
+    },
+    "date_mean": 5.57,
+    "date_sd": 6.03,
+    "dates": 19,
+    "fills": 53,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 187.01,
+     "expected_dates": 45.6,
+     "expected_null_p95": 187.64,
+     "expected_total": 254.21,
+     "min_detectable_per_date": 1.47,
+     "scale": 2.4
+    },
+    "null_mean": -1.72,
+    "null_p95": 122.07,
+    "null_sd": 75.25,
+    "peak_capital": 100.0,
+    "total": 105.92,
+    "trap_pnl": 0.0,
+    "z_vs_null": 1.43
+   },
+   "PATIENT-B": {
+    "bootstrap_p5": 234.05,
+    "concentration": {
+     "best_date": "2026-03-09",
+     "best_share": 0.0617,
+     "best_usd": 17.25,
+     "dates": 80,
+     "total": 279.44,
+     "without_best": 262.19
+    },
+    "date_mean": 3.49,
+    "date_sd": 3.29,
+    "dates": 80,
+    "fills": 581,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 595.09,
+     "expected_dates": 192.0,
+     "expected_null_p95": 373.47,
+     "expected_total": 670.66,
+     "min_detectable_per_date": 0.39,
+     "scale": 2.4
+    },
+    "null_mean": 0.0,
+    "null_p95": 241.07,
+    "null_sd": 146.55,
+    "peak_capital": 1158.78,
+    "total": 279.44,
+    "trap_pnl": 0.0,
+    "z_vs_null": 1.91
+   },
+   "TICK-B": {
+    "bootstrap_p5": 1034.64,
+    "concentration": {
+     "best_date": "2026-05-20",
+     "best_share": 0.1441,
+     "best_usd": 199.0,
+     "dates": 86,
+     "total": 1381.08,
+     "without_best": 1182.09
+    },
+    "date_mean": 16.06,
+    "date_sd": 25.54,
+    "dates": 86,
+    "fills": 1936,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 2711.19,
+     "expected_dates": 206.4,
+     "expected_null_p95": 753.57,
+     "expected_total": 3314.59,
+     "min_detectable_per_date": 2.92,
+     "scale": 2.4
+    },
+    "null_mean": 0.0,
+    "null_p95": 486.43,
+    "null_sd": 295.7,
+    "peak_capital": 2887.19,
+    "total": 1381.08,
+    "trap_pnl": 0.0,
+    "z_vs_null": 4.67
+   }
+  },
+  "quakes": {
+   "CLEAN-A": {
+    "bootstrap_p5": 61.66,
+    "concentration": {
+     "best_date": "2026-03-30",
+     "best_share": 0.1817,
+     "best_usd": 17.62,
+     "dates": 31,
+     "total": 96.95,
+     "without_best": 79.33
+    },
+    "date_mean": 3.13,
+    "date_sd": 4.17,
+    "dates": 31,
+    "fills": 320,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 128.15,
+     "expected_dates": 57.6,
+     "expected_null_p95": 162.97,
+     "expected_total": 180.05,
+     "min_detectable_per_date": 0.9,
+     "scale": 1.857
+    },
+    "null_mean": -1.61,
+    "null_p95": 120.17,
+    "null_sd": 74.03,
+    "peak_capital": 1254.54,
+    "total": 96.95,
+    "trap_pnl": -2.48,
+    "z_vs_null": 1.33
+   },
+   "CONTEST-A": {
+    "bootstrap_p5": 55.44,
+    "concentration": {
+     "best_date": "2026-03-20",
+     "best_share": 0.3703,
+     "best_usd": 87.13,
+     "dates": 16,
+     "total": 235.3,
+     "without_best": 148.17
+    },
+    "date_mean": 14.71,
+    "date_sd": 29.5,
+    "dates": 16,
+    "fills": 108,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 172.57,
+     "expected_dates": 29.7,
+     "expected_null_p95": 272.0,
+     "expected_total": 436.99,
+     "min_detectable_per_date": 8.9,
+     "scale": 1.857
+    },
+    "null_mean": -3.11,
+    "null_p95": 200.72,
+    "null_sd": 123.91,
+    "peak_capital": 402.27,
+    "total": 235.3,
+    "trap_pnl": -55.24,
+    "z_vs_null": 1.92
+   },
+   "PATIENT-B": {
+    "bootstrap_p5": -253.09,
+    "concentration": {
+     "best_date": "2026-03-30",
+     "best_share": null,
+     "best_usd": 6.06,
+     "dates": 30,
+     "total": -50.11,
+     "without_best": -56.18
+    },
+    "date_mean": -1.67,
+    "date_sd": 18.62,
+    "dates": 30,
+    "fills": 160,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": -321.67,
+     "expected_dates": 55.7,
+     "expected_null_p95": 130.31,
+     "expected_total": -93.06,
+     "min_detectable_per_date": 4.1,
+     "scale": 1.857
+    },
+    "null_mean": 0.0,
+    "null_p95": 95.62,
+    "null_sd": 58.13,
+    "peak_capital": 1045.91,
+    "total": -50.11,
+    "trap_pnl": -100.0,
+    "z_vs_null": -0.86
+   },
+   "TICK-B": {
+    "bootstrap_p5": -52.15,
+    "concentration": {
+     "best_date": "2026-03-30",
+     "best_share": 0.4118,
+     "best_usd": 82.92,
+     "dates": 32,
+     "total": 201.34,
+     "without_best": 118.42
+    },
+    "date_mean": 6.29,
+    "date_sd": 26.85,
+    "dates": 32,
+    "fills": 202,
+    "heldout": {
+     "enough_dates_fp5": true,
+     "expected_bootstrap_p5": 33.31,
+     "expected_dates": 59.4,
+     "expected_null_p95": 300.57,
+     "expected_total": 373.92,
+     "min_detectable_per_date": 5.73,
+     "scale": 1.857
+    },
+    "null_mean": 0.0,
+    "null_p95": 220.56,
+    "null_sd": 134.08,
+    "peak_capital": 1400.0,
+    "total": 201.34,
+    "trap_pnl": -100.0,
+    "z_vs_null": 1.5
+   }
+  },
+  "temperature": {
+   "CLEAN-A": {
+    "bootstrap_p5": 20.08,
+    "concentration": {
+     "best_date": "2026-05-07",
+     "best_share": 0.197,
+     "best_usd": 6.34,
+     "dates": 30,
+     "total": 32.21,
+     "without_best": 25.86
+    },
+    "date_mean": 1.07,
+    "date_sd": 1.49,
+    "dates": 30,
+    "fills": 267,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": null,
+     "expected_dates": 0.0,
+     "expected_null_p95": 0.0,
+     "expected_total": 0.0,
+     "min_detectable_per_date": null,
+     "scale": 0.0
+    },
+    "null_mean": -1.31,
+    "null_p95": 62.02,
+    "null_sd": 38.5,
+    "peak_capital": 499.3,
+    "total": 32.21,
+    "trap_pnl": 0.0,
+    "z_vs_null": 0.87
+   },
+   "CONTEST-A": {
+    "bootstrap_p5": 2.21,
+    "concentration": {
+     "best_date": "2026-05-07",
+     "best_share": 0.7627,
+     "best_usd": 59.33,
+     "dates": 8,
+     "total": 77.79,
+     "without_best": 18.46
+    },
+    "date_mean": 9.72,
+    "date_sd": 20.92,
+    "dates": 8,
+    "fills": 121,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": null,
+     "expected_dates": 0.0,
+     "expected_null_p95": 0.0,
+     "expected_total": 0.0,
+     "min_detectable_per_date": null,
+     "scale": 0.0
+    },
+    "null_mean": -2.74,
+    "null_p95": 164.1,
+    "null_sd": 101.42,
+    "peak_capital": 200.0,
+    "total": 77.79,
+    "trap_pnl": -4.07,
+    "z_vs_null": 0.79
+   },
+   "PATIENT-B": {
+    "bootstrap_p5": -581.74,
+    "concentration": {
+     "best_date": "2026-03-08",
+     "best_share": null,
+     "best_usd": 3.13,
+     "dates": 20,
+     "total": -179.7,
+     "without_best": -182.83
+    },
+    "date_mean": -8.99,
+    "date_sd": 44.97,
+    "dates": 20,
+    "fills": 65,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": null,
+     "expected_dates": 0.0,
+     "expected_null_p95": 0.0,
+     "expected_total": 0.0,
+     "min_detectable_per_date": null,
+     "scale": 0.0
+    },
+    "null_mean": 0.0,
+    "null_p95": 64.15,
+    "null_sd": 39.0,
+    "peak_capital": 309.9,
+    "total": -179.7,
+    "trap_pnl": -200.0,
+    "z_vs_null": -4.61
+   },
+   "TICK-B": {
+    "bootstrap_p5": -28.92,
+    "concentration": {
+     "best_date": "2026-04-30",
+     "best_share": 0.6146,
+     "best_usd": 94.42,
+     "dates": 48,
+     "total": 153.63,
+     "without_best": 59.22
+    },
+    "date_mean": 3.2,
+    "date_sd": 17.71,
+    "dates": 48,
+    "fills": 351,
+    "heldout": {
+     "enough_dates_fp5": false,
+     "expected_bootstrap_p5": null,
+     "expected_dates": 0.0,
+     "expected_null_p95": 0.0,
+     "expected_total": 0.0,
+     "min_detectable_per_date": null,
+     "scale": 0.0
+    },
+    "null_mean": 0.0,
+    "null_p95": 527.72,
+    "null_sd": 320.8,
+    "peak_capital": 658.46,
+    "total": 153.63,
+    "trap_pnl": -56.09,
+    "z_vs_null": 0.48
+   }
+  }
+ }
+}

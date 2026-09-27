@@ -1,0 +1,117 @@
+{
+ "counts": {
+  "A": {
+   "fills": 690,
+   "maker_wallets": 155,
+   "makers_per_market_p50": 12,
+   "markets": 11,
+   "top1_share": 0.2754,
+   "top3_share": 0.5779
+  },
+  "B": {
+   "edge_usd": 5063.98,
+   "fills": 1420,
+   "maker_wallets": 275,
+   "makers_per_market_p50": 13,
+   "markets": 20,
+   "share_of_shares_at_0999_plus": 0.7397,
+   "top1_share": 0.1607,
+   "top1_share_of_edge": 0.086,
+   "top3_share": 0.3732
+  },
+  "from_C_plus_s": 60,
+  "markets_sampled": 20
+ },
+ "econ": {
+  "A": {
+   "fills": 425,
+   "maker_wallets": 110,
+   "makers_per_market_p50": 9,
+   "markets": 11,
+   "top1_share": 0.3454,
+   "top3_share": 0.6632
+  },
+  "B": {
+   "edge_usd": 32707.56,
+   "fills": 631,
+   "maker_wallets": 153,
+   "makers_per_market_p50": 4,
+   "markets": 20,
+   "share_of_shares_at_0999_plus": 0.9091,
+   "top1_share": 0.1826,
+   "top1_share_of_edge": 0.1943,
+   "top3_share": 0.4746
+  },
+  "from_C_plus_s": 60,
+  "markets_sampled": 20
+ },
+ "mentions": {
+  "A": {
+   "fills": 459,
+   "maker_wallets": 177,
+   "makers_per_market_p50": 15,
+   "markets": 16,
+   "top1_share": 0.3117,
+   "top3_share": 0.4136
+  },
+  "B": {
+   "edge_usd": 4718.54,
+   "fills": 368,
+   "maker_wallets": 200,
+   "makers_per_market_p50": 14,
+   "markets": 20,
+   "share_of_shares_at_0999_plus": 0.2572,
+   "top1_share": 0.4188,
+   "top1_share_of_edge": 0.1067,
+   "top3_share": 0.5721
+  },
+  "from_C_plus_s": 60,
+  "markets_sampled": 20
+ },
+ "quakes": {
+  "A": {
+   "fills": 1457,
+   "maker_wallets": 364,
+   "makers_per_market_p50": 33,
+   "markets": 20,
+   "top1_share": 0.0735,
+   "top3_share": 0.1399
+  },
+  "B": {
+   "edge_usd": 9145.12,
+   "fills": 1058,
+   "maker_wallets": 323,
+   "makers_per_market_p50": 23,
+   "markets": 20,
+   "share_of_shares_at_0999_plus": 0.1906,
+   "top1_share": 0.0906,
+   "top1_share_of_edge": 0.0694,
+   "top3_share": 0.2003
+  },
+  "from_C_plus_s": 60,
+  "markets_sampled": 20
+ },
+ "temperature": {
+  "A": {
+   "fills": 1857,
+   "maker_wallets": 471,
+   "makers_per_market_p50": 17,
+   "markets": 11,
+   "top1_share": 0.2458,
+   "top3_share": 0.4161
+  },
+  "B": {
+   "edge_usd": 37962.98,
+   "fills": 1470,
+   "maker_wallets": 1853,
+   "makers_per_market_p50": 15,
+   "markets": 20,
+   "share_of_shares_at_0999_plus": 0.6462,
+   "top1_share": 0.3923,
+   "top1_share_of_edge": 0.1529,
+   "top3_share": 0.4862
+  },
+  "from_C_plus_s": 60,
+  "markets_sampled": 20
+ }
+}

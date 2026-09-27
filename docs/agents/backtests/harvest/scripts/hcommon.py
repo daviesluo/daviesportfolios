@@ -169,6 +169,41 @@ def winner_index(m):
     return None
 
 
+# ------------------------------------------------------------------------------------------------ the tracker
+
+XT = "https://xtracker.polymarket.com/api"
+XT_PAGE = 100   # the tracker answers at most 100 posts a call, the oldest of the range, whatever the parameters
+
+
+def xt_posts(handle, t0, t1, cache_dir):
+    """Every post the public tracker captured for `handle` created in [t0, t1), paged: the endpoint returns at most
+    100 posts (the oldest of the range) and honours no page parameter, so the range's start moves to the newest post
+    of each full page until a page comes back short. (PMLATE's `count_common.xt_posts` reads one page only, so a window
+    with more than 100 posts was cut to its first 100 there.) Cached per window: [(created, imported, platform id)]."""
+    path = os.path.join(cache_dir, f"xt2_{handle}_{int(t0)}_{int(t1)}.json")
+    if exists(path):
+        return [tuple(x) for x in load(path)]
+    fmt = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + \
+        f"{int(round((t % 1) * 1000)):03d}Z"  # noqa: E731
+    seen, start, pages = {}, t0, 0
+    while True:
+        d = pmnet.get(XT + f"/users/{handle}/posts", {"startDate": fmt(start), "endDate": fmt(t1 - 0.001),
+                                                      "_": bust()})
+        rows = d.get("data") or []
+        pages += 1
+        new = 0
+        for p in rows:
+            if p.get("id") not in seen:
+                seen[p.get("id")] = (ts(p.get("createdAt")), ts(p.get("importedAt")), p.get("platformId"))
+                new += 1
+        if len(rows) < XT_PAGE or not new or pages > 200:
+            break
+        start = max(ts(p.get("createdAt")) for p in rows)
+    out = sorted(seen.values(), key=lambda x: (x[0] or 0, x[1] or 0, x[2] or ""))
+    dump(path, [list(x) for x in out])
+    return out
+
+
 # ------------------------------------------------------------------------------------------------ prints
 
 def walk_prints(cond, floor, cache_dir, max_pages=300, closed_time=None):
