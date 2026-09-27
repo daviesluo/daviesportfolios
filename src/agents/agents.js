@@ -518,9 +518,6 @@ export function liveArming(dash) {
   return { state, since, paused: !!dash?.risk?.global_pause, count: onLive.length, holding };
 }
 
-/** "1 strategy", "6 strategies". @param {number} n @param {string} one @param {string} many */
-const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-
 /**
  * The tab bar's two entries: how many rows each tab lists and the one line that says what kind of money is on it.
  * TESTING's count takes in the paper tests' rows as well. Every row is called a strategy (Davies, 2026-09-25).
@@ -547,8 +544,8 @@ export function agentsTabsView(dash, tests = 0) {
   return {
     live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count + (pr5 ? 1 : 0), text: liveWords, tone },
     testing: {
-      id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests,
-      text: `Paper · ${counted(strategies + tests, 'strategy', 'strategies')}`, tone: 'paper',
+      // The count is beside the label, so the line is the kind of money alone (Davies, 2026-09-27: "上面已经有9了").
+      id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests, text: 'Paper', tone: 'paper',
     },
   };
 }
@@ -597,7 +594,8 @@ export function orderView(o) {
 export const fmtFrac = (f) => (f == null ? '—' : fmtPctSigned(f * 100, 1));
 
 /** @param {{ maker: number, taker: number } | undefined} bps */
-export const fmtFees = (bps) => (bps ? `${bps.maker / 100}% / ${bps.taker / 100}%` : '—');
+/** A venue's fees, each named (Davies, 2026-09-27): "maker 0% / taker 0.09%". @param {{ maker: number, taker: number } | null | undefined} bps */
+export const fmtFees = (bps) => (bps ? `maker ${bps.maker / 100}% / taker ${bps.taker / 100}%` : '—');
 
 /** Signed basis points with two decimals, the way the basis reads. @param {number | null | undefined} n */
 export const fmtBps = (n) => (n == null || isNaN(n) ? '—' : dropDot00(`${n > 0 ? '+' : ''}${n.toFixed(2)} bps`));

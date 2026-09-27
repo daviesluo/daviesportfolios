@@ -1945,13 +1945,15 @@ body {
 .ag-venue-card-binance { border-left-color: rgba(240,185,11,0.75); }
 .ag-venue-card.is-warn, .ag-quotes-card.is-warn { border-color: var(--loss-dim); }
 .ag-venue-head, .ag-quotes-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
-.ag-venue-grid, .ag-quotes-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
+.ag-quotes-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
+/* A venue card's two groups (holds, made), one under the other; side by side where the card has the width to itself. */
+.ag-venue-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px 36px; font-size: 12px; align-items: start; }
+.ag-venue-col { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; align-items: baseline; }
 /* "funded (Paper)" stays one line on every card. The label used to shrink to the longest word, so Polymarket's
    narrower card broke it in two while Revolut X and Binance still fitted it. */
-.ag-venue-grid { grid-template-columns: max-content minmax(0, 1fr); }
-.ag-venue-grid > .ag-fig-label { min-width: max-content; }
+.ag-venue-col > .ag-fig-label { min-width: max-content; }
 .ag-venue-grid .ag-fig-name { white-space: nowrap; }
-.ag-venue-grid > span:nth-child(even), .ag-quotes-grid > span:nth-child(even) { text-align: right; }
+.ag-venue-col > span:nth-child(even), .ag-quotes-grid > span:nth-child(even) { text-align: right; }
 /* The quote test's page: one card per book, its ladder a rung per row (0.1 / 0.2 / 0.3 % from interbank), bid and ask. */
 .ag-ladder { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
 .ag-ladder th { text-align: left; font-weight: 500; font-size: 10px; letter-spacing: 0.08em; padding: 0 0 4px; }
@@ -2262,8 +2264,8 @@ body {
   .ag-venue-cards.is-three .ag-venue-meta { font-size: 10px; }
 }
 /* Realised's two parts on Polymarket's card, a step in under it: its rewards, and what its orders made. */
-.ag-venue-grid > .ag-fig-sub { font-size: 11px; }
-.ag-venue-grid > span.dim.ag-fig-sub { padding-left: 12px; }
+.ag-venue-col > .ag-fig-sub { font-size: 11px; }
+.ag-venue-col > span.dim.ag-fig-sub { padding-left: 12px; }
 .ag-venue-card-polymarket { border-left-color: rgba(125,139,255,0.75); }
 .ag-share-polymarket { background: rgba(125,139,255,0.35); color: #eef0ff; }
 
@@ -2332,11 +2334,11 @@ body {
 .ag-modetab.is-paused .ag-modetab-mark, .ag-modetab.is-winding .ag-modetab-mark { background: var(--chalk-mute); }
 .ag-modetab.is-none .ag-modetab-mark { border: 1.5px solid var(--chalk-mute); }
 .ag-modetab.is-paper .ag-modetab-mark { border: 1.5px dashed rgba(232,228,218,0.7); }
-/* A tab with one venue gives its card the whole width, its six figures in two columns. */
+/* A tab with one venue gives its card the whole width, its two groups side by side: funded, deployed and today, then
+   unrealised, realised and the lines set in under it (Davies, 2026-09-27). */
 @media (min-width: 761px) {
   .ag-venue-cards.is-single { grid-template-columns: 1fr; }
-  .ag-venue-cards.is-single .ag-venue-grid { grid-template-columns: auto 1fr auto 1fr; }
-  .ag-venue-cards.is-single .ag-venue-grid > span:nth-child(4n+3) { padding-left: 36px; }
+  .ag-venue-cards.is-single .ag-venue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* The banners and the armed line sit a section's breadth above the table they govern. */
 .ag-modepanel .ag-alerts { margin-bottom: 14px; }

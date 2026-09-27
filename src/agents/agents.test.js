@@ -85,7 +85,7 @@ describe('formatting', () => {
     expect(fmtPct2(21.5)).toBe('21.50%');
     expect(fmtFrac(-0.2806)).toBe('-28.1%');
     expect(fmtFrac(null)).toBe('—');
-    expect(fmtFees({ maker: 40, taker: 80 })).toBe('0.4% / 0.8%');
+    expect(fmtFees({ maker: 40, taker: 80 })).toBe('maker 0.4% / taker 0.8%');
     expect(fmtFees(undefined)).toBe('—');
   });
 });
@@ -857,18 +857,18 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     const words = (d, extra = 0) => { const v = agentsTabsView(d, extra); return [v.live.count, v.live.text, v.live.tone, v.testing.count, v.testing.text, v.testing.tone]; };
     // TESTING's count takes in the two paper tests' rows, and its line says how many of the rows are strategies — the
     // ones its totals add up — and how many are tests.
-    expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper · 5 strategies', 'paper']);
+    expect(words(armed, 2)).toEqual([1, 'Real money · trading', 'armed', 5, 'Paper', 'paper']);
     // Unarmed stops buys only: a live row still holding coins is selling them, and "not trading yet" is for a flat one.
-    expect(words(dash)).toEqual([1, 'Real money · selling what it holds', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    expect(words(dash)).toEqual([1, 'Real money · selling what it holds', 'unarmed', 3, 'Paper', 'paper']);
     const flat = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], holdsLive: false }] };
-    expect(words(flat)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper · 3 strategies', 'paper']);
+    expect(words(flat)).toEqual([1, 'Real money · not trading yet', 'unarmed', 3, 'Paper', 'paper']);
     // A live row paused once flat can neither buy nor sell: stopped, not winding down.
     const stopped = { ...dash, strategies: [...rows.slice(0, 3), { ...rows[3], mode: 'paused', holdsLive: false, otherBooks: [{ symbol: 'SOL/USD', book: 'live', base: 0, fills: 2 }] }] };
     expect(liveArming(stopped)).toEqual({ state: 'stopped', since: null, paused: false, count: 1, holding: false });
-    expect(words(stopped)).toEqual([1, 'Real money · stopped', 'paused', 3, 'Paper · 3 strategies', 'paper']);
-    expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper · 3 strategies', 'paper']);
-    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper · 5 strategies', 'paper']);
-    expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper · 2 strategies', 'paper']);
+    expect(words(stopped)).toEqual([1, 'Real money · stopped', 'paused', 3, 'Paper', 'paper']);
+    expect(words({ ...armed, risk: { ...armed.risk, global_pause: true } })).toEqual([1, 'Real money · paused', 'paused', 3, 'Paper', 'paper']);
+    expect(words({ strategies: rows.slice(0, 3) }, 2)).toEqual([0, 'Nothing is live', 'none', 5, 'Paper', 'paper']);
+    expect(words({ strategies: rows.slice(1, 2) }, 1)).toEqual([0, 'Nothing is live', 'none', 2, 'Paper', 'paper']);
   });
   it('puts each banner on the tabs it concerns', () => {
     const now = Date.parse('2026-09-21T12:10:00Z');

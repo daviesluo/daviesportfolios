@@ -608,7 +608,12 @@ function readAgentsPanel(page) {
         value: txt(c.querySelector('.sb-value')), split: [...c.querySelectorAll('.ag-sb-split')].map(txt),
       })),
       venues: all('.ag-venue-card').map((c) => {
-        const cells = [...c.querySelectorAll('.ag-venue-grid > span')];
+        const cells = [...c.querySelectorAll('.ag-venue-col > span')];
+        // Each group's labels, and where each group starts: side by side on a card with the width to itself.
+        const groups = [...c.querySelectorAll('.ag-venue-col')].map((g) => ({
+          labels: [...g.querySelectorAll(':scope > span:nth-child(odd)')].map((x) => txt(x.querySelector('.ag-fig-name') ?? x)),
+          left: Math.round(g.getBoundingClientRect().left), top: Math.round(g.getBoundingClientRect().top),
+        }));
         /** @type {Record<string, string>} */
         const pairs = {}, bases = {};
         for (let i = 0; i + 1 < cells.length; i += 2) {
@@ -616,7 +621,12 @@ function readAgentsPanel(page) {
           pairs[key] = txt(cells[i + 1]);
           if (cells[i].querySelector('.ag-fig-base')) bases[key] = txt(cells[i].querySelector('.ag-fig-base'));
         }
-        return { id: ([...c.classList].find((x) => /^ag-venue-card-/.test(x)) || '').replace('ag-venue-card-', ''), meta: txt(c.querySelector('.ag-venue-meta')), pairs, bases, apart: txt(c.querySelector('.ag-venue-apart')) };
+        // The lines set in under realised (rewards and orders, fees), each with how far its words start inside its cell
+        // (a label's cell may sit in another column from realised's on a wide card).
+        const textLeft = (/** @type {Element} */ el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().left; };
+        const subs = cells.filter((x, i) => i % 2 === 0 && x.classList.contains('ag-fig-sub'))
+          .map((x) => `${txt(x)}+${Math.round(textLeft(x) - x.getBoundingClientRect().left)}`);
+        return { id: ([...c.classList].find((x) => /^ag-venue-card-/.test(x)) || '').replace('ag-venue-card-', ''), meta: txt(c.querySelector('.ag-venue-meta')), pairs, bases, subs, groups, apart: txt(c.querySelector('.ag-venue-apart')) };
       }),
       shareBar: all('.ag-share-bar').length,
       shares: all('.ag-share').map(txt),
@@ -2053,7 +2063,7 @@ async function run() {
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
       if (pm && pm.meta === '5 strategies' && pm.pairs['funded (Paper)'] === '$5,000' && pm.pairs.deployed === '$36.80 (0.74%)'
         && pm.pairs.today === '+$42.50 (+0.85%)' && pm.pairs.unrealised === '-$5.80 (-13.62%)' && pm.pairs.realised === '+$136.40 (+2.73%)' && !pm.bases.unrealised
-        && pm.pairs.rewards === '+$134.40' && pm.pairs.orders === '+$2' && !('fees' in pm.pairs)) {
+        && pm.pairs.rewards === '+$134.40' && pm.pairs.orders === '+$2' && !('fees' in pm.pairs) && pm.subs.join('|') === 'rewards+12|orders+12') {
         ok(S('agents'), "Polymarket's card is RW, RW-E and its three variants summed: funded (Paper) $5,000, deployed $36.80 (0.74%), today +$42.50 (+0.85%), unrealised -$5.80 (-13.62%), realised +$136.40 (+2.73%) = rewards +$134.40 + orders +$2");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
@@ -2062,11 +2072,11 @@ async function run() {
       // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus the quote
       // test's $1,200 — and the accounts' real balances are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
-      const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
+      const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
       if (money(fundedCell) === 1380 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its strategies plus the quote test ($1,380), not the account balance');
       else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
       const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
-      const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-grid > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
+      const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
       if (!/USDT|BNB/.test(bnCard || '') && money(bnFundedCell) === 180) ok(S('agents'), 'the Binance card is funded with its twins\' paper capital ($180) and shows no account balance');
       else fail(S('agents'), `binance funded cell "${bnFundedCell}", card reads "${bnCard}"`);
       // Davies, 2026-09-23: Kraken off VENUES, Binance on, and PAPER must not read as Binance's yellow. The colours
@@ -2412,7 +2422,7 @@ async function run() {
       // −4.16 is on the strategies' cost and the tests' deployed value, 139.75 + 16.80 = 156.55 (−2.66 %).
       const PAPER_SB = 'FUNDED=$6,560 | DEPLOYED=$158.05(2.41%) | TODAY=+$43.04(+0.66%) | UNREALIZED G/L=-$4.16(-2.66%) | REALIZED G/L [(incl. fees $0.08)]=+$149.16(+2.27%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 12 Paper · 12 strategies paper';
+      const TESTING_BAR = 'TESTING 12 Paper paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
@@ -2467,10 +2477,16 @@ async function run() {
         ok(T('armed'), `LIVE is the live row alone, named without " · live", and its scoreboard is that row's figures (${sbText(a0)})`);
       } else fail(T('armed'), `LIVE: rows ${JSON.stringify(a0.rows)}, scoreboard ${sbText(a0)}, sections ${a0.sections.join('|')}`);
       const lv = a0.venues[0];
-      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker/taker 0% / 0.09%' && lv.pairs.funded === '$50' && lv.pairs.deployed === '$12.50 (25%)'
+      if (a0.venues.length === 1 && lv.id === 'revx' && lv.meta === '1 strategy · maker 0% / taker 0.09%' && lv.pairs.funded === '$50' && lv.pairs.deployed === '$12.50 (25%)'
         && lv.pairs.today === '+$0.20 (+0.40%)' && lv.pairs.unrealised === '+$0.50 (+4.17%)' && lv.pairs.realised === '+$0.30 (+0.60%)' && lv.pairs.fees === '$0.03'
+        // Fees are set in under realised, as Polymarket's rewards and orders are, and the card's two groups (Davies,
+        // 2026-09-27): funded, deployed, today; unrealised, realised, fees — side by side on a desktop's wide card, one
+        // under the other on a phone.
+        && lv.subs.join('|') === 'fees+12'
+        && lv.groups.map((g) => g.labels.join(',')).join(' | ') === 'funded,deployed,today | unrealised,realised,fees'
+        && (vp.name === 'desktop' ? lv.groups[1].left > lv.groups[0].left && lv.groups[1].top === lv.groups[0].top : lv.groups[1].left === lv.groups[0].left && lv.groups[1].top > lv.groups[0].top)
         && Object.keys(lv.bases).length === 0 && a0.shareBar === 0) {
-        ok(T('armed'), 'one venue card, Revolut X: funded $50 with no (Paper), the row\'s figures, no percent badges, and no share bar for one venue');
+        ok(T('armed'), 'one venue card, Revolut X: funded $50 with no (Paper), maker 0% / taker 0.09%, funded, deployed and today beside unrealised, realised and fees set in under it, no percent badges, and no share bar for one venue');
       } else fail(T('armed'), `LIVE venues ${JSON.stringify(a0.venues)}, share bars ${a0.shareBar}`);
       const liveFit = await page.locator('.ag-modepanel-live .ag-scoreboard').evaluate((el) => {
         const box = el.getBoundingClientRect();
@@ -2488,7 +2504,7 @@ async function run() {
         ok(T('armed'), `TESTING is the paper rows alone (12, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
-      if (a1.venues.length === 3 && rv && bn && rv.meta === '4 strategies · maker/taker 0% / 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$121.25 (8.79%)'
+      if (a1.venues.length === 3 && rv && bn && rv.meta === '4 strategies · maker 0% / taker 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$121.25 (8.79%)'
         && rv.pairs.realised === '+$12.76 (+0.92%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
         ok(T('armed'), 'TESTING\'s Revolut X card includes Stablecoin quotes (funded (Paper) $1,380.00, deployed $121.25, 8.79%), beside Binance\'s and Polymarket\'s');
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);

@@ -289,25 +289,33 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
             <div className="ag-venue-head">
               <VenueBadge id={r.id} />
               <div className="dim mono ag-venue-meta">
-                {`${n} ${n === 1 ? 'strategy' : 'strategies'}${r.feeBps ? ` · maker/taker ${fmtFees(r.feeBps)}` : ''}`}
+                {`${n} ${n === 1 ? 'strategy' : 'strategies'}${r.feeBps ? ` · ${fmtFees(r.feeBps)}` : ''}`}
               </div>
             </div>
+            {/* Two groups (Davies, 2026-09-27): what the venue holds — funded, deployed, today — and what it has made —
+                unrealised, realised and the lines set in under it. A card with the width to itself shows them side by
+                side; any other, one under the other, in the same order. */}
             <div className="ag-venue-grid mono">
-              {/* Funded is the capital the venue's strategies on this tab are allotted, not the account's balance: a
-                  real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
-              <FigLabel name={`funded${r.test || paperOnly(onTab, r.id) ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
-              <FigLabel name="deployed" />
-              <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({fmtPct2(r.deployedPct)})</span> : null}</span>
-              <FigLabel name="today" />{gl(r.todayUsd, r.todayPct)}
-              <FigLabel name="unrealised" />{gl(r.unrealisedUsd, r.unrealisedPct)}
-              <FigLabel name="realised" />{gl(r.realisedUsd, r.realisedPct)}
-              {r.test?.rewards ? (
-                <>
-                  <span className="dim ag-fig-sub">rewards</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.rewards.realisedUsd) }}>{m(fmtUsd(r.test.rewards.realisedUsd, true))}</span>
-                  <span className="dim ag-fig-sub">orders</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.orders.realisedUsd) }}>{m(fmtUsd(r.test.orders.realisedUsd, true))}</span>
-                </>
-              ) : null}
-              {r.feesUsd != null ? <><FigLabel name="fees" /><span className="dim">{m(fmtUsd(r.feesUsd))}</span></> : null}
+              <div className="ag-venue-col">
+                {/* Funded is the capital the venue's strategies on this tab are allotted, not the account's balance: a
+                    real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
+                <FigLabel name={`funded${r.test || paperOnly(onTab, r.id) ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
+                <FigLabel name="deployed" />
+                <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({fmtPct2(r.deployedPct)})</span> : null}</span>
+                <FigLabel name="today" />{gl(r.todayUsd, r.todayPct)}
+              </div>
+              <div className="ag-venue-col">
+                <FigLabel name="unrealised" />{gl(r.unrealisedUsd, r.unrealisedPct)}
+                <FigLabel name="realised" />{gl(r.realisedUsd, r.realisedPct)}
+                {r.test?.rewards ? (
+                  <>
+                    <span className="dim ag-fig-sub">rewards</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.rewards.realisedUsd) }}>{m(fmtUsd(r.test.rewards.realisedUsd, true))}</span>
+                    <span className="dim ag-fig-sub">orders</span><span className="ag-gl ag-fig-sub" style={{ color: pctColor(r.test.orders.realisedUsd) }}>{m(fmtUsd(r.test.orders.realisedUsd, true))}</span>
+                  </>
+                ) : null}
+                {/* Fees are part of realised, as rewards and orders are: a line under it, set in (Davies, 2026-09-27). */}
+                {r.feesUsd != null ? <><span className="dim ag-fig-sub">fees</span><span className="ag-fig-sub"><span className="dim">{m(fmtUsd(r.feesUsd))}</span></span></> : null}
+              </div>
             </div>
             {r.note && <div className="ag-warn-line">{r.note}</div>}
           </div>

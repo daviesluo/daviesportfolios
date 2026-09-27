@@ -113,8 +113,13 @@ places stay when the number is not whole.
   Revolut X in blue, which on TESTING includes Stablecoin quotes, and on
   TESTING Polymarket in its blue, whose card is its Reward quotes rows
   added together — showing the same figures for
-  that exchange (**funded (Paper)** on TESTING; the accounts' real
-  balances are not shown). A bar above the cards shows each exchange's
+  that exchange in two groups: what it holds (funded, deployed, today)
+  and what it has made (unrealised, realised, and set in under realised
+  the parts inside it: its fees, or Polymarket's rewards and orders),
+  side by side when a card has the width to itself and one under the
+  other otherwise, with its maker and taker fees under its name
+  (**funded (Paper)** on TESTING; the accounts' real balances are not
+  shown). A bar above the cards shows each exchange's
   share; a slice too narrow for the name shows the percent alone. Then one
   row per strategy: a status dot (green running, amber stale, grey paused),
   its exchange, what it has deployed (the same dollars the scoreboard calls

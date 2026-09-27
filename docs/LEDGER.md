@@ -345,6 +345,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-27 21:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' asks on the venue cards and tabs.**
+- Venue cards and tabs (his words): fees are set in under realised, as Polymarket's rewards and orders are; the fees read "maker 0% / taker 0.09%"; a card is two groups, funded, deployed and today, then unrealised, realised and the lines set in under it — side by side where a card has the width to itself (LIVE's one card on a desktop), one under the other otherwise; and TESTING's tab line reads "Paper" alone, its count being beside the label. The sweep checks both cards' set-in lines (12 px inside their cells) and LIVE's two groups at both widths.
+
 ### [2026-09-27 20:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: the four variants show only their own record ("只从自己rules下的记录才显示").**
