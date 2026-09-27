@@ -60,7 +60,16 @@ import { chromium } from 'playwright';
 // from any working directory.
 const ROOT = path.resolve(
   process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'dist'));
-const PORT = 8932;
+/**
+ * `SWEEP_VIEWPORT=desktop` or `=phone` runs that breakpoint's checks alone, and `SWEEP_PORT` serves the bundle on a port
+ * of its own, so `bin/gates.sh` runs the two at once (Davies, 2026-09-27: the gates were still slow). Unset, both run, one
+ * after the other, as CI runs them. A check at one fixed width runs with that breakpoint.
+ */
+const ONLY = process.env.SWEEP_VIEWPORT || '';
+if (ONLY && ONLY !== 'desktop' && ONLY !== 'phone') throw new Error(`SWEEP_VIEWPORT is desktop or phone, not ${ONLY}`);
+const runs = (/** @type {string} */ name) => !ONLY || ONLY === name;
+const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phone', width: 390, height: 844 }].filter((vp) => runs(vp.name));
+const PORT = Number(process.env.SWEEP_PORT) || 8932;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -951,7 +960,7 @@ async function run() {
   // replace it. Held until released, not for a fixed 700 ms: the hold starts
   // when the board first mounts, and a page whose code has already arrived is
   // drawn at once (lazyPage) — which is right, and not what this checks.
-  {
+  if (runs('desktop')) {
     /** @type {() => void} */
     let releaseCode = () => {};
     const codeHeld = new Promise((r) => { releaseCode = r; });
@@ -986,7 +995,7 @@ async function run() {
   // itself once (after refreshing the chunk and dropping its caches), report
   // `chunk.load` and never `render.crash`, show no RENDER ERROR screen, and
   // open the page after the reload.
-  {
+  if (runs('desktop')) {
     let poisonedOnce = false;
     const poison = async (page) => {
       await page.route('**/assets/holdings_list-*.js', async (route) => {
@@ -1036,8 +1045,7 @@ async function run() {
   // 0.95x — every Edge Function answer is held back 1.5 s, and the page is
   // read every frame from the reload on. Nothing may differ from what was
   // on screen before it: not the first paint, not after the answers land.
-  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
-                    { name: 'phone', width: 390, height: 844 }]) {
+  for (const vp of VIEWPORTS) {
     const S = (n) => `${vp.name}/reload/${n}`;
     loadOverride = storedAt(0.9);
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
@@ -1121,8 +1129,7 @@ async function run() {
   // back 1.5 s, the page is opened the moment the board paints, and it must
   // be drawn from the first read — with values hidden too, where the kept
   // copy must be masked like everything else.
-  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
-                    { name: 'phone', width: 390, height: 844 }]) {
+  for (const vp of VIEWPORTS) {
     const S = (n) => `${vp.name}/agents-reload/${n}`;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
     const openAgents = async () => {
@@ -1194,8 +1201,7 @@ async function run() {
     await ctx.close();
   }
 
-  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
-                    { name: 'phone', width: 390, height: 844 }]) {
+  for (const vp of VIEWPORTS) {
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses);
     const S = (n) => `${vp.name}/${n}`;
 
@@ -2759,8 +2765,7 @@ async function run() {
   // and sell with its date and price) nor the Investment view (the book in
   // dollars against the money paid in). The phone matters on its own: the
   // panel there is the sidebar's copy, a separate mount of the same code.
-  for (const vp of [{ name: 'desktop', width: 1400, height: 1000 },
-                    { name: 'phone', width: 390, height: 844 }]) {
+  for (const vp of VIEWPORTS) {
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { token: RO_TOKEN });
     const S = (n) => `${vp.name}/viewer/${n}`;
     await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});

@@ -347,8 +347,9 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 
 ### [2026-09-27 21:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
-**Davies' asks on the venue cards and tabs.**
+**Davies' asks on the venue cards, and faster gates.**
 - Venue cards and tabs (his words): fees are set in under realised, as Polymarket's rewards and orders are; the fees read "maker 0% / taker 0.09%"; a card is two groups, funded, deployed and today, then unrealised, realised and the lines set in under it — side by side where a card has the width to itself (LIVE's one card on a desktop), one under the other otherwise; and TESTING's tab line reads "Paper" alone, its count being beside the label. The sweep checks both cards' set-in lines (12 px inside their cells) and LIVE's two groups at both widths.
+- Gates (his ask: still slow): `bin/gates.sh` runs everything at once — the source checks beside the bundle's line, which builds and then runs the sweep's desktop and phone halves (`SWEEP_VIEWPORT`, `SWEEP_PORT`; no check compares the two), the perf matrix and the size budget together — and prints each step's seconds. Measured on a change to web and Edge both: 5 min 30 s before, 2 min 29 s after, every check passing under the load. CI still runs the sweep whole.
 
 ### [2026-09-27 20:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

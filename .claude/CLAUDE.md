@@ -612,9 +612,12 @@ that follow from that evidence, in short:
   `dist/` every web gate; an Edge Function the Deno checks and the unit
   tests; a migration, `docs/` or Markdown the unit tests (and the Edge
   tests for `docs/`, whose pre-registrations and fixtures they read);
-  anything else every gate. Checks that do not depend on each other run
-  at once; the browser sweep runs alone. `--full` forces every gate. CI
-  runs every gate on every push either way.
+  anything else every gate. Everything runs at once: the checks that
+  read the source beside the bundle's line — built, then the browser
+  sweep's desktop and phone halves (each on a port of its own), the perf
+  matrix and the size budget together. Each step prints its seconds.
+  `--full` forces every gate. CI runs every gate on every push either
+  way.
 - Cloudflare Pages Git builds (watch paths `dist/*` when set in the
   dashboard) and `.github/workflows/pages-deploy.yml` (Wrangler Direct
   Upload of the committed `dist/`) publish a `dist/` change. The Action
