@@ -559,7 +559,8 @@ that follow from that evidence, in short:
   FAA's SWIM SCDS subscription: ITWS, a Solace queue reached over SMF on
   TLS only, holding seconds of messages; a subscription idle for 60 days
   may be disabled; ITWS carries no temperature, only terminal hazard
-  products, reference §6), read by the `weather` function. Never print
+  products, and SCDS offers no METAR until CSS-Wx joins it, expected in
+  Q4 2026, reference §6), read by the `weather` function. Never print
   them, never move them.
 - **A study prices speed at one second** (Davies, 2026-09-26): pg_cron 1.6.4
   on the project runs a job every 1–59 seconds, so a strategy that needs to

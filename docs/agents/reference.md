@@ -2953,8 +2953,9 @@ research agent's phase 1 (`reviews/2026-09-27-wxsrc-study.md`, `backtests/wxsrc/
   day's measurement, then a pre-registration (ledger item 6).
 - **The sign-ups, read (2026-09-27, §6 "The weather feeds").** The FAA subscription taken is ITWS, and ITWS carries no
   surface temperature: sixteen products, all wind shear, microburst, gust front, tornado, precipitation, hazard text
-  and storm motion. The Météo-France credential stored was an access token that had expired before it was first read.
-  Neither feed has been measured against the takers yet.
+  and storm motion. No SCDS product carries a METAR until CSS-Wx joins it, expected in Q4 2026 (the SWIFT Portal's
+  news). The Météo-France credential stored was an access token that had expired before it was first read. Neither
+  feed has been measured against the takers yet.
 
 ## 4. Design consequences (decided by the evidence above)
 
@@ -3254,15 +3255,17 @@ read without acknowledgement. No value of any credential is in any report.
 | FAA login, 04:51 | `400 Header Parse Error`: ours. solclientjs writes each SMF frame as a binary string with `write(frame, "ascii")`, which Node sends one byte a character; the Deno shim encoded it as UTF-8. Fixed and pinned (`stringBytes`) |
 | FAA login, 06:38 and 06:48 | session up in 637–639 ms, the queue bound in 484–971 ms; 20, then 200 messages, left unacknowledged |
 | What the queue holds | only seconds: the oldest message was sent 8 s before the bind; the median message was 5.1 s old when it reached us. A reader has to stay connected |
+| What SCDS offers (2026-09-27) | the SWIFT Portal's New Subscription list, read logged in by Davies' assistant: STDDS, ITWS, TFMS, TBFM, SFDPS, NOTAM Distribution and TFDM; no METAR, SPECI or surface-observation product. The portal's news: CSS-Wx is expected to join SCDS in Q4 2026 |
 | What ITWS carries | 200 messages from 25 terminal areas (ATL, BNA, C90, CLT, CMH, CVG, D01, D10, DTW, I90, M98, MCI, MCO, MEM, MIA, MSY, N90, NCT, OKC, PCT, PHL, SDF, SJU, T75, TUL), every one ITWS's `itws_msg` XML: 9832 Microburst TRACON Map, 9833 Gust Front TRACON Map, 9834 Gust Front ETI, 9838 Tornado Detections, 9839 Tornado Alert, 9840 Configured Alerts, 9847 AP Status, 9848 AP Indicated Precipitation, 9849 Precipitation 5nm, 9850 Precipitation TRACON, 9857 Hazard Text 5nm, 9858 Hazard Text TRACON, 9893 Microburst ATIS, 9894 Wind Shear ATIS, 9911 SM SEP 5nm, 9912 SM SEP TRACON. **No temperature** |
 
 **What it means.** The FAA's feed works from where the functions run, and the path to it (Solace's own client, over a
 TLS stream of Deno's) is proven end to end. But ITWS is the terminal weather system's hazard products: nothing in it is
-a surface observation, so it cannot tell a temperature market anything. The METAR on SWIM is CSS-Wx's product, which
-the FAA said in 2024 would reach non-NAS consumers "via ... SCDS" (FPAW 2024); SCDS's 2019 guide lists only STDDS, ITWS,
-TFMS, TBFM, FDPS and AIM FNS. Whether the SWIFT Portal now offers a METAR product is a look at its New Subscription
-list, Davies' step; the probe reads any product without a change. Météo-France is not yet read at all: it needs one of
-the two credentials above.
+a surface observation, so it cannot tell a temperature market anything, and nothing else SCDS offers today is one
+either. The METAR on SWIM is CSS-Wx's product, which the FAA said in 2024 would reach non-NAS consumers "via ... SCDS"
+(FPAW 2024) and which the portal now expects in Q4 2026. Until it arrives the FAA leg of WXSRC waits; when it does, a
+subscription to its METAR/SPECI for the eleven US stations is read by the same probe without a change, and only then
+measured against `tgftp` and the takers. The ITWS subscription can lapse (60 days idle). Météo-France is not yet read
+at all: it needs one of the two credentials above.
 
 ## Sources
 
