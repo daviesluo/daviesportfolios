@@ -27,14 +27,17 @@ const ENV: Record<string, string> = {
 };
 const SECRET_VALUES = Object.entries(ENV).filter(([k]) => k.startsWith("FAA_SWIM_") && !["FAA_SWIM_VPN", "FAA_SWIM_PORT", "FAA_SWIM_PROTOCOL"].includes(k)).map(([, v]) => v);
 
+/** A message in the shape SCDS delivered ITWS on 2026-09-27: `itws_msg` XML, the product id and site as properties. */
 const itws = (i: number): FaaMessage => ({
-  destination: `ITWS/CONFIGURED_ALERTS/KORD/${i}`,
+  destination: `ITWS_Alert/9833/ORD/ORD`,
   senderTimestamp: Date.parse("2026-09-27T05:00:00Z") + i * 1000,
-  receiverTimestamp: Date.parse("2026-09-27T05:00:02Z") + i * 1000,
-  type: "TEXT",
+  receiverTimestamp: null,
+  receivedAt: Date.parse("2026-09-27T05:00:02Z") + i * 1000,
+  type: "BINARY",
   redelivered: false,
-  properties: { productType: "CA", airport: "KORD" },
-  payload: `<?xml version="1.0"?><ns2:ITWSConfiguredAlerts xmlns:ns2="urn:itws"><airport>KORD</airport><windShear>none</windShear></ns2:ITWSConfiguredAlerts>`,
+  properties: { ITWSsite: "ORD", productID: "9833", AlertQueue: "Alert", airport: "ORD" },
+  payload: `<?xml version="1.0" encoding="UTF-8"?><itws_msg><product_header><product_msg_name>Configured Alerts</product_msg_name>` +
+    `<product_header_product_type>CA</product_header_product_type><product_header_airports>KORD</product_header_airports></product_header></itws_msg>`,
 });
 
 /** A broker stand-in: it records what it was asked, answers with `messages`, and puts every credential in its errors. */
@@ -103,12 +106,18 @@ Deno.test("faaProbe: logs in with the connection's credentials, binds its queue,
   assertEquals(b.seen(), { url: `tcps://${ENV.FAA_SWIM_HOST}:55443`, vpn: "ITWS", user: ENV.FAA_SWIM_CONNECTION_USERNAME, password: ENV.FAA_SWIM_CONNECTION_PASSWORD, queue: ENV.FAA_SWIM_QUEUE });
   // the session offers no acknowledge and no publish: connect, consume and close are all it was asked
   assertEquals(b.calls, ["connect", "consume", "close"]);
-  const q = out.queue as { received: number; byRoot: Record<string, number>; anyTemperature: boolean; messages: Record<string, unknown>[] };
-  assertEquals(q.received, FAA_PROBE_MESSAGES);
-  assertEquals(q.byRoot, { ITWSConfiguredAlerts: FAA_PROBE_MESSAGES });
+  const q = out.queue as { received: number; byRoot: Record<string, number>; anyTemperature: boolean; sites: string[]; products: Record<string, Record<string, unknown>>; samples: Record<string, unknown>[] };
+  assertEquals(q.received, 30);
+  assert(30 < FAA_PROBE_MESSAGES, "the probe reads every message the broker hands it, up to its bound");
+  assertEquals(q.byRoot, { itws_msg: 30 });
   assertEquals(q.anyTemperature, false);
-  assertEquals(q.messages[0].ageAtReceiptS, 2);
-  assertEquals(q.messages[0].airports, ["KORD"]);
+  assertEquals(q.sites, ["ORD"]);
+  assertEquals(q.products["9833"], { name: "Configured Alerts", types: ["CA"], sites: ["ORD"], count: 30, bytesMedian: (itws(0).payload as string).length, ageMedianS: 2, temperature: false });
+  assertEquals(q.samples.length, 3);
+  assertEquals(q.samples[0].ageAtReceiptS, 2);
+  assertEquals(q.samples[0].airports, ["KORD"]);
+  // the service name in each message's properties is SCDS's own word, not a secret, and survives the scrub
+  assertEquals((q.samples[0].properties as Record<string, unknown>).AlertQueue, "Alert");
   assertEquals(out.target, { scheme: "tcps", port: 55443, hostSuffix: "faa.gov" });
   const text = JSON.stringify(out);
   for (const v of SECRET_VALUES) assert(!text.includes(v), `${v} in the report`);
@@ -151,6 +160,9 @@ Deno.test("scrubDeep, faaScrubList: longest first, the VPN and port kept, short 
   const list = faaScrubList(faaSecrets(ENV));
   assert(!list.includes("ITWS") && !list.includes("55443") && !list.includes("tcps"));
   assertEquals(list.length, 11);
+  // SCDS's service names are its own vocabulary: stored as settings, they stay readable in the messages' properties
+  const services = faaScrubList({ FAA_SWIM_FILTERS: "Standard", FAA_SWIM_SERVICES: "Alerts", FAA_SWIM_CONNECTION_PASSWORD: "Standard-planted-pw" });
+  assertEquals(services, ["Standard-planted-pw"]);
 });
 
 Deno.test("faaRoles, faaForms: the fourteen names the other tool stored on 2026-09-27, read as the probe read them", () => {

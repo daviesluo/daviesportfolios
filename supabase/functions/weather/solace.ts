@@ -55,6 +55,7 @@ function toMessage(m: any): FaaMessage {
     receiverTimestamp: m.getReceiverTimestamp?.() ?? null,
     type,
     redelivered: Boolean(m.isRedelivered?.()),
+    receivedAt: Date.now(),
     properties: props,
     payload,
   };

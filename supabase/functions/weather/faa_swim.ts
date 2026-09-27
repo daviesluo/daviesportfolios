@@ -14,7 +14,7 @@ export const FAA_PREFIX = /^FAA_SWIM_/i;
 export const SCDS_PRODUCTS = ["AIM_FNS", "AIMFNS", "FDPS", "ITWS", "STDDS", "TBFM", "TFMS", "CSSWX", "CSS-WX", "NWP", "WMSCR"] as const;
 export const SCDS_DEFAULT_PORT = 55443;
 /** At most this many messages, and this long bound to the queue: enough to see the product mix, little to download. */
-export const FAA_PROBE_MESSAGES = 20;
+export const FAA_PROBE_MESSAGES = 200;
 export const FAA_PROBE_LISTEN_MS = 15_000;
 export const FAA_CONNECT_TIMEOUT_MS = 10_000;
 /** Of each message, only this many bytes are decoded for its head and element names. */
@@ -25,6 +25,8 @@ export type FaaMessage = {
   destination: string | null;
   senderTimestamp: number | null;
   receiverTimestamp: number | null;
+  /** This isolate's clock when the message arrived: the broker's receive stamp is not always set. */
+  receivedAt?: number | null;
   type: string;
   redelivered: boolean;
   properties: Record<string, unknown>;
@@ -136,6 +138,11 @@ export function faaScrubList(values: Record<string, string>, roles: Partial<Reco
 
 /** Protocol names the settings may hold; with SCDS's product names and port numbers, the only values left unscrubbed. */
 export const PUBLIC_PROTOCOLS = ["tcp", "tcps", "smf", "smfs", "ssl", "tls", "jms"] as const;
+/**
+ * SCDS's service names for ITWS, which the subscription was taken for ("Alerts + Standard"). Stored as settings, they
+ * are also the values of every message's `AlertQueue` property, which the second probe's report had scrubbed.
+ */
+export const SCDS_SERVICES = ["ALERT", "ALERTS", "STANDARD"] as const;
 
 /**
  * A value from a closed public vocabulary: a port number, a protocol's name or one of SCDS's products. The tool that
@@ -144,7 +151,8 @@ export const PUBLIC_PROTOCOLS = ["tcp", "tcps", "smf", "smfs", "ssl", "tls", "jm
  */
 export function isPublicSetting(v: string): boolean {
   const t = v.trim();
-  return /^\d{1,6}$/.test(t) || (PUBLIC_PROTOCOLS as readonly string[]).includes(t.toLowerCase()) || (SCDS_PRODUCTS as readonly string[]).includes(t.toUpperCase());
+  return /^\d{1,6}$/.test(t) || (PUBLIC_PROTOCOLS as readonly string[]).includes(t.toLowerCase())
+    || (SCDS_PRODUCTS as readonly string[]).includes(t.toUpperCase()) || (SCDS_SERVICES as readonly string[]).includes(t.toUpperCase());
 }
 
 /** Every string in `x`, however deep, with each secret replaced. */
@@ -184,12 +192,19 @@ export async function summariseMessage(m: FaaMessage, now: number): Promise<Reco
   const root = elements.find((e) => e !== "xml") ?? null;
   const airports = [...new Set([...text.matchAll(/\b(K[A-Z]{3})\b/g)].map((x) => x[1]))].slice(0, 12);
   const props = Object.fromEntries(Object.entries(m.properties).slice(0, 24).map(([k, v]) => [k, typeof v === "string" ? v.slice(0, 80) : v]));
+  // ITWS names its product inside the message; any feed's short leaf fields say what it carries.
+  const field = (tag: string) => new RegExp(`<(?:[\\w.-]+:)?${tag}>([^<]{0,120})</`).exec(text)?.[1]?.trim() ?? null;
+  const leaves = [...text.matchAll(/<(?:[\w.-]+:)?([A-Za-z_][\w.-]*)(?:\s[^>]*)?>([^<]{1,60})<\//g)].slice(0, 16).map((x) => `${x[1]}=${x[2].trim()}`);
+  const arrived = m.receiverTimestamp ?? m.receivedAt ?? null;
   return {
     destination: m.destination,
     type: m.type,
     redelivered: m.redelivered,
+    product: field("product_msg_name"),
+    productType: field("product_header_product_type"),
+    leaves,
     sentAt: m.senderTimestamp ? new Date(m.senderTimestamp).toISOString() : null,
-    ageAtReceiptS: m.senderTimestamp && m.receiverTimestamp ? Math.round((m.receiverTimestamp - m.senderTimestamp) / 1000) : null,
+    ageAtReceiptS: m.senderTimestamp && arrived ? Math.round((arrived - m.senderTimestamp) / 100) / 10 : null,
     ageNowS: m.senderTimestamp ? Math.round((now - m.senderTimestamp) / 1000) : null,
     bytes: bytes?.length ?? 0,
     encoding,
@@ -236,19 +251,35 @@ export async function faaProbe(deps: FaaDeps): Promise<Record<string, unknown>> 
     if (login.up) {
       const got = await session.consume({ queue: values[roles.queue!].trim(), maxMessages: deps.maxMessages ?? FAA_PROBE_MESSAGES, listenMs: deps.listenMs ?? FAA_PROBE_LISTEN_MS });
       const t = now();
-      const messages = [];
-      for (const m of got.messages) messages.push(await summariseMessage(m, t));
-      const byRoot: Record<string, number> = {}, byDestination: Record<string, number> = {};
+      const messages: (Record<string, unknown> & { key: string })[] = [];
+      for (const m of got.messages) messages.push({ ...(await summariseMessage(m, t)), key: String(m.properties.productID ?? "") });
+      const byRoot: Record<string, number> = {};
+      const products: Record<string, { name: string | null; types: string[]; sites: string[]; count: number; bytes: number[]; ages: number[]; temperature: boolean }> = {};
       for (const m of messages) {
-        const r = String(m.root ?? "(none)"), d = String(m.destination ?? "(none)").split("/").slice(0, 3).join("/");
+        const r = String(m.root ?? "(none)");
         byRoot[r] = (byRoot[r] ?? 0) + 1;
-        byDestination[d] = (byDestination[d] ?? 0) + 1;
+        const k = m.key || String(m.destination ?? r).split("/").slice(0, 2).join("/");
+        const p = products[k] ??= { name: null, types: [], sites: [], count: 0, bytes: [], ages: [], temperature: false };
+        p.count++;
+        p.name ??= (m.product as string | null) ?? null;
+        const type = String(m.productType ?? ""), site = String((m.properties as Record<string, unknown>).ITWSsite ?? "");
+        if (type && !p.types.includes(type)) p.types.push(type);
+        if (site && !p.sites.includes(site)) p.sites.push(site);
+        p.bytes.push(Number(m.bytes) || 0);
+        if (typeof m.ageAtReceiptS === "number") p.ages.push(m.ageAtReceiptS);
+        p.temperature ||= Boolean(m.mentionsTemperature);
       }
+      const mid = (xs: number[]) => { const s2 = [...xs].sort((a, b) => a - b); return s2.length ? s2[Math.floor(s2.length / 2)] : null; };
+      const sites = [...new Set(messages.map((m) => String((m.properties as Record<string, unknown>).ITWSsite ?? "")).filter(Boolean))].sort();
       out.queue = {
         bound: got.bound, ms: got.ms, error: got.error ?? null, code: got.code ?? null, subcode: got.subcode ?? null,
-        received: messages.length, byRoot, byDestination,
+        received: messages.length, byRoot, sites,
         anyTemperature: messages.some((m) => m.mentionsTemperature),
-        messages,
+        ageAtReceiptS: { median: mid(messages.map((m) => m.ageAtReceiptS).filter((x): x is number => typeof x === "number")) },
+        products: Object.fromEntries(Object.entries(products).sort(([a], [b]) => a.localeCompare(b)).map(([k, p]) => [k, {
+          name: p.name, types: p.types, sites: p.sites.sort(), count: p.count, bytesMedian: mid(p.bytes), ageMedianS: mid(p.ages), temperature: p.temperature,
+        }])),
+        samples: messages.slice(0, 3).map(({ key: _key, ...m }) => m),
       };
     }
   } catch (e) {
