@@ -1,0 +1,1275 @@
+{
+ "byHow": {
+  "end": {
+   "fundingUsd": 0.1945,
+   "packages": 1,
+   "pnlUsd": -2.0364
+  },
+  "guard": {
+   "fundingUsd": 309.1221,
+   "packages": 33,
+   "pnlUsd": 423.2743
+  },
+  "rule": {
+   "fundingUsd": 313.9768,
+   "packages": 35,
+   "pnlUsd": 239.1637
+  },
+  "universe": {
+   "fundingUsd": 132.1101,
+   "packages": 15,
+   "pnlUsd": -177.7915
+  }
+ },
+ "checks": {
+  "guardSpotSaleAboveTheSpotHigh": {
+   "annualisedWithTheseCappedAtTheSpotHigh": 0.014019,
+   "packages": [
+    {
+     "entry": "2024-02-12",
+     "givenBackAtTheHigh": 0.3746,
+     "perp": "1000SATSUSDT",
+     "pnl": 17.3687
+    },
+    {
+     "entry": "2024-07-21",
+     "givenBackAtTheHigh": 220.4873,
+     "perp": "BONDUSDT",
+     "pnl": 246.1224
+    }
+   ]
+  },
+  "packagesPricedWithALastClose": {
+   "annualisedWithoutThem": 0.040418,
+   "packages": [
+    {
+     "entry": "2024-09-05",
+     "how": "universe",
+     "perp": "MATICUSDT",
+     "pnl": -6.3212,
+     "prices": 2
+    },
+    {
+     "entry": "2024-10-30",
+     "how": "universe",
+     "perp": "UNFIUSDT",
+     "pnl": -145.8221,
+     "prices": 2
+    },
+    {
+     "entry": "2025-01-06",
+     "how": "universe",
+     "perp": "FTMUSDT",
+     "pnl": -55.5623,
+     "prices": 2
+    },
+    {
+     "entry": "2025-03-18",
+     "how": "universe",
+     "perp": "BNXUSDT",
+     "pnl": -72.2032,
+     "prices": 2
+    },
+    {
+     "entry": "2025-09-13",
+     "how": "universe",
+     "perp": "BAKEUSDT",
+     "pnl": 7.8661,
+     "prices": 2
+    }
+   ]
+  }
+ },
+ "conditions": {
+  "c1_annualised_ge_8pct": {
+   "holds": false,
+   "value": 0.025848
+  },
+  "c2_bootstrap": {
+   "annualisedMean": 0.025848,
+   "holmStep": "applied by holm.py",
+   "p": 0.9995
+  },
+  "c3_each_half_ge_4pct": {
+   "first": 0.05729,
+   "holds": false,
+   "second": -0.005641
+  },
+  "c4_last12_ge_4pct": {
+   "holds": false,
+   "value": -0.00159
+  },
+  "c5_c1_with_costs_doubled": {
+   "holds": false,
+   "value": 0.011838
+  },
+  "c6_best_month_le_40pct_rest_positive": {
+   "bestMonth": "2024-07",
+   "bestMonthPnl": 243.5497,
+   "bestShare": 0.5047,
+   "holds": false,
+   "restPnl": 239.0604,
+   "total": 482.6101
+  },
+  "c7_max_drawdown_le_20pct": {
+   "holds": true,
+   "value": 0.044478
+  },
+  "c8_selection_beats_random": {
+   "holds": true,
+   "nullMeanUsd": 59.1237,
+   "nullP95Usd": 202.7878,
+   "pSel": 0.0005,
+   "ruleSumUsd": 482.6101
+  }
+ },
+ "countsRecomputed": {
+  "distinctCoins": 49,
+  "equalPhase1": true,
+  "holdDays": {
+   "median": 13.5,
+   "p25": 5.0,
+   "p75": 33.0
+  },
+  "howClosed": {
+   "end": 1,
+   "guard": 33,
+   "rule": 35,
+   "universe": 15
+  },
+  "packages": 84,
+  "packagesByPart": {
+   "first": 56,
+   "last12": 16,
+   "second": 28
+  },
+  "slotDaysAvailable": 6815,
+  "slotDaysByPart": {
+   "first": 1211,
+   "last12": 147,
+   "second": 442
+  }
+ },
+ "descriptive": {
+  "grid": {
+   "enter10_slots10": {
+    "annualised": 0.00595,
+    "packages": 701
+   },
+   "enter10_slots3": {
+    "annualised": 0.003952,
+    "packages": 290
+   },
+   "enter10_slots5": {
+    "annualised": 0.000243,
+    "packages": 441
+   },
+   "enter25_slots10": {
+    "annualised": 0.025874,
+    "packages": 123
+   },
+   "enter25_slots3": {
+    "annualised": 0.026207,
+    "packages": 61
+   },
+   "enter25_slots5": {
+    "annualised": 0.025848,
+    "packages": 84
+   },
+   "enter50_slots10": {
+    "annualised": 0.023254,
+    "packages": 65
+   },
+   "enter50_slots3": {
+    "annualised": 0.037442,
+    "packages": 31
+   },
+   "enter50_slots5": {
+    "annualised": 0.030295,
+    "packages": 42
+   }
+  },
+  "usdcTwins": "not computed (descriptive only)"
+ },
+ "fallbackHalfSpreadsBp": {
+  "perpP90": 3.5577,
+  "spotP90": 11.7925
+ },
+ "fallbackPrices": {
+  "spot exit": 5,
+  "spot mark": 5
+ },
+ "frozenFiles": {
+  "docs/agents/backtests/fp6/measure.py": "a8d67ca41be1e61f75a37a52111734ccf3b656ba6efb1ba7ce26768116d94275",
+  "docs/agents/backtests/fp6/measurements.json": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a",
+  "docs/agents/backtests/fp6/rules.py": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a",
+  "docs/agents/reviews/2026-09-26-fp6-prereg-carry-xs.md": "ab61cf7bc1ab3061e33625e05c707cbf574b53cb91d4e1d6d088044e4707ee1b",
+  "manifest.json inputs": "all match"
+ },
+ "hypothesis": "fp6-H3 CARRY-X",
+ "pBootstrap": 0.9995,
+ "packages": [
+  {
+   "basis": 1.0779,
+   "costs": 3.0385,
+   "entry": "2023-01-16",
+   "exit": "2023-01-25",
+   "fallbackPrices": 0,
+   "funding": 3.0835,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "OPUSDT",
+   "pnl": 1.1229
+  },
+  {
+   "basis": -0.5757,
+   "costs": 3.8856,
+   "entry": "2023-01-15",
+   "exit": "2023-02-04",
+   "fallbackPrices": 0,
+   "funding": 8.4683,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000SHIBUSDT",
+   "pnl": 4.007
+  },
+  {
+   "basis": 1.0542,
+   "costs": 2.1497,
+   "entry": "2023-01-16",
+   "exit": "2023-02-13",
+   "fallbackPrices": 0,
+   "funding": 6.8138,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "DOGEUSDT",
+   "pnl": 5.7183
+  },
+  {
+   "basis": -0.1457,
+   "costs": 2.2181,
+   "entry": "2023-02-04",
+   "exit": "2023-02-13",
+   "fallbackPrices": 0,
+   "funding": 1.8771,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "OPUSDT",
+   "pnl": -0.4867
+  },
+  {
+   "basis": 2.5135,
+   "costs": 2.6398,
+   "entry": "2023-01-16",
+   "exit": "2023-02-17",
+   "fallbackPrices": 0,
+   "funding": 9.1267,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "FILUSDT",
+   "pnl": 9.0003
+  },
+  {
+   "basis": 0.7584,
+   "costs": 2.7349,
+   "entry": "2023-01-16",
+   "exit": "2023-02-17",
+   "fallbackPrices": 0,
+   "funding": 7.3773,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "LDOUSDT",
+   "pnl": 5.4008
+  },
+  {
+   "basis": 0.3866,
+   "costs": 2.9033,
+   "entry": "2023-02-05",
+   "exit": "2023-03-05",
+   "fallbackPrices": 0,
+   "funding": 4.011,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "MASKUSDT",
+   "pnl": 1.4943
+  },
+  {
+   "basis": 0.4979,
+   "costs": 1.7364,
+   "entry": "2023-02-21",
+   "exit": "2023-03-12",
+   "fallbackPrices": 0,
+   "funding": 2.8069,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "FILUSDT",
+   "pnl": 1.5685
+  },
+  {
+   "basis": 1.3961,
+   "costs": 2.8474,
+   "entry": "2023-04-18",
+   "exit": "2023-04-23",
+   "fallbackPrices": 0,
+   "funding": 0.5822,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "GMTUSDT",
+   "pnl": -0.8691
+  },
+  {
+   "basis": -0.4026,
+   "costs": 3.0644,
+   "entry": "2023-04-17",
+   "exit": "2023-04-24",
+   "fallbackPrices": 0,
+   "funding": 1.8224,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000SHIBUSDT",
+   "pnl": -1.6445
+  },
+  {
+   "basis": 0.7583,
+   "costs": 2.2902,
+   "entry": "2023-04-17",
+   "exit": "2023-04-28",
+   "fallbackPrices": 0,
+   "funding": 1.9235,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "OPUSDT",
+   "pnl": 0.3916
+  },
+  {
+   "basis": 1.1087,
+   "costs": 1.9962,
+   "entry": "2023-04-17",
+   "exit": "2023-05-06",
+   "fallbackPrices": 0,
+   "funding": 3.5855,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "LDOUSDT",
+   "pnl": 2.6979
+  },
+  {
+   "basis": 0.2469,
+   "costs": 2.9677,
+   "entry": "2023-04-18",
+   "exit": "2023-06-12",
+   "fallbackPrices": 0,
+   "funding": 7.0109,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "AGIXUSDT",
+   "pnl": 4.2901
+  },
+  {
+   "basis": 1.3283,
+   "costs": 4.8481,
+   "entry": "2023-10-26",
+   "exit": "2023-10-31",
+   "fallbackPrices": 0,
+   "funding": 2.8621,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "BLZUSDT",
+   "pnl": -0.6577
+  },
+  {
+   "basis": 2.5769,
+   "costs": 4.8508,
+   "entry": "2023-10-29",
+   "exit": "2023-11-11",
+   "fallbackPrices": 0,
+   "funding": 10.6244,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "STMXUSDT",
+   "pnl": 8.3505
+  },
+  {
+   "basis": 0.2343,
+   "costs": 2.9717,
+   "entry": "2023-11-05",
+   "exit": "2023-11-21",
+   "fallbackPrices": 0,
+   "funding": 3.7438,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "LQTYUSDT",
+   "pnl": 1.0064
+  },
+  {
+   "basis": -0.6847,
+   "costs": 3.1099,
+   "entry": "2023-11-02",
+   "exit": "2023-11-26",
+   "fallbackPrices": 0,
+   "funding": 10.0969,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "GALAUSDT",
+   "pnl": 6.3023
+  },
+  {
+   "basis": -3.9429,
+   "costs": 4.3074,
+   "entry": "2023-10-31",
+   "exit": "2023-12-05",
+   "fallbackPrices": 0,
+   "funding": 19.667,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000PEPEUSDT",
+   "pnl": 11.4167
+  },
+  {
+   "basis": 0.1752,
+   "costs": 3.4376,
+   "entry": "2023-12-05",
+   "exit": "2023-12-12",
+   "fallbackPrices": 0,
+   "funding": 9.4634,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "TRBUSDT",
+   "pnl": 6.2009
+  },
+  {
+   "basis": 0.1068,
+   "costs": 3.8868,
+   "entry": "2023-11-03",
+   "exit": "2023-12-16",
+   "fallbackPrices": 0,
+   "funding": 21.1469,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000SHIBUSDT",
+   "pnl": 17.3669
+  },
+  {
+   "basis": -0.2955,
+   "costs": 4.8446,
+   "entry": "2023-11-12",
+   "exit": "2023-12-17",
+   "fallbackPrices": 0,
+   "funding": 15.7057,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "STORJUSDT",
+   "pnl": 10.5656
+  },
+  {
+   "basis": -0.7803,
+   "costs": 3.4362,
+   "entry": "2023-12-17",
+   "exit": "2023-12-20",
+   "fallbackPrices": 0,
+   "funding": 3.0213,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "TRBUSDT",
+   "pnl": -1.1952
+  },
+  {
+   "basis": -1.538,
+   "costs": 3.0349,
+   "entry": "2023-12-21",
+   "exit": "2023-12-22",
+   "fallbackPrices": 0,
+   "funding": 1.8827,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "OPUSDT",
+   "pnl": -2.6902
+  },
+  {
+   "basis": -0.1736,
+   "costs": 4.8448,
+   "entry": "2023-12-06",
+   "exit": "2023-12-26",
+   "fallbackPrices": 0,
+   "funding": 15.4686,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "RNDRUSDT",
+   "pnl": 10.4502
+  },
+  {
+   "basis": 2.0699,
+   "costs": 3.0065,
+   "entry": "2023-12-23",
+   "exit": "2023-12-27",
+   "fallbackPrices": 0,
+   "funding": -0.0517,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TRBUSDT",
+   "pnl": -0.9883
+  },
+  {
+   "basis": 0.9539,
+   "costs": 3.5168,
+   "entry": "2023-12-27",
+   "exit": "2024-01-04",
+   "fallbackPrices": 0,
+   "funding": 5.5986,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "IOTAUSDT",
+   "pnl": 3.0357
+  },
+  {
+   "basis": 0.9934,
+   "costs": 1.9627,
+   "entry": "2023-12-18",
+   "exit": "2024-01-07",
+   "fallbackPrices": 0,
+   "funding": 16.1096,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000LUNCUSDT",
+   "pnl": 15.1403
+  },
+  {
+   "basis": 0.9802,
+   "costs": 3.334,
+   "entry": "2023-12-05",
+   "exit": "2024-01-11",
+   "fallbackPrices": 0,
+   "funding": 20.1498,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "ETCUSDT",
+   "pnl": 17.796
+  },
+  {
+   "basis": -0.4741,
+   "costs": 2.3472,
+   "entry": "2023-12-13",
+   "exit": "2024-02-14",
+   "fallbackPrices": 0,
+   "funding": 23.5025,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "GALAUSDT",
+   "pnl": 20.6812
+  },
+  {
+   "basis": -0.0133,
+   "costs": 2.5119,
+   "entry": "2024-02-14",
+   "exit": "2024-02-23",
+   "fallbackPrices": 0,
+   "funding": 8.1332,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "JTOUSDT",
+   "pnl": 5.608
+  },
+  {
+   "basis": 0.0944,
+   "costs": 2.4924,
+   "entry": "2024-01-04",
+   "exit": "2024-02-24",
+   "fallbackPrices": 0,
+   "funding": 15.5514,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "MINAUSDT",
+   "pnl": 13.1534
+  },
+  {
+   "basis": -0.4351,
+   "costs": 4.3149,
+   "entry": "2023-12-27",
+   "exit": "2024-02-26",
+   "fallbackPrices": 0,
+   "funding": 27.9468,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000PEPEUSDT",
+   "pnl": 23.1968
+  },
+  {
+   "basis": -0.9245,
+   "costs": 4.2907,
+   "entry": "2024-02-12",
+   "exit": "2024-02-29",
+   "fallbackPrices": 0,
+   "funding": 22.5839,
+   "guardSpotAboveHigh": true,
+   "how": "guard",
+   "perp": "1000SATSUSDT",
+   "pnl": 17.3687
+  },
+  {
+   "basis": -2.1696,
+   "costs": 4.3112,
+   "entry": "2024-03-01",
+   "exit": "2024-03-01",
+   "fallbackPrices": 0,
+   "funding": 1.5602,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000PEPEUSDT",
+   "pnl": -4.9206
+  },
+  {
+   "basis": -0.5382,
+   "costs": 4.8082,
+   "entry": "2024-03-02",
+   "exit": "2024-03-04",
+   "fallbackPrices": 0,
+   "funding": 8.3104,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000BONKUSDT",
+   "pnl": 2.9641
+  },
+  {
+   "basis": 0.0656,
+   "costs": 3.0575,
+   "entry": "2024-02-14",
+   "exit": "2024-03-05",
+   "fallbackPrices": 0,
+   "funding": 30.0252,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "ORDIUSDT",
+   "pnl": 27.0333
+  },
+  {
+   "basis": -1.4796,
+   "costs": 3.5451,
+   "entry": "2024-02-23",
+   "exit": "2024-03-08",
+   "fallbackPrices": 0,
+   "funding": 20.8596,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "LPTUSDT",
+   "pnl": 15.835
+  },
+  {
+   "basis": -0.579,
+   "costs": 2.7557,
+   "entry": "2024-02-24",
+   "exit": "2024-03-10",
+   "fallbackPrices": 0,
+   "funding": 25.4387,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "TRBUSDT",
+   "pnl": 22.104
+  },
+  {
+   "basis": 0.4792,
+   "costs": 2.5338,
+   "entry": "2024-03-05",
+   "exit": "2024-04-15",
+   "fallbackPrices": 0,
+   "funding": 29.504,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000SATSUSDT",
+   "pnl": 27.4494
+  },
+  {
+   "basis": 0.6289,
+   "costs": 1.774,
+   "entry": "2024-02-27",
+   "exit": "2024-04-16",
+   "fallbackPrices": 0,
+   "funding": 43.0925,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TIAUSDT",
+   "pnl": 41.9474
+  },
+  {
+   "basis": 0.5727,
+   "costs": 2.8762,
+   "entry": "2024-03-09",
+   "exit": "2024-04-17",
+   "fallbackPrices": 0,
+   "funding": 29.0644,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000PEPEUSDT",
+   "pnl": 26.7609
+  },
+  {
+   "basis": 1.0296,
+   "costs": 1.9195,
+   "entry": "2024-03-10",
+   "exit": "2024-04-18",
+   "fallbackPrices": 0,
+   "funding": 23.6822,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000FLOKIUSDT",
+   "pnl": 22.7923
+  },
+  {
+   "basis": -0.1398,
+   "costs": 3.3727,
+   "entry": "2024-03-06",
+   "exit": "2024-04-22",
+   "fallbackPrices": 0,
+   "funding": 30.4328,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000BONKUSDT",
+   "pnl": 26.9203
+  },
+  {
+   "basis": 0.6141,
+   "costs": 1.6936,
+   "entry": "2024-05-30",
+   "exit": "2024-07-01",
+   "fallbackPrices": 0,
+   "funding": 5.5232,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "WLDUSDT",
+   "pnl": 4.4438
+  },
+  {
+   "basis": 0.9643,
+   "costs": 3.0777,
+   "entry": "2024-05-31",
+   "exit": "2024-07-04",
+   "fallbackPrices": 0,
+   "funding": 6.343,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000PEPEUSDT",
+   "pnl": 4.2296
+  },
+  {
+   "basis": 0.6231,
+   "costs": 1.991,
+   "entry": "2024-05-30",
+   "exit": "2024-07-06",
+   "fallbackPrices": 0,
+   "funding": 6.9949,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "AEVOUSDT",
+   "pnl": 5.6271
+  },
+  {
+   "basis": 0.6553,
+   "costs": 2.4454,
+   "entry": "2024-06-07",
+   "exit": "2024-07-10",
+   "fallbackPrices": 0,
+   "funding": 5.3841,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TRBUSDT",
+   "pnl": 3.594
+  },
+  {
+   "basis": 0.2449,
+   "costs": 1.9093,
+   "entry": "2024-05-28",
+   "exit": "2024-07-10",
+   "fallbackPrices": 0,
+   "funding": 7.4936,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "WIFUSDT",
+   "pnl": 5.8292
+  },
+  {
+   "basis": 249.4525,
+   "costs": 5.3885,
+   "entry": "2024-07-21",
+   "exit": "2024-07-22",
+   "fallbackPrices": 0,
+   "funding": 2.0583,
+   "guardSpotAboveHigh": true,
+   "how": "guard",
+   "perp": "BONDUSDT",
+   "pnl": 246.1224
+  },
+  {
+   "basis": -3.4883,
+   "costs": 4.0303,
+   "entry": "2024-09-05",
+   "exit": "2024-09-11",
+   "fallbackPrices": 2,
+   "funding": 1.1974,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "MATICUSDT",
+   "pnl": -6.3212
+  },
+  {
+   "basis": -144.6503,
+   "costs": 3.6717,
+   "entry": "2024-10-30",
+   "exit": "2024-11-07",
+   "fallbackPrices": 2,
+   "funding": 2.4998,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "UNFIUSDT",
+   "pnl": -145.8221
+  },
+  {
+   "basis": -0.0095,
+   "costs": 4.8094,
+   "entry": "2024-11-12",
+   "exit": "2024-11-12",
+   "fallbackPrices": 0,
+   "funding": 0.839,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000BONKUSDT",
+   "pnl": -3.9799
+  },
+  {
+   "basis": 0.1004,
+   "costs": 4.3161,
+   "entry": "2024-11-12",
+   "exit": "2024-11-13",
+   "fallbackPrices": 0,
+   "funding": 1.6247,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000PEPEUSDT",
+   "pnl": -2.5909
+  },
+  {
+   "basis": -1.0255,
+   "costs": 3.0523,
+   "entry": "2024-11-13",
+   "exit": "2024-11-13",
+   "fallbackPrices": 0,
+   "funding": 0.588,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "WIFUSDT",
+   "pnl": -3.4898
+  },
+  {
+   "basis": 0.0927,
+   "costs": 4.8097,
+   "entry": "2024-11-14",
+   "exit": "2024-11-17",
+   "fallbackPrices": 0,
+   "funding": 2.0503,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "1000BONKUSDT",
+   "pnl": -2.6667
+  },
+  {
+   "basis": -0.4798,
+   "costs": 2.7232,
+   "entry": "2024-11-14",
+   "exit": "2024-11-23",
+   "fallbackPrices": 0,
+   "funding": 4.653,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "TIAUSDT",
+   "pnl": 1.45
+  },
+  {
+   "basis": 0.67,
+   "costs": 2.743,
+   "entry": "2024-11-12",
+   "exit": "2024-12-12",
+   "fallbackPrices": 0,
+   "funding": 18.2458,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "TRBUSDT",
+   "pnl": 16.1728
+  },
+  {
+   "basis": 0.0,
+   "costs": 2.9533,
+   "entry": "2024-11-11",
+   "exit": "2024-12-21",
+   "fallbackPrices": 0,
+   "funding": 18.4592,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000SATSUSDT",
+   "pnl": 15.5059
+  },
+  {
+   "basis": 0.4584,
+   "costs": 2.0134,
+   "entry": "2024-11-18",
+   "exit": "2024-12-21",
+   "fallbackPrices": 0,
+   "funding": 14.9449,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "WIFUSDT",
+   "pnl": 13.3899
+  },
+  {
+   "basis": -56.4666,
+   "costs": 3.7738,
+   "entry": "2025-01-06",
+   "exit": "2025-01-14",
+   "fallbackPrices": 2,
+   "funding": 4.6781,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "FTMUSDT",
+   "pnl": -55.5623
+  },
+  {
+   "basis": 0.6829,
+   "costs": 1.8857,
+   "entry": "2024-11-12",
+   "exit": "2025-02-04",
+   "fallbackPrices": 0,
+   "funding": 25.2263,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TAOUSDT",
+   "pnl": 24.0235
+  },
+  {
+   "basis": 0.3605,
+   "costs": 1.6243,
+   "entry": "2024-11-24",
+   "exit": "2025-02-08",
+   "fallbackPrices": 0,
+   "funding": 18.4716,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "ORDIUSDT",
+   "pnl": 17.2077
+  },
+  {
+   "basis": -0.8809,
+   "costs": 4.8433,
+   "entry": "2025-03-11",
+   "exit": "2025-03-16",
+   "fallbackPrices": 0,
+   "funding": 10.6054,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "BNXUSDT",
+   "pnl": 4.8812
+  },
+  {
+   "basis": -68.5141,
+   "costs": 3.8887,
+   "entry": "2025-03-18",
+   "exit": "2025-03-19",
+   "fallbackPrices": 2,
+   "funding": 0.1996,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "BNXUSDT",
+   "pnl": -72.2032
+  },
+  {
+   "basis": 0.6966,
+   "costs": 3.1017,
+   "entry": "2025-07-11",
+   "exit": "2025-07-11",
+   "fallbackPrices": 0,
+   "funding": 2.5305,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "BANANAS31USDT",
+   "pnl": 0.1254
+  },
+  {
+   "basis": 0.7584,
+   "costs": 2.0039,
+   "entry": "2025-07-13",
+   "exit": "2025-07-15",
+   "fallbackPrices": 0,
+   "funding": -6.3888,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "BANANAS31USDT",
+   "pnl": -7.6343
+  },
+  {
+   "basis": -0.258,
+   "costs": 2.4947,
+   "entry": "2025-09-14",
+   "exit": "2025-09-17",
+   "fallbackPrices": 0,
+   "funding": -0.5708,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "HIFIUSDT",
+   "pnl": -3.3235
+  },
+  {
+   "basis": 7.3995,
+   "costs": 2.8104,
+   "entry": "2025-09-13",
+   "exit": "2025-09-18",
+   "fallbackPrices": 2,
+   "funding": 3.2771,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "BAKEUSDT",
+   "pnl": 7.8661
+  },
+  {
+   "basis": -1.8628,
+   "costs": 5.0529,
+   "entry": "2025-09-29",
+   "exit": "2025-09-30",
+   "fallbackPrices": 0,
+   "funding": 3.7081,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "ALPINEUSDT",
+   "pnl": -3.2075
+  },
+  {
+   "basis": 0.9042,
+   "costs": 3.6934,
+   "entry": "2025-10-02",
+   "exit": "2025-10-05",
+   "fallbackPrices": 0,
+   "funding": -1.3345,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "ALPINEUSDT",
+   "pnl": -4.1236
+  },
+  {
+   "basis": 1.3676,
+   "costs": 1.8061,
+   "entry": "2025-10-06",
+   "exit": "2025-10-13",
+   "fallbackPrices": 0,
+   "funding": 1.729,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TUTUSDT",
+   "pnl": 1.2906
+  },
+  {
+   "basis": 0.4146,
+   "costs": 1.9978,
+   "entry": "2025-10-10",
+   "exit": "2025-11-01",
+   "fallbackPrices": 0,
+   "funding": 3.0026,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "FORMUSDT",
+   "pnl": 1.4194
+  },
+  {
+   "basis": 0.1686,
+   "costs": 2.5006,
+   "entry": "2026-01-07",
+   "exit": "2026-01-11",
+   "fallbackPrices": 0,
+   "funding": 0.52,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "BROCCOLI714USDT",
+   "pnl": -1.8121
+  },
+  {
+   "basis": 0.8013,
+   "costs": 2.1877,
+   "entry": "2026-03-23",
+   "exit": "2026-04-19",
+   "fallbackPrices": 0,
+   "funding": 8.7034,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "BANANAS31USDT",
+   "pnl": 7.317
+  },
+  {
+   "basis": 0.3111,
+   "costs": 2.6607,
+   "entry": "2026-04-16",
+   "exit": "2026-04-25",
+   "fallbackPrices": 0,
+   "funding": 3.9437,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "KITEUSDT",
+   "pnl": 1.5941
+  },
+  {
+   "basis": 0.298,
+   "costs": 3.122,
+   "entry": "2026-05-11",
+   "exit": "2026-05-31",
+   "fallbackPrices": 0,
+   "funding": 9.6443,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "币安人生USDT",
+   "pnl": 6.8203
+  },
+  {
+   "basis": -9.613,
+   "costs": 3.8885,
+   "entry": "2026-06-23",
+   "exit": "2026-06-27",
+   "fallbackPrices": 0,
+   "funding": 3.2162,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TONUSDT",
+   "pnl": -10.2853
+  },
+  {
+   "basis": -1.124,
+   "costs": 2.6943,
+   "entry": "2026-06-12",
+   "exit": "2026-07-09",
+   "fallbackPrices": 0,
+   "funding": 7.397,
+   "guardSpotAboveHigh": false,
+   "how": "universe",
+   "perp": "币安人生USDT",
+   "pnl": 3.5786
+  },
+  {
+   "basis": -0.1592,
+   "costs": 3.4333,
+   "entry": "2026-07-11",
+   "exit": "2026-07-12",
+   "fallbackPrices": 0,
+   "funding": 0.9964,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "DEXEUSDT",
+   "pnl": -2.5961
+  },
+  {
+   "basis": 0.4216,
+   "costs": 2.616,
+   "entry": "2026-07-14",
+   "exit": "2026-07-19",
+   "fallbackPrices": 0,
+   "funding": -0.053,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "DEXEUSDT",
+   "pnl": -2.2475
+  },
+  {
+   "basis": 0.4812,
+   "costs": 1.6116,
+   "entry": "2026-08-10",
+   "exit": "2026-08-16",
+   "fallbackPrices": 0,
+   "funding": 1.396,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "TUTUSDT",
+   "pnl": 0.2656
+  },
+  {
+   "basis": 0.5537,
+   "costs": 3.3246,
+   "entry": "2026-08-24",
+   "exit": "2026-09-02",
+   "fallbackPrices": 0,
+   "funding": 1.352,
+   "guardSpotAboveHigh": false,
+   "how": "rule",
+   "perp": "1000PEPEUSDT",
+   "pnl": -1.4189
+  },
+  {
+   "basis": 0.8561,
+   "costs": 3.7579,
+   "entry": "2026-09-01",
+   "exit": "2026-09-02",
+   "fallbackPrices": 0,
+   "funding": 0.3935,
+   "guardSpotAboveHigh": false,
+   "how": "guard",
+   "perp": "HEMIUSDT",
+   "pnl": -2.5083
+  },
+  {
+   "basis": -0.0794,
+   "costs": 2.1516,
+   "entry": "2026-09-24",
+   "exit": "2026-09-25",
+   "fallbackPrices": 0,
+   "funding": 0.1945,
+   "guardSpotAboveHigh": false,
+   "how": "end",
+   "perp": "MUBARAKUSDT",
+   "pnl": -2.0364
+  }
+ ],
+ "passesOtherThanHolm": false,
+ "pnlByMonth": {
+  "2023-01": 16.5841,
+  "2023-02": 12.1051,
+  "2023-03": -0.8638,
+  "2023-04": 1.5273,
+  "2023-05": 3.9565,
+  "2023-06": -0.6179,
+  "2023-07": 0.0,
+  "2023-08": 0.0,
+  "2023-09": 0.0,
+  "2023-10": 3.4583,
+  "2023-11": 40.3621,
+  "2023-12": 68.1242,
+  "2024-01": 29.3036,
+  "2024-02": 75.4957,
+  "2024-03": 158.5506,
+  "2024-04": 15.6996,
+  "2024-05": -2.0577,
+  "2024-06": 28.3541,
+  "2024-07": 243.5497,
+  "2024-08": 0.0,
+  "2024-09": -6.3212,
+  "2024-10": -83.3604,
+  "2024-11": -42.1497,
+  "2024-12": 47.6838,
+  "2025-01": -47.6303,
+  "2025-02": -0.9052,
+  "2025-03": -67.3219,
+  "2025-04": 0.0,
+  "2025-05": 0.0,
+  "2025-06": 0.0,
+  "2025-07": -7.5089,
+  "2025-08": 0.0,
+  "2025-09": 1.3351,
+  "2025-10": -0.8258,
+  "2025-11": -0.5879,
+  "2025-12": 0.0,
+  "2026-01": -1.8121,
+  "2026-02": 0.0,
+  "2026-03": 4.6353,
+  "2026-04": 4.2759,
+  "2026-05": 6.8203,
+  "2026-06": -8.0394,
+  "2026-07": -3.5108,
+  "2026-08": 0.1954,
+  "2026-09": -5.8934
+ },
+ "pnlUsd": 482.6101,
+ "split": {
+  "basisUsd": -11.4641,
+  "costsUsd": 261.3293,
+  "fundingUsd": 755.4035
+ }
+}

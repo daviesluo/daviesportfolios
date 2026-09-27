@@ -1,0 +1,42 @@
+{
+ "H2": {
+  "byteIdentical": true,
+  "file": "carry_quarterly.json",
+  "runs": 2,
+  "sha256": "9cea50d7730d770f9e864f222c35a1e2361923acbb4bcdaa0e51f00fd821eab2"
+ },
+ "H3": {
+  "byteIdentical": true,
+  "file": "carry_xs.json",
+  "runs": 2,
+  "sha256": "88303d9fe8fab41ab2692b69af21d5d5c232d483e7b6d450b39015a0a2b83e9b"
+ },
+ "H4": {
+  "byteIdentical": true,
+  "file": "trend_ls.json",
+  "runs": 2,
+  "sha256": "0c31d8fe5da87c76e51014556779fbc7b8b76f4786d524820b36a4d8c7b1a10d"
+ },
+ "H5": {
+  "byteIdentical": true,
+  "file": "delist_short.json",
+  "runs": 2,
+  "sha256": "cc324b018bdf18d2f028bcd3313b8b5dcb34985d741035a8c4e99738e95ecb27"
+ },
+ "H6": {
+  "byteIdentical": true,
+  "file": "listing_short.json",
+  "runs": 2,
+  "sha256": "cee0384a742529987414a5eef4ecc4b26924a5a9f297b9e80aa274de86ce21cb"
+ },
+ "Holm": {
+  "byteIdentical": true,
+  "file": "family.json",
+  "runs": 2,
+  "sha256": "fd801edb9efb919209024bd93089de74f874969a672968d1010f00f3266aeb8d"
+ },
+ "inputs": {
+  "file": "phase2_inputs.json",
+  "sha256": "bc7e3abd81bf6323a222f8d604372fb741d906efea5bdb263a8d50b7c48980d3"
+ }
+}

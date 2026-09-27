@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies of 2026-09-26/27, this session: fp6 and the speed study in flight, PMLATE closed, the view recorder running.** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: the speed study and WXSRC in flight, fp6 and PMLATE closed, the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -118,7 +118,10 @@ list stays the short version; the plan is the reasoning behind it.
    UK-registered retail account may not be sold one (FCA PS20/10, COBS 22.6.5R), Binance told EU users it would stop
    serving them from 2026-07-01, and the account's registered country and investor category can only be read in its
    app. A pass says a rule would have paid, not that this account may run it: that is Davies' and Binance's.
-   If this session ends first, each is started again from these words.
+   **Closed 2026-09-27: none of the five passes** (reference §3.38, `reviews/2026-09-27-fp6-study.md`). H5 (short after
+   a delisting notice) and H6 (short new perpetuals) clear Holm but fail their own bars on one month's share; H2–H4 fail
+   outright. At 1 s, H5 would have made +$1,142 against +$265.80: post hoc, a new pre-registration if ever pursued, and
+   out of this account's reach while it cannot hold a derivative.
    (b) PMLATE (Davies, the same evening): turn RW's same-day loss around and be the informed taker — once a daily
    temperature market's result is effectively known from the station's observations, take the stale liquidity
    quoters still rest on the losing side. Not WX (a day-ahead forecast rule, failed): same-day observations. Phase 1
@@ -260,6 +263,16 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 01:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**fp6 phase 2 (what-remains item 5a; a research agent on its own branch `worktree-agent-a55f5ae55a28323ec`, not pushed): the five frozen hypotheses, run exactly as frozen — none passes.**
+- Study: `reviews/2026-09-27-fp6-study.md`; scorers and results in `backtests/fp6/` (`phase2_run.py` checks every input against `manifest.json`, the tapes and the frozen files, runs each scorer twice byte-identical, then Holm; sha256s in `phase2_runs.json`). H4's scorer first reproduced the incumbent (`btc_regime.json`, 16 cells) and `runGated`'s marks bar for bar (64 coin cells).
+- H2 ETH quarterly carry 5.67 %/yr on its capital (last year 1.16 %; SOFR 4.57 %), p 0.810. H3 altcoin funding carry 2.58 %/yr (second half −0.56 %), p 0.9995; its coin choice beats random (p 0.0005), the carry is still below cash. H4 the live rule with a short leg on perpetuals makes window D worse in all four evaluations (primary −7.81 → −12.42 %), p 0.961: a short leg whipsaws the sideways year. H5 delist short +$265.80 on 67 events, p 0.0005, fails only the month rule (April 2026 = 46.6 % of the P&L). H6 new-perpetual short +$1,736.25 on 515, p 0.0005, fails the first half (−$357.64) and the month rule (January 2025 = 54.9 %).
+- Holm over the five: H5 and H6 clear, the ladder stops at H2 (0.810 > 0.0167). No pass: fp6 closes with nothing to paper-trade.
+- Speed at 1 s (Davies' standing rule; descriptive arms added after the freeze, no bar): H2, H3 and H4 act on settlements and closes, speed changes nothing. Entering 1 s after the event at the first aggTrade: H5 +$1,142.00 against the frozen +$265.80 (the first print sits a median 23 % above the next day's open); H6 −$3,176.14 against +$1,736.25 (215 stops, 67 of them on the listing day). The H5 arm is post hoc: a rule on it needs its own pre-registration, and its first-seconds fills assume a 3.56 bp book.
+- Access unchanged: every hypothesis has a derivative leg; whether this account may run one is Davies' and Binance's call, not the study's.
+- Big inputs stay out of git (sha256 in `manifest.json`); the 1 s arms streamed 577 aggTrades zips (5.5 GB, each checked against its published sha256, none stored) into `inputs/speed_1s.json.gz` (3 MB).
 
 ### [2026-09-27 01:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

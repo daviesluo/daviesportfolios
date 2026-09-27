@@ -1,0 +1,301 @@
+{
+ "conditions": {
+  "c1_annualised_ge_8pct": {
+   "holds": false,
+   "value": 0.056675
+  },
+  "c2_bootstrap": {
+   "annualisedMean": 0.056675,
+   "holmStep": "applied by holm.py",
+   "p": 0.809519
+  },
+  "c3_each_half_ge_4pct": {
+   "first": 0.068872,
+   "holds": true,
+   "second": 0.04446
+  },
+  "c4_last12_ge_4pct": {
+   "holds": false,
+   "value": 0.011584
+  },
+  "c5_c1_with_costs_doubled": {
+   "holds": false,
+   "value": 0.052888
+  },
+  "c6_best_month_le_40pct_rest_positive": {
+   "bestMonth": "2024-04",
+   "bestMonthPnl": 104.8658,
+   "bestShare": 0.4955,
+   "holds": false,
+   "restPnl": 106.7719,
+   "total": 211.6377
+  },
+  "c7_max_drawdown_le_10pct": {
+   "holds": true,
+   "value": 0.054753
+  }
+ },
+ "costsUsd": 13.9464,
+ "countsRecomputed": {
+  "BTCUSDT": {
+   "contractsUsed": [
+    "BTCUSDT_240329",
+    "BTCUSDT_240628",
+    "BTCUSDT_240927",
+    "BTCUSDT_250328",
+    "BTCUSDT_251226"
+   ],
+   "daysHeld": 641,
+   "daysHeldByPart": {
+    "first": 372,
+    "last12": 92,
+    "second": 269
+   },
+   "packages": 5
+  },
+  "ETHUSDT": {
+   "contractsUsed": [
+    "ETHUSDT_240329",
+    "ETHUSDT_240628",
+    "ETHUSDT_240927",
+    "ETHUSDT_250328",
+    "ETHUSDT_251226"
+   ],
+   "daysHeld": 568,
+   "daysHeldByPart": {
+    "first": 299,
+    "last12": 92,
+    "second": 269
+   },
+   "packages": 5
+  },
+  "equalPhase1": true
+ },
+ "descriptive": {
+  "btcSameRule": {
+   "annualised": 0.066458,
+   "halves": {
+    "first": 0.087793,
+    "last12": 0.012928,
+    "second": 0.045093
+   },
+   "packages": [
+    {
+     "contract": "BTCUSDT_240329",
+     "entry": "2023-11-06",
+     "y": 0.081299
+    },
+    {
+     "contract": "BTCUSDT_240628",
+     "entry": "2024-03-29",
+     "y": 0.232343
+    },
+    {
+     "contract": "BTCUSDT_240927",
+     "entry": "2024-06-28",
+     "y": 0.097931
+    },
+    {
+     "contract": "BTCUSDT_250328",
+     "entry": "2024-09-28",
+     "y": 0.083642
+    },
+    {
+     "contract": "BTCUSDT_251226",
+     "entry": "2025-08-14",
+     "y": 0.082769
+    }
+   ]
+  },
+  "daysHeld": 568,
+  "entryYDistribution": [
+   0.080153,
+   0.081743,
+   0.087161,
+   0.105212,
+   0.239666
+  ],
+  "sofrMeanOverWindowPct": 4.5729,
+  "spqtrRuleOnEth": {
+   "annualisedOnPeakCapital": 0.0199,
+   "note": "SPQTR's rule re-implemented from its protocol text on ETH; its exits are the delivery day's opens",
+   "packages": 417,
+   "peakOpen": 79,
+   "pnlUsd": 586.2194,
+   "positive": 417
+  }
+ },
+ "frozenFiles": {
+  "docs/agents/backtests/fp6/measure.py": "a8d67ca41be1e61f75a37a52111734ccf3b656ba6efb1ba7ce26768116d94275",
+  "docs/agents/backtests/fp6/measurements.json": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a",
+  "docs/agents/backtests/fp6/rules.py": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a",
+  "docs/agents/reviews/2026-09-26-fp6-prereg-carry-quarterly.md": "387f133226df0371d0d144f27aa3d614d405f5f9f85ab6973ee37a6cd893be29",
+  "manifest.json inputs": "all match"
+ },
+ "halfSpreadsBp": {
+  "BTCUSDT": {
+   "far": 3.68,
+   "near": 0.3462,
+   "spot": 0.0006
+  },
+  "ETHUSDT": {
+   "far": 5.1912,
+   "near": 0.4422,
+   "spot": 0.0186
+  }
+ },
+ "hypothesis": "fp6-H2 CARRY-Q",
+ "pBootstrap": 0.809519,
+ "packages": [
+  {
+   "contract": "ETHUSDT_240329",
+   "days": 99,
+   "entry": "2023-12-21",
+   "entryNetBasisAnnualised": 0.087161,
+   "exit": "2024-03-29"
+  },
+  {
+   "contract": "ETHUSDT_240628",
+   "days": 91,
+   "entry": "2024-03-29",
+   "entryNetBasisAnnualised": 0.239666,
+   "exit": "2024-06-28"
+  },
+  {
+   "contract": "ETHUSDT_240927",
+   "days": 91,
+   "entry": "2024-06-28",
+   "entryNetBasisAnnualised": 0.105212,
+   "exit": "2024-09-27"
+  },
+  {
+   "contract": "ETHUSDT_250328",
+   "days": 153,
+   "entry": "2024-10-26",
+   "entryNetBasisAnnualised": 0.081743,
+   "exit": "2025-03-28"
+  },
+  {
+   "contract": "ETHUSDT_251226",
+   "days": 134,
+   "entry": "2025-08-14",
+   "entryNetBasisAnnualised": 0.080153,
+   "exit": "2025-12-26"
+  }
+ ],
+ "passesOtherThanHolm": false,
+ "pnlByMonth": {
+  "2023-01": 0.0,
+  "2023-02": 0.0,
+  "2023-03": 0.0,
+  "2023-04": 0.0,
+  "2023-05": 0.0,
+  "2023-06": 0.0,
+  "2023-07": 0.0,
+  "2023-08": 0.0,
+  "2023-09": 0.0,
+  "2023-10": 0.0,
+  "2023-11": 0.0,
+  "2023-12": -20.8272,
+  "2024-01": 30.8601,
+  "2024-02": -12.1123,
+  "2024-03": -6.284,
+  "2024-04": 104.8658,
+  "2024-05": 2.1527,
+  "2024-06": 14.1169,
+  "2024-07": 18.8674,
+  "2024-08": 20.1046,
+  "2024-09": 1.2289,
+  "2024-10": -6.0382,
+  "2024-11": -36.1913,
+  "2024-12": 38.1375,
+  "2025-01": 18.799,
+  "2025-02": 13.6936,
+  "2025-03": 2.7429,
+  "2025-04": 0.0,
+  "2025-05": 0.0,
+  "2025-06": 0.0,
+  "2025-07": 0.0,
+  "2025-08": 11.7548,
+  "2025-09": 4.3217,
+  "2025-10": 6.4538,
+  "2025-11": 4.7098,
+  "2025-12": 0.2811,
+  "2026-01": 0.0,
+  "2026-02": 0.0,
+  "2026-03": 0.0,
+  "2026-04": 0.0,
+  "2026-05": 0.0,
+  "2026-06": 0.0,
+  "2026-07": 0.0,
+  "2026-08": 0.0,
+  "2026-09": 0.0
+ },
+ "pnlUsd": 211.6377,
+ "trades": [
+  {
+   "day": "2023-12-21",
+   "what": "buy spot"
+  },
+  {
+   "day": "2023-12-21",
+   "what": "sell ETHUSDT_240329"
+  },
+  {
+   "day": "2024-03-29",
+   "what": "buy back ETHUSDT_240329"
+  },
+  {
+   "day": "2024-03-29",
+   "what": "sell ETHUSDT_240628"
+  },
+  {
+   "day": "2024-06-28",
+   "what": "buy back ETHUSDT_240628"
+  },
+  {
+   "day": "2024-06-28",
+   "what": "sell ETHUSDT_240927"
+  },
+  {
+   "day": "2024-09-27",
+   "what": "buy back ETHUSDT_240927"
+  },
+  {
+   "day": "2024-09-27",
+   "what": "sell spot"
+  },
+  {
+   "day": "2024-10-26",
+   "what": "buy spot"
+  },
+  {
+   "day": "2024-10-26",
+   "what": "sell ETHUSDT_250328"
+  },
+  {
+   "day": "2025-03-28",
+   "what": "buy back ETHUSDT_250328"
+  },
+  {
+   "day": "2025-03-28",
+   "what": "sell spot"
+  },
+  {
+   "day": "2025-08-14",
+   "what": "buy spot"
+  },
+  {
+   "day": "2025-08-14",
+   "what": "sell ETHUSDT_251226"
+  },
+  {
+   "day": "2025-12-26",
+   "what": "buy back ETHUSDT_251226"
+  },
+  {
+   "day": "2025-12-26",
+   "what": "sell spot"
+  }
+ ]
+}

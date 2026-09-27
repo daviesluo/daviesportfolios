@@ -1,0 +1,828 @@
+{
+ "byYear": {
+  "2023": {
+   "events": 3,
+   "pnlUsd": 14.3851
+  },
+  "2024": {
+   "events": 12,
+   "pnlUsd": -47.8301
+  },
+  "2025": {
+   "events": 17,
+   "pnlUsd": 120.0948
+  },
+  "2026": {
+   "events": 35,
+   "pnlUsd": 179.147
+  }
+ },
+ "conditions": {
+  "c1_sum_positive": {
+   "holds": true,
+   "value": 265.7969
+  },
+  "c2_null": {
+   "holmStep": "applied by holm.py",
+   "nullMeanUsd": -118.2303,
+   "nullP05Usd": -308.3287,
+   "nullP95Usd": 70.6163,
+   "p": 0.0005
+  },
+  "c3_each_half_positive": {
+   "first": 17.3075,
+   "firstEvents": 12,
+   "holds": true,
+   "second": 248.4894,
+   "secondEvents": 55
+  },
+  "c4_positive_costs_doubled": {
+   "holds": true,
+   "value": 254.7275
+  },
+  "c5_best_month_le_40pct_rest_positive": {
+   "bestMonth": "2026-04",
+   "bestMonthPnl": 123.7429,
+   "bestShare": 0.4656,
+   "holds": false,
+   "restPnl": 142.0539
+  },
+  "c6_worth_money_ge_8pct_on_peak_capital": {
+   "holds": true,
+   "peakCapitalUsd": 800.0,
+   "value": 0.088973
+  },
+  "c7_enough_events": {
+   "events": 67,
+   "holds": true,
+   "min": 30
+  }
+ },
+ "countsRecomputed": {
+  "equalPhase1": true,
+  "events": 67
+ },
+ "descriptive": {
+  "fundingPaidUsd": -120.7054,
+  "fundingReceivedUsd": 33.9611
+ },
+ "donorsPerEvent": {
+  "max": 613,
+  "median": 495,
+  "min": 145
+ },
+ "events": [
+  {
+   "announced": "2023-03-17",
+   "entry": "2023-03-18",
+   "funding": 0.3512,
+   "how": "planned",
+   "lastHeldDay": "2023-03-22",
+   "perp": "HNTUSDT",
+   "pnl": 14.3374,
+   "token": "HNT"
+  },
+  {
+   "announced": "2023-08-15",
+   "entry": "2023-08-16",
+   "funding": 0.1501,
+   "how": "planned",
+   "lastHeldDay": "2023-08-20",
+   "perp": "SRMUSDT",
+   "pnl": -0.0212,
+   "token": "SRM"
+  },
+  {
+   "announced": "2023-11-27",
+   "entry": "2023-11-28",
+   "funding": 0.2401,
+   "how": "planned",
+   "lastHeldDay": "2023-12-05",
+   "perp": "BTSUSDT",
+   "pnl": 0.0689,
+   "token": "BTS"
+  },
+  {
+   "announced": "2024-02-06",
+   "entry": "2024-02-07",
+   "funding": -0.2091,
+   "how": "planned",
+   "lastHeldDay": "2024-02-18",
+   "perp": "ANTUSDT",
+   "pnl": -21.7588,
+   "token": "ANT"
+  },
+  {
+   "announced": "2024-02-06",
+   "entry": "2024-02-07",
+   "funding": -3.7735,
+   "how": "planned",
+   "lastHeldDay": "2024-02-18",
+   "perp": "XMRUSDT",
+   "pnl": -19.7469,
+   "token": "XMR"
+  },
+  {
+   "announced": "2024-06-03",
+   "entry": "2024-06-04",
+   "funding": -1.1289,
+   "how": "planned",
+   "lastHeldDay": "2024-06-15",
+   "perp": "OMGUSDT",
+   "pnl": 19.5777,
+   "token": "OMG"
+  },
+  {
+   "announced": "2024-06-03",
+   "entry": "2024-06-04",
+   "funding": -0.5869,
+   "how": "planned",
+   "lastHeldDay": "2024-06-15",
+   "perp": "WAVESUSDT",
+   "pnl": 15.5155,
+   "token": "WAVES"
+  },
+  {
+   "announced": "2024-06-03",
+   "entry": "2024-06-04",
+   "funding": -0.7251,
+   "how": "planned",
+   "lastHeldDay": "2024-06-15",
+   "perp": "XEMUSDT",
+   "pnl": 26.4095,
+   "token": "XEM"
+  },
+  {
+   "announced": "2024-07-08",
+   "entry": "2024-07-09",
+   "funding": -6.8053,
+   "how": "stop",
+   "lastHeldDay": "2024-07-13",
+   "perp": "BONDUSDT",
+   "pnl": -57.0371,
+   "token": "BOND"
+  },
+  {
+   "announced": "2024-08-12",
+   "entry": "2024-08-13",
+   "funding": -4.7788,
+   "how": "planned",
+   "lastHeldDay": "2024-08-24",
+   "perp": "LOOMUSDT",
+   "pnl": -9.9405,
+   "token": "LOOM"
+  },
+  {
+   "announced": "2024-08-12",
+   "entry": "2024-08-13",
+   "funding": 0.3204,
+   "how": "planned",
+   "lastHeldDay": "2024-08-24",
+   "perp": "REEFUSDT",
+   "pnl": 10.0935,
+   "token": "REEF"
+  },
+  {
+   "announced": "2024-10-23",
+   "entry": "2024-10-24",
+   "funding": -0.2271,
+   "how": "planned",
+   "lastHeldDay": "2024-11-04",
+   "perp": "UNFIUSDT",
+   "pnl": 39.8095,
+   "token": "UNFI"
+  },
+  {
+   "announced": "2024-11-26",
+   "entry": "2024-11-27",
+   "funding": -3.0862,
+   "how": "planned",
+   "lastHeldDay": "2024-12-08",
+   "perp": "KEYUSDT",
+   "pnl": 3.3988,
+   "token": "KEY"
+  },
+  {
+   "announced": "2024-11-26",
+   "entry": "2024-11-27",
+   "funding": -3.3949,
+   "how": "stop",
+   "lastHeldDay": "2024-11-29",
+   "perp": "RENUSDT",
+   "pnl": -53.6268,
+   "token": "REN"
+  },
+  {
+   "announced": "2024-12-18",
+   "entry": "2024-12-19",
+   "funding": -0.1332,
+   "how": "planned",
+   "lastHeldDay": "2024-12-23",
+   "perp": "BLZUSDT",
+   "pnl": -0.5246,
+   "token": "BLZ"
+  },
+  {
+   "announced": "2025-02-17",
+   "entry": "2025-02-18",
+   "funding": 9.6602,
+   "how": "planned",
+   "lastHeldDay": "2025-02-22",
+   "perp": "AMBUSDT",
+   "pnl": 59.5706,
+   "token": "AMB"
+  },
+  {
+   "announced": "2025-02-17",
+   "entry": "2025-02-18",
+   "funding": -1.6185,
+   "how": "planned",
+   "lastHeldDay": "2025-02-22",
+   "perp": "STMXUSDT",
+   "pnl": -0.7681,
+   "token": "STMX"
+  },
+  {
+   "announced": "2025-03-21",
+   "entry": "2025-03-22",
+   "funding": -4.7787,
+   "how": "planned",
+   "lastHeldDay": "2025-03-26",
+   "perp": "AERGOUSDT",
+   "pnl": -0.7051,
+   "token": "AERGO"
+  },
+  {
+   "announced": "2025-03-21",
+   "entry": "2025-03-22",
+   "funding": -3.7937,
+   "how": "planned",
+   "lastHeldDay": "2025-03-26",
+   "perp": "COMBOUSDT",
+   "pnl": 42.1557,
+   "token": "COMBO"
+  },
+  {
+   "announced": "2025-03-21",
+   "entry": "2025-03-22",
+   "funding": 0.3749,
+   "how": "planned",
+   "lastHeldDay": "2025-03-26",
+   "perp": "LINAUSDT",
+   "pnl": 26.7876,
+   "token": "LINA"
+  },
+  {
+   "announced": "2025-04-24",
+   "entry": "2025-04-25",
+   "funding": -27.1765,
+   "how": "stop",
+   "lastHeldDay": "2025-04-25",
+   "perp": "ALPACAUSDT",
+   "pnl": -77.4084,
+   "token": "ALPACA"
+  },
+  {
+   "announced": "2025-06-26",
+   "entry": "2025-06-27",
+   "funding": -0.8969,
+   "how": "planned",
+   "lastHeldDay": "2025-07-02",
+   "perp": "ALPHAUSDT",
+   "pnl": 16.2845,
+   "token": "ALPHA"
+  },
+  {
+   "announced": "2025-06-26",
+   "entry": "2025-06-27",
+   "funding": 0.2111,
+   "how": "planned",
+   "lastHeldDay": "2025-07-02",
+   "perp": "BSWUSDT",
+   "pnl": 28.7703,
+   "token": "BSW"
+  },
+  {
+   "announced": "2025-06-26",
+   "entry": "2025-06-27",
+   "funding": -3.8046,
+   "how": "planned",
+   "lastHeldDay": "2025-07-02",
+   "perp": "LEVERUSDT",
+   "pnl": 1.6861,
+   "token": "LEVER"
+  },
+  {
+   "announced": "2025-09-03",
+   "entry": "2025-09-04",
+   "funding": 0.5142,
+   "how": "stop",
+   "lastHeldDay": "2025-09-10",
+   "perp": "BAKEUSDT",
+   "pnl": -49.7177,
+   "token": "BAKE"
+  },
+  {
+   "announced": "2025-09-03",
+   "entry": "2025-09-04",
+   "funding": 1.6482,
+   "how": "stop",
+   "lastHeldDay": "2025-09-10",
+   "perp": "HIFIUSDT",
+   "pnl": -48.5836,
+   "token": "HIFI"
+  },
+  {
+   "announced": "2025-10-29",
+   "entry": "2025-10-30",
+   "funding": -0.6595,
+   "how": "stop",
+   "lastHeldDay": "2025-10-30",
+   "perp": "FLMUSDT",
+   "pnl": -50.8914,
+   "token": "FLM"
+  },
+  {
+   "announced": "2025-10-29",
+   "entry": "2025-10-30",
+   "funding": 1.7254,
+   "how": "planned",
+   "lastHeldDay": "2025-11-10",
+   "perp": "KDAUSDT",
+   "pnl": 48.7053,
+   "token": "KDA"
+  },
+  {
+   "announced": "2025-10-29",
+   "entry": "2025-10-30",
+   "funding": 0.1879,
+   "how": "planned",
+   "lastHeldDay": "2025-11-10",
+   "perp": "PERPUSDT",
+   "pnl": 20.5778,
+   "token": "PERP"
+  },
+  {
+   "announced": "2025-12-03",
+   "entry": "2025-12-04",
+   "funding": 0.3822,
+   "how": "planned",
+   "lastHeldDay": "2025-12-15",
+   "perp": "FISUSDT",
+   "pnl": 40.7881,
+   "token": "FIS"
+  },
+  {
+   "announced": "2025-12-03",
+   "entry": "2025-12-04",
+   "funding": 1.0041,
+   "how": "planned",
+   "lastHeldDay": "2025-12-15",
+   "perp": "REIUSDT",
+   "pnl": 29.9247,
+   "token": "REI"
+  },
+  {
+   "announced": "2025-12-03",
+   "entry": "2025-12-04",
+   "funding": 0.7954,
+   "how": "planned",
+   "lastHeldDay": "2025-12-15",
+   "perp": "VOXELUSDT",
+   "pnl": 32.9183,
+   "token": "VOXEL"
+  },
+  {
+   "announced": "2026-02-02",
+   "entry": "2026-02-03",
+   "funding": 0.0553,
+   "how": "stop",
+   "lastHeldDay": "2026-02-03",
+   "perp": "CHESSUSDT",
+   "pnl": -50.1765,
+   "token": "CHESS"
+  },
+  {
+   "announced": "2026-02-02",
+   "entry": "2026-02-03",
+   "funding": 0.4806,
+   "how": "planned",
+   "lastHeldDay": "2026-02-11",
+   "perp": "DFUSDT",
+   "pnl": 30.8883,
+   "token": "DF"
+  },
+  {
+   "announced": "2026-02-02",
+   "entry": "2026-02-03",
+   "funding": 0.3048,
+   "how": "planned",
+   "lastHeldDay": "2026-02-11",
+   "perp": "GHSTUSDT",
+   "pnl": 30.4961,
+   "token": "GHST"
+  },
+  {
+   "announced": "2026-02-02",
+   "entry": "2026-02-03",
+   "funding": 0.8846,
+   "how": "planned",
+   "lastHeldDay": "2026-02-11",
+   "perp": "NKNUSDT",
+   "pnl": 37.4436,
+   "token": "NKN"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": 6.3301,
+   "how": "stop",
+   "lastHeldDay": "2026-03-23",
+   "perp": "A2ZUSDT",
+   "pnl": -43.9017,
+   "token": "A2Z"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": 0.0688,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "FORTHUSDT",
+   "pnl": 33.4898,
+   "token": "FORTH"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": -1.6225,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "HOOKUSDT",
+   "pnl": 5.1915,
+   "token": "HOOK"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": 0.0,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "IDEXUSDT",
+   "pnl": -0.1712,
+   "token": "IDEX"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": -2.2904,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "LRCUSDT",
+   "pnl": 1.8652,
+   "token": "LRC"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": -0.7177,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "NTRNUSDT",
+   "pnl": 5.0642,
+   "token": "NTRN"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": -2.4503,
+   "how": "stop",
+   "lastHeldDay": "2026-03-21",
+   "perp": "RDNTUSDT",
+   "pnl": -52.6821,
+   "token": "RDNT"
+  },
+  {
+   "announced": "2026-03-18",
+   "entry": "2026-03-19",
+   "funding": 0.0,
+   "how": "planned",
+   "lastHeldDay": "2026-03-30",
+   "perp": "SXPUSDT",
+   "pnl": -0.1712,
+   "token": "SXP"
+  },
+  {
+   "announced": "2026-04-09",
+   "entry": "2026-04-10",
+   "funding": 1.8964,
+   "how": "planned",
+   "lastHeldDay": "2026-04-21",
+   "perp": "FIOUSDT",
+   "pnl": 45.3017,
+   "token": "FIO"
+  },
+  {
+   "announced": "2026-04-09",
+   "entry": "2026-04-10",
+   "funding": 0.1881,
+   "how": "planned",
+   "lastHeldDay": "2026-04-21",
+   "perp": "FUNUSDT",
+   "pnl": 41.2568,
+   "token": "FUN"
+  },
+  {
+   "announced": "2026-04-09",
+   "entry": "2026-04-10",
+   "funding": 0.0,
+   "how": "planned",
+   "lastHeldDay": "2026-04-21",
+   "perp": "MDTUSDT",
+   "pnl": -0.1712,
+   "token": "MDT"
+  },
+  {
+   "announced": "2026-04-09",
+   "entry": "2026-04-10",
+   "funding": -1.7574,
+   "how": "planned",
+   "lastHeldDay": "2026-04-21",
+   "perp": "OXTUSDT",
+   "pnl": 8.5281,
+   "token": "OXT"
+  },
+  {
+   "announced": "2026-04-17",
+   "entry": "2026-04-18",
+   "funding": 1.1643,
+   "how": "planned",
+   "lastHeldDay": "2026-04-26",
+   "perp": "DEGOUSDT",
+   "pnl": 30.8185,
+   "token": "DEGO"
+  },
+  {
+   "announced": "2026-04-17",
+   "entry": "2026-04-18",
+   "funding": 0.7416,
+   "how": "planned",
+   "lastHeldDay": "2026-04-26",
+   "perp": "DENTUSDT",
+   "pnl": -1.322,
+   "token": "DENT"
+  },
+  {
+   "announced": "2026-04-17",
+   "entry": "2026-04-18",
+   "funding": -1.9998,
+   "how": "planned",
+   "lastHeldDay": "2026-04-26",
+   "perp": "TRUUSDT",
+   "pnl": -0.6689,
+   "token": "TRU"
+  },
+  {
+   "announced": "2026-05-13",
+   "entry": "2026-05-14",
+   "funding": 1.1936,
+   "how": "planned",
+   "lastHeldDay": "2026-05-25",
+   "perp": "ATAUSDT",
+   "pnl": 43.9315,
+   "token": "ATA"
+  },
+  {
+   "announced": "2026-05-13",
+   "entry": "2026-05-14",
+   "funding": -0.5961,
+   "how": "stop",
+   "lastHeldDay": "2026-05-14",
+   "perp": "MLNUSDT",
+   "pnl": -50.828,
+   "token": "MLN"
+  },
+  {
+   "announced": "2026-05-13",
+   "entry": "2026-05-14",
+   "funding": -1.6274,
+   "how": "planned",
+   "lastHeldDay": "2026-05-25",
+   "perp": "PHBUSDT",
+   "pnl": 24.661,
+   "token": "PHB"
+  },
+  {
+   "announced": "2026-05-13",
+   "entry": "2026-05-14",
+   "funding": 0.6989,
+   "how": "planned",
+   "lastHeldDay": "2026-05-25",
+   "perp": "SYSUSDT",
+   "pnl": 38.457,
+   "token": "SYS"
+  },
+  {
+   "announced": "2026-06-05",
+   "entry": "2026-06-06",
+   "funding": -7.0318,
+   "how": "planned",
+   "lastHeldDay": "2026-06-17",
+   "perp": "COSUSDT",
+   "pnl": 25.569,
+   "token": "COS"
+  },
+  {
+   "announced": "2026-06-05",
+   "entry": "2026-06-06",
+   "funding": -3.6483,
+   "how": "planned",
+   "lastHeldDay": "2026-06-17",
+   "perp": "DUSDT",
+   "pnl": 9.8795,
+   "token": "D"
+  },
+  {
+   "announced": "2026-06-05",
+   "entry": "2026-06-06",
+   "funding": -3.3461,
+   "how": "planned",
+   "lastHeldDay": "2026-06-17",
+   "perp": "HIGHUSDT",
+   "pnl": 34.7719,
+   "token": "HIGH"
+  },
+  {
+   "announced": "2026-06-05",
+   "entry": "2026-06-06",
+   "funding": -3.8764,
+   "how": "planned",
+   "lastHeldDay": "2026-06-17",
+   "perp": "MBOXUSDT",
+   "pnl": 40.2683,
+   "token": "MBOX"
+  },
+  {
+   "announced": "2026-06-26",
+   "entry": "2026-06-27",
+   "funding": -10.0965,
+   "how": "stop",
+   "lastHeldDay": "2026-07-01",
+   "perp": "NFPUSDT",
+   "pnl": -60.3283,
+   "token": "NFP"
+  },
+  {
+   "announced": "2026-08-03",
+   "entry": "2026-08-04",
+   "funding": 0.2584,
+   "how": "planned",
+   "lastHeldDay": "2026-08-15",
+   "perp": "ACXUSDT",
+   "pnl": 0.1606,
+   "token": "ACX"
+  },
+  {
+   "announced": "2026-08-03",
+   "entry": "2026-08-04",
+   "funding": 0.7312,
+   "how": "stop",
+   "lastHeldDay": "2026-08-05",
+   "perp": "HFTUSDT",
+   "pnl": -49.5006,
+   "token": "HFT"
+  },
+  {
+   "announced": "2026-08-03",
+   "entry": "2026-08-04",
+   "funding": -2.4899,
+   "how": "planned",
+   "lastHeldDay": "2026-08-15",
+   "perp": "VANRYUSDT",
+   "pnl": 4.802,
+   "token": "VANRY"
+  },
+  {
+   "announced": "2026-08-03",
+   "entry": "2026-08-04",
+   "funding": 0.356,
+   "how": "planned",
+   "lastHeldDay": "2026-08-15",
+   "perp": "VICUSDT",
+   "pnl": 44.5599,
+   "token": "VIC"
+  },
+  {
+   "announced": "2026-08-20",
+   "entry": "2026-08-21",
+   "funding": 0.7143,
+   "how": "planned",
+   "lastHeldDay": "2026-09-01",
+   "perp": "ICXUSDT",
+   "pnl": 7.747,
+   "token": "ICX"
+  },
+  {
+   "announced": "2026-08-20",
+   "entry": "2026-08-21",
+   "funding": 0.3289,
+   "how": "stop",
+   "lastHeldDay": "2026-08-21",
+   "perp": "SCRTUSDT",
+   "pnl": -49.9029,
+   "token": "SCRT"
+  },
+  {
+   "announced": "2026-08-20",
+   "entry": "2026-08-21",
+   "funding": -9.5773,
+   "how": "planned",
+   "lastHeldDay": "2026-09-01",
+   "perp": "STORJUSDT",
+   "pnl": -6.1798,
+   "token": "STORJ"
+  }
+ ],
+ "exits": {
+  "planned": 54,
+  "stop": 13
+ },
+ "fallbackPrices": {},
+ "frozenFiles": {
+  "docs/agents/backtests/fp6/measure.py": "a8d67ca41be1e61f75a37a52111734ccf3b656ba6efb1ba7ce26768116d94275",
+  "docs/agents/backtests/fp6/measurements.json": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a",
+  "docs/agents/backtests/fp6/rules.py": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a",
+  "docs/agents/reviews/2026-09-26-fp6-prereg-delist-short.md": "dbcd8b6e967c69087bbeb3200ed9331da582afe42f92af83455bd1347fb6ddc6",
+  "manifest.json inputs": "all match"
+ },
+ "halfSpreadBp": 3.5577,
+ "hypothesis": "fp6-H5 DELIST-S",
+ "pNull": 0.0005,
+ "passesOtherThanHolm": false,
+ "peakOpenOnTheHoldsTaken": 8,
+ "pnlByMonth": {
+  "2023-03": 14.3374,
+  "2023-08": -0.0212,
+  "2023-11": 0.0689,
+  "2024-02": -41.5057,
+  "2024-06": 61.5026,
+  "2024-07": -57.0371,
+  "2024-08": 0.153,
+  "2024-10": 39.8095,
+  "2024-11": -50.2279,
+  "2024-12": -0.5246,
+  "2025-02": 58.8025,
+  "2025-03": 68.2382,
+  "2025-04": -77.4084,
+  "2025-06": 46.741,
+  "2025-09": -98.3013,
+  "2025-10": 18.3917,
+  "2025-12": 103.631,
+  "2026-02": 48.6515,
+  "2026-03": -51.3156,
+  "2026-04": 123.7429,
+  "2026-05": 56.2216,
+  "2026-06": 50.1604,
+  "2026-08": -48.3138
+ },
+ "sensitivities": {
+  "donorsThatTradedOnTheEntryAndExitDays": {
+   "annualisedOnPeak": 0.088973,
+   "bestMonth": "2026-04",
+   "bestShare": 0.4656,
+   "c1": true,
+   "c3": true,
+   "c5": false,
+   "c6": true,
+   "firstUsd": 17.3075,
+   "pNull": 0.0005,
+   "secondUsd": 248.4894,
+   "totalUsd": 265.7969
+  },
+  "eventsWhosePerpetualHadNoVolumeOnTheEntryDay": [
+   "2023-08-16 SRMUSDT",
+   "2023-11-28 BTSUSDT",
+   "2026-03-19 IDEXUSDT",
+   "2026-03-19 SXPUSDT",
+   "2026-04-10 MDTUSDT"
+  ],
+  "stopFundingOnlyToTheStopDaysOpen": {
+   "annualisedOnPeak": 0.102296,
+   "bestMonth": "2026-04",
+   "bestShare": 0.4049,
+   "c1": true,
+   "c3": true,
+   "c5": false,
+   "c6": true,
+   "firstUsd": 17.4974,
+   "pNull": 0.0005,
+   "secondUsd": 288.1029,
+   "totalUsd": 305.6003
+  }
+ },
+ "split": {
+  "costsUsd": 11.1601,
+  "fundingUsd": -86.7442,
+  "priceUsd": 363.7012
+ }
+}

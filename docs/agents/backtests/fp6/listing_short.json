@@ -1,0 +1,4301 @@
+{
+ "byYear": {
+  "2023": {
+   "events": 97,
+   "pnlUsd": 62.2029
+  },
+  "2024": {
+   "events": 131,
+   "pnlUsd": -138.9101
+  },
+  "2025": {
+   "events": 238,
+   "pnlUsd": 1609.397
+  },
+  "2026": {
+   "events": 49,
+   "pnlUsd": 203.5569
+  }
+ },
+ "conditions": {
+  "c1_sum_positive": {
+   "holds": true,
+   "value": 1736.2467
+  },
+  "c2_null": {
+   "holmStep": "applied by holm.py",
+   "nullMeanUsd": -68.7918,
+   "nullP05Usd": -910.109,
+   "nullP95Usd": 775.2094,
+   "p": 0.0005
+  },
+  "c3_each_half_positive": {
+   "first": -357.639,
+   "firstEvents": 190,
+   "holds": false,
+   "second": 2093.8857,
+   "secondEvents": 325
+  },
+  "c4_positive_costs_doubled": {
+   "holds": true,
+   "value": 1650.6372
+  },
+  "c5_best_month_le_40pct_rest_positive": {
+   "bestMonth": "2025-01",
+   "bestMonthPnl": 953.7707,
+   "bestShare": 0.5493,
+   "holds": false,
+   "restPnl": 782.4759
+  },
+  "c6_worth_money_ge_8pct_on_peak_capital": {
+   "holds": true,
+   "peakCapitalUsd": 3400.0,
+   "value": 0.136751
+  },
+  "c7_enough_events": {
+   "events": 515,
+   "holds": true,
+   "min": 100
+  }
+ },
+ "countsRecomputed": {
+  "equalPhase1": true,
+  "events": 515
+ },
+ "descriptive": {
+  "fundingPaidUsd": -928.8734,
+  "fundingReceivedUsd": 440.3331,
+  "hold14Days": {
+   "pnlUsd": 1476.3579,
+   "positive": 316
+  },
+  "hold7Days": {
+   "pnlUsd": 1564.6084,
+   "positive": 336
+  }
+ },
+ "donorsPerEvent": {
+  "max": 620,
+  "median": 289,
+  "min": 139
+ },
+ "events": [
+  {
+   "entry": "2023-01-18",
+   "funding": 1.2246,
+   "how": "stop",
+   "lastHeldDay": "2023-02-05",
+   "perp": "FETUSDT",
+   "pnl": -49.0072
+  },
+  {
+   "entry": "2023-01-21",
+   "funding": 1.505,
+   "how": "planned",
+   "lastHeldDay": "2023-02-19",
+   "perp": "FXSUSDT",
+   "pnl": 3.5618
+  },
+  {
+   "entry": "2023-01-24",
+   "funding": 2.044,
+   "how": "planned",
+   "lastHeldDay": "2023-02-22",
+   "perp": "HOOKUSDT",
+   "pnl": 13.7358
+  },
+  {
+   "entry": "2023-01-26",
+   "funding": 0.9255,
+   "how": "stop",
+   "lastHeldDay": "2023-02-02",
+   "perp": "MAGICUSDT",
+   "pnl": -49.3063
+  },
+  {
+   "entry": "2023-02-02",
+   "funding": -1.8384,
+   "how": "planned",
+   "lastHeldDay": "2023-03-03",
+   "perp": "TUSDT",
+   "pnl": 14.356
+  },
+  {
+   "entry": "2023-02-04",
+   "funding": 0.9732,
+   "how": "planned",
+   "lastHeldDay": "2023-03-05",
+   "perp": "RNDRUSDT",
+   "pnl": 30.3164
+  },
+  {
+   "entry": "2023-02-08",
+   "funding": 0.7974,
+   "how": "planned",
+   "lastHeldDay": "2023-03-09",
+   "perp": "HIGHUSDT",
+   "pnl": 59.2487
+  },
+  {
+   "entry": "2023-02-08",
+   "funding": 1.1187,
+   "how": "planned",
+   "lastHeldDay": "2023-03-09",
+   "perp": "MINAUSDT",
+   "pnl": 23.6786
+  },
+  {
+   "entry": "2023-02-15",
+   "funding": 0.8965,
+   "how": "planned",
+   "lastHeldDay": "2023-03-16",
+   "perp": "ASTRUSDT",
+   "pnl": 18.9234
+  },
+  {
+   "entry": "2023-02-17",
+   "funding": 0.9466,
+   "how": "planned",
+   "lastHeldDay": "2023-03-18",
+   "perp": "AGIXUSDT",
+   "pnl": -24.125
+  },
+  {
+   "entry": "2023-02-17",
+   "funding": 0.164,
+   "how": "stop",
+   "lastHeldDay": "2023-02-20",
+   "perp": "PHBUSDT",
+   "pnl": -50.0678
+  },
+  {
+   "entry": "2023-02-18",
+   "funding": 0.8004,
+   "how": "planned",
+   "lastHeldDay": "2023-03-19",
+   "perp": "GMXUSDT",
+   "pnl": 1.9078
+  },
+  {
+   "entry": "2023-02-21",
+   "funding": 0.3845,
+   "how": "planned",
+   "lastHeldDay": "2023-03-22",
+   "perp": "CFXUSDT",
+   "pnl": -14.6684
+  },
+  {
+   "entry": "2023-02-22",
+   "funding": 0.1796,
+   "how": "planned",
+   "lastHeldDay": "2023-03-23",
+   "perp": "COCOSUSDT",
+   "pnl": 40.8578
+  },
+  {
+   "entry": "2023-02-22",
+   "funding": -0.7328,
+   "how": "stop",
+   "lastHeldDay": "2023-02-27",
+   "perp": "STXUSDT",
+   "pnl": -50.9646
+  },
+  {
+   "entry": "2023-02-23",
+   "funding": 0.523,
+   "how": "planned",
+   "lastHeldDay": "2023-03-24",
+   "perp": "ACHUSDT",
+   "pnl": 29.6696
+  },
+  {
+   "entry": "2023-02-25",
+   "funding": 0.4672,
+   "how": "planned",
+   "lastHeldDay": "2023-03-26",
+   "perp": "SSVUSDT",
+   "pnl": 0.7709
+  },
+  {
+   "entry": "2023-03-01",
+   "funding": 0.5722,
+   "how": "planned",
+   "lastHeldDay": "2023-03-30",
+   "perp": "CKBUSDT",
+   "pnl": 8.0664
+  },
+  {
+   "entry": "2023-03-07",
+   "funding": 0.5826,
+   "how": "planned",
+   "lastHeldDay": "2023-04-05",
+   "perp": "PERPUSDT",
+   "pnl": 26.6912
+  },
+  {
+   "entry": "2023-03-08",
+   "funding": -2.3303,
+   "how": "planned",
+   "lastHeldDay": "2023-04-06",
+   "perp": "TRUUSDT",
+   "pnl": 40.6822
+  },
+  {
+   "entry": "2023-03-11",
+   "funding": -5.3289,
+   "how": "stop",
+   "lastHeldDay": "2023-03-14",
+   "perp": "LQTYUSDT",
+   "pnl": -55.5607
+  },
+  {
+   "entry": "2023-03-24",
+   "funding": 1.1985,
+   "how": "planned",
+   "lastHeldDay": "2023-04-22",
+   "perp": "ARBUSDT",
+   "pnl": -9.6659
+  },
+  {
+   "entry": "2023-03-24",
+   "funding": 0.3907,
+   "how": "stop",
+   "lastHeldDay": "2023-04-14",
+   "perp": "IDUSDT",
+   "pnl": -49.8412
+  },
+  {
+   "entry": "2023-03-30",
+   "funding": 0.1898,
+   "how": "planned",
+   "lastHeldDay": "2023-04-28",
+   "perp": "JOEUSDT",
+   "pnl": 12.9481
+  },
+  {
+   "entry": "2023-03-31",
+   "funding": 1.2926,
+   "how": "planned",
+   "lastHeldDay": "2023-04-29",
+   "perp": "AMBUSDT",
+   "pnl": 4.2975
+  },
+  {
+   "entry": "2023-03-31",
+   "funding": 1.188,
+   "how": "planned",
+   "lastHeldDay": "2023-04-29",
+   "perp": "LEVERUSDT",
+   "pnl": 3.7147
+  },
+  {
+   "entry": "2023-04-06",
+   "funding": 0.2051,
+   "how": "planned",
+   "lastHeldDay": "2023-05-05",
+   "perp": "RDNTUSDT",
+   "pnl": -23.1248
+  },
+  {
+   "entry": "2023-04-07",
+   "funding": 0.994,
+   "how": "planned",
+   "lastHeldDay": "2023-05-06",
+   "perp": "HFTUSDT",
+   "pnl": 24.7701
+  },
+  {
+   "entry": "2023-04-14",
+   "funding": 0.9738,
+   "how": "planned",
+   "lastHeldDay": "2023-05-13",
+   "perp": "XVSUSDT",
+   "pnl": 30.892
+  },
+  {
+   "entry": "2023-04-29",
+   "funding": 0.5867,
+   "how": "planned",
+   "lastHeldDay": "2023-05-28",
+   "perp": "BLURUSDT",
+   "pnl": 23.5953
+  },
+  {
+   "entry": "2023-05-01",
+   "funding": 0.6208,
+   "how": "planned",
+   "lastHeldDay": "2023-05-30",
+   "perp": "EDUUSDT",
+   "pnl": 16.2024
+  },
+  {
+   "entry": "2023-05-04",
+   "funding": -4.1415,
+   "how": "planned",
+   "lastHeldDay": "2023-06-02",
+   "perp": "IDEXUSDT",
+   "pnl": 27.9575
+  },
+  {
+   "entry": "2023-05-04",
+   "funding": -0.43,
+   "how": "planned",
+   "lastHeldDay": "2023-06-02",
+   "perp": "SUIUSDT",
+   "pnl": 31.8983
+  },
+  {
+   "entry": "2023-05-06",
+   "funding": -0.5909,
+   "how": "planned",
+   "lastHeldDay": "2023-06-04",
+   "perp": "1000PEPEUSDT",
+   "pnl": 66.0392
+  },
+  {
+   "entry": "2023-05-07",
+   "funding": 0.4166,
+   "how": "planned",
+   "lastHeldDay": "2023-06-05",
+   "perp": "1000FLOKIUSDT",
+   "pnl": 30.7149
+  },
+  {
+   "entry": "2023-05-11",
+   "funding": -0.7397,
+   "how": "planned",
+   "lastHeldDay": "2023-06-09",
+   "perp": "RADUSDT",
+   "pnl": 29.8118
+  },
+  {
+   "entry": "2023-05-11",
+   "funding": -0.975,
+   "how": "planned",
+   "lastHeldDay": "2023-06-09",
+   "perp": "UMAUSDT",
+   "pnl": 31.6037
+  },
+  {
+   "entry": "2023-05-25",
+   "funding": -0.499,
+   "how": "stop",
+   "lastHeldDay": "2023-06-01",
+   "perp": "KEYUSDT",
+   "pnl": -50.7308
+  },
+  {
+   "entry": "2023-06-03",
+   "funding": 0.3236,
+   "how": "planned",
+   "lastHeldDay": "2023-07-02",
+   "perp": "COMBOUSDT",
+   "pnl": 52.9136
+  },
+  {
+   "entry": "2023-06-23",
+   "funding": -2.2463,
+   "how": "planned",
+   "lastHeldDay": "2023-07-22",
+   "perp": "NMRUSDT",
+   "pnl": 2.8443
+  },
+  {
+   "entry": "2023-06-30",
+   "funding": -1.2305,
+   "how": "planned",
+   "lastHeldDay": "2023-07-29",
+   "perp": "MAVUSDT",
+   "pnl": 25.3563
+  },
+  {
+   "entry": "2023-07-01",
+   "funding": -0.2454,
+   "how": "stop",
+   "lastHeldDay": "2023-07-04",
+   "perp": "MDTUSDT",
+   "pnl": -50.4772
+  },
+  {
+   "entry": "2023-07-06",
+   "funding": -27.6241,
+   "how": "planned",
+   "lastHeldDay": "2023-08-04",
+   "perp": "XVGUSDT",
+   "pnl": 10.3101
+  },
+  {
+   "entry": "2023-07-25",
+   "funding": -0.3208,
+   "how": "planned",
+   "lastHeldDay": "2023-08-23",
+   "perp": "WLDUSDT",
+   "pnl": 34.4338
+  },
+  {
+   "entry": "2023-07-29",
+   "funding": 0.1049,
+   "how": "planned",
+   "lastHeldDay": "2023-08-27",
+   "perp": "ARKMUSDT",
+   "pnl": 29.5986
+  },
+  {
+   "entry": "2023-07-29",
+   "funding": -0.5449,
+   "how": "planned",
+   "lastHeldDay": "2023-08-27",
+   "perp": "PENDLEUSDT",
+   "pnl": 23.1165
+  },
+  {
+   "entry": "2023-07-30",
+   "funding": 0.5631,
+   "how": "planned",
+   "lastHeldDay": "2023-08-28",
+   "perp": "AGLDUSDT",
+   "pnl": 36.5523
+  },
+  {
+   "entry": "2023-08-06",
+   "funding": -8.4942,
+   "how": "stop",
+   "lastHeldDay": "2023-08-07",
+   "perp": "YGGUSDT",
+   "pnl": -58.726
+  },
+  {
+   "entry": "2023-08-09",
+   "funding": -1.6598,
+   "how": "planned",
+   "lastHeldDay": "2023-09-07",
+   "perp": "DODOXUSDT",
+   "pnl": 14.4367
+  },
+  {
+   "entry": "2023-08-11",
+   "funding": -6.9981,
+   "how": "planned",
+   "lastHeldDay": "2023-09-09",
+   "perp": "BNTUSDT",
+   "pnl": 24.2561
+  },
+  {
+   "entry": "2023-08-12",
+   "funding": -4.6967,
+   "how": "planned",
+   "lastHeldDay": "2023-09-10",
+   "perp": "OXTUSDT",
+   "pnl": 24.7466
+  },
+  {
+   "entry": "2023-08-18",
+   "funding": -3.9036,
+   "how": "planned",
+   "lastHeldDay": "2023-09-16",
+   "perp": "SEIUSDT",
+   "pnl": 14.5375
+  },
+  {
+   "entry": "2023-08-22",
+   "funding": -2.4534,
+   "how": "stop",
+   "lastHeldDay": "2023-08-29",
+   "perp": "CYBERUSDT",
+   "pnl": -52.6852
+  },
+  {
+   "entry": "2023-09-17",
+   "funding": -0.8582,
+   "how": "planned",
+   "lastHeldDay": "2023-10-16",
+   "perp": "HIFIUSDT",
+   "pnl": 66.5408
+  },
+  {
+   "entry": "2023-09-20",
+   "funding": -5.4475,
+   "how": "planned",
+   "lastHeldDay": "2023-10-19",
+   "perp": "ARKUSDT",
+   "pnl": 23.8493
+  },
+  {
+   "entry": "2023-09-23",
+   "funding": 0.0406,
+   "how": "stop",
+   "lastHeldDay": "2023-09-26",
+   "perp": "FRONTUSDT",
+   "pnl": -50.1913
+  },
+  {
+   "entry": "2023-09-27",
+   "funding": -0.4373,
+   "how": "planned",
+   "lastHeldDay": "2023-10-26",
+   "perp": "GLMRUSDT",
+   "pnl": 14.1052
+  },
+  {
+   "entry": "2023-09-29",
+   "funding": 0.6583,
+   "how": "planned",
+   "lastHeldDay": "2023-10-28",
+   "perp": "BICOUSDT",
+   "pnl": 6.8761
+  },
+  {
+   "entry": "2023-10-12",
+   "funding": -11.2082,
+   "how": "stop",
+   "lastHeldDay": "2023-10-14",
+   "perp": "LOOMUSDT",
+   "pnl": -61.44
+  },
+  {
+   "entry": "2023-10-12",
+   "funding": -8.224,
+   "how": "stop",
+   "lastHeldDay": "2023-10-16",
+   "perp": "STRAXUSDT",
+   "pnl": -58.4559
+  },
+  {
+   "entry": "2023-10-13",
+   "funding": 1.6463,
+   "how": "planned",
+   "lastHeldDay": "2023-11-11",
+   "perp": "BIGTIMEUSDT",
+   "pnl": 38.5303
+  },
+  {
+   "entry": "2023-10-16",
+   "funding": -2.6436,
+   "how": "planned",
+   "lastHeldDay": "2023-11-14",
+   "perp": "BONDUSDT",
+   "pnl": 2.2799
+  },
+  {
+   "entry": "2023-10-18",
+   "funding": -5.6141,
+   "how": "planned",
+   "lastHeldDay": "2023-11-16",
+   "perp": "ORBSUSDT",
+   "pnl": 11.1699
+  },
+  {
+   "entry": "2023-10-19",
+   "funding": -1.4117,
+   "how": "planned",
+   "lastHeldDay": "2023-11-17",
+   "perp": "STPTUSDT",
+   "pnl": 2.7827
+  },
+  {
+   "entry": "2023-10-19",
+   "funding": -4.1041,
+   "how": "planned",
+   "lastHeldDay": "2023-11-17",
+   "perp": "WAXPUSDT",
+   "pnl": -7.1942
+  },
+  {
+   "entry": "2023-10-21",
+   "funding": 1.5784,
+   "how": "planned",
+   "lastHeldDay": "2023-11-19",
+   "perp": "BSVUSDT",
+   "pnl": 13.5558
+  },
+  {
+   "entry": "2023-10-22",
+   "funding": -7.6871,
+   "how": "planned",
+   "lastHeldDay": "2023-11-20",
+   "perp": "RIFUSDT",
+   "pnl": -6.7248
+  },
+  {
+   "entry": "2023-10-26",
+   "funding": 0.3335,
+   "how": "stop",
+   "lastHeldDay": "2023-10-28",
+   "perp": "GASUSDT",
+   "pnl": -49.8983
+  },
+  {
+   "entry": "2023-10-26",
+   "funding": -1.1074,
+   "how": "stop",
+   "lastHeldDay": "2023-10-30",
+   "perp": "POLYXUSDT",
+   "pnl": -51.3393
+  },
+  {
+   "entry": "2023-10-28",
+   "funding": 2.0703,
+   "how": "planned",
+   "lastHeldDay": "2023-11-26",
+   "perp": "POWRUSDT",
+   "pnl": -12.4222
+  },
+  {
+   "entry": "2023-11-01",
+   "funding": 0.8998,
+   "how": "planned",
+   "lastHeldDay": "2023-11-30",
+   "perp": "SLPUSDT",
+   "pnl": 14.3044
+  },
+  {
+   "entry": "2023-11-01",
+   "funding": 1.4946,
+   "how": "stop",
+   "lastHeldDay": "2023-11-11",
+   "perp": "TIAUSDT",
+   "pnl": -48.7372
+  },
+  {
+   "entry": "2023-11-03",
+   "funding": 0.3557,
+   "how": "stop",
+   "lastHeldDay": "2023-11-05",
+   "perp": "CAKEUSDT",
+   "pnl": -49.8761
+  },
+  {
+   "entry": "2023-11-03",
+   "funding": 1.1218,
+   "how": "planned",
+   "lastHeldDay": "2023-12-02",
+   "perp": "SNTUSDT",
+   "pnl": 18.4685
+  },
+  {
+   "entry": "2023-11-04",
+   "funding": 1.4447,
+   "how": "stop",
+   "lastHeldDay": "2023-11-15",
+   "perp": "MEMEUSDT",
+   "pnl": -48.7871
+  },
+  {
+   "entry": "2023-11-04",
+   "funding": 5.3467,
+   "how": "planned",
+   "lastHeldDay": "2023-12-03",
+   "perp": "TOKENUSDT",
+   "pnl": 13.3407
+  },
+  {
+   "entry": "2023-11-04",
+   "funding": 1.7974,
+   "how": "planned",
+   "lastHeldDay": "2023-12-03",
+   "perp": "TWTUSDT",
+   "pnl": 1.1339
+  },
+  {
+   "entry": "2023-11-08",
+   "funding": 0.4504,
+   "how": "stop",
+   "lastHeldDay": "2023-11-10",
+   "perp": "ORDIUSDT",
+   "pnl": -49.7814
+  },
+  {
+   "entry": "2023-11-09",
+   "funding": 2.0429,
+   "how": "planned",
+   "lastHeldDay": "2023-12-08",
+   "perp": "STEEMUSDT",
+   "pnl": 5.8666
+  },
+  {
+   "entry": "2023-11-10",
+   "funding": 1.8552,
+   "how": "planned",
+   "lastHeldDay": "2023-12-09",
+   "perp": "BADGERUSDT",
+   "pnl": 18.2219
+  },
+  {
+   "entry": "2023-11-11",
+   "funding": 2.3411,
+   "how": "planned",
+   "lastHeldDay": "2023-12-10",
+   "perp": "ILVUSDT",
+   "pnl": -10.2826
+  },
+  {
+   "entry": "2023-11-15",
+   "funding": -0.0241,
+   "how": "planned",
+   "lastHeldDay": "2023-12-14",
+   "perp": "MBLUSDT",
+   "pnl": 18.7486
+  },
+  {
+   "entry": "2023-11-15",
+   "funding": 1.3021,
+   "how": "stop",
+   "lastHeldDay": "2023-12-12",
+   "perp": "NTRNUSDT",
+   "pnl": -48.9297
+  },
+  {
+   "entry": "2023-11-18",
+   "funding": 0.1334,
+   "how": "stop",
+   "lastHeldDay": "2023-12-03",
+   "perp": "BEAMXUSDT",
+   "pnl": -50.0985
+  },
+  {
+   "entry": "2023-11-18",
+   "funding": 4.8986,
+   "how": "planned",
+   "lastHeldDay": "2023-12-17",
+   "perp": "KASUSDT",
+   "pnl": 27.5371
+  },
+  {
+   "entry": "2023-11-23",
+   "funding": 3.8011,
+   "how": "stop",
+   "lastHeldDay": "2023-12-04",
+   "perp": "1000BONKUSDT",
+   "pnl": -46.4307
+  },
+  {
+   "entry": "2023-11-23",
+   "funding": 5.6379,
+   "how": "planned",
+   "lastHeldDay": "2023-12-22",
+   "perp": "PYTHUSDT",
+   "pnl": 19.0765
+  },
+  {
+   "entry": "2023-11-27",
+   "funding": -4.128,
+   "how": "stop",
+   "lastHeldDay": "2023-12-04",
+   "perp": "SUPERUSDT",
+   "pnl": -54.3598
+  },
+  {
+   "entry": "2023-11-28",
+   "funding": 2.6052,
+   "how": "planned",
+   "lastHeldDay": "2023-12-27",
+   "perp": "ONGUSDT",
+   "pnl": 14.4587
+  },
+  {
+   "entry": "2023-11-29",
+   "funding": 5.5416,
+   "how": "planned",
+   "lastHeldDay": "2023-12-28",
+   "perp": "ETHWUSDT",
+   "pnl": -17.3615
+  },
+  {
+   "entry": "2023-12-09",
+   "funding": 3.6683,
+   "how": "planned",
+   "lastHeldDay": "2024-01-07",
+   "perp": "JTOUSDT",
+   "pnl": 60.1217
+  },
+  {
+   "entry": "2023-12-13",
+   "funding": 0.7966,
+   "how": "stop",
+   "lastHeldDay": "2023-12-15",
+   "perp": "1000SATSUSDT",
+   "pnl": -49.4353
+  },
+  {
+   "entry": "2023-12-16",
+   "funding": 6.1497,
+   "how": "planned",
+   "lastHeldDay": "2024-01-14",
+   "perp": "1000RATSUSDT",
+   "pnl": 38.0475
+  },
+  {
+   "entry": "2023-12-16",
+   "funding": -9.2835,
+   "how": "stop",
+   "lastHeldDay": "2023-12-19",
+   "perp": "AUCTIONUSDT",
+   "pnl": -59.5153
+  },
+  {
+   "entry": "2023-12-19",
+   "funding": 2.9056,
+   "how": "planned",
+   "lastHeldDay": "2024-01-17",
+   "perp": "ACEUSDT",
+   "pnl": 38.5339
+  },
+  {
+   "entry": "2023-12-27",
+   "funding": -2.8471,
+   "how": "planned",
+   "lastHeldDay": "2024-01-25",
+   "perp": "MOVRUSDT",
+   "pnl": 19.8351
+  },
+  {
+   "entry": "2023-12-28",
+   "funding": 1.1587,
+   "how": "planned",
+   "lastHeldDay": "2024-01-26",
+   "perp": "NFPUSDT",
+   "pnl": 55.0157
+  },
+  {
+   "entry": "2024-01-09",
+   "funding": 1.1569,
+   "how": "planned",
+   "lastHeldDay": "2024-02-07",
+   "perp": "AIUSDT",
+   "pnl": 19.7862
+  },
+  {
+   "entry": "2024-01-10",
+   "funding": 0.0935,
+   "how": "stop",
+   "lastHeldDay": "2024-01-14",
+   "perp": "XAIUSDT",
+   "pnl": -50.1383
+  },
+  {
+   "entry": "2024-01-19",
+   "funding": 0.2038,
+   "how": "stop",
+   "lastHeldDay": "2024-01-24",
+   "perp": "MANTAUSDT",
+   "pnl": -50.028
+  },
+  {
+   "entry": "2024-01-19",
+   "funding": 5.5946,
+   "how": "planned",
+   "lastHeldDay": "2024-02-17",
+   "perp": "WIFUSDT",
+   "pnl": -1.2754
+  },
+  {
+   "entry": "2024-01-21",
+   "funding": 0.6873,
+   "how": "stop",
+   "lastHeldDay": "2024-01-22",
+   "perp": "ONDOUSDT",
+   "pnl": -49.5445
+  },
+  {
+   "entry": "2024-01-26",
+   "funding": 1.9454,
+   "how": "stop",
+   "lastHeldDay": "2024-02-18",
+   "perp": "ALTUSDT",
+   "pnl": -48.2864
+  },
+  {
+   "entry": "2024-01-26",
+   "funding": -0.1481,
+   "how": "planned",
+   "lastHeldDay": "2024-02-24",
+   "perp": "LSKUSDT",
+   "pnl": -6.7904
+  },
+  {
+   "entry": "2024-02-01",
+   "funding": 3.167,
+   "how": "planned",
+   "lastHeldDay": "2024-03-01",
+   "perp": "JUPUSDT",
+   "pnl": 10.1096
+  },
+  {
+   "entry": "2024-02-03",
+   "funding": 0.4255,
+   "how": "stop",
+   "lastHeldDay": "2024-02-13",
+   "perp": "ZETAUSDT",
+   "pnl": -49.8063
+  },
+  {
+   "entry": "2024-02-07",
+   "funding": 3.4635,
+   "how": "planned",
+   "lastHeldDay": "2024-03-07",
+   "perp": "RONINUSDT",
+   "pnl": -13.1043
+  },
+  {
+   "entry": "2024-02-08",
+   "funding": 0.6435,
+   "how": "stop",
+   "lastHeldDay": "2024-02-14",
+   "perp": "DYMUSDT",
+   "pnl": -49.5884
+  },
+  {
+   "entry": "2024-02-14",
+   "funding": 5.1666,
+   "how": "planned",
+   "lastHeldDay": "2024-03-14",
+   "perp": "OMUSDT",
+   "pnl": -32.6194
+  },
+  {
+   "entry": "2024-02-20",
+   "funding": 5.1014,
+   "how": "stop",
+   "lastHeldDay": "2024-03-09",
+   "perp": "PIXELUSDT",
+   "pnl": -45.1304
+  },
+  {
+   "entry": "2024-02-21",
+   "funding": 6.7384,
+   "how": "planned",
+   "lastHeldDay": "2024-03-21",
+   "perp": "STRKUSDT",
+   "pnl": -0.0483
+  },
+  {
+   "entry": "2024-02-22",
+   "funding": 8.99,
+   "how": "planned",
+   "lastHeldDay": "2024-03-22",
+   "perp": "MAVIAUSDT",
+   "pnl": 23.5061
+  },
+  {
+   "entry": "2024-02-23",
+   "funding": 2.3993,
+   "how": "stop",
+   "lastHeldDay": "2024-03-03",
+   "perp": "GLMUSDT",
+   "pnl": -47.8325
+  },
+  {
+   "entry": "2024-03-01",
+   "funding": 5.5237,
+   "how": "planned",
+   "lastHeldDay": "2024-03-30",
+   "perp": "PORTALUSDT",
+   "pnl": 24.6271
+  },
+  {
+   "entry": "2024-03-02",
+   "funding": 5.7836,
+   "how": "planned",
+   "lastHeldDay": "2024-03-31",
+   "perp": "AXLUSDT",
+   "pnl": 1.0195
+  },
+  {
+   "entry": "2024-03-02",
+   "funding": 3.1695,
+   "how": "stop",
+   "lastHeldDay": "2024-03-12",
+   "perp": "TONUSDT",
+   "pnl": -47.0623
+  },
+  {
+   "entry": "2024-03-06",
+   "funding": 10.7142,
+   "how": "planned",
+   "lastHeldDay": "2024-04-04",
+   "perp": "MYROUSDT",
+   "pnl": 32.2922
+  },
+  {
+   "entry": "2024-03-13",
+   "funding": 3.1298,
+   "how": "planned",
+   "lastHeldDay": "2024-04-11",
+   "perp": "METISUSDT",
+   "pnl": 36.9686
+  },
+  {
+   "entry": "2024-03-14",
+   "funding": -6.6499,
+   "how": "planned",
+   "lastHeldDay": "2024-04-12",
+   "perp": "AEVOUSDT",
+   "pnl": 34.3743
+  },
+  {
+   "entry": "2024-03-14",
+   "funding": 2.8819,
+   "how": "planned",
+   "lastHeldDay": "2024-04-12",
+   "perp": "VANRYUSDT",
+   "pnl": 53.2599
+  },
+  {
+   "entry": "2024-03-17",
+   "funding": 3.2258,
+   "how": "planned",
+   "lastHeldDay": "2024-04-15",
+   "perp": "BOMEUSDT",
+   "pnl": 62.7377
+  },
+  {
+   "entry": "2024-03-19",
+   "funding": 0.3718,
+   "how": "stop",
+   "lastHeldDay": "2024-03-25",
+   "perp": "ETHFIUSDT",
+   "pnl": -49.8601
+  },
+  {
+   "entry": "2024-04-03",
+   "funding": -0.2244,
+   "how": "stop",
+   "lastHeldDay": "2024-04-03",
+   "perp": "ENAUSDT",
+   "pnl": -50.4563
+  },
+  {
+   "entry": "2024-04-04",
+   "funding": 1.2754,
+   "how": "planned",
+   "lastHeldDay": "2024-05-03",
+   "perp": "WUSDT",
+   "pnl": 44.7935
+  },
+  {
+   "entry": "2024-04-09",
+   "funding": 0.8298,
+   "how": "planned",
+   "lastHeldDay": "2024-05-08",
+   "perp": "TNSRUSDT",
+   "pnl": 53.8268
+  },
+  {
+   "entry": "2024-04-10",
+   "funding": 0.6919,
+   "how": "planned",
+   "lastHeldDay": "2024-05-09",
+   "perp": "SAGAUSDT",
+   "pnl": 56.1787
+  },
+  {
+   "entry": "2024-04-12",
+   "funding": 0.4875,
+   "how": "planned",
+   "lastHeldDay": "2024-05-11",
+   "perp": "TAOUSDT",
+   "pnl": 40.3478
+  },
+  {
+   "entry": "2024-04-18",
+   "funding": 0.453,
+   "how": "planned",
+   "lastHeldDay": "2024-05-17",
+   "perp": "OMNIUSDT",
+   "pnl": 44.5764
+  },
+  {
+   "entry": "2024-05-01",
+   "funding": 0.967,
+   "how": "planned",
+   "lastHeldDay": "2024-05-30",
+   "perp": "REZUSDT",
+   "pnl": 15.3133
+  },
+  {
+   "entry": "2024-05-14",
+   "funding": 0.1982,
+   "how": "stop",
+   "lastHeldDay": "2024-05-26",
+   "perp": "BBUSDT",
+   "pnl": -50.0336
+  },
+  {
+   "entry": "2024-05-17",
+   "funding": -1.4871,
+   "how": "stop",
+   "lastHeldDay": "2024-05-30",
+   "perp": "NOTUSDT",
+   "pnl": -51.719
+  },
+  {
+   "entry": "2024-05-31",
+   "funding": 1.7546,
+   "how": "planned",
+   "lastHeldDay": "2024-06-29",
+   "perp": "TURBOUSDT",
+   "pnl": 32.9743
+  },
+  {
+   "entry": "2024-06-12",
+   "funding": -0.2292,
+   "how": "stop",
+   "lastHeldDay": "2024-06-12",
+   "perp": "IOUSDT",
+   "pnl": -50.4611
+  },
+  {
+   "entry": "2024-06-18",
+   "funding": 0.6993,
+   "how": "planned",
+   "lastHeldDay": "2024-07-17",
+   "perp": "MEWUSDT",
+   "pnl": 21.2385
+  },
+  {
+   "entry": "2024-06-18",
+   "funding": 0.6975,
+   "how": "planned",
+   "lastHeldDay": "2024-07-17",
+   "perp": "ZKUSDT",
+   "pnl": 22.3837
+  },
+  {
+   "entry": "2024-06-21",
+   "funding": 0.3893,
+   "how": "planned",
+   "lastHeldDay": "2024-07-20",
+   "perp": "LISTAUSDT",
+   "pnl": 11.6486
+  },
+  {
+   "entry": "2024-06-21",
+   "funding": -1.3223,
+   "how": "stop",
+   "lastHeldDay": "2024-07-20",
+   "perp": "ZROUSDT",
+   "pnl": -51.5541
+  },
+  {
+   "entry": "2024-07-27",
+   "funding": 0.1477,
+   "how": "planned",
+   "lastHeldDay": "2024-08-25",
+   "perp": "RENDERUSDT",
+   "pnl": 6.8727
+  },
+  {
+   "entry": "2024-08-16",
+   "funding": 0.0,
+   "how": "stop",
+   "lastHeldDay": "2024-08-17",
+   "perp": "BANANAUSDT",
+   "pnl": -50.2318
+  },
+  {
+   "entry": "2024-08-16",
+   "funding": -1.069,
+   "how": "planned",
+   "lastHeldDay": "2024-09-14",
+   "perp": "GUSDT",
+   "pnl": 1.871
+  },
+  {
+   "entry": "2024-08-16",
+   "funding": -7.1884,
+   "how": "stop",
+   "lastHeldDay": "2024-08-16",
+   "perp": "RAREUSDT",
+   "pnl": -57.4202
+  },
+  {
+   "entry": "2024-08-17",
+   "funding": -2.6795,
+   "how": "planned",
+   "lastHeldDay": "2024-09-15",
+   "perp": "SYNUSDT",
+   "pnl": 17.9412
+  },
+  {
+   "entry": "2024-08-20",
+   "funding": 0.0657,
+   "how": "planned",
+   "lastHeldDay": "2024-09-18",
+   "perp": "SYSUSDT",
+   "pnl": 32.7644
+  },
+  {
+   "entry": "2024-08-21",
+   "funding": 0.8056,
+   "how": "planned",
+   "lastHeldDay": "2024-09-19",
+   "perp": "BRETTUSDT",
+   "pnl": 8.5729
+  },
+  {
+   "entry": "2024-08-21",
+   "funding": 0.4623,
+   "how": "planned",
+   "lastHeldDay": "2024-09-19",
+   "perp": "VOXELUSDT",
+   "pnl": 25.4686
+  },
+  {
+   "entry": "2024-08-23",
+   "funding": 0.564,
+   "how": "planned",
+   "lastHeldDay": "2024-09-21",
+   "perp": "ALPACAUSDT",
+   "pnl": 24.7801
+  },
+  {
+   "entry": "2024-08-23",
+   "funding": 1.2413,
+   "how": "stop",
+   "lastHeldDay": "2024-09-19",
+   "perp": "POPCATUSDT",
+   "pnl": -48.9905
+  },
+  {
+   "entry": "2024-08-23",
+   "funding": -1.0653,
+   "how": "stop",
+   "lastHeldDay": "2024-08-23",
+   "perp": "SUNUSDT",
+   "pnl": -51.2972
+  },
+  {
+   "entry": "2024-08-24",
+   "funding": 0.7271,
+   "how": "planned",
+   "lastHeldDay": "2024-09-22",
+   "perp": "VIDTUSDT",
+   "pnl": -8.5556
+  },
+  {
+   "entry": "2024-08-27",
+   "funding": 0.6947,
+   "how": "planned",
+   "lastHeldDay": "2024-09-25",
+   "perp": "DOGSUSDT",
+   "pnl": 32.7416
+  },
+  {
+   "entry": "2024-08-27",
+   "funding": 0.3197,
+   "how": "planned",
+   "lastHeldDay": "2024-09-25",
+   "perp": "NULSUSDT",
+   "pnl": 20.8248
+  },
+  {
+   "entry": "2024-08-29",
+   "funding": 0.6321,
+   "how": "planned",
+   "lastHeldDay": "2024-09-27",
+   "perp": "MBOXUSDT",
+   "pnl": 6.7042
+  },
+  {
+   "entry": "2024-08-30",
+   "funding": 0.6209,
+   "how": "planned",
+   "lastHeldDay": "2024-09-28",
+   "perp": "CHESSUSDT",
+   "pnl": 13.3703
+  },
+  {
+   "entry": "2024-09-04",
+   "funding": -0.3493,
+   "how": "planned",
+   "lastHeldDay": "2024-10-03",
+   "perp": "FLUXUSDT",
+   "pnl": 11.1858
+  },
+  {
+   "entry": "2024-09-06",
+   "funding": 0.4171,
+   "how": "planned",
+   "lastHeldDay": "2024-10-05",
+   "perp": "BSWUSDT",
+   "pnl": 26.1001
+  },
+  {
+   "entry": "2024-09-07",
+   "funding": -0.2422,
+   "how": "stop",
+   "lastHeldDay": "2024-09-10",
+   "perp": "NEIROETHUSDT",
+   "pnl": -50.4741
+  },
+  {
+   "entry": "2024-09-07",
+   "funding": -1.0979,
+   "how": "planned",
+   "lastHeldDay": "2024-10-06",
+   "perp": "QUICKUSDT",
+   "pnl": 19.3954
+  },
+  {
+   "entry": "2024-09-10",
+   "funding": 0.4415,
+   "how": "planned",
+   "lastHeldDay": "2024-10-09",
+   "perp": "RPLUSDT",
+   "pnl": 14.7475
+  },
+  {
+   "entry": "2024-09-11",
+   "funding": 0.7565,
+   "how": "planned",
+   "lastHeldDay": "2024-10-10",
+   "perp": "AERGOUSDT",
+   "pnl": 4.4022
+  },
+  {
+   "entry": "2024-09-14",
+   "funding": 0.6516,
+   "how": "planned",
+   "lastHeldDay": "2024-10-13",
+   "perp": "POLUSDT",
+   "pnl": 11.2364
+  },
+  {
+   "entry": "2024-09-16",
+   "funding": -3.0765,
+   "how": "stop",
+   "lastHeldDay": "2024-09-17",
+   "perp": "UXLINKUSDT",
+   "pnl": -53.3083
+  },
+  {
+   "entry": "2024-09-17",
+   "funding": -2.8478,
+   "how": "stop",
+   "lastHeldDay": "2024-10-09",
+   "perp": "1MBABYDOGEUSDT",
+   "pnl": -53.0797
+  },
+  {
+   "entry": "2024-09-17",
+   "funding": -0.0744,
+   "how": "stop",
+   "lastHeldDay": "2024-09-17",
+   "perp": "NEIROUSDT",
+   "pnl": -50.3062
+  },
+  {
+   "entry": "2024-09-19",
+   "funding": 0.752,
+   "how": "planned",
+   "lastHeldDay": "2024-10-18",
+   "perp": "KDAUSDT",
+   "pnl": 12.3703
+  },
+  {
+   "entry": "2024-09-20",
+   "funding": -0.0203,
+   "how": "planned",
+   "lastHeldDay": "2024-10-19",
+   "perp": "FIDAUSDT",
+   "pnl": 29.9231
+  },
+  {
+   "entry": "2024-09-21",
+   "funding": 0.5594,
+   "how": "planned",
+   "lastHeldDay": "2024-10-20",
+   "perp": "CATIUSDT",
+   "pnl": 50.828
+  },
+  {
+   "entry": "2024-09-21",
+   "funding": 0.8377,
+   "how": "planned",
+   "lastHeldDay": "2024-10-20",
+   "perp": "FIOUSDT",
+   "pnl": 28.3878
+  },
+  {
+   "entry": "2024-09-24",
+   "funding": 0.7794,
+   "how": "planned",
+   "lastHeldDay": "2024-10-23",
+   "perp": "GHSTUSDT",
+   "pnl": 16.8733
+  },
+  {
+   "entry": "2024-09-25",
+   "funding": 0.7096,
+   "how": "planned",
+   "lastHeldDay": "2024-10-24",
+   "perp": "LOKAUSDT",
+   "pnl": 28.3792
+  },
+  {
+   "entry": "2024-09-27",
+   "funding": 0.659,
+   "how": "planned",
+   "lastHeldDay": "2024-10-26",
+   "perp": "HMSTRUSDT",
+   "pnl": 57.3388
+  },
+  {
+   "entry": "2024-09-28",
+   "funding": 0.7007,
+   "how": "planned",
+   "lastHeldDay": "2024-10-27",
+   "perp": "REIUSDT",
+   "pnl": 15.7021
+  },
+  {
+   "entry": "2024-10-01",
+   "funding": -0.0324,
+   "how": "planned",
+   "lastHeldDay": "2024-10-30",
+   "perp": "COSUSDT",
+   "pnl": 9.1938
+  },
+  {
+   "entry": "2024-10-02",
+   "funding": 0.7993,
+   "how": "planned",
+   "lastHeldDay": "2024-10-31",
+   "perp": "EIGENUSDT",
+   "pnl": 32.3818
+  },
+  {
+   "entry": "2024-10-03",
+   "funding": -6.7292,
+   "how": "stop",
+   "lastHeldDay": "2024-10-17",
+   "perp": "DIAUSDT",
+   "pnl": -56.961
+  },
+  {
+   "entry": "2024-10-22",
+   "funding": 2.2815,
+   "how": "stop",
+   "lastHeldDay": "2024-11-14",
+   "perp": "1000CATUSDT",
+   "pnl": -47.9503
+  },
+  {
+   "entry": "2024-10-23",
+   "funding": 0.8696,
+   "how": "planned",
+   "lastHeldDay": "2024-11-21",
+   "perp": "SCRUSDT",
+   "pnl": 38.2524
+  },
+  {
+   "entry": "2024-10-25",
+   "funding": 3.2569,
+   "how": "stop",
+   "lastHeldDay": "2024-11-12",
+   "perp": "GOATUSDT",
+   "pnl": -46.9749
+  },
+  {
+   "entry": "2024-10-26",
+   "funding": 1.7881,
+   "how": "stop",
+   "lastHeldDay": "2024-11-08",
+   "perp": "MOODENGUSDT",
+   "pnl": -48.4438
+  },
+  {
+   "entry": "2024-10-26",
+   "funding": 1.1512,
+   "how": "planned",
+   "lastHeldDay": "2024-11-24",
+   "perp": "SAFEUSDT",
+   "pnl": 29.1275
+  },
+  {
+   "entry": "2024-10-29",
+   "funding": -0.5113,
+   "how": "planned",
+   "lastHeldDay": "2024-11-27",
+   "perp": "SANTOSUSDT",
+   "pnl": 15.9782
+  },
+  {
+   "entry": "2024-11-01",
+   "funding": 0.196,
+   "how": "stop",
+   "lastHeldDay": "2024-11-06",
+   "perp": "TROYUSDT",
+   "pnl": -50.0359
+  },
+  {
+   "entry": "2024-11-05",
+   "funding": 0.8995,
+   "how": "stop",
+   "lastHeldDay": "2024-11-14",
+   "perp": "PONKEUSDT",
+   "pnl": -49.3323
+  },
+  {
+   "entry": "2024-11-07",
+   "funding": 0.0492,
+   "how": "stop",
+   "lastHeldDay": "2024-11-08",
+   "perp": "CETUSUSDT",
+   "pnl": -50.1826
+  },
+  {
+   "entry": "2024-11-07",
+   "funding": 1.9178,
+   "how": "planned",
+   "lastHeldDay": "2024-12-06",
+   "perp": "COWUSDT",
+   "pnl": 4.1582
+  },
+  {
+   "entry": "2024-11-08",
+   "funding": 5.1262,
+   "how": "stop",
+   "lastHeldDay": "2024-12-03",
+   "perp": "1000000MOGUSDT",
+   "pnl": -45.1056
+  },
+  {
+   "entry": "2024-11-09",
+   "funding": -5.578,
+   "how": "planned",
+   "lastHeldDay": "2024-12-08",
+   "perp": "DRIFTUSDT",
+   "pnl": -21.7568
+  },
+  {
+   "entry": "2024-11-09",
+   "funding": 4.9068,
+   "how": "planned",
+   "lastHeldDay": "2024-12-08",
+   "perp": "GRASSUSDT",
+   "pnl": 9.7728
+  },
+  {
+   "entry": "2024-11-09",
+   "funding": 2.2316,
+   "how": "planned",
+   "lastHeldDay": "2024-12-08",
+   "perp": "SWELLUSDT",
+   "pnl": 15.9291
+  },
+  {
+   "entry": "2024-11-12",
+   "funding": 0.4059,
+   "how": "stop",
+   "lastHeldDay": "2024-11-13",
+   "perp": "ACTUSDT",
+   "pnl": -49.8259
+  },
+  {
+   "entry": "2024-11-12",
+   "funding": 0.423,
+   "how": "stop",
+   "lastHeldDay": "2024-11-13",
+   "perp": "PNUTUSDT",
+   "pnl": -49.8088
+  },
+  {
+   "entry": "2024-11-14",
+   "funding": 3.3512,
+   "how": "planned",
+   "lastHeldDay": "2024-12-13",
+   "perp": "1000XUSDT",
+   "pnl": 26.0061
+  },
+  {
+   "entry": "2024-11-14",
+   "funding": 7.3547,
+   "how": "planned",
+   "lastHeldDay": "2024-12-13",
+   "perp": "HIPPOUSDT",
+   "pnl": 41.2855
+  },
+  {
+   "entry": "2024-11-16",
+   "funding": 4.5108,
+   "how": "planned",
+   "lastHeldDay": "2024-12-15",
+   "perp": "DEGENUSDT",
+   "pnl": 44.9147
+  },
+  {
+   "entry": "2024-11-19",
+   "funding": 4.4749,
+   "how": "planned",
+   "lastHeldDay": "2024-12-18",
+   "perp": "AKTUSDT",
+   "pnl": 19.2322
+  },
+  {
+   "entry": "2024-11-19",
+   "funding": 3.9197,
+   "how": "planned",
+   "lastHeldDay": "2024-12-18",
+   "perp": "BANUSDT",
+   "pnl": 84.0783
+  },
+  {
+   "entry": "2024-11-22",
+   "funding": -0.4815,
+   "how": "stop",
+   "lastHeldDay": "2024-11-22",
+   "perp": "SCRTUSDT",
+   "pnl": -50.7133
+  },
+  {
+   "entry": "2024-11-22",
+   "funding": 3.0443,
+   "how": "planned",
+   "lastHeldDay": "2024-12-21",
+   "perp": "SLERFUSDT",
+   "pnl": 58.0054
+  },
+  {
+   "entry": "2024-11-26",
+   "funding": 3.2146,
+   "how": "stop",
+   "lastHeldDay": "2024-12-04",
+   "perp": "1000CHEEMSUSDT",
+   "pnl": -47.0172
+  },
+  {
+   "entry": "2024-11-26",
+   "funding": 5.3926,
+   "how": "planned",
+   "lastHeldDay": "2024-12-25",
+   "perp": "1000WHYUSDT",
+   "pnl": 36.5677
+  },
+  {
+   "entry": "2024-11-28",
+   "funding": 3.3956,
+   "how": "planned",
+   "lastHeldDay": "2024-12-27",
+   "perp": "CHILLGUYUSDT",
+   "pnl": 74.0086
+  },
+  {
+   "entry": "2024-11-28",
+   "funding": 0.9187,
+   "how": "stop",
+   "lastHeldDay": "2024-12-05",
+   "perp": "MORPHOUSDT",
+   "pnl": -49.3131
+  },
+  {
+   "entry": "2024-11-28",
+   "funding": 1.4973,
+   "how": "planned",
+   "lastHeldDay": "2024-12-27",
+   "perp": "THEUSDT",
+   "pnl": 55.8457
+  },
+  {
+   "entry": "2024-12-05",
+   "funding": 1.6483,
+   "how": "planned",
+   "lastHeldDay": "2025-01-03",
+   "perp": "AEROUSDT",
+   "pnl": 11.3026
+  },
+  {
+   "entry": "2024-12-05",
+   "funding": 0.7187,
+   "how": "planned",
+   "lastHeldDay": "2025-01-03",
+   "perp": "KAIAUSDT",
+   "pnl": 34.3359
+  },
+  {
+   "entry": "2024-12-07",
+   "funding": 0.7979,
+   "how": "planned",
+   "lastHeldDay": "2025-01-05",
+   "perp": "ACXUSDT",
+   "pnl": 43.5674
+  },
+  {
+   "entry": "2024-12-07",
+   "funding": 0.8392,
+   "how": "planned",
+   "lastHeldDay": "2025-01-05",
+   "perp": "ORCAUSDT",
+   "pnl": 41.678
+  },
+  {
+   "entry": "2024-12-10",
+   "funding": -1.9504,
+   "how": "stop",
+   "lastHeldDay": "2024-12-10",
+   "perp": "MOVEUSDT",
+   "pnl": -52.1822
+  },
+  {
+   "entry": "2024-12-11",
+   "funding": 3.4356,
+   "how": "planned",
+   "lastHeldDay": "2025-01-09",
+   "perp": "KOMAUSDT",
+   "pnl": 45.8784
+  },
+  {
+   "entry": "2024-12-11",
+   "funding": -0.5976,
+   "how": "planned",
+   "lastHeldDay": "2025-01-09",
+   "perp": "MEUSDT",
+   "pnl": 51.8631
+  },
+  {
+   "entry": "2024-12-11",
+   "funding": 1.152,
+   "how": "planned",
+   "lastHeldDay": "2025-01-09",
+   "perp": "RAYSOLUSDT",
+   "pnl": 1.7159
+  },
+  {
+   "entry": "2024-12-11",
+   "funding": -0.3196,
+   "how": "stop",
+   "lastHeldDay": "2025-01-02",
+   "perp": "SPXUSDT",
+   "pnl": -50.5515
+  },
+  {
+   "entry": "2024-12-11",
+   "funding": 0.5663,
+   "how": "stop",
+   "lastHeldDay": "2024-12-13",
+   "perp": "VIRTUALUSDT",
+   "pnl": -49.6656
+  },
+  {
+   "entry": "2024-12-14",
+   "funding": 0.4651,
+   "how": "planned",
+   "lastHeldDay": "2025-01-12",
+   "perp": "AVAUSDT",
+   "pnl": 56.6955
+  },
+  {
+   "entry": "2024-12-14",
+   "funding": 0.7082,
+   "how": "planned",
+   "lastHeldDay": "2025-01-12",
+   "perp": "DEGOUSDT",
+   "pnl": 31.5286
+  },
+  {
+   "entry": "2024-12-14",
+   "funding": 0.3114,
+   "how": "planned",
+   "lastHeldDay": "2025-01-12",
+   "perp": "VELODROMEUSDT",
+   "pnl": 52.5613
+  },
+  {
+   "entry": "2024-12-17",
+   "funding": -1.9545,
+   "how": "stop",
+   "lastHeldDay": "2024-12-20",
+   "perp": "MOCAUSDT",
+   "pnl": -52.1863
+  },
+  {
+   "entry": "2024-12-17",
+   "funding": -4.8001,
+   "how": "planned",
+   "lastHeldDay": "2025-01-15",
+   "perp": "VANAUSDT",
+   "pnl": 55.1957
+  },
+  {
+   "entry": "2024-12-18",
+   "funding": 0.3117,
+   "how": "stop",
+   "lastHeldDay": "2024-12-26",
+   "perp": "PENGUUSDT",
+   "pnl": -49.9202
+  },
+  {
+   "entry": "2024-12-19",
+   "funding": 0.3019,
+   "how": "planned",
+   "lastHeldDay": "2025-01-17",
+   "perp": "LUMIAUSDT",
+   "pnl": 26.0635
+  },
+  {
+   "entry": "2024-12-19",
+   "funding": -0.0471,
+   "how": "stop",
+   "lastHeldDay": "2024-12-19",
+   "perp": "USUALUSDT",
+   "pnl": -50.2789
+  },
+  {
+   "entry": "2024-12-21",
+   "funding": 0.6608,
+   "how": "stop",
+   "lastHeldDay": "2024-12-29",
+   "perp": "AIXBTUSDT",
+   "pnl": -49.571
+  },
+  {
+   "entry": "2024-12-21",
+   "funding": -2.8938,
+   "how": "stop",
+   "lastHeldDay": "2025-01-10",
+   "perp": "CGPTUSDT",
+   "pnl": -53.1256
+  },
+  {
+   "entry": "2024-12-21",
+   "funding": 1.5653,
+   "how": "stop",
+   "lastHeldDay": "2025-01-03",
+   "perp": "FARTCOINUSDT",
+   "pnl": -48.6665
+  },
+  {
+   "entry": "2024-12-21",
+   "funding": 1.1392,
+   "how": "planned",
+   "lastHeldDay": "2025-01-19",
+   "perp": "KMNOUSDT",
+   "pnl": 30.1222
+  },
+  {
+   "entry": "2024-12-24",
+   "funding": -23.4019,
+   "how": "stop",
+   "lastHeldDay": "2025-01-05",
+   "perp": "HIVEUSDT",
+   "pnl": -73.6337
+  },
+  {
+   "entry": "2024-12-25",
+   "funding": 0.8845,
+   "how": "planned",
+   "lastHeldDay": "2025-01-23",
+   "perp": "DEXEUSDT",
+   "pnl": -30.6886
+  },
+  {
+   "entry": "2024-12-31",
+   "funding": 0.0332,
+   "how": "planned",
+   "lastHeldDay": "2025-01-29",
+   "perp": "DFUSDT",
+   "pnl": 12.6018
+  },
+  {
+   "entry": "2024-12-31",
+   "funding": 0.2895,
+   "how": "planned",
+   "lastHeldDay": "2025-01-29",
+   "perp": "PHAUSDT",
+   "pnl": 53.3914
+  },
+  {
+   "entry": "2025-01-03",
+   "funding": 1.8857,
+   "how": "planned",
+   "lastHeldDay": "2025-02-01",
+   "perp": "AI16ZUSDT",
+   "pnl": 83.974
+  },
+  {
+   "entry": "2025-01-03",
+   "funding": 2.2166,
+   "how": "stop",
+   "lastHeldDay": "2025-01-22",
+   "perp": "GRIFFAINUSDT",
+   "pnl": -48.0152
+  },
+  {
+   "entry": "2025-01-03",
+   "funding": 1.8677,
+   "how": "planned",
+   "lastHeldDay": "2025-02-01",
+   "perp": "ZEREBROUSDT",
+   "pnl": 92.7662
+  },
+  {
+   "entry": "2025-01-04",
+   "funding": 0.4209,
+   "how": "planned",
+   "lastHeldDay": "2025-02-02",
+   "perp": "BIOUSDT",
+   "pnl": 80.6858
+  },
+  {
+   "entry": "2025-01-08",
+   "funding": 1.3217,
+   "how": "planned",
+   "lastHeldDay": "2025-02-06",
+   "perp": "ALCHUSDT",
+   "pnl": 88.3681
+  },
+  {
+   "entry": "2025-01-08",
+   "funding": 0.2794,
+   "how": "planned",
+   "lastHeldDay": "2025-02-06",
+   "perp": "COOKIEUSDT",
+   "pnl": 75.1513
+  },
+  {
+   "entry": "2025-01-08",
+   "funding": 1.5687,
+   "how": "planned",
+   "lastHeldDay": "2025-02-06",
+   "perp": "SWARMSUSDT",
+   "pnl": 94.1478
+  },
+  {
+   "entry": "2025-01-09",
+   "funding": -0.8268,
+   "how": "planned",
+   "lastHeldDay": "2025-02-07",
+   "perp": "SONICUSDT",
+   "pnl": 66.4708
+  },
+  {
+   "entry": "2025-01-10",
+   "funding": -3.1294,
+   "how": "planned",
+   "lastHeldDay": "2025-02-08",
+   "perp": "DUSDT",
+   "pnl": 49.9813
+  },
+  {
+   "entry": "2025-01-16",
+   "funding": 0.0892,
+   "how": "planned",
+   "lastHeldDay": "2025-02-14",
+   "perp": "PROMUSDT",
+   "pnl": 29.7592
+  },
+  {
+   "entry": "2025-01-17",
+   "funding": 0.2608,
+   "how": "planned",
+   "lastHeldDay": "2025-02-15",
+   "perp": "SUSDT",
+   "pnl": 34.2992
+  },
+  {
+   "entry": "2025-01-18",
+   "funding": 1.4584,
+   "how": "stop",
+   "lastHeldDay": "2025-01-21",
+   "perp": "ARCUSDT",
+   "pnl": -48.7734
+  },
+  {
+   "entry": "2025-01-18",
+   "funding": 1.6106,
+   "how": "planned",
+   "lastHeldDay": "2025-02-16",
+   "perp": "AVAAIUSDT",
+   "pnl": 82.8698
+  },
+  {
+   "entry": "2025-01-18",
+   "funding": 0.3219,
+   "how": "planned",
+   "lastHeldDay": "2025-02-16",
+   "perp": "SOLVUSDT",
+   "pnl": 73.912
+  },
+  {
+   "entry": "2025-01-19",
+   "funding": 0.4794,
+   "how": "stop",
+   "lastHeldDay": "2025-01-19",
+   "perp": "TRUMPUSDT",
+   "pnl": -49.7524
+  },
+  {
+   "entry": "2025-01-21",
+   "funding": -1.3198,
+   "how": "planned",
+   "lastHeldDay": "2025-02-19",
+   "perp": "MELANIAUSDT",
+   "pnl": 66.2116
+  },
+  {
+   "entry": "2025-01-23",
+   "funding": -19.265,
+   "how": "planned",
+   "lastHeldDay": "2025-02-21",
+   "perp": "VTHOUSDT",
+   "pnl": 35.5819
+  },
+  {
+   "entry": "2025-01-24",
+   "funding": -0.6868,
+   "how": "planned",
+   "lastHeldDay": "2025-02-22",
+   "perp": "ANIMEUSDT",
+   "pnl": 69.2847
+  },
+  {
+   "entry": "2025-01-25",
+   "funding": 0.0159,
+   "how": "planned",
+   "lastHeldDay": "2025-02-23",
+   "perp": "PIPPINUSDT",
+   "pnl": 78.4253
+  },
+  {
+   "entry": "2025-01-25",
+   "funding": -3.0431,
+   "how": "stop",
+   "lastHeldDay": "2025-01-25",
+   "perp": "VINEUSDT",
+   "pnl": -53.275
+  },
+  {
+   "entry": "2025-01-30",
+   "funding": -5.203,
+   "how": "planned",
+   "lastHeldDay": "2025-02-28",
+   "perp": "VVVUSDT",
+   "pnl": 51.6978
+  },
+  {
+   "entry": "2025-02-07",
+   "funding": -8.2079,
+   "how": "planned",
+   "lastHeldDay": "2025-03-08",
+   "perp": "BERAUSDT",
+   "pnl": 12.9413
+  },
+  {
+   "entry": "2025-02-10",
+   "funding": 0.1762,
+   "how": "planned",
+   "lastHeldDay": "2025-03-11",
+   "perp": "TSTUSDT",
+   "pnl": 73.7059
+  },
+  {
+   "entry": "2025-02-12",
+   "funding": -11.3629,
+   "how": "stop",
+   "lastHeldDay": "2025-02-12",
+   "perp": "LAYERUSDT",
+   "pnl": -61.5947
+  },
+  {
+   "entry": "2025-02-14",
+   "funding": -10.4754,
+   "how": "planned",
+   "lastHeldDay": "2025-03-15",
+   "perp": "B3USDT",
+   "pnl": 32.4046
+  },
+  {
+   "entry": "2025-02-14",
+   "funding": -1.9036,
+   "how": "planned",
+   "lastHeldDay": "2025-03-15",
+   "perp": "HEIUSDT",
+   "pnl": 28.976
+  },
+  {
+   "entry": "2025-02-14",
+   "funding": -9.4286,
+   "how": "stop",
+   "lastHeldDay": "2025-02-19",
+   "perp": "IPUSDT",
+   "pnl": -59.6604
+  },
+  {
+   "entry": "2025-02-18",
+   "funding": -9.4424,
+   "how": "stop",
+   "lastHeldDay": "2025-03-04",
+   "perp": "GPSUSDT",
+   "pnl": -59.6742
+  },
+  {
+   "entry": "2025-02-18",
+   "funding": 0.1898,
+   "how": "stop",
+   "lastHeldDay": "2025-02-27",
+   "perp": "SHELLUSDT",
+   "pnl": -50.042
+  },
+  {
+   "entry": "2025-02-21",
+   "funding": -7.753,
+   "how": "stop",
+   "lastHeldDay": "2025-02-26",
+   "perp": "KAITOUSDT",
+   "pnl": -57.9848
+  },
+  {
+   "entry": "2025-03-07",
+   "funding": -11.3316,
+   "how": "planned",
+   "lastHeldDay": "2025-04-05",
+   "perp": "REDUSDT",
+   "pnl": 29.0491
+  },
+  {
+   "entry": "2025-03-13",
+   "funding": -1.7283,
+   "how": "planned",
+   "lastHeldDay": "2025-04-11",
+   "perp": "VICUSDT",
+   "pnl": 45.6868
+  },
+  {
+   "entry": "2025-03-14",
+   "funding": 0.3823,
+   "how": "planned",
+   "lastHeldDay": "2025-04-12",
+   "perp": "EPICUSDT",
+   "pnl": 13.9152
+  },
+  {
+   "entry": "2025-03-18",
+   "funding": -5.4083,
+   "how": "stop",
+   "lastHeldDay": "2025-03-18",
+   "perp": "BMTUSDT",
+   "pnl": -55.6402
+  },
+  {
+   "entry": "2025-03-18",
+   "funding": 0.8896,
+   "how": "planned",
+   "lastHeldDay": "2025-04-16",
+   "perp": "MUBARAKUSDT",
+   "pnl": 86.7592
+  },
+  {
+   "entry": "2025-03-20",
+   "funding": 0.1558,
+   "how": "stop",
+   "lastHeldDay": "2025-03-24",
+   "perp": "FORMUSDT",
+   "pnl": -50.076
+  },
+  {
+   "entry": "2025-03-21",
+   "funding": 3.8151,
+   "how": "planned",
+   "lastHeldDay": "2025-04-19",
+   "perp": "BIDUSDT",
+   "pnl": 65.9562
+  },
+  {
+   "entry": "2025-03-21",
+   "funding": -7.0731,
+   "how": "stop",
+   "lastHeldDay": "2025-03-29",
+   "perp": "TUTUSDT",
+   "pnl": -57.3049
+  },
+  {
+   "entry": "2025-03-22",
+   "funding": -0.6219,
+   "how": "stop",
+   "lastHeldDay": "2025-03-27",
+   "perp": "BROCCOLI714USDT",
+   "pnl": -50.8537
+  },
+  {
+   "entry": "2025-03-22",
+   "funding": 5.7188,
+   "how": "stop",
+   "lastHeldDay": "2025-04-12",
+   "perp": "BROCCOLIF3BUSDT",
+   "pnl": -44.513
+  },
+  {
+   "entry": "2025-03-22",
+   "funding": -0.2097,
+   "how": "planned",
+   "lastHeldDay": "2025-04-20",
+   "perp": "BRUSDT",
+   "pnl": 75.4789
+  },
+  {
+   "entry": "2025-03-22",
+   "funding": 0.2424,
+   "how": "planned",
+   "lastHeldDay": "2025-04-20",
+   "perp": "PLUMEUSDT",
+   "pnl": 14.1002
+  },
+  {
+   "entry": "2025-03-23",
+   "funding": 0.5178,
+   "how": "stop",
+   "lastHeldDay": "2025-03-27",
+   "perp": "BANANAS31USDT",
+   "pnl": -49.714
+  },
+  {
+   "entry": "2025-03-23",
+   "funding": -2.1568,
+   "how": "planned",
+   "lastHeldDay": "2025-04-21",
+   "perp": "SIRENUSDT",
+   "pnl": 20.9471
+  },
+  {
+   "entry": "2025-03-25",
+   "funding": 0.3265,
+   "how": "planned",
+   "lastHeldDay": "2025-04-23",
+   "perp": "NILUSDT",
+   "pnl": 47.0381
+  },
+  {
+   "entry": "2025-03-26",
+   "funding": -0.9201,
+   "how": "planned",
+   "lastHeldDay": "2025-04-24",
+   "perp": "PARTIUSDT",
+   "pnl": 45.3815
+  },
+  {
+   "entry": "2025-03-27",
+   "funding": 1.5804,
+   "how": "stop",
+   "lastHeldDay": "2025-04-25",
+   "perp": "JELLYJELLYUSDT",
+   "pnl": -48.6514
+  },
+  {
+   "entry": "2025-03-28",
+   "funding": 0.263,
+   "how": "planned",
+   "lastHeldDay": "2025-04-26",
+   "perp": "PAXGUSDT",
+   "pnl": -8.2822
+  },
+  {
+   "entry": "2025-03-28",
+   "funding": -13.2485,
+   "how": "planned",
+   "lastHeldDay": "2025-04-26",
+   "perp": "WALUSDT",
+   "pnl": -18.7837
+  },
+  {
+   "entry": "2025-04-01",
+   "funding": -38.228,
+   "how": "stop",
+   "lastHeldDay": "2025-04-05",
+   "perp": "FUNUSDT",
+   "pnl": -88.4598
+  },
+  {
+   "entry": "2025-04-01",
+   "funding": -3.4978,
+   "how": "planned",
+   "lastHeldDay": "2025-04-30",
+   "perp": "GUNUSDT",
+   "pnl": 13.6905
+  },
+  {
+   "entry": "2025-04-01",
+   "funding": -2.1584,
+   "how": "planned",
+   "lastHeldDay": "2025-04-30",
+   "perp": "MLNUSDT",
+   "pnl": 28.052
+  },
+  {
+   "entry": "2025-04-03",
+   "funding": -0.2221,
+   "how": "planned",
+   "lastHeldDay": "2025-05-02",
+   "perp": "ATHUSDT",
+   "pnl": -20.4668
+  },
+  {
+   "entry": "2025-04-06",
+   "funding": 0.1238,
+   "how": "stop",
+   "lastHeldDay": "2025-04-09",
+   "perp": "BABYUSDT",
+   "pnl": -50.108
+  },
+  {
+   "entry": "2025-04-09",
+   "funding": -0.0044,
+   "how": "planned",
+   "lastHeldDay": "2025-05-08",
+   "perp": "FORTHUSDT",
+   "pnl": 7.7499
+  },
+  {
+   "entry": "2025-04-12",
+   "funding": -2.7021,
+   "how": "stop",
+   "lastHeldDay": "2025-04-12",
+   "perp": "PROMPTUSDT",
+   "pnl": -52.9339
+  },
+  {
+   "entry": "2025-04-12",
+   "funding": -5.5041,
+   "how": "planned",
+   "lastHeldDay": "2025-05-11",
+   "perp": "XCNUSDT",
+   "pnl": 7.3312
+  },
+  {
+   "entry": "2025-04-13",
+   "funding": 0.5053,
+   "how": "stop",
+   "lastHeldDay": "2025-04-26",
+   "perp": "FHEUSDT",
+   "pnl": -49.7265
+  },
+  {
+   "entry": "2025-04-13",
+   "funding": 0.277,
+   "how": "stop",
+   "lastHeldDay": "2025-04-20",
+   "perp": "PUMPUSDT",
+   "pnl": -49.9548
+  },
+  {
+   "entry": "2025-04-13",
+   "funding": 1.6669,
+   "how": "stop",
+   "lastHeldDay": "2025-04-25",
+   "perp": "STOUSDT",
+   "pnl": -48.5649
+  },
+  {
+   "entry": "2025-04-15",
+   "funding": -4.8301,
+   "how": "planned",
+   "lastHeldDay": "2025-05-14",
+   "perp": "KERNELUSDT",
+   "pnl": 42.5686
+  },
+  {
+   "entry": "2025-04-16",
+   "funding": -4.2981,
+   "how": "stop",
+   "lastHeldDay": "2025-04-16",
+   "perp": "WCTUSDT",
+   "pnl": -54.5299
+  },
+  {
+   "entry": "2025-04-17",
+   "funding": 0.1994,
+   "how": "stop",
+   "lastHeldDay": "2025-05-11",
+   "perp": "INITUSDT",
+   "pnl": -50.0325
+  },
+  {
+   "entry": "2025-04-19",
+   "funding": -4.7872,
+   "how": "stop",
+   "lastHeldDay": "2025-05-09",
+   "perp": "BANKUSDT",
+   "pnl": -55.0191
+  },
+  {
+   "entry": "2025-04-22",
+   "funding": -0.8187,
+   "how": "planned",
+   "lastHeldDay": "2025-05-21",
+   "perp": "EPTUSDT",
+   "pnl": 27.0476
+  },
+  {
+   "entry": "2025-04-23",
+   "funding": -10.9534,
+   "how": "planned",
+   "lastHeldDay": "2025-05-22",
+   "perp": "DEEPUSDT",
+   "pnl": -24.7105
+  },
+  {
+   "entry": "2025-04-23",
+   "funding": 0.2142,
+   "how": "planned",
+   "lastHeldDay": "2025-05-22",
+   "perp": "HYPERUSDT",
+   "pnl": 39.059
+  },
+  {
+   "entry": "2025-04-26",
+   "funding": 0.8116,
+   "how": "planned",
+   "lastHeldDay": "2025-05-25",
+   "perp": "FISUSDT",
+   "pnl": 20.3994
+  },
+  {
+   "entry": "2025-04-26",
+   "funding": 0.1358,
+   "how": "stop",
+   "lastHeldDay": "2025-04-28",
+   "perp": "MEMEFIUSDT",
+   "pnl": -50.096
+  },
+  {
+   "entry": "2025-04-29",
+   "funding": -2.3176,
+   "how": "planned",
+   "lastHeldDay": "2025-05-28",
+   "perp": "JSTUSDT",
+   "pnl": 10.2891
+  },
+  {
+   "entry": "2025-04-29",
+   "funding": -3.4941,
+   "how": "stop",
+   "lastHeldDay": "2025-04-29",
+   "perp": "SIGNUSDT",
+   "pnl": -53.7259
+  },
+  {
+   "entry": "2025-05-01",
+   "funding": 1.3157,
+   "how": "stop",
+   "lastHeldDay": "2025-05-02",
+   "perp": "AIOTUSDT",
+   "pnl": -48.9161
+  },
+  {
+   "entry": "2025-05-01",
+   "funding": -8.199,
+   "how": "planned",
+   "lastHeldDay": "2025-05-30",
+   "perp": "PUNDIXUSDT",
+   "pnl": 28.5793
+  },
+  {
+   "entry": "2025-05-02",
+   "funding": 2.0567,
+   "how": "planned",
+   "lastHeldDay": "2025-05-31",
+   "perp": "DOLOUSDT",
+   "pnl": 36.9949
+  },
+  {
+   "entry": "2025-05-02",
+   "funding": -0.6868,
+   "how": "stop",
+   "lastHeldDay": "2025-05-02",
+   "perp": "HAEDALUSDT",
+   "pnl": -50.9186
+  },
+  {
+   "entry": "2025-05-03",
+   "funding": 0.1096,
+   "how": "planned",
+   "lastHeldDay": "2025-06-01",
+   "perp": "SXTUSDT",
+   "pnl": 74.8171
+  },
+  {
+   "entry": "2025-05-07",
+   "funding": -0.6283,
+   "how": "planned",
+   "lastHeldDay": "2025-06-05",
+   "perp": "ALPINEUSDT",
+   "pnl": 34.6317
+  },
+  {
+   "entry": "2025-05-07",
+   "funding": 0.6728,
+   "how": "planned",
+   "lastHeldDay": "2025-06-05",
+   "perp": "ASRUSDT",
+   "pnl": -11.1974
+  },
+  {
+   "entry": "2025-05-07",
+   "funding": -2.8573,
+   "how": "planned",
+   "lastHeldDay": "2025-06-05",
+   "perp": "B2USDT",
+   "pnl": 15.5539
+  },
+  {
+   "entry": "2025-05-07",
+   "funding": 1.0245,
+   "how": "planned",
+   "lastHeldDay": "2025-06-05",
+   "perp": "MILKUSDT",
+   "pnl": 54.9646
+  },
+  {
+   "entry": "2025-05-08",
+   "funding": 0.5957,
+   "how": "planned",
+   "lastHeldDay": "2025-06-06",
+   "perp": "OBOLUSDT",
+   "pnl": 46.834
+  },
+  {
+   "entry": "2025-05-08",
+   "funding": 0.029,
+   "how": "stop",
+   "lastHeldDay": "2025-05-16",
+   "perp": "SYRUPUSDT",
+   "pnl": -50.2028
+  },
+  {
+   "entry": "2025-05-10",
+   "funding": 0.5158,
+   "how": "planned",
+   "lastHeldDay": "2025-06-08",
+   "perp": "DOODUSDT",
+   "pnl": 65.17
+  },
+  {
+   "entry": "2025-05-13",
+   "funding": 0.6836,
+   "how": "planned",
+   "lastHeldDay": "2025-06-11",
+   "perp": "OGUSDT",
+   "pnl": 18.4004
+  },
+  {
+   "entry": "2025-05-14",
+   "funding": 2.5624,
+   "how": "planned",
+   "lastHeldDay": "2025-06-12",
+   "perp": "SKYAIUSDT",
+   "pnl": 58.1642
+  },
+  {
+   "entry": "2025-05-14",
+   "funding": 0.05,
+   "how": "planned",
+   "lastHeldDay": "2025-06-12",
+   "perp": "ZKJUSDT",
+   "pnl": 5.3778
+  },
+  {
+   "entry": "2025-05-16",
+   "funding": -2.7197,
+   "how": "planned",
+   "lastHeldDay": "2025-06-14",
+   "perp": "NXPCUSDT",
+   "pnl": 49.7212
+  },
+  {
+   "entry": "2025-05-21",
+   "funding": -1.0767,
+   "how": "planned",
+   "lastHeldDay": "2025-06-19",
+   "perp": "AGTUSDT",
+   "pnl": 55.0989
+  },
+  {
+   "entry": "2025-05-22",
+   "funding": -0.3543,
+   "how": "planned",
+   "lastHeldDay": "2025-06-20",
+   "perp": "AWEUSDT",
+   "pnl": 20.9713
+  },
+  {
+   "entry": "2025-05-23",
+   "funding": 1.2359,
+   "how": "stop",
+   "lastHeldDay": "2025-05-25",
+   "perp": "BUSDT",
+   "pnl": -48.996
+  },
+  {
+   "entry": "2025-05-24",
+   "funding": -3.2748,
+   "how": "planned",
+   "lastHeldDay": "2025-06-22",
+   "perp": "SOONUSDT",
+   "pnl": 53.0642
+  },
+  {
+   "entry": "2025-05-27",
+   "funding": -1.4103,
+   "how": "planned",
+   "lastHeldDay": "2025-06-25",
+   "perp": "HUMAUSDT",
+   "pnl": 50.7731
+  },
+  {
+   "entry": "2025-05-29",
+   "funding": 0.2825,
+   "how": "planned",
+   "lastHeldDay": "2025-06-27",
+   "perp": "AUSDT",
+   "pnl": 35.1213
+  },
+  {
+   "entry": "2025-05-29",
+   "funding": -11.6358,
+   "how": "planned",
+   "lastHeldDay": "2025-06-27",
+   "perp": "SOPHUSDT",
+   "pnl": 39.0689
+  },
+  {
+   "entry": "2025-05-30",
+   "funding": -3.0403,
+   "how": "planned",
+   "lastHeldDay": "2025-06-28",
+   "perp": "MERLUSDT",
+   "pnl": 32.4446
+  },
+  {
+   "entry": "2025-05-31",
+   "funding": 1.7458,
+   "how": "planned",
+   "lastHeldDay": "2025-06-29",
+   "perp": "HYPEUSDT",
+   "pnl": -19.6146
+  },
+  {
+   "entry": "2025-06-04",
+   "funding": -1.9951,
+   "how": "planned",
+   "lastHeldDay": "2025-07-03",
+   "perp": "BDXNUSDT",
+   "pnl": 46.6698
+  },
+  {
+   "entry": "2025-06-05",
+   "funding": -0.4515,
+   "how": "planned",
+   "lastHeldDay": "2025-07-04",
+   "perp": "PORT3USDT",
+   "pnl": 13.5721
+  },
+  {
+   "entry": "2025-06-05",
+   "funding": -1.8141,
+   "how": "planned",
+   "lastHeldDay": "2025-07-04",
+   "perp": "PUFFERUSDT",
+   "pnl": 23.3874
+  },
+  {
+   "entry": "2025-06-06",
+   "funding": -0.0735,
+   "how": "planned",
+   "lastHeldDay": "2025-07-05",
+   "perp": "1000000BOBUSDT",
+   "pnl": 31.2129
+  },
+  {
+   "entry": "2025-06-06",
+   "funding": -17.2751,
+   "how": "planned",
+   "lastHeldDay": "2025-07-05",
+   "perp": "LAUSDT",
+   "pnl": 45.3807
+  },
+  {
+   "entry": "2025-06-10",
+   "funding": -0.2921,
+   "how": "planned",
+   "lastHeldDay": "2025-07-09",
+   "perp": "SKATEUSDT",
+   "pnl": 32.6793
+  },
+  {
+   "entry": "2025-06-11",
+   "funding": -10.4489,
+   "how": "planned",
+   "lastHeldDay": "2025-07-10",
+   "perp": "HOMEUSDT",
+   "pnl": 19.7393
+  },
+  {
+   "entry": "2025-06-11",
+   "funding": -3.4363,
+   "how": "planned",
+   "lastHeldDay": "2025-07-10",
+   "perp": "RESOLVUSDT",
+   "pnl": 53.5537
+  },
+  {
+   "entry": "2025-06-12",
+   "funding": -16.2012,
+   "how": "planned",
+   "lastHeldDay": "2025-07-11",
+   "perp": "SQDUSDT",
+   "pnl": 15.2922
+  },
+  {
+   "entry": "2025-06-12",
+   "funding": -1.3198,
+   "how": "planned",
+   "lastHeldDay": "2025-07-11",
+   "perp": "TAIKOUSDT",
+   "pnl": 20.1446
+  },
+  {
+   "entry": "2025-06-14",
+   "funding": -0.5679,
+   "how": "planned",
+   "lastHeldDay": "2025-07-13",
+   "perp": "PUMPBTCUSDT",
+   "pnl": 16.0515
+  },
+  {
+   "entry": "2025-06-18",
+   "funding": -2.9864,
+   "how": "planned",
+   "lastHeldDay": "2025-07-17",
+   "perp": "SPKUSDT",
+   "pnl": 38.9784
+  },
+  {
+   "entry": "2025-06-19",
+   "funding": -13.2221,
+   "how": "planned",
+   "lastHeldDay": "2025-07-18",
+   "perp": "FUSDT",
+   "pnl": -6.4239
+  },
+  {
+   "entry": "2025-06-19",
+   "funding": -5.0518,
+   "how": "stop",
+   "lastHeldDay": "2025-06-23",
+   "perp": "MYXUSDT",
+   "pnl": -55.2836
+  },
+  {
+   "entry": "2025-06-20",
+   "funding": 0.0953,
+   "how": "stop",
+   "lastHeldDay": "2025-06-22",
+   "perp": "NEWTUSDT",
+   "pnl": -50.1365
+  },
+  {
+   "entry": "2025-06-25",
+   "funding": -3.7556,
+   "how": "planned",
+   "lastHeldDay": "2025-07-24",
+   "perp": "DMCUSDT",
+   "pnl": 42.5734
+  },
+  {
+   "entry": "2025-06-26",
+   "funding": -5.172,
+   "how": "stop",
+   "lastHeldDay": "2025-07-01",
+   "perp": "HUSDT",
+   "pnl": -55.4038
+  },
+  {
+   "entry": "2025-06-26",
+   "funding": 0.5726,
+   "how": "planned",
+   "lastHeldDay": "2025-07-25",
+   "perp": "OLUSDT",
+   "pnl": -1.0908
+  },
+  {
+   "entry": "2025-06-27",
+   "funding": -11.168,
+   "how": "stop",
+   "lastHeldDay": "2025-07-23",
+   "perp": "SAHARAUSDT",
+   "pnl": -61.3998
+  },
+  {
+   "entry": "2025-07-04",
+   "funding": -2.6319,
+   "how": "planned",
+   "lastHeldDay": "2025-08-02",
+   "perp": "ICNTUSDT",
+   "pnl": 31.0723
+  },
+  {
+   "entry": "2025-07-05",
+   "funding": 2.7173,
+   "how": "planned",
+   "lastHeldDay": "2025-08-03",
+   "perp": "BULLAUSDT",
+   "pnl": 33.3231
+  },
+  {
+   "entry": "2025-07-05",
+   "funding": -1.3798,
+   "how": "stop",
+   "lastHeldDay": "2025-07-11",
+   "perp": "IDOLUSDT",
+   "pnl": -51.6117
+  },
+  {
+   "entry": "2025-07-08",
+   "funding": -3.3636,
+   "how": "stop",
+   "lastHeldDay": "2025-07-09",
+   "perp": "MUSDT",
+   "pnl": -53.5954
+  },
+  {
+   "entry": "2025-07-10",
+   "funding": 2.4755,
+   "how": "planned",
+   "lastHeldDay": "2025-08-08",
+   "perp": "TANSSIUSDT",
+   "pnl": -15.2149
+  },
+  {
+   "entry": "2025-07-11",
+   "funding": -0.6156,
+   "how": "planned",
+   "lastHeldDay": "2025-08-09",
+   "perp": "AINUSDT",
+   "pnl": 18.1399
+  },
+  {
+   "entry": "2025-07-11",
+   "funding": 0.2258,
+   "how": "stop",
+   "lastHeldDay": "2025-07-11",
+   "perp": "CROSSUSDT",
+   "pnl": -50.006
+  },
+  {
+   "entry": "2025-07-16",
+   "funding": -0.3652,
+   "how": "stop",
+   "lastHeldDay": "2025-07-18",
+   "perp": "CUSDT",
+   "pnl": -50.597
+  },
+  {
+   "entry": "2025-07-16",
+   "funding": 0.8872,
+   "how": "planned",
+   "lastHeldDay": "2025-08-14",
+   "perp": "TACUSDT",
+   "pnl": 32.8838
+  },
+  {
+   "entry": "2025-07-16",
+   "funding": 1.4371,
+   "how": "stop",
+   "lastHeldDay": "2025-08-07",
+   "perp": "VELVETUSDT",
+   "pnl": -48.7948
+  },
+  {
+   "entry": "2025-07-18",
+   "funding": -12.8116,
+   "how": "planned",
+   "lastHeldDay": "2025-08-16",
+   "perp": "ERAUSDT",
+   "pnl": 30.3916
+  },
+  {
+   "entry": "2025-07-22",
+   "funding": 1.0086,
+   "how": "planned",
+   "lastHeldDay": "2025-08-20",
+   "perp": "TAUSDT",
+   "pnl": 57.601
+  },
+  {
+   "entry": "2025-07-26",
+   "funding": 0.9822,
+   "how": "stop",
+   "lastHeldDay": "2025-08-08",
+   "perp": "TAGUSDT",
+   "pnl": -49.2496
+  },
+  {
+   "entry": "2025-07-26",
+   "funding": -0.3635,
+   "how": "stop",
+   "lastHeldDay": "2025-07-26",
+   "perp": "ZORAUSDT",
+   "pnl": -50.5954
+  },
+  {
+   "entry": "2025-07-30",
+   "funding": 0.3315,
+   "how": "stop",
+   "lastHeldDay": "2025-08-04",
+   "perp": "ESPORTSUSDT",
+   "pnl": -49.9003
+  },
+  {
+   "entry": "2025-07-30",
+   "funding": -3.2912,
+   "how": "planned",
+   "lastHeldDay": "2025-08-28",
+   "perp": "TREEUSDT",
+   "pnl": 37.9908
+  },
+  {
+   "entry": "2025-07-30",
+   "funding": -0.5286,
+   "how": "planned",
+   "lastHeldDay": "2025-08-28",
+   "perp": "ZRCUSDT",
+   "pnl": 28.056
+  },
+  {
+   "entry": "2025-07-31",
+   "funding": -0.1814,
+   "how": "stop",
+   "lastHeldDay": "2025-08-07",
+   "perp": "A2ZUSDT",
+   "pnl": -50.4132
+  },
+  {
+   "entry": "2025-08-01",
+   "funding": 2.3223,
+   "how": "planned",
+   "lastHeldDay": "2025-08-30",
+   "perp": "NAORISUSDT",
+   "pnl": 53.2831
+  },
+  {
+   "entry": "2025-08-01",
+   "funding": 2.9428,
+   "how": "stop",
+   "lastHeldDay": "2025-08-07",
+   "perp": "PLAYUSDT",
+   "pnl": -47.289
+  },
+  {
+   "entry": "2025-08-06",
+   "funding": -2.9185,
+   "how": "stop",
+   "lastHeldDay": "2025-08-06",
+   "perp": "PROVEUSDT",
+   "pnl": -53.1504
+  },
+  {
+   "entry": "2025-08-06",
+   "funding": -2.9988,
+   "how": "planned",
+   "lastHeldDay": "2025-09-04",
+   "perp": "TOWNSUSDT",
+   "pnl": 39.8101
+  },
+  {
+   "entry": "2025-08-08",
+   "funding": 1.5581,
+   "how": "planned",
+   "lastHeldDay": "2025-09-06",
+   "perp": "CARVUSDT",
+   "pnl": 5.4309
+  },
+  {
+   "entry": "2025-08-08",
+   "funding": -2.556,
+   "how": "planned",
+   "lastHeldDay": "2025-09-06",
+   "perp": "INUSDT",
+   "pnl": 36.2052
+  },
+  {
+   "entry": "2025-08-08",
+   "funding": 0.7568,
+   "how": "planned",
+   "lastHeldDay": "2025-09-06",
+   "perp": "YALAUSDT",
+   "pnl": 68.3786
+  },
+  {
+   "entry": "2025-08-14",
+   "funding": 1.4619,
+   "how": "planned",
+   "lastHeldDay": "2025-09-12",
+   "perp": "AIOUSDT",
+   "pnl": -9.949
+  },
+  {
+   "entry": "2025-08-14",
+   "funding": 0.5516,
+   "how": "stop",
+   "lastHeldDay": "2025-08-15",
+   "perp": "XNYUSDT",
+   "pnl": -49.6803
+  },
+  {
+   "entry": "2025-08-16",
+   "funding": 0.9249,
+   "how": "planned",
+   "lastHeldDay": "2025-09-14",
+   "perp": "USELESSUSDT",
+   "pnl": 14.2592
+  },
+  {
+   "entry": "2025-08-19",
+   "funding": 1.647,
+   "how": "planned",
+   "lastHeldDay": "2025-09-17",
+   "perp": "DAMUSDT",
+   "pnl": 27.9097
+  },
+  {
+   "entry": "2025-08-21",
+   "funding": -0.7856,
+   "how": "stop",
+   "lastHeldDay": "2025-09-14",
+   "perp": "CUDISUSDT",
+   "pnl": -51.0174
+  },
+  {
+   "entry": "2025-08-21",
+   "funding": -0.3257,
+   "how": "stop",
+   "lastHeldDay": "2025-09-07",
+   "perp": "SAPIENUSDT",
+   "pnl": -50.5575
+  },
+  {
+   "entry": "2025-08-23",
+   "funding": 0.2819,
+   "how": "stop",
+   "lastHeldDay": "2025-08-31",
+   "perp": "XPLUSDT",
+   "pnl": -49.95
+  },
+  {
+   "entry": "2025-08-24",
+   "funding": 0.3234,
+   "how": "planned",
+   "lastHeldDay": "2025-09-22",
+   "perp": "WLFIUSDT",
+   "pnl": 28.7968
+  },
+  {
+   "entry": "2025-08-26",
+   "funding": -1.5929,
+   "how": "planned",
+   "lastHeldDay": "2025-09-24",
+   "perp": "SOMIUSDT",
+   "pnl": 37.9985
+  },
+  {
+   "entry": "2025-08-27",
+   "funding": -0.0233,
+   "how": "stop",
+   "lastHeldDay": "2025-08-27",
+   "perp": "BASUSDT",
+   "pnl": -50.2551
+  },
+  {
+   "entry": "2025-08-28",
+   "funding": 1.6132,
+   "how": "stop",
+   "lastHeldDay": "2025-09-14",
+   "perp": "BTRUSDT",
+   "pnl": -48.6186
+  },
+  {
+   "entry": "2025-08-29",
+   "funding": -1.9748,
+   "how": "stop",
+   "lastHeldDay": "2025-08-29",
+   "perp": "MITOUSDT",
+   "pnl": -52.2067
+  },
+  {
+   "entry": "2025-08-30",
+   "funding": 0.5538,
+   "how": "stop",
+   "lastHeldDay": "2025-08-31",
+   "perp": "HEMIUSDT",
+   "pnl": -49.678
+  },
+  {
+   "entry": "2025-09-02",
+   "funding": 0.7553,
+   "how": "planned",
+   "lastHeldDay": "2025-10-01",
+   "perp": "LINEAUSDT",
+   "pnl": 36.1188
+  },
+  {
+   "entry": "2025-09-03",
+   "funding": 0.4935,
+   "how": "stop",
+   "lastHeldDay": "2025-09-08",
+   "perp": "QUSDT",
+   "pnl": -49.7383
+  },
+  {
+   "entry": "2025-09-04",
+   "funding": -1.1455,
+   "how": "stop",
+   "lastHeldDay": "2025-09-12",
+   "perp": "ARIAUSDT",
+   "pnl": -51.3774
+  },
+  {
+   "entry": "2025-09-04",
+   "funding": -4.3195,
+   "how": "stop",
+   "lastHeldDay": "2025-09-05",
+   "perp": "PTBUSDT",
+   "pnl": -54.5513
+  },
+  {
+   "entry": "2025-09-04",
+   "funding": 6.3468,
+   "how": "planned",
+   "lastHeldDay": "2025-10-03",
+   "perp": "TAKEUSDT",
+   "pnl": -0.3173
+  },
+  {
+   "entry": "2025-09-09",
+   "funding": -4.8899,
+   "how": "planned",
+   "lastHeldDay": "2025-10-08",
+   "perp": "OPENUSDT",
+   "pnl": 49.7358
+  },
+  {
+   "entry": "2025-09-10",
+   "funding": -0.561,
+   "how": "stop",
+   "lastHeldDay": "2025-09-10",
+   "perp": "AVNTUSDT",
+   "pnl": -50.7928
+  },
+  {
+   "entry": "2025-09-10",
+   "funding": -0.8061,
+   "how": "planned",
+   "lastHeldDay": "2025-10-09",
+   "perp": "FLOCKUSDT",
+   "pnl": 33.8901
+  },
+  {
+   "entry": "2025-09-10",
+   "funding": 0.2166,
+   "how": "planned",
+   "lastHeldDay": "2025-10-09",
+   "perp": "SKYUSDT",
+   "pnl": 3.4011
+  },
+  {
+   "entry": "2025-09-12",
+   "funding": -1.4706,
+   "how": "planned",
+   "lastHeldDay": "2025-10-11",
+   "perp": "HOLOUSDT",
+   "pnl": 70.6512
+  },
+  {
+   "entry": "2025-09-13",
+   "funding": 0.8603,
+   "how": "stop",
+   "lastHeldDay": "2025-09-13",
+   "perp": "UBUSDT",
+   "pnl": -49.3715
+  },
+  {
+   "entry": "2025-09-13",
+   "funding": 1.2506,
+   "how": "stop",
+   "lastHeldDay": "2025-09-14",
+   "perp": "XPINUSDT",
+   "pnl": -48.9812
+  },
+  {
+   "entry": "2025-09-16",
+   "funding": -2.4244,
+   "how": "planned",
+   "lastHeldDay": "2025-10-15",
+   "perp": "ZKCUSDT",
+   "pnl": 78.0166
+  },
+  {
+   "entry": "2025-09-18",
+   "funding": -6.8172,
+   "how": "stop",
+   "lastHeldDay": "2025-09-22",
+   "perp": "0GUSDT",
+   "pnl": -57.049
+  },
+  {
+   "entry": "2025-09-18",
+   "funding": 0.7043,
+   "how": "stop",
+   "lastHeldDay": "2025-09-18",
+   "perp": "STBLUSDT",
+   "pnl": -49.5275
+  },
+  {
+   "entry": "2025-09-18",
+   "funding": -3.9345,
+   "how": "planned",
+   "lastHeldDay": "2025-10-17",
+   "perp": "TOSHIUSDT",
+   "pnl": 20.0758
+  },
+  {
+   "entry": "2025-09-19",
+   "funding": 5.0603,
+   "how": "stop",
+   "lastHeldDay": "2025-10-02",
+   "perp": "AIAUSDT",
+   "pnl": -45.1715
+  },
+  {
+   "entry": "2025-09-19",
+   "funding": -0.3682,
+   "how": "planned",
+   "lastHeldDay": "2025-10-18",
+   "perp": "BARDUSDT",
+   "pnl": 40.4322
+  },
+  {
+   "entry": "2025-09-20",
+   "funding": 0.9767,
+   "how": "stop",
+   "lastHeldDay": "2025-09-20",
+   "perp": "ASTERUSDT",
+   "pnl": -49.2552
+  },
+  {
+   "entry": "2025-09-20",
+   "funding": 1.259,
+   "how": "stop",
+   "lastHeldDay": "2025-09-21",
+   "perp": "TRADOORUSDT",
+   "pnl": -48.9728
+  },
+  {
+   "entry": "2025-09-24",
+   "funding": 1.2085,
+   "how": "stop",
+   "lastHeldDay": "2025-10-15",
+   "perp": "BLESSUSDT",
+   "pnl": -49.0233
+  },
+  {
+   "entry": "2025-09-25",
+   "funding": 0.4447,
+   "how": "planned",
+   "lastHeldDay": "2025-10-24",
+   "perp": "FLUIDUSDT",
+   "pnl": 35.2258
+  },
+  {
+   "entry": "2025-09-26",
+   "funding": 2.9244,
+   "how": "stop",
+   "lastHeldDay": "2025-10-02",
+   "perp": "COAIUSDT",
+   "pnl": -47.3074
+  },
+  {
+   "entry": "2025-09-27",
+   "funding": 3.0469,
+   "how": "planned",
+   "lastHeldDay": "2025-10-26",
+   "perp": "AKEUSDT",
+   "pnl": 31.7756
+  },
+  {
+   "entry": "2025-09-27",
+   "funding": 2.2764,
+   "how": "stop",
+   "lastHeldDay": "2025-10-05",
+   "perp": "HANAUSDT",
+   "pnl": -47.9554
+  },
+  {
+   "entry": "2025-09-27",
+   "funding": -3.3397,
+   "how": "planned",
+   "lastHeldDay": "2025-10-26",
+   "perp": "MIRAUSDT",
+   "pnl": 72.6037
+  },
+  {
+   "entry": "2025-09-27",
+   "funding": -2.0572,
+   "how": "planned",
+   "lastHeldDay": "2025-10-26",
+   "perp": "ORDERUSDT",
+   "pnl": 14.1996
+  },
+  {
+   "entry": "2025-09-28",
+   "funding": -0.0352,
+   "how": "stop",
+   "lastHeldDay": "2025-09-28",
+   "perp": "LIGHTUSDT",
+   "pnl": -50.267
+  },
+  {
+   "entry": "2025-09-30",
+   "funding": 0.2463,
+   "how": "planned",
+   "lastHeldDay": "2025-10-29",
+   "perp": "FFUSDT",
+   "pnl": 46.1564
+  },
+  {
+   "entry": "2025-09-30",
+   "funding": -1.0828,
+   "how": "planned",
+   "lastHeldDay": "2025-10-29",
+   "perp": "XANUSDT",
+   "pnl": 83.0959
+  },
+  {
+   "entry": "2025-10-01",
+   "funding": 0.3588,
+   "how": "planned",
+   "lastHeldDay": "2025-10-30",
+   "perp": "EDENUSDT",
+   "pnl": 67.7883
+  },
+  {
+   "entry": "2025-10-01",
+   "funding": 2.3017,
+   "how": "planned",
+   "lastHeldDay": "2025-10-30",
+   "perp": "VFYUSDT",
+   "pnl": 46.6539
+  },
+  {
+   "entry": "2025-10-02",
+   "funding": -0.1988,
+   "how": "planned",
+   "lastHeldDay": "2025-10-31",
+   "perp": "NOMUSDT",
+   "pnl": 53.1035
+  },
+  {
+   "entry": "2025-10-02",
+   "funding": -0.6947,
+   "how": "planned",
+   "lastHeldDay": "2025-10-31",
+   "perp": "TRUTHUSDT",
+   "pnl": 11.9454
+  },
+  {
+   "entry": "2025-10-03",
+   "funding": -0.7507,
+   "how": "planned",
+   "lastHeldDay": "2025-11-01",
+   "perp": "2ZUSDT",
+   "pnl": 68.7895
+  },
+  {
+   "entry": "2025-10-04",
+   "funding": 1.5509,
+   "how": "stop",
+   "lastHeldDay": "2025-10-25",
+   "perp": "EVAAUSDT",
+   "pnl": -48.6809
+  },
+  {
+   "entry": "2025-10-07",
+   "funding": 4.2619,
+   "how": "planned",
+   "lastHeldDay": "2025-11-05",
+   "perp": "LYNUSDT",
+   "pnl": 66.0532
+  },
+  {
+   "entry": "2025-10-08",
+   "funding": 0.0021,
+   "how": "stop",
+   "lastHeldDay": "2025-10-16",
+   "perp": "KGENUSDT",
+   "pnl": -50.2297
+  },
+  {
+   "entry": "2025-10-09",
+   "funding": 2.5822,
+   "how": "planned",
+   "lastHeldDay": "2025-11-07",
+   "perp": "4USDT",
+   "pnl": 73.5645
+  },
+  {
+   "entry": "2025-10-10",
+   "funding": 0.4307,
+   "how": "stop",
+   "lastHeldDay": "2025-10-10",
+   "perp": "GIGGLEUSDT",
+   "pnl": -49.8011
+  },
+  {
+   "entry": "2025-10-11",
+   "funding": 0.6845,
+   "how": "planned",
+   "lastHeldDay": "2025-11-09",
+   "perp": "MONUSDT",
+   "pnl": 29.6694
+  },
+  {
+   "entry": "2025-10-11",
+   "funding": -0.0712,
+   "how": "planned",
+   "lastHeldDay": "2025-11-09",
+   "perp": "YBUSDT",
+   "pnl": 59.0625
+  },
+  {
+   "entry": "2025-10-12",
+   "funding": 0.8197,
+   "how": "planned",
+   "lastHeldDay": "2025-11-10",
+   "perp": "METUSDT",
+   "pnl": 75.884
+  },
+  {
+   "entry": "2025-10-14",
+   "funding": -0.6459,
+   "how": "planned",
+   "lastHeldDay": "2025-11-12",
+   "perp": "EULUSDT",
+   "pnl": 40.3208
+  },
+  {
+   "entry": "2025-10-15",
+   "funding": 2.3523,
+   "how": "planned",
+   "lastHeldDay": "2025-11-13",
+   "perp": "CLOUSDT",
+   "pnl": 71.4036
+  },
+  {
+   "entry": "2025-10-15",
+   "funding": -5.9291,
+   "how": "planned",
+   "lastHeldDay": "2025-11-13",
+   "perp": "ENSOUSDT",
+   "pnl": 63.5492
+  },
+  {
+   "entry": "2025-10-16",
+   "funding": -1.1859,
+   "how": "planned",
+   "lastHeldDay": "2025-11-14",
+   "perp": "RECALLUSDT",
+   "pnl": 67.6193
+  },
+  {
+   "entry": "2025-10-18",
+   "funding": 0.9763,
+   "how": "stop",
+   "lastHeldDay": "2025-10-30",
+   "perp": "LABUSDT",
+   "pnl": -49.2555
+  },
+  {
+   "entry": "2025-10-18",
+   "funding": 0.3454,
+   "how": "stop",
+   "lastHeldDay": "2025-10-21",
+   "perp": "RIVERUSDT",
+   "pnl": -49.8864
+  },
+  {
+   "entry": "2025-10-18",
+   "funding": -10.0935,
+   "how": "planned",
+   "lastHeldDay": "2025-11-16",
+   "perp": "ZBTUSDT",
+   "pnl": 58.2329
+  },
+  {
+   "entry": "2025-10-19",
+   "funding": 0.2198,
+   "how": "stop",
+   "lastHeldDay": "2025-10-19",
+   "perp": "RVVUSDT",
+   "pnl": -50.0121
+  },
+  {
+   "entry": "2025-10-21",
+   "funding": 4.5269,
+   "how": "planned",
+   "lastHeldDay": "2025-11-19",
+   "perp": "币安人生USDT",
+   "pnl": 68.3802
+  },
+  {
+   "entry": "2025-10-22",
+   "funding": -0.0711,
+   "how": "stop",
+   "lastHeldDay": "2025-10-22",
+   "perp": "BLUAIUSDT",
+   "pnl": -50.303
+  },
+  {
+   "entry": "2025-10-23",
+   "funding": -3.5093,
+   "how": "planned",
+   "lastHeldDay": "2025-11-21",
+   "perp": "TURTLEUSDT",
+   "pnl": 50.5518
+  },
+  {
+   "entry": "2025-10-24",
+   "funding": 1.2968,
+   "how": "planned",
+   "lastHeldDay": "2025-11-22",
+   "perp": "APRUSDT",
+   "pnl": 60.3913
+  },
+  {
+   "entry": "2025-10-25",
+   "funding": 1.4837,
+   "how": "planned",
+   "lastHeldDay": "2025-11-23",
+   "perp": "ONUSDT",
+   "pnl": 56.068
+  },
+  {
+   "entry": "2025-10-28",
+   "funding": 1.9947,
+   "how": "planned",
+   "lastHeldDay": "2025-11-26",
+   "perp": "42USDT",
+   "pnl": 62.4949
+  },
+  {
+   "entry": "2025-10-28",
+   "funding": 1.056,
+   "how": "planned",
+   "lastHeldDay": "2025-11-26",
+   "perp": "COMMONUSDT",
+   "pnl": 70.0225
+  },
+  {
+   "entry": "2025-10-30",
+   "funding": 2.2437,
+   "how": "planned",
+   "lastHeldDay": "2025-11-28",
+   "perp": "ATUSDT",
+   "pnl": 48.2971
+  },
+  {
+   "entry": "2025-10-30",
+   "funding": -4.5737,
+   "how": "planned",
+   "lastHeldDay": "2025-11-28",
+   "perp": "KITEUSDT",
+   "pnl": 21.3463
+  },
+  {
+   "entry": "2025-11-01",
+   "funding": -0.2889,
+   "how": "planned",
+   "lastHeldDay": "2025-11-30",
+   "perp": "CCUSDT",
+   "pnl": 39.0538
+  },
+  {
+   "entry": "2025-11-05",
+   "funding": -4.5674,
+   "how": "planned",
+   "lastHeldDay": "2025-12-04",
+   "perp": "MMTUSDT",
+   "pnl": 85.9167
+  },
+  {
+   "entry": "2025-11-06",
+   "funding": -3.4788,
+   "how": "stop",
+   "lastHeldDay": "2025-11-21",
+   "perp": "TRUSTUSDT",
+   "pnl": -53.7106
+  },
+  {
+   "entry": "2025-11-07",
+   "funding": 0.3511,
+   "how": "stop",
+   "lastHeldDay": "2025-11-07",
+   "perp": "FOLKSUSDT",
+   "pnl": -49.8807
+  },
+  {
+   "entry": "2025-11-07",
+   "funding": 0.025,
+   "how": "stop",
+   "lastHeldDay": "2025-11-07",
+   "perp": "STABLEUSDT",
+   "pnl": -50.2068
+  },
+  {
+   "entry": "2025-11-07",
+   "funding": -4.7779,
+   "how": "stop",
+   "lastHeldDay": "2025-11-07",
+   "perp": "UAIUSDT",
+   "pnl": -55.0098
+  },
+  {
+   "entry": "2025-11-11",
+   "funding": 0.7789,
+   "how": "planned",
+   "lastHeldDay": "2025-12-10",
+   "perp": "JCTUSDT",
+   "pnl": 67.3165
+  },
+  {
+   "entry": "2025-11-12",
+   "funding": -1.6857,
+   "how": "planned",
+   "lastHeldDay": "2025-12-11",
+   "perp": "ALLOUSDT",
+   "pnl": 69.2115
+  },
+  {
+   "entry": "2025-11-13",
+   "funding": 0.3973,
+   "how": "stop",
+   "lastHeldDay": "2025-11-15",
+   "perp": "BEATUSDT",
+   "pnl": -49.8345
+  },
+  {
+   "entry": "2025-11-13",
+   "funding": 0.7915,
+   "how": "planned",
+   "lastHeldDay": "2025-12-12",
+   "perp": "CLANKERUSDT",
+   "pnl": 50.5658
+  },
+  {
+   "entry": "2025-11-15",
+   "funding": 0.0827,
+   "how": "stop",
+   "lastHeldDay": "2025-11-15",
+   "perp": "PIEVERSEUSDT",
+   "pnl": -50.1492
+  },
+  {
+   "entry": "2025-11-15",
+   "funding": 0.6825,
+   "how": "planned",
+   "lastHeldDay": "2025-12-14",
+   "perp": "SENTUSDT",
+   "pnl": 30.796
+  },
+  {
+   "entry": "2025-11-22",
+   "funding": -6.1966,
+   "how": "stop",
+   "lastHeldDay": "2025-12-04",
+   "perp": "BOBUSDT",
+   "pnl": -56.4284
+  },
+  {
+   "entry": "2025-11-27",
+   "funding": -2.4039,
+   "how": "planned",
+   "lastHeldDay": "2025-12-26",
+   "perp": "IRYSUSDT",
+   "pnl": 33.4602
+  },
+  {
+   "entry": "2025-12-03",
+   "funding": -0.7205,
+   "how": "planned",
+   "lastHeldDay": "2026-01-01",
+   "perp": "RLSUSDT",
+   "pnl": 61.0135
+  },
+  {
+   "entry": "2025-12-07",
+   "funding": 2.3984,
+   "how": "stop",
+   "lastHeldDay": "2025-12-17",
+   "perp": "POWERUSDT",
+   "pnl": -47.8334
+  },
+  {
+   "entry": "2025-12-11",
+   "funding": -8.4446,
+   "how": "stop",
+   "lastHeldDay": "2025-12-21",
+   "perp": "NIGHTUSDT",
+   "pnl": -58.6765
+  },
+  {
+   "entry": "2025-12-11",
+   "funding": -10.9204,
+   "how": "planned",
+   "lastHeldDay": "2026-01-09",
+   "perp": "WETUSDT",
+   "pnl": 34.0232
+  },
+  {
+   "entry": "2025-12-13",
+   "funding": 5.2913,
+   "how": "stop",
+   "lastHeldDay": "2026-01-04",
+   "perp": "CYSUSDT",
+   "pnl": -44.9405
+  },
+  {
+   "entry": "2025-12-13",
+   "funding": 1.3495,
+   "how": "planned",
+   "lastHeldDay": "2026-01-11",
+   "perp": "USUSDT",
+   "pnl": 60.6647
+  },
+  {
+   "entry": "2025-12-15",
+   "funding": 0.2213,
+   "how": "stop",
+   "lastHeldDay": "2025-12-15",
+   "perp": "RAVEUSDT",
+   "pnl": -50.0106
+  },
+  {
+   "entry": "2025-12-22",
+   "funding": 4.0317,
+   "how": "planned",
+   "lastHeldDay": "2026-01-20",
+   "perp": "GUAUSDT",
+   "pnl": 0.7802
+  },
+  {
+   "entry": "2025-12-22",
+   "funding": 1.4408,
+   "how": "planned",
+   "lastHeldDay": "2026-01-20",
+   "perp": "IRUSDT",
+   "pnl": 66.644
+  },
+  {
+   "entry": "2025-12-22",
+   "funding": -34.5563,
+   "how": "planned",
+   "lastHeldDay": "2026-01-20",
+   "perp": "ZKPUSDT",
+   "pnl": -2.112
+  },
+  {
+   "entry": "2025-12-31",
+   "funding": -22.7407,
+   "how": "planned",
+   "lastHeldDay": "2026-01-29",
+   "perp": "BREVUSDT",
+   "pnl": 34.2035
+  },
+  {
+   "entry": "2026-01-01",
+   "funding": 6.159,
+   "how": "planned",
+   "lastHeldDay": "2026-01-30",
+   "perp": "COLLECTUSDT",
+   "pnl": 48.4041
+  },
+  {
+   "entry": "2026-01-01",
+   "funding": 1.394,
+   "how": "planned",
+   "lastHeldDay": "2026-01-30",
+   "perp": "MAGMAUSDT",
+   "pnl": 29.2719
+  },
+  {
+   "entry": "2026-01-10",
+   "funding": 0.29,
+   "how": "planned",
+   "lastHeldDay": "2026-02-08",
+   "perp": "ZAMAUSDT",
+   "pnl": 77.682
+  },
+  {
+   "entry": "2026-01-11",
+   "funding": -2.9163,
+   "how": "planned",
+   "lastHeldDay": "2026-02-09",
+   "perp": "FOGOUSDT",
+   "pnl": 62.2855
+  },
+  {
+   "entry": "2026-01-16",
+   "funding": -8.5586,
+   "how": "stop",
+   "lastHeldDay": "2026-01-19",
+   "perp": "FRAXUSDT",
+   "pnl": -58.7904
+  },
+  {
+   "entry": "2026-01-17",
+   "funding": 0.8286,
+   "how": "planned",
+   "lastHeldDay": "2026-02-15",
+   "perp": "SPORTFUNUSDT",
+   "pnl": 65.4646
+  },
+  {
+   "entry": "2026-01-22",
+   "funding": -0.489,
+   "how": "stop",
+   "lastHeldDay": "2026-01-23",
+   "perp": "ACUUSDT",
+   "pnl": -50.7208
+  },
+  {
+   "entry": "2026-01-22",
+   "funding": -0.7535,
+   "how": "stop",
+   "lastHeldDay": "2026-01-31",
+   "perp": "我踏马来了USDT",
+   "pnl": -50.9853
+  },
+  {
+   "entry": "2026-01-23",
+   "funding": -13.4579,
+   "how": "planned",
+   "lastHeldDay": "2026-02-21",
+   "perp": "ELSAUSDT",
+   "pnl": 41.8131
+  },
+  {
+   "entry": "2026-01-23",
+   "funding": -3.1007,
+   "how": "planned",
+   "lastHeldDay": "2026-02-21",
+   "perp": "SKRUSDT",
+   "pnl": 51.723
+  },
+  {
+   "entry": "2026-01-24",
+   "funding": -1.7521,
+   "how": "planned",
+   "lastHeldDay": "2026-02-22",
+   "perp": "FIGHTUSDT",
+   "pnl": 65.6777
+  },
+  {
+   "entry": "2026-01-24",
+   "funding": 0.2108,
+   "how": "planned",
+   "lastHeldDay": "2026-02-22",
+   "perp": "SPACEUSDT",
+   "pnl": 44.6664
+  },
+  {
+   "entry": "2026-01-30",
+   "funding": -6.9522,
+   "how": "stop",
+   "lastHeldDay": "2026-02-03",
+   "perp": "BIRBUSDT",
+   "pnl": -57.184
+  },
+  {
+   "entry": "2026-01-30",
+   "funding": 1.1328,
+   "how": "planned",
+   "lastHeldDay": "2026-02-28",
+   "perp": "GWEIUSDT",
+   "pnl": -3.0164
+  },
+  {
+   "entry": "2026-01-31",
+   "funding": -3.0674,
+   "how": "planned",
+   "lastHeldDay": "2026-03-01",
+   "perp": "INXUSDT",
+   "pnl": 43.0705
+  },
+  {
+   "entry": "2026-01-31",
+   "funding": 0.8368,
+   "how": "planned",
+   "lastHeldDay": "2026-03-01",
+   "perp": "MEGAUSDT",
+   "pnl": 5.0655
+  },
+  {
+   "entry": "2026-02-07",
+   "funding": 0.0452,
+   "how": "planned",
+   "lastHeldDay": "2026-03-08",
+   "perp": "TRIAUSDT",
+   "pnl": 5.2939
+  },
+  {
+   "entry": "2026-02-11",
+   "funding": -24.4551,
+   "how": "stop",
+   "lastHeldDay": "2026-02-24",
+   "perp": "ESPUSDT",
+   "pnl": -74.6869
+  },
+  {
+   "entry": "2026-02-12",
+   "funding": -1.6554,
+   "how": "stop",
+   "lastHeldDay": "2026-02-13",
+   "perp": "AZTECUSDT",
+   "pnl": -51.8872
+  },
+  {
+   "entry": "2026-02-22",
+   "funding": 0.4565,
+   "how": "planned",
+   "lastHeldDay": "2026-03-23",
+   "perp": "OPNUSDT",
+   "pnl": 63.2067
+  },
+  {
+   "entry": "2026-02-28",
+   "funding": -0.959,
+   "how": "stop",
+   "lastHeldDay": "2026-03-02",
+   "perp": "ROBOUSDT",
+   "pnl": -51.1908
+  },
+  {
+   "entry": "2026-03-03",
+   "funding": -4.0183,
+   "how": "planned",
+   "lastHeldDay": "2026-04-01",
+   "perp": "KATUSDT",
+   "pnl": 56.7487
+  },
+  {
+   "entry": "2026-03-05",
+   "funding": -14.0412,
+   "how": "planned",
+   "lastHeldDay": "2026-04-03",
+   "perp": "MANTRAUSDT",
+   "pnl": 40.7322
+  },
+  {
+   "entry": "2026-03-12",
+   "funding": 2.1863,
+   "how": "planned",
+   "lastHeldDay": "2026-04-10",
+   "perp": "龙虾USDT",
+   "pnl": 63.0265
+  },
+  {
+   "entry": "2026-03-17",
+   "funding": -27.5481,
+   "how": "planned",
+   "lastHeldDay": "2026-04-15",
+   "perp": "CFGUSDT",
+   "pnl": -37.3453
+  },
+  {
+   "entry": "2026-03-20",
+   "funding": 0.1523,
+   "how": "stop",
+   "lastHeldDay": "2026-04-03",
+   "perp": "EDGEUSDT",
+   "pnl": -50.0795
+  },
+  {
+   "entry": "2026-03-26",
+   "funding": 0.1128,
+   "how": "stop",
+   "lastHeldDay": "2026-03-27",
+   "perp": "BSBUSDT",
+   "pnl": -50.1191
+  },
+  {
+   "entry": "2026-03-27",
+   "funding": 0.2177,
+   "how": "planned",
+   "lastHeldDay": "2026-04-25",
+   "perp": "XAUTUSDT",
+   "pnl": -6.4085
+  },
+  {
+   "entry": "2026-03-31",
+   "funding": -0.7028,
+   "how": "stop",
+   "lastHeldDay": "2026-04-16",
+   "perp": "BASEDUSDT",
+   "pnl": -50.9347
+  },
+  {
+   "entry": "2026-04-02",
+   "funding": -1.7073,
+   "how": "stop",
+   "lastHeldDay": "2026-04-16",
+   "perp": "PRLUSDT",
+   "pnl": -51.9391
+  },
+  {
+   "entry": "2026-04-17",
+   "funding": -1.4986,
+   "how": "stop",
+   "lastHeldDay": "2026-04-21",
+   "perp": "CHIPUSDT",
+   "pnl": -51.7304
+  },
+  {
+   "entry": "2026-04-17",
+   "funding": 1.5705,
+   "how": "planned",
+   "lastHeldDay": "2026-05-16",
+   "perp": "GENIUSUSDT",
+   "pnl": 27.5033
+  },
+  {
+   "entry": "2026-04-23",
+   "funding": 0.8049,
+   "how": "planned",
+   "lastHeldDay": "2026-05-22",
+   "perp": "OPGUSDT",
+   "pnl": 43.5503
+  },
+  {
+   "entry": "2026-04-30",
+   "funding": -2.7252,
+   "how": "planned",
+   "lastHeldDay": "2026-05-29",
+   "perp": "AIGENSYNUSDT",
+   "pnl": 34.5857
+  },
+  {
+   "entry": "2026-05-08",
+   "funding": 0.3263,
+   "how": "stop",
+   "lastHeldDay": "2026-05-09",
+   "perp": "BILLUSDT",
+   "pnl": -49.9055
+  },
+  {
+   "entry": "2026-05-15",
+   "funding": -3.3071,
+   "how": "planned",
+   "lastHeldDay": "2026-06-13",
+   "perp": "PHAROSUSDT",
+   "pnl": 16.7295
+  },
+  {
+   "entry": "2026-05-15",
+   "funding": 3.1189,
+   "how": "planned",
+   "lastHeldDay": "2026-06-13",
+   "perp": "STARUSDT",
+   "pnl": 30.0847
+  },
+  {
+   "entry": "2026-05-29",
+   "funding": -1.1994,
+   "how": "planned",
+   "lastHeldDay": "2026-06-27",
+   "perp": "CTRUSDT",
+   "pnl": 35.6206
+  },
+  {
+   "entry": "2026-06-02",
+   "funding": -6.1648,
+   "how": "stop",
+   "lastHeldDay": "2026-06-27",
+   "perp": "SLXUSDT",
+   "pnl": -56.3966
+  },
+  {
+   "entry": "2026-06-05",
+   "funding": -0.0338,
+   "how": "stop",
+   "lastHeldDay": "2026-06-05",
+   "perp": "BTWUSDT",
+   "pnl": -50.2656
+  },
+  {
+   "entry": "2026-06-05",
+   "funding": 0.6994,
+   "how": "stop",
+   "lastHeldDay": "2026-06-09",
+   "perp": "ZESTUSDT",
+   "pnl": -49.5325
+  },
+  {
+   "entry": "2026-06-19",
+   "funding": -4.3893,
+   "how": "stop",
+   "lastHeldDay": "2026-06-19",
+   "perp": "REUSDT",
+   "pnl": -54.6211
+  },
+  {
+   "entry": "2026-06-24",
+   "funding": -3.0827,
+   "how": "planned",
+   "lastHeldDay": "2026-07-23",
+   "perp": "ARXUSDT",
+   "pnl": 44.3257
+  },
+  {
+   "entry": "2026-06-25",
+   "funding": -2.4922,
+   "how": "planned",
+   "lastHeldDay": "2026-07-24",
+   "perp": "OUSDT",
+   "pnl": 38.3063
+  },
+  {
+   "entry": "2026-06-28",
+   "funding": 0.8486,
+   "how": "planned",
+   "lastHeldDay": "2026-07-27",
+   "perp": "CAPUSDT",
+   "pnl": 12.145
+  },
+  {
+   "entry": "2026-07-03",
+   "funding": -0.6125,
+   "how": "planned",
+   "lastHeldDay": "2026-08-01",
+   "perp": "GRAMUSDT",
+   "pnl": 15.8932
+  },
+  {
+   "entry": "2026-07-04",
+   "funding": -10.9039,
+   "how": "planned",
+   "lastHeldDay": "2026-08-02",
+   "perp": "DATAIPUSDT",
+   "pnl": 18.6464
+  },
+  {
+   "entry": "2026-08-01",
+   "funding": -0.7093,
+   "how": "planned",
+   "lastHeldDay": "2026-08-30",
+   "perp": "GRVTUSDT",
+   "pnl": 35.6665
+  },
+  {
+   "entry": "2026-08-12",
+   "funding": -3.3583,
+   "how": "planned",
+   "lastHeldDay": "2026-09-10",
+   "perp": "DOSUSDT",
+   "pnl": 44.1071
+  }
+ ],
+ "exits": {
+  "planned": 340,
+  "stop": 175
+ },
+ "fallbackPrices": {},
+ "frozenFiles": {
+  "docs/agents/backtests/fp6/measure.py": "a8d67ca41be1e61f75a37a52111734ccf3b656ba6efb1ba7ce26768116d94275",
+  "docs/agents/backtests/fp6/measurements.json": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a",
+  "docs/agents/backtests/fp6/rules.py": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a",
+  "docs/agents/reviews/2026-09-26-fp6-prereg-listing-short.md": "70b9ff4cabdd7146b999a9e255ea1fdfa6cdee24b689a60b6a377ef323960bbe",
+  "manifest.json inputs": "all match"
+ },
+ "halfSpreadBp": 3.5577,
+ "hypothesis": "fp6-H6 LIST-S",
+ "pNull": 0.0005,
+ "passesOtherThanHolm": false,
+ "peakOpenOnTheHoldsTaken": 26,
+ "pnlByMonth": {
+  "2023-01": -81.0159,
+  "2023-02": 79.9033,
+  "2023-03": -18.6676,
+  "2023-04": 56.1326,
+  "2023-05": 183.4969,
+  "2023-06": 81.1141,
+  "2023-07": 83.534,
+  "2023-08": -33.4343,
+  "2023-09": 61.1803,
+  "2023-10": -179.1561,
+  "2023-11": -273.4878,
+  "2023-12": 102.6033,
+  "2024-01": -186.2768,
+  "2024-02": -204.514,
+  "2024-03": 148.3569,
+  "2024-04": 189.2669,
+  "2024-05": -53.4649,
+  "2024-06": -46.7443,
+  "2024-07": 6.8727,
+  "2024-08": -31.4562,
+  "2024-09": 119.7019,
+  "2024-10": -75.3962,
+  "2024-11": 6.7127,
+  "2024-12": -11.9687,
+  "2025-01": 953.7707,
+  "2025-02": -140.9284,
+  "2025-03": 60.4933,
+  "2025-04": -452.1415,
+  "2025-05": 545.9059,
+  "2025-06": 169.4969,
+  "2025-07": -200.5197,
+  "2025-08": -200.2798,
+  "2025-09": -134.2806,
+  "2025-10": 943.0235,
+  "2025-11": 11.1006,
+  "2025-12": 53.7562,
+  "2026-01": 314.4274,
+  "2026-02": -109.2644,
+  "2026-03": -34.3796,
+  "2026-04": 1.9699,
+  "2026-05": 32.5292,
+  "2026-06": -116.0388,
+  "2026-07": 34.5396,
+  "2026-08": 79.7736
+ },
+ "sensitivities": {
+  "donorsThatTradedOnTheEntryAndExitDays": {
+   "annualisedOnPeak": 0.136751,
+   "bestMonth": "2025-01",
+   "bestShare": 0.5493,
+   "c1": true,
+   "c3": false,
+   "c5": false,
+   "c6": true,
+   "firstUsd": -357.639,
+   "pNull": 0.0005,
+   "secondUsd": 2093.8857,
+   "totalUsd": 1736.2467
+  },
+  "eventsWhosePerpetualHadNoVolumeOnTheEntryDay": [],
+  "stopFundingOnlyToTheStopDaysOpen": {
+   "annualisedOnPeak": 0.147824,
+   "bestMonth": "2025-01",
+   "bestShare": 0.5095,
+   "c1": true,
+   "c3": false,
+   "c5": false,
+   "c6": true,
+   "firstUsd": -329.6123,
+   "pNull": 0.0005,
+   "secondUsd": 2206.446,
+   "totalUsd": 1876.8337
+  }
+ },
+ "split": {
+  "costsUsd": 86.1978,
+  "fundingUsd": -488.5403,
+  "priceUsd": 2310.9848
+ }
+}

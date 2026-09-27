@@ -1,0 +1,61 @@
+{
+ "ladder": [
+  {
+   "clearsHolm": true,
+   "file": "delist_short.json",
+   "hypothesis": "H5",
+   "order": 3,
+   "otherConditionsHold": false,
+   "p": 0.0005,
+   "passes": false,
+   "step": 1,
+   "threshold": 0.01
+  },
+  {
+   "clearsHolm": true,
+   "file": "listing_short.json",
+   "hypothesis": "H6",
+   "order": 4,
+   "otherConditionsHold": false,
+   "p": 0.0005,
+   "passes": false,
+   "step": 2,
+   "threshold": 0.0125
+  },
+  {
+   "clearsHolm": false,
+   "file": "carry_quarterly.json",
+   "hypothesis": "H2",
+   "order": 0,
+   "otherConditionsHold": false,
+   "p": 0.809519,
+   "passes": false,
+   "step": 3,
+   "threshold": 0.016667
+  },
+  {
+   "clearsHolm": false,
+   "file": "trend_ls.json",
+   "hypothesis": "H4",
+   "order": 2,
+   "otherConditionsHold": false,
+   "p": 0.961019,
+   "passes": false,
+   "step": 4,
+   "threshold": 0.025
+  },
+  {
+   "clearsHolm": false,
+   "file": "carry_xs.json",
+   "hypothesis": "H3",
+   "order": 1,
+   "otherConditionsHold": false,
+   "p": 0.9995,
+   "passes": false,
+   "step": 5,
+   "threshold": 0.05
+  }
+ ],
+ "passes": [],
+ "rule": "p(j) <= 0.05 / (6 - j) for every j <= k; ties in the table's order"
+}

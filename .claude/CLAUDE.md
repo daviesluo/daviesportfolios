@@ -412,7 +412,9 @@ that follow from that evidence, in short:
   four pre-registered tests) found nothing worth money either, nor did a
   second, independent one (§3.28: 20 ideas, three tests, all lose), nor a
   third, Binance first (§3.29: one pass, bids for liquidation cascades,
-  worth about cash and losing since Binance began capping wicks). **Since
+  worth about cash and losing since Binance began capping wicks), nor a
+  fourth on Binance's derivatives (§3.38: five pre-registered, none passes;
+  every one needs a derivative this UK account may not hold). **Since
   March 2026 Binance refuses any trade beyond `referencePrice × (1 ± R)`**
   (the 5-minute mean; R 15 % on the majors, 2 % on stablecoin books), so
   a market stop in a crash can come back EXPIRED. The

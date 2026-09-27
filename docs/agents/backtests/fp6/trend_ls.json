@@ -1,0 +1,1902 @@
+{
+ "checks": {
+  "fundingBucketsThatStartNo4hBar": {
+   "AVAXUSDT": 0,
+   "BTCUSDT": 0,
+   "ETHUSDT": 0,
+   "SOLUSDT": 49
+  },
+  "incumbentEqualsBtcRegimeJson": "16 of 16 evaluation × window cells: return, drawdown, entries, entries per coin",
+  "phase1CountsEqual": true,
+  "simulateLongLegEqualsRunGatedMarks": "64 of 64 coin cells, every mark"
+ },
+ "draws": 2000,
+ "hypothesis": "fp6-H4 TREND-LS",
+ "inputs": {
+  "docs/agents/backtests/btc_regime/btc_regime.json": "c30e5826052598d0bc3dfe184574dca9fafdb6f529595ac87322598e6d7deea0",
+  "docs/agents/backtests/fp6/trend_ls.ts": "37fdb9c93d07296100f872be284d9f119c6122cc8683f1f5c309e204435ea9cc",
+  "docs/agents/backtests/fp6/trend_ls_counts.json": "fe966d60e4ce9f909430ffa300efa7771d849c7fc111628fa2baff7c44ed8c40",
+  "docs/agents/reviews/2026-09-26-fp6-prereg-trend-ls.md": "9251145e63edb3cc1026007138272ef4f61eebc5f9d1b2cdffeb30d16ddab317",
+  "inputs/funding.json.gz": "ce277c0c89d59cdda493ace4abcce091f8dc033db5ee4075fd748395a0a2e1d8",
+  "supabase/functions/_shared/agents_strategy.ts": "097c9519e65aca13b93da8eeee54c39118091f7812d282580970e73460a85a82",
+  "supabase/functions/agents/backtest.ts": "31d27c7d82f8a94c1a8d71248ace8e5ded611190a77d06043460b469ccae845a",
+  "supabase/functions/agents/backtest_jev.ts": "4d5af9e50255e6ffb686ac3704fd97a7a98d5e5219d6b20babf3580beea2d2ed",
+  "tape AVAX-USD_1h_3y.json": "8713037a9aaff47504b97bb1a31a684b8fc9a4150a33dadba0a06b57d899f7cf",
+  "tape AVAX-USD_1h_kraken.json": "b4d01720a8963341de61900894b2894185eed1da32d76411aa95e4acf50bdf2c",
+  "tape AVAX-USD_4h_kraken.json": "99482cd140ad9fb56d9d1142d62ec10f6d90ff1490be38a4fd5ce126520ecfc3",
+  "tape BTC-USD_1h_3y.json": "c773e6ff90876fe7ec32e3cc46af9cc923c8f432ea12413e43bd13a799ad9d84",
+  "tape BTC-USD_1h_kraken.json": "59d4c1fd2cc41f8791fc2738a49ed532a7f9ac175b1b94622df16259ae84aea2",
+  "tape BTC-USD_4h_kraken.json": "a1109d82eb9f664ce9aa13d456915d54c066eed78f58b5303cf08cc1396434c9",
+  "tape ETH-USD_1h_3y.json": "5d922a8ba568d4a031c20c71c871d4d8002819ba3a082bb2e7c23317ce418c85",
+  "tape ETH-USD_1h_kraken.json": "cc48c3001dc09557d62a6265b98a72839cdcfda8c948dcc36059a2e29e0288dd",
+  "tape ETH-USD_4h_kraken.json": "614d5c26f78ce1406e1cce9361d98a2be2b9a17de8049a1852ee86bfe59f1013",
+  "tape SOL-USD_1h_3y.json": "8a23665b70c0f1dfbb84cd216a6e4f6ab71d9cab5f9a7ac44ebd26c99c489e4d",
+  "tape SOL-USD_1h_kraken.json": "a0c55179ca0a6d72760495014fc0df41b696301acb352f98b98191bb785b81f0",
+  "tape SOL-USD_4h_kraken.json": "3fe744017799f283dba4adbd7d8a825602534c471e3c0f9bc5d48eca560d156c",
+  "tape SUI-USD_1h_3y.json": "f0af67619e5731a9bfd474ea8891df0d68e8053757b2cc62685d6ec66505d5e4",
+  "tape SUI-USD_1h_kraken.json": "9006035ad389a62c6e7b20cb5783f023cfbc2b80c8e88d72123a65b77e3af3a3",
+  "tape SUI-USD_4h_kraken.json": "033672f4f7840eb4506a672964786ce57f48b96109087cfa821499edf79a8186"
+ },
+ "pForHolm": 0.961019,
+ "passesOtherThanHolm": false,
+ "perEvaluation": {
+  "shipped·coinbase": {
+   "arms": {
+    "L-PERP": {
+     "A": {
+      "maxDD": 0.1521,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003043,
+        "longs": 5,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.003787,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.004879,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.004074,
+        "longs": 7,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.0908
+     },
+     "B": {
+      "maxDD": 0.114,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.010688,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.021373,
+        "longs": 18,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.031177,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.021298,
+        "longs": 15,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.2469
+     },
+     "C": {
+      "maxDD": 0.0772,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.077132,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.037728,
+        "longs": 17,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.048117,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.052595,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.5359
+     },
+     "D": {
+      "maxDD": 0.1547,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.0039,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.011754,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.015988,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.00364,
+        "longs": 2,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": -0.0776
+     }
+    },
+    "LS-MIX": {
+     "A": {
+      "maxDD": 0.2095,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.005442,
+        "longs": 5,
+        "shortStops": 2,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.005824,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002121,
+        "longs": 11,
+        "shortStops": 1,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.007395,
+        "longs": 7,
+        "shortStops": 0,
+        "shorts": 14
+       }
+      },
+      "ret": 0.2586
+     },
+     "B": {
+      "maxDD": 0.1605,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.002798,
+        "longs": 10,
+        "shortStops": 3,
+        "shorts": 12
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.004209,
+        "longs": 18,
+        "shortStops": 1,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002209,
+        "longs": 10,
+        "shortStops": 2,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.00079,
+        "longs": 15,
+        "shortStops": 0,
+        "shorts": 7
+       }
+      },
+      "ret": 0.0542
+     },
+     "C": {
+      "maxDD": 0.1247,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": 0.000485,
+        "longs": 10,
+        "shortStops": 1,
+        "shorts": 9
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.003356,
+        "longs": 17,
+        "shortStops": 1,
+        "shorts": 6
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.004019,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 6
+       },
+       "SOL/USD": {
+        "fundingOfSlot": 0.000326,
+        "longs": 12,
+        "shortStops": 1,
+        "shorts": 6
+       }
+      },
+      "ret": 0.4935
+     },
+     "D": {
+      "maxDD": 0.2118,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.005017,
+        "longs": 8,
+        "shortStops": 3,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.00097,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.001749,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.019132,
+        "longs": 2,
+        "shortStops": 2,
+        "shorts": 10
+       }
+      },
+      "ret": -0.1248
+     }
+    },
+    "LS-PERP": {
+     "A": {
+      "maxDD": 0.2061,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.00816,
+        "longs": 5,
+        "shortStops": 2,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.001449,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.003595,
+        "longs": 11,
+        "shortStops": 1,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.011788,
+        "longs": 7,
+        "shortStops": 0,
+        "shorts": 14
+       }
+      },
+      "ret": 0.2644
+     },
+     "B": {
+      "maxDD": 0.1603,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.011152,
+        "longs": 10,
+        "shortStops": 3,
+        "shorts": 12
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.016395,
+        "longs": 18,
+        "shortStops": 1,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.024603,
+        "longs": 10,
+        "shortStops": 2,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.02149,
+        "longs": 15,
+        "shortStops": 0,
+        "shorts": 7
+       }
+      },
+      "ret": 0.0506
+     },
+     "C": {
+      "maxDD": 0.1291,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.071656,
+        "longs": 10,
+        "shortStops": 1,
+        "shorts": 9
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.032068,
+        "longs": 17,
+        "shortStops": 1,
+        "shorts": 6
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.043902,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 6
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.045219,
+        "longs": 12,
+        "shortStops": 1,
+        "shorts": 6
+       }
+      },
+      "ret": 0.4731
+     },
+     "D": {
+      "maxDD": 0.2117,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008587,
+        "longs": 8,
+        "shortStops": 3,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010597,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.017071,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.022589,
+        "longs": 2,
+        "shortStops": 2,
+        "shorts": 10
+       }
+      },
+      "ret": -0.1242
+     }
+    }
+   },
+   "incumbent": {
+    "A": {
+     "entries": 37,
+     "entriesByCoin": {
+      "AVAX/USD": 5,
+      "BTC/USD": 14,
+      "ETH/USD": 11,
+      "SOL/USD": 7
+     },
+     "maxDD": 0.1576,
+     "ret": 0.0851
+    },
+    "B": {
+     "entries": 53,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 18,
+      "ETH/USD": 10,
+      "SOL/USD": 15
+     },
+     "maxDD": 0.1143,
+     "ret": 0.2505
+    },
+    "C": {
+     "entries": 47,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 17,
+      "ETH/USD": 8,
+      "SOL/USD": 12
+     },
+     "maxDD": 0.0735,
+     "ret": 0.5564
+    },
+    "D": {
+     "entries": 32,
+     "entriesByCoin": {
+      "AVAX/USD": 8,
+      "BTC/USD": 10,
+      "ETH/USD": 12,
+      "SOL/USD": 2
+     },
+     "maxDD": 0.1552,
+     "ret": -0.0781
+    }
+   }
+  },
+  "shipped·kraken": {
+   "arms": {
+    "L-PERP": {
+     "A": {
+      "maxDD": 0.1444,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.002179,
+        "longs": 4,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.003893,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.004894,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.004114,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.0415
+     },
+     "B": {
+      "maxDD": 0.1079,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.011162,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.023379,
+        "longs": 18,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.030754,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.021439,
+        "longs": 16,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.2776
+     },
+     "C": {
+      "maxDD": 0.0813,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.077654,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.035075,
+        "longs": 17,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.043267,
+        "longs": 9,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.04704,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.4894
+     },
+     "D": {
+      "maxDD": 0.1547,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.0039,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.011754,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.015988,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.00364,
+        "longs": 2,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": -0.0776
+     }
+    },
+    "LS-MIX": {
+     "A": {
+      "maxDD": 0.1942,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.005405,
+        "longs": 4,
+        "shortStops": 1,
+        "shorts": 15
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.005939,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.00132,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.006428,
+        "longs": 8,
+        "shortStops": 1,
+        "shorts": 14
+       }
+      },
+      "ret": 0.1844
+     },
+     "B": {
+      "maxDD": 0.1392,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003685,
+        "longs": 10,
+        "shortStops": 2,
+        "shorts": 13
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.004689,
+        "longs": 18,
+        "shortStops": 1,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002288,
+        "longs": 11,
+        "shortStops": 2,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.000762,
+        "longs": 16,
+        "shortStops": 0,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1267
+     },
+     "C": {
+      "maxDD": 0.1201,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": 0.001899,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 8
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.003114,
+        "longs": 17,
+        "shortStops": 1,
+        "shorts": 6
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002551,
+        "longs": 9,
+        "shortStops": 0,
+        "shorts": 5
+       },
+       "SOL/USD": {
+        "fundingOfSlot": 0.000156,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 6
+       }
+      },
+      "ret": 0.5052
+     },
+     "D": {
+      "maxDD": 0.2118,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.005017,
+        "longs": 8,
+        "shortStops": 3,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.00097,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.001749,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.019132,
+        "longs": 2,
+        "shortStops": 2,
+        "shorts": 10
+       }
+      },
+      "ret": -0.1248
+     }
+    },
+    "LS-PERP": {
+     "A": {
+      "maxDD": 0.191,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.007268,
+        "longs": 4,
+        "shortStops": 1,
+        "shorts": 15
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.001475,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.004404,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.010645,
+        "longs": 8,
+        "shortStops": 1,
+        "shorts": 14
+       }
+      },
+      "ret": 0.1903
+     },
+     "B": {
+      "maxDD": 0.1392,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.012824,
+        "longs": 10,
+        "shortStops": 2,
+        "shorts": 13
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.018104,
+        "longs": 18,
+        "shortStops": 1,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.024779,
+        "longs": 11,
+        "shortStops": 2,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.021869,
+        "longs": 16,
+        "shortStops": 0,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1232
+     },
+     "C": {
+      "maxDD": 0.1245,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.074954,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 8
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.030694,
+        "longs": 17,
+        "shortStops": 1,
+        "shorts": 6
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.040804,
+        "longs": 9,
+        "shortStops": 0,
+        "shorts": 5
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.040705,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 6
+       }
+      },
+      "ret": 0.4851
+     },
+     "D": {
+      "maxDD": 0.2117,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008587,
+        "longs": 8,
+        "shortStops": 3,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010597,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.017071,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.022589,
+        "longs": 2,
+        "shortStops": 2,
+        "shorts": 10
+       }
+      },
+      "ret": -0.1242
+     }
+    }
+   },
+   "incumbent": {
+    "A": {
+     "entries": 37,
+     "entriesByCoin": {
+      "AVAX/USD": 4,
+      "BTC/USD": 14,
+      "ETH/USD": 11,
+      "SOL/USD": 8
+     },
+     "maxDD": 0.1497,
+     "ret": 0.0356
+    },
+    "B": {
+     "entries": 55,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 18,
+      "ETH/USD": 11,
+      "SOL/USD": 16
+     },
+     "maxDD": 0.1082,
+     "ret": 0.2811
+    },
+    "C": {
+     "entries": 48,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 17,
+      "ETH/USD": 9,
+      "SOL/USD": 12
+     },
+     "maxDD": 0.0774,
+     "ret": 0.5095
+    },
+    "D": {
+     "entries": 32,
+     "entriesByCoin": {
+      "AVAX/USD": 8,
+      "BTC/USD": 10,
+      "ETH/USD": 12,
+      "SOL/USD": 2
+     },
+     "maxDD": 0.1552,
+     "ret": -0.0781
+    }
+   }
+  },
+  "trail·coinbase": {
+   "arms": {
+    "L-PERP": {
+     "A": {
+      "maxDD": 0.1291,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.001922,
+        "longs": 5,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.003127,
+        "longs": 16,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.003848,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.002789,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.021
+     },
+     "B": {
+      "maxDD": 0.1105,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008334,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.017988,
+        "longs": 20,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.020609,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.019339,
+        "longs": 18,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.1467
+     },
+     "C": {
+      "maxDD": 0.0579,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.035656,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.02286,
+        "longs": 18,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.03415,
+        "longs": 11,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.054669,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.4597
+     },
+     "D": {
+      "maxDD": 0.1097,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003869,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010129,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.012165,
+        "longs": 13,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.00318,
+        "longs": 2,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": -0.0297
+     }
+    },
+    "LS-MIX": {
+     "A": {
+      "maxDD": 0.1696,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.006122,
+        "longs": 5,
+        "shortStops": 12,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.005012,
+        "longs": 16,
+        "shortStops": 11,
+        "shorts": 12
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.001707,
+        "longs": 12,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.007036,
+        "longs": 8,
+        "shortStops": 13,
+        "shorts": 15
+       }
+      },
+      "ret": 0.211
+     },
+     "B": {
+      "maxDD": 0.1295,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003221,
+        "longs": 12,
+        "shortStops": 12,
+        "shorts": 12
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.002914,
+        "longs": 20,
+        "shortStops": 13,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002116,
+        "longs": 14,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.000749,
+        "longs": 18,
+        "shortStops": 6,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1239
+     },
+     "C": {
+      "maxDD": 0.0861,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": 0.000457,
+        "longs": 10,
+        "shortStops": 9,
+        "shorts": 9
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.003043,
+        "longs": 18,
+        "shortStops": 7,
+        "shorts": 7
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002345,
+        "longs": 11,
+        "shortStops": 5,
+        "shorts": 6
+       },
+       "SOL/USD": {
+        "fundingOfSlot": 0.000587,
+        "longs": 12,
+        "shortStops": 5,
+        "shorts": 6
+       }
+      },
+      "ret": 0.4663
+     },
+     "D": {
+      "maxDD": 0.1626,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.004901,
+        "longs": 8,
+        "shortStops": 16,
+        "shorts": 17
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.001209,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.001692,
+        "longs": 13,
+        "shortStops": 8,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.010503,
+        "longs": 2,
+        "shortStops": 11,
+        "shorts": 11
+       }
+      },
+      "ret": -0.0423
+     }
+    },
+    "LS-PERP": {
+     "A": {
+      "maxDD": 0.1659,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008064,
+        "longs": 5,
+        "shortStops": 12,
+        "shorts": 14
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.001572,
+        "longs": 16,
+        "shortStops": 11,
+        "shorts": 12
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.002798,
+        "longs": 12,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.009842,
+        "longs": 8,
+        "shortStops": 13,
+        "shorts": 15
+       }
+      },
+      "ret": 0.2189
+     },
+     "B": {
+      "maxDD": 0.1288,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.010622,
+        "longs": 12,
+        "shortStops": 12,
+        "shorts": 12
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.01497,
+        "longs": 20,
+        "shortStops": 13,
+        "shorts": 13
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.018329,
+        "longs": 14,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.020083,
+        "longs": 18,
+        "shortStops": 6,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1263
+     },
+     "C": {
+      "maxDD": 0.0866,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.033178,
+        "longs": 10,
+        "shortStops": 9,
+        "shorts": 9
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.018963,
+        "longs": 18,
+        "shortStops": 7,
+        "shorts": 7
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.032081,
+        "longs": 11,
+        "shortStops": 5,
+        "shorts": 6
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.048484,
+        "longs": 12,
+        "shortStops": 5,
+        "shorts": 6
+       }
+      },
+      "ret": 0.4553
+     },
+     "D": {
+      "maxDD": 0.1608,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008356,
+        "longs": 8,
+        "shortStops": 16,
+        "shorts": 17
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010167,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.013423,
+        "longs": 13,
+        "shortStops": 8,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.013727,
+        "longs": 2,
+        "shortStops": 11,
+        "shorts": 11
+       }
+      },
+      "ret": -0.04
+     }
+    }
+   },
+   "incumbent": {
+    "A": {
+     "entries": 41,
+     "entriesByCoin": {
+      "AVAX/USD": 5,
+      "BTC/USD": 16,
+      "ETH/USD": 12,
+      "SOL/USD": 8
+     },
+     "maxDD": 0.1353,
+     "ret": 0.0131
+    },
+    "B": {
+     "entries": 64,
+     "entriesByCoin": {
+      "AVAX/USD": 12,
+      "BTC/USD": 20,
+      "ETH/USD": 14,
+      "SOL/USD": 18
+     },
+     "maxDD": 0.1115,
+     "ret": 0.1443
+    },
+    "C": {
+     "entries": 51,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 18,
+      "ETH/USD": 11,
+      "SOL/USD": 12
+     },
+     "maxDD": 0.0578,
+     "ret": 0.4707
+    },
+    "D": {
+     "entries": 33,
+     "entriesByCoin": {
+      "AVAX/USD": 8,
+      "BTC/USD": 10,
+      "ETH/USD": 13,
+      "SOL/USD": 2
+     },
+     "maxDD": 0.1113,
+     "ret": -0.032
+    }
+   }
+  },
+  "trail·kraken": {
+   "arms": {
+    "L-PERP": {
+     "A": {
+      "maxDD": 0.1324,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.001795,
+        "longs": 4,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.003215,
+        "longs": 17,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.004019,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.002923,
+        "longs": 9,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.0111
+     },
+     "B": {
+      "maxDD": 0.1012,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.007814,
+        "longs": 12,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.018534,
+        "longs": 19,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.020941,
+        "longs": 15,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.0199,
+        "longs": 19,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.1572
+     },
+     "C": {
+      "maxDD": 0.0593,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.036025,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.014688,
+        "longs": 19,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.032118,
+        "longs": 13,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.045782,
+        "longs": 14,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": 0.3747
+     },
+     "D": {
+      "maxDD": 0.1097,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003869,
+        "longs": 8,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010129,
+        "longs": 10,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.012165,
+        "longs": 13,
+        "shortStops": 0,
+        "shorts": 0
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.00318,
+        "longs": 2,
+        "shortStops": 0,
+        "shorts": 0
+       }
+      },
+      "ret": -0.0297
+     }
+    },
+    "LS-MIX": {
+     "A": {
+      "maxDD": 0.1709,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.006197,
+        "longs": 4,
+        "shortStops": 14,
+        "shorts": 15
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.005201,
+        "longs": 17,
+        "shortStops": 10,
+        "shorts": 11
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.000867,
+        "longs": 12,
+        "shortStops": 9,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.006276,
+        "longs": 9,
+        "shortStops": 14,
+        "shorts": 15
+       }
+      },
+      "ret": 0.1904
+     },
+     "B": {
+      "maxDD": 0.1241,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.003276,
+        "longs": 12,
+        "shortStops": 13,
+        "shorts": 13
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.002946,
+        "longs": 19,
+        "shortStops": 14,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.001959,
+        "longs": 15,
+        "shortStops": 9,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.000965,
+        "longs": 19,
+        "shortStops": 7,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1276
+     },
+     "C": {
+      "maxDD": 0.0824,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": 0.00071,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.002688,
+        "longs": 19,
+        "shortStops": 7,
+        "shorts": 7
+       },
+       "ETH/USD": {
+        "fundingOfSlot": 0.002118,
+        "longs": 13,
+        "shortStops": 4,
+        "shorts": 5
+       },
+       "SOL/USD": {
+        "fundingOfSlot": 0.000273,
+        "longs": 14,
+        "shortStops": 5,
+        "shorts": 6
+       }
+      },
+      "ret": 0.3822
+     },
+     "D": {
+      "maxDD": 0.1626,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.004901,
+        "longs": 8,
+        "shortStops": 16,
+        "shorts": 17
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.001209,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.001692,
+        "longs": 13,
+        "shortStops": 8,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.010503,
+        "longs": 2,
+        "shortStops": 11,
+        "shorts": 11
+       }
+      },
+      "ret": -0.0423
+     }
+    },
+    "LS-PERP": {
+     "A": {
+      "maxDD": 0.1673,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.007977,
+        "longs": 4,
+        "shortStops": 14,
+        "shorts": 15
+       },
+       "BTC/USD": {
+        "fundingOfSlot": 0.001593,
+        "longs": 17,
+        "shortStops": 10,
+        "shorts": 11
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.003751,
+        "longs": 12,
+        "shortStops": 9,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.009153,
+        "longs": 9,
+        "shortStops": 14,
+        "shorts": 15
+       }
+      },
+      "ret": 0.1983
+     },
+     "B": {
+      "maxDD": 0.1234,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.010168,
+        "longs": 12,
+        "shortStops": 13,
+        "shorts": 13
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.015272,
+        "longs": 19,
+        "shortStops": 14,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.019097,
+        "longs": 15,
+        "shortStops": 9,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.020622,
+        "longs": 19,
+        "shortStops": 7,
+        "shorts": 7
+       }
+      },
+      "ret": 0.1302
+     },
+     "C": {
+      "maxDD": 0.0828,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.032924,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 10
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.011496,
+        "longs": 19,
+        "shortStops": 7,
+        "shorts": 7
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.030403,
+        "longs": 13,
+        "shortStops": 4,
+        "shorts": 5
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.040543,
+        "longs": 14,
+        "shortStops": 5,
+        "shorts": 6
+       }
+      },
+      "ret": 0.374
+     },
+     "D": {
+      "maxDD": 0.1608,
+      "perCoin": {
+       "AVAX/USD": {
+        "fundingOfSlot": -0.008356,
+        "longs": 8,
+        "shortStops": 16,
+        "shorts": 17
+       },
+       "BTC/USD": {
+        "fundingOfSlot": -0.010167,
+        "longs": 10,
+        "shortStops": 10,
+        "shorts": 14
+       },
+       "ETH/USD": {
+        "fundingOfSlot": -0.013423,
+        "longs": 13,
+        "shortStops": 8,
+        "shorts": 10
+       },
+       "SOL/USD": {
+        "fundingOfSlot": -0.013727,
+        "longs": 2,
+        "shortStops": 11,
+        "shorts": 11
+       }
+      },
+      "ret": -0.04
+     }
+    }
+   },
+   "incumbent": {
+    "A": {
+     "entries": 42,
+     "entriesByCoin": {
+      "AVAX/USD": 4,
+      "BTC/USD": 17,
+      "ETH/USD": 12,
+      "SOL/USD": 9
+     },
+     "maxDD": 0.1385,
+     "ret": 0.0033
+    },
+    "B": {
+     "entries": 65,
+     "entriesByCoin": {
+      "AVAX/USD": 12,
+      "BTC/USD": 19,
+      "ETH/USD": 15,
+      "SOL/USD": 19
+     },
+     "maxDD": 0.1021,
+     "ret": 0.1546
+    },
+    "C": {
+     "entries": 56,
+     "entriesByCoin": {
+      "AVAX/USD": 10,
+      "BTC/USD": 19,
+      "ETH/USD": 13,
+      "SOL/USD": 14
+     },
+     "maxDD": 0.0596,
+     "ret": 0.3829
+    },
+    "D": {
+     "entries": 33,
+     "entriesByCoin": {
+      "AVAX/USD": 8,
+      "BTC/USD": 10,
+      "ETH/USD": 13,
+      "SOL/USD": 2
+     },
+     "maxDD": 0.1113,
+     "ret": -0.032
+    }
+   }
+  }
+ },
+ "verdictByEvaluation": {
+  "shipped·coinbase": {
+   "c1_worstWindowImproves": {
+    "holds": false,
+    "incumbentWorst": -0.0781,
+    "lsPerpWorst": -0.1242
+   },
+   "c2_shortTimingBeatsRandom": {
+    "S": -0.1321,
+    "droppedDraws": 0,
+    "nullMean": 0.210407,
+    "p": 0.961019,
+    "validDraws": 2000
+   },
+   "c3_windowDImproves": {
+    "holds": false,
+    "incumbent": -0.0781,
+    "lsPerp": -0.1242
+   },
+   "c4_noWindowCostsBeyondChance": {
+    "holds": false,
+    "perWindow": {
+     "A": {
+      "contribution": 0.1736,
+      "holds": true,
+      "nullP05": -0.0041
+     },
+     "B": {
+      "contribution": -0.1963,
+      "holds": false,
+      "nullP05": -0.118
+     },
+     "C": {
+      "contribution": -0.0628,
+      "holds": true,
+      "nullP05": -0.1431
+     },
+     "D": {
+      "contribution": -0.0466,
+      "holds": true,
+      "nullP05": -0.1605
+     }
+    }
+   },
+   "c5_drawdownUnder35pct": {
+    "holds": true,
+    "worst": 0.2117
+   }
+  },
+  "shipped·kraken": {
+   "c1_worstWindowImproves": {
+    "holds": false,
+    "incumbentWorst": -0.0781,
+    "lsPerpWorst": -0.1242
+   },
+   "c2_shortTimingBeatsRandom": {
+    "S": -0.0565,
+    "droppedDraws": 0,
+    "nullMean": 0.191744,
+    "p": 0.89905,
+    "validDraws": 2000
+   },
+   "c3_windowDImproves": {
+    "holds": false,
+    "incumbent": -0.0781,
+    "lsPerp": -0.1242
+   },
+   "c4_noWindowCostsBeyondChance": {
+    "holds": false,
+    "perWindow": {
+     "A": {
+      "contribution": 0.1488,
+      "holds": true,
+      "nullP05": -0.0088
+     },
+     "B": {
+      "contribution": -0.1544,
+      "holds": false,
+      "nullP05": -0.1211
+     },
+     "C": {
+      "contribution": -0.0043,
+      "holds": true,
+      "nullP05": -0.1499
+     },
+     "D": {
+      "contribution": -0.0466,
+      "holds": true,
+      "nullP05": -0.1558
+     }
+    }
+   },
+   "c5_drawdownUnder35pct": {
+    "holds": true,
+    "worst": 0.2117
+   }
+  },
+  "trail·coinbase": {
+   "c1_worstWindowImproves": {
+    "holds": false,
+    "incumbentWorst": -0.032,
+    "lsPerpWorst": -0.04
+   },
+   "c2_shortTimingBeatsRandom": {
+    "S": 0.1628,
+    "droppedDraws": 0,
+    "nullMean": 0.144653,
+    "p": 0.467766,
+    "validDraws": 2000
+   },
+   "c3_windowDImproves": {
+    "holds": false,
+    "incumbent": -0.032,
+    "lsPerp": -0.04
+   },
+   "c4_noWindowCostsBeyondChance": {
+    "holds": true,
+    "perWindow": {
+     "A": {
+      "contribution": 0.1979,
+      "holds": true,
+      "nullP05": -0.0184
+     },
+     "B": {
+      "contribution": -0.0204,
+      "holds": true,
+      "nullP05": -0.1097
+     },
+     "C": {
+      "contribution": -0.0044,
+      "holds": true,
+      "nullP05": -0.147
+     },
+     "D": {
+      "contribution": -0.0103,
+      "holds": true,
+      "nullP05": -0.1499
+     }
+    }
+   },
+   "c5_drawdownUnder35pct": {
+    "holds": true,
+    "worst": 0.1659
+   }
+  },
+  "trail·kraken": {
+   "c1_worstWindowImproves": {
+    "holds": false,
+    "incumbentWorst": -0.032,
+    "lsPerpWorst": -0.04
+   },
+   "c2_shortTimingBeatsRandom": {
+    "S": 0.1492,
+    "droppedDraws": 0,
+    "nullMean": 0.134592,
+    "p": 0.483758,
+    "validDraws": 2000
+   },
+   "c3_windowDImproves": {
+    "holds": false,
+    "incumbent": -0.032,
+    "lsPerp": -0.04
+   },
+   "c4_noWindowCostsBeyondChance": {
+    "holds": true,
+    "perWindow": {
+     "A": {
+      "contribution": 0.1872,
+      "holds": true,
+      "nullP05": -0.0207
+     },
+     "B": {
+      "contribution": -0.027,
+      "holds": true,
+      "nullP05": -0.126
+     },
+     "C": {
+      "contribution": -0.0007,
+      "holds": true,
+      "nullP05": -0.153
+     },
+     "D": {
+      "contribution": -0.0103,
+      "holds": true,
+      "nullP05": -0.153
+     }
+    }
+   },
+   "c5_drawdownUnder35pct": {
+    "holds": true,
+    "worst": 0.1673
+   }
+  }
+ }
+}

@@ -2833,6 +2833,33 @@ The loop does not bind; the source does. PMLATE is closed. A return starts by fi
 report first, pre-registered at 1 s. Reproduced on `main`: the frozen script (sha256 `e3c2ac24…`) run on the committed
 input (`98ecd9a2…`) gives the committed result byte for byte (`1aec3e0f…`).
 
+### 3.38 fp6, Binance's derivatives: five pre-registered hypotheses, none passes (2026-09-27)
+
+Davies asked for a fourth Binance search built on the first three's lessons, and said his account supports futures
+(the API key's futures permission is off). fp6 (`reviews/2026-09-26-fp6-prereg-family.md` and five files, frozen at
+`d856fd2e`) pre-registered five rules with a derivative leg each, Holm-corrected together. H1, BTC/ETH perpetual carry,
+was withdrawn before the freeze on its own counts: no settlement has paid above the 0.0100 % floor since 2025. The run
+is `backtests/fp6/` (`phase2_run.py` checks every input against its hash, runs each scorer twice byte-identical, then
+Holm); the write-up is `reviews/2026-09-27-fp6-study.md`. H4's scorer first reproduced the incumbent and `runGated`
+bar for bar.
+
+| # | rule | result | p | fails |
+|---|---|---|---:|---|
+| H2 | ETH long spot, short the quarterly, to delivery | 5.67 %/yr (last year 1.16 %) | 0.810 | the 8 % line, the last year, doubled costs, one month (2024-04) 49.6 % |
+| H3 | the same carry on up to five of 40 altcoin perpetuals, 3-day funding ≥ 25 % | 2.58 %/yr (second half −0.56 %) | 0.9995 | the 8 % line, a half, the last year, doubled costs, one month (2024-07) 50.5 % |
+| H4 | the live trend rule long and short on perpetuals | window D −7.81 → −12.42 % | 0.961 | the worst window worsens in all four evaluations |
+| H5 | short the perpetual after "Binance Will Delist …", to a day before spot stops | +$265.80 on 67 events, 8.9 %/yr on $800 | 0.0005 | only the month rule: 2026-04 is 46.6 % |
+| H6 | short a new perpetual for its first thirty days | +$1,736.25 on 515 events, 13.7 %/yr on $3,400 | 0.0005 | the first half (−$357.64) and the month rule (2025-01 is 54.9 %) |
+
+**FAIL, all five.** Holm clears H5 and H6 (0.0005 against 0.01 and 0.0125) and stops at H2; neither of the two clears
+its own bar. **At 1 s** (descriptive arms added after the freeze, no bar; entry at the first aggTrade after the event):
+H5 makes +$1,142.00 against the frozen +$265.80, because the first print after an announcement sits a median 23 %
+above the next day's open; H6 loses −$3,176.14 (215 stops, 67 on the listing day). H2–H4 decide on settlements and
+bar closes, where speed changes nothing. The H5 arm is post hoc and assumes a 3.56 bp book in the first seconds: a rule
+on it is a new pre-registration on events not yet seen. **Access is unchanged**: each rule needs a derivative, and a
+UK-registered retail account may not be sold one (FCA PS20/10, COBS 22.6.5R). Reproduced on `main` by the coordinator:
+H2, H5, H6 and Holm re-run byte-identical to `phase2_runs.json`.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

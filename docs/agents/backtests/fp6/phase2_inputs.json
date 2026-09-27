@@ -1,0 +1,180 @@
+{
+ "allMatch": true,
+ "frozen": {
+  "docs/agents/backtests/fp6/measurements.json": {
+   "frozen": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a",
+   "match": true,
+   "onDisk": "e94488462d1f3169b7006ea02c88f154ae79b38e59f3be91e231e0b59fc1ba7a"
+  },
+  "docs/agents/backtests/fp6/rules.py": {
+   "frozen": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a",
+   "match": true,
+   "onDisk": "89fad439a015f5b6722861a71d925a2817cfd7110b4c1094fe0d350179ea296a"
+  },
+  "docs/agents/backtests/fp6/trend_ls.ts": {
+   "frozen": "37fdb9c93d07296100f872be284d9f119c6122cc8683f1f5c309e204435ea9cc",
+   "match": true,
+   "onDisk": "37fdb9c93d07296100f872be284d9f119c6122cc8683f1f5c309e204435ea9cc"
+  },
+  "docs/agents/backtests/fp6/trend_ls_counts.json": {
+   "frozen": "fe966d60e4ce9f909430ffa300efa7771d849c7fc111628fa2baff7c44ed8c40",
+   "match": true,
+   "onDisk": "fe966d60e4ce9f909430ffa300efa7771d849c7fc111628fa2baff7c44ed8c40"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-carry-quarterly.md": {
+   "frozen": "387f133226df0371d0d144f27aa3d614d405f5f9f85ab6973ee37a6cd893be29",
+   "match": true,
+   "onDisk": "387f133226df0371d0d144f27aa3d614d405f5f9f85ab6973ee37a6cd893be29"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-carry-xs.md": {
+   "frozen": "ab61cf7bc1ab3061e33625e05c707cbf574b53cb91d4e1d6d088044e4707ee1b",
+   "match": true,
+   "onDisk": "ab61cf7bc1ab3061e33625e05c707cbf574b53cb91d4e1d6d088044e4707ee1b"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-delist-short.md": {
+   "frozen": "dbcd8b6e967c69087bbeb3200ed9331da582afe42f92af83455bd1347fb6ddc6",
+   "match": true,
+   "onDisk": "dbcd8b6e967c69087bbeb3200ed9331da582afe42f92af83455bd1347fb6ddc6"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-family.md": {
+   "frozen": "e972968af1a5493df59f4b98d53e93fad0f05e850fa4b6978e84b8857cf93cef",
+   "match": true,
+   "onDisk": "e972968af1a5493df59f4b98d53e93fad0f05e850fa4b6978e84b8857cf93cef"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-listing-short.md": {
+   "frozen": "70b9ff4cabdd7146b999a9e255ea1fdfa6cdee24b689a60b6a377ef323960bbe",
+   "match": true,
+   "onDisk": "70b9ff4cabdd7146b999a9e255ea1fdfa6cdee24b689a60b6a377ef323960bbe"
+  },
+  "docs/agents/reviews/2026-09-26-fp6-prereg-trend-ls.md": {
+   "frozen": "9251145e63edb3cc1026007138272ef4f61eebc5f9d1b2cdffeb30d16ddab317",
+   "match": true,
+   "onDisk": "9251145e63edb3cc1026007138272ef4f61eebc5f9d1b2cdffeb30d16ddab317"
+  }
+ },
+ "inputs": {
+  "announcements.json.gz": {
+   "manifest": "19db7145adf963459305956b3c6aef33501fe49dd8419b2c07da98059ab51a64",
+   "match": true,
+   "onDisk": "19db7145adf963459305956b3c6aef33501fe49dd8419b2c07da98059ab51a64"
+  },
+  "books.json.gz": {
+   "manifest": "b1a2d82a59e3ae6a37fbb60c22b2f4dc79e3512187dd372cc3620b1da4611ed8",
+   "match": true,
+   "onDisk": "b1a2d82a59e3ae6a37fbb60c22b2f4dc79e3512187dd372cc3620b1da4611ed8"
+  },
+  "exchangeinfo_2026-09-26.json.gz": {
+   "manifest": "046eb519fb75d8e9bcde41279bd28827d21c667b7e065120680647cd9871d11c",
+   "match": true,
+   "onDisk": "046eb519fb75d8e9bcde41279bd28827d21c667b7e065120680647cd9871d11c"
+  },
+  "funding.json.gz": {
+   "manifest": "ce277c0c89d59cdda493ace4abcce091f8dc033db5ee4075fd748395a0a2e1d8",
+   "match": true,
+   "onDisk": "ce277c0c89d59cdda493ace4abcce091f8dc033db5ee4075fd748395a0a2e1d8"
+  },
+  "perp_1d.json.gz": {
+   "manifest": "62ab5fab0fff2ff50b9b7d41e1d2166b70d633899e840b450894e6368460ef31",
+   "match": true,
+   "onDisk": "62ab5fab0fff2ff50b9b7d41e1d2166b70d633899e840b450894e6368460ef31"
+  },
+  "perp_spot_pairs.json.gz": {
+   "manifest": "68356c80b27fe8dce57967df3073cf7c1cd7e16ce7fa6d2e9a30f821e05f24d2",
+   "match": true,
+   "onDisk": "68356c80b27fe8dce57967df3073cf7c1cd7e16ce7fa6d2e9a30f821e05f24d2"
+  },
+  "qbooks.json.gz": {
+   "manifest": "9cc679517ae37521ed17b7d963d17f96734dfe9fa9c629a4959a21e008ab266b",
+   "match": true,
+   "onDisk": "9cc679517ae37521ed17b7d963d17f96734dfe9fa9c629a4959a21e008ab266b"
+  },
+  "quarterly_1d.json.gz": {
+   "manifest": "5d1379f738a60a14e16ae15a3037b03d0684935641da91df3f3ef01e4b13b43b",
+   "match": true,
+   "onDisk": "5d1379f738a60a14e16ae15a3037b03d0684935641da91df3f3ef01e4b13b43b"
+  },
+  "spot_1d.json.gz": {
+   "manifest": "8d246c09242a9dfc448c9750c506d2014221e7480453b177eaa015b691f855bb",
+   "match": true,
+   "onDisk": "8d246c09242a9dfc448c9750c506d2014221e7480453b177eaa015b691f855bb"
+  }
+ },
+ "mismatches": [],
+ "tapes": {
+  "AVAX-USD_1h_3y.json": {
+   "manifest": "8713037a9aaff47504b97bb1a31a684b8fc9a4150a33dadba0a06b57d899f7cf",
+   "match": true,
+   "onDisk": "8713037a9aaff47504b97bb1a31a684b8fc9a4150a33dadba0a06b57d899f7cf"
+  },
+  "AVAX-USD_1h_kraken.json": {
+   "manifest": "b4d01720a8963341de61900894b2894185eed1da32d76411aa95e4acf50bdf2c",
+   "match": true,
+   "onDisk": "b4d01720a8963341de61900894b2894185eed1da32d76411aa95e4acf50bdf2c"
+  },
+  "AVAX-USD_4h_kraken.json": {
+   "manifest": "99482cd140ad9fb56d9d1142d62ec10f6d90ff1490be38a4fd5ce126520ecfc3",
+   "match": true,
+   "onDisk": "99482cd140ad9fb56d9d1142d62ec10f6d90ff1490be38a4fd5ce126520ecfc3"
+  },
+  "BTC-USD_1h_3y.json": {
+   "manifest": "c773e6ff90876fe7ec32e3cc46af9cc923c8f432ea12413e43bd13a799ad9d84",
+   "match": true,
+   "onDisk": "c773e6ff90876fe7ec32e3cc46af9cc923c8f432ea12413e43bd13a799ad9d84"
+  },
+  "BTC-USD_1h_kraken.json": {
+   "manifest": "59d4c1fd2cc41f8791fc2738a49ed532a7f9ac175b1b94622df16259ae84aea2",
+   "match": true,
+   "onDisk": "59d4c1fd2cc41f8791fc2738a49ed532a7f9ac175b1b94622df16259ae84aea2"
+  },
+  "BTC-USD_4h_kraken.json": {
+   "manifest": "a1109d82eb9f664ce9aa13d456915d54c066eed78f58b5303cf08cc1396434c9",
+   "match": true,
+   "onDisk": "a1109d82eb9f664ce9aa13d456915d54c066eed78f58b5303cf08cc1396434c9"
+  },
+  "ETH-USD_1h_3y.json": {
+   "manifest": "5d922a8ba568d4a031c20c71c871d4d8002819ba3a082bb2e7c23317ce418c85",
+   "match": true,
+   "onDisk": "5d922a8ba568d4a031c20c71c871d4d8002819ba3a082bb2e7c23317ce418c85"
+  },
+  "ETH-USD_1h_kraken.json": {
+   "manifest": "cc48c3001dc09557d62a6265b98a72839cdcfda8c948dcc36059a2e29e0288dd",
+   "match": true,
+   "onDisk": "cc48c3001dc09557d62a6265b98a72839cdcfda8c948dcc36059a2e29e0288dd"
+  },
+  "ETH-USD_4h_kraken.json": {
+   "manifest": "614d5c26f78ce1406e1cce9361d98a2be2b9a17de8049a1852ee86bfe59f1013",
+   "match": true,
+   "onDisk": "614d5c26f78ce1406e1cce9361d98a2be2b9a17de8049a1852ee86bfe59f1013"
+  },
+  "SOL-USD_1h_3y.json": {
+   "manifest": "8a23665b70c0f1dfbb84cd216a6e4f6ab71d9cab5f9a7ac44ebd26c99c489e4d",
+   "match": true,
+   "onDisk": "8a23665b70c0f1dfbb84cd216a6e4f6ab71d9cab5f9a7ac44ebd26c99c489e4d"
+  },
+  "SOL-USD_1h_kraken.json": {
+   "manifest": "a0c55179ca0a6d72760495014fc0df41b696301acb352f98b98191bb785b81f0",
+   "match": true,
+   "onDisk": "a0c55179ca0a6d72760495014fc0df41b696301acb352f98b98191bb785b81f0"
+  },
+  "SOL-USD_4h_kraken.json": {
+   "manifest": "3fe744017799f283dba4adbd7d8a825602534c471e3c0f9bc5d48eca560d156c",
+   "match": true,
+   "onDisk": "3fe744017799f283dba4adbd7d8a825602534c471e3c0f9bc5d48eca560d156c"
+  },
+  "SUI-USD_1h_3y.json": {
+   "manifest": "f0af67619e5731a9bfd474ea8891df0d68e8053757b2cc62685d6ec66505d5e4",
+   "match": true,
+   "onDisk": "f0af67619e5731a9bfd474ea8891df0d68e8053757b2cc62685d6ec66505d5e4"
+  },
+  "SUI-USD_1h_kraken.json": {
+   "manifest": "9006035ad389a62c6e7b20cb5783f023cfbc2b80c8e88d72123a65b77e3af3a3",
+   "match": true,
+   "onDisk": "9006035ad389a62c6e7b20cb5783f023cfbc2b80c8e88d72123a65b77e3af3a3"
+  },
+  "SUI-USD_4h_kraken.json": {
+   "manifest": "033672f4f7840eb4506a672964786ce57f48b96109087cfa821499edf79a8186",
+   "match": true,
+   "onDisk": "033672f4f7840eb4506a672964786ce57f48b96109087cfa821499edf79a8186"
+  }
+ }
+}
