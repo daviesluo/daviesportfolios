@@ -214,12 +214,25 @@ list stays the short version; the plan is the reasoning behind it.
    `harvest/scripts/hcommon.xt_posts` pages. No running strategy reads either; re-run SPEED's post-count figures with
    the paged reader before any post-count idea is taken up again.
 
-5a. **In progress 2026-09-27 21:40 UTC: a review of the whole TESTING set (Davies: "深度研究一下目前的TESTING STRATEGIES组合，
-   看看有没有可以优化的地方或者是新增的testing").** Three read-only studies: the crypto paper rows (record, Jev's shadow
-   answers, maker probes, untested optimisations), the two quote tests (PR5's interim reading and separate arms; RW's
-   follow-ups to pre-register before 10-09, from allowed data only), and new testing candidates. Their result goes to
-   `docs/agents/reviews/2026-09-27-testing-portfolio-review.md`, the reference and this list; if this session ends
-   before that is committed, run it again — the drafts live only in the session's scratchpad.
+5a. **The TESTING review is done (2026-09-27, `docs/agents/reviews/2026-09-27-testing-portfolio-review.md`, appendices
+   A–C beside it; reference §3.43).** The set is sound and keeps all nine rows; its one defect is fixed (`0068`, §4
+   item 41). What is worth adding is measurement, ranked; Davies was asked on 2026-09-27 which to run. Deadlines hold
+   whatever he picks:
+   1. **MX-1**, maker-first execution of the rows' own orders, read from the probes (draft: appendix A §6). First R2:
+      every probe records the UK touch at +15/30/60 min, filled or not, because `agent_basis` is pruned at 30 days.
+      Then freeze the draft. Paper only; a pass moves `trend-1h` alone, and the live row only on his word.
+   2. **RW-NEXT**, how the 10-09 verdicts are read together (draft: appendix B §4.4). Freeze it before 10-09 00:00 UTC
+      and before anyone reads a market-level RW figure. Its RW-C, a 14-day forward confirmation, needs a second engine,
+      which is a build on his word.
+   3. **QUEUE**, the stablecoin quotes scored by queue position (sketch: appendix C §3). Draft and freeze it before
+      anyone reads `agent_book_levels`, and before 10-25. Run it by **2026-11-01 10:25 UTC**, when the 35-day prune
+      starts on its window. Pull Kraken's hourly USDT/USD and USDC/USD by about 10-26 (720 bars kept).
+   4. **PR5-R**: four readings of PR5's record declared before 10-21 (appendix B §3). Whatever is picked, the 10-21
+      review expects two things (appendix B §2.4): the fair omits the newest hourly candle for 59 minutes an hour, so
+      replay on the recorded per-minute inputs beside the stored candles; and the size rule once credited $100 on a
+      0.26-USDC print.
+   5. Lower: PR5-W (weekend quotes, a replay), EX-GAP (live fills against the control's, read at 16 pairs) and
+      JEV-DRIFT (each Jev answer against its measured band, a query).
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
@@ -351,6 +364,12 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 22:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The TESTING review, written up (Davies: "深度研究一下目前的TESTING STRATEGIES组合").**
+- `reviews/2026-09-27-testing-portfolio-review.md` with the three studies as appendices A–C; reference §3.43. Keep all nine rows; the rest is measurement, ranked in item 5a.
+- Corrected: how to read the probes' `adverseBps` (reference §3.13 and `probeSummary`'s docstring: drift after a fill cancels for a rule that wants the position; fill rate, saving and chase decide); SUI's UK spread, 23.7 bps at the median over 1,815 samples, so a ~42 bps round trip (§3.20, `.claude/CLAUDE.md`); `momentum-1d` read against its daily-cadence figures (§3.17).
 
 ### [2026-09-27 22:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

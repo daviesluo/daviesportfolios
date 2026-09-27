@@ -230,8 +230,8 @@ that follow from that evidence, in short:
   p = 0.18 / 0.26); Davies left the call to the session on 2026-09-23 and
   it went to the admission rule: SUI stays on the paper `trend-4h` and
   does not go live (§3.20's addendum). A coin joins a rule by that bar, never by a
-  result alone; SUI's round trip is ~33 bps at its median book (§3.20;
-  §3.8 assumed ~42) against the majors' 20. **A coin one venue lacks may run on the other
+  result alone; SUI's round trip is ~42 bps at its median UK book (23.7 bps
+  over 1,815 samples, §3.43; §3.20's ~33 came from 60) against the majors' 20. **A coin one venue lacks may run on the other
   alone** (Davies, 2026-09-21; §4.16): the two venues' symbol lists need
   not match — each `agent_strategies` row carries its own. A Kraken-only
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps

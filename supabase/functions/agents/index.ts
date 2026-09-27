@@ -353,16 +353,20 @@ export type ProbeSummaryRow = {
 };
 
 /**
- * The maker probes (`0042`), read the only way they answer anything: a fill RATE and an
- * adverse-selection number. Revolut X is 0 % maker and the loop crosses the touch, and §3.13
- * put the break-even for resting instead at 10–20 bps of adverse move through the bid — a band
- * a backtest could not measure, because its bid is a synthetic offset on a Coinbase candle.
+ * The maker probes (`0042`): how often, and how fast, the market came back to where a resting
+ * order would have sat, and where it went after. Revolut X is 0 % maker and the loop crosses the
+ * touch at 9 bps; a backtest could not say whether a resting order on the UK book fills, because
+ * its bid is a synthetic offset on a Coinbase candle.
  *
- * `adverseBps` is the answer: for each FILLED probe, how far the market had moved past the
- * price a resting order would have taken, at +15 and +60 minutes, signed so that POSITIVE is
- * against the fill (a buy that filled and then fell, a sell that filled and then rose). Read
- * the median against 10–20 bps: above it, resting loses more to selection than the 9 bps taker
- * fee costs; below it, the fee is the bigger number and resting is worth testing for real.
+ * `adverseBps`: for each FILLED probe, how far the market had moved past the price a resting
+ * order would have taken, at +15 and +60 minutes, signed so that POSITIVE is against the fill (a
+ * buy that filled and then fell, a sell that filled and then rose). It is NOT the number that
+ * decides resting the rules' own orders (reference §3.13's correction, §3.43): once a resting buy
+ * fills it holds the position the taker's buy has held since the decision, so drift after the
+ * fill is the same for both. What decides is the fill rate within the time the rule can wait,
+ * the saving when filled (the spread plus the fee) and the chase when not; the review's MX-1
+ * reads those from the probes. `adverseBps` is the number for a quote that holds inventory it
+ * did not want.
  *
  * Every figure is null until probes exist, and the counts say how thin the evidence is.
  */
@@ -390,7 +394,7 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
     /** Of the probes that RESOLVED, the share that the market came back to. Null while none has. */
     fillRate: resolved ? filled.length / resolved : null,
     medianMinutesToFill: med(filled.map((r) => r.minutes_to_fill).filter((x): x is number => x != null)),
-    /** Positive = the market moved against the fill. Compare with §3.13's 10–20 bps break-even. */
+    /** Positive = the market moved against the fill: drift after it, not what resting saves or costs (§3.13). */
     adverseBps: { m15: adverse("m15"), m60: adverse("m60") },
     bySymbol: [...new Set(rows.map((r) => r.symbol))].sort().map((symbol) => {
       const mine = rows.filter((r) => r.symbol === symbol);

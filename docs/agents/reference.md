@@ -1456,7 +1456,19 @@ The other three answers, all negative, which is the useful kind:
   That median against the 10–20 bps band above is the whole answer: over
   it, resting loses more to selection than the 9 bps taker fee costs;
   under it, the fee is the bigger number and resting is worth testing with
-  real orders. It was briefly rendered under VENUES and **taken off the page the
+  real orders.
+  **Read differently since 2026-09-27 (§3.43):** that compares two
+  different quantities. The 10–20 bps band is a fill condition — how far a
+  price must trade through before the backtest credits the fill — and
+  `adverseBps` is the drift AFTER the fill. For the rules' own orders that
+  drift cancels: once a resting buy fills it holds the position the taker's
+  buy has held since the decision, and gains or loses the same from then on
+  (a sell likewise). What decides maker-first execution is the fill rate
+  within the time the rule can wait, the saving when filled (the spread
+  plus the 9 bps fee) and the chase when not (the touch crossed at the
+  deadline against the one at the decision). `adverseBps` is the right
+  number for a quote that holds inventory it did not want, not for a rule
+  that wants the position anyway. It was briefly rendered under VENUES and **taken off the page the
   same day on Davies' word** — the probe keeps collecting and
   `probeSummary` stays in the dashboard payload, so the numbers are there
   to read with a query when they are wanted, but the page does not carry
@@ -1950,6 +1962,11 @@ year.
 | `trend-1h` | Revolut X | BTC ETH SOL | $40 | 3 × $13.33 | paper | feedback speed, and the only row with no near-duplicate; its return is inside chance and inside the spread error bar |
 
 Retired: `momentum-1d-kraken`, `rotation-1d`, `rotation-1w-kraken`.
+**`momentum-1d`'s figures above decide every 4 hours; the loop decides once
+a day** (found by §4.21's pricing, carried here 2026-09-27, §3.43). Its
+daily-cadence rulebook (`jev_v2_other.json`) is A −9.0 % (drawdown 42.4 %),
+B +70.1 %, C +104.4 %, D +5.8 %, against the 4-hour −8.1 / +62.4 / +106.2 /
+−7.2 %: the row's paper record is read against the daily figures.
 **Row capital falls $440 → $280**; live exposure sits exactly at its $100
 cap, both paper books fall well under $300, no order exceeds $20 —
 **nothing in `agent_risk` moves.**
@@ -2228,6 +2245,11 @@ the 23.94 bps spread §3.8 assumed sits at SUI's p90. And the prior audit's
 "SUI lowers return in both windows" holds on the Coinbase tape only: on
 Kraken's tape SUI raises window A (+9.16 % with it, +3.56 % without), and on
 Revolut X's own book (+10.39 % vs +5.50 %).
+**Corrected 2026-09-27 (§3.43):** 60 samples found the narrow side of
+SUI's book. Over 1,815 five-minute samples of 2026-09-20 → 27 (`agent_basis`)
+its UK spread's median is **23.7 bps**, wider than 20 bps in 91 % of them
+and wider than 50 bps in 5.7 %, so its taker round trip is **~42 bps**,
+§3.8's figure, not ~33. No decision moves: SUI is on paper only.
 
 **Decided 2026-09-23: SUI stays on paper and does not go live.** Davies
 left the seat to the session ("你做决定吧删了也行"). The pre-registered test
@@ -2990,6 +3012,62 @@ needs. Found beside it: PMLATE's `count_common.xt_posts` read one page (100 post
 count basis and SPEED's post-count edge truncated every window above 100 posts; the tracker's history cannot
 reproduce 14 of 207 results; a tsunami centre's first magnitude is not USGS's. The one lead is a forward recorder of
 UMA proposals and the book at C + 60 s, which is Davies' call (ledger item 6).
+
+### 3.43 The TESTING set reviewed: sound, one defect, and what is left to add is measurement (2026-09-27)
+
+Davies asked for a deep study of the nine TESTING rows and what could be improved or added. Three read-only studies,
+checked by the main session (`reviews/2026-09-27-testing-portfolio-review.md`, appendices A–C beside it). Production
+was read with SELECT only; no RW fill, minute, print or selection table and no recorded book was read.
+
+- **The crypto paper rows run their rules exactly.** All 796 trend decisions of the week (the two paper trend rows and
+  the live row) recompute from their stored numbers, all 7 exits were the 3×ATR close trail at the right bar, no floor
+  stop fired, and the live row and its control agree on 76 of 76 paired decisions. The week (a strong bull week) is
+  about one standard deviation from what the backtests expect: `trend-4h` −0.78 %, `trend-1h` −0.57 %, `momentum-1d`
+  +5.59 % of capital. Keep all three rows; retire, merge or add nothing.
+- **One defect, fixed:** the maker probes' fill test credited the minute a probe was written in (§4 item 41, `0068`).
+- **The maker probes answer the one optimisation never rejected, and `adverseBps` is not how to read them** (§3.13's
+  correction). Nine market events (seven exits, two entries) all filled within 57 minutes, median 8. Resting at the
+  touch and crossing at 60 minutes would have beaten crossing at once on every one: +11.6 bps a side on the exits,
+  +12.7 on the entries. At 15 and 30 minutes one entry of the two had not filled, and the entries' mean was +4.2 and
+  −3.5 bps. Nine events cannot decide it. The review ranks a pre-registered forward reading first (MX-1: about 40
+  events a side, roughly 12 weeks; if it holds, +4.7–8.5 points a year to `trend-1h`). It needs one recording change
+  first, the UK touch at +15/30/60 minutes on every probe.
+- **Jev's shadow on the paper rows cannot decide whether the gate helps.** Under v2 at 0.45 each state gets the same
+  answer on every call, so a would-be veto only restates the state, which §4.21's backtest priced on far more entries.
+  Deciding it forward would take 5–18 years. What the shadow can do is watch for drift in the model's replies: all four
+  v2 answers so far sit in their measured bands.
+- **Record corrections:**
+  - SUI's UK spread is 23.7 bps at the median, so its round trip is ~42 bps (§3.20).
+  - `momentum-1d` is read against its daily-cadence figures (§3.17).
+  - Its first two entries (ETH and SOL, 2026-09-20 18:24) were taken 18.4 h after their daily bar closed, before
+    `entryTooLate` existed. The record is about 0.5 points of the sleeve better than the rule as it runs now.
+  - The live row's first fill cost +4.1 bps more than its control's on the same bar.
+  - The live row parts from its control by design whenever its one-slot cap is full.
+- **PR5 is healthy and undecided.** Every minute since its per-minute record began is decided, and all 9 paper fills
+  would have been accepted post-only. The regime still holds (a 3.98 bps gap in week 39). Its 9 round trips make
+  $0.254 a calendar day against the $0.26 bar and the $0.42 plan, 0.6 SD under plan; 10-21 gives a point estimate,
+  not a verdict of worth.
+  - Its fair omits the newest hourly candle for 59 minutes of each hour. In the one hour observed, the venue left the
+    closed hour out of its list for about 3 minutes; the engine fetches once, at about hh:00:27. The effect is 0.5 bp
+    in 7–11 % of minutes and one tick on 5 of 302 prices.
+  - Its size rule once credited a $100 entry on a 0.26-USDC print (strictly, +$0.964 instead of +$1.083).
+  - Neither changes the frozen rule. Both are for the 10-21 review to expect.
+- **RW's family is clean and its verdict will turn on stress** (+$219.72 after two closed days, stress −$28.53).
+  Choosing the best of five overlapping arms on the days that judge them is selection, so the rule for reading them
+  together should be frozen before 10-09.
+- **Ranked additions**, none a new strategy row:
+  1. MX-1.
+  2. RW-NEXT: how the 10-09 verdicts are read together, plus a 14-day forward confirmation, RW-C, which needs a
+     second engine on Davies' word.
+  3. QUEUE: the stablecoin quotes re-scored by queue position on the recorded books. Frozen before anyone reads
+     `agent_book_levels`; run by 2026-11-01 10:25 UTC, when the recorder's 35-day prune reaches the window.
+  4. PR5-R: four readings of PR5's record declared before 10-21.
+  5. PR5-W: weekend quotes, a replay.
+  6. EX-GAP: live fills against the control's.
+  7. JEV-DRIFT: a check of every Jev answer against its measured band.
+- **Considered and dropped:** a dispute rule on Polymarket (24 of 35 recent disputes were overturned) and buying
+  longshots (FAV's sign flip). Every rule idea for the crypto rows had already been priced and rejected (appendix A §5,
+  C §2).
 
 ## 4. Design consequences (decided by the evidence above)
 
