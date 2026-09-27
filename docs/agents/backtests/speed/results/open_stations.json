@@ -1,0 +1,370 @@
+{
+ "read_at": "2026-09-26T22:40:22Z",
+ "stations": {
+  "?Highest temperature in Hong Kong on Sept": {
+   "events": 4,
+   "source": [
+    "other"
+   ],
+   "title": "Highest temperature in Hong Kong on September 25?"
+  },
+  "?Lowest temperature in Hong Kong on Septe": {
+   "events": 4,
+   "source": [
+    "other"
+   ],
+   "title": "Lowest temperature in Hong Kong on September 25?"
+  },
+  "CYYZ": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Toronto on September 26?"
+  },
+  "EDDM": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Munich on September 26?"
+  },
+  "EFHK": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Helsinki on September 27?"
+  },
+  "EGLC": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in London on September 26?"
+  },
+  "EHAM": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Amsterdam on September 26?"
+  },
+  "EPWA": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Warsaw on September 27?"
+  },
+  "FACT": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Cape Town on September 27?"
+  },
+  "KATL": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Atlanta on September 26?"
+  },
+  "KAUS": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Austin on September 26?"
+  },
+  "KBKF": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Denver on September 26?"
+  },
+  "KDAL": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Dallas on September 26?"
+  },
+  "KHOU": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Houston on September 26?"
+  },
+  "KLAX": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Los Angeles on September 26?"
+  },
+  "KLGA": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in NYC on September 26?"
+  },
+  "KMIA": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Miami on September 26?"
+  },
+  "KORD": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Chicago on September 26?"
+  },
+  "KSEA": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Seattle on September 26?"
+  },
+  "KSFO": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in San Francisco on September 26?"
+  },
+  "LEMD": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Madrid on September 26?"
+  },
+  "LFPB": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Paris on September 27?"
+  },
+  "LIMC": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Milan on September 26?"
+  },
+  "LLBG": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Tel Aviv on September 27?"
+  },
+  "LTAC": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Ankara on September 27?"
+  },
+  "LTFM": {
+   "events": 3,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Istanbul on September 28?"
+  },
+  "MMMX": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Mexico City on September 26?"
+  },
+  "MPMG": {
+   "events": 3,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Panama City on September 26?"
+  },
+  "NZWN": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Wellington on September 27?"
+  },
+  "OEJN": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Jeddah on September 27?"
+  },
+  "OPKC": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Karachi on September 27?"
+  },
+  "RCSS": {
+   "events": 4,
+   "source": [
+    "wu"
+   ],
+   "title": "Highest temperature in Taipei on September 27?"
+  },
+  "RJTT": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Tokyo on September 27?"
+  },
+  "RKPK": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Busan on September 27?"
+  },
+  "RKSI": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Seoul (Incheon) on September 27?"
+  },
+  "RPLL": {
+   "events": 2,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Manila on September 27?"
+  },
+  "SAEZ": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Buenos Aires on September 26?"
+  },
+  "SBGR": {
+   "events": 6,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Sao Paulo on September 26?"
+  },
+  "UUWW": {
+   "events": 3,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Moscow on September 28?"
+  },
+  "VILK": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Lucknow on September 27?"
+  },
+  "WMKK": {
+   "events": 2,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Kuala Lumpur on September 27?"
+  },
+  "WSSS": {
+   "events": 2,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Singapore on September 27?"
+  },
+  "ZBAA": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Beijing on September 27?"
+  },
+  "ZGGG": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Guangzhou on September 27?"
+  },
+  "ZGSZ": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Shenzhen on September 27?"
+  },
+  "ZHCC": {
+   "events": 4,
+   "source": [
+    "nws",
+    "wu"
+   ],
+   "title": "Highest temperature in Zhengzhou on May 20?"
+  },
+  "ZHHH": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Wuhan on September 27?"
+  },
+  "ZSJN": {
+   "events": 4,
+   "source": [
+    "wu"
+   ],
+   "title": "Highest temperature in Jinan on May 20?"
+  },
+  "ZSPD": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Shanghai on September 27?"
+  },
+  "ZSQD": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Qingdao on September 27?"
+  },
+  "ZUCK": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Chongqing on September 27?"
+  },
+  "ZUUU": {
+   "events": 4,
+   "source": [
+    "nws"
+   ],
+   "title": "Highest temperature in Chengdu on September 27?"
+  }
+ }
+}

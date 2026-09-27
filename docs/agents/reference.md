@@ -2860,6 +2860,47 @@ on it is a new pre-registration on events not yet seen. **Access is unchanged**:
 UK-registered retail account may not be sold one (FCA PS20/10, COBS 22.6.5R). Reproduced on `main` by the coordinator:
 H2, H5, H6 and Holm re-run byte-identical to `phase2_runs.json`.
 
+### 3.39 SPEED: what reacting faster is worth, and what binds each strategy (2026-09-27)
+
+Davies asked why the loop runs once a minute, how fast it could run and whether faster pays; the standing rule now
+prices every study at 1 s (pg_cron 1.6.4 runs jobs every 1–59 s). The study (`backtests/speed/`, a research agent;
+production read with SELECT only, Cloudflare only listed) measured three things. The coordinator re-ran `combine.py`,
+`arch_costs.py`, `source_latency.py` and `print_time_lag.py` from the committed inputs: byte-identical.
+
+**The edge left at each reaction time** (September's exploration; the share of the stale side's net edge after the
+event still there):
+
+| after the event | +5 s | +30 s | +60 s | +120 s | +300 s | when the fastest keyless source publishes |
+|---|---:|---:|---:|---:|---:|---:|
+| temperature, US (304 buckets) | 98 % | 95 % | 79 % | 63 % | 29 % | 16 % (tgftp) |
+| temperature, non-US (846) | 99 % | 77 % | 56 % | 25 % | 10 % | 15 % |
+| post counts, seven smaller series (105) | 87 % | 54 % | 37 % | 26 % | 19 % | 20 % (the tracker's capture) |
+| post counts, Elon (4, sampled) | 65 % | 1 % | 1 % | 1 % | 0 % | 1 % |
+
+**How fast the sources publish** (live, 150 minutes, 20 US and 10 other stations; p50 after the observation): NOAA's
+`tgftp` station file 159 s (US) and 250 s (elsewhere), first on 104 of 115 reports; AWC's receipt 182 s, its API ~4 s
+later; IEM +63 s; `api.weather.gov` ~20 minutes; national open data 74 s (Singapore) to 2,338 s (DWD). The informed
+takers print a median 64 s (US) and 48 s (non-US) after the observation: before every keyless source. The post tracker
+captures a post a median 150 s after it, in batches every ~5 minutes; YouTube's view counter moves every ~5 minutes
+(§4 item 38). The data API stamps a print 1.96 s after its match (p50).
+
+**What each architecture reaches and costs**:
+
+| | reaction after publication (p50 / p90) | cost |
+|---|---|---|
+| a job a minute (today) | 31 s / 55 s | nothing new |
+| pg_cron "1 seconds" → Edge | 0.97 s / 2.3 s | +2.6 M Edge calls a month (~$4) and 86,400 `cron.job_run_details` rows a day (~133 MB, pruned daily or not at all) |
+| one Edge call a minute looping each second | 0.68 s / 1.08 s | nothing new: ~99 ms CPU a call of the 2 s, 55–58 s wall |
+| a Cloudflare Durable Object polling every 0.5 s | 0.6 s / 0.8 s | Workers Paid ($5.75 a month), a deployment (Davies' call), and it still orders through the Irish Edge |
+
+**What binds**: the data source binds PMLATE (US temperature at 1 s: about +$4.9 a day after expected traps; non-US
+negative), the post counts (the informed trade 4 s after the post, the tracker 150 s later) and the view counts; the
+venue binds PR5 (1,000 order POSTs a day, a token a second); nothing binds the crypto trend rows (a minute's p99 move
+17–42 bps is at most $0.11 of extra slippage on a $25 slot). So the one-minute loop stays and no Worker is deployed;
+the one rule left standing is USLATE-FAST (`reviews/2026-09-27-speed-prereg-uslate-fast.md`, frozen with this entry): USLATE acted at `tgftp`'s
+publication + 0.25 s, a 28-day forward test that needs a 1 s `tgftp` recorder built first, on Davies' word, with a bar
+that includes beating USLATE on the same days. Expected: $7–13 a day before traps.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

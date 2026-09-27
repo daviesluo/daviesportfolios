@@ -1,0 +1,1713 @@
+{
+ "groups": {
+  "all:informative_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 1750.66,
+     "share": 0.1827,
+     "uslate_buckets_filled": 23,
+     "uslate_fill_pnl_usd": 98.27
+    },
+    "-120": {
+     "net_edge_usd": 4284.55,
+     "share": 0.447,
+     "uslate_buckets_filled": 64,
+     "uslate_fill_pnl_usd": 693.25
+    },
+    "-30": {
+     "net_edge_usd": 2118.04,
+     "share": 0.221,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 175.31
+    },
+    "-300": {
+     "net_edge_usd": 8529.81,
+     "share": 0.8899,
+     "uslate_buckets_filled": 95,
+     "uslate_fill_pnl_usd": 1116.69
+    },
+    "-60": {
+     "net_edge_usd": 2894.27,
+     "share": 0.302,
+     "uslate_buckets_filled": 45,
+     "uslate_fill_pnl_usd": 298.95
+    },
+    "0": {
+     "net_edge_usd": 1574.8,
+     "share": 0.1643,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 68.2
+    },
+    "1": {
+     "net_edge_usd": 1574.8,
+     "share": 0.1643,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 68.2
+    },
+    "10": {
+     "net_edge_usd": 1248.24,
+     "share": 0.1302,
+     "uslate_buckets_filled": 13,
+     "uslate_fill_pnl_usd": 54.7
+    },
+    "120": {
+     "net_edge_usd": 835.79,
+     "share": 0.0872,
+     "uslate_buckets_filled": 6,
+     "uslate_fill_pnl_usd": 34.73
+    },
+    "2": {
+     "net_edge_usd": 1574.35,
+     "share": 0.1643,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 67.98
+    },
+    "20": {
+     "net_edge_usd": 1161.59,
+     "share": 0.1212,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 45.79
+    },
+    "30": {
+     "net_edge_usd": 1061.95,
+     "share": 0.1108,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 54.36
+    },
+    "300": {
+     "net_edge_usd": 444.55,
+     "share": 0.0464,
+     "uslate_buckets_filled": 3,
+     "uslate_fill_pnl_usd": 13.77
+    },
+    "5": {
+     "net_edge_usd": 1502.67,
+     "share": 0.1568,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 59.73
+    },
+    "60": {
+     "net_edge_usd": 950.84,
+     "share": 0.0992,
+     "uslate_buckets_filled": 8,
+     "uslate_fill_pnl_usd": 38.22
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 9584.72,
+     "share": 1.0,
+     "uslate_buckets_filled": 101,
+     "uslate_fill_pnl_usd": 1231.9
+    },
+    "10": {
+     "net_edge_usd": 5644.13,
+     "share": 0.5889,
+     "uslate_buckets_filled": 64,
+     "uslate_fill_pnl_usd": 559.98
+    },
+    "120": {
+     "net_edge_usd": 2023.69,
+     "share": 0.2111,
+     "uslate_buckets_filled": 22,
+     "uslate_fill_pnl_usd": 108.71
+    },
+    "150": {
+     "net_edge_usd": 1955.91,
+     "share": 0.2041,
+     "uslate_buckets_filled": 20,
+     "uslate_fill_pnl_usd": 109.53
+    },
+    "180": {
+     "net_edge_usd": 1908.28,
+     "share": 0.1991,
+     "uslate_buckets_filled": 20,
+     "uslate_fill_pnl_usd": 105.98
+    },
+    "1800": {
+     "net_edge_usd": 300.17,
+     "share": 0.0313,
+     "uslate_buckets_filled": 7,
+     "uslate_fill_pnl_usd": 20.44
+    },
+    "20": {
+     "net_edge_usd": 4681.59,
+     "share": 0.4884,
+     "uslate_buckets_filled": 56,
+     "uslate_fill_pnl_usd": 429.2
+    },
+    "240": {
+     "net_edge_usd": 1655.64,
+     "share": 0.1727,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 97.34
+    },
+    "30": {
+     "net_edge_usd": 4141.04,
+     "share": 0.432,
+     "uslate_buckets_filled": 51,
+     "uslate_fill_pnl_usd": 307.78
+    },
+    "300": {
+     "net_edge_usd": 1461.84,
+     "share": 0.1525,
+     "uslate_buckets_filled": 12,
+     "uslate_fill_pnl_usd": 95.52
+    },
+    "3600": {
+     "net_edge_usd": 168.39,
+     "share": 0.0176,
+     "uslate_buckets_filled": 6,
+     "uslate_fill_pnl_usd": 13.35
+    },
+    "45": {
+     "net_edge_usd": 3265.66,
+     "share": 0.3407,
+     "uslate_buckets_filled": 42,
+     "uslate_fill_pnl_usd": 238.2
+    },
+    "5": {
+     "net_edge_usd": 7912.22,
+     "share": 0.8255,
+     "uslate_buckets_filled": 76,
+     "uslate_fill_pnl_usd": 880.13
+    },
+    "60": {
+     "net_edge_usd": 2861.2,
+     "share": 0.2985,
+     "uslate_buckets_filled": 39,
+     "uslate_fill_pnl_usd": 166.24
+    },
+    "600": {
+     "net_edge_usd": 941.37,
+     "share": 0.0982,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 59.82
+    },
+    "90": {
+     "net_edge_usd": 2174.01,
+     "share": 0.2268,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 124.08
+    },
+    "900": {
+     "net_edge_usd": 685.4,
+     "share": 0.0715,
+     "uslate_buckets_filled": 10,
+     "uslate_fill_pnl_usd": 42.54
+    }
+   },
+   "bucket_deaths": 109,
+   "capture_after_post_s": {
+    "p10": 29.424999952316284,
+    "p50": 154.9649999141693,
+    "p90": 295.2260000705719
+   },
+   "events": 88,
+   "first_stale_print_after_post_s": {
+    "n": 101,
+    "p25": 3.0,
+    "p50": 4.0,
+    "p75": 13.0
+   },
+   "post_post_net_edge_usd": 9584.72,
+   "span_days": 230.0
+  },
+  "all:other_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 1774.59,
+     "share": 0.2812,
+     "uslate_buckets_filled": 38,
+     "uslate_fill_pnl_usd": 40.91
+    },
+    "-120": {
+     "net_edge_usd": 2960.81,
+     "share": 0.4691,
+     "uslate_buckets_filled": 81,
+     "uslate_fill_pnl_usd": 110.48
+    },
+    "-30": {
+     "net_edge_usd": 1964.46,
+     "share": 0.3113,
+     "uslate_buckets_filled": 50,
+     "uslate_fill_pnl_usd": 60.81
+    },
+    "-300": {
+     "net_edge_usd": 4145.49,
+     "share": 0.6568,
+     "uslate_buckets_filled": 118,
+     "uslate_fill_pnl_usd": 186.04
+    },
+    "-60": {
+     "net_edge_usd": 2533.49,
+     "share": 0.4014,
+     "uslate_buckets_filled": 62,
+     "uslate_fill_pnl_usd": 81.5
+    },
+    "0": {
+     "net_edge_usd": 1609.45,
+     "share": 0.255,
+     "uslate_buckets_filled": 34,
+     "uslate_fill_pnl_usd": 37.07
+    },
+    "1": {
+     "net_edge_usd": 1605.37,
+     "share": 0.2544,
+     "uslate_buckets_filled": 34,
+     "uslate_fill_pnl_usd": 37.07
+    },
+    "10": {
+     "net_edge_usd": 1063.24,
+     "share": 0.1685,
+     "uslate_buckets_filled": 19,
+     "uslate_fill_pnl_usd": 22.69
+    },
+    "120": {
+     "net_edge_usd": 735.42,
+     "share": 0.1165,
+     "uslate_buckets_filled": 14,
+     "uslate_fill_pnl_usd": 15.85
+    },
+    "2": {
+     "net_edge_usd": 1596.53,
+     "share": 0.253,
+     "uslate_buckets_filled": 33,
+     "uslate_fill_pnl_usd": 36.97
+    },
+    "20": {
+     "net_edge_usd": 962.23,
+     "share": 0.1525,
+     "uslate_buckets_filled": 18,
+     "uslate_fill_pnl_usd": 20.9
+    },
+    "30": {
+     "net_edge_usd": 939.72,
+     "share": 0.1489,
+     "uslate_buckets_filled": 17,
+     "uslate_fill_pnl_usd": 18.95
+    },
+    "300": {
+     "net_edge_usd": 494.26,
+     "share": 0.0783,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 12.18
+    },
+    "5": {
+     "net_edge_usd": 1309.34,
+     "share": 0.2075,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 25.56
+    },
+    "60": {
+     "net_edge_usd": 854.48,
+     "share": 0.1354,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 17.35
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 6311.19,
+     "share": 1.0,
+     "uslate_buckets_filled": 136,
+     "uslate_fill_pnl_usd": 230.56
+    },
+    "10": {
+     "net_edge_usd": 4919.17,
+     "share": 0.7794,
+     "uslate_buckets_filled": 94,
+     "uslate_fill_pnl_usd": 158.27
+    },
+    "120": {
+     "net_edge_usd": 3270.37,
+     "share": 0.5182,
+     "uslate_buckets_filled": 44,
+     "uslate_fill_pnl_usd": 73.33
+    },
+    "150": {
+     "net_edge_usd": 3154.35,
+     "share": 0.4998,
+     "uslate_buckets_filled": 39,
+     "uslate_fill_pnl_usd": 66.25
+    },
+    "180": {
+     "net_edge_usd": 3085.44,
+     "share": 0.4889,
+     "uslate_buckets_filled": 37,
+     "uslate_fill_pnl_usd": 65.45
+    },
+    "1800": {
+     "net_edge_usd": 2293.07,
+     "share": 0.3633,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.27
+    },
+    "20": {
+     "net_edge_usd": 4576.27,
+     "share": 0.7251,
+     "uslate_buckets_filled": 79,
+     "uslate_fill_pnl_usd": 142.98
+    },
+    "240": {
+     "net_edge_usd": 2854.07,
+     "share": 0.4522,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 61.83
+    },
+    "30": {
+     "net_edge_usd": 4411.26,
+     "share": 0.699,
+     "uslate_buckets_filled": 72,
+     "uslate_fill_pnl_usd": 137.73
+    },
+    "300": {
+     "net_edge_usd": 2742.46,
+     "share": 0.4345,
+     "uslate_buckets_filled": 27,
+     "uslate_fill_pnl_usd": 58.55
+    },
+    "3600": {
+     "net_edge_usd": 2158.28,
+     "share": 0.342,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 52.76
+    },
+    "45": {
+     "net_edge_usd": 4106.97,
+     "share": 0.6507,
+     "uslate_buckets_filled": 67,
+     "uslate_fill_pnl_usd": 113.84
+    },
+    "5": {
+     "net_edge_usd": 5883.58,
+     "share": 0.9322,
+     "uslate_buckets_filled": 120,
+     "uslate_fill_pnl_usd": 194.86
+    },
+    "60": {
+     "net_edge_usd": 3870.31,
+     "share": 0.6132,
+     "uslate_buckets_filled": 61,
+     "uslate_fill_pnl_usd": 96.62
+    },
+    "600": {
+     "net_edge_usd": 2465.66,
+     "share": 0.3907,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.24
+    },
+    "90": {
+     "net_edge_usd": 3421.37,
+     "share": 0.5421,
+     "uslate_buckets_filled": 51,
+     "uslate_fill_pnl_usd": 80.22
+    },
+    "900": {
+     "net_edge_usd": 2413.04,
+     "share": 0.3823,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.61
+    }
+   },
+   "bucket_deaths": 1574,
+   "capture_after_post_s": {
+    "p10": 31.391000032424927,
+    "p50": 152.7279999256134,
+    "p90": 290.095999956131
+   },
+   "events": 324,
+   "first_stale_print_after_post_s": {
+    "n": 136,
+    "p25": 5.0,
+    "p50": 12.858999967575073,
+    "p75": 67.0
+   },
+   "post_post_net_edge_usd": 6311.19,
+   "span_days": 260.0
+  },
+  "all:trap": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "0": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "2": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "150": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "180": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1800": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "240": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "3600": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "45": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "600": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "90": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "900": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "bucket_deaths": 4,
+   "capture_after_post_s": {
+    "p10": 22.316999912261963,
+    "p50": 133.864000082016,
+    "p90": 241.25
+   },
+   "events": 4,
+   "first_stale_print_after_post_s": {
+    "n": 0,
+    "p25": null,
+    "p50": null,
+    "p75": null
+   },
+   "post_post_net_edge_usd": 0,
+   "span_days": 7.0
+  },
+  "elon:informative_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-120": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-30": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-300": {
+     "net_edge_usd": 1908.79,
+     "share": 1.0,
+     "uslate_buckets_filled": 4,
+     "uslate_fill_pnl_usd": 45.61
+    },
+    "-60": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "0": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 12.77,
+     "share": 0.0067,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "2": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 0.57,
+     "share": 0.0003,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 20.38,
+     "share": 0.0107,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 1908.79,
+     "share": 1.0,
+     "uslate_buckets_filled": 4,
+     "uslate_fill_pnl_usd": 45.61
+    },
+    "10": {
+     "net_edge_usd": 75.8,
+     "share": 0.0397,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "150": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "180": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1800": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "240": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "3600": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "45": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 1238.5,
+     "share": 0.6488,
+     "uslate_buckets_filled": 2,
+     "uslate_fill_pnl_usd": 17.59
+    },
+    "60": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "600": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "90": {
+     "net_edge_usd": 21.04,
+     "share": 0.011,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "900": {
+     "net_edge_usd": 0,
+     "share": 0.0,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "bucket_deaths": 4,
+   "capture_after_post_s": {
+    "p10": 209.71799993515015,
+    "p50": 269.90000009536743,
+    "p90": 284.15300011634827
+   },
+   "events": 3,
+   "first_stale_print_after_post_s": {
+    "n": 4,
+    "p25": 2.0,
+    "p50": 3.0,
+    "p75": 4.0
+   },
+   "post_post_net_edge_usd": 1908.79,
+   "span_days": 192.0
+  },
+  "elon:other_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 182.44,
+     "share": 0.1285,
+     "uslate_buckets_filled": 1,
+     "uslate_fill_pnl_usd": 1.52
+    },
+    "-120": {
+     "net_edge_usd": 651.42,
+     "share": 0.4587,
+     "uslate_buckets_filled": 2,
+     "uslate_fill_pnl_usd": 3.06
+    },
+    "-30": {
+     "net_edge_usd": 208.65,
+     "share": 0.1469,
+     "uslate_buckets_filled": 1,
+     "uslate_fill_pnl_usd": 1.52
+    },
+    "-300": {
+     "net_edge_usd": 1387.73,
+     "share": 0.9771,
+     "uslate_buckets_filled": 3,
+     "uslate_fill_pnl_usd": 5.1
+    },
+    "-60": {
+     "net_edge_usd": 649.94,
+     "share": 0.4576,
+     "uslate_buckets_filled": 2,
+     "uslate_fill_pnl_usd": 3.06
+    },
+    "0": {
+     "net_edge_usd": 41.99,
+     "share": 0.0296,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1": {
+     "net_edge_usd": 40.26,
+     "share": 0.0283,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 28.44,
+     "share": 0.02,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 24.2,
+     "share": 0.017,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "2": {
+     "net_edge_usd": 40.26,
+     "share": 0.0283,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 27.51,
+     "share": 0.0194,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 26.51,
+     "share": 0.0187,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 17.89,
+     "share": 0.0126,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 39.17,
+     "share": 0.0276,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 24.2,
+     "share": 0.017,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 1420.26,
+     "share": 1.0,
+     "uslate_buckets_filled": 3,
+     "uslate_fill_pnl_usd": 5.1
+    },
+    "10": {
+     "net_edge_usd": 386.31,
+     "share": 0.272,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 29.16,
+     "share": 0.0205,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "150": {
+     "net_edge_usd": 28.21,
+     "share": 0.0199,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "180": {
+     "net_edge_usd": 26.32,
+     "share": 0.0185,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1800": {
+     "net_edge_usd": 17.87,
+     "share": 0.0126,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 253.29,
+     "share": 0.1783,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "240": {
+     "net_edge_usd": 24.2,
+     "share": 0.017,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 169.31,
+     "share": 0.1192,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 24.2,
+     "share": 0.017,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "3600": {
+     "net_edge_usd": 17.87,
+     "share": 0.0126,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "45": {
+     "net_edge_usd": 102.32,
+     "share": 0.072,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 1168.34,
+     "share": 0.8226,
+     "uslate_buckets_filled": 2,
+     "uslate_fill_pnl_usd": 3.23
+    },
+    "60": {
+     "net_edge_usd": 38.33,
+     "share": 0.027,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "600": {
+     "net_edge_usd": 17.87,
+     "share": 0.0126,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "90": {
+     "net_edge_usd": 29.69,
+     "share": 0.0209,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "900": {
+     "net_edge_usd": 17.87,
+     "share": 0.0126,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "bucket_deaths": 74,
+   "capture_after_post_s": {
+    "p10": 28.187999963760376,
+    "p50": 149.6210000514984,
+    "p90": 266.8819999694824
+   },
+   "events": 11,
+   "first_stale_print_after_post_s": {
+    "n": 3,
+    "p25": 1.0,
+    "p50": 2.0,
+    "p75": 3.0
+   },
+   "post_post_net_edge_usd": 1420.26,
+   "span_days": 222.0
+  },
+  "smaller:informative_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 1729.62,
+     "share": 0.2253,
+     "uslate_buckets_filled": 23,
+     "uslate_fill_pnl_usd": 98.27
+    },
+    "-120": {
+     "net_edge_usd": 4263.5,
+     "share": 0.5554,
+     "uslate_buckets_filled": 64,
+     "uslate_fill_pnl_usd": 693.25
+    },
+    "-30": {
+     "net_edge_usd": 2097.0,
+     "share": 0.2732,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 175.31
+    },
+    "-300": {
+     "net_edge_usd": 6621.01,
+     "share": 0.8626,
+     "uslate_buckets_filled": 91,
+     "uslate_fill_pnl_usd": 1071.08
+    },
+    "-60": {
+     "net_edge_usd": 2873.22,
+     "share": 0.3743,
+     "uslate_buckets_filled": 45,
+     "uslate_fill_pnl_usd": 298.95
+    },
+    "0": {
+     "net_edge_usd": 1553.76,
+     "share": 0.2024,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 68.2
+    },
+    "1": {
+     "net_edge_usd": 1553.76,
+     "share": 0.2024,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 68.2
+    },
+    "10": {
+     "net_edge_usd": 1235.47,
+     "share": 0.161,
+     "uslate_buckets_filled": 13,
+     "uslate_fill_pnl_usd": 54.7
+    },
+    "120": {
+     "net_edge_usd": 835.79,
+     "share": 0.1089,
+     "uslate_buckets_filled": 6,
+     "uslate_fill_pnl_usd": 34.73
+    },
+    "2": {
+     "net_edge_usd": 1553.31,
+     "share": 0.2024,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 67.98
+    },
+    "20": {
+     "net_edge_usd": 1161.02,
+     "share": 0.1513,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 45.79
+    },
+    "30": {
+     "net_edge_usd": 1061.95,
+     "share": 0.1383,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 54.36
+    },
+    "300": {
+     "net_edge_usd": 444.55,
+     "share": 0.0579,
+     "uslate_buckets_filled": 3,
+     "uslate_fill_pnl_usd": 13.77
+    },
+    "5": {
+     "net_edge_usd": 1482.29,
+     "share": 0.1931,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 59.73
+    },
+    "60": {
+     "net_edge_usd": 950.84,
+     "share": 0.1239,
+     "uslate_buckets_filled": 8,
+     "uslate_fill_pnl_usd": 38.22
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 7675.93,
+     "share": 1.0,
+     "uslate_buckets_filled": 97,
+     "uslate_fill_pnl_usd": 1186.28
+    },
+    "10": {
+     "net_edge_usd": 5568.34,
+     "share": 0.7254,
+     "uslate_buckets_filled": 64,
+     "uslate_fill_pnl_usd": 559.98
+    },
+    "120": {
+     "net_edge_usd": 2002.65,
+     "share": 0.2609,
+     "uslate_buckets_filled": 22,
+     "uslate_fill_pnl_usd": 108.71
+    },
+    "150": {
+     "net_edge_usd": 1934.87,
+     "share": 0.2521,
+     "uslate_buckets_filled": 20,
+     "uslate_fill_pnl_usd": 109.53
+    },
+    "180": {
+     "net_edge_usd": 1887.24,
+     "share": 0.2459,
+     "uslate_buckets_filled": 20,
+     "uslate_fill_pnl_usd": 105.98
+    },
+    "1800": {
+     "net_edge_usd": 300.17,
+     "share": 0.0391,
+     "uslate_buckets_filled": 7,
+     "uslate_fill_pnl_usd": 20.44
+    },
+    "20": {
+     "net_edge_usd": 4660.55,
+     "share": 0.6072,
+     "uslate_buckets_filled": 56,
+     "uslate_fill_pnl_usd": 429.2
+    },
+    "240": {
+     "net_edge_usd": 1634.6,
+     "share": 0.213,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 97.34
+    },
+    "30": {
+     "net_edge_usd": 4120.0,
+     "share": 0.5367,
+     "uslate_buckets_filled": 51,
+     "uslate_fill_pnl_usd": 307.78
+    },
+    "300": {
+     "net_edge_usd": 1461.84,
+     "share": 0.1904,
+     "uslate_buckets_filled": 12,
+     "uslate_fill_pnl_usd": 95.52
+    },
+    "3600": {
+     "net_edge_usd": 168.39,
+     "share": 0.0219,
+     "uslate_buckets_filled": 6,
+     "uslate_fill_pnl_usd": 13.35
+    },
+    "45": {
+     "net_edge_usd": 3244.62,
+     "share": 0.4227,
+     "uslate_buckets_filled": 42,
+     "uslate_fill_pnl_usd": 238.2
+    },
+    "5": {
+     "net_edge_usd": 6673.72,
+     "share": 0.8694,
+     "uslate_buckets_filled": 74,
+     "uslate_fill_pnl_usd": 862.54
+    },
+    "60": {
+     "net_edge_usd": 2840.15,
+     "share": 0.37,
+     "uslate_buckets_filled": 39,
+     "uslate_fill_pnl_usd": 166.24
+    },
+    "600": {
+     "net_edge_usd": 941.37,
+     "share": 0.1226,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 59.82
+    },
+    "90": {
+     "net_edge_usd": 2152.97,
+     "share": 0.2805,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 124.08
+    },
+    "900": {
+     "net_edge_usd": 685.4,
+     "share": 0.0893,
+     "uslate_buckets_filled": 10,
+     "uslate_fill_pnl_usd": 42.54
+    }
+   },
+   "bucket_deaths": 105,
+   "capture_after_post_s": {
+    "p10": 29.424999952316284,
+    "p50": 149.3420000076294,
+    "p90": 295.2260000705719
+   },
+   "events": 85,
+   "first_stale_print_after_post_s": {
+    "n": 97,
+    "p25": 3.0,
+    "p50": 5.0,
+    "p75": 13.049000024795532
+   },
+   "post_post_net_edge_usd": 7675.93,
+   "span_days": 227.0
+  },
+  "smaller:other_held": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 1592.15,
+     "share": 0.3255,
+     "uslate_buckets_filled": 37,
+     "uslate_fill_pnl_usd": 39.39
+    },
+    "-120": {
+     "net_edge_usd": 2309.39,
+     "share": 0.4722,
+     "uslate_buckets_filled": 79,
+     "uslate_fill_pnl_usd": 107.42
+    },
+    "-30": {
+     "net_edge_usd": 1755.81,
+     "share": 0.359,
+     "uslate_buckets_filled": 49,
+     "uslate_fill_pnl_usd": 59.29
+    },
+    "-300": {
+     "net_edge_usd": 2757.76,
+     "share": 0.5639,
+     "uslate_buckets_filled": 115,
+     "uslate_fill_pnl_usd": 180.94
+    },
+    "-60": {
+     "net_edge_usd": 1883.55,
+     "share": 0.3851,
+     "uslate_buckets_filled": 60,
+     "uslate_fill_pnl_usd": 78.45
+    },
+    "0": {
+     "net_edge_usd": 1567.47,
+     "share": 0.3205,
+     "uslate_buckets_filled": 34,
+     "uslate_fill_pnl_usd": 37.07
+    },
+    "1": {
+     "net_edge_usd": 1565.12,
+     "share": 0.32,
+     "uslate_buckets_filled": 34,
+     "uslate_fill_pnl_usd": 37.07
+    },
+    "10": {
+     "net_edge_usd": 1034.8,
+     "share": 0.2116,
+     "uslate_buckets_filled": 19,
+     "uslate_fill_pnl_usd": 22.69
+    },
+    "120": {
+     "net_edge_usd": 711.22,
+     "share": 0.1454,
+     "uslate_buckets_filled": 14,
+     "uslate_fill_pnl_usd": 15.85
+    },
+    "2": {
+     "net_edge_usd": 1556.28,
+     "share": 0.3182,
+     "uslate_buckets_filled": 33,
+     "uslate_fill_pnl_usd": 36.97
+    },
+    "20": {
+     "net_edge_usd": 934.72,
+     "share": 0.1911,
+     "uslate_buckets_filled": 18,
+     "uslate_fill_pnl_usd": 20.9
+    },
+    "30": {
+     "net_edge_usd": 913.21,
+     "share": 0.1867,
+     "uslate_buckets_filled": 17,
+     "uslate_fill_pnl_usd": 18.95
+    },
+    "300": {
+     "net_edge_usd": 476.37,
+     "share": 0.0974,
+     "uslate_buckets_filled": 11,
+     "uslate_fill_pnl_usd": 12.18
+    },
+    "5": {
+     "net_edge_usd": 1270.17,
+     "share": 0.2597,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 25.56
+    },
+    "60": {
+     "net_edge_usd": 830.28,
+     "share": 0.1698,
+     "uslate_buckets_filled": 16,
+     "uslate_fill_pnl_usd": 17.35
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 4890.94,
+     "share": 1.0,
+     "uslate_buckets_filled": 133,
+     "uslate_fill_pnl_usd": 225.46
+    },
+    "10": {
+     "net_edge_usd": 4532.86,
+     "share": 0.9268,
+     "uslate_buckets_filled": 94,
+     "uslate_fill_pnl_usd": 158.27
+    },
+    "120": {
+     "net_edge_usd": 3241.21,
+     "share": 0.6627,
+     "uslate_buckets_filled": 44,
+     "uslate_fill_pnl_usd": 73.33
+    },
+    "150": {
+     "net_edge_usd": 3126.14,
+     "share": 0.6392,
+     "uslate_buckets_filled": 39,
+     "uslate_fill_pnl_usd": 66.25
+    },
+    "180": {
+     "net_edge_usd": 3059.12,
+     "share": 0.6255,
+     "uslate_buckets_filled": 37,
+     "uslate_fill_pnl_usd": 65.45
+    },
+    "1800": {
+     "net_edge_usd": 2275.2,
+     "share": 0.4652,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.27
+    },
+    "20": {
+     "net_edge_usd": 4322.97,
+     "share": 0.8839,
+     "uslate_buckets_filled": 79,
+     "uslate_fill_pnl_usd": 142.98
+    },
+    "240": {
+     "net_edge_usd": 2829.86,
+     "share": 0.5786,
+     "uslate_buckets_filled": 32,
+     "uslate_fill_pnl_usd": 61.83
+    },
+    "30": {
+     "net_edge_usd": 4241.95,
+     "share": 0.8673,
+     "uslate_buckets_filled": 72,
+     "uslate_fill_pnl_usd": 137.73
+    },
+    "300": {
+     "net_edge_usd": 2718.26,
+     "share": 0.5558,
+     "uslate_buckets_filled": 27,
+     "uslate_fill_pnl_usd": 58.55
+    },
+    "3600": {
+     "net_edge_usd": 2140.41,
+     "share": 0.4376,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 52.76
+    },
+    "45": {
+     "net_edge_usd": 4004.65,
+     "share": 0.8188,
+     "uslate_buckets_filled": 67,
+     "uslate_fill_pnl_usd": 113.84
+    },
+    "5": {
+     "net_edge_usd": 4715.24,
+     "share": 0.9641,
+     "uslate_buckets_filled": 118,
+     "uslate_fill_pnl_usd": 191.62
+    },
+    "60": {
+     "net_edge_usd": 3831.98,
+     "share": 0.7835,
+     "uslate_buckets_filled": 61,
+     "uslate_fill_pnl_usd": 96.62
+    },
+    "600": {
+     "net_edge_usd": 2447.79,
+     "share": 0.5005,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.24
+    },
+    "90": {
+     "net_edge_usd": 3391.68,
+     "share": 0.6935,
+     "uslate_buckets_filled": 51,
+     "uslate_fill_pnl_usd": 80.22
+    },
+    "900": {
+     "net_edge_usd": 2395.17,
+     "share": 0.4897,
+     "uslate_buckets_filled": 21,
+     "uslate_fill_pnl_usd": 53.61
+    }
+   },
+   "bucket_deaths": 1500,
+   "capture_after_post_s": {
+    "p10": 32.26200008392334,
+    "p50": 152.84899997711182,
+    "p90": 291.6860001087189
+   },
+   "events": 313,
+   "first_stale_print_after_post_s": {
+    "n": 133,
+    "p25": 5.0,
+    "p50": 13.0,
+    "p75": 67.0
+   },
+   "post_post_net_edge_usd": 4890.94,
+   "span_days": 231.0
+  },
+  "smaller:trap": {
+   "after_capture": {
+    "-10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "-60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "0": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "2": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "after_post": {
+    "0": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "10": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "120": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "150": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "180": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "1800": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "20": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "240": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "30": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "300": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "3600": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "45": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "5": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "60": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "600": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "90": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    },
+    "900": {
+     "net_edge_usd": 0,
+     "share": null,
+     "uslate_buckets_filled": 0,
+     "uslate_fill_pnl_usd": 0.0
+    }
+   },
+   "bucket_deaths": 4,
+   "capture_after_post_s": {
+    "p10": 22.316999912261963,
+    "p50": 133.864000082016,
+    "p90": 241.25
+   },
+   "events": 4,
+   "first_stale_print_after_post_s": {
+    "n": 0,
+    "p25": null,
+    "p50": null,
+    "p75": null
+   },
+   "post_post_net_edge_usd": 0,
+   "span_days": 7.0
+  }
+ },
+ "sample": "PMLATE's post-count exploration (phase1_counts.json): Elon's series sampled, seven smaller series whole",
+ "skipped_events": {
+  "no_prints_or_rules": 227,
+  "no_tracker_posts": 18
+ }
+}

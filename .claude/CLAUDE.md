@@ -552,7 +552,11 @@ that follow from that evidence, in short:
   Cloudflare Worker (the Cloudflare connector is on; a session reads it,
   and deploying anything there is his call). A source's own limit can bind
   first, and a study names it with its number: YouTube's 10,000 units a
-  day is one read every 8.6 s on average.
+  day is one read every 8.6 s on average. The speed study (reference
+  §3.39) found the source binds temperature, post counts and view counts,
+  the venue binds PR5 and nothing binds the crypto rows: the loop stays
+  at a minute and no Worker is deployed until a source faster than every
+  keyless one is found.
 
 ## Git workflow
 

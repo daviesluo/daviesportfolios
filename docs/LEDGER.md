@@ -104,7 +104,7 @@ list stays the short version; the plan is the reasoning behind it.
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
-5. **Studies of 2026-09-26/27, this session: the speed study and WXSRC in flight, fp6 and PMLATE closed, the view recorder running.** (Bitget reported the same evening: don't
+5. **Studies of 2026-09-26/27, this session: WXSRC and VIEWS in flight; the speed study, fp6 and PMLATE done; the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
    search, fp6 (Davies: Binance still has no strategy of its own; his account supports futures, while the key's
    futures permission is off): phase 1 is access from primary sources (UK retail crypto derivatives are banned since
@@ -140,7 +140,11 @@ list stays the short version; the plan is the reasoning behind it.
    pg_cron 1.6.4), a loop inside one Edge call (2 s CPU, 150–400 s wall), or an always-on worker holding Polymarket's
    WebSocket. Measurements only; a rule out of it is pre-registered, not priced. Davies, later the same evening:
    every speed assumption in a study is 1 s (pg_cron's floor), and below that the thing to study is an always-on
-   Cloudflare Worker (his Cloudflare connector is on; read it, deploy nothing without his word).
+   Cloudflare Worker (his Cloudflare connector is on; read it, deploy nothing without his word). **Done 2026-09-27**
+   (reference §3.39): the source binds, not the loop — for temperature, post counts and view counts; the venue binds
+   PR5; nothing binds the crypto rows. The one-minute loop stays; no Worker. USLATE-FAST is frozen with it
+   (`reviews/2026-09-27-speed-prereg-uslate-fast.md`) and runs only if Davies has its 1 s `tgftp` recorder built;
+   the coordinator's advice is to wait for WXSRC (5e), which looks for a faster source than any keyless one.
    (d) YouTube view counts (Davies, 2026-09-26: `YOUTUBE_API_KEY` is in the secrets). First the probe's `youtube`
    part verifies the key read-only; then a recorder of what nobody can pull later — the view counter of each video
    with an open Polymarket view market (MrBeast, MrBeast Gaming) and those markets' books — every second around each
@@ -268,6 +272,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 02:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**SPEED is on `main` (a research agent's commit, with this ledger line it did not carry): the source binds, not the loop.**
+- Edge left after the event (September): US temperature 98 % at +5 s, 79 % at +60 s, 16 % when `tgftp` (the fastest keyless source) publishes; Elon's post counts 1 % after 30 s. The informed takers print ~64 s (US) and 48 s (non-US) after the observation, before any keyless source (`tgftp` 159 s / 250 s; AWC 182 s; `api.weather.gov` ~20 min).
+- Architectures: a 1 s pg_cron job reaches ~1 s but writes 86,400 cron rows a day; one Edge call a minute looping each second reaches 0.68 s at no new cost; a Cloudflare Durable Object 0.6 s for $5.75 a month and a deployment. Decision per the study: keep the one-minute loop, deploy nothing. Reference §3.39.
+- USLATE-FAST (USLATE at `tgftp`'s publication + 0.25 s, a 28-day forward test, must beat USLATE on the same days) is frozen by this commit and needs a 1 s `tgftp` recorder on Davies' word; expected $7–13 a day before traps. The coordinator reproduced four of the study's result files byte for byte.
 
 ### [2026-09-27 02:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

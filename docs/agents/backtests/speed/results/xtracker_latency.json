@@ -1,0 +1,21 @@
+{
+ "api_visible_after_capture_s": {
+  "n": 0
+ },
+ "api_visible_after_post_s": {
+  "n": 0
+ },
+ "by_handle": {},
+ "capture_after_post_s": {
+  "n": 0
+ },
+ "capture_batches": 0,
+ "failed": 3,
+ "minutes": 74.9,
+ "new_posts": 0,
+ "requests": 2400,
+ "samples_api_visible_after_capture_s": [],
+ "seen_after_capture_upper_s": {
+  "n": 0
+ }
+}

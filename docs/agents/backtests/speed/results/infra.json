@@ -1,0 +1,40 @@
+{
+ "note": "SPEED step 3: what the project's own infrastructure measured, read-only (SELECT on the production database and the Supabase log stream through the connector, 2026-09-26 22:50 → 2026-09-27 01:10 UTC), plus the documented limits. Each figure carries the query or page it came from.",
+ "project": {"ref": "flmvxigozjuizpckllvk", "region": "eu-west-2", "plan": "pro", "pg_cron": "1.6.4", "pg_net": "0.20.0", "edge_runtime": "supabase-edge-runtime-1.76.0 (compatible with Deno v2.1.4)"},
+ "pg_cron": {
+  "settings": {"cron.use_background_workers": "off (each run opens a connection to localhost)", "cron.log_run": "on", "cron.log_statement": "on", "cron.max_running_jobs": 32},
+  "every_minute_jobs": {"jobs": [16, 18, 19, 24, 25], "window": "6 h to 2026-09-26 22:50 UTC", "runs": 1466,
+                         "start_after_minute_s": {"p50": 0.15, "p90": 0.29, "max": 0.65}, "run_duration_s": {"p50": 0.021, "p99": 0.13}, "failed": 0,
+                         "query": "select jobid, count(*), percentile_cont(.5|.9) within group (order by extract(epoch from start_time - date_trunc('minute', start_time))), percentile_cont(.5|.99) within group (order by extract(epoch from end_time - start_time)) from cron.job_run_details where start_time > now() - interval '6 hours' and jobid in (16,18,19,24,25) group by jobid"},
+  "job_run_details": {"rows": 44529, "bytes_on_disk": 68452352, "bytes_per_row_on_disk": 1537, "avg_tuple_bytes": 523, "rows_last_24h": 5725, "oldest": "2026-05-13",
+                       "whole_database_bytes": 190082195,
+                       "query": "select count(*), pg_total_relation_size('cron.job_run_details'), avg(pg_column_size(j.*)) from cron.job_run_details ..."},
+  "documented": {"schedule": "every second to once a year (Supabase Cron guide); '1 seconds' .. '59 seconds'", "advice": "no more than 8 jobs running concurrently; each job no more than 10 minutes (supabase.com/docs/guides/cron)"}
+ },
+ "pg_net": {"settings": {"pg_net.batch_size": 200, "pg_net.ttl": "6 hours"}, "stored_responses": {"rows": 1881, "bytes": 60039168, "bytes_per_response": 31919},
+            "documented": "intended for at most 200 requests a second; responses kept 6 hours (supabase.com/docs/guides/database/extensions/pg_net)"},
+ "edge": {
+  "invocations_24h_to_2026-09-27T01:00Z": {"agents": 6346, "agents_by_cron": 5121, "chart": 1141, "trading212": 1020, "data": 884, "ops-error": 771, "prices": 527, "snapshot-record": 282, "overnight-fetch": 171, "fundamentals": 167, "overnight-record": 119, "auth": 18, "total": 11446,
+                                          "note": "jobs 24 (books) and 25 (pmrw-e) started inside this window; with all five every-minute jobs running a full day the cron share is ~7,900 a day",
+                                          "query": "select log_attributes['request.pathname'], count(*) from logs where source = 'function_edge_logs' group by 1"},
+  "plan_quota": {"included_per_month": 2000000, "over": "$2 per 1 million, billed in whole packages (supabase.com/docs/guides/platform/manage-your-usage/edge-function-invocations)"},
+  "pg_net_invoked_start_after_minute_ms": {"window": "6 h to 2026-09-26 22:50 UTC", "tick": {"p50": 191, "p90": 1650}, "quotes": {"p50": 191, "p90": 1797}, "pmrw": {"p50": 192, "p90": 2472}, "books": {"p50": 192, "p90": 1799},
+                                            "query": "quantile(.5|.9)((toUnixTimestamp64Milli(timestamp) - execution_time_ms) % 60000) from function_edge_logs where user_agent like 'pg_net%' group by request.search"},
+  "wall_ms_p50": {"tick": 4427, "pmrw": 2068, "quotes": 28171, "books": 43647, "pmrw-e": 848, "pmrw-select": 802},
+  "cpu_ms_per_call": {"source": "function_logs Shutdown events' cpu_time_used joined to function_edge_logs by execution_id, 6 h to 2026-09-26 22:50 UTC",
+                       "tick": {"p50": 83, "p90": 119.5, "max": 163}, "quotes": {"p50": 48, "p90": 66, "max": 117}, "pmrw": {"p50": 42.5, "p90": 58.3, "max": 150},
+                       "books (4 public reads, up to 8 database calls, a 40 s wait)": {"p50": 29, "p90": 40, "max": 97},
+                       "pmrw-e": {"p50": 27, "p90": 39, "max": 128}, "pmrw-select": {"p50": 21, "p90": 28, "max": 79}, "dashboard": {"p50": 16, "p90": 70.3, "max": 110}},
+  "documented_limits": {"cpu_per_request_s": 2, "wall_clock_s": {"free": 150, "paid": 400}, "request_idle_timeout_s": 150, "memory_mb": 256, "source": "supabase.com/docs/guides/functions/limits"}
+ },
+ "polymarket_from_the_edge": {"source": "docs/agents/reference.md §6 (the key probe, 2026-09-24/27)", "eu-west-2": {"clock_round_trip_ms": 26, "public_book_ms": 13}, "eu-west-1": {"clock_round_trip_ms": 30, "public_book_ms": 24}},
+ "cloudflare_documented": {
+  "workers_paid": "$5 a month minimum; 10 million requests and 30 million CPU ms included, then $0.30 a million and $0.02 a million CPU ms; CPU 30 s a request by default, up to 5 minutes; 10,000 subrequests an invocation by default (up to 10 million, since 2026-02-11); six connections waiting for headers at once, outbound WebSockets included (developers.cloudflare.com/workers/platform/pricing, /limits)",
+  "durable_objects_paid": "requests 1 million a month included then $0.15 a million (HTTP, RPC, WebSocket messages at 20:1, alarm invocations); duration 400,000 GB-s a month included then $12.50 a million GB-s, billed at 128 MB while the object is in memory and cannot hibernate; CPU 30 s a request by default, configurable to 5 minutes; alarm handler wall time 15 minutes; 6 simultaneous outbound connections; soft limit 1,000 requests a second an object (developers.cloudflare.com/durable-objects/platform/pricing, /limits)",
+  "outbound_websocket": "an outbound WebSocket or connect() socket keeps the object alive (and billed for duration) for at most 15 minutes a connection, after which the 70-140 s eviction rule resumes; outgoing WebSockets do not hibernate (changelog 2026-06-19; /durable-objects/concepts/durable-object-lifecycle)",
+  "alarms": "setAlarm() at millisecond precision, one alarm at a time, re-armed by the handler; at-least-once, retried with backoff from 2 s up to six times (/durable-objects/api/alarms, /api/base)",
+  "placement": "location hints (wnam, enam, weur, eeur, apac, oc, ...) are best effort; jurisdictions guarantee the EU or the US, not a country (/durable-objects/reference/data-location)",
+  "cron_triggers": "Workers Cron Triggers run at most once a minute; a sub-minute clock is an alarm",
+  "account": "the connector lists two unrelated Workers on the account (ride-a-stock, football-career); its plan is not shown by the read-only tools"
+ }
+}

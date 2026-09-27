@@ -1,0 +1,80 @@
+{
+ "architectures": {
+  "Cloudflare Durable Object, polling every 0.5 s, socket to Polymarket": {
+   "alarm_requests_a_month": 5184000.0,
+   "cpu_limit": "30 s a request by default (5 min max); an alarm a half second is its own request",
+   "cpu_ms_per_poll": 1.5,
+   "duration_gb_s_a_month": 324000.0,
+   "duration_included": 400000,
+   "duration_usd": 0.0,
+   "limits": "outbound WebSocket keeps the object alive at most 15 minutes a connection (reconnect inside that); six connections waiting for headers; 10,000 subrequests an invocation",
+   "needs": [
+    "a Workers Paid plan on the account (the read-only tools do not show its plan)",
+    "a deployment, which is Davies' call",
+    "the order still placed by the Irish Edge function: a Durable Object's location is a best-effort region, its strongest guarantee the EU, never Ireland"
+   ],
+   "reaction_after_publication_s": "uniform 0-0.5 + read 0.1 + hop to the Irish Edge ~0.2 + order 0.03",
+   "requests_usd": 0.75,
+   "usd_a_month": 5.75,
+   "workers_paid_minimum_usd": 5.0
+  },
+  "a job a minute (today's cadence)": {
+   "cpu_ms_per_call": "~18 (the lightest measured calls: 16-29 ms p50)",
+   "cpu_share_of_2s_limit": 0.0088,
+   "edge": {
+    "added_invocations_a_month": 43200,
+    "included": 2000000,
+    "over_quota": 0,
+    "total_a_month": 457800,
+    "usd_a_month": 0
+   },
+   "http_response_rows_held_6h": 360,
+   "job_run_details_bytes_a_day": 2213280,
+   "job_run_details_rows_a_day": 1440,
+   "reaction_after_publication_s": "uniform 0-60 + ~0.4 (median ~30)",
+   "wall_s_per_call": "~0.3"
+  },
+  "one Edge call a minute, polling every 1 s inside it": {
+   "cpu_ms_per_call": 98.5,
+   "cpu_share_of_2s_limit": 0.0493,
+   "edge": {
+    "added_invocations_a_month": 43200,
+    "included": 2000000,
+    "over_quota": 0,
+    "total_a_month": 457800,
+    "usd_a_month": 0
+   },
+   "job_run_details_bytes_a_day": 2213280,
+   "job_run_details_rows_a_day": 1440,
+   "note": "a half-second cadence doubles the reads (~200 ms CPU, 10 % of the limit) and gains a quarter second",
+   "reaction_after_publication_s": "uniform 0-1 + read 0.1 + order 0.03",
+   "wall_s_per_call": "~55-58, under the 150 s idle timeout and the 400 s worker limit (today's `books` call runs 43.6 s, `quotes` 28.2 s)"
+  },
+  "pg_cron every 1 s -> Edge": {
+   "connections_a_day": 86400,
+   "cpu_ms_per_call": "~18",
+   "cpu_share_of_2s_limit": 0.0088,
+   "edge": {
+    "added_invocations_a_month": 2592000,
+    "included": 2000000,
+    "over_quota": 1006600,
+    "total_a_month": 3006600,
+    "usd_a_month": 4
+   },
+   "http_response_bytes_held": {
+    "at_a_1kB_response": 22118400,
+    "at_todays_mean_response": 689450400
+   },
+   "http_response_rows_held_6h": 21600,
+   "job_run_details_bytes_a_day": 132796800,
+   "job_run_details_note": "cron.log_run is on and nothing prunes the table: ~4 GB a month, against a whole database of 190 MB today, unless a daily delete (or log_run off, a superuser setting) keeps it at one day (~133 MB)",
+   "job_run_details_rows_a_day": 86400,
+   "note": "cron.use_background_workers is off: each run opens a connection to localhost, and cron.log_statement logs it",
+   "postgres_log_lines_a_day": 86400,
+   "reaction_after_publication_s": "uniform 0-1 + dispatch (0.19 s p50, ~2 s one time in ten) + read 0.2 + order 0.03",
+   "wall_s_per_call": "~0.3 (each call must end inside its second or calls pile up; pg_cron runs at most 32 jobs at once, Supabase advises 8)"
+  }
+ },
+ "baseline_invocations_a_month": 414600,
+ "plan": "Supabase Pro: 2,000,000 Edge invocations a month, $2 a million over"
+}

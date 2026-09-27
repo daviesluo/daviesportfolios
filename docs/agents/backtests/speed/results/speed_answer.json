@@ -1,0 +1,478 @@
+{
+ "assumptions": {
+  "architecture_delay_after_publication_s": {
+   "Cloudflare Durable Object, polling every 0.5 s, ordering through the Irish Edge": {
+    "max": 0.8,
+    "p50": 0.6,
+    "p90": 0.8
+   },
+   "a job a minute (today's cadence)": {
+    "max": 59.92,
+    "p50": 30.92,
+    "p90": 54.92
+   },
+   "one Edge call a minute, polling every 1 s inside it": {
+    "max": 1.08,
+    "p50": 0.68,
+    "p90": 1.08
+   },
+   "pg_cron every 1 s \u2192 Edge": {
+    "max": 3.18,
+    "p50": 0.97,
+    "p90": 2.28
+   }
+  },
+  "dispatch_samples_s": [
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   0.19,
+   2.0
+  ],
+  "edge_hop_s": 0.2,
+  "order_s": 0.03,
+  "read_fresh_s": 0.2,
+  "read_warm_s": 0.1
+ },
+ "post_counts": {
+  "elon": {
+   "a feed of the account at post + 30 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.011,
+     "uslate_usd_per_day": 0.0
+    },
+    "other_held": {
+     "share_left": 0.1192,
+     "uslate_usd_per_day": 0.0
+    }
+   },
+   "a feed of the account at post + 5 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.6488,
+     "uslate_usd_per_day": 0.092
+    },
+    "other_held": {
+     "share_left": 0.8226,
+     "uslate_usd_per_day": 0.015
+    }
+   },
+   "api_visible_after_capture_s": {
+    "assumed_zero_no_live_sample": true,
+    "n": 0,
+    "p50": 0.0
+   },
+   "architectures": {
+    "Cloudflare Durable Object, polling every 0.5 s, ordering through the Irish Edge": {
+     "held_usd_per_day": 0.0,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.011,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.0289,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     }
+    },
+    "a job a minute (today's cadence)": {
+     "held_usd_per_day": 0.0,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.0022,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.0196,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     }
+    },
+    "one Edge call a minute, polling every 1 s inside it": {
+     "held_usd_per_day": 0.0,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.011,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.0288,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     }
+    },
+    "pg_cron every 1 s \u2192 Edge": {
+     "held_usd_per_day": 0.0,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.011,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.0285,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     }
+    },
+    "the instant the tracker shows the capture (ceiling for any keyless loop)": {
+     "held_usd_per_day": 0.0,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.011,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.0296,
+      "uslate_usd": 0.0,
+      "uslate_usd_per_day": 0.0
+     }
+    }
+   }
+  },
+  "smaller": {
+   "a feed of the account at post + 30 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.5367,
+     "uslate_usd_per_day": 1.356
+    },
+    "other_held": {
+     "share_left": 0.8673,
+     "uslate_usd_per_day": 0.596
+    }
+   },
+   "a feed of the account at post + 5 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.8694,
+     "uslate_usd_per_day": 3.8
+    },
+    "other_held": {
+     "share_left": 0.9641,
+     "uslate_usd_per_day": 0.83
+    }
+   },
+   "api_visible_after_capture_s": {
+    "assumed_zero_no_live_sample": true,
+    "n": 0,
+    "p50": 0.0
+   },
+   "architectures": {
+    "Cloudflare Durable Object, polling every 0.5 s, ordering through the Irish Edge": {
+     "held_usd_per_day": 0.461,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.2024,
+      "uslate_usd": 68.2,
+      "uslate_usd_per_day": 0.3
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.3202,
+      "uslate_usd": 37.07,
+      "uslate_usd_per_day": 0.16
+     }
+    },
+    "a job a minute (today's cadence)": {
+     "held_usd_per_day": 0.309,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.1465,
+      "uslate_usd": 49.89,
+      "uslate_usd_per_day": 0.22
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.1978,
+      "uslate_usd": 20.7,
+      "uslate_usd_per_day": 0.09
+     }
+    },
+    "one Edge call a minute, polling every 1 s inside it": {
+     "held_usd_per_day": 0.461,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.2024,
+      "uslate_usd": 68.2,
+      "uslate_usd_per_day": 0.3
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.3202,
+      "uslate_usd": 37.07,
+      "uslate_usd_per_day": 0.16
+     }
+    },
+    "pg_cron every 1 s \u2192 Edge": {
+     "held_usd_per_day": 0.459,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.2022,
+      "uslate_usd": 67.96,
+      "uslate_usd_per_day": 0.299
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.3183,
+      "uslate_usd": 36.77,
+      "uslate_usd_per_day": 0.159
+     }
+    },
+    "the instant the tracker shows the capture (ceiling for any keyless loop)": {
+     "held_usd_per_day": 0.461,
+     "informative_held": {
+      "share_of_post_post_edge_left": 0.2024,
+      "uslate_usd": 68.2,
+      "uslate_usd_per_day": 0.3
+     },
+     "other_held": {
+      "share_of_post_post_edge_left": 0.3205,
+      "uslate_usd": 37.07,
+      "uslate_usd_per_day": 0.16
+     }
+    }
+   }
+  }
+ },
+ "temperature": {
+  "US": {
+   "a source at obs + 30 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.9549,
+     "uslate_usd_per_day": 77.0
+    },
+    "other_held": {
+     "share_left": 0.9771,
+     "uslate_usd_per_day": 25.14
+    }
+   },
+   "a source at obs + 60 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.7865,
+     "uslate_usd_per_day": 60.13
+    },
+    "other_held": {
+     "share_left": 0.9057,
+     "uslate_usd_per_day": 22.38
+    }
+   },
+   "architectures": {
+    "Cloudflare Durable Object, polling every 0.5 s, ordering through the Irish Edge": {
+     "held_usd_per_day": 12.75,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1556,
+      "uslate_usd": 212.06,
+      "uslate_usd_per_day": 8.16
+     },
+     "net_usd_per_day": 4.94,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4498,
+      "uslate_usd": 119.56,
+      "uslate_usd_per_day": 4.6
+     },
+     "reaction_after_obs_s_p50": 159.6,
+     "traps_usd_per_day_expected": -7.82
+    },
+    "a job a minute (today's cadence)": {
+     "held_usd_per_day": 10.9,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1389,
+      "uslate_usd": 179.8,
+      "uslate_usd_per_day": 6.92
+     },
+     "net_usd_per_day": 3.08,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4205,
+      "uslate_usd": 103.65,
+      "uslate_usd_per_day": 3.99
+     },
+     "reaction_after_obs_s_p50": 189.9,
+     "traps_usd_per_day_expected": -7.82
+    },
+    "one Edge call a minute, polling every 1 s inside it": {
+     "held_usd_per_day": 12.75,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1556,
+      "uslate_usd": 211.97,
+      "uslate_usd_per_day": 8.15
+     },
+     "net_usd_per_day": 4.93,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4497,
+      "uslate_usd": 119.52,
+      "uslate_usd_per_day": 4.6
+     },
+     "reaction_after_obs_s_p50": 159.7,
+     "traps_usd_per_day_expected": -7.82
+    },
+    "pg_cron every 1 s \u2192 Edge": {
+     "held_usd_per_day": 12.7,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1551,
+      "uslate_usd": 211.09,
+      "uslate_usd_per_day": 8.12
+     },
+     "net_usd_per_day": 4.88,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4489,
+      "uslate_usd": 119.16,
+      "uslate_usd_per_day": 4.58
+     },
+     "reaction_after_obs_s_p50": 160.0,
+     "traps_usd_per_day_expected": -7.82
+    },
+    "the instant tgftp writes the file (ceiling for any keyless loop)": {
+     "held_usd_per_day": 12.81,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1562,
+      "uslate_usd": 213.17,
+      "uslate_usd_per_day": 8.2
+     },
+     "net_usd_per_day": 5.0,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4506,
+      "uslate_usd": 120.0,
+      "uslate_usd_per_day": 4.62
+     },
+     "reaction_after_obs_s_p50": 159.0,
+     "traps_usd_per_day_expected": -7.82
+    }
+   },
+   "one_second_sensitivity": {
+    "at AWC's receipt (no lead)": {
+     "held_usd_per_day": 6.99,
+     "reports": 1
+    },
+    "leads of more than 60 s dropped": {
+     "held_usd_per_day": 8.69,
+     "reports": 63
+    }
+   },
+   "tgftp_written_after_obs_s_p50": 159.0,
+   "tgftp_written_minus_awc_receipt_s": {
+    "n": 67,
+    "p50": -7.661
+   }
+  },
+  "non-US": {
+   "a source at obs + 30 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.7687,
+     "uslate_usd_per_day": 172.79
+    },
+    "other_held": {
+     "share_left": 0.9078,
+     "uslate_usd_per_day": 57.55
+    }
+   },
+   "a source at obs + 60 s (not keyless)": {
+    "informative_held": {
+     "share_left": 0.5567,
+     "uslate_usd_per_day": 120.66
+    },
+    "other_held": {
+     "share_left": 0.8096,
+     "uslate_usd_per_day": 45.08
+    }
+   },
+   "architectures": {
+    "Cloudflare Durable Object, polling every 0.5 s, ordering through the Irish Edge": {
+     "held_usd_per_day": 33.62,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1419,
+      "uslate_usd": 529.1,
+      "uslate_usd_per_day": 20.35
+     },
+     "net_usd_per_day": -9.14,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.5271,
+      "uslate_usd": 344.92,
+      "uslate_usd_per_day": 13.27
+     },
+     "reaction_after_obs_s_p50": 250.6,
+     "traps_usd_per_day": -42.76
+    },
+    "a job a minute (today's cadence)": {
+     "held_usd_per_day": 20.68,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.0936,
+      "uslate_usd": 251.12,
+      "uslate_usd_per_day": 9.66
+     },
+     "net_usd_per_day": -22.08,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.4788,
+      "uslate_usd": 286.47,
+      "uslate_usd_per_day": 11.02
+     },
+     "reaction_after_obs_s_p50": 280.9,
+     "traps_usd_per_day": -42.76
+    },
+    "one Edge call a minute, polling every 1 s inside it": {
+     "held_usd_per_day": 33.52,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1415,
+      "uslate_usd": 527.08,
+      "uslate_usd_per_day": 20.27
+     },
+     "net_usd_per_day": -9.23,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.5268,
+      "uslate_usd": 344.51,
+      "uslate_usd_per_day": 13.25
+     },
+     "reaction_after_obs_s_p50": 250.7,
+     "traps_usd_per_day": -42.76
+    },
+    "pg_cron every 1 s \u2192 Edge": {
+     "held_usd_per_day": 32.56,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.1379,
+      "uslate_usd": 506.19,
+      "uslate_usd_per_day": 19.47
+     },
+     "net_usd_per_day": -10.2,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.5249,
+      "uslate_usd": 340.4,
+      "uslate_usd_per_day": 13.09
+     },
+     "reaction_after_obs_s_p50": 251.0,
+     "traps_usd_per_day": -42.76
+    },
+    "the instant tgftp writes the file (ceiling for any keyless loop)": {
+     "held_usd_per_day": 34.95,
+     "informative_held": {
+      "share_of_post_obs_edge_left": 0.147,
+      "uslate_usd": 558.35,
+      "uslate_usd_per_day": 21.48
+     },
+     "net_usd_per_day": -7.8,
+     "other_held": {
+      "share_of_post_obs_edge_left": 0.5294,
+      "uslate_usd": 350.41,
+      "uslate_usd_per_day": 13.48
+     },
+     "reaction_after_obs_s_p50": 250.0,
+     "traps_usd_per_day": -42.76
+    }
+   },
+   "one_second_sensitivity": {
+    "at AWC's receipt (no lead)": {
+     "held_usd_per_day": 23.36,
+     "reports": 1
+    },
+    "leads of more than 60 s dropped": {
+     "held_usd_per_day": 31.34,
+     "reports": 47
+    }
+   },
+   "tgftp_written_after_obs_s_p50": 250.0,
+   "tgftp_written_minus_awc_receipt_s": {
+    "n": 48,
+    "p50": -1.402
+   }
+  },
+  "us_trap_cost": {
+   "loss_per_trap_bucket_usd": 92.64,
+   "market_days_a_day": 21.2,
+   "rate": "9 of 2,256 US market-days (the USLATE pre-registration's basis count)",
+   "usd_per_day": 7.82
+  }
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "runtime": "deno 1.46.3",
+ "station": "KLGA",
+ "polls": 60,
+ "status_200": 1,
+ "status_304": 59,
+ "cpu_ms_total": 90,
+ "cpu_ms_per_poll": 1.5,
+ "wall_ms_per_request_p50": 42,
+ "wall_ms_per_request_p90": 55,
+ "seconds": 60
+}
