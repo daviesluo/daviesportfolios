@@ -37,6 +37,9 @@ export type RweState = {
   arms: Record<RweArm, RweArmState>;
   diverged: string[];                        // markets RW-E ran through stepRw, because it held a different amount from RW
   checkMaxUsd: number;                       // the largest gap between the rw arm's closed days and RW's own
+  // The e arm's accounts as RW-E's twelve days began (their first minute, before it is replayed): the page shows only
+  // what RW-E did under its own rule, against these (Davies, 2026-09-27). Bookkeeping: nothing the replay decides reads it.
+  base?: Record<string, Acc>;
 };
 export type RweReport = { skipped?: string; minutes: number; from: number | null; to: number | null; days: number; diverged: number; errors: string[] };
 export type RweDeps = { db: Db; now: number; holder: string };
@@ -60,10 +63,12 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 /**
  * The replay's rule version. 2 (2026-09-27): RW-E removes nothing before its twelve days, as its pre-registration says
  * ("removes nothing before 2026-09-27 00:00, so RW-E enters the twelve days holding exactly what RW held"); version 1
- * removed the same-day markets from RW's first minute and so entered them holding less than RW. A stored state of an
- * older version is replayed again from RW's start, from RW's stored record, which nothing changed.
+ * removed the same-day markets from RW's first minute and so entered them holding less than RW. 3 (2026-09-27, the
+ * same rule): the state keeps the e arm's accounts at its first minute (`base`), which a version-2 state had passed
+ * without keeping. A stored state of an older version is replayed again from RW's start, from RW's stored record,
+ * which nothing changed.
  */
-export const RWE_STATE_VERSION = 2;
+export const RWE_STATE_VERSION = 3;
 
 /** The fresh state: RW's start, nothing held, both arms identical. */
 export const newRweState = (): RweState => ({
@@ -181,6 +186,7 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
   let minutes = 0;
   for (let t = from; t <= to; t += M) {
     if (t >= st.dayOf + DAY) closeDay();
+    if (t === RWE_START) st.base = structuredClone(st.arms.e.acc);
     const dayExcluded = excluded.get(dayStr(t));
     for (const r of byMinute.get(t) ?? []) {
       const c = r.cond;

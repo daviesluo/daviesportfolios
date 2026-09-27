@@ -142,3 +142,51 @@ Deno.test("rweSummary: RW and RW-E since 27 Sep from the same replay, today's ma
   assertEquals(rweSummary({ state: { state: off, last_minute: new Date(st.lastDecided).toISOString(), last_error: null }, days, selection: [], nowMs: now })!.check.ok, false);
   assertEquals(rweSummary({ state: null, days, selection: [], nowMs: now }), null);
 });
+
+Deno.test("a variant's summary counts from its first minute: a position it held is carried in at that minute's mark, a market settled before is not its", () => {
+  const S = Date.UTC(2026, 8, 28), DAY = 86400e3, iso = (ms: number) => new Date(ms).toISOString();
+  const acc = (o: Partial<Acc>): Acc => ({ ...newAcc(), ...o });
+  // At its first minute: W had settled; Z was short 10 YES with the mid at 30 ¢.
+  const base: Record<string, Acc> = {
+    W: acc({ net: 0, cash: 1.0, reward: 0.5, fills: 2, lastM: 1, settled: 1 }),
+    Z: acc({ net: -10, cash: 2.8, reward: 0.4, fills: 1, lastM: 0.30 }),
+  };
+  // Now: Z has earned 0.30 more and its mid is 25 ¢; Y is new, 5 YES bought at 60 ¢ after S, its mid 62 ¢, 0.10 earned.
+  const now: Record<string, Acc> = {
+    W: { ...base.W },
+    Z: acc({ net: -10, cash: 2.8, reward: 0.7, fills: 1, lastM: 0.25 }),
+    Y: acc({ net: 5, cash: -3.0, reward: 0.1, fills: 1, lastM: 0.62 }),
+  };
+  const fills: RwFillRow[] = [
+    { cond: "W", minute: iso(S - 3 * 3600e3), ts: iso(S - 3 * 3600e3 + 5e3), side: "bid", price: 0.5, size: 2, print_id: "w1" },
+    { cond: "Z", minute: iso(S - 3600e3), ts: iso(S - 3600e3 + 5e3), side: "ask", price: 0.28, size: 10, print_id: "z1" },
+    { cond: "Y", minute: iso(S + 5 * 60e3), ts: iso(S + 5 * 60e3 + 5e3), side: "bid", price: 0.6, size: 5, print_id: "y1" },
+  ];
+  const today = [{ day: "2026-09-29", cond: "Y", rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: "Y", cat: null, end_date: null }];
+  const day = (d: string, total: number) => ({ day: d, total, stress_total: total, reward: 0, fills: 0, capital: 20, markets: 2, detail: null });
+  // Two days in: the close of 09-27 is its first minute (W 1.5 + Z 0.2), and 09-28 closed at 2.3.
+  const r = rwSummary({
+    state: { state: { acc: now, meta: {}, dayActive: ["Z", "Y"], lastDecided: S + DAY + 10 * 60e3, dayOf: S + DAY, statusAt: 0 }, last_minute: iso(S + DAY + 10 * 60e3), last_error: null },
+    selection: today, latest: [], days: [day("2026-09-26", 0.9), day("2026-09-27", 1.7), day("2026-09-28", 2.3)], fills, firstMinute: null,
+    nowMs: S + DAY + 11 * 60e3, since: { ms: S, base },
+  })!;
+  // By hand: Z 0.30 of reward and 10 × (30 − 25) ¢ = 0.50 open; Y 0.10 of reward and 5 × (62 − 60) ¢ = 0.10 open; W nothing.
+  assertAlmostEquals(r.totalUsd, 1.0, 1e-9);
+  assertAlmostEquals(r.rewardUsd, 0.4, 1e-9);
+  assertAlmostEquals(r.realisedUsd, 0.4, 1e-9);
+  assertAlmostEquals(r.unrealisedUsd, 0.6, 1e-9);
+  assertAlmostEquals(r.mismatchUsd, 0, 1e-9);
+  assertAlmostEquals(r.todayUsd, 2.7 - 2.3, 1e-9);
+  assertEquals([r.fills, r.open, r.startedAt, r.notStarted], [1, 2, iso(S), false]);
+  assertEquals(r.recent.map((f) => f.cond), ["Y"]);
+  assertEquals(r.days.map((d) => [d.day, Number(d.totalUsd.toFixed(9)), Number(d.runningUsd.toFixed(9))]), [["2026-09-28", 0.6, 0.6]]);
+  assertEquals(r.markets.map((m) => [m.cond, m.quoting, m.fills, Number(Number(m.avgCost).toFixed(9)), Number(Number(m.totalUsd).toFixed(9)), Number(Number(m.rewardUsd).toFixed(9))]),
+    [["Y", true, 1, 0.6, 0.2, 0.1], ["Z", false, 0, 0.3, 0.8, 0.3]]);
+  // On its first day, today is everything since its first minute.
+  const first = rwSummary({
+    state: { state: { acc: now, meta: {}, dayActive: ["Z", "Y"], lastDecided: S + 10 * 60e3, dayOf: S, statusAt: 0 }, last_minute: iso(S + 10 * 60e3), last_error: null },
+    selection: today, latest: [], days: [day("2026-09-26", 0.9), day("2026-09-27", 1.7)], fills, firstMinute: null, nowMs: S + 11 * 60e3, since: { ms: S, base },
+  })!;
+  assertAlmostEquals(first.todayUsd, 1.0, 1e-9);
+  assertEquals(first.days, []);
+});

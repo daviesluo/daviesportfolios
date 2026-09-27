@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -1036,6 +1036,26 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     const pm = venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r), rweRow(r), ...rows]).find((c) => c.id === 'polymarket');
     expect([pm?.tests, pm?.capitalUsd]).toEqual([4, 4000]);
     expect(pm?.realisedUsd).toBeCloseTo(4 * Number(rwRow(r)?.realisedUsd), 9);
+  });
+  it("a variant before its first minute shows only when it starts (Davies, 2026-09-27: only what it did under its own rules)", () => {
+    // The dashboard's summary of a variant whose replay has not reached its first minute: nothing in it yet.
+    const waiting = {
+      ...r, id: 'x3', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-09-28T00:00:00.000Z', running: true,
+      totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
+      markets: [], days: [], recent: [], checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true },
+    };
+    const [row] = rwxRows([waiting]);
+    // 2026-09-28 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
+    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['28 Sep 01:00 BST', 'starts 28 Sep 01:00 BST']);
+    // NEXT is the start alone; the status says it in words.
+    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['28 Sep 01:00 BST', 'paused', false, 'starts 28 Sep 01:00 BST']);
+    expect([row.capitalUsd, row.valueUsd, row.todayUsd, row.unrealisedUsd, row.realisedUsd]).toEqual([1000, 0, 0, 0, 0]);
+    // No today row in its days table, as there is no day of its own yet.
+    expect(rwTodayRow(waiting, '2026-09-27T21:00:00.000Z')).toBe(null);
+    // RW-E's row reads the same way; a replay that has stopped says so first.
+    expect(rweRow({ ...waiting, startsAt: '2026-09-27T00:00:00.000Z' })?.nextText).toBe('27 Sep 01:00 BST');
+    expect(rwxRows([{ ...waiting, running: false, lagMinutes: 12 }])[0].status.tone).toBe('stale');
+    expect([rwStartStamp(null), rwStartsText(null)]).toEqual(['—', 'not started']);
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });

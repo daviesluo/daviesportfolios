@@ -165,10 +165,13 @@ places stay when the number is not whole.
   the reference, §4 item 36). Each holds its own positions and makes its
   own profit and loss, worked out from the same order books and trades
   Reward quotes reads, and each is brought up to date every minute. Their
-  pages are Reward quotes' page, for their quotes, starting with the
-  fourteen days (no warm-up). Until the day its rule starts a variant reads
-  the same as the one before it. A warning appears on a page only if its
-  copy of the rows it came from stops matching them.
+  pages are Reward quotes' page, for their quotes. Each shows only what it
+  did under its own rule: it counts from the minute that rule starts
+  (variant-1 from 27 September, the other three from 28 September, both
+  at 01:00 UK time), anything it held then is counted from that minute's
+  price, and nothing from before is shown. Until then its row says when it
+  starts. A warning appears on a page only if its copy of the rows it came
+  from stops matching them.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

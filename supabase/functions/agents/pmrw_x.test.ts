@@ -297,13 +297,16 @@ Deno.test("a variant's page leaves out the fills RW made while it was paused: a 
     days: out.days, fills, nowMs: K(10),
   });
   const x1 = page.find((r) => r.id === "x1")!, x2 = page.find((r) => r.id === "x2")!;
-  // x1 is RW here (a culture market): both fills, the round trip's 0.40 realised with the rewards.
+  // Each counts from its own first minute, 00:00 (Davies, 2026-09-27): 23:59's reward was RW-E's, and is in the base.
+  assertAlmostEquals(st.arms.x2.base![C].reward, 0.1, 1e-12);
+  // x1 is RW here (a culture market): both fills, the round trip's 0.40 realised with the ten rewards from 00:00.
   assertEquals([x1.fills, x1.recent.length], [2, 2]);
-  assertAlmostEquals(x1.realisedUsd, 1.1 + 0.4, 1e-9);
-  // x2 sat it out: no fill listed, realised is its rewards and equals its total, and nothing is left unexplained.
+  assertAlmostEquals(x1.realisedUsd, 1.0 + 0.4, 1e-9);
+  // x2 sat it out: no fill listed, realised is its rewards (00:00 and 00:01, then paused) and equals its total, and
+  // nothing is left unexplained.
   assertEquals([x2.fills, x2.recent.length], [0, 0]);
-  assertAlmostEquals(x2.totalUsd, 0.3, 1e-9);
-  assertAlmostEquals(x2.realisedUsd, 0.3, 1e-9);
+  assertAlmostEquals(x2.totalUsd, 0.2, 1e-9);
+  assertAlmostEquals(x2.realisedUsd, 0.2, 1e-9);
   assertAlmostEquals(x2.mismatchUsd, 0, 1e-9);
   // Paused now, so its quote is not shown; x1's is.
   const q = (r: typeof x1) => r.markets.map((m) => [m.bid, m.ask]);

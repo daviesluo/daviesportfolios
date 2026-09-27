@@ -64,6 +64,13 @@ const fillOrder = (a: RwFillRow, b: RwFillRow) =>
  * The dashboard's `rw`: null until the engine has a state (before `0053`, or before its first selection). `selection`
  * is the engine's own day's portfolio, `latest` the rows of the last minute it decided, `days` every closed day, `fills`
  * every fill of the phase the engine is in (the warm-up's, or the fourteen days').
+ *
+ * `since` makes it a variant's: RW-E's and its variants' rows show only what each did under its own rules (Davies,
+ * 2026-09-27: "只从自己rules下的记录才显示"), from its first minute, `ms`, against `base`, its accounts as that minute
+ * began. Every total, day, fill and market is then the change since: a market it held at that minute is carried in at
+ * that minute's mark, as if bought there, so its moves after count and its history before does not. The running total
+ * less `base`'s is its pre-registration's own reading, the running total now less the one at the close of the day
+ * before. Until the replay has reached that minute and kept its accounts, the row is `notStarted`, with nothing in it.
  */
 export function rwSummary(input: {
   state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[];
@@ -72,35 +79,63 @@ export function rwSummary(input: {
   staleMinutes?: number;
   /** Markets whose own fills are not on record (RW-E's `diverged`): their fill P&L is open while they are, closed once settled. */
   approx?: ReadonlySet<string>;
+  since?: { ms: number; base: Record<string, Acc> | undefined };
 }) {
   const st = input.state?.state as RwState | undefined;
   if (!st || typeof st !== "object" || !("acc" in st) || !input.state?.last_minute) return null;
   const phase = rwPhase(st.dayOf);
+  const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
+  const over = st.dayOf >= RW_RUN_END;
+  const head = {
+    phase, runStart: new Date(RW_RUN_START).toISOString(), runEnd: new Date(RW_RUN_END).toISOString(),
+    dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
+    lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
+    running: !over && lagMinutes <= (input.staleMinutes ?? RW_STALE_MINUTES), finished: over, fundedUsd: RW_FUNDED_USD,
+    notStarted: false, startsAt: input.since ? new Date(input.since.ms).toISOString() : null,
+  };
+  const since = input.since ?? null;
+  if (since && (st.lastDecided < since.ms || !since.base)) {
+    return {
+      ...head, notStarted: true, startedAt: null,
+      capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
+      todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
+      markets: [] as Array<Record<string, unknown>>, days: [] as ReturnType<typeof rwDayRows>, recent: [] as ReturnType<typeof rwRecent>,
+    };
+  }
+  const base: Record<string, Acc> = since?.base ?? {};
   const inPhase = (minute: string) => (phase === "warm-up" ? Date.parse(minute) < RW_RUN_START : Date.parse(minute) >= RW_RUN_START);
   // A run writes the fills of the minutes it decides, and the row of a day it closes, before it saves the state that
   // counts them; a page read between the two sees records the state does not hold yet. The dashboard reads the state
   // first, and the page shows only what that state has decided.
   const decided = (minute: string) => Date.parse(minute) <= st.lastDecided;
+  const own = (minute: string) => !since || Date.parse(minute) >= since.ms;
   const byCond = new Map<string, RwFillRow[]>();
-  for (const f of input.fills.filter((x) => inPhase(x.minute) && decided(x.minute)).sort(fillOrder)) (byCond.get(f.cond) ?? byCond.set(f.cond, []).get(f.cond)!).push(f);
+  for (const f of input.fills.filter((x) => inPhase(x.minute) && decided(x.minute) && own(x.minute)).sort(fillOrder)) (byCond.get(f.cond) ?? byCond.set(f.cond, []).get(f.cond)!).push(f);
 
   const snap = snapshot(st, st.dayActive ?? []);
+  const was = snapshot({ acc: base } as unknown as RwState, []);
   const sel = new Map(input.selection.map((s) => [s.cond, s]));
   const latest = new Map(input.latest.map((r) => [r.cond, r]));
   let realised = 0, unrealised = 0, held = 0, open = 0, best = -Infinity;
   const markets: Array<Record<string, unknown>> = [];
   for (const [cond, a] of Object.entries(st.acc ?? {}) as Array<[string, Acc]>) {
-    const book = rwFillBook(byCond.get(cond) ?? []);
+    const b = base[cond];
+    // Settled before the variant's first minute: nothing of it is the variant's.
+    if (b?.settled != null) continue;
+    // What it held as its first minute began, as a fill at that minute's mark: the change since is then its own.
+    const carried = b && b.net !== 0 ? [{ side: b.net > 0 ? "bid" as const : "ask" as const, price: b.lastM ?? 0, size: Math.abs(b.net) }] : [];
+    const book = rwFillBook([...carried, ...(byCond.get(cond) ?? [])]);
+    const reward = a.reward - (b?.reward ?? 0);
+    const total = accTotal(a) - (b ? accTotal(b) : 0);
     const mark = a.settled ?? a.lastM ?? 0;
     const settledPart = a.settled != null ? book.net * (a.settled - book.avgCost) : 0;
     // A market whose fills are not on record has no average cost to split by: its fill P&L is all open until it settles.
-    const own = input.approx?.has(cond) ? accTotal(a) - a.reward : null;
-    const mRealised = own != null ? a.reward + (a.settled != null ? own : 0) : a.reward + book.realised + settledPart;
-    const mUnrealised = own != null ? (a.settled != null ? 0 : own) : a.settled != null ? 0 : book.net * (mark - book.avgCost);
+    const approx = input.approx?.has(cond) ? total - reward : null;
+    const mRealised = approx != null ? reward + (a.settled != null ? approx : 0) : reward + book.realised + settledPart;
+    const mUnrealised = approx != null ? (a.settled != null ? 0 : approx) : a.settled != null ? 0 : book.net * (mark - book.avgCost);
     realised += mRealised; unrealised += mUnrealised;
     const holding = a.settled == null && a.net !== 0;
     if (holding) { open++; held += a.net > 0 ? a.net * mark : -a.net * (1 - mark); }
-    const total = accTotal(a);
     best = Math.max(best, total);
     const s = sel.get(cond), meta = st.meta?.[cond];
     if (!s && !holding) continue;
@@ -109,8 +144,8 @@ export function rwSummary(input: {
     markets.push({
       cond, q: s?.q ?? meta?.q ?? "", cat: s?.cat ?? meta?.cat ?? null, rank: s ? Number(s.rank) : null, quoting: !!s,
       ratePerDay: s ? Number(s.rate) : meta?.rate ?? null, endDate: s?.end_date ?? null,
-      net: a.net, avgCost: own == null && book.net !== 0 ? book.avgCost : null, mark: a.lastM, settled: a.settled,
-      rewardUsd: a.reward, fillsPnlUsd: total - a.reward, totalUsd: total, fills: a.fills, capitalUsd: accCapital(a),
+      net: a.net, avgCost: approx == null && book.net !== 0 ? book.avgCost : null, mark: a.lastM, settled: a.settled,
+      rewardUsd: reward, fillsPnlUsd: total - reward, totalUsd: total, fills: a.fills - (b?.fills ?? 0), capitalUsd: accCapital(a),
       bid: row && row.qb !== false ? n(row.b) : null, ask: row && row.qa !== false ? n(row.a) : null,
       share: ours != null && ours > 0 && others != null ? ours / (ours + others) : null,
     });
@@ -118,35 +153,45 @@ export function rwSummary(input: {
   // Today's portfolio first, in its rank; then what is only held.
   markets.sort((x, y) => (x.rank == null ? 1 : 0) - (y.rank == null ? 1 : 0) || Number(x.rank ?? 0) - Number(y.rank ?? 0) || String(x.cond).localeCompare(String(y.cond)));
 
-  // Closed days, each against the day before in the same phase: the warm-up starts at nothing, and so does the run.
   const asc = input.days.filter((d) => Date.parse(d.day) < st.dayOf).sort((a, b) => a.day.localeCompare(b.day));
-  const days = asc.map((d, i) => {
-    const p = d.detail?.phase ?? rwPhase(Date.parse(d.day));
-    const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day))) === p ? asc[i - 1] : null;
-    const less = (k: "total" | "stress_total" | "reward" | "fills") => Number(d[k]) - (prev ? Number(prev[k]) : 0);
-    return { day: d.day, phase: p, totalUsd: less("total"), stressUsd: less("stress_total"), rewardUsd: less("reward"), fills: less("fills"), capitalUsd: Number(d.capital), markets: Number(d.markets), runningUsd: Number(d.total) };
-  }).reverse();
+  const days = rwDayRows(asc, since ? new Date(since.ms).toISOString().slice(0, 10) : null, was.total);
+  // Today against yesterday's close; on a variant's first day, against its first minute.
   const yesterday = asc.find((d) => Date.parse(d.day) === st.dayOf - DAY);
-  const baseline = yesterday && (yesterday.detail?.phase ?? rwPhase(Date.parse(yesterday.day))) === phase ? Number(yesterday.total) : 0;
+  const baseline = since && st.dayOf <= since.ms ? was.total
+    : yesterday && (yesterday.detail?.phase ?? rwPhase(Date.parse(yesterday.day))) === phase ? Number(yesterday.total) : 0;
 
   const capital = snap.capital > 0 ? snap.capital : input.selection.reduce((s, x) => s + Number(x.capital), 0);
-  const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
-  const over = st.dayOf >= RW_RUN_END;
-  const recent = [...byCond.values()].flat().sort((x, y) => fillOrder(y, x)).slice(0, RW_RECENT_FILLS).map((f) => ({
-    ts: f.ts, minute: f.minute, cond: f.cond, q: sel.get(f.cond)?.q ?? st.meta?.[f.cond]?.q ?? "", side: f.side, price: Number(f.price), size: Number(f.size),
-  }));
-  const total = snap.total;
+  const recent = rwRecent(byCond, (cond) => sel.get(cond)?.q ?? st.meta?.[cond]?.q ?? "");
+  const total = snap.total - was.total, reward = snap.reward - was.reward;
   return {
-    phase, runStart: new Date(RW_RUN_START).toISOString(), runEnd: new Date(RW_RUN_END).toISOString(),
-    dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
-    startedAt: input.firstMinute, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
-    running: !over && lagMinutes <= (input.staleMinutes ?? RW_STALE_MINUTES), finished: over,
-    capitalUsd: capital, fundedUsd: RW_FUNDED_USD, totalUsd: total, stressUsd: snap.stress, rewardUsd: snap.reward, fillsPnlUsd: total - snap.reward,
+    ...head, startedAt: since ? new Date(since.ms).toISOString() : input.firstMinute,
+    capitalUsd: capital, totalUsd: total, stressUsd: snap.stress - was.stress, rewardUsd: reward, fillsPnlUsd: total - reward,
     realisedUsd: realised, unrealisedUsd: unrealised, mismatchUsd: realised + unrealised - total,
-    todayUsd: total - baseline, heldUsd: held, open, fills: snap.fills, quoting: input.selection.length,
+    todayUsd: snap.total - baseline, heldUsd: held, open, fills: snap.fills - was.fills, quoting: input.selection.length,
     bestMarketUsd: Number.isFinite(best) ? best : null,
     markets, days, recent,
   };
+}
+
+/**
+ * Closed days, newest first, each against the day before in the same phase: the warm-up starts at nothing, and so does
+ * the run. A variant's (`from`, its first day) lists only its own days, the first against its first minute, whose
+ * running total is `was`; each day's `runningUsd` is then its own since.
+ */
+function rwDayRows(asc: RwDayRow[], from: string | null, was: number) {
+  return asc.map((d, i) => {
+    const p = d.detail?.phase ?? rwPhase(Date.parse(d.day));
+    const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day))) === p ? asc[i - 1] : null;
+    const less = (k: "total" | "stress_total" | "reward" | "fills") => Number(d[k]) - (prev ? Number(prev[k]) : 0);
+    return { day: d.day, phase: p, totalUsd: less("total"), stressUsd: less("stress_total"), rewardUsd: less("reward"), fills: less("fills"), capitalUsd: Number(d.capital), markets: Number(d.markets), runningUsd: Number(d.total) - (from ? was : 0) };
+  }).filter((d) => !from || String(d.day).slice(0, 10) >= from).reverse();
+}
+
+/** The newest fills, newest first, as the page lists them. */
+function rwRecent(byCond: Map<string, RwFillRow[]>, q: (cond: string) => string) {
+  return [...byCond.values()].flat().sort((x, y) => fillOrder(y, x)).slice(0, RW_RECENT_FILLS).map((f) => ({
+    ts: f.ts, minute: f.minute, cond: f.cond, q: q(f.cond), side: f.side, price: Number(f.price), size: Number(f.size),
+  }));
 }
 
 export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
@@ -229,8 +274,9 @@ export function rweArmSummary(input: {
       markets: d.markets ?? 0, detail: null,
     })),
     fills: input.fills.filter((f) => !diverged.has(f.cond) && !out(f.cond, dayOf(f.minute))),
-    // The replay starts where RW's fourteen days do; the warm-up before them is RW's alone.
+    // Only what RW-E did under its own rule: from its twelve days' first minute, against what it held as it began.
     firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+    since: { ms: RWE_START, base: st.base },
   });
 }
 
@@ -287,6 +333,8 @@ export function rwxArmSummaries(input: {
       fills: input.fills.filter((f) => !diverged.has(f.cond) && !leftOut(f.cond, new Date(Math.floor(Date.parse(f.minute) / DAY) * DAY).toISOString().slice(0, 10))
         && !paused(f.cond, Date.parse(f.minute))),
       firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+      // Only what the variant did under its own rules: from its first minute, against what it held as that began.
+      since: { ms: spec.from, base: a.base },
     });
     if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks });
   }

@@ -80,6 +80,11 @@ list stays the short version; the plan is the reasoning behind it.
      **Daily health:** `pm_rw_x_state.last_error` empty, `last_minute` within ~3 min of RW's; in its state
      `checkMaxUsd` (arm `rw` against RW's days) and `checkEMaxUsd` (arm `e` against RW-E's, over `checkEDays` days)
      both under $0.01; each arm's `diverged` read. Do not read a market-level figure of 09-28 or later before 10-09.
+     **The page shows each row's own record only (Davies, 2026-09-27):** RW-E's row from 09-27 00:00 and x1–x3's
+     from 09-28 00:00 UTC, each against its accounts as that minute began (`base` in the replays' states, history
+     20:28). **Check after 09-28 00:05 UTC:** `pm_rw_x_state`'s arms `x1`–`x3` carry `base`, and each variant's row
+     total equals its running total less its own 09-27 row in `pm_rw_x_days` (the page says "starts 28 Sep 01:00 BST"
+     until then).
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -335,6 +340,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 20:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: the four variants show only their own record ("只从自己rules下的记录才显示").**
+- Until now variant-1 (RW-E) showed RW's record from 09-25 and x1–x3 RW-E's, so all four read the same before their rules began. Each replay now keeps an arm's accounts as its first minute begins (`base`: RW-E's `e` at 09-27 00:00, `pmrw_x.ts`'s arms at their `from`), and `rwSummary` takes `since`: every total, day, fill and market is the change since that minute, a position held then carried in at that minute's mark, a market settled before it left out. The running total less `base`'s equals the pre-registrations' own reading (running total less the close of the day before), pinned equal. Before its minute a row is `notStarted`: NEXT reads "28 Sep 01:00 BST" beside a grey dot whose words say "starts …", and its page's three tables say so.
+- The rules are unchanged; RW-E's replay is version 3 and the variants' version 2 only so each replays once from RW's start and keeps the base it had already passed. Their day rows are rewritten with the same values; verify on production after the deploy that both checks stay under a cent and `base` is present.
+- Evidence: `pmrw_e.test.ts` (a replay across 09-27 00:00 keeps exactly the accounts of 23:59's end, in both replays; by hand, a position bought at 49 ¢ before the minute and sold at 53 ¢ after it counts 0.60 from the 50 ¢ mark, plus two rewards: +0.80, equal to `rweSummary`'s reading), `pmrw_view.test.ts` (a short carried in at 30 ¢ and marked at 25 ¢, a new market, a market settled before the minute, days and today, all by hand), `pmrw_x.test.ts` (the round trip x2 sat out, now from 00:00), the counterfactual (no `since`: two tests fail), and `agents.test.js` / the sweep's `rwx-waiting` scenario at both widths.
 
 ### [2026-09-27 20:24 UTC] Platform: Cursor | Model: Grok 4.6
 

@@ -5,9 +5,9 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { accStress, accTotal, runPmrw, type RwState } from "./pmrw.ts";
-import { excludedByDay, newRweState, replayMinutes, runPmrwE, type RweState } from "./pmrw_e.ts";
+import { excludedByDay, newRweState, replayMinutes, runPmrwE, RWE_START, RWE_STATE_VERSION, type RweState } from "./pmrw_e.ts";
 import { newRwxState, replayArms, runPmrwX, RWX_SPECS, RWX_STATE_VERSION, type RwxStored } from "./pmrw_x.ts";
-import { rweArmSummary, rwSummary, rwxArmSummaries, type RwMinuteRow, type RwSelRow } from "./pmrw_view.ts";
+import { rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwMinuteRow, type RwSelRow } from "./pmrw_view.ts";
 import type { PmLevel } from "../_shared/polymarket_public.ts";
 import { memDb, type Row } from "./testing.ts";
 
@@ -218,7 +218,8 @@ Deno.test("RW-E's own row: the replay's e arm, summarised as RW's row is, equals
   const all = await runEngine(portfolio({ b: true, c: "both" }));
   // What RW-E is, computed the other way: the engine run with B out of 09-30 and C out of 10-01, and nothing else changed.
   const truth = await runEngine(portfolio({ b: false, c: "first" }));
-  all.tables.pm_rw_e_state.push({ id: 1, state: { ...newRweState(), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30) }, last_minute: null } as Row);
+  // This world begins after RW-E's first minute (09-27 00:00), so RW-E had passed it holding nothing.
+  all.tables.pm_rw_e_state.push({ id: 1, state: { ...newRweState(), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30), base: {} }, last_minute: null } as Row);
   const rwLast = Date.parse(String(all.tables.pm_rw_state[0].last_minute));
   const run = await runPmrwE({ db: all.db, now: rwLast + 125_000, holder: "e" });
   assertEquals(run.errors, []);
@@ -259,9 +260,11 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
   const all = await runEngine(portfolio({ b: true, c: "both", aCat: "culture_fees", d: true }));
   // x1 computed the other way: past RW-X's first day it never quotes a weather market, so it is the engine run on A alone.
   const truth = await runEngine(portfolio({ b: false, c: "none", aCat: "culture_fees" }));
-  // RW-E, and the variants' replay, from this RW's own start.
-  all.tables.pm_rw_e_state.push({ id: 1, state: { ...newRweState(), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30) }, last_minute: null } as Row);
+  // RW-E, and the variants' replay, from this RW's own start. The world begins after every arm's first minute (09-27 and
+  // 09-28 00:00), so each had passed it holding nothing.
+  all.tables.pm_rw_e_state.push({ id: 1, state: { ...newRweState(), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30), base: {} }, last_minute: null } as Row);
   const xs: RwxStored = { ...newRwxState(RWX_SPECS), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30), version: RWX_STATE_VERSION, checkEMaxUsd: 0 };
+  for (const id of ["e", "x1", "x2", "x3"]) xs.arms[id].base = {};
   all.tables.pm_rw_x_state.push({ id: 1, state: xs, last_minute: null } as unknown as Row);
   const rwLast = Date.parse(String(all.tables.pm_rw_state[0].last_minute));
   assertEquals((await runPmrwE({ db: all.db, now: rwLast + 125_000, holder: "e" })).errors, []);
@@ -341,5 +344,83 @@ Deno.test("a replay state of an older rule version is replayed again from RW's s
   const out = await runPmrwE({ db, now: Date.UTC(2026, 9, 1, 0, 10), holder: "h" });
   assertEquals(out.errors, []);
   assertEquals(out.from, Date.UTC(2026, 8, 25));
-  assertEquals((tables.pm_rw_e_state[0].state as RweState).version, 2);
+  assertEquals((tables.pm_rw_e_state[0].state as RweState).version, RWE_STATE_VERSION);
+  // And a version-2 state, which had passed RW-E's first minute without keeping its accounts, is replayed again too.
+  tables.pm_rw_e_state[0] = { id: 1, state: { ...newRweState(), version: 2, lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30) }, last_minute: null } as Row;
+  tables.agent_locks.find((l) => l.name === "pmrw-e")!.lease_until = new Date(0).toISOString();
+  assertEquals((await runPmrwE({ db, now: Date.UTC(2026, 9, 1, 0, 11), holder: "h2" })).from, Date.UTC(2026, 8, 25));
+});
+
+// Davies, 2026-09-27: "只从自己rules下的记录才显示" — RW-E's row shows only what it did from its first minute. Y is held
+// across it: bought 20 at 49 ¢ at 23:59 with the mid at 50 ¢, sold 20 at 53 ¢ at 00:01; a 0.1 reward each minute.
+function acrossRweStart() {
+  const Y = "0xyyy";
+  const t = (k: number) => RWE_START + k * 60_000;
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const mid = (k: number) => (k < 1 ? 0.5 : 0.52);
+  const rows = [-2, -1, 0, 1].map((k) => ({
+    cond: Y, minute: iso(t(k)), quoting: true, tick: 0.01, bb: mid(k) - 0.02, ba: mid(k) + 0.02, ab: mid(k) - 0.02, aa: mid(k) + 0.02, q1: 10, q2: 10,
+    m: mid(k), b: mid(k) - 0.01, a: mid(k) + 0.01, reward: 0.1,
+  }));
+  const fills = [
+    { cond: Y, minute: iso(t(-1)), ts: iso(t(-1) + 30e3), side: "bid" as const, price: 0.49, size: 20, print_id: "s1" },
+    { cond: Y, minute: iso(t(1)), ts: iso(t(1) + 30e3), side: "ask" as const, price: 0.53, size: 20, print_id: "b1" },
+  ];
+  const prints = [
+    { id: "s1", cond: Y, ts: iso(t(-1) + 30e3), side: "SELL" as const, oi: 0, price: 0.47, size: 20 },
+    { id: "b1", cond: Y, ts: iso(t(1) + 30e3), side: "BUY" as const, oi: 0, price: 0.55, size: 20 },
+  ];
+  const selection = ["2026-09-26", "2026-09-27"].map((day) => ({ day, cond: Y, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: "Y", cat: "culture_fees" }));
+  return { Y, t, iso, inputs: { rows, fills, prints, selection, settlements: [], rwDays: [] } };
+}
+
+Deno.test("RW-E keeps its accounts as its twelve days begin, and its row counts only from there", () => {
+  const { Y, t, iso, inputs } = acrossRweStart();
+  // The accounts at 23:59's end, replayed on their own: the base must be exactly these.
+  const before = { ...newRweState(), lastDecided: t(-3), dayOf: RWE_START - 86400e3 };
+  replayMinutes(before, t(-1), inputs);
+  const st = { ...newRweState(), lastDecided: t(-3), dayOf: RWE_START - 86400e3 };
+  const out = replayMinutes(st, t(1), inputs);
+  assertEquals(st.base, before.arms.e.acc);
+  assertEquals([st.base![Y].net, st.base![Y].fills, st.base![Y].lastM], [20, 1, 0.5]);
+  // The variants' replay keeps the same accounts for its own `e` arm, RW-E being RW-E in both.
+  const xs = { ...newRwxState(RWX_SPECS), lastDecided: t(-3), dayOf: RWE_START - 86400e3 };
+  replayArms(xs, t(1), inputs, RWX_SPECS);
+  assertEquals(xs.arms.e.base, st.base);
+  assertEquals(xs.arms.x1.base, undefined);   // its own first minute is a day later
+
+  const sel = (day: string) => inputs.selection.filter((x) => x.day === day).map((x) => ({ ...x, rank: 1, capital: 20 }));
+  const row = rweArmSummary({
+    rwState: { state: { acc: {}, meta: {} }, last_minute: iso(t(1)), last_error: null },
+    eState: { state: st, last_minute: iso(t(1)), last_error: null }, selectionAll: inputs.selection, today: sel("2026-09-27"),
+    latest: [{ cond: Y, minute: iso(t(1)), b: 0.51, a: 0.53, m: 0.52, ours: 5, others: 5, qb: true, qa: true }],
+    days: out.days as never, fills: inputs.fills, nowMs: t(2),
+  })!;
+  // By hand, from 00:00: two rewards (0.20), and the 20 it held, carried in at 23:59's 50 ¢ mid and sold at 53 ¢ (0.60).
+  assertEquals(row.notStarted, false);
+  assertAlmostEquals(row.totalUsd, 0.8, 1e-9);
+  assertAlmostEquals(row.rewardUsd, 0.2, 1e-9);
+  assertAlmostEquals(row.realisedUsd, 0.8, 1e-9);
+  assertAlmostEquals(row.unrealisedUsd, 0, 1e-9);
+  assertAlmostEquals(row.todayUsd, 0.8, 1e-9);
+  assertEquals([row.fills, row.recent.map((f) => f.minute), row.days.length], [1, [iso(t(1))], 0]);
+  assertEquals(row.markets.map((m) => [m.cond, m.fills, Number(Number(m.totalUsd).toFixed(9)), Number(Number(m.rewardUsd).toFixed(9))]), [[Y, 1, 0.8, 0.2]]);
+  // One number two ways: the pre-registration's own reading of RW-E, its running total less the close of 09-26.
+  const reading = rweSummary({ state: { state: st, last_minute: iso(t(1)), last_error: null }, days: out.days as never, selection: sel("2026-09-27"), nowMs: t(2) })!;
+  assertAlmostEquals(reading.e!.totalUsd, row.totalUsd, 1e-12);
+  assertAlmostEquals(reading.e!.rewardUsd, row.rewardUsd, 1e-12);
+  assertAlmostEquals(reading.e!.stressUsd, row.stressUsd, 1e-12);
+  assertEquals(reading.e!.fills, row.fills);
+
+  // Before its first minute, and while a replay has not kept its accounts, the row has nothing in it yet.
+  const early = { ...newRweState(), lastDecided: t(-3), dayOf: RWE_START - 86400e3 };
+  replayMinutes(early, t(-1), inputs);
+  for (const state of [early, { ...st, base: undefined }]) {
+    const r = rweArmSummary({
+      rwState: { state: { acc: {}, meta: {} }, last_minute: iso(state.lastDecided), last_error: null },
+      eState: { state, last_minute: iso(state.lastDecided), last_error: null }, selectionAll: inputs.selection, today: sel("2026-09-27"),
+      latest: [], days: out.days as never, fills: inputs.fills, nowMs: state.lastDecided + 60_000,
+    })!;
+    assertEquals([r.notStarted, r.startsAt, r.totalUsd, r.fills, r.markets.length, r.days.length, r.recent.length], [true, iso(RWE_START), 0, 0, 0, 0, 0]);
+  }
 });

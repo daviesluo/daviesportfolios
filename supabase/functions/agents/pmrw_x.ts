@@ -33,6 +33,7 @@ export type RwxSpec = {
 export type RwxArmState = {
   acc: Record<string, Acc>; dayActive: string[]; diverged: string[]; pausedUntil: Record<string, number>; lastMid: Record<string, number>;
   pauses?: Record<string, Array<[number, number]>>;   // bookkeeping for the page: each market's paused spans, [from, until) in ms
+  base?: Record<string, Acc>;                         // bookkeeping for the page: the accounts at the arm's `from`, before it
 };
 export type RwxState = { lastDecided: number; dayOf: number; arms: Record<string, RwxArmState>; checkMaxUsd: number };
 export type RwxDayOut = { day: string; arm: string; total: number; stress_total: number; reward: number; fills: number; capital: number; markets: number; detail: Record<string, unknown> };
@@ -142,6 +143,8 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
   let minutes = 0;
   for (let t = from; t <= to; t += M) {
     if (t >= st.dayOf + DAY) closeDay();
+    // The page shows an arm only from its own first minute (Davies, 2026-09-27), against what it held as that began.
+    for (const spec of specs) if (t === spec.from) st.arms[spec.id].base = structuredClone(st.arms[spec.id].acc);
     const dayExcluded = excluded.get(dayStr(t));
     for (const r of byMinute.get(t) ?? []) {
       const c = r.cond;
@@ -291,8 +294,11 @@ export const RWX_SPECS: RwxSpec[] = [
 export const RWX_NAMES: Record<string, string> = {
   x1: "Reward quotes variant-2", x2: "Reward quotes variant-3", x3: "Reward quotes variant-4",
 };
-/** The replay's rule version: a stored state of another is replayed again from RW's start. */
-export const RWX_STATE_VERSION = 1;
+/**
+ * The replay's rule version: a stored state of another is replayed again from RW's start. 2 (2026-09-27, the same
+ * rules): each arm keeps its accounts at its own first minute (`base`), which a version-1 state had passed for `e`.
+ */
+export const RWX_STATE_VERSION = 2;
 /** Minutes replayed in one run at most, as RW-E's. */
 export const RWX_MAX_MINUTES = 720;
 export const RWX_LEASE_MS = 240e3;

@@ -6,6 +6,8 @@ import { SB_ANON, EDGE_AGENTS_URL } from '../app/supabase_config.js';
 import { getAppToken, noteAuthStatus } from '../app/auth.js';
 import { dropDot00, fmtMoney, formatAgo } from '../app/formatters.js';
 import { Storage } from '../app/storage.js';
+import { ukTzAbbr } from '../prices/market_hours.js';
+import { fmtChartStamp } from './agents_chart.js';
 
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
@@ -1320,7 +1322,7 @@ export function rwBarTileKeys(_phase) {
  * @param {string | number | null | undefined} [at]  when the page was read; the day's label
  */
 export function rwTodayRow(r, at) {
-  if (!r) return null;
+  if (!r || r.notStarted) return null;
   const phase = r.phase;
   const closed = (r.days ?? []).filter((d) => d.phase === phase);
   const sum = (/** @type {string} */ k) => closed.reduce((s, d) => s + (Number(d[k]) || 0), 0);
@@ -1423,14 +1425,32 @@ export function rwRow(r) {
     realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
     rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
     orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
-    nextText: r.finished ? 'finished' : 'every minute',
+    // Before its first minute, NEXT is when it starts: the date and time alone, two lines at most in the table's column.
+    nextText: r.finished ? 'finished' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
     openPositions: Number(r.open) || 0,
     status: r.finished
       ? { label: 'paper', running: false, tone: 'paused', detail: 'the fourteen days are over' }
-      : r.running
-        ? { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` }
-        : { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` },
+      : !r.running
+        ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` }
+        : r.notStarted
+          ? { label: 'paper', running: false, tone: 'paused', detail: rwStartsText(r.startsAt) }
+          : { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` },
   };
+}
+
+/**
+ * When a variant of RW's starts, in UK time: "28 Sep 01:00 BST". A variant's row shows only what it did under its own
+ * rules (Davies, 2026-09-27), so until its first minute it has nothing to show but this.
+ * @param {string | null | undefined} iso
+ */
+export function rwStartStamp(iso) {
+  const ms = Date.parse(String(iso));
+  return Number.isFinite(ms) ? `${fmtChartStamp(ms)} ${ukTzAbbr(new Date(ms))}` : '—';
+}
+
+/** The same in words, for its status and its page: "starts 28 Sep 01:00 BST". @param {string | null | undefined} iso */
+export function rwStartsText(iso) {
+  return Number.isFinite(Date.parse(String(iso))) ? `starts ${rwStartStamp(iso)}` : 'not started';
 }
 
 /** RW-E's paper test's id among the table's rows. */
@@ -1445,7 +1465,7 @@ export const RWE_ROW_ID = '__rwe';
  */
 export function rweRow(r) {
   const row = rwRow(r);
-  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes variant-1', nextText: r.finished ? 'finished' : 'every minute' };
+  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes variant-1' };
 }
 
 /**
@@ -1459,7 +1479,7 @@ export function rwxRows(list) {
   if (!Array.isArray(list)) return [];
   return list.flatMap((r) => {
     const row = r && r.id && r.name ? rwRow(r) : null;
-    return row ? [{ ...row, id: `${RWX_ROW_PREFIX}${r.id}`, name: String(r.name), nextText: r.finished ? 'finished' : 'every minute' }] : [];
+    return row ? [{ ...row, id: `${RWX_ROW_PREFIX}${r.id}`, name: String(r.name) }] : [];
   });
 }
 

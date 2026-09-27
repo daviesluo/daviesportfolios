@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -463,6 +463,8 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
   const v = rwView(r);
   if (!row || !v) return null;
   const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
+  // A variant before its first minute has nothing of its own yet (Davies, 2026-09-27): its tables say when it starts.
+  const waiting = r.notStarted ? `${rwStartsText(r.startsAt).replace(/^s/, 'S')}.` : null;
   const today = rwTodayRow(r, at);
   const dayRows = today ? [today, ...days] : days;
   /** @param {number | null | undefined} x */
@@ -501,7 +503,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
               <th className="hl-th">Day (UTC)</th><th className="hl-th">Costs</th><th className="hl-th ag-ph">Fills</th><th className="hl-th ag-ph">WORST CASE</th><th className="hl-th">Rewards</th><th className="hl-th">Total</th>
             </tr></thead>
             <tbody>
-              {dayRows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day yet.</td></tr>}
+              {dayRows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>{waiting ?? 'No day yet.'}</td></tr>}
               {dayRows.map((d) => (
                 <tr key={d.live ? 'today' : d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
                   <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}</td>
@@ -525,7 +527,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
               <th className="hl-th">Held</th><th className="hl-th ag-ph">Rewards</th><th className="hl-th ag-ph">Orders</th><th className="hl-th">Total</th>
             </tr></thead>
             <tbody>
-              {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No market chosen today yet.</td></tr>}
+              {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>{waiting ?? 'No market chosen today yet.'}</td></tr>}
               {markets.map((x) => {
                 const s = splitCents(Number(x.totalUsd) || 0, [Number(x.rewardUsd) || 0, Number(x.fillsPnlUsd) || 0]);
                 const c = { total: s.total, a: s.parts[0], b: s.parts[1] };
@@ -554,7 +556,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
               <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Market</th><th className="hl-th">Side</th><th className="hl-th ag-col-shares">Shares</th><th className="hl-th ag-col-price">Price</th>
             </tr></thead>
             <tbody>
-              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No fill yet.</td></tr>}
+              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>{waiting ?? 'No fill yet.'}</td></tr>}
               {recent.map((f) => (
                 <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${f.side === 'bid' ? 'buy' : 'sell'}`}>
                   <td className="dim">{when(f.ts)}</td>

@@ -3173,10 +3173,16 @@ UMA proposals and the book at C + 60 s, which is Davies' call (ledger item 6).
       `pmrw_x.ts` may add bookkeeping for the page (the paused spans, already) and nothing else. On the Agents page each
       is a row of TESTING STRATEGIES after RW-E's, with RW's page read from its arm (`rwxArmSummaries`), counted in
       TESTING's scoreboard and the Polymarket card like the other two; a variant's page says so if either check fails.
-      Until 09-28 each variant is RW-E to the cent. Reported beside RW's and RW-E's verdicts on or after 10-09.
+      Until 09-28 each variant's replay is RW-E to the cent. Reported beside RW's and RW-E's verdicts on or after 10-09.
       **Their page names (Davies, 2026-09-27):** RW-E is "Reward quotes variant-1", x1 "variant-2", x2 "variant-3", x3
       "variant-4", one line each; which rule a row changes is not shown on the site. The pre-registrations keep their
-      own names for the same arms.
+      own names for the same arms. **Each row shows only its own record (Davies, 2026-09-27: "只从自己rules下的记录才
+      显示")**: it counts from its own first minute — RW-E's 09-27 00:00, the variants' 09-28 00:00 UTC — against its
+      accounts as that minute began, which each replay keeps in its state (`base`; RW-E's replay version 3 and the
+      variants' version 2 were replayed once from RW's start to keep them, the rules unchanged). A market it held then
+      is carried in at that minute's mark; its days, fills and markets start there; its total is its running total less
+      the close of the day before, the pre-registrations' own reading, pinned equal in `pmrw_e.test.ts`. Before that
+      minute the row says when it starts ("starts 28 Sep 01:00 BST") and shows nothing.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;

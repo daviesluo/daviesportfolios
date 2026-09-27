@@ -550,7 +550,7 @@ const AGENTS_NOT_READY = {
  * `live` / `live-unarmed` (a row trading real money, armed or not), and
  * `rw-cents` (RW's figures where each part rounds on its own).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'rwx-waiting'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -665,6 +665,19 @@ const AGENTS_RW_CENTS = () => {
     },
   };
 };
+/**
+ * RW-E's variants before their first minute, 2026-09-28 00:00 UTC (Davies, 2026-09-27: a variant shows only what it did
+ * under its own rules): each summary is `notStarted`, with nothing in it, as `rwSummary` returns one until the replay
+ * has reached that minute and kept its accounts.
+ */
+const AGENTS_RWX_WAITING = () => ({
+  ...AGENTS_DASHBOARD,
+  rwx: AGENTS_DASHBOARD.rwx.map((x) => ({
+    ...x, notStarted: true, startsAt: '2026-09-28T00:00:00.000Z', startedAt: null,
+    capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
+    todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null, markets: [], days: [], recent: [],
+  })),
+});
 const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
@@ -810,6 +823,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'live' || agentsMode === 'live-unarmed') return json(AGENTS_LIVE(agentsMode === 'live'));
       if (agentsMode === 'rw-cents') return json(AGENTS_RW_CENTS());
       if (agentsMode === 'pr5-live') return json(AGENTS_PR5_LIVE());
+      if (agentsMode === 'rwx-waiting') return json(AGENTS_RWX_WAITING());
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -2580,6 +2594,52 @@ async function run() {
         && rc.realisedSplit.join(' | ') === '+$48.72 | +$7.04' && rc.market.join(' | ') === '+$18.41 | +$0.20 | +$18.61' && rowGl[1] === rc.unrealised && rowGl[2] === rc.realised) {
         ok(T('rw-cents'), `realised ${rc.realised} = ${rc.realisedSplit.join(' ')}; a market ${rc.market[0]} ${rc.market[1]} = ${rc.market[2]}; the row reads the page's`);
       } else fail(T('rw-cents'), `RW parts: ${JSON.stringify(rc)}, row ${rowGl.join(' | ')}`);
+      agentsMode = 'ok';
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+
+      // RW-E's variants before 2026-09-28 00:00 UTC (AGENTS_RWX_WAITING): a row with nothing of its own yet has its start,
+      // in UK time, where "every minute" was — two lines at most in the table's column — on a grey dot whose words say
+      // "starts …"; its name stays on one line and the words fit.
+      agentsMode = 'rwx-waiting';
+      await openAgentsPage(page);
+      await waitFor(async () => /28 Sep 01:00 BST/.test((await page.locator('.ag-strategies-testing').first().innerText().catch(() => '')) || ''));
+      await page.waitForTimeout(150);
+      const waitRows = [];
+      for (const name of ['Reward quotes variant-2', 'Reward quotes variant-3', 'Reward quotes variant-4']) {
+        const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) }).first();
+        const text = (await el.innerText().catch(() => '')).replace(/\s+/g, ' ');
+        // A row's status is its dot: grey (paused) here, its words in its title.
+        const dot = await el.locator('.ag-dot').first().evaluate((d) => ({ title: d.getAttribute('title') || '', grey: d.classList.contains('ag-dot-paused') }))
+          .catch(() => ({ title: '', grey: false }));
+        const next = await el.locator('.ag-next').first().evaluate((n) => {
+          const range = document.createRange();
+          range.selectNodeContents(n);
+          return {
+            text: (n.textContent || '').trim(), lines: new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size,
+            fits: n.scrollWidth <= n.clientWidth + 1 && n.getBoundingClientRect().right <= (n.closest('td, .ag-row')?.getBoundingClientRect().right ?? 0) + 1,
+          };
+        }).catch(() => ({ text: '', lines: 0, fits: false }));
+        waitRows.push({ name, text, dot, next, ...(await nameGeometry(el)) });
+      }
+      await page.locator('.ag-strategies-testing .ag-row').last().scrollIntoViewIfNeeded().catch(() => {});
+      await shot(page, 'agents-rwx-waiting');
+      if (waitRows.every((x) => x.next.text === '28 Sep 01:00 BST' && x.next.lines >= 1 && x.next.lines <= 2 && x.next.fits
+        && x.dot.grey && x.dot.title === 'starts 28 Sep 01:00 BST'
+        && !/every minute/.test(x.text) && x.lines === 1 && x.fits && !/\+\$7\.50|\+\$23\.60|1 open/.test(x.text))) {
+        ok(T('rwx-waiting'), 'a variant before its first minute has NEXT "28 Sep 01:00 BST" (two lines at most) on a grey dot that says "starts …", none of RW-E\'s figures, and fits its row');
+      } else fail(T('rwx-waiting'), `waiting rows ${JSON.stringify(waitRows)}`);
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-4') }).first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const wEmpty = (await page.locator('.ag-rw-detail .hl-empty').allTextContents()).map((t) => t.trim());
+      const wOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
+      await shot(page, 'agents-rwx-waiting-page');
+      if (wEmpty.join('|') === 'Starts 28 Sep 01:00 BST.|Starts 28 Sep 01:00 BST.|Starts 28 Sep 01:00 BST.' && wOverflow >= 0 && wOverflow <= 1) {
+        ok(T('rwx-waiting'), "its page's days, quotes and fills each say when it starts, and nothing else");
+      } else fail(T('rwx-waiting'), `waiting page: empty rows ${JSON.stringify(wEmpty)}, overflow ${wOverflow}`);
       agentsMode = 'ok';
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
