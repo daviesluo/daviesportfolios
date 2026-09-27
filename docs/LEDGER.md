@@ -180,6 +180,16 @@ list stays the short version; the plan is the reasoning behind it.
    one contested date; depth fell from $935k to $104k an event since June. The recorder keeps recording 4–6 weeks as
    measurement; its changes (1 s from T − 6 to T + 6 min, batch brackets if today's jitter allows, freezes, the
    resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
+   (g) HARVEST (Davies, 2026-09-27: the research drifted — the idea is to eat the orders liquidity providers leave
+   once a result is essentially confirmed, not to compete with the market; temperature markets included; and add
+   the new kinds of market RW now selects). **Phase 1 is running as a research agent in its own worktree**: history
+   ending before 2026-09-25 only, keyless public reads, no orders, no RW tables. Two modes per category: A, take
+   the losing side's resting orders after the public confirmation; B, rest a bid on the confirmed winner for the late
+   takers who buy the loser (seen once, below). Trap rate, capital lock, net a day, best date's share. Categories: data
+   releases, post counts, earthquakes (USGS), mentions (NO at the event's end), awards, and the temperature markets
+   still open after their day has ended. It stops at measurement, a power check and at most five DRAFT
+   pre-registrations. Integrate: read its review, re-run its scripts from the committed inputs, commit on `main`,
+   report to Davies in Chinese.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - WXSRC's keyed weather feeds (reference §3.41, §6 "The weather feeds"). Read 2026-09-27 by the `weather`
@@ -296,6 +306,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 17:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The one-minute job held (38 minutes, no split batch, the latest batch 0.68 s into its minute; the 17:00 hourly bar decided at 17:00:04), and Davies turned PMLATE's line back to what he asked for: harvesting after a result is confirmed. HARVEST phase 1 runs (item 5g).**
+- Davies: the research drifted into competing with the market; the idea is to eat the orders liquidity providers leave once a result is essentially confirmed, temperature included. What the record says: for temperature that exact idea was measured (PMLATE phase 1: 89.5 % of the stale side's edge goes before aviationweather.gov has the report, and what is left late is mostly traps, $36,316 of late cost on 12 buckets that resolved against the reports against $8,271 of edge elsewhere); the source and speed work that followed chased the stale orders before they vanish, while WXSRC's weather models and VIEWS's trajectory rules were forecasting — the drift he saw.
+- RW's other four same-day markets of 09-25/26 (besides eleven temperatures): UMich sentiment (a data release), "announcers say Fumble" (a mention), Trump's Truth Social posts in a week (a count), MrBeast's week-one views. **Read for the answer (disclosed for any later pre-registration of a narrower RW variant):** the public prints of the first three on 2026-09-25 (none of RW's own fills), RW's selections of 09-24 → 09-27, and RW's and RW-E's aggregate accounts (no market-by-market figure). What the prints showed: UMich's stale bids went within 3 s of the 14:00:00 UTC release; Fumble's within a minute; in the posts market, four hours after its window closed, about twenty wallets bought the losing NO at 0.005–0.007 against a resting YES bid at 0.993 — the late payer was a taker, the earner a patient maker.
+- RW at 17:28 UTC: +$234.12, stress −$136.07 (today so far +$14.40, stress −$107.54; nine of today's fifteen markets end today). RW-E's arm: +$257.36, stress +$26.17 (today +$56.70, −$22.96). RW's selection now includes an earthquake-magnitude market, an MTV award, a home-value index and a temperature market whose day had already ended: all public-confirmation-before-resolution kinds, now in HARVEST's scope.
 
 ### [2026-09-27 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
