@@ -214,6 +214,13 @@ list stays the short version; the plan is the reasoning behind it.
    `harvest/scripts/hcommon.xt_posts` pages. No running strategy reads either; re-run SPEED's post-count figures with
    the paged reader before any post-count idea is taken up again.
 
+5a. **In progress 2026-09-27 21:40 UTC: a review of the whole TESTING set (Davies: "深度研究一下目前的TESTING STRATEGIES组合，
+   看看有没有可以优化的地方或者是新增的testing").** Three read-only studies: the crypto paper rows (record, Jev's shadow
+   answers, maker probes, untested optimisations), the two quote tests (PR5's interim reading and separate arms; RW's
+   follow-ups to pre-register before 10-09, from allowed data only), and new testing candidates. Their result goes to
+   `docs/agents/reviews/2026-09-27-testing-portfolio-review.md`, the reference and this list; if this session ends
+   before that is committed, run it again — the drafts live only in the session's scratchpad.
+
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
      19:00 UTC, was served from about 19:40). Watch paths Include `dist/*` is the dashboard cut (a push that does not
