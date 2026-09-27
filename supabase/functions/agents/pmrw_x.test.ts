@@ -163,7 +163,8 @@ Deno.test("the tracked arms are the pre-registration's, frozen: RW-E, then each 
     { id: "x2", noSameDayFrom: RWE_START, from: RWX_START, pause: { cents: 15, minutes: 60 } },
     { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
   ]);
-  assertEquals(RWX_NAMES, { x1: "Reward quotes (no weather)", x2: "Reward quotes (pause on jumps)", x3: "Reward quotes (no weather, pause on jumps)" });
+  // The page's names are Davies' (2026-09-27), numbered after RW-E's "variant-1"; the pre-registration's are its own.
+  assertEquals(RWX_NAMES, { x1: "Reward quotes variant-2", x2: "Reward quotes variant-3", x3: "Reward quotes variant-4" });
 });
 
 /**

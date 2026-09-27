@@ -110,10 +110,9 @@ places stay when the number is not whole.
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
   Stablecoin quotes and every Reward quotes row with the other strategies. Then a card per exchange —
-  Revolut X in blue, which on TESTING includes Stablecoin quotes, Binance
-  in its yellow, where the same strategies run as paper twins, deciding
-  alike and filled at Binance's own prices, and on TESTING Polymarket in
-  its blue, whose card is its Reward quotes rows added together — showing the same figures for
+  Revolut X in blue, which on TESTING includes Stablecoin quotes, and on
+  TESTING Polymarket in its blue, whose card is its Reward quotes rows
+  added together — showing the same figures for
   that exchange (**funded (Paper)** on TESTING; the accounts' real
   balances are not shown). A bar above the cards shows each exchange's
   share; a slice too narrow for the name shows the percent alone. Then one
@@ -122,8 +121,9 @@ places stay when the number is not whole.
   deployed), today, unrealised and realised gain, and a countdown
   to its next decision; the tab says the mode, so a row does not, and a
   live strategy's name does not carry "live". A name does not carry its
-  exchange either: the exchange column says it, so the same strategy on
-  Revolut X and on Binance has one name on two rows. With nothing live, LIVE says
+  exchange either: the exchange column says it. On a phone each row is a
+  card with the same figures, and no line under them says what a percent
+  is of. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
 - **Stablecoin quotes.** The last row of the testing strategies: a
@@ -160,23 +160,16 @@ places stay when the number is not whole.
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
-- **Reward quotes (no same-day).** The next row: the same quotes without
-  the markets that end on the day they are chosen (they gave back most of
-  their rewards to traders who knew the outcome), so the two rows can be
-  compared side by side. It holds its own positions and makes its own
-  profit and loss, worked out from the same order books and trades the
-  row above reads, and it is brought up to date every minute. Its page
-  is the same page as Reward quotes, for these quotes, starting with the
-  fourteen days (it has no warm-up). A warning appears there only if its
-  copy of Reward quotes stops matching the real one.
-- **Reward quotes (no weather), (pause on jumps) and (no weather, pause on
-  jumps).** The last three rows, from 28 September: Reward quotes (no
-  same-day) with one change each — no temperature markets; no quotes in a
-  market for an hour after its price jumps 15 cents or more in a minute;
-  or both — so each can be compared with the row it came from. Until 28
-  September each is the same as Reward quotes (no same-day). Each has the
-  same page, and a warning appears on it only if its copy of the rows above
-  stops matching them.
+- **Reward quotes variant-1 to variant-4.** The last four rows: the same
+  quotes, each with one rule changed, so they can be compared side by side
+  with Reward quotes; which rule each changes is not on the site (it is in
+  the reference, §4 item 36). Each holds its own positions and makes its
+  own profit and loss, worked out from the same order books and trades
+  Reward quotes reads, and each is brought up to date every minute. Their
+  pages are Reward quotes' page, for their quotes, starting with the
+  fourteen days (no warm-up). Until the day its rule starts a variant reads
+  the same as the one before it. A warning appears on a page only if its
+  copy of the rows it came from stops matching them.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

@@ -210,15 +210,14 @@ function StrategyScoreboard({ s, m }) {
 }
 
 /**
- * A figure's label in a card: its name, and — when the figure has a percent — what the percent is of, on a small line
- * of its own under it.
- * @param {{ name: string, pct?: number | null, of?: string | null, title?: string }} props
+ * A figure's label in a card: its name alone. The small "% of cap" / "% of cost" line a strategy card carried under
+ * its today, unrealised and realised went on Davies' word (2026-09-27), as the table's had (2026-09-25).
+ * @param {{ name: string, title?: string }} props
  */
-function FigLabel({ name, pct = null, of = null, title }) {
+function FigLabel({ name, title }) {
   return (
     <span className="dim ag-fig-label" title={title}>
       <span className="ag-fig-name">{name}</span>
-      {of && pct != null && Number.isFinite(pct) ? <>{' '}<span className="ag-fig-base">% of {of}</span></> : null}
     </span>
   );
 }
@@ -673,9 +672,9 @@ function StrategyCards({ rows, m, onOpen }) {
           <div className="ag-card-badges"><VenueBadge id={r.venueId} /></div>
           <div className="ag-card-gl mono">
             <FigLabel name="deployed" /><span className="ag-deployed">{m(fmtUsd(r.valueUsd))}</span>
-            <FigLabel name="today" pct={r.todayPct} of="cap" /><span className="ag-gl ag-card-today" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
-            <FigLabel name="unrealised" pct={r.unrealisedPct} of={r.unrealisedOf ?? 'cost'} /><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
-            <FigLabel name="realised" pct={r.realisedPct} of="cap" /><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
+            <FigLabel name="today" /><span className="ag-gl ag-card-today" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
+            <FigLabel name="unrealised" /><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
+            <FigLabel name="realised" /><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
             <FigLabel name="next" /><span className="ag-next">{r.nextText}</span>
           </div>
         </div>

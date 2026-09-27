@@ -375,7 +375,7 @@ const AGENTS_RWE = (dayStartMs) => {
  * RW-E's figures to the cent (AGENTS_RWE) under its own id and name, with both of the replay's checks holding.
  */
 const AGENTS_RWX = (dayStartMs) => [
-  ['x1', 'Reward quotes (no weather)'], ['x2', 'Reward quotes (pause on jumps)'], ['x3', 'Reward quotes (no weather, pause on jumps)'],
+  ['x1', 'Reward quotes variant-2'], ['x2', 'Reward quotes variant-3'], ['x3', 'Reward quotes variant-4'],
 ].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
 
 /**
@@ -448,7 +448,10 @@ const AGENTS_DASHBOARD = (() => {
   // deleted them; `0046` deleted the Kraken twin, which made no decision of its own — 50 of 50 paired
   // decisions matched this row exactly — so no strategy executes on Kraken any more.
   // …and, since `0049`, their paper twins on Binance (Davies, 2026-09-23: the same strategies shown there): the
-  // same rules, coins and capital, filled at Binance's touch. Flat here, as they start in production.
+  // same rules, coins and capital, filled at Binance's touch. Flat here, as they started in production. `0065` deleted
+  // them (2026-09-27); the fixture keeps them so a venue with rows of its own beside Revolut X, and Binance's card, stay
+  // tested for the day a strategy of Binance's own returns. The paper rows' sizes are the ones before `0066`: the page
+  // reads any capital the same way.
   const strategies = [
     revxTrend,
     strat('trend-1h', 'trend-1h', 'revx', MAJORS, 40),
@@ -731,6 +734,15 @@ const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
  * @param {import('playwright').Page} page @param {string} name
  */
 const nameBtn = (page, name) => page.locator('.ag-name-btn', { hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
+/** A strategy name's text lines, and whether its last line ends inside the cell (a row or a phone card) that holds it. */
+const nameGeometry = (el) => el.locator('.ag-name-btn').first().evaluate((b) => {
+  const range = document.createRange();
+  range.selectNodeContents(b);
+  const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+  const cell = b.closest('td, .ag-card-strategy')?.getBoundingClientRect();
+  const r = b.getBoundingClientRect();
+  return { lines: tops.size, fits: !!cell && r.right <= cell.right + 1, qual: b.querySelectorAll('.ag-name-qual').length };
+}).catch(() => ({ lines: 0, fits: false, qual: -1 }));
 
 async function newPage(browser, { width, height }, errors, tokenMisses, opts = {}) {
   // `blockServiceWorkers`: a page that RELOADS is controlled by the app's
@@ -1652,6 +1664,10 @@ async function run() {
       if (vpWidth <= 760 ? (tableN === 0 && cardN === rows) : (tableN === 1 && cardN === 0)) {
         ok(S('agents'), vpWidth <= 760 ? `a phone gets a card per strategy (${cardN})` : 'a desktop gets the table');
       } else fail(S('agents'), `layout at ${vpWidth}px: tables ${tableN}, cards ${cardN}`);
+      // No "% of cap" / "% of cost" line on a strategy's card or row (Davies, 2026-09-27; the table's went 2026-09-25).
+      const pctOfLines = await page.locator('.ag-strategies .ag-row').evaluateAll((els) => els.filter((el) => /% of /.test(el.textContent || '')).length);
+      if (pctOfLines === 0) ok(S('agents'), 'no strategy card or row carries a "% of …" line');
+      else fail(S('agents'), `${pctOfLines} strategy rows still say "% of …"`);
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
         ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
@@ -1810,26 +1826,23 @@ async function run() {
       const rwRowText = (await rwRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const testNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
-      if (await rwRowEl.count() === 1 && testNames.slice(-5).join('|') === 'Reward quotes|Reward quotes (no same-day)|Reward quotes (no weather)|Reward quotes (pause on jumps)|Reward quotes (no weather, pause on jumps)' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
+      if (await rwRowEl.count() === 1 && testNames.slice(-5).join('|') === 'Reward quotes|Reward quotes variant-1|Reward quotes variant-2|Reward quotes variant-3|Reward quotes variant-4' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
         && /2 open · \$1,000 cap/.test(rwRowText) && /\+\$12\.50 \(\+1\.25%\)/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42 \(\+4\.20%\)/.test(rwRowText) && /every minute/.test(rwRowText)) {
         ok(S('agents'), 'RW is the testing row before RW-E and its three variants: Polymarket, 2 open of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", testing rows ${testNames.join(' | ')}, Polymarket badges ${rwBadge}`);
       // RW-E, the row after RW (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
       // today 7.50 on its $1,000 cap (+0.75%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60
       // (+2.36%). $235 is what it has at work today, in its days table, not its cap (Davies, 2026-09-26).
-      // Its name is "Reward quotes (no same-day)", the bracket on a line of its own (Davies, 2026-09-26), and its replay
-      // runs every minute (0060), as RW does.
-      const rweRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes (no same-day)') });
+      // Its name is "Reward quotes variant-1", on one line, the rule it follows not on the site (Davies, 2026-09-27), and its
+      // replay runs every minute (0060), as RW does.
+      const rweRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-1') });
       const rweRowText = (await rweRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const rweName = await rweRowEl.first().locator('.ag-name-btn').evaluate((b) => {
-        const q = b.querySelector('.ag-name-qual');
-        return { q: q?.textContent ?? '', below: !!q && q.getBoundingClientRect().top > b.getBoundingClientRect().top + 4 };
-      }).catch(() => ({ q: '', below: false }));
+      const rweName = await nameGeometry(rweRowEl.first());
       if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$1,000 cap/.test(rweRowText)
-        && rweName.q === '(no same-day)' && rweName.below
+        && rweName.lines === 1 && rweName.fits && rweName.qual === 0
         && /\+\$7\.50 \(\+0\.75%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+2\.36%\)/.test(rweRowText) && /every minute/.test(rweRowText)) {
-        ok(S('agents'), 'RW-E is the testing row after RW: "Reward quotes" over "(no same-day)", Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
-      } else fail(S('agents'), `RW-E row "${rweRowText}", qualifier ${JSON.stringify(rweName)}`);
+        ok(S('agents'), 'RW-E is the testing row after RW: "Reward quotes variant-1" on one line, Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
+      } else fail(S('agents'), `RW-E row "${rweRowText}", name ${JSON.stringify(rweName)}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -1921,7 +1934,7 @@ async function run() {
       const eFills = await page.locator('.ag-rw-fills tbody tr').count();
       const eWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
       await shot(page, 'agents-rwe');
-      if (eTitle === 'Reward quotes (no same-day)' && eLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
+      if (eTitle === 'Reward quotes variant-1' && eLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
         && eSplit.join('|') === 'rewards +$23.20|orders +$0.40' && eSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && eDays.length === 3 && /· today$/.test(eDays[0]) && !eDays.some((d) => /warm-up/.test(d)) && /\+\$7\.50/.test(eFirstDay)
         && eMarkets === 3 && eFills === 3 && eWarn === 0) {
@@ -1932,27 +1945,22 @@ async function run() {
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
       // RW-E's three variants (Davies, 2026-09-27), the last rows: RW's cells read from each variant's arm, here RW-E's
-      // figures to the cent (AGENTS_RWX), each bracket on a line of its own that fits the row, the longest included.
+      // figures to the cent (AGENTS_RWX), each name "Reward quotes variant-N" on one line inside its row.
       const xRows = [];
-      for (const [name, qual] of [['Reward quotes (no weather)', '(no weather)'], ['Reward quotes (pause on jumps)', '(pause on jumps)'], ['Reward quotes (no weather, pause on jumps)', '(no weather, pause on jumps)']]) {
+      for (const name of ['Reward quotes variant-2', 'Reward quotes variant-3', 'Reward quotes variant-4']) {
         const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
         const text = (await el.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-        const geo = await el.first().locator('.ag-name-btn').evaluate((b) => {
-          const q = b.querySelector('.ag-name-qual');
-          const cell = b.closest('td, .ag-card-strategy')?.getBoundingClientRect();
-          const r = q?.getBoundingClientRect();
-          return { q: q?.textContent ?? '', below: !!q && !!r && r.top > b.getBoundingClientRect().top + 4, fits: !!cell && !!r && r.right <= cell.right + 1 };
-        }).catch(() => ({ q: '', below: false, fits: false }));
-        xRows.push({ name, n: await el.count(), pm: await el.first().locator('.ag-venue-polymarket').count(), text, ...geo, qualOk: geo.q === qual });
+        const geo = await nameGeometry(el.first());
+        xRows.push({ name, n: await el.count(), pm: await el.first().locator('.ag-venue-polymarket').count(), text, ...geo });
       }
       await page.locator('.ag-strategies-testing .ag-row').last().scrollIntoViewIfNeeded().catch(() => {});
       await shot(page, 'agents-rwx-rows');
-      if (xRows.every((x) => x.n === 1 && x.pm === 1 && x.qualOk && x.below && x.fits && /1 open · \$1,000 cap/.test(x.text)
+      if (xRows.every((x) => x.n === 1 && x.pm === 1 && x.lines === 1 && x.fits && x.qual === 0 && /1 open · \$1,000 cap/.test(x.text)
         && /\+\$7\.50 \(\+0\.75%\)/.test(x.text) && /-\$1\.20 \(-17\.65%\)/.test(x.text) && /\+\$23\.60 \(\+2\.36%\)/.test(x.text) && /every minute/.test(x.text))) {
-        ok(S('agents'), 'RW-E\'s three variants are the last testing rows: "Reward quotes" over "(no weather)", "(pause on jumps)" and "(no weather, pause on jumps)", each on Polymarket, 1 open of its $1,000 cap, RW-E\'s figures, every minute');
+        ok(S('agents'), 'RW-E\'s three variants are the last testing rows: "Reward quotes variant-2", "-3" and "-4", each on one line, on Polymarket, 1 open of its $1,000 cap, RW-E\'s figures, every minute');
       } else fail(S('agents'), `variant rows ${JSON.stringify(xRows)}`);
       // A variant's page is RW's page read from its arm: its title, RW-E's figures, no warning while both checks hold.
-      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes (no weather, pause on jumps)') }).first().click().catch(() => {});
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-4') }).first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       const xTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const xSplit = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-split-line').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
@@ -1962,7 +1970,7 @@ async function run() {
       const xWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
       const xOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       await shot(page, 'agents-rwx');
-      if (xTitle === 'Reward quotes (no weather, pause on jumps)' && xSplit.join('|') === 'rewards +$23.20|orders +$0.40' && xSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
+      if (xTitle === 'Reward quotes variant-4' && xSplit.join('|') === 'rewards +$23.20|orders +$0.40' && xSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && xMarkets === 3 && xFills === 3 && xWarn === 0 && xOverflow >= 0 && xOverflow <= 1) {
         ok(S('agents'), "a variant's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, 3 markets, 3 fills, no warning");
       } else fail(S('agents'), `variant page: title "${xTitle}", split ${xSplit.join('|')}, sections ${xSections.join(',')}, markets ${xMarkets}, fills ${xFills}, warnings ${xWarn}, overflow ${xOverflow}`);
@@ -2410,7 +2418,7 @@ async function run() {
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
-      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no same-day)', 'polymarket', '.ag-rw-detail'], ['Reward quotes (no weather, pause on jumps)', 'polymarket', '.ag-rw-detail']]) {
+      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-4', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
         await page.waitForTimeout(350);

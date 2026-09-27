@@ -3174,6 +3174,9 @@ UMA proposals and the book at C + 60 s, which is Davies' call (ledger item 6).
       is a row of TESTING STRATEGIES after RW-E's, with RW's page read from its arm (`rwxArmSummaries`), counted in
       TESTING's scoreboard and the Polymarket card like the other two; a variant's page says so if either check fails.
       Until 09-28 each variant is RW-E to the cent. Reported beside RW's and RW-E's verdicts on or after 10-09.
+      **Their page names (Davies, 2026-09-27):** RW-E is "Reward quotes variant-1", x1 "variant-2", x2 "variant-3", x3
+      "variant-4", one line each; which rule a row changes is not shown on the site. The pre-registrations keep their
+      own names for the same arms.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;

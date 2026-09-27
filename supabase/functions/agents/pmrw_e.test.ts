@@ -283,7 +283,7 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
     today: on(all.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(all.tables), days: all.tables.pm_rw_x_days as never,
     fills: all.tables.pm_rw_fills as never, nowMs,
   });
-  assertEquals(rows.map((r) => [r.id, r.name]), [["x1", "Reward quotes (no weather)"], ["x2", "Reward quotes (pause on jumps)"], ["x3", "Reward quotes (no weather, pause on jumps)"]]);
+  assertEquals(rows.map((r) => [r.id, r.name]), [["x1", "Reward quotes variant-2"], ["x2", "Reward quotes variant-3"], ["x3", "Reward quotes variant-4"]]);
   assert(rows.every((r) => r.checks.ok && r.checks.eDays === 1));
   const t = rwSummary({
     state: truth.tables.pm_rw_state[0] as never, selection: on(truth.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(truth.tables),

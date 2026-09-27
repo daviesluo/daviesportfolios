@@ -283,9 +283,13 @@ export const RWX_SPECS: RwxSpec[] = [
   { id: "x2", noSameDayFrom: RWE_START, from: RWX_START, pause: { cents: 15, minutes: 60 } },
   { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
 ];
-/** The page's names, in the style of "Reward quotes (no same-day)". */
+/**
+ * The page's names (Davies, 2026-09-27): numbered after RW-E's "Reward quotes variant-1", one line each, the rule not
+ * shown on the site. Which rule is which is here and in the pre-registration: x1 no weather, x2 a pause after a jump,
+ * x3 both.
+ */
 export const RWX_NAMES: Record<string, string> = {
-  x1: "Reward quotes (no weather)", x2: "Reward quotes (pause on jumps)", x3: "Reward quotes (no weather, pause on jumps)",
+  x1: "Reward quotes variant-2", x2: "Reward quotes variant-3", x3: "Reward quotes variant-4",
 };
 /** The replay's rule version: a stored state of another is replayed again from RW's start. */
 export const RWX_STATE_VERSION = 1;

@@ -2245,9 +2245,8 @@ body {
 /* A paper test's row, and a venue card beside it, say the totals leave it out. */
 .ag-name-apart { grid-column: 2; margin-top: 2px; font-size: 10px; line-height: 1.3; }
 .ag-venue-apart { margin-top: 8px; font-size: 10px; line-height: 1.4; }
-/* A figure's label in a card: its name, and what its percent is of on a small line under it. */
+/* A figure's label in a card: its name. */
 .ag-fig-label { display: flex; flex-direction: column; min-width: 0; }
-.ag-fig-base { font-size: 9px; line-height: 1.3; color: var(--chalk-mute); }
 .ag-fig-pct { font-weight: 400; }
 
 /* Every agents page is one size (Davies, 2026-09-24): LIVE, TESTING and each page opened over them keep the window

@@ -1010,7 +1010,7 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   it("RW-E is a row of its own (Davies, 2026-09-26): RW's row read from RW-E's summary, under its own id and name", () => {
     const e = rweRow(r);
     // Its replay runs every minute since 0060, as RW does (Davies: "every min").
-    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes (no same-day)', 'polymarket', 'paper', 'every minute']);
+    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes variant-1', 'polymarket', 'paper', 'every minute']);
     // Every cell is RW's function of the same summary: the two rows are one implementation read from two arms.
     expect({ ...e, id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(r));
     expect(rweRow({ ...r, finished: true, running: false })?.nextText).toBe('finished');
@@ -1019,13 +1019,13 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   });
   it("RW-E's variants are rows of their own after it (Davies, 2026-09-27): RW's row read from each variant's summary, under its id and name", () => {
     const list = [
-      { ...r, id: 'x1', name: 'Reward quotes (no weather)', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'x2', name: 'Reward quotes (pause on jumps)', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'x1', name: 'Reward quotes variant-2', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'x2', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
     ];
     const rows = rwxRows(list);
     expect(rows.map((x) => [x.id, x.name, x.venueId, x.mode, x.nextText])).toEqual([
-      [`${RWX_ROW_PREFIX}x1`, 'Reward quotes (no weather)', 'polymarket', 'paper', 'every minute'],
-      [`${RWX_ROW_PREFIX}x2`, 'Reward quotes (pause on jumps)', 'polymarket', 'paper', 'finished'],
+      [`${RWX_ROW_PREFIX}x1`, 'Reward quotes variant-2', 'polymarket', 'paper', 'every minute'],
+      [`${RWX_ROW_PREFIX}x2`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
     ]);
     // Every cell is RW's function of the same summary, as RW-E's row is.
     expect({ ...rows[0], id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(list[0]));

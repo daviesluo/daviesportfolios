@@ -1457,7 +1457,7 @@ export const RWE_ROW_ID = '__rwe';
  */
 export function rweRow(r) {
   const row = rwRow(r);
-  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes (no same-day)', nextText: r.finished ? 'finished' : 'every minute' };
+  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes variant-1', nextText: r.finished ? 'finished' : 'every minute' };
 }
 
 /**
