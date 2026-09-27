@@ -567,6 +567,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |
 | `ops-error` | Stores error reports and serves the admin summary. |
 | `agents` | The crypto loop and its page (below). |
+| `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 
 #### `agents/` and `_shared/`
 

@@ -177,10 +177,11 @@ list stays the short version; the plan is the reasoning behind it.
    resolution from Gamma, premieres, exact publish times for 25 past ids) wait for the 16:00 window's data.
 
 6. **Davies' to decide or to do; nothing waits on them:**
-   - WXSRC's keyed weather feeds, each an optional free sign-up that only then gets a day's measurement and a
-     pre-registration (reference §3.41): the FAA's SWIFT portal and SWIM SCDS agreement (11 US stations; non-NAS use;
-     idle subscriptions end after 60 days), Météo-France's API portal (Paris), KMA's API Hub (Seoul, Busan), and
-     Google's WeatherNext 3 allowlist (5–7 business days, then a Google Cloud project; BigQuery free to 1 TiB a month).
+   - WXSRC's keyed weather feeds (reference §3.41). **Done 2026-09-27:** Météo-France's DPObs key and an FAA SCDS
+     subscription to ITWS (history, 04:45 UTC); the `weather` function's probe reads them first. Open: KMA's API Hub
+     (Seoul, Busan: needs a Korean phone number) and Google's WeatherNext 3 allowlist (5–7 business days, then a
+     Google Cloud project). If ITWS carries no temperature, the FAA leg needs a METAR product (CSS-Wx) in the SWIFT
+     Portal instead. An SCDS subscription idle for 60 days may be disabled.
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
      cheap insurance: the site served the repository, `auth`'s source included, until 2026-09-18, and nothing
      suggests anyone read it (five failed logins in the auth table's whole history). Changing the secret re-prompts
@@ -285,6 +286,16 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 04:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' first two keyed weather feeds exist (item 6): Météo-France's DPObs key and an FAA SWIM SCDS subscription, stored by another tool; a probe of both is built, not yet run.**
+- What was stored (his message, 2026-09-27): `METEO_FRANCE_API_KEY`, `METEO_FRANCE_USERNAME` (the portal's `DonneesPubliquesObservation` API), and fourteen `FAA_SWIM_*` (host, VPN, queue, the connection's username and password among them) for an approved SCDS subscription to **ITWS, "Alerts + Standard", every available station**. KMA's API Hub was not opened: it needs a Korean phone number's SMS. Nothing has read either key yet.
+- **ITWS is probably not the feed WXSRC priced.** SCDS's User Guide (v1.0, 2019) lists six products, STDDS, ITWS, TFMS, TBFM, FDPS and AIM FNS, each its own message VPN; ITWS is the terminal weather system's products (wind shear and microburst alerts, gust fronts, precipitation, storm motion), not surface observations. The FAA's METAR/SPECI publisher is CSS-Wx, which the FAA said in 2024 "will be made available to Non-NAS Consumers via ... SCDS" (FPAW 2024, Kratky). The probe reads real messages to settle what this subscription carries; if nothing in it is a temperature, the FAA leg waits for a CSS-Wx (or other METAR) product in the SWIFT Portal, Davies' step.
+- **A new Edge Function, `weather`**, cron bearer only: `?action=probe&only=meteofrance,faa`. `meteofrance.ts` finds which version and header the gateway takes, Le Bourget's station id, its newest 6-minute reading and the service's insert delay on the last ten steps (≤ 20 of the 50 requests a minute). `faa_swim.ts` reports every `FAA_SWIM_*` name, the role it reads each as and each value's form, then a TLS handshake, an SMF login, a bind to the queue and up to twenty messages summarised and left UNACKNOWLEDGED (redelivered to the next consumer). A function of its own because the FAA's feed needs Solace's npm client in a session, which stays out of the live loop's isolate.
+- **Deno 1.x cannot run Solace's client as shipped**: solclientjs wraps a still-connecting `net.Socket` with `tls.connect({ socket })`, and Deno 1.46.3's node compat throws an uncaught TypeError in its read loop, with or without a server (measured). `solace_tls.ts` hands the client a stream on `Deno.connectTls` instead; against a local TLS server the client's SMF login arrived intact (333 and 361 bytes, the credentials base64 inside TLS) and its connect timeout fired cleanly.
+- 27 tests (`weather/*.test.ts`): the key only in a header and every request a GET; the gateway's header found; a gateway or broker that echoes every credential gets none into the report; the portal's own login never read as the connection's; plaintext SMF refused; connect, consume and close the only calls (no acknowledge, no publish); gzip XML opened; the shim's stream and patch.
+- Next: deploy, fire the probe through pg_net with the Vault `cron_secret`, write what each key said into reference §6, then either a day's recorder (DPObs at 2 s beside `tgftp`'s LFPB file) or the FAA product question to Davies.
 
 ### [2026-09-27 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

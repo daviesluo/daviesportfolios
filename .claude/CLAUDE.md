@@ -496,7 +496,11 @@ that follow from that evidence, in short:
   and DVOL; since 2026-09-24 PR5's sub-account and the Polymarket account,
   reference §2d; since 2026-09-26 the YouTube key). It places nothing.
   `?only=binance,deribit` runs just the parts named (`revx`, `revx2`,
-  `kraken`, `jev`, `binance`, `deribit`, `polymarket`, `youtube`).
+  `kraken`, `jev`, `binance`, `deribit`, `polymarket`, `youtube`). The
+  weather feeds' keys have a function of their own, `weather`, whose
+  `?action=probe` (`meteofrance`, `faa`; cron bearer only) does the same
+  for them (2026-09-27): the FAA's feed needs Solace's npm client, which
+  stays out of the live loop's isolate.
 - **Polymarket may open a position only from Ireland, and only while
   Davies is there** (reference §2d, §6). The United Kingdom is "close-only
   on the frontend AND the API"; Ireland is close-only on the frontend only
@@ -544,7 +548,13 @@ that follow from that evidence, in short:
   key for the YouTube Data API's public view counts, sent in the
   `X-Goog-Api-Key` header and never in a URL, 10,000 units a day, read by
   the probe and by the view-count recorder (`agents?action=views`, `0062`,
-  reference §4 item 38). Never print them, never move them.
+  reference §4 item 38); and the weather feeds another tool stored on
+  2026-09-27 on Davies' sign-ups: `METEO_FRANCE_API_KEY` +
+  `METEO_FRANCE_USERNAME` (Météo-France's DPObs, Paris-Le Bourget's
+  6-minute readings, 50 requests a minute) and fourteen `FAA_SWIM_*` (the
+  FAA's SWIM SCDS subscription: ITWS, a Solace queue reached over SMF on
+  TLS only; a subscription idle for 60 days may be disabled), read by the
+  `weather` function. Never print them, never move them.
 - **A study prices speed at one second** (Davies, 2026-09-26): pg_cron 1.6.4
   on the project runs a job every 1–59 seconds, so a strategy that needs to
   act faster than a minute is studied at 1 s, not at the minute the loop

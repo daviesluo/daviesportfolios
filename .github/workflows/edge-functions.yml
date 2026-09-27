@@ -190,7 +190,8 @@ jobs:
           # Supabase's JWT check on — the client sends a valid anon
           # Bearer, and leaving it on stops unauthenticated visitors
           # using them as a free upstream proxy (burning rate quotas).
-          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents"
+          # weather (2026-09-27) is cron-only like agents: its own bearer check, so the flag too.
+          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"
             case " $PUBLIC_FNS " in
