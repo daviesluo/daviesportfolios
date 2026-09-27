@@ -157,6 +157,11 @@ list stays the short version; the plan is the reasoning behind it.
    HRRR / NBM / ECMWF AIFS / ICON-D2 / AROME): can a model's intraday prediction of the day's extreme beat the price
    after fees, and can that be backtested. At most five pre-registrations, then the coordinator's freeze. Research
    only: no key, no sign-up, nothing placed; a source that needs a key is a step for Davies.
+   (f) VIEWS phase 1 (Davies, 2026-09-27: is the view strategy promising?): a research agent on the closed view events
+   under tag 146 (MrBeast day-1…week-1, Gaming, others; ~157 MrBeast events, ~$92M traded): how efficient the price is
+   near the deadline, what stale side is left once the last batch before T fixes the count (PMLATE's question), the
+   resolution risk, a forward-test design for trajectory and batch-reaction rules, and what the recorder should record
+   differently. At most five pre-registrations; then the freeze.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -263,6 +268,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 02:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: how many markets does the view recorder record, should it add or change anything, for how long, and is it promising?**
+- 22 markets in 4 events: MrBeast Gaming's day-1 (7 brackets) and week-1 (8), and MrBeast's month-end channel totals (views 3, subscribers 4). Two videos are read every minute: Gaming's `PyLGTmWz37U` and MrBeast's `v9QtM6qnG50`, named by the markets. The next MrBeast video's markets join by themselves (discovery every fifth minute).
+- **The Data API's view count moves every ~5 minutes, each video on its own phase** (first 24 minutes, 01:34–01:58 UTC): `PyLGTmWz37U` at ~:38/:43/:48/:53/:58, +22k to +57k a batch; `v9QtM6qnG50` at ~:36/:41/:46/:51/:56. Likes and comments move between batches, so the change-only log keeps a row a minute. A market's final count is fixed by the last batch before its deadline, up to five minutes early.
+- Not promising or unpromising yet: 24 minutes of record. A research agent's VIEWS phase 1 (item 5f) asks the question on history first. Once today's 16:00 window confirms the batch phase to the second, the plan is to spend the window quota as 1 s reads ±15 s around each predicted batch in the hours before a deadline, not 18 straight minutes.
 
 ### [2026-09-27 01:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
