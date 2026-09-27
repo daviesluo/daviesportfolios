@@ -17,6 +17,12 @@ export const RW_RECENT_FILLS = 25;
 /** The engine decides two minutes behind the clock; a last decided minute older than this means it has stopped. */
 export const RW_STALE_MINUTES = 5;
 /**
+ * ...unless its state was written this recently: then it is working through a backlog, not stopped. A new replay version
+ * replays from RW's start at 720 minutes a run (Davies saw "not running: its last decided minute is 552 min old" on
+ * variant-1 while one caught up, 2026-09-27).
+ */
+export const RW_CATCHUP_WRITE_MINUTES = 3;
+/**
  * What RW and RW-E are each funded with on the page (Davies, 2026-09-26: "两个Reward quotes策略都设置一个1000 usd的
  * cap"), as every other strategy has a capital of its own: the row's cap, its FUNDED, and the base of its today and
  * realised percents. The frozen rule keeps its own $300 of quotes a day; what its quotes and inventory tie up is
@@ -24,7 +30,7 @@ export const RW_STALE_MINUTES = 5;
  */
 export const RW_FUNDED_USD = 1000;
 
-export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
+export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };
 export type RwSelRow = { day: string; cond: string; rank: number; rate: number | string; v: number | string; min_size: number | string; capital: number | string; q: string | null; cat: string | null; end_date: string | null };
 export type RwMinuteRow = { cond: string; minute: string; b: number | string | null; a: number | string | null; m: number | string | null; ours: number | string | null; others: number | string | null; qb: boolean | null; qa: boolean | null };
 export type RwDayRow = { day: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets: number | string; detail: { phase?: string } | null };
@@ -71,6 +77,8 @@ const fillOrder = (a: RwFillRow, b: RwFillRow) =>
  * that minute's mark, as if bought there, so its moves after count and its history before does not. The running total
  * less `base`'s is its pre-registration's own reading, the running total now less the one at the close of the day
  * before. Until the replay has reached that minute and kept its accounts, the row is `notStarted`, with nothing in it.
+ * A replay far behind the clock that wrote its state just now is `catchingUp` (a new replay version replays from RW's
+ * start), not stopped.
  */
 export function rwSummary(input: {
   state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[];
@@ -86,11 +94,15 @@ export function rwSummary(input: {
   const phase = rwPhase(st.dayOf);
   const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
   const over = st.dayOf >= RW_RUN_END;
+  const behind = lagMinutes > (input.staleMinutes ?? RW_STALE_MINUTES);
+  const wrote = input.state.updated_at ? (input.nowMs - Date.parse(input.state.updated_at)) / M : Infinity;
   const head = {
     phase, runStart: new Date(RW_RUN_START).toISOString(), runEnd: new Date(RW_RUN_END).toISOString(),
     dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
     lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
-    running: !over && lagMinutes <= (input.staleMinutes ?? RW_STALE_MINUTES), finished: over, fundedUsd: RW_FUNDED_USD,
+    running: !over && !behind, finished: over, fundedUsd: RW_FUNDED_USD,
+    // Far behind the clock, yet written just now: replaying a backlog, not stopped.
+    catchingUp: !over && behind && wrote <= RW_CATCHUP_WRITE_MINUTES,
     notStarted: false, startsAt: input.since ? new Date(input.since.ms).toISOString() : null,
   };
   const since = input.since ?? null;
@@ -194,7 +206,7 @@ function rwRecent(byCond: Map<string, RwFillRow[]>, q: (cond: string) => string)
   }));
 }
 
-export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null };
+export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };
 export type RweDaysRow = { day: string; arm: "rw" | "e"; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string; detail: { excluded?: string[]; check?: Record<string, number> | null } | null };
 
 /**
@@ -265,7 +277,7 @@ export function rweArmSummary(input: {
   return rwSummary({
     state: {
       state: { acc: st.arms.e.acc, dayActive: st.arms.e.dayActive, lastDecided: st.lastDecided, dayOf: st.dayOf, meta: rw?.meta ?? {} },
-      last_minute: input.eState.last_minute, last_error: input.eState.last_error,
+      last_minute: input.eState.last_minute, last_error: input.eState.last_error, updated_at: input.eState.updated_at,
     },
     selection: input.today.filter((s) => !out(s.cond, String(s.day).slice(0, 10))),
     latest: input.latest.filter((r) => !out(r.cond, today)),
@@ -322,7 +334,7 @@ export function rwxArmSummaries(input: {
     const summary = rwSummary({
       state: {
         state: { acc: a.acc, dayActive: a.dayActive, lastDecided: st.lastDecided, dayOf: st.dayOf, meta: rw?.meta ?? {} },
-        last_minute: xState.last_minute, last_error: xState.last_error,
+        last_minute: xState.last_minute, last_error: xState.last_error, updated_at: xState.updated_at,
       },
       selection: input.today.filter((x) => !leftOut(x.cond, String(x.day).slice(0, 10))),
       latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute))),

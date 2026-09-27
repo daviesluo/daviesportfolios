@@ -1056,6 +1056,14 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(rweRow({ ...waiting, startsAt: '2026-09-27T00:00:00.000Z' })?.nextText).toBe('27 Sep 01:00 BST');
     expect(rwxRows([{ ...waiting, running: false, lagMinutes: 12 }])[0].status.tone).toBe('stale');
     expect([rwStartStamp(null), rwStartsText(null)]).toEqual(['—', 'not started']);
+    // A replay working through a backlog (a new replay version replays from RW's start) says it is catching up and how
+    // far it has got — before its first minute and after it — never a start that has passed, nor "not running".
+    for (const notStarted of [true, false]) {
+      const r2 = { ...waiting, notStarted, startsAt: '2026-09-27T00:00:00.000Z', catchingUp: true, running: false, lagMinutes: 552, lastMinute: '2026-09-27T11:59:00.000Z' };
+      const behind = rweRow(r2);
+      expect([behind?.nextText, behind?.status.tone, behind?.status.detail]).toEqual(['catching up', 'stale', 'catching up: replayed to 27 Sep 12:59 BST']);
+      expect(rwView(r2)?.stoppedText).toBe('catching up: replayed to 27 Sep 12:59 BST');
+    }
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });

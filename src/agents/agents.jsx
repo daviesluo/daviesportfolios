@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -464,7 +464,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
   if (!row || !v) return null;
   const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
   // A variant before its first minute has nothing of its own yet (Davies, 2026-09-27): its tables say when it starts.
-  const waiting = r.notStarted ? `${rwStartsText(r.startsAt).replace(/^s/, 'S')}.` : null;
+  const waiting = !r.notStarted ? null : r.catchingUp ? `${rwCatchUpText(r.lastMinute).replace(/^c/, 'C')}.` : `${rwStartsText(r.startsAt).replace(/^s/, 'S')}.`;
   const today = rwTodayRow(r, at);
   const dayRows = today ? [today, ...days] : days;
   /** @param {number | null | undefined} x */

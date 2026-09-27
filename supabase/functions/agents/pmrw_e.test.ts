@@ -422,5 +422,18 @@ Deno.test("RW-E keeps its accounts as its twelve days begin, and its row counts 
       latest: [], days: out.days as never, fills: inputs.fills, nowMs: state.lastDecided + 60_000,
     })!;
     assertEquals([r.notStarted, r.startsAt, r.totalUsd, r.fills, r.markets.length, r.days.length, r.recent.length], [true, iso(RWE_START), 0, 0, 0, 0, 0]);
+    assertEquals(r.catchingUp, false);
+  }
+  assertEquals(row.catchingUp, false);
+  // A replay replaying from RW's start (a new version) is days behind the clock but wrote its state a minute ago: it is
+  // catching up, not stopped, before its first minute and after it. Written ten minutes ago, it has stopped.
+  const nowMs = RWE_START + 2 * 86400e3;
+  for (const [state, wroteAgo, catching] of [[early, 1, true], [st, 1, true], [st, 10, false]] as const) {
+    const r = rweArmSummary({
+      rwState: { state: { acc: {}, meta: {} }, last_minute: iso(state.lastDecided), last_error: null },
+      eState: { state, last_minute: iso(state.lastDecided), last_error: null, updated_at: iso(nowMs - wroteAgo * 60_000) },
+      selectionAll: inputs.selection, today: sel("2026-09-27"), latest: [], days: out.days as never, fills: inputs.fills, nowMs,
+    })!;
+    assertEquals([r.running, r.catchingUp], [false, catching], `${wroteAgo} min`);
   }
 });

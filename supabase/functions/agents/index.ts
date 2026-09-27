@@ -816,7 +816,7 @@ async function dashboard(now: number) {
     try {
       // The state first: the engine saves it after the fills and day rows it counts, so every read after it holds all
       // of those, and `rwSummary` leaves out anything a later run wrote.
-      const st = await d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error");
+      const st = await d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error,updated_at");
       const [selection, days, fills, first] = await Promise.all([
         d.select<RwSelRow>("pm_rw_selection", `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
         d.select<RwDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
@@ -830,7 +830,7 @@ async function dashboard(now: number) {
       const reads = await (async () => {
         try {
           return await Promise.all([
-            d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error"),
+            d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error,updated_at"),
             d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
             // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
             d.select<RweSelRow>("pm_rw_selection", "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
@@ -845,7 +845,7 @@ async function dashboard(now: number) {
       const rwx = !reads ? [] : await (async () => {
         try {
           const [xs, xdays] = await Promise.all([
-            d.select<RweStateRow>("pm_rw_x_state", "id=eq.1&select=state,last_minute,last_error"),
+            d.select<RweStateRow>("pm_rw_x_state", "id=eq.1&select=state,last_minute,last_error,updated_at"),
             d.select<RwxDaysRow>("pm_rw_x_days", "select=day,arm,total,stress_total,reward,fills,capital,markets&order=day.asc,arm.asc&limit=200"),
           ]);
           return rwxArmSummaries({ rwState: st[0] ?? null, xState: xs[0] ?? null, selectionAll: reads[2], today: selection, latest, days: xdays, fills, nowMs: now });

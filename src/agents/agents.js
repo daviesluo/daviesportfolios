@@ -1385,7 +1385,8 @@ export function rwView(r) {
     phase: r.phase,
     phaseText: r.phase === 'warm-up' ? 'warm-up, counted nowhere' : r.phase === 'run' ? `day ${r.dayOfRun} of 14` : 'the fourteen days are over',
     runStart: r.runStart, runEnd: r.runEnd, since: r.startedAt ?? null,
-    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : `not running: its last decided minute is ${r.lagMinutes} min old`,
+    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : r.catchingUp ? rwCatchUpText(r.lastMinute)
+      : `not running: its last decided minute is ${r.lagMinutes} min old`,
     fillsText: `${Number(r.fills) || 0} of 100`,
     bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
     mismatch: Math.abs(Number(r.mismatchUsd) || 0) > 0.01,
@@ -1426,10 +1427,13 @@ export function rwRow(r) {
     rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
     orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
     // Before its first minute, NEXT is when it starts: the date and time alone, two lines at most in the table's column.
-    nextText: r.finished ? 'finished' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
+    // A replay working through a backlog (a new replay version replays from RW's start) is catching up, not stopped.
+    nextText: r.finished ? 'finished' : r.catchingUp ? 'catching up' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
     openPositions: Number(r.open) || 0,
     status: r.finished
       ? { label: 'paper', running: false, tone: 'paused', detail: 'the fourteen days are over' }
+      : r.catchingUp
+        ? { label: 'paper', running: false, tone: 'stale', detail: rwCatchUpText(r.lastMinute) }
       : !r.running
         ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` }
         : r.notStarted
@@ -1451,6 +1455,15 @@ export function rwStartStamp(iso) {
 /** The same in words, for its status and its page: "starts 28 Sep 01:00 BST". @param {string | null | undefined} iso */
 export function rwStartsText(iso) {
   return Number.isFinite(Date.parse(String(iso))) ? `starts ${rwStartStamp(iso)}` : 'not started';
+}
+
+/**
+ * A replay working through a backlog: how far it has got, "catching up: replayed to 25 Sep 12:59 BST". It moves every
+ * minute while the replay catches up; one whose state stops being written reads "not running" instead.
+ * @param {string | null | undefined} lastMinute  the replay's last minute
+ */
+export function rwCatchUpText(lastMinute) {
+  return `catching up: replayed to ${rwStartStamp(lastMinute)}`;
 }
 
 /** RW-E's paper test's id among the table's rows. */
