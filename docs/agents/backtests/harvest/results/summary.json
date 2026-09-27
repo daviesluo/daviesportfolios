@@ -551,70 +551,70 @@
  },
  "quakes": {
   "A_pool_best_date_share": {
-   "300s": 0.5289,
-   "60s": 0.5153
+   "300s": 0.4098,
+   "60s": 0.336
   },
   "A_pool_per_day": {
-   "300s": 89.19,
-   "60s": 111.12
+   "300s": 30.75,
+   "60s": 45.9
   },
   "A_pool_total": {
-   "0s": 12979.23,
-   "1800s": 4746.62,
-   "300s": 8205.63,
-   "60s": 10223.33
+   "0s": 5362.19,
+   "1800s": 1086.0,
+   "300s": 2829.19,
+   "60s": 4223.05
   },
   "A_rule_per_day": {
-   "300s": 1.71,
-   "60s": 2.45
+   "300s": 0.9,
+   "60s": 1.2
   },
-  "B_pool_best_date_share_60s": 0.5569,
-  "B_pool_per_day_60s": 79.4,
+  "B_pool_best_date_share_60s": 0.2915,
+  "B_pool_per_day_60s": 33.98,
   "B_pool_total": {
-   "0s": 7734.5,
-   "1800s": 4599.3,
-   "300s": 6816.68,
-   "60s": 7304.8
+   "0s": 3231.98,
+   "1800s": 1954.48,
+   "300s": 2650.46,
+   "60s": 3126.03
   },
-  "B_rule_level_0.99_per_day_60s": -0.54,
-  "B_rule_tick_per_day_60s": 2.19,
-  "B_tick_ahead_pool_per_day_60s": 73.58,
+  "B_rule_level_0.99_per_day_60s": -0.57,
+  "B_rule_tick_per_day_60s": 1.02,
+  "B_tick_ahead_pool_per_day_60s": 29.38,
   "C_source": "USGS ComCat as it stood at C (superseded origin versions): publication of the quake that passes a bucket; the window end + 600 s for the rest",
   "bands_from_60s": {
    "A_clean_0.95_plus": {
     "dates": 32,
-    "edge_per_dollar": 0.0051,
+    "edge_per_dollar": 0.00424,
     "markets": 89,
-    "net": 2434.32,
-    "net_per_day": 26.46,
-    "notional": 477287.69,
+    "net": 1928.74,
+    "net_per_day": 20.96,
+    "notional": 454885.6,
     "trap_net": -259.71
    },
    "A_contested_below_0.95": {
     "dates": 16,
-    "edge_per_dollar": 0.18941,
-    "markets": 23,
-    "net": 7789.01,
-    "net_per_day": 84.66,
-    "notional": 41122.82,
+    "edge_per_dollar": 0.11256,
+    "markets": 18,
+    "net": 2294.32,
+    "net_per_day": 24.94,
+    "notional": 20382.21,
     "trap_net": -110.49
    },
    "B_clean_0.95_plus": {
     "dates": 32,
-    "edge_per_dollar": 0.00363,
+    "edge_per_dollar": 0.00345,
     "markets": 90,
-    "net": 911.52,
-    "net_per_day": 9.91,
-    "notional": 251212.26,
+    "net": 859.85,
+    "net_per_day": 9.35,
+    "notional": 249366.11,
     "trap_net": -758.5
    },
    "B_contested_below_0.95": {
-    "dates": 18,
-    "edge_per_dollar": 0.32089,
-    "markets": 25,
-    "net": 6393.28,
-    "net_per_day": 69.49,
-    "notional": 19923.37,
+    "dates": 17,
+    "edge_per_dollar": 0.17032,
+    "markets": 22,
+    "net": 2266.17,
+    "net_per_day": 24.63,
+    "notional": 13305.56,
     "trap_net": -191.49
    }
   },
@@ -624,23 +624,23 @@
   "lock_median_h": 13.31,
   "makers_from_60s": {
    "A": {
-    "fills": 1457,
-    "maker_wallets": 364,
-    "makers_per_market_p50": 33,
-    "markets": 20,
-    "top1_share": 0.0735,
-    "top3_share": 0.1399
+    "fills": 1168,
+    "maker_wallets": 314,
+    "makers_per_market_p50": 20,
+    "markets": 19,
+    "top1_share": 0.058,
+    "top3_share": 0.1402
    },
    "B": {
-    "edge_usd": 9145.12,
-    "fills": 1058,
-    "maker_wallets": 323,
-    "makers_per_market_p50": 23,
+    "edge_usd": 5196.75,
+    "fills": 970,
+    "maker_wallets": 275,
+    "makers_per_market_p50": 18,
     "markets": 20,
-    "share_of_shares_at_0999_plus": 0.1906,
-    "top1_share": 0.0906,
-    "top1_share_of_edge": 0.0694,
-    "top3_share": 0.2003
+    "share_of_shares_at_0999_plus": 0.2427,
+    "top1_share": 0.1068,
+    "top1_share_of_edge": 0.1239,
+    "top3_share": 0.226
    },
    "from_C_plus_s": 60,
    "markets_sampled": 20
@@ -648,40 +648,40 @@
   "markets": 136,
   "power": {
    "CLEAN-A": {
-    "best_share": 0.1817,
+    "best_share": 0.208,
     "dates": 31,
     "heldout_dates": 57.6,
-    "heldout_expected_total": 180.05,
-    "heldout_null_p95": 162.97,
-    "total": 96.95,
-    "z_vs_null": 1.33
+    "heldout_expected_total": 147.46,
+    "heldout_null_p95": 154.04,
+    "total": 79.4,
+    "z_vs_null": 1.16
    },
    "CONTEST-A": {
-    "best_share": 0.3703,
+    "best_share": 0.3225,
     "dates": 16,
     "heldout_dates": 29.7,
-    "heldout_expected_total": 436.99,
-    "heldout_null_p95": 272.0,
-    "total": 235.3,
-    "z_vs_null": 1.92
+    "heldout_expected_total": 210.88,
+    "heldout_null_p95": 204.14,
+    "total": 113.55,
+    "z_vs_null": 1.25
    },
    "PATIENT-B": {
     "best_share": null,
     "dates": 30,
     "heldout_dates": 55.7,
-    "heldout_expected_total": -93.06,
-    "heldout_null_p95": 130.31,
-    "total": -50.11,
-    "z_vs_null": -0.86
+    "heldout_expected_total": -96.63,
+    "heldout_null_p95": 128.74,
+    "total": -52.03,
+    "z_vs_null": -0.91
    },
    "TICK-B": {
-    "best_share": 0.4118,
+    "best_share": 0.5509,
     "dates": 32,
     "heldout_dates": 59.4,
-    "heldout_expected_total": 373.92,
-    "heldout_null_p95": 300.57,
-    "total": 201.34,
-    "z_vs_null": 1.5
+    "heldout_expected_total": 174.74,
+    "heldout_null_p95": 238.61,
+    "total": 94.09,
+    "z_vs_null": 0.88
    }
   },
   "trap_cost_from_C": {

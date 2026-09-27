@@ -70,23 +70,23 @@
  },
  "quakes": {
   "A": {
-   "fills": 1457,
-   "maker_wallets": 364,
-   "makers_per_market_p50": 33,
-   "markets": 20,
-   "top1_share": 0.0735,
-   "top3_share": 0.1399
+   "fills": 1168,
+   "maker_wallets": 314,
+   "makers_per_market_p50": 20,
+   "markets": 19,
+   "top1_share": 0.058,
+   "top3_share": 0.1402
   },
   "B": {
-   "edge_usd": 9145.12,
-   "fills": 1058,
-   "maker_wallets": 323,
-   "makers_per_market_p50": 23,
+   "edge_usd": 5196.75,
+   "fills": 970,
+   "maker_wallets": 275,
+   "makers_per_market_p50": 18,
    "markets": 20,
-   "share_of_shares_at_0999_plus": 0.1906,
-   "top1_share": 0.0906,
-   "top1_share_of_edge": 0.0694,
-   "top3_share": 0.2003
+   "share_of_shares_at_0999_plus": 0.2427,
+   "top1_share": 0.1068,
+   "top1_share_of_edge": 0.1239,
+   "top3_share": 0.226
   },
   "from_C_plus_s": 60,
   "markets_sampled": 20

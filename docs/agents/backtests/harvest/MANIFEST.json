@@ -9,16 +9,16 @@
    "sha256": "19dd26a4185f1b7875a4d0aeafc14c432495145480ec315e902a4e0f55746272"
   },
   "inputs/maker_sample.json.gz": {
-   "bytes": 370310,
-   "sha256": "9013847cd3ec5a6e636c458fb7131fd4dbacddfb67916eea483c68d0cd5aa50c"
+   "bytes": 356850,
+   "sha256": "066422d8d5dc60e91148ec8f27075784630a09c4a6e523a51c24d4bb0571fafa"
   },
   "inputs/mentions.json.gz": {
    "bytes": 754525,
    "sha256": "dc4e6e4b801929631fb34de4ae2b8574cafd0fdcca2cf8dd9d368fd7ab9a6970"
   },
   "inputs/quakes.json.gz": {
-   "bytes": 93872,
-   "sha256": "f7b2dd8d712618d41a46234fb75b160ea7cd58d39c5cecf0059e5ea0ff1ce089"
+   "bytes": 88811,
+   "sha256": "2651f5e9bf5aa6e0fb5c32561ca41749cef740b894f61b4585fb23fb1464301d"
   },
   "inputs/sources/pub/alfred_A191RL1Q225SBEA_2026-04-30.json.gz": {
    "bytes": 1516,
@@ -383,24 +383,24 @@
    "sha256": "499f47d9eeff79256b872d9f5c4eb9ed9f667a821f17d0de094b4e7f0d76ec8e"
   },
   "results/makers.json": {
-   "bytes": 2383,
-   "sha256": "fe1c85615b0d35d1f74c1511ed37c29af660e9ea46027bd6e47439f8b373e3da"
+   "bytes": 2380,
+   "sha256": "1b8a916d54653c49e1d2408c32c84d78b1b52b16f6174ecf61a93165dbf12b8b"
   },
   "results/mentions.json": {
    "bytes": 18723,
    "sha256": "9031521994e73e86c674ac82da996493bb4404fb95037777f8d18978c5d5da6b"
   },
   "results/power.json": {
-   "bytes": 15192,
-   "sha256": "ce061877bc8bd2b140d96a0a3d986215caf130a927b356ef6b8776947a379cfe"
+   "bytes": 15185,
+   "sha256": "4c0d5e861574c495ce2aa83964044ad99932cd18b1f2961eaba6a8b34abf6e2a"
   },
   "results/quakes.json": {
-   "bytes": 19591,
-   "sha256": "ddcfc06a4791b2c2098f4af28141a41c718a7452527203484dd1babd115e61ea"
+   "bytes": 19535,
+   "sha256": "ec9a52f719bdbfa358d86dbef9173b4278238c49d3ff34eb83f866d95f917b8a"
   },
   "results/summary.json": {
-   "bytes": 19226,
-   "sha256": "0cdcfcea32dc5e6f1d2ca2e59e7a3661bbc5e2bd3af97543e3bc2a476615b14b"
+   "bytes": 19219,
+   "sha256": "afe51215d6b7180a282c63b72458abd22e79e4757847c31f3ef2a17b6a08617d"
   },
   "results/temperature.json": {
    "bytes": 28017,
@@ -455,8 +455,8 @@
    "sha256": "804ceed81e5b8abc47b4865f422eb2468f35f700bf72528b220a9dd8b1bc631f"
   },
   "scripts/quakes_units.py": {
-   "bytes": 8899,
-   "sha256": "b914ffc84953a86d61928f3fc8390f33ebcb43571e8922423359a0cfe6408325"
+   "bytes": 9498,
+   "sha256": "6e3bd0e48002d45b006f154508df4d462d99b2c2e02cea17896a99b94237dc62"
   },
   "scripts/run_all.py": {
    "bytes": 5047,
@@ -482,9 +482,9 @@
  "exploration": "every market closed in [2026-03-01, 2026-06-01) UTC; held out [2026-06-01, 2026-09-25), no print read",
  "raw_pulls_not_committed": {
   "maker/": {
-   "bytes": 581710,
-   "digest": "91d6696f64e6267c0edce1e8d48e3521a1c1e40bd5b481bc61314f92242cb219",
-   "files": 200
+   "bytes": 602082,
+   "digest": "e85f41a845711daada4a0cfd6647d979cf5ce7f20c4423d3b019a21a87d93f31",
+   "files": 214
   },
   "prints/": {
    "bytes": 12747643,
@@ -830,8 +830,8 @@
    "files": 406
   }
  },
- "raw_total_bytes": 29879102,
- "raw_total_files": 2292,
+ "raw_total_bytes": 29899474,
+ "raw_total_files": 2306,
  "sources": {
   "maker/<cond>_{all,t}.json.gz (compacted into inputs/maker_sample.json.gz)": "GET https://data-api.polymarket.com/v2/trades?condition=<cond>&taker_only={false,true}&limit=1000&cursor=\u2026&_=<ms> (maker_pull.py)",
   "prints/ev_<event>.json.gz (compacted into inputs/<category>.json.gz)": "GET https://data-api.polymarket.com/v2/trades?event_id=<event>&limit=1000&cursor=\u2026&_=<ms>, exploration events only, walked back to a floor (prints_pull.py)",

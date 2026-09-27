@@ -7,8 +7,10 @@ The window is the rules': "between <Month D, YYYY>, 12:00 AM ET, and <Month D, Y
 ("6.5 or above", "7.0 or above"; a megaquake is 8.0). Every event of the window with a magnitude within 0.5 of the
 threshold today is read with its superseded products (`/fdsnws/event/1/query?eventid=<id>&includesuperseded=true`):
 the catalog's magnitude at instant t is the latest version (updateTime ≤ t) of the origin product of the source with
-the highest preferred weight among those published by t, and the count n(t) is the number of window events whose
-magnitude at t is at least the threshold.
+the highest preferred weight among those published by t, counting only authoritative network solutions (preferred
+weight ≥ 100: NEIC's "us", a regional network's), and the count n(t) is the number of window events whose magnitude at
+t is at least the threshold. A tsunami warning centre's first estimate (weight 6) is not a confirmation: on
+2026-03-20 the South Shetland Islands quake read M7.0 from "pt" for five minutes before NEIC's 6.6.
 
 * A count bucket is **dead** at the first t before the window's end with n(t) above its top (confirmed NO); an open-top
   bucket (">k", or a "by <date>" market) is **locked** at the first t with n(t) ≥ its floor (confirmed YES).
@@ -92,10 +94,15 @@ def catalog(t0, t1, thr):
     return out
 
 
+MIN_WEIGHT = 100  # an authoritative network solution (NEIC "us" 158, "ak" 157, ...); a tsunami centre's first
+                  # estimate ("pt", "at": weight 6) is not a confirmation: South Shetland 2026-03-20 read M7.0 from
+                  # "pt" for five minutes, then 6.6 from "us"
+
+
 def mag_at(ev, t):
     best = {}
     for ut, mag, src, w in ev["versions"]:
-        if ut <= t:
+        if ut <= t and w >= MIN_WEIGHT:
             best[src] = (w, ut, mag)
     if not best:
         return None
