@@ -146,6 +146,14 @@ list stays the short version; the plan is the reasoning behind it.
    recorder is `0062` / `agents/views.ts` (reference §4 item 38), recording from its deploy on 2026-09-27.** The API's
    counter moves in batches (none in 30 s on a video gaining ~13,000 views a minute); how far apart is the first thing
    its record says. A study of it is pre-registered before it reads the tables (~2026-10-25 → 11-08).
+   (e) WXSRC (Davies, 2026-09-27, on PMLATE's result: keep researching the data source, and weather models such as
+   Google's newest; every city's source differs): a research agent's phase 1. Per open temperature city, the station,
+   the resolution source and the fastest trustworthy source of the deciding observation (national 1- and 10-minute
+   feeds, `api.weather.gov`, IEM, ASOS one-minute data, MADIS / Synoptic, measured live at 1 s where keyless and
+   allowed), against when the stale side is taken; and a survey of weather models (Google's, from primary sources;
+   HRRR / NBM / ECMWF AIFS / ICON-D2 / AROME): can a model's intraday prediction of the day's extreme beat the price
+   after fees, and can that be backtested. At most five pre-registrations, then the coordinator's freeze. Research
+   only: no key, no sign-up, nothing placed; a source that needs a key is a step for Davies.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -252,6 +260,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-27 01:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The view recorder is live, PMLATE is on `main`, and WXSRC is started.**
+- `0062` applied at the push (`supabase_migrations` has it; `agents-views-every-minute` scheduled), and the function deployed at 01:33:18 UTC. The 01:33 call reached the old function (404 "unknown action", before the deploy). The 01:34 run: 4 view events, 22 markets, 2 channels, 10 uploads, 2 deadlines (MrBeast Gaming's day-1 at 2026-09-27 16:00:04 and week-1 at 10-03 16:00:04 UTC), 6 units, no error; 01:35 (a fifth minute) 4 units, the channels' totals, no error. A self check-in at 16:08 UTC today reads the first deadline's window.
+- PMLATE's two commits came onto `main` rebased on the recorder, with reference §3.37 added. The coordinator re-ran the frozen script on the committed input on `main`: the result is byte-identical (`1aec3e0f…`).
+- Davies asked to keep researching the data source and weather models (item 5e); a research agent started WXSRC's phase 1.
 
 ### [2026-09-27 01:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
