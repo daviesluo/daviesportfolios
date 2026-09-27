@@ -187,8 +187,9 @@ that follow from that evidence, in short:
   the categorical state on the FORMING bar written to `agent_observations`
   when it changes, and the maker probes (`0042`) — every marketable order
   writes down where a post-only order would have rested, and later turns
-  record whether the book came back and where price went 15 and 60 minutes
-  after; that gap is the adverse selection §3.13 could not compute, and a
+  record whether the book came back, where price went 15 and 60 minutes
+  after, and the touch 15, 30 and 60 minutes after it was written (R2 of
+  MX-1, reference §4 item 42); that gap is the adverse selection §3.13 could not compute, and a
   probe is never an order and never reaches any book. **A probe, like a
   resting paper order, is filled only by a TRADE through its price**
   (`tradedThrough`: volume > 0, strictly through; §3.26, migration `0050`,

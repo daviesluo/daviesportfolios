@@ -103,6 +103,8 @@ export const TURN_BUDGET_MS = Math.round(LEASE_MS * 0.7);   // past this, no NEW
 export const PROTECTIVE_CLAIM_OFFSET_MS = 1000;   // a protective decision claims one second INTO its minute: a bar starts on the minute, so the two never collide
 export const PROBE_TTL_MS = 4 * 3600e3;           // a maker probe watches for one 4-hour bar, then expires unfilled
 export const PROBE_FOLLOW_UP_MS = [15 * 60e3, 60 * 60e3];   // and the mark is recorded this long after it resolved — that gap IS the adverse selection
+export const PROBE_OPEN_MARKS_MS = [15 * 60e3, 30 * 60e3, 60 * 60e3];   // and the touch this long after it was WRITTEN, filled or not (MX-1)
+export const PROBE_OPEN_MARK_LATE_MS = 3 * 60e3;                        // a touch mark reached later than this is recorded missed, never late
 export const WIDE_SPREAD_BPS = 50;                // above this the book is too wide to CROSS for a new position — see `exitMark`
 export const ENTRY_LAG_FRACTION = 0.25;           // an entry is taken on a bar only within this fraction of a bar after it closed — see `entryTooLate`
 /**
@@ -168,7 +170,7 @@ export type TickReport = {
   orders: { strategy: string; venue: VenueId; symbol: string; mode: string; side: string; price: number; base: number; state: string }[];
   settled: { id: number; state: string }[];
   /** Maker probes touched this turn (`0042`): never orders, never in any book. */
-  probes: { opened: number; filled: number; expired: number; followedUp: number };
+  probes: { opened: number; filled: number; expired: number; followedUp: number; marked: number };
   /** Retired rows that still hold a position: their exits keep running, they can never buy. */
   windingDown: string[];
   skipped: string[];
@@ -426,7 +428,7 @@ async function loadSeries(d: TickDeps, venue: Venue, symbol: string, intervalMin
 }
 
 export async function tick(d: TickDeps): Promise<TickReport> {
-  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0 }, windingDown: [], skipped: [], errors: [] };
+  const report: TickReport = { at: new Date(d.now).toISOString(), strategies: 0, markets: [], basis: {}, observations: 0, decisions: [], orders: [], settled: [], probes: { opened: 0, filled: 0, expired: 0, followedUp: 0, marked: 0 }, windingDown: [], skipped: [], errors: [] };
   const nowIso = new Date(d.now).toISOString();
   const holder = `${nowIso} ${d.uuid()}`;
   // The claim is the turn's first database call, and until 2026-09-23 the one left unguarded: a database that did not
@@ -466,8 +468,10 @@ export async function tick(d: TickDeps): Promise<TickReport> {
 export type ProbeRow = {
   id: number; ts: string; strategy_id: string; venue: VenueId; symbol: string; side: "buy" | "sell";
   taker_price: string | number; maker_price: string | number; state: string;
-  resolved_at: string | null; follow_up: Record<string, number> | null; expires_at: string; watching: boolean;
+  resolved_at: string | null; follow_up: Record<string, ProbeMark> | null; expires_at: string; watching: boolean;
 };
+/** A follow-up entry: `m15`/`m60` are the mark after the probe resolved; `o15`/`o30`/`o60` the touch after it was written, or null when missed. */
+export type ProbeMark = number | { bid: number; ask: number; at: string } | null;
 
 /**
  * Did a TRADE prove that an order resting at `price` would have filled in this minute? The
@@ -502,7 +506,7 @@ export function tradedThrough(side: "buy" | "sell", price: number, c: Candle | n
  * (`m15`, `m60`) or null. A probe that resolved long ago catches up one offset per turn,
  * which is why this returns the EARLIEST outstanding one rather than the latest due.
  */
-export function probeFollowUpDue(resolvedAtMs: number, have: Record<string, number> | null, nowMs: number): string | null {
+export function probeFollowUpDue(resolvedAtMs: number, have: Record<string, unknown> | null, nowMs: number): string | null {
   for (const ms of PROBE_FOLLOW_UP_MS) {
     const key = `m${Math.round(ms / 60e3)}`;
     if (have && key in have) continue;
@@ -510,6 +514,25 @@ export function probeFollowUpDue(resolvedAtMs: number, have: Record<string, numb
     return null;                                   // offsets are ascending: nothing later can be due either
   }
   return null;
+}
+
+/**
+ * The touch marks due on a probe this turn: `o15`, `o30` and `o60`, the execution venue's bid and ask that long after the
+ * probe was WRITTEN, whether it filled or not. They are the price a maker-first order still unfilled at that deadline would
+ * cross at, the other half of what MX-1 weighs against the saving when it fills (review 2026-09-27); `agent_basis` keeps
+ * the touch only every fifth minute and for 30 days. A mark is taken on the first turn at or after its time, as an order
+ * waiting that long would cross then. One the loop reaches more than `PROBE_OPEN_MARK_LATE_MS` late comes back `missed`,
+ * to be recorded as null: a touch read at the wrong moment would be a different number under the same name.
+ */
+export function probeOpenMarksDue(openedMs: number, have: Record<string, unknown> | null, nowMs: number): { key: string; missed: boolean }[] {
+  const due: { key: string; missed: boolean }[] = [];
+  for (const ms of PROBE_OPEN_MARKS_MS) {
+    const key = `o${Math.round(ms / 60e3)}`;
+    if (have && key in have) continue;
+    if (nowMs < openedMs + ms) break;              // ascending: nothing later is due either
+    due.push({ key, missed: nowMs > openedMs + ms + PROBE_OPEN_MARK_LATE_MS });
+  }
+  return due;
 }
 
 /**
@@ -971,36 +994,50 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   for (const p of probes) {
     const m = markets.get(mk(p.venue, p.symbol));
     try {
+      const startedMs = Date.parse(p.ts);
+      // The touch at +15/30/60 minutes from when the probe was written, filled or not, in whichever write this turn makes.
+      // With no touch this turn a mark waits for the next, until it is late and recorded missed.
+      const marks: Record<string, ProbeMark> = {};
+      for (const { key, missed } of probeOpenMarksDue(startedMs, p.follow_up, d.now)) {
+        if (missed) marks[key] = null;
+        else if (m?.quote) marks[key] = { bid: m.quote.bid, ask: m.quote.ask, at: nowIso };
+      }
+      const marked = Object.keys(marks).length;
+      const withMarks = marked ? { follow_up: { ...(p.follow_up ?? {}), ...marks } } : {};
       if (p.state === "resting") {
         const maker = Number(p.maker_price);
-        const startedMs = Date.parse(p.ts);
         if (tradedThrough(p.side, maker, m?.c1m ?? null, startedMs)) {
           await d.db.update("agent_maker_probes", `id=eq.${p.id}`, {
             state: "filled", resolved_at: nowIso, mark_at_resolve: m?.mark ?? null,
             minutes_to_fill: Math.max(0, Math.round((d.now - startedMs) / ONE_M)),
             // The minute that proved it, beside the verdict: the venue keeps its 1-minute candles 28 days (`0050`).
-            fill_minute: m?.c1m ?? null,
+            fill_minute: m?.c1m ?? null, ...withMarks,
           });
           report.probes.filled++;
         } else if (d.now >= Date.parse(p.expires_at)) {
           await d.db.update("agent_maker_probes", `id=eq.${p.id}`, {
             state: "expired", resolved_at: nowIso, mark_at_resolve: m?.mark ?? null,
-            minutes_to_fill: null,
+            minutes_to_fill: null, ...withMarks,
           });
           report.probes.expired++;
+        } else if (marked) {
+          await d.db.update("agent_maker_probes", `id=eq.${p.id}`, withMarks);
         }
+        report.probes.marked += marked;
         continue;
       }
       // Resolved: record the mark at each follow-up offset as it comes due. The gap between
       // that mark and `maker_price` is the number §3.13 needed and could not compute.
-      if (!p.resolved_at || m?.mark == null) continue;
-      const key = probeFollowUpDue(Date.parse(p.resolved_at), p.follow_up, d.now);
-      if (!key) continue;
-      const follow_up = { ...(p.follow_up ?? {}), [key]: m.mark };
-      // The last offset in the list closes the probe: nothing reads it again.
-      const last = `m${Math.round(PROBE_FOLLOW_UP_MS[PROBE_FOLLOW_UP_MS.length - 1] / 60e3)}`;
-      await d.db.update("agent_maker_probes", `id=eq.${p.id}`, { follow_up, watching: !(last in follow_up) });
-      report.probes.followedUp++;
+      const key = p.resolved_at && m?.mark != null ? probeFollowUpDue(Date.parse(p.resolved_at), p.follow_up, d.now) : null;
+      if (!key && !marked) continue;
+      const follow_up = { ...(p.follow_up ?? {}), ...marks, ...(key ? { [key]: m!.mark } : {}) };
+      // The last offset of each list closes the probe: nothing reads it again. The touch marks always fall due first
+      // (the last is an hour after the probe was written, the last mark an hour after it resolved, a minute later at least).
+      const lastM = `m${Math.round(PROBE_FOLLOW_UP_MS[PROBE_FOLLOW_UP_MS.length - 1] / 60e3)}`;
+      const lastO = `o${Math.round(PROBE_OPEN_MARKS_MS[PROBE_OPEN_MARKS_MS.length - 1] / 60e3)}`;
+      await d.db.update("agent_maker_probes", `id=eq.${p.id}`, { follow_up, watching: !(lastM in follow_up && lastO in follow_up) });
+      if (key) report.probes.followedUp++;
+      report.probes.marked += marked;
     } catch (e) {
       report.errors.push(`probe ${p.id}: ${msg(e)}`);
     }

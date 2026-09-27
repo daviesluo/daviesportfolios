@@ -23,7 +23,7 @@ import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
 import { rowQuestions } from "./jev_rows.ts";
-import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_TTL_MS, tradedThrough, probeFollowUpDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
+import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_OPEN_MARK_LATE_MS, PROBE_OPEN_MARKS_MS, PROBE_TTL_MS, tradedThrough, probeFollowUpDue, probeOpenMarksDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
 const NOW = Date.parse("2026-09-20T04:05:00Z");                 // minute 245 of the day: a fifth minute, so the basis is recorded
@@ -1210,16 +1210,66 @@ Deno.test("a resolved probe collects its follow-up marks, and the last one stops
   const first = world({ probes: [{ ...base, resolved_at: new Date(NOW - m15).toISOString(), follow_up: {} }] });
   const r1 = await tick(first.deps);
   assertEquals(r1.probes.followedUp, 1);
-  const a = first.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, number> };
-  assertEquals(Object.keys(a.follow_up), ["m15"]);
+  const a = first.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, unknown> };
+  // Written two hours before this turn: its touch marks were due long ago, so they are recorded missed, never late.
+  assertEquals(a.follow_up, { o15: null, o30: null, o60: null, m15: a.follow_up.m15 });
+  assertEquals(typeof a.follow_up.m15, "number");
   assertEquals(a.watching, true);                      // m60 is still to come
 
-  const second = world({ probes: [{ ...base, resolved_at: new Date(NOW - m60).toISOString(), follow_up: { m15: 101 } }] });
+  const second = world({ probes: [{ ...base, resolved_at: new Date(NOW - m60).toISOString(), follow_up: { m15: 101, o15: null, o30: null, o60: null } }] });
   const r2 = await tick(second.deps);
   assertEquals(r2.probes.followedUp, 1);
-  const b = second.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, number> };
-  assertEquals(Object.keys(b.follow_up).sort(), ["m15", "m60"]);
+  const b = second.mem.tables.agent_maker_probes[0] as Row & { follow_up: Record<string, unknown> };
+  assertEquals(Object.keys(b.follow_up).sort(), ["m15", "m60", "o15", "o30", "o60"]);
   assertEquals(b.watching, false);                     // finished: never read again
+});
+
+Deno.test("probeOpenMarksDue: each touch mark on the first turn at or after its time, and missed — never late — past the tolerance", () => {
+  const [o15, o30, o60] = PROBE_OPEN_MARKS_MS;
+  const due = (have: Record<string, unknown> | null, now: number) => probeOpenMarksDue(0, have, now);
+  assertEquals(due(null, o15 - 1), []);                                        // not yet
+  assertEquals(due(null, o15), [{ key: "o15", missed: false }]);
+  assertEquals(due(null, o15 + PROBE_OPEN_MARK_LATE_MS), [{ key: "o15", missed: false }]);
+  assertEquals(due(null, o15 + PROBE_OPEN_MARK_LATE_MS + 1), [{ key: "o15", missed: true }]);
+  assertEquals(due({ o15: { bid: 1, ask: 2, at: "" } }, o30), [{ key: "o30", missed: false }]);
+  assertEquals(due({ o15: null }, o60), [{ key: "o30", missed: true }, { key: "o60", missed: false }]);
+  assertEquals(due({ o15: null, o30: null, o60: null }, o60 * 10), []);       // finished
+  assertEquals(due({ m15: 5 }, o15), [{ key: "o15", missed: false }]);         // the resolved marks are another list
+});
+
+Deno.test("a probe records the touch 15, 30 and 60 minutes after it was written, filled or not", async () => {
+  const [o15, o30, o60] = PROBE_OPEN_MARKS_MS;
+  const probe = (over: Record<string, unknown>) => ({
+    id: 9, strategy_id: "trend-4h-kraken", order_id: null, venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper",
+    taker_price: 200, maker_price: 100, base_size: 0.1, resolved_at: null, minutes_to_fill: null, mark_at_resolve: null,
+    expires_at: new Date(NOW + PROBE_TTL_MS).toISOString(), watching: true, fill_minute: null, ...over,
+  });
+  const touch = (w: ReturnType<typeof world>) => ({ bid: w.quote.bid, ask: w.quote.ask, at: new Date(NOW).toISOString() });
+  // Resting, written 15 minutes ago, the market nowhere near it: the touch goes in and it keeps resting.
+  const resting = world({ probes: [probe({ ts: new Date(NOW - o15).toISOString(), state: "resting", follow_up: {} })], oneMin: { low: 128 } });
+  const r1 = await tick(resting.deps);
+  assertEquals(r1.errors, []);
+  assertEquals([r1.probes.marked, r1.probes.filled], [1, 0]);
+  const a = resting.mem.tables.agent_maker_probes[0];
+  assertEquals([a.state, a.watching], ["resting", true]);
+  assertEquals(a.follow_up, { o15: touch(resting) });
+
+  // Filling on the turn its 30-minute mark falls due: both go in the same write.
+  const filling = world({ probes: [probe({ ts: new Date(NOW - o30).toISOString(), state: "resting", follow_up: { o15: null } })], oneMin: { low: 99 } });
+  const r2 = await tick(filling.deps);
+  assertEquals([r2.probes.filled, r2.probes.marked], [1, 1]);
+  const b = filling.mem.tables.agent_maker_probes[0];
+  assertEquals(b.state, "filled");
+  assertEquals(b.follow_up, { o15: null, o30: touch(filling) });
+
+  // Filled earlier and still watched for its resolved marks: the 60-minute touch goes in, and it stays watched until m60.
+  const filled = world({ probes: [probe({ ts: new Date(NOW - o60).toISOString(), state: "filled", resolved_at: new Date(NOW - 50 * ONE_M).toISOString(),
+    minutes_to_fill: 10, mark_at_resolve: 100, follow_up: { o15: null, o30: null, m15: 101 } })] });
+  const r3 = await tick(filled.deps);
+  assertEquals([r3.probes.marked, r3.probes.followedUp], [1, 0]);       // m60 is ten minutes off
+  const c = filled.mem.tables.agent_maker_probes[0];
+  assertEquals(c.follow_up, { o15: null, o30: null, m15: 101, o60: touch(filled) });
+  assertEquals(c.watching, true);
 });
 
 // ── winding down: a retired row that still holds something ─────────────────────────────────

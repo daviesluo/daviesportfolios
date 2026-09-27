@@ -366,6 +366,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-27 23:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**R2 of MX-1: every maker probe records the touch 15, 30 and 60 minutes after it is written.**
+- `o15`/`o30`/`o60` in `follow_up` (bid, ask, the turn's time), filled or not; a mark more than 3 minutes late is null, never late. MX-1 needs the touch at its deadline for twelve weeks and `agent_basis` keeps it 30 days. Reference §4 item 42. The MX-1 pre-registration is frozen next, before any event it is judged on.
+
 ### [2026-09-27 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: run every addition the review ranked, and make sure the probe bug is not in the live strategies.**

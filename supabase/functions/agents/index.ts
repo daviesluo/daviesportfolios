@@ -349,7 +349,7 @@ export function jevStats(rows: { provider: string; cost_usd: number | null; late
 export type ProbeSummaryRow = {
   venue: string; symbol: string; side: string; state: string;
   maker_price: string | number; taker_price: string | number;
-  minutes_to_fill: number | null; follow_up: Record<string, number> | null;
+  minutes_to_fill: number | null; follow_up: Record<string, unknown> | null;
 };
 
 /**
@@ -380,7 +380,7 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
   const adverse = (key: string) => med(filled.flatMap((r) => {
     const after = r.follow_up?.[key];
     const maker = Number(r.maker_price);
-    if (after == null || !(maker > 0)) return [];
+    if (typeof after !== "number" || !(maker > 0)) return [];
     // A buy that filled and then fell has moved AGAINST the fill; so has a sell that then rose.
     const bps = (r.side === "buy" ? maker - after : after - maker) / maker * 1e4;
     return [bps];
