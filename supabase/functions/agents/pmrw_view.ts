@@ -211,7 +211,9 @@ export function rweArmSummary(input: {
   const excluded = excludedByDay(input.selectionAll);
   const dayOf = (minute: string) => new Date(Math.floor(Date.parse(minute) / DAY) * DAY).toISOString().slice(0, 10);
   const diverged = new Set(st.diverged);
-  const out = (cond: string, day: string) => excluded.get(day)?.has(cond) ?? false;
+  // RW-E's rule from its twelve days' first minute: before them it is RW (its pre-registration, replay version 2).
+  const firstDay = new Date(RWE_START).toISOString().slice(0, 10);
+  const out = (cond: string, day: string) => day >= firstDay && (excluded.get(day)?.has(cond) ?? false);
   const today = new Date(Math.floor(st.dayOf / DAY) * DAY).toISOString().slice(0, 10);
   const rw = input.rwState?.state as RwState | undefined;
   return rwSummary({

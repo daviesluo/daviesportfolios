@@ -242,3 +242,34 @@ Deno.test("RW-E's own row: the replay's e arm, summarised as RW's row is, equals
   assert(e.markets.some((m) => m.cond === C.cond && m.net !== 0 && !m.quoting));
   assert(!e.markets.some((m) => m.cond === B.cond));
 });
+
+// Deviation found 2026-09-27: the pre-registration says RW-E "removes nothing before 2026-09-27 00:00, so RW-E enters
+// the twelve days holding exactly what RW held", and replay version 1 removed the same-day markets from RW's first
+// minute. Before its twelve days RW-E is RW; a state replayed under version 1 is replayed again from RW's start.
+Deno.test("before its twelve days RW-E is RW: a market that ends the day it is quoted is quoted, and held into them", () => {
+  const Y = "0xyyy";
+  const t = (k: number) => Date.UTC(2026, 8, 25) + k * 60_000;
+  const iso = (ms: number) => new Date(ms).toISOString();
+  const rows = Array.from({ length: 5 }, (_, k) => ({
+    cond: Y, minute: iso(t(k)), quoting: true, tick: 0.01, bb: 0.48, ba: 0.52, ab: 0.48, aa: 0.52, q1: 10, q2: 10, m: 0.5, b: 0.49, a: 0.51, reward: 0.1,
+  }));
+  const fills = [{ cond: Y, minute: iso(t(1)), ts: iso(t(1) + 30e3), side: "bid" as const, price: 0.49, size: 20, print_id: "p1" }];
+  const prints = [{ id: "p1", cond: Y, ts: iso(t(1) + 30e3), side: "SELL" as const, oi: 0, price: 0.47, size: 20 }];
+  const selection = [{ day: "2026-09-25", cond: Y, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-09-25T20:00:00Z", q: "Y", cat: "weather_fees" }];
+  assertEquals(excludedByDay(selection).get("2026-09-25"), new Set([Y]));
+  const st = newRweState();
+  replayMinutes(st, t(4), { rows, fills, prints, selection, settlements: [], rwDays: [] });
+  assertEquals(st.arms.e.acc[Y], st.arms.rw.acc[Y]);
+  assertEquals([st.arms.e.acc[Y].net, st.arms.e.acc[Y].fills], [20, 1]);
+  assertAlmostEquals(st.arms.e.acc[Y].reward, 0.5, 1e-12);
+});
+
+Deno.test("a replay state of an older rule version is replayed again from RW's start", async () => {
+  const { db, tables } = await runEngine(true);
+  // A version-1 state (no version) that had got as far as T0: the driver must not continue from it.
+  tables.pm_rw_e_state.push({ id: 1, state: { lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30), arms: { rw: { acc: {}, dayActive: [] }, e: { acc: {}, dayActive: [] } }, diverged: [], checkMaxUsd: 0 }, last_minute: null } as Row);
+  const out = await runPmrwE({ db, now: Date.UTC(2026, 9, 1, 0, 10), holder: "h" });
+  assertEquals(out.errors, []);
+  assertEquals(out.from, Date.UTC(2026, 8, 25));
+  assertEquals((tables.pm_rw_e_state[0].state as RweState).version, 2);
+});

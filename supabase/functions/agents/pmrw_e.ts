@@ -31,6 +31,7 @@ export const RWE_LEASE_MS = 240e3;
 export type RweArm = "rw" | "e";
 export type RweArmState = { acc: Record<string, Acc>; dayActive: string[] };
 export type RweState = {
+  version?: number;                          // RWE_STATE_VERSION; a state without it is replayed again from RW's start
   lastDecided: number;                       // ms: the last minute replayed
   dayOf: number;                             // ms: the UTC day being accumulated
   arms: Record<RweArm, RweArmState>;
@@ -56,9 +57,17 @@ const dayStr = (ms: number) => iso(Math.floor(ms / DAY) * DAY).slice(0, 10);
 const num = (x: unknown) => (x === null || x === undefined ? null : Number(x));
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
 
+/**
+ * The replay's rule version. 2 (2026-09-27): RW-E removes nothing before its twelve days, as its pre-registration says
+ * ("removes nothing before 2026-09-27 00:00, so RW-E enters the twelve days holding exactly what RW held"); version 1
+ * removed the same-day markets from RW's first minute and so entered them holding less than RW. A stored state of an
+ * older version is replayed again from RW's start, from RW's stored record, which nothing changed.
+ */
+export const RWE_STATE_VERSION = 2;
+
 /** The fresh state: RW's start, nothing held, both arms identical. */
 export const newRweState = (): RweState => ({
-  lastDecided: RW_RUN_START - M, dayOf: RW_RUN_START, arms: { rw: { acc: {}, dayActive: [] }, e: { acc: {}, dayActive: [] } }, diverged: [], checkMaxUsd: 0,
+  version: RWE_STATE_VERSION, lastDecided: RW_RUN_START - M, dayOf: RW_RUN_START, arms: { rw: { acc: {}, dayActive: [] }, e: { acc: {}, dayActive: [] } }, diverged: [], checkMaxUsd: 0,
 });
 
 /** The markets RW-E does not quote on each day: in that day's selection, with a scheduled end before the day's end. */
@@ -151,7 +160,7 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
       const a = st.arms[arm];
       const s = snapshot({ acc: a.acc } as unknown as RwState, a.dayActive);
       const detail: Record<string, unknown> = { perMarket: s.perMarket, active: a.dayActive };
-      if (arm === "e") detail.excluded = [...(excluded.get(day) ?? [])].sort();
+      if (arm === "e") detail.excluded = st.dayOf >= RWE_START ? [...(excluded.get(day) ?? [])].sort() : [];
       if (arm === "rw") {
         const own = rwDay.get(day);
         if (own) {
@@ -183,7 +192,8 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
       const rwNetBefore = st.arms.rw.acc[c]?.net ?? 0;
       for (const arm of ["rw", "e"] as const) {
         const a = st.arms[arm];
-        const quoting = r.quoting && !(arm === "e" && dayExcluded?.has(c));
+        // RW-E's rule from its first minute: before its twelve days it is RW.
+        const quoting = r.quoting && !(arm === "e" && t >= RWE_START && dayExcluded?.has(c));
         if (!quoting && !a.acc[c]) continue;
         const acc = (a.acc[c] ??= newAcc());
         if (acc.settled != null) continue;
@@ -236,7 +246,8 @@ export async function runPmrwE(d: RweDeps): Promise<RweReport> {
   if (!held.length) return { ...report, skipped: "another run holds the pmrw-e lease" };
   try {
     const [own] = await d.db.select<{ state: RweState | Record<string, never> }>("pm_rw_e_state", "id=eq.1&select=state");
-    const st: RweState = own?.state && "arms" in own.state ? own.state as RweState : newRweState();
+    const stored = own?.state && "arms" in own.state ? own.state as RweState : null;
+    const st: RweState = stored && stored.version === RWE_STATE_VERSION ? stored : newRweState();
     if (st.dayOf >= RW_RUN_END) return { ...report, skipped: "the fourteen days are over" };
     const [rw] = await d.db.select<{ last_minute: string | null }>("pm_rw_state", "id=eq.1&select=last_minute");
     const rwLast = rw?.last_minute ? Date.parse(rw.last_minute) : NaN;
