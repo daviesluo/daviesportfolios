@@ -23,7 +23,8 @@ there only the window-end units are `measured`. S is a
 A trap is a bucket whose resolution differs from its confirmed outcome. The tracker's posts are read once, paged
 (`hcommon.xt_posts`), cached per window. **The tracker's history is not the counter as it stood**: on some windows it
 now holds fewer posts than the resolution needs (Trump's May 12 – 19: 100 posts, none after May 17 12:30, resolved
-"200+"), and one week (May 19 – 26) was resolved on every series days before its window ended, without UMA. An event
+"200+"), and the first listing of May 19 – 26 was closed on every series without UMA, days before its window ended,
+and replaced by new events for the same windows. An event
 whose tracker record at its close cannot reproduce its resolution is marked `record_ok: false`: its units cannot be
 confirmed from history and are reported apart, never counted as traps or as harvest. The print floors are C − 1 h at
 the earliest C of each event.
