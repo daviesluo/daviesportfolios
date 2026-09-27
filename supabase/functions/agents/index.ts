@@ -66,7 +66,8 @@
 // (the Ed25519 private key in any pasted shape), KRAKEN_PRO_API_KEY +
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
 // / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`, and the
-// POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe only). None is
+// POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe only) and
+// YOUTUBE_API_KEY (`youtube.ts`, public view counts; sent in a header). None is
 // ever echoed: the probe reports the FORM of a private key, not a byte of
 // it, and every upstream error is truncated. Market data needs no key on
 // either venue, so a missing credential degrades a venue to paper-only
@@ -88,6 +89,7 @@ import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
+import { youtubeProbe } from "./youtube.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runPmrw, runPmrwSelect } from "./pmrw.ts";
@@ -1048,7 +1050,7 @@ export async function runJevBatch(
 }
 
 /** The probe's parts, each a credential of its own. `?only=binance,deribit` runs just those; anything unknown is dropped. */
-export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit", "polymarket"] as const;
+export const PROBE_PARTS = ["revx", "revx2", "kraken", "jev", "binance", "deribit", "polymarket", "youtube"] as const;
 export function probeParts(only: string | null): Set<string> | null {
   if (!only) return null;
   const picked = new Set(only.split(",").map((x) => x.trim().toLowerCase()).filter((x) => (PROBE_PARTS as readonly string[]).includes(x)));
@@ -1108,7 +1110,7 @@ async function probeRevxAccount(rx: { env: RevxEnv; keyForm: string }, symbols: 
   return r;
 }
 
-export async function runProbe(only: Set<string> | null = null, f: typeof fetch = fetch): Promise<Record<string, unknown>> {
+export async function runProbe(only: Set<string> | null = null, f: typeof fetch = fetch, opts: { sleep?: (ms: number) => Promise<void> } = {}): Promise<Record<string, unknown>> {
   const want = (part: string) => !only || only.has(part);
   const out: Record<string, unknown> = { at: new Date().toISOString(), parts: only ? [...only] : [...PROBE_PARTS] };
   // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
@@ -1227,6 +1229,12 @@ export async function runProbe(only: Set<string> | null = null, f: typeof fetch 
 
   // --- Polymarket: read-only until phase 2 (reference §2d). The report is scrubbed of every secret it could echo. ----
   if (want("polymarket")) out.polymarket = await polymarketProbe(loadPolymarketEnv(), { fetchImpl: f });
+
+  // --- YouTube: public view counts behind Polymarket's view markets (youtube.ts). The key rides in a header, never a URL.
+  if (want("youtube")) {
+    const key = envAny(["YOUTUBE_API_KEY", "YouTube_API_KEY", "Youtube_API_KEY", "youtube_api_key"]);
+    out.youtube = key ? await youtubeProbe({ key, fetchImpl: f }, { sleep: opts.sleep }) : { error: "YOUTUBE_API_KEY is not set" };
+  }
   return out;
 }
 

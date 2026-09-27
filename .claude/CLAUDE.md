@@ -492,9 +492,9 @@ that follow from that evidence, in short:
   `AddOrder validate=true`, Jev on both transports, and since 2026-09-23
   Binance's permissions, fees and symbol rules and Deribit's auth scope
   and DVOL; since 2026-09-24 PR5's sub-account and the Polymarket account,
-  reference §2d). It places nothing. `?only=binance,deribit` runs just the
-  parts named (`revx`, `revx2`, `kraken`, `jev`, `binance`, `deribit`,
-  `polymarket`).
+  reference §2d; since 2026-09-26 the YouTube key). It places nothing.
+  `?only=binance,deribit` runs just the parts named (`revx`, `revx2`,
+  `kraken`, `jev`, `binance`, `deribit`, `polymarket`, `youtube`).
 - **Polymarket may open a position only from Ireland, and only while
   Davies is there** (reference §2d, §6). The United Kingdom is "close-only
   on the frontend AND the API"; Ireland is close-only on the frontend only
@@ -538,7 +538,18 @@ that follow from that evidence, in short:
   `_SECRET` / `_PASSPHRASE` (each also as `POLYMARKET_API_*`), and the
   settings `POLYMARKET_FUNDER_ADDRESS`, `POLYMARKET_SIGNER_ADDRESS`,
   `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` — read by
-  the probe only. Never print them, never move them.
+  the probe only; and `YOUTUBE_API_KEY` (Davies, 2026-09-26), a Google API
+  key for the YouTube Data API's public view counts, sent in the
+  `X-Goog-Api-Key` header and never in a URL, 10,000 units a day. Never
+  print them, never move them.
+- **A study prices speed at one second** (Davies, 2026-09-26): pg_cron 1.6.4
+  on the project runs a job every 1–59 seconds, so a strategy that needs to
+  act faster than a minute is studied at 1 s, not at the minute the loop
+  happens to run. Below a second, the thing to study is an always-on
+  Cloudflare Worker (the Cloudflare connector is on; a session reads it,
+  and deploying anything there is his call). A source's own limit can bind
+  first, and a study names it with its number: YouTube's 10,000 units a
+  day is one read every 8.6 s on average.
 
 ## Git workflow
 

@@ -133,7 +133,14 @@ list stays the short version; the plan is the reasoning behind it.
    edge left at each reaction time on September's data (seen already), each keyless weather source's latency after
    the observation, measured live, and what each architecture could do — pg_cron every N seconds (1 s is the floor on
    pg_cron 1.6.4), a loop inside one Edge call (2 s CPU, 150–400 s wall), or an always-on worker holding Polymarket's
-   WebSocket. Measurements only; a rule out of it is pre-registered, not priced.
+   WebSocket. Measurements only; a rule out of it is pre-registered, not priced. Davies, later the same evening:
+   every speed assumption in a study is 1 s (pg_cron's floor), and below that the thing to study is an always-on
+   Cloudflare Worker (his Cloudflare connector is on; read it, deploy nothing without his word).
+   (d) YouTube view counts (Davies, 2026-09-26: `YOUTUBE_API_KEY` is in the secrets). First the probe's `youtube`
+   part verifies the key read-only; then a recorder of what nobody can pull later — the view counter of each video
+   with an open Polymarket view market (MrBeast, MrBeast Gaming) and those markets' books — every second around each
+   market's deadline and once a minute otherwise, inside the key's 10,000 units a day. Record only, no orders; a rule
+   out of it is pre-registered after 4–6 weeks of it.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - Rotate `APP_ADMIN_PWD`, `APP_RO_PWD` and `APP_AUTH_SECRET` (Supabase dashboard, Edge Function secrets), as
@@ -240,6 +247,12 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-26 23:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: "YOUTUBE_API_KEY 加好了"; and every speed assumption in a study is one second (pg_cron 1.6.4 runs jobs every 1–59 s), an always-on Cloudflare Worker below that.**
+- The probe gains a `youtube` part (`agents/youtube.ts`, `?action=probe&only=youtube`): the key rides in the `X-Goog-Api-Key` header, never in a URL; MrBeast and MrBeast Gaming looked up by handle (MrBeast's checked against its known channel id), their three newest uploads, one batch of their statistics, and the newest upload's counter read seven times 5 s apart — does the API's number move between reads seconds apart? Twelve units of the 10,000 a day. Pinned in `youtube.test.ts`: GETs to the three listed reads only, the key in the header and in no URL, no ten characters of it in the report even from a server that echoes it back, nothing sent without it. It is fired after the deploy; its answer goes to reference §6 and here.
+- The one-second rule is in CLAUDE.md and the skill (all three copies). YouTube's own quota binds before it: 10,000 units a day is one read every 8.6 s on average, so a recorder reads every second only around a market's deadline (what-remains item 5d).
 
 ### [2026-09-26 22:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

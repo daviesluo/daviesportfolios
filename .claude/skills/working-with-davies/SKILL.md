@@ -359,6 +359,12 @@ Changing any of these means re-opening a decision he has already made.
 - Don't refactor `app.jsx` into hooks, and don't stop committing the
   hashed bundle, unless he asks. Both were offered as P2 cleanups and
   explicitly deferred.
+- **A study prices speed at one second** (Davies, 2026-09-26). pg_cron
+  1.6.4 on the project runs jobs every 1–59 seconds, so "the loop runs
+  once a minute" is a choice, not a limit: a strategy that needs to act
+  faster is studied at 1 s. Faster than that is an always-on Cloudflare
+  Worker, to be studied, not deployed without his word. When a data
+  source's own quota or update rate binds first, say so with the number.
 
 ### Cold start and preload
 

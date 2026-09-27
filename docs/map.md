@@ -574,6 +574,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 |---|---|
 | `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
+| `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run from its own cron job, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
