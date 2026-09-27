@@ -583,6 +583,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW: RW's stored minutes replayed in two arms, RW itself (checked against its own days) and RW without the markets that end on the day they are quoted. |
+| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — and the research that picks them on RW's days before RW-E's twelve. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, and RW-E's row read the same way from the replay's arm: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |

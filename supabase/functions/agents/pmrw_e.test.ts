@@ -6,6 +6,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { accStress, accTotal, runPmrw, type RwState } from "./pmrw.ts";
 import { excludedByDay, newRweState, replayMinutes, runPmrwE, type RweState } from "./pmrw_e.ts";
+import { newRwxState, replayArms } from "./pmrw_x.ts";
 import { rweArmSummary, rwSummary, type RwMinuteRow, type RwSelRow } from "./pmrw_view.ts";
 import type { PmLevel } from "../_shared/polymarket_public.ts";
 import { memDb, type Row } from "./testing.ts";
@@ -151,6 +152,22 @@ Deno.test("the replay is RW itself in its rw arm, and RW-E in its e arm is the e
   assertEquals(st.diverged, []);
   // And they differ by exactly B: RW made money and lost it in B, RW-E never quoted it.
   assert(Math.abs(day.total - eDay.total) > 0.01);
+
+  // The variants' replay (pmrw_x.ts) with RW-E's rule as its one arm is this replay: the same accounts, the same days.
+  const specs = [{ id: "e", noSameDayFrom: Date.UTC(2026, 8, 27), from: Date.UTC(2026, 8, 27) }];
+  const sx = { ...newRwxState(specs), lastDecided: T0 - 60_000, dayOf: Date.UTC(2026, 8, 30) };
+  const outX = replayArms(sx, rwState.lastDecided, {
+    rows: rw.pm_rw_minutes as never, fills: rw.pm_rw_fills as never, prints: rw.pm_rw_prints as never, selection: rw.pm_rw_selection as never,
+    settlements: rw.pm_rw_settlements as never, rwDays: rw.pm_rw_days as never,
+  }, specs);
+  for (const arm of ["rw", "e"] as const) {
+    assertEquals(Object.keys(sx.arms[arm].acc).sort(), Object.keys(st.arms[arm].acc).sort());
+    for (const [c, a] of Object.entries(st.arms[arm].acc)) assertEquals(sx.arms[arm].acc[c], a, `${arm} ${c}`);
+    const dx = outX.days.find((d) => d.day === "2026-09-30" && d.arm === arm)!, de = out.days.find((d) => d.day === "2026-09-30" && d.arm === arm)!;
+    assertEquals([dx.total, dx.stress_total, dx.reward, dx.fills, dx.capital, dx.markets], [de.total, de.stress_total, de.reward, de.fills, de.capital, de.markets]);
+  }
+  assertEquals(sx.checkMaxUsd, st.checkMaxUsd);
+  assertEquals(sx.arms.e.diverged, []);
 });
 
 Deno.test("the driver replays only what RW has decided, writes both arms' days, and is idempotent run after run", async () => {

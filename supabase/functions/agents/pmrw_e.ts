@@ -73,18 +73,18 @@ export function excludedByDay(selection: RweSelRow[]): Map<string, Set<string>> 
 }
 
 /** A market's parameters for a minute: its row in the latest selection of that day or before. */
-function metaFor(selection: RweSelRow[], cond: string, t: number): RweSelRow | null {
+export function metaFor(selection: RweSelRow[], cond: string, t: number): RweSelRow | null {
   const day = dayStr(t);
   let best: RweSelRow | null = null;
   for (const s of selection) if (s.cond === cond && String(s.day).slice(0, 10) <= day && (!best || String(s.day) > String(best.day))) best = s;
   return best;
 }
 
-const bookRow = (r: RweMinuteRow): BookRow | null =>
+export const bookRow = (r: RweMinuteRow): BookRow | null =>
   r.bb === null || r.ba === null ? null : [Number(r.bb), Number(r.ba), num(r.ab), num(r.aa), Number(r.q1 ?? 0), Number(r.q2 ?? 0)];
 
 /** One recorded fill applied to a market's account, as `stepRw` applies it. */
-function applyFill(acc: Acc, f: { side: "bid" | "ask"; price: number; size: number }, tick: number) {
+export function applyFill(acc: Acc, f: { side: "bid" | "ask"; price: number; size: number }, tick: number) {
   const q = f.size, px = f.price;
   if (f.side === "bid") {
     acc.net += q; acc.cash -= q * px; acc.fills++; acc.fillShares += q; acc.tickCost += q * tick;

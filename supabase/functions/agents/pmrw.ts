@@ -138,9 +138,10 @@ export type RwDecision = { m: number; b: number; a: number; ours: number; others
 /**
  * One minute of RW for one quoting market: `run_market`'s loop body. `tSec` is the minute in Unix seconds; `prints` are
  * the market's prints in (t, t + 60 s], in RW's order. `tickWorse` and the reward multiplier exist for the replay of
- * RW's stress arm; the paper engine runs the rule as written and derives its stress from `tickCost`.
+ * RW's stress arm; the paper engine runs the rule as written and derives its stress from `tickCost`. `invCap` is RW's
+ * 3N unless a variant replayed beside RW (pmrw_x.ts) sets its own: RW's engine and RW-E's replay never pass it.
  */
-export function stepRw(acc: Acc, tSec: number, row: BookRow | null, tick: number, v: number, rate: number, N: number, prints: PmPrint[], tickWorse = 0): { decision: RwDecision | null; fills: RwFill[] } {
+export function stepRw(acc: Acc, tSec: number, row: BookRow | null, tick: number, v: number, rate: number, N: number, prints: PmPrint[], tickWorse = 0, invCap = RW_INV_CAP): { decision: RwDecision | null; fills: RwFill[] } {
   const q = row ? quote(row, tick) : null;
   if (!q) return { decision: null, fills: [] };
   const { m, b, a, q1, q2 } = q;
@@ -148,7 +149,7 @@ export function stepRw(acc: Acc, tSec: number, row: BookRow | null, tick: number
   acc.lastAb = row![2]; acc.lastAa = row![3];
   acc.quotedMinutes++;
   if (acc.firstCap === null) acc.firstCap = N * (b + 1 - a);
-  const qb = acc.net < RW_INV_CAP * N, qa = acc.net > -RW_INV_CAP * N;
+  const qb = acc.net < invCap * N, qa = acc.net > -invCap * N;
   const ours = Math.min(qb ? scoreS(v, (m - b) * 100) * N : 0, qa ? scoreS(v, (a - m) * 100) * N : 0);
   const others = othersOf(m, q1, q2);
   let r = 0;

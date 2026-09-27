@@ -104,6 +104,7 @@ import { runPmrw, runPmrwSelect } from "./pmrw.ts";
 import { rweArmSummary, rweSummary, rwSummary, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE } from "./pmrw_e.ts";
+import { parseRwxSpecs, researchRwx } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -1279,6 +1280,12 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.
+    if (action === "pmrw-x-research" && req.method === "POST" && operator) {
+      const body = await req.json().catch(() => null);
+      const until = typeof body?.until === "string" ? Date.parse(body.until) : NaN;
+      return json(200, await researchRwx(db(), parseRwxSpecs(body), Number.isFinite(until) ? until : undefined));
+    }
     if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
     // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
     if (action === "views" && req.method === "POST" && operator) {

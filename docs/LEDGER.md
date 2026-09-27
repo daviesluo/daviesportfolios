@@ -307,6 +307,13 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-27 18:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies asked for RW-E's three ways to cut its stress to be studied, and the ones worth it tracked as TESTING rows the way RW-E is: (a) a smaller inventory cap, (b) no quotes once a market is being decided, (c) which markets to pick. The research tool is built.**
+- `agents/pmrw_x.ts`: RW-E's replay with any number of arms — RW-E's own rule, an inventory cap below RW's 3N (`stepRw`'s new `invCap`, RW's 3 by default, which RW and RW-E never pass), a pause after the adjusted mid jumps, categories left out. An arm with RW-E's rule reproduces RW-E account for account on the engine's own record (pinned in `pmrw_e.test.ts`). `agents?action=pmrw-x-research` (operator only) runs arms over RW's days before RW-E's twelve and never past 2026-09-27 00:00, so a variant is chosen on days RW-E's pre-registration already read and frozen before any minute it is judged on.
+- (c) first read, RW's own per-market accounts at the 09-26 close, markets that do not end the day they are chosen: culture +$104.21 (stress +$25.80, 8 markets), politics +$76.03 (+$36.12, 4), economics +$16.53 (+$0.66, 1), weather +$3.88 (−$13.46, 2) — the temperature markets lose even when they end a day or more later.
+- Davies on usage: a sub-agent's step costs about what the main session's does (24 h to 17:50 UTC: 391k cached input tokens a step against the main session's 453k); the spend came from how much ran — eleven sub-agents, 2,219 steps, often at once, against 1,283 main-session steps. His rule: do the work in the main session unless a task really suits a sub-agent (not a ban).
+
 ### [2026-09-27 17:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The one-minute job held (38 minutes, no split batch, the latest batch 0.68 s into its minute; the 17:00 hourly bar decided at 17:00:04), and Davies turned PMLATE's line back to what he asked for: harvesting after a result is confirmed. HARVEST phase 1 runs (item 5g).**
