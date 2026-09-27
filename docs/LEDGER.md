@@ -352,6 +352,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-27 22:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The TESTING review's one defect, fixed: a minute that began before a probe (or a resting paper order) was written no longer fills it.**
+- `tradedThrough` takes the time the order or probe was written; both callers pass their row's `ts`. Probes 15 and 17 had been resolved on the minute they were written in (about 4.6 s into it). `0068` corrects them from Revolut X's public UK candles: 15 filled at 10:01 (2 min), 17 at 08:38 (39 min), marks cleared as `0050` did. Dry-run on production first (one row each). Pinned in `tick.test.ts`; both new pins fail with the check removed, and one older pin that had leaned on the defect now reads the right minute. Reference §4 item 41.
+
 ### [2026-09-27 21:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: `trend-1h` and `momentum-1d` at $1,000 too, "所有数字全部乘2.5", to compare with Trend 4h.**

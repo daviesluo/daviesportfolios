@@ -257,7 +257,9 @@ Deno.test("the state on the forming bar is an observation, written when it chang
   assertEquals([obs[0].strategy_id, obs[0].symbol], ["trend-4h-kraken", "BTC/USD"]);
   assertEquals((obs[0].state as { trend_4h: string }).trend_4h, "up");
   assertEquals(obs[0].bar_start, new Date(Math.floor(NOW / FOUR_H) * FOUR_H).toISOString());    // the FORMING bar, not the closed one
-  // A minute later the resting bid has filled: the position is long, and that IS a change worth a row.
+  // A minute later the resting bid has filled: the position is long, and that IS a change worth a row. The minute that
+  // fills it is the one that began as it was written, closed by then; the one before it proves nothing about it.
+  w.c1m.push({ ...w.c1m[0], start: NOW });
   const r2 = await tick({ ...w.deps, now: NOW + ONE_M });
   assertEquals(r2.settled.map((x) => x.state), ["filled"]);
   assertEquals(r2.observations, 1);
@@ -1033,17 +1035,18 @@ Deno.test("the execution venue's minute candle is fetched only where a paper ord
 // back, and where price went after it did. It must never become an order or reach any book.
 
 Deno.test("tradedThrough: a resting order fills only when a trade went strictly through it", () => {
+  // Every minute here starts at 0 and every order was written at 0, so each is judged on the whole minute.
   const c = (low: number, high: number, volume = 1): Candle => ({ start: 0, open: low, high, low, close: high, volume });
-  assert(tradedThrough("buy", 100, c(99.5, 101)));          // a trade below the bid: the level was swept
-  assert(!tradedThrough("buy", 100, c(100, 101)));          // a print AT the bid fills the queue ahead, not an order that joined it
-  assert(!tradedThrough("buy", 100, c(100.1, 101)));        // never came back
-  assert(tradedThrough("sell", 100, c(99, 100.5)));
-  assert(!tradedThrough("sell", 100, c(99, 100)));
-  assert(!tradedThrough("sell", 100, c(98, 99.9)));
-  assertEquals(tradedThrough("buy", 100, null), false);     // no minute candle is not a fill
+  assert(tradedThrough("buy", 100, c(99.5, 101), 0));          // a trade below the bid: the level was swept
+  assert(!tradedThrough("buy", 100, c(100, 101), 0));          // a print AT the bid fills the queue ahead, not an order that joined it
+  assert(!tradedThrough("buy", 100, c(100.1, 101), 0));        // never came back
+  assert(tradedThrough("sell", 100, c(99, 100.5), 0));
+  assert(!tradedThrough("sell", 100, c(99, 100), 0));
+  assert(!tradedThrough("sell", 100, c(98, 99.9), 0));
+  assertEquals(tradedThrough("buy", 100, null, 0), false);     // no minute candle is not a fill
   // A minute with no volume is built from quotes: it can move, and it proves nothing.
-  assert(!tradedThrough("buy", 100, c(99, 101, 0)));
-  assert(!tradedThrough("sell", 100, c(99, 101, 0)));
+  assert(!tradedThrough("buy", 100, c(99, 101, 0), 0));
+  assert(!tradedThrough("sell", 100, c(99, 101, 0), 0));
 });
 
 Deno.test("tradedThrough: none of the three probes the loop resolved on 2026-09-22 was proven by a trade", () => {
@@ -1051,13 +1054,65 @@ Deno.test("tradedThrough: none of the three probes the loop resolved on 2026-09-
   // the venue's public candles on 2026-09-23. Each has zero volume. The first trade through each
   // probe's price came 8, 43 and 7 minutes after it was written, not 1, 3 and 1 (reference §3.26).
   const m = (open: number, high: number, low: number, close: number, volume: number): Candle => ({ start: 0, open, high, low, close, volume });
-  assert(!tradedThrough("sell", 85675.99, m(85687.86, 85687.86, 85687.86, 85687.86, 0)));   // BTC/USD 04:00: flat at the last print
-  assert(!tradedThrough("sell", 2729.96, m(2730.76, 2731.83, 2727.41, 2728.63, 0)));         // ETH/USD 05:02: moved on quotes
-  assert(!tradedThrough("sell", 116.319, m(116.304, 116.394, 116.223, 116.335, 0)));         // SOL/USD 08:00: moved on quotes
+  assert(!tradedThrough("sell", 85675.99, m(85687.86, 85687.86, 85687.86, 85687.86, 0), 0));   // BTC/USD 04:00: flat at the last print
+  assert(!tradedThrough("sell", 2729.96, m(2730.76, 2731.83, 2727.41, 2728.63, 0), 0));         // ETH/USD 05:02: moved on quotes
+  assert(!tradedThrough("sell", 116.319, m(116.304, 116.394, 116.223, 116.335, 0), 0));         // SOL/USD 08:00: moved on quotes
   // …and the minutes that did prove each one.
-  assert(tradedThrough("sell", 85675.99, m(85672.39, 85681.96, 85652.8, 85654.27, 0.02914424)));   // BTC/USD 04:07
-  assert(tradedThrough("sell", 2729.96, m(2731.28, 2733.23, 2730.94, 2731.41, 0.0549167)));          // ETH/USD 05:42
-  assert(tradedThrough("sell", 116.319, m(116.327, 116.396, 116.291, 116.396, 39.801196)));         // SOL/USD 08:06
+  assert(tradedThrough("sell", 85675.99, m(85672.39, 85681.96, 85652.8, 85654.27, 0.02914424), 0));   // BTC/USD 04:07
+  assert(tradedThrough("sell", 2729.96, m(2731.28, 2733.23, 2730.94, 2731.41, 0.0549167), 0));          // ETH/USD 05:42
+  assert(tradedThrough("sell", 116.319, m(116.327, 116.396, 116.291, 116.396, 39.801196), 0));         // SOL/USD 08:06
+});
+
+Deno.test("tradedThrough: the minute an order was written in never decides it — probes 15 and 17", () => {
+  // Revolut X's UK SOL/USD minutes, read back from the venue's public candles on 2026-09-27. Both probes
+  // were written about 4.6 s into a minute that traded through their price, and the next turn read that
+  // minute back and called them filled after "1 minute". A candle cannot say whether those prints came
+  // before the probe existed. The first minute that began after each did, and traded through, is the
+  // fill: 10:01 for 15 (2 minutes), 08:38 for 17 (39 minutes; `0068`).
+  const opened15 = Date.parse("2026-09-26T10:00:04.597Z"), opened17 = Date.parse("2026-09-27T08:00:04.696Z");
+  const m = (start: string, open: number, high: number, low: number, close: number, volume: number): Candle =>
+    ({ start: Date.parse(start), open, high, low, close, volume });
+  const at1000 = m("2026-09-26T10:00:00Z", 119.974, 120.005, 119.93, 120.005, 0.124995);
+  const at0800 = m("2026-09-27T08:00:00Z", 124.38, 124.42, 124.11, 124.11, 7.515224);
+  assert(!tradedThrough("sell", 119.992, at1000, opened15));   // high 120.005 is through 119.992, but it may have come first
+  assert(!tradedThrough("buy", 124.143, at0800, opened17));    // low 124.11 is through 124.143, likewise
+  // The same minutes decide an order written as they began: every print in them came after it.
+  assert(tradedThrough("sell", 119.992, at1000, at1000.start));
+  assert(tradedThrough("buy", 124.143, at0800, at0800.start));
+  // …and the minutes that did prove each one.
+  assert(tradedThrough("sell", 119.992, m("2026-09-26T10:01:00Z", 120.01, 120.026, 120.01, 120.026, 0.499929), opened15));
+  assert(tradedThrough("buy", 124.143, m("2026-09-27T08:38:00Z", 124.117, 124.117, 124.117, 124.117, 0.186692), opened17));
+});
+
+Deno.test("the minute an order or a probe was written in fills neither, and the next one can", async () => {
+  // The same rule at both call sites: a resting paper order and a maker probe, each written 4.6 s into the minute the
+  // turn reads back as its last closed one, which traded through both prices.
+  const w0 = world();
+  const minute = w0.c1m[0].start;
+  const bid = w0.quote.bid;
+  const through = { low: bid - 1, high: bid + 1, volume: 1 };
+  const at = (ms: number) => new Date(ms).toISOString();
+  const order = (ts: number) => seedOrder({ ts: at(ts), price: bid, decision_id: 77 });
+  const probe = (ts: number) => ({
+    id: 7, ts: at(ts), strategy_id: "trend-4h-kraken", order_id: null,
+    venue: "kraken", symbol: "BTC/USD", side: "buy", mode: "paper", taker_price: bid + 1, maker_price: bid,
+    base_size: 0.1, state: "resting", resolved_at: null, minutes_to_fill: null, mark_at_resolve: null,
+    follow_up: {}, expires_at: at(NOW + PROBE_TTL_MS), watching: true,
+  });
+  const late = world({ orders: [order(minute + 4_600)], probes: [probe(minute + 4_600)], oneMin: through });
+  const r = await tick(late.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.settled, []);
+  assertEquals(late.mem.tables.agent_orders[0].state, "new");
+  assertEquals([r.probes.filled, r.probes.expired], [0, 0]);
+  assertEquals(late.mem.tables.agent_maker_probes[0].state, "resting");
+
+  // Written as that minute began, both were resting through all of it: filled.
+  const onTime = world({ orders: [order(minute)], probes: [probe(minute)], oneMin: through });
+  const r2 = await tick(onTime.deps);
+  assertEquals(r2.errors, []);
+  assertEquals(r2.settled, [{ id: 1, state: "filled" }]);
+  assertEquals(r2.probes.filled, 1);
 });
 
 Deno.test("probeFollowUpDue: the earliest outstanding offset, one per turn, and nothing before it is due", () => {

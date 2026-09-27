@@ -471,9 +471,10 @@ export type ProbeRow = {
 
 /**
  * Did a TRADE prove that an order resting at `price` would have filled in this minute? The
- * minute must have traded (volume > 0) and gone strictly THROUGH the price — below a bid,
- * above an ask. One test for a resting paper order and a maker probe alike, against the
- * execution venue's own last closed minute.
+ * minute must have traded (volume > 0), gone strictly THROUGH the price — below a bid,
+ * above an ask — and begun no earlier than the order was written (`openedMs`). One test for
+ * a resting paper order and a maker probe alike, against the execution venue's own last
+ * closed minute.
  *
  * Both halves are measured (reference §3.26). Revolut X's UK 1-minute candles are built
  * from QUOTES while nothing trades: on the coins this loop trades 59–96 % of minutes carry
@@ -482,9 +483,16 @@ export type ProbeRow = {
  * minute. And a print AT the price fills the queue ahead of an order that joined the
  * touch, not the order. What is left leans optimistic, never the other way: a traded
  * minute's extreme can still be a quote.
+ *
+ * The minute's start is checked because a candle cannot say when inside it a print came.
+ * The loop writes an order a few seconds into its minute and reads that same minute back
+ * as the last closed one on the next turn, so a print in those first seconds would fill an
+ * order that did not exist yet. Probes 15 and 17 were resolved that way (`0068`). The
+ * minute an order is written in never decides it: that can miss a fill in its last
+ * seconds, and can no longer invent one from its first.
  */
-export function tradedThrough(side: "buy" | "sell", price: number, c: Candle | null): boolean {
-  if (!c || !(c.volume > 0)) return false;
+export function tradedThrough(side: "buy" | "sell", price: number, c: Candle | null, openedMs: number): boolean {
+  if (!c || !(c.volume > 0) || c.start < openedMs) return false;
   return side === "buy" ? c.low < price : c.high > price;
 }
 
@@ -889,7 +897,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       if (o.mode === "paper") {
         const c = m?.c1m;
         // A marketable order fills at its price at once; a resting one when a trade in the last minute went through it.
-        const hit = marketable || tradedThrough(o.side, Number(o.price), c ?? null);
+        const hit = marketable || tradedThrough(o.side, Number(o.price), c ?? null, Date.parse(o.ts));
         if (hit) {
           const bps = marketable ? (venue?.feeBps.taker ?? 0) : (venue?.feeBps.maker ?? 0);
           const fee = paperFeeUsd(Number(o.base_size), Number(o.price), { maker: bps });
@@ -966,7 +974,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       if (p.state === "resting") {
         const maker = Number(p.maker_price);
         const startedMs = Date.parse(p.ts);
-        if (tradedThrough(p.side, maker, m?.c1m ?? null)) {
+        if (tradedThrough(p.side, maker, m?.c1m ?? null, startedMs)) {
           await d.db.update("agent_maker_probes", `id=eq.${p.id}`, {
             state: "filled", resolved_at: nowIso, mark_at_resolve: m?.mark ?? null,
             minutes_to_fill: Math.max(0, Math.round((d.now - startedMs) / ONE_M)),
