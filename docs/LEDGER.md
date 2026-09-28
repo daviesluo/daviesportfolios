@@ -366,6 +366,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**R3: every maker probe now records the id of the order it shadows.**
+- The column existed since `0042` and was always null. MX-1 needs it to group probes by decision, drop floor exits and IOC attempts that never filled, and take the fill price from the order, never the IOC limit (review M3/M4). Reference §4 item 44. MX-1 is frozen only after a production probe shows the id.
+
 ### [2026-09-28 00:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **JEV-DRIFT checks the question, the caution and the transport too, as the review asked (J1, J4, J5).**

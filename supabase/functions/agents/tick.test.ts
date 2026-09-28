@@ -1135,14 +1135,27 @@ Deno.test("a marketable Revolut X order opens a probe at the OTHER side's touch,
   assertEquals(r.probes.opened, 1);
   const p = w.mem.tables.agent_maker_probes[0] as Row;
   assertEquals([p.venue, p.symbol, p.side, p.state, p.watching], ["revx", "BTC/USD", "buy", "resting", true]);
-  // The order crossed to the ask; the probe records the bid it would have rested at instead.
+  // The order crossed to the ask; the probe records the bid it would have rested at instead, and which order it shadows.
   assertEquals(p.taker_price, w.mem.tables.agent_orders[0].price);
+  assertEquals(p.order_id, w.mem.tables.agent_orders[0].id);
+  assert(typeof p.order_id === "number");
   assertEquals(p.maker_price, w.revxQuote.bid);
   assert(Number(p.maker_price) < Number(p.taker_price), `${p.maker_price} !< ${p.taker_price}`);
   assertEquals(p.expires_at, new Date(NOW + PROBE_TTL_MS).toISOString());
   // It is a notebook, not an order: one order on record, and the venue was never asked twice.
   assertEquals(w.mem.tables.agent_orders.length, 1);
   assert(!w.revx.calls.some((c) => c.startsWith("place")));
+});
+
+Deno.test("a live marketable order's probe names that order, the row written before the venue was called (R3)", async () => {
+  const w = world({ strategies: [strategy({ id: "trend-4h", venue: "revx", signal_venue: "kraken", mode: "live" })],
+    risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, revxCanTrade: true, revxBalances: { USD: 80 } });
+  const r = await tick(w.deps);
+  assertEquals(r.errors, []);
+  assertEquals(r.probes.opened, 1);
+  const [o] = w.mem.tables.agent_orders;
+  const p = w.mem.tables.agent_maker_probes[0] as Row;
+  assertEquals([o.mode, p.mode, p.order_id], ["live", "live", o.id]);
 });
 
 Deno.test("a resting probe resolves against the minute: filled when the market came back, expired when it did not", async () => {

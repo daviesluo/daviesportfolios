@@ -1343,6 +1343,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       report.errors.push(`${s.id}|${sym}: order has no decision id and so no claim under 0041; nothing placed`);
       return;
     }
+    // The order's own id, for its maker probe (`order_id`): the probe is then read against the order it shadows — its
+    // decision, its fill and its price — by key, not by matching timestamps (MX-1, R3).
+    let orderId: number | null = null;
     if (mode === "live") {
       if (!(await holdLease(`a live order on ${s.id}|${sym}`))) { report.errors.push(`${s.id}|${sym}: live order not placed — the lease is lost`); return; }
       // The confirmation is a gate on RISK, not on the exits. Clearing `live_confirmed_at` is the documented way to
@@ -1356,6 +1359,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       const inserted = await insertOrder({ ...row, request: requestNow(), state: "pending" }, true);
       if (!inserted) return;
       const [pending] = inserted;
+      orderId = pending.id;
       let placed: Awaited<ReturnType<Venue["placeLimit"]>>;
       try { placed = await venue.placeLimit({ clientOrderId: client_order_id, symbol: sym, side, base, price: priceStr, marketable }); }
       catch (e) {
@@ -1392,7 +1396,9 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
       await d.db.update("agent_orders", `id=eq.${pending.id}`, { state: "new", venue_order_id: placed.venueOrderId, response: { ...replied, placedState: placed.state }, updated_at: nowIso });
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: placed.state === "filled" ? "new (filled on arrival; settles next turn)" : placed.state });
     } else {
-      if (!(await insertOrder({ ...row, request: requestNow() }, false))) return;
+      const inserted = await insertOrder({ ...row, request: requestNow() }, true);
+      if (!inserted) return;
+      orderId = inserted[0]?.id ?? null;
       report.orders.push({ strategy: s.id, venue: s.venue, symbol: sym, mode, side, price, base: Number(base), state: "new" });
     }
     ordersToday[bucket] = (ordersToday[bucket] ?? 0) + 1;
@@ -1408,7 +1414,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     if (marketable && pq) {
       try {
         await d.db.insert("agent_maker_probes", {
-          strategy_id: s.id, order_id: null, venue: s.venue, symbol: sym, mode, side,
+          strategy_id: s.id, order_id: orderId, venue: s.venue, symbol: sym, mode, side,
           taker_price: Number(priceStr), maker_price: side === "buy" ? pq.bid : pq.ask,
           base_size: Number(base), expires_at: new Date(d.now + PROBE_TTL_MS).toISOString(),
           // Written out rather than left to the column defaults: the starting state of a probe
