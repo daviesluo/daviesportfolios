@@ -1213,6 +1213,41 @@ async function run() {
     const later = await legendEnds('+5.04%');
     if (later?.endsWith('+5.04%')) ok(S('minute'), `ninety seconds on, the app's refresh brings the futures' new print in: ${later}`);
     else fail(S('minute'), `ninety seconds on the futures read "${later}", wanted +5.04 %`);
+    // 1W the same (Davies, 2026-09-28): the book to the current minute, the futures to their last print, and the
+    // futures asked for again after a minute, not after its fifteen.
+    await page.locator('.perf-range-btn:visible:text-is("1W")').first().click().catch(() => {});
+    const weekFirst = await legendEnds('+5.04%');
+    await page.waitForTimeout(300);
+    const wGeo = await page.evaluate(() => {
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      const svg = wrap?.querySelector('svg');
+      if (!svg) return null;
+      const pts = (p) => (p?.getAttribute('d') || '').replace(/^M/, '').split('L').filter(Boolean).map((q) => q.split(',').map(Number));
+      const book = pts([...svg.querySelectorAll('path')].find((n) => n.getAttribute('stroke-width') === '1.6' && !n.getAttribute('opacity')));
+      const bench = pts([...svg.querySelectorAll('path')].find((n) => n.getAttribute('stroke-width') === '1.2'));
+      const toScreen = ([x, y]) => {
+        const pt = svg.createSVGPoint();
+        pt.x = x; pt.y = y;
+        const m = svg.getScreenCTM();
+        const r = m ? pt.matrixTransform(m) : { x: 0, y: 0 };
+        return [r.x, r.y];
+      };
+      return { book: book.length, bench: bench.length, last: toScreen(book[book.length - 1] || [0, 0]), prev: toScreen(book[book.length - 2] || [0, 0]) };
+    });
+    const wEdge = wGeo ? await hoverAt(wGeo.last) : null;
+    const wPrint = wGeo ? await hoverAt(wGeo.prev) : null;
+    const wNow = await clockAt(NOW_MS + 90e3);
+    if (weekFirst?.endsWith('+5.04%') && wGeo && wGeo.book === wGeo.bench + 1 && wEdge && wEdge.time.endsWith(wNow) && wEdge.bench === null
+      && wPrint && wPrint.time.endsWith(printLabel) && wPrint.bench === '+5.04%') {
+      ok(S('1W'), `1W too: ${wGeo.book} points to the futures' ${wGeo.bench}, the right edge "${wEdge.time}" with no futures chip, a step left "${wPrint.time}" at +5.04%`);
+    } else fail(S('1W'), `1W: legend "${weekFirst}", points ${JSON.stringify(wGeo && { book: wGeo.book, bench: wGeo.bench })}, edge ${JSON.stringify(wEdge)}, print ${JSON.stringify(wPrint)}`);
+    await page.mouse.move(2, 2);
+    ES_LIVE = 1.02;                                    // 5000 → 5304: +6.08 %
+    await page.clock.setFixedTime(new Date(NOW_MS + 180e3));
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    const weekLater = await legendEnds('+6.08%');
+    if (weekLater?.endsWith('+6.08%')) ok(S('1W-minute'), `on 1W, ninety seconds on, the futures' new print comes in: ${weekLater}`);
+    else fail(S('1W-minute'), `on 1W ninety seconds on the futures read "${weekLater}", wanted +6.08 %`);
     ES_LIVE = 0;
     await ctx.close();
   }

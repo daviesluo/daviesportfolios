@@ -198,13 +198,13 @@ Changing any of these means re-opening a decision he has already made.
   in (steps, not spikes). The legend shows each line's move over the
   window as a %, not a "gain" figure. Axes, grid and crosshair match
   the other chart.
-- 24H's right edge is the current minute for the book, at live prices,
+- 24H's and 1W's right edge is the current minute for the book, at live prices,
   and the benchmark's last print for the benchmark (`liveEdgeDate`).
   Yahoo carries ES=F on CME's delayed feed, ten minutes late (measured
   2026-09-28), so while the futures trade their line ends short of
   the book's. Don't stretch the benchmark to now or re-date its last
   bar, and don't let the book's live point sit at the benchmark's
-  time. The benchmark is re-fetched every minute on 24H.
+  time. The benchmark is re-fetched every minute on 24H and 1W.
 - On 1W / 1M / 3M / YTD, overlay 5-minute snapshots onto the vs-S&P
   timestamp grid. Do not concatenate them: index spacing gives every
   point equal width, so a day of 5-minute samples stretched "today"

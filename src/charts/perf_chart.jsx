@@ -82,34 +82,42 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
   return fetchParamsFor(rangeKey, extendedHours, phase);
 }
 
-// The 24H window's live edge (Davies, 2026-09-28: the panel "runs about
-// ten minutes behind real time"). Its x grid is the benchmark's bars, and
-// the futures reach us ten minutes late: Yahoo carries CME prices on the
-// exchange's delayed feed (measured 2026-09-28 04:47:20 UTC: the newest
-// ES=F minute bar was 04:37:18). The book's prices are live, so it gets a
-// point of its own at the current minute, valued at those prices, and the
-// benchmark's line ends at its last print instead of being drawn as if it
-// were now. Only while that print is recent, i.e. the benchmark is
-// trading: after a close the last bar stays the right edge, valued live,
-// as before. Returns the minute (`YYYY-MM-DDTHH:MM`, UTC, as the 24H bars
-// are dated) or null.
+// The intraday windows' live edge (Davies, 2026-09-28: the panel "runs
+// about ten minutes behind real time", on 24H and on 1W). Their x grid is
+// the benchmark's bars, and the futures reach us ten minutes late: Yahoo
+// carries CME prices on the exchange's delayed feed (measured 2026-09-28
+// 04:47:20 UTC: the newest ES=F minute bar was 04:37:18). The book's
+// prices are live, so it gets a point of its own at the current minute,
+// valued at those prices, and the benchmark's line ends at its last print
+// instead of being drawn as if it were now. Only while that print is
+// recent, i.e. the benchmark is trading: after a close the last bar stays
+// the right edge, valued live, as before. "Recent" is a bar's length plus
+// the feed's ten minutes, with room: 20 minutes on 24H's 5-minute bars, 35
+// on 1W's 15-minute ones. Returns the minute (`YYYY-MM-DDTHH:MM`, UTC, as
+// intraday bars are dated) or null; the daily ranges never have one.
 export const LIVE_EDGE_MIN_MS = 60 * 1000;
-export const LIVE_EDGE_MAX_MS = 20 * 60 * 1000;
+export const LIVE_EDGE_MAX_MS = { '1D': 20 * 60 * 1000, '1W': 35 * 60 * 1000 };
 export function liveEdgeDate(rangeKey, lastBarDate, nowMs) {
-  if (rangeKey !== '1D' || typeof lastBarDate !== 'string' || !Number.isFinite(nowMs)) return null;
+  const maxGap = LIVE_EDGE_MAX_MS[/** @type {'1D' | '1W'} */ (rangeKey)];
+  if (!maxGap || typeof lastBarDate !== 'string' || !Number.isFinite(nowMs)) return null;
   const last = parseChartDateUTC(lastBarDate).getTime();
   if (!Number.isFinite(last)) return null;
   const nowMin = Math.floor(nowMs / 60000) * 60000;
   const gap = nowMin - last;
-  if (gap < LIVE_EDGE_MIN_MS || gap > LIVE_EDGE_MAX_MS) return null;
+  if (gap < LIVE_EDGE_MIN_MS || gap > maxGap) return null;
   return new Date(nowMin).toISOString().slice(0, 16);
 }
 
-// How old the benchmark's bars may get on the 24H window before a refresh
-// asks for them again: a minute, where the holdings' keep the window's
-// TTL. The benchmark is the axis, and at five minutes a futures line
-// already ten minutes late fell up to fifteen behind.
+// How old the benchmark's bars may get on 24H and 1W before they are asked
+// for again, by a refresh or by opening the window: a minute, where the
+// holdings' keep the window's TTL. The benchmark is the axis, and at five
+// minutes (fifteen on 1W) a futures line already ten minutes late fell
+// further behind still.
 export const LIVE_BENCH_TTL_MS = 60 * 1000;
+export function perfMaxAgeMs(rangeKey, sym, spSymbol) {
+  const ttl = PERF_CACHE_TTL_MS[/** @type {keyof typeof PERF_CACHE_TTL_MS} */ (rangeKey)] || PERF_CACHE_TTL_MS.YTD;
+  return (rangeKey === '1D' || rangeKey === '1W') && sym === spSymbol ? Math.min(ttl, LIVE_BENCH_TTL_MS) : ttl;
+}
 
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
@@ -398,7 +406,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const stale = [];
     for (const s of symbols) {
       const e = entries[s];
-      const fresh = e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < ttl;
+      const fresh = e && e.data && Array.isArray(e.data) && (Date.now() - (e.ts || 0)) < perfMaxAgeMs(rangeKey, s, spSymbol);
       if (!fresh) stale.push(s);
     }
 
@@ -559,13 +567,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const year = new Date().getFullYear();
     const symbols = [spSymbol, ...tickers];
     const params = perfFetchParams(rangeKey, extendedHours, phase);
-    const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
     const cacheKey = `${rangeKey}:${variantKey}`;
     const entries = loadPerfCache(year, cacheKey);
     const stale = symbols.filter((sym) => {
       const e = entries[sym];
-      const maxAge = rangeKey === '1D' && sym === spSymbol ? LIVE_BENCH_TTL_MS : ttl;
-      return force || !(e && Array.isArray(e.data) && now - (e.ts || 0) < maxAge);
+      return force || !(e && Array.isArray(e.data) && now - (e.ts || 0) < perfMaxAgeMs(rangeKey, sym, spSymbol));
     });
     if (stale.length === 0) return;
     refreshingRef.current = true;

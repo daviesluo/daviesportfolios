@@ -340,6 +340,28 @@ describe('PerfChart at the live edge', () => {
       expect(x[3]).toBeGreaterThan(x[2]);                 // one step to the right of the benchmark's last print
     } finally { clock.mockRestore(); }
   });
+  it('does the same on 1W, and asks for the benchmark again after a minute there too', async () => {
+    // 1W's window is cut from the calendar (`anchorDateFor`, which reads `new Date()`), so the whole Date is faked here,
+    // not just Date.now; the timers stay real.
+    const t0 = Date.parse(`${DAY}T19:40:30Z`);
+    vi.useFakeTimers({ toFake: ['Date'], now: t0 });
+    try {
+      const view = render(chart({ portfolio: LIVE, refreshedAt: t0, rangeKey: '1W' }));
+      await flush();
+      await answer('sp');
+      await answer('tickers');
+      ctl.batches.length = 0;                             // the other ranges' warm-up
+      const c = view.container;
+      expect(legend(c)).toEqual(['PORTFOLIO+25.00%', 'S&P 500+4.00%']);
+      expect(portY(c)).toHaveLength(4);
+      expect(spY(c)).toHaveLength(3);
+      // Seventy seconds on, the benchmark alone is past its minute; the holdings' fifteen are not.
+      vi.setSystemTime(t0 + 70e3);
+      view.rerender(chart({ portfolio: LIVE, refreshedAt: t0 + 70e3, rangeKey: '1W' }));
+      await flush();
+      expect(ctl.batches.map((b) => b.symbols.join(','))).toEqual(['^GSPC']);
+    } finally { vi.useRealTimers(); }
+  });
   it('adds no point once the benchmark has stopped trading: its last bar stays the right edge, valued live', async () => {
     const t0 = Date.parse(`${DAY}T23:00:00Z`);          // 3½ hours after the last bar
     const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);

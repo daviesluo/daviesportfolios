@@ -130,14 +130,21 @@ describe('liveEdgeDate — the 24H book reaches the current minute while the ben
     expect(liveEdgeDate('1D', '2026-09-28T04:37', at('04:47:20'))).toBe('2026-09-28T04:47');
     expect(liveEdgeDate('1D', '2026-09-28T04:46', at('04:47:00'))).toBe('2026-09-28T04:47');   // a minute behind
   });
+  it("1W too (Davies, 2026-09-28): its bars are fifteen minutes, so a print up to 35 minutes old is still trading", () => {
+    expect(liveEdgeDate('1W', '2026-09-28T04:37', at('04:47:20'))).toBe('2026-09-28T04:47');
+    expect(liveEdgeDate('1W', '2026-09-28T04:15', at('04:47:20'))).toBe('2026-09-28T04:47');   // 32 min
+    expect(liveEdgeDate('1W', '2026-09-28T04:12', at('04:47:20'))).toBe('2026-09-28T04:47');   // 35 min: still
+    expect(liveEdgeDate('1W', '2026-09-28T04:11', at('04:47:20'))).toBe(null);                  // 36 min: not trading
+    expect(LIVE_EDGE_MAX_MS['1W']).toBe(35 * 60 * 1000);
+  });
   it('adds nothing inside the same minute, after a close, or on any other window', () => {
     expect(liveEdgeDate('1D', '2026-09-28T04:47', at('04:47:59'))).toBe(null);                  // same minute
     expect(liveEdgeDate('1D', '2026-09-28T04:47', at('04:46:00'))).toBe(null);                  // a bar ahead of the clock
     expect(liveEdgeDate('1D', '2026-09-28T04:26', at('04:47:00'))).toBe(null);                  // 21 min: not trading
     expect(liveEdgeDate('1D', '2026-09-28T04:27', at('04:47:00'))).toBe('2026-09-28T04:47');   // 20 min: still
-    expect(LIVE_EDGE_MAX_MS).toBe(20 * 60 * 1000);
-    expect(liveEdgeDate('1W', '2026-09-28T04:37', at('04:47:20'))).toBe(null);
+    expect(LIVE_EDGE_MAX_MS['1D']).toBe(20 * 60 * 1000);
     expect(liveEdgeDate('YTD', '2026-09-27', at('04:47:20'))).toBe(null);
+    expect(liveEdgeDate('1M', '2026-09-28T04:00', at('04:47:20'))).toBe(null);
     expect(liveEdgeDate('1D', undefined, at('04:47:20'))).toBe(null);
     expect(liveEdgeDate('1D', 'not a date', at('04:47:20'))).toBe(null);
   });
