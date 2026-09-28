@@ -157,9 +157,17 @@ closed bar it asks its rulebook what to do.
 - **What didn't work is written down with numbers**: anything faster
   than 1-hour bars (fees eat it), arbitrage between the two exchanges
   (the gap never covers the fee), and real money on Kraken (its fees).
-- **Paper first.** All three strategies are paper today. A live order
+- **Paper first, then small.** Every rule runs on paper before it
+  touches money. One has so far: trend following on 4-hour bars over
+  BTC, ETH, SOL and AVAX, live since 24 September 2026 on a small
+  account, with its paper twin beside it as the control. A live order
   needs the row switched to live, a confirmation in the database, the
   risk gate's approval and my go-ahead.
+- **Tests with a bar written first.** Beside the loop, three ideas run
+  on paper, each judged against a pre-registration frozen before its
+  first day: resting quotes either side of interbank on Revolut X's GBP
+  stablecoin books, a denser variant of the same, and quotes for
+  Polymarket's liquidity rewards.
 
 The evidence is in [`docs/agents/reference.md`](agents/reference.md),
 the case for the first live strategy in
@@ -171,7 +179,7 @@ the case for the first live strategy in
 |---|---|
 | `src/` | The web app, an npm project of its own, in folders by what each part does: `app/` (startup, sign-in, shared styles), `portfolio/`, `prices/`, `charts/`, `board/` (the home page), `tables/` and `agents/`, with each file's tests beside it and the browser tests in `e2e/`. |
 | `src/public/` | Static files copied into the build: Cloudflare's `_headers` and `robots.txt`. |
-| `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error` and `agents`, plus `_shared/`. Each has its tests beside it. |
+| `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error`, `agents` and `weather`, plus `_shared/`. Each has its tests beside it. |
 | `supabase/migrations/` | The database schema, applied by CI in order. |
 | `dist/` | The built site. Committed, and served as it is by Cloudflare Pages. |
 | `bin/` | `setup.sh` for a new clone, `gates.sh` for every check CI runs, `knip-edge.sh` for the Edge Functions' dead-code check, and the ledger's commit hook. |

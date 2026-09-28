@@ -171,6 +171,15 @@ list stays the short version; the plan is the reasoning behind it.
        (the file's fallback; under 21 days it is reported, not judged).
      - Expect the governor to bind: on Yahoo's GBP/USD every key reached 600 POSTs on each fresh weekday, from 14:49
        UTC, and the paired gain there was +$0.28 a day against the 28 days' +$0.64.
+   - **Faster GBP/USD and more keys** (Davies, 2026-09-28: "拿到最快的最好吧？…api调用频率限制更高的"). A research
+     branch in this session's worktree measures what a sub-minute X is worth on Dukascopy's keyless ticks over the
+     study's days (X from minute bars down to single ticks; 4, 8 and 16 keys and ungoverned; at most three POST-cutting
+     re-price rules declared before they run; the books' ceiling), and surveys live sources, with Trading 212 and
+     Finnhub added at his word. The site already holds `FINNHUB_API_KEY` (the `fundamentals` fallback): if Finnhub's
+     free tier has a sub-minute GBP/USD endpoint, the main session measures it through a read-only probe with that key,
+     never from a research container. If this session ends before the branch is integrated, it is lost with the
+     container: re-run it from this brief. It reads nothing of PR5's, PR5V's or QUEUE's records; its answer goes to
+     Davies, and any configuration it suggests needs a pre-registration of its own.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -383,10 +392,18 @@ list stays the short version; the plan is the reasoning behind it.
      scale, an always-on host, a long/short study.
    - Whether this ledger's `Model:` headers are backfilled. A session under an operator rule that forbids model
      identifiers in pushed files writes `not recorded (session policy)`; any other writes the real model.
-   - The DecisionFC review is paused: do not resume it without him.
+   - DecisionFC's next steps are `docs/improvement-plan.md` in that repository (2026-09-28, his ask); start any of
+     them only on his word.
    - A clone made before `main`'s history was rewritten (2026-09-24) must be re-cloned or reset to `origin/main`;
      `docs/commit-map-2026-09-24.md` maps the old hashes. Every clone runs `sh bin/setup.sh` once, or the ledger hook
      is off there.
+
+7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
+   2026-09-28: 13 of 28 done, 1 partly, 1 not doing (the committed bundle, his call), 13 open. Worth doing, in order:
+   the app icon; the two quiet fallbacks (a failed save, a failed cross-tab load); the market calendar's early closes
+   **before 2026-11-27**; a freshness watch for the price recorders; one shared Trading 212 ticker map; a plausibility
+   band on quotes; error boundaries per surface; and item 3 measured before it is touched. Seven questions there wait
+   on Davies, the first whether `APP_AUTH_SECRET` was rotated with the two passwords.
 
 ## Machine and platform setup
 
@@ -474,6 +491,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Handover across the three repositories** (Davies, 2026-09-28, near the week's usage limit; no sub-agents for it). Here: `docs/improvement-plan.md` re-checked item by item in the source and the workflows (13 of 28 done, 1 partly, 1 not doing, 13 open; the evidence for each is in its table) and rewritten as that table, an ordered list and the questions only Davies can answer; item 7 above points at it. `docs/README.md`'s crypto section still said all three strategies were paper: it now says one rule has been live since 2026-09-24 on a small account beside its paper control, and names the three paper tests; `weather` joined its list of functions. In `decisionfc`, `docs/improvement-plan.md` (`11e6f36`) gathers what is worth doing next and passes the publish check. In `Personal`, the ledger protocol is installed (`0b3d45d`: the package, pointers, hook, `bin/setup.sh`, `.claude/CLAUDE.md`, `LEDGER.md`). GitHub now names those two `daviesluo/Personal` and `daviesluo/DecisionFC`; the clones here point there. The faster-FX research (item 4) is still running.
 
 ### [2026-09-28 14:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
