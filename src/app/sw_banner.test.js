@@ -96,13 +96,48 @@ describe('purgeForReload', () => {
   // throw would skip the post-purge reload) — each step is isolated in its
   // own try/catch. A hang is separately covered by handleReload's hard
   // timer, which can't be unit-tested without the SW hook.
-  it('resolves even when a storage API throws (steps stay isolated)', async () => {
-    const orig = localStorage.clear;
-    localStorage.clear = () => { throw new Error('quota'); };
+  it('resolves even when a cache or service-worker API throws (steps stay isolated)', async () => {
+    const g = /** @type {any} */ (globalThis);
+    const hadCaches = 'caches' in g, origCaches = g.caches;
+    const nav = /** @type {any} */ (globalThis.navigator);
+    const hadSw = !!nav && 'serviceWorker' in nav;
+    const origSw = hadSw ? nav.serviceWorker : undefined;
+    g.caches = { keys: () => Promise.reject(new Error('blocked')) };
+    if (nav) Object.defineProperty(nav, 'serviceWorker', { configurable: true, value: { getRegistrations: () => { throw new Error('denied'); } } });
     try {
       await expect(purgeForReload()).resolves.toBeUndefined();
     } finally {
-      localStorage.clear = orig;
+      if (hadCaches) g.caches = origCaches; else delete g.caches;
+      if (nav) {
+        if (hadSw) Object.defineProperty(nav, 'serviceWorker', { configurable: true, value: origSw });
+        else delete nav.serviceWorker;
+      }
+    }
+  });
+
+  // Davies (2026-09-28): the banner's reload was the one reload that still
+  // painted old numbers first, then the live ones a second or two later. The
+  // purge cleared localStorage, where every copy a reload paints from lives
+  // (the book, the prices last shown, the 24H chart's bars), and with it
+  // `dp.prefs` — hide-values switched itself off at every update.
+  it('keeps every dp.* row a reload paints from, and the prefs', async () => {
+    const rows = {
+      'dp.schema': '7',
+      'dp.prefs': JSON.stringify({ hideValues: true }),
+      'dp.portfolioCache': JSON.stringify({ ts: 1, data: { holdings: {} } }),
+      'dp.lastPrices': JSON.stringify({ ts: 1, data: { ACME: { lastPrice: 101 } } }),
+      'dp.marketCache': JSON.stringify({ ts: 1, data: {} }),
+      'dp.perfSeed': JSON.stringify({ ts: 1, data: {} }),
+      'dp.agentsCache': JSON.stringify({ ts: 1, data: {} }),
+      'dp.opsErrorAck': '123',
+    };
+    localStorage.clear();
+    for (const [k, v] of Object.entries(rows)) localStorage.setItem(k, v);
+    try {
+      await purgeForReload();
+      expect(Object.fromEntries(Object.keys(rows).map((k) => [k, localStorage.getItem(k)]))).toEqual(rows);
+    } finally {
+      localStorage.clear();
     }
   });
 });

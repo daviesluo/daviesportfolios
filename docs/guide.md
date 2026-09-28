@@ -330,3 +330,5 @@ On iOS or Android, "Add to Home Screen" installs it as a full-screen app
 that also works offline. When a new version is out, a banner at the top
 offers RELOAD; left alone, the app reloads by itself after an hour. It
 checks for a new version every minute and whenever you come back to it.
+The new version opens the way a reload does, on what the page last
+showed, and keeps your settings, hide-values included.

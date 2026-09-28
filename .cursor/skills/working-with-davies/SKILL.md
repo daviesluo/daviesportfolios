@@ -428,6 +428,12 @@ Read these as a checklist before pushing.
   landed on a 4-parameter handler and `buyDate` vanished.
 - **Not asking where the default path lands.** Cancel and Esc were
   mapped to Replace.
+- **A check that switches off the path it guards.** The sweep's reload
+  checks block the service worker (its fetches escape `page.route`), so
+  the NEW VERSION banner's reload, the one reload that runs the worker's
+  purge, was never exercised, and that purge wiped localStorage: old
+  numbers first and hide-values off after every update (2026-09-28). A
+  path a check has to disable needs a check of its own.
 - **Bypassing the shared helper.** A `replace` path recomputed totals
   itself instead of going through `netPosition`.
 - **Reusing a class so two controls answer to one selector.** The Top

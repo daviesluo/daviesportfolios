@@ -55,11 +55,23 @@ export function shouldShowBanner(needRefresh, now, suppressUntil) {
 }
 
 /**
- * Clean-slate purge before a reload so the new SW mounts as if the page
- * were opened for the first time. Auth token lives in sessionStorage
- * (per-tab, survives reload) so the user isn't logged out. Cleared:
- * Workbox/runtime caches + every registered SW (so the new bundle's
- * assets load) and localStorage (dp.* schema / prefs / market cache).
+ * Purge before a reload so the new bundle's assets load: Workbox/runtime
+ * caches and every registered SW. Auth token lives in sessionStorage
+ * (per-tab, survives reload) so the user isn't logged out.
+ *
+ * NOT cleared: localStorage. It used to be (`localStorage.clear()`, "as if
+ * the page were opened for the first time"), and that is what made the
+ * banner's reload the one reload that still painted old numbers first
+ * (Davies, 2026-09-28): every copy a reload paints before anything answers
+ * lives there — the book (`dp.portfolioCache`), the prices the page last
+ * showed (`dp.lastPrices`), the 24H chart's bars (`dp.perfSeed`), the
+ * market data, the Agents page — so the new version drew the server row's
+ * older prices and a cold chart, and a second or two later the live ones.
+ * It also dropped `dp.prefs`, which turned hide-values off at every update,
+ * and the admin's error acknowledgement. A new version reading an older
+ * shape is `Storage.migrate()`'s job, as on every other reload after a
+ * deploy; wiping here protected nothing a plain refresh does not already
+ * face.
  *
  * NOT cleared: the IndexedDB chart cache (chart_store — ChartStore /
  * MaStore / YtdStore). It's just price bars keyed by ticker + range with
@@ -87,7 +99,6 @@ export async function purgeForReload() {
       await Promise.all(regs.map((r) => r.unregister()));
     }
   } catch { /* ignore — reload still proceeds */ }
-  try { localStorage.clear(); } catch { /* private mode etc. */ }
 }
 
 export function ServiceWorkerBanner() {
@@ -185,9 +196,10 @@ export function ServiceWorkerBanner() {
     // hang can't either (the hard timer fires regardless).
     try { await purgeForReload(); } catch { /* ignore — reload still proceeds */ }
 
-    // Re-stash the reload-suppress timestamp since the localStorage clear
-    // inside the purge wiped sessionStorage in some browsers (Safari
-    // ITP-like behaviour). Cheap insurance against a quirky purge order.
+    // Re-stash the reload-suppress timestamp. The purge once cleared
+    // localStorage, which wiped sessionStorage too in some browsers (Safari
+    // ITP-like behaviour); it no longer does, and this stays as cheap
+    // insurance against a quirky purge order.
     try { sessionStorage.setItem(SW_RELOAD_SUPPRESS_KEY, String(Date.now())); } catch { /* ignore */ }
 
     // Purge finished within the window → reload now instead of waiting

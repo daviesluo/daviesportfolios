@@ -79,6 +79,11 @@ const MIME = {
   '.webmanifest': 'application/manifest+json',
 };
 
+/**
+ * A new deploy, as the service worker sees one: while set, `/sw.js` is served with this comment appended, so its bytes
+ * differ from the worker a page installed and the page's update check finds a new one waiting (section 0c').
+ */
+let SW_DEPLOY = '';
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   let file = path.join(ROOT, url.pathname === '/' ? 'index.html' : url.pathname);
@@ -86,6 +91,10 @@ const server = http.createServer((req, res) => {
     file = path.join(ROOT, 'index.html');
   }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+  if (SW_DEPLOY && url.pathname === '/sw.js') {
+    res.end(`${fs.readFileSync(file, 'utf8')}\n// ${SW_DEPLOY}\n`);
+    return;
+  }
   fs.createReadStream(file).pipe(res);
 });
 
@@ -1186,6 +1195,85 @@ async function run() {
     if (!answered) fail(S('steady'), `the held answers never landed inside the window (${heldAnswers.join(', ') || 'none'})`);
     else if (!moved) ok(S('steady'), `${seen.length} reads over 3.2 s, through the book and the quotes landing at 1.5 s: nothing moved, no "Computing…", no flat line`);
     else fail(S('steady'), `at ${moved.t} ms it read ${moved.pf} | ${moved.day} | ${moved.chart} | flat ${moved.flat} (was ${before.pf} | ${before.day} | ${before.chart})`);
+    await ctx.close();
+  }
+
+  // ---- 0c'. the NEW VERSION banner's reload paints what was on screen too --
+  // Davies (2026-09-28): a refresh painted what the page last showed (0c), but
+  // the banner's RELOAD still showed older numbers for a second or two first.
+  // Its purge cleared localStorage, where every copy a reload paints from lives
+  // (the book, the prices last shown, the 24H bars), and the prefs with them.
+  // 0c blocks the service worker, so it never went down this path. Here the
+  // page installs the worker, the server then serves a changed one, the page's
+  // own update check finds it waiting, and RELOAD is pressed — with the server
+  // row's prices at 0.95x, every answer held back 1.5 s and a non-default pref.
+  for (const vp of VIEWPORTS) {
+    const S = (n) => `${vp.name}/banner-reload/${n}`;
+    loadOverride = storedAt(0.9);
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses);
+    const read = () => page.evaluate(() => {
+      const txt = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : null);
+      const pf = txt(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg'));
+      let day = null;
+      for (const c of document.querySelectorAll('.scoreboard-cell')) if (txt(c.querySelector('.sb-label')) === 'DAY CHANGE') day = txt(c.querySelector('.sb-value'));
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      let chart = null;
+      if (wrap) {
+        const empty = txt(wrap.querySelector('.sparkline-empty'));
+        chart = empty ? `[${empty}]` : [...wrap.querySelectorAll('.perf-legend-item')].map(txt).join(' | ');
+      }
+      return { old: !!(/** @type {any} */ (window)).__beforeBanner, pf, day, chart };
+    });
+    await page.waitForFunction((want) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
+    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    const installed = await page.evaluate(async () => {
+      for (let i = 0; i < 100; i++) {
+        const r = await navigator.serviceWorker.getRegistration();
+        if (r && r.active) return true;
+        await new Promise((res) => setTimeout(res, 50));
+      }
+      return false;
+    }).catch(() => false);
+    await page.waitForTimeout(2500);
+    const prefs = JSON.stringify({ hideValues: false, moversMetric: 'usd' });
+    await page.evaluate((p) => { localStorage.setItem('dp.prefs', p); (/** @type {any} */ (window)).__beforeBanner = true; }, prefs);
+    const before = await read();
+    SW_DEPLOY = 'a new deploy';
+    await page.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r && r.update())).catch(() => {});
+    const banner = await page.waitForSelector('button:text-is("RELOAD")', { timeout: 10_000 }).then(() => true, () => false);
+    if (installed && banner) ok(S('banner'), 'the page installed its service worker, and a changed one on the server put up the NEW VERSION banner');
+    else fail(S('banner'), `worker installed ${installed}, banner shown ${banner}`);
+    loadOverride = storedAt(0.95);
+    holdMs = 1500;
+    heldAnswers.length = 0;
+    await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
+    const seen = [];
+    if (banner) {
+      await page.locator('button:text-is("RELOAD")').first().click({ timeout: 5_000 }).catch(() => {});
+      const t0 = Date.now();
+      while (Date.now() - t0 < 9000) {
+        const snap = await read().catch(() => null);
+        if (snap && !snap.old && snap.pf) seen.push({ t: Date.now() - t0, ...snap });
+        if (seen.length > 0 && Date.now() - t0 - seen[0].t > 3200) break;
+        await page.waitForTimeout(15);
+      }
+    }
+    holdMs = 0;
+    loadOverride = null;
+    SW_DEPLOY = '';
+    const answered = heldAnswers.some((a) => a.includes('action=load')) && heldAnswers.some((a) => a.startsWith('/prices'));
+    const first = seen[0];
+    const same = (x) => x.pf === before.pf && x.day === before.day && x.chart === before.chart;
+    if (!before.chart || before.chart.startsWith('[')) fail(S('first-paint'), `the page never settled before the banner: chart ${before.chart}`);
+    else if (first && same(first)) ok(S('first-paint'), `the first paint after RELOAD is what was on screen: ${first.pf}, ${first.day}, ${first.chart}`);
+    else fail(S('first-paint'), `first paint after RELOAD ${first ? `${first.pf} | ${first.day} | ${first.chart}` : 'never'}; before it ${before.pf} | ${before.day} | ${before.chart}`);
+    const moved = seen.find((x) => !same(x));
+    if (!answered) fail(S('steady'), `the held answers never landed after the reload (${heldAnswers.join(', ') || 'none'})`);
+    else if (seen.length > 0 && !moved) ok(S('steady'), `${seen.length} reads through the held book and quotes landing: nothing moved`);
+    else fail(S('steady'), moved ? `at ${moved.t} ms it read ${moved.pf} | ${moved.day} | ${moved.chart}` : 'no read after the reload');
+    const kept = await page.evaluate(() => localStorage.getItem('dp.prefs')).catch(() => null);
+    if (kept === prefs) ok(S('prefs'), `the prefs survive the banner's reload: ${kept}`);
+    else fail(S('prefs'), `dp.prefs after the banner's reload is ${kept}, was ${prefs}`);
     await ctx.close();
   }
 
