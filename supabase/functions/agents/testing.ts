@@ -7,6 +7,7 @@
 // UPDATE, because Postgres checks both — a settle whose fee is NaN goes over the wire as null and is refused by
 // `fee_usd NOT NULL` exactly as a bad insert is.
 import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
+import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
 
 export type Row = Record<string, unknown>;
 
@@ -654,10 +655,11 @@ export class FakeKraken {
  * Jev as `askJev` reaches it: it answers EXACTLY the questions it was asked, each by its type, and nothing else — the
  * reader refuses a reply missing any asked question, so a double that answered a fixed set regardless would hide a
  * question the loop stopped asking, or started asking under another name. A noul answers `healthy`, a score answers
- * `caution`, a choice echoes the state's symbol when it is one of the options. `fail` is a 503 on every transport.
+ * `caution`, a choice echoes the state's symbol when it is one of the options. `fail` is a 503 on every transport. The
+ * model each transport names is the one it named when measured (reference §2): OpenRouter's snapshot, TypeSafe's version.
  */
 export function jevFetch(opts: { healthy?: number; caution?: number; fail?: boolean; log?: string[] } = {}): typeof fetch {
-  return (_url, init) => {
+  return (url, init) => {
     if (opts.fail) return Promise.resolve(new Response("down", { status: 503 }));
     const body = JSON.parse(String(init?.body)) as { state?: { symbol?: string }; questions?: Record<string, { type: string; criteria?: unknown }> };
     const sym = String(body.state?.symbol);
@@ -672,6 +674,7 @@ export function jevFetch(opts: { healthy?: number; caution?: number; fail?: bool
         answers[name] = { type: "choice", choice, probabilities: { [choice]: 1 }, confidence: 1 };
       }
     }
-    return Promise.resolve(new Response(JSON.stringify({ model: "typesafe/jev-1.13-test", answers, usage: { input_tokens: 400, output_tokens: 20, cost: 0.0000168 } })));
+    const model = String(url) === JEV_OPENROUTER_URL ? "typesafe/jev-1.13-20260917" : "jev-1.13.0";
+    return Promise.resolve(new Response(JSON.stringify({ model, answers, usage: { input_tokens: 400, output_tokens: 20, cost: 0.0000168 } })));
   };
 }

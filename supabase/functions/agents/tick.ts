@@ -77,7 +77,7 @@
 
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
 import { questionsForRow } from "./jev_rows.ts";
-import { jevBandCheck } from "./jev_bands.ts";
+import { jevBandCheck, jevDriftFlags } from "./jev_bands.ts";
 import {
   atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_DISLOCATION, DEFAULT_ROTATION, DEFAULT_TREND, dislocationQuestions, dislocationState,
   floorToStep, highWaterSince, JEV_ENTER_MIN, JEV_QUESTION_VERSION, positionFromFills, protectiveExit, riskGate, rotationTargets, ruleDecisionDislocation, ruleFor, sizeBase,
@@ -1463,13 +1463,17 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     }
     const a = jr.answers;
     const view = jevViewOf(jr, sym);
-    // JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md): an entry's answer against the replies measured for its state
-    // on the v2 question. It decides nothing. An answer outside its band is recorded with the decision and reported apart
-    // from the turn's errors (it reaches ops_errors as `agents.jev-drift`), and the next session re-measures.
-    const jevBand = rule.action === "enter" && view.healthy != null && JEV_QUESTION_VERSION === "v2" && !s.params?.jevQuestion
+    // JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md): every entry the model answered, against what was measured — the
+    // healthy answer against its state's replies (recorded on the decision, in band or not), the question, the caution and
+    // the model. It decides nothing: a flag is reported apart from the turn's errors, as `agents.jev-drift` in ops_errors.
+    const answered = rule.action === "enter" && jr.provider !== "rule" && jr.provider !== "none";
+    const ownWording = !!s.params?.jevQuestion;
+    const jevBand = answered && view.healthy != null && JEV_QUESTION_VERSION === "v2" && !ownWording
       ? jevBandCheck(s.kind, snapState as Record<string, unknown>, view.healthy) : null;
-    if (jevBand && !jevBand.inBand) {
-      report.jevDrift.push(`${s.id} ${sym}: healthy ${view.healthy} is outside ${jevBand.min == null ? "every measured band (a state never measured)" : `[${jevBand.min}, ${jevBand.max}]`} for ${jevBand.key}`);
+    if (answered) {
+      for (const flag of jevDriftFlags({ kind: s.kind, version: JEV_QUESTION_VERSION, ownWording, band: jevBand, healthy: view.healthy, caution: view.caution, provider: jr.provider, model: jr.model })) {
+        report.jevDrift.push(`${s.id} ${sym}: ${flag}`);
+      }
     }
     // An exit passes the model untouched; an entry needs its vote.
     let final = rule.action === "enter"

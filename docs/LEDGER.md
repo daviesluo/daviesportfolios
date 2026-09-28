@@ -366,6 +366,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 00:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**JEV-DRIFT checks the question, the caution and the transport too, as the review asked (J1, J4, J5).**
+- `jevDriftFlags` flags, on every entry the model answered: the healthy answer outside its band (as before); a question with no measured bands (another version, or a row's own wording), so the check cannot go quiet unseen; a caution of 1.5 or more (measured at most 1.02, veto at 1.75); and an answer from anything but `typesafe/jev-1.13-20260917` through OpenRouter, so the TypeSafe fallback is flagged whenever it answers an entry. The flag text names the transport. The test double now names each transport's real model. Pinned, with a counterfactual: both drift tests fail with the three new checks removed. Reference §4 item 43 rewritten to the code; the monitor document is rewritten to match and goes to the reviewer before it is frozen.
+
 ### [2026-09-28 00:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The probes' fill record corrected against the trade tape; the five pre-registration drafts go back for rework.**

@@ -108,6 +108,8 @@ function world(opts: {
   orderView?: OrderView; orderViews?: OrderView[]; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
   series?: SeriesBySymbol; revxQuote?: Quote; now?: number; krakenMinutes?: Candle[]; leaseUntil?: string; raceClaim?: boolean; placedState?: "new" | "filled";
   krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[]; krakenCandlesDown?: () => boolean; jevHealthy?: number;
+  /** Jev's caution score; `jevDirect` answers through TypeSafe direct only, the fallback transport. */
+  jevCaution?: number; jevDirect?: boolean;
   /** A LIVE-capable Revolut X stub: credentials, the venue's balances, one order view, what a placement replies. */
   revxCanTrade?: boolean; revxBalances?: Record<string, number>; revxOrderView?: OrderView; revxPlacedState?: "new" | "filled"; revxNoQuote?: boolean;
   revxOrderReply?: VenueOrder;
@@ -145,7 +147,7 @@ function world(opts: {
   // A fresh uuid per call, as `crypto.randomUUID` gives production: `client_order_id` is unique (0037), and the double
   // holds the loop to it — every order in a world used to carry the same id, so no test could tell two apart by it.
   let uuidN = 0;
-  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog, healthy: opts.jevHealthy }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
+  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: opts.jevDirect ? { typesafeKey: "k" } : { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog, healthy: opts.jevHealthy, caution: opts.jevCaution }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
   return { deps, mem, kraken, revx, binance, quote, revxQuote, binanceQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
 }
 
@@ -1302,6 +1304,24 @@ Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured 
   assertEquals((d2.numbers as { jevBand: { inBand: boolean } }).jevBand.inBand, false);
   // It decides nothing: the gate reads the answer exactly as it would without the check.
   assertEquals(d2.final_action, outside >= JEV_ENTER_MIN ? "enter" : "hold");
+
+  // In band, but the caution nears the gate's veto: flagged, and the gate decides as it always did (1.5 < 1.75).
+  const wary = world({ jevHealthy: inside, jevCaution: 1.5 });
+  const r3 = await tick(wary.deps);
+  assertEquals(r3.jevDrift.length, 1);
+  assert(r3.jevDrift[0].startsWith("trend-4h-kraken BTC/USD: caution 1.5"), r3.jevDrift[0]);
+  assertEquals(wary.mem.tables.agent_decisions[0].final_action, calm.mem.tables.agent_decisions[0].final_action);
+
+  // In band, but answered by the fallback transport the bands were never measured on: flagged, with its transport.
+  const direct = world({ jevHealthy: inside, jevDirect: true });
+  const r4 = await tick(direct.deps);
+  assertEquals(direct.mem.tables.agent_decisions[0].provider, "typesafe");
+  assertEquals(r4.jevDrift, ["trend-4h-kraken BTC/USD: answered by jev-1.13.0 via typesafe, not the typesafe/jev-1.13-20260917 via openrouter the bands were measured on"]);
+
+  // No answer at all is not drift: the gate refuses the entry, and the monitor has nothing to read.
+  const down = world({ jevDown: true });
+  const r5 = await tick(down.deps);
+  assertEquals([r5.jevDrift, down.mem.tables.agent_decisions[0].final_action], [[], "hold"]);
 });
 
 // ── winding down: a retired row that still holds something ─────────────────────────────────

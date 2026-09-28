@@ -375,3 +375,34 @@ export function jevBandCheck(kind: string, st: Record<string, unknown>, p: numbe
   const min = Math.round((b[0] - JEV_DRIFT_MARGIN) * 100) / 100, max = Math.round((b[1] + JEV_DRIFT_MARGIN) * 100) / 100;
   return { key, min, max, inBand: p >= min - 1e-9 && p <= max + 1e-9 };
 }
+
+/** The transport and model the bands were measured through (the answer files' provenance). */
+export const JEV_MEASURED_PROVIDER = "openrouter";
+export const JEV_MEASURED_MODEL = "typesafe/jev-1.13-20260917";
+/** Every measured caution reply is at most 1.02, and the gate vetoes an entry at 1.75: a caution this high is flagged. */
+export const JEV_CAUTION_FLAG = 1.5;
+
+/**
+ * Every JEV-DRIFT flag on one answered entry (reviews/2026-09-28-jev-drift-monitor.md), empty when there is none:
+ * the healthy answer outside its state's band (or a state never measured); a question the bands were not measured on
+ * (another version, or the row's own wording), for a rule that has bands; a caution near the gate's veto; and an answer
+ * from another transport or model than the one measured — TypeSafe direct, the fallback, was never measured. Pure: the
+ * tick adds the row and the pair to each.
+ */
+export function jevDriftFlags(x: {
+  kind: string; version: string; ownWording: boolean; band: JevBand | null; healthy: number | null; caution: number | null;
+  provider: string; model: string | null;
+}): string[] {
+  const flags: string[] = [];
+  const measured = x.kind === "trend-4h" || x.kind === "trend-1h" || x.kind === "momentum-1d";
+  if (measured && (x.version !== "v2" || x.ownWording)) {
+    flags.push(`no measured bands for ${x.ownWording ? "the row's own wording" : `question ${x.version}`}: the check cannot run`);
+  } else if (x.band && !x.band.inBand) {
+    flags.push(`healthy ${x.healthy} is outside ${x.band.min == null ? "every measured band (a state never measured)" : `[${x.band.min}, ${x.band.max}]`} for ${x.band.key}`);
+  }
+  if (x.caution != null && x.caution >= JEV_CAUTION_FLAG) flags.push(`caution ${x.caution} ≥ ${JEV_CAUTION_FLAG} (measured at most 1.02; the gate vetoes at 1.75)`);
+  if (x.provider !== JEV_MEASURED_PROVIDER || x.model !== JEV_MEASURED_MODEL) {
+    flags.push(`answered by ${x.model ?? "an unnamed model"} via ${x.provider}, not the ${JEV_MEASURED_MODEL} via ${JEV_MEASURED_PROVIDER} the bands were measured on`);
+  }
+  return flags;
+}
