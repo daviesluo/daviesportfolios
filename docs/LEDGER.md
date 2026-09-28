@@ -175,8 +175,18 @@ list stays the short version; the plan is the reasoning behind it.
      `reviews/2026-09-28-pr5-fast-fx-study.md`). Neither earns much more: on four keys a faster X loses money (it
      re-prices more and the keys hit 600 sooner), ungoverned it adds at most +$0.065 a day; eight keys help only on busy
      days (+$0.36 a day on the fresh week). Rule D (far rungs re-priced only past max(0.03 %, k/3)) cuts POSTs 40 % and
-     keeps four keys under 600. No sign-up, no new sub-account, no Worker is recommended. Offered to Davies: rule D as a
-     pre-registered paper arm beside PR5V (his call). Fastest keyless feed if ever needed: TrueFX, polled once a second.
+     keeps four keys under 600. No sign-up, no new sub-account, no Worker is recommended. Fastest keyless feed if ever
+     needed: TrueFX, polled once a second.
+   - **Variant-2, rule D on paper: pre-registration frozen 2026-09-28** (`reviews/2026-09-28-pr5-rule-d-prereg.md`).
+     Davies: rule D is "Stablecoin quotes variant-2"; the row that was "Stablecoin quotes - variant" is variant-1; the
+     table shows each name on two lines, the first line the whole of "Stablecoin quotes". Same minute as PR5V, its own
+     instance of `stepVariantMinute` (state, tables, lease and cron row apart; PR5V's row and `VARIANT_CODE_VERSION`
+     untouched). Arm `d` is judged; arm `v1` is the deviation, PR5V's own settings on PR5's stored X, and must match
+     PR5V's arm `main` or the test is not judged. Fair rate for arm `d` is TrueFX, Yahoo (PR5's stored bar) the
+     fallback; no new feed, no sub-account, no Worker. Recomputed before the freeze, on the study's inputs at PR5V's
+     minute: rule D $1.0822 a day against $1.0540, paired +$0.0281 (−0.0040 to +0.0666); the fresh five days $0.7484
+     against $0.5088; POSTs −38.7 %; no key reached 600. The engine (`quotes_ruled.ts`, `quotesd`, `0072`) is the next
+     commit, built to that file and not before it.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -480,6 +490,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-28 18:57 UTC] Platform: Cursor | Model: not recorded (session policy)
+
+**Rule D's paper test is frozen, before its instance exists** (`reviews/2026-09-28-pr5-rule-d-prereg.md`). Resumed from `2120bb24` (item 4: the fast-X study had offered rule D and stopped). The figures that were carried ($1.082, $1.054, +$0.028, −0.004 to +0.067, $0.748 and $0.509, 39 %, the cap not hit) were recomputed with `study.Runner` and `fastx_sim.simulate` at PR5V's minute before any of them was written down: $1.0822 against $1.0540, paired +$0.0281 (−0.0040 to +0.0666, p = 0.0513), fresh $0.7484 against $0.5088, POSTs 1,420.5 → 870.5 (38.7 %), no key at 600, and the frozen engine matched `fastx_sim` with the rule unset trip for trip (563). The engine is the next commit. PR5V's engine is not edited to re-decide its minutes.
 
 Closed operations move verbatim into `docs/handover.md`, whose Part 2
 (decision log) and Part 3 (transcripts) are this ledger's archive.
