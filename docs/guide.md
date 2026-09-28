@@ -249,8 +249,12 @@ Both come from the same valuation, so they can't disagree about what
 the portfolio is worth. The read-only password shows PERFORMANCE VS S&P 500 alone.
 The panel moves with the page: every 30-second refresh brings in the new
 prices, and the new bars once the ones on screen are out of date (every
-five minutes on 24H), and the refresh button fetches the whole window
-again at once.
+five minutes on 24H, and every minute for the S&P's own), and the
+refresh button fetches the whole window again at once. On 24H the
+portfolio's line reaches the current minute at live prices, while the
+S&P's line ends at its last price: the S&P futures reach the site about
+ten minutes late (the exchange's delay on free prices), so while they
+trade the S&P line stops a little short of the portfolio's.
 
 ### VS S&P 500
 

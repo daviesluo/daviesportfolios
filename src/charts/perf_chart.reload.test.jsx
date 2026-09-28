@@ -244,12 +244,19 @@ describe('PerfChart on a refresh', () => {
       const { container, rerender } = await opened(t0);
       expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+4.00%']);
       expect(portY(container)).toHaveLength(3);
-      // Four minutes on, the 24H bars are still inside their five minutes: a tick asks for nothing.
+      // Forty seconds on, everything is fresh: a tick asks for nothing.
+      clock.mockReturnValue(t0 + 40e3);
+      rerender(chart({ refreshedAt: t0 + 40e3 }));
+      await flush();
+      expect(asked()).toEqual([]);
+      // Four minutes on, the holdings' bars are still inside their five minutes, the benchmark's past its one (it is
+      // the axis, and its futures arrive ten minutes late already): a tick asks for the benchmark alone.
       clock.mockReturnValue(t0 + 4 * 60e3);
       rerender(chart({ refreshedAt: t0 + 4 * 60e3 }));
       await flush();
-      expect(asked()).toEqual([]);
-      // Six minutes on they have gone stale: the tick fetches both batches, and the chart draws the new bar.
+      expect(asked()).toEqual(['^GSPC']);
+      await answerWith('sp', SP, ACME);
+      // Six minutes on both have gone stale: the tick fetches both batches, and the chart draws the new bar.
       clock.mockReturnValue(t0 + 6 * 60e3);
       rerender(chart({ refreshedAt: t0 + 6 * 60e3 }));
       await flush();
@@ -296,6 +303,54 @@ describe('PerfChart on a refresh', () => {
       rerender(chart({ refreshedAt: t0 + 6 * 60e3, forceRefreshKey: t0 + 7 * 60e3 }));
       await flush();
       expect(snaps).toHaveBeenCalledTimes(3);
+    } finally { clock.mockRestore(); }
+  });
+});
+
+describe('PerfChart at the live edge', () => {
+  // Davies (2026-09-28): the panel ran about ten minutes behind the clock. Its x grid is the benchmark's bars, and the
+  // futures reach us ten minutes late (CME's delayed feed on Yahoo); the book's last point sat at the benchmark's last
+  // bar. Here the benchmark's last bar is 19:30 and the clock 19:40:30: the book gets a point of its own at 19:40, at
+  // its live price, one past the benchmark's line, and the 19:30 point is valued from the bars like any other.
+  const LIVE = { ...PORTFOLIO, holdings: { ACME: { ...PORTFOLIO.holdings.ACME, lastPrice: 250 } } };   // 2500: +25.00 %
+  const spY = (c) => {
+    const p = Array.from(c.querySelectorAll('svg path')).find((n) => n.getAttribute('stroke-width') === '1.2');
+    return (p?.getAttribute('d') || '').replace(/^M/, '').split('L').filter(Boolean).map((q) => Number(q.split(',')[1]));
+  };
+  const xs = (c) => {
+    const p = Array.from(c.querySelectorAll('svg path')).find((n) => n.getAttribute('stroke-width') === '1.6' && !n.getAttribute('opacity'));
+    return (p?.getAttribute('d') || '').replace(/^M/, '').split('L').filter(Boolean).map((q) => Number(q.split(',')[0]));
+  };
+  it('draws the book to the current minute at live prices and ends the benchmark at its last print', async () => {
+    const t0 = Date.parse(`${DAY}T19:40:30Z`);
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const view = render(chart({ portfolio: LIVE, refreshedAt: t0 }));
+      await flush();
+      await answer('sp');
+      await answer('tickers');
+      const c = view.container;
+      // The book: 2000, 2200, 2400 on the bars, then 2500 live — +25.00 %; the benchmark stops at its 19:30 +4.00 %.
+      expect(legend(c)).toEqual(['PORTFOLIO+25.00%', 'S&P 500+4.00%']);
+      expect(portY(c)).toHaveLength(4);
+      expect(spY(c)).toHaveLength(3);
+      const y = portY(c);
+      expect(y[3]).toBeLessThan(y[2]);                    // the live point (+25 %) sits above the 19:30 bar's (+20 %)
+      const x = xs(c);
+      expect(x[3]).toBeGreaterThan(x[2]);                 // one step to the right of the benchmark's last print
+    } finally { clock.mockRestore(); }
+  });
+  it('adds no point once the benchmark has stopped trading: its last bar stays the right edge, valued live', async () => {
+    const t0 = Date.parse(`${DAY}T23:00:00Z`);          // 3½ hours after the last bar
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const view = render(chart({ portfolio: LIVE, refreshedAt: t0 }));
+      await flush();
+      await answer('sp');
+      await answer('tickers');
+      expect(legend(view.container)).toEqual(['PORTFOLIO+25.00%', 'S&P 500+4.00%']);
+      expect(portY(view.container)).toHaveLength(3);
+      expect(spY(view.container)).toHaveLength(3);
     } finally { clock.mockRestore(); }
   });
 });

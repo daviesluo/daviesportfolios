@@ -60,7 +60,7 @@ vi.mock('../prices/chart_store.js', () => {
 
 vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
 
-import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams } from './perf_chart.jsx';
+import { PerfChart, PerfPanel, spSymbolFor, perfVariantKey, perfFetchParams, liveEdgeDate, LIVE_EDGE_MAX_MS } from './perf_chart.jsx';
 import { crosshairFormatFor } from './ticker_chart_helpers.js';
 import { applyVariantFilter } from './ytd.js';
 import { YtdStore } from '../prices/chart_store.js';
@@ -119,6 +119,27 @@ describe('PerfChart — smoke render', () => {
     // path. Container existing + no thrown render is sufficient
     // smoke-test coverage; the math is pinned in ytd.test.js.
     expect(container).toBeTruthy();
+  });
+});
+
+describe('liveEdgeDate — the 24H book reaches the current minute while the benchmark trades late', () => {
+  // Davies (2026-09-28): the panel read about ten minutes behind the clock. Measured: Yahoo's newest ES=F minute bar
+  // was 04:37:18 at 04:47:20 UTC, CME's delayed feed.
+  const at = (hhmmss) => Date.parse(`2026-09-28T${hhmmss}Z`);
+  it("puts the book's own point at the current minute when the benchmark's last print is a delayed one", () => {
+    expect(liveEdgeDate('1D', '2026-09-28T04:37', at('04:47:20'))).toBe('2026-09-28T04:47');
+    expect(liveEdgeDate('1D', '2026-09-28T04:46', at('04:47:00'))).toBe('2026-09-28T04:47');   // a minute behind
+  });
+  it('adds nothing inside the same minute, after a close, or on any other window', () => {
+    expect(liveEdgeDate('1D', '2026-09-28T04:47', at('04:47:59'))).toBe(null);                  // same minute
+    expect(liveEdgeDate('1D', '2026-09-28T04:47', at('04:46:00'))).toBe(null);                  // a bar ahead of the clock
+    expect(liveEdgeDate('1D', '2026-09-28T04:26', at('04:47:00'))).toBe(null);                  // 21 min: not trading
+    expect(liveEdgeDate('1D', '2026-09-28T04:27', at('04:47:00'))).toBe('2026-09-28T04:47');   // 20 min: still
+    expect(LIVE_EDGE_MAX_MS).toBe(20 * 60 * 1000);
+    expect(liveEdgeDate('1W', '2026-09-28T04:37', at('04:47:20'))).toBe(null);
+    expect(liveEdgeDate('YTD', '2026-09-27', at('04:47:20'))).toBe(null);
+    expect(liveEdgeDate('1D', undefined, at('04:47:20'))).toBe(null);
+    expect(liveEdgeDate('1D', 'not a date', at('04:47:20'))).toBe(null);
   });
 });
 

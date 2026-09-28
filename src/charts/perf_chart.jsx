@@ -82,6 +82,35 @@ export function perfFetchParams(rangeKey, extendedHours, phase) {
   return fetchParamsFor(rangeKey, extendedHours, phase);
 }
 
+// The 24H window's live edge (Davies, 2026-09-28: the panel "runs about
+// ten minutes behind real time"). Its x grid is the benchmark's bars, and
+// the futures reach us ten minutes late: Yahoo carries CME prices on the
+// exchange's delayed feed (measured 2026-09-28 04:47:20 UTC: the newest
+// ES=F minute bar was 04:37:18). The book's prices are live, so it gets a
+// point of its own at the current minute, valued at those prices, and the
+// benchmark's line ends at its last print instead of being drawn as if it
+// were now. Only while that print is recent, i.e. the benchmark is
+// trading: after a close the last bar stays the right edge, valued live,
+// as before. Returns the minute (`YYYY-MM-DDTHH:MM`, UTC, as the 24H bars
+// are dated) or null.
+export const LIVE_EDGE_MIN_MS = 60 * 1000;
+export const LIVE_EDGE_MAX_MS = 20 * 60 * 1000;
+export function liveEdgeDate(rangeKey, lastBarDate, nowMs) {
+  if (rangeKey !== '1D' || typeof lastBarDate !== 'string' || !Number.isFinite(nowMs)) return null;
+  const last = parseChartDateUTC(lastBarDate).getTime();
+  if (!Number.isFinite(last)) return null;
+  const nowMin = Math.floor(nowMs / 60000) * 60000;
+  const gap = nowMin - last;
+  if (gap < LIVE_EDGE_MIN_MS || gap > LIVE_EDGE_MAX_MS) return null;
+  return new Date(nowMin).toISOString().slice(0, 16);
+}
+
+// How old the benchmark's bars may get on the 24H window before a refresh
+// asks for them again: a minute, where the holdings' keep the window's
+// TTL. The benchmark is the axis, and at five minutes a futures line
+// already ten minutes late fell up to fifteen behind.
+export const LIVE_BENCH_TTL_MS = 60 * 1000;
+
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
 // jumping when the user flips between ranges.
@@ -535,7 +564,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const entries = loadPerfCache(year, cacheKey);
     const stale = symbols.filter((sym) => {
       const e = entries[sym];
-      return force || !(e && Array.isArray(e.data) && now - (e.ts || 0) < ttl);
+      const maxAge = rangeKey === '1D' && sym === spSymbol ? LIVE_BENCH_TTL_MS : ttl;
+      return force || !(e && Array.isArray(e.data) && now - (e.ts || 0) < maxAge);
     });
     if (stale.length === 0) return;
     refreshingRef.current = true;
@@ -969,7 +999,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     // from the one the Investment view of the same window reports.
     const tickerSeries = buildTickerSeries(histWithRecorded, anchorDate, rangeKey, tickerMarketData, useExt, true);
 
-    const liveAnchorDate = spWindow[spWindow.length - 1].date;
+    // The live edge (see `liveEdgeDate`): the book at the current minute,
+    // at live prices, one point past the benchmark's last print; that print
+    // is then valued like every other point, from the bars.
+    const lastSpDate = spWindow[spWindow.length - 1].date;
+    const edgeDate = liveEdgeDate(rangeKey, lastSpDate, Date.now());
+    const liveAnchorDate = edgeDate ?? lastSpDate;
     const ytdOpts = {
       portfolio, tickerSeries, marketData: tickerMarketData,
       yearStart: anchorDate, yearStartDate, todayMs, liveAnchorDate, useExt, fxToUSD,
@@ -996,13 +1031,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       // from there, which is what stops money paid in reading as a gain.
     };
 
-    const portYtd = spWindow.map(p => {
-      const { value, basis } = computeAt({ ...ytdOpts, date: p.date });
+    const grid = edgeDate ? [...spWindow.map(p => p.date), edgeDate] : spWindow.map(p => p.date);
+    const portYtd = grid.map(date => {
+      const { value, basis } = computeAt({ ...ytdOpts, date });
       const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
       // `value` is the book in dollars at this point — the Investment view
       // draws exactly this, so it is by construction the same number the
       // vs-S&P view turns into a percentage.
-      return { date: p.date, pct, value };
+      return { date, pct, value };
     });
     return { portYtd, recordedFrom };
     })() };
@@ -1206,7 +1242,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 
   // Lookup tables for crosshair index→data.
   const portByIdx = lineA;
-  const spByIdx   = lineB.length === lineA.length ? lineB : null; // aligned in 1D / YTD
+  // The benchmark's reading at a point is found by its date: at the live
+  // edge the book has a point the benchmark does not (see `liveEdgeDate`),
+  // and an index match would have dropped the benchmark's chip everywhere.
+  const spByDate  = new Map(lineB.map(p => [p.date, p]));
   const fmtCrosshairDate = (dateStr) => {
     const d = parseChartDateUTC(dateStr);
     const date = () => fmtDayMonth(d);
@@ -1228,7 +1267,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const portY = yOf(p.v);
     if (cVlineRef.current) { cVlineRef.current.setAttribute('x1', String(x.toFixed(1))); cVlineRef.current.setAttribute('x2', String(x.toFixed(1))); }
     if (cPortDot.current) { cPortDot.current.setAttribute('cx', String(x.toFixed(1))); cPortDot.current.setAttribute('cy', String(portY.toFixed(1))); }
-    const sp = spByIdx?.[idx] ?? null;
+    const sp = spByDate.get(p.date) ?? null;
     if (sp && cSpDot.current) {
       cSpDot.current.setAttribute('cx', String(x.toFixed(1)));
       cSpDot.current.setAttribute('cy', String(yOf(sp.v).toFixed(1)));

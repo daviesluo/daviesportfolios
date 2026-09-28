@@ -242,7 +242,20 @@ const BASE_PRICES = {
 
 /** The benchmark's last intraday bar, times this: the refresh checks move it after the page has settled (0b'). */
 let SP_BUMP = 1;
+/**
+ * Section 0b'': while set, ES=F's intraday bars are a futures session still trading, its newest print ten minutes
+ * before the clock (Yahoo's CME prices are ten minutes late), at 5,200 times this, from 5,000 three hours back.
+ */
+let ES_LIVE = 0;
 const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
+  if (!daily && t === 'ES=F' && ES_LIVE > 0) {
+    const at = (ms) => new Date(ms).toISOString().slice(0, 16);
+    return [
+      { date: at(NOW_MS - 180 * 60e3), close: 5000 },
+      { date: at(NOW_MS - 60 * 60e3), close: 5100 },
+      { date: at(NOW_MS - 10 * 60e3), close: 5200 * ES_LIVE },
+    ];
+  }
   const base = { ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '^GSPC': 5000 }[t] ?? 100;
   const last = { ACME: 240, NOVA: 120, 'BRIT.L': 2.5, 'VUAA.L': 80, '^GSPC': 5200 }[t] ?? 100;
   const mid = (base + last) / 2;
@@ -1114,6 +1127,93 @@ async function run() {
     if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked}`);
     else fail(S('tick'), `after the app's refresh six minutes on the panel reads "${ticked}", wanted +6.08 %`);
     SP_BUMP = 1;
+    await ctx.close();
+  }
+
+  // ---- 0b''. the 24H panel reaches the clock while the futures trade late ----
+  // Davies (2026-09-28): once it refreshed, the panel still ran about ten
+  // minutes behind the clock. Its x grid is the benchmark's bars, and the
+  // futures reach us ten minutes late (Yahoo carries CME's delayed feed:
+  // measured, the newest ES=F minute 10 min before the clock), while the
+  // book's prices are live. The book now has a point of its own at the
+  // current minute and the futures' line ends at its last print; and the
+  // futures are asked for again after a minute, not five.
+  for (const vp of VIEWPORTS) {
+    const S = (n) => `${vp.name}/perf-live-edge/${n}`;
+    ES_LIVE = 1;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
+    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    await page.locator('#perf-tab-sp:visible').first().click().catch(() => {});
+    await page.locator('.ext-switch:visible').first().click().catch(() => {});
+    await page.waitForTimeout(900);
+    await page.locator('.perf-range-btn:visible:text-is("24H")').first().click().catch(() => {});
+    const spLegend = () => page.evaluate(() => {
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      const item = wrap && [...wrap.querySelectorAll('.perf-legend-item')].find((n) => /S&P/.test(n.textContent || ''));
+      return item ? (item.textContent || '').replace(/\s+/g, ' ').trim() : null;
+    });
+    const legendEnds = async (want, ms = 8000) => {
+      const t0 = Date.now();
+      let got = null;
+      while (Date.now() - t0 < ms) {
+        got = await spLegend().catch(() => null);
+        if (got && got.endsWith(want)) break;
+        await page.waitForTimeout(100);
+      }
+      return got;
+    };
+    const first = await legendEnds('+4.00%');
+    // The two lines' points, and where the book's last two sit on the screen.
+    const geo = await page.evaluate(() => {
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      const svg = wrap?.querySelector('svg');
+      if (!svg) return null;
+      const pts = (p) => (p?.getAttribute('d') || '').replace(/^M/, '').split('L').filter(Boolean).map((q) => q.split(',').map(Number));
+      const book = pts([...svg.querySelectorAll('path')].find((n) => n.getAttribute('stroke-width') === '1.6' && !n.getAttribute('opacity')));
+      const bench = pts([...svg.querySelectorAll('path')].find((n) => n.getAttribute('stroke-width') === '1.2'));
+      const toScreen = ([x, y]) => {
+        const pt = svg.createSVGPoint();
+        pt.x = x; pt.y = y;
+        const m = svg.getScreenCTM();
+        const r = m ? pt.matrixTransform(m) : { x: 0, y: 0 };
+        return [r.x, r.y];
+      };
+      return { book: book.length, bench: bench.length, last: toScreen(book[book.length - 1] || [0, 0]), prev: toScreen(book[book.length - 2] || [0, 0]) };
+    });
+    // Hover a point and read the crosshair: its time, and whether the benchmark has a chip there.
+    const hoverAt = async ([x, y]) => {
+      await page.mouse.move(x, y);
+      await page.waitForTimeout(120);
+      return page.evaluate(() => {
+        const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+        const g = [...(wrap?.querySelectorAll('svg g') || [])].find((n) => n.querySelector('line[stroke-dasharray="2,2"]') && n.querySelectorAll('text').length === 3);
+        if (!g) return null;
+        const [date, book, bench] = [...g.querySelectorAll('text')];
+        return { time: (date.textContent || '').trim(), book: (book.textContent || '').trim(), bench: bench.style.display === 'none' ? null : (bench.textContent || '').trim() };
+      });
+    };
+    const clockAt = (ms) => page.evaluate((t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }), ms);
+    const atEdge = geo ? await hoverAt(geo.last) : null;
+    const atPrint = geo ? await hoverAt(geo.prev) : null;
+    const [nowLabel, printLabel] = [await clockAt(NOW_MS), await clockAt(NOW_MS - 10 * 60e3)];
+    if (/FUTURES/.test(first || '') && first?.endsWith('+4.00%') && geo && geo.book === geo.bench + 1) {
+      ok(S('points'), `the book has one point more than the futures (${geo.book} and ${geo.bench}): its own, at the current minute`);
+    } else fail(S('points'), `legend "${first}", points ${JSON.stringify(geo && { book: geo.book, bench: geo.bench })}`);
+    if (atEdge && atEdge.time === nowLabel && atEdge.bench === null && atEdge.book) {
+      ok(S('edge'), `the right edge reads the clock, ${atEdge.time}, with the book (${atEdge.book}) and no futures chip`);
+    } else fail(S('edge'), `at the right edge the crosshair reads ${JSON.stringify(atEdge)}, wanted ${nowLabel} with no futures chip`);
+    if (atPrint && atPrint.time === printLabel && atPrint.bench === '+4.00%') {
+      ok(S('print'), `a step left, the futures' last print: ${atPrint.time}, futures +4.00%, book ${atPrint.book}`);
+    } else fail(S('print'), `at the futures' last print the crosshair reads ${JSON.stringify(atPrint)}, wanted ${printLabel} and +4.00%`);
+    await page.mouse.move(2, 2);
+    // A minute and a half on, the futures' new print arrives with the app's own refresh; at five minutes it did not.
+    ES_LIVE = 1.01;                                    // 5000 → 5252: +5.04 %
+    await page.clock.setFixedTime(new Date(NOW_MS + 90e3));
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    const later = await legendEnds('+5.04%');
+    if (later?.endsWith('+5.04%')) ok(S('minute'), `ninety seconds on, the app's refresh brings the futures' new print in: ${later}`);
+    else fail(S('minute'), `ninety seconds on the futures read "${later}", wanted +5.04 %`);
+    ES_LIVE = 0;
     await ctx.close();
   }
 
