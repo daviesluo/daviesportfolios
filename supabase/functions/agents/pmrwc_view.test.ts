@@ -10,20 +10,24 @@ const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
 const A = { cond: "0xaaa", yes: "101" };
 
-Deno.test("rwcSummary before RW-C has a state: a row that says when it starts, on its $1,000, not running once its warm-up is late", () => {
+Deno.test("rwcSummary before its warm-up is nothing; in it, before a state, a row that says when it starts, not running once late", () => {
   const empty = { state: null, selection: [], latest: [], days: [], fills: [] };
-  const now = Date.UTC(2026, 8, 28, 9);
-  const r = rwcSummary({ ...empty, nowMs: now });
+  // Off the page until its warm-up begins, 2026-10-08 00:00 UTC (Davies, 2026-09-28): no summary, so no row.
+  assertEquals(rwcSummary({ ...empty, nowMs: Date.UTC(2026, 8, 28, 9) }), null);
+  assertEquals(rwcSummary({ ...empty, nowMs: RWC_WARM_UP - 1 }), null);
+  assertEquals(rwcSummary({ ...empty, state: { state: {}, last_minute: null, last_error: null }, nowMs: RWC_WARM_UP - M }), null);
+  const now = RWC_WARM_UP + 5 * M;
+  const r = rwcSummary({ ...empty, nowMs: now })!;
   assertEquals([r.notStarted, r.startsAt, r.running, r.finished, r.catchingUp, r.lastMinute, r.phase, r.fundedUsd],
     [true, "2026-10-09T00:00:00.000Z", true, false, false, null, "warm-up", RW_FUNDED_USD]);
   assertEquals([r.runStart, r.runEnd], ["2026-10-09T00:00:00.000Z", "2026-10-23T00:00:00.000Z"]);
   assertEquals([r.totalUsd, r.realisedUsd, r.unrealisedUsd, r.todayUsd, r.heldUsd, r.open, r.fills, r.quoting, r.markets, r.days, r.recent],
     [0, 0, 0, 0, 0, 0, 0, 0, [], [], []]);
   // Its warm-up begins 2026-10-08 00:00; ten minutes in, a state still missing is a run that has not started.
-  assertEquals(rwcSummary({ ...empty, nowMs: RWC_WARM_UP + 9 * M }).running, true);
-  assertEquals(rwcSummary({ ...empty, nowMs: RWC_WARM_UP + 11 * M }).running, false);
+  assertEquals(rwcSummary({ ...empty, nowMs: RWC_WARM_UP + 9 * M })!.running, true);
+  assertEquals(rwcSummary({ ...empty, nowMs: RWC_WARM_UP + 11 * M })!.running, false);
   // A state row the engine never filled reads the same as none.
-  assertEquals(rwcSummary({ ...empty, state: { state: {}, last_minute: null, last_error: null }, nowMs: now }).notStarted, true);
+  assertEquals(rwcSummary({ ...empty, state: { state: {}, last_minute: null, last_error: null }, nowMs: now })!.notStarted, true);
 });
 
 Deno.test("rwcSummary from RW-C's own records: nothing of the warm-up, its days from 10-09, today against its own yesterday", () => {
@@ -42,7 +46,7 @@ Deno.test("rwcSummary from RW-C's own records: nothing of the warm-up, its days 
   });
   const today = [{ day: "2026-10-10", cond: A.cond, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: "market A", cat: null, end_date: null }];
   const now = RWC_RUN_START + DAY + 3600e3;
-  const r = rwcSummary({ state: st(RWC_RUN_START + DAY, now - 2 * M), selection: today, latest: [], days, fills, nowMs: now });
+  const r = rwcSummary({ state: st(RWC_RUN_START + DAY, now - 2 * M), selection: today, latest: [], days, fills, nowMs: now })!;
   // By hand: 3.50 of rewards, and 20 × (50 − 49) ¢ open: 3.70; 10-09 closed at 3, so today is 0.70.
   assertEquals([r.notStarted, r.phase, r.dayOfRun, r.running, r.startedAt], [false, "run", 2, true, "2026-10-09T00:00:00.000Z"]);
   assertAlmostEquals(r.totalUsd, 3.7, 1e-9);
@@ -55,10 +59,10 @@ Deno.test("rwcSummary from RW-C's own records: nothing of the warm-up, its days 
   const same = rwSummary({ state: st(RWC_RUN_START + DAY, now - 2 * M), selection: today, latest: [], days, fills, firstMinute: null, nowMs: now, inst: RWC_INSTANCE });
   assertEquals([same?.totalUsd, same?.todayUsd, same?.fills], [r.totalUsd, r.todayUsd, r.fills]);
   // During its warm-up it says when it starts; after its fourteen days it is finished.
-  const warm = rwcSummary({ state: st(RWC_WARM_UP, RWC_WARM_UP + 3600e3), selection: [], latest: [], days: [], fills, nowMs: RWC_WARM_UP + 3600e3 + 2 * M });
+  const warm = rwcSummary({ state: st(RWC_WARM_UP, RWC_WARM_UP + 3600e3), selection: [], latest: [], days: [], fills, nowMs: RWC_WARM_UP + 3600e3 + 2 * M })!;
   assertEquals([warm.notStarted, warm.phase, warm.running, warm.startsAt, warm.totalUsd, warm.fills], [true, "warm-up", true, "2026-10-09T00:00:00.000Z", 0, 0]);
-  const stalled = rwcSummary({ state: st(RWC_WARM_UP, RWC_WARM_UP + 3600e3), selection: [], latest: [], days: [], fills, nowMs: RWC_WARM_UP + 3600e3 + 30 * M });
+  const stalled = rwcSummary({ state: st(RWC_WARM_UP, RWC_WARM_UP + 3600e3), selection: [], latest: [], days: [], fills, nowMs: RWC_WARM_UP + 3600e3 + 30 * M })!;
   assertEquals([stalled.notStarted, stalled.running, stalled.lagMinutes], [true, false, 30]);
-  const done = rwcSummary({ state: st(RWC_RUN_END, RWC_RUN_END - M), selection: [], latest: [], days, fills, nowMs: RWC_RUN_END + 3600e3 });
+  const done = rwcSummary({ state: st(RWC_RUN_END, RWC_RUN_END - M), selection: [], latest: [], days, fills, nowMs: RWC_RUN_END + 3600e3 })!;
   assertEquals([done.finished, done.running, done.phase], [true, false, "after"]);
 });

@@ -3261,7 +3261,13 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       variants' version 2 were replayed once from RW's start to keep them, the rules unchanged). A market it held then
       is carried in at that minute's mark; its days, fills and markets start there; its total is its running total less
       the close of the day before, the pre-registrations' own reading, pinned equal in `pmrw_e.test.ts`. Before that
-      minute the row says when it starts ("starts 28 Sep 01:00 BST") and shows nothing.
+      minute the row says when it starts ("starts 28 Sep 01:00 BST") and shows nothing. **x3 ("variant-4") left the page on
+      2026-09-28 (Davies: it can be worked out from variant-2 and variant-3):** each rule acts on one market at a time
+      and no account reads another market's, so x3's account in a weather market is x1's and in any other x2's, bit for
+      bit (`pmrw_x.test.ts` pins it on a world where both rules bite). The replays still run x3, unchanged, so its days
+      stay in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdict; only the dashboard leaves it out (`RWX_OFF_PAGE`).
+      The stored day rows keep only each market's total and stress, so the verdict reads x3's own rows rather than
+      summing x1's and x2's.
     - **RW-C, the same rule forward on 2026-10-09 → 10-23 UTC, is built (migration `0069`; Davies approved the build
       2026-09-27).** It is part 2 of the RW-NEXT pre-registration, drafted in
       `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4 and still to be frozen before 10-08 00:00 UTC. RW's
@@ -3277,8 +3283,9 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       void. RW's instance is pinned to exactly the names and dates the engine had (`pmrwc.test.ts`), and RW's engine
       and replays before and after the change made the same database calls, requests and tables over three windows
       (its warm-up into day 1, a midnight inside the fourteen days, its end). On the Agents page it is the last row of
-      TESTING, "Reward quotes confirmation" on Polymarket, with RW's page and RW's $1,000 cap; until 10-09 01:00 BST it
-      says when it starts and shows nothing. The queries below run on its tables with `pm_rwc_` for `pm_rw_`.
+      TESTING, "Reward quotes confirmation" on Polymarket, with RW's page and RW's $1,000 cap, from its warm-up only
+      (Davies, 2026-09-28: off the page for now, online when its time comes): before 10-08 00:00 UTC the dashboard reads none of its tables
+      and sends no row; from then until 10-09 01:00 BST it says when it starts and shows nothing. The queries below run on its tables with `pm_rwc_` for `pm_rw_`.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;

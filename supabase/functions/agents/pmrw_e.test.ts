@@ -254,7 +254,7 @@ Deno.test("RW-E's own row: the replay's e arm, summarised as RW's row is, equals
   assert(!e.markets.some((m) => m.cond === B.cond));
 });
 
-Deno.test("RW-E's variants' rows: x1 is the engine run without its weather markets, x2 with no jump to pause on is RW-E, x3 is x1", async () => {
+Deno.test("RW-E's variants' rows: x1 is the engine run without its weather markets, x2 with no jump to pause on is RW-E, x3 is x1 and off the page", async () => {
   // RW as it ran: A (culture) throughout, B (weather) on 09-30 and ending that day, C (weather) on 09-30 and 10-01, and
   // D (weather, ending weeks away) on both days.
   const all = await runEngine(portfolio({ b: true, c: "both", aCat: "culture_fees", d: true }));
@@ -286,7 +286,13 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
     today: on(all.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(all.tables), days: all.tables.pm_rw_x_days as never,
     fills: all.tables.pm_rw_fills as never, nowMs,
   });
-  assertEquals(rows.map((r) => [r.id, r.name]), [["x1", "Reward quotes variant-2"], ["x2", "Reward quotes variant-3"], ["x3", "Reward quotes variant-4"]]);
+  // x3 is not a row of the page (Davies, 2026-09-28: it repeats x1 and x2 market by market); the replay still runs it.
+  assertEquals(rows.map((r) => [r.id, r.name]), [["x1", "Reward quotes variant-2"], ["x2", "Reward quotes variant-3"]]);
+  // With no jump to pause on, x3's two rules are x1's one: its accounts and its days are x1's to the bit.
+  assertEquals(stored.arms.x3.acc, stored.arms.x1.acc);
+  const armDays = (arm: string) => all.tables.pm_rw_x_days.filter((d) => d.arm === arm).map((d) => [d.day, d.total, d.stress_total, d.reward, d.fills, d.capital, d.markets]);
+  assert(armDays("x3").length > 0);
+  assertEquals(armDays("x3"), armDays("x1"));
   assert(rows.every((r) => r.checks.ok && r.checks.eDays === 1));
   const t = rwSummary({
     state: truth.tables.pm_rw_state[0] as never, selection: on(truth.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(truth.tables),
@@ -299,7 +305,7 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
   })!;
   const keys = ["totalUsd", "stressUsd", "rewardUsd", "fillsPnlUsd", "realisedUsd", "unrealisedUsd", "heldUsd", "todayUsd", "capitalUsd"] as const;
   const book = (x: { markets: Array<Record<string, unknown>> }) => x.markets.map((m) => [m.cond, m.net, m.quoting, m.fills, m.avgCost == null ? null : Number(Number(m.avgCost).toFixed(12)), Number(Number(m.totalUsd).toFixed(9))]);
-  for (const [id, want] of [["x1", t], ["x2", e], ["x3", t]] as const) {
+  for (const [id, want] of [["x1", t], ["x2", e]] as const) {
     const r = rows.find((x) => x.id === id)!;
     for (const k of keys) assertAlmostEquals(Number(r[k]), Number(want[k]), 1e-9, `${id} ${k}`);
     assertEquals([r.open, r.fills, r.quoting], [want.open, want.fills, want.quoting], id);

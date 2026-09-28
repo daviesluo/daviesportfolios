@@ -312,3 +312,48 @@ Deno.test("a variant's page leaves out the fills RW made while it was paused: a 
   const q = (r: typeof x1) => r.markets.map((m) => [m.bid, m.ask]);
   assertEquals([q(x1), q(x2)], [[[0.69, 0.71]], [[null, null]]]);
 });
+
+Deno.test("variant-4 (x3) is x1 on every weather market and x2 on every other, market by market, which is why it left the page", () => {
+  // Davies (2026-09-28) asked whether variant-4's figures follow from variant-2's and variant-3's, and took it off the
+  // page when they did. Each of its rules acts on one market at a time and no account reads another market's, so on a
+  // weather market x3 does what x1 does (not quoted, by category) and elsewhere what x2 does (paused after a jump). Here
+  // both rules bite: culture market C jumps 20 ¢ at 00:02 and RW makes a round trip in it, which x2 and x3 sit out; weather
+  // market W never jumps and RW buys in it at 00:05, which x2 takes and x1 and x3 do not.
+  const K = (k: number) => RWX_START + k * M;
+  const C = "0xc4", W = "0xw4";
+  const midC = (k: number) => (k < 2 ? 0.50 : 0.70), midW = () => 0.40;
+  const book = (cond: string, mid: (k: number) => number) => Array.from({ length: 11 }, (_, i) => i - 1).map((k) => ({
+    cond, minute: iso(K(k)), quoting: true, tick: 0.01, bb: mid(k) - 0.02, ba: mid(k) + 0.02, ab: mid(k) - 0.02, aa: mid(k) + 0.02, q1: 10, q2: 10,
+    m: mid(k), b: mid(k) - 0.01, a: mid(k) + 0.01, reward: 0.1,
+  }));
+  const rows = [...book(C, midC), ...book(W, midW)];
+  const fills = [
+    { cond: C, minute: iso(K(3)), ts: iso(K(3) + 30e3), side: "bid" as const, price: 0.69, size: 20, print_id: "c3" },
+    { cond: C, minute: iso(K(4)), ts: iso(K(4) + 30e3), side: "ask" as const, price: 0.71, size: 20, print_id: "c4" },
+    { cond: W, minute: iso(K(5)), ts: iso(K(5) + 30e3), side: "bid" as const, price: 0.39, size: 20, print_id: "w5" },
+  ];
+  const prints = [
+    { id: "c3", cond: C, ts: iso(K(3) + 30e3), side: "SELL" as const, oi: 0, price: 0.66, size: 20 },
+    { id: "c4", cond: C, ts: iso(K(4) + 30e3), side: "BUY" as const, oi: 0, price: 0.74, size: 20 },
+    { id: "w5", cond: W, ts: iso(K(5) + 30e3), side: "SELL" as const, oi: 0, price: 0.37, size: 20 },
+  ];
+  const selection = ["2026-09-27", "2026-09-28"].flatMap((day) => [
+    { day, cond: C, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: "C", cat: "culture_fees" },
+    { day, cond: W, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: "W", cat: "weather_fees" },
+  ]);
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-2), dayOf: RWX_START - DAY_MS };
+  replayArms(st, K(9), { rows, fills, prints, selection, settlements: [], rwDays: [] }, RWX_SPECS);
+  const a = (arm: string, cond: string) => st.arms[arm].acc[cond];
+  // Both rules bit: x1 took C's round trip and x2 did not; x2 took W's fill and x1 did not.
+  assertEquals([a("x1", C).fills, a("x2", C).fills, a("x1", W).fills, a("x2", W).fills], [2, 0, 0, 1]);
+  assertEquals([a("x2", W).net, a("x1", W).net], [20, 0]);
+  // x3 is x2 on C and x1 on W, to the bit, and has no other market.
+  assertEquals(a("x3", C), a("x2", C));
+  assertEquals(a("x3", W), a("x1", W));
+  assertEquals(Object.keys(st.arms.x3.acc).sort(), [C, W].sort());
+  // So its total is the sum of those two parts, and the page's row would have repeated them.
+  const total = (x: Record<string, unknown>) => Number(x.cash) + Number(x.net) * Number(x.lastM) + Number(x.reward);
+  assertAlmostEquals(total(a("x3", C)) + total(a("x3", W)), total(a("x2", C)) + total(a("x1", W)), 1e-12);
+  // And it is still in the replay: RWX_SPECS runs it, as the frozen pre-registration has it.
+  assert(RWX_SPECS.some((s) => s.id === "x3" && s.noCats?.includes("weather_fees") && s.pause?.cents === 15));
+});

@@ -221,12 +221,16 @@ export const RWC_FIRST_STATE_MINUTES = RW_STALE_MINUTES + 5;
  * RW-C on the page (`0069`; the RW-NEXT pre-registration's part 2): the dashboard's `rwc`, a row of TESTING with RW's
  * page, made by RW's own summary from RW-C's own engine run and read against its fourteen days, 2026-10-09 → 10-23 UTC.
  * It counts from its first minute, which its engine starts flat, so its warm-up is on neither its row nor its page:
- * until that minute is decided the summary is `notStarted` and says when it starts. Before the engine has a state at
- * all (before its warm-up, 2026-10-08) the summary is the same, made from the constants; a state still missing
- * `RWC_FIRST_STATE_MINUTES` into the warm-up reads as not running.
+ * until that minute is decided the summary is `notStarted` and says when it starts. Before its warm-up (2026-10-08
+ * 00:00 UTC) there is no summary and no row. In the warm-up, before the engine has a state, the summary is made from
+ * the constants; a state still missing `RWC_FIRST_STATE_MINUTES` into the warm-up reads as not running.
  */
 export function rwcSummary(input: { state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[]; nowMs: number }) {
   const inst = RWC_INSTANCE;
+  // Off the page until its warm-up begins (Davies, 2026-09-28: "delete it for now, put it online when it is time"): a
+  // row that only said when it would start was a strategy on the page that was not running. From 2026-10-08 00:00 UTC
+  // it is there by itself, saying when its fourteen days start, or that it is not running if its warm-up is late.
+  if (input.nowMs < (inst.quietUntil ?? inst.runStart)) return null;
   const summary = rwSummary({ ...input, firstMinute: null, inst, since: { ms: inst.runStart, base: {} } });
   if (summary) return summary;
   const at = (ms: number) => new Date(ms).toISOString();
@@ -327,8 +331,16 @@ export function rweArmSummary(input: {
   });
 }
 
+/**
+ * The replay's arms that are not rows of the page. `x3` ("Reward quotes variant-4", no weather AND a pause on jumps) left
+ * it on Davies' word (2026-09-28): every market's account in it is `x1`'s where the market is weather and `x2`'s
+ * elsewhere, because each rule acts on one market at a time, so its row repeated two others. The replay still runs it,
+ * unchanged, as the frozen pre-registration has it, so its days are in `pm_rw_x_days` for the verdict.
+ */
+export const RWX_OFF_PAGE = new Set(["x3"]);
+
 /** A replayed variant's closed days, as `pm_rw_x_days` holds them. */
-export type RwxDaysRow = { day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
+export type RwxDaysRow ={ day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
 
 /**
  * RW-E's variants as strategies of their own on the page (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-
@@ -355,7 +367,7 @@ export function rwxArmSummaries(input: {
   };
   const out = [];
   for (const spec of RWX_SPECS) {
-    if (spec.id === "e" || !st.arms[spec.id]) continue;
+    if (spec.id === "e" || RWX_OFF_PAGE.has(spec.id) || !st.arms[spec.id]) continue;
     const a = st.arms[spec.id];
     const diverged = new Set(a.diverged);
     // Left out for a whole day: RW-E's rule from its first day, the arm's categories from its own.

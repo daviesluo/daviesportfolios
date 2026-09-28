@@ -818,9 +818,10 @@ async function dashboard(now: number) {
   })();
 
   // RW-C (`0069`): RW's engine run again, forward, into tables of its own (2026-10-09 → 10-23 UTC), the last row of
-  // TESTING, with RW's page; read beside RW's. From the day its tables exist the row is there, saying when it starts;
-  // before the migration the reads fail and leave it off the page.
+  // TESTING, with RW's page; read beside RW's. Off the page until its warm-up begins, 2026-10-08 00:00 UTC (Davies,
+  // 2026-09-28), with nothing read before then; from then the row is there, saying when its fourteen days start.
   const rwcRead = (async () => {
+    if (now < (RWC_INSTANCE.quietUntil ?? RWC_INSTANCE.runStart)) return null;
     try {
       const { st, selection, days, fills, latest } = await readRwRun(d, RWC_INSTANCE, dayStartMs);
       return rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now });

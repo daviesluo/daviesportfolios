@@ -165,27 +165,29 @@ places stay when the number is not whole.
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
-- **Reward quotes variant-1 to variant-4.** The four rows after it: the same
-  quotes, each with one rule changed, so they can be compared side by side
-  with Reward quotes; which rule each changes is not on the site (it is in
-  the reference, §4 item 36). Each holds its own positions and makes its
-  own profit and loss, worked out from the same order books and trades
+- **Reward quotes variant-1 to variant-3.** The three rows after it: the
+  same quotes, each with one rule changed, so they can be compared side by
+  side with Reward quotes; which rule each changes is not on the site (it
+  is in the reference, §4 item 36). Each holds its own positions and makes
+  its own profit and loss, worked out from the same order books and trades
   Reward quotes reads, and each is brought up to date every minute. Their
   pages are Reward quotes' page, for their quotes. Each shows only what it
   did under its own rule: it counts from the minute that rule starts
-  (variant-1 from 27 September, the other three from 28 September, both
-  at 01:00 UK time), anything it held then is counted from that minute's
+  (variant-1 from 27 September, the other two from 28 September, both at
+  01:00 UK time), anything it held then is counted from that minute's
   price, and nothing from before is shown. Until then its row says when it
   starts. A warning appears on a page only if its copy of the rows it came
-  from stops matching them.
-- **Reward quotes confirmation.** The last row: Reward quotes' own rule
-  run again, forward, for fourteen more days, 9 to 23 October, to see
-  whether what it did in its first fourteen holds on days nobody has seen.
-  It keeps its own positions and records, on its own cap of $1,000, and its
-  page is Reward quotes' page. The day before it starts is a warm-up that
-  counts nowhere; until 9 October 01:00 UK time its row and its page say
-  when it starts and show nothing else, and after 23 October it is
-  finished.
+  from stops matching them. A fourth, variant-4, is both of the others'
+  rules at once; it is still worked out, but it is not a row, because
+  market by market it does exactly what variant-2 or variant-3 does.
+- **Reward quotes confirmation.** From 8 October, the last row: Reward
+  quotes' own rule run again, forward, for fourteen more days, 9 to 23
+  October, to see whether what it did in its first fourteen holds on days
+  nobody has seen. It is not on the page before then. It keeps its own
+  positions and records, on its own cap of $1,000, and its page is Reward
+  quotes' page. 8 October is a warm-up that counts nowhere; until
+  9 October 01:00 UK time its row and its page say when it starts and show
+  nothing else, and after 23 October it is finished.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

@@ -75,8 +75,10 @@ list stays the short version; the plan is the reasoning behind it.
      RW-X1 "Reward quotes (no weather)", RW-X2 "Reward quotes (pause on jumps)" (15 ¢, 60 minutes), RW-X3 both; RW-E
      from 09-27 plus each rule from 2026-09-28 00:00 UTC, judged on 09-28 → 10-08 with RW's and RW-E's verdicts.
      **Tracked from `0064`**: `agents?action=pmrw-x` (`runPmrwX`, a row of `edge-calls-every-minute`) replays RW's
-     stored minutes every minute from RW's start into `pm_rw_x_state` / `pm_rw_x_days`; three TESTING rows after
-     RW-E's (`rwxArmSummaries`), counted in TESTING's totals and the Polymarket card as RW and RW-E are.
+     stored minutes every minute from RW's start into `pm_rw_x_state` / `pm_rw_x_days`; TESTING rows after RW-E's
+     (`rwxArmSummaries`), counted in TESTING's totals and the Polymarket card as RW and RW-E are. **x3 ("variant-4") is
+     off the page since 2026-09-28** (Davies: it follows from variant-2 and -3; `RWX_OFF_PAGE`); the replay still runs
+     it unchanged, so d2 reads x3 from `pm_rw_x_days` as before.
      **Daily health:** `pm_rw_x_state.last_error` empty, `last_minute` within ~3 min of RW's; in its state
      `checkMaxUsd` (arm `rw` against RW's days) and `checkEMaxUsd` (arm `e` against RW-E's, over `checkEDays` days)
      both under $0.01; each arm's `diverged` read. Do not read a market-level figure of 09-28 or later before 10-09.
@@ -85,15 +87,16 @@ list stays the short version; the plan is the reasoning behind it.
      20:28). **Verified 2026-09-28 00:03 UTC:** `pm_rw_x_state`'s arms `x1`–`x3` carry `base`, captured at 00:00, with
      both checks at $0.00 and no error (only the base's presence was read, not its contents). That a row's total is its
      running total less its own 09-27 row is pinned by `pmrw_view.test.ts`'s closed-form case.
-   - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): BUILT on
-     branch `worktree-agent-a856fad8dea162efa`, not yet on `main`** (history 2026-09-28 00:38). `pmrw.ts` as a second
-     instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`, warm-up 10-08 00:00 by
-     constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00 (`pmrwc-e`, `pmrwc-x`); a TESTING
-     row "Reward quotes confirmation", "starts 9 Oct 01:00 BST" until then. `0069_pm_rwc.sql` adds the tables and four
-     rows of `edge-calls-every-minute`. **Before it lands:** RW-NEXT (item 5a.3) should be frozen first or with it, as its
-     part 2 names this engine; renumber `0069` if `main` has one (`src/cron_jobs.test.js` finds it by its `_pm_rwc`
-     name). **After it lands:** the page shows the row; the four calls return "before its warm-up" / "before RW-C's first
-     minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check after 10-08 00:10 UTC** (RW-NEXT's
+   - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): ON
+     `main` since 2026-09-28 04:39 UTC** (`3682b557` engine + `0069`, `17728e3c` page; history 00:38 and 05:12).
+     `pmrw.ts` as a second instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`,
+     warm-up 10-08 00:00 by constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00
+     (`pmrwc-e`, `pmrwc-x`). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Its page row
+     "Reward quotes confirmation" appears by itself at its warm-up, 10-08 00:00 UTC** (Davies, 2026-09-28: off the page
+     until then; the dashboard reads nothing of it before), "starts 9 Oct 01:00 BST" until its first minute. RW-NEXT
+     (item 5a.3) must be frozen before 10-08 00:00, citing those two commits. The four calls return "before its
+     warm-up" / "before RW-C's first minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check
+     after 10-08 00:10 UTC** (RW-NEXT's
      slip rule turns on it): `pm_rwc_selection` holds rows for 10-08, `pm_rwc_state.last_minute` within ~3 min, no
      `last_error`; after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
      both replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars.
@@ -386,6 +389,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 05:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-C landed on `main`, and two rows left the Agents page on Davies' word.** RW-C (the agent's build, history 00:38) was rebased onto `648adbe7`, its page commit's three conflicts resolved (imports, `RwDetail`'s signature, the sweep's pages list; its page call now passes `nowMs` too), every gate green, and pushed as `3682b557` + `17728e3c` at 04:39; `0069`'s cron list is `0064`'s with the four `pmrwc*` rows added and nothing else changed (read line by line). Then: **"Reward quotes variant-4" is off the page** (x3 = x1 on weather markets and x2 elsewhere, market by market, pinned in `pmrw_x.test.ts` on a world where both rules bite; the replays still run it for the verdict, only the dashboard leaves it out, `RWX_OFF_PAGE`), and **"Reward quotes confirmation" is off the page until its warm-up, 2026-10-08 00:00 UTC** (`rwcSummary` returns null before it and the dashboard reads nothing of RW-C; from then it is there by itself). The engine, its four cron rows and the frozen rules are unchanged. The sweep's default fixture now matches (no x3, no RW-C; every total re-derived by hand: TESTING $5,560 funded, realised +$125.56; the Polymarket card $4,000, unrealised −$4.60 on $35.80), and RW-C's warm-up row moved to a mode of its own (`rwc-warmup`), which also checks its page shows no test time.
 
 ### [2026-09-28 04:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

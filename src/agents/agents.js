@@ -1516,7 +1516,8 @@ export const RWC_ROW_ID = '__rwc';
  * RW-C as a row of TESTING STRATEGIES (`0069`; the RW-NEXT pre-registration's part 2, built on Davies' word 2026-09-27):
  * RW's rule run again, forward, on 2026-10-09 → 10-23 UTC, by a second instance of RW's engine with tables of its own.
  * The dashboard's `rwc` has `rw`'s shape, made by RW's own summary from that instance's records, so its row and its page
- * are RW's, in RW's cells, on the same $1,000. Its warm-up counts nowhere: until its first minute the row says when it
+ * are RW's, in RW's cells, on the same $1,000. The dashboard sends none before its warm-up begins, 2026-10-08 00:00 UTC
+ * (Davies, 2026-09-28: off the page until then). Its warm-up counts nowhere: until its first minute the row says when it
  * starts (a grey dot, NEXT "9 Oct 01:00 BST") and holds nothing. null keeps it off the table.
  * @param {any} r  the dashboard's `rwc`
  */
