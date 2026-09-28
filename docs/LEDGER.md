@@ -171,15 +171,12 @@ list stays the short version; the plan is the reasoning behind it.
        (the file's fallback; under 21 days it is reported, not judged).
      - Expect the governor to bind: on Yahoo's GBP/USD every key reached 600 POSTs on each fresh weekday, from 14:49
        UTC, and the paired gain there was +$0.28 a day against the 28 days' +$0.64.
-   - **Faster GBP/USD and more keys** (Davies, 2026-09-28: "拿到最快的最好吧？…api调用频率限制更高的"). A research
-     branch in this session's worktree measures what a sub-minute X is worth on Dukascopy's keyless ticks over the
-     study's days (X from minute bars down to single ticks; 4, 8 and 16 keys and ungoverned; at most three POST-cutting
-     re-price rules declared before they run; the books' ceiling), and surveys live sources, with Trading 212 and
-     Finnhub added at his word. The site already holds `FINNHUB_API_KEY` (the `fundamentals` fallback): if Finnhub's
-     free tier has a sub-minute GBP/USD endpoint, the main session measures it through a read-only probe with that key,
-     never from a research container. If this session ends before the branch is integrated, it is lost with the
-     container: re-run it from this brief. It reads nothing of PR5's, PR5V's or QUEUE's records; its answer goes to
-     Davies, and any configuration it suggests needs a pre-registration of its own.
+   - **Faster GBP/USD and more keys: answered 2026-09-28** (reference §4 item 46,
+     `reviews/2026-09-28-pr5-fast-fx-study.md`). Neither earns much more: on four keys a faster X loses money (it
+     re-prices more and the keys hit 600 sooner), ungoverned it adds at most +$0.065 a day; eight keys help only on busy
+     days (+$0.36 a day on the fresh week). Rule D (far rungs re-priced only past max(0.03 %, k/3)) cuts POSTs 40 % and
+     keeps four keys under 600. No sign-up, no new sub-account, no Worker is recommended. Offered to Davies: rule D as a
+     pre-registered paper arm beside PR5V (his call). Fastest keyless feed if ever needed: TrueFX, polled once a second.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -491,6 +488,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 16:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The faster-FX study is integrated** (three commits rebased onto `main`: the rules declared first, the tools, the results; reference §4 item 46). Checked before it was believed: the frozen simulators' hashes unchanged (`54ad4198…`, `4a5d077e…`, `56fbad85…`); its reproduction of the study (596 trips, 39,927 POSTs, $1.0294 a day) exact; its eleven pinned checks re-run here and passing; all 795 raw Dukascopy hours matching the committed checksums (the raw 8.8 MB is not committed; `pull_ticks.py` re-fetches it, and `test_fastx.py` needs it through `PR5V_TICKS`). The research branch committed with `LEDGER_OK=1` because it was told not to touch this file; this entry is their ledger line. Item 4 carries the answer.
 
 ### [2026-09-28 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
