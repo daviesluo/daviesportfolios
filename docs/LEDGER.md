@@ -263,7 +263,10 @@ list stays the short version; the plan is the reasoning behind it.
       **Every Monday from 2026-10-05**: pull the UK tape for each event's window into `docs/agents/backtests/mx1/tape/`
       (one gzipped JSON a pull; a failed window is retried every week and is void only if it still fails at the
       reading), and export the `agent_basis` rows (pruned at 30 days) of every event whose `o15` or `o60` is missing
-      into `docs/agents/backtests/mx1/basis/`. The pull script is not written yet; it is needed before 10-05. **Read**
+      into `docs/agents/backtests/mx1/basis/`. The pull is `scripts/mx1/weekly.sql` (A: the windows, B: the stand-ins,
+      C: eligible events so far, a count) and `scripts/mx1/pull_tape.py`. **Owner:** the helper session
+      `session_017Pyo74kGxzzze2oWWrcpBW` (Sonnet), woken every Monday 06:05 UTC from 10-05 by `trig_01SAwMmkcT1GZWSAJJVANcAY`;
+      delete that Routine at the reading. **Read**
       at the first weekly pull after which there are 150 eligible exit events, on the first 150 by `t0`; if fewer have
       `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all of them (under 60: "undecided"). Expect
       about 14 weeks at the last week's pace and 57 at the backtests', so 2027-06-30 likely comes first, at about 100
@@ -452,6 +455,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 14:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's weekly pull is written and has an owner** (item 5a.2). `scripts/mx1/weekly.sql` holds the three read-only statements: A lists the probes written since the freeze with only what places a window (no price, fill or mark), B the stand-in touches of probes missing `o15` or `o60` (`agent_basis` is pruned at 30 days), C the eligible events so far as a count. `scripts/mx1/pull_tape.py` pulls each window's UK prints ([t0 − 1 s, t0 + 64 min], which holds every c_T §3 can use), keyless, paced, five attempts a request, one gzipped file a pull, re-trying what failed; it reproduced probe 20's first print after t0 (+0.0106 min, 0.206612 SOL at 118). No probe has been written since the freeze yet. The helper session runs it every Monday from 10-05 (`trig_01SAwMmkcT1GZWSAJJVANcAY`), commits what it pulled and the count, and prints no price.
 
 ### [2026-09-28 14:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
