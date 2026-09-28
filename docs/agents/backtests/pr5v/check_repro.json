@@ -1,0 +1,147 @@
+{
+ "PASS": true,
+ "frozen_sim_sha256": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a",
+ "pr5v_sim_sha256": "54ad41982d143758ece6ee8e5bb48d5a4aafe1dc0429ccc0af6d1c57282de27a",
+ "runs": {
+  "primary_windows/primary": {
+   "all_identical": true,
+   "books": {
+    "USDC-GBP": {
+     "first_differences": [],
+     "from": 1764115200000,
+     "frozen_orders": 56111,
+     "frozen_pnl_usd": 134.9761764043,
+     "frozen_trips": 1940,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 56111,
+     "pr5v_pnl_usd": 134.9761764043,
+     "pr5v_trips": 1940,
+     "seconds_frozen": 1.8,
+     "seconds_pr5v": 1.7,
+     "to": 1790121600000,
+     "trips_identical": true
+    },
+    "USDT-GBP": {
+     "first_differences": [],
+     "from": 1765843200000,
+     "frozen_orders": 61490,
+     "frozen_pnl_usd": 584.7234757121,
+     "frozen_trips": 6352,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 61490,
+     "pr5v_pnl_usd": 584.7234757121,
+     "pr5v_trips": 6352,
+     "seconds_frozen": 1.5,
+     "seconds_pr5v": 1.7,
+     "to": 1790121600000,
+     "trips_identical": true
+    }
+   }
+  },
+  "primary_windows/stress": {
+   "all_identical": true,
+   "books": {
+    "USDC-GBP": {
+     "first_differences": [],
+     "from": 1764115200000,
+     "frozen_orders": 55629,
+     "frozen_pnl_usd": 108.8417427449,
+     "frozen_trips": 1622,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 55629,
+     "pr5v_pnl_usd": 108.8417427449,
+     "pr5v_trips": 1622,
+     "seconds_frozen": 2.0,
+     "seconds_pr5v": 1.5,
+     "to": 1790121600000,
+     "trips_identical": true
+    },
+    "USDT-GBP": {
+     "first_differences": [],
+     "from": 1765843200000,
+     "frozen_orders": 60400,
+     "frozen_pnl_usd": 519.2303338161,
+     "frozen_trips": 5640,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 60400,
+     "pr5v_pnl_usd": 519.2303338161,
+     "pr5v_trips": 5640,
+     "seconds_frozen": 2.3,
+     "seconds_pr5v": 2.3,
+     "to": 1790121600000,
+     "trips_identical": true
+    }
+   }
+  },
+  "tightened_2026-08-26_to_09-23/primary": {
+   "all_identical": true,
+   "books": {
+    "USDC-GBP": {
+     "first_differences": [],
+     "from": 1787702400000,
+     "frozen_orders": 2909,
+     "frozen_pnl_usd": 3.7362272867,
+     "frozen_trips": 40,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 2909,
+     "pr5v_pnl_usd": 3.7362272867,
+     "pr5v_trips": 40,
+     "seconds_frozen": 0.2,
+     "seconds_pr5v": 0.1,
+     "to": 1790121600000,
+     "trips_identical": true
+    },
+    "USDT-GBP": {
+     "first_differences": [],
+     "from": 1787702400000,
+     "frozen_orders": 2830,
+     "frozen_pnl_usd": 7.9326157018,
+     "frozen_trips": 62,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 2830,
+     "pr5v_pnl_usd": 7.9326157018,
+     "pr5v_trips": 62,
+     "seconds_frozen": 0.3,
+     "seconds_pr5v": 0.1,
+     "to": 1790121600000,
+     "trips_identical": true
+    }
+   }
+  },
+  "tightened_2026-08-26_to_09-23/stress": {
+   "all_identical": true,
+   "books": {
+    "USDC-GBP": {
+     "first_differences": [],
+     "from": 1787702400000,
+     "frozen_orders": 2886,
+     "frozen_pnl_usd": 2.4578587215,
+     "frozen_trips": 31,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 2886,
+     "pr5v_pnl_usd": 2.4578587215,
+     "pr5v_trips": 31,
+     "seconds_frozen": 0.3,
+     "seconds_pr5v": 0.2,
+     "to": 1790121600000,
+     "trips_identical": true
+    },
+    "USDT-GBP": {
+     "first_differences": [],
+     "from": 1787702400000,
+     "frozen_orders": 2818,
+     "frozen_pnl_usd": 6.6591608273,
+     "frozen_trips": 50,
+     "orders_per_day_identical": true,
+     "pr5v_orders": 2818,
+     "pr5v_pnl_usd": 6.6591608273,
+     "pr5v_trips": 50,
+     "seconds_frozen": 0.4,
+     "seconds_pr5v": 0.1,
+     "to": 1790121600000,
+     "trips_identical": true
+    }
+   }
+  }
+ }
+}

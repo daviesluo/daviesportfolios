@@ -1,0 +1,6 @@
+(a) twins identical: 300
+(b) [(0.001, 18.45)] cap 18.45
+(c) 300000 303000 0.74 maker
+(d) [(600000, 0.7392, True)] 1
+(e) placed 2 withdrawn 2
+all pr5v checks pass
