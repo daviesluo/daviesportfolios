@@ -423,6 +423,25 @@ export const QUOTES_CAPITAL_USD = 1200;
 /** How many of the latest round trips the quote test's page lists. */
 export const QUOTES_RECENT_TRIPS = 20;
 
+/** A day of the quote test as `agent_quote_days` (`0070`) counts it. */
+export type QuoteDayRow = { day: string; orders: number | string; fills: number | string; trips: number | string; won: number | string; realised_usd: number | string };
+
+/**
+ * The quote test's DAYS table (Davies, 2026-09-28: Reward quotes' days table, for Stablecoin quotes too), newest first:
+ * each UTC day's orders against the venue's 1,000, its entry fills, and the round trips that closed that day with what
+ * they made. Today's row is the scoreboard's TODAY, and the rows add up to its REALIZED G/L: one set of trips.
+ */
+export function quoteDays(rows: QuoteDayRow[], dayStartMs: number) {
+  const today = new Date(dayStartMs).toISOString().slice(0, 10);
+  return rows
+    .map((r) => ({
+      day: String(r.day).slice(0, 10), orders: Number(r.orders) || 0, fills: Number(r.fills) || 0,
+      trips: Number(r.trips) || 0, won: Number(r.won) || 0, realisedUsd: Number(r.realised_usd) || 0,
+    }))
+    .map((r) => ({ ...r, today: r.day === today }))
+    .sort((a, b) => (a.day < b.day ? 1 : a.day > b.day ? -1 : 0));
+}
+
 /**
  * One book of the quote test for its page: each rung's state and price (GBP a coin), what a held rung is worth and has
  * made, and the book's round trips. A held rung is marked at the book's last print, the same price a trip's P&L would
@@ -461,7 +480,7 @@ export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripR
  * its round trips, what it holds, its orders today against Revolut X's 1,000 a day, and whether it is keeping up (it
  * decides one minute behind the clock, so a last minute more than five back means it has stopped).
  */
-export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number) {
+export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number, days: QuoteDayRow[] = []) {
   if (!st || !st.last_minute) return null;
   const pnl = trips.reduce((a, t) => a + Number(t.pnl_usd), 0);
   const todayPnl = trips.filter((t) => Date.parse(t.t_exit) >= dayStartMs).reduce((a, t) => a + Number(t.pnl_usd), 0);
@@ -481,7 +500,7 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
     open: books.reduce((a, b) => a + b.held, 0), openUsd: books.reduce((a, b) => a + b.openUsd, 0),
     unrealisedUsd: books.some((b) => b.unrealisedUsd == null) ? null : books.reduce((a, b) => a + (b.unrealisedUsd ?? 0), 0),
     ordersToday: today.filter((e) => e.kind === "order").length, fillsToday: today.filter((e) => e.kind === "fill").length,
-    books, recent,
+    books, recent, days: quoteDays(days, dayStartMs),
   };
 }
 
@@ -800,7 +819,9 @@ async function dashboard(now: number) {
         d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
         d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
       ]);
-      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs);
+      // Its days (`0070`), read apart: before the view exists, the page shows the test without them.
+      const days = await d.select<QuoteDayRow>("agent_quote_days", "select=day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60").catch(() => [] as QuoteDayRow[]);
+      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs, days);
       // Its live executor (`0052`): the real-money book it trades, once it trades one. Its own tables; before they
       // exist, the page shows the paper test alone.
       const live = await (async () => {

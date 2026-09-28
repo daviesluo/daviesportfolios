@@ -537,6 +537,12 @@ const AGENTS_DASHBOARD = (() => {
     quotes: { startedAt: '2026-09-16T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
       realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
       ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS,
+      // Its days (`0070`, as quoteDays shapes them), newest first, from the same round trips: today's three make +$0.12
+      // (TODAY), the four of 16 Sep +$0.30, and the two add up to REALIZED's +$0.42.
+      days: [
+        { day: '2026-09-17', orders: 205, fills: 8, trips: 3, won: 2, realisedUsd: 0.12, today: true },
+        { day: '2026-09-16', orders: 120, fills: 5, trips: 4, won: 4, realisedUsd: 0.30, today: false },
+      ],
       // Its live executor (`0052`) in dry-run, as quotesLiveSummary shapes it: no money, what it would have sent today.
       live: { dryRun: true, armed: false, armedAt: null, entryBook: 'dry_run', why: '', running: true, lagMinutes: 0, lastError: null,
         postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
@@ -2152,6 +2158,27 @@ async function run() {
         && /\+\$0\.1000$/.test(qFirst.trim()) && qStacked === 2) {
         ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.1400), and all 7 round trips, newest first, each P&L to four places like its prices');
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
+      // DAYS, right below BOOKS (Davies, 2026-09-28: Reward quotes' days table, here too): newest first, today's row is
+      // the scoreboard's TODAY, the rows add up to its REALIZED G/L, and a phone keeps the day, the trips and the P&L.
+      const qOrder = await page.locator('.ag-quotes-detail .ag-section').evaluateAll((els) => els.map((el) =>
+        el.classList.contains('ag-quote-books') ? 'books' : el.classList.contains('ag-quote-days') ? 'days' : el.classList.contains('ag-quote-trips') ? 'trips' : 'other'));
+      const qDays = await page.locator('.ag-quotes-detail .ag-quote-days tbody tr').evaluateAll((trs) => trs.map((tr) =>
+        [...tr.querySelectorAll('td')].map((td) => ({ t: (td.textContent || '').trim(), shown: td.getClientRects().length > 0 }))));
+      const qDayHeads = (await page.locator('.ag-quotes-detail .ag-quote-days thead th').allTextContents()).map((t) => t.trim());
+      const qCell = async (name) => page.locator('.ag-quotes-detail .ag-scoreboard-sm .ag-sb-cell').evaluateAll((cells, n) => {
+        const c = cells.find((el) => (el.querySelector('.ag-sb-name')?.textContent || '').trim() === n);
+        return c ? (c.textContent || '').replace(/\s+/g, ' ') : '';
+      }, name);
+      const dollars = (t) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(t || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
+      const qTodayCell = dollars(await qCell('TODAY')), qRealCell = dollars(await qCell('REALIZED G/L'));
+      const dayCells = qDays.map((r) => r.map((c) => c.t));
+      const phoneCols = qDays.every((r) => r[1] && r[2] && r[1].shown === (vp.name !== 'phone') && r[2].shown === (vp.name !== 'phone') && r[0].shown && r[3].shown && r[4].shown);
+      const daySum = qDays.reduce((a, r) => a + dollars(r[4]?.t), 0);
+      if (qOrder.join(',') === 'books,days,trips' && qDayHeads.join(',') === 'Day (UTC),Orders,Fills,Round trips,Realised'
+        && dayCells.map((r) => r.join('|')).join(' / ') === '17 Sep · today|205|8|3 · 67 % won|+$0.1200 / 16 Sep|120|5|4 · 100 % won|+$0.3000'
+        && Math.abs(dollars(qDays[0][4].t) - qTodayCell) < 1e-9 && Math.abs(daySum - qRealCell) < 1e-9 && phoneCols) {
+        ok(S('agents'), `DAYS sits right below BOOKS, newest first: today's +$0.1200 is TODAY (${qTodayCell}), the days add up to REALIZED (${qRealCell}), and ${vp.name === 'phone' ? 'a phone keeps the day, the trips and the P&L' : 'orders and fills show beside them'}`);
+      } else fail(S('agents'), `quote DAYS: sections ${qOrder.join(',')}, heads ${qDayHeads.join(',')}, rows ${JSON.stringify(qDays)}, TODAY ${qTodayCell}, REALIZED ${qRealCell}, sum ${daySum}`);
       const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the quote page has the same refresh button beside close');
       else fail(S('agents'), `quote page actions ${qHeads.join(',')}`);

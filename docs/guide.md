@@ -137,9 +137,13 @@ places stay when the number is not whole.
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
   tie up; its dot turns amber if it stops. Tap it for its page: the same
   scoreboard, then each book's six rungs (the price each quotes, or what
-  it holds and has made at the last trade) and the latest round trips,
-  each with its size in coins (every exit so far rested as a maker; only
-  its 24-hour stop would take the book). From its live path's first real
+  it holds and has made at the last trade), then DAYS — each UTC day,
+  newest first: the orders it placed (of the 1,000 a day the exchange
+  allows), its fills, the round trips that closed and what they made;
+  today's row is TODAY above, and the days add up to REALIZED — and the
+  latest round trips, each with its size in coins (every exit so far
+  rested as a maker; only its 24-hour stop would take the book). On a
+  phone, DAYS keeps the day, the round trips and what they made. From its live path's first real
   order, the page also says what that path is doing, and it is also a
   row of LIVE — its real-money book, in LIVE's totals and its
   Revolut X card, in dollars at the day's pound rate — and a live order

@@ -454,6 +454,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 11:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Stablecoin quotes' page has a DAYS table below BOOKS** (Davies: "Reward quotes里的days表格，给Stablecoin quotes也做一个加上并且放在BOOKS部分下方"). Each UTC day, newest first: orders placed (of the 1,000 a day), entry fills, the round trips that closed and what they made. The counts come from a view, `agent_quote_days` (`0070`, `security_invoker`), so the page reads a row a day, not every order; it stores nothing and touches nothing `quotes.ts` reads or writes (QUEUE's and PR5-W's freeze lines). Today's row is TODAY and the days add up to REALIZED: one set of trips. Pinned: `quoteDays` in `index.test.ts`, the view on a local PostgreSQL (UTC days from a non-UTC session, replay-safe), and the sweep at both widths (below BOOKS, today = TODAY, sum = REALIZED, a phone keeps day, trips and P&L).
+
 ### [2026-09-28 11:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **MX-1's C* measurement committed** (`docs/agents/backtests/mx1/cstar/`): the report, every script, its logs, tables and outputs, made before the freeze from public data only. The inputs (Binance's 1-minute klines and the hourly Coinbase and Kraken series, 132 MB) are listed by sha256, size and path in `INPUTS.sha256`, not committed; `decisions.ts` imports the loop's simulator by relative path and type-checks from there. MX-1 itself is revised to Davies' choice (exits only, one test at 5 %, 150 judged exits or 2027-06-30) and waits for an independent check before its freeze.

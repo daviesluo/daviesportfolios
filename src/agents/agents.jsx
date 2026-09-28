@@ -358,6 +358,9 @@ function QuotesDetail({ q, m, at, nowMs }) {
   const row = quotesRow(q);
   if (!v || !row) return null;
   const recent = q.recent ?? [];
+  // Each UTC day, newest first, below the books (Davies, 2026-09-28: Reward quotes' days table, here too). Today's row
+  // is TODAY above, and the rows add up to REALIZED G/L: both are the same round trips (`quoteDays`).
+  const days = q.days ?? [];
   return (
     <div className="ag-detail ag-quotes-detail">
       <div className="ag-detail-head">
@@ -400,6 +403,29 @@ function QuotesDetail({ q, m, at, nowMs }) {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+      <section className="ag-section ag-quote-days">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th ag-ph">Orders</th><th className="hl-th ag-ph">Fills</th>
+              <th className="hl-th">Round trips</th><th className="hl-th">Realised</th>
+            </tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet.</td></tr>}
+              {days.map((d) => (
+                <tr key={d.day}>
+                  <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                  <td className="ag-ph">{d.orders}</td>
+                  <td className="ag-ph">{d.fills}</td>
+                  <td>{d.trips ? `${d.trips} · ${Math.round((100 * d.won) / d.trips)} % won` : '0'}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.realisedUsd) }}>{m(fmtUsd4(d.realisedUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
       <section className="ag-section ag-quote-trips">

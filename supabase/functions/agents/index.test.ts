@@ -5,7 +5,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
-  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
+  STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
@@ -564,6 +564,27 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
   assertEquals(stale.running, false);                                  // ten minutes behind: it has stopped
   assertEquals(quotesSummary(null, [], [], null, now, dayStart), null);  // not built yet: off the page
+});
+
+Deno.test("quoteDays: the quote test's days, newest first, today marked, numbers as numbers; the summary carries them", () => {
+  const dayStart = Date.UTC(2026, 8, 24);
+  // As PostgREST returns `agent_quote_days` (`0070`): bigint counts may come as strings, numeric as a string.
+  const rows = [
+    { day: "2026-09-23", orders: "140", fills: 3, trips: 2, won: "1", realised_usd: "0.0935" },
+    { day: "2026-09-24", orders: 61, fills: "2", trips: "1", won: 1, realised_usd: 0.12 },
+    { day: "2026-09-22", orders: 0, fills: 0, trips: 1, won: 0, realised_usd: "-0.0400" },
+  ];
+  assertEquals(quoteDays(rows, dayStart), [
+    { day: "2026-09-24", orders: 61, fills: 2, trips: 1, won: 1, realisedUsd: 0.12, today: true },
+    { day: "2026-09-23", orders: 140, fills: 3, trips: 2, won: 1, realisedUsd: 0.0935, today: false },
+    { day: "2026-09-22", orders: 0, fills: 0, trips: 1, won: 0, realisedUsd: -0.04, today: false },
+  ]);
+  assertEquals(quoteDays([], dayStart), []);
+  // The summary passes them through; without the view (before `0070`) it has none, and the page says so.
+  const now = dayStart + 12 * 3600e3;
+  const st = { state: { books: {} }, last_minute: new Date(now - 60e3).toISOString(), updated_at: new Date(now).toISOString(), last_error: null };
+  assertEquals(quotesSummary(st, [], [], null, now, dayStart, rows)!.days.map((d) => d.day), ["2026-09-24", "2026-09-23", "2026-09-22"]);
+  assertEquals(quotesSummary(st, [], [], null, now, dayStart)!.days, []);
 });
 
 Deno.test("quotesSummary: each book's ladder for its page, held rungs marked at the last print, newest trips first", () => {
