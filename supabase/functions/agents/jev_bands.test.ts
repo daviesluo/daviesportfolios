@@ -68,7 +68,7 @@ Deno.test("the measured transport and the caution flag agree with the answer fil
 
 Deno.test("jevDriftFlags: one flag per thing that differs from what was measured, and none when nothing does", () => {
   const st = { symbol: "SOL/USD", trend_strength: "strong", volatility: "high", momentum_30d: "positive" };
-  const base = { kind: "trend-4h", version: "v2", ownWording: false, band: jevBandCheck("trend-4h", st, 0.58), healthy: 0.58, caution: 0,
+  const base = { kind: "trend-4h", version: "v2", band: jevBandCheck("trend-4h", st, 0.58), healthy: 0.58, caution: 0,
     provider: JEV_MEASURED_PROVIDER, model: JEV_MEASURED_MODEL };
   assertEquals(jevDriftFlags(base), []);
   assertEquals(jevDriftFlags({ ...base, band: jevBandCheck("trend-4h", st, 0.7), healthy: 0.7 }),
@@ -76,7 +76,7 @@ Deno.test("jevDriftFlags: one flag per thing that differs from what was measured
   assertEquals(jevDriftFlags({ ...base, band: jevBandCheck("trend-4h", { ...st, symbol: "DOGE/USD" }, 0.58) }),
     ["healthy 0.58 is outside every measured band (a state never measured) for DOGE/USD|strong|high|positive"]);
   // A question the bands were not measured on is a flag in itself: the check would otherwise go quiet without a word.
-  assertEquals(jevDriftFlags({ ...base, ownWording: true, band: null }), ["no measured bands for the row's own wording: the check cannot run"]);
+  assertEquals(jevDriftFlags({ ...base, kind: "trend-1h", version: "v3-trend-1h", band: null }), ["no measured bands for question v3-trend-1h: the check cannot run"]);
   assertEquals(jevDriftFlags({ ...base, version: "v3", band: null }), ["no measured bands for question v3: the check cannot run"]);
   // A rule with no bands at all (rotation, dislocation) is not flagged for that.
   assertEquals(jevDriftFlags({ ...base, kind: "rotation-1d", band: null }), []);

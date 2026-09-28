@@ -366,6 +366,12 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**JEV-DRIFT checks the question the decision records as asked, not the row's parameter.**
+- `questionsForRow` asks a row's `params.jevQuestion` only when it is a wording of that row's own rule, so keying the check on the parameter would have skipped a check that could run and raised a false flag. The tick now reads `numbers.jevQuestion`. Pinned with `v2` and another rule's wording as the parameter; the pin fails on the old keying.
+- The monitor document now says what a re-measure concludes (false alarm, drift that rebuilds the bands as a deviation, or a question for Davies), no repeat re-measure for one cause within seven days, and that any confirmed drift re-measures `trend-4h` too. It is frozen once this deploy is verified.
+
 ### [2026-09-28 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **R3: every maker probe now records the id of the order it shadows.**

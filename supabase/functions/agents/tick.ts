@@ -1472,12 +1472,14 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     // JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md): every entry the model answered, against what was measured — the
     // healthy answer against its state's replies (recorded on the decision, in band or not), the question, the caution and
     // the model. It decides nothing: a flag is reported apart from the turn's errors, as `agents.jev-drift` in ops_errors.
+    // The question is the one actually asked, which the caller records (`numbers.jevQuestion`): a row's `params.jevQuestion`
+    // is asked only when it is a wording of that row's own rule (`questionsForRow`), so the parameter alone does not say.
     const answered = rule.action === "enter" && jr.provider !== "rule" && jr.provider !== "none";
-    const ownWording = !!s.params?.jevQuestion;
-    const jevBand = answered && view.healthy != null && JEV_QUESTION_VERSION === "v2" && !ownWording
+    const askedVersion = typeof numbers.jevQuestion === "string" ? numbers.jevQuestion : JEV_QUESTION_VERSION;
+    const jevBand = answered && view.healthy != null && askedVersion === "v2"
       ? jevBandCheck(s.kind, snapState as Record<string, unknown>, view.healthy) : null;
     if (answered) {
-      for (const flag of jevDriftFlags({ kind: s.kind, version: JEV_QUESTION_VERSION, ownWording, band: jevBand, healthy: view.healthy, caution: view.caution, provider: jr.provider, model: jr.model })) {
+      for (const flag of jevDriftFlags({ kind: s.kind, version: askedVersion, band: jevBand, healthy: view.healthy, caution: view.caution, provider: jr.provider, model: jr.model })) {
         report.jevDrift.push(`${s.id} ${sym}: ${flag}`);
       }
     }

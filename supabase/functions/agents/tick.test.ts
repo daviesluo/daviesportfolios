@@ -1335,6 +1335,16 @@ Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured 
   const down = world({ jevDown: true });
   const r5 = await tick(down.deps);
   assertEquals([r5.jevDrift, down.mem.tables.agent_decisions[0].final_action], [[], "hold"]);
+
+  // `params.jevQuestion` that is not a wording of this row's own rule is never asked (`questionsForRow` asks v2), so the
+  // check runs as for any v2 row: the question checked is the one the decision records, not the parameter.
+  for (const named of ["v2", "v3-momentum-1d"]) {
+    const w = world({ jevHealthy: inside, strategies: [strategy({ params: { ...strategy().params, jevQuestion: named } })] });
+    const r = await tick(w.deps);
+    const dec = w.mem.tables.agent_decisions[0];
+    assertEquals((dec.numbers as { jevQuestion: string }).jevQuestion, "v2");
+    assertEquals([r.jevDrift, (dec.numbers as { jevBand: { inBand: boolean } }).jevBand.inBand], [[], true], named);
+  }
 });
 
 // ── winding down: a retired row that still holds something ─────────────────────────────────

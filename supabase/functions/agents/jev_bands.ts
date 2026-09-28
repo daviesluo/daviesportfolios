@@ -384,19 +384,19 @@ export const JEV_CAUTION_FLAG = 1.5;
 
 /**
  * Every JEV-DRIFT flag on one answered entry (reviews/2026-09-28-jev-drift-monitor.md), empty when there is none:
- * the healthy answer outside its state's band (or a state never measured); a question the bands were not measured on
- * (another version, or the row's own wording), for a rule that has bands; a caution near the gate's veto; and an answer
- * from another transport or model than the one measured — TypeSafe direct, the fallback, was never measured. Pure: the
- * tick adds the row and the pair to each.
+ * the healthy answer outside its state's band (or a state never measured); a question the bands were not measured on —
+ * `version` is the one actually asked, as the decision records it (`v2`, or a row's own wording such as `v3-trend-1h`) —
+ * for a rule that has bands; a caution near the gate's veto; and an answer from another transport or model than the one
+ * measured (TypeSafe direct, the fallback, was never measured on the v2 entry states). Pure: the tick adds the row and
+ * the pair to each.
  */
 export function jevDriftFlags(x: {
-  kind: string; version: string; ownWording: boolean; band: JevBand | null; healthy: number | null; caution: number | null;
-  provider: string; model: string | null;
+  kind: string; version: string; band: JevBand | null; healthy: number | null; caution: number | null; provider: string; model: string | null;
 }): string[] {
   const flags: string[] = [];
   const measured = x.kind === "trend-4h" || x.kind === "trend-1h" || x.kind === "momentum-1d";
-  if (measured && (x.version !== "v2" || x.ownWording)) {
-    flags.push(`no measured bands for ${x.ownWording ? "the row's own wording" : `question ${x.version}`}: the check cannot run`);
+  if (measured && x.version !== "v2") {
+    flags.push(`no measured bands for question ${x.version}: the check cannot run`);
   } else if (x.band && !x.band.inBand) {
     flags.push(`healthy ${x.healthy} is outside ${x.band.min == null ? "every measured band (a state never measured)" : `[${x.band.min}, ${x.band.max}]`} for ${x.band.key}`);
   }
