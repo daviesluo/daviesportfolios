@@ -14,8 +14,9 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_ENTRY_POSTS,
-  QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks, venueSideOf,
+  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS,
+  QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
+  venueSideOf, wasRateLimited,
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
@@ -34,6 +35,8 @@ type Opts = { live?: boolean; armed?: boolean; key?: boolean; balances?: Record<
 
 function makeWorld(o: Opts = {}) {
   const clock = { now: T0 + M + 30e3 };
+  /** With `pauses.advance`, a pause the executor takes moves the clock, as a real one does; every pause is recorded. */
+  const pauses = { advance: false, taken: [] as number[] };
   const inputs: Row[] = [];
   for (let t = T0 - 2 * H; t <= T0 + 30 * H; t += M) inputs.push({ kind: "fx", t: iso(t), value: X });
   for (let t = T0 - 30 * H; t <= T0 + 30 * H; t += H) for (const kind of ["fair:USDC-USD", "fair:USDT-USD"]) inputs.push({ kind, t: iso(t), value: 1.0 });
@@ -58,7 +61,7 @@ function makeWorld(o: Opts = {}) {
     claim: (t, q, p) => { executorWrites.add(t); return db.claim(t, q, p); },
   };
   const w = {
-    mem, rx, clock, account, executorWrites,
+    mem, rx, clock, pauses, account, executorWrites,
     books: { "USDC-GBP": newBookState("USDC-GBP"), "USDT-GBP": newBookState("USDT-GBP") } as Record<QuoteBook, BookState>,
     paperEvents: [] as QuoteEvent[], paperTrips: [] as Trip[],
     series(kind: string) {
@@ -76,7 +79,8 @@ function makeWorld(o: Opts = {}) {
     /** The executor's turn after the paper engine decided minute t: 30 s into the next minute, as in production. */
     live(t: number, at = t + M + 30e3) {
       clock.now = at;
-      return runQuotesLive({ db: executorDb, now: at, holder: `h${at}`, uuid: () => crypto.randomUUID(), account, accountNote: account ? null : "no key", fetch: rx.fetch, pause: () => Promise.resolve(), clock: () => clock.now });
+      const pause = (ms: number) => { pauses.taken.push(ms); if (pauses.advance) clock.now += ms; return Promise.resolve(); };
+      return runQuotesLive({ db: executorDb, now: at, holder: `h${at}`, uuid: () => crypto.randomUUID(), account, accountNote: account ? null : "no key", fetch: rx.fetch, pause, clock: () => clock.now });
     },
     async step(t: number, prints: Partial<Record<QuoteBook, Print[]>> = {}) { await w.paperStep(t, prints); return await w.live(t); },
     async run(from: number, to: number) { let r; for (let t = from; t <= to; t += M) r = await w.step(t); return r!; },
@@ -636,6 +640,69 @@ Deno.test("stale inputs: no entries while the paper engine is behind or the USD 
   await w.step(T0 + 3 * M);
   assertEquals(w.orders().filter((o) => o.leg === "exit").map((o) => [o.state, Number(o.price)]), [["new", 0.7555]]);   // kept its price
   assertEquals(w.open("live").filter((o) => o.leg === "entry").length, 0);                                                 // and no entries anywhere
+});
+
+// The PR5v study (2026-09-28) found the frozen shape sends twelve POSTs at once when every rung is placed or re-priced,
+// over Revolut X's 10 a second on a key; before this a 429 was recorded as a refusal and its decision never sent again.
+Deno.test("live: the executor's own POSTs are paced under the venue's 10 a second — twelve rungs placed at once are all taken, none turned away", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 20, USDT: 20 } });
+  w.pauses.advance = true;
+  // In production the book an order meets is the paper engine's snapshot of the minute, read from the database, so no
+  // public read (and its 1.1 s pause) falls between the twelve POSTs: the same here.
+  for (const b of QUOTE_BOOKS) {
+    const q = w.rx.gbpBooks[b.replace("-", "/")];
+    await w.mem.db.upsert("agent_quote_events", [{ book: b, minute: iso(T0 + M), side: "-", k: 0, kind: "book", ticks: null,
+      detail: { at: T0 + M + 1e3, orders: [], book: { bids: [{ count: 1, price: q.bid.toFixed(4), quantity: "5000" }], asks: [{ count: 1, price: q.ask.toFixed(4), quantity: "5000" }] } } }], "book,minute,side,k,kind");
+  }
+  const r0 = await w.step(T0);
+  assertEquals([r0.errors, w.posts(), w.rx.rateLimited], [[], 12, 0]);
+  assert(w.rx.postTimes.at(-1)! - w.rx.postTimes[0] < 2000, "the twelve went out as one burst");
+  assertEquals(entryRows(w.orders()).map((o) => o.state), Array(12).fill("new"));
+  const gaps = w.rx.postTimes.slice(1).map((t, i) => t - w.rx.postTimes[i]);
+  assert(gaps.every((g) => g >= QUOTE_LIVE_POST_GAP_MS), JSON.stringify(gaps));
+  // The venue's own limit, which the double enforces: never more than 10 taken in any second.
+  assert(w.rx.postTimes.every((t) => w.rx.postTimes.filter((x) => x > t - 1000 && x <= t).length <= 10));
+});
+
+Deno.test("live: a POST the rate limit turns away (429) is not a refusal — sent once more after a second, and taken", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  w.rx.rateLimitNext = 1;
+  const r0 = await w.step(T0);
+  assertEquals(r0.errors, []);
+  assertEquals(entryRows(w.orders()).map((o) => o.state), Array(6).fill("new"));
+  assertEquals([w.posts(), w.rx.rateLimited, w.rx.resting().length], [7, 1, 6]);
+  assert(w.pauses.taken.includes(QUOTE_LIVE_429_WAIT_MS));
+});
+
+Deno.test("live: turned away twice, the order is recorded as rate-limited and its decision sent again next turn — the one refusal that is re-sent", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  w.rx.rateLimitNext = 2;
+  const r0 = await w.step(T0);
+  const first = entryRows(w.orders())[0];
+  assertEquals([first.state, (first.response as { status: number }).status, wasRateLimited(first)], ["rejected", 429, true]);
+  assert(r0.errors.some((e) => e.includes("rate limit")), JSON.stringify(r0.errors));
+  // Next turn, no new paper decision: only the turned-away rung sends, the same decision (paper order and live minute).
+  await w.step(T0 + M);
+  const rung = entryRows(w.orders()).filter((o) => o.book === first.book && o.rung_side === first.rung_side && Number(o.k) === Number(first.k));
+  assertEquals(rung.map((o) => o.state), ["rejected", "new"]);
+  assertEquals([rung[1].paper_oid, rung[1].paper_live, ticks(rung[1])], [first.paper_oid, first.paper_live, ticks(first)]);
+  assertEquals(w.posts(), 6 + 2);
+  // A refusal by the book is still never re-sent; the rate limit's is the only one (the post-only test above pins the other).
+  assertEquals(wasRateLimited({ state: "rejected", response: { status: 400 } }), false);
+  assertEquals(wasRateLimited({ state: "new", response: { status: 429 } }), false);
+});
+
+Deno.test("live: a 24-hour stop the rate limit turns away twice is tried again next turn, not an hour later", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - DAY - 5 * M), filled_at: iso(T0 - DAY - 5 * M) });
+  w.rx.rateLimitNext = 2;                                            // the stop is the turn's first POST
+  await w.step(T0);
+  assertEquals(w.orders().filter((o) => o.leg === "stop").map((o) => [o.state, wasRateLimited(o)]), [["rejected", true]]);
+  await w.step(T0 + M);                                             // sent again at once, not an hour on
+  assertEquals(w.orders().filter((o) => o.leg === "stop").map((o) => o.state), ["rejected", "new"]);
+  await w.step(T0 + 2 * M);                                         // an IOC settles on the read-back of the next turn
+  assertEquals(w.orders().filter((o) => o.leg === "stop").map((o) => o.state), ["rejected", "filled"]);
+  assertEquals(w.rx.balances.USDC, 0);
 });
 
 Deno.test("the 24-hour stop: an IOC bounded at fair − 50 bps; unfilled it alerts, the book quotes no entries, and it is tried again an hour later, not every minute", async () => {

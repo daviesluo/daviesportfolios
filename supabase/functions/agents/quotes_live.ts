@@ -75,6 +75,13 @@ export const QUOTE_LIVE_STOP_RETRY_MS = H;          // an unfilled stop is tried
 export const QUOTE_LIVE_LEASE_MS = 55e3;
 export const QUOTE_LIVE_PENDING_GRACE_MS = 60e3;    // a `pending` row younger than this is the current turn's own
 export const QUOTE_LIVE_CONVERT_MAX_FRACTION = 0.25; // one conversion buys at most three rungs' worth: the design's inventory for one coin
+/**
+ * Revolut X takes at most 10 order POSTs a second on a key (reference §2), and a turn that places or re-prices every rung
+ * sends twelve (the PR5v study, 2026-09-28): the executor's own POSTs go out at least this far apart, 8 a second.
+ */
+export const QUOTE_LIVE_POST_GAP_MS = 125;
+/** A POST the venue answers 429 was not taken: it is sent once more after this, the second's bucket refilled. */
+export const QUOTE_LIVE_429_WAIT_MS = 1_000;
 
 export type LiveMode = "dry_run" | "live";
 export type LiveLeg = "entry" | "exit" | "stop" | "convert";
@@ -213,6 +220,14 @@ export function entryGuards(T: number, i: BookInputs, lastPrintPx: number | null
   return out;
 }
 
+/**
+ * An order the venue's rate limit turned away (429, after one retry): never taken, so it is no refusal of the decision. Its
+ * rung sends that decision again next turn, and a stop turned away is tried again next turn, not an hour later.
+ */
+export function wasRateLimited(o: { state: string; response?: unknown }): boolean {
+  return o.state === "rejected" && Number((o.response as { status?: unknown } | null | undefined)?.status) === 429;
+}
+
 /** The governor's level for a count of today's POSTs. */
 export function governorLevel(postsToday: number): "all" | "no-entries" | "stops-only" {
   return postsToday >= QUOTE_LIVE_STOPS_ONLY_POSTS ? "stops-only" : postsToday >= QUOTE_LIVE_ENTRY_POSTS ? "no-entries" : "all";
@@ -298,6 +313,8 @@ export type QuoteLiveReport = {
 type Ctx = {
   d: QuoteLiveDeps; report: QuoteLiveReport; nowIso: string;
   holdLease: () => Promise<boolean>;
+  pacePost: () => Promise<void>;
+  pause: (ms: number) => Promise<void>;
   bookSeen: (b: QuoteBook) => Promise<BookSeen | null>;
   posts: Record<LiveMode, number>;
 };
@@ -351,8 +368,15 @@ async function placeOrder(ctx: Ctx, o: {
     return row;
   }
   let placed: Awaited<ReturnType<Venue["placeLimit"]>>;
+  let retriedAfter429 = false;
+  const send = async () => {
+    await ctx.pacePost();
+    return await d.account!.placeLimit({ clientOrderId, symbol: LIVE_SYMBOL[o.book], side: o.side, base: o.base, price, marketable: o.marketable });
+  };
   try {
-    placed = await d.account!.placeLimit({ clientOrderId, symbol: LIVE_SYMBOL[o.book], side: o.side, base: o.base, price, marketable: o.marketable });
+    placed = await send();
+    // A 429 is the rate limit turning the order away before the book saw it: the same order, same client id, once more.
+    if (!placed.ok && placed.status === 429) { retriedAfter429 = true; await ctx.pause(QUOTE_LIVE_429_WAIT_MS); placed = await send(); }
   } catch (e) {
     report.errors.push(`${label}: placement of ${clientOrderId} has no reply (${msg(e)}); left pending for the next turn to reconcile by client id`);
     done("pending");
@@ -365,7 +389,8 @@ async function placeOrder(ctx: Ctx, o: {
     return row;
   }
   if (!placed.ok) {
-    await patchRow(ctx, row, { state: "rejected", cancelled_at: ctx.nowIso, response: { status: placed.status, error: placed.error, response: placed.response } });
+    await patchRow(ctx, row, { state: "rejected", cancelled_at: ctx.nowIso, response: { status: placed.status, error: placed.error, response: placed.response, retriedAfter429 } });
+    if (placed.status === 429) report.errors.push(`${label}: the venue's rate limit turned ${clientOrderId} away twice; it is sent again next turn`);
     done("rejected");
     return row;
   }
@@ -386,6 +411,13 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport) {
     if (wait > 0) await pause(wait);
     lastPublic = clock();
     return await revxPublic<T>(path, f, 8_000, pause);
+  };
+  // The executor's own order POSTs: at most one each QUOTE_LIVE_POST_GAP_MS, under the venue's 10 a second on the key.
+  let lastPost = 0;
+  const pacePost = async () => {
+    const wait = lastPost ? lastPost + QUOTE_LIVE_POST_GAP_MS - clock() : 0;
+    if (wait > 0) await pause(wait);
+    lastPost = clock();
   };
   let renewedAt = clock(), leaseLost = false;
   /** Keep, and check, the lease before every live order: a turn that lost it stops sending (the tick's rule). */
@@ -429,7 +461,7 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport) {
     }
     return out;
   };
-  return { holdLease, bookSeen, pairs, clock };
+  return { holdLease, bookSeen, pairs, clock, pacePost, pause };
 }
 
 /** The paper engine's decided minute and the inputs it priced each book from, read the way it reads them. */
@@ -482,7 +514,7 @@ type RungNow = {
 async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   const nowIso = iso(d.now), nowMinute = minuteOf(d.now), dayStart = Math.floor(d.now / DAY) * DAY;
   const h = makeCtxHelpers(d, report);
-  const ctx: Ctx = { d, report, nowIso, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts };
+  const ctx: Ctx = { d, report, nowIso, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, pacePost: h.pacePost, pause: h.pause };
 
   let cfg: LiveConfig | undefined;
   try { cfg = (await d.db.select<LiveConfig>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0]; }
@@ -668,8 +700,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
 
   // ── 2. the live book, from its fills ─────────────────────────────────────────────────────────────────────────────
   const fills = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
-  const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live">>(
-    "agent_quote_live_orders", `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live&order=id.asc`);
+  const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live" | "response">>(
+    "agent_quote_live_orders", `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
   for (const r of recent) if (Date.parse(r.ts) >= dayStart) report.posts[r.mode]++;
   const lastPrintPx = (b: QuoteBook) => paper?.books?.[b]?.lastPrint?.ticks != null ? paper.books[b].lastPrint!.ticks * QUOTE_TICK : null;
   const rungs: RungNow[] = [];
@@ -739,7 +771,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   }
 
   // ── 5. the live book's positions: the entry's remainder, the 24-hour stop, the exit ─────────────────────────────────
-  const lastLeg = (r: RungNow, leg: LiveLeg) => [...recent].reverse().find((o) => o.mode === "live" && o.leg === leg && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k) ?? null;
+  const lastLeg = (r: RungNow, leg: LiveLeg) => [...recent].reverse().find((o) => o.mode === "live" && o.leg === leg && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k && !wasRateLimited(o)) ?? null;
   /** What an exit or stop can trade: the whole holding, a sell capped at what the account holds beyond other open sells. */
   const exitBase = (r: RungNow, price: number, own: LiveOrderRow | null): string | null => {
     const pair = pairs[LIVE_SYMBOL[r.book]];
@@ -842,7 +874,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         }
         // One POST per paper decision: a decision the venue refused, or whose outcome is unknown, is not sent again.
         const last = [...recent].reverse().find((x) => x.mode === mode && x.leg === "entry" && x.book === r.book && x.rung_side === r.side && Number(x.k) === r.k);
-        if (last && sameDecision(last, target) && (last.state === "rejected" || last.state === "pending")) continue;
+        if (last && sameDecision(last, target) && ((last.state === "rejected" && !wasRateLimited(last)) || last.state === "pending")) continue;
         const pair = pairs[LIVE_SYMBOL[r.book]];
         const price = target.ticks * QUOTE_TICK;
         const base = rungBase(gbpPerRung, price, pair);
@@ -958,7 +990,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.quotes-live&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
   if (!held.length) return { error: "the minute loop holds the quotes-live lease: try again in a few seconds" };
   try {
-    const ctx: Ctx = { d, report, nowIso: iso(d.now), holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts };
+    const ctx: Ctx = { d, report, nowIso: iso(d.now), holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, pacePost: h.pacePost, pause: h.pause };
     const row = await placeOrder(ctx, { mode: "live", book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: limitTicks, base, marketable: true, fair });
     return { sent: order, row: row ? { id: row.id, state: row.state, client_order_id: row.client_order_id, venue_order_id: row.venue_order_id } : null, errors: report.errors };
   } finally {

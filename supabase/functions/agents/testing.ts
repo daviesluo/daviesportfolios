@@ -479,6 +479,17 @@ export class FakeRevx {
   loseReply = false;
   calls: string[] = [];
   onPost?: () => void;
+  /**
+   * The venue's per-second bucket on order POSTs: 10 a second on a key (reference §2). Over it a POST is answered 429 and
+   * not taken, as the venue does; `null` switches the bucket off for a test that must.
+   */
+  postsPerSecond: number | null = 10;
+  /** The next this-many order POSTs are answered 429 whatever the bucket holds (a burst from elsewhere on the key). */
+  rateLimitNext = 0;
+  /** When each order POST the double TOOK arrived: what the bucket counts. */
+  postTimes: number[] = [];
+  /** How many order POSTs it answered 429. */
+  rateLimited = 0;
   private seq = 1;
   constructor(public now: () => number) {}
   quote(sym: string) {
@@ -562,6 +573,11 @@ export class FakeRevx {
     }
     if (p === "/api/1.0/orders" && m === "POST") {
       this.onPost?.();
+      const at = this.now();
+      const tooMany = { error_id: "e", message: "Too many requests", timestamp: at };
+      if (this.rateLimitNext > 0) { this.rateLimitNext--; this.rateLimited++; return json(429, tooMany); }
+      if (this.postsPerSecond != null && this.postTimes.filter((x) => x > at - 1000).length >= this.postsPerSecond) { this.rateLimited++; return json(429, tooMany); }
+      this.postTimes.push(at);
       const req = JSON.parse(String(init!.body));
       const sym = String(req.symbol).replace("-", "/"), lim = req.order_configuration.limit;
       const q = this.quote(sym), price = Number(lim.price), size = Number(lim.base_size), asset = sym.split("/")[0], quoteAsset = sym.split("/")[1];
