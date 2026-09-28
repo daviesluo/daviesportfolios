@@ -17,12 +17,13 @@
 // fires; one tick at a time, by lease; and today's P&L is measured from
 // the day's open.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { JEV_QUESTION_VERSION, jevQuestions, positionFromFills, type Candle, type CategoricalState } from "../_shared/agents_strategy.ts";
+import { JEV_ENTER_MIN, JEV_QUESTION_VERSION, jevQuestions, positionFromFills, type Candle, type CategoricalState } from "../_shared/agents_strategy.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
 import { rowQuestions } from "./jev_rows.ts";
+import { jevBandCheck } from "./jev_bands.ts";
 import { dayOpenOf, dayPnl, entryTooLate, fillStamp, isUniqueViolation, LEASE_MS, MAX_ORDER_AGE_MS, MAX_REQUOTES, PROBE_FOLLOW_UP_MS, PROBE_OPEN_MARK_LATE_MS, PROBE_OPEN_MARKS_MS, PROBE_TTL_MS, tradedThrough, probeFollowUpDue, probeOpenMarksDue, PROTECTIVE_CLAIM_OFFSET_MS, REQUOTE_AFTER_MS, tick, toFill, TURN_BUDGET_MS, type OrderRow, type RiskRow, type StrategyRow, exitMark, spreadBps, WIDE_SPREAD_BPS, slotUsdOf, ORDER_SLOT_TOLERANCE, takesTheTouch } from "./tick.ts";
 
 const FOUR_H = 4 * 3600e3, ONE_H = 3600e3, ONE_D = 86400e3, ONE_M = 60e3;
@@ -106,7 +107,7 @@ function world(opts: {
   strategies?: StrategyRow[]; orders?: Row[]; decisions?: Row[]; observations?: Row[]; risk?: Partial<RiskRow>; oneMin?: Partial<Candle>; canTrade?: boolean;
   orderView?: OrderView; orderViews?: OrderView[]; jevDown?: boolean; active?: Record<string, { venueOrderId: string; view: OrderView }>; onPlace?: () => void;
   series?: SeriesBySymbol; revxQuote?: Quote; now?: number; krakenMinutes?: Candle[]; leaseUntil?: string; raceClaim?: boolean; placedState?: "new" | "filled";
-  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[]; krakenCandlesDown?: () => boolean;
+  krakenNoQuote?: boolean; raceOrder?: boolean; takeover?: boolean; probes?: Row[]; krakenCandlesDown?: () => boolean; jevHealthy?: number;
   /** A LIVE-capable Revolut X stub: credentials, the venue's balances, one order view, what a placement replies. */
   revxCanTrade?: boolean; revxBalances?: Record<string, number>; revxOrderView?: OrderView; revxPlacedState?: "new" | "filled"; revxNoQuote?: boolean;
   revxOrderReply?: VenueOrder;
@@ -144,7 +145,7 @@ function world(opts: {
   // A fresh uuid per call, as `crypto.randomUUID` gives production: `client_order_id` is unique (0037), and the double
   // holds the loop to it — every order in a world used to carry the same id, so no test could tell two apart by it.
   let uuidN = 0;
-  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
+  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog, healthy: opts.jevHealthy }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
   return { deps, mem, kraken, revx, binance, quote, revxQuote, binanceQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
 }
 
@@ -1270,6 +1271,37 @@ Deno.test("a probe records the touch 15, 30 and 60 minutes after it was written,
   const c = filled.mem.tables.agent_maker_probes[0];
   assertEquals(c.follow_up, { o15: null, o30: null, m15: 101, o60: touch(filled) });
   assertEquals(c.watching, true);
+});
+
+// ── JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md) ─────────────────────────────────────
+// Each entry's answer is checked against the replies measured for its state. The check decides nothing: it is recorded
+// with the decision and reported apart from the turn's errors.
+
+Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured band, recorded, and flagged only outside it", async () => {
+  // The fixture's entry state, and its measured band.
+  const first = world();
+  await tick(first.deps);
+  const state = first.mem.tables.agent_decisions[0].state as Record<string, unknown>;
+  const band = jevBandCheck("trend-4h", state, 0.5)!;
+  assert(band.min != null && band.max != null, `the fixture's state ${band.key} was measured`);
+  const inside = Math.round(((band.min! + band.max!) / 2) * 100) / 100;
+  const outside = band.max! + 0.1 <= 1 ? Math.round((band.max! + 0.1) * 100) / 100 : Math.round((band.min! - 0.1) * 100) / 100;
+
+  const calm = world({ jevHealthy: inside });
+  const r1 = await tick(calm.deps);
+  assertEquals([r1.errors, r1.jevDrift], [[], []]);
+  const d1 = calm.mem.tables.agent_decisions[0];
+  assertEquals((d1.numbers as { jevBand: unknown }).jevBand, { key: band.key, min: band.min, max: band.max, inBand: true });
+
+  const drifted = world({ jevHealthy: outside });
+  const r2 = await tick(drifted.deps);
+  assertEquals(r2.errors, []);
+  assertEquals(r2.jevDrift.length, 1);
+  assert(r2.jevDrift[0].includes(band.key) && r2.jevDrift[0].includes(String(outside)), r2.jevDrift[0]);
+  const d2 = drifted.mem.tables.agent_decisions[0];
+  assertEquals((d2.numbers as { jevBand: { inBand: boolean } }).jevBand.inBand, false);
+  // It decides nothing: the gate reads the answer exactly as it would without the check.
+  assertEquals(d2.final_action, outside >= JEV_ENTER_MIN ? "enter" : "hold");
 });
 
 // ── winding down: a retired row that still holds something ─────────────────────────────────

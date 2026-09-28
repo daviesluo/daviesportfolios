@@ -324,6 +324,8 @@ export async function runTick(now = Date.now()) {
   const { venues, notes } = await loadVenues();
   const report = await tick({ db: db(), venues, jev: jevEnv(), now, uuid: () => crypto.randomUUID() });
   if (report.errors.length) await reportServerError("agents.tick", tickErrorReport(report));
+  // JEV-DRIFT: an entry's answer outside the replies measured for its state (reviews/2026-09-28-jev-drift-monitor.md).
+  if (report.jevDrift.length) await reportServerError("agents.jev-drift", tickErrorReport({ errors: report.jevDrift, at: report.at }));
   return { ...report, venues: { revx: { canTrade: venues.revx.canTrade, note: notes.revx }, kraken: { canTrade: venues.kraken.canTrade, note: notes.kraken, feeBps: venues.kraken.feeBps }, binance: { canTrade: venues.binance.canTrade, note: notes.binance, feeBps: venues.binance.feeBps } } };
 }
 

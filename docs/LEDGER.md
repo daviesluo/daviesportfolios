@@ -82,9 +82,9 @@ list stays the short version; the plan is the reasoning behind it.
      both under $0.01; each arm's `diverged` read. Do not read a market-level figure of 09-28 or later before 10-09.
      **The page shows each row's own record only (Davies, 2026-09-27):** RW-E's row from 09-27 00:00 and x1–x3's
      from 09-28 00:00 UTC, each against its accounts as that minute began (`base` in the replays' states, history
-     20:28). **Check after 09-28 00:05 UTC:** `pm_rw_x_state`'s arms `x1`–`x3` carry `base`, and each variant's row
-     total equals its running total less its own 09-27 row in `pm_rw_x_days` (the page says "starts 28 Sep 01:00 BST"
-     until then).
+     20:28). **Verified 2026-09-28 00:03 UTC:** `pm_rw_x_state`'s arms `x1`–`x3` carry `base`, captured at 00:00, with
+     both checks at $0.00 and no error (only the base's presence was read, not its contents). That a row's total is its
+     running total less its own 09-27 row is pinned by `pmrw_view.test.ts`'s closed-form case.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -365,6 +365,12 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 00:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**JEV-DRIFT runs in the tick: each entry's answer against the replies measured for its state.**
+- `agents/jev_bands.ts` (a copy of the two answer files, rebuilt and compared by `jev_bands.test.ts`); the decision records `numbers.jevBand`, and an answer outside its band ±0.02, or an unmeasured state, goes to `ops_errors` as `agents.jev-drift`, apart from the turn's errors. It decides nothing. Reference §4 item 43; the monitor's rule is `reviews/2026-09-28-jev-drift-monitor.md`, frozen with the other pre-registrations.
+- R2 verified in production: probe 19 (written 23:00:05) recorded o15/o30 as missed (they fell before the deploy) and o60 at 00:01:00 with the UK touch.
 
 ### [2026-09-27 23:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
