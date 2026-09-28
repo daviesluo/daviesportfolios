@@ -283,6 +283,33 @@ describe('PerfChart on a refresh', () => {
     } finally { clock.mockRestore(); }
   });
 
+  it('runs a refresh that arrives while another is out once that one lands, and keeps the button\'s force', async () => {
+    // Found by the gates (2026-09-28): a tick six minutes on arrived while the button's own fetch was still out, and was
+    // dropped: the panel waited a whole refresh more. A button pressed during a tick's fetch was dropped the same way.
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const { container, rerender } = await opened(t0);
+      clock.mockReturnValue(t0 + 6 * 60e3);
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      // The button, pressed while that fetch is out: nothing is asked yet, and nothing is lost.
+      clock.mockReturnValue(t0 + 6 * 60e3 + 10e3);
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3, forceRefreshKey: 1 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      await answerWith('sp', SP, ACME);
+      await answerWith('tickers', SP, ACME);
+      await flush();
+      // Once it lands, the button's refresh runs: everything again, however fresh.
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      await answerWith('sp', SP2, ACME2);
+      await answerWith('tickers', SP2, ACME2);
+      expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+6.00%']);
+    } finally { clock.mockRestore(); }
+  });
+
   it('re-reads the recorded prices at a refresh once a new five-minute sample is due, and at the button always', async () => {
     const t0 = Date.now();
     const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);

@@ -546,14 +546,20 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   loadingRef.current = loading;
   const forceSeenRef = React.useRef(forceRefreshKey);
   const refreshingRef = React.useRef(false);
+  // A refresh that arrives while another is out is not dropped: it is remembered, with the button's force if it had it,
+  // and run once that one lands (found by the gates, 2026-09-28: a tick six minutes on arrived while the button's fetch
+  // was out, and the panel waited a whole refresh more; a button pressed during a tick's fetch did nothing).
+  const pendingRefreshRef = React.useRef({ due: false, force: false });
+  const [refreshNudge, setRefreshNudge] = React.useState(0);
   const refreshMountedRef = React.useRef(false);
   const snapAtRef = React.useRef(0);
   const setRecordedRef = React.useRef(/** @type {((rows: any[]) => void) | null} */ (null));
   React.useEffect(() => {
-    const force = forceRefreshKey !== forceSeenRef.current;
+    const pressed = forceRefreshKey !== forceSeenRef.current;
     forceSeenRef.current = forceRefreshKey;
     if (!refreshMountedRef.current) { refreshMountedRef.current = true; return; }
     if (!portfolio || loadingRef.current) return;
+    const force = pressed || pendingRefreshRef.current.force;
     const key = liveKeyRef.current;
     const now = Date.now();
     // The recorded prices: one sample a bucket (five minutes on the 24H window).
@@ -563,7 +569,11 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         if (liveKeyRef.current === key && rows.length > 0) setRecordedRef.current?.(rows);
       });
     }
-    if (refreshingRef.current) return;
+    if (refreshingRef.current) {
+      pendingRefreshRef.current = { due: true, force };
+      return;
+    }
+    pendingRefreshRef.current = { due: false, force: false };
     const year = new Date().getFullYear();
     const symbols = [spSymbol, ...tickers];
     const params = perfFetchParams(rangeKey, extendedHours, phase);
@@ -594,10 +604,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         const bars = barsOnHand(next, rangeKey, spSymbol, symbols);
         if (!perfBarsIncomplete(bars, spSymbol, tickers, { sp: false, tickers: false })) setHist(bars);
       })
-      .finally(() => { refreshingRef.current = false; });
+      .finally(() => {
+        refreshingRef.current = false;
+        if (pendingRefreshRef.current.due) setRefreshNudge((n) => n + 1);
+      });
     // Only the refreshes: the window's own inputs are the effect above's.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshedAt, forceRefreshKey]);
+  }, [refreshedAt, forceRefreshKey, refreshNudge]);
 
 
   // Background prefetch the other ranges once the user's chosen range

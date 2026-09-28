@@ -403,6 +403,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 06:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Fixed: a panel refresh that arrived while another was out was dropped.** The gates caught it under load: the sweep's six-minute tick came while the refresh button's own fetch was still out, and the panel waited a whole refresh more; a button pressed during a tick's fetch did nothing at all. The refresh is now remembered, with the button's force if it had it, and run as soon as the fetch in flight lands. Pinned in `perf_chart.reload.test.jsx` (fails on the old code: the button's fetch never came).
+
 ### [2026-09-28 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **1W reaches the current minute too** (Davies: "1w的也需要改"). `liveEdgeDate` takes a gap limit per window (20 min on 24H's 5-minute bars, 35 on 1W's 15-minute ones), the benchmark is re-fetched after a minute on 1W as on 24H, and one rule (`perfMaxAgeMs`) now decides a bar's age both when a window is opened and at a refresh, so switching to a window whose benchmark is over a minute old fetches it at once instead of waiting for the next tick. Pinned: vitest (the 1W gap; a rendered 1W window with the edge and the minute refetch — fails without the change) and the sweep's live-edge section on 1W at both widths ("Sep 17 23:01" at the edge, 22:50 and +5.04 % a step left, +6.08 % 90 s on).
