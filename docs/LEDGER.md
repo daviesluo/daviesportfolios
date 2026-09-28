@@ -151,7 +151,25 @@ list stays the short version; the plan is the reasoning behind it.
      is per account or per key. Bids only unless coin is funded; the tail is bounded (−1 % day stop, no entry past a
      50 bps de-peg, £12.50 a coin). Recommended before arming: freeze what the live test must show (each live fill
      against the paper's call for the same quote-minute). Arming before the 10-21 review departs from the spec's
-     order and is his call.
+     order and is his call. Davies, the same day: "£50 实盘之后再说" — deferred.
+   - The live path now spaces its own POSTs 125 ms apart and sends a 429'd order once more (reference §4 item 35).
+   - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
+     Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
+     (0.03–0.30 %), a 0.03 % re-price and four governed keys, $3,600, replayed on paper from PR5's own stored minutes at
+     PR5's own timing; arm top5 beside it. Window 2026-09-29 → 10-26 by entry day, paired with PR5 day by day; E =
+     10-28 00:30 UTC; read on or after 10-28 01:00 (latest 11-04) by the first session then with the database
+     connector, with a reading script committed before 10-27 00:00. Five conditions: faithful to `pr5v_sim.py`, above
+     its own null, better than PR5 on a 7-day block bootstrap, stress above zero, the governor held.
+     - **The engine** (`agents/quotes_variant.ts`, migration `0071`) is being built on branch `pr5v-engine`; it starts
+       flat at 2026-09-28 00:00 and may land after the window opens (a late deploy moves no date). Its record counts
+       only if its golden replay against `pr5v_sim.py` passed on the code that wrote it; a code change after it has
+       decided a minute re-decides everything from 00:00 and is a deviation. The page's row and page are on `main`
+       already (`cfe493df`) and show once the dashboard sends `quotesVariant`.
+     - **At PR5's 10-21 verdict**, keeping PR5's paper engine running is put to Davies: PR5V needs it to 10-28 00:30,
+       QUEUE to 11-02, PR5-W to 11-25 (12-23 at the latest). If PR5's record stops early, PR5V's window ends with it
+       (the file's fallback; under 21 days it is reported, not judged).
+     - Expect the governor to bind: on Yahoo's GBP/USD every key reached 600 POSTs on each fresh weekday, from 14:49
+       UTC, and the paired gain there was +$0.28 a day against the 28 days' +$0.64.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -455,6 +473,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 14:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5V frozen** (`reviews/2026-09-28-pr5-variant-prereg.md`), before its first day: the study's chosen configuration at PR5's own minute, replayed on paper from PR5's stored record, judged on 2026-09-29 → 10-26 against PR5 day by day. An independent review found eleven things in the draft and a second pass three more, all applied: the study's `null_twins` ends every twin at `N1` (2026-09-23), so on any later window every twin returned 0 and the null reduced to "P&L > 0" (now each twin runs to E); the replay is pinned (stored X and fairU a minute, every minute a turn, prints by `ts` then `id`, a self-check that reproduces `ref_timing.json` first); the engine may be deployed late, re-decides from its start on any code change and counts only on code whose golden test passed; a stop of PR5's record ends the window with it; the governor condition is one the engine can fail; the slip rule names the dates it moves; trips match on ticks, not floating prices. Item 4 carries the dates and the engine's state.
 
 ### [2026-09-28 14:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
