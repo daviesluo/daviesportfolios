@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "html2canvas-pro": "^2.0.4",
-    "idb-keyval": "^6.2.4",
+    "idb-keyval": "^6.3.0",
     "react": "19.2.7",
     "react-dom": "19.2.7"
   },
