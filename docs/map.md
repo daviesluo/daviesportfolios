@@ -588,7 +588,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks, on RW's minutes and on RW-C's. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, RW-E's and its variants' rows read the same way from their replays' arms, and RW-C's from its own engine run: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
-| `agents/jev_bands.ts` | The measured range of the model's answers for every entry state, which JEV-DRIFT checks each entry's answer against. |
+| `agents/jev_bands.ts` | The measured range of the model's answers for every entry state, which JEV-DRIFT checks each entry's answer against; a flagged answer vetoes its entry on a gated row. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |
 | `agents/testing.ts` | Test doubles that refuse whatever the real database refuses. |
 | `agents/backtest.ts` | The walk-forward backtester: the loop's own rule functions run over history at the venue's costs. |

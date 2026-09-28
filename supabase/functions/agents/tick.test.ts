@@ -147,7 +147,7 @@ function world(opts: {
   // A fresh uuid per call, as `crypto.randomUUID` gives production: `client_order_id` is unique (0037), and the double
   // holds the loop to it — every order in a world used to carry the same id, so no test could tell two apart by it.
   let uuidN = 0;
-  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: opts.jevDirect ? { typesafeKey: "k" } : { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog, healthy: opts.jevHealthy, caution: opts.jevCaution }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
+  const deps = { db: mem.db, venues: { kraken: kraken.v, revx: revx.v, binance: binance.v }, jev: opts.jevDirect ? { typesafeKey: "k" } : { openrouterKey: "k" }, now, fetchImpl: jevFetch({ fail: opts.jevDown, log: jevLog, healthy: opts.jevHealthy, caution: opts.jevCaution, kind: String((opts.strategies?.[0] as { kind?: string } | undefined)?.kind ?? "trend-4h") }), uuid: () => `00000000-0000-4000-8000-${String(++uuidN).padStart(12, "0")}` };
   return { deps, mem, kraken, revx, binance, quote, revxQuote, binanceQuote, lastClosedBarStart: base.bars[128].start, c1m, jevLog };
 }
 
@@ -1289,8 +1289,9 @@ Deno.test("a probe records the touch 15, 30 and 60 minutes after it was written,
 });
 
 // ── JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md) ─────────────────────────────────────
-// Each entry's answer is checked against the replies measured for its state. The check decides nothing: it is recorded
-// with the decision and reported apart from the turn's errors.
+// Each entry's answer is checked against the replies measured for its state. The check is recorded with the decision and
+// reported apart from the turn's errors, and since 2026-09-28 (Davies: the monitor's option (c)) a flagged answer vetoes
+// its own entry on a row whose gate has the vote; a row in shadow enters as its rulebook says.
 
 Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured band, recorded, and flagged only outside it", async () => {
   // The fixture's entry state, and its measured band.
@@ -1307,6 +1308,8 @@ Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured 
   assertEquals([r1.errors, r1.jevDrift], [[], []]);
   const d1 = calm.mem.tables.agent_decisions[0];
   assertEquals((d1.numbers as { jevBand: unknown }).jevBand, { key: band.key, min: band.min, max: band.max, inBand: true });
+  assert(inside >= JEV_ENTER_MIN, `the fixture's state is one the gate lets in (${inside})`);
+  assertEquals(d1.final_action, "enter");
 
   const drifted = world({ jevHealthy: outside });
   const r2 = await tick(drifted.deps);
@@ -1315,21 +1318,33 @@ Deno.test("JEV-DRIFT: an entry's answer is checked against its state's measured 
   assert(r2.jevDrift[0].includes(band.key) && r2.jevDrift[0].includes(String(outside)), r2.jevDrift[0]);
   const d2 = drifted.mem.tables.agent_decisions[0];
   assertEquals((d2.numbers as { jevBand: { inBand: boolean } }).jevBand.inBand, false);
-  // It decides nothing: the gate reads the answer exactly as it would without the check.
-  assertEquals(d2.final_action, outside >= JEV_ENTER_MIN ? "enter" : "hold");
+  // Out of band, the entry is not taken, whichever side of the threshold the answer fell.
+  assertEquals(d2.final_action, "hold");
+  if (outside >= JEV_ENTER_MIN) assert(String(d2.final_reason).includes("vetoed by JEV-DRIFT: healthy"), String(d2.final_reason));
 
-  // In band, but the caution nears the gate's veto: flagged, and the gate decides as it always did (1.5 < 1.75).
+  // In band, but the caution nears the gate's veto (1.5 < 1.75): flagged, and the entry is vetoed for the flag alone.
   const wary = world({ jevHealthy: inside, jevCaution: 1.5 });
   const r3 = await tick(wary.deps);
   assertEquals(r3.jevDrift.length, 1);
   assert(r3.jevDrift[0].startsWith("trend-4h-kraken BTC/USD: caution 1.5"), r3.jevDrift[0]);
-  assertEquals(wary.mem.tables.agent_decisions[0].final_action, calm.mem.tables.agent_decisions[0].final_action);
+  const d3 = wary.mem.tables.agent_decisions[0];
+  assertEquals(d3.final_action, "hold");
+  assert(String(d3.final_reason).includes("model agrees") && String(d3.final_reason).includes("vetoed by JEV-DRIFT: caution 1.5"), String(d3.final_reason));
 
-  // In band, but answered by the fallback transport the bands were never measured on: flagged, with its transport.
+  // In band, but answered by the fallback transport the bands were never measured on: flagged, with its transport, and
+  // only that entry is held; nothing about the row changes (it is not paused, not disarmed).
   const direct = world({ jevHealthy: inside, jevDirect: true });
   const r4 = await tick(direct.deps);
   assertEquals(direct.mem.tables.agent_decisions[0].provider, "typesafe");
   assertEquals(r4.jevDrift, ["trend-4h-kraken BTC/USD: answered by jev-1.13.0 via typesafe, not the typesafe/jev-1.13-20260917 via openrouter the bands were measured on"]);
+  assertEquals(direct.mem.tables.agent_decisions[0].final_action, "hold");
+  assertEquals(direct.mem.tables.agent_strategies[0].mode, calm.mem.tables.agent_strategies[0].mode);
+
+  // A row in shadow is not vetoed: the flag is reported, and the rulebook enters as it always does in shadow.
+  const shadow = world({ jevHealthy: inside, jevDirect: true, strategies: [strategy({ params: { ...strategy().params, jevGate: false } })] });
+  const r6 = await tick(shadow.deps);
+  assertEquals(r6.jevDrift.length, 1);
+  assertEquals(shadow.mem.tables.agent_decisions[0].final_action, "enter");
 
   // No answer at all is not drift: the gate refuses the entry, and the monitor has nothing to read.
   const down = world({ jevDown: true });

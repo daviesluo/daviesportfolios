@@ -1471,22 +1471,29 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
     const view = jevViewOf(jr, sym);
     // JEV-DRIFT (reviews/2026-09-28-jev-drift-monitor.md): every entry the model answered, against what was measured — the
     // healthy answer against its state's replies (recorded on the decision, in band or not), the question, the caution and
-    // the model. It decides nothing: a flag is reported apart from the turn's errors, as `agents.jev-drift` in ops_errors.
+    // the model. A flag is reported apart from the turn's errors, as `agents.jev-drift` in ops_errors.
     // The question is the one actually asked, which the caller records (`numbers.jevQuestion`): a row's `params.jevQuestion`
     // is asked only when it is a wording of that row's own rule (`questionsForRow`), so the parameter alone does not say.
     const answered = rule.action === "enter" && jr.provider !== "rule" && jr.provider !== "none";
     const askedVersion = typeof numbers.jevQuestion === "string" ? numbers.jevQuestion : JEV_QUESTION_VERSION;
     const jevBand = answered && view.healthy != null && askedVersion === "v2"
       ? jevBandCheck(s.kind, snapState as Record<string, unknown>, view.healthy) : null;
-    if (answered) {
-      for (const flag of jevDriftFlags({ kind: s.kind, version: askedVersion, band: jevBand, healthy: view.healthy, caution: view.caution, provider: jr.provider, model: jr.model })) {
-        report.jevDrift.push(`${s.id} ${sym}: ${flag}`);
-      }
-    }
+    const driftFlags = answered
+      ? jevDriftFlags({ kind: s.kind, version: askedVersion, band: jevBand, healthy: view.healthy, caution: view.caution, provider: jr.provider, model: jr.model })
+      : [];
+    for (const flag of driftFlags) report.jevDrift.push(`${s.id} ${sym}: ${flag}`);
     // An exit passes the model untouched; an entry needs its vote.
+    const gated = s.params?.jevGate !== false;
     let final = rule.action === "enter"
-      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, JEV_ENTER_MIN), cautionExit: 1.75 }, s.params?.jevGate !== false)
+      ? combineDecision(rule, view, { enterMin: num(s.params?.enterMin, JEV_ENTER_MIN), cautionExit: 1.75 }, gated)
       : { ...rule, jevSaid: jr.provider === "rule" ? "rule only" : `${jr.provider}: ${view.healthy == null ? "no answer" : `healthy=${view.healthy.toFixed(2)}`}` };
+    // A flagged answer is not the vote the gate was priced on (Davies, 2026-09-28, the monitor's option (c)): on a row
+    // whose gate has the vote, that one entry is not taken. The row stays armed, the next entry is judged afresh, and a
+    // row in shadow enters as its rulebook says, the flag reported all the same. Stopping the whole row on a flag was the
+    // other option: one fallback answer during an OpenRouter outage would have held every live buy until a person re-armed it.
+    if (final.action === "enter" && gated && driftFlags.length) {
+      final = { action: "hold", reason: `${final.reason}; vetoed by JEV-DRIFT: ${driftFlags.join("; ")}`, jevSaid: final.jevSaid };
+    }
     // The thin-book guard. Every Revolut X entry CROSSES — it pays the ask — so a book that has gone
     // wide charges its width as a fee on the way in, on top of the 9 bps. The measured UK book is
     // 1.5–24 bps wide; the EEA book this account cannot trade was once seen at 180 (§2.2, §4.14), and

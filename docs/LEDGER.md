@@ -250,11 +250,10 @@ list stays the short version; the plan is the reasoning behind it.
    adds a pre-registration freezes it.
    State at 2026-09-28 06:22 UTC (six of the seven frozen; MX-1's draft is in the working session's scratchpad):
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
-      43). Open: Davies' answer, put to him on 2026-09-28 as three options: (a) alert only, as now; (b) a flag on the
-      live row clears `live_confirmed_at` until a re-measure and his word; (c) a flagged answer vetoes that one entry,
-      on the live row and its control alike. Recommended (c): a false flag comes once in four to eight years on a
-      `trend-4h` row, and an OpenRouter outage (the fallback's answers are flag 4) would skip only its own entries
-      instead of stopping the row until someone re-arms it. (c) is a gate change: pins, then a deploy.
+      43). **Davies chose (c) on 2026-09-28**: a flagged answer vetoes its own entry on a row whose gate has the vote
+      (`trend-4h-live` and its control `trend-4h`), the reason naming the flag; the row stays armed, and a row in
+      shadow enters, flag reported (`tick.ts`, pinned in `tick.test.ts`; reference §4 item 43). The test double now
+      answers each state with its measured reply (`measuredReply`): its old 0.9 lay outside the fixture's band.
    2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
       (entries crossing at 15 min, rule exits at 60; the binding cell `trend-4h` SOL entries, 109.97 from 4 misses;
       Binance 1-minute tape over windows A–C at the rules' own decision minutes; break-even miss rate 9.09 %, which
@@ -454,6 +453,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 11:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**JEV-DRIFT (c) live: a flagged answer vetoes its own entry** on the live row and its control (Davies: "MX-1和JEV-DRIFT按照你推荐的来"). The row stays armed; shadow rows enter as before, flag reported. Four pins changed and one added in `tick.test.ts` (each held entry names its flag; a shadow row still enters); with the veto removed they fail. The Jev test double answered 0.9 by default, outside the fixture state's measured band [0.73, 0.80], so under the veto it refused every entry: it now answers each state with its measured reply, as strict as the model it stands in for. 401 agents tests pass.
 
 ### [2026-09-28 06:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -8,6 +8,7 @@
 // `fee_usd NOT NULL` exactly as a bad insert is.
 import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
 import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
+import { jevBandCheck } from "./jev_bands.ts";
 
 export type Row = Record<string, unknown>;
 
@@ -663,15 +664,25 @@ export class FakeKraken {
  * `caution`, a choice echoes the state's symbol when it is one of the options. `fail` is a 503 on every transport. The
  * model each transport names is the one it named when measured (reference §2): OpenRouter's snapshot, TypeSafe's version.
  */
-export function jevFetch(opts: { healthy?: number; caution?: number; fail?: boolean; log?: string[] } = {}): typeof fetch {
+/**
+ * What the model answered for this state when it was measured: the middle of the state's band, for the row kind asked
+ * (`jev_bands.ts`); 0.9 for a state or kind never measured. A stand-in that answered anything else would be looser than
+ * the model it stands in for, and since JEV-DRIFT vetoes a flagged answer on a gated row, it would refuse every entry.
+ */
+export function measuredReply(kind: string, state: Record<string, unknown>): number {
+  const b = jevBandCheck(kind, state, 0.5);
+  return b && b.min != null && b.max != null ? Math.round(((b.min + b.max) / 2) * 100) / 100 : 0.9;
+}
+
+export function jevFetch(opts: { healthy?: number; caution?: number; fail?: boolean; log?: string[]; kind?: string } = {}): typeof fetch {
   return (url, init) => {
     if (opts.fail) return Promise.resolve(new Response("down", { status: 503 }));
-    const body = JSON.parse(String(init?.body)) as { state?: { symbol?: string }; questions?: Record<string, { type: string; criteria?: unknown }> };
+    const body = JSON.parse(String(init?.body)) as { state?: Record<string, unknown> & { symbol?: string }; questions?: Record<string, { type: string; criteria?: unknown }> };
     const sym = String(body.state?.symbol);
     opts.log?.push(sym);
     const answers: Record<string, unknown> = {};
     for (const [name, q] of Object.entries(body.questions ?? {})) {
-      if (q.type === "noul") answers[name] = { type: "noul", noul: opts.healthy ?? 0.9 };
+      if (q.type === "noul") answers[name] = { type: "noul", noul: opts.healthy ?? measuredReply(opts.kind ?? "trend-4h", body.state ?? {}) };
       else if (q.type === "score") answers[name] = { type: "score", score: opts.caution ?? 0.1, probabilities: { "0": 0.9, "1": 0.1, "2": 0 }, confidence: 0.85 };
       else if (q.type === "choice") {
         const options = Object.keys((q.criteria ?? {}) as Record<string, unknown>);
