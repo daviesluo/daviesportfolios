@@ -284,7 +284,7 @@ const QUOTE_BOOKS = [
       quoteRung('ask', 0.001, 'quote', 0.7556), quoteRung('ask', 0.002, 'quote', 0.7564), quoteRung('ask', 0.003, 'quote', 0.7571)] },
 ];
 const quoteTrip = (minsAgo, book, side, k, entry, exit, how, pnlUsd) => ({ book, side, k, tEntry: new Date(NOW_MS - (minsAgo + 30) * 60e3).toISOString(),
-  tExit: new Date(NOW_MS - minsAgo * 60e3).toISOString(), entry, exit, how, notionalUsd: 99.8, pnlUsd });
+  tExit: new Date(NOW_MS - minsAgo * 60e3).toISOString(), entry, exit, how, notionalUsd: 99.8, qty: Number((99.8 / 1.35 / entry).toFixed(4)), pnlUsd });
 const QUOTE_TRIPS = [
   quoteTrip(20, 'USDT-GBP', 'ask', 0.002, 0.7564, 0.7550, 'maker', 0.10), quoteTrip(50, 'USDC-GBP', 'bid', 0.001, 0.7542, 0.7549, 'maker', 0.07),
   quoteTrip(90, 'USDT-GBP', 'bid', 0.003, 0.7525, 0.7521, 'taker', -0.05), quoteTrip(1500, 'USDC-GBP', 'ask', 0.002, 0.7566, 0.7558, 'maker', 0.08),
@@ -385,7 +385,7 @@ const AGENTS_RWE = (dayStartMs) => {
  */
 const AGENTS_RWX = (dayStartMs) => [
   ['x1', 'Reward quotes variant-2'], ['x2', 'Reward quotes variant-3'], ['x3', 'Reward quotes variant-4'],
-].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
+].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, startedAt: new Date(NOW_MS - (20 * 60 + 30) * 60e3).toISOString(), checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
 
 /**
  * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
@@ -424,7 +424,8 @@ const AGENTS_DASHBOARD = (() => {
     // No venue in the name since 0061 (Davies, 2026-09-26): the table's venue column and the page's tag say it.
     name: KIND_NAME[kind],
     description: 'Fixture strategy.', symbols, mode: 'paper', capitalUsd,
-    params: { fast: 20, slow: 100 }, updatedAt: at,
+    // Created 3 d 5 h 20 min before the clock: its page says "tested 3d 5h".
+    params: { fast: 20, slow: 100 }, createdAt: new Date(NOW_MS - ((3 * 24 + 5) * 60 + 20) * 60e3).toISOString(), updatedAt: at,
     costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0,
     positions: symbols.map(flat),
     openOrders: 0, ordersToday: 0, jev24h: { calls: 6, costUsd: 0.00011, avgLatencyMs: 480, providers: { openrouter: 6 } },
@@ -485,7 +486,7 @@ const AGENTS_DASHBOARD = (() => {
     // PR5's quotes on paper (`0051`): a row of TESTING STRATEGIES since 2026-09-23, with a page of its own. Consistent
     // with itself: the books' trips (4 + 3) and realised (0.30 + 0.12) are the totals, the one held rung is `open`, and
     // `recent` is every trip, newest first.
-    quotes: { startedAt: '2026-09-23T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
+    quotes: { startedAt: '2026-09-16T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
       realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
       ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS,
       // Its live executor (`0052`) in dry-run, as quotesLiveSummary shapes it: no money, what it would have sent today.
@@ -731,6 +732,7 @@ const AGENTS_LIVE = (armed) => {
     openedAt: NOW_MS - 6 * 3600e3, highWater: 2520, fills: 3 };
   const liveRow = {
     ...paperRow, id: 'trend-4h-live', name: 'Trend 4h · live', mode: 'live', capitalUsd: 50, symbols,
+    createdAt: new Date(NOW_MS - ((24 + 2) * 60 + 10) * 60e3).toISOString(),   // "live 1d 2h" on its page
     holdsLive: true, windingDown: false, todayByBook: { paper: 0, live: 0.2 }, otherBooks: [],
     costUsd: 12, valueUsd: 12.5, unrealisedUsd: 0.5, realisedUsd: 0.3, feesUsd: 0.03, todayUsd: 0.2, ordersToday: 1,
     positions: symbols.map((s) => (s === 'ETH/USD' ? eth : like(s, {}))),
@@ -1836,8 +1838,16 @@ async function run() {
       const qLive = ((await page.locator('.ag-quotes-detail .ag-quotes-live-line').textContent().catch(() => '')) || '').trim();
       await shot(page, 'agents-quotes');
       const qStacked = await page.locator('.modal').count();
-      if (qLive === 'Live path: dry run · 12 orders it would have sent today') ok(S('agents'), `its live path says it is dry-run: "${qLive}"`);
+      // A dry run that has never traded says nothing (Davies, 2026-09-28).
+      if (qLive === '' && await page.locator('.ag-quotes-detail .ag-quotes-live-line').count() === 0) ok(S('agents'), 'its page no longer says what the dry run would have sent');
       else fail(S('agents'), `quote page live line "${qLive}"`);
+      // "Exit as" read "maker" on every trip; the column is each trip's size, in coins of its book (Davies, 2026-09-28).
+      const qTripHeads = (await page.locator('.ag-quotes-detail .ag-quote-trips thead th').allTextContents()).map((t) => t.trim());
+      const qTripSize = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().locator('td').nth(6).textContent().catch(() => '')) || '').trim();
+      const qTripSizeShown = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().locator('td').nth(6).isVisible().catch(() => false);
+      if (qTripHeads[6] === 'Size' && !qTripHeads.includes('Exit as') && qTripSize === `${QUOTE_TRIPS[0].qty.toFixed(2)} USDT` && qTripSizeShown) {
+        ok(S('agents'), `the round trips give each trip's size where "exit as" was, on a phone too: ${qTripSize}`);
+      } else fail(S('agents'), `round trips: heads ${qTripHeads.join(',')}, first size "${qTripSize}" (shown ${qTripSizeShown})`);
       if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.1400$/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, ''))
         && /\+\$0\.1000$/.test(qFirst.trim()) && qStacked === 2) {
@@ -2451,6 +2461,12 @@ async function run() {
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
+      // How long each has been under test, to the hour, on the pinned clock: the fixture's own starts (a row's creation, the
+      // quotes' first minute, RW's first day, a variant's first minute).
+      const TESTED = { 'Trend 4h': 'tested 3d 5h', 'Stablecoin quotes': 'tested 1d 7h', 'Reward quotes': 'tested 2d 23h', 'Reward quotes variant-1': 'tested 2d 23h', 'Reward quotes variant-4': 'tested 20h' };
+      const listTags = await page.evaluate(() => [...document.querySelectorAll('.ag-modepanel .ag-badge, .ag-modepanel .ag-venue')].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => Math.round(r.height * 10) / 10));
+      if (listTags.length >= 1 && Math.max(...listTags) - Math.min(...listTags) <= 0.5) ok(T('tags'), `the list's ${listTags.length} tags are all ${listTags[0]}px tall`);
+      else fail(T('tags'), `the list's tag heights ${listTags.join(',')}`);
       for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-4', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
@@ -2462,6 +2478,19 @@ async function run() {
         const tags = await page.locator(`${sel} .ag-detail-head`).last().evaluate((hd) => [...hd.children].slice(0, 2).map((c) => c.className)).catch(() => []);
         if (tags.length === 2 && /ag-badge-paper/.test(tags[0]) && tags[1].includes(`ag-venue-${venue}`)) ok(T('venue-tag'), `${name}'s page: PAPER, then its venue`);
         else fail(T('venue-tag'), `${name}'s page head ${JSON.stringify(tags)}`);
+        // How long it has been under test, after "running", on the status's own line and inside the page (Davies, 2026-09-28).
+        const head = await page.locator(`${sel} .ag-detail-head`).last().evaluate((hd) => {
+          const st = hd.querySelector('.ag-status-text'), t = hd.querySelector('.ag-tested');
+          if (!st || !t) return { text: t ? (t.textContent || '').trim() : null };
+          const a = st.getBoundingClientRect(), b = t.getBoundingClientRect();
+          return { text: (t.textContent || '').trim(), status: (st.textContent || '').trim(), dy: Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2), gap: b.left - a.right, right: b.right, vw: document.documentElement.clientWidth };
+        }).catch(() => ({ text: null }));
+        if (head.text === TESTED[name] && head.status === 'running' && head.dy < 2 && head.gap >= 4 && head.gap <= 24 && head.right <= head.vw) ok(T('tested'), `${name}'s page: "running · ${head.text}" on one line`);
+        else fail(T('tested'), `${name}'s page: ${JSON.stringify(head)}, wanted "${TESTED[name]}"`);
+        // Every mode tag and venue tag on the page, the head's and the tables', is one height.
+        const tagH = await page.evaluate((scope) => [...document.querySelectorAll(`${scope} .ag-badge, ${scope} .ag-venue`)].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => Math.round(r.height * 10) / 10), sel);
+        if (tagH.length >= 2 && Math.max(...tagH) - Math.min(...tagH) <= 0.5) ok(T('tags'), `${name}'s page: its ${tagH.length} mode and venue tags are all ${tagH[0]}px tall`);
+        else fail(T('tags'), `${name}'s page: tag heights ${tagH.join(',')}`);
         await page.locator('.ag-detail-close').last().click().catch(() => {});
         await page.waitForTimeout(300);
       }
@@ -2532,6 +2561,9 @@ async function run() {
       await page.waitForTimeout(350);
       const dTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const dMode = ((await page.locator('.ag-detail .ag-detail-head .ag-badge').first().textContent().catch(() => '')) || '').trim();
+      const dTested = ((await page.locator('.ag-detail .ag-detail-head .ag-tested').first().textContent().catch(() => '')) || '').trim();
+      if (dTested === 'live 1d 2h') ok(T('tested'), 'the live row\'s page says how long it has been live: live 1d 2h');
+      else fail(T('tested'), `the live row's page says "${dTested}"`);
       const dSb = (await page.locator('.ag-detail .ag-scoreboard-sm .sb-value').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const dCard = ((await page.locator('.ag-detail .ag-poscard .pc-ticker').first().textContent().catch(() => '')) || '').trim();
       const dH = await topModalHeight();

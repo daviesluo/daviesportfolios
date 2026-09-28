@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
@@ -1305,12 +1305,42 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
     expect(cards.map((c) => [c.id, c.capitalUsd])).toEqual([['revx', 67.5]]);
   });
   it('says on its page what the live path is doing, and raises a live order that needs a person on both tabs', () => {
-    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: false, postsToday: { dryRun: 12, live: 0 } })).toBe('Live path: dry run · 12 orders it would have sent today');
+    // A dry run that has never traded says nothing on the page (Davies, 2026-09-28).
+    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: false, postsToday: { dryRun: 12, live: 0 } })).toBe(null);
+    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: true })).toBe('Live path: back in dry run · what it traded is on LIVE');
     expect(quotesLiveText(ql)).toBe('Live path: live and armed · on LIVE');
     expect(quotesLiveText({ ...ql, armed: false })).toBe('Live path: live, buying off · its exits still run · on LIVE');
     const dash = { risk: {}, venues: [], strategies: [], quotes: { live: { ...ql, pending: [{ id: 9, ts: '2026-10-22T11:50:00Z' }], lossStopped: true } } };
     const ids = (tab) => alertsFor(dash, tab).map((a) => a.id);
     expect(ids('live')).toEqual(['pending-quotes-live', 'loss-stop-quotes-live']);
     expect(ids('testing')).toEqual(['pending-quotes-live']);
+  });
+});
+
+describe('how long a strategy has been under test (Davies, 2026-09-28)', () => {
+  const now = Date.parse('2026-09-28T02:00:00Z');
+  it('is whole hours, then days and hours, and stops where the test ended', () => {
+    expect(testedForText('2026-09-28T01:30:00Z', now)).toBe('under 1h');
+    expect(testedForText('2026-09-28T01:00:00Z', now)).toBe('1h');
+    expect(testedForText('2026-09-27T02:00:01Z', now)).toBe('23h');           // a second short of a day is 23 hours
+    expect(testedForText('2026-09-27T02:00:00Z', now)).toBe('1d 0h');
+    expect(testedForText('2026-09-20T18:23:35.656Z', now)).toBe('7d 7h');     // the paper rows' creation
+    expect(testedForText('2026-09-24T22:51:15.132Z', now)).toBe('3d 3h');     // the live row's
+    expect(testedForText('2026-09-25T00:00:00Z', now, '2026-09-26T12:00:00Z')).toBe('1d 12h');   // a finished test
+  });
+  it('says nothing when the start is unknown or still to come', () => {
+    expect(testedForText(null, now)).toBe(null);
+    expect(testedForText('not a date', now)).toBe(null);
+    expect(testedForText('2026-10-09T00:00:00Z', now)).toBe(null);
+  });
+  it("starts an RW row's test at its own first minute, never in the warm-up", () => {
+    expect(rwTestedSince({ since: '2026-09-24T19:00:00Z', runStart: '2026-09-25T00:00:00Z' })).toBe('2026-09-25T00:00:00.000Z');
+    expect(rwTestedSince({ since: '2026-09-27T00:00:00Z', runStart: '2026-09-25T00:00:00Z' })).toBe('2026-09-27T00:00:00.000Z');
+    expect(rwTestedSince({ since: null, runStart: '2026-09-25T00:00:00Z' })).toBe(null);   // a variant not started yet
+  });
+  it("writes a round trip's size in coins of its book", () => {
+    expect(fmtQuoteQty(99.3012, 'USDC-GBP')).toBe('99.30 USDC');
+    expect(fmtQuoteQty('132.6', 'USDT/GBP')).toBe('132.60 USDT');
+    expect(fmtQuoteQty(null, 'USDC-GBP')).toBe('—');
   });
 });

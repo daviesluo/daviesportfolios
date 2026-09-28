@@ -1189,19 +1189,56 @@ export function quotesLiveRow(q) {
 }
 
 /**
- * The live executor's line on PR5's page: dry-run says what it would have sent today; live says whether it is armed.
+ * The live executor's line on PR5's page, once it has traded: whether it is armed, or back in dry run. A dry run that has
+ * never traded says nothing (Davies, 2026-09-28: the count of orders it would have sent is not the page's business).
  * @param {any} q  the dashboard's `quotes.live`
  */
 export function quotesLiveText(q) {
   if (!q) return null;
-  const posts = Number(q.postsToday?.dryRun) || 0;
-  if (q.dryRun && !q.tradedLive) return `Live path: dry run · ${posts} ${posts === 1 ? 'order' : 'orders'} it would have sent today`;
+  if (q.dryRun && !q.tradedLive) return null;
   if (q.dryRun) return 'Live path: back in dry run · what it traded is on LIVE';
   return q.armed ? 'Live path: live and armed · on LIVE' : 'Live path: live, buying off · its exits still run · on LIVE';
 }
 
 /** A price in GBP a coin, as the book quotes it: four places. @param {number | null | undefined} p */
 export const fmtQuotePrice = (p) => (p == null || !Number.isFinite(Number(p)) ? '—' : `£${Number(p).toFixed(4)}`);
+
+/**
+ * A round trip's size, in coins of its book: "99.30 USDC". It replaced the "exit as" column (Davies, 2026-09-28), which
+ * read "maker" on every trip: the rule exits as a taker only at its 24-hour stop, which no trip has reached.
+ * @param {number | string | null | undefined} qty @param {string | null | undefined} book
+ */
+export const fmtQuoteQty = (qty, book) =>
+  (qty == null || !Number.isFinite(Number(qty)) ? '—' : `${Number(qty).toFixed(2)} ${String(book ?? '').split(/[-/]/)[0]}`.trim());
+
+/**
+ * How long a strategy has been under test, to the hour, for the words beside its status at the top of its page (Davies,
+ * 2026-09-28): "3d 14h", "14h", "under 1h". `untilIso` stops the clock where a test ended. Null when the start is
+ * unknown or still to come.
+ * @param {string | null | undefined} sinceIso @param {number} nowMs @param {string | null | undefined} [untilIso]
+ */
+export function testedForText(sinceIso, nowMs, untilIso = null) {
+  const since = Date.parse(String(sinceIso ?? ''));
+  if (!Number.isFinite(since) || !Number.isFinite(nowMs)) return null;
+  const end = Date.parse(String(untilIso ?? ''));
+  const until = Number.isFinite(end) ? Math.min(nowMs, end) : nowMs;
+  if (until < since) return null;
+  const h = Math.floor((until - since) / 3600e3);
+  if (h < 1) return 'under 1h';
+  const d = Math.floor(h / 24);
+  return d > 0 ? `${d}d ${h % 24}h` : `${h}h`;
+}
+
+/**
+ * When an RW row's own test began: its own first minute (a variant's is its start), never before the fourteen days did,
+ * because the warm-up is counted nowhere. Null before it has started.
+ * @param {{ since?: string | null, runStart?: string | null } | null | undefined} v  `rwView`
+ */
+export function rwTestedSince(v) {
+  const a = Date.parse(String(v?.since ?? '')), b = Date.parse(String(v?.runStart ?? ''));
+  if (!Number.isFinite(a)) return null;
+  return new Date(Number.isFinite(b) ? Math.max(a, b) : a).toISOString();
+}
 
 /**
  * One book's ladder for the quote test's page: a row per rung distance (0.1 / 0.2 / 0.3 % from interbank), its bid

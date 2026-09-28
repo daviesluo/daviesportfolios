@@ -1901,7 +1901,16 @@ body {
    (teal, cyan, violet, orange, slate) sat within ΔE 15 of the venues' blue and yellow or of gain/loss, so it has none. */
 .ag-badge-paper { color: #e8e4da; border-color: rgba(232,228,218,0.55); border-style: dashed; background: rgba(232,228,218,0.06); }
 .ag-badge-paused { color: var(--chalk-dim); }
+/* Every mode tag and every venue tag is one height, wherever it sits: a page's head, a table row, a venue card (Davies,
+   2026-09-28). Their type differs (9 px against the venue's 10 px mono); the box, border included, does not. */
+.ag-badge, .ag-venue {
+  box-sizing: border-box; height: 18px; display: inline-flex; align-items: center; line-height: 1;
+  padding-top: 0; padding-bottom: 0; vertical-align: middle;
+}
 .ag-status { display: inline-flex; align-items: center; gap: 6px; color: var(--chalk-dim); }
+/* How long it has been under test, after the status's words: the same line, quieter, and a dot between the two. */
+.ag-tested { color: var(--chalk-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-tested::before { content: '·'; margin-right: 6px; color: var(--chalk-mute); }
 .ag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--chalk-mute); flex: none; }
 .ag-status.is-running .ag-dot, .ag-dot-running { background: var(--gain); box-shadow: 0 0 0 3px var(--gain-dim); animation: ag-pulse 2.4s ease-in-out infinite; }
 /* The dot beside a strategy's name: the status in colour, its words in the title. Amber is "stale", grey "paused". */

@@ -136,11 +136,12 @@ places stay when the number is not whole.
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
   tie up; its dot turns amber if it stops. Tap it for its page: the same
-  scoreboard, a line saying what its live path is doing (in dry run, how
-  many orders it would have sent today), then each book's six rungs (the
-  price each quotes, or what it holds and has made at the last trade) and
-  the latest round trips. Once its live path sends a real order, it is
-  also a row of LIVE — its real-money book, in LIVE's totals and its
+  scoreboard, then each book's six rungs (the price each quotes, or what
+  it holds and has made at the last trade) and the latest round trips,
+  each with its size in coins (every exit so far rested as a maker; only
+  its 24-hour stop would take the book). From its live path's first real
+  order, the page also says what that path is doing, and it is also a
+  row of LIVE — its real-money book, in LIVE's totals and its
   Revolut X card, in dollars at the day's pound rate — and a live order
   of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
@@ -181,7 +182,10 @@ places stay when the number is not whole.
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as
   on the list. Its head says PAPER or LIVE, then its exchange in that
-  exchange's colour, as every strategy's and test's page does. It shows its own scoreboard and positions, a
+  exchange's colour, as every strategy's and test's page does, both tags
+  the same height; then whether it is running, and how long it has been
+  under test, to the hour ("tested 3d 14h"; "live 3d 2h" on the live
+  row). It shows its own scoreboard and positions, a
   countdown to the next decision, and **LIVE STATE**: what the loop sees
   for each coin right now (trend, strength, breakout, volatility,
   momentum, position, unrealised gain, time held) and when that last

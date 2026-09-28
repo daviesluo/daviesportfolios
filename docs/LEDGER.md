@@ -372,6 +372,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 01:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Agents page, four changes on Davies' word:** the Stablecoin quotes page no longer says what its dry run would have sent (the line returns once its live path has traded); every PAPER/LIVE tag and venue tag is 18 px tall, wherever it sits; every strategy's and test's page says, after "running", how long it has been under test to the hour ("tested 3d 14h"; "live …" on the live row), from the row's creation (`createdAt`, new in the dashboard), the quotes' first minute, RW's first day or a variant's first minute; and the quotes' round trips show each trip's size in coins where "exit as" was, on a phone too. Every exit so far was a maker (9 of 9): the rule takes the book only at its 24-hour stop, never reached. Pinned in `agents.test.js` and the browser sweep (the tested words on each page, on the status's line at both widths; every tag's height on the list and each page; the size column).
+
 ### [2026-09-28 01:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **JEV-DRIFT's monitor document is frozen** (`reviews/2026-09-28-jev-drift-monitor.md`), after the reviewer's second pass and with the code it describes deployed (agents v91, 01:18:57 UTC). Its one open question goes to Davies in the briefing: should a flag on the live row clear `live_confirmed_at` on its own until the re-measure is in? Until he answers, it only alerts.

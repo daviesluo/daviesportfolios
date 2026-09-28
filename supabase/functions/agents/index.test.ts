@@ -548,7 +548,7 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
     last_minute: new Date(now - 90e3).toISOString(), updated_at: new Date(now).toISOString(), last_error: null,
   };
   const trips = [
-    { book: "USDT-GBP", t_exit: new Date(dayStart + 3600e3).toISOString(), pnl_usd: 0.12, notional_usd: 60 },
+    { book: "USDT-GBP", t_exit: new Date(dayStart + 3600e3).toISOString(), pnl_usd: 0.12, notional_usd: 60, qty: "79.4436" },
     { book: "USDC-GBP", t_exit: new Date(dayStart - 3600e3).toISOString(), pnl_usd: "0.30", notional_usd: 100 },
     { book: "USDC-GBP", t_exit: new Date(dayStart - 7200e3).toISOString(), pnl_usd: -0.02, notional_usd: 40 },
   ];
@@ -559,6 +559,8 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   assertEquals([q.trips, q.won, q.open, q.ordersToday, q.fillsToday], [3, 2, 1, 2, 1]);
   assertAlmostEquals(q.openUsd, 75 * 1.33, 1e-9);                     // a position is its GBP notional at the last rate
   assertEquals([q.lagMinutes, q.running], [2, true]);
+  // Each trip carries its size in coins, for the page's size column; a trip stored without one says so.
+  assertEquals(q.recent.map((t) => t.qty), [79.4436, null, null]);
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
   assertEquals(stale.running, false);                                  // ten minutes behind: it has stopped
   assertEquals(quotesSummary(null, [], [], null, now, dayStart), null);  // not built yet: off the page

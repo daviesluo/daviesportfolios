@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -85,11 +85,18 @@ function VenueBadge({ id, signal = null }) {
   );
 }
 
-function StatusDot({ status }) {
+/**
+ * The status as a dot and its words, and after them how long the strategy has been under test, to the hour (Davies,
+ * 2026-09-28): "running · tested 3d 14h", "live 3d 2h" on the live row. `since` is when its test began.
+ * @param {{ status: any, since?: string | null, until?: string | null, nowMs?: number, live?: boolean }} props
+ */
+function StatusDot({ status, since = null, until = null, nowMs = Date.now(), live = false }) {
+  const tested = testedForText(since, nowMs, until);
   return (
-    <span className={`ag-status${status.running ? ' is-running' : ''}`} title={status.detail}>
+    <span className={`ag-status${status.running ? ' is-running' : ''}`}>
       <span className="ag-dot" />
-      <span className="ag-status-text">{status.running ? 'running' : status.detail}</span>
+      <span className="ag-status-text" title={status.detail}>{status.running ? 'running' : status.detail}</span>
+      {tested && <span className="ag-tested" title={`since ${when(String(since))} ${UK_TZ}`}>{live ? 'live' : 'tested'} {tested}</span>}
     </span>
   );
 }
@@ -346,7 +353,7 @@ function LadderCell({ c, m }) {
  * instead of the orders. Its cards use the quote classes, which share the venue cards' rules without being venue
  * cards: the sweep finds a venue card by its class.
  */
-function QuotesDetail({ q, m, at }) {
+function QuotesDetail({ q, m, at, nowMs }) {
   const v = quotesView(q);
   const row = quotesRow(q);
   if (!v || !row) return null;
@@ -356,7 +363,7 @@ function QuotesDetail({ q, m, at }) {
       <div className="ag-detail-head">
         <ModeBadge mode="paper" />
         <VenueBadge id="revx" />
-        <StatusDot status={row.status} />
+        <StatusDot status={row.status} since={q.startedAt} nowMs={nowMs} />
       </div>
       <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
@@ -401,7 +408,7 @@ function QuotesDetail({ q, m, at }) {
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
               <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
-              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th ag-ph">Exit as</th><th className="hl-th">P&amp;L</th>
+              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th">Size</th><th className="hl-th">P&amp;L</th>
             </tr></thead>
             <tbody>
               {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No round trip yet.</td></tr>}
@@ -413,7 +420,7 @@ function QuotesDetail({ q, m, at }) {
                   <td className="ag-ph dim">{t.k != null ? `${+(t.k * 100).toFixed(2)} %` : '—'}</td>
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
-                  <td className="ag-ph dim">{t.how ?? '—'}</td>
+                  <td className="dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
                   <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd4(t.pnlUsd))}</td>
                 </tr>
               ))}
@@ -462,9 +469,9 @@ function RwBar({ v, r, usd }) {
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
  * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
  * bid and ask, our share of the pool), and the fills with the prints that proved them.
- * @param {{ r: any, m: (s: string) => string, at: any, row?: any }} props
+ * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number, row?: any }} props
  */
-function RwDetail({ r, m, at, row: rowIn = null }) {
+function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
   // RW-E's page is RW's page read from the replay's arm (`rweRow`), and each of its variants' from its own (`rwxRows`);
   // RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
@@ -482,7 +489,7 @@ function RwDetail({ r, m, at, row: rowIn = null }) {
       <div className="ag-detail-head">
         <ModeBadge mode="paper" />
         <VenueBadge id={row.venueId} />
-        <StatusDot status={row.status} />
+        <StatusDot status={row.status} since={rwTestedSince(v)} until={v.runEnd} nowMs={nowMs} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       {/* Realised's rewards and orders (rwRow) and the bar's total, rewards and orders (rwView) come to the cent from
@@ -1159,7 +1166,7 @@ function Detail({ s, dash, m, nowMs, gen }) {
       <div className="ag-detail-head">
         <ModeBadge mode={s.mode} />
         <VenueBadge id={s.venue} />
-        <StatusDot status={status} />
+        <StatusDot status={status} since={s.createdAt} until={s.retiredAt} nowMs={nowMs} live={s.mode === 'live'} />
         <Countdown at={s.nextDecisionAt} label={s.kind === 'dislocation-1m' ? 'next read' : 'next decision'} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{strategyName(s)}</h3>
@@ -1345,7 +1352,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesDetail q={dash.quotes} m={m} at={dash.at} />
+          <QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} />
         </div>
       </Modal>
     )}
@@ -1358,7 +1365,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.rw} m={m} at={dash.at} />
+          <RwDetail r={dash.rw} m={m} at={dash.at} nowMs={now} />
         </div>
       </Modal>
     )}
@@ -1371,7 +1378,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.rwe} m={m} at={dash.at} row={rwe} />
+          <RwDetail r={dash.rwe} m={m} at={dash.at} nowMs={now} row={rwe} />
         </div>
       </Modal>
     )}
@@ -1384,7 +1391,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={rwxOpen} m={m} at={dash.at} row={rwxRow} />
+          <RwDetail r={rwxOpen} m={m} at={dash.at} nowMs={now} row={rwxRow} />
         </div>
       </Modal>
     )}

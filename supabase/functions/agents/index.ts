@@ -410,6 +410,7 @@ export function probeSummary(rows: ProbeSummaryRow[]) {
 export type QuoteTripRow = {
   book: string; t_exit: string; pnl_usd: number | string; notional_usd: number | string;
   side?: string; k?: number | string; t_entry?: string; entry?: number | string; exit?: number | string; how?: string;
+  qty?: number | string;
 };
 /** A rung as `quotes.ts` stores it (`Rung`): only the fields the page reads. */
 type QuoteRungState = { side?: string; k?: number; mode: string; nq?: number; qty?: number; entry?: number; tEntry?: number; o?: { ticks?: number; fairAt?: number } | null };
@@ -469,7 +470,7 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
   const recent = [...trips].sort((a, b) => Date.parse(b.t_exit) - Date.parse(a.t_exit)).slice(0, QUOTES_RECENT_TRIPS).map((t) => ({
     book: t.book, side: t.side ?? null, k: t.k != null ? Number(t.k) : null, tEntry: t.t_entry ?? null, tExit: t.t_exit,
     entry: t.entry != null ? Number(t.entry) : null, exit: t.exit != null ? Number(t.exit) : null, how: t.how ?? null,
-    notionalUsd: Number(t.notional_usd), pnlUsd: Number(t.pnl_usd),
+    qty: t.qty != null ? Number(t.qty) : null, notionalUsd: Number(t.notional_usd), pnlUsd: Number(t.pnl_usd),
   }));
   return {
     startedAt, lastMinute: st.last_minute, lagMinutes, running: lagMinutes <= 5, lastError: st.last_error,
@@ -673,7 +674,7 @@ async function dashboard(now: number) {
     // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
     // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
     // were still long, and a position nobody can see is a position nobody will notice is stuck.
-    d.select<StrategyRow & { description: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
+    d.select<StrategyRow & { description: string; created_at: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
     d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
     d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
     d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
@@ -749,7 +750,8 @@ async function dashboard(now: number) {
     const barMs = decisionBarMs(s.kind);
     return {
       id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
-      capitalUsd: Number(s.capital_usd), params: s.params, updatedAt: s.updated_at,
+      // When its test began, for the page's "tested 3d 14h" (Davies, 2026-09-28): the row's own creation.
+      capitalUsd: Number(s.capital_usd), params: s.params, createdAt: s.created_at ?? null, updatedAt: s.updated_at,
       retiredAt: s.retired_at ?? null,
       // Retired and still holding, or holding a book it no longer trades (paused, or relabelled away from real coins): its
       // exits run and it can never buy — the tick's own rule, so the page cannot call a row stuck that the loop is covering.
@@ -794,7 +796,7 @@ async function dashboard(now: number) {
     try {
       const [st, trips, today, first] = await Promise.all([
         d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
-        d.select<QuoteTripRow>("agent_quote_trips", "select=book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd&order=t_exit.desc&limit=1000"),
+        d.select<QuoteTripRow>("agent_quote_trips", "select=book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=t_exit.desc&limit=1000"),
         d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
         d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
       ]);
