@@ -88,4 +88,33 @@ describe('pg_cron jobs', () => {
       expect(norm(job.command)).toContain(norm(j.command.match(/headers\s*:=[\s\S]*?\),\s*body\s*:=\s*'\{\}'::jsonb,/)[0]));
     }
   });
+
+  it("adds RW-C's four calls to the one job (0069), leaving every other call as it was", () => {
+    const callsOf = (files) => {
+      const job = cronJobs(files).get('edge-calls-every-minute');
+      return [...job.command.matchAll(/\('([^']+)',\s*(\d+),\s*(\d+),\s*(\d+)\)/g)].map((m) => ({
+        path: m[1], timeout: Number(m[2]), every: Number(m[3]), lastHour: Number(m[4]),
+      }));
+    };
+    // By its name, not its number: the migration before it and the one itself.
+    const RWC = FILES.find((f) => /^\d{4}_pm_rwc\.sql$/.test(f)) ?? '';
+    expect(RWC).not.toBe('');
+    const before = callsOf(FILES.filter((f) => f < RWC));
+    const after = callsOf(FILES.filter((f) => f <= RWC));
+    // RW-C's engine every minute and its selection every five, as RW's; its two replays every minute, as RW's.
+    const rwc = [
+      { path: 'agents?action=pmrwc', timeout: 58000, every: 1, lastHour: 23 },
+      { path: 'agents?action=pmrwc-e', timeout: 58000, every: 1, lastHour: 23 },
+      { path: 'agents?action=pmrwc-x', timeout: 58000, every: 1, lastHour: 23 },
+      { path: 'agents?action=pmrwc-select', timeout: 290000, every: 5, lastHour: 23 },
+    ];
+    const byPath = (a, b) => a.path.localeCompare(b.path);
+    expect(after.filter((c) => !c.path.startsWith('agents?action=pmrwc')).sort(byPath)).toEqual(before.slice().sort(byPath));
+    expect(after.filter((c) => c.path.startsWith('agents?action=pmrwc')).sort(byPath)).toEqual(rwc.slice().sort(byPath));
+    // Each is RW's call with a `c`: the same timeout and the same minutes.
+    for (const c of rwc) expect(before.find((b) => b.path === c.path.replace('pmrwc', 'pmrw'))).toEqual({ ...c, path: c.path.replace('pmrwc', 'pmrw') });
+    // The headers, body and filter are the job's as it was: only the list grew.
+    const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
+    expect(cmd(FILES.filter((f) => f <= RWC))).toBe(cmd(FILES.filter((f) => f < RWC)));
+  });
 });

@@ -100,11 +100,11 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
-import { runPmrw, runPmrwSelect } from "./pmrw.ts";
+import { runPmrw, runPmrwSelect, RWC_INSTANCE } from "./pmrw.ts";
 import { rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
-import { runPmrwE } from "./pmrw_e.ts";
-import { parseRwxSpecs, researchRwx, runPmrwX } from "./pmrw_x.ts";
+import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
+import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -1300,6 +1300,11 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    // RW-C (0069): the same engine and replays on RW-C's instance and tables; before its warm-up each returns at once.
+    if (action === "pmrwc" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
+    if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
+    if (action === "pmrwc-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCE_REPLAY }));
+    if (action === "pmrwc-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCX_REPLAY }));
     // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.
     if (action === "pmrw-x-research" && req.method === "POST" && operator) {
       const body = await req.json().catch(() => null);

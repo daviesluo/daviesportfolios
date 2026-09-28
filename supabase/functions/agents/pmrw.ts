@@ -10,6 +10,12 @@
 // `docs/agents/backtests/polymarket/scripts/rw_test.py` and `rw_inputs.py`: `summarize` is `summary()`, `quote`,
 // `othersOf`, `firstScore` and `stepRw` are `quote()`, `others_of()`, `first_score()` and one minute of
 // `run_market()`. `pmrw.test.ts` replays RW's recorded day through them and must reproduce rw_test.py's numbers.
+//
+// The driver runs one instance of the test at a time (`RwInstance`): its tables, its two leases and its fourteen days.
+// RW's is `RW_INSTANCE`, the names and dates it was written with. RW-C's (`RWC_INSTANCE`, `0069`) is the same rule run
+// again forward, on 2026-10-09 → 10-23, into tables of its own (part 2 of the RW-NEXT pre-registration, drafted in
+// `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4; Davies approved the build 2026-09-27). The rule, the
+// selection, the timing, the fills, the settlement and the accounts read none of it.
 
 import { pmBooks, pmMarkets, pmPrints, pmRewardsCurrent, pmSimplifiedMarkets, type PmLevel, type PmMarket, type PmPrint, type PmPublicOpts } from "../_shared/polymarket_public.ts";
 import type { Db } from "./db.ts";
@@ -28,6 +34,52 @@ export const RW_STATUS_EVERY_MS = 10 * M;        // how often a quoted or held m
 /** The fourteen days the spec's bar reads: 2026-09-25 00:00 → 2026-10-09 00:00 UTC. Earlier minutes are a warm-up. */
 export const RW_RUN_START = Date.UTC(2026, 8, 25);
 export const RW_RUN_END = Date.UTC(2026, 9, 9);
+/**
+ * RW-C's fourteen days, 2026-10-09 00:00 → 10-23 00:00 UTC: the first UTC midnight after RW's end, on days that did not
+ * exist when it was pre-registered. Its warm-up is the day before, by constant, so its engine is already running when
+ * its first day's selection lands; the warm-up counts nowhere, as RW's did.
+ */
+export const RWC_RUN_START = Date.UTC(2026, 9, 9);
+export const RWC_RUN_END = Date.UTC(2026, 9, 23);
+export const RWC_WARM_UP = Date.UTC(2026, 9, 8);
+
+/**
+ * One run of the paper test: its seven tables (the state row is id 1 of `state`), its two `agent_locks` rows, and its
+ * fourteen days, before which every minute is its warm-up. Before `quietUntil` its calls return at once and read
+ * nothing; RW's has none, its warm-up having begun with its first selection.
+ */
+export type RwInstance = {
+  name: string;
+  tables: { state: string; selection: string; minutes: string; prints: string; fills: string; days: string; settlements: string };
+  locks: { run: string; select: string };
+  runStart: number;
+  runEnd: number;
+  quietUntil: number | null;
+};
+/** RW's own (0053): exactly the names and dates the engine had before it took an instance. */
+export const RW_INSTANCE: RwInstance = {
+  name: "RW",
+  tables: {
+    state: "pm_rw_state", selection: "pm_rw_selection", minutes: "pm_rw_minutes", prints: "pm_rw_prints", fills: "pm_rw_fills",
+    days: "pm_rw_days", settlements: "pm_rw_settlements",
+  },
+  locks: { run: "pmrw", select: "pmrw-select" },
+  runStart: RW_RUN_START,
+  runEnd: RW_RUN_END,
+  quietUntil: null,
+};
+/** RW-C's (0069): the same shapes under names of its own, so nothing it writes can reach RW's record. */
+export const RWC_INSTANCE: RwInstance = {
+  name: "RW-C",
+  tables: {
+    state: "pm_rwc_state", selection: "pm_rwc_selection", minutes: "pm_rwc_minutes", prints: "pm_rwc_prints", fills: "pm_rwc_fills",
+    days: "pm_rwc_days", settlements: "pm_rwc_settlements",
+  },
+  locks: { run: "pmrwc", select: "pmrwc-select" },
+  runStart: RWC_RUN_START,
+  runEnd: RWC_RUN_END,
+  quietUntil: RWC_WARM_UP,
+};
 
 /** A minute's book as the rule reads it (rw_inputs.py's row): the touch, the size-adjusted touch, the others' scores. */
 export type BookRow = [bb: number, ba: number, ab: number | null, aa: number | null, q1: number, q2: number];
@@ -180,7 +232,7 @@ export function stepRw(acc: Acc, tSec: number, row: BookRow | null, tick: number
 }
 
 /** Where `now` sits against the spec's fourteen days: before them (the warm-up, counted nowhere), in them, or after. */
-export const rwPhase = (now: number): RwReport["phase"] => (now < RW_RUN_START ? "warm-up" : now < RW_RUN_END ? "run" : "after");
+export const rwPhase = (now: number, inst: RwInstance = RW_INSTANCE): RwReport["phase"] => (now < inst.runStart ? "warm-up" : now < inst.runEnd ? "run" : "after");
 
 /** A market's value: rewards, the cash of its fills, and its inventory at the payout once settled, else at the adjusted mid. */
 export const accTotal = (a: Acc) => a.reward + a.cash + a.net * (a.settled ?? a.lastM ?? 0);
@@ -204,7 +256,8 @@ export type RwReport = {
   skipped?: string; phase: "warm-up" | "run" | "after"; recorded: number; minutes: number; from: number | null; to: number | null; prints: number; fills: number;
   reward: number; settled: number; days: number; errors: string[];
 };
-export type RwDeps = { db: Db; now: number; holder: string; pm?: PmPublicOpts };
+/** `inst` is the run the call drives: RW's unless it names another. */
+export type RwDeps = { db: Db; now: number; holder: string; pm?: PmPublicOpts; inst?: RwInstance };
 
 type MinuteRow = { cond: string; minute: string; quoting: boolean; tick: number; bb: number | null; ba: number | null; ab: number | null; aa: number | null; q1: number | null; q2: number | null };
 type SelRow = { day: string; cond: string; yes: string; tick: number; v: number; min_size: number; rate: number; q: string | null; cat: string | null };
@@ -217,8 +270,8 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 const nz = (x: unknown) => (x === null || x === undefined ? null : Number(x));
 
 /** The day's portfolio. A UTC day is quoted only on its own selection, from the minute it lands. */
-async function daySelection(db: Db, now: number): Promise<SelRow[]> {
-  return await db.select<SelRow>("pm_rw_selection", `day=eq.${dayStr(now)}&select=day,cond,yes,tick,v,min_size,rate,q,cat&order=rank.asc`);
+async function daySelection(db: Db, now: number, inst: RwInstance): Promise<SelRow[]> {
+  return await db.select<SelRow>(inst.tables.selection, `day=eq.${dayStr(now)}&select=day,cond,yes,tick,v,min_size,rate,q,cat&order=rank.asc`);
 }
 
 /** Every market's value, stress and capital now, and the snapshot a day row keeps. */
@@ -239,18 +292,20 @@ export function snapshot(st: RwState, active: string[]) {
  * them (a minute already stored is never rewritten); decide every recorded minute at least two minutes old, reading each
  * quoting market's prints; close each UTC day with a snapshot; every ten minutes, settle markets Gamma shows resolved.
  * The warm-up's book is closed at its marks when the fourteen days begin, so they start flat; after their last minute is
- * decided and their last day closed, a run does nothing.
+ * decided and their last day closed, a run does nothing. Before its instance's `quietUntil` a run reads nothing at all.
  */
 export async function runPmrw(d: RwDeps): Promise<RwReport> {
-  const report: RwReport = { phase: rwPhase(d.now), recorded: 0, minutes: 0, from: null, to: null, prints: 0, fills: 0, reward: 0, settled: 0, days: 0, errors: [] };
-  const held = await d.db.claim("agent_locks", `name=eq.pmrw&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RW_LEASE_MS), holder: d.holder });
-  if (!held.length) return { ...report, skipped: "another run holds the pmrw lease" };
+  const inst = d.inst ?? RW_INSTANCE, T = inst.tables;
+  const report: RwReport = { phase: rwPhase(d.now, inst), recorded: 0, minutes: 0, from: null, to: null, prints: 0, fills: 0, reward: 0, settled: 0, days: 0, errors: [] };
+  if (inst.quietUntil !== null && d.now < inst.quietUntil) return { ...report, skipped: "before its warm-up" };
+  const held = await d.db.claim("agent_locks", `name=eq.${inst.locks.run}&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RW_LEASE_MS), holder: d.holder });
+  if (!held.length) return { ...report, skipped: `another run holds the ${inst.locks.run} lease` };
   try {
     const nowMinute = minuteOf(d.now);
-    const rows = await d.db.select<{ state: RwState | Record<string, never> }>("pm_rw_state", "id=eq.1&select=state");
+    const rows = await d.db.select<{ state: RwState | Record<string, never> }>(T.state, "id=eq.1&select=state");
     let st = rows[0]?.state as RwState | undefined;
-    if (st && "acc" in st && st.dayOf >= RW_RUN_END) return { ...report, skipped: "the fourteen days are over" };
-    const sel = await daySelection(d.db, d.now);
+    if (st && "acc" in st && st.dayOf >= inst.runEnd) return { ...report, skipped: "the fourteen days are over" };
+    const sel = await daySelection(d.db, d.now, inst);
     if (!st || !("acc" in st)) {
       if (!sel.length) return { ...report, skipped: "no selection yet" };
       st = { lastDecided: nowMinute - M, acc: {}, meta: {}, statusAt: 0, dayOf: Math.floor(d.now / DAY) * DAY, dayActive: [] };
@@ -263,8 +318,8 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
 
     // 1. This minute's books, once.
     const watch = [...quoting, ...holding];
-    if (watch.length && nowMinute < RW_RUN_END) {
-      const have = await d.db.select("pm_rw_minutes", `minute=eq.${encodeURIComponent(iso(nowMinute))}&select=cond&limit=1`);
+    if (watch.length && nowMinute < inst.runEnd) {
+      const have = await d.db.select(T.minutes, `minute=eq.${encodeURIComponent(iso(nowMinute))}&select=cond&limit=1`);
       if (!have.length) {
         try {
           const books = await pmBooks(watch.map((c) => st!.meta[c].yes), d.pm);
@@ -276,16 +331,16 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
             if (!row) continue;
             out.push({ cond: c, minute: iso(nowMinute), quoting: quoting.has(c), tick: bk.tick ?? mt.tick, bb: row[0], ba: row[1], ab: row[2], aa: row[3], q1: row[4], q2: row[5] });
           }
-          if (out.length) await d.db.upsert("pm_rw_minutes", out, "cond,minute");
+          if (out.length) await d.db.upsert(T.minutes, out, "cond,minute");
           report.recorded = out.length;
         } catch (e) { report.errors.push(`books: ${msg(e)}`); }
       }
     }
 
     // 2. Decide every minute at least two minutes old.
-    const from = st.lastDecided + M, to = Math.min(nowMinute - RW_DECIDE_LAG_MS, from + (RW_MAX_MINUTES - 1) * M, RW_RUN_END - M);
+    const from = st.lastDecided + M, to = Math.min(nowMinute - RW_DECIDE_LAG_MS, from + (RW_MAX_MINUTES - 1) * M, inst.runEnd - M);
     if (to >= from) {
-      const mrows = await d.db.selectAll<MinuteRow>("pm_rw_minutes", `minute=gte.${encodeURIComponent(iso(from))}&minute=lte.${encodeURIComponent(iso(to))}&select=cond,minute,quoting,tick,bb,ba,ab,aa,q1,q2&order=minute.asc,cond.asc`);
+      const mrows = await d.db.selectAll<MinuteRow>(T.minutes, `minute=gte.${encodeURIComponent(iso(from))}&minute=lte.${encodeURIComponent(iso(to))}&select=cond,minute,quoting,tick,bb,ba,ab,aa,q1,q2&order=minute.asc,cond.asc`);
       const prints = new Map<string, PmPrint[]>();
       let ok = true;
       for (const c of new Set(mrows.filter((r) => r.quoting).map((r) => r.cond))) {
@@ -294,12 +349,12 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
           if (!got.complete) throw new Error("prints not complete");
           prints.set(c, got.prints);
           report.prints += got.prints.length;
-          if (got.prints.length) await d.db.upsert("pm_rw_prints", got.prints.map((p) => ({ id: p.id, cond: c, ts: iso(p.ts * 1000), side: p.side, oi: p.oi, price: p.price, size: p.size })), "id");
+          if (got.prints.length) await d.db.upsert(T.prints, got.prints.map((p) => ({ id: p.id, cond: c, ts: iso(p.ts * 1000), side: p.side, oi: p.oi, price: p.price, size: p.size })), "id");
         } catch (e) { ok = false; report.errors.push(`prints ${c.slice(0, 10)}: ${msg(e)}`); }
       }
       if (!ok) {
         // A minute is never decided without its prints: stop here, and the next run decides from the same place.
-        await saveState(d, st, report.errors.join(" | "));
+        await saveState(d, inst, st, report.errors.join(" | "));
         return report;
       }
       const byMinute = new Map<number, MinuteRow[]>();
@@ -310,7 +365,7 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
       const decided: Record<string, unknown>[] = [], fills: Record<string, unknown>[] = [];
       for (let t = from; t <= to; t += M) {
         if (t >= st.dayOf + DAY) {
-          await closeDays(d, st, t, report);
+          await closeDays(d, inst, st, t, report);
         }
         for (const r of byMinute.get(t) ?? []) {
           const c = r.cond, mt = st.meta[c];
@@ -334,12 +389,12 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
           }
         }
       }
-      if (decided.length) await d.db.upsert("pm_rw_minutes", decided, "cond,minute");
-      if (fills.length) await d.db.upsert("pm_rw_fills", fills, "cond,minute,print_id");
+      if (decided.length) await d.db.upsert(T.minutes, decided, "cond,minute");
+      if (fills.length) await d.db.upsert(T.fills, fills, "cond,minute,print_id");
       report.fills = fills.length;
       report.minutes = (to - from) / M + 1; report.from = from; report.to = to;
       st.lastDecided = to;
-      if (to === RW_RUN_END - M) await closeDays(d, st, RW_RUN_END, report);
+      if (to === inst.runEnd - M) await closeDays(d, inst, st, inst.runEnd, report);
     }
 
     // 3. Settlements.
@@ -351,20 +406,20 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
             const a = st.acc[m.cond];
             if (!a || a.settled != null || m.payout === null) continue;
             a.settled = m.payout;
-            await d.db.upsert("pm_rw_settlements", [{ cond: m.cond, closed_time: m.closedTime, payout: m.payout, net: a.net, cash: a.cash, settled_at: iso(d.now) }], "cond");
+            await d.db.upsert(T.settlements, [{ cond: m.cond, closed_time: m.closedTime, payout: m.payout, net: a.net, cash: a.cash, settled_at: iso(d.now) }], "cond");
             report.settled++;
           }
           st.statusAt = d.now;
         } catch (e) { report.errors.push(`settlements: ${msg(e)}`); }
       }
     }
-    await saveState(d, st, report.errors.length ? report.errors.join(" | ").slice(0, 500) : null);
+    await saveState(d, inst, st, report.errors.length ? report.errors.join(" | ").slice(0, 500) : null);
     return report;
   } catch (e) {
     report.errors.push(msg(e));
     return report;
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.pmrw&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* the lease expires on its own */ }
+    try { await d.db.update("agent_locks", `name=eq.${inst.locks.run}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* the lease expires on its own */ }
   }
 }
 
@@ -373,23 +428,23 @@ export async function runPmrw(d: RwDeps): Promise<RwReport> {
  * day closed is the warm-up's last, its book is closed at those marks and the fourteen days start flat, so the run's
  * totals and capital are its own.
  */
-async function closeDays(d: RwDeps, st: RwState, t: number, report: RwReport) {
-  while (t >= st.dayOf + DAY && st.dayOf < RW_RUN_END) {
+async function closeDays(d: RwDeps, inst: RwInstance, st: RwState, t: number, report: RwReport) {
+  while (t >= st.dayOf + DAY && st.dayOf < inst.runEnd) {
     const s = snapshot(st, st.dayActive);
-    await d.db.upsert("pm_rw_days", [{
+    await d.db.upsert(inst.tables.days, [{
       day: dayStr(st.dayOf), total: s.total, stress_total: s.stress, reward: s.reward, fills: s.fills, capital: s.capital,
-      markets: st.dayActive.length, detail: { phase: rwPhase(st.dayOf), perMarket: s.perMarket, active: st.dayActive }, closed_at: iso(d.now),
+      markets: st.dayActive.length, detail: { phase: rwPhase(st.dayOf, inst), perMarket: s.perMarket, active: st.dayActive }, closed_at: iso(d.now),
     }], "day");
     report.days++;
     st.dayOf += DAY;
-    if (st.dayOf === RW_RUN_START) st.acc = {};
+    if (st.dayOf === inst.runStart) st.acc = {};
     // A market still holding inventory is active in the new day from its first minute.
     st.dayActive = Object.entries(st.acc).filter(([, a]) => a.settled == null && a.net !== 0).map(([c]) => c);
   }
 }
 
-async function saveState(d: RwDeps, st: RwState, lastError: string | null = null) {
-  await d.db.upsert("pm_rw_state", [{ id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: lastError }], "id");
+async function saveState(d: RwDeps, inst: RwInstance, st: RwState, lastError: string | null = null) {
+  await d.db.upsert(inst.tables.state, [{ id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: lastError }], "id");
 }
 
 // ---------------------------------------------------------------------------------------------- the selection
@@ -404,7 +459,7 @@ export type RwSelectReport = {
  * spread, accepting orders with two tokens, ranked by RW's first-round reward per dollar from one book read now; whole
  * markets in that order until $300. Once per UTC day: the cron job calls it every five minutes and a selected day skips,
  * so a failed selection is tried again five minutes later. It is written in one request, so a day is selected whole or
- * not at all, and never twice.
+ * not at all, and never twice. An instance selects nothing before its `quietUntil` or from its fourteen days' end.
  *
  * Gamma, whose word decides "accepting orders", sends 7,900 bytes a market, and reading all 3,000-odd rewarded markets
  * from it cost 0.66 s of the 2 s of CPU an Edge request may use (1.22 s in all, measured 2026-09-24). So the tokens come
@@ -413,13 +468,15 @@ export type RwSelectReport = {
  * markets exactly — dropping a market `choose` did not take never changes what it takes.
  */
 export async function runPmrwSelect(d: RwDeps): Promise<RwSelectReport> {
+  const inst = d.inst ?? RW_INSTANCE;
   const day = dayStr(d.now);
   const report: RwSelectReport = { day, rewarded: 0, booked: 0, scored: 0, checked: 0, refused: 0, mismatched: 0, chosen: 0, capital: 0, errors: [] };
-  if (d.now >= RW_RUN_END) return { ...report, skipped: "the fourteen days are over" };
-  const held = await d.db.claim("agent_locks", `name=eq.pmrw-select&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RW_SELECT_LEASE_MS), holder: d.holder });
+  if (inst.quietUntil !== null && d.now < inst.quietUntil) return { ...report, skipped: "before its warm-up" };
+  if (d.now >= inst.runEnd) return { ...report, skipped: "the fourteen days are over" };
+  const held = await d.db.claim("agent_locks", `name=eq.${inst.locks.select}&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RW_SELECT_LEASE_MS), holder: d.holder });
   if (!held.length) return { ...report, skipped: "another selection holds the lease" };
   try {
-    const have = await d.db.select("pm_rw_selection", `day=eq.${day}&select=cond&limit=1`);
+    const have = await d.db.select(inst.tables.selection, `day=eq.${day}&select=cond&limit=1`);
     if (have.length) return { ...report, skipped: "already selected today" };
     const rewards = (await pmRewardsCurrent(d.pm)).filter((r) => r.rate >= RW_MIN_RATE && r.v > 0);
     report.rewarded = rewards.length;
@@ -465,7 +522,7 @@ export async function runPmrwSelect(d: RwDeps): Promise<RwSelectReport> {
     report.chosen = chosen.length;
     report.capital = chosen.reduce((s, x) => s + x.cap, 0);
     if (!chosen.length) return { ...report, skipped: "nothing scored" };
-    await d.db.upsert("pm_rw_selection", chosen.map((x, i) => {
+    await d.db.upsert(inst.tables.selection, chosen.map((x, i) => {
       const r = byCond.get(x.cond)!, m = gamma.get(x.cond)!;
       return {
         day, cond: x.cond, rank: i + 1, yes: m.yes, tick: x.tick, v: r.v, min_size: r.minSize, rate: r.rate,
@@ -477,7 +534,7 @@ export async function runPmrwSelect(d: RwDeps): Promise<RwSelectReport> {
     report.errors.push(msg(e));
     return report;
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.pmrw-select&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* expires */ }
+    try { await d.db.update("agent_locks", `name=eq.${inst.locks.select}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* expires */ }
   }
 }
 

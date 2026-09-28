@@ -34,6 +34,8 @@ export type Db = {
 /** Tables whose unique key is not an `id` column: ordering by that whole key, in its order, is as total as `id`. */
 const PAGED_KEYS: Record<string, string> = {
   agent_quote_inputs: "kind,t", agent_quote_events: "book,minute,side,k,kind", pm_rw_minutes: "minute,cond", pm_rw_fills: "cond,minute,print_id",
+  // RW-C's (0069): RW's shapes under its own names, read by the same engine and replays.
+  pm_rwc_minutes: "minute,cond", pm_rwc_fills: "cond,minute,print_id",
   yt_video_reads: "video_id,ts", yt_channel_reads: "channel_id,ts", pm_view_books: "token,ts",
 };
 

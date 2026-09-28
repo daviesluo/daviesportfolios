@@ -3262,6 +3262,22 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       is carried in at that minute's mark; its days, fills and markets start there; its total is its running total less
       the close of the day before, the pre-registrations' own reading, pinned equal in `pmrw_e.test.ts`. Before that
       minute the row says when it starts ("starts 28 Sep 01:00 BST") and shows nothing.
+    - **RW-C, the same rule forward on 2026-10-09 → 10-23 UTC, is built (migration `0069`; Davies approved the build
+      2026-09-27).** It is part 2 of the RW-NEXT pre-registration, drafted in
+      `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4 and still to be frozen before 10-09 00:00 UTC. RW's
+      engine stops by constant at 10-09, so `pmrw.ts` runs as a second instance (`RWC_INSTANCE`): RW's rule, selection,
+      timing, fills, settlement and accounts, into tables of its own (RW's eleven, named `pm_rwc_…`) under leases of
+      its own. `agents?action=pmrwc` and `pmrwc-select` are rows of `edge-calls-every-minute`; before the warm-up,
+      2026-10-08 00:00 UTC by constant, they return at once and read nothing; the warm-up is closed at its marks as the
+      fourteen days begin, so they start flat; after 10-23 they do nothing. RW-E and x1–x3 are replayed on its minutes
+      by the frozen `pmrw_e.ts` / `pmrw_x.ts` rules with every "from" at 10-09 00:00 (`pmrwc-e`, `pmrwc-x`, every
+      minute from 10-09 00:02, into `pm_rwc_e_*` / `pm_rwc_x_*`), live rather than on demand: an Edge request's 2 s of
+      CPU cannot replay fourteen days in one call, and the check must be readable, as a scalar in the replays'
+      states, before any figure is. Each replay's `rw` arm must equal `pm_rwc_days` to under a cent, or the result is
+      void. RW's instance is pinned to exactly the names and dates the engine had (`pmrwc.test.ts`), and RW's engine
+      and replays before and after the change made the same database calls, requests and tables over three windows
+      (its warm-up into day 1, a midnight inside the fourteen days, its end). The queries below run on its tables with
+      `pm_rwc_` for `pm_rw_`.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;

@@ -582,10 +582,10 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
-| `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
+| `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
-| `agents/pmrw_e.ts` | RW-E beside RW: RW's stored minutes replayed in two arms, RW itself (checked against its own days) and RW without the markets that end on the day they are quoted. |
-| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks. |
+| `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
+| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks, on RW's minutes and on RW-C's. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, and RW-E's and its variants' rows read the same way from their replays' arms: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/jev_bands.ts` | The measured range of the model's answers for every entry state, which JEV-DRIFT checks each entry's answer against. |
@@ -679,6 +679,7 @@ before touching migration state.
 | `0066_paper_rows_x10.sql` | Puts the three paper strategy rows at ten times their size, their paper book with them, and gives paper books their own exposure and daily loss limits. |
 | `0067_paper_rows_x2_5.sql` | Puts `trend-1h` and `momentum-1d` at $1,000 as `trend-4h` is, their paper book with them, and moves the paper caps with the paper capital. |
 | `0068_maker_probes_after_open.sql` | Corrects the two maker probes the fill test resolved on a minute that began before they were written. |
+| `0069_pm_rwc.sql` | Adds RW-C, RW's engine run again on 2026-10-09 → 10-23 with RW-E's and the variants' replays on its minutes: its eleven tables (RW's, named `pm_rwc_…`), its four leases, and its four calls in the one-minute job. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -761,6 +762,9 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
  ├─ agents ?action=pmrw-x  every minute   RW's stored minutes replayed, RW-E's three variants → pm_rw_x_*
+ ├─ agents ?action=pmrwc  every minute, from 2026-10-08   RW-C, RW's paper quotes again on 10-09 → 10-23 (public reads) → pm_rwc_*
+ ├─ agents ?action=pmrwc-select  every 5 min, from 2026-10-08   the day's portfolio for RW-C, once a UTC day → pm_rwc_selection
+ ├─ agents ?action=pmrwc-e / pmrwc-x  every minute, from 10-09 00:02   RW-C's stored minutes replayed, RW-E and its variants → pm_rwc_e_* / pm_rwc_x_*
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache

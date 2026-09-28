@@ -66,8 +66,8 @@ list stays the short version; the plan is the reasoning behind it.
         10-08, the change over the eleven days from the 09-27 row), from `pm_rw_x_days` (arms `x1`–`x3`), after its
         two checks: arm `rw` equals `pm_rw_days` and arm `e` equals `pm_rw_e_days`' `e` on every day, to under a cent.
      e. A migration re-schedules `edge-calls-every-minute` without its `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x`
-        rows (`0064`'s list, every other row unchanged; the tables stay); the page rows stay as a record until Davies
-        says otherwise.
+        rows (the list `0069` left, RW-C's four `pmrwc*` rows and every other row unchanged; the tables stay); the page
+        rows stay as a record until Davies says otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
    - **RW-E's variants (Davies, 2026-09-27: study a/b/c, track the ones worth it as TESTING rows the way RW-E is).**
      Research done (history 18:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
@@ -85,6 +85,21 @@ list stays the short version; the plan is the reasoning behind it.
      20:28). **Verified 2026-09-28 00:03 UTC:** `pm_rw_x_state`'s arms `x1`–`x3` carry `base`, captured at 00:00, with
      both checks at $0.00 and no error (only the base's presence was read, not its contents). That a row's total is its
      running total less its own 09-27 row is pinned by `pmrw_view.test.ts`'s closed-form case.
+   - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): BUILT on
+     branch `worktree-agent-a856fad8dea162efa`, not yet on `main`** (history 2026-09-28 00:38). `pmrw.ts` as a second
+     instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`, warm-up 10-08 00:00 by
+     constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00 (`pmrwc-e`, `pmrwc-x`).
+     `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Before it lands:** RW-NEXT (item
+     5a.2) should be frozen first or with it, as its part 2 names this engine; renumber `0069` if `main` has one
+     (`src/cron_jobs.test.js` finds it by its `_pm_rwc` name). **After it lands:** the four calls return "before its
+     warm-up" / "before RW-C's first minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check
+     after 10-08 00:10 UTC:**
+     `pm_rwc_selection` has 10-08's portfolio, `pm_rwc_state.last_minute` within ~3 min, no `last_error`; after 10-09
+     00:05, `pm_rwc_days` has 10-08 as `warm-up` and `pm_rwc_state`'s accounts restarted flat; after 10-10 00:05, both
+     replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars only.
+     Not a market-level figure of RW-C's before its verdict. **Its verdict** on or after 2026-10-23 00:05 UTC by the
+     frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after the check), then a
+     migration takes the four `pmrwc*` rows out of `edge-calls-every-minute`.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -410,6 +425,13 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 **The probes' fill record corrected against the trade tape; the five pre-registration drafts go back for rework.**
 - An independent review of the drafts (MX-1, EX-GAP, JEV-DRIFT, RW-NEXT, PR5-R) checked every probe against Revolut X's public UK trade tape, and I re-read two of them there myself: probe 1's fill was false (no print through its price for four hours) and probe 17 filled in 50.7 s, not the 39 minutes `0068` gave it from candles. Reference §4 item 41, §3.43 and the review's §2.3 now say so; the rows stay as the loop's rule computed them, and MX-1 will read fills from the tape. The corrected prior: exits about +5.4 to +6.2 bps (6 of 7 filled), entries +12.7.
 - None of the five drafts is frozen yet: each goes back with the review's fixes (`scratchpad/prereg_review.md`, not committed). The lesson is in the working-with-davies skill: when a sentence names trades, read the tape.
+
+### [2026-09-28 00:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-C built (RW-NEXT part 2, Davies' go of 2026-09-27), on a branch for the main session to land: RW's engine as a second instance with tables of its own, forward on 2026-10-09 → 10-23 UTC.**
+- `pmrw.ts` takes an instance (`RwInstance`: its seven tables, two leases, fourteen days, a quiet time); RW's (`RW_INSTANCE`) is the old constants, pinned. RW-C's (`RWC_INSTANCE`): `pm_rwc_*`, leases `pmrwc` / `pmrwc-select`, warm-up 10-08 00:00 by constant (before it both calls return with no read), flat start at 10-09 00:00, nothing after 10-23. The replays take one too (`RweReplay`, `RwxReplay`): `pmrwc-e` / `pmrwc-x` replay RW-C's minutes with every "from" at 10-09 00:00, live, because an Edge request's 2 s of CPU cannot replay fourteen days in one call and the check (arm `rw` = `pm_rwc_days` to under a cent) has to be readable as a scalar before any figure is. `db.ts` pages RW-C's two id-less tables by their keys, as RW's (without it RW-C's engine would have thrown on every run).
+- `0069_pm_rwc.sql`: RW's eleven tables renamed (PGlite: columns, checks, indexes, RLS and refusals identical to RW's, re-runnable), four leases, and four rows added to `edge-calls-every-minute` (`cron_jobs.test.js` pins every other row unchanged). No prune, as RW's.
+- Evidence: RW's engine and replays before and after, driven through one fake Polymarket over three windows (warm-up into day 1, a midnight mid-run, the end), made byte-identical database calls, requests and tables; the four RW test files run unchanged; `pmrwc.test.ts` (10) pins the instances, no read before the warm-up, RW-C never touching RW's tables nor RW RW-C's, the flat start, the end, the replay's check (and a planted 5 ¢ gap caught), and RW-E on RW-C's minutes equal to RW-C's engine run without the same-day market; nine counterfactuals each fail a pin (one of them the cron list's).
 
 ### [2026-09-28 00:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

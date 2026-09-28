@@ -67,6 +67,10 @@ const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
   // The stablecoin books' record (0057).
   agent_book_levels: { columns: ["book", "ts", "bids", "asks", "seen_until", "reads"], key: "book,ts" },
 };
+// RW-C's tables (0069): every one of RW's eleven, the same shape under the name `pm_rwc_…`, held to the same rules.
+for (const t of Object.keys(PMRW_TABLES).filter((x) => x.startsWith("pm_rw_"))) PMRW_TABLES[t.replace(/^pm_rw_/, "pm_rwc_")] = PMRW_TABLES[t];
+/** The RW table whose rules a table of RW's family follows: its own name, or RW's for one of RW-C's. */
+const rwShape = (table: string) => table.replace(/^pm_rwc_/, "pm_rw_");
 /** The view-count recorder's tables as 0062 creates them: their columns, the unique key each upsert names, and the defaults a proposed row takes. */
 const VIEWS_TABLES: Record<string, { columns: string[]; key: string; defaults: Row }> = {
   yt_channels: { columns: ["channel_id", "handle", "title", "uploads", "first_seen"], key: "channel_id", defaults: {} },
@@ -149,31 +153,32 @@ export function schemaRefusal(table: string, r: Row): string | null {
   if (table in PMRW_TABLES) {
     const unknown = Object.keys(r).find((c) => !PMRW_TABLES[table].columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
-    if (table === "pm_rw_state" || table === "pm_rw_e_state" || table === "pm_rw_x_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    const shape = rwShape(table);
+    if (shape === "pm_rw_state" || shape === "pm_rw_e_state" || shape === "pm_rw_x_state") return check("id", r.id === 1) ?? notNull(["state"]);
     if (table === "agent_book_levels") {
       return notNull(["book", "ts", "bids", "asks"]) ?? check("book", ["USDC-USD", "USDT-USD", "USDC-GBP", "USDT-GBP"].includes(String(r.book)))
         ?? check("reads", r.reads == null || Number(r.reads) >= 1);
     }
-    if (table === "pm_rw_e_days" || table === "pm_rw_x_days") {
-      const arms = table === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3"];
+    if (shape === "pm_rw_e_days" || shape === "pm_rw_x_days") {
+      const arms = shape === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3"];
       return notNull(["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"]) ?? check("arm", arms.includes(String(r.arm)))
         ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
     }
-    if (table === "pm_rw_selection") {
+    if (shape === "pm_rw_selection") {
       return notNull(["day", "cond", "rank", "yes", "tick", "v", "min_size", "rate", "per_dollar_day", "capital"])
         ?? check("rank", Number(r.rank) > 0) ?? check("tick", Number(r.tick) > 0) ?? check("v", Number(r.v) > 0)
         ?? check("min_size", Number(r.min_size) >= 0) ?? check("rate", Number(r.rate) >= 0) ?? check("capital", Number(r.capital) > 0);
     }
-    if (table === "pm_rw_minutes") return notNull(["cond", "minute", "quoting", "tick"]) ?? check("tick", Number(r.tick) > 0);
-    if (table === "pm_rw_prints") {
+    if (shape === "pm_rw_minutes") return notNull(["cond", "minute", "quoting", "tick"]) ?? check("tick", Number(r.tick) > 0);
+    if (shape === "pm_rw_prints") {
       return notNull(["id", "cond", "ts", "side", "oi", "price", "size"]) ?? check("side", ["BUY", "SELL"].includes(String(r.side)))
         ?? check("price", Number(r.price) >= 0 && Number(r.price) <= 1) ?? check("size", Number(r.size) > 0);
     }
-    if (table === "pm_rw_fills") {
+    if (shape === "pm_rw_fills") {
       return notNull(["cond", "minute", "ts", "side", "price", "size", "print_id"]) ?? check("side", ["bid", "ask"].includes(String(r.side)))
         ?? check("price", Number(r.price) > 0 && Number(r.price) < 1) ?? check("size", Number(r.size) > 0);
     }
-    if (table === "pm_rw_days") {
+    if (shape === "pm_rw_days") {
       return notNull(["day", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"])
         ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
     }

@@ -14,14 +14,37 @@
 // by that second. A market is independent of every other, so while RW-E holds what RW holds in it, RW-E's minute is
 // RW's minute. Where they hold different amounts (only after an exclusion, in a market quoted again later), the minute
 // is run through RW's own `stepRw` on its stored book and prints instead, and the market is named in `diverged`.
+//
+// The same replay runs on RW-C's stored minutes (`RWCE_REPLAY`, `0069`): the RW-NEXT pre-registration replays RW-E on
+// RW-C's fourteen days by this rule, with its first minute at RW-C's first. Which run it reads, where it writes and
+// when RW-E's rule begins is its `RweReplay`; the rule reads none of it.
 
-import { newAcc, RW_RUN_END, RW_RUN_START, sizeN, snapshot, stepRw, type Acc, type BookRow, type RwState } from "./pmrw.ts";
+import { newAcc, RW_DECIDE_LAG_MS, RW_INSTANCE, RWC_INSTANCE, RWC_RUN_START, sizeN, snapshot, stepRw, type Acc, type BookRow, type RwInstance, type RwState } from "./pmrw.ts";
 import { printOrder, type PmPrint } from "../_shared/polymarket_public.ts";
 import type { Db } from "./db.ts";
 
 const M = 60e3, DAY = 86400e3;
 /** The twelve days RW-E is judged on: 2026-09-27 00:00 → 2026-10-09 00:00 UTC. It replays from RW's start to enter them holding what RW held. */
 export const RWE_START = Date.UTC(2026, 8, 27);
+
+/**
+ * One replay of RW-E: the engine run whose stored minutes it reads (`source`, whose start it replays from and whose
+ * end it stops at), its own state and day tables, its `agent_locks` row, and `from`, RW-E's first minute — before it
+ * RW-E is the source. Before `quietUntil` a call returns at once and reads nothing.
+ */
+export type RweReplay = { source: RwInstance; tables: { state: string; days: string }; lock: string; from: number; quietUntil: number | null };
+/** RW-E beside RW (0056): exactly the names and minutes the replay had before it took a replay. */
+export const RWE_REPLAY: RweReplay = {
+  source: RW_INSTANCE, tables: { state: "pm_rw_e_state", days: "pm_rw_e_days" }, lock: "pmrw-e", from: RWE_START, quietUntil: null,
+};
+/**
+ * RW-E on RW-C's minutes (0069), its rule from RW-C's first minute. Nothing is replayed before RW-C has decided that
+ * minute, two minutes after it starts, so until then a call returns at once.
+ */
+export const RWCE_REPLAY: RweReplay = {
+  source: RWC_INSTANCE, tables: { state: "pm_rwc_e_state", days: "pm_rwc_e_days" }, lock: "pmrwc-e", from: RWC_RUN_START,
+  quietUntil: RWC_RUN_START + RW_DECIDE_LAG_MS,
+};
 /** Minutes replayed in one run at most: a day's rows are ~16,000 and a day's prints ~800, well inside one request. */
 export const RWE_MAX_MINUTES = 720;
 /** A replayed day may differ from RW's own by this much before the check fails: less than a cent, or it is not a replay. */
@@ -42,7 +65,8 @@ export type RweState = {
   base?: Record<string, Acc>;
 };
 export type RweReport = { skipped?: string; minutes: number; from: number | null; to: number | null; days: number; diverged: number; errors: string[] };
-export type RweDeps = { db: Db; now: number; holder: string };
+/** `replay` is the replay the call drives: RW-E on RW's minutes unless it names another. */
+export type RweDeps = { db: Db; now: number; holder: string; replay?: RweReplay };
 
 export type RweMinuteRow = {
   cond: string; minute: string; quoting: boolean; tick: number | string;
@@ -70,9 +94,9 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
  */
 export const RWE_STATE_VERSION = 3;
 
-/** The fresh state: RW's start, nothing held, both arms identical. */
-export const newRweState = (): RweState => ({
-  version: RWE_STATE_VERSION, lastDecided: RW_RUN_START - M, dayOf: RW_RUN_START, arms: { rw: { acc: {}, dayActive: [] }, e: { acc: {}, dayActive: [] } }, diverged: [], checkMaxUsd: 0,
+/** The fresh state: the source's start (RW's unless the replay names another), nothing held, both arms identical. */
+export const newRweState = (replay: RweReplay = RWE_REPLAY): RweState => ({
+  version: RWE_STATE_VERSION, lastDecided: replay.source.runStart - M, dayOf: replay.source.runStart, arms: { rw: { acc: {}, dayActive: [] }, e: { acc: {}, dayActive: [] } }, diverged: [], checkMaxUsd: 0,
 });
 
 /** The markets RW-E does not quote on each day: in that day's selection, with a scheduled end before the day's end. */
@@ -117,9 +141,10 @@ export type RweDayOut = { day: string; arm: RweArm; total: number; stress_total:
 /**
  * Replay the minutes (st.lastDecided, to] of RW's stored record in both arms. Pure: every read is in `inputs`, and the
  * day rows it closes are returned. The engine's order: minute by minute, a day closed before its first minute past
- * midnight, the rows of a minute by market, and a settlement after the last minute its run decided.
+ * midnight, the rows of a minute by market, and a settlement after the last minute its run decided. `replay` says when
+ * RW-E's rule begins and where the source's fourteen days end (RW's unless it names another run).
  */
-export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { days: RweDayOut[]; minutes: number } {
+export function replayMinutes(st: RweState, to: number, inputs: RweInputs, replay: RweReplay = RWE_REPLAY): { days: RweDayOut[]; minutes: number } {
   const from = st.lastDecided + M;
   const days: RweDayOut[] = [];
   if (to < from) return { days, minutes: 0 };
@@ -165,7 +190,7 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
       const a = st.arms[arm];
       const s = snapshot({ acc: a.acc } as unknown as RwState, a.dayActive);
       const detail: Record<string, unknown> = { perMarket: s.perMarket, active: a.dayActive };
-      if (arm === "e") detail.excluded = st.dayOf >= RWE_START ? [...(excluded.get(day) ?? [])].sort() : [];
+      if (arm === "e") detail.excluded = st.dayOf >= replay.from ? [...(excluded.get(day) ?? [])].sort() : [];
       if (arm === "rw") {
         const own = rwDay.get(day);
         if (own) {
@@ -186,7 +211,7 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
   let minutes = 0;
   for (let t = from; t <= to; t += M) {
     if (t >= st.dayOf + DAY) closeDay();
-    if (t === RWE_START) st.base = structuredClone(st.arms.e.acc);
+    if (t === replay.from) st.base = structuredClone(st.arms.e.acc);
     const dayExcluded = excluded.get(dayStr(t));
     for (const r of byMinute.get(t) ?? []) {
       const c = r.cond;
@@ -199,7 +224,7 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
       for (const arm of ["rw", "e"] as const) {
         const a = st.arms[arm];
         // RW-E's rule from its first minute: before its twelve days it is RW.
-        const quoting = r.quoting && !(arm === "e" && t >= RWE_START && dayExcluded?.has(c));
+        const quoting = r.quoting && !(arm === "e" && t >= replay.from && dayExcluded?.has(c));
         if (!quoting && !a.acc[c]) continue;
         const acc = (a.acc[c] ??= newAcc());
         if (acc.settled != null) continue;
@@ -238,48 +263,52 @@ export function replayMinutes(st: RweState, to: number, inputs: RweInputs): { da
     st.lastDecided = t;
     minutes++;
   }
-  if (st.lastDecided === RW_RUN_END - M && st.dayOf < RW_RUN_END) closeDay();
+  if (st.lastDecided === replay.source.runEnd - M && st.dayOf < replay.source.runEnd) closeDay();
   return { days, minutes };
 }
 
 /**
  * One run: take the lease, replay what RW has decided since the last run (at most `RWE_MAX_MINUTES`), write the days it
- * closed and the state. It never runs ahead of RW, whose minutes are final only once decided.
+ * closed and the state. It never runs ahead of RW, whose minutes are final only once decided. `d.replay` names another
+ * run to replay, RW-C's (`RWCE_REPLAY`): its tables are read and its own written instead, and before its `quietUntil`
+ * nothing is read at all.
  */
 export async function runPmrwE(d: RweDeps): Promise<RweReport> {
+  const replay = d.replay ?? RWE_REPLAY, src = replay.source, S = src.tables;
   const report: RweReport = { minutes: 0, from: null, to: null, days: 0, diverged: 0, errors: [] };
-  const held = await d.db.claim("agent_locks", `name=eq.pmrw-e&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RWE_LEASE_MS), holder: d.holder });
-  if (!held.length) return { ...report, skipped: "another run holds the pmrw-e lease" };
+  if (replay.quietUntil !== null && d.now < replay.quietUntil) return { ...report, skipped: `before ${src.name}'s first minute is decided` };
+  const held = await d.db.claim("agent_locks", `name=eq.${replay.lock}&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + RWE_LEASE_MS), holder: d.holder });
+  if (!held.length) return { ...report, skipped: `another run holds the ${replay.lock} lease` };
   try {
-    const [own] = await d.db.select<{ state: RweState | Record<string, never> }>("pm_rw_e_state", "id=eq.1&select=state");
+    const [own] = await d.db.select<{ state: RweState | Record<string, never> }>(replay.tables.state, "id=eq.1&select=state");
     const stored = own?.state && "arms" in own.state ? own.state as RweState : null;
-    const st: RweState = stored && stored.version === RWE_STATE_VERSION ? stored : newRweState();
-    if (st.dayOf >= RW_RUN_END) return { ...report, skipped: "the fourteen days are over" };
-    const [rw] = await d.db.select<{ last_minute: string | null }>("pm_rw_state", "id=eq.1&select=last_minute");
+    const st: RweState = stored && stored.version === RWE_STATE_VERSION ? stored : newRweState(replay);
+    if (st.dayOf >= src.runEnd) return { ...report, skipped: "the fourteen days are over" };
+    const [rw] = await d.db.select<{ last_minute: string | null }>(S.state, "id=eq.1&select=last_minute");
     const rwLast = rw?.last_minute ? Date.parse(rw.last_minute) : NaN;
-    if (!Number.isFinite(rwLast)) return { ...report, skipped: "RW has decided nothing yet" };
+    if (!Number.isFinite(rwLast)) return { ...report, skipped: `${src.name} has decided nothing yet` };
     const from = st.lastDecided + M;
-    const to = Math.min(rwLast, from + (RWE_MAX_MINUTES - 1) * M, RW_RUN_END - M);
-    if (to < from) return { ...report, skipped: "nothing new from RW" };
+    const to = Math.min(rwLast, from + (RWE_MAX_MINUTES - 1) * M, src.runEnd - M);
+    if (to < from) return { ...report, skipped: `nothing new from ${src.name}` };
     const lo = encodeURIComponent(iso(from)), hi = encodeURIComponent(iso(to)), hiPrints = encodeURIComponent(iso(to + M));
     const [rows, fills, prints, selection, settlements, rwDays] = await Promise.all([
-      d.db.selectAll<RweMinuteRow>("pm_rw_minutes", `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,quoting,tick,bb,ba,ab,aa,q1,q2,m,b,a,reward&order=minute.asc,cond.asc`),
-      d.db.selectAll<RweFillRow>("pm_rw_fills", `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc`),
-      d.db.selectAll<RwePrintRow>("pm_rw_prints", `ts=gte.${lo}&ts=lte.${hiPrints}&select=id,cond,ts,side,oi,price,size&order=ts.asc,id.asc`),
-      d.db.select<RweSelRow>("pm_rw_selection", `day=lte.${dayStr(to)}&select=day,cond,tick,v,min_size,rate,end_date,q,cat&order=day.asc,cond.asc&limit=1000`),
-      d.db.select<RweSettlement>("pm_rw_settlements", "select=cond,payout,settled_at&order=cond.asc&limit=1000"),
-      d.db.select<RweDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills&order=day.asc&limit=100"),
+      d.db.selectAll<RweMinuteRow>(S.minutes, `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,quoting,tick,bb,ba,ab,aa,q1,q2,m,b,a,reward&order=minute.asc,cond.asc`),
+      d.db.selectAll<RweFillRow>(S.fills, `minute=gte.${lo}&minute=lte.${hi}&select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc`),
+      d.db.selectAll<RwePrintRow>(S.prints, `ts=gte.${lo}&ts=lte.${hiPrints}&select=id,cond,ts,side,oi,price,size&order=ts.asc,id.asc`),
+      d.db.select<RweSelRow>(S.selection, `day=lte.${dayStr(to)}&select=day,cond,tick,v,min_size,rate,end_date,q,cat&order=day.asc,cond.asc&limit=1000`),
+      d.db.select<RweSettlement>(S.settlements, "select=cond,payout,settled_at&order=cond.asc&limit=1000"),
+      d.db.select<RweDayRow>(S.days, "select=day,total,stress_total,reward,fills&order=day.asc&limit=100"),
     ]);
     const diverged0 = st.diverged.length;
-    const out = replayMinutes(st, to, { rows, fills, prints, selection, settlements, rwDays });
-    if (out.days.length) await d.db.upsert("pm_rw_e_days", out.days.map((x) => ({ ...x, closed_at: iso(d.now) })), "day,arm");
-    await d.db.upsert("pm_rw_e_state", [{ id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: null }], "id");
+    const out = replayMinutes(st, to, { rows, fills, prints, selection, settlements, rwDays }, replay);
+    if (out.days.length) await d.db.upsert(replay.tables.days, out.days.map((x) => ({ ...x, closed_at: iso(d.now) })), "day,arm");
+    await d.db.upsert(replay.tables.state, [{ id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: null }], "id");
     return { ...report, minutes: out.minutes, from, to, days: out.days.length, diverged: st.diverged.length - diverged0 };
   } catch (e) {
     report.errors.push(msg(e));
-    try { await d.db.update("pm_rw_e_state", "id=eq.1", { last_error: msg(e), updated_at: iso(d.now) }); } catch { /* the error is in the report */ }
+    try { await d.db.update(replay.tables.state, "id=eq.1", { last_error: msg(e), updated_at: iso(d.now) }); } catch { /* the error is in the report */ }
     return report;
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.pmrw-e&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* the lease expires on its own */ }
+    try { await d.db.update("agent_locks", `name=eq.${replay.lock}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* the lease expires on its own */ }
   }
 }
