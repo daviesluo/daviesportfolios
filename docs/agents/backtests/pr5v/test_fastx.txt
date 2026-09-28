@@ -1,0 +1,13 @@
+(a) recommended 1 s, 4 keys identical: [72, 72] trips, 6648 POSTs; broken engine differs
+(a) frozen as it runs identical: [8, 8] trips, 943 POSTs; broken engine differs
+(b) minute series through XS == frozen Mkt.X at 20,000 random instants and every second of 3 h; lag 6 s vs 5 s fails
+(c) bars: the last tick, readable lag after the bar ends; first-tick and readable-at-end versions fail
+(d) tick series == brute force at every whole second of 2 h (L = 0.25 s and 1 s, 12740 ticks); first-of-second fails
+(e) stale fills: a bid above fair and an ask below it counted, a bid below fair not: {'stale_fills': 2, 'stale_fill_pnl_usd': -0.03, 'fills_scored': 3, 'mean_edge_at_fill_bps': 0.0, 'median_edge_at_fill_bps': -1.351, 'mean_shortfall_vs_rung_bps': 10.0, 'shortfall_usd': 0.3}
+(f) rules: D spares the far bid on a 0.04 % fall, A re-prices on toward moves only; swapping toward/away fails
+(g) keys per rung: 3 bids on 2 keys place 3 under a 2-POST governor, 1 key places 2; splits as declared
+(h) keys needed: day-by-day sums (two 500s on different days share a key); busiest-day sums would need 2
+(i) the mask: dark wherever the study's own X is dark (a source that reopens earlier stays dark), lit elsewhere
+(j) live lag: a source showing the reference 2.5 s late is measured 2800 ms behind; one not late is not
+(k) the ceiling: a print through two rungs fills $100 each at its rung's distance, the free bound 10 % at one tick inside the print; without the $100 or with a 100 % cap it differs; step_events and reach_600 on known series
+all fastx checks pass
