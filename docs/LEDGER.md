@@ -216,24 +216,30 @@ list stays the short version; the plan is the reasoning behind it.
 
 5a. **The TESTING review is done (2026-09-27, `docs/agents/reviews/2026-09-27-testing-portfolio-review.md`, appendices
    A–C beside it; reference §3.43).** The set is sound and keeps all nine rows; its one defect is fixed (`0068`, §4
-   item 41). What is worth adding is measurement, ranked. **Davies picked all of it on 2026-09-27** (MX-1, RW-NEXT with
-   RW-C built, QUEUE, PR5-R and the lower ones), and asked that the probe bug be ruled out of the live strategies:
-   done the same night, neither live path has it (reference §4 item 41). Deadlines:
-   1. **MX-1**, maker-first execution of the rows' own orders, read from the probes (draft: appendix A §6). First R2:
-      every probe records the UK touch at +15/30/60 min, filled or not, because `agent_basis` is pruned at 30 days.
-      Then freeze the draft. Paper only; a pass moves `trend-1h` alone, and the live row only on his word.
-   2. **RW-NEXT**, how the 10-09 verdicts are read together (draft: appendix B §4.4). Freeze it before 10-09 00:00 UTC
-      and before anyone reads a market-level RW figure. Its RW-C, a 14-day forward confirmation, needs a second engine,
-      which is a build on his word.
-   3. **QUEUE**, the stablecoin quotes scored by queue position (sketch: appendix C §3). Draft and freeze it before
-      anyone reads `agent_book_levels`, and before 10-25. Run it by **2026-11-01 10:25 UTC**, when the 35-day prune
-      starts on its window. Pull Kraken's hourly USDT/USD and USDC/USD by about 10-26 (720 bars kept).
-   4. **PR5-R**: four readings of PR5's record declared before 10-21 (appendix B §3). Whatever is picked, the 10-21
-      review expects two things (appendix B §2.4): the fair omits the newest hourly candle for 59 minutes an hour, so
-      replay on the recorded per-minute inputs beside the stored candles; and the size rule once credited $100 on a
-      0.26-USDC print.
-   5. Lower: PR5-W (weekend quotes, a replay), EX-GAP (live fills against the control's, read at 16 pairs) and
-      JEV-DRIFT (each Jev answer against its measured band, a query).
+   item 41). **Davies picked every addition on 2026-09-27** (MX-1, RW-NEXT with RW-C built, QUEUE, PR5-R and the lower
+   ones), and asked that the probe bug be ruled out of the live strategies: done, neither live path has it (§4 item 41).
+   Every draft went through an independent review on 2026-09-28 and is frozen only after a second pass; until then the
+   drafts and the reviews live in the working session's scratchpad, never in the repository, because the commit that
+   adds a pre-registration freezes it.
+   State at 2026-09-28 01:40 UTC:
+   1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
+      43). Open: Davies' answer on whether a live-row flag should clear `live_confirmed_at` by itself.
+   2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). The draft is rewritten to the
+      review: fills from the UK tape with quantities, events by decision, the price actually paid, protective exits out,
+      exits at 60 min and entries at 15, a Clopper–Pearson bound so unseen misses count. Waiting on: C*, the chase of a
+      missed order measured at the rules' own decision minutes (running); one production probe showing `order_id`; the
+      second pass. After the freeze, **every Monday**: pull the UK tape for each event's window and export
+      `agent_basis`'s BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a
+      side or on 2027-03-31.
+   3. **RW-NEXT + RW-C**: the RW-C engine is built on a branch (migration `0069`, `pm_rwc_*` tables, warm-up from
+      2026-10-08 00:00 UTC, judged 10-09 → 10-23) and is being rebased; RW-NEXT is being revised (R1–R11). **Freeze
+      RW-NEXT and land RW-C before 2026-10-08 00:00 UTC**, and before anyone reads a market-level RW figure.
+   4. **QUEUE**: being revised against the second review (QF-1–QF-21). Freeze before 10-25 and before anyone reads the
+      content of `agent_book_levels`. Run by **2026-11-01 10:25 UTC**, when the 35-day prune reaches its window. Pull
+      Kraken's hourly USDT/USD and USDC/USD on 10-26 between 00:05 and 21:59 UTC (720 bars kept).
+   5. **PR5-R**: being revised (P1–P8). Freeze before 10-21.
+   6. **PR5-W**: being revised (WF-1–WF-11). Read on 2026-11-25, which needs PR5's paper engine running to then.
+   7. **EX-GAP**: being revised (E1–E8).
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
