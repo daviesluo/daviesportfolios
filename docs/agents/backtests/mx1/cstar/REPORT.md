@@ -64,8 +64,9 @@ tables'); the loop decides on Kraken's candles.
 
 ## In the repository
 
-Committed with MX-1's freeze (2026-09-28) under `docs/agents/backtests/mx1/cstar/`: this report, every script, its logs,
-tables and outputs (`results.json`, `decisions.json`). The inputs are not committed, 132 MB between them: Binance's
+Committed on 2026-09-28, before MX-1's freeze, under `docs/agents/backtests/mx1/cstar/`: this report, every script,
+tables and outputs (`results.json`, `decisions.json`). Its four logs followed in the freeze commit, added past
+`.gitignore`'s `*.log`. The inputs are not committed, 132 MB between them: Binance's
 public 1-minute klines, pulled from `data-api.binance.vision` by `pull.py` and `pull_range.py`, and the hourly
 Coinbase and Kraken series that `backtest_testingset.ts` reads (`data/cb/`, `data/ext/`). `INPUTS.sha256` gives each
 one's sha256, size and path; placed beside the scripts under those names, they re-run the measurement. `decisions.ts`

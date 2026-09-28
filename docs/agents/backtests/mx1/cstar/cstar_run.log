@@ -1,0 +1,70 @@
+{
+ "method": {
+  "spreadBps": 2.0,
+  "feeBps": 9.0,
+  "T": [
+   15,
+   60
+  ],
+  "bootstrap": "4000 resamples, random.Random(1) per cell, sorted means[int(0.975*B)]",
+  "p90": "sorted(chase)[int(0.9*n)]"
+ },
+ "tapes": {
+  "BTC/USD": {
+   "file_rows": 2159982,
+   "first": "2022-08-20T00:00Z",
+   "last": "2026-09-28T01:01Z",
+   "gridMinutes": 2160062,
+   "missingMinutes": 80
+  },
+  "ETH/USD": {
+   "file_rows": 2159985,
+   "first": "2022-08-20T00:00Z",
+   "last": "2026-09-28T01:04Z",
+   "gridMinutes": 2160065,
+   "missingMinutes": 80
+  },
+  "SOL/USD": {
+   "file_rows": 2159988,
+   "first": "2022-08-20T00:00Z",
+   "last": "2026-09-28T01:07Z",
+   "gridMinutes": 2160068,
+   "missingMinutes": 80
+  }
+ },
+ "excludedStops": {
+  "trend-4h B": [
+   "BTC/USD 2024-12-05T20:00Z",
+   "ETH/USD 2025-05-30T16:00Z",
+   "SOL/USD 2025-05-15T12:00Z",
+   "SOL/USD 2025-08-25T16:00Z",
+   "SOL/USD 2025-08-30T12:00Z"
+  ],
+  "trend-4h C": [
+   "BTC/USD 2024-03-05T16:00Z",
+   "SOL/USD 2024-03-05T16:00Z"
+  ]
+ },
+ "decisionsNotScored": [],
+ "sharedDecisionMinutes": 19,
+ "randomNotScored": {
+  "hour|buy|T15|BTC/USD": 1,
+  "hour|buy|T15|ETH/USD": 1,
+  "hour|buy|T15|SOL/USD": 1,
+  "hour|buy|T60|BTC/USD": 2,
+  "hour|buy|T60|ETH/USD": 2,
+  "hour|buy|T60|SOL/USD": 2,
+  "hour|sell|T15|BTC/USD": 1,
+  "hour|sell|T15|ETH/USD": 1,
+  "hour|sell|T15|SOL/USD": 1,
+  "hour|sell|T60|BTC/USD": 2,
+  "hour|sell|T60|ETH/USD": 2,
+  "hour|sell|T60|SOL/USD": 2,
+  "4h|buy|T60|BTC/USD": 1,
+  "4h|buy|T60|ETH/USD": 1,
+  "4h|buy|T60|SOL/USD": 1,
+  "4h|sell|T60|BTC/USD": 1,
+  "4h|sell|T60|ETH/USD": 1,
+  "4h|sell|T60|SOL/USD": 1
+ }
+}

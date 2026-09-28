@@ -3057,7 +3057,10 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
   Choosing the best of five overlapping arms on the days that judge them is selection, so the rule for reading them
   together should be frozen before 10-09.
 - **Ranked additions**, none a new strategy row:
-  1. MX-1.
+  1. MX-1: whether a post-only order at the touch, crossed at 60 minutes if unfilled, beats crossing at once on the
+     trend rules' BTC/ETH/SOL exits, read from the UK trade tape at 150 exits or on 2027-06-30 (frozen 2026-09-28,
+     `reviews/2026-09-28-mx1-maker-first-prereg.md`; C* = 110 bps from `backtests/mx1/cstar/`). Entries are described,
+     never judged: at their measured miss rate a pass was out of reach.
   2. RW-NEXT: how the 10-09 verdicts are read together, plus a 14-day forward confirmation, RW-C, which needs a
      second engine on Davies' word (frozen 2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`; RW-C on `main`).
   3. QUEUE: the stablecoin quotes re-scored by queue position on the recorded books (frozen 2026-09-28, before anyone

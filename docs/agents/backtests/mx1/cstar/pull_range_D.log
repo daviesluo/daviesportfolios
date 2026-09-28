@@ -1,0 +1,18 @@
+BTCUSDT 100/528 requests, 26s
+BTCUSDT 200/528 requests, 53s
+BTCUSDT 300/528 requests, 79s
+BTCUSDT 400/528 requests, 105s
+BTCUSDT 500/528 requests, 129s
+BTCUSDT: 526960 rows, 1660953600000 .. 1692575940000, gaps 1, minutes missing 80, 528 requests
+ETHUSDT 100/528 requests, 26s
+ETHUSDT 200/528 requests, 50s
+ETHUSDT 300/528 requests, 75s
+ETHUSDT 400/528 requests, 100s
+ETHUSDT 500/528 requests, 125s
+ETHUSDT: 526960 rows, 1660953600000 .. 1692575940000, gaps 1, minutes missing 80, 528 requests
+SOLUSDT 100/528 requests, 27s
+SOLUSDT 200/528 requests, 51s
+SOLUSDT 300/528 requests, 75s
+SOLUSDT 400/528 requests, 100s
+SOLUSDT 500/528 requests, 126s
+SOLUSDT: 526960 rows, 1660953600000 .. 1692575940000, gaps 1, minutes missing 80, 528 requests

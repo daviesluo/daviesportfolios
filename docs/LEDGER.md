@@ -248,28 +248,27 @@ list stays the short version; the plan is the reasoning behind it.
    Every draft went through an independent review on 2026-09-28 and is frozen only after a second pass; until then the
    drafts and the reviews live in the working session's scratchpad, never in the repository, because the commit that
    adds a pre-registration freezes it.
-   State at 2026-09-28 06:22 UTC (six of the seven frozen; MX-1's draft is in the working session's scratchpad):
+   State at 2026-09-28 12:14 UTC (all seven frozen):
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
       43). **Davies chose (c) on 2026-09-28**: a flagged answer vetoes its own entry on a row whose gate has the vote
       (`trend-4h-live` and its control `trend-4h`), the reason naming the flag; the row stays armed, and a row in
       shadow enters, flag reported (`tick.ts`, pinned in `tick.test.ts`; reference §4 item 43). The test double now
       answers each state with its measured reply (`measuredReply`): its old 0.9 lay outside the fixture's band.
-   2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
-      (entries crossing at 15 min, rule exits at 60; the binding cell `trend-4h` SOL entries, 109.97 from 4 misses;
-      Binance 1-minute tape over windows A–C at the rules' own decision minutes; break-even miss rate 9.09 %, which
-      entries miss 11.2 % of the time on Binance, exits 5.0 %). The measurement's report, scripts and tables are
-      committed in `docs/agents/backtests/mx1/cstar/` (its 132 MB of public inputs by sha256 only, `INPUTS.sha256`). **Power is low** (checked 2026-09-28, exact
-      binomial): at 97.5 % the most misses condition 2 allows are 0 at 39 events, 1 at 60, 3 at 100, 6 at 150 and 10
-      at 200, so at a true exit miss rate of 5.0 % H1 passes with probability 0.19 at 60 events (0.26, 0.37, 0.58 at
-      100, 150, 200), and H2, at 11.2 %, under 0.01 at any of them. One exits-only test at 95 % allows 4 misses at 100,
-      7 at 150 and 11 at 200: 0.44, 0.52, 0.70. Put to Davies on 2026-09-28: recommended, exits only at 95 %, read at
-      150 judged exits or 2027-06-30, entries descriptive; or park MX-1 with the probes recording. Waiting for his
-      answer. Still open after it: `{POWER TABLE}`, where the measurement is committed, and two production reads
-      (probes after 19; one probe showing `order_id`, i.e. R3 working).
-      R3 read in production (helper session, 2026-09-28 06:29 UTC): no probe has been written since 01:09.
-      After the freeze, **every Monday**: pull the UK tape for each event's window and export `agent_basis`'s
-      BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a side or on
-      2027-03-31.
+   2. **MX-1: frozen 2026-09-28 12:14 UTC** (`reviews/2026-09-28-mx1-maker-first-prereg.md`), as Davies chose on
+      2026-09-28 ("MX-1和JEV-DRIFT按照你推荐的来"): one test at 5 %, H1 the mean `A_60` of the trend rules' BTC/ETH/SOL
+      exits above 0, with condition 2 at **C* = 110 bps** (measured before the freeze, `backtests/mx1/cstar/`); entries
+      at T = 15 and `momentum-1d` described, never judged. A second independent review's fourteen findings were applied
+      before the freeze. R1, R2 and R3 are live (§4 items 41, 42, 44); R3 seen working on probes 20 and 21 (orders 43
+      and 44). Only events whose bar closes at or after the freeze commit count; no probe after 21 existed at it.
+      **Every Monday from 2026-10-05**: pull the UK tape for each event's window into `docs/agents/backtests/mx1/tape/`
+      (one gzipped JSON a pull; a failed window is retried every week and is void only if it still fails at the
+      reading), and export the `agent_basis` rows (pruned at 30 days) of every event whose `o15` or `o60` is missing
+      into `docs/agents/backtests/mx1/basis/`. The pull script is not written yet; it is needed before 10-05. **Read**
+      at the first weekly pull after which there are 150 eligible exit events, on the first 150 by `t0`; if fewer have
+      `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all of them (under 60: "undecided"). Expect
+      about 14 weeks at the last week's pace and 57 at the backtests', so 2027-06-30 likely comes first, at about 100
+      exits (chance of a pass 0.27–0.45 at a true 5 % miss rate). A pass moves only `trend-1h`'s exits, after the five
+      checks in its §6.
    3. **RW-NEXT: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
       (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). Its slip rule turns on one check at
       **2026-10-08 00:10 UTC**, which the first session on or after then runs before anything else (or a one-shot
@@ -453,6 +452,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 12:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1 frozen** (`reviews/2026-09-28-mx1-maker-first-prereg.md`): exits only, one test at 5 %, read at 150 eligible exits or on 2027-06-30, entries and `momentum-1d` described (Davies: "MX-1和JEV-DRIFT按照你推荐的来"). A second independent review found fourteen things, all applied before the freeze: the reading pinned (the first 150 by `t0`, the cutoff by `t0`, a failed tape window retried weekly, only bars that close after the freeze), `momentum-1d` out of the judged set because C* never measured it, a miss with no touch kept in the miss count, the entries' power stated right (at most about 2 % at any size), the pace (about 14 weeks at the last week's, 57 at the backtests'), and §6's gates pinned (one calibration dial; a post-only order must record its touch before any switch). The C* report now says when it was committed, and its four logs, which `.gitignore` had dropped, are added. Item 5a.2 carries the weekly pull, whose script is still to write, before 10-05.
 
 ### [2026-09-28 11:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
