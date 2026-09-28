@@ -56,6 +56,7 @@ vi.mock('../prices/chart_store.js', () => {
 vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
 
 import { PerfChart, perfBarsIncomplete, perfSeedFrom, perfSeedSignature, _resetPerfSeedMemo } from './perf_chart.jsx';
+import { refreshPriceSnapshots } from '../prices/price_snapshots.js';
 import { YtdStore } from '../prices/chart_store.js';
 import { Storage } from '../app/storage.js';
 
@@ -208,5 +209,93 @@ describe('PerfChart on a reload', () => {
     rerender(chart({ rangeKey: 'YTD' }));
     await flush();
     expect(empty(container)).toBe('Computing…');
+  });
+});
+
+// Davies, 2026-09-28: the panel moved with neither the clock nor the refresh button. Its bars and the recorded prices
+// were fetched once, when the window was first drawn, and nothing asked again: the axis and the S&P line stopped at
+// the moment the page was opened, and only the book's last point followed the live prices.
+describe('PerfChart on a refresh', () => {
+  const SP2 = [...SP, { date: `${DAY}T19:55`, close: 5300 }];        // +6.00 %
+  const ACME2 = [...ACME, { date: `${DAY}T19:55`, close: 240 }];
+  /** Answer the oldest outstanding batch of one kind with the given bars. */
+  const answerWith = async (which, sp, acme) => {
+    const i = ctl.batches.findIndex((b) => (which === 'sp' ? b.symbols.includes('^GSPC') : !b.symbols.includes('^GSPC')));
+    const [b] = ctl.batches.splice(i, 1);
+    const out = {};
+    for (const s of b.symbols) out[s] = s === '^GSPC' ? sp : acme;
+    await act(async () => { b.resolve(out); await new Promise((r) => setTimeout(r, 0)); });
+  };
+  /** Mount on the first bars, as the page opens, with the other ranges' warm-up set aside. */
+  const opened = async (t0, props = {}) => {
+    const view = render(chart({ refreshedAt: t0, ...props }));
+    await flush();
+    await answer('sp');
+    await answer('tickers');
+    ctl.batches.length = 0;          // the other ranges' warm-up, which waits on its first batch for good
+    return view;
+  };
+  const asked = () => ctl.batches.map((b) => b.symbols.join(',')).sort();
+
+  it("fetches what has gone stale at the page's refresh, and draws the new bar", async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const { container, rerender } = await opened(t0);
+      expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+4.00%']);
+      expect(portY(container)).toHaveLength(3);
+      // Four minutes on, the 24H bars are still inside their five minutes: a tick asks for nothing.
+      clock.mockReturnValue(t0 + 4 * 60e3);
+      rerender(chart({ refreshedAt: t0 + 4 * 60e3 }));
+      await flush();
+      expect(asked()).toEqual([]);
+      // Six minutes on they have gone stale: the tick fetches both batches, and the chart draws the new bar.
+      clock.mockReturnValue(t0 + 6 * 60e3);
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      await answerWith('sp', SP2, ACME2);
+      await answerWith('tickers', SP2, ACME2);
+      expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+6.00%']);
+      expect(portY(container)).toHaveLength(4);
+    } finally { clock.mockRestore(); }
+  });
+
+  it('fetches everything the window shows at the refresh button, however fresh', async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const { container, rerender } = await opened(t0);
+      clock.mockReturnValue(t0 + 60e3);
+      rerender(chart({ refreshedAt: t0, forceRefreshKey: t0 + 60e3 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      await answerWith('sp', SP2, ACME2);
+      await answerWith('tickers', SP2, ACME2);
+      expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+6.00%']);
+    } finally { clock.mockRestore(); }
+  });
+
+  it('re-reads the recorded prices at a refresh once a new five-minute sample is due, and at the button always', async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    const snaps = vi.mocked(refreshPriceSnapshots);
+    try {
+      snaps.mockClear();
+      const { rerender } = await opened(t0);
+      expect(snaps).toHaveBeenCalledTimes(1);
+      clock.mockReturnValue(t0 + 60e3);
+      rerender(chart({ refreshedAt: t0 + 60e3 }));
+      await flush();
+      expect(snaps).toHaveBeenCalledTimes(1);
+      clock.mockReturnValue(t0 + 6 * 60e3);
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3 }));
+      await flush();
+      expect(snaps).toHaveBeenCalledTimes(2);
+      clock.mockReturnValue(t0 + 7 * 60e3);
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3, forceRefreshKey: t0 + 7 * 60e3 }));
+      await flush();
+      expect(snaps).toHaveBeenCalledTimes(3);
+    } finally { clock.mockRestore(); }
   });
 });

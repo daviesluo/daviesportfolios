@@ -662,7 +662,13 @@ function TopMovers({ metrics, hideValues = false }) {
   );
 }
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false }) {
+/**
+ * `refreshedAt` / `forceRefreshKey`: when the app's last refresh finished, and how many times its button has been
+ * pressed, for the performance panel, which follows both (perf_chart.jsx).
+ * @param {{ metrics: any, source: any, portfolio: any, marketData: any, extendedHours: boolean, phase: string,
+ *   hideValues: boolean, isReadOnly?: boolean, refreshedAt?: number, forceRefreshKey?: number }} props
+ */
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0 }) {
   // The by-value position list. Memoised on metrics so the per-tick
   // refresh churn (clock, flash) doesn't re-sort the book on every
   // render. Top movers moved into TopMovers, which owns its own
@@ -710,6 +716,8 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         phase={phase}
         className="perf-in-sidebar"
         isReadOnly={isReadOnly}
+        refreshedAt={refreshedAt}
+        forceRefreshKey={forceRefreshKey}
       />
 
       <div className="sidebar-foot sidebar-foot-desktop">

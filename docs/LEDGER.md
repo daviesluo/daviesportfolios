@@ -372,6 +372,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 04:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Fixed: the performance panel (VS S&P / INVESTMENT) never refreshed** (Davies: it updated neither by itself nor on the refresh button). Its bars and the recorded 5-minute prices were fetched once per window, when first drawn; the axis and the S&P line then froze and only the book's last point followed the live prices. The app now passes the panel when its last refresh finished and how many times the button has been pressed: the tick fetches what has outlived its TTL (5 min on 24H), the button everything the window shows. A separate effect, so it never cancels the first load. Pinned: three vitest cases (a tick before and after the TTL, the button, the recorded prices), and two browser checks at both widths that failed on the old bundle (the panel stayed at +4.00 % after the button and after the app's refresh) and pass on the new one. The skill's chart rules say so.
+
 ### [2026-09-28 01:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Agents page, four changes on Davies' word:** the Stablecoin quotes page no longer says what its dry run would have sent (the line returns once its live path has traded); every PAPER/LIVE tag and venue tag is 18 px tall, wherever it sits; every strategy's and test's page says, after "running", how long it has been under test to the hour ("tested 3d 14h"; "live …" on the live row), from the row's creation (`createdAt`, new in the dashboard), the quotes' first minute, RW's first day or a variant's first minute; and the quotes' round trips show each trip's size in coins where "exit as" was, on a phone too. Every exit so far was a maker (9 of 9): the rule takes the book only at its 24-hour stop, never reached. Pinned in `agents.test.js` and the browser sweep (the tested words on each page, on the status's line at both widths; every tag's height on the list and each page; the size column).

@@ -383,6 +383,10 @@ function Board({ isReadOnly }) {
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
   const [editingCash, setEditingCash] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(/** @type {Date | null} */ (null));
+  // How many times the refresh button has been pressed: at each, the performance panel fetches everything its window
+  // shows, however fresh, where the 30-second tick (`lastUpdated`) fetches only what has gone stale (Davies,
+  // 2026-09-28). A count, not a time, so two presses in one millisecond are still two.
+  const [chartForceKey, setChartForceKey] = useState(0);
   const [source, setSource] = useState("—");
   // Holdings that actually got a quote on the last tick — shown in the
   // sidebar footer so a board full of 0.00 % can be told apart from a
@@ -1009,6 +1013,8 @@ function Board({ isReadOnly }) {
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
+  // The refresh button also tells the performance panel to fetch its whole window again, whatever its age.
+  const refreshFromButton = useCallback((/** @type {any} */ e) => { setChartForceKey((n) => n + 1); return doRefresh(e); }, [doRefresh]);
 
   // Fires the "real load landed after a cache-primed first paint" extra
   // refresh queued by the mount-load effect above (see its comment).
@@ -1383,7 +1389,7 @@ function Board({ isReadOnly }) {
         source={source}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
-        onRefresh={doRefresh}
+        onRefresh={refreshFromButton}
         editMode={editMode}
         setEditMode={setEditMode}
         isReadOnly={isReadOnly}
@@ -1410,6 +1416,8 @@ function Board({ isReadOnly }) {
             hideValues={hideValues}
             t212Orders={t212OrderRead}
             isReadOnly={isReadOnly}
+            refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
+            forceRefreshKey={chartForceKey}
           />
           {isDesktop && (
             <MarketConditions
@@ -1458,6 +1466,8 @@ function Board({ isReadOnly }) {
           phase={currentPhase}
           hideValues={hideValues}
           isReadOnly={isReadOnly}
+          refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
+          forceRefreshKey={chartForceKey}
         />
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,

@@ -204,6 +204,12 @@ Changing any of these means re-opening a decision he has already made.
 - Both panels are in the preload path. Opening either must not cold-
   fetch. A panel that paints "Insufficient data" and then fills in is
   not preloaded.
+- The panel follows the page's refresh. The 30-second tick fetches what
+  has outlived its TTL (5 minutes on 24H, the bar), the refresh button
+  fetches the whole window, whatever its age. Until 2026-09-28 it fetched
+  a window once, when first drawn, and froze there: "VS S&P FUT"
+  updated neither by itself nor on the button, and only the book's last
+  point followed the live prices.
 
 ### Pricing history
 

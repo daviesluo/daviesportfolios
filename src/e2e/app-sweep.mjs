@@ -231,6 +231,8 @@ const BASE_PRICES = {
   ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '017731': 100, '^GSPC': 5000,
 };
 
+/** The benchmark's last intraday bar, times this: the refresh checks move it after the page has settled (0b'). */
+let SP_BUMP = 1;
 const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
   const base = { ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '^GSPC': 5000 }[t] ?? 100;
   const last = { ACME: 240, NOVA: 120, 'BRIT.L': 2.5, 'VUAA.L': 80, '^GSPC': 5200 }[t] ?? 100;
@@ -263,7 +265,7 @@ const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
     }
     bars.push({ date: at(14, 0), close: base });
     bars.push({ date: at(17, 0), close: mid });
-    bars.push({ date: at(19, 55), close: last });
+    bars.push({ date: at(19, 55), close: t === '^GSPC' ? last * SP_BUMP : last });
     if (includePrePost && EXT_PRINT[t] != null) {
       bars.push({ date: at(21, 0), close: EXT_PRINT[t] });
       bars.push({ date: at(22, 30), close: EXT_PRINT[t] });
@@ -1032,6 +1034,48 @@ async function run() {
     const reported = /** @type {any} */ (page).__reported;
     if (reported.includes('chunk.load') && !reported.includes('render.crash')) ok('desktop/recovery', `the failure was reported as chunk.load and not as a crash (${reported.join(', ')})`);
     else fail('desktop/recovery', `reports: ${reported.join(', ') || 'none'}`);
+    await ctx.close();
+  }
+
+  // ---- 0b'. the performance panel follows a refresh -------------------------
+  // Davies (2026-09-28): the vs-S&P panel moved with neither the clock nor the
+  // refresh button — its bars were fetched once, when its window was first
+  // drawn, and nothing asked again. Here the benchmark's last bar moves after
+  // the page has settled: the button must bring it in at once, and the app's
+  // own refresh must once the 24H window's five minutes have passed (driven
+  // through its return-to-the-tab catch-up, the tick's own code path).
+  for (const vp of VIEWPORTS) {
+    const S = (n) => `${vp.name}/perf-refresh/${n}`;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
+    const spReading = () => page.evaluate(() => {
+      const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
+      const item = wrap && [...wrap.querySelectorAll('.perf-legend-item')].find((n) => /S&P/.test(n.textContent || ''));
+      return item ? (item.textContent || '').replace(/\s+/g, ' ').trim() : null;
+    });
+    const readingEnds = async (want, ms = 8000) => {
+      const t0 = Date.now();
+      let got = null;
+      while (Date.now() - t0 < ms) {
+        got = await spReading().catch(() => null);
+        if (got && got.endsWith(want)) break;
+        await page.waitForTimeout(100);
+      }
+      return got;
+    };
+    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    const before = await readingEnds('+4.00%');
+    SP_BUMP = 1.01;                                    // 5000 → 5252: +5.04 %
+    await page.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
+    const pressed = await readingEnds('+5.04%');
+    if (before?.endsWith('+4.00%') && pressed?.endsWith('+5.04%')) ok(S('button'), `the refresh button brings the benchmark's new bar in at once: ${before} → ${pressed}`);
+    else fail(S('button'), `after the refresh button the panel reads "${pressed}" (before "${before}"), wanted +5.04 %`);
+    SP_BUMP = 1.02;                                    // 5000 → 5304: +6.08 %
+    await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    const ticked = await readingEnds('+6.08%');
+    if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked}`);
+    else fail(S('tick'), `after the app's refresh six minutes on the panel reads "${ticked}", wanted +6.08 %`);
+    SP_BUMP = 1;
     await ctx.close();
   }
 

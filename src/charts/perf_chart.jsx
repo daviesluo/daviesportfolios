@@ -30,7 +30,7 @@ import { pointerToDataIndex, parseChartDateUTC, findRegularCloseIdx, findRegular
 import { depositSeries } from './deposit_series.js';
 import {
   readCachedPriceSnapshots, refreshPriceSnapshots, mergeRecordedBars,
-  recordedFromMs, rangeStartMs,
+  recordedFromMs, rangeStartMs, RANGE_BUCKET_SECONDS,
 } from '../prices/price_snapshots.js';
 import {
   moneyTicks, fmtAxisMoney, fmtChipMoney, windowPct, provenanceSplitIndex,
@@ -292,12 +292,15 @@ function barsOnHand(entries, rangeKey, spSymbol, symbols) {
  * the same day. Writing the second panel its own reconstruction is what
  * put two different portfolios on one screen last time.
  *
+ * `refreshedAt` is when the app's last refresh finished (its 30-second tick), in ms, and `forceRefreshKey` counts the
+ * presses of its refresh button: the chart follows both (see the refresh effect below).
+ *
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null,
  *   view?: 'sp'|'investment', hideValues?: boolean,
- *   t212Orders?: {rows: any[], complete: boolean}|null }} props
+ *   t212Orders?: {rows: any[], complete: boolean}|null, refreshedAt?: number, forceRefreshKey?: number }} props
  */
-function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, view = 'sp', hideValues = false, t212Orders = null }) {
+function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, view = 'sp', hideValues = false, t212Orders = null, refreshedAt = 0, forceRefreshKey = 0 }) {
   // `rangeKey` can be CONTROLLED by PerfPanel (so the panel title can flip to
   // "S&P FUTURES" when the active range benchmarks against ES=F) or fall back
   // to internal state when PerfChart is rendered standalone (tests). The
@@ -493,6 +496,73 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     return () => { cancelled = true; };
   }, [tickerKey, rangeKey, variantKey]);
 
+  // A refresh of the page keeps the window current (Davies, 2026-09-28: the panel moved with neither the clock nor
+  // the refresh button). The effect above draws a window once, when it is first shown, and nothing asked again: the
+  // axis and the S&P line stopped at the moment the page opened, and only the book's last point followed the live
+  // prices. This one runs at every refresh the app makes: its tick (`refreshedAt`) fetches what has outlived its TTL,
+  // so the 24H window gains its new bars every five minutes and the recorded prices their new sample; the button
+  // (`forceRefreshKey`) fetches everything the window shows, whatever its age. It leaves the mount, and a window still
+  // loading, to the effect above, never cancels that effect's fetch, and draws nothing for a window changed meanwhile.
+  const liveKeyRef = React.useRef('');
+  liveKeyRef.current = `${tickerKey}|${rangeKey}|${variantKey}`;
+  const loadingRef = React.useRef(loading);
+  loadingRef.current = loading;
+  const forceSeenRef = React.useRef(forceRefreshKey);
+  const refreshingRef = React.useRef(false);
+  const refreshMountedRef = React.useRef(false);
+  const snapAtRef = React.useRef(0);
+  const setRecordedRef = React.useRef(/** @type {((rows: any[]) => void) | null} */ (null));
+  React.useEffect(() => {
+    const force = forceRefreshKey !== forceSeenRef.current;
+    forceSeenRef.current = forceRefreshKey;
+    if (!refreshMountedRef.current) { refreshMountedRef.current = true; return; }
+    if (!portfolio || loadingRef.current) return;
+    const key = liveKeyRef.current;
+    const now = Date.now();
+    // The recorded prices: one sample a bucket (five minutes on the 24H window).
+    if (force || now - snapAtRef.current >= (RANGE_BUCKET_SECONDS[rangeKey] ?? 300) * 1000) {
+      snapAtRef.current = now;
+      refreshPriceSnapshots(rangeKey, rangeStartMs(rangeKey, now)).then((rows) => {
+        if (liveKeyRef.current === key && rows.length > 0) setRecordedRef.current?.(rows);
+      });
+    }
+    if (refreshingRef.current) return;
+    const year = new Date().getFullYear();
+    const symbols = [spSymbol, ...tickers];
+    const params = perfFetchParams(rangeKey, extendedHours, phase);
+    const ttl = PERF_CACHE_TTL_MS[rangeKey] || PERF_CACHE_TTL_MS.YTD;
+    const cacheKey = `${rangeKey}:${variantKey}`;
+    const entries = loadPerfCache(year, cacheKey);
+    const stale = symbols.filter((sym) => {
+      const e = entries[sym];
+      return force || !(e && Array.isArray(e.data) && now - (e.ts || 0) < ttl);
+    });
+    if (stale.length === 0) return;
+    refreshingRef.current = true;
+    /** @param {string[]} list */
+    const batchOf = (list) => (list.length > 0
+      ? fetchHistoricalBatch(list, params.yahooRange, params.interval, params.includePrePost).catch(() => ({}))
+      : Promise.resolve({}));
+    Promise.all([batchOf(stale.filter((sym) => sym === spSymbol)), batchOf(stale.filter((sym) => sym !== spSymbol))])
+      .then(([spBatch, tickerBatch]) => {
+        /** @type {Record<string, any>} */
+        const batch = { ...spBatch, ...tickerBatch };
+        const next = { ...loadPerfCache(year, cacheKey) };
+        const at = Date.now();
+        for (const sym of stale) {
+          const data = applyVariantFilter(batch[sym], params.variant);
+          if (data) next[sym] = { ts: at, data };
+        }
+        savePerfCache(year, cacheKey, next);
+        if (liveKeyRef.current !== key) return;
+        const bars = barsOnHand(next, rangeKey, spSymbol, symbols);
+        if (!perfBarsIncomplete(bars, spSymbol, tickers, { sp: false, tickers: false })) setHist(bars);
+      })
+      .finally(() => { refreshingRef.current = false; });
+    // Only the refreshes: the window's own inputs are the effect above's.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshedAt, forceRefreshKey]);
+
 
   // Background prefetch the other ranges once the user's chosen range
   // has loaded so subsequent range-button clicks are instant.
@@ -567,6 +637,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       || []
     ),
   );
+  setRecordedRef.current = setRecorded;
   React.useEffect(() => {
     let cancelled = false;
     let fetched = false;
@@ -579,6 +650,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     };
     if (chartStoresReady()) fromStore();
     else hydrateAllChartStores().then(fromStore, () => {});
+    snapAtRef.current = Date.now();
     refreshPriceSnapshots(rangeKey, rangeStartMs(rangeKey, Date.now())).then((rows) => {
       if (cancelled) return;
       fetched = true;
@@ -1439,9 +1511,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
 /**
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   className?: string, hideValues?: boolean,
- *   t212Orders?: {rows: any[], complete: boolean}|null, isReadOnly?: boolean }} props
+ *   t212Orders?: {rows: any[], complete: boolean}|null, isReadOnly?: boolean,
+ *   refreshedAt?: number, forceRefreshKey?: number }} props
  */
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null, isReadOnly = false }) {
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0 }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
@@ -1511,6 +1584,8 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
         view={shownView}
         hideValues={hideValues}
         t212Orders={t212Orders}
+        refreshedAt={refreshedAt}
+        forceRefreshKey={forceRefreshKey}
       />
     </section>
   );

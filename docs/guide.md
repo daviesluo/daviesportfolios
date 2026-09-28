@@ -237,6 +237,10 @@ Two tabs share one slot and one range: **VS S&P 500** (it reads VS S&P
 FUT while the benchmark is the futures contract) and **INVESTMENT**.
 Both come from the same valuation, so they can't disagree about what
 the portfolio is worth. The read-only password shows PERFORMANCE VS S&P 500 alone.
+The panel moves with the page: every 30-second refresh brings in the new
+prices, and the new bars once the ones on screen are out of date (every
+five minutes on 24H), and the refresh button fetches the whole window
+again at once.
 
 ### VS S&P 500
 
