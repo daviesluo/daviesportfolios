@@ -1,5 +1,5 @@
 // RW's paper test on the Agents page (reference §4 item 36): the dashboard's `rw`, a row of TESTING STRATEGIES with a
-// page of its own (Davies, 2026-09-24).
+// page of its own (Davies, 2026-09-24); and RW-C's, `rwc`, the same summary of RW-C's own engine run (`rwcSummary`).
 //
 // Every figure comes from the engine's own state and records through the engine's own functions — `snapshot`,
 // `accTotal`, `accCapital` — so the page, the day rows and the verdict are one number, never two. The one thing the
@@ -7,7 +7,7 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
-import { accCapital, accTotal, RW_RUN_END, RW_RUN_START, rwPhase, snapshot, type Acc, type RwState } from "./pmrw.ts";
+import { accCapital, accTotal, RW_INSTANCE, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
 import { RWX_NAMES, RWX_SPECS, type RwxStored } from "./pmrw_x.ts";
 
@@ -78,7 +78,8 @@ const fillOrder = (a: RwFillRow, b: RwFillRow) =>
  * less `base`'s is its pre-registration's own reading, the running total now less the one at the close of the day
  * before. Until the replay has reached that minute and kept its accounts, the row is `notStarted`, with nothing in it.
  * A replay far behind the clock that wrote its state just now is `catchingUp` (a new replay version replays from RW's
- * start), not stopped.
+ * start), not stopped. `inst` is the engine run whose fourteen days the phases and days are read against: RW's unless
+ * it names another (RW-C's, `rwcSummary`).
  */
 export function rwSummary(input: {
   state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[];
@@ -88,17 +89,19 @@ export function rwSummary(input: {
   /** Markets whose own fills are not on record (RW-E's `diverged`): their fill P&L is open while they are, closed once settled. */
   approx?: ReadonlySet<string>;
   since?: { ms: number; base: Record<string, Acc> | undefined };
+  inst?: RwInstance;
 }) {
   const st = input.state?.state as RwState | undefined;
   if (!st || typeof st !== "object" || !("acc" in st) || !input.state?.last_minute) return null;
-  const phase = rwPhase(st.dayOf);
+  const inst = input.inst ?? RW_INSTANCE;
+  const phase = rwPhase(st.dayOf, inst);
   const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
-  const over = st.dayOf >= RW_RUN_END;
+  const over = st.dayOf >= inst.runEnd;
   const behind = lagMinutes > (input.staleMinutes ?? RW_STALE_MINUTES);
   const wrote = input.state.updated_at ? (input.nowMs - Date.parse(input.state.updated_at)) / M : Infinity;
   const head = {
-    phase, runStart: new Date(RW_RUN_START).toISOString(), runEnd: new Date(RW_RUN_END).toISOString(),
-    dayOfRun: phase === "run" ? Math.floor((st.dayOf - RW_RUN_START) / DAY) + 1 : null,
+    phase, runStart: new Date(inst.runStart).toISOString(), runEnd: new Date(inst.runEnd).toISOString(),
+    dayOfRun: phase === "run" ? Math.floor((st.dayOf - inst.runStart) / DAY) + 1 : null,
     lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
     running: !over && !behind, finished: over, fundedUsd: RW_FUNDED_USD,
     // Far behind the clock, yet written just now: replaying a backlog, not stopped.
@@ -115,7 +118,7 @@ export function rwSummary(input: {
     };
   }
   const base: Record<string, Acc> = since?.base ?? {};
-  const inPhase = (minute: string) => (phase === "warm-up" ? Date.parse(minute) < RW_RUN_START : Date.parse(minute) >= RW_RUN_START);
+  const inPhase = (minute: string) => (phase === "warm-up" ? Date.parse(minute) < inst.runStart : Date.parse(minute) >= inst.runStart);
   // A run writes the fills of the minutes it decides, and the row of a day it closes, before it saves the state that
   // counts them; a page read between the two sees records the state does not hold yet. The dashboard reads the state
   // first, and the page shows only what that state has decided.
@@ -166,11 +169,11 @@ export function rwSummary(input: {
   markets.sort((x, y) => (x.rank == null ? 1 : 0) - (y.rank == null ? 1 : 0) || Number(x.rank ?? 0) - Number(y.rank ?? 0) || String(x.cond).localeCompare(String(y.cond)));
 
   const asc = input.days.filter((d) => Date.parse(d.day) < st.dayOf).sort((a, b) => a.day.localeCompare(b.day));
-  const days = rwDayRows(asc, since ? new Date(since.ms).toISOString().slice(0, 10) : null, was.total);
+  const days = rwDayRows(asc, since ? new Date(since.ms).toISOString().slice(0, 10) : null, was.total, inst);
   // Today against yesterday's close; on a variant's first day, against its first minute.
   const yesterday = asc.find((d) => Date.parse(d.day) === st.dayOf - DAY);
   const baseline = since && st.dayOf <= since.ms ? was.total
-    : yesterday && (yesterday.detail?.phase ?? rwPhase(Date.parse(yesterday.day))) === phase ? Number(yesterday.total) : 0;
+    : yesterday && (yesterday.detail?.phase ?? rwPhase(Date.parse(yesterday.day), inst)) === phase ? Number(yesterday.total) : 0;
 
   const capital = snap.capital > 0 ? snap.capital : input.selection.reduce((s, x) => s + Number(x.capital), 0);
   const recent = rwRecent(byCond, (cond) => sel.get(cond)?.q ?? st.meta?.[cond]?.q ?? "");
@@ -188,12 +191,13 @@ export function rwSummary(input: {
 /**
  * Closed days, newest first, each against the day before in the same phase: the warm-up starts at nothing, and so does
  * the run. A variant's (`from`, its first day) lists only its own days, the first against its first minute, whose
- * running total is `was`; each day's `runningUsd` is then its own since.
+ * running total is `was`; each day's `runningUsd` is then its own since. A day row without its phase is placed against
+ * `inst`'s fourteen days.
  */
-function rwDayRows(asc: RwDayRow[], from: string | null, was: number) {
+function rwDayRows(asc: RwDayRow[], from: string | null, was: number, inst: RwInstance) {
   return asc.map((d, i) => {
-    const p = d.detail?.phase ?? rwPhase(Date.parse(d.day));
-    const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day))) === p ? asc[i - 1] : null;
+    const p = d.detail?.phase ?? rwPhase(Date.parse(d.day), inst);
+    const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day), inst)) === p ? asc[i - 1] : null;
     const less = (k: "total" | "stress_total" | "reward" | "fills") => Number(d[k]) - (prev ? Number(prev[k]) : 0);
     return { day: d.day, phase: p, totalUsd: less("total"), stressUsd: less("stress_total"), rewardUsd: less("reward"), fills: less("fills"), capitalUsd: Number(d.capital), markets: Number(d.markets), runningUsd: Number(d.total) - (from ? was : 0) };
   }).filter((d) => !from || String(d.day).slice(0, 10) >= from).reverse();
@@ -204,6 +208,37 @@ function rwRecent(byCond: Map<string, RwFillRow[]>, q: (cond: string) => string)
   return [...byCond.values()].flat().sort((x, y) => fillOrder(y, x)).slice(0, RW_RECENT_FILLS).map((f) => ({
     ts: f.ts, minute: f.minute, cond: f.cond, q: q(f.cond), side: f.side, price: Number(f.price), size: Number(f.size),
   }));
+}
+
+/**
+ * How long after RW-C's warm-up begins its engine may still have no state before the page says it is not running: the
+ * warm-up's first selection is made in its first minutes, tried again five minutes later if it fails, and the engine
+ * starts on its first run after one lands.
+ */
+export const RWC_FIRST_STATE_MINUTES = RW_STALE_MINUTES + 5;
+
+/**
+ * RW-C on the page (`0069`; the RW-NEXT pre-registration's part 2): the dashboard's `rwc`, a row of TESTING with RW's
+ * page, made by RW's own summary from RW-C's own engine run and read against its fourteen days, 2026-10-09 → 10-23 UTC.
+ * It counts from its first minute, which its engine starts flat, so its warm-up is on neither its row nor its page:
+ * until that minute is decided the summary is `notStarted` and says when it starts. Before the engine has a state at
+ * all (before its warm-up, 2026-10-08) the summary is the same, made from the constants; a state still missing
+ * `RWC_FIRST_STATE_MINUTES` into the warm-up reads as not running.
+ */
+export function rwcSummary(input: { state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[]; nowMs: number }) {
+  const inst = RWC_INSTANCE;
+  const summary = rwSummary({ ...input, firstMinute: null, inst, since: { ms: inst.runStart, base: {} } });
+  if (summary) return summary;
+  const at = (ms: number) => new Date(ms).toISOString();
+  return {
+    phase: rwPhase(input.nowMs, inst), runStart: at(inst.runStart), runEnd: at(inst.runEnd), dayOfRun: null,
+    lastMinute: null, lagMinutes: null, lastError: null,
+    running: input.nowMs < (inst.quietUntil ?? inst.runStart) + RWC_FIRST_STATE_MINUTES * M, finished: false, fundedUsd: RW_FUNDED_USD,
+    catchingUp: false, notStarted: true, startsAt: at(inst.runStart), startedAt: null,
+    capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
+    todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
+    markets: [] as Array<Record<string, unknown>>, days: [] as ReturnType<typeof rwDayRows>, recent: [] as ReturnType<typeof rwRecent>,
+  };
 }
 
 export type RweStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };

@@ -1420,8 +1420,7 @@ export function rwView(r) {
     phase: r.phase,
     phaseText: r.phase === 'warm-up' ? 'warm-up, counted nowhere' : r.phase === 'run' ? `day ${r.dayOfRun} of 14` : 'the fourteen days are over',
     runStart: r.runStart, runEnd: r.runEnd, since: r.startedAt ?? null,
-    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : r.catchingUp ? rwCatchUpText(r.lastMinute)
-      : `not running: its last decided minute is ${r.lagMinutes} min old`,
+    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : r.catchingUp ? rwCatchUpText(r.lastMinute) : rwNotRunningText(r),
     fillsText: `${Number(r.fills) || 0} of 100`,
     bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
     mismatch: Math.abs(Number(r.mismatchUsd) || 0) > 0.01,
@@ -1470,7 +1469,7 @@ export function rwRow(r) {
       : r.catchingUp
         ? { label: 'paper', running: false, tone: 'stale', detail: rwCatchUpText(r.lastMinute) }
       : !r.running
-        ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${r.lagMinutes} min old` }
+        ? { label: 'paper', running: false, tone: 'stale', detail: rwNotRunningText(r) }
         : r.notStarted
           ? { label: 'paper', running: false, tone: 'paused', detail: rwStartsText(r.startsAt) }
           : { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` },
@@ -1499,6 +1498,31 @@ export function rwStartsText(iso) {
  */
 export function rwCatchUpText(lastMinute) {
   return `catching up: replayed to ${rwStartStamp(lastMinute)}`;
+}
+
+/**
+ * A Reward quotes row that has stopped: how old the last minute it decided is, or, for RW-C once its warm-up should have
+ * begun (2026-10-08), that it has decided none at all.
+ * @param {any} r  a Reward quotes summary
+ */
+export function rwNotRunningText(r) {
+  return r?.lastMinute ? `not running: its last decided minute is ${r.lagMinutes} min old` : 'not running: it has decided no minute yet';
+}
+
+/** RW-C's id among the table's rows. */
+export const RWC_ROW_ID = '__rwc';
+
+/**
+ * RW-C as a row of TESTING STRATEGIES (`0069`; the RW-NEXT pre-registration's part 2, built on Davies' word 2026-09-27):
+ * RW's rule run again, forward, on 2026-10-09 → 10-23 UTC, by a second instance of RW's engine with tables of its own.
+ * The dashboard's `rwc` has `rw`'s shape, made by RW's own summary from that instance's records, so its row and its page
+ * are RW's, in RW's cells, on the same $1,000. Its warm-up counts nowhere: until its first minute the row says when it
+ * starts (a grey dot, NEXT "9 Oct 01:00 BST") and holds nothing. null keeps it off the table.
+ * @param {any} r  the dashboard's `rwc`
+ */
+export function rwcRow(r) {
+  const row = rwRow(r);
+  return row && { ...row, id: RWC_ROW_ID, name: 'Reward quotes confirmation' };
 }
 
 /** RW-E's paper test's id among the table's rows. */

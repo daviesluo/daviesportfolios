@@ -100,8 +100,8 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
-import { runPmrw, runPmrwSelect, RWC_INSTANCE } from "./pmrw.ts";
-import { rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
+import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
+import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
@@ -817,22 +817,21 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
+  // RW-C (`0069`): RW's engine run again, forward, into tables of its own (2026-10-09 → 10-23 UTC), the last row of
+  // TESTING, with RW's page; read beside RW's. From the day its tables exist the row is there, saying when it starts;
+  // before the migration the reads fail and leave it off the page.
+  const rwcRead = (async () => {
+    try {
+      const { st, selection, days, fills, latest } = await readRwRun(d, RWC_INSTANCE, dayStartMs);
+      return rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now });
+    } catch { return null; }
+  })();
   // RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES with a page of its own.
   // Its own tables; missing ones (before the migration) or no state yet leave it off the page. RW-E, the replay's other
   // arm (`0056`), is a row of its own beside it (Davies, 2026-09-26), read from the same records.
   const { rw, rwe, rwx } = await (async () => {
     try {
-      // The state first: the engine saves it after the fills and day rows it counts, so every read after it holds all
-      // of those, and `rwSummary` leaves out anything a later run wrote.
-      const st = await d.select<RwStateRow>("pm_rw_state", "id=eq.1&select=state,last_minute,last_error,updated_at");
-      const [selection, days, fills, first] = await Promise.all([
-        d.select<RwSelRow>("pm_rw_selection", `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
-        d.select<RwDayRow>("pm_rw_days", "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
-        d.selectAll<RwFillRow>("pm_rw_fills", "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc"),
-        d.select<{ minute: string }>("pm_rw_minutes", "select=minute&order=minute.asc&limit=1"),
-      ]);
-      const last = st[0]?.last_minute;
-      const latest = last ? await d.select<RwMinuteRow>("pm_rw_minutes", `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
+      const { st, selection, days, fills, first, latest } = await readRwRun(d, RW_INSTANCE, dayStartMs);
       const out = rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
       // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
       const reads = await (async () => {
@@ -862,6 +861,7 @@ async function dashboard(now: number) {
       return { rw: out && { ...out, e }, rwe: arm && { ...arm, e }, rwx };
     } catch { return { rw: null, rwe: null, rwx: [] }; }
   })();
+  const rwc = await rwcRead;
 
   return {
     at: new Date(now).toISOString(),
@@ -884,7 +884,29 @@ async function dashboard(now: number) {
     rw,
     rwe,
     rwx,
+    /** RW-C, the same quotes forward on 2026-10-09 → 10-23 (`0069`); null until its tables exist. */
+    rwc,
   };
+}
+
+/**
+ * What the page reads of one run of RW's engine (`pmrw.ts`): its state row, the day's portfolio, its closed days, every
+ * fill, its first stored minute and the rows of the last minute it decided. The state is read first: the engine saves
+ * it after the fills and day rows it counts, so every read after it holds all of those, and `rwSummary` leaves out
+ * anything a later run wrote.
+ */
+async function readRwRun(d: Db, inst: RwInstance, dayStartMs: number) {
+  const T = inst.tables;
+  const st = await d.select<RwStateRow>(T.state, "id=eq.1&select=state,last_minute,last_error,updated_at");
+  const [selection, days, fills, first] = await Promise.all([
+    d.select<RwSelRow>(T.selection, `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
+    d.select<RwDayRow>(T.days, "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
+    d.selectAll<RwFillRow>(T.fills, "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc"),
+    d.select<{ minute: string }>(T.minutes, "select=minute&order=minute.asc&limit=1"),
+  ]);
+  const last = st[0]?.last_minute;
+  const latest = last ? await d.select<RwMinuteRow>(T.minutes, `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
+  return { st, selection, days, fills, first, latest };
 }
 
 /**

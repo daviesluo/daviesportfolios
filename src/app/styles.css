@@ -1976,6 +1976,9 @@ body {
 .ag-rw-q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; max-width: 340px; margin: 0 auto; line-height: 1.35; }
 .ag-rw-market .hl-sub { display: block; font-weight: 400; }
 @media (max-width: 760px) { .ag-rw-q { max-width: 200px; -webkit-line-clamp: 4; } }
+/* RW-C's page title, "Reward quotes confirmation", is 8 px wider than a 390 px phone leaves a title beside its two
+   buttons: it breaks between its words there, rather than lose its last letters to the ellipsis other titles keep. */
+@media (max-width: 760px) { .modal-title.ag-title-wraps { white-space: normal; text-overflow: clip; } }
 .ag-next { white-space: nowrap; }
 .ag-basis .ag-table td { padding: 6px 10px; }
 .ag-state-pending { color: #d9c37a; }

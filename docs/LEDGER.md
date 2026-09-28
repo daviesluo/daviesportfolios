@@ -88,18 +88,18 @@ list stays the short version; the plan is the reasoning behind it.
    - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): BUILT on
      branch `worktree-agent-a856fad8dea162efa`, not yet on `main`** (history 2026-09-28 00:38). `pmrw.ts` as a second
      instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`, warm-up 10-08 00:00 by
-     constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00 (`pmrwc-e`, `pmrwc-x`).
-     `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Before it lands:** RW-NEXT (item
-     5a.2) should be frozen first or with it, as its part 2 names this engine; renumber `0069` if `main` has one
-     (`src/cron_jobs.test.js` finds it by its `_pm_rwc` name). **After it lands:** the four calls return "before its
-     warm-up" / "before RW-C's first minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check
-     after 10-08 00:10 UTC:**
-     `pm_rwc_selection` has 10-08's portfolio, `pm_rwc_state.last_minute` within ~3 min, no `last_error`; after 10-09
-     00:05, `pm_rwc_days` has 10-08 as `warm-up` and `pm_rwc_state`'s accounts restarted flat; after 10-10 00:05, both
-     replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars only.
-     Not a market-level figure of RW-C's before its verdict. **Its verdict** on or after 2026-10-23 00:05 UTC by the
-     frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after the check), then a
-     migration takes the four `pmrwc*` rows out of `edge-calls-every-minute`.
+     constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00 (`pmrwc-e`, `pmrwc-x`); a TESTING
+     row "Reward quotes confirmation", "starts 9 Oct 01:00 BST" until then. `0069_pm_rwc.sql` adds the tables and four
+     rows of `edge-calls-every-minute`. **Before it lands:** RW-NEXT (item 5a.3) should be frozen first or with it, as its
+     part 2 names this engine; renumber `0069` if `main` has one (`src/cron_jobs.test.js` finds it by its `_pm_rwc`
+     name). **After it lands:** the page shows the row; the four calls return "before its warm-up" / "before RW-C's first
+     minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check after 10-08 00:10 UTC** (RW-NEXT's
+     slip rule turns on it): `pm_rwc_selection` holds rows for 10-08, `pm_rwc_state.last_minute` within ~3 min, no
+     `last_error`; after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
+     both replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars.
+     Nothing else of `pm_rwc_*` before its verdict (RW-NEXT's no-peek list). **Its verdict** on or after 2026-10-23
+     00:05 UTC by the frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after
+     the check), then a migration takes the four `pmrwc*` rows out of `edge-calls-every-minute`.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -432,6 +432,7 @@ what-remains list as it stood before its 2026-09-26 rewrite, under
 - `pmrw.ts` takes an instance (`RwInstance`: its seven tables, two leases, fourteen days, a quiet time); RW's (`RW_INSTANCE`) is the old constants, pinned. RW-C's (`RWC_INSTANCE`): `pm_rwc_*`, leases `pmrwc` / `pmrwc-select`, warm-up 10-08 00:00 by constant (before it both calls return with no read), flat start at 10-09 00:00, nothing after 10-23. The replays take one too (`RweReplay`, `RwxReplay`): `pmrwc-e` / `pmrwc-x` replay RW-C's minutes with every "from" at 10-09 00:00, live, because an Edge request's 2 s of CPU cannot replay fourteen days in one call and the check (arm `rw` = `pm_rwc_days` to under a cent) has to be readable as a scalar before any figure is. `db.ts` pages RW-C's two id-less tables by their keys, as RW's (without it RW-C's engine would have thrown on every run).
 - `0069_pm_rwc.sql`: RW's eleven tables renamed (PGlite: columns, checks, indexes, RLS and refusals identical to RW's, re-runnable), four leases, and four rows added to `edge-calls-every-minute` (`cron_jobs.test.js` pins every other row unchanged). No prune, as RW's.
 - Evidence: RW's engine and replays before and after, driven through one fake Polymarket over three windows (warm-up into day 1, a midnight mid-run, the end), made byte-identical database calls, requests and tables; the four RW test files run unchanged; `pmrwc.test.ts` (10) pins the instances, no read before the warm-up, RW-C never touching RW's tables nor RW RW-C's, the flat start, the end, the replay's check (and a planted 5 ¢ gap caught), and RW-E on RW-C's minutes equal to RW-C's engine run without the same-day market; nine counterfactuals each fail a pin (one of them the cron list's).
+- Page: "Reward quotes confirmation", the last TESTING row, RW's page and $1,000 (`rwcSummary`, `rwcRow`): "starts 9 Oct 01:00 BST" on a grey dot before then, not running if no state 10 min into its warm-up, then RW's states. `pmrwc_view.test.ts` pins its summary from no state to after its end (and fails with the summary counting its warm-up). Its name takes two lines on a desktop's table (the column is set for "variant-4") and one on a phone's card; its page title wraps on a 390 px phone rather than lose its last letters. Sweep 391 checks, including a running RW-C at both widths.
 
 ### [2026-09-28 00:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

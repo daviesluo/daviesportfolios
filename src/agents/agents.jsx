@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -472,8 +472,8 @@ function RwBar({ v, r, usd }) {
  * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number, row?: any }} props
  */
 function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
-  // RW-E's page is RW's page read from the replay's arm (`rweRow`), and each of its variants' from its own (`rwxRows`);
-  // RW's own is `rwRow`.
+  // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`), and
+  // RW-C's from its own engine run (`rwcRow`); RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
@@ -1268,9 +1268,11 @@ function AgentsModal({ hideValues, onClose }) {
   const rwe = React.useMemo(() => rweRow(dash?.rwe), [dash]);
   // RW-E's variants, each a row of its own after it (Davies, 2026-09-27).
   const rwx = React.useMemo(() => rwxRows(dash?.rwx), [dash]);
+  // RW-C, RW's rule again on 2026-10-09 → 10-23 (0069), the last row: until then it says when it starts.
+  const rwc = React.useMemo(() => rwcRow(dash?.rwc), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx], [quotes, rw, rwe, rwx]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : [])], [quotes, rw, rwe, rwx, rwc]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1289,6 +1291,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
   const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;
+  const rwcOpen = selected === RWC_ROW_ID && !!dash?.rwc && !!rwc;
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1392,6 +1395,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <RwDetail r={rwxOpen} m={m} at={dash.at} nowMs={now} row={rwxRow} />
+        </div>
+      </Modal>
+    )}
+    {rwcOpen && rwc && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{rwc.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <RwDetail r={dash.rwc} m={m} at={dash.at} nowMs={now} row={rwc} />
         </div>
       </Modal>
     )}

@@ -586,7 +586,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
 | `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks, on RW's minutes and on RW-C's. |
-| `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, and RW-E's and its variants' rows read the same way from their replays' arms: from the engine's own state and records by the engine's own functions. |
+| `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, RW-E's and its variants' rows read the same way from their replays' arms, and RW-C's from its own engine run: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/jev_bands.ts` | The measured range of the model's answers for every entry state, which JEV-DRIFT checks each entry's answer against. |
 | `agents/db.ts` | The loop's database access, over PostgREST. |

@@ -3264,7 +3264,7 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       minute the row says when it starts ("starts 28 Sep 01:00 BST") and shows nothing.
     - **RW-C, the same rule forward on 2026-10-09 → 10-23 UTC, is built (migration `0069`; Davies approved the build
       2026-09-27).** It is part 2 of the RW-NEXT pre-registration, drafted in
-      `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4 and still to be frozen before 10-09 00:00 UTC. RW's
+      `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4 and still to be frozen before 10-08 00:00 UTC. RW's
       engine stops by constant at 10-09, so `pmrw.ts` runs as a second instance (`RWC_INSTANCE`): RW's rule, selection,
       timing, fills, settlement and accounts, into tables of its own (RW's eleven, named `pm_rwc_…`) under leases of
       its own. `agents?action=pmrwc` and `pmrwc-select` are rows of `edge-calls-every-minute`; before the warm-up,
@@ -3276,8 +3276,9 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       states, before any figure is. Each replay's `rw` arm must equal `pm_rwc_days` to under a cent, or the result is
       void. RW's instance is pinned to exactly the names and dates the engine had (`pmrwc.test.ts`), and RW's engine
       and replays before and after the change made the same database calls, requests and tables over three windows
-      (its warm-up into day 1, a midnight inside the fourteen days, its end). The queries below run on its tables with
-      `pm_rwc_` for `pm_rw_`.
+      (its warm-up into day 1, a midnight inside the fourteen days, its end). On the Agents page it is the last row of
+      TESTING, "Reward quotes confirmation" on Polymarket, with RW's page and RW's $1,000 cap; until 10-09 01:00 BST it
+      says when it starts and shows nothing. The queries below run on its tables with `pm_rwc_` for `pm_rw_`.
 
           -- R1: the engine's last run: the last minute decided, and the error if any
           select last_minute, updated_at, last_error from public.pm_rw_state;
