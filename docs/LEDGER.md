@@ -144,6 +144,14 @@ list stays the short version; the plan is the reasoning behind it.
      for the asks: `POST ?action=quotes-convert {"book":"USDT-GBP","gbp":12.5}` previews the conversion; `"send": true`
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
+   - Davies asked on 2026-09-28 whether a live test on that £50 would tell more than paper (the money is small to
+     him). Answered: yes, as a measurement, never as a return: acceptance of each post-only order, real fills against
+     the paper's trade-through rule (8 of 9 paper fills rested behind the touch), the ~30 s placement lag's real cost,
+     fee and settlement fields, cancel read-back and the governor against real replies, and whether the 1,000 a day
+     is per account or per key. Bids only unless coin is funded; the tail is bounded (−1 % day stop, no entry past a
+     50 bps de-peg, £12.50 a coin). Recommended before arming: freeze what the live test must show (each live fill
+     against the paper's call for the same quote-minute). Arming before the 10-21 review departs from the spec's
+     order and is his call.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -242,15 +250,23 @@ list stays the short version; the plan is the reasoning behind it.
    adds a pre-registration freezes it.
    State at 2026-09-28 06:22 UTC (six of the seven frozen; MX-1's draft is in the working session's scratchpad):
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
-      43). Open: Davies' answer on whether a live-row flag should clear `live_confirmed_at` by itself.
+      43). Open: Davies' answer, put to him on 2026-09-28 as three options: (a) alert only, as now; (b) a flag on the
+      live row clears `live_confirmed_at` until a re-measure and his word; (c) a flagged answer vetoes that one entry,
+      on the live row and its control alike. Recommended (c): a false flag comes once in four to eight years on a
+      `trend-4h` row, and an OpenRouter outage (the fallback's answers are flag 4) would skip only its own entries
+      instead of stopping the row until someone re-arms it. (c) is a gate change: pins, then a deploy.
    2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
       (entries crossing at 15 min, rule exits at 60; the binding cell `trend-4h` SOL entries, 109.97 from 4 misses;
       Binance 1-minute tape over windows A–C at the rules' own decision minutes; break-even miss rate 9.09 %, which
       entries miss 11.2 % of the time on Binance, exits 5.0 %). The measurement's scripts and tables sit in the
-      session scratchpad (`cstar/`) until MX-1 is frozen with them. **Power is low** (the reviser's arithmetic, to
-      check): zero misses need at least 39 judged events for condition 2 to hold, so H1 has little power at 60 events
-      and H2 almost none. That goes to Davies before the freeze. Still open: `{POWER TABLE}`, where the measurement is
-      committed, and two production reads (probes after 19; one probe showing `order_id`, i.e. R3 working).
+      session scratchpad (`cstar/`) until MX-1 is frozen with them. **Power is low** (checked 2026-09-28, exact
+      binomial): at 97.5 % the most misses condition 2 allows are 0 at 39 events, 1 at 60, 3 at 100, 6 at 150 and 10
+      at 200, so at a true exit miss rate of 5.0 % H1 passes with probability 0.19 at 60 events (0.26, 0.37, 0.58 at
+      100, 150, 200), and H2, at 11.2 %, under 0.01 at any of them. One exits-only test at 95 % allows 4 misses at 100,
+      7 at 150 and 11 at 200: 0.44, 0.52, 0.70. Put to Davies on 2026-09-28: recommended, exits only at 95 %, read at
+      150 judged exits or 2027-06-30, entries descriptive; or park MX-1 with the probes recording. Waiting for his
+      answer. Still open after it: `{POWER TABLE}`, where the measurement is committed, and two production reads
+      (probes after 19; one probe showing `order_id`, i.e. R3 working).
       R3 read in production (helper session, 2026-09-28 06:29 UTC): no probe has been written since 01:09.
       After the freeze, **every Monday**: pull the UK tape for each event's window and export `agent_basis`'s
       BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a side or on
@@ -438,6 +454,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 06:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Three answers put to Davies, each waiting for his word** (item 5a.1, 5a.2 and item 4): JEV-DRIFT's live-row question as three options, (c) recommended, a flagged answer vetoing only its own entry; MX-1's power, checked (at 60 events H1 passes a true 5 % exit miss rate with probability 0.19, H2 almost never), exits only at 95 % and 150 events recommended, or parking it; and PR5's £50 live test, worth running as a measurement once what it must show is frozen, before 10-21 only on his word. The working-with-davies skill (all three copies) records that the ledger headers ran ahead of the clock again.
 
 ### [2026-09-28 06:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

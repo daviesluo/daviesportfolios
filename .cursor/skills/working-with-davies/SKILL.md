@@ -631,6 +631,9 @@ Read these as a checklist before pushing.
   on 2026-09-22 were stamped up to 76 minutes ahead of the clock, and one
   of them was then used as evidence — the tick outage was dated from it and
   understated by an hour. Read `date -u`, or the commit time, every time.
+  It happened again on 2026-09-28 (three headers 8–42 minutes ahead, found
+  only when the next header was written): put a placeholder in the entry
+  and substitute `date -u +%H:%M` into it just before `git commit`.
 - **Read the table that would show the failure.** After the tick deploy
   that broke it, the basis kept updating — it is written before most of
   the loop runs — so "the loop is alive" read true through a crash.
