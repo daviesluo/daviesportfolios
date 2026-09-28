@@ -366,6 +366,11 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 01:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies: at most three sub-agents at a time, and every line to him in Chinese.**
+- Both written into the working-with-davies skill (and its two Cursor copies): "以后请同时最多只开3个sub-agents" (the four already running finish; nothing new starts until fewer than three run), and a fifth reminder about English progress notes, "请保持说中文，别再忘了".
+
 ### [2026-09-28 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **JEV-DRIFT checks the question the decision records as asked, not the row's parameter.**

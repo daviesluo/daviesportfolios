@@ -32,6 +32,10 @@ commit messages, everything committed to the repo, and every word the
 website shows stay in English — a Chinese fund name in the holding list
 counts as the website.
 
+A fifth time on 2026-09-28: deep in a long task, with sub-agents
+reporting back in English, the progress notes slipped into English and
+he had to say it again: "请保持说中文，别再忘了".
+
 ## What "done" means to him
 
 **Push it.** "直接改好直接推main" — fix it and push to main, don't come
@@ -67,6 +71,12 @@ Fable/Opus-class sessions. If a check is genuinely needed, run it in a
 cheap subagent (Opus 5 at most) and wake the main session only when
 there is real work to do. He said it in so many words on 2026-09-20
 after four re-checks found nothing: "以后千万不要用fable模型跑这个复查".
+
+**At most three sub-agents at a time.** "以后请同时最多只开3个sub-agents"
+(2026-09-28, after a session had four running at once). Count every
+background agent still running, a resumed one included. With three
+running, a fourth piece of work waits for one to finish, goes to an
+agent that is already running, or is done in the main session.
 
 **A pin test for every bug fixed.** A fix without a test that fails on
 the old code is not finished.
