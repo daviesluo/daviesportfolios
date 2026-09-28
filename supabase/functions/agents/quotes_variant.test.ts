@@ -146,6 +146,7 @@ Deno.test("the arms are the pre-registration's: nine rungs a side and the top fi
   for (const a of VARIANT_ARM_NAMES) {
     const arm = VARIANT_ARMS[a];
     assertEquals([arm.name, arm.reprice, arm.sizeUsd, arm.volumeShare, arm.entryAt, arm.stopAt], [a, 0.0003, 100, 0.10, 600, 700]);
+    assertEquals(arm.entryBand, undefined);
   }
   assertEquals([variantCapitalUsd(VARIANT_ARMS.main), variantCapitalUsd(VARIANT_ARMS.top5)], [3600, 2000]);
   // A turn visits the bids and then the asks, each in k order: the order the governor's count is read in.

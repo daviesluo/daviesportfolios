@@ -13,11 +13,15 @@
 //                             (quotes_live.ts, 0052), in dry-run until
 //                             `agent_quote_live_config` says otherwise.
 //                             pg_cron every minute. Cron or admin.
-//   POST ?action=quotesv    — "Stablecoin quotes - variant" (quotes_variant.ts,
+//   POST ?action=quotesv    — "Stablecoin quotes variant-1" (quotes_variant.ts,
 //                             0071): PR5's stored minutes replayed through
 //                             the variant's rule in two arms, into its own
 //                             tables. Reads the database only. Every minute,
 //                             in the one job. Cron or admin.
+//   POST ?action=quotesd    — "Stablecoin quotes variant-2" (quotes_ruled.ts,
+//                             0072): the same decision function with rule D,
+//                             its own tables. Reads the database, and TrueFX
+//                             once a call for a current minute. Every minute.
 //   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
 //                             that gives the ask rungs inventory: `{ book,
 //                             gbp, send }`. Without `send: true` it returns
@@ -106,6 +110,7 @@ import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
+import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
 import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
@@ -555,6 +560,39 @@ export function quotesVariantSummary(input: { state: QuoteVariantStateRow | null
   };
 }
 
+/** The ruled instance's state (`quotes_ruled.ts`): arm `d`'s books, and the deviation check kept on the state. */
+type QuoteRuledStateRow = {
+  state: {
+    checkMaxUsd?: number; checkDays?: number;
+    arms?: Partial<Record<string, { books?: Record<string, QuoteBookState>; gov?: { day?: number; counts?: Record<string, number> } }>>;
+  };
+  last_minute: string | null; updated_at: string; last_error: string | null;
+};
+
+/**
+ * "Stablecoin quotes variant-2" (`quotes_ruled.ts`) for the page. Arm `d`, the one its pre-registration judges, in the
+ * shape of PR5's `quotes`, on the $3,600 its quotes lock. Beside it, each key's POSTs today and the deviation check
+ * against PR5V's arm `main` (`checkMaxUsd`, `checkDays`). Arm `v1` is not shown. Null until the engine has saved a state.
+ */
+export function quotesRuledSummary(input: { state: QuoteRuledStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number }) {
+  const st = input.state;
+  if (!st || !st.last_minute) return null;
+  const row: QuoteStateRow = { state: { books: st.state.arms?.d?.books ?? {} }, last_minute: st.last_minute, updated_at: st.updated_at, last_error: st.last_error };
+  const s = quotesSummary(row, input.trips.filter((t) => t.arm === "d"), [], new Date(VARIANT_START).toISOString(), input.nowMs, input.dayStartMs,
+    input.days.filter((d) => d.arm === "d"), variantCapitalUsd(RULED_ARMS.d))!;
+  const today = s.days.find((d) => d.today);
+  const gov = st.state.arms?.d?.gov, day = Math.floor(input.dayStartMs / 86400e3);
+  return {
+    ...s,
+    ordersToday: today?.orders ?? 0, fillsToday: today?.fills ?? 0,
+    live: null,
+    arm: "d" as const,
+    postsToday: Object.fromEntries(VARIANT_KEYS.map((k) => [k, gov?.day === day ? Number(gov.counts?.[k] ?? 0) : 0])),
+    governor: { entryAt: RULED_ARMS.d.entryAt, stopAt: RULED_ARMS.d.stopAt },
+    checkMaxUsd: st.state.checkMaxUsd ?? null, checkDays: st.state.checkDays ?? null,
+  };
+}
+
 /** A live executor order as the page reads it (`agent_quote_live_orders`, `0052`). */
 export type QuoteLiveOrderView = {
   id: number; ts: string; mode: string; book: string; rung_side: string | null; k: number | string | null; leg: string; state: string;
@@ -875,6 +913,19 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
+  // "Stablecoin quotes variant-2" (`0072`), read beside the variant: its own tables. A failed read leaves the page as it is.
+  const quotesRuledRead = (async () => {
+    try {
+      const st = await d.select<QuoteRuledStateRow>("agent_quoted_state", "id=eq.1&select=state,last_minute,updated_at,last_error");
+      if (!st[0]) return null;
+      const [trips, days] = await Promise.all([
+        d.selectAll<QuoteVariantTripRow>("agent_quoted_trips", "arm=eq.d&select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
+        d.select<QuoteVariantDayRow>("agent_quoted_days", "arm=eq.d&select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60"),
+      ]);
+      return quotesRuledSummary({ state: st[0], trips, days, nowMs: now, dayStartMs });
+    } catch { return null; }
+  })();
+
   // The paper quote test (`0051`). Its own tables; missing ones (before the migration) leave it off the page.
   const quotes = await (async () => {
     try {
@@ -950,6 +1001,7 @@ async function dashboard(now: number) {
   })();
   const rwc = await rwcRead;
   const quotesVariant = await quotesVariantRead;
+  const quotesRuled = await quotesRuledRead;
 
   return {
     at: new Date(now).toISOString(),
@@ -968,8 +1020,10 @@ async function dashboard(now: number) {
     jev24h: jevStats(decisions24h),
     /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
     quotes,
-    /** "Stablecoin quotes - variant" on paper (`0071`, reference §4 item 45): arm main in `quotes`' shape; null until it has run. */
+    /** "Stablecoin quotes variant-1" on paper (`0071`, reference §4 item 45): arm main in `quotes`' shape; null until it has run. */
     quotesVariant,
+    /** "Stablecoin quotes variant-2" on paper (`0072`, reference §4 item 47): arm d in `quotes`' shape; null until it has run. */
+    quotesRuled,
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
     rw,
     rwe,
@@ -1407,8 +1461,10 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
-    // "Stablecoin quotes - variant" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
+    // "Stablecoin quotes variant-1" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
     if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+    // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D, its own tables. TrueFX once, for a current minute.
+    if (action === "quotesd" && req.method === "POST" && operator) return json(200, await runQuotesRuled({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));

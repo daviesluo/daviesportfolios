@@ -6,7 +6,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
-  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary,
+  REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -682,6 +682,24 @@ Deno.test("quotesVariantSummary: arm main in exactly the shape of PR5's quotes, 
   assertEquals(quotesVariantSummary({ state: null, trips, days, nowMs: now, dayStartMs: dayStart }), null);
   // PR5's own summary is unchanged: its capital stays $1,200 when none is named.
   assertEquals(pr5!.capitalUsd, QUOTES_CAPITAL_USD);
+});
+
+Deno.test("quotesRuledSummary: arm d on its $3,600, with the deviation check and no top5", () => {
+  const now = Date.UTC(2026, 9, 1, 12, 0, 30), dayStart = Date.UTC(2026, 9, 1), day = Math.floor(dayStart / 86400e3);
+  const state = {
+    state: {
+      checkMaxUsd: 0.004, checkDays: 2,
+      arms: { d: { books: { "USDC-GBP": { lastX: 1.33, lastPrint: { ts: now - 60e3, ticks: 7400 }, rungs: [] } }, gov: { day, counts: { "USDC-GBP/bid": 12 } } } },
+    },
+    last_minute: new Date(now - 60e3).toISOString(), updated_at: new Date(now - 30e3).toISOString(), last_error: null,
+  };
+  const trips = [{ arm: "d", book: "USDC-GBP", side: "bid", k: 0.0003, t_entry: new Date(now - 2 * 3600e3).toISOString(), t_exit: new Date(now - 3600e3).toISOString(), entry: 0.74, exit: 0.741, how: "maker", pnl_usd: 0.05, notional_usd: 100, qty: 1 }];
+  const days = [{ arm: "d", day: "2026-10-01", orders: 40, fills: 1, trips: 1, won: 1, realised_usd: 0.05 }];
+  const q = quotesRuledSummary({ state, trips, days, nowMs: now, dayStartMs: dayStart })!;
+  const pr5 = quotesSummary({ state: { books: {} }, last_minute: state.last_minute, updated_at: state.updated_at, last_error: null }, [], [], null, now, dayStart);
+  assertEquals(Object.keys(q).sort(), [...Object.keys(pr5!), "live", "arm", "postsToday", "governor", "checkMaxUsd", "checkDays"].sort());
+  assertEquals([q.arm, q.live, q.capitalUsd, q.checkMaxUsd, q.checkDays, q.postsToday["USDC-GBP/bid"]], ["d", null, 3600, 0.004, 2, 12]);
+  assertEquals(quotesRuledSummary({ state: null, trips, days, nowMs: now, dayStartMs: dayStart }), null);
 });
 
 Deno.test("crashReport — an agents.crash row names the action and the top of the stack, not the message alone", () => {

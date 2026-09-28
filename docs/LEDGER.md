@@ -185,8 +185,11 @@ list stays the short version; the plan is the reasoning behind it.
      PR5V's arm `main` or the test is not judged. Fair rate for arm `d` is TrueFX, Yahoo (PR5's stored bar) the
      fallback; no new feed, no sub-account, no Worker. Recomputed before the freeze, on the study's inputs at PR5V's
      minute: rule D $1.0822 a day against $1.0540, paired +$0.0281 (−0.0040 to +0.0666); the fresh five days $0.7484
-     against $0.5088; POSTs −38.7 %; no key reached 600. The engine (`quotes_ruled.ts`, `quotesd`, `0072`) is the next
-     commit, built to that file and not before it.
+     against $0.5088; POSTs −38.7 %; no key reached 600. The engine is on (`agents/quotes_ruled.ts`, `agents?action=quotesd`,
+     migration `0072`), built to that file: arm `d` judged, arm `v1` the deviation, TrueFX on a current minute and Yahoo
+     otherwise. The page row is "Stablecoin quotes variant-2", on two lines; the row that was "Stablecoin quotes -
+     variant" is "Stablecoin quotes variant-1". It shows once this push has deployed the function and the engine has
+     saved a state. PR5V's `VARIANT_CODE_VERSION` stays 1.
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -490,6 +493,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-28 19:42 UTC] Platform: Cursor | Model: not recorded (session policy)
+
+**Rule D's paper instance is built, to the frozen pre-registration** (`agents/quotes_ruled.ts`, `0072`, reference §4 item 47). `agents?action=quotesd` decides both arms with `stepVariantMinute`: arm `d` re-prices an entry at max(0.03 %, k/3) and reads TrueFX once a call for a minute within three minutes of the clock, Yahoo otherwise; arm `v1` is PR5V's arm `main` on PR5's stored X. A code version that is not this one wipes only `agent_quoted_*`. The deviation is the largest daily P&L gap against PR5V's arm `main`. PR5V's golden replay still matches with the entry band unset, and `VARIANT_CODE_VERSION` stays 1. The page calls them variant-1 and variant-2, each name on two lines. `pmrw.ts` and the trend-4h live path were not touched.
 
 ### [2026-09-28 18:57 UTC] Platform: Cursor | Model: not recorded (session policy)
 

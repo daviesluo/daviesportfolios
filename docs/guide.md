@@ -149,12 +149,18 @@ places stay when the number is not whole.
   Revolut X card, in dollars at the day's pound rate — and a live order
   of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
-- **Stablecoin quotes - variant.** Right after it: the same rule with nine
+- **Stablecoin quotes variant-1.** Right after it: the same rule with nine
   rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
   fair, on the $3,600 its quotes would tie up, played minute by minute on
   exactly the trades and rates the quote test recorded, so the two can be
   compared day by day. Its page is the quote test's, with nine rungs a side
-  in each book.
+  in each book. The name in the table is two lines, and the first is the
+  whole of "Stablecoin quotes".
+- **Stablecoin quotes variant-2.** Right after that: the same quotes, except
+  an entry moves only when fair has moved further, and the pound rate for a
+  minute it is deciding now comes from TrueFX, with the quote test's stored
+  rate when that read fails. Its page is variant-1's, and it says so when
+  the two have drifted.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

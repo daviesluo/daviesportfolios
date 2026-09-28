@@ -331,6 +331,19 @@ const quotesvRungs = (fair, held = {}) => ['bid', 'ask'].flatMap((side) => QUOTE
 const QUOTESV_TRIPS = [
   quoteTrip(20, 'USDC-GBP', 'bid', 0.00075, 0.7545, 0.7551, 'maker', 0.05), quoteTrip(1500, 'USDT-GBP', 'ask', 0.0003, 0.7551, 0.7547, 'maker', 0.04),
 ];
+const AGENTS_QUOTESD = (at) => ({
+  startedAt: new Date(NOW_MS - 20 * 3600e3).toISOString(), lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 3600,
+  realisedUsd: 0.12, realisedPct: 0.0033, todayUsd: 0.07, todayPct: 0.0019, trips: 1, won: 1, open: 0, openUsd: 0, unrealisedUsd: 0,
+  ordersToday: 80, fillsToday: 1, arm: 'd', checkMaxUsd: 0.02, checkDays: 1,
+  postsToday: { 'USDC-GBP/bid': 10, 'USDC-GBP/ask': 10, 'USDT-GBP/bid': 10, 'USDT-GBP/ask': 10 },
+  governor: { entryAt: 600, stopAt: 700 },
+  books: [
+    { book: 'USDC-GBP', lastX: 1.32, lastPrice: 0.7550, lastPrintAt: new Date(NOW_MS - 60e3).toISOString(), fair: 0.75505, quoting: 18, held: 0, openUsd: 0, unrealisedUsd: 0, trips: 1, won: 1, realisedUsd: 0.12, rungs: quotesvRungs(0.75505) },
+    { book: 'USDT-GBP', lastX: 1.32, lastPrice: 0.7548, lastPrintAt: new Date(NOW_MS - 90e3).toISOString(), fair: 0.75482, quoting: 18, held: 0, openUsd: 0, unrealisedUsd: 0, trips: 0, won: 0, realisedUsd: 0, rungs: quotesvRungs(0.75482) },
+  ],
+  recent: [quoteTrip(40, 'USDC-GBP', 'ask', 0.0003, 0.7552, 0.7546, 'maker', 0.12)],
+  days: [{ day: '2026-09-17', orders: 80, fills: 1, trips: 1, won: 1, realisedUsd: 0.12, today: true }],
+});
 const AGENTS_QUOTESV = (at) => ({
   startedAt: new Date(NOW_MS - 20 * 3600e3).toISOString(), lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 3600,
   realisedUsd: 0.09, realisedPct: 0.0025, todayUsd: 0.05, todayPct: 0.0014, trips: 2, won: 2, open: 1, openUsd: 99.9, unrealisedUsd: 0.05,
@@ -936,7 +949,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'rwx-waiting') return json(AGENTS_RWX_WAITING());
       if (agentsMode === 'rwc-warmup') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_WAITING() });
       if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000) });
-      if (agentsMode === 'quotesv') return json({ ...AGENTS_DASHBOARD, quotesVariant: AGENTS_QUOTESV(AGENTS_DASHBOARD.at) });
+      if (agentsMode === 'quotesv') return json({ ...AGENTS_DASHBOARD, quotesVariant: AGENTS_QUOTESV(AGENTS_DASHBOARD.at), quotesRuled: AGENTS_QUOTESD(AGENTS_DASHBOARD.at) });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -3163,28 +3176,39 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
-      // "Stablecoin quotes - variant" (Davies, 2026-09-28): a testing row right after the quote test, counted in TESTING's
-      // Revolut X card ($1,380 + its $3,600), and a page of its own — the quote test's page with nine rungs a side, whose
-      // 0.075 % and 0.125 % rungs read as such (two decimals printed them 0.07 % / 0.08 % and 0.13 %).
+      // Variant-1 and variant-2 (Davies, 2026-09-28): two testing rows right after the quote test. Each name is two
+      // lines, the first the whole of "Stablecoin quotes". Both count in TESTING's Revolut X card ($1,380 + $3,600 + $3,600).
       agentsMode = 'quotesv';
       await openAgentsPage(page);
-      const qvRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes - variant') });
-      await waitFor(async () => (await qvRow.count()) === 1);
+      const qvRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-1') });
+      const qdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-2') });
+      await waitFor(async () => (await qvRow.count()) === 1 && (await qdRow.count()) === 1);
       await page.waitForTimeout(150);
       const qvText = (await qvRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
-      const qvAt = qvNames.indexOf('Stablecoin quotes - variant');
+      const qdText = (await qdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const qvAt = qvNames.indexOf('Stablecoin quotes variant-1');
+      const nameLine = async (row, sel) => ((await row.locator(sel).textContent().catch(() => '')) || '').trim();
+      const lineClip = async (row) => row.locator('.ag-name-head').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       const qvPanel = await readAgentsPanel(page);
       const qvRevx = qvPanel.venues.find((v) => v.id === 'revx');
-      if (await qvRow.count() === 1 && qvAt > 0 && qvNames[qvAt - 1] === 'Stablecoin quotes' && /Revolut X/.test(qvText) && /1 open · \$3,600 cap/.test(qvText)
-        && /\+\$0\.09/.test(qvText) && /\+\$0\.05/.test(qvText) && /every minute/.test(qvText) && qvRevx?.pairs['funded (Paper)'] === '$4,980') {
-        ok(T('quotesv'), 'the variant is a testing row right after the quote test: Revolut X, 1 open of its $3,600, today +$0.05, realised +$0.09, every minute, and TESTING\'s Revolut X card counts it ($4,980)');
-      } else fail(T('quotesv'), `variant row "${qvText}" at ${qvAt} of ${qvNames.join(' | ')}, Revolut X card ${JSON.stringify(qvRevx?.pairs)}`);
+      const qvHead = await nameLine(qvRow, '.ag-name-head'), qvQual = await nameLine(qvRow, '.ag-name-qual');
+      const qdHead = await nameLine(qdRow, '.ag-name-head'), qdQual = await nameLine(qdRow, '.ag-name-qual');
+      const qvClip = await lineClip(qvRow), qdClip = await lineClip(qdRow);
+      if (await qvRow.count() === 1 && await qdRow.count() === 1 && qvAt > 0 && qvNames[qvAt - 1] === 'Stablecoin quotes' && qvNames[qvAt + 1] === 'Stablecoin quotes variant-2'
+        && qvHead === 'Stablecoin quotes' && qvQual === 'variant-1' && qdHead === 'Stablecoin quotes' && qdQual === 'variant-2'
+        && qvClip >= 0 && qvClip <= 1 && qdClip >= 0 && qdClip <= 1
+        && /Revolut X/.test(qvText) && /1 open · \$3,600 cap/.test(qvText) && /\+\$0\.09/.test(qvText) && /\+\$0\.05/.test(qvText) && /every minute/.test(qvText)
+        && /0 open · \$3,600 cap/.test(qdText) && /\+\$0\.12/.test(qdText) && /\+\$0\.07/.test(qdText)
+        && qvRevx?.pairs['funded (Paper)'] === '$8,580') {
+        ok(T('quotesv'), 'variant-1 and variant-2 sit after the quote test, each name on two lines with "Stablecoin quotes" whole, and TESTING\'s Revolut X card counts both ($8,580)');
+      } else fail(T('quotesv'), `variant rows "${qvText}" / "${qdText}" at ${qvAt} of ${qvNames.join(' | ')}; heads ${qvHead}/${qdHead} quals ${qvQual}/${qdQual} clip ${qvClip}/${qdClip}; Revolut X ${JSON.stringify(qvRevx?.pairs)}`);
       await qvRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
-      const qvTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const qvTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
       const qvHidden = ((await page.locator('.ag-quotes-detail .ag-detail-title').textContent().catch(() => '')) || '').trim();
+      const qvWarn = await page.locator('.ag-quotes-detail .ag-warn-line').count();
       const qvBooks = (await page.locator('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong').allTextContents()).map((t) => t.trim());
       const qvLadder = (await page.locator('.ag-quotes-detail .ag-quotes-card').first().locator('.ag-ladder tbody tr td:first-child').allTextContents()).map((t) => t.trim());
       const qvRungs = await page.locator('.ag-quotes-detail .ag-ladder tbody tr').count();
@@ -3194,12 +3218,25 @@ async function run() {
       const qvLive = await page.locator('.ag-quotes-detail .ag-quotes-live-line').count();
       const qvOverflow = await page.locator('.ag-quotes-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       await shot(page, 'agents-quotes-variant');
-      if (qvTitle === 'Stablecoin quotes - variant' && qvHidden === 'Stablecoin quotes - variant' && qvBooks.join(',') === 'USDC/GBP,USDT/GBP'
+      if (qvTitle === 'Stablecoin quotes variant-1' && qvHidden === 'Stablecoin quotes variant-1' && qvBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qvLadder.join(',') === '0.03 %,0.05 %,0.075 %,0.1 %,0.125 %,0.15 %,0.2 %,0.25 %,0.3 %' && qvRungs === 18
         && qvHeld.length === 1 && /held £0\.7545 \+\$0\.0500$/.test(qvHeld[0]) && qvTripRungs.join(',') === '0.075 %,0.03 %'
-        && qvDays.length === 2 && /· today$/.test(qvDays[0]) && qvLive === 0 && qvOverflow >= 0 && qvOverflow <= 1) {
-        ok(T('quotesv'), 'its page: its own title, both books with nine rungs a side (0.03 % … 0.3 %, 0.075 % and 0.125 % in full), the held 0.075 % bid, two round trips on the 0.075 % and 0.03 % rungs, two days, no live line, nothing wider than the page');
-      } else fail(T('quotesv'), `variant page: title "${qvTitle}" / "${qvHidden}", books ${qvBooks.join(',')}, ladder ${qvLadder.join(',')} (${qvRungs} rows), held ${qvHeld.join(' | ')}, trip rungs ${qvTripRungs.join(',')}, days ${qvDays.join(' | ')}, live lines ${qvLive}, overflow ${qvOverflow}`);
+        && qvDays.length === 2 && /· today$/.test(qvDays[0]) && qvLive === 0 && qvWarn === 0 && qvOverflow >= 0 && qvOverflow <= 1) {
+        ok(T('quotesv'), 'variant-1\'s page: its own title, both books with nine rungs a side (0.03 % … 0.3 %, 0.075 % and 0.125 % in full), the held 0.075 % bid, two round trips, two days, no deviation warning, nothing wider than the page');
+      } else fail(T('quotesv'), `variant-1 page: title "${qvTitle}" / "${qvHidden}", books ${qvBooks.join(',')}, ladder ${qvLadder.join(',')} (${qvRungs} rows), held ${qvHeld.join(' | ')}, trip rungs ${qvTripRungs.join(',')}, days ${qvDays.join(' | ')}, live lines ${qvLive}, warnings ${qvWarn}, overflow ${qvOverflow}`);
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      await qdRow.first().click().catch(() => {});
+      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const qdTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+      const qdHidden = ((await page.locator('.ag-quotes-detail .ag-detail-title').textContent().catch(() => '')) || '').trim();
+      const qdWarn = ((await page.locator('.ag-quotes-detail .ag-warn-line').allTextContents()).join(' ')).replace(/\s+/g, ' ').trim();
+      const qdOverflow = await page.locator('.ag-quotes-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
+      await shot(page, 'agents-quotes-variant-2');
+      if (qdTitle === 'Stablecoin quotes variant-2' && qdHidden === 'Stablecoin quotes variant-2' && qdWarn === 'deviation from variant-1 is $0.0200' && qdOverflow >= 0 && qdOverflow <= 1) {
+        ok(T('quotesv'), 'variant-2\'s page: its own title, and the deviation warning when the check is at least $0.01');
+      } else fail(T('quotesv'), `variant-2 page: title "${qdTitle}" / "${qdHidden}", warning "${qdWarn}", overflow ${qdOverflow}`);
       agentsMode = 'ok';
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);

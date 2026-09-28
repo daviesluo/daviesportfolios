@@ -3,7 +3,7 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
@@ -951,11 +951,19 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
     expect(quotesRow({ ...q, unrealisedUsd: null })?.unrealisedUsd).toBe(0);    // a book with no print yet: nothing to show, not NaN
     expect(quotesRow(null)).toBe(null);
   });
-  it('the variant is the same row under its own id and name (Davies, 2026-09-28: "Stablecoin quotes - variant")', () => {
+  it('the variant is variant-1, and rule D is variant-2, each on two lines (Davies, 2026-09-28)', () => {
     const v = quotesVariantRow({ ...q, capitalUsd: 3600 });
-    expect([v?.id, v?.name, v?.venueId, v?.mode, v?.capitalUsd, v?.nextText]).toEqual([QUOTESV_ROW_ID, 'Stablecoin quotes - variant', 'revx', 'paper', 3600, 'every minute']);
+    expect([v?.id, v?.name, v?.venueId, v?.mode, v?.capitalUsd, v?.nextText]).toEqual([QUOTESV_ROW_ID, 'Stablecoin quotes variant-1', 'revx', 'paper', 3600, 'every minute']);
+    const d = quotesRuledRow({ ...q, capitalUsd: 3600 });
+    expect([d?.id, d?.name, d?.capitalUsd]).toEqual([QUOTESD_ROW_ID, 'Stablecoin quotes variant-2', 3600]);
     expect(QUOTESV_ROW_ID).not.toBe(QUOTES_ROW_ID);
+    expect(QUOTESD_ROW_ID).not.toBe(QUOTESV_ROW_ID);
     expect(quotesVariantRow(null)).toBe(null);
+    expect(quotesRuledRow(null)).toBe(null);
+    expect(strategyNameParts('Stablecoin quotes variant-1')).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
+    expect(strategyNameParts('Stablecoin quotes variant-2')).toEqual({ head: 'Stablecoin quotes', qual: 'variant-2', twoLines: true });
+    expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
+    expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
   });
 });
 

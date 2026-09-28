@@ -138,4 +138,23 @@ describe('pg_cron jobs', () => {
     const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
     expect(cmd(FILES.filter((f) => f <= QV))).toBe(cmd(FILES.filter((f) => f < QV)));
   });
+
+  it("adds rule D's call to the one job (0072), leaving every other call as it was", () => {
+    const callsOf = (files) => {
+      const job = cronJobs(files).get('edge-calls-every-minute');
+      return [...job.command.matchAll(/\('([^']+)',\s*(\d+),\s*(\d+),\s*(\d+)\)/g)].map((m) => ({
+        path: m[1], timeout: Number(m[2]), every: Number(m[3]), lastHour: Number(m[4]),
+      }));
+    };
+    const QD = FILES.find((f) => /^\d{4}_quotes_ruled\.sql$/.test(f)) ?? '';
+    expect(QD).not.toBe('');
+    const before = callsOf(FILES.filter((f) => f < QD));
+    const after = callsOf(FILES.filter((f) => f <= QD));
+    const byPath = (a, b) => a.path.localeCompare(b.path);
+    expect(after.filter((c) => c.path !== 'agents?action=quotesd').sort(byPath)).toEqual(before.slice().sort(byPath));
+    expect(after.filter((c) => c.path === 'agents?action=quotesd')).toEqual([{ path: 'agents?action=quotesd', timeout: 58000, every: 1, lastHour: 23 }]);
+    expect(before.find((c) => c.path === 'agents?action=quotesv')).toEqual({ path: 'agents?action=quotesv', timeout: 58000, every: 1, lastHour: 23 });
+    const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
+    expect(cmd(FILES.filter((f) => f <= QD))).toBe(cmd(FILES.filter((f) => f < QD)));
+  });
 });

@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, QUOTESV_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesRow, quotesVariantRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -380,6 +380,7 @@ function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = qu
         <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} />
       </div>
       {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
+      {q.checkMaxUsd != null && Number(q.checkMaxUsd) >= 0.01 && <div className="ag-warn-line">deviation from variant-1 is ${Number(q.checkMaxUsd).toFixed(4)}</div>}
       {quotesLiveText(q.live) && <div className="ag-quotes-live-line dim">{quotesLiveText(q.live)}</div>}
       <section className="ag-section ag-quote-books">
         <div className="ag-section-title mono">BOOKS</div>
@@ -639,10 +640,12 @@ const COLUMNS = [
  * The status as a coloured dot beside the name — green running, amber stale, grey paused — with the words in its
  * title.
  */
-/** A name with a qualifier in brackets, "Reward quotes (no same-day)", puts the qualifier on a line of its own. */
+/** A name on two lines when it has a qualifier: the variant's "variant-N", or a bracketed one. */
 function NameText({ name }) {
-  const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
-  return q ? <>{q[1]} <span className="ag-name-qual">{q[2]}</span></> : <>{name}</>;
+  const { head, qual, twoLines } = strategyNameParts(name);
+  if (!qual) return <>{name}</>;
+  if (twoLines) return <><span className="ag-name-head">{head}</span> <span className="ag-name-qual">{qual}</span></>;
+  return <>{head} <span className="ag-name-qual">{qual}</span></>;
 }
 
 function NameCell({ r, m, onOpen }) {
@@ -1292,6 +1295,8 @@ function AgentsModal({ hideValues, onClose }) {
   // Its variant, nine rungs a side on four keys, replayed from the quote test's own minutes, right after it (Davies,
   // 2026-09-28: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing").
   const quotesV = React.useMemo(() => quotesVariantRow(dash?.quotesVariant), [dash]);
+  // Rule D, the same rule with a wider entry re-price, right after variant-1 (Davies, 2026-09-28).
+  const quotesD = React.useMemo(() => quotesRuledRow(dash?.quotesRuled), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
   // RW-E, RW without the markets that end on the day they are chosen, is a row of its own after it (Davies, 2026-09-26).
@@ -1302,7 +1307,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwc = React.useMemo(() => rwcRow(dash?.rwc), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : [])], [quotes, quotesV, rw, rwe, rwx, rwc]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(quotesD ? [quotesD] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : [])], [quotes, quotesV, quotesD, rw, rwe, rwx, rwc]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1318,6 +1323,7 @@ function AgentsModal({ hideValues, onClose }) {
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
   const quotesVOpen = selected === QUOTESV_ROW_ID && !!dash?.quotesVariant && !!quotesV;
+  const quotesDOpen = selected === QUOTESD_ROW_ID && !!dash?.quotesRuled && !!quotesD;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
@@ -1394,12 +1400,25 @@ function AgentsModal({ hideValues, onClose }) {
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <h2 className="modal-title mono">Stablecoin quotes - variant</h2>
+            <h2 className="modal-title mono"><NameText name="Stablecoin quotes variant-1" /></h2>
           </div>
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes - variant" rowOf={quotesVariantRow} />
+          <QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-1" rowOf={quotesVariantRow} />
+        </div>
+      </Modal>
+    )}
+    {quotesDOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name="Stablecoin quotes variant-2" /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <QuotesDetail q={dash.quotesRuled} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-2" rowOf={quotesRuledRow} />
         </div>
       </Modal>
     )}

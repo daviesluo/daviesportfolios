@@ -163,10 +163,10 @@ closed bar it asks its rulebook what to do.
   account, with its paper twin beside it as the control. A live order
   needs the row switched to live, a confirmation in the database, the
   risk gate's approval and my go-ahead.
-- **Tests with a bar written first.** Beside the loop, three ideas run
+- **Tests with a bar written first.** Beside the loop, four ideas run
   on paper, each judged against a pre-registration frozen before its
   first day: resting quotes either side of interbank on Revolut X's GBP
-  stablecoin books, a denser variant of the same, and quotes for
+  stablecoin books, two variants of the same, and quotes for
   Polymarket's liquidity rewards.
 
 The evidence is in [`docs/agents/reference.md`](agents/reference.md),

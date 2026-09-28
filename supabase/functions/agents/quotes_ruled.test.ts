@@ -1,0 +1,162 @@
+// Rule D's paper instance (`quotes_ruled.ts`, pre-registration 2026-09-28). The band, the TrueFX read and the deviation
+// arm are closed form. The driver is pinned on the in-memory database: arm `d` takes TrueFX only on a current minute,
+// arm `v1` takes PR5's X, and nothing of PR5V's tables is written.
+
+import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import type { Db } from "./db.ts";
+import { QUOTE_BOOKS, quoteTicks, type QuoteBook } from "./quotes.ts";
+import { memDb, type Row } from "./testing.ts";
+import {
+  newGovCounts, newVariantBook, stepVariantMinute, VARIANT_ARMS, VARIANT_CODE_VERSION, VARIANT_START,
+  type VariantArm, type VariantEvent,
+} from "./quotes_variant.ts";
+import {
+  newRuledState, parseTrueFxGbpUsd, RULED_ARMS, RULED_CODE_VERSION, runQuotesRuled, ruleDEntryBand, trueFxApplies, trueFxFresh, xForArmD,
+  type RuledState,
+} from "./quotes_ruled.ts";
+
+const M = 60e3;
+const iso = (ms: number) => new Date(ms).toISOString();
+
+Deno.test("rule D re-prices the inner rung on a 0.05 % move and leaves the outer rung, and no band re-prices both", () => {
+  assertEquals(ruleDEntryBand(0.0003), 0.0003);
+  assertEquals(ruleDEntryBand(0.003), 0.001);
+  const plain: VariantArm = { name: "plain", rungs: [0.0003, 0.003], reprice: 0.0003, sizeUsd: 100, volumeShare: 0.1, entryAt: 600, stopAt: 700 };
+  const ruled: VariantArm = { ...plain, name: "d", entryBand: ruleDEntryBand };
+  const ks = (arm: VariantArm) => {
+    const s = newVariantBook("USDC-GBP", arm, null), gov = newGovCounts();
+    stepVariantMinute(s, 0, { x: 1, fairU: 1, prints: [] }, arm, gov);
+    const out = stepVariantMinute(s, M, { x: 1, fairU: 1.0005, prints: [] }, arm, gov);
+    return [...new Set(out.events.filter((e) => e.what === "reprice").map((e) => e.k))].sort((a, b) => a - b);
+  };
+  // 0.05 % clears 0.03 % and does not clear max(0.03 %, 0.30 % / 3) = 0.10 %.
+  assertEquals(ks(plain), [0.0003, 0.003]);
+  assertEquals(ks(ruled), [0.0003]);
+});
+
+Deno.test("arm v1 decides a minute exactly as PR5V's main, and PR5V's own arms still have no entry band", () => {
+  assertEquals(VARIANT_CODE_VERSION, 1);
+  assertEquals(RULED_CODE_VERSION, 1);
+  assertEquals(RULED_ARMS.v1.entryBand, undefined);
+  assertEquals(RULED_ARMS.v1.rungs, VARIANT_ARMS.main.rungs);
+  assertEquals([RULED_ARMS.d.reprice, RULED_ARMS.d.entryAt, RULED_ARMS.d.stopAt, RULED_ARMS.d.sizeUsd], [0.0003, 600, 700, 100]);
+  const run = (arm: VariantArm) => {
+    const s = newVariantBook("USDC-GBP", arm, null), gov = newGovCounts(), events: VariantEvent[] = [];
+    for (let i = 0; i < 5; i++) events.push(...stepVariantMinute(s, i * M, { x: 1.3, fairU: 1 + i * 0.0002, prints: [] }, arm, gov).events);
+    return events.map((e) => ({ ...e, arm: "v1" }));
+  };
+  assertEquals(run(RULED_ARMS.v1), run(VARIANT_ARMS.main));
+  assertEquals(VARIANT_ARMS.main.entryBand, undefined);
+});
+
+Deno.test("TrueFX parses the study's concatenation, and a stale, future or empty body is a miss", () => {
+  // bid = 1.23 || 456, ask = 1.23 || 789, the study's p_truefx.
+  const row = "EUR/USD,1,1.0,0,1.0,1\nGBP/USD,1700000000000,1.23,456,1.23,789\n";
+  const snap = parseTrueFxGbpUsd(row)!;
+  assertEquals(snap, { mid: (1.23456 + 1.23789) / 2, srcMs: 1700000000000 });
+  assertEquals(parseTrueFxGbpUsd(""), null);
+  assertEquals(parseTrueFxGbpUsd("GBP/USD,nope,1.2,3,1.2,4"), null);
+  const now = 1_700_000_000_000;
+  assertEquals(trueFxFresh(now, now), true);
+  assertEquals(trueFxFresh(now - 60e3, now), true);
+  assertEquals(trueFxFresh(now - 60e3 - 1, now), false);
+  assertEquals(trueFxFresh(now + 5e3, now), true);
+  assertEquals(trueFxFresh(now + 5e3 + 1, now), false);
+  assertEquals(trueFxApplies(now, now), true);
+  assertEquals(trueFxApplies(now, now + 3 * M), true);
+  assertEquals(trueFxApplies(now, now + 3 * M + 1), false);
+  assertEquals(trueFxApplies(now, now - 1), false);
+  const fresh = { mid: 1.4, srcMs: now };
+  assertEquals(xForArmD(1.34, fresh, now, now), { x: 1.4, source: "truefx" });
+  assertEquals(xForArmD(1.34, fresh, now, now + 10 * M), { x: 1.34, source: "yahoo" });
+  assertEquals(xForArmD(1.34, { mid: 1.4, srcMs: now - 61e3 }, now, now), { x: 1.34, source: "yahoo" });
+  assertEquals(xForArmD(null, null, now, now + 10 * M), { x: null, source: "yahoo" });
+});
+
+const BOOKS = QUOTE_BOOKS;
+const QUOTED = ["agent_quoted_state", "agent_quoted_minutes", "agent_quoted_events", "agent_quoted_trips"];
+function world(over: Record<string, Row[]> = {}) {
+  const minute = iso(VARIANT_START);
+  const minutes = BOOKS.map((b) => ({ book: b, minute, x: 1.34, x_t: iso(VARIANT_START - M), fair_u: 1, hours_n: 24, prints_n: 0 }));
+  return memDb({
+    agent_locks: [{ name: "quotesd", lease_until: iso(0), holder: null }, { name: "quotesv", lease_until: iso(0), holder: null }],
+    agent_quote_state: [{ id: 1, state: { books: "not read" }, last_minute: minute, updated_at: minute, last_error: null }],
+    agent_quote_minutes: minutes, agent_quote_prints: [], agent_quote_inputs: [],
+    agent_quotev_trips: [], agent_quotev_state: [], agent_quotev_minutes: [], agent_quotev_events: [],
+    ...Object.fromEntries(QUOTED.map((t) => [t, []])),
+    ...over,
+  }, { now: () => Date.now() });
+}
+
+Deno.test("runQuotesRuled: a current minute takes TrueFX on arm d and PR5's X on arm v1, and writes none of PR5V", async () => {
+  const { db, tables } = world();
+  const writes: string[] = [];
+  const spy: Db = {
+    ...db,
+    upsert: (t, rows, k) => { writes.push(`upsert ${t}`); return db.upsert(t, rows, k); },
+    insert: (t, rows, ret) => { writes.push(`insert ${t}`); return db.insert(t, rows, ret); },
+    update: (t, q, p) => { writes.push(`update ${t}`); return db.update(t, q, p); },
+  };
+  let fetches = 0;
+  const r = await runQuotesRuled({
+    db: spy, now: VARIANT_START + 2 * M, holder: "h",
+    fx: () => Promise.resolve({ mid: 1.4, srcMs: VARIANT_START + 2 * M }),
+    fetchImpl: () => { fetches++; return Promise.reject(new Error("TrueFX is injected")); },
+  });
+  assertEquals(r.errors, []);
+  assertEquals([r.minutes, r.truefx, r.checkMaxUsd, r.checkDays, fetches], [1, 2, 0, 0, 0]);
+  assertEquals(writes.filter((w) => w.includes("agent_quotev")), []);
+  assert(writes.some((w) => w === "upsert agent_quoted_minutes"));
+  const recs = tables.agent_quoted_minutes;
+  assertEquals(recs.map((m) => [m.x, m.x_d, m.x_source]), [[1.34, 1.4, "truefx"], [1.34, 1.4, "truefx"]]);
+  const place = (arm: string, book: QuoteBook) => tables.agent_quoted_events.find((e) => e.arm === arm && e.book === book && e.side === "bid" && e.k === 0.0003 && e.what === "place")!;
+  assertEquals(place("v1", "USDC-GBP").ticks, quoteTicks(1 / 1.34, 0.0003, "bid"));
+  assertEquals(place("d", "USDC-GBP").ticks, quoteTicks(1 / 1.4, 0.0003, "bid"));
+  assert(place("v1", "USDC-GBP").ticks !== place("d", "USDC-GBP").ticks);
+  assertEquals(tables.agent_quotev_trips, []);
+  assertEquals((tables.agent_quoted_state[0].state as RuledState).checkMaxUsd, 0);
+  assertEquals(tables.agent_quoted_state[0].last_error, null);
+});
+
+Deno.test("runQuotesRuled: a minute outside the three minutes is Yahoo, and TrueFX is not read", async () => {
+  const { db, tables } = world();
+  let fetches = 0;
+  const r = await runQuotesRuled({
+    db, now: VARIANT_START + 10 * M, holder: "h",
+    fetchImpl: () => { fetches++; return Promise.reject(new Error("must not be called")); },
+  });
+  assertEquals([r.errors, r.truefx, fetches], [[], 0, 0]);
+  assertEquals(tables.agent_quoted_minutes.map((m) => [m.x_d, m.x_source]), [[1.34, "yahoo"], [1.34, "yahoo"]]);
+});
+
+Deno.test("runQuotesRuled: a PR5V trip arm v1 lacks sets the deviation, and a failed read of it leaves the decisions", async () => {
+  const trip = {
+    id: 1, arm: "main", key: "USDC-GBP/bid", book: "USDC-GBP", side: "bid", k: 0.0003, t_entry: iso(VARIANT_START),
+    fill_ts: iso(VARIANT_START), fill_print_id: "p", entry: 0.74, qty: 1, t_exit: iso(VARIANT_START + M), exit: 0.75,
+    how: "maker", notional_usd: 100, pnl_usd: 1.25,
+  };
+  const hit = world({ agent_quotev_trips: [trip] });
+  const a = await runQuotesRuled({ db: hit.db, now: VARIANT_START + 2 * M, holder: "h", fx: () => Promise.resolve(null) });
+  assertEquals([a.checkMaxUsd, a.checkDays], [1.25, 1]);
+  assertEquals(hit.tables.agent_quotev_trips, [trip]);
+
+  const miss = world({ agent_quotev_trips: [trip] });
+  const spy: Db = { ...miss.db, selectAll: (t, q) => t === "agent_quotev_trips" ? Promise.reject(new Error("quotev down")) : miss.db.selectAll(t, q) };
+  const b = await runQuotesRuled({ db: spy, now: VARIANT_START + 2 * M, holder: "h2", fx: () => Promise.resolve(null) });
+  assertEquals([b.errors, b.checkMaxUsd, miss.tables.agent_quoted_state[0].last_error], [[], null, null]);
+  assert((miss.tables.agent_quoted_events as Row[]).length > 0);
+  assertEquals(miss.tables.agent_quotev_trips, [trip]);
+});
+
+Deno.test("runQuotesRuled: another code version wipes only its own rows and starts flat", async () => {
+  const { db, tables } = world({
+    agent_quoted_state: [{ id: 1, state: { ...newRuledState(VARIANT_START, { "USDC-GBP": null, "USDT-GBP": null }), codeVersion: 0 }, last_minute: iso(VARIANT_START), updated_at: iso(VARIANT_START), last_error: null }],
+    agent_quoted_events: [{ arm: "d", book: "USDC-GBP", minute: iso(VARIANT_START), side: "bid", k: 0.0003, kind: "order", what: "place", key: "USDC-GBP/bid", ticks: 1, detail: {} }],
+    agent_quotev_trips: [{ id: 7, arm: "main", key: "USDC-GBP/bid", book: "USDC-GBP", side: "bid", k: 0.0003, t_entry: iso(VARIANT_START), fill_ts: iso(VARIANT_START), fill_print_id: "p", entry: 0.74, qty: 1, t_exit: iso(VARIANT_START), exit: 0.75, how: "maker", notional_usd: 100, pnl_usd: 0.5 }],
+  });
+  const r = await runQuotesRuled({ db, now: VARIANT_START + 10 * M, holder: "h" });
+  assertEquals([r.reset, r.errors], [true, []]);
+  assertEquals((tables.agent_quoted_state[0].state as RuledState).codeVersion, 1);
+  assertEquals(tables.agent_quotev_trips.length, 1);
+  assert(tables.agent_quoted_events.every((e) => e.minute === iso(VARIANT_START)));
+});

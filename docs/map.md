@@ -575,15 +575,17 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, its variant's replay, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, variant-1's replay and variant-2's, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/views.ts` | Records Polymarket's view-count markets and the YouTube counters they resolve on: every minute, and every second around each market's deadline, stored when they change. Reads only. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
-| `agents/quotes_variant.ts` | "Stablecoin quotes - variant" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
+| `agents/quotes_variant.ts` | "Stablecoin quotes variant-1" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
 | `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
+| `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function with rule D on entries, TrueFX for a current minute and Yahoo otherwise, in tables of its own. |
+| `agents/quotes_ruled.test.ts` | Pins rule D's band, the TrueFX read, and that the driver writes none of variant-1's tables. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
@@ -684,6 +686,7 @@ before touching migration state.
 | `0069_pm_rwc.sql` | Adds RW-C, RW's engine run again on 2026-10-09 → 10-23 with RW-E's and the variants' replays on its minutes: its eleven tables (RW's, named `pm_rwc_…`), its four leases, and its four calls in the one-minute job. |
 | `0070_quote_days.sql` | A view, `agent_quote_days`: each UTC day of the stablecoin quote test's orders, fills and closed round trips, for its page's DAYS table. |
 | `0071_quotes_variant.sql` | Adds the quote variant's tables (state, minute records, events, trips), its per-arm days view, the function that wipes them for a new code version, its lease, and its call in the one-minute job. |
+| `0072_quotes_ruled.sql` | Adds variant-2's tables, its days view, the function that wipes them, its lease, and its call beside the variant's in the one-minute job. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

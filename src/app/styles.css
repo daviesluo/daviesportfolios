@@ -2122,8 +2122,9 @@ body {
 .ag-posline .hl-strong { color: var(--chalk); }
 .ag-name-btn { all: unset; cursor: pointer; font: inherit; color: inherit; display: block; }
 .ag-name-btn:focus-visible { outline: 1px solid var(--chalk-dim); outline-offset: 2px; border-radius: 2px; }
-/* "Reward quotes (no same-day)": the bracketed qualifier on its own line (Davies, 2026-09-26). */
-.ag-name-qual { display: block; }
+/* A qualifier on its own line: a bracketed one (Davies, 2026-09-26), and "variant-N" under the whole of
+   "Stablecoin quotes" (Davies, 2026-09-28). Neither line wraps, so the first is not cut in half. */
+.ag-name-head, .ag-name-qual { display: block; white-space: nowrap; }
 .ag-basis-now { font-variant-numeric: tabular-nums; }
 .ag-basis-now.is-wide { color: var(--chalk); font-weight: 700; }
 .ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }

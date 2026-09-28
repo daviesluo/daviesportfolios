@@ -46,10 +46,28 @@ const VARIANT_TABLES: Record<string, { columns: string[]; key: string; identity?
 };
 const VARIANT_KEYS = ["USDC-GBP/bid", "USDC-GBP/ask", "USDT-GBP/bid", "USDT-GBP/ask"];
 const VARIANT_ORDER_WHATS = ["place", "reprice", "replace", "exit", "exit_reprice", "exit_replace"];
+/**
+ * Rule D's tables as 0072 creates them: PR5V's shape, arms `v1` and `d`, and the X arm `d` decided on. Kept apart from
+ * `VARIANT_TABLES` so PR5V's reset cannot wipe them, and this reset cannot wipe PR5V's.
+ */
+const RULED_TABLES: Record<string, { columns: string[]; key: string; identity?: string }> = {
+  agent_quoted_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
+  agent_quoted_minutes: {
+    columns: ["book", "minute", "source", "x", "x_t", "fair_u", "hours_n", "prints_n", "pr5_prints_n", "x_d", "x_source", "recorded_at"], key: "book,minute",
+  },
+  agent_quoted_events: { columns: ["arm", "book", "minute", "side", "k", "kind", "what", "key", "ticks", "detail"], key: "arm,book,minute,side,k,kind" },
+  agent_quoted_trips: {
+    columns: ["id", "arm", "key", "book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "x_entry", "fair_entry", "entry_oid", "t_exit",
+      "exit", "how", "exit_print_id", "exit_oid", "notional_usd", "pnl_usd"],
+    key: "arm,book,side,k,t_entry", identity: "id",
+  },
+};
 /** The functions a migration creates that the loop calls through PostgREST's rpc endpoint, as the database runs them. */
 const RPC: Record<string, (tables: Record<string, Row[]>) => void> = {
   // 0071: the quote variant's own rows, and nothing else.
   agent_quotev_reset: (tables) => { for (const t of Object.keys(VARIANT_TABLES)) (tables[t] ??= []).length = 0; },
+  // 0072: rule D's own rows, and nothing else.
+  agent_quoted_reset: (tables) => { for (const t of Object.keys(RULED_TABLES)) (tables[t] ??= []).length = 0; },
 };
 /**
  * The live quote executor's tables as 0052 creates them: their columns, and the unique key each upsert names (the orders
@@ -195,6 +213,31 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     return notNull(["arm", "key", "book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "t_exit", "exit", "how", "notional_usd", "pnl_usd"])
       ?? check("arm", ["main", "top5"].includes(String(r.arm))) ?? check("key", VARIANT_KEYS.includes(String(r.key)))
+      ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book))) ?? check("side", ["bid", "ask"].includes(String(r.side)))
+      ?? check("how", ["maker", "taker"].includes(String(r.how))) ?? check("entry", Number(r.entry) > 0) ?? check("qty", Number(r.qty) > 0)
+      ?? check("exit", Number(r.exit) > 0);
+  }
+  if (table in RULED_TABLES) {
+    const unknown = Object.keys(r).find((c) => !RULED_TABLES[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (table === "agent_quoted_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (table === "agent_quoted_minutes") {
+      return notNull(["book", "minute", "source", "hours_n", "prints_n", "x_source"]) ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book)))
+        ?? check("source", ["minutes", "rebuilt"].includes(String(r.source)))
+        ?? check("x", r.x == null || Number(r.x) > 0) ?? check("fair_u", r.fair_u == null || Number(r.fair_u) > 0)
+        ?? check("x_d", r.x_d == null || Number(r.x_d) > 0) ?? check("x_source", r.x_source === "yahoo" || r.x_source === "truefx")
+        ?? check("hours_n", Number.isInteger(Number(r.hours_n)) && Number(r.hours_n) >= 0)
+        ?? check("prints_n", Number.isInteger(Number(r.prints_n)) && Number(r.prints_n) >= 0);
+    }
+    if (table === "agent_quoted_events") {
+      return notNull(["arm", "book", "minute", "side", "k", "kind", "detail"]) ?? check("arm", ["v1", "d"].includes(String(r.arm)))
+        ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book))) ?? check("side", ["bid", "ask", "-"].includes(String(r.side)))
+        ?? check("kind", ["order", "refused", "withdraw", "fill", "exit", "stop"].includes(String(r.kind)))
+        ?? check("key", r.key == null || VARIANT_KEYS.includes(String(r.key)))
+        ?? check("what", r.kind === "order" ? VARIANT_ORDER_WHATS.includes(String(r.what)) : r.kind === "stop" ? r.what === "stop" : r.what == null);
+    }
+    return notNull(["arm", "key", "book", "side", "k", "t_entry", "fill_ts", "fill_print_id", "entry", "qty", "t_exit", "exit", "how", "notional_usd", "pnl_usd"])
+      ?? check("arm", ["v1", "d"].includes(String(r.arm))) ?? check("key", VARIANT_KEYS.includes(String(r.key)))
       ?? check("book", QUOTE_BOOKS_OK.includes(String(r.book))) ?? check("side", ["bid", "ask"].includes(String(r.side)))
       ?? check("how", ["maker", "taker"].includes(String(r.how))) ?? check("entry", Number(r.entry) > 0) ?? check("qty", Number(r.qty) > 0)
       ?? check("exit", Number(r.exit) > 0);
@@ -425,7 +468,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       const keys = onConflict.split(",");
       if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
-        || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)) {
+        || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
+        || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -442,7 +486,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       for (const r of list) {
         const i = t.findIndex((x) => keys.every((k) => String(x[k]) === String(r[k])));
         // A new row of a table with an identity column takes its next value, as Postgres fills it; a merged row keeps its own.
-        const identity = VARIANT_TABLES[table]?.identity;
+        const identity = VARIANT_TABLES[table]?.identity ?? RULED_TABLES[table]?.identity;
         if (i >= 0) t[i] = { ...t[i], ...r }; else t.push(identity ? { [identity]: nextId++, ...r } : { ...r });
       }
       return Promise.resolve();

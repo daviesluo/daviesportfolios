@@ -1154,8 +1154,23 @@ export function quotesRow(q) {
   };
 }
 
-/** The quote test's variant's id among the table's rows (Davies, 2026-09-28: "Stablecoin quotes - variant"). */
+/** The quote test's variant's id among the table's rows (Davies, 2026-09-28: variant-1). */
 export const QUOTESV_ROW_ID = '__quotesv';
+
+/**
+ * A strategy name split for the table. "Stablecoin quotes variant-N" is two lines, the first the whole of
+ * "Stablecoin quotes". A trailing parenthetical, "Reward quotes (no same-day)", stays on its own second line.
+ * Anything else, including "Reward quotes variant-1", is one line.
+ * @param {string} name
+ * @returns {{ head: string, qual: string | null, twoLines: boolean }}
+ */
+export function strategyNameParts(name) {
+  const variant = /^(Stablecoin quotes) (variant-\d+)$/.exec(name);
+  if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
+  const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
+  if (q) return { head: q[1], qual: q[2], twoLines: false };
+  return { head: name, qual: null, twoLines: false };
+}
 
 /**
  * PR5's rule with nine rungs a side, a 0.03 % re-price and four keys, replayed on paper from PR5's own stored minutes
@@ -1165,7 +1180,20 @@ export const QUOTESV_ROW_ID = '__quotesv';
  */
 export function quotesVariantRow(q) {
   const r = quotesRow(q);
-  return r && { ...r, id: QUOTESV_ROW_ID, name: 'Stablecoin quotes - variant' };
+  return r && { ...r, id: QUOTESV_ROW_ID, name: 'Stablecoin quotes variant-1' };
+}
+
+/** Rule D's id among the table's rows (Davies, 2026-09-28: variant-2). */
+export const QUOTESD_ROW_ID = '__quotesd';
+
+/**
+ * Rule D on paper (`reviews/2026-09-28-pr5-rule-d-prereg.md`): the same row as variant-1's, under its own id and name.
+ * The page shows arm `d`. null keeps it off the table.
+ * @param {any} q  the dashboard's `quotesRuled`
+ */
+export function quotesRuledRow(q) {
+  const r = quotesRow(q);
+  return r && { ...r, id: QUOTESD_ROW_ID, name: 'Stablecoin quotes variant-2' };
 }
 
 /** PR5's live executor's id among LIVE's rows. */

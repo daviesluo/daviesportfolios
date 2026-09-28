@@ -36,11 +36,17 @@ const M = 60e3, DAY = 86400e3;
 
 export type VariantArmName = "main" | "top5";
 export type VariantArm = {
-  name: VariantArmName;
+  /** PR5V's arms are `main` and `top5`. Another instance may name its own; the name is recorded, not decided on. */
+  name: string;
   /** Each rung's distance from fair, the same on both sides, in the order a turn visits them (bids first, then asks). */
   rungs: number[];
   /** A quote or an exit moves when fair has moved more than this since it was priced. */
   reprice: number;
+  /**
+   * Entry quotes only, when set: the move of fair, as a fraction, past which the rung re-prices. Unset on PR5V's arms,
+   * so they re-price at `reprice` and `VARIANT_CODE_VERSION` does not move for it. Exits always use `reprice`.
+   */
+  entryBand?: (k: number) => number;
   sizeUsd: number;
   /** The share of a minute's printed volume the orders on one side of a book may take between them. */
   volumeShare: number;
@@ -93,7 +99,7 @@ export function printOrder(a: Print, b: Print): number {
   return a.ts - b.ts || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 
-export type VariantTrip = Trip & { arm: VariantArmName; key: string };
+export type VariantTrip = Trip & { arm: string; key: string };
 export type VariantEventKind = "order" | "refused" | "withdraw" | "fill" | "exit" | "stop";
 /** What a POST was, in the reference's words: an entry placed, re-priced or re-placed; an exit the same; a stop. */
 export type PostKind = "place" | "reprice" | "replace" | "exit" | "exit_reprice" | "exit_replace" | "stop";
@@ -102,7 +108,7 @@ export type PostKind = "place" | "reprice" | "replace" | "exit" | "exit_reprice"
  * or a `stop`), what it was.
  */
 export type VariantEvent = {
-  arm: VariantArmName; book: QuoteBook; minute: number; side: Side | "-"; k: number; kind: VariantEventKind; what: PostKind | null;
+  arm: string; book: QuoteBook; minute: number; side: Side | "-"; k: number; kind: VariantEventKind; what: PostKind | null;
   key: string | null; ticks: number | null; detail: Record<string, unknown>;
 };
 
@@ -140,6 +146,7 @@ export function stepVariantMinute(s: BookState, t: number, inp: MinuteInputs, ar
   const day = Math.floor(t / DAY);
   if (gov.day !== day) { gov.day = day; gov.counts = {}; }
   const keyOf = (r: Rung) => variantKey(s.book, r.side);
+  const entryStep = (k: number) => (arm.entryBand ? arm.entryBand(k) : arm.reprice);
   const ev = (r: Rung, kind: VariantEventKind, ticks: number | null, detail: Record<string, unknown> = {}, what: PostKind | null = null) =>
     events.push({ arm: arm.name, book: s.book, minute: t, side: r.side, k: r.k, kind, what, key: keyOf(r), ticks, detail });
   const post = (r: Rung): number => {
@@ -174,11 +181,11 @@ export function stepVariantMinute(s: BookState, t: number, inp: MinuteInputs, ar
         continue;
       }
       if (o.state === "rejected") {
-        if (Math.abs(f / o.fairAt - 1) > arm.reprice) { o.ticks = quoteTicks(f, r.k, r.side); o.fairAt = f; }
+        if (Math.abs(f / o.fairAt - 1) > entryStep(r.k)) { o.ticks = quoteTicks(f, r.k, r.side); o.fairAt = f; }
         if (!blocks(o.side, o.ticks, lpBefore)) { o.live = t + M; o.state = "pending"; order(r, o, "replace", f, x); }
         continue;
       }
-      if (Math.abs(f / o.fairAt - 1) > arm.reprice) {
+      if (Math.abs(f / o.fairAt - 1) > entryStep(r.k)) {
         o.ticks = quoteTicks(f, r.k, r.side); o.fairAt = f; o.live = t + M; o.state = "pending";
         order(r, o, "reprice", f, x);
       }
