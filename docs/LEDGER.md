@@ -366,6 +366,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 01:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**JEV-DRIFT's monitor document is frozen** (`reviews/2026-09-28-jev-drift-monitor.md`), after the reviewer's second pass and with the code it describes deployed (agents v91, 01:18:57 UTC). Its one open question goes to Davies in the briefing: should a flag on the live row clear `live_confirmed_at` on its own until the re-measure is in? Until he answers, it only alerts.
+
 ### [2026-09-28 01:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Davies: at most three sub-agents at a time, and every line to him in Chinese.**
