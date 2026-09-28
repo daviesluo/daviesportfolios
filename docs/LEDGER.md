@@ -221,7 +221,7 @@ list stays the short version; the plan is the reasoning behind it.
    Every draft went through an independent review on 2026-09-28 and is frozen only after a second pass; until then the
    drafts and the reviews live in the working session's scratchpad, never in the repository, because the commit that
    adds a pre-registration freezes it.
-   State at 2026-09-28 01:40 UTC:
+   State at 2026-09-28 01:25 UTC:
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
       43). Open: Davies' answer on whether a live-row flag should clear `live_confirmed_at` by itself.
    2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). The draft is rewritten to the
