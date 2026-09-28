@@ -9,6 +9,8 @@
 node_modules
 .DS_Store
 *.log
+# Python's bytecode cache, written beside any study script that is run
+__pycache__/
 
 # Build source maps. Vite emits these in `build.sourcemap: 'hidden'`
 # mode for local debugging, but they don't get referenced from the
