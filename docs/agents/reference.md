@@ -3059,12 +3059,13 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
 - **Ranked additions**, none a new strategy row:
   1. MX-1.
   2. RW-NEXT: how the 10-09 verdicts are read together, plus a 14-day forward confirmation, RW-C, which needs a
-     second engine on Davies' word.
+     second engine on Davies' word (frozen 2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`; RW-C on `main`).
   3. QUEUE: the stablecoin quotes re-scored by queue position on the recorded books. Frozen before anyone reads
      `agent_book_levels`; run by 2026-11-01 10:25 UTC, when the recorder's 35-day prune reaches the window.
-  4. PR5-R: four readings of PR5's record declared before 10-21.
+  4. PR5-R: four readings of PR5's record declared before 10-21 (frozen 2026-09-28,
+     `reviews/2026-09-28-pr5-readings-prereg.md`).
   5. PR5-W: weekend quotes, a replay.
-  6. EX-GAP: live fills against the control's.
+  6. EX-GAP: live fills against the control's (frozen 2026-09-28, `reviews/2026-09-28-ex-gap-prereg.md`).
   7. JEV-DRIFT: a check of every Jev answer against its measured band.
 - **Considered and dropped:** a dispute rule on Polymarket (24 of 35 recent disputes were overturned) and buying
   longshots (FAV's sign flip). Every rule idea for the crypto rows had already been priced and rejected (appendix A §5,
@@ -3268,9 +3269,15 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
       stay in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdict; only the dashboard leaves it out (`RWX_OFF_PAGE`).
       The stored day rows keep only each market's total and stress, so the verdict reads x3's own rows rather than
       summing x1's and x2's.
+    - **RW-NEXT is frozen (2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`) and amends what follows the three
+      verdicts above, nothing else in their files:** the five arms are read together by its Part 1, which fixes before
+      10-09 which one is the candidate (RW-E if it passes; a variant only under its 1.3; RW only if RW-E does not pass),
+      and the candidate goes to RW-C, its Part 2, before any live test or design. "If it fails, RW stops", RW-E's
+      fail clause and RW-X's "one that fails is closed" stand. It cites RW-C's commits `3682b557`, `17728e3c` and
+      `5a8423a9`.
     - **RW-C, the same rule forward on 2026-10-09 → 10-23 UTC, is built (migration `0069`; Davies approved the build
-      2026-09-27).** It is part 2 of the RW-NEXT pre-registration, drafted in
-      `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4 and still to be frozen before 10-08 00:00 UTC. RW's
+      2026-09-27).** It is part 2 of the RW-NEXT pre-registration (frozen 2026-09-28, above), drafted in
+      `reviews/2026-09-27-testing-review-b-quote-tests.md` §4.4. RW's
       engine stops by constant at 10-09, so `pmrw.ts` runs as a second instance (`RWC_INSTANCE`): RW's rule, selection,
       timing, fills, settlement and accounts, into tables of its own (RW's eleven, named `pm_rwc_…`) under leases of
       its own. `agents?action=pmrwc` and `pmrwc-select` are rows of `edge-calls-every-minute`; before the warm-up,

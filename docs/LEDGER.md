@@ -69,6 +69,9 @@ list stays the short version; the plan is the reasoning behind it.
         rows (the list `0069` left, RW-C's four `pmrwc*` rows and every other row unchanged; the tables stay); the page
         rows stay as a record until Davies says otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
+     g. **Read together by RW-NEXT's Part 1** (frozen 2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`), which amends
+        what follows each of the three verdicts above: it fixes the candidate among the five arms, and the candidate
+        goes to RW-C before any live test or design.
    - **RW-E's variants (Davies, 2026-09-27: study a/b/c, track the ones worth it as TESTING rows the way RW-E is).**
      Research done (history 18:20): (a) dropped; (b) a pause after a jump, (c) no weather, and both, go forward.
      **Pre-registered and frozen 2026-09-27 18:25 UTC** (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`):
@@ -94,11 +97,9 @@ list stays the short version; the plan is the reasoning behind it.
      (`pmrwc-e`, `pmrwc-x`). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Its page row
      "Reward quotes confirmation" appears by itself at its warm-up, 10-08 00:00 UTC** (Davies, 2026-09-28: off the page
      until then; the dashboard reads nothing of it before), "starts 9 Oct 01:00 BST" until its first minute. RW-NEXT
-     (item 5a.3) must be frozen before 10-08 00:00, citing those two commits. The four calls return "before its
-     warm-up" / "before RW-C's first minute is decided" (no database read) until 10-08 00:00 / 10-09 00:02. **Check
-     after 10-08 00:10 UTC** (RW-NEXT's
-     slip rule turns on it): `pm_rwc_selection` holds rows for 10-08, `pm_rwc_state.last_minute` within ~3 min, no
-     `last_error`; after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
+     is frozen (item 5a.3). The four calls return "before its warm-up" / "before RW-C's first minute is decided" (no
+     database read) until 10-08 00:00 / 10-09 00:02. **Check after 10-08 00:10 UTC**: first RW-NEXT's slip-rule check
+     (item 5a.3, its exact query), then `pm_rwc_state.last_minute` within ~3 min and no `last_error`; after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
      both replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars.
      Nothing else of `pm_rwc_*` before its verdict (RW-NEXT's no-peek list). **Its verdict** on or after 2026-10-23
      00:05 UTC by the frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after
@@ -239,25 +240,37 @@ list stays the short version; the plan is the reasoning behind it.
    Every draft went through an independent review on 2026-09-28 and is frozen only after a second pass; until then the
    drafts and the reviews live in the working session's scratchpad, never in the repository, because the commit that
    adds a pre-registration freezes it.
-   State at 2026-09-28 01:25 UTC:
+   State at 2026-09-28 05:45 UTC (both second passes done; the revised drafts in the working session's scratchpad):
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
       43). Open: Davies' answer on whether a live-row flag should clear `live_confirmed_at` by itself.
-   2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). The draft is rewritten to the
-      review: fills from the UK tape with quantities, events by decision, the price actually paid, protective exits out,
-      exits at 60 min and entries at 15, a Clopper–Pearson bound so unseen misses count. Waiting on: C*, the chase of a
-      missed order measured at the rules' own decision minutes (running); one production probe showing `order_id`; the
-      second pass. After the freeze, **every Monday**: pull the UK tape for each event's window and export
-      `agent_basis`'s BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a
-      side or on 2027-03-31.
-   3. **RW-NEXT + RW-C**: the RW-C engine is built on a branch (migration `0069`, `pm_rwc_*` tables, warm-up from
-      2026-10-08 00:00 UTC, judged 10-09 → 10-23) and is being rebased; RW-NEXT is being revised (R1–R11). **Freeze
-      RW-NEXT and land RW-C before 2026-10-08 00:00 UTC**, and before anyone reads a market-level RW figure.
-   4. **QUEUE**: being revised against the second review (QF-1–QF-21). Freeze before 10-25 and before anyone reads the
-      content of `agent_book_levels`. Run by **2026-11-01 10:25 UTC**, when the 35-day prune reaches its window. Pull
-      Kraken's hourly USDT/USD and USDC/USD on 10-26 between 00:05 and 21:59 UTC (720 bars kept).
-   5. **PR5-R**: being revised (P1–P8). Freeze before 10-21.
-   6. **PR5-W**: being revised (WF-1–WF-11). Read on 2026-11-25, which needs PR5's paper engine running to then.
-   7. **EX-GAP**: being revised (E1–E8).
+   2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
+      (entries crossing at 15 min, rule exits at 60; the binding cell `trend-4h` SOL entries, 109.97 from 4 misses;
+      Binance 1-minute tape over windows A–C at the rules' own decision minutes; break-even miss rate 9.09 %, which
+      entries miss 11.2 % of the time on Binance, exits 5.0 %). The measurement's scripts and tables sit in the
+      session scratchpad (`cstar/`) until MX-1 is frozen with them. **Power is low** (the reviser's arithmetic, to
+      check): zero misses need at least 39 judged events for condition 2 to hold, so H1 has little power at 60 events
+      and H2 almost none. That goes to Davies before the freeze. Still open: `{POWER TABLE}`, where the measurement is
+      committed, and two production reads (probes after 19; one probe showing `order_id`, i.e. R3 working).
+      After the freeze, **every Monday**: pull the UK tape for each event's window and export `agent_basis`'s
+      BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a side or on
+      2027-03-31.
+   3. **RW-NEXT: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
+      (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). Its slip rule turns on one check at
+      **2026-10-08 00:10 UTC**, which the first session on or after then runs before anything else (or a one-shot
+      Routine, if Davies grants it the database connector): `select exists (select 1 from public.pm_rwc_selection
+      where day = date '2026-10-08' and selected_at <= timestamptz '2026-10-08 00:10:00+00')`, the command of
+      `edge-calls-every-minute` and the Edge Function version deployed then; the answer goes here. If RW-C is not warm,
+      its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule).
+   4. **QUEUE**: revised against the second pass (N1–N9); ready to freeze once its dry run's two counts are written in
+      (`{DRY-RUN}`: counts and timestamps only, on USDC-GBP, never the page's content). **Freeze before 2026-10-04 00:00
+      UTC**; its window is then 10-04 → 11-01, its export 11-02 00:10 – 11-06 10:25 UTC, and its dates move by whole
+      weeks with a later freeze. Nobody reads the content of `agent_book_levels` before it is frozen.
+   5. **PR5-R: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-pr5-readings-prereg.md`). Read after PR5's four
+      weeks, before the 10-21 review.
+   6. **PR5-W**: revised against the second pass (P1–P8); ready to freeze once its dry run is written in (`{DRY-RUN}`,
+      15 statements, after 09-29 00:00). **Freeze before 2026-10-02 21:00 UTC.** Read on 2026-11-25.
+   7. **EX-GAP: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-ex-gap-prereg.md`). At least 8 pairs by its date,
+      else undecided.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
@@ -389,6 +402,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 05:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Three pre-registrations frozen: EX-GAP, PR5-R and RW-NEXT** (`reviews/2026-09-28-ex-gap-prereg.md`, `-pr5-readings-`, `-rw-next-`), after both reviewers' second passes and a revision that applied every fix they asked for (EX-GAP: pairs listed by the time that selects them, a null touch left out of the split; PR5-R: an entry stays live for each later print; RW-NEXT: close-only means sells of what is held only, `stepRw` alone decides void, tick lateness from `agent_basis`, the page decisions of today, and RW-C's three commits). RW-NEXT's warm-up check had a Routine as its owner; a Routine that reads the database needs Davies to grant it the connector, so the file names the first session on or after 10-08 00:10 as the owner otherwise, and its query reads `selected_at`, so a late check reaches the same answer. The amendment it makes to RW's, RW-E's and RW-X's "What follows" is recorded in reference §4 item 36 and the RW item (g). QUEUE and PR5-W wait only for their dry runs (counts only), which need the database connector; MX-1 waits on its power question and two production reads. Item 5a is rewritten to that state.
 
 ### [2026-09-28 05:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
