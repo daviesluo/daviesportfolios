@@ -1189,7 +1189,9 @@ describe('splitCents — parts that add up to their total as printed', () => {
       expect(fmtUsd(s.total)).toBe(fmtUsd(total));                                              // the total prints as it always did
       s.parts.forEach((p, k) => expect(Math.abs(p - parts[k])).toBeLessThan(0.01 + 1e-9));
     }
-  });
+    // 10,000 expectations: ~1.5 s alone, past vitest's 5 s default when the gates run the browser sweeps beside it
+    // (it timed out there once, 2026-09-28). The work is the same; only the wait is longer.
+  }, 30_000);
 });
 
 describe('quoteLadderRows — a book as the page draws it', () => {
