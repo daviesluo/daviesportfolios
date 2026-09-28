@@ -160,11 +160,12 @@ list stays the short version; the plan is the reasoning behind it.
      10-28 00:30 UTC; read on or after 10-28 01:00 (latest 11-04) by the first session then with the database
      connector, with a reading script committed before 10-27 00:00. Five conditions: faithful to `pr5v_sim.py`, above
      its own null, better than PR5 on a 7-day block bootstrap, stress above zero, the governor held.
-     - **The engine** (`agents/quotes_variant.ts`, migration `0071`) is being built on branch `pr5v-engine`; it starts
-       flat at 2026-09-28 00:00 and may land after the window opens (a late deploy moves no date). Its record counts
-       only if its golden replay against `pr5v_sim.py` passed on the code that wrote it; a code change after it has
-       decided a minute re-decides everything from 00:00 and is a deviation. The page's row and page are on `main`
-       already (`cfe493df`) and show once the dashboard sends `quotesVariant`.
+     - **The engine runs on production** (`agents/quotes_variant.ts`, `1f16126d`, migration `0071` applied
+       2026-09-28 14:46 UTC, `agents?action=quotesv` a row of `edge-calls-every-minute`): flat from 2026-09-28 00:00,
+       catching up 120 minutes a call. Its record counts only if its golden replay against `pr5v_sim.py` passed on the
+       code that wrote it (it did, on `1f16126d`); a code change after it has decided a minute re-decides everything
+       from 00:00 and is a deviation. Check only `agent_quotev_state.last_minute` / `last_error` and `ops_errors`
+       before the reading; the page's row (`cfe493df`) shows once the dashboard sends `quotesVariant`.
      - **At PR5's 10-21 verdict**, keeping PR5's paper engine running is put to Davies: PR5V needs it to 10-28 00:30,
        QUEUE to 11-02, PR5-W to 11-25 (12-23 at the latest). If PR5's record stops early, PR5V's window ends with it
        (the file's fallback; under 21 days it is reported, not judged).
@@ -473,6 +474,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 14:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5V's paper engine is live** (`1f16126d`, pushed 14:45 UTC after every gate passed on it: sweeps 222 / 225, perf 60, edge-test green). CI applied `0071` at 14:46 (migrations run 95) and deployed `agents` (run 332); production then read `0071` as the last migration, one pg_net job whose list carries `agents?action=quotesv`, the five `agent_quotev_*` relations, and the state row catching up from 00:00 with `last_error` null and no `ops_errors`. Only those operational fields are read before the reading. Davies then asked whether a faster GBP/USD source and more order budget would earn much more: the study had called the stale window inside the minute bar the one thing no cadence can shorten, and never priced a faster X, so a research agent is measuring it on Dukascopy's keyless ticks for the study's own days (X from minute bars down to single ticks; 4, 8, 16 keys and ungoverned; at most three POST-cutting re-price rules declared before they run; the books' ceiling; live sources measured keylessly), on its own branch, public data only, reading nothing of PR5's, PR5V's or QUEUE's records.
 
 ### [2026-09-28 14:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
