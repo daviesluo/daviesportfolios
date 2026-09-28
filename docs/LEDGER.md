@@ -260,16 +260,22 @@ list stays the short version; the plan is the reasoning behind it.
       Routine, if Davies grants it the database connector): `select exists (select 1 from public.pm_rwc_selection
       where day = date '2026-10-08' and selected_at <= timestamptz '2026-10-08 00:10:00+00')`, the command of
       `edge-calls-every-minute` and the Edge Function version deployed then; the answer goes here. If RW-C is not warm,
-      its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule).
+      its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule). Owner since
+      2026-09-28: the helper session `session_017Pyo74kGxzzze2oWWrcpBW`, which holds the database connector on Davies'
+      word, woken at 10-08 00:15 UTC by `trig_01MCQwVZmAiCniseQZqi8tGL`. It writes the answer here and, if RW-C is
+      not warm, flags the slip commit, which a main session makes; the first session after 00:10 checks it did.
    4. **QUEUE: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-queue-prereg.md`); window 2026-10-04 → 11-01.
       **Freeze line:** until the export is taken, none of `agents/books.ts`, the table `agent_book_levels`, its prune
       job `agents-books-prune`, `stepMinute` in `agents/quotes.ts` or its minute record (`agent_quote_minutes`)
       changes, except a longer retention on Davies' word; any change is a deviation. Until then every read of
       `agent_book_levels` is of counts, byte lengths, hashes and timestamps. Its dates:
       - **Dry run, before 2026-10-04 00:00 UTC** (after 09-29 00:10): statements A and B of "Before the window", once
-        each, as written (no `page` column). Not yet run; A's `n`, `bytes`, `sha256`, B's `n`, `first_ts`, `last_ts`
-        and whether the two `n` agree go here. A statement that needs a change is changed before the window and
-        recorded as a deviation.
+        each, as written (no `page` column). A statement that needs a change is changed before the window and
+        recorded as a deviation. Owner: the helper session `session_017Pyo74kGxzzze2oWWrcpBW`, which holds the
+        database connector on Davies' word ("sub-agent应该算新会话吧？算的话让sub-agent去做"), woken at 09-29 00:15
+        UTC by `trig_01HZex177UtrLkpPUU8YncmR` with the statements built from the file; failing that, the first session
+        after 09-29 00:10 with the connector.
+        Not yet run; A's `n`, `bytes`, `sha256`, B's `n`, `first_ts`, `last_ts` and whether the two `n` agree go here.
       - Kraken's spare pull between 2026-10-18 and 10-25 (keyless, "Data" item 3).
       - The scorer and checks 1–3 committed before 2026-11-02 00:00 UTC.
       - The export after 2026-11-02 00:10 and before 11-06 10:25 UTC; the tape after 11-02 00:10; Kraken's main pull
@@ -284,10 +290,13 @@ list stays the short version; the plan is the reasoning behind it.
       `agents/books.ts`, the table `agent_book_levels` or its prune job changes, except a longer retention on Davies'
       word; any change is a deviation. Its dates:
       - **Dry runs, before 2026-10-02 21:00 UTC** (after 09-29 00:00): the fifteen statements of "Before the first
-        forward weekend", once each, without the `page` column. Not yet run; each one's `n`, `bytes` and `sha256` go
-        here. A statement that needs a change is changed before that closure and recorded as a deviation.
-      - Arm 3a's backward candles (Revolut X's keyless hourly BTC/ETH/SOL/XRP against USD and GBP, 2025-11-25 →
-        2026-09-23), gzipped and hashed within seven days of the freeze.
+        forward weekend", once each, without the `page` column. A statement that needs a change is changed before
+        that closure and recorded as a deviation. Owner: as QUEUE's dry run, in the same wake.
+        Not yet run; each one's `n`, `bytes` and `sha256` go here.
+      - Arm 3a's backward candles: **done 2026-09-28 06:24 UTC**, 16 minutes after the freeze
+        (`backtests/inputs/pr5w_2026-09-28/candles/`, by `scripts/pr5w/pull_coin_candles.py`): BTC, ETH, SOL and XRP
+        against USD and GBP, 2025-11-25 → 2026-09-23, 7,247 hours each, every hour but 2026-03-09 10:00, which the
+        venue serves for none of them; 64 calls, all 200; each file's sha256 in `SHA256SUMS` there.
       - Arm 3b's first export after 2026-11-01 21:02 and before 2026-11-05 10:25 UTC.
       - The count script committed before 2026-11-25 00:05 UTC.
       - The reading, with 3b's second export, on 2026-11-25 from 00:05 UTC (2026-12-23 at the latest).
@@ -428,6 +437,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 06:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5-W arm 3a's candles pulled, and the database work handed to a helper session.** Arm 3a's backward candles (Revolut X keeps hourly bars about a year) are in `backtests/inputs/pr5w_2026-09-28/candles/`, 16 minutes after the freeze. The database reads this session cannot make (it never loaded the Supabase connector) go to `session_017Pyo74kGxzzze2oWWrcpBW`, a new cloud session on Davies' word: now, R3's check on the maker probes; at 09-29 00:15 UTC, QUEUE's and PR5-W's seventeen dry-run statements, built from the frozen files and checked on a local PostgreSQL; at 10-08 00:15, RW-NEXT's warm-up check. Each read is read-only and returns counts, byte lengths, hashes, timestamps or identifiers; each answer goes into item 5a.
 
 ### [2026-09-28 06:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
