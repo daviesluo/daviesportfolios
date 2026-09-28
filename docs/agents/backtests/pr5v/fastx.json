@@ -1,0 +1,29 @@
+{
+ "status": "declaration only: written and committed before any re-price rule below, or any Dukascopy-X run, was run. fastx.py overwrites this file with the results and keeps this block unchanged under 'declared'.",
+ "declared": {
+  "written_utc": "2026-09-28T15:40Z",
+  "reprice_rules": {
+   "what they change": "only when an ENTRY quote is re-priced (and a refused one re-targeted). Exits keep the 0.03 % step both ways. Everything else is the recommended configuration: nine rungs a side 0.03-0.30 %, $100 a rung, the shared cap, 1 s turns, POST live 1 s after the turn, cancel landing 1 s after, the 600/700 governor per key and UTC day.",
+   "notation": "fa = the fair the quote was priced at, f = the fair now, k = the rung's distance, R = 0.03 %. TOWARD = the move that brings the quote nearer fair (down for a bid, up for an ask); AWAY = the other.",
+   "D_distance": "re-price when |f/fa - 1| > max(R, k/3) (0.03 % up to k = 0.09 %, then 0.0417 % at 0.125, 0.05 % at 0.15, 0.0667 % at 0.20, 0.0833 % at 0.25, 0.10 % at 0.30): each quote stays at least two-thirds of its distance from fair; far rungs are not re-posted on a 0.03 % move.",
+   "A_asymmetric": "re-price when fair moved TOWARD the quote by more than R, or AWAY from it by more than 0.10 %: a move away only leaves the quote further from fair (safe, and fills less), a move toward is the one that gets a quote picked off.",
+   "DA_both": "re-price when fair moved TOWARD the quote by more than max(R, k/3), or AWAY by more than 0.10 %.",
+   "engine": "fastx_sim.py, cfg rule = {frac: 1/3, away: None} (D), {frac: 0, away: 0.001} (A), {frac: 1/3, away: 0.001} (DA)."
+  },
+  "x_resolutions": {
+   "M60/5s": "Dukascopy minute bar (close = mid of the minute's last tick), read 5 s after the bar ends (today's X, from ticks)",
+   "M60/1s": "the same bar read 1 s after it ends",
+   "B15, B5, B1": "15 s, 5 s, 1 s bars (close = the last tick's mid), read 1 s after they end",
+   "T1000, T250": "the latest tick at least 1 s / 0.25 s old at the turn",
+   "dark": "every series is dark 10 minutes after its interval began, as the frozen minute bar is",
+   "fairU": "unchanged: the median of the USD book's hourly closes with start in [t - 24 h, t - 1 h]"
+  },
+  "keys": {
+   "4": "one per book and side (the recommended configuration)",
+   "8": "two per book and side: the side's nine rungs by distance dealt round-robin, {0.03, 0.075, 0.125, 0.20, 0.30} and {0.05, 0.10, 0.15, 0.25}",
+   "16": "four per book and side, rank mod 4: {0.03, 0.125, 0.30}, {0.05, 0.15}, {0.075, 0.20}, {0.10, 0.25}",
+   "keys needed": "from each ungoverned run: per book-side, the fewest keys (any split of its nine rungs, all tried) whose POSTs (placements, re-prices, re-placements, exits, stops) stay under 600 on every UTC day"
+  },
+  "best_combination_rule": "Among X resolution x re-price rule (default 0.03 %, D, A, DA), each run ungoverned and then held to the keys it needs on the IS days (its IS split, so the governor never binds in IS): the highest IS $/day; within 5 % of it, fewer keys, then the slower X. Its OOS, 28-day and fresh numbers are then reported with that split governed, including the days on which a key of that split reaches 600. IS only; nothing is chosen on OOS or fresh days."
+ }
+}
