@@ -1,0 +1,505 @@
+{
+ "windows": [
+  {
+   "log": "live_fx_1.jsonl",
+   "window_ms": [
+    1790607562678,
+    1790608510320
+   ],
+   "minutes": 15.79,
+   "sources": {
+    "bitstamp": {
+     "observations": 947,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 105,
+     "changes_per_minute": 6.65,
+     "median_s_between_changes": 4.17,
+     "p90_s_between_changes": 20.46,
+     "request_ms_median": 377,
+     "request_ms_p90": 642,
+     "age_at_arrival_ms_median": 666,
+     "age_at_arrival_ms_p90": 1578,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.113,
+      "abs_dev_bps_median_at_0": 0.226,
+      "lag_ms_best": 2500,
+      "abs_dev_bps_median_at_best_lag": 0.189,
+      "abs_dev_bps_p95_at_best_lag": 1.849
+     },
+     "vs_truefx": {
+      "offset_bps_median": 0.151,
+      "abs_dev_bps_median_at_0": 0.264,
+      "lag_ms_best": 1600,
+      "abs_dev_bps_median_at_best_lag": 0.226,
+      "abs_dev_bps_p95_at_best_lag": 1.811
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.906,
+      "abs_dev_bps_median_at_0": 0.264,
+      "lag_ms_best": 1300,
+      "abs_dev_bps_median_at_best_lag": 0.264,
+      "abs_dev_bps_p95_at_best_lag": 1.321
+     }
+    },
+    "bitstamp_ws": {
+     "observations": 541,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 174,
+     "changes_per_minute": 11.02,
+     "median_s_between_changes": 1.1,
+     "p90_s_between_changes": 15.13,
+     "age_at_arrival_ms_median": 20,
+     "age_at_arrival_ms_p90": 43,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.113,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 1400,
+      "abs_dev_bps_median_at_best_lag": 0.189,
+      "abs_dev_bps_p95_at_best_lag": 1.849
+     },
+     "vs_truefx": {
+      "offset_bps_median": 0.113,
+      "abs_dev_bps_median_at_0": 0.226,
+      "lag_ms_best": 1300,
+      "abs_dev_bps_median_at_best_lag": 0.226,
+      "abs_dev_bps_p95_at_best_lag": 1.774
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.906,
+      "abs_dev_bps_median_at_0": 0.264,
+      "lag_ms_best": -200,
+      "abs_dev_bps_median_at_best_lag": 0.264,
+      "abs_dev_bps_p95_at_best_lag": 1.321
+     }
+    },
+    "kraken": {
+     "observations": 947,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 262,
+     "changes_per_minute": 16.59,
+     "median_s_between_changes": 2.16,
+     "p90_s_between_changes": 6.09,
+     "request_ms_median": 338,
+     "request_ms_p90": 641,
+     "vs_dukascopy": {
+      "offset_bps_median": -0.717,
+      "abs_dev_bps_median_at_0": 0.226,
+      "lag_ms_best": 3900,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.742
+     },
+     "vs_truefx": {
+      "offset_bps_median": -0.717,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 2100,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.755
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.0,
+      "abs_dev_bps_median_at_0": 0.038,
+      "lag_ms_best": 600,
+      "abs_dev_bps_median_at_best_lag": 0.0,
+      "abs_dev_bps_p95_at_best_lag": 0.491
+     }
+    },
+    "kraken_ws": {
+     "observations": 6086,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 4424,
+     "changes_per_minute": 280.11,
+     "median_s_between_changes": 0.0,
+     "p90_s_between_changes": 0.41,
+     "vs_dukascopy": {
+      "offset_bps_median": -0.717,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 1400,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.755
+     },
+     "vs_truefx": {
+      "offset_bps_median": -0.717,
+      "abs_dev_bps_median_at_0": 0.151,
+      "lag_ms_best": -100,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.755
+     }
+    },
+    "truefx": {
+     "observations": 947,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 434,
+     "changes_per_minute": 27.48,
+     "median_s_between_changes": 1.4,
+     "p90_s_between_changes": 4.08,
+     "request_ms_median": 310,
+     "request_ms_p90": 552,
+     "age_at_arrival_ms_median": 770,
+     "age_at_arrival_ms_p90": 4043,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.038,
+      "abs_dev_bps_median_at_0": 0.075,
+      "lag_ms_best": 500,
+      "abs_dev_bps_median_at_best_lag": 0.075,
+      "abs_dev_bps_p95_at_best_lag": 0.226
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.717,
+      "abs_dev_bps_median_at_0": 0.151,
+      "lag_ms_best": -200,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.715
+     }
+    },
+    "yahoo": {
+     "observations": 5,
+     "failures": 311,
+     "failure_statuses": [
+      "429"
+     ],
+     "value_changes": 2,
+     "changes_per_minute": 0.13,
+     "median_s_between_changes": 156.59,
+     "p90_s_between_changes": 173.51,
+     "request_ms_median": 395,
+     "request_ms_p90": 3039,
+     "age_at_arrival_ms_median": 29621,
+     "age_at_arrival_ms_p90": 45101,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.264,
+      "abs_dev_bps_median_at_0": 0.717,
+      "lag_ms_best": 28400,
+      "abs_dev_bps_median_at_best_lag": 0.604,
+      "abs_dev_bps_p95_at_best_lag": 1.434
+     },
+     "vs_truefx": {
+      "offset_bps_median": 0.189,
+      "abs_dev_bps_median_at_0": 0.792,
+      "lag_ms_best": 54400,
+      "abs_dev_bps_median_at_best_lag": 0.604,
+      "abs_dev_bps_p95_at_best_lag": 1.51
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.868,
+      "abs_dev_bps_median_at_0": 0.679,
+      "lag_ms_best": 56900,
+      "abs_dev_bps_median_at_best_lag": 0.66,
+      "abs_dev_bps_p95_at_best_lag": 1.529
+     }
+    }
+   },
+   "window_utc": [
+    "2026-09-28T14:59:22.678Z",
+    "2026-09-28T15:15:10.320Z"
+   ],
+   "dukascopy_hours_missing": [
+    "2026-09-28T13:00:00.000Z"
+   ],
+   "dukascopy": {
+    "ticks": 2248,
+    "mid_changes": 2233,
+    "mid_changes_per_minute": 141.4,
+    "range_bps": 4.45
+   }
+  },
+  {
+   "log": "live_fx_2.jsonl",
+   "window_ms": [
+    1790609943111,
+    1790610888717
+   ],
+   "minutes": 15.76,
+   "sources": {
+    "bitstamp": {
+     "observations": 945,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 42,
+     "changes_per_minute": 2.66,
+     "median_s_between_changes": 14.44,
+     "p90_s_between_changes": 43.45,
+     "request_ms_median": 294,
+     "request_ms_p90": 548,
+     "age_at_arrival_ms_median": 1016,
+     "age_at_arrival_ms_p90": 1857,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.641,
+      "abs_dev_bps_median_at_0": 0.264,
+      "lag_ms_best": 2300,
+      "abs_dev_bps_median_at_best_lag": 0.226,
+      "abs_dev_bps_p95_at_best_lag": 0.641
+     },
+     "vs_truefx": {
+      "offset_bps_median": 0.717,
+      "abs_dev_bps_median_at_0": 0.302,
+      "lag_ms_best": 8200,
+      "abs_dev_bps_median_at_best_lag": 0.264,
+      "abs_dev_bps_p95_at_best_lag": 0.604
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.755,
+      "abs_dev_bps_median_at_0": 0.113,
+      "lag_ms_best": 2000,
+      "abs_dev_bps_median_at_best_lag": 0.113,
+      "abs_dev_bps_p95_at_best_lag": 0.453
+     }
+    },
+    "bitstamp_ws": {
+     "observations": 339,
+     "failures": 1,
+     "failure_statuses": [
+      "ws error TimeoutError('The read operatio"
+     ],
+     "value_changes": 58,
+     "changes_per_minute": 3.68,
+     "median_s_between_changes": 7.11,
+     "p90_s_between_changes": 38.18,
+     "age_at_arrival_ms_median": 17,
+     "age_at_arrival_ms_p90": 30,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.604,
+      "abs_dev_bps_median_at_0": 0.226,
+      "lag_ms_best": 700,
+      "abs_dev_bps_median_at_best_lag": 0.226,
+      "abs_dev_bps_p95_at_best_lag": 0.641
+     },
+     "vs_truefx": {
+      "offset_bps_median": 0.717,
+      "abs_dev_bps_median_at_0": 0.264,
+      "lag_ms_best": 5900,
+      "abs_dev_bps_median_at_best_lag": 0.264,
+      "abs_dev_bps_p95_at_best_lag": 0.604
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.754,
+      "abs_dev_bps_median_at_0": 0.113,
+      "lag_ms_best": -900,
+      "abs_dev_bps_median_at_best_lag": 0.113,
+      "abs_dev_bps_p95_at_best_lag": 0.415
+     }
+    },
+    "kraken": {
+     "observations": 945,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 250,
+     "changes_per_minute": 15.86,
+     "median_s_between_changes": 2.71,
+     "p90_s_between_changes": 6.99,
+     "request_ms_median": 310,
+     "request_ms_p90": 397,
+     "vs_dukascopy": {
+      "offset_bps_median": -0.113,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 3500,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.566
+     },
+     "vs_truefx": {
+      "offset_bps_median": -0.075,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 5300,
+      "abs_dev_bps_median_at_best_lag": 0.189,
+      "abs_dev_bps_p95_at_best_lag": 0.49
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.0,
+      "abs_dev_bps_median_at_0": 0.038,
+      "lag_ms_best": 300,
+      "abs_dev_bps_median_at_best_lag": 0.0,
+      "abs_dev_bps_p95_at_best_lag": 0.302
+     }
+    },
+    "kraken_ws": {
+     "observations": 3105,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 2212,
+     "changes_per_minute": 140.35,
+     "median_s_between_changes": 0.01,
+     "p90_s_between_changes": 1.15,
+     "vs_dukascopy": {
+      "offset_bps_median": -0.113,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 4400,
+      "abs_dev_bps_median_at_best_lag": 0.151,
+      "abs_dev_bps_p95_at_best_lag": 0.528
+     },
+     "vs_truefx": {
+      "offset_bps_median": -0.075,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": 4000,
+      "abs_dev_bps_median_at_best_lag": 0.189,
+      "abs_dev_bps_p95_at_best_lag": 0.49
+     }
+    },
+    "truefx": {
+     "observations": 946,
+     "failures": 0,
+     "failure_statuses": [],
+     "value_changes": 307,
+     "changes_per_minute": 19.48,
+     "median_s_between_changes": 1.98,
+     "p90_s_between_changes": 7.03,
+     "request_ms_median": 289,
+     "request_ms_p90": 348,
+     "age_at_arrival_ms_median": 1468,
+     "age_at_arrival_ms_p90": 6682,
+     "vs_dukascopy": {
+      "offset_bps_median": 0.0,
+      "abs_dev_bps_median_at_0": 0.075,
+      "lag_ms_best": 600,
+      "abs_dev_bps_median_at_best_lag": 0.075,
+      "abs_dev_bps_p95_at_best_lag": 0.226
+     },
+     "vs_kraken_ws": {
+      "offset_bps_median": 0.075,
+      "abs_dev_bps_median_at_0": 0.189,
+      "lag_ms_best": -2400,
+      "abs_dev_bps_median_at_best_lag": 0.189,
+      "abs_dev_bps_p95_at_best_lag": 0.49
+     }
+    }
+   },
+   "window_utc": [
+    "2026-09-28T15:39:03.111Z",
+    "2026-09-28T15:54:48.717Z"
+   ],
+   "dukascopy_hours_missing": [],
+   "dukascopy": {
+    "ticks": 923,
+    "mid_changes": 921,
+    "mid_changes_per_minute": 58.4,
+    "range_bps": 3.62
+   }
+  }
+ ],
+ "keyless_documented": {
+  "truefx": {
+   "url": "https://webrates.truefx.com/rates/connect.html?f=csv",
+   "docs": "TrueFX Market Data Web API Developer Guide (copy: https://www.yumpu.com/en/document/view/7899027/truefx-market-data-api-developer-guide)",
+   "limits": "unauthenticated: a snapshot of a subset of 10 pairs (GBP/USD among them), no incremental queries; no rate limit stated",
+   "terms": "https://www.truefx.com/truefx-terms-and-conditions/: a licence 'for Your own internal purpose of viewing and analyzing FX market data', applications through the API 'solely for Your internal business purposes', no redistribution; https://www.truefx.com/truefx-market-data-faq/: 'real-time ... tick-by-tick', 'indicative, not executable' (Integral's aggregated stream)"
+  },
+  "kraken": {
+   "url": "https://api.kraken.com/0/public/Ticker?pair=GBPUSD",
+   "docs": "https://support.kraken.com/articles/206548367-what-are-the-api-rate-limits-",
+   "limits": "'Calling the public endpoints at a frequency of 1 per second (or less) would remain within the rate limits', by IP"
+  },
+  "kraken_ws": {
+   "url": "wss://ws.kraken.com/v2 (ticker, symbol GBP/USD, event_trigger bbo)",
+   "docs": "https://docs.kraken.com/api/docs/websocket-v2/ticker"
+  },
+  "bitstamp": {
+   "url": "https://www.bitstamp.net/api/v2/ticker/gbpusd/",
+   "docs": "https://www.bitstamp.net/api/",
+   "limits": "'all clients can make 400 requests per second', 'a default limit threshold of 10,000 requests per 10 minutes'"
+  },
+  "bitstamp_ws": {
+   "url": "wss://ws.bitstamp.net (order_book_gbpusd)",
+   "docs": "https://www.bitstamp.net/websocket/v2/"
+  },
+  "yahoo": {
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/GBPUSD=X?interval=1m&range=1d (meta.regularMarketPrice)",
+   "docs": "none published; the paper engine reads its minute bars in production",
+   "limits": "undocumented; answered 429 to this container for the whole window and after it"
+  }
+ },
+ "signup_documented": {
+  "OANDA (fxTrade Practice, free demo)": {
+   "urls": [
+    "https://developer.oanda.com/rest-live-v20/pricing-ep/",
+    "https://developer.oanda.com/rest-live-v20/development-guide/",
+    "https://developer.oanda.com/rest-live-v20/best-practices/"
+   ],
+   "update": "pricing stream: 'at most 4 prices per second (every 250 milliseconds) for each instrument'; heartbeats every 5 s",
+   "limits": "REST '120 requests per second'; '20 active streams'; 'no more than 2 new connections per second'",
+   "cost": "a free practice account",
+   "fit": "sub-second push (Worker holding the stream) or a 1 s REST poll of /pricing"
+  },
+  "Finnhub (free key; the site already holds one)": {
+   "urls": [
+    "https://finnhub.io/docs/api/forex-rates",
+    "https://finnhub.io/docs/api/forex-candles",
+    "https://finnhub.io/docs/api/websocket-trades",
+    "https://finnhub.io/docs/api/rate-limit",
+    "https://finnhub.io/pricing",
+    "https://finnhub.io/terms-of-service"
+   ],
+   "update": "/forex/rates and /forex/candle are marked 'Premium Access Required'; /quote is 'real-time quote data for US stocks'; the websocket (not premium; free plan 50 symbols) streams 'real-time trades for US stocks, forex and crypto' ('a price update will be sent with volume = 0'), except the FX brokers FXCM, Forex.com and FHFX; '1 API key can only open 1 connection at a time'",
+   "limits": "free plan '60 API calls/minute' (pricing page); 'On top of all plan's limit, there is a 30 API calls/ second limit' (docs); no daily cap is stated either way",
+   "cost": "free; 'Personal Use. Terms apply'; terms: no redistribution, 'Personal plan can't be used by any business'",
+   "fit": "free REST has no forex price; only the websocket (e.g. OANDA:GBP_USD), which a minute-called Edge Function can hold for seconds only and a Worker could hold always"
+  },
+  "Trading 212 (the site already holds a key)": {
+   "urls": [
+    "https://docs.trading212.com/api",
+    "https://docs.trading212.com/_spec/api.json",
+    "https://www.trading212.com/legal-documentation/API-Terms_EN.pdf"
+   ],
+   "update": "no quote, price or FX endpoint; GET /api/v0/equity/positions returns currentPrice (instrument currency) and walletImpact.currentValue / fxImpact (account currency), from which a USD holding's GBP/USD could be backed out; freshness not documented, and the terms say 'We do not guarantee their correctness, accuracy, completeness, or timeliness in any way' (5.1)",
+   "limits": "/equity/positions 1 req / 1s, 'applied on a per-account basis, regardless of which API key is used' (shared with the site's own trading212 function); /equity/account/summary 1 req / 5s",
+   "cost": "free with the account; API Terms 4.2(a) 'expressly prohibited from using our API for Algorithmic Trading purposes', 4.2(h) may not use it 'to monitor the availability, performance, or functionality of any part of the API, the Service Data, a third-party service or for any similar benchmarking purposes', 6.2 personal use 'and only for testing purposes'",
+   "fit": "not a GBP/USD source: no FX endpoint, an undocumented rate hidden in a position valuation, and terms against this use"
+  },
+  "TraderMade": {
+   "urls": [
+    "https://tradermade.com/pricing",
+    "https://tradermade.com/docs/restful-api"
+   ],
+   "update": "live endpoint https://marketdata.tradermade.com/api/v1/live, 'live sub-second data'",
+   "limits": "no free plan on the pricing page",
+   "cost": "FX & Crypto \u00a3599/month (WebSocket included)",
+   "fit": "paid"
+  },
+  "Twelve Data": {
+   "urls": [
+    "https://twelvedata.com/pricing"
+   ],
+   "update": "Basic: 'Real-time forex market data'; WebSocket only as '8 trial WS'",
+   "limits": "Basic (free): 8 API credits a minute, 800 a day (one call every 108 s on average); Grow $79/month: 377 a minute, 'No daily limits'",
+   "cost": "free Basic is 'Internal non-display usage'",
+   "fit": "free tier too small for sub-minute; Grow could poll every second"
+  },
+  "Massive (formerly Polygon.io)": {
+   "urls": [
+    "https://massive.com/pricing?product=currencies"
+   ],
+   "update": "Currencies Basic: 'End of Day Data', no WebSockets; Starter: 'Real-time Data' and 'WebSockets'",
+   "limits": "Basic '5 API Calls / Minute'",
+   "cost": "Starter $49/month",
+   "fit": "paid"
+  },
+  "IG (demo account)": {
+   "urls": [
+    "https://labs.ig.com/faq.html",
+    "https://labs.ig.com/streaming-api-guide.html"
+   ],
+   "update": "Lightstreamer streaming; MERGE mode 'regulate[s] the update rate'",
+   "limits": "per app 60 non-trading requests a minute, per account 30; 40 subscriptions a connection",
+   "cost": "free demo, but a demo key needs a demo account opened with the live account's e-mail",
+   "fit": "push via a held Lightstreamer session (Worker); REST far too slow"
+  },
+  "FXCM (demo account)": {
+   "urls": [
+    "https://fxcm-rest.readthedocs.io/en/latest/socketrestapispecs.html"
+   ],
+   "update": "push over a socket.io connection after subscribing",
+   "limits": "not stated in the pages read",
+   "cost": "free demo token",
+   "fit": "push via a held socket.io session (Worker)"
+  },
+  "Alpha Vantage": {
+   "urls": [
+    "https://www.alphavantage.co/premium/"
+   ],
+   "limits": "'25 API requests per day' free; 75 a minute at $49.99/month",
+   "fit": "free tier far too small"
+  }
+ }
+}
