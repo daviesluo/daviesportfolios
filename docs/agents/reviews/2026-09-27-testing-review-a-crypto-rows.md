@@ -2,8 +2,8 @@
 
 > Appendix A of `2026-09-27-testing-portfolio-review.md`, written by a read-only research agent and kept as it
 > reported. One thing changed after it: the defect in §4.1 was fixed the same evening (`0068`, reference §4 item 41),
-> which re-dated probes 15 and 17 to 2 and 39 minutes. Probe 17's later fill changes the entries' row of §4.2's table
-> at T = 15 and 30 minutes (1 of 2 filled, not 2 of 2); the review's §2.3 has the corrected figures. The scratch
+> which re-dated probes 15 and 17 to 2 and 39 minutes on the candles. The trade tape then showed both filled in their
+> first minute (40.8 and 50.7 s), and probe 1 not at all; the review's §2.3 correction has the figures. The scratch
 > scripts it names were not kept; the SQL is in §8.
 
 Read-only study. Production read at 2026-09-27 21:39–21:50 UTC (`select now()` = Sun 21:38:57 UTC). Nothing in the

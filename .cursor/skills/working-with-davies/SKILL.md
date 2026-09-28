@@ -644,6 +644,14 @@ Read these as a checklist before pushing.
   (2026-09-26). Before adding a reader, list who else reads that bucket and
   when; after the deploy, read the new job's own answers, not only that it
   ran.
+- **"The trades show" is a claim about the tape, not the candles.**
+  On 2026-09-27 a fix re-dated two maker probes "to what the venue's own
+  trades show", read from 1-minute candles. The public trade tape, which
+  keeps every print with its millisecond, said otherwise the next night,
+  in both directions: one probe the candles filled never traded through,
+  and one they moved to 39 minutes had filled in 51 s. A candle's extreme
+  can be a quote, and its minute hides when inside it a print came. When
+  a sentence names trades, read the tape before writing it.
 
 ## Third-party reviews
 

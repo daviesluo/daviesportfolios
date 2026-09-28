@@ -104,6 +104,19 @@ mid stood 50 bps higher at 08:16 than at 08:15. Nine events cannot decide the qu
 visible, though: the trail sells on a close that has just fallen, and the price bounces within the hour. A
 pre-registered forward reading can decide it (MX-1, §4).
 
+**Correction, 2026-09-28: read against the trade tape, this table is wrong.** The pre-registration review checked
+every probe against Revolut X's public UK trade tape, which keeps each print with its millisecond. A candle misleads in
+both directions:
+
+- Probe 1 (BTC exit, 09-22) never filled: no UK print went through its price for four hours. Its candle's high was a
+  quote, and the candle's volume was a sell below the price.
+- Probe 17 (the SOL entry of 09-27) filled 50.7 s after it was written, and probe 15 40.8 s after. `0068` moved them to
+  39 and 2 minutes on the candles.
+
+By the tape, 8 of the 9 events filled within 60 minutes. Resting and crossing at 60 minutes is worth about +5.4 to +6.2
+bps on the exits (6 of 7 filled; the miss chased 27–33 bps) and +12.7 on the entries at 15, 30 and 60 minutes alike.
+The probes' rows stay as the loop's rule computed them; MX-1 reads fills from the tape (reference §4 item 41).
+
 ### 2.4 Is this the right crypto set? (A §7)
 
 Yes. Keep all three rows.

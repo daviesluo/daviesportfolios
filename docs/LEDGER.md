@@ -366,6 +366,12 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 00:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The probes' fill record corrected against the trade tape; the five pre-registration drafts go back for rework.**
+- An independent review of the drafts (MX-1, EX-GAP, JEV-DRIFT, RW-NEXT, PR5-R) checked every probe against Revolut X's public UK trade tape, and I re-read two of them there myself: probe 1's fill was false (no print through its price for four hours) and probe 17 filled in 50.7 s, not the 39 minutes `0068` gave it from candles. Reference §4 item 41, §3.43 and the review's §2.3 now say so; the rows stay as the loop's rule computed them, and MX-1 will read fills from the tape. The corrected prior: exits about +5.4 to +6.2 bps (6 of 7 filled), entries +12.7.
+- None of the five drafts is frozen yet: each goes back with the review's fixes (`scratchpad/prereg_review.md`, not committed). The lesson is in the working-with-davies skill: when a sentence names trades, read the tape.
+
 ### [2026-09-28 00:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **JEV-DRIFT runs in the tick: each entry's answer against the replies measured for its state.**
