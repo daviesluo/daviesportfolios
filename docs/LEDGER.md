@@ -257,8 +257,8 @@ list stays the short version; the plan is the reasoning behind it.
    2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
       (entries crossing at 15 min, rule exits at 60; the binding cell `trend-4h` SOL entries, 109.97 from 4 misses;
       Binance 1-minute tape over windows A–C at the rules' own decision minutes; break-even miss rate 9.09 %, which
-      entries miss 11.2 % of the time on Binance, exits 5.0 %). The measurement's scripts and tables sit in the
-      session scratchpad (`cstar/`) until MX-1 is frozen with them. **Power is low** (checked 2026-09-28, exact
+      entries miss 11.2 % of the time on Binance, exits 5.0 %). The measurement's report, scripts and tables are
+      committed in `docs/agents/backtests/mx1/cstar/` (its 132 MB of public inputs by sha256 only, `INPUTS.sha256`). **Power is low** (checked 2026-09-28, exact
       binomial): at 97.5 % the most misses condition 2 allows are 0 at 39 events, 1 at 60, 3 at 100, 6 at 150 and 10
       at 200, so at a true exit miss rate of 5.0 % H1 passes with probability 0.19 at 60 events (0.26, 0.37, 0.58 at
       100, 150, 200), and H2, at 11.2 %, under 0.01 at any of them. One exits-only test at 95 % allows 4 misses at 100,
@@ -453,6 +453,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 11:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's C* measurement committed** (`docs/agents/backtests/mx1/cstar/`): the report, every script, its logs, tables and outputs, made before the freeze from public data only. The inputs (Binance's 1-minute klines and the hourly Coinbase and Kraken series, 132 MB) are listed by sha256, size and path in `INPUTS.sha256`, not committed; `decisions.ts` imports the loop's simulator by relative path and type-checks from there. MX-1 itself is revised to Davies' choice (exits only, one test at 5 %, 150 judged exits or 2027-06-30) and waits for an independent check before its freeze.
 
 ### [2026-09-28 11:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

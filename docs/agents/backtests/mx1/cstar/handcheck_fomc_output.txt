@@ -1,0 +1,16 @@
+
+trend-1h BTC/USD exit at the close 2023-03-22T19:00Z (window D); the backtester's previous fill on this row and coin: entry at 2023-03-22T15:00Z
+    entry filled at the 2023-03-22T15:00Z bar's open 28615.0 x (1 + half-spread) = 28617.1461; high-water at the decision bar 28879.9, at the bar before 28775.0
+  the bar before:
+    bar 2023-03-22T17:00Z close 28513.1 (at 2023-03-22T18:00Z): SMA20 28270.6600 SMA100 27843.2560 gap +1.535 %; prior-55 high 28780.0; prior-20 low 27945.7; 30-day return +15.92 % (2023-02-19T00:00Z close 24287.2 -> 2023-03-21T00:00Z close 28154.1); realised vol 0.425; ATR14 175.8786
+      ENTRY conditions: trend up (gap > 0.2 %) True | close > prior-55 high False | 30-day return > 0 True | vol < 1.0 True  => no entry
+      EXIT conditions (if long): trend down (gap < -0.2 %) False | close below prior-20 low False | close < high-water 28775.0 - 3 x ATR = 28247.3643: False  => hold
+  the decision bar:
+    bar 2023-03-22T18:00Z close 28050.4 (at 2023-03-22T19:00Z): SMA20 28269.6800 SMA100 27847.6600 gap +1.515 %; prior-55 high 28780.0; prior-20 low 27945.7; 30-day return +15.92 % (2023-02-19T00:00Z close 24287.2 -> 2023-03-21T00:00Z close 28154.1); realised vol 0.485; ATR14 251.8000
+      ENTRY conditions: trend up (gap > 0.2 %) True | close > prior-55 high False | 30-day return > 0 True | vol < 1.0 True  => no entry
+      EXIT conditions (if long): trend down (gap < -0.2 %) False | close below prior-20 low False | close < high-water 28879.9 - 3 x ATR = 28124.5000: True  => EXIT
+    T=15: m0 = 28028.0 (open of the 2023-03-22T19:00Z minute); P = 28030.802800; K = 28025.197200; highest high over the 15 minutes from t0 = 28028.0; first minute through P: none; open at t0+15 = 27415.16
+      MISSED: chase = 218.6528 bps  (check: 1 - open_T/m0 = 218.6528 bps)
+    T=60: m0 = 28028.0 (open of the 2023-03-22T19:00Z minute); P = 28030.802800; K = 28025.197200; highest high over the 60 minutes from t0 = 28028.0; first minute through P: none; open at t0+60 = 26668.8
+      MISSED: chase = 484.9436 bps  (check: 1 - open_T/m0 = 484.9436 bps)
+    cstar.py recorded: T15 ['miss', 218.65277579563192], T60 ['miss', 484.94362780077074]
