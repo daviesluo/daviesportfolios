@@ -240,7 +240,7 @@ list stays the short version; the plan is the reasoning behind it.
    Every draft went through an independent review on 2026-09-28 and is frozen only after a second pass; until then the
    drafts and the reviews live in the working session's scratchpad, never in the repository, because the commit that
    adds a pre-registration freezes it.
-   State at 2026-09-28 05:45 UTC (both second passes done; the revised drafts in the working session's scratchpad):
+   State at 2026-09-28 06:22 UTC (six of the seven frozen; MX-1's draft is in the working session's scratchpad):
    1. **JEV-DRIFT: done.** Code live (agents v91), monitor frozen (`reviews/2026-09-28-jev-drift-monitor.md`, §4 item
       43). Open: Davies' answer on whether a live-row flag should clear `live_confirmed_at` by itself.
    2. **MX-1**: R1, R2 and R3 recording are live (§4 items 41, 42, 44; R3 at 01:09 UTC). **C* measured: 110 bps**
@@ -254,22 +254,48 @@ list stays the short version; the plan is the reasoning behind it.
       After the freeze, **every Monday**: pull the UK tape for each event's window and export `agent_basis`'s
       BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a side or on
       2027-03-31.
-   3. **RW-NEXT: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
+   3. **RW-NEXT: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
       (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). Its slip rule turns on one check at
       **2026-10-08 00:10 UTC**, which the first session on or after then runs before anything else (or a one-shot
       Routine, if Davies grants it the database connector): `select exists (select 1 from public.pm_rwc_selection
       where day = date '2026-10-08' and selected_at <= timestamptz '2026-10-08 00:10:00+00')`, the command of
       `edge-calls-every-minute` and the Edge Function version deployed then; the answer goes here. If RW-C is not warm,
       its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule).
-   4. **QUEUE**: revised against the second pass (N1–N9); ready to freeze once its dry run's two counts are written in
-      (`{DRY-RUN}`: counts and timestamps only, on USDC-GBP, never the page's content). **Freeze before 2026-10-04 00:00
-      UTC**; its window is then 10-04 → 11-01, its export 11-02 00:10 – 11-06 10:25 UTC, and its dates move by whole
-      weeks with a later freeze. Nobody reads the content of `agent_book_levels` before it is frozen.
-   5. **PR5-R: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-pr5-readings-prereg.md`). Read after PR5's four
+   4. **QUEUE: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-queue-prereg.md`); window 2026-10-04 → 11-01.
+      **Freeze line:** until the export is taken, none of `agents/books.ts`, the table `agent_book_levels`, its prune
+      job `agents-books-prune`, `stepMinute` in `agents/quotes.ts` or its minute record (`agent_quote_minutes`)
+      changes, except a longer retention on Davies' word; any change is a deviation. Until then every read of
+      `agent_book_levels` is of counts, byte lengths, hashes and timestamps. Its dates:
+      - **Dry run, before 2026-10-04 00:00 UTC** (after 09-29 00:10): statements A and B of "Before the window", once
+        each, as written (no `page` column). Not yet run; A's `n`, `bytes`, `sha256`, B's `n`, `first_ts`, `last_ts`
+        and whether the two `n` agree go here. A statement that needs a change is changed before the window and
+        recorded as a deviation.
+      - Kraken's spare pull between 2026-10-18 and 10-25 (keyless, "Data" item 3).
+      - The scorer and checks 1–3 committed before 2026-11-02 00:00 UTC.
+      - The export after 2026-11-02 00:10 and before 11-06 10:25 UTC; the tape after 11-02 00:10; Kraken's main pull
+        on 11-02 between 00:05 and 19:59 UTC.
+      - If check 4 has not passed by 2026-11-04 00:00 UTC, a longer retention is put to Davies.
+      - Reminder: Routine `trig_01MhZNQLy1QXGXGJbqiNx9rL`, 2026-11-02 00:15 UTC (shared with PR5-W; it reminds only,
+        and holds no connector).
+   5. **PR5-R: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-pr5-readings-prereg.md`). Read after PR5's four
       weeks, before the 10-21 review.
-   6. **PR5-W**: revised against the second pass (P1–P8); ready to freeze once its dry run is written in (`{DRY-RUN}`,
-      15 statements, after 09-29 00:00). **Freeze before 2026-10-02 21:00 UTC.** Read on 2026-11-25.
-   7. **EX-GAP: frozen 2026-09-28 05:45 UTC** (`reviews/2026-09-28-ex-gap-prereg.md`). At least 8 pairs by its date,
+   6. **PR5-W: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-pr5-weekend-prereg.md`). **Freeze line:**
+      until the reading, none of `stepMinute` in `agents/quotes.ts`, its minute record (`agent_quote_minutes`),
+      `agents/books.ts`, the table `agent_book_levels` or its prune job changes, except a longer retention on Davies'
+      word; any change is a deviation. Its dates:
+      - **Dry runs, before 2026-10-02 21:00 UTC** (after 09-29 00:00): the fifteen statements of "Before the first
+        forward weekend", once each, without the `page` column. Not yet run; each one's `n`, `bytes` and `sha256` go
+        here. A statement that needs a change is changed before that closure and recorded as a deviation.
+      - Arm 3a's backward candles (Revolut X's keyless hourly BTC/ETH/SOL/XRP against USD and GBP, 2025-11-25 →
+        2026-09-23), gzipped and hashed within seven days of the freeze.
+      - Arm 3b's first export after 2026-11-01 21:02 and before 2026-11-05 10:25 UTC.
+      - The count script committed before 2026-11-25 00:05 UTC.
+      - The reading, with 3b's second export, on 2026-11-25 from 00:05 UTC (2026-12-23 at the latest).
+      - At PR5's 2026-10-21 verdict: ask Davies whether PR5's paper engine and its minute record keep running to the
+        reading.
+      - Reminders: Routines `trig_01MhZNQLy1QXGXGJbqiNx9rL` (2026-11-02 00:15 UTC) and `trig_01B4gd9et9w8TJXmjJNyFTcF`
+        (2026-11-25 00:05 UTC); they remind only, and hold no connector.
+   7. **EX-GAP: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-ex-gap-prereg.md`). At least 8 pairs by its date,
       else undecided.
 
 6. **Davies' to decide or to do; nothing waits on them:**
@@ -403,15 +429,19 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
-### [2026-09-28 06:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-28 06:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**QUEUE and PR5-W frozen** (`reviews/2026-09-28-queue-prereg.md`, `-pr5-weekend-prereg.md`), after both reviewers' second passes. Each file's dry run (the counts, byte lengths and hashes of its export statements, never a page) reads a day that closes only at 09-29 00:00/00:10 UTC and needs the database connector, so each now runs it after its freeze and before its first judged data (QUEUE before 10-04 00:00, PR5-W before 10-02 21:00), a change being a deviation. The seventeen statements, built from the two files, were run on a local PostgreSQL with the production schema (`0051`, `0052`, `0055`, `0057`, `0058`) and made-up rows: each runs, and each agrees with the same statement with its page. Item 5a lists the dates each keeps; two reminder Routines hold them. Also: three headers of this morning were written ahead of the clock (05:45, 06:30, 06:50) and now carry their commits' times (05:36, 06:02, 06:08).
+
+### [2026-09-28 06:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Fixed: a panel refresh that arrived while another was out was dropped.** The gates caught it under load: the sweep's six-minute tick came while the refresh button's own fetch was still out, and the panel waited a whole refresh more; a button pressed during a tick's fetch did nothing at all. The refresh is now remembered, with the button's force if it had it, and run as soon as the fetch in flight lands. Pinned in `perf_chart.reload.test.jsx` (fails on the old code: the button's fetch never came).
 
-### [2026-09-28 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-28 06:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **1W reaches the current minute too** (Davies: "1w的也需要改"). `liveEdgeDate` takes a gap limit per window (20 min on 24H's 5-minute bars, 35 on 1W's 15-minute ones), the benchmark is re-fetched after a minute on 1W as on 24H, and one rule (`perfMaxAgeMs`) now decides a bar's age both when a window is opened and at a refresh, so switching to a window whose benchmark is over a minute old fetches it at once instead of waiting for the next tick. Pinned: vitest (the 1W gap; a rendered 1W window with the edge and the minute refetch — fails without the change) and the sweep's live-edge section on 1W at both widths ("Sep 17 23:01" at the edge, 22:50 and +5.04 % a step left, +6.08 % 90 s on).
 
-### [2026-09-28 05:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-09-28 05:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Three pre-registrations frozen: EX-GAP, PR5-R and RW-NEXT** (`reviews/2026-09-28-ex-gap-prereg.md`, `-pr5-readings-`, `-rw-next-`), after both reviewers' second passes and a revision that applied every fix they asked for (EX-GAP: pairs listed by the time that selects them, a null touch left out of the split; PR5-R: an entry stays live for each later print; RW-NEXT: close-only means sells of what is held only, `stepRw` alone decides void, tick lateness from `agent_basis`, the page decisions of today, and RW-C's three commits). RW-NEXT's warm-up check had a Routine as its owner; a Routine that reads the database needs Davies to grant it the connector, so the file names the first session on or after 10-08 00:10 as the owner otherwise, and its query reads `selected_at`, so a late check reaches the same answer. The amendment it makes to RW's, RW-E's and RW-X's "What follows" is recorded in reference §4 item 36 and the RW item (g). QUEUE and PR5-W wait only for their dry runs (counts only), which need the database connector; MX-1 waits on its power question and two production reads. Item 5a is rewritten to that state.
 

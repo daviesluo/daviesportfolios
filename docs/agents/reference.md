@@ -3060,11 +3060,13 @@ was read with SELECT only; no RW fill, minute, print or selection table and no r
   1. MX-1.
   2. RW-NEXT: how the 10-09 verdicts are read together, plus a 14-day forward confirmation, RW-C, which needs a
      second engine on Davies' word (frozen 2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`; RW-C on `main`).
-  3. QUEUE: the stablecoin quotes re-scored by queue position on the recorded books. Frozen before anyone reads
-     `agent_book_levels`; run by 2026-11-01 10:25 UTC, when the recorder's 35-day prune reaches the window.
+  3. QUEUE: the stablecoin quotes re-scored by queue position on the recorded books (frozen 2026-09-28, before anyone
+     read a level of `agent_book_levels`, `reviews/2026-09-28-queue-prereg.md`). Its window is 10-04 → 11-01, exported
+     between 11-02 00:10 and 11-06 10:25 UTC, before the recorder's 35-day prune reaches it.
   4. PR5-R: four readings of PR5's record declared before 10-21 (frozen 2026-09-28,
      `reviews/2026-09-28-pr5-readings-prereg.md`).
-  5. PR5-W: weekend quotes, a replay.
+  5. PR5-W: weekend quotes, a replay of the eight weekends after the freeze (frozen 2026-09-28,
+     `reviews/2026-09-28-pr5-weekend-prereg.md`; read on 2026-11-25).
   6. EX-GAP: live fills against the control's (frozen 2026-09-28, `reviews/2026-09-28-ex-gap-prereg.md`).
   7. JEV-DRIFT: a check of every Jev answer against its measured band.
 - **Considered and dropped:** a dispute rule on Polymarket (24 of 35 recent disputes were overturned) and buying
