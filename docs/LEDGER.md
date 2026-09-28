@@ -453,6 +453,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
 
+### [2026-09-28 14:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The Agents page is ready for "Stablecoin quotes - variant"** (Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"): a TESTING row right after the quote test, counted in TESTING's scoreboard and Revolut X card like the quote test, and a page of its own, the quote test's page with nine rungs a side. It shows once the dashboard sends `quotesVariant`; the engine that fills it is being built. A rung's label now keeps three decimals (`quoteRungLabel`): two printed the variant's 0.075 % and 0.125 % as 0.07 % and 0.13 %. Pinned in `agents.test.js` and in the sweep at both widths (mode `quotesv`: the row after the quote test, the Revolut X card at $1,380 + $3,600, the page's nine labelled rungs a book).
+
 ### [2026-09-28 12:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **PR5's live path keeps under Revolut X's 10 order POSTs a second** (reference §4 item 35). The PR5v study found the frozen shape sends twelve POSTs at once when every rung is placed or re-priced; in production nothing spaced them, because the book an order meets is read from the paper engine's snapshot. The executor now spaces its own POSTs 125 ms apart, and sends a 429'd order once more after a second (same client id: a 429 was never taken). Before, a 429 was booked as a refusal: its decision was never sent again, and a turned-away stop waited an hour. The dry-run sends nothing, so PR5-R's readings of it are unchanged. The fake venue now enforces the 10 a second; all 37 live pins and the tick suites pass under it, and each of the four new pins fails with its part of the fix removed.

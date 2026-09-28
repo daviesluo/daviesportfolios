@@ -1154,6 +1154,20 @@ export function quotesRow(q) {
   };
 }
 
+/** The quote test's variant's id among the table's rows (Davies, 2026-09-28: "Stablecoin quotes - variant"). */
+export const QUOTESV_ROW_ID = '__quotesv';
+
+/**
+ * PR5's rule with nine rungs a side, a 0.03 % re-price and four keys, replayed on paper from PR5's own stored minutes
+ * (`reviews/2026-09-28-pr5-variant-prereg.md`): the same row as the quote test's, under its own id and name. null
+ * keeps it off the table.
+ * @param {any} q  the dashboard's `quotesVariant`
+ */
+export function quotesVariantRow(q) {
+  const r = quotesRow(q);
+  return r && { ...r, id: QUOTESV_ROW_ID, name: 'Stablecoin quotes - variant' };
+}
+
 /** PR5's live executor's id among LIVE's rows. */
 export const QUOTES_LIVE_ROW_ID = '__quotes_live';
 
@@ -1256,11 +1270,18 @@ export function quoteLadderRows(book) {
   };
   return ks.map((k) => ({
     k,
-    label: `${+(k * 100).toFixed(2)} %`,
+    label: quoteRungLabel(k),
     bid: cell(rungs.find((r) => r.side === 'bid' && Number(r.k) === k)),
     ask: cell(rungs.find((r) => r.side === 'ask' && Number(r.k) === k)),
   }));
 }
+
+/**
+ * A rung's distance from fair as the page writes it: 0.001 → "0.1 %", 0.00075 → "0.075 %". Three decimals, because the
+ * variant quotes at 0.075 % and 0.125 %, which two would print as 0.07 % and 0.13 %.
+ * @param {number} k
+ */
+export const quoteRungLabel = (k) => `${+(Number(k) * 100).toFixed(3)} %`;
 
 /** A book's name as the page writes a pair: "USDC-GBP" → "USDC/GBP". @param {string} b */
 export const quoteBookLabel = (b) => String(b ?? '').replace('-', '/');

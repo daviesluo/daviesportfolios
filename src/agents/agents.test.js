@@ -3,7 +3,7 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quoteLadderRows, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
 import {
@@ -950,6 +950,22 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
     expect(quotesRow({ ...q, open: 0, openUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
     expect(quotesRow({ ...q, unrealisedUsd: null })?.unrealisedUsd).toBe(0);    // a book with no print yet: nothing to show, not NaN
     expect(quotesRow(null)).toBe(null);
+  });
+  it('the variant is the same row under its own id and name (Davies, 2026-09-28: "Stablecoin quotes - variant")', () => {
+    const v = quotesVariantRow({ ...q, capitalUsd: 3600 });
+    expect([v?.id, v?.name, v?.venueId, v?.mode, v?.capitalUsd, v?.nextText]).toEqual([QUOTESV_ROW_ID, 'Stablecoin quotes - variant', 'revx', 'paper', 3600, 'every minute']);
+    expect(QUOTESV_ROW_ID).not.toBe(QUOTES_ROW_ID);
+    expect(quotesVariantRow(null)).toBe(null);
+  });
+});
+
+describe('quoteRungLabel — a rung as the page prints it', () => {
+  it('keeps the variant\'s 0.075 % and 0.125 % whole, and the quote test\'s rungs as they were', () => {
+    expect([0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003].map(quoteRungLabel))
+      .toEqual(['0.03 %', '0.05 %', '0.075 %', '0.1 %', '0.125 %', '0.15 %', '0.2 %', '0.25 %', '0.3 %']);
+    // Two decimals, as the page had it, printed these two as 0.07 % and 0.13 %.
+    expect([+(0.00075 * 100).toFixed(2), +(0.00125 * 100).toFixed(2)]).toEqual([0.07, 0.13]);
+    expect(quoteLadderRows({ rungs: [{ side: 'bid', k: 0.00075, mode: 'quote', price: 0.7545 }] }).map((r) => r.label)).toEqual(['0.075 %']);
   });
 });
 

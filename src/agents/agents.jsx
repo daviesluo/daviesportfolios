@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, quoteBookLabel, quoteLadderRows, quotesRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, QUOTESV_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesRow, quotesVariantRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -351,11 +351,12 @@ function LadderCell({ c, m }) {
  * PR5's quotes on paper (reference §4 item 31), opened from their row in TESTING STRATEGIES: the strategy page's
  * header and scoreboard, then what differs — two books of six rungs instead of coins and a chart, and the round trips
  * instead of the orders. Its cards use the quote classes, which share the venue cards' rules without being venue
- * cards: the sweep finds a venue card by its class.
+ * cards: the sweep finds a venue card by its class. Its variant (`quotesVariant`) is the same page under its own title
+ * and row: nine rungs a side, so nine ladder rows a book.
  */
-function QuotesDetail({ q, m, at, nowMs }) {
+function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = quotesRow }) {
   const v = quotesView(q);
-  const row = quotesRow(q);
+  const row = rowOf(q);
   if (!v || !row) return null;
   const recent = q.recent ?? [];
   // Each UTC day, newest first, below the books (Davies, 2026-09-28: Reward quotes' days table, here too). Today's row
@@ -368,7 +369,7 @@ function QuotesDetail({ q, m, at, nowMs }) {
         <VenueBadge id="revx" />
         <StatusDot status={row.status} since={q.startedAt} nowMs={nowMs} />
       </div>
-      <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
+      <h3 className="ag-detail-title mono sr-only">{title}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
         <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
         <div className="ag-sb-divider" />
@@ -443,7 +444,7 @@ function QuotesDetail({ q, m, at, nowMs }) {
                   <td className="dim">{when(t.tExit)}</td>
                   <td className="hl-strong">{quoteBookLabel(t.book)}</td>
                   <td><span className={`ag-side ag-side-${t.side === 'bid' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{t.side === 'bid' ? 'bought' : 'sold'}</span></td>
-                  <td className="ag-ph dim">{t.k != null ? `${+(t.k * 100).toFixed(2)} %` : '—'}</td>
+                  <td className="ag-ph dim">{t.k != null ? quoteRungLabel(t.k) : '—'}</td>
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
                   <td className="dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
@@ -1288,6 +1289,9 @@ function AgentsModal({ hideValues, onClose }) {
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
   // The quote test is a row of TESTING STRATEGIES (Davies, 2026-09-23), after the strategies; it runs on paper only.
   const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
+  // Its variant, nine rungs a side on four keys, replayed from the quote test's own minutes, right after it (Davies,
+  // 2026-09-28: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing").
+  const quotesV = React.useMemo(() => quotesVariantRow(dash?.quotesVariant), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
   // RW-E, RW without the markets that end on the day they are chosen, is a row of its own after it (Davies, 2026-09-26).
@@ -1298,7 +1302,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwc = React.useMemo(() => rwcRow(dash?.rwc), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : [])], [quotes, rw, rwe, rwx, rwc]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : [])], [quotes, quotesV, rw, rwe, rwx, rwc]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1313,6 +1317,7 @@ function AgentsModal({ hideValues, onClose }) {
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
   const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
+  const quotesVOpen = selected === QUOTESV_ROW_ID && !!dash?.quotesVariant && !!quotesV;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
@@ -1382,6 +1387,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} />
+        </div>
+      </Modal>
+    )}
+    {quotesVOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">Stablecoin quotes - variant</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes - variant" rowOf={quotesVariantRow} />
         </div>
       </Modal>
     )}

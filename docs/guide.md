@@ -109,8 +109,8 @@ places stay when the number is not whole.
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
-  Stablecoin quotes and every Reward quotes row with the other strategies. Then a card per exchange —
-  Revolut X in blue, which on TESTING includes Stablecoin quotes, and on
+  Stablecoin quotes, its variant and every Reward quotes row with the other strategies. Then a card per exchange —
+  Revolut X in blue, which on TESTING includes Stablecoin quotes and its variant, and on
   TESTING Polymarket in its blue, whose card is its Reward quotes rows
   added together — showing the same figures for
   that exchange in two groups: what it holds (funded, deployed, today)
@@ -131,7 +131,7 @@ places stay when the number is not whole.
   is of. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
-- **Stablecoin quotes.** The last row of the testing strategies: a
+- **Stablecoin quotes.** The first of the tests, after the testing strategies: a
   four-week paper test of resting quotes 0.1–0.3 % either side of the
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
   minute. Its row reads like a strategy's, on the $1,200 the quotes would
@@ -149,7 +149,13 @@ places stay when the number is not whole.
   Revolut X card, in dollars at the day's pound rate — and a live order
   of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
-- **Reward quotes.** After it, on Polymarket (its badge in Polymarket's
+- **Stablecoin quotes - variant.** Right after it: the same rule with nine
+  rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
+  fair, on the $3,600 its quotes would tie up, played minute by minute on
+  exactly the trades and rates the quote test recorded, so the two can be
+  compared day by day. Its page is the quote test's, with nine rungs a side
+  in each book.
+- **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC
   day, decided every minute from the public order books and trades. Its row
