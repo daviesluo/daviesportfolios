@@ -224,7 +224,7 @@ export function entryGuards(T: number, i: BookInputs, lastPrintPx: number | null
  * An order the venue's rate limit turned away (429, after one retry): never taken, so it is no refusal of the decision. Its
  * rung sends that decision again next turn, and a stop turned away is tried again next turn, not an hour later.
  */
-export function wasRateLimited(o: { state: string; response?: unknown }): boolean {
+export function wasRateLimited(o: { state?: unknown; response?: unknown }): boolean {
   return o.state === "rejected" && Number((o.response as { status?: unknown } | null | undefined)?.status) === 429;
 }
 
