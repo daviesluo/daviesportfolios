@@ -251,6 +251,7 @@ list stays the short version; the plan is the reasoning behind it.
       check): zero misses need at least 39 judged events for condition 2 to hold, so H1 has little power at 60 events
       and H2 almost none. That goes to Davies before the freeze. Still open: `{POWER TABLE}`, where the measurement is
       committed, and two production reads (probes after 19; one probe showing `order_id`, i.e. R3 working).
+      R3 read in production (helper session, 2026-09-28 06:29 UTC): no probe has been written since 01:09.
       After the freeze, **every Monday**: pull the UK tape for each event's window and export `agent_basis`'s
       BTC/ETH/SOL rows (pruned at 30 days) into `docs/agents/backtests/mx1/`. Read at 60 judged events a side or on
       2027-03-31.
@@ -437,6 +438,10 @@ Everything before 2026-09-25 lives there already: the 2026-09-05 →
 2026-09-22", and the 2026-09-22 → 2026-09-24 sections, with the
 what-remains list as it stood before its 2026-09-26 rewrite, under
 "LEDGER.md, archived 2026-09-26"; both oldest first.
+
+### [2026-09-28 06:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Helper session, MX-1 R3 read (Part 1 of the database-read task the main session handed off, "sub-agent应该算新会话吧？算的话让sub-agent去做").** Supabase MCP tools were loaded. Ran R3's join query (`agent_maker_probes` left-joined to `agent_orders` from 2026-09-28 01:09 UTC) read-only against production (`flmvxigozjuizpckllvk`): zero rows. No probe has been written since 01:09 yet, so item 5a.2 (MX-1) records that instead of the probe/order comparison; the sentence is appended there. Per the handoff's instructions this step repeats when Part 2 wakes on or after 2026-09-29 00:15 UTC, alongside QUEUE/PR5-W's S01–S17 reads. Nothing else was touched.
 
 ### [2026-09-28 06:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
