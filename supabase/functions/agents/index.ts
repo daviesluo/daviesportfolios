@@ -13,6 +13,11 @@
 //                             (quotes_live.ts, 0052), in dry-run until
 //                             `agent_quote_live_config` says otherwise.
 //                             pg_cron every minute. Cron or admin.
+//   POST ?action=quotesv    — "Stablecoin quotes - variant" (quotes_variant.ts,
+//                             0071): PR5's stored minutes replayed through
+//                             the variant's rule in two arms, into its own
+//                             tables. Reads the database only. Every minute,
+//                             in the one job. Cron or admin.
 //   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
 //                             that gives the ask rungs inventory: `{ book,
 //                             gbp, send }`. Without `send: true` it returns
@@ -100,6 +105,7 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes } from "./quotes.ts";
 import { markedGbp, rungBook, runQuotesConvert, runQuotesLive, type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport } from "./quotes_live.ts";
+import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
 import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
@@ -480,7 +486,7 @@ export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripR
  * its round trips, what it holds, its orders today against Revolut X's 1,000 a day, and whether it is keeping up (it
  * decides one minute behind the clock, so a last minute more than five back means it has stopped).
  */
-export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number, days: QuoteDayRow[] = []) {
+export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number, days: QuoteDayRow[] = [], capitalUsd = QUOTES_CAPITAL_USD) {
   if (!st || !st.last_minute) return null;
   const pnl = trips.reduce((a, t) => a + Number(t.pnl_usd), 0);
   const todayPnl = trips.filter((t) => Date.parse(t.t_exit) >= dayStartMs).reduce((a, t) => a + Number(t.pnl_usd), 0);
@@ -493,14 +499,59 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
   }));
   return {
     startedAt, lastMinute: st.last_minute, lagMinutes, running: lagMinutes <= 5, lastError: st.last_error,
-    capitalUsd: QUOTES_CAPITAL_USD,
-    realisedUsd: pnl, realisedPct: pnl / QUOTES_CAPITAL_USD * 100,
-    todayUsd: todayPnl, todayPct: todayPnl / QUOTES_CAPITAL_USD * 100,
+    capitalUsd,
+    realisedUsd: pnl, realisedPct: pnl / capitalUsd * 100,
+    todayUsd: todayPnl, todayPct: todayPnl / capitalUsd * 100,
     trips: trips.length, won: trips.filter((t) => Number(t.pnl_usd) > 0).length,
     open: books.reduce((a, b) => a + b.held, 0), openUsd: books.reduce((a, b) => a + b.openUsd, 0),
     unrealisedUsd: books.some((b) => b.unrealisedUsd == null) ? null : books.reduce((a, b) => a + (b.unrealisedUsd ?? 0), 0),
     ordersToday: today.filter((e) => e.kind === "order").length, fillsToday: today.filter((e) => e.kind === "fill").length,
     books, recent, days: quoteDays(days, dayStartMs),
+  };
+}
+
+/** A round trip of the quote variant (`agent_quotev_trips`, `0071`): PR5's row, with its arm. */
+export type QuoteVariantTripRow = QuoteTripRow & { arm: string };
+/** A day of one of the variant's arms as `agent_quotev_days` (`0071`) counts it. */
+export type QuoteVariantDayRow = QuoteDayRow & { arm: string };
+/** The variant's state (`quotes_variant.ts`): each arm's books, as PR5's are stored, and each key's POSTs today. */
+type QuoteVariantStateRow = {
+  state: { arms?: Partial<Record<string, { books?: Record<string, QuoteBookState>; gov?: { day?: number; counts?: Record<string, number> } }>> };
+  last_minute: string | null; updated_at: string; last_error: string | null;
+};
+
+/**
+ * "Stablecoin quotes - variant" (`quotes_variant.ts`, reference §4 item 45) for the page. Arm `main`, the one its
+ * pre-registration judges, in exactly the shape of PR5's `quotes`, so its page can be PR5's: P&L on the $3,600 its
+ * quotes lock, what it holds, its ladders, round trips and days, and its orders and fills today (from its days, as the
+ * variant sends about 1,500 a day across four keys). Beside it, what PR5's page has no place for: each key's POSTs today
+ * against the governor's 600 / 700, and arm `top5`'s totals on its $2,000. No live path (`live: null`). Null until the
+ * engine has saved a state.
+ */
+export function quotesVariantSummary(input: { state: QuoteVariantStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number }) {
+  const st = input.state;
+  if (!st || !st.last_minute) return null;
+  const arm = (a: VariantArmName) => {
+    const row: QuoteStateRow = { state: { books: st.state.arms?.[a]?.books ?? {} }, last_minute: st.last_minute, updated_at: st.updated_at, last_error: st.last_error };
+    const s = quotesSummary(row, input.trips.filter((t) => t.arm === a), [], new Date(VARIANT_START).toISOString(), input.nowMs, input.dayStartMs,
+      input.days.filter((d) => d.arm === a), variantCapitalUsd(VARIANT_ARMS[a]))!;
+    const today = s.days.find((d) => d.today);
+    return { ...s, ordersToday: today?.orders ?? 0, fillsToday: today?.fills ?? 0 };
+  };
+  const main = arm("main"), top5 = arm("top5");
+  const gov = st.state.arms?.main?.gov, day = Math.floor(input.dayStartMs / 86400e3);
+  return {
+    ...main,
+    live: null,
+    arm: "main" as const,
+    /** Each key's POSTs today, stops included: what the governor counts. */
+    postsToday: Object.fromEntries(VARIANT_KEYS.map((k) => [k, gov?.day === day ? Number(gov.counts?.[k] ?? 0) : 0])),
+    governor: { entryAt: VARIANT_ARMS.main.entryAt, stopAt: VARIANT_ARMS.main.stopAt },
+    top5: {
+      capitalUsd: top5.capitalUsd, realisedUsd: top5.realisedUsd, realisedPct: top5.realisedPct, todayUsd: top5.todayUsd, todayPct: top5.todayPct,
+      trips: top5.trips, won: top5.won, open: top5.open, openUsd: top5.openUsd, unrealisedUsd: top5.unrealisedUsd,
+      ordersToday: top5.ordersToday, fillsToday: top5.fillsToday,
+    },
   };
 }
 
@@ -810,6 +861,20 @@ async function dashboard(now: number) {
     Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
   }
 
+  // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
+  // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
+  const quotesVariantRead = (async () => {
+    try {
+      const st = await d.select<QuoteVariantStateRow>("agent_quotev_state", "id=eq.1&select=state,last_minute,updated_at,last_error");
+      if (!st[0]) return null;
+      const [trips, days] = await Promise.all([
+        d.selectAll<QuoteVariantTripRow>("agent_quotev_trips", "select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
+        d.select<QuoteVariantDayRow>("agent_quotev_days", "select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc,arm.asc&limit=120"),
+      ]);
+      return quotesVariantSummary({ state: st[0], trips, days, nowMs: now, dayStartMs });
+    } catch { return null; }
+  })();
+
   // The paper quote test (`0051`). Its own tables; missing ones (before the migration) leave it off the page.
   const quotes = await (async () => {
     try {
@@ -884,6 +949,7 @@ async function dashboard(now: number) {
     } catch { return { rw: null, rwe: null, rwx: [] }; }
   })();
   const rwc = await rwcRead;
+  const quotesVariant = await quotesVariantRead;
 
   return {
     at: new Date(now).toISOString(),
@@ -902,6 +968,8 @@ async function dashboard(now: number) {
     jev24h: jevStats(decisions24h),
     /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
     quotes,
+    /** "Stablecoin quotes - variant" on paper (`0071`, reference §4 item 45): arm main in `quotes`' shape; null until it has run. */
+    quotesVariant,
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
     rw,
     rwe,
@@ -1339,6 +1407,8 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     const operator = who === "cron" || who === "admin";
     if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
+    // "Stablecoin quotes - variant" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
+    if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));

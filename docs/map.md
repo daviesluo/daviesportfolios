@@ -575,13 +575,15 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, its variant's replay, RW's paper minute and daily selection, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/views.ts` | Records Polymarket's view-count markets and the YouTube counters they resolve on: every minute, and every second around each market's deadline, stored when they change. Reads only. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
+| `agents/quotes_variant.ts` | "Stablecoin quotes - variant" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
+| `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
@@ -681,6 +683,7 @@ before touching migration state.
 | `0068_maker_probes_after_open.sql` | Corrects the two maker probes the fill test resolved on a minute that began before they were written. |
 | `0069_pm_rwc.sql` | Adds RW-C, RW's engine run again on 2026-10-09 → 10-23 with RW-E's and the variants' replays on its minutes: its eleven tables (RW's, named `pm_rwc_…`), its four leases, and its four calls in the one-minute job. |
 | `0070_quote_days.sql` | A view, `agent_quote_days`: each UTC day of the stablecoin quote test's orders, fills and closed round trips, for its page's DAYS table. |
+| `0071_quotes_variant.sql` | Adds the quote variant's tables (state, minute records, events, trips), its per-arm days view, the function that wipes them for a new code version, its lease, and its call in the one-minute job. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -733,6 +736,8 @@ before touching migration state.
 | `docs/agents/scripts/pr5v/pull_fresh.py` | PR5v: the keyless UK prints, USD-book hours and Yahoo GBP/USD minutes of 2026-09-22 → 09-28, committed under `backtests/inputs/pr5v_2026-09-28/`. |
 | `docs/agents/scripts/pr5v/study.py` | PR5v: the rung, re-price, cadence, account and size study for "Stablecoin quotes - variant", writing `backtests/pr5v/pr5v_study.json`. |
 | `docs/agents/scripts/pr5v/ref_timing.py` | PR5v: the chosen configuration priced at PR5's own minute beside the study's 1 s loop, and paired with the frozen rule by day (`backtests/pr5v/ref_timing.json`). |
+| `docs/agents/scripts/pr5v/golden_variant.py` | PR5V: cuts the golden windows the variant's engine must replay from the reference simulator, at the pre-registered settings. |
+| `docs/agents/backtests/pr5v/golden_variant.json` | PR5V's golden windows: each book's prints with their ids, each minute's X and fairU, and the reference's trips and POSTs in both arms. |
 | `docs/agents/scripts/fp2/t12_revx_uk_quotes.py`, `t3_binance_lst_wicks.py`, `m1_live_spreads_crosses.py`, `m2_budget_ranking.py`, `m3_is_descriptives.py`, `m3_is_descriptives_longtail.py`, `m4_is_markout_by_depth.py`, `m6_weekend_tokens.py`, `m7_crash_2025_10_10.py`, `m8_stock_tokens_overnight.py`, `m9_lst_wicks.py`, `m10_t1_is_fill_markouts.py`, `m11_crash_lag_duration.py`, `m12_dust_prints.py`, `pull_revx_prints.py`, `pull_yahoo.py`, `binance_bulk.py`, `build_manifest.py`, `netlib.py` | The second first-principles search: its three pre-registered tests, its measurements, and the pullers (they read a research folder named by `FP_ROOT`). |
 | `docs/agents/scripts/fp3/zf_test.py`, `cb_test.py`, `dl_test.py`, `zf_check_trips.py`, `cb_check_trips.py`, `cb_check_screen.py`, `cb_day_20251010.py`, `cb_posthoc.py`, `m_funding_hours.py`, `m_listing_drift.py`, `m_price_range_wicks.py`, `m_thin_quote_wicks.py`, `m_u_books_h_sigma.py`, `universe.py`, `cb_screen.py`, `fetch_archive.py`, `fetch_days_1m.py`, `fetch_aggtrades.py`, `run_aggtrades.sh`, `pull_announcements.py`, `ann_text.py`, `launchpool_yield.py`, `build_manifest.py`, `netlib.py` | The third first-principles search, Binance first: its three pre-registered tests, their checks, its measurements, and the pullers (they read a research folder named by `FP_ROOT`). |
 | `docs/agents/scripts/bitget/sample_books.py`, `analyze_samples.py`, `pull_history.py`, `pull_binance_ref.sh`, `analyze_tapes.py`, `analyze_depth.py`, `depth_shares.py` | The Bitget feasibility study: its books sampled, a year of their prints and depth, and Binance's reference rates; results and sources in `backtests/bitget/`. |
@@ -767,6 +772,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
  ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
  ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
+ ├─ agents ?action=quotesv  every minute   PR5's stored minutes replayed through the variant's rule, two arms → agent_quotev_*
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*

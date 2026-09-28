@@ -117,4 +117,25 @@ describe('pg_cron jobs', () => {
     const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
     expect(cmd(FILES.filter((f) => f <= RWC))).toBe(cmd(FILES.filter((f) => f < RWC)));
   });
+
+  it("adds the stablecoin quote variant's call to the one job (0071), leaving every other call as it was", () => {
+    const callsOf = (files) => {
+      const job = cronJobs(files).get('edge-calls-every-minute');
+      return [...job.command.matchAll(/\('([^']+)',\s*(\d+),\s*(\d+),\s*(\d+)\)/g)].map((m) => ({
+        path: m[1], timeout: Number(m[2]), every: Number(m[3]), lastHour: Number(m[4]),
+      }));
+    };
+    const QV = FILES.find((f) => /^\d{4}_quotes_variant\.sql$/.test(f)) ?? '';
+    expect(QV).not.toBe('');
+    const before = callsOf(FILES.filter((f) => f < QV));
+    const after = callsOf(FILES.filter((f) => f <= QV));
+    const byPath = (a, b) => a.path.localeCompare(b.path);
+    // Every minute, all day, with PR5's own timeout: it replays what PR5's call decided.
+    expect(after.filter((c) => c.path !== 'agents?action=quotesv').sort(byPath)).toEqual(before.slice().sort(byPath));
+    expect(after.filter((c) => c.path === 'agents?action=quotesv')).toEqual([{ path: 'agents?action=quotesv', timeout: 58000, every: 1, lastHour: 23 }]);
+    expect(before.find((c) => c.path === 'agents?action=quotes')).toEqual({ path: 'agents?action=quotes', timeout: 58000, every: 1, lastHour: 23 });
+    // The headers, body and filter are the job's as it was: only the list grew.
+    const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
+    expect(cmd(FILES.filter((f) => f <= QV))).toBe(cmd(FILES.filter((f) => f < QV)));
+  });
 });
