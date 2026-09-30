@@ -68,9 +68,18 @@ lot price or dollar P&L; say what the engineering does in neutral words.
 **Usage is a budget he watches.** Never spend the main model on
 polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
 Fable/Opus-class sessions. If a check is genuinely needed, run it in a
-cheap subagent (Opus 5 at most) and wake the main session only when
-there is real work to do. He said it in so many words on 2026-09-20
+`sonnet-max` sub-agent and wake the main session only when there is
+real work to do. He said it in so many words on 2026-09-20
 after four re-checks found nothing: "以后千万不要用fable模型跑这个复查".
+
+**Two kinds of sub-agent, both at max effort.** "以后你开的所有sub-agents必须都是
+opus5.5 max（重要性高难度高的任务）或者sonnet5.5 max（难度低的任务）" (2026-09-30).
+`.claude/agents/` defines both: `opus-max` for important or difficult
+work (verdicts, pre-registered readings, code and data-path changes),
+`sonnet-max` for easy work (searching, extracting, counting, summarising).
+Launch them by those names. No built-in agent type (Explore,
+general-purpose, a guide), no other model, no lower effort, and a
+scheduled wake follows the same rule.
 
 **At most three sub-agents at a time.** "以后请同时最多只开3个sub-agents"
 (2026-09-28, after a session had four running at once). Count every

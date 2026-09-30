@@ -19,6 +19,12 @@ rule is here and not only in the skill because the skill is cut short
 when a context is compacted, and English came back four times (the last
 on 2026-09-23: "怎么会话又变成英文了").
 
+**Sub-agents are `opus-max` or `sonnet-max`, nothing else** (Davies,
+2026-09-30): both run at max effort, the first for important or difficult
+work, the second for easy work, and both are defined in `.claude/agents/`.
+Never a built-in agent type or another model; at most three at a time
+(the working-with-davies skill).
+
 ## A fresh container
 
 Overview: this repo is a Vite + React (JSDoc/`checkJs`, not TSX) client
