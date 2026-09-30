@@ -35,7 +35,8 @@ Deno.test("rule D re-prices the inner rung on a 0.05 % move and leaves the outer
 });
 
 Deno.test("arm v1 decides a minute exactly as PR5V's main, and PR5V's own arms still have no entry band", () => {
-  assertEquals(VARIANT_CODE_VERSION, 1);
+  // PR5V re-decides once (2026-09-30): `entryBand` was added to its engine after it had decided minutes (its deviation 1).
+  assertEquals(VARIANT_CODE_VERSION, 2);
   assertEquals(RULED_CODE_VERSION, 1);
   assertEquals(RULED_ARMS.v1.entryBand, undefined);
   assertEquals(RULED_ARMS.v1.rungs, VARIANT_ARMS.main.rungs);

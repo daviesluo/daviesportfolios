@@ -72,8 +72,13 @@ export const VARIANT_START = Date.parse("2026-09-28T00:00:00Z");
  * Bump by hand with any change here that could change a decision. A run that finds its record written under another
  * version wipes the variant's own rows (never PR5's) and decides everything again from `VARIANT_START`, flat: the
  * record is always one version of the code, run from the start.
+ *
+ * 2 since 2026-09-30: `185b9fa` (2026-09-28 19:43 UTC) added `entryBand` here after this engine had decided minutes,
+ * without the re-decide the pre-registration's §3 asks of any code change. No arm of PR5V sets it, so no decision can
+ * differ; the record is re-decided anyway, so that one version of the code, whose golden replay passed, wrote all of it
+ * (PR5V's deviation 1, reference §4 item 45).
  */
-export const VARIANT_CODE_VERSION = 1;
+export const VARIANT_CODE_VERSION = 2;
 export const VARIANT_LEASE_MS = QUOTE_LEASE_MS;
 /** Minutes decided in one call at most; a catch-up after a pause, or after a new version, is several calls. */
 export const VARIANT_MAX_MINUTES = QUOTE_MAX_MINUTES;
