@@ -194,8 +194,24 @@ list stays the short version; the plan is the reasoning behind it.
      against $0.5088; POSTs −38.7 %; no key reached 600. The engine is on (`agents/quotes_ruled.ts`, `agents?action=quotesd`,
      migration `0072`), built to that file: arm `d` judged, arm `v1` the deviation, TrueFX on a current minute and Yahoo
      otherwise. The page row is "Stablecoin quotes variant-2", on two lines; the row that was "Stablecoin quotes -
-     variant" is "Stablecoin quotes variant-1". It shows once this push has deployed the function and the engine has
-     saved a state. PR5V's `VARIANT_CODE_VERSION` stays 1.
+     variant" is "Stablecoin quotes variant-1". Both verified 2026-09-30 in the sweep at both widths (447/447).
+     - **Deviation 1, fixed 2026-09-30: arm d priced each turn with TrueFX read about two minutes after it.** The call
+       fires at :00 and PR5 decides m − 1 only at :25, so it decided m − 2 with the snapshot it had just read; a re-price
+       at a turn keeps the quote out of that whole minute. Worth +$0.054 a day on the study's days
+       (`backtests/pr5v/lookahead.json`), twice the gain condition 3 looks for. Code version 2 holds the snapshot read
+       in the minute before each turn for that turn alone; `0073` records `x_d_t` / `x_d_read` and refuses a TrueFX
+       row read at or after its minute. Re-decided from 09-28 00:00, so the window's days before the fix are rule D on
+       Yahoo, as variant-1. Check after the deploy: `agent_quoted_state.last_error` empty, the catch-up done (about 33
+       calls), `checkMaxUsd` under $0.01 once PR5V has caught up too, and TrueFX minutes again once it is current, each
+       with `x_d_read < minute` (reference §4 item 47, which also says what condition 3 can and cannot show).
+     - **Davies asked whether every strategy of this class should read TrueFX, Yahoo the fallback** (2026-09-28). Only
+       variant-2 does. PR5 and PR5V cannot switch without voiding PR5's spec and the tests whose freeze lines name
+       `stepMinute` and `agent_quote_minutes` (QUEUE, PR5-W, PR5-R, PR5V); the fast-X study found a faster rate earned
+       less on four governed keys ($0.92–0.95 a day against $1.03); and a replay a minute behind can only use a
+       snapshot read before the turn, about as old as Yahoo's bar. Where it would count is a live executor that reads it
+       and posts at once: PR5's live path, after the 10-21 review, as a pre-registered change. Yahoo's 311 of 316 429s
+       were read from the research container; whether production is throttled too is one query for a session with
+       the database connector (the share of `agent_quote_minutes` whose `x_t` is not the minute before).
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -499,6 +515,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-2 priced each turn with TrueFX from about two minutes after it; priced, fixed, re-decided** (its deviation 1, reference §4 item 47). The call fires at :00 and PR5 decides m − 1 only at :25, so the call decided m − 2 with the snapshot it had just read, while its turn reads data to t − 1. Priced before the fix on the study's days (`scripts/pr5v/lookahead.py` → `backtests/pr5v/lookahead.json`; §1's rule D and variant-1 runs reproduced first, 593 trips $30.3004 and 563 trips $29.5129): rule D $1.0793 a day on the rate two minutes after the turn against $1.0255 a minute before it, +$0.054 a day (+$0.037 on the fresh five). Code version 2 holds the snapshot read in the minute before each turn for that turn alone. `0073` adds `x_d_t` / `x_d_read` and refuses a TrueFX row read at or after its minute: applied here to PostgreSQL 16 over a version-1 row, it refused the three look-ahead rows and took the fix's row and a Yahoo row, and the constraint validated after the reset. Counterfactual: given 1.4 read at 23:59:01 and 1.5 read at 00:02:01, the old engine priced the 00:00 turn with 1.5 and the new one with 1.4, and the double as strict as `0073` refuses the old engine's write. 37 engine tests pass here and every gate is green (`sh bin/gates.sh --full`, its Deno steps through the local import map); the sweep (447/447) now photographs the two variant rows when `SWEEP_SHOTS` is set.
 
 ### [2026-09-30 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

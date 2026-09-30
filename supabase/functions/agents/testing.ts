@@ -53,7 +53,8 @@ const VARIANT_ORDER_WHATS = ["place", "reprice", "replace", "exit", "exit_repric
 const RULED_TABLES: Record<string, { columns: string[]; key: string; identity?: string }> = {
   agent_quoted_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" },
   agent_quoted_minutes: {
-    columns: ["book", "minute", "source", "x", "x_t", "fair_u", "hours_n", "prints_n", "pr5_prints_n", "x_d", "x_source", "recorded_at"], key: "book,minute",
+    columns: ["book", "minute", "source", "x", "x_t", "fair_u", "hours_n", "prints_n", "pr5_prints_n", "x_d", "x_source", "x_d_t", "x_d_read", "recorded_at"],
+    key: "book,minute",
   },
   agent_quoted_events: { columns: ["arm", "book", "minute", "side", "k", "kind", "what", "key", "ticks", "detail"], key: "arm,book,minute,side,k,kind" },
   agent_quoted_trips: {
@@ -226,6 +227,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("source", ["minutes", "rebuilt"].includes(String(r.source)))
         ?? check("x", r.x == null || Number(r.x) > 0) ?? check("fair_u", r.fair_u == null || Number(r.fair_u) > 0)
         ?? check("x_d", r.x_d == null || Number(r.x_d) > 0) ?? check("x_source", r.x_source === "yahoo" || r.x_source === "truefx")
+        // 0073: a TrueFX minute's snapshot was read before the minute began (agent_quoted_minutes_truefx_before_turn).
+        ?? check("truefx_before_turn", r.x_source !== "truefx" || (r.x_d_read != null && Date.parse(String(r.x_d_read)) < Date.parse(String(r.minute))))
         ?? check("hours_n", Number.isInteger(Number(r.hours_n)) && Number(r.hours_n) >= 0)
         ?? check("prints_n", Number.isInteger(Number(r.prints_n)) && Number(r.prints_n) >= 0);
     }

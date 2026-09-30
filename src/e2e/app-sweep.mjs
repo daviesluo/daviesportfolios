@@ -3184,6 +3184,8 @@ async function run() {
       const qdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-2') });
       await waitFor(async () => (await qvRow.count()) === 1 && (await qdRow.count()) === 1);
       await page.waitForTimeout(150);
+      if (SHOTS_DIR) await qdRow.first().scrollIntoViewIfNeeded().catch(() => {});
+      await shot(page, 'agents-testing-variants');
       const qvText = (await qvRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const qdText = (await qdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());

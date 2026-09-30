@@ -1,0 +1,418 @@
+{
+ "question": "what variant-2's first engine gained by reading GBP/USD about two minutes after the turn it decided",
+ "series": {
+  "DUK_LA120": -120,
+  "DUK_LA60": -60,
+  "DUK_M0": 0,
+  "DUK_C59": 59
+ },
+ "own_x": {
+  "N": "EXN_M60/0",
+  "F": "YAH_M60/0"
+ },
+ "sha256": {
+  "lookahead.py": "41e60c76d2f3ec8ce4a1a8fbb976115cb4bfb899e1d727a637d79858891d6c1d",
+  "fastx.py": "35530392d149742419a2bc306b69dfbcca08286d5d49a70b201cb990509353a2",
+  "fastx_sim.py": "f9562974fae8f60ff118f371af95b722318e4cb0f68c0df77948509d70bc6f17",
+  "study.py": "4a5d077ef0f97060ee5613d9a5f1c75b6e404b15ed052d367c1fe67f6d8e7b50",
+  "pr5v_sim.py": "54ad41982d143758ece6ee8e5bb48d5a4aafe1dc0429ccc0af6d1c57282de27a",
+  "closes": "da8095a9182629cc24c7bc1cb2404738a9d9cb988c5d08c86dda13fc05884e4d"
+ },
+ "runs": {
+  "N|own|v1": {
+   "trips": 563,
+   "pnl_usd": 29.5129,
+   "usd_per_day": 1.054,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1420.5
+  },
+  "N|own|rd": {
+   "trips": 593,
+   "pnl_usd": 30.3004,
+   "usd_per_day": 1.0822,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 870.5
+  },
+  "N|DUK_LA120|v1": {
+   "trips": 533,
+   "pnl_usd": 28.667,
+   "usd_per_day": 1.0238,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1440.8
+  },
+  "N|DUK_LA120|rd": {
+   "trips": 562,
+   "pnl_usd": 30.2198,
+   "usd_per_day": 1.0793,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 893.6
+  },
+  "N|DUK_LA60|v1": {
+   "trips": 535,
+   "pnl_usd": 28.2066,
+   "usd_per_day": 1.0074,
+   "worst_day_usd": -0.0039,
+   "posts_per_day": 1436.3
+  },
+  "N|DUK_LA60|rd": {
+   "trips": 561,
+   "pnl_usd": 29.486,
+   "usd_per_day": 1.0531,
+   "worst_day_usd": -0.0039,
+   "posts_per_day": 895.0
+  },
+  "N|DUK_M0|v1": {
+   "trips": 550,
+   "pnl_usd": 27.7961,
+   "usd_per_day": 0.9927,
+   "worst_day_usd": -0.0051,
+   "posts_per_day": 1447.4
+  },
+  "N|DUK_M0|rd": {
+   "trips": 572,
+   "pnl_usd": 29.1053,
+   "usd_per_day": 1.0395,
+   "worst_day_usd": -0.0051,
+   "posts_per_day": 903.0
+  },
+  "N|DUK_C59|v1": {
+   "trips": 566,
+   "pnl_usd": 28.3725,
+   "usd_per_day": 1.0133,
+   "worst_day_usd": -0.0159,
+   "posts_per_day": 1447.4
+  },
+  "N|DUK_C59|rd": {
+   "trips": 582,
+   "pnl_usd": 28.7141,
+   "usd_per_day": 1.0255,
+   "worst_day_usd": -0.0159,
+   "posts_per_day": 902.5
+  },
+  "F|own|v1": {
+   "trips": 40,
+   "pnl_usd": 2.5438,
+   "usd_per_day": 0.5088,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1474.8
+  },
+  "F|own|rd": {
+   "trips": 60,
+   "pnl_usd": 3.742,
+   "usd_per_day": 0.7484,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1069.6
+  },
+  "F|DUK_LA120|v1": {
+   "trips": 47,
+   "pnl_usd": 3.5356,
+   "usd_per_day": 0.7071,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1444.2
+  },
+  "F|DUK_LA120|rd": {
+   "trips": 53,
+   "pnl_usd": 3.7847,
+   "usd_per_day": 0.7569,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1050.6
+  },
+  "F|DUK_LA60|v1": {
+   "trips": 47,
+   "pnl_usd": 3.6507,
+   "usd_per_day": 0.7301,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1442.4
+  },
+  "F|DUK_LA60|rd": {
+   "trips": 55,
+   "pnl_usd": 3.9342,
+   "usd_per_day": 0.7868,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1044.6
+  },
+  "F|DUK_M0|v1": {
+   "trips": 39,
+   "pnl_usd": 2.2885,
+   "usd_per_day": 0.4577,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1458.8
+  },
+  "F|DUK_M0|rd": {
+   "trips": 57,
+   "pnl_usd": 3.6451,
+   "usd_per_day": 0.729,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1040.8
+  },
+  "F|DUK_C59|v1": {
+   "trips": 43,
+   "pnl_usd": 2.9159,
+   "usd_per_day": 0.5832,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1459.6
+  },
+  "F|DUK_C59|rd": {
+   "trips": 56,
+   "pnl_usd": 3.5981,
+   "usd_per_day": 0.7196,
+   "worst_day_usd": 0.0,
+   "posts_per_day": 1040.6
+  }
+ },
+ "paired": {
+  "N|own|rd - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": 0.0281,
+   "better_days": 11,
+   "worse_days": 5,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": 0.0281,
+    "ci95": [
+     -0.004,
+     0.0666
+    ],
+    "p_le_0": 0.0513
+   }
+  },
+  "N|DUK_LA120|rd - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": 0.0252,
+   "better_days": 11,
+   "worse_days": 12,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": 0.0252,
+    "ci95": [
+     -0.1034,
+     0.139
+    ],
+    "p_le_0": 0.3353
+   }
+  },
+  "N|DUK_LA120|v1 - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0302,
+   "better_days": 10,
+   "worse_days": 13,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0302,
+    "ci95": [
+     -0.1277,
+     0.0618
+    ],
+    "p_le_0": 0.7184
+   }
+  },
+  "N|DUK_LA60|rd - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.001,
+   "better_days": 12,
+   "worse_days": 11,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.001,
+    "ci95": [
+     -0.1074,
+     0.1068
+    ],
+    "p_le_0": 0.5183
+   }
+  },
+  "N|DUK_LA60|v1 - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0467,
+   "better_days": 12,
+   "worse_days": 11,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0467,
+    "ci95": [
+     -0.1356,
+     0.0465
+    ],
+    "p_le_0": 0.8393
+   }
+  },
+  "N|DUK_M0|rd - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0146,
+   "better_days": 11,
+   "worse_days": 12,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0146,
+    "ci95": [
+     -0.1155,
+     0.1083
+    ],
+    "p_le_0": 0.6189
+   }
+  },
+  "N|DUK_M0|v1 - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0613,
+   "better_days": 8,
+   "worse_days": 15,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0613,
+    "ci95": [
+     -0.1473,
+     0.042
+    ],
+    "p_le_0": 0.8863
+   }
+  },
+  "N|DUK_C59|rd - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0285,
+   "better_days": 12,
+   "worse_days": 11,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0285,
+    "ci95": [
+     -0.1138,
+     0.0638
+    ],
+    "p_le_0": 0.7315
+   }
+  },
+  "N|DUK_C59|v1 - N|own|v1": {
+   "days": 28,
+   "mean_usd_per_day": -0.0407,
+   "better_days": 10,
+   "worse_days": 13,
+   "bootstrap_7d": {
+    "block_days": 7,
+    "resamples": 10000,
+    "mean": -0.0407,
+    "ci95": [
+     -0.1248,
+     0.0519
+    ],
+    "p_le_0": 0.8139
+   }
+  },
+  "F|own|rd - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2396,
+   "better_days": 3,
+   "worse_days": 0,
+   "bootstrap_7d": null
+  },
+  "F|DUK_LA120|rd - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2482,
+   "better_days": 3,
+   "worse_days": 0,
+   "bootstrap_7d": null
+  },
+  "F|DUK_LA120|v1 - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.1984,
+   "better_days": 2,
+   "worse_days": 1,
+   "bootstrap_7d": null
+  },
+  "F|DUK_LA60|rd - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2781,
+   "better_days": 2,
+   "worse_days": 1,
+   "bootstrap_7d": null
+  },
+  "F|DUK_LA60|v1 - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2214,
+   "better_days": 2,
+   "worse_days": 1,
+   "bootstrap_7d": null
+  },
+  "F|DUK_M0|rd - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2203,
+   "better_days": 3,
+   "worse_days": 0,
+   "bootstrap_7d": null
+  },
+  "F|DUK_M0|v1 - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": -0.051,
+   "better_days": 1,
+   "worse_days": 2,
+   "bootstrap_7d": null
+  },
+  "F|DUK_C59|rd - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.2109,
+   "better_days": 2,
+   "worse_days": 1,
+   "bootstrap_7d": null
+  },
+  "F|DUK_C59|v1 - F|own|v1": {
+   "days": 5,
+   "mean_usd_per_day": 0.0744,
+   "better_days": 2,
+   "worse_days": 1,
+   "bootstrap_7d": null
+  }
+ },
+ "repro": {
+  "N|rd": {
+   "got": [
+    593,
+    30.3004
+   ],
+   "expected": [
+    593,
+    30.3004
+   ],
+   "PASS": true
+  },
+  "N|v1": {
+   "got": [
+    563,
+    29.5129
+   ],
+   "expected": [
+    563,
+    29.5129
+   ],
+   "PASS": true
+  },
+  "F|rd": {
+   "got": [
+    60,
+    3.742
+   ],
+   "expected": [
+    60,
+    3.742
+   ],
+   "PASS": true
+  },
+  "F|v1": {
+   "got": [
+    40,
+    2.5438
+   ],
+   "expected": [
+    40,
+    2.5438
+   ],
+   "PASS": true
+  }
+ }
+}
