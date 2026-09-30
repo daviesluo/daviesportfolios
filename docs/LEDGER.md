@@ -353,10 +353,10 @@ list stays the short version; the plan is the reasoning behind it.
         database connector on Davies' word ("sub-agent应该算新会话吧？算的话让sub-agent去做"), woken at 09-29 00:15
         UTC by `trig_01HZex177UtrLkpPUU8YncmR` with the statements built from the file; failing that, the first session
         after 09-29 00:10 with the connector.
-        Not yet run; A's `n`, `bytes`, `sha256`, B's `n`, `first_ts`, `last_ts` and whether the two `n` agree go here.
-        **As of 2026-09-30 16:55 UTC nothing records that it ran**: no commit since 09-28 19:42, and neither the helper
-        session nor its Routines are visible from a Claude Code session (`list_triggers` empty, the ids not found). The
-        first session with the database connector confirms or runs it, before 10-04 00:00 UTC.
+        **Run 2026-09-30 ~20:40 UTC, once each, as written** (this session, Davies' database connector): A `n` 1,254,
+        `bytes` 457,371, `sha256` 3c790f0e32ca91f635fb9e50ba7d30b88430b3e61d706bd86d869f24a9109994; B `n` 1,254,
+        `first_ts` 2026-09-28 00:00:42.531, `last_ts` 23:55:43.772. The two `n` agree; no statement needed a change, so
+        no deviation. The largest book-day's page is 457 KB (about 610 KB in base64). Nothing else of the table was read.
       - Kraken's spare pull between 2026-10-18 and 10-25 (keyless, "Data" item 3).
       - The scorer and checks 1–3 committed before 2026-11-02 00:00 UTC.
       - The export after 2026-11-02 00:10 and before 11-06 10:25 UTC; the tape after 11-02 00:10; Kraken's main pull
@@ -373,8 +373,23 @@ list stays the short version; the plan is the reasoning behind it.
       - **Dry runs, before 2026-10-02 21:00 UTC** (after 09-29 00:00): the fifteen statements of "Before the first
         forward weekend", once each, without the `page` column. A statement that needs a change is changed before
         that closure and recorded as a deviation. Owner: as QUEUE's dry run, in the same wake.
-        Not yet run; each one's `n`, `bytes` and `sha256` go here. **As of 2026-09-30 nothing records that it ran**
-        (as QUEUE's above): confirm or run it before 10-02 21:00 UTC.
+        **Run 2026-09-30 ~20:40 UTC, once each, as written, without `page`** (this session); none needed a change, so no
+        deviation. `n` / `bytes` / `sha256`:
+        - 3b, closure 09-25 21:00 → 09-27 21:00: USDC-GBP 1,034 / 378,233 /
+          36a8149615de9201f4dcab545843c88aed7ceb37d1604bb1e5d28e2e900bc32a; USDT-GBP 835 / 312,763 /
+          ffa3b4000943bb25c02cf5c542d97884c598d68f3a5df862b97ca94c4a44992d.
+        - 2026-09-28, `agent_quote_minutes`: USDC-GBP 1,440 / 242,914 / 4f121b69cffaf87a9792b36f992bd9cd051b65de62916708aa25eff7adf98b3b;
+          USDT-GBP 1,440 / 250,404 / 7a74dc2378078e7761fac86ddc82b44a9f49698c9f0f7f3fdcdb85fb53d44dbb.
+        - `agent_quote_prints`: USDC-GBP 80 / 12,539 / 14a01280e8aeacf13afa6ea704850cf41ac1d2e5a9ed0a4b21fa8c1cb11dafad;
+          USDT-GBP 227 / 35,526 / bfddb6306d4ef53a879ff4ac19d6a9fd39d563471ab046c6c9188527cc547c6f.
+        - `agent_quote_trips`: USDC-GBP 9 / 4,857 / 70cc3ca724306a2e9bf1d31805af16e4adfe4fe27aa902d2f9ffbed6600c02bf;
+          USDT-GBP 22 / 12,058 / 70e504083996efdba27c97fc2e6b89b7ffa37fee72d24db009f1132296494656.
+        - `agent_quote_events` (not `book`): USDC-GBP 249 / 60,336 / f7a505a715c09d69169ccab86e22f963fa2382fa76e41e8b85810f7296a2dfa9;
+          USDT-GBP 293 / 72,865 / 593b9b6887ff22bec761e2aa2aa67a34107d33e9c11170d9bb28f01fa5cc74b2.
+        - `agent_quote_live_orders` (`live`): 0 / 0 / e3b0c442… (the empty string) on both books; the live path is in dry-run.
+        - `agent_quote_inputs`: `fx` 1,434 / 114,277 / dd46b6d0c2c4a80fcd15a3232e8ad4550cecd22c196d3aa37bf296acd7e5175f;
+          `fair:USDC-USD` 24 / 1,800 / a569a0bb15813f1e9267341c0e1471edf8c6f76b2aa43302a772df723a6739fa;
+          `fair:USDT-USD` 24 / 1,893 / 5e3a93c1154ab71dbb935dee913d034f56e2d41cb918005280979e40882c86be.
       - Arm 3a's backward candles: **done 2026-09-28 06:24 UTC**, 16 minutes after the freeze
         (`backtests/inputs/pr5w_2026-09-28/candles/`, by `scripts/pr5w/pull_coin_candles.py`): BTC, ETH, SOL and XRP
         against USD and GBP, 2025-11-25 → 2026-09-23, 7,247 hours each, every hour but 2026-03-09 10:00, which the
@@ -519,6 +534,16 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**QUEUE's and PR5-W's dry runs are done, before their deadlines** (items 5a.4 and 5a.6 carry every count, byte length
+and hash). Davies turned the database connector on in this session. All seventeen statements ran as their files write
+them, without the `page` column; none needed a change. Read beside them, and nothing else: variant-1 and variant-2 both
+re-decided on the new code and caught up with PR5 (last minute 20:26, no error; variant-2's `checkMaxUsd` $0.00 over
+three days); the 176 minutes since the fix that read TrueFX all read it before their turn (median 58.6 s), and differ
+from Yahoo's stored rate by 0.41 bps at the median (1.15 at p95, 3.0 at most); and Yahoo is not throttled from
+Supabase: over the last seven days 5,444 of 5,472 lit minutes used the bar one minute back.
 
 ### [2026-09-30 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
