@@ -31,6 +31,7 @@
 //   500 — DB write failed
 
 import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
+import { fetchT212Positions } from "../_shared/t212_positions.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +49,6 @@ const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
 const T212_ISA_API_KEY    = Deno.env.get("T212_ISA_API_KEY") ?? "";
 const T212_ISA_API_SECRET = Deno.env.get("T212_ISA_API_SECRET") ?? "";
 
-const T212_POSITIONS_URL = "https://live.trading212.com/api/v0/equity/positions";
 const BUCKET_MS = 5 * 60 * 1000;
 
 // OTC ADRs that are US-shaped but quote only their regular session —
@@ -214,25 +214,10 @@ export function mergePriceMaps(
 
 // ---------------- I/O ----------------
 
-async function fetchPositions(apiKey: string, apiSecret: string): Promise<unknown> {
-  if (!apiKey) return null;
-  // Basic when a secret is set (two-key accounts), else raw key — same
-  // scheme the trading212 function uses.
-  const authHeader = apiSecret ? `Basic ${btoa(`${apiKey}:${apiSecret}`)}` : apiKey;
-  try {
-    const res = await fetch(T212_POSITIONS_URL, {
-      headers: { Authorization: authHeader, Accept: "application/json" },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch { return null; }
-}
-
 async function fetchAllOvernightPrices(): Promise<Record<string, number>> {
   const [invest, isa] = await Promise.all([
-    fetchPositions(T212_API_KEY, T212_API_SECRET),
-    T212_ISA_API_KEY ? fetchPositions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
+    fetchT212Positions(T212_API_KEY, T212_API_SECRET),
+    T212_ISA_API_KEY ? fetchT212Positions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
   ]);
   const investPrices = extractOvernightPrices(invest);
   const isaPrices    = extractOvernightPrices(isa);

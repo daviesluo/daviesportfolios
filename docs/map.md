@@ -606,6 +606,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
 | `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
+| `_shared/t212_positions.ts` | Trading 212's positions read for the two price recorders, tried once more when its one-call-a-second limit refused it. |
 | `_shared/bytes.ts` | Byte and base64 helpers for request signing. |
 | `.env.example` | Every secret the functions read, by name. The values live only in Supabase. |
 

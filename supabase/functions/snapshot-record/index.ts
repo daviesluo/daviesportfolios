@@ -40,6 +40,7 @@
 import { isUsMarketHolidayAt, usRegularCloseMinAt } from "../_shared/us_market_calendar.ts";
 import { b64url, sign } from "../_shared/token.ts";
 import { reportServerError } from "../_shared/ops.ts";
+import { fetchT212Positions } from "../_shared/t212_positions.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -56,7 +57,6 @@ const T212_API_SECRET = Deno.env.get("T212_API_SECRET") ?? "";
 const T212_ISA_API_KEY = Deno.env.get("T212_ISA_API_KEY") ?? "";
 const T212_ISA_API_SECRET = Deno.env.get("T212_ISA_API_SECRET") ?? "";
 
-const T212_POSITIONS_URL = "https://live.trading212.com/api/v0/equity/positions";
 const BUCKET_MS = 5 * 60 * 1000;
 
 const T212_TO_YAHOO: Record<string, string> = {
@@ -275,25 +275,10 @@ async function mintAdminToken(): Promise<string> {
   return `${payload}.${await sign(payload, APP_AUTH_SECRET)}`;
 }
 
-async function fetchPositions(apiKey: string, apiSecret: string): Promise<unknown> {
-  if (!apiKey) return null;
-  const authHeader = apiSecret ? `Basic ${btoa(`${apiKey}:${apiSecret}`)}` : apiKey;
-  try {
-    const res = await fetch(T212_POSITIONS_URL, {
-      headers: { Authorization: authHeader, Accept: "application/json" },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
 async function fetchAllT212Prices(): Promise<Record<string, number>> {
   const [invest, isa] = await Promise.all([
-    fetchPositions(T212_API_KEY, T212_API_SECRET),
-    T212_ISA_API_KEY ? fetchPositions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
+    fetchT212Positions(T212_API_KEY, T212_API_SECRET),
+    T212_ISA_API_KEY ? fetchT212Positions(T212_ISA_API_KEY, T212_ISA_API_SECRET) : Promise.resolve(null),
   ]);
   return mergePriceMaps(extractT212Prices(invest), extractT212Prices(isa));
 }
