@@ -13,9 +13,9 @@ crypto loop and the testing strategies are planned in `docs/LEDGER.md` and
 
 ## Where it stands (2026-09-28)
 
-Of 28 items: 16 done, 1 partly, 1 not doing by decision, 10 open (2 of
-them wait on an answer only Davies can give). Items 4, 5 and 14 closed on
-2026-09-30, after the re-check.
+Of 28 items: 17 done, 1 partly, 1 not doing by decision, 9 open (2 of
+them wait on an answer only Davies can give). Items 4, 5, 10 and 14 closed
+on 2026-09-30, after the re-check.
 
 | # | Item | Status | Evidence |
 |---|---|---|---|
@@ -28,7 +28,7 @@ them wait on an answer only Davies can give). Items 4, 5 and 14 closed on
 | 7 | The FX shim reaches the performance line | Open, needs Davies | The header pill and the per-holding badge exist; the value line does not read the `missing` flag |
 | 8 | Make the browser sweeps a real gate | **Done** | `npm run verify:browser` is a hard CI gate (222 desktop / 225 phone checks on 2026-09-28), with `verify:perf` (60 cases) beside it |
 | 9 | Collapse the duplicated market logic | Open | The Trading 212 → Yahoo ticker map is still three copies: `trading212`, `overnight-record`, `snapshot-record` |
-| 10 | Watch what the cron jobs actually did | Open | Nothing notices a recorder that stops writing; `healthcheck.yml` says so in its header |
+| 10 | Watch what the cron jobs actually did | **Done** 2026-09-30 | The two price recorders audit each other's last 24 hours once a day against the calendar and report a shortfall to `ops_errors` (`_shared/recorder_watch.ts`). Run on that morning's data it reports both, 71 of 96 and 246 of 288: they had been refusing each other at Trading 212, fixed the same day (`_shared/t212_positions.ts`) |
 | 11 | Let Cloudflare build the site | **Not doing** | Davies keeps the committed bundle; `pages-deploy.yml` uploads `dist/` as committed |
 | 12 | The recorder's deploy flag; pin the CLI | **Done** | `snapshot-record` is in the no-JWT list; the Supabase CLI is pinned to 2.117.0 and its action by SHA |
 | 13 | Read-side tightening on the anonymous endpoints | Open, small | Do each when that function is next touched |
@@ -64,10 +64,9 @@ Each is small, fixes a way the app can be confidently wrong, or has a date.
    recorded prices. Moving the board's own anchors to the day's close is M
    (the after-hours verdict, the market cards' close and the chart windows
    all read 16:00-ET bars) and waits until an early close is seen to matter.
-4. **A freshness watch for the recorders (10).** S. One daily check that the
-   newest row of each recorded price series is as recent as the market
-   calendar says it should be, writing an ops error otherwise. The calendar
-   is the whole trick: a naive version pages all weekend.
+4. ~~**A freshness watch for the recorders (10).**~~ Done 2026-09-30, as a
+   daily audit each recorder runs on the other: buckets owed by the
+   calendar against buckets written, so a weekend is never "missing".
 5. **One ticker map (9).** S–M. Move the Trading 212 → Yahoo map into
    `supabase/functions/_shared/`, import it in the three functions, pin it.
    An unmapped ticker is not an error; it just disappears from recorded

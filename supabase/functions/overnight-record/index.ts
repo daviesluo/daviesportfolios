@@ -21,6 +21,10 @@
 // .github/workflows/edge-functions.yml) — otherwise the platform's
 // JWT gate 401s the cron call before this handler's own check runs.
 //
+// Once a day, at its 09:30 UTC call, it also audits the snapshot recorder's
+// last 24 hours and reports a shortfall to ops_errors
+// (`_shared/recorder_watch.ts`; the snapshot recorder audits this one).
+//
 // Returns:
 //   200 { ok: true, bucketTime, recorded: <n> }         — n tickers written
 //   200 { ok: true, skipped: "not-recording-window" }    — outside 20:00-04:00 ET
@@ -30,8 +34,9 @@
 //   403 — bad auth
 //   500 — DB write failed
 
-import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
+import { shouldRecord } from "../_shared/us_overnight_session.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
+import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -59,79 +64,12 @@ const NO_OVERNIGHT_SESSION = new Set(["SFTBY"]);
 
 // ---------------- Pure helpers (test-pinned) ----------------
 
+// The session rules live in `_shared/us_overnight_session.ts`; re-exported here for this function's pins.
+export { isHolidaySession, isOvernightWindow, isWeekendDeadZone, shouldRecord } from "../_shared/us_overnight_session.ts";
+
 /** UTC ISO of the 5-min bucket the given epoch-ms falls into. */
 export function bucketTimeIso(now: number): string {
   return new Date(Math.floor(now / BUCKET_MS) * BUCKET_MS).toISOString();
-}
-
-/**
- * ET hour-of-week helpers via Intl so DST is resolved by the runtime
- * (no hand-coded offset table). Returns { weekday: 0-6 (Sun=0),
- * minutes: 0-1439 } in America/New_York local time.
- */
-export function etParts(at: Date): { weekday: number; minutes: number } {
-  const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/New_York",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = fmt.formatToParts(at);
-  const wdStr = parts.find((p) => p.type === "weekday")?.value ?? "";
-  const hh = parseInt(parts.find((p) => p.type === "hour")?.value ?? "", 10);
-  const mm = parseInt(parts.find((p) => p.type === "minute")?.value ?? "", 10);
-  const WD: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  const weekday = WD[wdStr] ?? 0;
-  // Intl can emit "24" for midnight in some runtimes; normalise.
-  const hour = hh === 24 ? 0 : hh;
-  return { weekday, minutes: (Number.isFinite(hour) ? hour : 0) * 60 + (Number.isFinite(mm) ? mm : 0) };
-}
-
-/**
- * Is `at` inside the US overnight session window (20:00-04:00 ET)?
- * 20:00→23:59 OR 00:00→03:59 ET. Day-of-week agnostic here — the
- * weekend dead zone is a separate gate (a Friday-night 20:00 is in
- * the overnight window by clock but excluded by isWeekendDeadZone).
- */
-export function isOvernightWindow(at: Date): boolean {
-  const { minutes } = etParts(at);
-  return minutes >= 20 * 60 || minutes < 4 * 60;
-}
-
-/**
- * Weekend dead zone: Fri 20:00 ET → Sun 20:00 ET. US equities incl.
- * the 24/5 overnight session don't trade then, so T212's quote can't
- * move and there's nothing to record. Mirrors src/prices/market_hours.js
- * `isWeekendDeadZone`.
- */
-export function isWeekendDeadZone(at: Date): boolean {
-  const { weekday, minutes } = etParts(at);
-  if (weekday === 6) return true;                 // all Saturday ET
-  if (weekday === 5) return minutes >= 20 * 60;   // Fri from 20:00 ET
-  if (weekday === 0) return minutes < 20 * 60;    // Sun until 20:00 ET
-  return false;
-}
-
-/**
- * Is this overnight timestamp part of a session that belongs to a US market
- * HOLIDAY? The overnight session 20:00 ET (D-1) → 04:00 ET (D) belongs to
- * trading day D, so an evening bar (≥20:00 ET) keys off TOMORROW and the
- * 00:00-04:00 tail keys off today. The overnight ATS is shut on full
- * holidays (like the weekend), so T212 returns a frozen close — recording
- * it would draw a flat carry-forward line (the "MSTR flat on July 3" bug).
- * Weekends are the separate isWeekendDeadZone gate. Uses the shared
- * rule-based calendar (`isUsMarketHolidayAt`).
- */
-export function isHolidaySession(at: Date): boolean {
-  const { minutes } = etParts(at);
-  const sessionAt = minutes >= 20 * 60 ? new Date(at.getTime() + 24 * 3_600_000) : at;
-  return isUsMarketHolidayAt(sessionAt);
-}
-
-/** True when we should be recording right now. */
-export function shouldRecord(at: Date): boolean {
-  return isOvernightWindow(at) && !isWeekendDeadZone(at) && !isHolidaySession(at);
 }
 
 /**
@@ -246,6 +184,36 @@ async function upsertPoints(
   } catch { return false; }
 }
 
+/** One tick: T212's overnight prices into this bucket, when a session is being recorded. */
+async function recordOvernight(now: Date): Promise<Response> {
+  // Composed gate (shouldRecord = overnight window AND not the weekend
+  // dead zone AND not a US-holiday session). The handler previously
+  // re-derived this from the first two raw checks only, so the holiday
+  // term added for the Jul-3 flat-line fix never actually ran in
+  // production — calling the composed predicate wires it in.
+  if (!shouldRecord(now)) {
+    return new Response(JSON.stringify({ ok: true, skipped: "not-recording-window" }),
+      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+
+  const prices = await fetchAllOvernightPrices();
+  if (Object.keys(prices).length === 0) {
+    return new Response(JSON.stringify({ ok: true, skipped: "no-prices" }),
+      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+
+  const bucketTime = bucketTimeIso(now.getTime());
+  const ok = await upsertPoints(bucketTime, prices);
+  if (!ok) {
+    return new Response(JSON.stringify({ ok: false, error: "db-write-failed" }),
+      { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+  return new Response(
+    JSON.stringify({ ok: true, bucketTime, recorded: Object.keys(prices).length }),
+    { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
+  );
+}
+
 // ---------------- Server ----------------
 
 if (import.meta.main) {
@@ -258,31 +226,14 @@ if (import.meta.main) {
     }
 
     const now = new Date();
-    // Composed gate (shouldRecord = overnight window AND not the weekend
-    // dead zone AND not a US-holiday session). The handler previously
-    // re-derived this from the first two raw checks only, so the holiday
-    // term added for the Jul-3 flat-line fix never actually ran in
-    // production — calling the composed predicate wires it in.
-    if (!shouldRecord(now)) {
-      return new Response(JSON.stringify({ ok: true, skipped: "not-recording-window" }),
-        { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
-    }
-
-    const prices = await fetchAllOvernightPrices();
-    if (Object.keys(prices).length === 0) {
-      return new Response(JSON.stringify({ ok: true, skipped: "no-prices" }),
-        { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
-    }
-
-    const bucketTime = bucketTimeIso(now.getTime());
-    const ok = await upsertPoints(bucketTime, prices);
-    if (!ok) {
-      return new Response(JSON.stringify({ ok: false, error: "db-write-failed" }),
-        { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
-    }
-    return new Response(
-      JSON.stringify({ ok: true, bucketTime, recorded: Object.keys(prices).length }),
-      { status: 200, headers: { ...CORS, "Content-Type": "application/json" } },
-    );
+    // Once a day this call also audits the snapshot recorder's last 24 hours (`_shared/recorder_watch.ts`). The
+    // cron job calls this function from 00:00 to 09:55 UTC every day, so the audit runs at 09:30 whether or not a
+    // session is being recorded.
+    const audit = isAuditCall(now, 9, 30)
+      ? auditRecorder({ recorder: "snapshot-record", table: "price_snapshots", column: "ts", order: "ts.asc", now })
+      : Promise.resolve(null);
+    const [res] = await Promise.all([recordOvernight(now), audit]);
+    return res;
   });
 }
+

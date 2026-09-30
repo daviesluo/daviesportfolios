@@ -15,10 +15,10 @@
 # every 10 min keeps them warm ahead of a real visit, which is the only
 # practical mitigation for cold starts on this platform.
 #
-# NOTE: this does NOT cover overnight-record cron freshness (whether the
-# pg_cron job is still recording points) — that needs a service-role read
-# of the points table, so it'd require a SUPABASE_SERVICE_ROLE_KEY repo
-# secret. Left as a follow-up; this covers the site + Edge runtime.
+# NOTE: this does not read the recorders' tables. The two price recorders
+# audit each other's last 24 hours once a day instead, with the service
+# role they already hold, and report a shortfall to ops_errors
+# (`supabase/functions/_shared/recorder_watch.ts`, 2026-09-30).
 #
 # Fork-friendly: set repo variables SITE_URL and SUPABASE_ANON_KEY to
 # point at your own deployment (defaults below target the live project).

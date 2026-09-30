@@ -31,6 +31,10 @@
 // CRON_SECRET is not a Supabase JWT, so the platform gate would 401 the
 // cron call before this check ran.
 //
+// Once a day, at its 10:00 UTC call, it also audits the overnight recorder's
+// last 24 hours and reports a shortfall to ops_errors
+// (`_shared/recorder_watch.ts`; the overnight recorder audits this one).
+//
 // Returns:
 //   200 { ok: true, bucketTime, tickers }
 //   200 { ok: true, skipped: "no-board" | "no-tickers" | "no-prices" }
@@ -41,6 +45,8 @@ import { isUsMarketHolidayAt, usRegularCloseMinAt } from "../_shared/us_market_c
 import { b64url, sign } from "../_shared/token.ts";
 import { reportServerError } from "../_shared/ops.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
+import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
+import { shouldRecord } from "../_shared/us_overnight_session.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -352,6 +358,30 @@ async function upsertPrices(bucketTime: string, prices: Record<string, number>):
   }
 }
 
+/** One tick: price every ticker on the board and write the bucket's row. */
+async function record(now: Date): Promise<Response> {
+  const portfolio = await loadBoard();
+  if (!portfolio) return json(200, { ok: true, skipped: "no-board" });
+
+  const tickers = tickersToRecord(portfolio);
+  if (tickers.length === 0) return json(200, { ok: true, skipped: "no-tickers" });
+
+  const [quotes, t212Prices] = await Promise.all([
+    fetchQuotes(tickers),
+    fetchAllT212Prices(),
+  ]);
+
+  const prices = buildPriceRow(tickers, quotes, t212Prices, now);
+  // Nothing priced at all means the upstream is down, not that the
+  // book is worthless. Write nothing; the next tick is 5 min away.
+  if (Object.keys(prices).length === 0) return json(200, { ok: true, skipped: "no-prices" });
+
+  const bucketTime = bucketTimeIso(now.getTime());
+  const ok = await upsertPrices(bucketTime, prices);
+  if (!ok) return json(500, { ok: false, error: "db-write-failed" });
+  return json(200, { ok: true, bucketTime, tickers: Object.keys(prices).length });
+}
+
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -372,26 +402,16 @@ if (import.meta.main) {
       }
 
       const now = new Date();
-      const portfolio = await loadBoard();
-      if (!portfolio) return json(200, { ok: true, skipped: "no-board" });
-
-      const tickers = tickersToRecord(portfolio);
-      if (tickers.length === 0) return json(200, { ok: true, skipped: "no-tickers" });
-
-      const [quotes, t212Prices] = await Promise.all([
-        fetchQuotes(tickers),
-        fetchAllT212Prices(),
-      ]);
-
-      const prices = buildPriceRow(tickers, quotes, t212Prices, now);
-      // Nothing priced at all means the upstream is down, not that the
-      // book is worthless. Write nothing; the next tick is 5 min away.
-      if (Object.keys(prices).length === 0) return json(200, { ok: true, skipped: "no-prices" });
-
-      const bucketTime = bucketTimeIso(now.getTime());
-      const ok = await upsertPrices(bucketTime, prices);
-      if (!ok) return json(500, { ok: false, error: "db-write-failed" });
-      return json(200, { ok: true, bucketTime, tickers: Object.keys(prices).length });
+      // Once a day this call also audits the overnight recorder's last 24 hours (`_shared/recorder_watch.ts`),
+      // beside the recording and never in its way.
+      const audit = isAuditCall(now, 10, 0)
+        ? auditRecorder({
+          recorder: "overnight-record", table: "overnight_intraday_points", column: "bucket_time",
+          order: "bucket_time.asc,ticker.asc", now, owed: shouldRecord,
+        })
+        : Promise.resolve(null);
+      const [res] = await Promise.all([record(now), audit]);
+      return res;
     } catch (e) {
       const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
       await reportServerError("snapshot-record.unhandled", { message: msg });

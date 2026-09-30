@@ -455,11 +455,13 @@ list stays the short version; the plan is the reasoning behind it.
      is off there.
 
 7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
-   2026-09-28; items 4, 5 and 14 closed on 2026-09-30, so 16 of 28 done, 1 partly, 1 not doing (the committed
-   bundle, his call), 10 open. Worth doing, in order: the app icon; a freshness watch for the price recorders; one
-   shared Trading 212 ticker map; a plausibility band on quotes; error boundaries per surface; and item 3 measured
-   before it is touched. Seven questions there wait on Davies, the first whether `APP_AUTH_SECRET` was rotated with
-   the two passwords.
+   2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30, so 17 of 28 done, 1 partly, 1 not doing (the committed
+   bundle, his call), 9 open. Worth doing, in order: the app icon; one shared Trading 212 ticker map; a plausibility
+   band on quotes; error boundaries per surface; and item 3 measured before it is touched. Seven questions there wait
+   on Davies, the first whether `APP_AUTH_SECRET` was rotated with the two passwords.
+   - **10-01, after 10:00 UTC:** the recorders' first audits of each other run (09:30 and 10:00). With the Trading 212
+     retry deployed both should pass (≥ 90 % of the buckets owed); read `ops_errors` for kind `recorder.watch`, and if
+     either is short, count the night's buckets as the 2026-09-30 history entry did before changing anything.
 
 ## Machine and platform setup
 
@@ -539,6 +541,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 21:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The price recorders audit each other once a day** (improvement plan item 10; Davies: "你觉得需要做的话你做下"). Nothing noticed a recorder that stopped writing. Now each one counts the other's last 24 hours: buckets owed by the calendar, less the last ten minutes, against buckets written. Below 90 %, or none of the last six, is one `recorder.watch` row in `ops_errors`. The snapshot recorder owes every bucket; the overnight recorder owes only a session it records, so a weekend or holiday is never missing. The overnight rules moved to `_shared/us_overnight_session.ts` so the snapshot recorder can use them. The snapshot recorder audits at 10:00 UTC, after the session ends in either season, and the overnight recorder at 09:30. Neither audits itself, so one that is not running is reported by the other. Run on this morning's data it reports both: overnight 71 of 96 (74 %), snapshots 246 of 288 (85 %), the losses the Trading 212 retry (the entry below) addresses. Pinned: nine cases, including Friday and Sunday nights, Thanksgiving eve and the early close, the paged read, and an unreadable table.
 
 ### [2026-09-30 21:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
