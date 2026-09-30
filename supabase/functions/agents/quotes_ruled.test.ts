@@ -1,7 +1,6 @@
-// Rule D's paper instance (`quotes_ruled.ts`, pre-registration 2026-09-28). The band, the TrueFX read and the deviation
-// arm are closed form. The driver is pinned on the in-memory database: arm `d` takes the TrueFX snapshot read in the
-// minute before a turn, never one read when the minute is decided, arm `v1` takes PR5's X, and nothing of PR5V's tables
-// is written.
+// Rule D's paper instance (`quotes_ruled.ts`, pre-registration 2026-09-28). The band and the deviation arm are closed
+// form. The driver is pinned on the in-memory database: both arms decide on PR5's stored X, so arm `d` differs from arm
+// `v1` by rule D's band alone (deviation 2), no feed is read, and nothing of PR5V's tables is written.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Db } from "./db.ts";
@@ -11,10 +10,7 @@ import {
   newGovCounts, newVariantBook, stepVariantMinute, VARIANT_ARMS, VARIANT_CODE_VERSION, VARIANT_START,
   type VariantArm, type VariantEvent,
 } from "./quotes_variant.ts";
-import {
-  holdTrueFx, keepHeld, newRuledState, parseTrueFxGbpUsd, RULED_ARMS, RULED_CODE_VERSION, runQuotesRuled, ruleDEntryBand, trueFxApplies,
-  trueFxFresh, xForArmD, type RuledState, type TrueFxHeld,
-} from "./quotes_ruled.ts";
+import { newRuledState, RULED_ARMS, RULED_CODE_VERSION, runQuotesRuled, ruleDEntryBand, type RuledState } from "./quotes_ruled.ts";
 
 const M = 60e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -36,10 +32,11 @@ Deno.test("rule D re-prices the inner rung on a 0.05 % move and leaves the outer
 });
 
 Deno.test("arm v1 decides a minute exactly as PR5V's main, and PR5V's own arms still have no entry band", () => {
-  // Both moved on 2026-09-30: variant-2's rate is read before its turn (its deviation 1), and PR5V re-decides once
-  // because `entryBand` was added to its engine after it had decided minutes (its deviation 1).
+  // Both moved on 2026-09-30. PR5V re-decides once, because `entryBand` was added to its engine after it had decided
+  // minutes (its deviation 1). Variant-2 read TrueFX after its turn (its deviation 1), then before it, and from code
+  // version 3 reads PR5's stored X, as variant-1 does (its deviation 2).
   assertEquals(VARIANT_CODE_VERSION, 2);
-  assertEquals(RULED_CODE_VERSION, 2);
+  assertEquals(RULED_CODE_VERSION, 3);
   assertEquals(RULED_ARMS.v1.entryBand, undefined);
   assertEquals(RULED_ARMS.v1.rungs, VARIANT_ARMS.main.rungs);
   assertEquals([RULED_ARMS.d.reprice, RULED_ARMS.d.entryAt, RULED_ARMS.d.stopAt, RULED_ARMS.d.sizeUsd], [0.0003, 600, 700, 100]);
@@ -50,56 +47,6 @@ Deno.test("arm v1 decides a minute exactly as PR5V's main, and PR5V's own arms s
   };
   assertEquals(run(RULED_ARMS.v1), run(VARIANT_ARMS.main));
   assertEquals(VARIANT_ARMS.main.entryBand, undefined);
-});
-
-Deno.test("TrueFX parses the study's concatenation, and a stale, future or empty body is a miss", () => {
-  // bid = 1.23 || 456, ask = 1.23 || 789, the study's p_truefx.
-  const row = "EUR/USD,1,1.0,0,1.0,1\nGBP/USD,1700000000000,1.23,456,1.23,789\n";
-  const snap = parseTrueFxGbpUsd(row)!;
-  assertEquals(snap, { mid: (1.23456 + 1.23789) / 2, srcMs: 1700000000000 });
-  assertEquals(parseTrueFxGbpUsd(""), null);
-  assertEquals(parseTrueFxGbpUsd("GBP/USD,nope,1.2,3,1.2,4"), null);
-  const now = 1_700_000_000_000;
-  assertEquals(trueFxFresh(now, now), true);
-  assertEquals(trueFxFresh(now - 60e3, now), true);
-  assertEquals(trueFxFresh(now - 60e3 - 1, now), false);
-  assertEquals(trueFxFresh(now + 5e3, now), true);
-  assertEquals(trueFxFresh(now + 5e3 + 1, now), false);
-  assertEquals(trueFxApplies(now, now), true);
-  assertEquals(trueFxApplies(now, now + 3 * M), true);
-  assertEquals(trueFxApplies(now, now + 3 * M + 1), false);
-  assertEquals(trueFxApplies(now, now - 1), false);
-});
-
-Deno.test("a snapshot prices only the turn after the minute it was read in, and only while that minute is current", () => {
-  const minute = Date.parse("2026-09-30T10:00:00Z"), readAt = minute - M + 1_000;
-  const held = holdTrueFx({ mid: 1.4, srcMs: readAt - 400 }, readAt)!;
-  assertEquals([held.serves, held.readAt, held.mid], [minute, readAt, 1.4]);
-  // A snapshot read in the first or the last millisecond of a minute serves the next turn.
-  assertEquals(holdTrueFx({ mid: 1.4, srcMs: minute - M }, minute - M)!.serves, minute);
-  assertEquals(holdTrueFx({ mid: 1.4, srcMs: minute - 1 }, minute - 1)!.serves, minute);
-  // Stale or from the future at the read: a miss, held for nothing.
-  assertEquals(holdTrueFx({ mid: 1.4, srcMs: readAt - 60e3 - 1 }, readAt), null);
-  assertEquals(holdTrueFx({ mid: 1.4, srcMs: readAt + 5e3 + 1 }, readAt), null);
-  assertEquals(holdTrueFx(null, readAt), null);
-  // Decided two minutes after its turn, as the engine decides it: TrueFX, and the record says when it was read.
-  assertEquals(xForArmD(1.34, held, minute, minute + 2 * M + 1_000), { x: 1.4, source: "truefx", srcMs: readAt - 400, readAt });
-  // The minute it was read in is not its turn: that would price a turn with a rate from after it.
-  assertEquals(xForArmD(1.34, held, minute - M, minute + M + 1_000).source, "yahoo");
-  assertEquals(xForArmD(1.34, held, minute + M, minute + 3 * M).source, "yahoo");
-  // Decided more than three minutes after its turn: Yahoo, as every minute caught up from further back.
-  assertEquals(xForArmD(1.34, held, minute, minute + 3 * M + 1), { x: 1.34, source: "yahoo", srcMs: null, readAt: null });
-  // Even a snapshot that claims this turn is refused when it was read at or after the turn began.
-  const late: TrueFxHeld = { mid: 1.5, srcMs: minute, readAt: minute, serves: minute };
-  assertEquals(xForArmD(1.34, late, minute, minute + 2 * M).source, "yahoo");
-  assertEquals(xForArmD(null, null, minute, minute + 2 * M), { x: null, source: "yahoo", srcMs: null, readAt: null });
-  // Held until its turn is decided or out of reach; a second read for the same turn replaces the first.
-  const again = holdTrueFx({ mid: 1.41, srcMs: readAt + 20e3 }, readAt + 20e3)!;
-  assertEquals(keepHeld([held], again, minute - M, readAt + 20e3).map((h) => h.mid), [1.41]);
-  const next = holdTrueFx({ mid: 1.42, srcMs: minute + 1_000 }, minute + 1_000)!;
-  assertEquals(keepHeld([held], next, minute - M, minute + 1_000).map((h) => h.serves), [minute, minute + M]);
-  assertEquals(keepHeld([held, next], null, minute, minute + 2 * M).map((h) => h.serves), [minute + M]);
-  assertEquals(keepHeld([held, next], null, minute - M, minute + 3 * M + 1).map((h) => h.serves), [minute + M]);
 });
 
 const BOOKS = QUOTE_BOOKS;
@@ -117,9 +64,10 @@ function world(over: Record<string, Row[]> = {}) {
   }, { now: () => Date.now() });
 }
 
-Deno.test("runQuotesRuled: arm d prices a turn with the snapshot read in the minute before it, never the one read when it decides, and writes none of PR5V", async () => {
-  // As production runs it: the call fires at :00 and PR5 decides the minute before only at :25, so the call at
-  // START − 1 min + 1 s finds nothing new to decide, and the call at START + 2 min + 1 s decides START.
+Deno.test("runQuotesRuled: arm d decides on PR5's stored X, as arm v1 does, reads no feed, and writes none of PR5V", async () => {
+  // Two calls as production runs them: at START − 1 min + 1 s there is nothing new to decide, and at START + 2 min + 1 s
+  // the call decides START, the minute PR5 decided at START + 1 min + 25 s. Code version 2 read TrueFX in the first call
+  // and priced START's turn with it; now no feed is read at all, and both arms place on the same fair.
   const { db, tables } = world({
     agent_quote_state: [{ id: 1, state: { books: "not read" }, last_minute: iso(VARIANT_START - 3 * M), updated_at: iso(VARIANT_START), last_error: null }],
   });
@@ -130,43 +78,28 @@ Deno.test("runQuotesRuled: arm d prices a turn with the snapshot read in the min
     insert: (t, rows, ret) => { writes.push(`insert ${t}`); return db.insert(t, rows, ret); },
     update: (t, q, p) => { writes.push(`update ${t}`); return db.update(t, q, p); },
   };
+  const realFetch = globalThis.fetch;
   let fetches = 0;
-  const fetchImpl = () => { fetches++; return Promise.reject(new Error("TrueFX is injected")); };
-  const readBefore = VARIANT_START - M + 1_000;
-  const a = await runQuotesRuled({ db: spy, now: readBefore, holder: "h", clock: () => 0, fx: () => Promise.resolve({ mid: 1.4, srcMs: readBefore - 300 }), fetchImpl });
-  assertEquals([a.skipped, a.truefxHeld, a.errors], ["no minute PR5 has decided is left to decide", iso(VARIANT_START), []]);
-  assertEquals((tables.agent_quoted_state[0].state as RuledState).truefx, [{ mid: 1.4, srcMs: readBefore - 300, readAt: readBefore, serves: VARIANT_START }]);
-
-  // PR5 decides START at START + 1 min + 25 s. The next call reads a rate from two minutes after the turn: 1.5.
-  tables.agent_quote_state[0].last_minute = iso(VARIANT_START);
-  const decidedAt = VARIANT_START + 2 * M + 1_000;
-  const r = await runQuotesRuled({ db: spy, now: decidedAt, holder: "h", clock: () => 0, fx: () => Promise.resolve({ mid: 1.5, srcMs: decidedAt - 300 }), fetchImpl });
-  assertEquals(r.errors, []);
-  assertEquals([r.minutes, r.truefx, r.truefxHeld, r.checkMaxUsd, r.checkDays, fetches], [1, 2, iso(VARIANT_START + 3 * M), 0, 0, 0]);
+  globalThis.fetch = (() => { fetches++; return Promise.reject(new Error("no feed may be read")); }) as typeof fetch;
+  try {
+    const a = await runQuotesRuled({ db: spy, now: VARIANT_START - M + 1_000, holder: "h", clock: () => 0 });
+    assertEquals([a.skipped, a.errors], ["no minute PR5 has decided is left to decide", []]);
+    tables.agent_quote_state[0].last_minute = iso(VARIANT_START);
+    const r = await runQuotesRuled({ db: spy, now: VARIANT_START + 2 * M + 1_000, holder: "h", clock: () => 0 });
+    assertEquals([r.errors, r.minutes, r.checkMaxUsd, r.checkDays], [[], 1, 0, 0]);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assertEquals(fetches, 0);
   assertEquals(writes.filter((w) => w.includes("agent_quotev")), []);
-  const recs = tables.agent_quoted_minutes;
-  assertEquals(recs.map((m) => [m.x, m.x_d, m.x_source, m.x_d_t, m.x_d_read]), [
-    [1.34, 1.4, "truefx", iso(readBefore - 300), iso(readBefore)],
-    [1.34, 1.4, "truefx", iso(readBefore - 300), iso(readBefore)],
+  assertEquals(tables.agent_quoted_minutes.map((m) => [m.x, m.x_d, m.x_source, m.x_d_t ?? null, m.x_d_read ?? null]), [
+    [1.34, 1.34, "yahoo", null, null], [1.34, 1.34, "yahoo", null, null],
   ]);
   const place = (arm: string, book: QuoteBook) => tables.agent_quoted_events.find((e) => e.arm === arm && e.book === book && e.side === "bid" && e.k === 0.0003 && e.what === "place")!;
-  assertEquals(place("v1", "USDC-GBP").ticks, quoteTicks(1 / 1.34, 0.0003, "bid"));
-  assertEquals(place("d", "USDC-GBP").ticks, quoteTicks(1 / 1.4, 0.0003, "bid"));
-  assert(place("d", "USDC-GBP").ticks !== quoteTicks(1 / 1.5, 0.0003, "bid"));
-  // The later snapshot waits for its own turn, START + 3 min; the one START used is gone.
-  assertEquals((tables.agent_quoted_state[0].state as RuledState).truefx!.map((h) => [h.serves, h.mid]), [[VARIANT_START + 3 * M, 1.5]]);
+  for (const b of BOOKS) assertEquals([place("d", b).ticks, place("v1", b).ticks], [quoteTicks(1 / 1.34, 0.0003, "bid"), quoteTicks(1 / 1.34, 0.0003, "bid")]);
   assertEquals(tables.agent_quotev_trips, []);
-  assertEquals((tables.agent_quoted_state[0].state as RuledState).checkMaxUsd, 0);
-  assertEquals(tables.agent_quoted_state[0].last_error, null);
-});
-
-Deno.test("runQuotesRuled: with no snapshot read before the turn, a current minute is Yahoo", async () => {
-  // The first engine's case: nothing read in the minute before, and a fresh rate read as the minute is decided.
-  const { db, tables } = world();
-  const decidedAt = VARIANT_START + 2 * M + 1_000;
-  const r = await runQuotesRuled({ db, now: decidedAt, holder: "h", clock: () => 0, fx: () => Promise.resolve({ mid: 1.5, srcMs: decidedAt - 300 }) });
-  assertEquals([r.errors, r.minutes, r.truefx], [[], 1, 0]);
-  assertEquals(tables.agent_quoted_minutes.map((m) => [m.x_d, m.x_source, m.x_d_read]), [[1.34, "yahoo", null], [1.34, "yahoo", null]]);
+  const st = tables.agent_quoted_state[0].state as RuledState;
+  assertEquals([st.codeVersion, st.lastMinute, st.checkMaxUsd, "truefx" in st], [RULED_CODE_VERSION, VARIANT_START, 0, false]);
 });
 
 Deno.test("the in-memory database refuses a TrueFX minute read at or after its turn, as 0073 does", async () => {
@@ -182,17 +115,6 @@ Deno.test("the in-memory database refuses a TrueFX minute read at or after its t
   await db.upsert("agent_quoted_minutes", [row(iso(VARIANT_START - 59e3))], "book,minute");
 });
 
-Deno.test("runQuotesRuled: a minute outside the three minutes is Yahoo, and TrueFX is not read", async () => {
-  const { db, tables } = world();
-  let fetches = 0;
-  const r = await runQuotesRuled({
-    db, now: VARIANT_START + 10 * M, holder: "h",
-    fetchImpl: () => { fetches++; return Promise.reject(new Error("must not be called")); },
-  });
-  assertEquals([r.errors, r.truefx, fetches], [[], 0, 0]);
-  assertEquals(tables.agent_quoted_minutes.map((m) => [m.x_d, m.x_source]), [[1.34, "yahoo"], [1.34, "yahoo"]]);
-});
-
 Deno.test("runQuotesRuled: a PR5V trip arm v1 lacks sets the deviation, and a failed read of it leaves the decisions", async () => {
   const trip = {
     id: 1, arm: "main", key: "USDC-GBP/bid", book: "USDC-GBP", side: "bid", k: 0.0003, t_entry: iso(VARIANT_START),
@@ -200,13 +122,13 @@ Deno.test("runQuotesRuled: a PR5V trip arm v1 lacks sets the deviation, and a fa
     how: "maker", notional_usd: 100, pnl_usd: 1.25,
   };
   const hit = world({ agent_quotev_trips: [trip] });
-  const a = await runQuotesRuled({ db: hit.db, now: VARIANT_START + 2 * M, holder: "h", fx: () => Promise.resolve(null) });
+  const a = await runQuotesRuled({ db: hit.db, now: VARIANT_START + 2 * M, holder: "h" });
   assertEquals([a.checkMaxUsd, a.checkDays], [1.25, 1]);
   assertEquals(hit.tables.agent_quotev_trips, [trip]);
 
   const miss = world({ agent_quotev_trips: [trip] });
   const spy: Db = { ...miss.db, selectAll: (t, q) => t === "agent_quotev_trips" ? Promise.reject(new Error("quotev down")) : miss.db.selectAll(t, q) };
-  const b = await runQuotesRuled({ db: spy, now: VARIANT_START + 2 * M, holder: "h2", fx: () => Promise.resolve(null) });
+  const b = await runQuotesRuled({ db: spy, now: VARIANT_START + 2 * M, holder: "h2" });
   assertEquals([b.errors, b.checkMaxUsd, miss.tables.agent_quoted_state[0].last_error], [[], null, null]);
   assert((miss.tables.agent_quoted_events as Row[]).length > 0);
   assertEquals(miss.tables.agent_quotev_trips, [trip]);

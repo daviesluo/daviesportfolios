@@ -584,8 +584,8 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/quotes_variant.ts` | "Stablecoin quotes variant-1" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
 | `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
-| `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function with rule D on entries, TrueFX read in the minute before each turn and Yahoo otherwise, in tables of its own. |
-| `agents/quotes_ruled.test.ts` | Pins rule D's band, that a turn is priced only with a TrueFX snapshot read before it, and that the driver writes none of variant-1's tables. |
+| `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function on variant-1's rate with rule D on entries, in tables of its own. |
+| `agents/quotes_ruled.test.ts` | Pins rule D's band, that both arms decide on PR5's stored rate with no feed read, and that the driver writes none of variant-1's tables. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
@@ -687,7 +687,7 @@ before touching migration state.
 | `0070_quote_days.sql` | A view, `agent_quote_days`: each UTC day of the stablecoin quote test's orders, fills and closed round trips, for its page's DAYS table. |
 | `0071_quotes_variant.sql` | Adds the quote variant's tables (state, minute records, events, trips), its per-arm days view, the function that wipes them for a new code version, its lease, and its call in the one-minute job. |
 | `0072_quotes_ruled.sql` | Adds variant-2's tables, its days view, the function that wipes them, its lease, and its call beside the variant's in the one-minute job. |
-| `0073_quoted_truefx_before_turn.sql` | Records when variant-2's TrueFX snapshot was read, and refuses a TrueFX minute read at or after the minute it prices. |
+| `0073_quoted_truefx_before_turn.sql` | Records when variant-2's TrueFX snapshot was read (while it read one), and refuses a TrueFX minute read at or after the minute it prices. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

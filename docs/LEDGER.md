@@ -188,7 +188,7 @@ list stays the short version; the plan is the reasoning behind it.
      table shows each name on two lines, the first line the whole of "Stablecoin quotes". Same minute as PR5V, its own
      instance of `stepVariantMinute` (state, tables, lease and cron row apart; PR5V's row and `VARIANT_CODE_VERSION`
      untouched). Arm `d` is judged; arm `v1` is the deviation, PR5V's own settings on PR5's stored X, and must match
-     PR5V's arm `main` or the test is not judged. Fair rate for arm `d` is TrueFX, Yahoo (PR5's stored bar) the
+     PR5V's arm `main` or the test is not judged. Fair rate for arm `d` was TrueFX (until deviation 2), Yahoo (PR5's stored bar) the
      fallback; no new feed, no sub-account, no Worker. Recomputed before the freeze, on the study's inputs at PR5V's
      minute: rule D $1.0822 a day against $1.0540, paired +$0.0281 (−0.0040 to +0.0666); the fresh five days $0.7484
      against $0.5088; POSTs −38.7 %; no key reached 600. The engine is on (`agents/quotes_ruled.ts`, `agents?action=quotesd`,
@@ -201,17 +201,22 @@ list stays the short version; the plan is the reasoning behind it.
        (`backtests/pr5v/lookahead.json`), twice the gain condition 3 looks for. Code version 2 holds the snapshot read
        in the minute before each turn for that turn alone; `0073` records `x_d_t` / `x_d_read` and refuses a TrueFX
        row read at or after its minute. Re-decided from 09-28 00:00, so the window's days before the fix are rule D on
-       Yahoo, as variant-1. Check after the deploy: `agent_quoted_state.last_error` empty, the catch-up done (about 33
-       calls), `checkMaxUsd` under $0.01 once PR5V has caught up too, and TrueFX minutes again once it is current, each
-       with `x_d_read < minute` (reference §4 item 47, which also says what condition 3 can and cannot show).
+       Yahoo, as variant-1. **Checked 2026-09-30 20:28 UTC:** caught up with PR5, no error, `checkMaxUsd` $0.00 over
+       three days, and the 176 TrueFX minutes since the fix all read before their turn (median 58.6 s).
+     - **Deviation 2, 2026-09-30 (Davies: variant-2 is the test of rule D; no new variant): arm d reads PR5's stored X,
+       as variant-1 does**, so the two differ by rule D alone and condition 3 tests rule D, the comparison the study
+       priced (+$0.028 a day, p 0.0513). TrueFX had nothing to add on paper (0.41 bps from Yahoo's bar at the median in
+       production) and Yahoo is not throttled from Supabase. Code version 3 reads no feed and re-decides from 09-28
+       00:00; its TrueFX code is kept in `954bd25` for a live executor. Check after the deploy: `agent_quoted_state`
+       code 3, caught up, no error, `checkMaxUsd` under $0.01, and no `x_source = 'truefx'` row (reference §4 item 47).
      - **Davies asked whether every strategy of this class should read TrueFX, Yahoo the fallback** (2026-09-28). Only
        variant-2 does. PR5 and PR5V cannot switch without voiding PR5's spec and the tests whose freeze lines name
        `stepMinute` and `agent_quote_minutes` (QUEUE, PR5-W, PR5-R, PR5V); the fast-X study found a faster rate earned
        less on four governed keys ($0.92–0.95 a day against $1.03); and a replay a minute behind can only use a
        snapshot read before the turn, about as old as Yahoo's bar. Where it would count is a live executor that reads it
        and posts at once: PR5's live path, after the 10-21 review, as a pre-registered change. Yahoo's 311 of 316 429s
-       were read from the research container; whether production is throttled too is one query for a session with
-       the database connector (the share of `agent_quote_minutes` whose `x_t` is not the minute before).
+       were the research container's: from Supabase, 5,444 of 5,472 lit minutes in the seven days to 09-30 used the bar
+       a minute back (read 2026-09-30).
 
 5. **Studies of 2026-09-26/27, this session: all done (WXSRC, VIEWS, the speed study, fp6, PMLATE, HARVEST); the view recorder running.** (Bitget reported the same evening: don't
    register, `venue-survey.md` §12.) (a) A fourth Binance-first
@@ -534,6 +539,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 20:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-2 now differs from variant-1 by rule D alone** (its deviation 2, reference §4 item 47). Davies, asked whether a third arm should isolate rule D from the rate: "规则 D 是不是本来就该应用在 variant-2 上？是的话就直接修改成需要的样子，不用加新的 variant 了吧". So arm d reads PR5's stored X, as arm v1 and PR5V do, and condition 3 tests rule D, as the study priced it. Production said TrueFX had nothing to add on paper: held before its turn it sat a median 0.41 bps from Yahoo's bar (1.15 at p95), and Yahoo is not throttled from Supabase. Code version 3 reads no feed and re-decides from 2026-09-28 00:00. Pinned: two calls as production runs them, no feed read, both arms placing on the same fair; the pin fails on code version 2. The TrueFX code stays in `954bd25` for a live executor that posts as it reads.
 
 ### [2026-09-30 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

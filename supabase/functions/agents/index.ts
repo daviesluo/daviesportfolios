@@ -19,10 +19,9 @@
 //                             tables. Reads the database only. Every minute,
 //                             in the one job. Cron or admin.
 //   POST ?action=quotesd    — "Stablecoin quotes variant-2" (quotes_ruled.ts,
-//                             0072, 0073): the same decision function with
-//                             rule D, its own tables. Reads the database, and
-//                             TrueFX once a call, held for the next minute's
-//                             turn. Every minute.
+//                             0072): the same decision function with rule D on
+//                             variant-1's own rate, its own tables. Reads the
+//                             database only. Every minute.
 //   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
 //                             that gives the ask rungs inventory: `{ book,
 //                             gbp, send }`. Without `send: true` it returns
@@ -1464,7 +1463,7 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
     if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
     // "Stablecoin quotes variant-1" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
     if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D, its own tables. TrueFX once, held for the next turn.
+    // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D on variant-1's rate, its own tables. Database only.
     if (action === "quotesd" && req.method === "POST" && operator) return json(200, await runQuotesRuled({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
     // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
     if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));

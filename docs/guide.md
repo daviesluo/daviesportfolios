@@ -156,11 +156,11 @@ places stay when the number is not whole.
   compared day by day. Its page is the quote test's, with nine rungs a side
   in each book. The name in the table is two lines, and the first is the
   whole of "Stablecoin quotes".
-- **Stablecoin quotes variant-2.** Right after that: the same quotes, except
-  an entry moves only when fair has moved further, and the pound rate each
-  minute is priced on comes from TrueFX, read in the minute before, with the
-  quote test's stored rate when there is none. Its page is variant-1's, and
-  it says so when the two have drifted.
+- **Stablecoin quotes variant-2.** Right after that: the same quotes on the
+  same pound rate, except that an entry moves only when fair has moved
+  further (at least a third of the rung's distance), so the two rows differ
+  by that one rule. Its page is variant-1's, and it says so when the two have
+  drifted.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

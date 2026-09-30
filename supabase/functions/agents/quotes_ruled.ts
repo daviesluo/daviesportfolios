@@ -6,24 +6,21 @@
 // `RULED_CODE_VERSION`, wipes only these tables, and re-decides from the start.
 //
 //   d   the arm that is judged. PR5V's arm `main` (nine rungs, 0.03 % exits,
-//       $100, the shared cap, four keys, 600 / 700) except an entry re-prices
-//       when fair has moved more than max(0.03 %, k/3), and the fair rate is
-//       TrueFX's GBP/USD read in the minute before the turn it prices, for a
-//       minute this call is deciding within three minutes of its clock.
-//       Yahoo — the bar PR5 stored — is the fallback, and the X of every
-//       older minute.
+//       $100, the shared cap, four keys, 600 / 700) on the same stored X,
+//       except an entry re-prices when fair has moved more than
+//       max(0.03 %, k/3). It differs from variant-1 by rule D and nothing else.
 //   v1  the deviation, never judged. PR5V's arm `main` exactly, on PR5's stored
 //       X every minute, so a drift in the shared function shows up here.
 //
-// TrueFX is read once in the call, only while the engine is current, and held
-// in the state for the next minute's turn: the turn at t reads data to t − 1
-// (the pre-registration's §2), and this call decides minute m − 2 at m + ~1 s,
-// because PR5 decides m − 1 only at m + 25 s. The first engine (code version
-// 1) gave the rate it read now to the minute it decided now, a rate from about
-// two minutes after that turn, so a re-price chose which quotes rested through
-// a minute on where GBP/USD went during it (deviation 1, reference §4 item 47;
-// `backtests/pr5v/lookahead.json` prices it). It is not stored as a series of
-// its own. No venue is called.
+// The pre-registration also gave arm d TrueFX's GBP/USD. The first engine read
+// it about two minutes after the turn it priced (deviation 1, reference §4 item
+// 47; `backtests/pr5v/lookahead.json` prices it); the second held a snapshot
+// read in the minute before the turn, causal but no fresher than Yahoo's stored
+// bar, a median 0.41 bps from it in production. Since 2026-09-30 (deviation 2,
+// Davies: variant-2 is the test of rule D) both arms read PR5's stored X, so
+// variant-2 against variant-1 is rule D alone. That TrueFX code is in the
+// history of this file (`954bd25`) for a live executor that would post as it
+// reads. No venue or feed is called.
 
 import type { Db } from "./db.ts";
 import {
@@ -37,71 +34,10 @@ import {
 } from "./quotes_variant.ts";
 
 const M = 60e3, DAY = 86400e3;
-/** TrueFX's keyless GBP/USD snapshot. One GET, no key, not a registered source. */
-const TRUEFX_URL = "https://webrates.truefx.com/rates/connect.html?f=csv";
-const TRUEFX_TIMEOUT_MS = 3000;
-/** A snapshot older than this against the call's clock is a miss. */
-const TRUEFX_STALE_MS = 60e3;
-/** A snapshot this far ahead of the call's clock is a miss. */
-const TRUEFX_AHEAD_MS = 5e3;
-/** TrueFX is the rate only for a minute the call is deciding within this of its clock. */
-const TRUEFX_LIVE_MS = 3 * M;
 
 /** Rule D's entry step: max(0.03 %, k/3). Exits stay on `reprice`. `away` is unset, so both directions share the step. */
 export function ruleDEntryBand(k: number): number {
   return Math.max(0.0003, k / 3);
-}
-
-export type TrueFxSnap = { mid: number; srcMs: number };
-
-/**
- * TrueFX's CSV the way the study's reader parses it: the GBP/USD row, bid and ask each the concatenation of the two
- * price fields, the timestamp the row's own. Anything else, or a mid that is not a positive number, is a miss.
- */
-export function parseTrueFxGbpUsd(body: string): TrueFxSnap | null {
-  for (const line of body.trim().split(/\r?\n/)) {
-    const p = line.split(",");
-    if (p[0] !== "GBP/USD" || p.length < 6) continue;
-    const bid = Number(p[2] + p[3]), ask = Number(p[4] + p[5]), srcMs = Number(p[1]);
-    if (!(bid > 0) || !(ask > 0) || !Number.isFinite(srcMs)) return null;
-    const mid = (bid + ask) / 2;
-    return mid > 0 ? { mid, srcMs } : null;
-  }
-  return null;
-}
-
-/** The snapshot's own timestamp is within 60 s behind the call's clock, and at most 5 s ahead of it. */
-export function trueFxFresh(srcMs: number, nowMs: number): boolean {
-  return nowMs - srcMs <= TRUEFX_STALE_MS && srcMs - nowMs <= TRUEFX_AHEAD_MS;
-}
-
-/** The minute is one this call is deciding within three minutes of its clock, and not one in the future. */
-export function trueFxApplies(minute: number, nowMs: number): boolean {
-  return nowMs >= minute && nowMs - minute <= TRUEFX_LIVE_MS;
-}
-
-/** A snapshot read by one call and held for the turn it may price: the start of the minute after the one it was read in. */
-export type TrueFxHeld = TrueFxSnap & { readAt: number; serves: number };
-
-/**
- * A fresh snapshot, read at `readAt` by this engine's clock, becomes the rate of the turn at the start of the next
- * minute, and of no other: that turn reads data to t − 1, and the snapshot is known before t. A stale one is a miss.
- */
-export function holdTrueFx(snap: TrueFxSnap | null, readAt: number): TrueFxHeld | null {
-  if (!snap || !trueFxFresh(snap.srcMs, readAt)) return null;
-  return { ...snap, readAt, serves: Math.floor(readAt / M) * M + M };
-}
-
-/**
- * Arm `d`'s X for one minute: the snapshot held for that minute's turn — read before the minute began — when the minute
- * is decided within three minutes of the clock; otherwise the Yahoo bar (PR5's stored X, which may itself be null).
- * `source` is what the minute's record says, and a TrueFX minute records when the snapshot was read.
- */
-export function xForArmD(yahoo: number | null, held: TrueFxHeld | null, minute: number, nowMs: number): { x: number | null; source: "truefx" | "yahoo"; srcMs: number | null; readAt: number | null } {
-  if (held && held.serves === minute && held.readAt < minute && trueFxApplies(minute, nowMs)) {
-    return { x: held.mid, source: "truefx", srcMs: held.srcMs, readAt: held.readAt };
-  }
-  return { x: yahoo, source: "yahoo", srcMs: null, readAt: null };
 }
 
 export type RuledArmName = "v1" | "d";
@@ -113,8 +49,11 @@ export const RULED_ARMS: Record<RuledArmName, VariantArm> = {
   d: { name: "d", rungs: NINE, ...GOVERNED, entryBand: ruleDEntryBand },
 };
 export const RULED_ARM_NAMES: RuledArmName[] = ["v1", "d"];
-/** 2 since 2026-09-30: arm `d`'s TrueFX is the snapshot read before the turn, not the one read when the minute is decided. */
-export const RULED_CODE_VERSION = 2;
+/**
+ * 3 since 2026-09-30: arm `d` reads PR5's stored X, as `v1` does (deviation 2). 2 held a TrueFX snapshot read before the
+ * turn; 1 read it about two minutes after (deviation 1).
+ */
+export const RULED_CODE_VERSION = 3;
 export const RULED_START = VARIANT_START;
 
 export type RuledArmState = { books: Record<QuoteBook, BookState>; gov: GovCounts };
@@ -122,24 +61,20 @@ export type RuledState = {
   codeVersion: number; lastMinute: number; arms: Record<RuledArmName, RuledArmState>;
   /** Largest |arm v1 − PR5V main| of daily P&L, and how many days either arm had a trip. */
   checkMaxUsd: number; checkDays: number;
-  /** The snapshots read and not yet used: each for the turn at its `serves`. */
-  truefx?: TrueFxHeld[];
 };
 export type RuledMinuteRecord = {
   book: QuoteBook; minute: string; source: "minutes" | "rebuilt"; x: number | null; x_t: string | null; fair_u: number | null;
-  hours_n: number; prints_n: number; pr5_prints_n: number | null; x_d: number | null; x_source: "truefx" | "yahoo";
-  /** A TrueFX minute's snapshot: its own timestamp, and when this engine read it (always before `minute`). */
-  x_d_t: string | null; x_d_read: string | null;
+  hours_n: number; prints_n: number; pr5_prints_n: number | null;
+  /** The rate arm `d` decided on: PR5's, as arm `v1`'s, since code version 3. */
+  x_d: number | null; x_source: "yahoo";
 };
 type ArmCounts = { orders: number; posts: number; refused: number; withdrawn: number; fills: number; exits: number; stops: number; trips: number };
 export type RuledReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; pr5LastMinute: number | null; chunks: number;
-  stoppedEarly: boolean; reset: boolean; prints: number; rebuilt: number; printsDiffer: number; truefx: number;
-  /** The turn this call's snapshot was held for, when it read a fresh one. */
-  truefxHeld?: string;
+  stoppedEarly: boolean; reset: boolean; prints: number; rebuilt: number; printsDiffer: number;
   arms: Record<RuledArmName, ArmCounts>; checkMaxUsd: number | null; checkDays: number | null; errors: string[];
 };
-export type RuledDeps = { db: Db; now: number; holder: string; clock?: () => number; fx?: () => Promise<TrueFxSnap | null>; fetchImpl?: typeof fetch };
+export type RuledDeps = { db: Db; now: number; holder: string; clock?: () => number };
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msOf = (v: unknown) => typeof v === "number" ? v : Date.parse(String(v));
@@ -156,42 +91,10 @@ export function newRuledState(start: number, seeds: Record<QuoteBook, Print | nu
     books: Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newVariantBook(b, RULED_ARMS[a], seeds[b])])) as Record<QuoteBook, BookState>,
     gov: newGovCounts(),
   });
-  return { codeVersion: RULED_CODE_VERSION, lastMinute: start - M, arms: { v1: arm("v1"), d: arm("d") }, checkMaxUsd: 0, checkDays: 0, truefx: [] };
-}
-
-/**
- * The held snapshots after a new one (which replaces any held for the same turn), keeping only those a later call can
- * still use: a turn not yet decided, and one that will still be within three minutes of the clock.
- */
-export function keepHeld(held: TrueFxHeld[] | undefined, add: TrueFxHeld | null, lastMinute: number, nowMs: number): TrueFxHeld[] {
-  const all = [...(held ?? []).filter((h) => !add || h.serves !== add.serves), ...(add ? [add] : [])];
-  return all.filter((h) => h.serves > lastMinute && nowMs - h.serves <= TRUEFX_LIVE_MS).sort((a, b) => a.serves - b.serves);
+  return { codeVersion: RULED_CODE_VERSION, lastMinute: start - M, arms: { v1: arm("v1"), d: arm("d") }, checkMaxUsd: 0, checkDays: 0 };
 }
 
 const wipeRuledRows = (db: Db) => db.insert("rpc/agent_quoted_reset", {}, false);
-
-async function readTrueFx(fetchImpl: typeof fetch): Promise<TrueFxSnap | null> {
-  const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), TRUEFX_TIMEOUT_MS);
-  try {
-    const res = await fetchImpl(TRUEFX_URL, { signal: ac.signal });
-    if (!res.ok) return null;
-    return parseTrueFxGbpUsd(await res.text());
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-/** The call's one snapshot. A failed read is a miss. */
-async function trueFxOnce(d: RuledDeps): Promise<TrueFxSnap | null> {
-  try {
-    return d.fx ? await d.fx() : await readTrueFx(d.fetchImpl ?? fetch);
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Arm `v1`'s trips against PR5V's arm `main`, summed by the UTC day of entry. The largest absolute difference and the
@@ -226,7 +129,7 @@ export async function runQuotesRuled(d: RuledDeps): Promise<RuledReport> {
   const clock = d.clock ?? Date.now, began = clock();
   const zero = (): ArmCounts => ({ orders: 0, posts: 0, refused: 0, withdrawn: 0, fills: 0, exits: 0, stops: 0, trips: 0 });
   const report: RuledReport = {
-    minutes: 0, from: null, to: null, pr5LastMinute: null, chunks: 0, stoppedEarly: false, reset: false, prints: 0, rebuilt: 0, printsDiffer: 0, truefx: 0,
+    minutes: 0, from: null, to: null, pr5LastMinute: null, chunks: 0, stoppedEarly: false, reset: false, prints: 0, rebuilt: 0, printsDiffer: 0,
     arms: { v1: zero(), d: zero() }, checkMaxUsd: null, checkDays: null, errors: [],
   };
   const held = await d.db.claim("agent_locks", `name=eq.quotesd&lease_until=lt.${enc(d.now)}`, { lease_until: iso(d.now + VARIANT_LEASE_MS), holder: d.holder });
@@ -252,18 +155,7 @@ export async function runQuotesRuled(d: RuledDeps): Promise<RuledReport> {
       st = newRuledState(RULED_START, seeds);
     }
     const end = Math.min(pr5Last, st.lastMinute + VARIANT_MAX_MINUTES * M);
-    // Arm d's rate for a later turn: read once, only while the engine is current (its last minute after this call within
-    // three minutes of the clock), and held for the turn at the start of the next minute. Never this call's minutes.
-    if (trueFxApplies(Math.max(end, st.lastMinute), d.now)) {
-      const kept = holdTrueFx(await trueFxOnce(d), d.now + (clock() - began));
-      if (kept) report.truefxHeld = iso(kept.serves);
-      st.truefx = keepHeld(st.truefx, kept, st.lastMinute, d.now);
-    }
-    if (end <= st.lastMinute) {
-      // Nothing to decide this call: keep the snapshot for the turn it serves.
-      if (report.truefxHeld) await d.db.upsert("agent_quoted_state", [{ id: 1, state: st, last_minute: iso(st.lastMinute), updated_at: iso(d.now), last_error: null }], "id");
-      return { ...report, skipped: "no minute PR5 has decided is left to decide" };
-    }
+    if (end <= st.lastMinute) return { ...report, skipped: "no minute PR5 has decided is left to decide" };
     while (st.lastMinute < end) {
       if (report.chunks > 0 && clock() - began >= VARIANT_WALL_STOP_MS) { report.stoppedEarly = true; break; }
       const first = st.lastMinute + M, last = Math.min(end, st.lastMinute + VARIANT_CHUNK_MINUTES * M);
@@ -271,7 +163,6 @@ export async function runQuotesRuled(d: RuledDeps): Promise<RuledReport> {
       report.chunks++;
       report.from ??= first; report.to = last; report.minutes += (last - first) / M + 1;
     }
-    st.truefx = keepHeld(st.truefx, null, st.lastMinute, d.now);
     const check = await deviationCheck(d.db);
     if (check) {
       st.checkMaxUsd = check.checkMaxUsd;
@@ -317,7 +208,7 @@ async function decideChunk(d: RuledDeps, st: RuledState, first: number, last: nu
       const mine: Print[] = [];
       while (j[b] < prints[b].length && prints[b][j[b]].ts < t + M) { if (prints[b][j[b]].ts >= t) mine.push(prints[b][j[b]]); j[b]++; }
       const rec = recs.get(`${b}|${t}`);
-      let yahoo: MinuteInputs, recordBase: Omit<RuledMinuteRecord, "x_d" | "x_source" | "x_d_t" | "x_d_read">;
+      let yahoo: MinuteInputs, recordBase: Omit<RuledMinuteRecord, "x_d" | "x_source">;
       if (rec) {
         yahoo = { x: num(rec.x), fairU: num(rec.fair_u), prints: mine };
         recordBase = {
@@ -331,15 +222,9 @@ async function decideChunk(d: RuledDeps, st: RuledState, first: number, last: nu
         recordBase = { book: b, minute: iso(t), source: "rebuilt", x: yahoo.x, x_t: bar ? iso(bar[0]) : null, fair_u: yahoo.fairU, hours_n: win.length, prints_n: mine.length, pr5_prints_n: null };
         report.rebuilt++;
       }
-      const xd = xForArmD(yahoo.x, st.truefx?.find((h) => h.serves === t) ?? null, t, d.now);
-      if (xd.source === "truefx") report.truefx++;
-      records.push({
-        ...recordBase, x_d: xd.x, x_source: xd.source,
-        x_d_t: xd.srcMs === null ? null : iso(xd.srcMs), x_d_read: xd.readAt === null ? null : iso(xd.readAt),
-      });
-      const forD: MinuteInputs = { x: xd.x, fairU: yahoo.fairU, prints: mine };
+      records.push({ ...recordBase, x_d: yahoo.x, x_source: "yahoo" });
       for (const a of RULED_ARM_NAMES) {
-        const out = stepVariantMinute(st.arms[a].books[b], t, a === "d" ? forD : yahoo, RULED_ARMS[a], st.arms[a].gov);
+        const out = stepVariantMinute(st.arms[a].books[b], t, yahoo, RULED_ARMS[a], st.arms[a].gov);
         trips.push(...out.trips); events.push(...out.events);
       }
     }
