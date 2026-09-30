@@ -8,7 +8,7 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import golden from "../../../docs/agents/backtests/pr5/golden_windows.json" with { type: "json" };
-import { revxVenue } from "../_shared/revx.ts";
+import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import type { Venue } from "../_shared/venue.ts";
 import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
@@ -49,7 +49,7 @@ function makeWorld(o: Opts = {}) {
   }, { now: () => clock.now });
   const rx = new FakeRevx(() => clock.now);
   rx.balances = { GBP: 50, ...(o.balances ?? {}) };
-  const account: Venue | null = o.key === false ? null : revxVenue({ apiKey: "k".repeat(64), privateKey: KEY.privateKey }, (i, init) => rx.fetch(i, init));
+  const account: Venue | null = o.key === false ? null : revxVenue({ apiKey: "k".repeat(64), privateKey: KEY.privateKey }, (i, init) => rx.fetch(i, init), REVX_REGION, () => clock.now);
   // Every table the EXECUTOR writes, on every turn of every test: the paper engine's record must never be one of them.
   const executorWrites = new Set<string>();
   const db = mem.db;

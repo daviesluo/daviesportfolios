@@ -446,7 +446,12 @@ export function toOrderView(vo: VenueOrder): OrderView {
  * spends none of the signed-call budget. The key is only for balances and
  * orders.
  */
-export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, region: RevxRegion = REVX_REGION): Venue {
+/**
+ * `now` is the clock the order-history window is measured from. Production passes nothing, the machine's clock; a test
+ * passes its fake venue's, whose orders carry that clock's times. Measured from the machine's clock, a fixture's order
+ * fell out of the week-long window seven days after the fixture's date, and two tick tests failed from 2026-09-30.
+ */
+export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, region: RevxRegion = REVX_REGION, now: () => number = Date.now): Venue {
   return {
     id: "revx",
     canTrade: !!env,
@@ -508,7 +513,7 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, 
     },
     async findOrder(clientOrderId, symbol, sinceMs) {
       if (!env) return { ok: false, error: "no Revolut X credentials" };
-      const end = Date.now(), start = Math.max(sinceMs - 60e3, end - 7 * 86400e3 + 60e3);
+      const end = now(), start = Math.max(sinceMs - 60e3, end - 7 * 86400e3 + 60e3);
       let cursor = "";
       for (let page = 0; page < 10; page++) {
         const r = await historicalOrders(env, symbol, start, end, cursor, fetchImpl);

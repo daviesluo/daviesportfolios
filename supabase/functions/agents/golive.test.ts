@@ -14,7 +14,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { highWaterSince, positionFromFills, type Candle } from "../_shared/agents_strategy.ts";
 import { krakenVenue } from "../_shared/kraken.ts";
-import { orderViewProblem, revxVenue, toOrderView, type VenueOrder } from "../_shared/revx.ts";
+import { orderViewProblem, REVX_REGION, revxVenue, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { makeDb } from "./db.ts";
 import { tickErrorReport } from "./index.ts";
@@ -118,7 +118,7 @@ Deno.test("D3 — a buy the venue executed but answered 503 stays pending, and i
     return res;
   };
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
   const r1 = await at(BAR0 + 5 * ONE_M);
   const first = mem.tables.agent_orders[0];
@@ -170,7 +170,7 @@ Deno.test("D4 — a buy fee taken in BTC is booked net: the floor's exit leaves 
     return res;
   };
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
   await at(BAR0 + 5 * ONE_M);                                        // entry
   await at(BAR0 + 6 * ONE_M);                                        // settled: filled_base = gross − fee
@@ -220,7 +220,7 @@ Deno.test("D11 — a coin fee reported finer than the base step leaves no sub-st
     return res;
   };
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
   await at(BAR0 + 5 * ONE_M);                                        // entry, a $12.50 slot
   await at(BAR0 + 6 * ONE_M);                                        // settled
@@ -285,7 +285,7 @@ async function realWorld(rows: StrategyRow[], o: { fetchImpl?: typeof fetch; clo
     agent_maker_probes: [], agent_candles: [], agent_locks: [{ name: "tick", lease_until: "1970-01-01T00:00:00.000Z", holder: null }] }, { now: () => now + 5_000 });
   const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, (input, init) => rx.fetch(input, init)), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, (input, init) => rx.fetch(input, init), REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => {
     now = t;
     return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: o.fetchImpl ?? jevFetch({}), uuid: () => crypto.randomUUID(), clock: o.clock });
@@ -381,7 +381,7 @@ Deno.test("D12 — a buy fee the venue takes in the coin WITHOUT reporting it is
     return res;
   };
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const at = (t: number) => { now = t; return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({}), uuid: () => crypto.randomUUID() }); };
   await at(BAR0 + 5 * ONE_M);                                        // entry, a $12.50 slot
   await at(BAR0 + 6 * ONE_M);                                        // settled, with a derived dollar fee

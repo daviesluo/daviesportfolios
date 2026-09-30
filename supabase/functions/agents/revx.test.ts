@@ -304,3 +304,27 @@ Deno.test("cancel and activeOrders: 204 is a cancel, anything else is not; the a
     assertEquals([a.byClientId.mine.venueOrderId, a.byClientId.mine.view.state, a.byClientId.mine.view.filledBase], ["V-1", "partially_filled", 0.0005]);
   }
 });
+
+Deno.test("findOrder measures the history's week from the venue client's clock, so a test fixture's date never expires", async () => {
+  // Measured from the machine's clock, the tick tests' orders (dated 2026-09-23) fell out of the window on 2026-09-30,
+  // and a green suite turned red with no change to the code. Production passes no clock and keeps the machine's.
+  const { key } = await loadPrivateKey((await keyShapes()).pem);
+  const urls: URL[] = [];
+  const f = (async (url: string | URL | Request) => {
+    urls.push(new URL(String(url)));
+    return new Response(JSON.stringify({ data: [], metadata: {} }), { status: 200 });
+  }) as unknown as typeof fetch;
+  const clock = Date.parse("2026-09-23T04:07:00Z"), since = Date.parse("2026-09-23T04:05:00Z");
+  const venue = revxVenue({ apiKey: "K".repeat(64), privateKey: key }, f, REVX_REGION, () => clock);
+  assertEquals(await venue.findOrder!("c-1", "BTC/USD", since), { ok: true, found: null });
+  const q = urls[0].searchParams;
+  assertEquals([urls[0].pathname, q.get("symbols"), Number(q.get("start_date")), Number(q.get("end_date"))], ["/api/1.0/orders/historical", "BTC-USD", since - 60e3, clock]);
+  // At most a week back, from that clock.
+  await venue.findOrder!("c-1", "BTC/USD", clock - 30 * 86400e3);
+  assertEquals(Number(urls[1].searchParams.get("start_date")), clock - 7 * 86400e3 + 60e3);
+  // No clock passed: the machine's.
+  const before = Date.now();
+  await revxVenue({ apiKey: "K".repeat(64), privateKey: key }, f).findOrder!("c-1", "BTC/USD", before - 60e3);
+  const end = Number(urls[2].searchParams.get("end_date"));
+  assert(end >= before && end <= Date.now(), `${end} outside [${before}, now]`);
+});

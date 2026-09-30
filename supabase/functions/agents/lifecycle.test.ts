@@ -13,7 +13,7 @@
 // bought with no floor at all. Each stage names the fix it pins, and reverting any of those fixes turns it red.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { krakenVenue } from "../_shared/kraken.ts";
-import { revxVenue } from "../_shared/revx.ts";
+import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import { FakeKraken, FakeRevx, jevFetch, memDb, type Row } from "./testing.ts";
 import { floorToStep } from "../_shared/agents_strategy.ts";
 import { MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
@@ -44,7 +44,7 @@ async function world(start: number) {
   }, { now: () => now + 5_000 });
   const rx = new FakeRevx(() => now), kr = new FakeKraken(() => now);
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
-  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch), kraken: krakenVenue(null, kr.fetch) };
+  const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const jevLog: string[] = [];
   const T = mem.tables;
   const orders = () => T.agent_orders;
