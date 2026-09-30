@@ -421,6 +421,8 @@ list stays the short version; the plan is the reasoning behind it.
      the older bundle until the second's Git build ends. Turning off the Git build's automatic deployments (Settings →
      Build → Branch control), or disconnecting the repository, leaves the upload alone; it deploys `main` only, so a
      branch then has no preview. No session can change these settings: the Cloudflare connector has no Pages tools.
+     **2026-09-30:** Davies has another tool (grokbot) turning the Git build's automatic deployments off. When it says
+     so, check the next `dist/` push: its `pages-deploy` run succeeds and the site serves that push's `app-<hash>.js`.
    - HARVEST's one lead (reference §3.42): a forward recorder of UMA proposals and disputes on the harvest categories,
      with the book at C + 60 s, to see what rests after a confirmation and whether a proposal is safe to follow. Public
      reads only, nothing placed, like the view recorder; build it only on his word. The econ-release race (FAST-A) is
@@ -429,7 +431,8 @@ list stays the short version; the plan is the reasoning behind it.
      function's probe: **Météo-France** — the stored `METEO_FRANCE_API_KEY` is an access token that expired six
      minutes after issue; store instead a long-lived **API Key** from the portal's "Générer Token" page (as
      `METEO_FRANCE_API_KEY`) or the page's OAuth2 **application ID** (as `METEO_FRANCE_APPLICATION_ID`), then re-run
-     `weather?action=probe&only=meteofrance` (Davies is on it, 2026-09-27). **FAA** — the ITWS subscription works end
+     `weather?action=probe&only=meteofrance` (Davies is on it, 2026-09-27; on 2026-09-30 grokbot is storing the
+     long-lived key, and the probe is the check once it says so). **FAA** — the ITWS subscription works end
      to end but carries no temperature, and SCDS offers no METAR product yet: its list is STDDS, ITWS, TFMS, TBFM,
      SFDPS, NOTAM Distribution and TFDM, and the SWIFT Portal's news expects CSS-Wx in Q4 2026. When CSS-Wx appears,
      subscribe to its METAR/SPECI for the eleven US stations (KATL KAUS KBKF KDAL KHOU KLAX KLGA KMIA KORD KSEA KSFO);
@@ -439,9 +442,15 @@ list stays the short version; the plan is the reasoning behind it.
      cheap insurance: the site served the repository, `auth`'s source included, until 2026-09-18, and nothing
      suggests anyone read it (five failed logins in the auth table's whole history). Changing the secret re-prompts
      every device once.
-   - The Kraken balance moves to Revolut X (his decision, 2026-09-22; reference §4.23). When he says it is done, fire
-     the read-only `?action=probe` through pg_net with the Vault `cron_secret` and check that the Revolut X balance
-     the key sees includes it. The Kraken key stays in use as the signal.
+   - The Kraken balance: **Davies now plans to move it to Polymarket** (2026-09-30, "Kraken 余额我准备转入polymarket"),
+     not to Revolut X as decided on 2026-09-22 (reference §4.23). The Kraken key stays in use as the signal and needs
+     no balance. Before money reaches the Polymarket wallet, said to him on 2026-09-30: its key was exposed to another
+     tool (item 2: keep the wallet empty or small; revoking that tool's Supabase token is his); the proxy wallet
+     carries unlimited pUSD allowances to four spenders (reference §2d's probe), harmless only while it is empty;
+     nothing may open a position there until RW or RW-E passes on 10-09 and he says go, and then only from
+     `eu-west-1` under his current attestation that he is in Ireland. When he says the transfer is done, fire the
+     read-only probe `?action=probe&only=polymarket` through pg_net with the Vault `cron_secret` and record the
+     collateral it reads.
    - Binance: switch off "Enable Spot & Margin Trading" and universal transfer; Deribit: `trade:read_write`; until a
      use is decided. Neither account is funded, and nothing trades on either.
    - The venue survey's §10 questions (`docs/agents/venue-survey.md`): US state and SSN/ITIN, HKID, stay small or
@@ -491,6 +500,14 @@ Facts a fresh session would otherwise rediscover:
   version CI's `setup-deno` `v1.x` resolves to; this container has no
   `deno` of its own. A bare `npx deno` fetches Deno 2, which CI never runs
   — and which `bin/gates.sh` used until 2026-09-23 03:06 UTC.
+- **A cloud container whose network policy blocks `deno.land`** (the
+  Claude Code one on 2026-09-30) cannot fetch the tests' std assert module.
+  Map it to JSR in a scratch file, never committed:
+  `{"imports":{"https://deno.land/std@0.224.0/assert/mod.ts":"jsr:@std/assert@0.224.0"}}`,
+  and pass it as `--import-map=<file>` to `deno check` / `deno test`. To run
+  `sh bin/gates.sh` unchanged, put a scratch `npx` first on `PATH` that adds
+  that flag after `--yes deno@1.46.3 check|test` and hands every other
+  call to the real `npx`.
 - **The app sweep is now a normal gate**: `npm run verify:browser`.
   Playwright is a devDependency, so `npm ci` brings it. Chromium is
   preinstalled at `/opt/pw-browsers` in this container — do NOT run
@@ -541,6 +558,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 21:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' three notes of the day, in item 6, and how a container without `deno.land` runs the Deno gates** (machine setup). He is having another tool (grokbot) turn off Pages' Git deployments and store Météo-France's long-lived key; each bullet names the check for when it says done. The Kraken balance now goes to Polymarket, not Revolut X. The bullet carries what was said to him first: the wallet's key was exposed to another tool; its unlimited allowances are harmless only while it is empty; nothing opens a position there before RW or RW-E passes and he says go, from Ireland only.
 
 ### [2026-09-30 21:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
