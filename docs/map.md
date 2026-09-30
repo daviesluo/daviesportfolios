@@ -605,7 +605,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/polymarket_public.ts` | Keyless reads of Polymarket's public endpoints (reward programme, markets, events, books, prints) for RW's paper test and the view recorder. It reads no credential and cannot trade. |
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
-| `_shared/us_market_calendar.ts` | US market holidays, worked out by rule for any year. |
+| `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
 | `_shared/bytes.ts` | Byte and base64 helpers for request signing. |
 | `.env.example` | Every secret the functions read, by name. The values live only in Supabase. |
 

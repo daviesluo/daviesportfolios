@@ -54,10 +54,15 @@ function etHourMinuteWeekday(now) {
 // the normal phase logic (the pre-fix behaviour), so a missing holiday is
 // merely "polls on a closed day" (harmless), never the reverse.
 //
-// NOT modelled: the ~3 early-close half-days a year (day after
-// Thanksgiving, July-3 / Christmas-Eve when on a weekday) — those ARE
-// open trading days, just until 13:00 ET, so leaving them as 'regular'
-// is correct; only the 16:00 close anchor is ~3h off on those days.
+// Early closes (13:00 ET: the Friday after Thanksgiving, and July 3 /
+// December 24 when they fall Monday to Thursday) are modelled on the server
+// only, in `supabase/functions/_shared/us_market_calendar.ts`, where the
+// snapshot recorder and the price function's extended-hours scan read them.
+// The board keeps 'regular' to 16:00 on those days by decision (2026-09-30):
+// its after-hours verdict, the market cards' close anchor and the chart
+// windows all read 16:00-ET bars, so an 'afterhours' phase from 13:00 alone
+// would show every US row's extended figure as unknown until 16:00. Moving
+// all of them to the day's own close is the whole change, not this one.
 
 /** UTC day-of-week (0=Sun…6=Sat) for a calendar Y-M-D. */
 function dowUTC(y, m, d) { return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); }

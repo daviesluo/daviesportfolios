@@ -455,11 +455,11 @@ list stays the short version; the plan is the reasoning behind it.
      is off there.
 
 7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
-   2026-09-28: 13 of 28 done, 1 partly, 1 not doing (the committed bundle, his call), 13 open. Worth doing, in order:
-   the app icon; the two quiet fallbacks (a failed save, a failed cross-tab load); the market calendar's early closes
-   **before 2026-11-27**; a freshness watch for the price recorders; one shared Trading 212 ticker map; a plausibility
-   band on quotes; error boundaries per surface; and item 3 measured before it is touched. Seven questions there wait
-   on Davies, the first whether `APP_AUTH_SECRET` was rotated with the two passwords.
+   2026-09-28; items 4, 5 and 14 closed on 2026-09-30, so 16 of 28 done, 1 partly, 1 not doing (the committed
+   bundle, his call), 10 open. Worth doing, in order: the app icon; a freshness watch for the price recorders; one
+   shared Trading 212 ticker map; a plausibility band on quotes; error boundaries per surface; and item 3 measured
+   before it is touched. Seven questions there wait on Davies, the first whether `APP_AUTH_SECRET` was rotated with
+   the two passwords.
 
 ## Machine and platform setup
 
@@ -539,6 +539,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 21:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The recorded prices know the market's early closes** (improvement plan item 14, before 2026-11-27; Davies: "你觉得需要做的话你做下"). On the Friday after Thanksgiving, and July 3 / December 24 when they fall Monday to Thursday, the regular session ends at 13:00 ET and the late session trades to 17:00. The snapshot recorder took 13:00-16:00 as regular, so a Yahoo-priced holding was recorded at the frozen 13:00 close, and a tick whose Trading 212 fetch failed dropped every US holding to it. Moving only the recorder would have been worse: the price function's extended-hours scan also ran to 16:00, and at 14:00 returned the morning's pre-market print. `_shared/us_market_calendar.ts` now gives each day's close, and both read it. The days match NYSE's published calendars for 2025-2028: 2026-11-27 and 12-24, then 2027-11-26. Pinned: a whole-year sweep for 2025-2030, and recorder and scan cases that fail on the old code (3 failures, 42 passing). The board keeps 16:00 on those days by decision: its after-hours verdict, market-card anchor and chart windows all read 16:00-ET bars.
 
 ### [2026-09-30 21:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

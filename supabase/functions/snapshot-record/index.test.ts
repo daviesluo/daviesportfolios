@@ -161,3 +161,27 @@ Deno.test("recordablePrice: after-hours still takes Yahoo's ext print", () => {
 Deno.test("recordablePrice: regular session takes lastPrice", () => {
   assertEquals(recordablePrice({ lastPrice: 124, extPrice: 999 }, undefined, REGULAR), 124);
 });
+
+// ---- early closes ------------------------------------------------
+//
+// 2026-11-27, the Friday after Thanksgiving: the regular session ends at
+// 13:00 ET (18:00 UTC in EST) and the late session trades to 17:00. Until
+// 2026-09-30 the recorder took 13:00-16:00 as regular, so it recorded the
+// frozen 13:00 close for any holding Yahoo priced, and a tick whose T212
+// fetch failed dropped every US holding to that close.
+const EARLY_CLOSE_LATE = new Date("2026-11-27T19:00:00Z"); // 14:00 EST
+
+Deno.test("isUsRegularSession: an early close ends the session at 13:00 ET", () => {
+  assertEquals(isUsRegularSession(new Date("2026-11-27T17:59:00Z")), true);  // 12:59 EST
+  assertEquals(isUsRegularSession(new Date("2026-11-27T18:00:00Z")), false); // 13:00 EST
+  assertEquals(isUsRegularSession(EARLY_CLOSE_LATE), false);
+  assertEquals(isUsRegularSession(new Date("2026-12-24T19:00:00Z")), false); // Christmas Eve, a Thursday
+  // The full days either side keep 16:00.
+  assertEquals(isUsRegularSession(new Date("2026-11-25T19:00:00Z")), true);  // 14:00 EST, Wednesday
+  assertEquals(isUsRegularSession(new Date("2026-12-23T20:59:00Z")), true);  // 15:59 EST
+});
+
+Deno.test("recordablePrice: after an early close the late session's print, not the frozen 13:00 close", () => {
+  assertEquals(recordablePrice({ lastPrice: 180, extPrice: 181.2 }, undefined, EARLY_CLOSE_LATE), 181.2);
+  assertEquals(recordablePrice({ lastPrice: 180, extPrice: 181.2 }, 181.4, EARLY_CLOSE_LATE), 181.4); // T212 still wins
+});

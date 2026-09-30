@@ -7,7 +7,7 @@
 
 import { reportServerError } from "../_shared/ops.ts";
 import { verifyToken } from "../_shared/token.ts";
-import { isUsTradingDay } from "../_shared/us_market_calendar.ts";
+import { isUsTradingDay, usRegularCloseMin } from "../_shared/us_market_calendar.ts";
 
 // `x-app-token` is advertised here BEFORE anything requires it, on
 // purpose. A custom request header makes the call non-simple, so the
@@ -61,6 +61,31 @@ export function localMinOfDay(utcSec: number, gmtOffsetSec: number): number {
  */
 export function isOutsideRth(localMin: number): boolean {
   return localMin < MARKET_OPEN_MIN || localMin >= MARKET_CLOSE_MIN;
+}
+
+/**
+ * The latest extended-hours close in a US listing's candles: walks back to the
+ * most recent candle outside ITS day's regular session. The close is read per
+ * candle from the shared calendar, so after an early close (13:00 ET: the Friday
+ * after Thanksgiving, and July 3 / December 24 when they fall Monday to Thursday)
+ * the late session's candles count. Until 2026-09-30 the scan took every candle
+ * to 16:00 as regular, so from 13:00 on those afternoons it walked past the late
+ * session into the morning and returned the last PRE-market print. Exported for
+ * tests.
+ */
+export function lastExtendedHoursClose(
+  timestamps: number[],
+  closes: (number | null)[],
+  gmtOffsetSec: number,
+): number | null {
+  for (let i = timestamps.length - 1; i >= 0; i--) {
+    const close = closes[i];
+    if (close == null) continue;
+    const t = timestamps[i];
+    const m = localMinOfDay(t, gmtOffsetSec);
+    if (m < MARKET_OPEN_MIN || m >= usRegularCloseMin(t, gmtOffsetSec)) return close;
+  }
+  return null;
 }
 
 /**
@@ -162,6 +187,8 @@ export function etOffsetSec(nowMs: number): number {
  *                 non-trading day (isUsTradingDay), matching the client's
  *                 usMarketPhase which buckets weekends/holidays as
  *                 "overnight".
+ * The 16:00-ET bar stays the anchor on an early-close day too, as the
+ * client's does: the board's anchors all read 16:00-ET bars.
  * Falls back to `regularMarketPrice` / `prevCloseMeta` when no in-session
  * candle is available. Pure — exported for tests.
  */
@@ -303,7 +330,7 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
     // Walk backwards to find the most recent candle that sits outside regular
     // market hours — that is the current extended-hours price.
     //
-    // `isOutsideRth` is hardcoded to 9:30-16:00 (US RTH). For non-US
+    // `lastExtendedHoursClose` reads US hours (9:30 to the day's close). For non-US
     // tickers (anything with a dotted suffix like `.L`, `.HK`, `.SS`,
     // `.DE` …), Yahoo returns candles in the local exchange's tz, so
     // the same minute-of-day boundary doesn't match — LSE pre-auction
@@ -323,14 +350,8 @@ async function fetchYahoo(symbol: string): Promise<PriceResult | null> {
       // which reads Yahoo's UTC gmtoffset and would mis-bucket the candles.
       extPrice = cryptoExt;
     } else if (!symbol.includes(".") && !isOtcAdr) {
-      for (let i = timestamps.length - 1; i >= 0; i--) {
-        const close = closes[i];
-        if (close == null) continue;
-        if (isOutsideRth(localMinOfDay(timestamps[i], gmtOffset))) {
-          extPrice = close / penceFactor;
-          break;
-        }
-      }
+      const ext = lastExtendedHoursClose(timestamps, closes, gmtOffset);
+      if (ext != null) extPrice = ext / penceFactor;
     }
 
     return {

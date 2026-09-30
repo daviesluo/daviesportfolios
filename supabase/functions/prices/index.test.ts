@@ -7,7 +7,7 @@
 // Run locally: `deno test --allow-env supabase/functions/prices/`
 
 import { assertEquals, assertAlmostEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { localMinOfDay, isOutsideRth, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, parseFundgz, navPairToResult, raceCnSources } from "./index.ts";
+import { localMinOfDay, isOutsideRth, lastExtendedHoursClose, pctChange, localDayNumber, rthSessionCloses, etOffsetSec, cryptoUsSessionQuote, parseFundgz, navPairToResult, raceCnSources } from "./index.ts";
 
 Deno.test("localMinOfDay: New York 09:30 ET (EDT, gmtoffset=-14400) at 13:30 UTC = 570 minutes", () => {
   // 2026-05-11 13:30:00 UTC → 09:30:00 EDT (gmtoffset -14400 s)
@@ -42,6 +42,33 @@ Deno.test("isOutsideRth: regular session = false", () => {
   assertEquals(isOutsideRth(9 * 60 + 30),  false);  // 09:30 opening minute
   assertEquals(isOutsideRth(12 * 60),      false);  // 12:00 mid-session
   assertEquals(isOutsideRth(15 * 60 + 59), false);  // last regular-session minute
+});
+
+// The extended-hours scan, on an early close. 2026-11-27 (the Friday after
+// Thanksgiving, EST): the regular session ends at 13:00 and the late session
+// trades to 17:00. Until 2026-09-30 the scan took every candle to 16:00 as
+// regular, so at 14:00 it walked past the late session and returned the
+// morning's last PRE-market print.
+const EST_OFF = -18000;
+const est = (day: string, hhmm: string) => Math.floor(Date.parse(`${day}T${hhmm}:00-05:00`) / 1000);
+const DAY_CANDLES = (day: string) => ({
+  ts: ["09:25", "09:30", "12:55", "13:00", "13:55"].map((h) => est(day, h)),
+  closes: [100, 101, 102, 103, 104] as (number | null)[],
+});
+
+Deno.test("lastExtendedHoursClose: after an early close, the late session's candle", () => {
+  const { ts, closes } = DAY_CANDLES("2026-11-27");
+  assertEquals(lastExtendedHoursClose(ts, closes, EST_OFF), 104);
+  // A trailing null close is skipped, as before.
+  assertEquals(lastExtendedHoursClose([...ts, est("2026-11-27", "14:00")], [...closes, null], EST_OFF), 104);
+});
+
+Deno.test("lastExtendedHoursClose: on a full day the same clock is regular, and the pre-market print is the latest", () => {
+  const { ts, closes } = DAY_CANDLES("2026-11-25");
+  assertEquals(lastExtendedHoursClose(ts, closes, EST_OFF), 100);
+  // From 16:00 the after-hours candle.
+  assertEquals(lastExtendedHoursClose([...ts, est("2026-11-25", "16:00")], [...closes, 105], EST_OFF), 105);
+  assertEquals(lastExtendedHoursClose([est("2026-11-25", "10:00")], [101], EST_OFF), null);
 });
 
 Deno.test("pctChange: positive / negative / no-change", () => {

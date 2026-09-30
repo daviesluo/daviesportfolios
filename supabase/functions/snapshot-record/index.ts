@@ -37,7 +37,7 @@
 //   403 — bad auth
 //   500 — DB write failed
 
-import { isUsMarketHolidayAt } from "../_shared/us_market_calendar.ts";
+import { isUsMarketHolidayAt, usRegularCloseMinAt } from "../_shared/us_market_calendar.ts";
 import { b64url, sign } from "../_shared/token.ts";
 import { reportServerError } from "../_shared/ops.ts";
 
@@ -100,12 +100,20 @@ export function etParts(at: Date): { weekday: number; minutes: number } {
   };
 }
 
-/** US cash session 09:30–16:00 ET on a weekday that isn't a full holiday. */
+/**
+ * US cash session on a weekday that isn't a full holiday: 09:30 ET to its
+ * close, 16:00, or 13:00 on an early close (the Friday after Thanksgiving,
+ * July 3 / December 24 Monday to Thursday). Until 2026-09-30 it ran to 16:00
+ * on those days too, so from 13:00 a Yahoo-priced holding was recorded at the
+ * frozen 13:00 close while the late session traded, and a tick whose Trading
+ * 212 fetch failed dropped every US holding to that close and the next lifted
+ * them back: the overnight sawtooth's shape, three afternoons a year.
+ */
 export function isUsRegularSession(at: Date): boolean {
   if (isUsMarketHolidayAt(at)) return false;
   const { weekday, minutes } = etParts(at);
   if (weekday === 0 || weekday === 6) return false;
-  return minutes >= 9 * 60 + 30 && minutes < 16 * 60;
+  return minutes >= 9 * 60 + 30 && minutes < usRegularCloseMinAt(at);
 }
 
 /**

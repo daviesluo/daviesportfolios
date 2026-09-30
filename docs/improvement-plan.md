@@ -13,8 +13,9 @@ crypto loop and the testing strategies are planned in `docs/LEDGER.md` and
 
 ## Where it stands (2026-09-28)
 
-Of 28 items: 13 done, 1 partly, 1 not doing by decision, 13 open (3 of
-them wait on an answer only Davies can give).
+Of 28 items: 16 done, 1 partly, 1 not doing by decision, 10 open (2 of
+them wait on an answer only Davies can give). Items 4, 5 and 14 closed on
+2026-09-30, after the re-check.
 
 | # | Item | Status | Evidence |
 |---|---|---|---|
@@ -31,7 +32,7 @@ them wait on an answer only Davies can give).
 | 11 | Let Cloudflare build the site | **Not doing** | Davies keeps the committed bundle; `pages-deploy.yml` uploads `dist/` as committed |
 | 12 | The recorder's deploy flag; pin the CLI | **Done** | `snapshot-record` is in the no-JWT list; the Supabase CLI is pinned to 2.117.0 and its action by SHA |
 | 13 | Read-side tightening on the anonymous endpoints | Open, small | Do each when that function is next touched |
-| 14 | The market calendar has no early closes | Open, **dated** | Both calendars say so in a comment. The next early closes are **2026-11-27** and **2026-12-24** |
+| 14 | The market calendar has no early closes | **Done** 2026-09-30 | `_shared/us_market_calendar.ts` knows them (pinned against NYSE's published 2025–2028 calendars); the snapshot recorder's session and the price function's extended-hours scan end the session at 13:00 ET on those days, pinned by tests that fail on the old code. The board keeps 16:00 by decision: its anchors all read 16:00-ET bars (`market_hours.js`) |
 | 15 | Foreign-session predicates ignore weekends | **Done** | Both predicates return false on Saturday and Sunday (`src/prices/market_hours.js`) |
 | 16 | Migration ordering on a fresh replay | Open, a paragraph | New files kept the `00NN` sequence (to `0071`); the four timestamped files sort after them on a replay |
 | 17 | Lot dates are UTC while the picker is local | Open, needs Davies | The add-holding modal still takes today from `toISOString()` |
@@ -54,15 +55,15 @@ Each is small, fixes a way the app can be confidently wrong, or has a date.
 1. **The app icon (23).** S. A 192 px and a 512 px icon and one `<link>`:
    the board lives on a phone home screen, and today iOS uses a screenshot
    for the badge and Chrome will not offer to install it.
-2. **The two quiet fallbacks (4 and 5).** S each, the class of bug that has
+2. ~~**The two quiet fallbacks (4 and 5).**~~ Done 2026-09-30. S each, the class of bug that has
    cost this project three times. Save: advance the marker only on success;
    on any other failure show the conflict banner's sibling and retry with a
    bounded backoff. Load: the cross-tab reload refuses a result marked
    `_isDemo`, so a failed reload can never swap the real board for the demo.
-3. **Early closes (14), before 2026-11-27.** S. Add the half days to both
-   calendars with a pin test each, or the recorder writes a frozen carry as
-   live samples from 13:00 ET that afternoon — the overnight-sawtooth class
-   that once needed a migration to clean up.
+3. ~~**Early closes (14), before 2026-11-27.**~~ Done 2026-09-30 for the
+   recorded prices. Moving the board's own anchors to the day's close is M
+   (the after-hours verdict, the market cards' close and the chart windows
+   all read 16:00-ET bars) and waits until an early close is seen to matter.
 4. **A freshness watch for the recorders (10).** S. One daily check that the
    newest row of each recorded price series is as recent as the market
    calendar says it should be, writing an ops error otherwise. The calendar
@@ -97,8 +98,10 @@ Not worth doing now: **11** (his decision), **16** (one paragraph in
 3. **When a live FX rate is missing**, should the performance line draw at
    the last frozen rate or refuse to draw, as the deposited line does? And
    should history re-mark at today's rate or at the frozen one? (item 7)
-4. **May a failed load ever show the demo book?** Recommended: never. Show
-   "couldn't reach the server" and keep the cached board read-only (item 5).
+4. **May a failed FIRST load show the demo book?** A cross-tab reload never
+   swaps it in now (item 5); a first load that fails with nothing cached
+   still shows the demo under its banner. Keep that, or show "couldn't reach
+   the server" instead?
 5. **Is hide-values meant to conceal magnitude**, or only the exact digits?
    It keeps the digit count and the scale suffix today.
 6. **Can a board carry negative cash, or one ticker in two positions?**

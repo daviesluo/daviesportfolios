@@ -1,6 +1,7 @@
-// US equity market (NYSE / Nasdaq) full-closure calendar — the single
+// US equity market (NYSE / Nasdaq) calendar — full closures and early closes — the single
 // source shared by every Edge Function that gates on "is the US market
-// trading" (prices' crypto US-session anchoring, the overnight recorder).
+// trading" (the price function's session anchoring and extended-hours scan,
+// the overnight and snapshot recorders).
 //
 // Rule-based, NOT a hand-maintained date list: every holiday is a fixed
 // date (with the standard NYSE weekend-observance shift) or an nth-weekday,
@@ -10,17 +11,22 @@
 // "open" path, so a missing holiday is merely "polls on a closed day"
 // (harmless), never the reverse.
 //
-// Full-day closures only. The ~3 early-close half-days a year (day after
-// Thanksgiving, July-3 / Christmas-Eve when they land on a weekday) are NOT
-// modelled — those ARE trading days, just to 13:00 ET, so leaving them
-// "regular" is correct; only the 16:00 close anchor is ~3 h off on them.
+// Early closes are here too, since 2026-09-30 (improvement plan item 14):
+// on at most three days a year the regular session ends at 13:00 ET and the
+// late session runs to 17:00. Those ARE trading days, so they are not in the
+// holiday set; `usRegularCloseMin` gives the close, and the snapshot recorder
+// and the price function's extended-hours scan read it, so a sample from
+// 13:00 is the late session's print and never the frozen 13:00 close carried
+// as live. Crypto's US-session anchor keeps the 16:00-ET bar on every trading
+// day, and so does the board, whose anchors all read 16:00-ET bars.
 //
-// The browser client keeps a byte-equivalent copy of these rules in
+// The browser client keeps a byte-equivalent copy of the HOLIDAY rules in
 // `src/prices/market_hours.js` (`isUsMarketHoliday`) — different runtime, so the
 // two can't literally share a module. KEEP THEM IN SYNC: a change here
-// should be mirrored there (and vice-versa). Pinned by
-// `us_market_calendar.test.ts`, which also records the next several years'
-// closures so a regression in the rules is caught.
+// should be mirrored there (and vice-versa). The early closes have no client
+// copy: the board keeps 16:00 on those days by decision (see that file).
+// Pinned by `us_market_calendar.test.ts`, which also records the next several
+// years' closures and early closes so a regression in the rules is caught.
 
 /** UTC day-of-week (0=Sun…6=Sat) for a calendar Y-M-D. */
 function dowUTC(y: number, m: number, d: number): number {
@@ -108,9 +114,54 @@ export function isUsTradingDay(utcSec: number, etOff: number): boolean {
  * are a separate gate at the caller.
  */
 export function isUsMarketHolidayAt(at: Date): boolean {
+  const [y, m, d] = etYmd(at);
+  return isUsMarketHolidayYmd(y, m, d);
+}
+
+/** The America/New_York calendar day of `at`, as [y, m, d] (m, d 1-based). */
+function etYmd(at: Date): [number, number, number] {
   const s = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
   }).format(at);
   const [y, m, d] = s.split("-").map((n) => parseInt(n, 10));
-  return isUsMarketHolidayYmd(y, m, d);
+  return [y, m, d];
+}
+
+/** The regular session's close in ET minutes of the day: 16:00, and 13:00 on an early close. */
+export const US_REGULAR_CLOSE_MIN = 16 * 60;
+export const US_EARLY_CLOSE_MIN = 13 * 60;
+
+/**
+ * Does the regular session on the ET-calendar `y-m-d` end at 13:00 ET? The
+ * Friday after Thanksgiving always; July 3 and December 24 when they fall
+ * Monday to Thursday. On a Friday each is the observed Independence Day or
+ * Christmas, a full closure (`isUsMarketHolidayYmd`), and on a weekend there
+ * is no session to shorten. NYSE Group's published calendars for 2025–2028
+ * name exactly these days; the rule carries the same pattern forward.
+ */
+export function isUsEarlyCloseYmd(y: number, m: number, d: number): boolean {
+  if (m === 11) return d === nthWeekday(y, 11, 4, 4) + 1;
+  if ((m === 7 && d === 3) || (m === 12 && d === 24)) {
+    const dow = dowUTC(y, m, d);
+    return dow >= 1 && dow <= 4;
+  }
+  return false;
+}
+
+/**
+ * The regular session's close, in ET minutes of the day, on the ET calendar
+ * day of `utcSec` (shifted by `etOff` seconds, as `isUsTradingDay` reads it).
+ * Used by the price function's extended-hours scan, per candle.
+ */
+export function usRegularCloseMin(utcSec: number, etOff: number): number {
+  const et = new Date((utcSec + etOff) * 1000);
+  return isUsEarlyCloseYmd(et.getUTCFullYear(), et.getUTCMonth() + 1, et.getUTCDate())
+    ? US_EARLY_CLOSE_MIN
+    : US_REGULAR_CLOSE_MIN;
+}
+
+/** `Date` form of the same: the regular close on `at`'s ET calendar day. Used by the snapshot recorder. */
+export function usRegularCloseMinAt(at: Date): number {
+  const [y, m, d] = etYmd(at);
+  return isUsEarlyCloseYmd(y, m, d) ? US_EARLY_CLOSE_MIN : US_REGULAR_CLOSE_MIN;
 }
