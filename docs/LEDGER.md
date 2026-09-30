@@ -329,9 +329,9 @@ list stays the short version; the plan is the reasoning behind it.
       (one gzipped JSON a pull; a failed window is retried every week and is void only if it still fails at the
       reading), and export the `agent_basis` rows (pruned at 30 days) of every event whose `o15` or `o60` is missing
       into `docs/agents/backtests/mx1/basis/`. The pull is `scripts/mx1/weekly.sql` (A: the windows, B: the stand-ins,
-      C: eligible events so far, a count) and `scripts/mx1/pull_tape.py`. **Owner:** the helper session
-      `session_017Pyo74kGxzzze2oWWrcpBW` (Sonnet), woken every Monday 06:05 UTC from 10-05 by `trig_01SAwMmkcT1GZWSAJJVANcAY`;
-      delete that Routine at the reading. **Read**
+      C: eligible events so far, a count) and `scripts/mx1/pull_tape.py`. **Owner:** the session named under "Scheduled
+      wakes" in Machine and platform setup, woken every Monday 06:37 UTC from 10-05 by `trig_01Dm3nw4TbBm2GCX2z12tN7o`
+      (the helper session and its Routine went with the previous account, 2026-09-30); disable it at the reading. **Read**
       at the first weekly pull after which there are 150 eligible exit events, on the first 150 by `t0`; if fewer have
       `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all of them (under 60: "undecided"). Expect
       about 14 weeks at the last week's pace and 57 at the backtests', so 2027-06-30 likely comes first, at about 100
@@ -344,9 +344,9 @@ list stays the short version; the plan is the reasoning behind it.
       where day = date '2026-10-08' and selected_at <= timestamptz '2026-10-08 00:10:00+00')`, the command of
       `edge-calls-every-minute` and the Edge Function version deployed then; the answer goes here. If RW-C is not warm,
       its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule). Owner since
-      2026-09-28: the helper session `session_017Pyo74kGxzzze2oWWrcpBW`, which holds the database connector on Davies'
-      word, woken at 10-08 00:15 UTC by `trig_01MCQwVZmAiCniseQZqi8tGL`. It writes the answer here and, if RW-C is
-      not warm, flags the slip commit, which a main session makes; the first session after 00:10 checks it did.
+      2026-09-30: the session under "Scheduled wakes", woken at 10-08 00:32 UTC by `trig_01SY2TY9HuSQY5C7EEB9LD7y`
+      (the helper session and its Routine went with the previous account). It writes the answer here and makes the
+      slip commit itself if RW-C is not warm; any session after 00:10 checks it did.
    4. **QUEUE: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-queue-prereg.md`); window 2026-10-04 → 11-01.
       **Freeze line:** until the export is taken, none of `agents/books.ts`, the table `agent_book_levels`, its prune
       job `agents-books-prune`, `stepMinute` in `agents/quotes.ts` or its minute record (`agent_quote_minutes`)
@@ -367,8 +367,9 @@ list stays the short version; the plan is the reasoning behind it.
       - The export after 2026-11-02 00:10 and before 11-06 10:25 UTC; the tape after 11-02 00:10; Kraken's main pull
         on 11-02 between 00:05 and 19:59 UTC.
       - If check 4 has not passed by 2026-11-04 00:00 UTC, a longer retention is put to Davies.
-      - Reminder: Routine `trig_01MhZNQLy1QXGXGJbqiNx9rL`, 2026-11-02 00:15 UTC (shared with PR5-W; it reminds only,
-        and holds no connector).
+      - Wakes (see "Scheduled wakes"): `trig_01U3odxMpVv4zaqVueHJvaM7` 10-18 06:20 UTC, the spare pull;
+        `trig_01Myqe75KezMbWXZ15qK8mBD` 10-24 09:20, the scorer and checks 1–3; `trig_01Q3DV4MArsf3tQ1Po8yCh1X` 11-02
+        00:40, the pulls, the export and check 4. The previous account's reminder went with it.
    5. **PR5-R: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-pr5-readings-prereg.md`). Read after PR5's four
       weeks, before the 10-21 review.
    6. **PR5-W: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-pr5-weekend-prereg.md`). **Freeze line:**
@@ -404,10 +405,12 @@ list stays the short version; the plan is the reasoning behind it.
       - The reading, with 3b's second export, on 2026-11-25 from 00:05 UTC (2026-12-23 at the latest).
       - At PR5's 2026-10-21 verdict: ask Davies whether PR5's paper engine and its minute record keep running to the
         reading.
-      - Reminders: Routines `trig_01MhZNQLy1QXGXGJbqiNx9rL` (2026-11-02 00:15 UTC) and `trig_01B4gd9et9w8TJXmjJNyFTcF`
-        (2026-11-25 00:05 UTC); they remind only, and hold no connector.
+      - Wakes (see "Scheduled wakes"): `trig_01Q3DV4MArsf3tQ1Po8yCh1X` 11-02 00:40 UTC, 3b's first export;
+        `trig_01Ecb6B2TUMRhvYiyc3a8BuE` 11-20 09:20, the count script; `trig_01JVzTyxtpoSkB7Wgw2eRkqk` 11-25 00:40,
+        the reading. The previous account's reminders went with it.
    7. **EX-GAP: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-ex-gap-prereg.md`). At least 8 pairs by its date,
-      else undecided.
+      else undecided. Counted on the 1st of each month at 09:23 UTC by `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads
+      at 16 pairs or after 2027-01-31 and then disables itself.
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages builds** (his ask, 2026-09-27: every push sat in "Building" a long time; `ac006ca8`, pushed at
@@ -495,6 +498,23 @@ A rebuilt container loses every line below. Run them before working.
 Facts a fresh session would otherwise rediscover:
 
 - **Node 22** (`src/.nvmrc`). npm 10.x. Every npm command runs in `src/`.
+- **Scheduled wakes (2026-09-30).** Davies' previous account is gone, and with it every Routine and helper session
+  the ledger named before this date. Fifteen Routines now fire into the Claude Code session
+  `session_019JpeoB2bWdN7fhpKaor3fe` ("portfolios - 5"), which holds the database connector: `trig_018QYvjyPodsEokzzscF2yrR`
+  10-01 10:20 UTC (item 7's audit check, RW health); `trig_014Rdj3qAgVVbh8h3eKcjb8X` 10-04 10:20 (RW health, QUEUE's
+  window); `trig_01Dm3nw4TbBm2GCX2z12tN7o` Mondays 06:37 (MX-1); `trig_01SY2TY9HuSQY5C7EEB9LD7y` 10-08 00:32 (RW-C's
+  warm check); `trig_01THWfdRa6aKk2mZg8N8DUzC` 10-09 00:40 (RW's verdict); `trig_0147EKGhR4aHoVq5QWUFy1mr` 10-10 00:20
+  (RW-C's replay check); `trig_01U3odxMpVv4zaqVueHJvaM7` 10-18 06:20 (QUEUE's spare pull);
+  `trig_01QsXPKHc6Nt6NK3BJmbB2RY` 10-21 15:40 (PR5's review); `trig_018MBeyZsWkLBmbMq9ta3GNf` 10-23 00:40 (RW-C's
+  verdict); `trig_01Myqe75KezMbWXZ15qK8mBD` 10-24 09:20 (the reading scripts); `trig_01SekCNjJaux9Qbhn2Yaj7QD` 10-28
+  01:20 (PR5V's and variant-2's readings); `trig_01Q3DV4MArsf3tQ1Po8yCh1X` 11-02 00:40 (QUEUE's and PR5-W's exports);
+  `trig_01Ecb6B2TUMRhvYiyc3a8BuE` 11-20 09:20 (PR5-W's count script); `trig_01JVzTyxtpoSkB7Wgw2eRkqk` 11-25 00:40
+  (PR5-W's reading); `trig_018Ni6ydYybx39fE2wn7ZLeo` the 1st of each month 09:23 (EX-GAP's count). Each wake hands its
+  bulk reading and writing to a subagent on the cheaper model (Davies asked for one) and checks it before committing.
+  Why not their own sessions: a Routine created from a session here cannot store connectors ("not available for this
+  organization"), so a fresh session it starts has no database; and a session created with `create_session` waits for
+  a person to approve its MCP calls (the test session `session_0141N6ayHSNVrjfNezYV18Yj` stopped at the first one).
+  If this session is archived, the fifteen must be created again pointing at a session that holds the connector.
 - **The Edge Function checks run on Deno 1.46.3 through npx**
   (`npx --yes deno@1.46.3 test --allow-env supabase/functions/`), the
   version CI's `setup-deno` `v1.x` resolves to; this container has no
@@ -558,6 +578,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-09-30 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Every dated task from here to 2027 has a scheduled wake** (Davies: "之后的那些任务…单独开的就单独开，用便宜模型就行"; then "上一个账号已经没了，目前只有这一个账号"). The previous account took its Routines and helper session with it, so the MX-1 Mondays, the 10-08 check and the 11-02 / 11-25 reminders had no owner. Fifteen Routines, listed under Machine and platform setup, now wake this session for each item's date. Each wake hands its bulk work to a subagent on the cheaper model. Two cheaper designs failed here: a Routine cannot carry the database connector, and a created session waits for a person to approve each MCP call.
 
 ### [2026-09-30 21:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
