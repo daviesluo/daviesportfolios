@@ -354,6 +354,9 @@ list stays the short version; the plan is the reasoning behind it.
         UTC by `trig_01HZex177UtrLkpPUU8YncmR` with the statements built from the file; failing that, the first session
         after 09-29 00:10 with the connector.
         Not yet run; A's `n`, `bytes`, `sha256`, B's `n`, `first_ts`, `last_ts` and whether the two `n` agree go here.
+        **As of 2026-09-30 16:55 UTC nothing records that it ran**: no commit since 09-28 19:42, and neither the helper
+        session nor its Routines are visible from a Claude Code session (`list_triggers` empty, the ids not found). The
+        first session with the database connector confirms or runs it, before 10-04 00:00 UTC.
       - Kraken's spare pull between 2026-10-18 and 10-25 (keyless, "Data" item 3).
       - The scorer and checks 1–3 committed before 2026-11-02 00:00 UTC.
       - The export after 2026-11-02 00:10 and before 11-06 10:25 UTC; the tape after 11-02 00:10; Kraken's main pull
@@ -370,7 +373,8 @@ list stays the short version; the plan is the reasoning behind it.
       - **Dry runs, before 2026-10-02 21:00 UTC** (after 09-29 00:00): the fifteen statements of "Before the first
         forward weekend", once each, without the `page` column. A statement that needs a change is changed before
         that closure and recorded as a deviation. Owner: as QUEUE's dry run, in the same wake.
-        Not yet run; each one's `n`, `bytes` and `sha256` go here.
+        Not yet run; each one's `n`, `bytes` and `sha256` go here. **As of 2026-09-30 nothing records that it ran**
+        (as QUEUE's above): confirm or run it before 10-02 21:00 UTC.
       - Arm 3a's backward candles: **done 2026-09-28 06:24 UTC**, 16 minutes after the freeze
         (`backtests/inputs/pr5w_2026-09-28/candles/`, by `scripts/pr5w/pull_coin_candles.py`): BTC, ETH, SOL and XRP
         against USD and GBP, 2025-11-25 → 2026-09-23, 7,247 hours each, every hour but 2026-03-09 10:00, which the
