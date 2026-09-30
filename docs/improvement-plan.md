@@ -21,8 +21,8 @@ them wait on an answer only Davies can give).
 | 1 | Stop the site publishing the repository; rotate secrets | **Done**, one check left | `wrangler.jsonc` sets `pages_build_output_dir: ./dist`, so only `dist/` is published. Both app passwords were rotated; whether the token-signing secret was is not confirmed (Davies) |
 | 2 | Teach the health check this failure | **Done** | `healthcheck.yml` fetches the shell and every chunk it names, and requires a 404 (never the HTML shell) for a missing asset |
 | 3 | One holding, two ledgers | Open | `ledgerFor` (`src/charts/ytd.js`) still dates the whole position at the window start when the lots do not net to the board count |
-| 4 | A failed save is deferred silently | Open | `app.jsx` still advances `lastSavedFingerprintRef` before the save resolves |
-| 5 | A failed load can substitute the demo book | Open, narrower | A 401 now returns to the login form; a 5xx or a network failure still yields the demo book, and the cross-tab reload accepts it |
+| 4 | A failed save is deferred silently | **Done** 2026-09-30 | `portfolio_saver.js`: the marker moves only when the server takes a change; a failed save shows NOT SAVED and retries (5 s … 5 min, then by hand); pinned in its tests and the sweep's `save-retry` checks, which fail on the old bundle |
+| 5 | A failed load can substitute the demo book | **Done** 2026-09-30 | The cross-tab reload refuses a demo result (a failed load's fallback); the sweep's `cross-tab/no-demo` check fails on the old bundle. A failed first load with nothing cached still shows the demo banner, as designed |
 | 6 | No plausibility band on an incoming price | Open | Nothing bands a quote at the write |
 | 7 | The FX shim reaches the performance line | Open, needs Davies | The header pill and the per-holding badge exist; the value line does not read the `missing` flag |
 | 8 | Make the browser sweeps a real gate | **Done** | `npm run verify:browser` is a hard CI gate (222 desktop / 225 phone checks on 2026-09-28), with `verify:perf` (60 cases) beside it |

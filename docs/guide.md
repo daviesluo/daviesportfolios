@@ -17,6 +17,13 @@ tab or app is closed; when it ends, the page goes back to the password
 prompt by itself, with any unsaved edit kept and saved after the next
 sign-in.
 
+An edit is saved a moment after it is made. If the server does not take
+it, a **NOT SAVED** bar says so and the page tries again by itself, after
+5 s, then 15 s, and longer, for about eight minutes; **Retry now** sends it
+at once. The change stays in the tab meanwhile, and a newer edit is saved
+in its place. If another tab or device saved first, a **CONFLICT** bar
+lets you reload their version or keep editing.
+
 ## The header
 
 - **Clock and market phase.** UK time (BST or GMT, as the season says)

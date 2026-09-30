@@ -670,6 +670,9 @@ let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'l
  * while held.
  */
 let loadOverride = /** @type {any} */ (null);
+// The save-retry section (0c): how many saves to refuse next, and what the page asked for. `loadFails` answers every load
+// with a 503, as a failed load does, so the cross-tab reload is seen taking what a failed load returns.
+let saveFailures = 0, saveCalls = 0, loadCalls = 0, loadFails = false;
 let holdMs = 0;
 /** @type {string[]} */
 const heldAnswers = [];
@@ -888,6 +891,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   // the worker's.
   const ctx = await browser.newContext({ viewport: { width, height }, ...(opts.blockServiceWorkers ? { serviceWorkers: 'block' } : {}) });
   await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [opts.token || TOKEN]);
+  // A tab that died mid-edit: its unsaved board, which the app replays on mount and saves.
+  if (opts.draft) await ctx.addInitScript((d) => { sessionStorage.setItem('dp.pendingSave', d); }, JSON.stringify(opts.draft));
   const page = await ctx.newPage();
   // Freeze `Date` for the page at the same instant the fixture's bars
   // were generated for. Timers still run, so the app's 30 s refresh and
@@ -939,7 +944,19 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (held > 0) { heldAnswers.push(url.replace(/^.*\/functions\/v1/, '').split('&')[0]); return done.catch(() => {}); }
       return done;
     };
-    if (url.includes('/data?') && url.includes('action=load')) return json({ data: loadOverride ?? PORTFOLIO, version: 1 });
+    if (url.includes('/data?') && url.includes('action=load')) {
+      loadCalls += 1;
+      if (loadFails) return route.fulfill({ status: 503, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: '{"error":"unavailable"}' });
+      return json({ data: loadOverride ?? PORTFOLIO, version: 1 });
+    }
+    if (url.includes('/data?') && url.includes('action=save')) {
+      saveCalls += 1;
+      if (saveFailures > 0) {
+        saveFailures -= 1;
+        return route.fulfill({ status: 503, contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: '{"error":"unavailable"}' });
+      }
+      return json({ ok: true, version: 2 });
+    }
     if (url.includes('/agents?') && url.includes('action=dashboard')) {
       if (agentsMode === 'notReady') return json(AGENTS_NOT_READY);
       if (agentsMode === 'paused') return json(AGENTS_PAUSED());
@@ -1179,6 +1196,59 @@ async function run() {
     if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked}`);
     else fail(S('tick'), `after the app's refresh six minutes on the panel reads "${ticked}", wanted +6.08 %`);
     SP_BUMP = 1;
+    await ctx.close();
+  }
+
+  // ---- 0c. a save the server refuses is said and tried again; a failed cross-tab load never swaps in the demo ----
+  // Improvement plan items 4 and 5 (2026-09-30). The save effect marked a change saved before its request resolved and
+  // dropped a failed one without a word, so the board looked saved while the server never had the change; and the
+  // cross-tab reload took whatever the load answered, which on a failed load is the demo book. The change here arrives
+  // as it does after a tab died mid-edit: a draft in sessionStorage, replayed on mount and saved.
+  for (const vp of VIEWPORTS) {
+    const S = (n) => `${vp.name}/save-retry/${n}`;
+    const draft = JSON.parse(JSON.stringify(PORTFOLIO));
+    draft.holdings.NOVA.shares = 6;
+    draft.holdings.NOVA.lots = [{ date: dayAgo(55), shares: 6, cost: 100 }];
+    saveCalls = 0; loadCalls = 0; saveFailures = 2; loadFails = false;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { draft: { fp: 'a draft', portfolio: draft, ts: NOW_MS } });
+    const waitFor = async (fn, ms = 8000) => {
+      const by = Date.now() + ms;
+      while (Date.now() < by) { if (await fn().catch(() => false)) return true; await page.waitForTimeout(50); }
+      return false;
+    };
+    const banner = async () => ((await page.locator('.save-failing-banner').textContent().catch(() => null)) || '').replace(/\s+/g, ' ').trim();
+    await waitFor(async () => saveCalls >= 1);
+    await waitFor(async () => /trying again in 5 s/.test(await banner()));
+    const first = await banner();
+    if (saveCalls === 1 && /^NOT SAVED/.test(first) && /trying again in 5 s/.test(first)) ok(S('said'), `the refused save is said at once: "${first}"`);
+    else fail(S('said'), `after ${saveCalls} save(s), one refused, the page reads "${first}"`);
+    await page.clock.fastForward(5_000);
+    await waitFor(async () => saveCalls >= 2 && /trying again in 15 s/.test(await banner()));
+    const second = await banner();
+    if (saveCalls === 2 && /trying again in 15 s/.test(second)) ok(S('retried'), `tried again after 5 s and refused again: "${second}"`);
+    else fail(S('retried'), `5 s on: ${saveCalls} save(s), the page reads "${second}"`);
+    await page.clock.fastForward(15_000);
+    await waitFor(async () => saveCalls >= 3 && (await page.locator('.save-failing-banner').count()) === 0);
+    const draftLeft = await page.evaluate(() => sessionStorage.getItem('dp.pendingSave'));
+    const reported = /** @type {any} */ (page).__reported.filter((k) => k === 'data.save.failed').length;
+    await page.clock.fastForward(60_000);
+    await page.waitForTimeout(300);
+    // Reported once: the ops client folds a kind's repeats within a minute (ops_error.js, COOLDOWN_MS).
+    if (saveCalls === 3 && (await page.locator('.save-failing-banner').count()) === 0 && draftLeft === null && reported === 1) {
+      ok(S('saved'), 'the third attempt is taken: the banner goes, the draft is cleared, the refusal was reported, and nothing more is sent');
+    } else fail(S('saved'), `saves ${saveCalls}, banner ${await page.locator('.save-failing-banner').count()}, draft ${draftLeft === null ? 'cleared' : 'left'}, reported ${reported}`);
+
+    // Another tab saves; this tab reloads, and the load fails.
+    const S2 = (n) => `${vp.name}/cross-tab/${n}`;
+    loadFails = true;
+    const loadsBefore = loadCalls;
+    await page.evaluate(() => { const bc = new BroadcastChannel('dp.portfolio'); bc.postMessage({ kind: 'portfolio-saved', sender: 'another tab', ts: Date.now() }); bc.close(); });
+    await waitFor(async () => loadCalls > loadsBefore);
+    await page.waitForTimeout(600);
+    const demo = await page.locator('.demo-banner', { hasText: 'DEMO DATA' }).count();
+    loadFails = false;
+    if (loadCalls > loadsBefore && demo === 0) ok(S2('no-demo'), 'the reload another tab\'s save asks for fails, and the board on screen stays: no demo book');
+    else fail(S2('no-demo'), `loads ${loadCalls - loadsBefore}, demo banners ${demo}`);
     await ctx.close();
   }
 

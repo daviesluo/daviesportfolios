@@ -14,6 +14,7 @@ import { POSITION_COORDS } from '../portfolio/positions.js';
 import { INITIAL_PORTFOLIO } from '../portfolio/data.js';
 import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate, onSignOut, signOut } from './auth.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from '../portfolio/portfolio_remote.js';
+import { createPortfolioSaver } from '../portfolio/portfolio_saver.js';
 import { shownPricesOf, withShownPrices, withoutPriced } from '../portfolio/shown_prices.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { hydrateAllChartStores } from '../prices/chart_store.js';
@@ -403,6 +404,9 @@ function Board({ isReadOnly }) {
   // re-cached the server's current version on the 412 reply so a
   // retry against the same row will go through).
   const [saveConflict, setSaveConflict] = useState(false);
+  // A save that failed for any other reason: the change is not on the server yet. The banner says so, the saver tries
+  // it again after a backoff, and the button sends it now (portfolio_saver.js; improvement plan item 4).
+  const [saveFailing, setSaveFailing] = useState(/** @type {import('../portfolio/portfolio_saver.js').SaveFailing | null} */ (null));
   // Mount only one MarketConditions tree (desktop OR mobile) instead
   // of both — the previous "render both, CSS-hide one" pattern paid
   // the full render cost for ten market cards on every refresh in
@@ -555,6 +559,27 @@ function Board({ isReadOnly }) {
   // another tab gets silently reverted — fingerprint-equality
   // short-circuits the save when only ephemeral fields changed.
   const lastSavedFingerprintRef = useRef(/** @type {string | null} */ (null));
+  // The saves themselves, one request at a time: `lastSavedFingerprintRef` moves only when the server has taken a
+  // change (or answered that another tab's is newer), never before its request resolves.
+  const saverRef = useRef(/** @type {ReturnType<typeof createPortfolioSaver> | null} */ (null));
+  if (saverRef.current === null) {
+    saverRef.current = createPortfolioSaver({
+      save: savePortfolioRemote,
+      onSaved: (fp) => {
+        lastSavedFingerprintRef.current = fp;
+        // Clear the draft mirror only when it holds this change: a newer edit's draft stays until that one is saved.
+        try {
+          const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
+          const pending = raw ? JSON.parse(raw) : null;
+          if (!pending || pending.fp === fp) sessionStorage.removeItem(PENDING_SAVE_KEY);
+        } catch { /* private mode etc. */ }
+      },
+      // Another tab or device saved in between. Not tried again: the banner lets the user choose.
+      onConflict: (fp) => { lastSavedFingerprintRef.current = fp; setSaveConflict(true); },
+      onFailing: setSaveFailing,
+    });
+  }
+  useEffect(() => () => { saverRef.current?.reset(); }, []);
   // Fire-and-forget UI timers (flash clear, recently-updated reset,
   // error-retry). Tracked in refs so a refresh that lands inside the
   // previous timer's window clears it first (no stacking / premature
@@ -621,7 +646,9 @@ function Board({ isReadOnly }) {
       } catch { /* private mode etc. */ }
       return;
     }
-    if (lastSavedFingerprintRef.current === fp) return;
+    // Nothing to send when the saves are already heading for this board: saved, in flight, queued, or waiting to be
+    // tried again after a failure.
+    if (saverRef.current?.target(lastSavedFingerprintRef.current) === fp) return;
     // Mirror the about-to-be-saved portfolio to sessionStorage
     // BEFORE the 600 ms debounce. If the browser dies in that
     // window the next cold mount replays it; if the save succeeds
@@ -631,24 +658,10 @@ function Board({ isReadOnly }) {
     try {
       sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify({ fp, portfolio, ts: Date.now() }));
     } catch { /* swallow — best-effort */ }
-    const id = setTimeout(() => {
-      lastSavedFingerprintRef.current = fp;
-      savePortfolioRemote(portfolio).then((result) => {
-        if (result && result.ok === true) {
-          try { sessionStorage.removeItem(PENDING_SAVE_KEY); } catch { /* ignore */ }
-          return;
-        }
-        if (result && result.ok === false && result.conflict === true) {
-          // Another tab/device wrote between our last load and this
-          // save. Don't clear the pending-draft mirror — the user
-          // should resolve the conflict explicitly via the banner
-          // (Reload to discard local + see latest, or Keep editing
-          // to retry; the next save attempt with the freshly-cached
-          // version may go through cleanly).
-          setSaveConflict(true);
-        }
-      });
-    }, 600);
+    // The marker moves when the server answers, not here: a failed save used to be marked saved first and then dropped
+    // without a word. A conflict keeps the draft mirror; the banner decides (Reload, or Keep editing and the next edit's
+    // save goes out against the version the 412 reply re-cached).
+    const id = setTimeout(() => { saverRef.current?.request(fp, portfolio); }, 600);
     return () => clearTimeout(id);
   }, [portfolio, isReadOnly]);
 
@@ -678,6 +691,11 @@ function Board({ isReadOnly }) {
       if (e?.data?.sender === TAB_ID) return;
       loadPortfolioRemote().then((p) => {
         if (cancelled || !p) return;
+        // A load that failed answers with the demo book (loadPortfolioRemote's fallback). It must never replace the
+        // board on screen: the other tab's save is on the server, and the next reload or broadcast brings it in.
+        if (p._isDemo) return;
+        // The board is replaced by the server's: a save of this tab's older board, queued or waiting, no longer counts.
+        saverRef.current?.reset();
         lastSavedFingerprintRef.current = portfolioUserFingerprint(p);
         setPortfolio(p);
       }).catch(() => { /* network blip — next tick retries via own load path */ });
@@ -1368,6 +1386,16 @@ function Board({ isReadOnly }) {
           </span>
           <button className="demo-banner-btn primary" onClick={onResetDemo}>Reset to empty</button>
           <button className="demo-banner-btn" onClick={onKeepDemo}>Keep these</button>
+        </div>
+      )}
+      {saveFailing && !isReadOnly && (
+        <div className="demo-banner save-failing-banner" role="status">
+          <span className="demo-banner-msg mono">
+            NOT SAVED — the server did not take your last change{saveFailing.retryInMs != null
+              ? `; trying again in ${Math.round(saveFailing.retryInMs / 1000)} s.`
+              : '. It is kept in this tab.'}
+          </span>
+          <button className="demo-banner-btn primary" onClick={() => saverRef.current?.retryNow()}>Retry now</button>
         </div>
       )}
       {saveConflict && !isReadOnly && (
