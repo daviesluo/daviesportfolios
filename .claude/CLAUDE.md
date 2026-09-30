@@ -602,6 +602,12 @@ that follow from that evidence, in short:
   of that job's list; `src/cron_jobs.test.js` fails on a second job that
   calls pg_net. A call fired by hand through pg_net waits for the batch in
   flight and holds the next minute's for as long as it runs past the minute.
+- **The interview showcase mirrors this section** (Davies, 2026-09-30):
+  `showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
+  repository explains every strategy for his interviews, with no figure from
+  the real book. A change to the strategy set, a verdict, or a moved number it
+  quotes updates that page and rebuilds its PDF in the same week (the
+  working-with-davies skill has the steps).
 
 ## Git workflow
 

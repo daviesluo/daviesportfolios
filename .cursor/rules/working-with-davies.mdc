@@ -64,6 +64,19 @@ Keep it one page; detail goes to `docs/map.md`. No figure from the real
 book goes into any of them — no balance, position value, share count,
 lot price or dollar P&L; say what the engineering does in neutral words.
 
+**The interview showcase moves with the strategies.** "内容中也要加上
+showcase/decisionfc和showcase/daviesportfolios（…其中要包含上面说的不同策略的内容，
+面试时可以说到，如果之后有更新的话记得维护）" (2026-09-30).
+`showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
+repository explains every strategy, its rules, its status and its
+headline numbers, in English and with no figure from the real book. In
+the same week as a strategy row is added, retired, goes live or changes
+its rule, a test reaches its verdict, or a number the page quotes moves:
+attach `daviesluo/personal` (`add_repo`, push access), update the page,
+rebuild the interview PDF (`interview/marex-2026-09/pdf`: `npm ci`, then
+`node build.mjs prep-v2.md`; it reads the page as it stands), and commit
+there under that repository's own ledger.
+
 **Usage is a budget he watches.** Never spend the main model on
 polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
 Fable/Opus-class sessions. If a check is genuinely needed, run it in a
