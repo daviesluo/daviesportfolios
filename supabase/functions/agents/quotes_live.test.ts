@@ -14,7 +14,7 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
+  bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited,
 } from "./quotes_live.ts";
@@ -129,6 +129,25 @@ Deno.test("rungBase: a sell takes one base step more when it carries the proceed
   // What the venue credits for each, floored to the penny: the step up is worth a penny, and costs a hundred-thousandth of a coin.
   const credited = (base: string, price: number) => Math.floor(Number(base) * price * 100 + 1e-9) / 100;
   assertEquals([credited("13.18565", 0.7584), credited(rungBase(10, 0.7584, GBP_BOOK_PAIR, "sell")!, 0.7584)], [9.99, 10]);
+});
+
+Deno.test("pennyExit: a resting exit trades to the penny the venue rounds to — a buy-back pays the penny below, a sell keeps the hair over its penny", () => {
+  const dust = dustBase(GBP_BOOK_PAIR, 0.7578);
+  const debited = (base: string, p: number) => Math.ceil(Number(base) * p * 100 - 1e-9) / 100;
+  const credited = (base: string, p: number) => Math.floor(Number(base) * p * 100 + 1e-9) / 100;
+  // The first live round trip (2026-10-01): the ask sold 13.18565 at 0.7584, the exit bought them back at 0.7578 for
+  // £9.9920856 and was debited £10.00. Trimmed, it buys 13.18289 for £9.98999404, debited £9.99: a penny less, for
+  // 0.00276 of a coin (£0.0021) the rung still owes and carries — 0.79p better, the 0.1 % rung's whole edge.
+  assertEquals(pennyExit("buy", "13.18565", 0.7578, GBP_BOOK_PAIR, dust), "13.18289");
+  assertEquals([debited("13.18565", 0.7578), debited("13.18289", 0.7578)], [10, 9.99]);
+  // A bid rung's exit sells 13.21702 at 0.7574 (£10.01057), credited £10.01; 13.21627 is credited the same and keeps 0.00075.
+  assertEquals(pennyExit("sell", "13.21702", 0.7574, GBP_BOOK_PAIR, dust), "13.21627");
+  assertEquals([credited("13.21702", 0.7574), credited("13.21627", 0.7574)], [10.01, 10.01]);
+  // Nothing to trim on a whole penny; nothing trimmed past the rung's dust, or under the venue's minimum.
+  assertEquals(pennyExit("buy", "10.00000", 0.75, GBP_BOOK_PAIR, dust), "10.00000");
+  assertEquals(pennyExit("sell", "10.00000", 0.75, GBP_BOOK_PAIR, dust), "10.00000");
+  assertEquals(pennyExit("buy", "13.18565", 0.7578, GBP_BOOK_PAIR, 0.001), "13.18565");
+  assertEquals(pennyExit("buy", "0.13200", 0.7578, GBP_BOOK_PAIR, dust), "0.13200");
 });
 
 Deno.test("rungBook: a bid rung's round trip and an ask rung's, in GBP; fees come off; dust is carried, never held against a stop", () => {
@@ -527,20 +546,22 @@ Deno.test("live: a fill is booked only from the venue's read-back — the paper'
   const r1 = w.orders().filter((o) => o.book === "USDC-GBP" && Number(o.k) === 0.001);
   assertEquals(r1.map((o) => [o.state, Number(o.filled_base), o.cancel_reason]), [["cancelled", 0, "the paper rung quotes nothing"]]);
   // The venue fills OUR 0.2 % USDT bid; the paper rung saw no print. The read-back is the fill, and the exit goes out at
-  // fair by the rule's own rounding (a long sells at fair rounded up: 0.7555), post-only.
+  // fair by the rule's own rounding (a long sells at fair rounded up: 0.7555), post-only, for the least coin the venue
+  // credits the same penny (`pennyExit`): 5.51953 (£4.17000…), where all 5.52754 (£4.17605…) would also be credited £4.17.
   const bid = w.rx.resting("USDT/GBP").find((o) => o.price === "0.7538")!;
   w.rx.fillResting(bid.id, Number(bid.quantity));
   await w.step(T0 + 3 * M);
   const entry = w.orders().find((o) => o.venue_order_id === bid.id)!;
   assertEquals([entry.state, Number(entry.filled_base), Number(entry.avg_fill_price), Number(entry.fee_gbp)], ["filled", 5.52754, 0.7538, 0]);
   const exit = w.orders().find((o) => o.leg === "exit")!;
-  assertEquals([exit.book, Number(exit.k), exit.side, Number(exit.price), Number(exit.base_size), (exit.request as { postOnly: boolean }).postOnly, exit.state], ["USDT-GBP", 0.002, "sell", 0.7555, 5.52754, true, "new"]);
+  assertEquals([exit.book, Number(exit.k), exit.side, Number(exit.price), Number(exit.base_size), (exit.request as { postOnly: boolean }).postOnly, exit.state], ["USDT-GBP", 0.002, "sell", 0.7555, 5.51953, true, "new"]);
   assertEquals(w.books["USDT-GBP"].rungs[1].mode, "quote");          // the paper rung never filled
-  // The exit fills; the round trip is the venue's: 5.52754 × (0.7555 − 0.7538) GBP.
-  w.rx.fillResting(String(exit.venue_order_id), 5.52754);
+  // The exit fills; the round trip is the venue's on what it sold, 5.51953 × (0.7555 − 0.7538) GBP, and the 0.00801 kept
+  // is dust on the rung, carried into its next trip and marked as any holding is: this book has no print, so at fair (1 / X).
+  w.rx.fillResting(String(exit.venue_order_id), 5.51953);
   const r = await w.step(T0 + 4 * M);
-  assertAlmostEquals(r.dayPnlGbp!, 5.52754 * (0.7555 - 0.7538), 1e-8);          // the report keeps 8 decimals
-  // Flat again, the rung carries out the paper's order once more.
+  assertAlmostEquals(r.dayPnlGbp!, 5.51953 * (0.7555 - 0.7538) + 0.00801 * (1 / X - 0.7538), 1e-8);   // the report keeps 8 decimals
+  // Flat again (its dust is under the venue's minimum), the rung carries out the paper's order once more.
   assertEquals(w.open("live").filter((o) => o.book === "USDT-GBP" && Number(o.k) === 0.002).map((o) => [o.leg, Number(o.price)]), [["entry", 0.7538]]);
 });
 
@@ -554,7 +575,7 @@ Deno.test("live: a partial entry fill — the rest is withdrawn (confirmed) and 
   assertEquals([row.state, Number(row.filled_base), w.rx.orders.get(bid.id)!.status], ["filled", 2, "cancelled"]);
   await w.step(T0 + 2 * M);
   const exit = w.orders().find((o) => o.leg === "exit")!;
-  assertEquals([Number(exit.base_size), Number(exit.price)], [2, 0.7555]);
+  assertEquals([Number(exit.base_size), Number(exit.price)], [1.99868, 0.7555]);   // 2 × 0.7555 is credited £1.51; so is 1.99868
   // Dust: 0.05 of a coin (£0.04) cannot be sold under the venue's 0.1 GBP minimum, so it is no position and the entry rests on.
   const bid2 = w.rx.resting("USDC/GBP").find((o) => o.price === "0.7538")!;
   w.rx.fillResting(bid2.id, 0.05);
@@ -708,6 +729,28 @@ Deno.test("live: an exit refused while the tape shows nothing through it (the bo
   assertEquals(exitPosts(), 2);                                       // a newer print, not through it: one more try (refused again)
   await w.step(T0 + 7 * M);
   assertEquals(exitPosts(), 2);
+});
+
+Deno.test("live: an ask rung's exit buy-back is trimmed to the penny below, and once it fills the rung is flat, its hair carried as dust", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 120, balances: { GBP: 120, USDT: 0 } });
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7552, ask: 0.7558 };          // the exit buy-back rests under the ask
+  // A short of 13.18565 USDT on the 0.1 % ask rung, sold an hour ago at 0.7584 (the first live trip's entry).
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7584, base_size: 13.18565, filled_base: 13.18565, avg_fill_price: 0.7584, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  await w.step(T0);
+  const exit = w.orders().find((o) => o.leg === "exit" && o.book === "USDT-GBP" && o.rung_side === "ask")!;
+  assert(exit, JSON.stringify(w.orders()));
+  const price = Number(exit.price), base = Number(exit.base_size), full = 13.18565;
+  const pennies = (b: number) => Math.ceil(b * price * 100 - 1e-9);
+  // It pays the penny below what the whole short would have cost, and owes back under a penny's worth of coin.
+  assertEquals(pennies(base), pennies(full) - 1, JSON.stringify(exit));
+  assert(full - base > 0 && (full - base) * price < 0.01, String(full - base));
+  // The venue fills it; next turn the rung's book holds only the hair, under dust: it is flat and quotes its ask again.
+  w.rx.fillResting(String(exit.venue_order_id), base);
+  await w.step(T0 + M);
+  assertEquals(w.orders().find((o) => o.id === exit.id)!.state, "filled");
+  await w.step(T0 + 2 * M);
+  const asks = w.open("live").filter((o) => o.book === "USDT-GBP" && o.rung_side === "ask" && Number(o.k) === 0.001);
+  assert(asks.every((o) => o.leg === "entry"), JSON.stringify(asks));
 });
 
 Deno.test("the daily loss stop: at −1 % of capital realised today plus marked, no entries for the rest of the UTC day; exits stay armed; the next day quotes again", async () => {
@@ -887,7 +930,7 @@ Deno.test("inventory: an ask needs coin beyond what the book's own longs will se
   assert(r.skippedEntries.filter((s) => s.rung.startsWith("USDC-GBP|ask")).length === 3, JSON.stringify(r.skippedEntries));
   // GBP: 50 − 15.12 − 3.773 = £31.11 before the bids; five bids (£20.83) fit; the USDC 0.1 % rung holds a long and exits.
   assertEquals(placed.filter((o) => o.rung_side === "bid").length, 5);
-  assertEquals(w.open("live").filter((o) => o.leg === "exit").map((o) => [o.book, Number(o.base_size)]), [["USDC-GBP", 5]]);
+  assertEquals(w.open("live").filter((o) => o.leg === "exit").map((o) => [o.book, Number(o.base_size)]), [["USDC-GBP", 4.99008]]);   // 5 to the penny
   assertEquals(r.errors, []);
   // With GBP for three bids only, the other three are skipped, not placed and refused.
   const w2 = makeWorld({ live: true, armed: true, balances: { GBP: 3 * 4.17 } });

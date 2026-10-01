@@ -176,6 +176,28 @@ export function rungBase(gbp: number, price: number, pair: PairConfig, side: "bu
 export function dustBase(pair: PairConfig, price: number): number {
   return Math.max(Number(pair.min_order_size), price > 0 ? Number(pair.min_order_size_quote) / price : 0);
 }
+/**
+ * A resting exit sized to the penny the venue rounds to, the hair it rounds off kept on the rung as dust. Revolut X credits
+ * a sell's GBP floored to the penny and debits a buy's rounded UP (PR5's first round trip, 2026-10-01: the ask sold
+ * 13.18565 at 0.7584, £9.99999696, credited £9.99; its exit bought them back at 0.7578, £9.9920856, debited £10.00 — a
+ * trip worth +0.79p came out at −1p). An exit trades what the rung holds, so its notional falls anywhere between pennies:
+ *   * a sell (a bid rung's exit) is credited the floored penny whatever the hair above it: it sells only the least coin
+ *     still credited that penny, and keeps the rest;
+ *   * a buy (an ask rung's exit) pays the penny above: one penny less buys all but a hair, which the rung still owes.
+ * Either way the rung gains the hair's worth or more, never less, and what it keeps (under a penny of coin, far under
+ * `dust`) is carried into its next trip, as any dust is: the next exit trades it. The 24-hour stop is not trimmed.
+ * Returns `base` itself when there is nothing to trim, or when the trim would leave more than `dust` or trade under it.
+ */
+export function pennyExit(exitSide: "buy" | "sell", base: string, price: number, pair: PairConfig, dust: number): string {
+  const b = Number(base), n = b * price;
+  if (!(b > 0) || !(price > 0)) return base;
+  const pennies = Math.floor(n * 100 + 1e-9);
+  if (Math.abs(n * 100 - Math.round(n * 100)) < 1e-6) return base;          // on a whole penny already: nothing rounds
+  const trimmed = exitSide === "sell" ? ceilToStep(pennies / 100 / price, pair.base_step) : floorToStep(pennies / 100 / price, pair.base_step);
+  const t = Number(trimmed);
+  if (!(t < b) || b - t > dust || !(t >= dustBase(pair, price))) return base;
+  return trimmed;
+}
 
 /** One settled fill of a rung, for its book. */
 export type RungFill = { id: number; ts: number; leg: LiveLeg; base: number; price: number; feeGbp: number };
@@ -863,6 +885,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     }
     return base;
   };
+  /** A resting exit's size, trimmed to the penny the venue rounds to (`pennyExit`); a stop is never trimmed. */
+  const trimExit = (r: RungNow, ticks: number, base: string | null): string | null => {
+    const pair = pairs[LIVE_SYMBOL[r.book]];
+    return base && pair ? pennyExit(venueSideOf(r.side, "exit"), base, ticks * QUOTE_TICK, pair, r.dust) : base;
+  };
   for (const r of rungs) {
     const o = openOf("live", r);
     try {
@@ -896,7 +923,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
           const request = (await d.db.select<{ request: { paperLastPrint?: SeenPrint | null } | null }>("agent_quote_live_orders", `id=eq.${prev.id}&select=request`))[0]?.request ?? null;
           if (!exitMayGo({ ...prev, request }, r.live.openedAt, r.side === "bid" ? "ask" : "bid", ticks, lastPrint)) continue;
         }
-        const base = exitBase(r, ticks * QUOTE_TICK, null);
+        const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
         if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
         continue;
       }
@@ -905,7 +932,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       const c = await cancelConfirmed(o, "the rule re-prices the exit");
       if (c !== "cancelled") continue;
       const ticks = exitTicks(fair, r.side);
-      const base = exitBase(r, ticks * QUOTE_TICK, null);
+      const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
       if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
     } catch (e) {
       report.errors.push(`${r.label}: ${msg(e)}`);
