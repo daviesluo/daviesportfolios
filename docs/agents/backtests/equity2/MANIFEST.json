@@ -1190,6 +1190,14 @@
    "bytes": 1867,
    "sha256": "ef2c9f4ee27822374f32a648d67d77a2c76161323f7775d25af68f076bba6437"
   },
+  "scripts/heldout_dfc_pull.py": {
+   "bytes": 2411,
+   "sha256": "4926a5e6546639d508518c4a27fe33977008e22bf35fea3749d530cc826995ed"
+  },
+  "scripts/heldout_dfc_score.py": {
+   "bytes": 10530,
+   "sha256": "8a1a0984f2afc6bdf27581ffa80ff2b672f546d83aa7fda0bcb4b338623fc60a"
+  },
   "scripts/power_calendar.py": {
    "bytes": 6726,
    "sha256": "6ce72fa529c59ce498756e28808ef47479131741729630bea6a1deb8dfdf5604"
@@ -1238,5 +1246,13 @@
    "bytes": 8900,
    "sha256": "6f654a6d7be33777ce64421063f83f220089d7068a7c2356846907a22faa5944"
   }
+ },
+ "dfc": {
+  "pre_registration": "docs/agents/reviews/2026-10-01-dfc-prereg.md",
+  "frozen_by": "the commit that adds it, with both scripts",
+  "run": [
+   "python3 docs/agents/backtests/equity2/scripts/heldout_dfc_pull.py  # step 1, dates only",
+   "python3 docs/agents/backtests/equity2/scripts/heldout_dfc_score.py  # step 2, run twice, byte-identical, -> results/heldout_dfc.json"
+  ]
  }
 }

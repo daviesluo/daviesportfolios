@@ -353,9 +353,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    US instruments) and the ISA GBP; research deeply, and a trading key follows only if something can go live. EQ2's
    screens are in `docs/agents/backtests/equity2/`. Nothing earns a paper row on what is known; the one test worth running
    is **DFC**, the month-end dash for cash (Etula et al. 2020), on CRSP's unseen 2016-01 → 2026-08. Its draft was revised
-   on an independent review (seven blocking findings, all applied); the review's second pass is running, then the file
-   is frozen by its commit (`reviews/2026-10-01-dfc-prereg.md`) and run once (expect a fail: every condition holds about
-   0.3–0.4 of the time at the screen's effect). PEAD, TOM as EQ1 defined it, reversal, overnight drift, low volatility,
+   on an independent review (seven blocking findings, then two more in its second pass, all applied) and **frozen
+   2026-10-01 by the commit that adds `reviews/2026-10-01-dfc-prereg.md` with its two scripts**; next, step 1, step 2
+   twice (byte-identical), and the write-up `reviews/2026-10-01-dfc-study.md` (expect a fail: every condition holds
+   about 0.3–0.4 of the time at the screen's effect). PEAD, TOM as EQ1 defined it, reversal, overnight drift, low volatility,
    index additions and pre-FOMC drift are closed; TAC (Treasury auctions) and IS49 (industry seasonality) are drafted and
    not frozen (the drafts stay in the session's scratchpad). No trading key before a pass, a paper row and a demo-account
    test (guardrails in EQ2 §4).
@@ -470,6 +471,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 03:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**DFC is frozen** (`docs/agents/reviews/2026-10-01-dfc-prereg.md`, sha256 `65c675aa…`; `equity2/scripts/heldout_dfc_pull.py` `4926a5e6…` and `heldout_dfc_score.py` `8a1a0984…`, in this one commit). The review's second pass found the guard checked against HEAD rather than the freeze commit and one wrong figure in §7; both fixed with its tested code and text, with its optional items (a missing-code stop, the best month defined, §8 and §10 worded as the code runs, English glosses). The final scorer reproduced every pre-2016 screen number on eight spans, 0 mismatches. Step 1 (dates only) read 2,680 days, 127 turns, 20 / 80 / 27. Nothing after 2015-12-31 but dates has been read by anyone (item 8).
 
 ### [2026-10-01 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
