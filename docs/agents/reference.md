@@ -3133,6 +3133,34 @@ read inside each frozen test's no-peek list; it re-ran every quoted script and e
   settlement-adjusted windows and 7.97 (t 1.42) on the paper's, and the dodge rule lost 2.87 % and 1.21 % a year net of
   8 bps against a market that returned 13.54 % a year over cash. Month-end calendar rules are closed at this size.
 
+### 3.45 DAT: MSTR against bitcoin, BMNR against ether, and treasury companies below NAV — nothing to trade (2026-10-01)
+
+Davies asked whether MSTR and bitcoin, BMNR and ether, or anything like them offer an arbitrage ("有希望吗？"). One
+research agent fixed the design before pulling any price (`backtests/dat/design.md`, sha256 `4b298c90…`) and screened
+MSTR on 2020-08-11 → 2024-12-31, leaving MSTR's 2025 onward unread (`reviews/2026-10-01-dat-study.md`, `backtests/dat/`;
+every script re-run byte-identical by the coordinating session).
+- **Not an arbitrage.** No creation or redemption ties the share to the coins. MSTR's premium returned toward its mean
+  through its own share sales (84 % of the 20-day pull, all of the 60-day one), not through the price, and log mNAV
+  predicted nothing: bias-corrected slopes +0.022 / +0.205 at 20 / 60 days (bootstrap p 0.51 / 0.78), EV-based
+  −0.021 / +0.080 (p 0.36 / 0.53). The predictor's shock and the return correlate 0.89–0.92, so the Stambaugh bias is
+  as large as the raw slope.
+- **Every tradable form lost.** The long-only switch (MSTR when the premium is below its trailing median, else BTC)
+  made +10.6 % a year at 30 bps against its static mix's +31.9 % (timing −17.0 bp a day, t −0.65); long BTC / short MSTR
+  CFD lost 5.8 % a year per unit notional at an assumed financing; Kerrisdale's published pair of 2024-03-28 was −111 %
+  of notional at the premium's peak and −17.5 % at year-end, with mNAV below its entry. BTC's night is already in
+  MSTR's opening print (slope 0.93, t 20.4).
+- **Unreachable and unconfirmable here.** No short (no CFD account; crypto derivatives are banned for UK retail); the
+  ISA has bought no bitcoin ETN since 2026-04-06 (HMRC), and in the USD Invest account a London ETN switch pays 0.15 %
+  FX. A held-out test has 0.09 power at a large effect; about 20 years forward are needed for 0.8.
+- **BMNR (descriptive).** mNAV 1.99 → 2.29 (2025-08-08) → below 1 from 2025-11-20; ether per share doubled. BMNR made
+  −60.0 % against ether's −63.4 % (log), and −28 % against ether from its mNAV peak. A test of a large effect needs about
+  five years of one regime.
+- **Similar (descriptive).** 13 buyback, coin-sale or liquidation announcements by treasury companies (2025-07 →
+  2026-04) trailed their coin by 23.7 % (log) over 60 days, 3 of 13 above it, seven of them in one six-week bust; 80 %
+  power at +10 % would need 92 independent events.
+- **Closed.** It reopens only on a binding closing event at NAV on a name this account can buy, or a coin hedge open
+  to UK retail.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

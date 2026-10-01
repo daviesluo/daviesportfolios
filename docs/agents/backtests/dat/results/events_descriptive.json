@@ -1,0 +1,486 @@
+{
+ "design_sha256": "4b298c90bdecc88e3e01a16462a3f13f584d74d8ad8811dc3da1abfe77ad4276",
+ "events": [
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "BitMine",
+   "day": "2025-07-29",
+   "days_traded_of_61": 61,
+   "id": "E1",
+   "source": "8-K 0001493152-25-011466, accepted 2025-07-29 07:20 ET",
+   "symbol": "BMNR",
+   "t": {
+    "coin": -0.008645,
+    "days": 1,
+    "excess": -0.084105,
+    "stock": -0.09275,
+    "to": "2025-07-29"
+   },
+   "t20": {
+    "coin": 0.191232,
+    "days": 21,
+    "excess": 0.161304,
+    "stock": 0.352536,
+    "to": "2025-08-26"
+   },
+   "t60": {
+    "coin": 0.001726,
+    "days": 61,
+    "excess": 0.311614,
+    "stock": 0.31334,
+    "to": "2025-10-22"
+   },
+   "timing": "pre-open",
+   "what": "$1bn buyback authorised (stock then above its NAV)"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "BTC",
+   "company": "Empery Digital (then Volcon)",
+   "day": "2025-07-25",
+   "days_traded_of_61": 61,
+   "id": "E2",
+   "source": "8-K 0001683168-25-005371, 2025-07-25 09:25 ET",
+   "symbol": "EMPD",
+   "t": {
+    "coin": -0.019589,
+    "days": 1,
+    "excess": 0.006982,
+    "stock": -0.012607,
+    "to": "2025-07-25"
+   },
+   "t20": {
+    "coin": -0.020212,
+    "days": 21,
+    "excess": -0.570083,
+    "stock": -0.590295,
+    "to": "2025-08-22"
+   },
+   "t60": {
+    "coin": -0.071293,
+    "days": 61,
+    "excess": -0.58923,
+    "stock": -0.660524,
+    "to": "2025-10-20"
+   },
+   "timing": "pre-open",
+   "what": "bitcoin treasury launched; buyback authorisation raised to $100m"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "BTC",
+   "company": "Empery Digital",
+   "day": "2025-08-18",
+   "days_traded_of_61": 61,
+   "id": "E3",
+   "source": "8-K 0001683168-25-006265, 2025-08-18 06:01 ET",
+   "symbol": "EMPD",
+   "t": {
+    "coin": -0.005416,
+    "days": 1,
+    "excess": -0.213569,
+    "stock": -0.218986,
+    "to": "2025-08-18"
+   },
+   "t20": {
+    "coin": -0.001124,
+    "days": 21,
+    "excess": -0.170588,
+    "stock": -0.171711,
+    "to": "2025-09-16"
+   },
+   "t60": {
+    "coin": -0.129644,
+    "days": 61,
+    "excess": -0.259292,
+    "stock": -0.388936,
+    "to": "2025-11-11"
+   },
+   "timing": "pre-open",
+   "what": "$25m credit facility to fund buybacks"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "SharpLink",
+   "day": "2025-08-25",
+   "days_traded_of_61": 61,
+   "id": "E4",
+   "source": "8-K 0001641172-25-025218, 2025-08-22 16:15 ET (after the close)",
+   "symbol": "SBET",
+   "t": {
+    "coin": -0.08948,
+    "days": 1,
+    "excess": 0.004514,
+    "stock": -0.084966,
+    "to": "2025-08-25"
+   },
+   "t20": {
+    "coin": -0.151383,
+    "days": 21,
+    "excess": -0.053128,
+    "stock": -0.204511,
+    "to": "2025-09-23"
+   },
+   "t60": {
+    "coin": -0.437621,
+    "days": 61,
+    "excess": -0.244565,
+    "stock": -0.682187,
+    "to": "2025-11-18"
+   },
+   "timing": "next session",
+   "what": "$1.5bn buyback authorised"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "SharpLink",
+   "day": "2025-09-09",
+   "days_traded_of_61": 61,
+   "id": "E5",
+   "source": "8-K 0001493152-25-012846, 2025-09-09 08:15 ET",
+   "symbol": "SBET",
+   "t": {
+    "coin": 0.00024,
+    "days": 1,
+    "excess": 0.062822,
+    "stock": 0.063062,
+    "to": "2025-09-09"
+   },
+   "t20": {
+    "coin": 0.042931,
+    "days": 21,
+    "excess": 0.082832,
+    "stock": 0.125764,
+    "to": "2025-10-07"
+   },
+   "t60": {
+    "coin": -0.313075,
+    "days": 61,
+    "excess": -0.078763,
+    "stock": -0.391838,
+    "to": "2025-12-03"
+   },
+   "timing": "pre-open",
+   "what": "first buybacks below NAV: ~939k shares at $15.98"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "FG Nexus (now FG Communities, FGC)",
+   "day": "2025-10-21",
+   "days_traded_of_61": 61,
+   "id": "E6",
+   "source": "8-K 0001493152-25-018733, 2025-10-21 08:30 ET (release dated 10-20)",
+   "symbol": "FGC",
+   "t": {
+    "coin": 0.004063,
+    "days": 1,
+    "excess": -0.044121,
+    "stock": -0.040059,
+    "to": "2025-10-21"
+   },
+   "t20": {
+    "coin": -0.243789,
+    "days": 21,
+    "excess": -0.088504,
+    "stock": -0.332293,
+    "to": "2025-11-18"
+   },
+   "t60": {
+    "coin": -0.190322,
+    "days": 61,
+    "excess": 0.019453,
+    "stock": -0.170869,
+    "to": "2026-01-16"
+   },
+   "timing": "pre-open; possibly public 10-20",
+   "what": "$200m buyback initiated"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "ETHZilla (now Forum Markets, FRMM)",
+   "day": "2025-10-28",
+   "days_traded_of_61": 61,
+   "id": "E7",
+   "source": "8-K 0001213900-25-102560, 2025-10-27 16:00 ET; CoinDesk 2025-10-27",
+   "symbol": "FRMM",
+   "t": {
+    "coin": -0.037485,
+    "days": 1,
+    "excess": 0.090302,
+    "stock": 0.052818,
+    "to": "2025-10-28"
+   },
+   "t20": {
+    "coin": -0.359745,
+    "days": 21,
+    "excess": -0.351482,
+    "stock": -0.711227,
+    "to": "2025-11-25"
+   },
+   "t60": {
+    "coin": -0.369944,
+    "days": 61,
+    "excess": -1.103846,
+    "stock": -1.47379,
+    "to": "2026-01-26"
+   },
+   "timing": "next session",
+   "what": "sold ~$40m of ETH to fund buybacks 'until the discount to NAV is normalized'"
+  },
+  {
+   "close_used_for_coin": "15:30 Asia/Tokyo",
+   "coin": "BTC",
+   "company": "Metaplanet",
+   "day": "2025-10-29",
+   "days_traded_of_61": 61,
+   "id": "E8",
+   "source": "news of 2025-10-28 (Blockspace, Cryptonomist); timing within the day assumed after the Tokyo close",
+   "symbol": "3350.T",
+   "t": {
+    "coin": -0.004822,
+    "days": 1,
+    "excess": -0.044469,
+    "stock": -0.049291,
+    "to": "2025-10-29"
+   },
+   "t20": {
+    "coin": -0.215273,
+    "days": 21,
+    "excess": -0.005869,
+    "stock": -0.221142,
+    "to": "2025-11-28"
+   },
+   "t60": {
+    "coin": -0.254809,
+    "days": 61,
+    "excess": 0.164695,
+    "stock": -0.090113,
+    "to": "2026-01-29"
+   },
+   "timing": "uncertain by one day",
+   "what": "buyback of up to 150m shares (\u00a575bn), funded by a $500m credit facility, after mNAV fell below 1"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "BTC",
+   "company": "Sequans",
+   "day": "2025-11-04",
+   "days_traded_of_61": 61,
+   "id": "E9",
+   "source": "6-K 0001383395-25-000112, 2025-11-04 06:00 ET",
+   "symbol": "SQNS",
+   "t": {
+    "coin": -0.057431,
+    "days": 1,
+    "excess": -0.124328,
+    "stock": -0.181758,
+    "to": "2025-11-04"
+   },
+   "t20": {
+    "coin": -0.136876,
+    "days": 21,
+    "excess": 0.029949,
+    "stock": -0.106927,
+    "to": "2025-12-03"
+   },
+   "t60": {
+    "coin": -0.313422,
+    "days": 61,
+    "excess": -0.240576,
+    "stock": -0.553998,
+    "to": "2026-02-02"
+   },
+   "timing": "pre-open",
+   "what": "sold 970 BTC to redeem half its convertible debt; supports its ADS buyback"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "SOL",
+   "company": "Upexi",
+   "day": "2025-11-13",
+   "days_traded_of_61": 61,
+   "id": "E10",
+   "source": "press release dated 2025-11-13 (Nasdaq; CoinDesk 2025-11-13); 8-K 0001477932-25-008305 on 11-14",
+   "symbol": "UPXI",
+   "t": {
+    "coin": -0.074483,
+    "days": 1,
+    "excess": 0.025989,
+    "stock": -0.048494,
+    "to": "2025-11-13"
+   },
+   "t20": {
+    "coin": -0.15504,
+    "days": 21,
+    "excess": -0.247471,
+    "stock": -0.402511,
+    "to": "2025-12-12"
+   },
+   "t60": {
+    "coin": -0.658045,
+    "days": 61,
+    "excess": -0.763172,
+    "stock": -1.421217,
+    "to": "2026-02-11"
+   },
+   "timing": "uncertain by one day",
+   "what": "$50m buyback authorised (mNAV reported 0.68)"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "FG Nexus (FGC)",
+   "day": "2025-11-21",
+   "days_traded_of_61": 61,
+   "id": "E11",
+   "source": "8-K 0001493152-25-024549, 2025-11-21 08:12 ET",
+   "symbol": "FGC",
+   "t": {
+    "coin": -0.034063,
+    "days": 1,
+    "excess": 0.029905,
+    "stock": -0.004158,
+    "to": "2025-11-21"
+   },
+   "t20": {
+    "coin": 0.049713,
+    "days": 21,
+    "excess": 0.211693,
+    "stock": 0.261406,
+    "to": "2025-12-22"
+   },
+   "t60": {
+    "coin": -0.362342,
+    "days": 61,
+    "excess": -0.106501,
+    "stock": -0.468842,
+    "to": "2026-02-20"
+   },
+   "timing": "pre-open",
+   "what": "sold 10,922 ETH; bought back ~3.4m shares (8 %) at ~$3.45 against NAV ~$3.94"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "BTC",
+   "company": "Empery Digital",
+   "day": "2025-12-01",
+   "days_traded_of_61": 61,
+   "id": "E12",
+   "source": "8-K 0001683168-25-008737, 2025-12-01 08:30 ET",
+   "symbol": "EMPD",
+   "t": {
+    "coin": -0.064649,
+    "days": 1,
+    "excess": -0.054176,
+    "stock": -0.118825,
+    "to": "2025-12-01"
+   },
+   "t20": {
+    "coin": -0.037814,
+    "days": 21,
+    "excess": -0.153436,
+    "stock": -0.19125,
+    "to": "2025-12-30"
+   },
+   "t60": {
+    "coin": -0.329866,
+    "days": 61,
+    "excess": -0.026809,
+    "stock": -0.356675,
+    "to": "2026-02-27"
+   },
+   "timing": "pre-open",
+   "what": "13.7m shares repurchased under a $150m programme, debt-funded"
+  },
+  {
+   "close_used_for_coin": "16:00 America/New_York",
+   "coin": "ETH",
+   "company": "BitMine",
+   "day": "2026-04-09",
+   "days_traded_of_61": 61,
+   "id": "E13",
+   "source": "PR Newswire 2026-04-09",
+   "symbol": "BMNR",
+   "t": {
+    "coin": 0.002971,
+    "days": 1,
+    "excess": -0.023629,
+    "stock": -0.020658,
+    "to": "2026-04-09"
+   },
+   "t20": {
+    "coin": 0.03743,
+    "days": 21,
+    "excess": -0.015371,
+    "stock": 0.02206,
+    "to": "2026-05-07"
+   },
+   "t60": {
+    "coin": -0.211819,
+    "days": 61,
+    "excess": -0.162536,
+    "stock": -0.374356,
+    "to": "2026-07-07"
+   },
+   "timing": "uncertain by one day",
+   "what": "buyback expanded to $4bn; NYSE uplisting"
+  },
+  {
+   "coin": "BTC",
+   "company": "Satsuma Technology",
+   "day": "2026-07-21",
+   "id": "E14",
+   "note": "no traded volume from 2026-07-21 in Yahoo's series; not measured",
+   "source": "Bitcoin Magazine; crypto.news (2026-07-20)",
+   "symbol": "SATS.L",
+   "what": "holders voted (90.6 %) to return capital by selling ~668 BTC and to delist; meeting 2026-07-20"
+  }
+ ],
+ "events_needed_power_0.8": {
+  "10pct": 92,
+  "20pct": 23
+ },
+ "events_per_year_in_this_list": 14.16482,
+ "label": "descriptive only; events chosen from public reports, not a sample",
+ "summary": {
+  "t": {
+   "coin_mean": -0.029907,
+   "excess_mean": -0.028299,
+   "excess_median": -0.023629,
+   "excess_positive": 6,
+   "excess_sd": 0.081081,
+   "n": 13,
+   "stock_mean": -0.058206,
+   "stock_positive": 2
+  },
+  "t20": {
+   "coin_mean": -0.076919,
+   "excess_mean": -0.090012,
+   "excess_median": -0.053128,
+   "excess_positive": 4,
+   "excess_sd": 0.213426,
+   "n": 13,
+   "stock_mean": -0.166931,
+   "stock_positive": 4
+  },
+  "t60": {
+   "coin_mean": -0.280037,
+   "excess_mean": -0.236887,
+   "excess_median": -0.162536,
+   "excess_positive": 3,
+   "excess_sd": 0.384362,
+   "n": 13,
+   "stock_mean": -0.516923,
+   "stock_positive": 1
+  }
+ },
+ "years_needed_at_this_rate": {
+  "10pct": 6.494964,
+  "20pct": 1.623741
+ }
+}

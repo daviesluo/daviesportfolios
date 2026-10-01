@@ -358,7 +358,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      retry deployed both should pass (≥ 90 % of the buckets owed); read `ops_errors` for kind `recorder.watch`, and if
      either is short, count the night's buckets as the 2026-09-30 history entry did before changing anything.
 
-8. **US equities at Trading 212: nothing to run** (EQ1, EQ2, DFC; reference §3.44). Davies, 2026-10-01: the Invest
+8. **US equities at Trading 212: nothing to run** (EQ1, EQ2, DFC, DAT; reference §3.44–§3.45). Davies, 2026-10-01: the Invest
    account is USD (no FX on US instruments), the ISA GBP; research deeply, and a trading key follows only if something
    can go live. Nothing can: without FX the verdicts stand, because power binds, not cost (research round §8), and the
    one test worth running, DFC, the month-end dash for cash, **failed** on CRSP's unseen 2016-01 → 2026-08
@@ -366,9 +366,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    year at 8 bps). Month-end calendar rules, PEAD, reversal, overnight drift, low volatility, index additions and
    pre-FOMC drift are closed. TAC (Treasury auctions) and IS49 (industry seasonality) were drafted and not frozen; neither
    is recommended on its power. No trading key is needed. Any future live path keeps EQ2's guardrails (research round §8).
-   - **MSTR against Bitcoin, BMNR against Ether, and the like** (Davies, 2026-10-01: "mstr和比特币之间，还有bmnr和以太坊之间的
-     套利机会或者其他类似的？有希望吗？"): a study is running (DAT, 2026-10-01), screen on MSTR to 2024-12-31 with 2025 onwards
-     held out and unseen; BMNR's history is descriptive only. Its answer and any frozen test land here.
+   - **MSTR against Bitcoin, BMNR against Ether, and the like: closed** (Davies, 2026-10-01: "mstr和比特币之间，还有bmnr和
+     以太坊之间的套利机会或者其他类似的？有希望吗？"; DAT, `reviews/2026-10-01-dat-study.md`, reference §3.45). The premium is no
+     arbitrage (no redemption; MSTR's closed through its own share sales) and predicted nothing on the 2020-08 → 2024-12
+     screen; every tradable form lost; this account cannot short, and its ISA buys no bitcoin ETN since 2026-04-06; a
+     held-out test has 0.09 power. MSTR's 2025 onward stays unread. Reopens only on a binding closing event at NAV or
+     a coin hedge open to UK retail.
 
 ## Machine and platform setup
 
@@ -480,6 +483,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**DAT closed: MSTR against Bitcoin and BMNR against Ether offer nothing this account can trade** (item 8, reference §3.45, `reviews/2026-10-01-dat-study.md`, `backtests/dat/`). One research agent fixed the design before pulling a price (`design.md`, sha256 `4b298c90…`), screened MSTR on 2020-08-11 → 2024-12-31 from its SEC filings, and wrote the MSTR verdict down before reading any 2025–2026 price; MSTR's 2025 onward was never pulled. The coordinating session re-ran every analysis script from the inputs, on a copy and in the repository's layout: every result byte-identical, the 37 files equal to `MANIFEST.json`. The raw SEC cache (7.6 MB) is not committed; `pull_sec.py` re-creates it and the MANIFEST lists its hashes. Its User-Agent carries no e-mail address. The scratch copy of EQ1's French file was not copied in. Nothing is pre-registered, nothing goes to paper, no key is needed.
 
 ### [2026-10-01 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

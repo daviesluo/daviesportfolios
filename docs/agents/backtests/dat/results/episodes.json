@@ -1,0 +1,34 @@
+{
+ "design_sha256": "4b298c90bdecc88e3e01a16462a3f13f584d74d8ad8811dc3da1abfe77ad4276",
+ "entry": "2024-03-28",
+ "entry_btc_0930et": 70987.43,
+ "entry_mstr_open": 194.300003,
+ "legs": {
+  "2024-11-20": {
+   "btc_log": 0.284834,
+   "mnav_ev": 3.531772,
+   "mnav_simple": 3.396854,
+   "mstr_log": 0.891445,
+   "pair_long_btc_short_mstr_log": -0.606612,
+   "pair_simple_per_unit_notional": -1.109111
+  },
+  "2024-12-31": {
+   "btc_log": 0.274284,
+   "mnav_ev": 1.872612,
+   "mnav_simple": 1.699488,
+   "mstr_log": 0.399166,
+   "pair_long_btc_short_mstr_log": -0.124883,
+   "pair_simple_per_unit_notional": -0.174993
+  }
+ },
+ "mnav_ev_prev_close": 2.459536,
+ "mnav_simple_prev_close": 2.217493,
+ "screen_beta_vol": {
+  "beta_20d": 1.082369,
+  "daily_beta": 1.172005,
+  "daily_corr": 0.750074,
+  "vol_btc_ann": 0.617819,
+  "vol_mstr_ann": 0.965355,
+  "vol_relative_ann": 0.647226
+ }
+}
