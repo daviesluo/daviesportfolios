@@ -35,6 +35,13 @@
 // last 24 hours and reports a shortfall to ops_errors
 // (`_shared/recorder_watch.ts`; the overnight recorder audits this one).
 //
+// Each call writes its beat first (`_shared/beats.ts`, 0075): a call whose
+// worker the platform never started has none, and `edge-watchdog` runs it
+// again within its minute. A second run in a bucket writes the same row:
+// its prices, read moments later in the same five minutes, replace the
+// first run's (a ticker the second could not price drops from that one
+// bucket, as it does from any bucket that run alone writes).
+//
 // Returns:
 //   200 { ok: true, bucketTime, tickers }
 //   200 { ok: true, skipped: "no-board" | "no-tickers" | "no-prices" }
@@ -47,6 +54,7 @@ import { reportServerError } from "../_shared/ops.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
 import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
 import { shouldRecord } from "../_shared/us_overnight_session.ts";
+import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -391,31 +399,44 @@ function json(status: number, body: unknown): Response {
 
 // ---------------- Server ----------------
 
-if (import.meta.main) {
-  Deno.serve(async (req) => {
-    try {
-      if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-
-      const auth = req.headers.get("Authorization") ?? "";
-      if (!CRON_SECRET || auth !== `Bearer ${CRON_SECRET}`) {
-        return new Response("forbidden", { status: 403, headers: CORS });
-      }
-
-      const now = new Date();
-      // Once a day this call also audits the overnight recorder's last 24 hours (`_shared/recorder_watch.ts`),
-      // beside the recording and never in its way.
-      const audit = isAuditCall(now, 10, 0)
-        ? auditRecorder({
-          recorder: "overnight-record", table: "overnight_intraday_points", column: "bucket_time",
-          order: "bucket_time.asc,ticker.asc", now, owed: shouldRecord,
-        })
-        : Promise.resolve(null);
-      const [res] = await Promise.all([record(now), audit]);
-      return res;
-    } catch (e) {
-      const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
-      await reportServerError("snapshot-record.unhandled", { message: msg });
-      return json(500, { ok: false, error: "internal" });
-    }
-  });
+/** One call's work: the bucket's prices, and at 10:00 UTC the overnight recorder's daily audit beside them. */
+async function runOnce(now: Date): Promise<Response> {
+  // Once a day this call also audits the overnight recorder's last 24 hours (`_shared/recorder_watch.ts`),
+  // beside the recording and never in its way.
+  const audit = isAuditCall(now, 10, 0)
+    ? auditRecorder({
+      recorder: "overnight-record", table: "overnight_intraday_points", column: "bucket_time",
+      order: "bucket_time.asc,ticker.asc", now, owed: shouldRecord,
+    })
+    : Promise.resolve(null);
+  const [res] = await Promise.all([record(now), audit]);
+  return res;
 }
+
+/**
+ * A request's way through: the bearer, then the call's beat (`_shared/beats.ts`), then its work. The beat comes first so
+ * that a call whose worker the platform never started is told apart from one that started, and `edge-watchdog` runs
+ * the first kind again (0075). A beat that cannot be written stops nothing. Exported so that order is pinned.
+ */
+export async function handle(req: Request, deps: {
+  cronSecret: string; beat: (key: string) => Promise<unknown>; run: (now: Date) => Promise<Response>;
+}): Promise<Response> {
+  try {
+    if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+
+    const auth = req.headers.get("Authorization") ?? "";
+    if (!deps.cronSecret || auth !== `Bearer ${deps.cronSecret}`) {
+      return new Response("forbidden", { status: 403, headers: CORS });
+    }
+
+    const now = new Date();
+    await deps.beat(beatKeyOfRequest("snapshot-record", req.url)).catch(() => false);
+    return await deps.run(now);
+  } catch (e) {
+    const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
+    await reportServerError("snapshot-record.unhandled", { message: msg });
+    return json(500, { ok: false, error: "internal" });
+  }
+}
+
+if (import.meta.main) Deno.serve((req) => handle(req, { cronSecret: CRON_SECRET, beat: (key) => writeBeat(key), run: runOnce }));

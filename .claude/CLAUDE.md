@@ -613,10 +613,29 @@ that follow from that evidence, in short:
   request of it has answered and only then reads its queue again, so a call
   queued by a job of its own waits behind the slowest call already running
   (`books` ~44 s, a view window ~56 s): with nine jobs the tick started more
-  than 5 s late in 145 of 1,393 minutes. A new recurring call is a new row
-  of that job's list; `src/cron_jobs.test.js` fails on a second job that
-  calls pg_net. A call fired by hand through pg_net waits for the batch in
-  flight and holds the next minute's for as long as it runs past the minute.
+  than 5 s late in 145 of 1,393 minutes. **Since `0075` (2026-10-01) the
+  list is a table, `public.edge_calls`** (path, timeout, every N minutes,
+  last UTC hour, `enabled`, `retry`): a new recurring call is a row a
+  migration inserts, and a call leaves by `update public.edge_calls set
+  enabled = false where path in (…)`; `src/cron_jobs.test.js` replays every
+  statement on the table and fails on a second job that calls pg_net.
+  **No call is lost to the platform's boot failures** (503 `BOOT_ERROR`,
+  about 0.1 % of calls; Davies: "彻底修复"): every function the job calls
+  writes a beat before its work (`_shared/beats.ts`, `edge_call_beats`,
+  minute stamped by the database), and `edge-watchdog`, a row of the job,
+  runs a due call with no beat again 13 s into its minute, once, recorded
+  in `edge_call_retries`. **A new recurring call joins the watchdog in the
+  migration that adds it** (Davies, 2026-10-01: "之后如果有新的调用适合加入
+  看门狗的也记得及时更新"): its function writes its beat before its work
+  (`beatKeyOfRequest("<fn>", req.url)`, which the test checks), or it runs
+  twice a minute, and its row's `retry` is true unless a second run in its
+  minute would change what the first did — then false, with the reason in
+  the migration, as 0075's table gives one for every call (`pmrw`, `pmrwc`:
+  their frozen specs read the book at `t`). When that reason goes away, the
+  change that removes it switches the call on (`update public.edge_calls
+  set retry = true where path in (…)`). A call fired by hand through
+  pg_net waits for the batch in flight and holds the next minute's for as
+  long as it runs past the minute.
 - **The interview showcase mirrors this section** (Davies, 2026-09-30):
   `showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
   repository explains every strategy for his interviews, with no figure from

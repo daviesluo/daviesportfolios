@@ -7,6 +7,7 @@ import {
   authorise, chartBook, PAGE_VENUES, chartWindow, dayOpensFrom, envAny, FULL_HISTORY_LIMIT, isNotReady, jevStats, JEV_BATCH_MAX_CALLS, latestObservationQuery, mapPool, ordersBeyondChart, parseState, probeParts, probeSymbols, runJevBatch,
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
+  serveRequest, type ServeDeps, type Who,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { JevResult } from "../_shared/jev.ts";
@@ -769,4 +770,47 @@ Deno.test("quotesLiveSummary: PR5's real-money book from its live fills, in USD 
   const dry = quotesLiveSummary({ config: { ...cfg, dry_run: true, live_confirmed_at: null }, state: { ...st, state: { entryBook: "dry_run", posts: { dry_run: 12, live: 0 } }, updated_at: iso(now - 10 * 60e3) }, orders: [], paper, nowMs: now, dayStartMs: day })!;
   assertEquals([dry.tradedLive, dry.dryRun, dry.armed, dry.postsToday.dryRun, dry.running, dry.lagMinutes], [false, true, false, 12, false, 10]);
   assertEquals(quotesLiveSummary({ config: null, state: null, orders: [], paper: null, nowMs: now, dayStartMs: day }), null);
+});
+
+Deno.test("serveRequest — a cron call writes its beat under its own key before its action runs; an app token's writes none (0075)", async () => {
+  const order: string[] = [];
+  const deps = (who: Who, beat: ServeDeps["beat"] = (key) => { order.push(`beat ${key}`); return Promise.resolve(true); }): ServeDeps => ({
+    authorise: () => Promise.resolve(who),
+    beat,
+    route: (_req, _who, _url, action) => { order.push(`route ${action}`); return Promise.resolve(new Response("{}", { status: 200 })); },
+    report: () => Promise.resolve(),
+  });
+  const edge = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/";
+  const post = (p: string) => new Request(edge + p, { method: "POST", headers: { Authorization: "Bearer s" } });
+  assertEquals((await serveRequest(post("agents?action=tick"), deps("cron"))).status, 200);
+  assertEquals(order, ["beat agents?action=tick", "route tick"]);
+  // The order path's call carries its region in its path; its beat is keyed by the action alone, as the watchdog's lookup is.
+  order.length = 0;
+  await serveRequest(post("agents?action=pmlive&forceFunctionRegion=eu-west-1"), deps("cron"));
+  assertEquals(order, ["beat agents?action=pmlive", "route pmlive"]);
+  // The page's reads and an operator's calls are not the job's: no beat.
+  order.length = 0;
+  await serveRequest(new Request(edge + "agents?action=dashboard"), deps("ro"));
+  await serveRequest(post("agents?action=tick"), deps("admin"));
+  assertEquals(order, ["route dashboard", "route tick"]);
+  // Unauthorised: nothing at all. OPTIONS: nothing at all.
+  order.length = 0;
+  assertEquals((await serveRequest(post("agents?action=tick"), deps(null))).status, 401);
+  assertEquals((await serveRequest(new Request(edge + "agents", { method: "OPTIONS" }), deps("cron"))).status, 200);
+  assertEquals(order, []);
+  // A beat that cannot be written stops nothing.
+  const failed = await serveRequest(post("agents?action=quotes"), deps("cron", () => Promise.reject(new Error("db down"))));
+  assertEquals([failed.status, order], [200, ["route quotes"]]);
+});
+
+Deno.test("serveRequest — an action that throws is an agents.crash row naming it, and a 500, as before the beat was added", async () => {
+  const reports: { kind: string; context?: unknown }[] = [];
+  const r = await serveRequest(new Request("https://h/functions/v1/agents?action=tick", { method: "POST" }), {
+    authorise: () => Promise.resolve("cron"),
+    beat: () => Promise.resolve(true),
+    route: () => Promise.reject(new Error("Signal timed out.")),
+    report: (kind, o) => { reports.push({ kind, context: o.context }); return Promise.resolve(); },
+  });
+  assertEquals(r.status, 500);
+  assertEquals(reports.map((x) => [x.kind, (x.context as { action: string }).action]), [["agents.crash", "tick"]]);
 });

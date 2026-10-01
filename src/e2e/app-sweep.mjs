@@ -1192,8 +1192,14 @@ async function run() {
     SP_BUMP = 1.02;                                    // 5000 → 5304: +6.08 %
     await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-    const ticked = await readingEnds('+6.08%');
-    if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked}`);
+    // 20 s, not the 8 s the other readings get: the catch-up refetches the window and redraws, and with both sweeps,
+    // the perf matrix and the size budget running at once it missed 8 s in two full gate runs on 2026-10-01 (desktop)
+    // and one on 09-30 (phone), each passing alone. The wait ends the moment the reading arrives; the time it took is
+    // printed, so a drift toward the limit shows before it fails.
+    const tickT0 = Date.now();
+    const ticked = await readingEnds('+6.08%', 20_000);
+    const tickS = ((Date.now() - tickT0) / 1000).toFixed(1);
+    if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked} (${tickS} s)`);
     else fail(S('tick'), `after the app's refresh six minutes on the panel reads "${ticked}", wanted +6.08 %`);
     SP_BUMP = 1;
     await ctx.close();

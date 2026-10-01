@@ -99,6 +99,7 @@
 // rather than stopping the loop.
 
 import { reportServerError } from "../_shared/ops.ts";
+import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
 import { activeOrders, balances, candles, historicalOrders, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
@@ -1489,63 +1490,88 @@ export function crashReport(action: string, e: unknown) {
 
 // ------------------------------------------------------------------ serve
 
-if (import.meta.main) Deno.serve(async (req: Request) => {
+export type ServeDeps = {
+  authorise: (req: Request) => Promise<Who>;
+  /** A cron call's beat (`_shared/beats.ts`): read by `edge-watchdog`, which runs a call again when it has none. */
+  beat: (key: string) => Promise<unknown>;
+  route: (req: Request, who: Exclude<Who, null>, url: URL, action: string) => Promise<Response>;
+  report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
+};
+
+/**
+ * One request's way through the function: the caller, then a cron call's beat, then its action. A cron call writes its
+ * beat before any of its work, so a call that started is told apart from one whose worker the platform never started
+ * (0075); a beat that cannot be written stops nothing. Exported with its parts injectable so that order is pinned.
+ */
+export async function serveRequest(req: Request, deps: ServeDeps): Promise<Response> {
   let action = "";
   try {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-    const who = await authorise(req, Deno.env.get("CRON_SECRET") ?? "");
+    const who = await deps.authorise(req);
     if (!who) return json(401, { error: "unauthorised" });
     const url = new URL(req.url);
     action = url.searchParams.get("action") ?? "";
-    const operator = who === "cron" || who === "admin";
-    if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
-    if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
-    // "Stablecoin quotes variant-1" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
-    if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D on variant-1's rate, its own tables. Database only.
-    if (action === "quotesd" && req.method === "POST" && operator) return json(200, await runQuotesRuled({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
-    if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    if (action === "pmrw-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-    // RW-C (0069): the same engine and replays on RW-C's instance and tables; before its warm-up each returns at once.
-    if (action === "pmrwc" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
-    if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
-    if (action === "pmrwc-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCE_REPLAY }));
-    if (action === "pmrwc-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCX_REPLAY }));
-    // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.
-    if (action === "pmrw-x-research" && req.method === "POST" && operator) {
-      const body = await req.json().catch(() => null);
-      const until = typeof body?.until === "string" ? Date.parse(body.until) : NaN;
-      return json(200, await researchRwx(db(), parseRwxSpecs(body), Number.isFinite(until) ? until : undefined));
-    }
-    if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
-    // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
-    if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
-    // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
-    if (action === "views" && req.method === "POST" && operator) {
-      const key = youtubeKey();
-      return json(200, await runViews({ db: db(), holder: crypto.randomUUID(), yt: key ? { key } : null }));
-    }
-    if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
-    if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
-    if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
-    if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());
-    if (action === "chart" && req.method === "GET") {
-      const strategy = url.searchParams.get("strategy") ?? "", symbol = url.searchParams.get("symbol") ?? "";
-      if (!strategy || !symbol) return json(400, { error: "strategy and symbol required" });
-      return json(200, await runChart(strategy, symbol));
-    }
-    if (action === "log" && req.method === "GET") {
-      const strategy = url.searchParams.get("strategy") ?? "";
-      if (!strategy) return json(400, { error: "strategy required" });
-      return json(200, await runLog(strategy, Number(url.searchParams.get("limit") ?? 100)));
-    }
-    return json(operator ? 404 : 403, { error: `unknown action '${action}'` });
+    if (who === "cron") await deps.beat(beatKeyOfRequest("agents", req.url)).catch(() => false);
+    return await deps.route(req, who, url, action);
   } catch (e) {
     const report = crashReport(action, e);
-    await reportServerError("agents.crash", report);
+    await (deps.report ?? reportServerError)("agents.crash", report);
     return json(500, { error: "agents crashed", message: report.message.slice(0, 200) });
   }
-});
+}
+
+/** The actions, by `?action=`: what each one is, and who may call it, is in this file's header. */
+async function route(req: Request, who: Exclude<Who, null>, url: URL, action: string): Promise<Response> {
+  const operator = who === "cron" || who === "admin";
+  if (action === "tick" && req.method === "POST" && operator) return json(200, await runTick());
+  if (action === "quotes" && req.method === "POST" && operator) return json(200, await runQuotesAction(url.searchParams.get("wait") !== "0"));
+  // "Stablecoin quotes variant-1" (quotes_variant.ts, 0071): PR5's stored minutes through the variant's rule. Database only.
+  if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D on variant-1's rate, its own tables. Database only.
+  if (action === "quotesd" && req.method === "POST" && operator) return json(200, await runQuotesRuled({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
+  if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  if (action === "pmrw-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  // RW-C (0069): the same engine and replays on RW-C's instance and tables; before its warm-up each returns at once.
+  if (action === "pmrwc" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
+  if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
+  if (action === "pmrwc-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCE_REPLAY }));
+  if (action === "pmrwc-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCX_REPLAY }));
+  // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.
+  if (action === "pmrw-x-research" && req.method === "POST" && operator) {
+    const body = await req.json().catch(() => null);
+    const until = typeof body?.until === "string" ? Date.parse(body.until) : NaN;
+    return json(200, await researchRwx(db(), parseRwxSpecs(body), Number.isFinite(until) ? until : undefined));
+  }
+  if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
+  // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
+  if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
+  // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
+  if (action === "views" && req.method === "POST" && operator) {
+    const key = youtubeKey();
+    return json(200, await runViews({ db: db(), holder: crypto.randomUUID(), yt: key ? { key } : null }));
+  }
+  if (action === "quotes-convert" && req.method === "POST" && operator) return json(200, await runQuotesConvert(await quotesLiveDeps(), await req.json().catch(() => null)));
+  if (action === "probe" && req.method === "GET" && operator) return json(200, await runProbe(probeParts(url.searchParams.get("only"))));
+  if (action === "jev" && req.method === "POST" && operator) return json(200, await runJevBatch(await req.json().catch(() => null)));
+  if (action === "dashboard" && req.method === "GET") return json(200, await runDashboard());
+  if (action === "chart" && req.method === "GET") {
+    const strategy = url.searchParams.get("strategy") ?? "", symbol = url.searchParams.get("symbol") ?? "";
+    if (!strategy || !symbol) return json(400, { error: "strategy and symbol required" });
+    return json(200, await runChart(strategy, symbol));
+  }
+  if (action === "log" && req.method === "GET") {
+    const strategy = url.searchParams.get("strategy") ?? "";
+    if (!strategy) return json(400, { error: "strategy required" });
+    return json(200, await runLog(strategy, Number(url.searchParams.get("limit") ?? 100)));
+  }
+  return json(operator ? 404 : 403, { error: `unknown action '${action}'` });
+}
+
+if (import.meta.main) Deno.serve((req: Request) => serveRequest(req, {
+  authorise: (r) => authorise(r, Deno.env.get("CRON_SECRET") ?? ""),
+  beat: (key) => writeBeat(key),
+  route,
+}));

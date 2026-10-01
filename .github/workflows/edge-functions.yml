@@ -191,7 +191,8 @@ jobs:
           # Bearer, and leaving it on stops unauthenticated visitors
           # using them as a free upstream proxy (burning rate quotas).
           # weather (2026-09-27) is cron-only like agents: its own bearer check, so the flag too.
-          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather"
+          # edge-watchdog (0075) is a row of the one-minute job, with its own bearer check: the flag too.
+          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"
             case " $PUBLIC_FNS " in

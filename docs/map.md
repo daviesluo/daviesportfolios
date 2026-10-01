@@ -571,6 +571,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `ops-error` | Stores error reports and serves the admin summary. |
 | `agents` | The crypto loop and its page (below). |
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
+| `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
 
 #### `agents/` and `_shared/`
 
@@ -607,6 +608,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/polymarket_public.ts` | Keyless reads of Polymarket's public endpoints (reward programme, markets, events, books, prints) for RW's paper test and the view recorder. It reads no credential and cannot trade. |
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
+| `_shared/beats.ts` | A cron call's beat, the first thing it writes: its function and action and the minute, which `edge-watchdog` reads to find a call whose worker never started. |
 | `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
 | `_shared/us_overnight_session.ts` | The US overnight session the overnight recorder records: 20:00-04:00 ET, less the weekend and holiday sessions. |
 | `_shared/recorder_watch.ts` | The price recorders' daily audit of each other: buckets owed by the calendar against buckets written, reported to `ops_errors` when short. |
@@ -695,6 +697,7 @@ before touching migration state.
 | `0072_quotes_ruled.sql` | Adds variant-2's tables, its days view, the function that wipes them, its lease, and its call beside the variant's in the one-minute job. |
 | `0073_quoted_truefx_before_turn.sql` | Records when variant-2's TrueFX snapshot was read (while it read one), and refuses a TrueFX minute read at or after the minute it prices. |
 | `0074_pm_live.sql` | Adds Polymarket's order path in dry-run: its config (dry-run, unarmed, Davies' standing Ireland attestation, the capped limits), the day's markets, its orders, fills, events and state, its lease, and its call in the one-minute job from eu-west-1. |
+| `0075_edge_call_watchdog.sql` | Moves the one-minute job's list into a table (`edge_calls`: 0074's rows unchanged, which calls may run again, and the watchdog's row), adds each call's beat (`edge_call_beats`, kept two days) and the watchdog's record of its retries (`edge_call_retries`), and points the job at the table. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -787,7 +790,9 @@ Browser (React PWA)
  │                   dp.portfolioCache (first-paint board), dp.schema
  └─ IndexedDB        chart_store.js: chart series, MA history, YTD cache
 
-pg_cron → pg_net → Edge Functions (no browser needed; one job queues every call due in a minute, in one statement)
+pg_cron → pg_net → Edge Functions (no browser needed; one job queues every call due in a minute from edge_calls, in one statement)
+ ├─ every call below   its first act   its beat: the function and action, the minute → edge_call_beats
+ ├─ edge-watchdog      every minute, at :13   a due call with no beat (its worker never started) run again, once → edge_call_retries
  ├─ snapshot-record    every 5 min   board prices → price_snapshots
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
  ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
@@ -803,7 +808,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
  ├─ agents ?action=pmlive  every minute, from eu-west-1   Polymarket's order path, dry-run: every gate and the orders it would send → pm_live_*
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
- └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache
+ └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache, call beats
 ```
 
 The Edge Functions hold:
@@ -927,7 +932,7 @@ A copy-pasteable shape of the app-level vars lives at
 | `T212_API_SECRET` | `trading212`, `overnight-record`, `snapshot-record` | Optional, for T212's two-key accounts. When set, the functions go straight to `Basic base64(key:secret)` and keep the raw key only as a 401 fallback; leave unset for a single-key account. |
 | `T212_ISA_API_KEY` | `trading212` | Optional. API key for a SECOND T212 account (the ISA). T212 scopes its public API per account, so ISA holdings + their live overnight prices are only reachable with this key. When set, the function fetches the ISA portfolio in parallel and merges it with the invest account (prices union'd; allow-list shares/cost summed if held in both). Without it, only the invest account (`T212_API_KEY`) is synced. |
 | `T212_ISA_API_SECRET` | `trading212` | Optional two-key Basic-Auth fallback for the ISA account, same role as `T212_API_SECRET` but for `T212_ISA_API_KEY`. |
-| `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents` | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
+| `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents`, `weather`, `edge-watchdog` | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate; `edge-watchdog` also sends it when it runs a call again). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
 | `REVOLUT_X_API_KEY`, `REVOLUT_X_PRIVATE_KEY` | `agents` | Optional. Revolut X key id and its Ed25519 private key; without them Revolut X shows as not configured and nothing trades live there. |
 | `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. |
 | `KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY` | `agents` | Optional. Kraken key and its base64 secret (fee tier, balances, the probe; candles need no key). |

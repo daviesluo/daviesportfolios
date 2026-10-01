@@ -25,6 +25,12 @@
 // last 24 hours and reports a shortfall to ops_errors
 // (`_shared/recorder_watch.ts`; the snapshot recorder audits this one).
 //
+// Each call writes its beat first (`_shared/beats.ts`, 0075): a call whose
+// worker the platform never started has none, and `edge-watchdog` runs it
+// again within its minute. A second run in a bucket is safe: each ticker's
+// point is upserted on (ticker, bucket), so it replaces only the points it
+// read, with later quotes of the same five minutes.
+//
 // Returns:
 //   200 { ok: true, bucketTime, recorded: <n> }         — n tickers written
 //   200 { ok: true, skipped: "not-recording-window" }    — outside 20:00-04:00 ET
@@ -37,6 +43,7 @@
 import { shouldRecord } from "../_shared/us_overnight_session.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
 import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
+import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -216,24 +223,37 @@ async function recordOvernight(now: Date): Promise<Response> {
 
 // ---------------- Server ----------------
 
-if (import.meta.main) {
-  Deno.serve(async (req) => {
-    if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-
-    const auth = req.headers.get("Authorization") ?? "";
-    if (!CRON_SECRET || auth !== `Bearer ${CRON_SECRET}`) {
-      return new Response("forbidden", { status: 403, headers: CORS });
-    }
-
-    const now = new Date();
-    // Once a day this call also audits the snapshot recorder's last 24 hours (`_shared/recorder_watch.ts`). The
-    // cron job calls this function from 00:00 to 09:55 UTC every day, so the audit runs at 09:30 whether or not a
-    // session is being recorded.
-    const audit = isAuditCall(now, 9, 30)
-      ? auditRecorder({ recorder: "snapshot-record", table: "price_snapshots", column: "ts", order: "ts.asc", now })
-      : Promise.resolve(null);
-    const [res] = await Promise.all([recordOvernight(now), audit]);
-    return res;
-  });
+/** One call's work: this bucket's overnight prices, and at 09:30 UTC the snapshot recorder's daily audit beside them. */
+async function runOnce(now: Date): Promise<Response> {
+  // Once a day this call also audits the snapshot recorder's last 24 hours (`_shared/recorder_watch.ts`). The
+  // cron job calls this function from 00:00 to 09:55 UTC every day, so the audit runs at 09:30 whether or not a
+  // session is being recorded.
+  const audit = isAuditCall(now, 9, 30)
+    ? auditRecorder({ recorder: "snapshot-record", table: "price_snapshots", column: "ts", order: "ts.asc", now })
+    : Promise.resolve(null);
+  const [res] = await Promise.all([recordOvernight(now), audit]);
+  return res;
 }
+
+/**
+ * A request's way through: the bearer, then the call's beat (`_shared/beats.ts`), then its work. The beat comes first so
+ * that a call whose worker the platform never started is told apart from one that started, and `edge-watchdog` runs
+ * the first kind again (0075). A beat that cannot be written stops nothing. Exported so that order is pinned.
+ */
+export async function handle(req: Request, deps: {
+  cronSecret: string; beat: (key: string) => Promise<unknown>; run: (now: Date) => Promise<Response>;
+}): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+
+  const auth = req.headers.get("Authorization") ?? "";
+  if (!deps.cronSecret || auth !== `Bearer ${deps.cronSecret}`) {
+    return new Response("forbidden", { status: 403, headers: CORS });
+  }
+
+  const now = new Date();
+  await deps.beat(beatKeyOfRequest("overnight-record", req.url)).catch(() => false);
+  return await deps.run(now);
+}
+
+if (import.meta.main) Deno.serve((req) => handle(req, { cronSecret: CRON_SECRET, beat: (key) => writeBeat(key), run: runOnce }));
 

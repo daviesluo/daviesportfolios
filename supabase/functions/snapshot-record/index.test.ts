@@ -7,6 +7,7 @@ import {
   bucketTimeIso,
   buildPriceRow,
   extractT212Prices,
+  handle,
   isUsOvernightSession,
   isUsRegularSession,
   mergePriceMaps,
@@ -184,4 +185,23 @@ Deno.test("isUsRegularSession: an early close ends the session at 13:00 ET", () 
 Deno.test("recordablePrice: after an early close the late session's print, not the frozen 13:00 close", () => {
   assertEquals(recordablePrice({ lastPrice: 180, extPrice: 181.2 }, undefined, EARLY_CLOSE_LATE), 181.2);
   assertEquals(recordablePrice({ lastPrice: 180, extPrice: 181.2 }, 181.4, EARLY_CLOSE_LATE), 181.4); // T212 still wins
+});
+
+Deno.test("handle: the bearer, then the call's beat, then the recording; a wrong bearer writes no beat (0075)", async () => {
+  const order: string[] = [];
+  const deps = {
+    cronSecret: "s3cret",
+    beat: (key: string) => { order.push(`beat ${key}`); return Promise.resolve(true); },
+    run: (_now: Date) => { order.push("run"); return Promise.resolve(new Response("{}", { status: 200 })); },
+  };
+  const url = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/snapshot-record";
+  assertEquals((await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), deps)).status, 200);
+  assertEquals(order, ["beat snapshot-record", "run"]);
+  order.length = 0;
+  assertEquals((await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer nope" } }), deps)).status, 403);
+  assertEquals((await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), { ...deps, cronSecret: "" })).status, 403);
+  assertEquals(order, []);
+  // A beat that cannot be written stops nothing.
+  const r = await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), { ...deps, beat: () => Promise.reject(new Error("db down")) });
+  assertEquals([r.status, order], [200, ["run"]]);
 });

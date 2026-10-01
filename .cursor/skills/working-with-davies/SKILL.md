@@ -410,6 +410,18 @@ Changing any of these means re-opening a decision he has already made.
   faster is studied at 1 s. Faster than that is an always-on Cloudflare
   Worker, to be studied, not deployed without his word. When a data
   source's own quota or update rate binds first, say so with the number.
+- **Every recurring Edge call is under the watchdog** (Davies,
+  2026-10-01: "之后如果有新的调用适合加入看门狗的也记得及时更新"). A
+  new call of the one-minute job is a row of `public.edge_calls`, and the
+  migration that adds it decides its `retry` in the same commit: true when
+  a second run in its minute changes nothing the first did (a lease, a
+  unique claim, rows upserted on their keys), false only when a late run
+  would change the result (RW's and RW-C's engines read the book at `t`),
+  with the reason in a comment as 0075's table gives it. Its function
+  writes its beat before its work, or the watchdog runs it twice a minute;
+  `src/cron_jobs.test.js` checks the beat and that `retry` is stated. When
+  a call's reason for `false` goes away, the change that removes it sets
+  `retry = true`: nobody should have to notice it later.
 
 ### Cold start and preload
 

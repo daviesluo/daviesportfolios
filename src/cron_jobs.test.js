@@ -6,6 +6,12 @@
 // a view run (~56 s): the tick started more than 5 s into its minute in 145
 // of 1,393 runs (2026-09-27, migration 0063). This replays the migrations'
 // cron calls in the order `db push` applies them and pins what they leave.
+//
+// From 0075 the job's list is a table, `public.edge_calls`, and this also
+// replays every statement on it: the seed must be 0074's list row for row
+// plus the watchdog's, every minute of a day must queue what 0074 queued,
+// and every function the list calls must write its beat
+// (`_shared/beats.ts`), or `edge-watchdog` would run it twice a minute.
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,6 +45,72 @@ function cronJobs(files) {
 
 const httpJobs = (jobs) => [...jobs].filter(([, j]) => j.command.includes('net.http_post'));
 const count = (s, needle) => s.split(needle).length - 1;
+
+/**
+ * `public.edge_calls` as a list of migrations leaves it, in the job's order (`id`). Every statement on the table is
+ * replayed, and one this cannot read fails the test: a later change to the list has to teach it, so the list stays
+ * pinned. `sqls` is [[name, sql], …] in the order `db push` applies them.
+ */
+function replayList(sqls) {
+  const rows = new Map();
+  let nextId = 1;
+  for (const [name, raw] of sqls) {
+    // Comments out, and dollar-quoted bodies (a cron job's command) out: what is left splits on `;`.
+    const sql = raw.replace(/--[^\n]*/g, '').replace(/(\$[a-z_]*\$)[\s\S]*?\1/g, "''");
+    for (const stmt of sql.split(';')) {
+      if (!/\bpublic\.edge_calls\b/.test(stmt)) continue;
+      const s = stmt.trim().replace(/\s+/g, ' ');
+      if (/^create table if not exists public\.edge_calls \(/.test(s)) continue;
+      if (/^alter table public\.edge_calls enable row level security$/.test(s)) continue;
+      let m = /^insert into public\.edge_calls \(path, timeout_ms, every_minutes, last_utc_hour, retry\) values (.*) on conflict \(path\) do nothing$/.exec(s);
+      if (m) {
+        const values = [...m[1].matchAll(/\('([^']+)', (\d+), (\d+), (\d+), (true|false)\)/g)];
+        // Every row of the VALUES read, or the statement is one this cannot read.
+        if (values.map((v) => v[0]).join(', ') !== m[1]) throw new Error(`${name}: an insert into public.edge_calls this test cannot read: ${s.slice(0, 160)}`);
+        for (const v of values) {
+          if (!rows.has(v[1])) rows.set(v[1], { id: nextId++, path: v[1], timeout: Number(v[2]), every: Number(v[3]), lastHour: Number(v[4]), enabled: true, retry: v[5] === 'true' });
+        }
+        continue;
+      }
+      m = /^update public\.edge_calls set (enabled|retry) = (true|false) where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
+      if (m) {
+        for (const p of m[3].matchAll(/'([^']+)'/g)) {
+          if (!rows.has(p[1])) throw new Error(`${name}: updates '${p[1]}', which public.edge_calls does not hold`);
+          rows.get(p[1])[m[1]] = m[2] === 'true';
+        }
+        continue;
+      }
+      m = /^delete from public\.edge_calls where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
+      if (m) {
+        for (const p of m[1].matchAll(/'([^']+)'/g)) {
+          if (!rows.delete(p[1])) throw new Error(`${name}: deletes '${p[1]}', which public.edge_calls does not hold`);
+        }
+        continue;
+      }
+      throw new Error(`${name}: a statement on public.edge_calls this test cannot replay (teach replayList): ${s.slice(0, 160)}`);
+    }
+  }
+  return [...rows.values()].sort((a, b) => a.id - b.id);
+}
+const sqlsOf = (files) => files.map((f) => [f, fs.readFileSync(path.join(DIR, f), 'utf8')]);
+
+/** The rows of the job's VALUES list (0063 to 0074), in order. */
+const valuesOf = (command) => [...command.match(/\(values([\s\S]*?)\) as call/)[1].matchAll(/\('([^']+)',\s*(\d+),\s*(\d+),\s*(\d+)\)/g)]
+  .map((m) => ({ path: m[1], timeout: Number(m[2]), every: Number(m[3]), lastHour: Number(m[4]) }));
+
+/** The job's filter, in code: due in the minute when its minute of the hour is a multiple and its hour not past the last. */
+const isDue = (c, minuteMs) => {
+  const at = new Date(minuteMs);
+  return at.getUTCMinutes() % c.every === 0 && at.getUTCHours() <= c.lastHour;
+};
+
+/** `_shared/beats.ts`'s `beatKeyOfPath`, for the list's rows: the function, and `?action=` with the action. */
+const beatKeyOfPath = (p) => {
+  const q = p.indexOf('?');
+  if (q < 0) return p;
+  const action = new URLSearchParams(p.slice(q + 1)).get('action');
+  return action ? `${p.slice(0, q)}?action=${action}` : p.slice(0, q);
+};
 
 describe('pg_cron jobs', () => {
   it('reads the nine jobs that queued their own call before 0063', () => {
@@ -183,5 +255,93 @@ describe('pg_cron jobs', () => {
     const cmd = (files) => job(files).command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
     expect(cmd(FILES.filter((f) => f <= PL))).toBe(cmd(FILES.filter((f) => f < PL)));
     expect(job(FILES.filter((f) => f <= PL)).schedule).toBe(job(FILES.filter((f) => f < PL)).schedule);
+  });
+
+  // 0075: the list leaves the job's command for `public.edge_calls`, and `edge-watchdog` joins it.
+  const WD = FILES.find((f) => /^\d{4}_edge_call_watchdog\.sql$/.test(f)) ?? '';
+  const WATCHDOG = { path: 'edge-watchdog', timeout: 58000, every: 1, lastHour: 23 };
+  const norm = (s) => s.replace(/\s+/g, ' ').trim();
+
+  it("seeds public.edge_calls with 0074's list row for row, in its order, and the watchdog's row (0075)", () => {
+    expect(WD).not.toBe('');
+    const before = valuesOf(cronJobs(FILES.filter((f) => f < WD)).get('edge-calls-every-minute').command);
+    expect(before.length).toBe(17);
+    expect(replayList(sqlsOf(FILES.filter((f) => f < WD)))).toEqual([]);
+    const seed = replayList(sqlsOf(FILES.filter((f) => f <= WD)));
+    const shape = ({ path: p, timeout, every, lastHour }) => ({ path: p, timeout, every, lastHour });
+    expect(seed.map(shape)).toEqual([...before, WATCHDOG]);
+    expect(seed.every((r) => r.enabled)).toBe(true);
+    // Run again when the worker never started: every call but RW's and RW-C's paper engines (their frozen specs: a
+    // minute whose book was not read at `t` quotes nothing) and the watchdog itself.
+    expect(seed.filter((r) => !r.retry).map((r) => r.path)).toEqual(['agents?action=pmrw', 'agents?action=pmrwc', 'edge-watchdog']);
+  });
+
+  it('queues, in every minute of a day, exactly the requests 0074 queued, in its order, and the watchdog once (0075)', () => {
+    const old = cronJobs(FILES.filter((f) => f < WD)).get('edge-calls-every-minute');
+    const now = cronJobs(FILES.filter((f) => f <= WD)).get('edge-calls-every-minute');
+    expect(now.schedule).toBe(old.schedule);
+    // The request each row makes is 0074's word for word: the same URL, headers, body and timeout expressions…
+    // (Everything before the outer FROM: the headers' own sub-select reads the bearer `from vault.decrypted_secrets`.)
+    const requestOf = (c) => norm(c).replace(/ from \(values .*$/, '').replace(/ from public\.edge_calls as call .*$/, '');
+    expect(requestOf(now.command)).toMatch(/^select net\.http_post\( .* timeout_milliseconds := call\.timeout_ms \)$/);
+    expect(requestOf(now.command)).toBe(requestOf(old.command));
+    expect(requestOf(now.command)).toContain("headers := jsonb_build_object( 'Authorization', concat('Bearer ', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')), 'Content-Type', 'application/json' ), body := '{}'::jsonb,");
+    expect(requestOf(now.command)).toContain(`url := '${EDGE}' || call.path`);
+    expect(requestOf(now.command)).toContain('timeout_milliseconds := call.timeout_ms');
+    // …from the table, with 0074's filter and `enabled`, in the seed's order.
+    const oldWhere = norm(old.command).match(/ as call\(path, timeout_ms, every_minutes, last_utc_hour\) where (.*);$/)[1];
+    expect(norm(now.command)).toMatch(/ from public\.edge_calls as call where call\.enabled and (.*) order by call\.id;$/);
+    expect(norm(now.command).match(/ where call\.enabled and (.*) order by call\.id;$/)[1]).toBe(oldWhere);
+    expect(oldWhere).toBe("extract(minute from now() at time zone 'utc')::int % call.every_minutes = 0 and extract(hour from now() at time zone 'utc')::int <= call.last_utc_hour");
+    // And so, minute by minute: the requests 0074's list made and those the table makes, the watchdog aside.
+    const before = valuesOf(old.command);
+    const seed = replayList(sqlsOf(FILES.filter((f) => f <= WD)));
+    const day = Date.UTC(2026, 9, 1);
+    let requests = 0;
+    for (let m = 0; m < 1440; m++) {
+      const at = day + m * 60e3;
+      const was = before.filter((c) => isDue(c, at)).map((c) => `${EDGE}${c.path} ${c.timeout}`);
+      const is = seed.filter((c) => c.enabled && isDue(c, at)).map((c) => `${EDGE}${c.path} ${c.timeout}`);
+      expect(is.filter((r) => r !== `${EDGE}edge-watchdog 58000`)).toEqual(was);
+      expect(is.filter((r) => r === `${EDGE}edge-watchdog 58000`).length).toBe(1);
+      requests += was.length;
+    }
+    // 13 calls a minute, 16 at a five-minute mark, 17 at one before 10:00 UTC: the ~19,700 a day the logs count.
+    expect(requests).toBe(13 * 1152 + 16 * 168 + 17 * 120);
+  });
+
+  it('reads the list the migrations leave: unique paths and beat keys, and every function it calls writes its beat first', () => {
+    const list = replayList(sqlsOf(FILES));
+    expect(list.length).toBeGreaterThan(0);
+    expect(new Set(list.map((r) => r.path)).size).toBe(list.length);
+    // Two rows with one beat key could not be told apart by the watchdog.
+    expect(new Set(list.map((r) => beatKeyOfPath(r.path))).size).toBe(list.length);
+    expect(beatKeyOfPath('agents?action=pmlive&forceFunctionRegion=eu-west-1')).toBe('agents?action=pmlive');
+    expect(beatKeyOfPath('snapshot-record')).toBe('snapshot-record');
+    for (const r of list) expect(r.path).toMatch(/^[a-z][a-z0-9-]*(\?action=[a-z][a-z0-9-]*(&[A-Za-z]+=[A-Za-z0-9-]+)*)?$/);
+    // A function the list calls that wrote no beat would be run again every minute. Each writes one under its own name,
+    // with the shared helpers, before its work (the order is pinned in each function's own Deno test).
+    for (const fn of new Set(list.map((r) => r.path.split('?')[0]))) {
+      const src = fs.readFileSync(path.join(ROOT, 'supabase/functions', fn, 'index.ts'), 'utf8');
+      expect(src, fn).toMatch(/import \{[^}]*\bbeatKeyOfRequest\b[^}]*\} from "\.\.\/_shared\/beats\.ts";/);
+      expect(src, fn).toMatch(/\bwriteBeat\(/);
+      expect([...src.matchAll(/beatKeyOfRequest\("([^"]+)", req\.url\)/g)].map((m) => m[1]), fn).toEqual([fn]);
+    }
+    // And the job is still one job and one statement, reading the table.
+    const jobs = httpJobs(cronJobs(FILES));
+    expect(jobs.map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    expect(norm(jobs[0][1].command)).toContain('from public.edge_calls as call where call.enabled and ');
+  });
+
+  it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
+    const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
+    expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
+      .toEqual([['a?action=x', 1000, 1, 23, true, true], ['b', 2000, 5, 9, true, false]]);
+    // The verdict migrations' shape: rows out of the job, kept as a record.
+    expect(replayList([['seed', seed], ['off', "update public.edge_calls set enabled = false where path in ('b');"]]).map((r) => r.enabled)).toEqual([true, false]);
+    expect(replayList([['seed', seed], ['gone', "delete from public.edge_calls where path in ('a?action=x');"]]).map((r) => r.path)).toEqual(['b']);
+    expect(() => replayList([['seed', seed], ['x', "update public.edge_calls set timeout_ms = 1 where path = 'b';"]])).toThrow(/cannot replay/);
+    expect(() => replayList([['seed', seed], ['x', "update public.edge_calls set enabled = false where path in ('zz');"]])).toThrow(/does not hold/);
+    expect(() => replayList([['x', "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a', 1, 1, 23, true), ('b', 1, 1, 23) on conflict (path) do nothing;"]])).toThrow(/cannot read/);
   });
 });

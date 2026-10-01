@@ -47,9 +47,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      d2. RW-X1–X3 by their pre-registration's bar (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`: 09-28 →
         10-08, the change over the eleven days from the 09-27 row), from `pm_rw_x_days` (arms `x1`–`x3`), after its
         two checks: arm `rw` equals `pm_rw_days` and arm `e` equals `pm_rw_e_days`' `e` on every day, to under a cent.
-     e. A migration re-schedules `edge-calls-every-minute` without its `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x`
-        rows (the list `0069` left, RW-C's four `pmrwc*` rows and every other row unchanged; the tables stay); the page
-        rows stay as a record until Davies says otherwise.
+     e. A migration takes `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x` out of the one-minute job — since `0075` that is
+        `update public.edge_calls set enabled = false where path in (…)` on those four paths (RW-C's four `pmrwc*` rows
+        and every other row unchanged; the tables stay); the page rows stay as a record until Davies says otherwise.
      f. Report to Davies in Chinese. Only an account that quotes can show what Polymarket actually pays.
      g. **Read together by RW-NEXT's Part 1** (frozen 2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`), which amends
         what follows each of the three verdicts above: it fixes the candidate among the five arms, and the candidate
@@ -75,7 +75,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      both replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars.
      Nothing else of `pm_rwc_*` before its verdict (RW-NEXT's no-peek list). **Its verdict** on or after 2026-10-23
      00:05 UTC by the frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after
-     the check), then a migration takes the four `pmrwc*` rows out of `edge-calls-every-minute`.
+     the check), then a migration takes the four `pmrwc*` rows out of the one-minute job (`update public.edge_calls set enabled = false where path in (…)`, since `0075`).
    - **POOLAGE (fp7, 2026-10-01, reference §3.44), only if RW or RW-E passes:** after the verdict, read RW's own
      `others` by minute of day (`pm_rw_minutes`) to see how fast other makers arrive on a reward pool. Build no recorder
      before that read and Davies' word; a recorder's data would cover RW-C's markets, so nobody reads it before 10-23
@@ -526,6 +526,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 16:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**No call of the one-minute job is lost to the platform's boot failures any more** (Davies: "“过去约 6 小时的 5 次函数启动失败” - 这个可以修复吗，可以的话就彻底修复"). Measured first: 19 of ~19,700 calls in the 24 h to 15:00 UTC answered 503 `BOOT_ERROR` on `agents` in eu-west-2, 10.1–10.9 s after the request, with no execution id and no boot failure in the function logs (Supabase's "boot_error" class; normal boots 18–82 ms): the platform not starting a worker at the top of the minute, which cannot be stopped from here. `0075_edge_call_watchdog.sql` moves the job's list into `public.edge_calls` (0074's 17 rows unchanged and in order, plus `edge-watchdog`), proven request for request over every minute of a day in `src/cron_jobs.test.js` and, outside the suite, in Postgres 17.5 (19,704 = 19,704, 0 mismatches). Every function the job calls writes a beat first (`_shared/beats.ts`, `edge_call_beats`, the minute stamped by the database; a daily SQL-only job, `edge-call-beats-prune`, keeps two days). `edge-watchdog` (verify_jwt off) runs a due call with no beat again, once, 13 s into its minute, claimed and recorded in `edge_call_retries`; it reports `edge-watchdog.retry` when a retry fails too, `.beats` when more than four beats are missing (then retries nothing), `.unreadable` when it cannot read. `pmrw` and `pmrwc` are not retried (`retry` false: their frozen specs read the book at `t`; a missed minute stays missed and is recorded `excluded`). Item 2's steps e and RW-C's removal now mean disabling rows. A retried tick on a fifth minute counts as a late start in RW-NEXT's `agent_basis` lateness reading; `edge_call_retries` names those minutes. Reviewed before landing: the migration's statement is 0074's text plus `call.enabled` and `order by call.id`; the router split (`serveRequest` → beat → `route`) leaves every action as it was; 90 Deno and 11 cron tests pass; two counterfactuals checked (beat after the work fails the router pin; `pmrw` retryable fails the seed pin). **Check after deploy:** `edge-watchdog` verify_jwt off; beats for every due call over 15 minutes; `edge_call_retries` and `ops_errors` kinds `edge-watchdog.%` over the first day. Davies, the same afternoon: "之后如果有新的调用适合加入看门狗的也记得及时更新". CLAUDE.md's cron paragraph and the working-with-davies skill (and its two Cursor copies) now say so: a new recurring call joins the watchdog in the migration that adds it, its `retry` decided there with the reason, and a call whose reason for `false` goes away is switched on in the change that removes it; the cron test already fails on a function that writes no beat and on an insert that does not state `retry`. The browser sweep's perf-refresh tick now waits up to 20 s for the app's own refresh, not 8: under the full parallel gate run it missed 8 s twice today (desktop) and once on 09-30 (phone), each passing alone; it prints the time it took. Full gates green on this tree (desktop 227, phone 230, perf 60 cases).
 
 ### [2026-10-01 15:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

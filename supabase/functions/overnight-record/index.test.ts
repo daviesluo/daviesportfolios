@@ -10,6 +10,7 @@ import {
   t212TickerToYahoo,
   hasOvernightSession,
   extractOvernightPrices,
+  handle,
   mergePriceMaps,
 } from "./index.ts";
 
@@ -112,4 +113,21 @@ Deno.test("extractOvernightPrices: non-array / empty → {}", () => {
 
 Deno.test("mergePriceMaps: invest (a) wins ties over isa (b)", () => {
   assertEquals(mergePriceMaps({ AAPL: 200 }, { AAPL: 201, NVDA: 175 }), { AAPL: 200, NVDA: 175 });
+});
+
+Deno.test("handle: the bearer, then the call's beat, then the recording; a wrong bearer writes no beat (0075)", async () => {
+  const order: string[] = [];
+  const deps = {
+    cronSecret: "s3cret",
+    beat: (key: string) => { order.push(`beat ${key}`); return Promise.resolve(true); },
+    run: (_now: Date) => { order.push("run"); return Promise.resolve(new Response("{}", { status: 200 })); },
+  };
+  const url = "https://flmvxigozjuizpckllvk.supabase.co/functions/v1/overnight-record";
+  assertEquals((await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), deps)).status, 200);
+  assertEquals(order, ["beat overnight-record", "run"]);
+  order.length = 0;
+  assertEquals((await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer nope" } }), deps)).status, 403);
+  assertEquals(order, []);
+  const r = await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), { ...deps, beat: () => Promise.reject(new Error("db down")) });
+  assertEquals([r.status, order], [200, ["run"]]);
 });
