@@ -1049,6 +1049,12 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(rwRow({ ...r, markets: [{ net: -20, avgCost: 0.66 }], heldUsd: 14.4 })?.unrealisedPct).toBeCloseTo((-1 / shortNo) * 100, 12);
     expect(row?.status).toMatchObject({ tone: 'running', detail: 'quoting 16 markets · last minute decided 2 min ago' });
     expect(venueLabel('polymarket')).toBe('Polymarket');
+    // Deployed is every dollar at work (Davies, 2026-10-01): what it holds and what its resting quotes tie up. The
+    // scoreboard's unrealised base stays what it holds, $40, whatever the quotes tie up.
+    const q = rwRow({ ...r, quotedUsd: 19.6 });
+    expect([q?.valueUsd, q?.heldUsd, q?.unrealisedPct]).toEqual([59.6, 40, row?.unrealisedPct]);
+    const sb = scoreboardView({ strategies: [], venues: [] }, 'testing', [q]);
+    expect([sb.valueUsd, sb.unrealisedBase]).toEqual([59.6, 40]);
   });
   it("Polymarket's card is every test on it summed: RW and RW-E (the first version kept RW's card and dropped RW-E's)", () => {
     // RW as above; RW-E the sweep's figures: $235 at work and $1,000 funded, 5.60 deployed, today 7.50, unrealised −1.20
@@ -1514,10 +1520,15 @@ describe('prepRow ("Reward quotes live-prep", 0077)', () => {
     if (!row) throw new Error('no row for the fixture');
     expect(row).toMatchObject({
       id: PREP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, valueUsd: 8.77, costUsd: 8.35, todayUsd: 1.17, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
+      capitalUsd: 320, heldUsd: 8.77, costUsd: 8.35, todayUsd: 1.17, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
       rewards: { realisedUsd: 1.7, unrealisedUsd: 0 }, orders: { realisedUsd: 0.25, unrealisedUsd: 0.42 },
       status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
     });
+    // Deployed is every dollar at work (Davies, 2026-10-01): what it holds, $8.77, and what its quotes resting now tie up,
+    // worked by hand from the record's last minute — A 5 × 0.46 + 5 × (1 − 0.48) = 4.90, B 20 × 0.201 + 20 × (1 − 0.229)
+    // = 19.44 — $24.34, so $33.11.
+    expect(prepFixture.output.quotedUsd).toBe(24.34);
+    expect(row.valueUsd).toBeCloseTo(8.77 + 4.9 + 19.44, 9);
     // Today and realised on its capital (the path's total cap), unrealised on what it holds at cost.
     expect(row.todayPct).toBeCloseTo((1.17 / 320) * 100, 9);
     expect(row.realisedPct).toBeCloseTo((1.95 / 320) * 100, 9);

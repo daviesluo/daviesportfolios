@@ -207,7 +207,10 @@ places stay when the number is not whole.
   day, decided every minute from the public order books and trades. Its row
   reads like a strategy's, on a cap of $1,000, as each Reward quotes row
   has (what its markets have at work each day is the days table's Costs
-  column, which the test's rule sets without looking at the cap); realised is
+  column, which the test's rule sets without looking at the cap); deployed is
+  every dollar at work, what its quotes resting now tie up (a bid's Yes at
+  its price, an ask's No at one minus its price, each at its size) and what
+  it holds at the mid; realised is
   the rewards and what closed trades made, unrealised what it still holds
   (in Yes or No shares) at the mid. Tap it for its page: the same
   scoreboard, with realised split into the rewards and what its orders
@@ -252,7 +255,8 @@ places stay when the number is not whole.
   every order it would send. This row fills those very orders on paper
   from the trades the public sees, two minutes behind the clock, and keeps
   what they would hold, at the mid, and what they would have made. Its cap
-  is the account's own limit. Its page: the same scoreboard, with realised
+  is the account's own limit; deployed is what its resting quotes tie up
+  and what it holds, as on Reward quotes. Its page: the same scoreboard, with realised
   split into rewards and orders; FIGURES, the rewards worked out by
   Polymarket's formula, the same at 0.40 of that (what the paper tests
   need to break even, since nobody yet knows how much of the formula is

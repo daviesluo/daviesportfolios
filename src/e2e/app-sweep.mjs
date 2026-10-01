@@ -414,7 +414,9 @@ const AGENTS_RW = (dayStartMs) => {
     phase: 'run', runStart: iso(runStart), runEnd: iso(runStart + 14 * D), dayOfRun: 3, startedAt: iso(runStart - 5 * 3600e3),
     lastMinute: iso(NOW_MS - 2 * 60e3), lagMinutes: 2, lastError: null, running: true, finished: false,
     capitalUsd: 296, fundedUsd: 1000, totalUsd: 41, stressUsd: 17.2, rewardUsd: 41.6, fillsPnlUsd: -0.6, realisedUsd: 42, unrealisedUsd: -1, mismatchUsd: 0,
-    todayUsd: 12.5, heldUsd: 14.4, open: 2, fills: 5, quoting: 3, bestMarketUsd: 18.6,
+    // What its quotes resting now tie up (`quotedUsd`, RW's own capital for a quote): A, B and C each quote N 20 at a
+    // 2¢ spread, a bid at b and an ask's No at 1 − a, 20 × 0.98 = 19.60 a market, 58.80; D is held, not quoted.
+    todayUsd: 12.5, heldUsd: 14.4, quotedUsd: 58.8, open: 2, fills: 5, quoting: 3, bestMarketUsd: 18.6,
     markets: [
       mk('0xa1', 1, 'Will the highest temperature in Los Angeles be between 78-79°F on September 17?', 205,
         { net: 20, avgCost: 0.43, mark: 0.44, rewardUsd: 18.4, fillsPnlUsd: 0.2, totalUsd: 18.6, fills: 2, bid: 0.43, ask: 0.45, share: 0.97 }),
@@ -461,7 +463,8 @@ const AGENTS_RWE = (dayStartMs) => {
   return {
     ...rw, startedAt: rw.runStart, lastMinute: iso(NOW_MS - 7 * 60e3), lagMinutes: 7,
     capitalUsd: 235, fundedUsd: 1000, totalUsd: 22.4, stressUsd: 12.1, rewardUsd: 23.2, fillsPnlUsd: -0.8, realisedUsd: 23.6, unrealisedUsd: -1.2, mismatchUsd: 0,
-    todayUsd: 7.5, heldUsd: 5.6, open: 1, fills: 3, quoting: 2, bestMarketUsd: 14.1,
+    // RW-E does not quote A today: B's and C's quotes tie up 19.60 each, 39.20.
+    todayUsd: 7.5, heldUsd: 5.6, quotedUsd: 39.2, open: 1, fills: 3, quoting: 2, bestMarketUsd: 14.1,
     markets: rw.markets.filter((m) => m.cond !== '0xa1'),
     days: [
       { day: iso(dayStartMs - D).slice(0, 10), phase: 'run', totalUsd: 7.1, stressUsd: 4.4, rewardUsd: 7.4, fills: 1, capitalUsd: 231.2, markets: 13, runningUsd: 14.9 },
@@ -835,7 +838,7 @@ const AGENTS_RWX_WAITING = () => ({
   rwx: AGENTS_DASHBOARD.rwx.map((x) => ({
     ...x, notStarted: true, startsAt: '2026-09-28T00:00:00.000Z', startedAt: null,
     capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
-    todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null, markets: [], days: [], recent: [],
+    todayUsd: 0, heldUsd: 0, quotedUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null, markets: [], days: [], recent: [],
   })),
 });
 const AGENTS_PAUSED = () => ({
@@ -2535,11 +2538,11 @@ async function run() {
       if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 5].startsWith('Revolut X') && badges.slice(-4).join('|') === Array(4).fill('Polymarket').join('|')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X, and RW, RW-E and its two variants on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       // Deployed value, by card: Revolut X $1,221.25 (its strategy, $21.50, plus the quote test's every rung at work,
-      // $1,199.75: Davies, 2026-10-01) and RW, RW-E and its two variants on Polymarket $31.20 (14.40 + 3 × 5.60) — 98 % and
-      // 2 % of $1,252.45 (97.5 % and 2.5 %, each to the nearest whole). The bar shows the venue and its percent when that
-      // line fits the slice, the percent alone when only that fits, and nothing when not even the percent does (the
-      // title still says it). A fixed cutoff left the middle of "Polymarket" on a slice that was still a bit wider than
-      // the cutoff, and a 2 % slice on a phone the middle of "2%".
+      // $1,199.75: Davies, 2026-10-01) and RW, RW-E and its two variants on Polymarket $207.60 (what each holds and its
+      // quotes tie up: 73.20 + 3 × 44.80) — 85 % and 15 % of $1,428.85 (85.5 % and 14.5 %, each to the nearest whole).
+      // The bar shows the venue and its percent when that line fits the slice, the percent alone when only that fits, and
+      // nothing when not even the percent does (the title still says it). A fixed cutoff left the middle of "Polymarket"
+      // on a slice that was still a bit wider than the cutoff, and a 2 % slice on a phone the middle of "2%".
       const shareGeom = await page.locator('.ag-share').evaluateAll((els) => els.map((el) => {
         const text = (el.textContent || '').trim();
         const range = document.createRange();
@@ -2552,13 +2555,13 @@ async function run() {
         };
       }));
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && /Revolut X: 98%/.test(shareGeom[0].title) && /Polymarket: 2%/.test(shareGeom[2].title)
+        && shareGeom[1].text === '' && /Revolut X: 85%/.test(shareGeom[0].title) && /Polymarket: 15%/.test(shareGeom[2].title)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '98%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '85%', { timeout: 2000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -2566,30 +2569,31 @@ async function run() {
         return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
       }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
       await squeeze.evaluate((el) => el.remove());
-      if (squeezed && squeezedFit.text === '98%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      if (squeezed && squeezedFit.text === '85%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       // A slice too narrow even for its percent paints nothing, and its title still gives it.
       const pinch = await page.addStyleTag({ content: '.ag-share-polymarket{width:6px!important;max-width:6px!important;flex:0 0 6px!important;}' });
       const pinched = await page.waitForFunction(() => (document.querySelector('.ag-share-polymarket')?.textContent || '').trim() === '', { timeout: 2000 }).then(() => true).catch(() => false);
       const pinchedTitle = await page.locator('.ag-share-polymarket').getAttribute('title').catch(() => '');
       await pinch.evaluate((el) => el.remove());
-      if (pinched && pinchedTitle === 'Polymarket: 2% of deployed value') ok(S('agents'), 'a slice too narrow for its percent paints nothing, and its title still says Polymarket: 2%');
+      if (pinched && pinchedTitle === 'Polymarket: 15% of deployed value') ok(S('agents'), 'a slice too narrow for its percent paints nothing, and its title still says Polymarket: 15%');
       else fail(S('agents'), `pinched share: blank ${pinched}, title "${pinchedTitle}"`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
       // Polymarket's card is its tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
       // row of its own; 2026-09-27: so are its variants, two of them on the page since 2026-09-28; RW-C is not a row before
-      // its warm-up), so it reads what TESTING's scoreboard adds for it: funded their four $1,000 caps; deployed 14.40 +
-      // 3 × 5.60 = 31.20 (0.78 % of 4,000); today 12.50 + 3 × 7.50 = 35 (0.88 %); unrealised −1 − 3 × 1.20 = −4.60 on the
+      // its warm-up), so it reads what TESTING's scoreboard adds for it: funded their four $1,000 caps; deployed, what each
+      // holds and its quotes tie up (Davies, 2026-10-01), 14.40 + 58.80 + 3 × (5.60 + 39.20) = 207.60 (5.19 % of 4,000);
+      // today 12.50 + 3 × 7.50 = 35 (0.88 %); unrealised −1 − 3 × 1.20 = −4.60 on the
       // inventories' cost, 15.40 of RW's (A's 20 Yes at 43¢, D's 20 No at 34¢) and 6.80 of each of the three after it (D's):
       // −4.60 on 35.80; realised 42 + 3 × 23.60 = 112.80 (2.82 %) = rewards 41.60 + 3 × 23.20 and orders 0.40 + 3 × 0.40.
       // The first version kept RW's card and dropped RW-E's.
       const pm = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'polymarket'));
-      if (pm && pm.meta === '4 strategies' && pm.pairs['funded (Paper)'] === '$4,000' && pm.pairs.deployed === '$31.20 (0.78%)'
+      if (pm && pm.meta === '4 strategies' && pm.pairs['funded (Paper)'] === '$4,000' && pm.pairs.deployed === '$207.60 (5.19%)'
         && pm.pairs.today === '+$35 (+0.88%)' && pm.pairs.unrealised === '-$4.60 (-12.85%)' && pm.pairs.realised === '+$112.80 (+2.82%)' && !pm.bases.unrealised
         && pm.pairs.rewards === '+$111.20' && pm.pairs.orders === '+$1.60' && !('fees' in pm.pairs) && pm.subs.join('|') === 'rewards+12|orders+12') {
-        ok(S('agents'), "Polymarket's card is RW, RW-E and its two variants summed: funded (Paper) $4,000, deployed $31.20 (0.78%), today +$35 (+0.88%), unrealised -$4.60 (-12.85%), realised +$112.80 (+2.82%) = rewards +$111.20 + orders +$1.60");
+        ok(S('agents'), "Polymarket's card is RW, RW-E and its two variants summed: funded (Paper) $4,000, deployed $207.60 (5.19%), today +$35 (+0.88%), unrealised -$4.60 (-12.85%), realised +$112.80 (+2.82%) = rewards +$111.20 + orders +$1.60");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
@@ -2641,6 +2645,7 @@ async function run() {
       const depHeads = vpWidth > 760 ? (await page.locator('.ag-strategies thead th').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()) : [];
       const depCells = (await page.locator(depSel).allTextContents()).map((t) => t.trim());
       // A row in pounds (the stablecoin quotes', £908.90) adds its dollars, $1,199.75: its pounds are its dollars over 1.32.
+      // The reward rows' cells are what each holds and its quotes tie up: RW $73.20, RW-E and its two variants $44.80.
       const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£908.90' ? 1199.75 : NaN) : money(t)), 0) * 100);
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);
@@ -2946,11 +2951,11 @@ async function run() {
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
       // realised; and each Reward quotes row is funded $1,000 (the same day). The two variants on the page (2026-09-27;
       // variant-4 left it 2026-09-28) add RW-E's figures twice more; RW-C is not a row before its warm-up: 1,380 + 180 +
-      // 4,000 = $5,560 funded, so deployed 1,241.25 + 11.20 = 1,252.45 is 22.53 % of it (the quote test's is every rung at
-      // work, $1,199.75: Davies, 2026-10-01), today 20.54 + 15 = 35.54 is 0.64 %, realised 78.36 + 47.20 = 125.56 is
-      // 2.26 %; unrealised −0.56 − 2.40 = −2.96 is on the strategies' cost and what the tests hold, 139.75 + 11.20 = 150.95
-      // (−1.96 %).
-      const PAPER_SB = 'FUNDED=$5,560 | DEPLOYED=$1,252(22.53%) | TODAY=+$35.54(+0.64%) | UNREALIZED G/L=-$2.96(-1.96%) | REALIZED G/L [(incl. fees $0.08)]=+$125.56(+2.26%)';
+      // 4,000 = $5,560 funded, so deployed is 1,428.85 (25.70 % of it): every dollar at work (Davies, 2026-10-01), the
+      // strategy's 21.50, the quote test's every rung, 1,199.75, and the reward rows' holdings and quotes, 207.60. Today
+      // 20.54 + 15 = 35.54 is 0.64 %, realised 78.36 + 47.20 = 125.56 is 2.26 %; unrealised −0.56 − 2.40 = −2.96 is on the
+      // strategies' cost and what the tests hold, 139.75 + 11.20 = 150.95 (−1.96 %).
+      const PAPER_SB = 'FUNDED=$5,560 | DEPLOYED=$1,429(25.70%) | TODAY=+$35.54(+0.64%) | UNREALIZED G/L=-$2.96(-1.96%) | REALIZED G/L [(incl. fees $0.08)]=+$125.56(+2.26%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
       const TESTING_BAR = 'TESTING 11 Paper paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
@@ -3059,9 +3064,9 @@ async function run() {
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      // TESTING's deployed, $1,252.45 since the quote test's counts every rung at work (Davies, 2026-10-01), is shown to the
-      // dollar from $1,000: LIVE's $12.50 and the $1,252 shown make 1,264.50.
-      if (both.join(',') === '561000,126450,3574,-246,12586') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the five tests: $5,610.00 funded, $1,264.50 deployed as shown ($12.50 + $1,252, $1,252.45 to the cent), +$35.74 today, -$2.46 unrealised, +$125.86 realised');
+      // TESTING's deployed, $1,428.85 since every dollar at work counts (Davies, 2026-10-01), is shown to the dollar from
+      // $1,000: LIVE's $12.50 and the $1,429 shown make 1,441.50.
+      if (both.join(',') === '561000,144150,3574,-246,12586') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the five tests: $5,610.00 funded, $1,441.50 deployed as shown ($12.50 + $1,429, $1,428.85 to the cent), +$35.74 today, -$2.46 unrealised, +$125.86 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
@@ -3467,9 +3472,10 @@ async function run() {
       await page.waitForTimeout(150);
       const rcText = (await rcRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rcGreen = await rcRow.first().locator('.ag-dot-running').count();
-      if (/1 open · \$1,000 cap/.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
+      // Deployed: D's No held, $5.60, and B's and C's quotes, $39.20 (Davies, 2026-10-01: every dollar at work).
+      if (/1 open · \$1,000 cap/.test(rcText) && / \$44\.80 /.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
         && /every minute/.test(rcText) && !/9 Oct/.test(rcText) && rcGreen === 1) {
-        ok(T('rwc-running'), 'RW-C running: 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green');
+        ok(T('rwc-running'), 'RW-C running: 1 open of its $1,000 cap, deployed $44.80, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green');
       } else fail(T('rwc-running'), `RW-C row "${rcText}", green dots ${rcGreen}`);
       await rcRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -3521,10 +3527,11 @@ async function run() {
       const prSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((prAmount(prCell(prAfter, k)) - prAmount(prCell(prepBefore, k))) * 100) / 100);
       const pmB = prepBefore.venues.find((v) => v.id === 'polymarket'), pmA = prAfter.venues.find((v) => v.id === 'polymarket');
       const prCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((prAmount(pmA?.pairs[k]) - prAmount(pmB?.pairs[k])) * 100) / 100);
-      // The scoreboard's DEPLOYED is shown to the dollar from $1,000 (the quote test's counts every rung at work since
-      // 2026-10-01): $1,252.45 + $8.77 = $1,261.22 reads $1,252 then $1,261, 9 more. The card, under $1,000, adds $8.77.
-      if (prSbDiff.join(',') === '320,9,1.17,0.42,1.95' && prCardDiff.join(',') === '320,8.77,1.17,0.42,1.95,1.7,0.25' && pmA?.meta === '5 strategies') {
-        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $8.77 ($1,252 to $1,261 on the scoreboard, shown to the dollar), today +$1.17, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 5");
+      // Its deployed is what it holds, $8.77, and what its quotes tie up, $24.34 (Davies, 2026-10-01): $33.11. The
+      // scoreboard's DEPLOYED is shown to the dollar from $1,000: $1,428.85 + $33.11 = $1,461.96 reads $1,429 then $1,462,
+      // 33 more. The card, under $1,000, adds $33.11.
+      if (prSbDiff.join(',') === '320,33,1.17,0.42,1.95' && prCardDiff.join(',') === '320,33.11,1.17,0.42,1.95,1.7,0.25' && pmA?.meta === '5 strategies') {
+        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $1,429 to $1,462 on the scoreboard, shown to the dollar), today +$1.17, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 5");
       } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
       await prRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-prep-detail', { timeout: 5_000 }).catch(() => {});
@@ -3537,6 +3544,7 @@ async function run() {
           title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
           labels: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-name') ?? [])].map(txt),
           funded: txt(d?.querySelector('.ag-scoreboard-sm .sb-value')),
+          deployed: txt(d?.querySelector('.ag-scoreboard-sm .ag-sb-cell-deployed .sb-value')),
           split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
           sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
           tiles: [...(d?.querySelectorAll('.ag-prep-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-prep-tile-k'))}=${txt(t.querySelector('.ag-prep-tile-v'))}`),
@@ -3550,7 +3558,9 @@ async function run() {
         && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '2|-$0.30|+$1.20|+$0.48|+$0.18';
       const prMktOk = prp.markets.map((r) => r.join('|')).join(' / ') === 'Will A happen?|$8|46¢ / 48¢|5 Yes · 4 No|47¢ / Will B happen?|$7|20.1¢ / 22.9¢|20 Yes · 0 No|21.5¢';
       const prFillOk = prp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will A happen?|sold Yes|5|50¢ / Will B happen?|bought Yes|20|20.1¢ / Will A happen?|bought No|4|52¢ / Will A happen?|bought Yes|10|45¢';
+      // DEPLOYED: $8.77 held and $24.34 its quotes tie up, $33.11, 10.35 % of its $320 (Davies, 2026-10-01).
       if (prp.title === 'Reward quotes live-prep' && prp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(prp.funded)
+        && prp.deployed === '$33.11(10.35%)'
         && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'FIGURES,DAYS,QUOTES,FILLS'
         && prp.tiles.join('|') === 'REWARDS (FORMULA)=+$1.70|REWARDS AT R = 0.40=+$0.68|FILLS P&L=+$0.67|HELD AT THE MID=$8.77'
         && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {

@@ -1643,7 +1643,9 @@ export function rwRow(r) {
     // other strategy's unrealised (Davies, 2026-09-25).
     scoreDeployed: true,
     capitalUsd: capital,
-    valueUsd: held,
+    // Deployed is every dollar at work (Davies, 2026-10-01, as the stablecoin quotes'): what its quotes resting now tie up
+    // (`quotedUsd`, RW's own capital for a quote) and what it holds. The scoreboard's unrealised base stays what it holds.
+    valueUsd: held + (Number(r.quotedUsd) || 0), heldUsd: held,
     todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
     unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, rwInventoryCost(r.markets)), unrealisedBaseUsd: rwInventoryCost(r.markets),
     realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
@@ -1742,7 +1744,8 @@ export function prepRow(r) {
     mode: 'paper',
     scoreDeployed: true,
     capitalUsd: capital,
-    valueUsd: Number(r.heldUsd) || 0,
+    // Every dollar at work, as Reward quotes' (Davies, 2026-10-01): its resting quotes' collateral and what it holds.
+    valueUsd: (Number(r.heldUsd) || 0) + (Number(r.quotedUsd) || 0), heldUsd: Number(r.heldUsd) || 0,
     costUsd: cost,
     todayUsd: Number(r.todayUsd) || 0, todayPct: pct(Number(r.todayUsd) || 0, capital),
     unrealisedUsd: Number(r.unrealisedUsd) || 0, unrealisedPct: pct(Number(r.unrealisedUsd) || 0, cost), unrealisedBaseUsd: cost,

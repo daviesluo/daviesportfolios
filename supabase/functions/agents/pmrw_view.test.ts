@@ -78,6 +78,15 @@ Deno.test("rwSummary: realised and unrealised sum to the engine's total, and the
   assertEquals([r.open, r.quoting, r.phase, r.dayOfRun, r.running, r.finished], [2, 2, "run", 3, true, false]);
   // Held: 10 YES at the 0.50 mid, and 20 short YES — 20 NO at 1 − 0.50.
   assertAlmostEquals(r.heldUsd, 10 * 0.5 + 20 * 0.5, 1e-12);
+  // What the quotes resting now tie up (Davies, 2026-10-01: DEPLOYED is every dollar at work): COND's bid buys 20 YES at
+  // 0.49 and its ask 20 NO at 1 − 0.51, RW's own capital for that quote, the selection's 19.6. OTHER rests nothing this
+  // minute and HELD is not today's, so neither adds any.
+  assertAlmostEquals(r.quotedUsd, 20 * 0.49 + 20 * (1 - 0.51), 1e-12);
+  assertAlmostEquals(r.quotedUsd, 19.6, 1e-12);
+  // A side not resting ties up nothing: with the bid withdrawn, only the ask's NO.
+  const askOnly = rwSummary({ state: { state: w.st, last_minute: new Date(T + 2 * 60e3).toISOString(), last_error: null }, selection: w.selection,
+    latest: [{ ...latest[0], qb: false }], days, fills: w.fills, firstMinute: "2026-09-24T19:31:00Z", nowMs: T + 5 * 60e3 })!;
+  assertAlmostEquals(askOnly.quotedUsd, 20 * (1 - 0.51), 1e-12);
   // Today is measured from the day before in the same phase: 09-26's running total, not the warm-up's.
   assertAlmostEquals(r.todayUsd, total - 5, 1e-12);
   // Day rows newest first, each against the day before it in its own phase; the warm-up starts at nothing.

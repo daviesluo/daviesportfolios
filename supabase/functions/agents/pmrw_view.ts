@@ -7,7 +7,7 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
-import { accCapital, accTotal, RW_INSTANCE, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
+import { accCapital, accTotal, RW_INSTANCE, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
 import { RWX_NAMES, RWX_SPECS, type RwxStored } from "./pmrw_x.ts";
 
@@ -113,7 +113,7 @@ export function rwSummary(input: {
     return {
       ...head, notStarted: true, startedAt: null,
       capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
-      todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
+      todayUsd: 0, heldUsd: 0, quotedUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
       markets: [] as Array<Record<string, unknown>>, days: [] as ReturnType<typeof rwDayRows>, recent: [] as ReturnType<typeof rwRecent>,
     };
   }
@@ -131,7 +131,9 @@ export function rwSummary(input: {
   const was = snapshot({ acc: base } as unknown as RwState, []);
   const sel = new Map(input.selection.map((s) => [s.cond, s]));
   const latest = new Map(input.latest.map((r) => [r.cond, r]));
-  let realised = 0, unrealised = 0, held = 0, open = 0, best = -Infinity;
+  // `quoted` is what the quotes resting now tie up (Davies, 2026-10-01: DEPLOYED is every dollar at work), as RW counts a
+  // market's first quotes' capital (`firstCap`): a resting bid N × b, a resting ask N × (1 − a). Only today's portfolio quotes.
+  let realised = 0, unrealised = 0, held = 0, open = 0, best = -Infinity, quoted = 0;
   const markets: Array<Record<string, unknown>> = [];
   for (const [cond, a] of Object.entries(st.acc ?? {}) as Array<[string, Acc]>) {
     const b = base[cond];
@@ -156,12 +158,17 @@ export function rwSummary(input: {
     if (!s && !holding) continue;
     const row = latest.get(cond);
     const ours = n(row?.ours), others = n(row?.others);
+    const bid = row && row.qb !== false ? n(row.b) : null, ask = row && row.qa !== false ? n(row.a) : null;
+    if (s) {
+      const size = sizeN(meta?.minSize ?? Number(s.min_size));
+      quoted += (bid !== null ? size * bid : 0) + (ask !== null ? size * (1 - ask) : 0);
+    }
     markets.push({
       cond, q: s?.q ?? meta?.q ?? "", cat: s?.cat ?? meta?.cat ?? null, rank: s ? Number(s.rank) : null, quoting: !!s,
       ratePerDay: s ? Number(s.rate) : meta?.rate ?? null, endDate: s?.end_date ?? null,
       net: a.net, avgCost: approx == null && book.net !== 0 ? book.avgCost : null, mark: a.lastM, settled: a.settled,
       rewardUsd: reward, fillsPnlUsd: total - reward, totalUsd: total, fills: a.fills - (b?.fills ?? 0), capitalUsd: accCapital(a),
-      bid: row && row.qb !== false ? n(row.b) : null, ask: row && row.qa !== false ? n(row.a) : null,
+      bid, ask,
       share: ours != null && ours > 0 && others != null ? ours / (ours + others) : null,
     });
   }
@@ -182,7 +189,7 @@ export function rwSummary(input: {
     ...head, startedAt: since ? new Date(since.ms).toISOString() : input.firstMinute,
     capitalUsd: capital, totalUsd: total, stressUsd: snap.stress - was.stress, rewardUsd: reward, fillsPnlUsd: total - reward,
     realisedUsd: realised, unrealisedUsd: unrealised, mismatchUsd: realised + unrealised - total,
-    todayUsd: snap.total - baseline, heldUsd: held, open, fills: snap.fills - was.fills, quoting: input.selection.length,
+    todayUsd: snap.total - baseline, heldUsd: held, quotedUsd: quoted, open, fills: snap.fills - was.fills, quoting: input.selection.length,
     bestMarketUsd: Number.isFinite(best) ? best : null,
     markets, days, recent,
   };

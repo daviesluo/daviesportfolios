@@ -64,12 +64,19 @@ export function prepSummary(input: {
   const today = input.markets.filter((m) => Date.parse(`${String(m.day).slice(0, 10)}T00:00:00Z`) === todayStart).sort((a, b) => Number(a.rank) - Number(b.rank));
   const markets: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
+  // What the quotes resting now tie up (Davies, 2026-10-01: DEPLOYED is every dollar at work, as the stablecoin quotes'):
+  // as RW counts a market's first quotes' capital, a resting bid N × b and a resting ask N × (1 − a), the bid buying YES
+  // and the ask buying NO. Close-only, what rests sells what is held, which `heldUsd` already counts.
+  let quoted = 0;
   for (const m of today) {
     const row = latest.get(m.cond), h = heldBy(m.cond);
     seen.add(m.cond);
+    const bid = row && row.qb !== false && row.class === "matched" ? nz(row.b) : null, ask = row && row.qa !== false && row.class === "matched" ? nz(row.a) : null;
+    const size = nz(row?.n) ?? nz(m.n_size);
+    if (size !== null && !row?.close_only) quoted += (bid !== null ? size * bid : 0) + (ask !== null ? size * (1 - ask) : 0);
     markets.push({
       cond: m.cond, q: m.question ?? "", rank: Number(m.rank), quoting: true, ratePerDay: nz(m.reward_rate), n: nz(m.n_size),
-      cls: row?.class ?? null, bid: row && row.qb !== false && row.class === "matched" ? nz(row.b) : null, ask: row && row.qa !== false && row.class === "matched" ? nz(row.a) : null,
+      cls: row?.class ?? null, bid, ask,
       closeOnly: !!row?.close_only, yes: h.yes, no: h.no, mark: st.marks?.[m.cond] ?? null,
     });
   }
@@ -98,7 +105,7 @@ export function prepSummary(input: {
   return {
     lastMinute: input.state.last_minute, lagMinutes, running: lagMinutes <= PREP_STALE_MINUTES, lastError: input.state.last_error ?? null,
     startedAt: st.startedAt, capUsd: input.capUsd,
-    rewardUsd: r6(reward), rewardR40Usd: r6(reward * PREP_R_BREAK_EVEN), fillsPnlUsd: pnl.total, heldUsd: pnl.heldValue, costUsd: r6(cost),
+    rewardUsd: r6(reward), rewardR40Usd: r6(reward * PREP_R_BREAK_EVEN), fillsPnlUsd: pnl.total, heldUsd: pnl.heldValue, quotedUsd: r6(quoted), costUsd: r6(cost),
     realisedUsd: r6(reward + realisedFills), realisedFillsUsd: r6(realisedFills), unrealisedUsd: r6(pnl.total - realisedFills),
     totalUsd: r6(pnl.total + reward), totalR40Usd: r6(pnl.total + reward * PREP_R_BREAK_EVEN),
     todayUsd: r6(pnl.day + rewardToday), todayR40Usd: r6(pnl.day + rewardToday * PREP_R_BREAK_EVEN), todayRewardUsd: r6(rewardToday), todayFillsPnlUsd: pnl.day,
