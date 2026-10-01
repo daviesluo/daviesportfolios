@@ -53,8 +53,11 @@
    "sha256": "7a46cfc8cd1e1c2a15857f9d22cfd0ec5d7311c05669d20cd261c3532dd380af"
   },
   "scripts/screen_french.py": {
-   "bytes": 9192,
-   "sha256": "b92d26c53fb24e726d45831c68c9d8006a06bea174a882a413832e15e2514ee5"
+   "bytes": 9320,
+   "sha256": "97548f19aaa416d0652fb8243cad1b8a566e9a0fe3b9b36f2994e90c1a5beb29"
   }
- }
+ },
+ "notes": [
+  "2026-10-01: screen_french.py compares missing codes (-99.99, -999) before dividing by 100; -99.99/100 is not <= -0.9999 in floating point. Its four inputs carry no such code to 2015, and results/screen_french.json re-ran byte-identical."
+ ]
 }

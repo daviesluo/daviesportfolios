@@ -43,8 +43,9 @@ def read_block(path, first_header_contains, daily):
     rows = [r for r in rows if r[0] <= end]            # THE CUT
     assert rows and max(r[0] for r in rows) <= end
     dates = np.array([r[0] for r in rows])
-    m = np.array([r[1] for r in rows]) / 100.0
-    m[m <= -0.9999] = np.nan                            # -99.99 / -999 missing codes
+    raw = np.array([r[1] for r in rows])
+    raw[raw <= -99.98] = np.nan                         # -99.99 / -999 missing codes, compared before dividing:
+    m = raw / 100.0                                     # -99.99 / 100 is not <= -0.9999 in floating point
     return dates, cols, m
 
 

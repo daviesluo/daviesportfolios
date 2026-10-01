@@ -1,0 +1,82 @@
+{
+ "10y": {
+  "1990-2002": {
+   "n": 55,
+   "post_mean_bp": -2.8,
+   "post_price_pct_dur17": 0.476,
+   "post_t": -1.41,
+   "pre_mean_bp": 1.709,
+   "pre_t": 0.83
+  },
+  "2003-2015": {
+   "n": 131,
+   "post_mean_bp": -3.015,
+   "post_price_pct_dur17": 0.513,
+   "post_t": -2.58,
+   "pre_mean_bp": 0.809,
+   "pre_t": 0.77
+  },
+  "day_t-1_t": {
+   "abn_mean_bp": -0.423,
+   "mean_bp": -0.511,
+   "n": 186,
+   "sd_bp": 6.004,
+   "t_abn": -0.96
+  },
+  "events": 186,
+  "post_t_t+5": {
+   "abn_mean_bp": -2.513,
+   "mean_bp": -2.952,
+   "n": 186,
+   "sd_bp": 13.728,
+   "t_abn": -2.5
+  },
+  "pre_t-5_t-1": {
+   "abn_mean_bp": 1.426,
+   "mean_bp": 1.075,
+   "n": 186,
+   "sd_bp": 12.98,
+   "t_abn": 1.5
+  }
+ },
+ "30y": {
+  "1990-2002": {
+   "n": 34,
+   "post_mean_bp": -2.941,
+   "post_price_pct_dur17": 0.5,
+   "post_t": -1.81,
+   "pre_mean_bp": 2.971,
+   "pre_t": 1.35
+  },
+  "2003-2015": {
+   "n": 92,
+   "post_mean_bp": -3.489,
+   "post_price_pct_dur17": 0.593,
+   "post_t": -2.51,
+   "pre_mean_bp": 2.196,
+   "pre_t": 1.91
+  },
+  "day_t-1_t": {
+   "abn_mean_bp": -0.216,
+   "mean_bp": -0.294,
+   "n": 126,
+   "sd_bp": 7.313,
+   "t_abn": -0.33
+  },
+  "events": 126,
+  "post_t_t+5": {
+   "abn_mean_bp": -2.954,
+   "mean_bp": -3.341,
+   "n": 126,
+   "sd_bp": 12.361,
+   "t_abn": -2.68
+  },
+  "pre_t-5_t-1": {
+   "abn_mean_bp": 2.715,
+   "mean_bp": 2.405,
+   "n": 126,
+   "sd_bp": 11.467,
+   "t_abn": 2.66
+  }
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "EAP": {
+  "cost_round_trip_pct_usd_account": 0.03,
+  "events_per_year": 2000,
+  "mde_pct_1y": 0.472,
+  "mde_pct_2y": 0.334,
+  "mde_pct_3y": 0.272,
+  "neff_div": 2,
+  "note": "a book of every announcer: ~2,000 round trips a year at $1k-$20k is $5-$100 a position",
+  "power_1y_true_0.1pct": 0.132,
+  "power_1y_true_0.2pct": 0.277,
+  "power_1y_true_0.3pct": 0.475,
+  "power_2y_true_0.1pct": 0.184,
+  "power_2y_true_0.2pct": 0.439,
+  "power_2y_true_0.3pct": 0.723,
+  "power_3y_true_0.1pct": 0.232,
+  "power_3y_true_0.2pct": 0.572,
+  "power_3y_true_0.3pct": 0.863,
+  "sd_event_pct": 6.0
+ },
+ "PEAD": {
+  "cost_round_trip_pct_usd_account": 0.03,
+  "events_per_year": 400,
+  "mde_pct_1y_neff_div2": 2.15,
+  "mde_pct_1y_neff_div4": 3.03,
+  "mde_pct_2y_neff_div2": 1.52,
+  "mde_pct_2y_neff_div4": 2.15,
+  "mde_pct_3y_neff_div2": 1.24,
+  "mde_pct_3y_neff_div4": 1.75,
+  "mde_pct_5y_neff_div2": 0.96,
+  "mde_pct_5y_neff_div4": 1.36,
+  "power_if_true_drift_0_5pct_3y_div2": 0.261,
+  "power_if_true_drift_1_0pct_3y_div2": 0.642,
+  "published": "Martineau (2022, CFR 11:613-646), CRSP 1984-2019: no PEAD in large stocks since 2006",
+  "sd_event_pct": 12.2
+ },
+ "z_one_sided_5pct_power_80": 2.486
+}

@@ -1,0 +1,45 @@
+{
+ "CSP1.L": {
+  "D": {
+   "beta_line_on_us": 0.823,
+   "corr_with_us": 0.794,
+   "line_mean_pct": 0.12,
+   "us_mean_pct": 0.107
+  },
+  "PB": {
+   "beta_line_on_us": 0.834,
+   "corr_with_us": 0.729,
+   "line_mean_pct": 0.84,
+   "us_mean_pct": 0.742
+  },
+  "S": {
+   "beta_line_on_us": 0.798,
+   "corr_with_us": 0.81,
+   "line_mean_pct": 0.002,
+   "us_mean_pct": -0.007
+  },
+  "events": 62
+ },
+ "CSPX.L": {
+  "D": {
+   "beta_line_on_us": 0.872,
+   "corr_with_us": 0.879,
+   "line_mean_pct": 0.139,
+   "us_mean_pct": 0.107
+  },
+  "PB": {
+   "beta_line_on_us": 0.884,
+   "corr_with_us": 0.899,
+   "line_mean_pct": 0.728,
+   "us_mean_pct": 0.742
+  },
+  "S": {
+   "beta_line_on_us": 0.842,
+   "corr_with_us": 0.837,
+   "line_mean_pct": -0.175,
+   "us_mean_pct": -0.007
+  },
+  "events": 62
+ },
+ "us_events": 62
+}

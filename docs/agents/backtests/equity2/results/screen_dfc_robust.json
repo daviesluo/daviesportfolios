@@ -1,0 +1,49 @@
+{
+ "1990-1999": {
+  "D_bps_day": 14.44,
+  "D_t": 2.75,
+  "dodge_net8_ann_pct": 1.39,
+  "dodge_t": 0.6,
+  "n": 120
+ },
+ "1990-2015": {
+  "D_bps_day": 15.46,
+  "D_t": 3.82,
+  "dodge_net8_ann_pct": 2.43,
+  "dodge_t": 1.41,
+  "n": 311
+ },
+ "1990-2015_without_2008_2009": {
+  "D_bps_day": 13.49,
+  "D_t": 3.62,
+  "dodge_net8_ann_pct": 1.58,
+  "dodge_t": 0.99,
+  "n": 287
+ },
+ "2000-2007": {
+  "D_bps_day": 13.48,
+  "D_t": 2.07,
+  "dodge_net8_ann_pct": 2.99,
+  "dodge_t": 1.12,
+  "n": 96
+ },
+ "2008-2009": {
+  "D_bps_day": 38.98,
+  "D_t": 1.4,
+  "dodge_net8_ann_pct": 12.66,
+  "dodge_t": 1.08,
+  "n": 24
+ },
+ "2010-2015": {
+  "D_bps_day": 11.9,
+  "D_t": 1.4,
+  "dodge_net8_ann_pct": -0.02,
+  "dodge_t": -0.0,
+  "n": 71
+ },
+ "dodge_1990_2015_best_month": {
+  "month": 200810,
+  "share_of_total": 0.238,
+  "total_pct": 63.04
+ }
+}

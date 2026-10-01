@@ -1,0 +1,35 @@
+{
+ "DTLA.L": {
+  "error": "HTTP Error 400: Bad Request"
+ },
+ "IDTG.L": {
+  "error": "HTTP Error 400: Bad Request"
+ },
+ "IDTL.L": {
+  "currency": "USD",
+  "exchange": "LSE",
+  "first_trade": "2015-01-21",
+  "longName": "iShares $ Treasury Bond 20+yr UCITS ETF USD (Dist)"
+ },
+ "IUIT.L": {
+  "currency": "USD",
+  "exchange": "LSE",
+  "first_trade": "2015-11-20",
+  "longName": "iShares S&P 500 Information Technology Sector UCITS ETF USD (Acc)"
+ },
+ "SXLK.L": {
+  "currency": "USD",
+  "exchange": "LSE",
+  "first_trade": "2015-07-07",
+  "longName": "State Street SPDR S&P U.S. Technology Select Sector UCITS ETF"
+ },
+ "VUAA.L": {
+  "error": "HTTP Error 400: Bad Request"
+ },
+ "VUSA.L": {
+  "currency": "GBP",
+  "exchange": "LSE",
+  "first_trade": "2012-05-22",
+  "longName": "Vanguard S&P 500 UCITS ETF"
+ }
+}

@@ -249,3 +249,37 @@ its best. An audit agent checked it read-only and the coordinator re-ran its wor
   minutes ran with no error. Every other setting has a priced reason in reference §3–§4 and nothing new against it.
 - **Next:** on 2026-10-08 the clean-week checks (`scripts/cap/clean_week.sql`, AVAX's book by `scripts/cap/book_30d.py`,
   the probe); $150 only if they are clean and the account holds at least $100.20 (about $115 recommended).
+
+## 8. Addendum, 2026-10-01: EQ2, US strategies in the USD Invest account and the GBP ISA
+
+Davies, the same morning: his Trading 212 Invest account's primary currency is USD, so the API's orders in the primary
+currency carry no FX on US instruments ("可以探索研究美元策略，你深度研究下"); his Stocks ISA is GBP; and post-earnings
+drift and the turn of the month are worth deep research if still promising. One `opus-max` agent, screens on Ken
+French's CRSP-based files cut at 2015-12-31 as they are parsed (`backtests/equity2/`, every output re-run byte-identical
+by the coordinator for the DFC screens).
+
+- **Without FX the verdicts stand: power binds, not cost.** A forward paper test would need 11–36 years to confirm any
+  candidate, so a held-out historical test is the only statistical test available; paper and a demo account can only
+  check execution. Industry momentum, big-cap reversal (daily-formed: +1.95 % a year, t 0.75, in 2003–2015), low
+  volatility (−0.67 % a year against the market in 2003–2015), overnight drift (7.6–10.1 % a year of spread), index
+  additions (0.8 % and insignificant in the 2010s, Greenwood & Sammon 2025), pre-FOMC drift and pension rebalancing
+  (its published sample covers the held-out years) all fail.
+- **Post-earnings drift is not worth a test.** 9.33 % of S&P 500 member-time in 2016–2026 belongs to names Yahoo no
+  longer serves (99 of 106 acquisitions), so no clean historical test exists keylessly; Martineau (2022) already covers
+  2016–2019; a forward test has 26 % power after three years for a 0.5 % drift.
+- **EQ1's turn of the month is the weakest part of the month-end pattern since 1990** (held-out power 0.21–0.38), and
+  even a pass would lose 4.6–7.4 % a year against holding the index.
+- **DFC, the month-end dash for cash (Etula et al. 2020), is the one test worth running.** Its payer is institutions
+  selling by the settlement deadline to pay out at the month end. Before 2016 the per-day spread between the buy-back
+  and selling windows was 15.46 bp (t 3.82) in 1990–2015 and steady by decade; the one rule that can beat the index,
+  out over the selling window and in otherwise, made +2.43 % a year net of 8 bps over 1990–2015 but −0.02 % in
+  2010–2015, its t only 1.41. Pre-registered (`reviews/2026-10-01-dfc-prereg.md`), reviewed independently, frozen and
+  run once on CRSP's unseen 2016-01 → 2026-08; expect a fail.
+- **Second and third**: the Treasury auction cycle on IDTL (held-out power about 0.42) and industry seasonality (no
+  named payer); drafted, not frozen.
+- **Guardrails for any live path** (EQ2 §4): both accounts hold Davies' own portfolio, which the app reads. A loop
+  would need an instrument allowlist disjoint from his holdings, a loop-owned quantity it never sells beyond, a pending
+  row before every order (the beta API's orders are not idempotent and carry no client id), reconciliation through the
+  order history, a separate trading key, caps and a kill switch, and changes to the portfolio sync so his board never
+  counts the loop's positions. No trading key before a pass, a paper row and a demo-account test.
+- **EQ1's parser** compared missing codes after dividing by 100; fixed, and its results re-ran byte-identical.

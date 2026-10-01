@@ -1,0 +1,200 @@
+{
+ "industry_seasonality_top3_of_12": {
+  "1990-2015": {
+   "active_vs_ew": {
+    "ir": 0.27,
+    "mean_ann_pct": 1.843,
+    "n": 312,
+    "sd_ann_pct": 6.834,
+    "t": 1.37
+   },
+   "first_month": 199001,
+   "mean_share_replaced_per_month": 0.713
+  },
+  "2003-2015": {
+   "active_vs_ew": {
+    "ir": 0.032,
+    "mean_ann_pct": 0.187,
+    "n": 156,
+    "sd_ann_pct": 5.929,
+    "t": 0.11
+   },
+   "first_month": 200301,
+   "mean_share_replaced_per_month": 0.752
+  },
+  "first-1989": {
+   "active_vs_ew": {
+    "ir": 0.694,
+    "mean_ann_pct": 3.607,
+    "n": 522,
+    "sd_ann_pct": 5.197,
+    "t": 4.58
+   },
+   "first_month": 194607,
+   "mean_share_replaced_per_month": 0.662
+  }
+ },
+ "industry_seasonality_top5_of_49": {
+  "1990-2015": {
+   "active_vs_ew": {
+    "ir": 0.692,
+    "mean_ann_pct": 7.378,
+    "n": 312,
+    "sd_ann_pct": 10.666,
+    "t": 3.53
+   },
+   "first_month": 199001,
+   "mean_share_replaced_per_month": 0.86
+  },
+  "2003-2015": {
+   "active_vs_ew": {
+    "ir": 0.412,
+    "mean_ann_pct": 3.805,
+    "n": 156,
+    "sd_ann_pct": 9.238,
+    "t": 1.48
+   },
+   "first_month": 200301,
+   "mean_share_replaced_per_month": 0.913
+  },
+  "first-1989": {
+   "active_vs_ew": {
+    "ir": 0.407,
+    "mean_ann_pct": 3.115,
+    "n": 522,
+    "sd_ann_pct": 7.662,
+    "t": 2.68
+   },
+   "first_month": 194607,
+   "mean_share_replaced_per_month": 0.857
+  }
+ },
+ "low_var_quintile_vw": {
+  "1963-1989": {
+   "active_low_minus_mkt": {
+    "ir": 0.007,
+    "mean_ann_pct": 0.039,
+    "n": 318,
+    "sd_ann_pct": 5.512,
+    "t": 0.04
+   },
+   "beta": 0.763,
+   "capm_alpha_ann_pct": 1.17,
+   "low_excess": {
+    "ir": 0.379,
+    "mean_ann_pct": 4.819,
+    "n": 318,
+    "sd_ann_pct": 12.7,
+    "t": 1.95
+   },
+   "mkt_excess": {
+    "ir": 0.303,
+    "mean_ann_pct": 4.78,
+    "n": 318,
+    "sd_ann_pct": 15.774,
+    "t": 1.56
+   }
+  },
+  "1990-2015": {
+   "active_low_minus_mkt": {
+    "ir": -0.008,
+    "mean_ann_pct": -0.073,
+    "n": 312,
+    "sd_ann_pct": 8.76,
+    "t": -0.04
+   },
+   "beta": 0.606,
+   "capm_alpha_ann_pct": 2.8,
+   "low_excess": {
+    "ir": 0.647,
+    "mean_ann_pct": 7.217,
+    "n": 312,
+    "sd_ann_pct": 11.148,
+    "t": 3.3
+   },
+   "mkt_excess": {
+    "ir": 0.486,
+    "mean_ann_pct": 7.291,
+    "n": 312,
+    "sd_ann_pct": 14.996,
+    "t": 2.48
+   }
+  },
+  "2003-2015": {
+   "active_low_minus_mkt": {
+    "ir": -0.115,
+    "mean_ann_pct": -0.665,
+    "n": 156,
+    "sd_ann_pct": 5.789,
+    "t": -0.41
+   },
+   "beta": 0.692,
+   "capm_alpha_ann_pct": 2.06,
+   "low_excess": {
+    "ir": 0.771,
+    "mean_ann_pct": 8.166,
+    "n": 156,
+    "sd_ann_pct": 10.587,
+    "t": 2.78
+   },
+   "mkt_excess": {
+    "ir": 0.617,
+    "mean_ann_pct": 8.831,
+    "n": 156,
+    "sd_ann_pct": 14.319,
+    "t": 2.22
+   }
+  }
+ },
+ "screen_end": "2015-12-31",
+ "strev_daily_formed_big": {
+  "1927-1989": {
+   "long_only_active_vs_big_avg": {
+    "ir": 2.337,
+    "mean_ann_pct": 19.082,
+    "n": 16934,
+    "sd_ann_pct": 8.166,
+    "t": 19.16
+   },
+   "long_short_lo_minus_hi": {
+    "ir": 2.363,
+    "mean_ann_pct": 35.392,
+    "n": 16934,
+    "sd_ann_pct": 14.976,
+    "t": 19.37
+   }
+  },
+  "1990-2015": {
+   "long_only_active_vs_big_avg": {
+    "ir": 0.653,
+    "mean_ann_pct": 6.155,
+    "n": 6553,
+    "sd_ann_pct": 9.431,
+    "t": 3.33
+   },
+   "long_short_lo_minus_hi": {
+    "ir": 0.747,
+    "mean_ann_pct": 12.434,
+    "n": 6553,
+    "sd_ann_pct": 16.643,
+    "t": 3.81
+   }
+  },
+  "2003-2015": {
+   "long_only_active_vs_big_avg": {
+    "ir": 0.207,
+    "mean_ann_pct": 1.95,
+    "n": 3273,
+    "sd_ann_pct": 9.414,
+    "t": 0.75
+   },
+   "long_short_lo_minus_hi": {
+    "ir": 0.249,
+    "mean_ann_pct": 4.155,
+    "n": 3273,
+    "sd_ann_pct": 16.691,
+    "t": 0.9
+   }
+  }
+ }
+}

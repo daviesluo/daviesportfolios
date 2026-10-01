@@ -350,12 +350,15 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      either is short, count the night's buckets as the 2026-09-30 history entry did before changing anything.
 
 8. **US equities at Trading 212 (EQ1, EQ2; reference §3.44).** Davies, 2026-10-01: the Invest account is USD (no FX on
-   US instruments) and the ISA GBP; research deeply, and a trading key follows only if something can go live. Nothing
-   earns a paper row on what is known; the one test worth running is **DFC**, the month-end dash for cash (Etula et al.
-   2020), on CRSP's unseen 2016-01 → 2026-08: its draft is under independent review, then it is frozen by its commit and
-   run once. PEAD, TOM as EQ1 defined it, reversal, overnight drift, low volatility, index additions and pre-FOMC drift
-   are closed; TAC (Treasury auctions) and IS49 (industry seasonality) are drafted and not frozen. No trading key before
-   a pass, a paper row and a demo-account test (guardrails in EQ2 §4).
+   US instruments) and the ISA GBP; research deeply, and a trading key follows only if something can go live. EQ2's
+   screens are in `docs/agents/backtests/equity2/`. Nothing earns a paper row on what is known; the one test worth running
+   is **DFC**, the month-end dash for cash (Etula et al. 2020), on CRSP's unseen 2016-01 → 2026-08. Its draft was revised
+   on an independent review (seven blocking findings, all applied); the review's second pass is running, then the file
+   is frozen by its commit (`reviews/2026-10-01-dfc-prereg.md`) and run once (expect a fail: every condition holds about
+   0.3–0.4 of the time at the screen's effect). PEAD, TOM as EQ1 defined it, reversal, overnight drift, low volatility,
+   index additions and pre-FOMC drift are closed; TAC (Treasury auctions) and IS49 (industry seasonality) are drafted and
+   not frozen (the drafts stay in the session's scratchpad). No trading key before a pass, a paper row and a demo-account
+   test (guardrails in EQ2 §4).
 
 ## Machine and platform setup
 
@@ -467,6 +470,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**EQ2's screens are committed; EQ1's missing-code check is fixed; DFC's pre-registration is revised and in its review's second pass** (Davies on 10-01: research the USD account's strategies, and post-earnings drift and the turn of the month if still worth it). EQ2 (an `opus-max` agent; the coordinator re-ran its DFC screens byte-identical from `docs/agents/backtests/equity2/`): with no FX the verdicts stand, because power binds, not cost; DFC is the one test worth running. An independent review found seven blocking defects in its draft (a freeze guard that checked the draft, an unpinned input, no verdict in code, an open Holm family, uncoded descriptive lines, two disclosure errors, an optimistic power statement), each fixed; the scorer is the review's. EQ1's `screen_french.py` compared missing codes after dividing by 100 (−99.99/100 is not ≤ −0.9999); fixed, and its results re-ran byte-identical (item 8).
 
 ### [2026-10-01 03:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
