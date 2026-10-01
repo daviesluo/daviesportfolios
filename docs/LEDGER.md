@@ -136,13 +136,20 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      orders filled on paper by RW's `stepRw` on the row the path decided on, two minutes behind; the path's P&L, stops and
      settlement; formula rewards and R = 0.40. Pre-registered (`reviews/2026-10-01-polymarket-live-prep-prereg.md`, frozen
      before its window): **2026-10-02 00:00 → 10-03 00:00 UTC**, conditions (a)–(g) read by
-     `docs/agents/backtests/pmlive/prep_check.sql` (sha256 pinned by `src/pm_prep_prereg.test.js`). **Next:** after the push,
-     read the first selection at 00:00 UTC (`pm_live_markets` for 10-02: two markets, one `selected_at` by 00:10, rate
-     [6, 10), `max_spread` set) and `pm_prep_state` (`last_minute` moving, `last_error` null) and `pm_prep_minutes`
-     (`matched` rows from ~00:02); at or after **2026-10-03 00:10 UTC** run `prep_check.sql` once; every row PASS → the
-     go-time statement, word for word, on his word above; any FAIL → no go-live, fix and report. A fix deployed inside the
-     window ends it as FAIL; the next full UTC day after the fix is the new window (the prereg's addendum first). (f) needs
-     his funding (pUSD ≥ $81, read within 5 minutes); if only (f) fails it is read again once he has funded.
+     `docs/agents/backtests/pmlive/prep_check.sql` (sha256 pinned by `src/pm_prep_prereg.test.js`). **Addendum 1**
+     (Davies, ~19:52 UTC: "改为现在就开始测试，可以测试今天剩余时间+明天一整天"): the window opens on the first full UTC hour after
+     2026-10-01's own selection and closes 10-03 00:00, read by `prep_check_addendum1.sql` (pinned the same way; the
+     same conditions, per day where they read a day). Today's selection needs 0074's two placeholder rows out of
+     `pm_live_markets`, by the addendum's one statement (`delete from public.pm_live_markets where day = date
+     '2026-10-01' and reward_rate is null and max_spread is null;`): **the connector's execute_sql timed out twice
+     (20:00, 20:01 UTC) waiting for a confirmation this session never got, and nothing ran** — Davies runs it in the SQL
+     editor, or confirms it in the connector. **Next:** once it has run, read that the path chose 2026-10-01's markets
+     (one `selected_at`, a reward rate, `max_spread` set) and that `pm_prep_minutes` has `matched` rows; 10-02's
+     selection at 00:00 UTC (by 00:10); at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
+     deployed before 10-02 00:00 makes it `prep_check.sql`, as frozen); every row PASS → the go-time statement, word for
+     word, on his word above; any FAIL → no go-live, fix and report. A fix deployed inside the window ends it as FAIL; the
+     next full UTC day after the fix is the new window (the prereg's addendum first). (f) needs his funding (pUSD ≥ $81,
+     read within 5 minutes); if only (f) fails it is read again once he has funded.
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -347,6 +354,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
       at 16 pairs or after 2027-01-31 and then disables itself. **Count 2026-10-01 09:24 UTC: 2 pairs.**
 
 6. **Davies' to decide or to do; nothing waits on them:**
+   - **Reward quotes live-prep, now** (item 2, Addendum 1): run in the Supabase SQL editor, or confirm in the connector,
+     `delete from public.pm_live_markets where day = date '2026-10-01' and reward_rate is null and max_spread is null;`
+     (0074's two placeholders; the connector's execute_sql timed out twice waiting for a confirmation). The path then
+     chooses today's markets within a minute, and the window opens on the next full UTC hour.
    - **The errors box** (2026-10-01): 219 rows of one fault fixed at 09:35 fill its 24-hour summary until 09:35 UTC on
      10-02. Deleting them (one migration, kind `agents.pm_live`, 05:50–09:35, naming the China Open market) was refused
      by the session's permission classifier; his to approve, or click Acknowledge in the badge, or let them age out.
@@ -548,6 +559,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 20:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Reward quotes live-prep starts now, not at 00:00 UTC: the pre-registration's Addendum 1.** Davies, ~19:52 UTC, on the note that the path would first quote after the 00:00 selection: "改为现在就开始测试，可以测试今天剩余时间+明天一整天". The path chooses a UTC day's markets once, on the first turn that finds no row of the day in `pm_live_markets`; today's two rows are 0074's placeholders (no reward rate, no maximum spread), on which RW's quote rests nothing. Taking them out makes the next turn choose today's markets by RW's ranking with the code unchanged (`pm_live.ts`, `pm_prep.ts` at their frozen hashes). The addendum (`reviews/2026-10-01-polymarket-live-prep-prereg.md`) records his words and that statement, and opens the window on the first full UTC hour after today's selection (the first `selected_at` of 2026-10-01's rows with a reward rate), closing 2026-10-03 00:00 UTC: a window defined by the selection's own record, so it is frozen now whenever the statement runs. Its check is a new file, `prep_check_addendum1.sql` (sha256 `b49b9fc5…`, pinned by `src/pm_prep_prereg.test.js`; `prep_check.sql` untouched, as its header requires): the frozen bars, (a1)/(a2) as shares of the window's minutes, (a3)/(b)/(e) on each of the two days, (c)/(d)/(g) on the window (g from `pm_prep_minutes`). Run read-only before the window, with the placeholders still there, it parses and reads FAIL where it should; changing one bar fails the pin. A fix before 10-02 00:00 leaves 10-02 as the first full day after it, which `prep_check.sql` then checks as frozen, so the go-live time does not move. **The statement has not run:** the Supabase connector's `execute_sql` timed out twice (20:00 and 20:01 UTC) on it, waiting for a confirmation that never reached this session, and a read-back shows both placeholder rows still in place; a migration was not used (its map row could not be read here). Davies runs it in the SQL editor or confirms it in the connector; item 2's live-prep sub-item and item 6 have it word for word.
 
 ### [2026-10-01 19:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

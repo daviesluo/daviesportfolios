@@ -114,3 +114,42 @@ Every condition is read by `prep_check.sql` (its common table expression is name
   touch is the market's without us, as RW's paper was.
 - **The minutes the path's turn did not run** quote nothing on paper (RW's convention), where live orders would rest
   until their GTD expiry; (a1) bounds them.
+
+## Addendum 1 (2026-10-01, about 20:10 UTC): the test starts now, over the rest of today and all of tomorrow
+
+Written before the window it opens. Davies, 2026-10-01 about 19:52 UTC, verbatim, answering the note that the path
+would first quote after the 00:00 UTC selection:
+
+> 改为现在就开始测试，可以测试今天剩余时间+明天一整天
+
+In English: start the test now instead; it can test the rest of today and all of tomorrow. What changes, and nothing
+else:
+
+- **Today's markets are chosen now.** 2026-10-01's two rows of `pm_live_markets` are 0074's placeholders (no reward
+  rate and no maximum spread, so RW's quote rests nothing on them and the path has quoted nothing since `0076`). They
+  are taken out by one statement, on his word above, and the path's next turn chooses today's markets by RW's ranking
+  exactly as it does at 00:00 (it chooses a day once, on the first turn that finds no row of the day). Its code and
+  the layer's are unchanged, at the hashes above:
+
+      delete from public.pm_live_markets where day = date '2026-10-01' and reward_rate is null and max_spread is null;
+
+- **The window: from the first full UTC hour after 2026-10-01's selection to 2026-10-03 00:00:00 UTC**, two UTC days.
+  The selection is the first `selected_at` of that day's rows with a reward rate. The minutes between it and the
+  window are a run-in, read only through 2026-10-01's day row, which covers its whole day. As before, nothing of the
+  window is read before the check except the health scalars named above and whether each day's selection landed. If
+  2026-10-01 has no row with a reward rate when the check runs (the statement never ran), this addendum never took
+  effect: the window and the check are the ones above, as frozen.
+- **The check is `prep_check_addendum1.sql`**, sha256 `b49b9fc509fc78b12c3a9e115167e92df42cba29452a1ab57d423c1feb55205d`
+  (`src/pm_prep_prereg.test.js` fails if the file changes). It asks what `prep_check.sql` asks, on this window: (a1)
+  and (a2) the same shares of its minutes (a turn in at least 99 %, a fault in at most 1 %); (a3) the layer through
+  2026-10-02 23:59 and both days closed; (b) each day's selection once, with a market, inside the rules and phase 1,
+  2026-10-01's before the window opens and 2026-10-02's by 00:10; (c), (d) and (g) on the window's orders, minutes and
+  market-minutes (g from `pm_prep_minutes`, so only the window's); (e) each day's P&L at R = 0.40 above −$25 with
+  matched minutes, no stop flag on either day and no stop event in the window; (f) as before. `prep_check.sql` stays
+  as frozen. Run read-only before the window, with the placeholders still in place, it parses and reads FAIL where it
+  should (no window yet; 2026-10-01's two rows in two runs, outside the rules; no funding).
+- **A fix inside the window** ends it as FAIL, as above. A fix deployed before 2026-10-02 00:00 UTC leaves 2026-10-02 as
+  the first full UTC day after it: that day is then checked by `prep_check.sql` exactly as frozen, at the same time,
+  and the go-live does not move. A fix deployed on 2026-10-02 moves the check to 2026-10-03, by a next addendum.
+- **What happens** is unchanged: at or after 2026-10-03 00:10 UTC the check runs once; every row PASS → the go-time
+  statement above, word for word; any FAIL → no go-live, found, fixed and reported.

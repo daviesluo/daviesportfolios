@@ -3515,7 +3515,11 @@ every script re-run byte-identical by the coordinating session).
       fed as the path would rest RW's quotes, it reproduces rw_test.py's fills, inventory and rewards on the 20 markets
       the −$25 stop never stops, and RW's fills up to the stop on the other 9. Pre-registered before its window
       (`reviews/2026-10-01-polymarket-live-prep-prereg.md`: 2026-10-02 00:00 → 10-03 00:00 UTC, conditions (a)–(g) read
-      by `backtests/pmlive/prep_check.sql`); all PASS and the go-time statement above runs on that word. On the
+      by `backtests/pmlive/prep_check.sql`); its Addendum 1 (Davies, 2026-10-01: "改为现在就开始测试，可以测试今天剩余时间+明天
+      一整天") opens the window on the first full UTC hour after 2026-10-01's own selection, made at once by taking
+      0074's two placeholder rows out of `pm_live_markets`, and reads it to 10-03 00:00 with
+      `backtests/pmlive/prep_check_addendum1.sql` (the same conditions, per day where they read a day); all PASS and the
+      go-time statement above runs on that word. On the
       Agents page it is the last row of TESTING STRATEGIES, "Reward quotes live-prep" on Polymarket, on the path's
       total cap, counted in TESTING's scoreboard and the Polymarket card, with a page of its own (`agents/pm_prep_view.ts`).
 
