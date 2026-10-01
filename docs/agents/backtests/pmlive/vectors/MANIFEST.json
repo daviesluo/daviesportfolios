@@ -1,0 +1,45 @@
+{
+ "study": "Polymarket CLOB V2 order vectors for the order path (2026-10-01): eight orders (BUY and SELL, standard and neg-risk exchange, all six tick sizes) built, hashed and signed offline by Polymarket's own TypeScript client with Hardhat's published test key #0, two cancel bodies with their L2 signatures, and 24 rounding cases; cross-checked against the official Python client",
+ "write_up": "docs/agents/reviews/2026-10-01-polymarket-order-path.md",
+ "pinned_by": "supabase/functions/agents/polymarket_orders.test.ts (every hash, signature, amount and body byte for byte)",
+ "run": [
+  "npm ci --ignore-scripts && node gen_vectors.mjs > vectors.json  # offline after the install; byte-identical on re-run (timestamp, salt and randomness fixed per case)",
+  "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && .venv/bin/python check_py.py > check_py_out.txt  # offline; 3 differences, all rounding (the Python client floors floats)"
+ ],
+ "sources": {
+  "@polymarket/clob-client-v2@1.2.0": "npm registry, exact version and integrity in package-lock.json; source read at github.com/Polymarket/clob-client-v2 commit 8046a89ee9ba75676e31a11830785c046ccee167 (2026-09-25)",
+  "py_clob_client_v2==1.2.0": "PyPI, exact versions in requirements.txt (pip freeze); source read at github.com/Polymarket/py-clob-client-v2 commit 292c11005d748c21342a9457d7c0ac89afc2e3f2 (2026-09-25)",
+  "official vector": "py-clob-client-v2 tests/order_utils/test_exchange_order_builder_v2.py, EXPECTED_POLY_1271_SIGNATURE: a signature-type-3 order on Amoy (80002) whose signature carries, after its 65-byte inner signature, the exchange's domain separator and the order's struct hash; polymarket_orders.test.ts rebuilds both byte for byte",
+  "docs": "docs.polymarket.com, read 2026-10-01: trading/place-orders, trading/manage-orders, trading/wallets-auth, concepts/order-lifecycle, resources/contracts, resources/error-codes, api-reference/geoblock, the CLOB OpenAPI"
+ },
+ "committed": {
+  "check_py.py": {
+   "bytes": 3146,
+   "sha256": "2efc2fc4f39573bebed64e5fb414fb3776830be0bf4619b9f31a37055aad51b1"
+  },
+  "check_py_out.txt": {
+   "bytes": 1484,
+   "sha256": "ce0021f6746c7965a398b4e75355e9aa01310a7b2244e951010f76f822986d8b"
+  },
+  "gen_vectors.mjs": {
+   "bytes": 9355,
+   "sha256": "92882617f61def34e92342663a96056630321c6397f69043a65985cfde5401b9"
+  },
+  "package-lock.json": {
+   "bytes": 46585,
+   "sha256": "e981bcd491cdec3ce6eb5f60b2116d4248b6a3e416de67a08072e3d78a710f63"
+  },
+  "package.json": {
+   "bytes": 358,
+   "sha256": "ff4fcde564581f470f056d49f852dcf2f327dd7d2fa2e08fee3af3fe58715d23"
+  },
+  "requirements.txt": {
+   "bytes": 686,
+   "sha256": "03fef997f1dd21313caaa43afb396c35afa901759679d039189916dde01244e5"
+  },
+  "vectors.json": {
+   "bytes": 26260,
+   "sha256": "f11394ac79d67bff646e7fb8a88d1b1d6b68d8fdfe173f980b1bc284e5eac76e"
+  }
+ }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "pmlive-order-vectors",
+  "private": true,
+  "type": "module",
+  "description": "Regenerates the CLOB V2 order vectors pinned in supabase/functions/agents/polymarket_orders.test.ts from Polymarket's official client.",
+  "dependencies": {
+    "@polymarket/clob-client-v2": "1.2.0",
+    "@ethersproject/wallet": "5.8.0",
+    "viem": "2.46.3"
+  }
+}

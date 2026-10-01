@@ -1,0 +1,602 @@
+{
+ "about": "Polymarket CLOB V2 orders by the official TypeScript client, offline, with Hardhat's published test key #0. Regenerate: npm ci --ignore-scripts && node gen_vectors.mjs > vectors.json",
+ "client": {
+  "@polymarket/clob-client-v2": "1.2.0",
+  "viem": "2.46.3",
+  "@ethersproject/wallet": "5.8.0"
+ },
+ "chainId": 137,
+ "signerAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+ "maker": "0x1111111111111111111111111111111111111111",
+ "owner": "00000000-1111-4222-8333-444444444444",
+ "l2Secret": "VkVDVE9SLVNFQ1JFVC0zMi1CWVRFUy1MT05HLTAwMDE=",
+ "l2Passphrase": "vector-passphrase",
+ "orders": [
+  {
+   "name": "buy-standard-0.01",
+   "input": {
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "side": "BUY",
+    "price": 0.52,
+    "size": 10,
+    "tickSize": "0.01",
+    "negRisk": false,
+    "nowMs": 1790000000000,
+    "random": 0.25,
+    "expiration": 1790000360
+   },
+   "exchange": "0xE111180000d2663C0091e4f400237545B87B996B",
+   "order": {
+    "salt": "447500000000",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "makerAmount": "5200000",
+    "takerAmount": "10000000",
+    "side": "BUY",
+    "signatureType": 1,
+    "timestamp": "1790000000000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000360"
+   },
+   "domainSeparator": "0x3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2",
+   "structHash": "0xf23a866dc3c1d2fe7565b1eb0d275286fc6d6f7f07e2bd125030a57e80c9410c",
+   "hash": "0xc0aca33b704c2ecea5bf2ac6924dc5b33d3808ebf72b0769efc2559cf442e2ed",
+   "signature": "0xba66968ba4c2b2edc2ec7604cdc56f4873acb4fe643a5b119aae5d5c2a8a9a375f08e1bfe1e21d796ad4fffb6ff12465656a1554c20a1cc7076d4a09380b1a611c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":447500000000,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"107505882767731489358349912513945399560393482969656700824895970500493757150417\",\"makerAmount\":\"5200000\",\"takerAmount\":\"10000000\",\"side\":\"BUY\",\"signatureType\":1,\"timestamp\":\"1790000000000\",\"expiration\":\"1790000360\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0xba66968ba4c2b2edc2ec7604cdc56f4873acb4fe643a5b119aae5d5c2a8a9a375f08e1bfe1e21d796ad4fffb6ff12465656a1554c20a1cc7076d4a09380b1a611c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000000,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "sp9fGgzI4h_rZ_sS2xQRzkGqfp5OJDG3sdWBlU2gNLc="
+   }
+  },
+  {
+   "name": "sell-standard-0.01",
+   "input": {
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "side": "SELL",
+    "price": 0.48,
+    "size": 20,
+    "tickSize": "0.01",
+    "negRisk": false,
+    "nowMs": 1790000060000,
+    "random": 0.5,
+    "expiration": 1790000420
+   },
+   "exchange": "0xE111180000d2663C0091e4f400237545B87B996B",
+   "order": {
+    "salt": "895000030000",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "makerAmount": "20000000",
+    "takerAmount": "9600000",
+    "side": "SELL",
+    "signatureType": 1,
+    "timestamp": "1790000060000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000420"
+   },
+   "domainSeparator": "0x3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2",
+   "structHash": "0xe1726ffd57ae70b0f292fffa449d5b605bae571405a4a5ae028e4fe9de11b745",
+   "hash": "0xb87f6ebe30d3d5afc0abebc73c6d3c2b78ec25914dcef696726d23d02d89b2c1",
+   "signature": "0x73f4c7c4de1212b30742db71544467678b6cbc4ecaf04be29867b06850dc6e0262ae6e2bcc6a7a07d41f58f2cc833691362d2dfae6fc31e6de6b195808b05ee01c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":895000030000,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"107505882767731489358349912513945399560393482969656700824895970500493757150417\",\"makerAmount\":\"20000000\",\"takerAmount\":\"9600000\",\"side\":\"SELL\",\"signatureType\":1,\"timestamp\":\"1790000060000\",\"expiration\":\"1790000420\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x73f4c7c4de1212b30742db71544467678b6cbc4ecaf04be29867b06850dc6e0262ae6e2bcc6a7a07d41f58f2cc833691362d2dfae6fc31e6de6b195808b05ee01c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000060,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "zMF6jieX6NaBnrZrHQN236ZxXcKMKPbevrulYrMYUw8="
+   }
+  },
+  {
+   "name": "buy-negrisk-0.001",
+   "input": {
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "side": "BUY",
+    "price": 0.123,
+    "size": 15.555,
+    "tickSize": "0.001",
+    "negRisk": true,
+    "nowMs": 1790000120000,
+    "random": 0.75,
+    "expiration": 1790000480
+   },
+   "exchange": "0xe2222d279d744050d28e00520010520000310F59",
+   "order": {
+    "salt": "1342500090000",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "makerAmount": "1912650",
+    "takerAmount": "15550000",
+    "side": "BUY",
+    "signatureType": 1,
+    "timestamp": "1790000120000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000480"
+   },
+   "domainSeparator": "0x9b858f53327b0bd13af8ec14cfb35234fb9eb7b0504d1a4e61f433840d30e81a",
+   "structHash": "0x2e8cedc5a82547a79e2fd2ccb1a6ff13bbd4f0a019dba9bb99ca0b1b007a7f04",
+   "hash": "0x0dc6a6f673415bb3063e0d69ecc698cf7580d431088897fc5e0719f3c25f341d",
+   "signature": "0x308075be45ee627c1b676c769b21183a248843e05f26890faa2e4bb9a09406c305ad884e687d81c27cf9cfa306f2d8994c3169b3c26c1eea9c80e0f31aa0cd891c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":1342500090000,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"71321045679252212594626385532706912750332728571942532289631379312455583992563\",\"makerAmount\":\"1912650\",\"takerAmount\":\"15550000\",\"side\":\"BUY\",\"signatureType\":1,\"timestamp\":\"1790000120000\",\"expiration\":\"1790000480\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x308075be45ee627c1b676c769b21183a248843e05f26890faa2e4bb9a09406c305ad884e687d81c27cf9cfa306f2d8994c3169b3c26c1eea9c80e0f31aa0cd891c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000120,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "Ud8wh4eobZiJ0sI8NbWArlsRY20Yyw2r44WUWUfAWuw="
+   }
+  },
+  {
+   "name": "sell-negrisk-0.001",
+   "input": {
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "side": "SELL",
+    "price": 0.987,
+    "size": 7.777,
+    "tickSize": "0.001",
+    "negRisk": true,
+    "nowMs": 1790000180000,
+    "random": 0.125,
+    "expiration": 1790000540
+   },
+   "exchange": "0xe2222d279d744050d28e00520010520000310F59",
+   "order": {
+    "salt": "223750022500",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "makerAmount": "7770000",
+    "takerAmount": "7668990",
+    "side": "SELL",
+    "signatureType": 1,
+    "timestamp": "1790000180000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000540"
+   },
+   "domainSeparator": "0x9b858f53327b0bd13af8ec14cfb35234fb9eb7b0504d1a4e61f433840d30e81a",
+   "structHash": "0xda98bd88c6f85aba852bb6ba095b9521e69c10a740e84e2ef7ec060679c7e724",
+   "hash": "0xd79d45c0295d1978754e9a7ffd85c71bfeb6c0d4779954d6c0fbda00b13948c4",
+   "signature": "0x76e8c2725ea9e5fe240f439f422d5f30cf126608299d140dc94685067e0c1fb11fc1c04abf3794b1c515fec782256582dcfd8d9d5aec5208e073befdfd5de02d1b",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":223750022500,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"71321045679252212594626385532706912750332728571942532289631379312455583992563\",\"makerAmount\":\"7770000\",\"takerAmount\":\"7668990\",\"side\":\"SELL\",\"signatureType\":1,\"timestamp\":\"1790000180000\",\"expiration\":\"1790000540\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x76e8c2725ea9e5fe240f439f422d5f30cf126608299d140dc94685067e0c1fb11fc1c04abf3794b1c515fec782256582dcfd8d9d5aec5208e073befdfd5de02d1b\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000180,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "rFKCuc7ntabfPutHL0ZAJjaaryXuGbp3TEgMp706P0Q="
+   }
+  },
+  {
+   "name": "buy-standard-0.1",
+   "input": {
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 33.33,
+    "tickSize": "0.1",
+    "negRisk": false,
+    "nowMs": 1790000240000,
+    "random": 0.375,
+    "expiration": 1790000600
+   },
+   "exchange": "0xE111180000d2663C0091e4f400237545B87B996B",
+   "order": {
+    "salt": "671250090000",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "makerAmount": "9999000",
+    "takerAmount": "33330000",
+    "side": "BUY",
+    "signatureType": 1,
+    "timestamp": "1790000240000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000600"
+   },
+   "domainSeparator": "0x3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2",
+   "structHash": "0xbff7f0729b7993bb7623d63fad59ca83cdf788ea45dc3b1b26a89b756174686e",
+   "hash": "0x59d62d7111923b68b0f05d614babe8dcbf4967b417e79ccd0e0cdb0d7cb33b7d",
+   "signature": "0x5d48a44acd02040f6bd090ccd789007d05daf47d022578ee9a3b5141d50266a02fa605a36afdf5c3f05da3a7d897b56c091eb2f4370d7ded6eb3a61358aa99bf1c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":671250090000,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"107505882767731489358349912513945399560393482969656700824895970500493757150417\",\"makerAmount\":\"9999000\",\"takerAmount\":\"33330000\",\"side\":\"BUY\",\"signatureType\":1,\"timestamp\":\"1790000240000\",\"expiration\":\"1790000600\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x5d48a44acd02040f6bd090ccd789007d05daf47d022578ee9a3b5141d50266a02fa605a36afdf5c3f05da3a7d897b56c091eb2f4370d7ded6eb3a61358aa99bf1c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000240,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "JMM0Gm9Q2bu_en086piYRGZMxPaiiuniYlHoobgyuaA="
+   }
+  },
+  {
+   "name": "sell-negrisk-0.0001",
+   "input": {
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "side": "SELL",
+    "price": 0.0123,
+    "size": 100.5,
+    "tickSize": "0.0001",
+    "negRisk": true,
+    "nowMs": 1790000300000,
+    "random": 0.625,
+    "expiration": 1790000660
+   },
+   "exchange": "0xe2222d279d744050d28e00520010520000310F59",
+   "order": {
+    "salt": "1118750187500",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "makerAmount": "100500000",
+    "takerAmount": "1236150",
+    "side": "SELL",
+    "signatureType": 1,
+    "timestamp": "1790000300000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000660"
+   },
+   "domainSeparator": "0x9b858f53327b0bd13af8ec14cfb35234fb9eb7b0504d1a4e61f433840d30e81a",
+   "structHash": "0xd3babc1db77bbb6e79039790f145228b0957367d6751f88916199a4061ea4094",
+   "hash": "0x15da92ce7aa1ab879989bea1ab52f5fe04c8edc025fbef320df5a9f48173c243",
+   "signature": "0x36835f3c201a239f94643abe2585a4d7ec9383de3fed8dcf72cbffbbd79d37824f9489f9433bfa009d7bcfaabafe500bfb25782be0d370c1df61cd3bf78b4bbc1c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":1118750187500,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"71321045679252212594626385532706912750332728571942532289631379312455583992563\",\"makerAmount\":\"100500000\",\"takerAmount\":\"1236150\",\"side\":\"SELL\",\"signatureType\":1,\"timestamp\":\"1790000300000\",\"expiration\":\"1790000660\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0x36835f3c201a239f94643abe2585a4d7ec9383de3fed8dcf72cbffbbd79d37824f9489f9433bfa009d7bcfaabafe500bfb25782be0d370c1df61cd3bf78b4bbc1c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000300,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "fY8ASelCbWzzQfiOoTb0BhdtR0Zq19-fNIWbSO8SBOQ="
+   }
+  },
+  {
+   "name": "buy-standard-0.005",
+   "input": {
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "side": "BUY",
+    "price": 0.055,
+    "size": 9.99,
+    "tickSize": "0.005",
+    "negRisk": false,
+    "nowMs": 1790000360000,
+    "random": 0.875,
+    "expiration": 1790000720
+   },
+   "exchange": "0xE111180000d2663C0091e4f400237545B87B996B",
+   "order": {
+    "salt": "1566250315000",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "107505882767731489358349912513945399560393482969656700824895970500493757150417",
+    "makerAmount": "549450",
+    "takerAmount": "9990000",
+    "side": "BUY",
+    "signatureType": 1,
+    "timestamp": "1790000360000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000720"
+   },
+   "domainSeparator": "0x3264e159346253e26a64e00b69032db0e7d32f94628de3e6eecb50304d7af3d2",
+   "structHash": "0x655a91ec738606c7cf56f64708d93ac0cb9a4f2d98a86b3dc30fee81a6b11c7b",
+   "hash": "0x725480d5aeb63b14200cba2699be1bee971961fcfee064150e62acc1816e0541",
+   "signature": "0xc82919d8c8b22e11bc265b8c7c91aeee777d32c7a602d83eae84daeed3ceb377333a209b209df513bb1c03ee39027f8f70906f268662a6aa38129bc28c87d9db1b",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":1566250315000,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"107505882767731489358349912513945399560393482969656700824895970500493757150417\",\"makerAmount\":\"549450\",\"takerAmount\":\"9990000\",\"side\":\"BUY\",\"signatureType\":1,\"timestamp\":\"1790000360000\",\"expiration\":\"1790000720\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0xc82919d8c8b22e11bc265b8c7c91aeee777d32c7a602d83eae84daeed3ceb377333a209b209df513bb1c03ee39027f8f70906f268662a6aa38129bc28c87d9db1b\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000360,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "9ZVI2Qsq9o_shXX064FyzAzKX6nhHC9tQT_Tg4LzD7g="
+   }
+  },
+  {
+   "name": "buy-negrisk-0.0025",
+   "input": {
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "side": "BUY",
+    "price": 0.9975,
+    "size": 5,
+    "tickSize": "0.0025",
+    "negRisk": true,
+    "nowMs": 1790000420000,
+    "random": 0.0625,
+    "expiration": 1790000780
+   },
+   "exchange": "0xe2222d279d744050d28e00520010520000310F59",
+   "order": {
+    "salt": "111875026250",
+    "maker": "0x1111111111111111111111111111111111111111",
+    "signer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "tokenId": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+    "makerAmount": "4987500",
+    "takerAmount": "5000000",
+    "side": "BUY",
+    "signatureType": 1,
+    "timestamp": "1790000420000",
+    "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "builder": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiration": "1790000780"
+   },
+   "domainSeparator": "0x9b858f53327b0bd13af8ec14cfb35234fb9eb7b0504d1a4e61f433840d30e81a",
+   "structHash": "0x98138231a56714a54e39384582f631d5c658d7f9e0ad4a5645828e01d1f07d03",
+   "hash": "0xfd35c88a63fcb05d5f76d0bec426719d392da63aac51aea89dbf8f9d83cde157",
+   "signature": "0xaffafbb732e4813dac59c7ad91c359d117037b083b2b8ca5d3b8de767281b5a63ec60d0c2d6913a9a016a434ec488c0aa88f9e3f55b65653d83c811e6b9117301c",
+   "recovered": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "recoveredFromHash": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+   "body": "{\"deferExec\":false,\"postOnly\":true,\"order\":{\"salt\":111875026250,\"maker\":\"0x1111111111111111111111111111111111111111\",\"signer\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"tokenId\":\"71321045679252212594626385532706912750332728571942532289631379312455583992563\",\"makerAmount\":\"4987500\",\"takerAmount\":\"5000000\",\"side\":\"BUY\",\"signatureType\":1,\"timestamp\":\"1790000420000\",\"expiration\":\"1790000780\",\"metadata\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"builder\":\"0x0000000000000000000000000000000000000000000000000000000000000000\",\"signature\":\"0xaffafbb732e4813dac59c7ad91c359d117037b083b2b8ca5d3b8de767281b5a63ec60d0c2d6913a9a016a434ec488c0aa88f9e3f55b65653d83c811e6b9117301c\"},\"owner\":\"00000000-1111-4222-8333-444444444444\",\"orderType\":\"GTD\"}",
+   "l2": {
+    "timestamp": 1790000420,
+    "POLY_ADDRESS": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "POLY_SIGNATURE": "dsvH2k5OW8A9fwUurKRSlTa61xZnDxhj0Pdpw9ZQPR8="
+   }
+  }
+ ],
+ "cancels": [
+  {
+   "method": "DELETE",
+   "path": "/order",
+   "body": "{\"orderID\":\"0xc0aca33b704c2ecea5bf2ac6924dc5b33d3808ebf72b0769efc2559cf442e2ed\"}",
+   "timestamp": 1790000500,
+   "POLY_SIGNATURE": "l9j47-wvDnGwryqmtis6qmxXhYMvR1-LoTxYALKCxrE="
+  },
+  {
+   "method": "DELETE",
+   "path": "/cancel-all",
+   "body": null,
+   "timestamp": 1790000500,
+   "POLY_SIGNATURE": "3WnLD8a-4IQQNL-yn_c60lkzCtD3hNr-VASDpNlDiP0="
+  }
+ ],
+ "rounding": [
+  {
+   "side": "BUY",
+   "price": 0.52,
+   "size": 10,
+   "tickSize": "0.01",
+   "rawMakerAmt": 5.2,
+   "rawTakerAmt": 10,
+   "makerAmount": "5200000",
+   "takerAmount": "10000000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.52,
+   "size": 10,
+   "tickSize": "0.01",
+   "rawMakerAmt": 10,
+   "rawTakerAmt": 5.2,
+   "makerAmount": "10000000",
+   "takerAmount": "5200000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.1,
+   "size": 3,
+   "tickSize": "0.1",
+   "rawMakerAmt": 0.3,
+   "rawTakerAmt": 3,
+   "makerAmount": "300000",
+   "takerAmount": "3000000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.1,
+   "size": 3,
+   "tickSize": "0.1",
+   "rawMakerAmt": 3,
+   "rawTakerAmt": 0.3,
+   "makerAmount": "3000000",
+   "takerAmount": "300000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.07,
+   "size": 3,
+   "tickSize": "0.01",
+   "rawMakerAmt": 0.21,
+   "rawTakerAmt": 3,
+   "makerAmount": "210000",
+   "takerAmount": "3000000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.07,
+   "size": 3,
+   "tickSize": "0.01",
+   "rawMakerAmt": 3,
+   "rawTakerAmt": 0.21,
+   "makerAmount": "3000000",
+   "takerAmount": "210000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.57,
+   "size": 19.99,
+   "tickSize": "0.01",
+   "rawMakerAmt": 11.3943,
+   "rawTakerAmt": 19.99,
+   "makerAmount": "11394300",
+   "takerAmount": "19990000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.57,
+   "size": 19.99,
+   "tickSize": "0.01",
+   "rawMakerAmt": 19.99,
+   "rawTakerAmt": 11.3943,
+   "makerAmount": "19990000",
+   "takerAmount": "11394300"
+  },
+  {
+   "side": "BUY",
+   "price": 0.123,
+   "size": 15.555,
+   "tickSize": "0.001",
+   "rawMakerAmt": 1.91265,
+   "rawTakerAmt": 15.55,
+   "makerAmount": "1912650",
+   "takerAmount": "15550000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.987,
+   "size": 7.777,
+   "tickSize": "0.001",
+   "rawMakerAmt": 7.77,
+   "rawTakerAmt": 7.66899,
+   "makerAmount": "7770000",
+   "takerAmount": "7668990"
+  },
+  {
+   "side": "BUY",
+   "price": 0.0123,
+   "size": 333.333,
+   "tickSize": "0.0001",
+   "rawMakerAmt": 4.099959,
+   "rawTakerAmt": 333.33,
+   "makerAmount": "4099959",
+   "takerAmount": "333330000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.9999,
+   "size": 12.345,
+   "tickSize": "0.0001",
+   "rawMakerAmt": 12.34,
+   "rawTakerAmt": 12.338766,
+   "makerAmount": "12340000",
+   "takerAmount": "12338766"
+  },
+  {
+   "side": "BUY",
+   "price": 0.333,
+   "size": 3.33,
+   "tickSize": "0.001",
+   "rawMakerAmt": 1.10889,
+   "rawTakerAmt": 3.33,
+   "makerAmount": "1108890",
+   "takerAmount": "3330000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.055,
+   "size": 9.99,
+   "tickSize": "0.005",
+   "rawMakerAmt": 0.54945,
+   "rawTakerAmt": 9.99,
+   "makerAmount": "549450",
+   "takerAmount": "9990000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.995,
+   "size": 0.29,
+   "tickSize": "0.005",
+   "rawMakerAmt": 0.29,
+   "rawTakerAmt": 0.28855,
+   "makerAmount": "290000",
+   "takerAmount": "288550"
+  },
+  {
+   "side": "BUY",
+   "price": 0.9975,
+   "size": 5,
+   "tickSize": "0.0025",
+   "rawMakerAmt": 4.9875,
+   "rawTakerAmt": 5,
+   "makerAmount": "4987500",
+   "takerAmount": "5000000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.0025,
+   "size": 1234.56,
+   "tickSize": "0.0025",
+   "rawMakerAmt": 1234.56,
+   "rawTakerAmt": 3.0864,
+   "makerAmount": "1234560000",
+   "takerAmount": "3086400"
+  },
+  {
+   "side": "BUY",
+   "price": 0.523,
+   "size": 10,
+   "tickSize": "0.01",
+   "rawMakerAmt": 5.2,
+   "rawTakerAmt": 10,
+   "makerAmount": "5200000",
+   "takerAmount": "10000000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.29,
+   "size": 7.13,
+   "tickSize": "0.01",
+   "rawMakerAmt": 2.0677,
+   "rawTakerAmt": 7.13,
+   "makerAmount": "2067700",
+   "takerAmount": "7130000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.29,
+   "size": 7.13,
+   "tickSize": "0.01",
+   "rawMakerAmt": 7.13,
+   "rawTakerAmt": 2.0677,
+   "makerAmount": "7130000",
+   "takerAmount": "2067700"
+  },
+  {
+   "side": "BUY",
+   "price": 0.01,
+   "size": 100,
+   "tickSize": "0.01",
+   "rawMakerAmt": 1,
+   "rawTakerAmt": 100,
+   "makerAmount": "1000000",
+   "takerAmount": "100000000"
+  },
+  {
+   "side": "SELL",
+   "price": 0.99,
+   "size": 5.5,
+   "tickSize": "0.01",
+   "rawMakerAmt": 5.5,
+   "rawTakerAmt": 5.445,
+   "makerAmount": "5500000",
+   "takerAmount": "5445000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.47,
+   "size": 21.42,
+   "tickSize": "0.01",
+   "rawMakerAmt": 10.0674,
+   "rawTakerAmt": 21.42,
+   "makerAmount": "10067400",
+   "takerAmount": "21420000"
+  },
+  {
+   "side": "BUY",
+   "price": 0.6,
+   "size": 0.01,
+   "tickSize": "0.1",
+   "rawMakerAmt": 0.006,
+   "rawTakerAmt": 0.01,
+   "makerAmount": "6000",
+   "takerAmount": "10000"
+  }
+ ]
+}

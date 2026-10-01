@@ -88,12 +88,23 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      there. Options put to him: 0 as frozen (recommended; first order ~10-29 to 11-01) or 1, a recorded deviation that
      builds the rule-independent order path inert during RW-C (~5–7 days sooner). **He chose 1 on 2026-10-01** ("这个你现在
      就建好吧"): a recorded deviation of RW-NEXT's ordering ("before any live test or design") and of this item's "design,
-     not build", on his word. **Being built (2026-10-01):** the rule-independent path in new modules (EIP-712 V2 orders
-     pinned against the official client's vectors, the order client behind an off switch in code, a pending row before
-     every POST, reconciliation by order hash, the region, geoblock, closed-only and Ireland gates, caps, kill switches),
-     dry-run every minute in `eu-west-1` only on markets outside RW's universe (reward rate under $10 a day), loading no
-     private key and reading nothing of `pm_rw*` or `pm_rwc_*`. Nothing is sent; a first live order still needs RW-C's
-     pass, his word on the live design, a reviewed commit that turns sends on, and the pre-study's other preconditions.
+     not build", on his word. **Built and running inert since 2026-10-01** (`reviews/2026-10-01-polymarket-order-path.md`,
+     `0074`, `_shared/polymarket_orders.ts`, `agents/pm_live.ts`): V2 orders pinned byte for byte to eight the official
+     client built (`backtests/pmlive/vectors/`, regenerated identical by the coordinator), a wire that sends nothing but
+     a GET while `PM_ORDER_SENDS_ENABLED` is false and no POST outside eu-west-1, no private key loaded, a pending row
+     before every POST, reconciliation by order hash, the gates (pause, `live_confirmed_at`, region, the geoblock's
+     COUNTRY — from eu-west-1 it says `blocked: true`, country IE, §6 —, closed-only, the attestation, inventory, loss
+     stops), caps $300 / $60 a market in code and in CHECKs. `agents?action=pmlive&forceFunctionRegion=eu-west-1` is one
+     new row of `edge-calls-every-minute`, every other row unchanged (pinned in `src/cron_jobs.test.js`). It dry-runs
+     every minute on two markets a UTC day with a reward rate under $10 (the database refuses $10 and over), with a
+     placeholder rule (join the touch at the minimum size). A first live order still needs RW-C's pass, his word on the
+     live design, a reviewed commit that turns sends on and loads the key, and the pre-study's other preconditions.
+     **Check the first day** (read-only, its own tables only): `select state->>'sbRegion', state->>'mode',
+     state->>'openBlockedBy', updated_at, last_error from public.pm_live_state;` — `sbRegion` eu-west-1 and no error;
+     `select day, kind, cond, reward_rate, rank, detail->'note' from public.pm_live_markets order by day desc;` — two
+     markets, the selection's `ms` under 40 s; `select ts, mode, side, price, size, state, gate from public.pm_live_orders
+     order by id desc limit 20;` — dry-run rows only. A selection that never completes inside 40 s leaves the dry-run
+     idle: then read the listing faster or less of it.
 
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
@@ -483,6 +494,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket's order path is built and runs inert** (item 2; `reviews/2026-10-01-polymarket-order-path.md`; Davies' Option 1, a recorded deviation of RW-NEXT's ordering, not of any frozen test). One agent built it in a worktree; the coordinating session reviewed it before landing: the 67 new Deno tests pass; four counterfactuals of its own (the send switch on, the region check removed, the $10 reward filter removed, the executor reading `pm_rwc_minutes`) each fail them, and the restored tree passes; `npm ci --ignore-scripts` of the vectors' lockfile and `node gen_vectors.mjs` reproduce `vectors.json` byte for byte from `@polymarket/clob-client-v2` 1.2.0; 0074's cron statement differs from 0072's by exactly the new row; the route answers the cron bearer only and passes no signer; `loadPmLiveEnv` never reads `POLYMARKET_PRIVATE_KEY`. The agent's own 43 counterfactuals are in the design doc (42 fail a pin; the one that cannot, L2 headers to a non-CLOB host, is unreachable because every L2 route is on the CLOB, and its route list is pinned). The geoblock gate reads the country, not `blocked`, because Ireland reads `blocked: true` from eu-west-1. Choices recorded there: a 6,000-POST governor, holdings not explained by fills counted at $1 a share, 425/429 re-sent as a new order, a 5xx left pending. The two DAT CSVs re-staged with no content change (an index stat left from their CRLF copies).
 
 ### [2026-10-01 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

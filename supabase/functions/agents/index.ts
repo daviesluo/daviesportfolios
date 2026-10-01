@@ -28,6 +28,13 @@
 //                             the order it would send; with it, it sends
 //                             only when the executor is live and armed.
 //                             Operator only; never the minute loop's.
+//   POST ?action=pmlive     — Polymarket's order path (pm_live.ts, 0074), built
+//                             INERT: a dry-run every minute from eu-west-1
+//                             that records SB_REGION, every gate and the
+//                             orders it would send, on two markets a day
+//                             outside RW's universe. No POST or DELETE can
+//                             leave (`PM_ORDER_SENDS_ENABLED` is false) and
+//                             no private key is loaded. Cron bearer only.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -82,7 +89,9 @@
 // (the Ed25519 private key in any pasted shape), KRAKEN_PRO_API_KEY +
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
 // / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`, and the
-// POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe only) and
+// POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe; the order
+// path's dry-run reads the L2 credentials and the two addresses, never
+// POLYMARKET_PRIVATE_KEY: `_shared/polymarket_orders.ts`) and
 // YOUTUBE_API_KEY (`youtube.ts`, public view counts; sent in a header). None is
 // ever echoed: the probe reports the FORM of a private key, not a byte of
 // it, and every upstream error is truncated. Market data needs no key on
@@ -99,6 +108,8 @@ import {
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
+import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
+import { PM_LIVE_TIMEOUT_MS, runPmLive } from "./pm_live.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -329,6 +340,34 @@ async function quotesLiveDeps(): Promise<QuoteLiveDeps> {
     db: db(), now: Date.now(), holder: crypto.randomUUID(), uuid: () => crypto.randomUUID(),
     account: "error" in rx2 ? null : revxVenue(rx2.env), accountNote: "error" in rx2 ? rx2.error : null,
   };
+}
+
+/**
+ * Polymarket's order path, one minute (`pm_live.ts`, 0074): a dry-run in this build. It reads the L2 credentials and the
+ * two addresses (an order's hash needs the maker and the signer, and no key) and never POLYMARKET_PRIVATE_KEY, so no
+ * signer is passed; `PM_ORDER_SENDS_ENABLED` is false, so its client could send nothing but a GET anyway. Every fetch
+ * times out after 5 s. It never throws past here: a failure is a report, and the turn's errors go to `ops_errors`.
+ */
+export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch; read?: (n: string) => string | undefined; now?: number } = {}) {
+  try {
+    const env = loadPmLiveEnv(deps.read);
+    const report = await runPmLive({
+      db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(),
+      venue: pmVenue({ fetchImpl: deps.fetchImpl, creds: env.creds, address: env.signer, sigType: env.sigType ?? 1, scrub: (s) => env.scrub(s), timeoutMs: PM_LIVE_TIMEOUT_MS }),
+      sbRegion: (deps.read ?? ((n: string) => Deno.env.get(n)))("SB_REGION") ?? null,
+      sendsEnabled: PM_ORDER_SENDS_ENABLED,
+      account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
+      signer: null,
+    });
+    if (env.check.problems.length) report.errors.push(`secrets: ${env.check.problems.join("; ")}`);
+    const clean = env.scrub(report);
+    if (clean.errors.length) await reportServerError("agents.pm_live", tickErrorReport(clean));
+    return clean;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.pm_live", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
 }
 
 export async function runTick(now = Date.now()) {
@@ -1482,6 +1521,8 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       return json(200, await researchRwx(db(), parseRwxSpecs(body), Number.isFinite(until) ? until : undefined));
     }
     if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
+    // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
+    if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
     // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
     if (action === "views" && req.method === "POST" && operator) {
       const key = youtubeKey();

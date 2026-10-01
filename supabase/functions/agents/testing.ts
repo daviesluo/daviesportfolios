@@ -8,6 +8,7 @@
 // `fee_usd NOT NULL` exactly as a bad insert is.
 import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
 import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
+import { cancelOrderBody, exchangeFor, orderHash, postOrderBody, recoverSigner, type PmReply, type PmVenue } from "../_shared/polymarket_orders.ts";
 import { jevBandCheck } from "./jev_bands.ts";
 
 export type Row = Record<string, unknown>;
@@ -127,6 +128,35 @@ const VIEWS_TABLES: Record<string, { columns: string[]; key: string; defaults: R
   pm_view_books: { columns: ["token", "ts", "bids", "asks", "seen_until", "reads"], key: "token,ts", defaults: { reads: 1 } },
   yt_quota: { columns: ["day", "units"], key: "day", defaults: { units: 0 } },
 };
+/**
+ * The Polymarket order path's tables as 0074 creates them: their columns, and the unique key each upsert names (the
+ * orders table is only inserted and updated). The orders table's unique indexes and the fills' foreign key are enforced
+ * in `memDb` below.
+ */
+const PM_LIVE_SCHEMA: Record<string, { columns: string[]; key: string | null }> = {
+  pm_live_config: {
+    columns: ["id", "dry_run", "live_confirmed_at", "ireland_attested_at", "ireland_until", "cap_total_usd", "cap_market_usd", "loss_day_usd",
+      "loss_total_usd", "max_posts_day", "gtd_lifetime_s", "updated_at"],
+    key: "id",
+  },
+  pm_live_markets: {
+    columns: ["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "reward_rate", "rank", "question", "detail", "selected_at"],
+    key: "day,kind",
+  },
+  pm_live_orders: {
+    columns: ["id", "ts", "mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash",
+      "state", "size_matched", "gate", "reason", "book_seen", "request", "response", "cancel_requested_at", "cancel_gate", "cancel_reason",
+      "filled_at", "cancelled_at", "updated_at"],
+    key: null,
+  },
+  pm_live_fills: {
+    columns: ["trade_id", "hash", "cond", "token", "side", "price", "size", "status", "match_time", "tx_hash", "detail", "updated_at"],
+    key: "trade_id,hash",
+  },
+  pm_live_events: { columns: ["mode", "minute", "kind", "detail"], key: "mode,minute,kind" },
+  pm_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
+};
+const PM_LIVE_OPEN = ["pending", "live"];
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -322,6 +352,62 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? (((r.leg === "convert") === (r.rung_side == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
       ?? (((r.rung_side == null) === (r.k == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
   }
+  if (table in PM_LIVE_SCHEMA) {
+    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[table].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
+    const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
+    const MODES = ["dry_run", "live"];
+    if (table === "pm_live_config") {
+      const within = (c: string, lo: number, hi: number, loOpen = true) => ok(c, (v) => (loOpen ? Number(v) > lo : Number(v) >= lo) && Number(v) <= hi);
+      return check("id", r.id === 1)
+        ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", "loss_day_usd", "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
+        ?? check("cap_total_usd", within("cap_total_usd", 0, 300)) ?? check("cap_market_usd", within("cap_market_usd", 0, 60))
+        ?? check("loss_day_usd", within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
+        ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
+        ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
+    }
+    if (table === "pm_live_markets") {
+      return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank"])
+        ?? check("kind", ["standard", "neg_risk"].includes(String(r.kind))) ?? check("tick", Number(r.tick) > 0) ?? check("min_size", Number(r.min_size) > 0)
+        ?? check("reward_rate", ok("reward_rate", (v) => Number(v) >= 0 && Number(v) < 10)) ?? check("rank", Number(r.rank) > 0)
+        ?? ((r.kind === "neg_risk") === (r.neg_risk === true) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
+    }
+    if (table === "pm_live_orders") {
+      return notNull(["mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash", "state", "size_matched", "gate"])
+        ?? check("mode", MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
+        ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
+        ?? check("size", Number(r.size) > 0) ?? check("order_type", r.order_type === "GTD") ?? check("post_only", r.post_only === true)
+        ?? check("expiration", Number(r.expiration) > 0) ?? check("hash", /^0x[0-9a-f]{64}$/.test(String(r.hash)))
+        ?? check("state", ["pending", "live", "filled", "cancelled", "expired", "rejected"].includes(String(r.state)))
+        ?? check("size_matched", Number(r.size_matched) >= 0) ?? check("gate", ["open", "reduce"].includes(String(r.gate)));
+    }
+    if (table === "pm_live_fills") {
+      return notNull(["trade_id", "hash", "cond", "token", "side", "price", "size", "status"])
+        ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
+        ?? check("size", Number(r.size) > 0) ?? check("status", ["MATCHED", "MINED", "CONFIRMED", "RETRYING", "FAILED"].includes(String(r.status)));
+    }
+    if (table === "pm_live_events") {
+      return notNull(["mode", "minute", "kind", "detail"]) ?? check("mode", MODES.includes(String(r.mode)))
+        ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert"].includes(String(r.kind)));
+    }
+    return check("id", r.id === 1) ?? notNull(["state"]);
+  }
+  return null;
+}
+
+/**
+ * 0074's unique constraints on `pm_live_orders`, as Postgres applies them to the row as stored (on INSERT and UPDATE):
+ * `hash text not null unique`, and never two OPEN rows (pending or live) on one market, token and side of one mode —
+ * the partial index `pm_live_orders_one_open_per_slot`.
+ */
+function pmLiveOrderConflict(rows: Row[], r: Row, self: Row | null): string | null {
+  const others = rows.filter((x) => x !== self);
+  if (others.some((x) => x.hash === r.hash)) return "409: duplicate key value violates unique constraint \"pm_live_orders_hash_key\"";
+  const open = (x: Row) => PM_LIVE_OPEN.includes(String(x.state));
+  if (open(r) && others.some((x) => open(x) && x.mode === r.mode && x.cond === r.cond && x.token === r.token && x.side === r.side)) {
+    return "409: duplicate key value violates unique constraint \"pm_live_orders_one_open_per_slot\"";
+  }
   return null;
 }
 
@@ -359,6 +445,12 @@ function withDefaults(table: string, r: Row): Row {
     return {
       rung_side: null, k: null, venue_order_id: null, state: "pending", filled_base: 0, avg_fill_price: null, fee_gbp: 0, paper_oid: null, paper_live: null,
       fair: null, request: null, response: null, book_seen: null, cancel_requested_at: null, cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
+    };
+  }
+  if (table === "pm_live_orders") {
+    return {
+      state: "pending", size_matched: 0, reason: null, book_seen: null, request: null, response: null, cancel_requested_at: null, cancel_gate: null,
+      cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
     };
   }
   return r;
@@ -460,6 +552,17 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
           seen.push(r);
         }
       }
+      if (table === "pm_live_orders") {
+        const seen: Row[] = [...(tables[table] ?? [])];
+        for (const r of list) {
+          const why = pmLiveOrderConflict(seen, r, null);
+          if (why) return Promise.reject(new Error(`db POST ${table} → ${why}`));
+          seen.push(r);
+        }
+      }
+      if (table === "pm_live_fills") {
+        for (const r of list) if (!(tables.pm_live_orders ?? []).some((o) => o.hash === r.hash)) return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "pm_live_fills" violates foreign key constraint "pm_live_fills_hash_fkey"`));
+      }
       const out = list.map((r) => ({ id: nextId++, ts: new Date(opts.now()).toISOString(), ...r }));
       (tables[table] ??= []).push(...out);
       // deno-lint-ignore no-explicit-any
@@ -472,7 +575,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
-        || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)) {
+        || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)
+        || (table in PM_LIVE_SCHEMA && onConflict !== PM_LIVE_SCHEMA[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -482,9 +586,13 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // Postgres checks NOT NULL on the row an upsert PROPOSES, before it looks for the conflict: an ON CONFLICT
         // update that leaves out a not-null column is refused even when the row exists. The paper RW tables are held
         // to that (their decisions are written as upserts onto rows recorded a minute earlier).
-        // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in.
-        const why = schemaRefusal(table, table in PMRW_TABLES ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
+        // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in. The order path's
+        // (0074) too: every upsert it makes proposes whole rows.
+        const why = schemaRefusal(table, table in PMRW_TABLES || table in PM_LIVE_SCHEMA ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
+        if (table === "pm_live_fills" && !(tables.pm_live_orders ?? []).some((o) => o.hash === r.hash)) {
+          return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "pm_live_fills" violates foreign key constraint "pm_live_fills_hash_fkey"`));
+        }
       }
       for (const r of list) {
         const i = t.findIndex((x) => keys.every((k) => String(x[k]) === String(r[k])));
@@ -503,6 +611,10 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
         if (table === "agent_quote_live_orders") {
           const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r);
+          if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
+        }
+        if (table === "pm_live_orders") {
+          const clash = pmLiveOrderConflict(tables[table], { ...r, ...wire }, r);
           if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
         }
       }
@@ -529,6 +641,335 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
     },
   };
   return { db, tables };
+}
+
+/**
+ * The same database, for a module that may touch only its own tables: any call that names another table throws
+ * before it reaches the rows, so a stray read of RW's or RW-C's tables fails the test that made it. `agent_locks` is
+ * further held to the module's own lease row, and `agent_risk` to reads.
+ */
+export function onlyTables(db: Db, allowed: readonly string[], opts: { lease?: string; readOnly?: readonly string[] } = {}): Db & { touched: Set<string> } {
+  const touched = new Set<string>();
+  const guard = (method: string, table: string, query = "") => {
+    if (!allowed.includes(table)) throw new Error(`stub db: this module may not touch ${table} (${method})`);
+    if (table === "agent_locks" && opts.lease && !query.includes(`name=eq.${opts.lease}`)) throw new Error(`stub db: agent_locks only through its own lease row ${opts.lease}`);
+    if (opts.readOnly?.includes(table) && method !== "select") throw new Error(`stub db: ${table} is read-only for this module (${method})`);
+    touched.add(table);
+  };
+  return {
+    touched,
+    select: (t, q) => { guard("select", t, q); return db.select(t, q); },
+    selectAll: (t, q) => { guard("select", t, q); return db.selectAll(t, q); },
+    insert: (t, r, x) => { guard("insert", t); return db.insert(t, r, x); },
+    upsert: (t, r, k) => { guard("upsert", t); return db.upsert(t, r, k); },
+    update: (t, q, p) => { guard("update", t, q); return db.update(t, q, p); },
+    claim: (t, q, p) => { guard("claim", t, q); return db.claim(t, q, p); },
+  };
+}
+
+// ── a fake Polymarket, as strict as the CLOB the order path will meet ─────────────────────────────────
+
+/** The published test key the official clients' own tests use (Hardhat's #0), its address, and a stand-in proxy wallet. */
+export const PM_TEST_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+export const PM_TEST_SIGNER = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+export const PM_TEST_FUNDER = "0x1111111111111111111111111111111111111111";
+/** A made-up API key id: what the fake expects as a POST body's `owner`. */
+export const PM_TEST_OWNER = "00000000-1111-4222-8333-444444444444";
+
+/** A market as the fake lists it: its touch, its tick and minimum, and its daily reward rate in each listing (null: not listed there). */
+type FakePmMarket = {
+  cond: string; yes: string; no: string; bid: number; ask: number; tick: string; minSize: number; negRisk: boolean; rate: number | null; sponsoredRate: number | null;
+  accepting: boolean;
+};
+type FakePmOrder = {
+  hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; matched: number; status: string; expiration: number;
+  orderType: string; trades: string[]; cond: string;
+};
+type FakePmTrade = { id: string; hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; status: string; at: number };
+type Answer = { status: number; body: unknown; retryAfter?: number };
+
+/**
+ * Polymarket's CLOB, Gamma and geoblock as the order path meets them, answering in the documented shapes (reference
+ * §2d; docs.polymarket.com read 2026-10-01). As strict as the venue, and stricter where the venue's word is unknown:
+ *   * POST /order refuses a price off the market's tick ("breaks minimum tick size rule"), a size under its minimum in
+ *     shares, a GTD expiration under three minutes ahead ("invalid expiration"), a signature that does not recover to
+ *     the API key's address over the right exchange's domain, a signer other than the key's ("the order signer address
+ *     has to be the address of the API KEY"), a maker other than its proxy wallet ("the order owner has to be the owner
+ *     of the API KEY"), an owner other than the key, a post-only order that would take ("invalid post-only order: order
+ *     crosses book"), an order the account cannot fund or hold ("not enough balance / allowance"), any buy while the
+ *     account is in closed-only mode, an order from a country the geoblock blocks (a buy from a close-only one; the
+ *     venue's wording is not documented, so this one is the double's), and a hash it has already seen ("Duplicated.").
+ *   * It answers 425 while `restart` is set, and can take an order and lose the reply, or lose a cancel.
+ *   * A taker fills a resting order only through `fill`, which writes a MATCHED trade; `settle` makes it final.
+ *   * An order past its expiration less a minute reads back CANCELED (the docs do not say what an expired GTD order reads
+ *     as: this is the double's assumption, and the path never relies on it, because it replaces an order before then).
+ */
+export class FakePolymarket {
+  calls: string[] = [];
+  /** Every request body it received, as sent. */
+  bodies: string[] = [];
+  geo: { blocked: boolean; country: string; region: string; ip: string } = { blocked: true, country: "IE", region: "L", ip: "203.0.113.7" };
+  closedOnlyFlag = false;
+  pusd = 1000;
+  tokens = new Map<string, number>();
+  markets: FakePmMarket[] = [];
+  /** Gamma's order (by 24-hour volume): conditions, busiest first. */
+  gammaOrder: string[] = [];
+  orders = new Map<string, FakePmOrder>();
+  trades = new Map<string, FakePmTrade>();
+  restart = false;
+  postMode: "ok" | "lose-reply" | "500-after-accept" | "500" | "429" | "503" = "ok";
+  cancelMode: "ok" | "lost" | "throw" = "ok";
+  orderReadDown = false;
+  down: Partial<Record<"geoblock" | "closedOnly" | "balance" | "book" | "rewards" | "gamma", boolean>> = {};
+  /** The OpenAPI's spelling of a trade status (TRADE_STATUS_…) instead of the clients' (CONFIRMED …). */
+  tradeStatusPrefix = "";
+  private seq = 1;
+  constructor(public now: () => number) {}
+
+  addMarket(m: Partial<FakePmMarket> & { cond: string; yes: string; no: string }): FakePmMarket {
+    const full: FakePmMarket = { bid: 0.45, ask: 0.47, tick: "0.01", minSize: 5, negRisk: false, rate: null, accepting: true, ...m, sponsoredRate: m.sponsoredRate === undefined ? (m.rate == null ? null : m.rate / 2) : m.sponsoredRate };
+    this.markets.push(full);
+    this.gammaOrder.push(full.cond);
+    return full;
+  }
+  private marketOf(token: string): { m: FakePmMarket; outcome: "yes" | "no" } | null {
+    for (const m of this.markets) {
+      if (m.yes === token) return { m, outcome: "yes" };
+      if (m.no === token) return { m, outcome: "no" };
+    }
+    return null;
+  }
+  /** A token's touch: the NO book is the YES book's mirror. */
+  touch(token: string): { bid: number; ask: number } | null {
+    const x = this.marketOf(token);
+    if (!x) return null;
+    return x.outcome === "yes" ? { bid: x.m.bid, ask: x.m.ask } : { bid: Number((1 - x.m.ask).toFixed(6)), ask: Number((1 - x.m.bid).toFixed(6)) };
+  }
+  private expireDue() {
+    const nowS = Math.floor(this.now() / 1000);
+    for (const o of this.orders.values()) if (o.status === "LIVE" && o.orderType === "GTD" && nowS >= o.expiration - 60) o.status = "CANCELED";
+  }
+  private reserved(kind: "pusd" | string): number {
+    let n = 0;
+    for (const o of this.orders.values()) {
+      if (o.status !== "LIVE") continue;
+      const left = o.size - o.matched;
+      if (kind === "pusd" && o.side === "BUY") n += left * o.price;
+      if (kind !== "pusd" && o.side === "SELL" && o.token === kind) n += left;
+    }
+    return n;
+  }
+  private orderView(o: FakePmOrder) {
+    return {
+      id: o.hash, status: o.status, market: o.cond, asset_id: o.token, side: o.side, original_size: String(o.size), size_matched: String(o.matched),
+      price: String(o.price), expiration: String(o.expiration), order_type: o.orderType, associate_trades: [...o.trades], created_at: Math.floor(this.now() / 1000),
+    };
+  }
+
+  /** Every request, as the venue would see it. `body` is the exact string a POST or DELETE carries. */
+  answer(method: string, url: URL, body: string | undefined): Answer {
+    const path = `${url.host}${url.pathname}`;
+    this.calls.push(`${method} ${path}`);
+    if (body !== undefined) this.bodies.push(body);
+    this.expireDue();
+    const q = url.searchParams;
+    const err = (status: number, error: string, retryAfter?: number): Answer => ({ status, body: { error }, retryAfter });
+    if (method === "GET" && path === "polymarket.com/api/geoblock") return this.down.geoblock ? err(503, "down") : { status: 200, body: { ...this.geo } };
+    if (method === "GET" && path === "clob.polymarket.com/book") {
+      if (this.down.book) return err(503, "down");
+      const t = this.touch(q.get("token_id") ?? ""), x = this.marketOf(q.get("token_id") ?? "");
+      if (!t || !x) return err(404, "No orderbook exists for the requested token id");
+      // Bids low to high and asks high to low, as measured (reference §2d), with a deeper level behind each touch.
+      const step = Number(x.m.tick);
+      return {
+        status: 200,
+        body: {
+          market: x.m.cond, asset_id: q.get("token_id"), timestamp: String(this.now()), hash: `h${this.seq++}`, tick_size: x.m.tick, min_order_size: String(x.m.minSize), neg_risk: x.m.negRisk,
+          bids: [{ price: (t.bid - step).toFixed(4), size: "100" }, { price: String(t.bid), size: "50" }],
+          asks: [{ price: (t.ask + step).toFixed(4), size: "100" }, { price: String(t.ask), size: "50" }],
+        },
+      };
+    }
+    if (method === "GET" && path === "clob.polymarket.com/rewards/markets/current") {
+      if (this.down.rewards) return err(500, "Internal server error");
+      // Two markets a page, so a reader that stops at the first page misses some. Each listing (native, sponsored) has its
+      // own rate for a market, or none: a market can be listed in one only.
+      const sponsored = q.get("sponsored") === "true";
+      const rows = this.markets.filter((m) => (sponsored ? m.sponsoredRate : m.rate) != null)
+        .map((m) => ({ condition_id: m.cond, total_daily_rate: sponsored ? m.sponsoredRate : m.rate, rewards_max_spread: 4.5, rewards_min_size: m.minSize }));
+      const at = Number(q.get("next_cursor") ? atob(q.get("next_cursor")!) : 0);
+      const page = rows.slice(at, at + 2);
+      return { status: 200, body: { limit: 2, count: page.length, data: page, next_cursor: at + 2 < rows.length ? btoa(String(at + 2)) : "LTE=" } };
+    }
+    if (method === "GET" && path === "gamma-api.polymarket.com/markets/keyset") {
+      if (this.down.gamma) return err(503, "down");
+      if (q.get("closed") !== "false" || q.get("order") !== "volume24hr" || q.get("ascending") !== "false") return err(422, "the order path asks for open markets by 24-hour volume");
+      const at = Number(q.get("after_cursor") ? atob(q.get("after_cursor")!) : 0);
+      const conds = this.gammaOrder.slice(at, at + 3);
+      const markets = conds.map((c) => this.markets.find((m) => m.cond === c)!).map((m) => ({
+        conditionId: m.cond, question: `Q ${m.cond.slice(2, 8)}`, clobTokenIds: JSON.stringify([m.yes, m.no]), outcomes: '["Yes","No"]',
+        enableOrderBook: true, acceptingOrders: m.accepting, closed: false, negRisk: m.negRisk,
+      }));
+      return { status: 200, body: { markets, next_cursor: at + 3 < this.gammaOrder.length ? btoa(String(at + 3)) : undefined } };
+    }
+    if (method === "GET" && path === "clob.polymarket.com/auth/ban-status/closed-only") return this.down.closedOnly ? err(500, "Internal server error") : { status: 200, body: { closed_only: this.closedOnlyFlag } };
+    if (method === "GET" && path === "clob.polymarket.com/balance-allowance") {
+      if (this.down.balance) return err(500, "Internal server error");
+      if (q.get("asset_type") !== "CONDITIONAL" || q.get("signature_type") !== "1") return err(400, "Invalid asset type");
+      const shares = this.tokens.get(q.get("token_id") ?? "") ?? 0;
+      return { status: 200, body: { balance: String(Math.round(shares * 1e6)), allowances: {} } };
+    }
+    if (method === "GET" && path.startsWith("clob.polymarket.com/data/order/")) {
+      if (this.orderReadDown) return err(500, "Internal server error");
+      const o = this.orders.get(path.split("/").at(-1)!);
+      return o ? { status: 200, body: this.orderView(o) } : err(404, "Order not found");
+    }
+    if (method === "GET" && path === "clob.polymarket.com/data/trades") {
+      const t = this.trades.get(q.get("id") ?? "");
+      const data = t ? [{
+        id: t.id, taker_order_id: `0x${"ee".repeat(32)}`, market: this.orders.get(t.hash)?.cond, asset_id: t.token, side: t.side === "BUY" ? "SELL" : "BUY",
+        size: String(t.size), price: String(t.price), status: `${this.tradeStatusPrefix}${t.status}`, match_time: String(Math.floor(t.at / 1000)),
+        transaction_hash: t.status === "CONFIRMED" ? `0x${"ab".repeat(32)}` : undefined, trader_side: "TAKER",
+        maker_orders: [{ order_id: t.hash, matched_amount: String(t.size), price: String(t.price), asset_id: t.token, side: t.side }],
+      }] : [];
+      return { status: 200, body: { limit: 100, count: data.length, next_cursor: "LTE=", data } };
+    }
+    if (method === "POST" && path === "clob.polymarket.com/order") return this.post(body ?? "");
+    if (method === "DELETE" && path === "clob.polymarket.com/order") {
+      const id = String((JSON.parse(body ?? "{}") as { orderID?: string }).orderID ?? "");
+      const o = this.orders.get(id);
+      if (!o || o.status !== "LIVE") return { status: 200, body: { canceled: [], not_canceled: { [id]: o ? "order already matched" : "Order not found or already canceled" } } };
+      if (this.cancelMode !== "lost") o.status = "CANCELED";
+      return { status: 200, body: { canceled: [id], not_canceled: {} } };
+    }
+    if (method === "DELETE" && path === "clob.polymarket.com/cancel-all") {
+      const canceled: string[] = [];
+      for (const o of this.orders.values()) if (o.status === "LIVE") { o.status = "CANCELED"; canceled.push(o.hash); }
+      return { status: 200, body: { canceled, not_canceled: {} } };
+    }
+    return err(404, `fake polymarket: no route ${method} ${path}`);
+  }
+
+  private post(raw: string): Answer {
+    if (this.restart) return { status: 425, body: { error: "the matching engine is restarting" }, retryAfter: 1 };
+    if (this.postMode === "429") return { status: 429, body: { error: "Too Many Requests" } };
+    if (this.postMode === "503") return { status: 503, body: { error: "Trading is currently disabled. Check polymarket.com for updates" } };
+    if (this.postMode === "500") return { status: 500, body: { error: "order timed out" } };
+    let b: { order?: Record<string, unknown>; owner?: string; orderType?: string; postOnly?: boolean; deferExec?: boolean };
+    try { b = JSON.parse(raw); } catch { return { status: 400, body: { error: "Invalid order payload" } }; }
+    const o = b.order ?? {};
+    const bad = (error: string): Answer => ({ status: 400, body: { error } });
+    if (b.owner !== PM_TEST_OWNER) return bad("the order owner has to be the owner of the API KEY");
+    if (b.orderType !== "GTD" && b.orderType !== "GTC") return bad("Invalid order payload");
+    if (typeof o.salt !== "number" || !Number.isSafeInteger(o.salt) || typeof o.signature !== "string") return bad("Invalid order payload");
+    if (o.signatureType !== 1) return bad("Invalid order payload");
+    if (String(o.signer).toLowerCase() !== PM_TEST_SIGNER.toLowerCase()) return bad("the order signer address has to be the address of the API KEY");
+    if (String(o.maker).toLowerCase() !== PM_TEST_FUNDER.toLowerCase()) return bad("the order owner has to be the owner of the API KEY");
+    const token = String(o.tokenId), x = this.marketOf(token);
+    if (!x) return bad("Invalid order payload");
+    const struct = {
+      salt: String(o.salt), maker: String(o.maker), signer: String(o.signer), tokenId: token, makerAmount: String(o.makerAmount), takerAmount: String(o.takerAmount),
+      side: o.side as "BUY" | "SELL", signatureType: 1, timestamp: String(o.timestamp), metadata: String(o.metadata), builder: String(o.builder),
+    };
+    let hash: string;
+    try { hash = orderHash(struct, exchangeFor(x.m.negRisk)); } catch { return bad("Invalid order payload"); }
+    if (recoverSigner(hash, o.signature) !== PM_TEST_SIGNER) return bad("invalid signature");
+    if (this.orders.has(hash)) return bad(`order ${hash} is invalid. Duplicated.`);
+    const nowS = Math.floor(this.now() / 1000), exp = Number(o.expiration);
+    if (b.orderType === "GTD" ? !(exp >= nowS + 180) : exp !== 0) return bad("invalid expiration");
+    const maker = Number(o.makerAmount), taker = Number(o.takerAmount);
+    const side = struct.side;
+    const price = side === "BUY" ? maker / taker : taker / maker, size = (side === "BUY" ? taker : maker) / 1e6;
+    const tick = Number(x.m.tick);
+    if (!(Math.abs(price / tick - Math.round(price / tick)) < 1e-6) || price < tick - 1e-12 || price > 1 - tick + 1e-12) {
+      return bad(`order ${hash} is invalid. Price (${price}) breaks minimum tick size rule: ${x.m.tick}`);
+    }
+    if (size < x.m.minSize) return bad(`order ${hash} is invalid. Size (${size}) lower than the minimum: ${x.m.minSize}`);
+    const ofac = ["IR", "SY", "CU", "KP"].includes(this.geo.country);
+    if (ofac || (side === "BUY" && this.geo.country !== "IE")) return { status: 403, body: { error: `trading restricted in ${this.geo.country}` } };
+    if (this.closedOnlyFlag && (side === "BUY" || size > (this.tokens.get(token) ?? 0) - this.reserved(token) + 1e-9)) return bad(`'${PM_TEST_FUNDER}' address in closed only mode`);
+    const t = this.touch(token)!;
+    if (b.postOnly && (side === "BUY" ? price >= t.ask - 1e-9 : price <= t.bid + 1e-9)) return bad("invalid post-only order: order crosses book");
+    if (side === "BUY" ? this.pusd - this.reserved("pusd") + 1e-9 < price * size : (this.tokens.get(token) ?? 0) - this.reserved(token) + 1e-9 < size) {
+      return bad("not enough balance / allowance");
+    }
+    this.orders.set(hash, { hash, token, side, price, size, matched: 0, status: "LIVE", expiration: exp, orderType: String(b.orderType), trades: [], cond: x.m.cond });
+    if (this.postMode === "lose-reply") return { status: -1, body: null };
+    if (this.postMode === "500-after-accept") return { status: 500, body: { error: "Internal server error" } };
+    return { status: 200, body: { success: true, errorMsg: "", orderID: hash, status: "live", makingAmount: String(o.makerAmount), takingAmount: String(o.takerAmount) } };
+  }
+
+  /** A taker trades `size` against our resting order: a MATCHED trade, the account moved as the exchange will move it. */
+  fill(hash: string, size: number): string {
+    const o = this.orders.get(hash);
+    if (!o || o.status !== "LIVE") throw new Error(`fake polymarket: ${hash} is not resting`);
+    const q = Math.min(size, o.size - o.matched);
+    const id = `trade-${this.seq++}`;
+    o.matched = Number((o.matched + q).toFixed(6));
+    if (o.matched >= o.size - 1e-9) o.status = "MATCHED";
+    o.trades.push(id);
+    this.trades.set(id, { id, hash, token: o.token, side: o.side, price: o.price, size: q, status: "MATCHED", at: this.now() });
+    if (o.side === "BUY") { this.pusd -= q * o.price; this.tokens.set(o.token, (this.tokens.get(o.token) ?? 0) + q); }
+    else { this.tokens.set(o.token, (this.tokens.get(o.token) ?? 0) - q); this.pusd += q * o.price; }
+    return id;
+  }
+  /** A trade's settlement on chain: CONFIRMED, or FAILED (and then the account is moved back). */
+  settle(id: string, status: "MINED" | "CONFIRMED" | "FAILED") {
+    const t = this.trades.get(id)!;
+    t.status = status;
+    if (status === "FAILED") {
+      if (t.side === "BUY") { this.pusd += t.size * t.price; this.tokens.set(t.token, (this.tokens.get(t.token) ?? 0) - t.size); }
+      else { this.tokens.set(t.token, (this.tokens.get(t.token) ?? 0) + t.size); this.pusd -= t.size * t.price; }
+    }
+  }
+
+  /** The venue as the executor calls it, every answer through `answer`, with the order path's own body builders. */
+  venue(): PmVenue {
+    const C = "https://clob.polymarket.com";
+    const call = (method: string, url: string, body?: string): Promise<PmReply> => {
+      const a = this.answer(method, new URL(url), body);
+      if (a.status === -1) return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
+      const ok = a.status >= 200 && a.status < 300;
+      const error = ok ? undefined : String((a.body as { error?: string } | null)?.error ?? a.status);
+      return Promise.resolve({ ok, status: a.status, ms: 0, data: a.body as never, error, retryAfterS: a.retryAfter ?? null });
+    };
+    return {
+      geoblock: () => call("GET", "https://polymarket.com/api/geoblock"),
+      book: (t) => call("GET", `${C}/book?token_id=${t}`),
+      rewardsPage: (s, c) => call("GET", `${C}/rewards/markets/current?sponsored=${s}${c ? `&next_cursor=${encodeURIComponent(c)}` : ""}`),
+      gammaMarkets: (c) => call("GET", `https://gamma-api.polymarket.com/markets/keyset?closed=false&limit=100&order=volume24hr&ascending=false${c ? `&after_cursor=${encodeURIComponent(c)}` : ""}`),
+      closedOnly: () => call("GET", `${C}/auth/ban-status/closed-only`),
+      conditionalBalance: (t) => call("GET", `${C}/balance-allowance?asset_type=CONDITIONAL&token_id=${t}&signature_type=1`),
+      order: (id) => call("GET", `${C}/data/order/${id}`),
+      trade: (id) => call("GET", `${C}/data/trades?id=${id}`),
+      postOrder: (o, orderType, postOnly) => call("POST", `${C}/order`, postOrderBody(o, PM_TEST_OWNER, orderType, postOnly)),
+      cancelOrder: (id) => {
+        const p = call("DELETE", `${C}/order`, cancelOrderBody(id));
+        return this.cancelMode === "throw" ? p.then(() => Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"))) : p;
+      },
+      cancelAll: () => call("DELETE", `${C}/cancel-all`),
+    };
+  }
+
+  /**
+   * The same venue over HTTP, for the order path's REAL client (`pmVenue`): every request is answered by `answer`, and a
+   * private one (closed-only, balances, orders, trades, and every write) only with the five L2 headers of the test key's
+   * address and API key — the CLOB's 401 otherwise. A redirect it never sends; a client must not need one.
+   */
+  fetch: typeof fetch = async (input, init) => {
+    const u = new URL(String(input)), method = (init?.method ?? "GET").toUpperCase();
+    const l2 = u.host === "clob.polymarket.com" && (method !== "GET" || ["/auth/ban-status/closed-only", "/balance-allowance", "/data/trades"].includes(u.pathname) || u.pathname.startsWith("/data/order/"));
+    const h = (init?.headers ?? {}) as Record<string, string>;
+    if (l2 && (h.POLY_API_KEY !== PM_TEST_OWNER || String(h.POLY_ADDRESS).toLowerCase() !== PM_TEST_SIGNER.toLowerCase() || !h.POLY_SIGNATURE || !h.POLY_TIMESTAMP || !h.POLY_PASSPHRASE)) {
+      this.calls.push(`${method} ${u.host}${u.pathname} (401)`);
+      return new Response(JSON.stringify({ error: "Unauthorized/Invalid api key" }), { status: 401 });
+    }
+    if (!l2 && Object.keys(h).some((k) => k.startsWith("POLY_"))) throw new Error(`fake polymarket: L2 headers sent to ${u.host}${u.pathname}`);
+    const a = this.answer(method, u, typeof init?.body === "string" ? init.body : undefined);
+    if (a.status === -1) throw new DOMException("The signal has been aborted", "TimeoutError");
+    return new Response(a.body === null ? null : JSON.stringify(a.body), { status: a.status, headers: a.retryAfter != null ? { "retry-after": String(a.retryAfter) } : {} });
+  };
 }
 
 // ── fake venues over HTTP, for driving the REAL venue clients ─────────────────────────────────────────

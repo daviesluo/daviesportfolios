@@ -37,6 +37,8 @@ const PAGED_KEYS: Record<string, string> = {
   // RW-C's (0069): RW's shapes under its own names, read by the same engine and replays.
   pm_rwc_minutes: "minute,cond", pm_rwc_fills: "cond,minute,print_id",
   yt_video_reads: "video_id,ts", yt_channel_reads: "channel_id,ts", pm_view_books: "token,ts",
+  // The Polymarket order path's fills (0074): one row per trade and order.
+  pm_live_fills: "trade_id,hash",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

@@ -250,9 +250,9 @@ export function redact<T>(x: T, secrets: readonly string[]): T {
 
 /**
  * Every form a stored secret could be echoed back in: as stored, trimmed, both base64 alphabets, unpadded,
- * percent-encoded, and a hex key in both cases.
+ * percent-encoded, and a hex key in both cases. The order path's loader (`polymarket_orders.ts`) scrubs with it too.
  */
-function secretForms(raw: string): string[] {
+export function secretForms(raw: string): string[] {
   const t = raw.trim();
   const std = t.replace(/-/g, "+").replace(/_/g, "/"), url = t.replace(/\+/g, "-").replace(/\//g, "_");
   const hex = KEY_HEX.exec(t)?.[2];

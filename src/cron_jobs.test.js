@@ -157,4 +157,31 @@ describe('pg_cron jobs', () => {
     const cmd = (files) => cronJobs(files).get('edge-calls-every-minute').command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
     expect(cmd(FILES.filter((f) => f <= QD))).toBe(cmd(FILES.filter((f) => f < QD)));
   });
+
+  // The job also runs RW (`pmrw*`, until 10-09) and RW-C (`pmrwc*`): the order path's migration must add its one row
+  // and leave every other row, the headers, the body and the filter exactly as they were, byte for byte.
+  it("adds the Polymarket order path's call to the one job (0074): the list before it plus one row, every other row byte for byte", () => {
+    const PL = FILES.find((f) => /^\d{4}_pm_live\.sql$/.test(f)) ?? '';
+    expect(PL).not.toBe('');
+    const job = (files) => cronJobs(files).get('edge-calls-every-minute');
+    const rowsOf = (files) => job(files).command.match(/\(values([\s\S]*?)\) as call/)[1].split('\n').map((l) => l.trim()).filter(Boolean);
+    const before = rowsOf(FILES.filter((f) => f < PL));
+    const after = rowsOf(FILES.filter((f) => f <= PL));
+    const mine = "('agents?action=pmlive&forceFunctionRegion=eu-west-1', 58000, 1, 23),";
+    // Exactly one row more, and it is this one: every minute, all day, with the other minute calls' timeout. The region
+    // rides in the call's own path because the job sends one set of headers for every call.
+    expect(after.length).toBe(before.length + 1);
+    expect(after.filter((l) => !before.includes(l))).toEqual([mine]);
+    // Every row that was there is there, in the same order, as the same text.
+    expect(after.filter((l) => l !== mine)).toEqual(before);
+    // RW's and RW-C's calls among them, unchanged.
+    for (const p of ['pmrw', 'pmrw-e', 'pmrw-x', 'pmrwc', 'pmrwc-e', 'pmrwc-x', 'pmrw-select', 'pmrwc-select']) {
+      expect(after.filter((l) => l.startsWith(`('agents?action=${p}'`))).toEqual(before.filter((l) => l.startsWith(`('agents?action=${p}'`)));
+      expect(after.some((l) => l.startsWith(`('agents?action=${p}'`))).toBe(true);
+    }
+    // The headers, body and filter are the job's as it was: only the list grew. And still one job, one statement.
+    const cmd = (files) => job(files).command.replace(/\(values[\s\S]*?\) as call/, '(values …) as call');
+    expect(cmd(FILES.filter((f) => f <= PL))).toBe(cmd(FILES.filter((f) => f < PL)));
+    expect(job(FILES.filter((f) => f <= PL)).schedule).toBe(job(FILES.filter((f) => f < PL)).schedule);
+  });
 });

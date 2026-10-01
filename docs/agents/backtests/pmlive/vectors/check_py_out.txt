@@ -1,0 +1,34 @@
+signer 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 == vectors' 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+buy-standard-0.01: hash ok, signature ok
+sell-standard-0.01: hash ok, signature ok
+buy-negrisk-0.001: hash ok, signature ok
+sell-negrisk-0.001: hash ok, signature ok
+buy-standard-0.1: hash ok, signature ok
+sell-negrisk-0.0001: hash ok, signature ok
+buy-standard-0.005: hash ok, signature ok
+buy-negrisk-0.0025: hash ok, signature ok
+amounts BUY 0.52 x 10 @ 0.01: ok
+amounts SELL 0.52 x 10 @ 0.01: ok
+amounts BUY 0.1 x 3 @ 0.1: ok
+amounts SELL 0.1 x 3 @ 0.1: ok
+amounts BUY 0.07 x 3 @ 0.01: ok
+amounts SELL 0.07 x 3 @ 0.01: ok
+amounts BUY 0.57 x 19.99 @ 0.01: DIFFERS python 11388600/19980000 typescript 11394300/19990000
+amounts SELL 0.57 x 19.99 @ 0.01: DIFFERS python 19980000/11388600 typescript 19990000/11394300
+amounts BUY 0.123 x 15.555 @ 0.001: ok
+amounts SELL 0.987 x 7.777 @ 0.001: ok
+amounts BUY 0.0123 x 333.333 @ 0.0001: ok
+amounts SELL 0.9999 x 12.345 @ 0.0001: ok
+amounts BUY 0.333 x 3.33 @ 0.001: ok
+amounts BUY 0.055 x 9.99 @ 0.005: ok
+amounts SELL 0.995 x 0.29 @ 0.005: DIFFERS python 280000/278600 typescript 290000/288550
+amounts BUY 0.9975 x 5 @ 0.0025: ok
+amounts SELL 0.0025 x 1234.56 @ 0.0025: ok
+amounts BUY 0.523 x 10 @ 0.01: ok
+amounts BUY 0.29 x 7.13 @ 0.01: ok
+amounts SELL 0.29 x 7.13 @ 0.01: ok
+amounts BUY 0.01 x 100 @ 0.01: ok
+amounts SELL 0.99 x 5.5 @ 0.01: ok
+amounts BUY 0.47 x 21.42 @ 0.01: ok
+amounts BUY 0.6 x 0.01 @ 0.1: ok
+differences: 3

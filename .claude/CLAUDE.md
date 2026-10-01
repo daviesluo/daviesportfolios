@@ -530,14 +530,19 @@ that follow from that evidence, in short:
   Davies is there** (reference §2d, §6). The United Kingdom is "close-only
   on the frontend AND the API"; Ireland is close-only on the frontend only
   ("the API itself is not restricted"), and Davies is resident in both
-  (his word, 2026-09-24). So an order path, when one is built, runs only
-  in Supabase's `eu-west-1` (the call carries `x-region: eu-west-1`; every
-  order call refuses unless `SB_REGION` is `eu-west-1`), and opens a
-  position only while his attestation that he is in Ireland is current.
+  (his word, 2026-09-24). So the order path — built INERT on 2026-10-01
+  on his word (`_shared/polymarket_orders.ts`, `agents/pm_live.ts`,
+  `0074`): nothing but a GET leaves while the code constant
+  `PM_ORDER_SENDS_ENABLED` is false, and no private key is loaded — runs
+  only in Supabase's `eu-west-1` (its cron row carries
+  `forceFunctionRegion=eu-west-1`; every POST refuses unless `SB_REGION`
+  is `eu-west-1`), and opens a position only while his attestation that
+  he is in Ireland is current.
   **It is standing since 2026-10-01** ("我之后长期在爱尔兰，如果变动需要更改会和你说，
   不和你说关就一直没事 也不用问我"): current until he says it changed — then
-  one statement revokes it — and nobody asks him. Not current, the path
-  may only reduce or close, which the UK allows. Never a VPN,
+  one statement revokes it (`update public.pm_live_config set
+  ireland_until = now() where id = 1;`) — and nobody asks him. Not
+  current, the path may only reduce or close, which the UK allows. Never a VPN,
   a proxy or anyone else's account. `_shared/polymarket.ts` is read-only
   today (GET only, a fixed list of URLs, the L2 headers to the CLOB host
   only), and its key controls real funds.
