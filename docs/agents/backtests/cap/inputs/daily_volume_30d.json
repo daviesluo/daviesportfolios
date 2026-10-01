@@ -1,0 +1,142 @@
+{
+ "BTC": {
+  "days": 30,
+  "medianUsd": 1816804,
+  "minUsd": 158784,
+  "daysUnder100k": 0,
+  "first": 1788217200000
+ },
+ "ETH": {
+  "days": 30,
+  "medianUsd": 1064955,
+  "minUsd": 220474,
+  "daysUnder100k": 0,
+  "first": 1788217200000
+ },
+ "SOL": {
+  "days": 30,
+  "medianUsd": 630799,
+  "minUsd": 86708,
+  "daysUnder100k": 1,
+  "first": 1788217200000
+ },
+ "AVAX": {
+  "days": 30,
+  "medianUsd": 31007,
+  "minUsd": 1151,
+  "daysUnder100k": 22,
+  "first": 1788217200000
+ },
+ "SUI": {
+  "days": 30,
+  "medianUsd": 164586,
+  "minUsd": 19341,
+  "daysUnder100k": 10,
+  "first": 1788217200000
+ },
+ "XRP": {
+  "days": 30,
+  "medianUsd": 1487784,
+  "minUsd": 102715,
+  "daysUnder100k": 0,
+  "first": 1788217200000
+ },
+ "LINK": {
+  "days": 30,
+  "medianUsd": 70163,
+  "minUsd": 8125,
+  "daysUnder100k": 16,
+  "first": 1788217200000
+ },
+ "DOGE": {
+  "days": 30,
+  "medianUsd": 206631,
+  "minUsd": 8889,
+  "daysUnder100k": 10,
+  "first": 1788217200000
+ },
+ "NEAR": {
+  "days": 30,
+  "medianUsd": 220952,
+  "minUsd": 19413,
+  "daysUnder100k": 10,
+  "first": 1788217200000
+ },
+ "HBAR": {
+  "days": 30,
+  "medianUsd": 52178,
+  "minUsd": 3128,
+  "daysUnder100k": 18,
+  "first": 1788217200000
+ },
+ "AAVE": {
+  "days": 30,
+  "medianUsd": 197773,
+  "minUsd": 17680,
+  "daysUnder100k": 9,
+  "first": 1788217200000
+ },
+ "CRV": {
+  "days": 30,
+  "medianUsd": 59390,
+  "minUsd": 8699,
+  "daysUnder100k": 23,
+  "first": 1788217200000
+ },
+ "INJ": {
+  "days": 30,
+  "medianUsd": 53278,
+  "minUsd": 2156,
+  "daysUnder100k": 18,
+  "first": 1788217200000
+ },
+ "ONDO": {
+  "days": 30,
+  "medianUsd": 60915,
+  "minUsd": 2286,
+  "daysUnder100k": 22,
+  "first": 1788217200000
+ },
+ "QNT": {
+  "days": 30,
+  "medianUsd": 9071,
+  "minUsd": 333,
+  "daysUnder100k": 23,
+  "first": 1788217200000
+ },
+ "BERA": {
+  "days": 30,
+  "medianUsd": 1636,
+  "minUsd": 0,
+  "daysUnder100k": 29,
+  "first": 1788217200000
+ },
+ "VIRTUAL": {
+  "days": 30,
+  "medianUsd": 7222,
+  "minUsd": 154,
+  "daysUnder100k": 30,
+  "first": 1788217200000
+ },
+ "LTC": {
+  "days": 30,
+  "medianUsd": 20886,
+  "minUsd": 710,
+  "daysUnder100k": 27,
+  "first": 1788217200000
+ },
+ "UNI": {
+  "days": 30,
+  "medianUsd": 95946,
+  "minUsd": 7913,
+  "daysUnder100k": 15,
+  "first": 1788217200000
+ },
+ "ADA": {
+  "days": 30,
+  "medianUsd": 41456,
+  "minUsd": 4567,
+  "daysUnder100k": 19,
+  "first": 1788217200000
+ }
+}

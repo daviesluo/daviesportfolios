@@ -1,0 +1,18 @@
+active reward configs 18784
+  started 2026-09-16:    69 configs, $      600 a day
+  started 2026-09-17:    75 configs, $    3,915 a day
+  started 2026-09-18:   102 configs, $    2,044 a day
+  started 2026-09-19:   110 configs, $    1,443 a day
+  started 2026-09-20:   149 configs, $      543 a day
+  started 2026-09-21:    99 configs, $      435 a day
+  started 2026-09-22:   145 configs, $    1,730 a day
+  started 2026-09-23:   130 configs, $      676 a day
+  started 2026-09-24:   295 configs, $    1,413 a day
+  started 2026-09-25:   586 configs, $    2,623 a day
+  started 2026-09-26:   246 configs, $      987 a day
+  started 2026-09-27:   564 configs, $    2,347 a day
+  started 2026-09-28:   511 configs, $    3,374 a day
+  started 2026-09-29:  1972 configs, $   82,633 a day
+  started 2026-09-30:  6514 configs, $   70,780 a day
+  started 2026-10-01:  4344 configs, $   59,401 a day
+  started before 2026-09-17: 2942 configs, $14,402 a day

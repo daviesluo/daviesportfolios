@@ -1,0 +1,5 @@
+calls 39 rewarded markets 18776 total daily rate $245745
+  top 10: $20,002 a day (8.1 %)
+  top 100: $58,045 a day (23.6 %)
+  top 1000: $114,219 a day (46.5 %)
+  median rate $3.00, markets >= $100/day: 250, >= $20/day: 3110

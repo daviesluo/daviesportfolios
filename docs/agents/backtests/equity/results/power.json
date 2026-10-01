@@ -1,0 +1,204 @@
+{
+ "conventions": "one-sided alpha 5% unless 'holm5' (alpha 1%), power 80%",
+ "screen_window": "2015-12-31",
+ "C2_TOM": {
+  "mde_per_event_pct_heldout_80pct": 0.462,
+  "by_screen_period": {
+   "1926-1989": {
+    "effect_per_event_pct": 0.623,
+    "event_sd_pct": 2.01,
+    "effect_net_of_8bps_rt_pct": 0.543,
+    "events_for_80pct_power_net": 85,
+    "years_for_80pct_power_net": 7.1,
+    "heldout_2016_2026_expected_t_net": 3.06,
+    "heldout_power_net": 0.921,
+    "heldout_power_net_holm5": 0.767,
+    "forward_1yr_power_net": 0.239
+   },
+   "1990-2015": {
+    "effect_per_event_pct": 0.273,
+    "event_sd_pct": 2.184,
+    "effect_net_of_8bps_rt_pct": 0.193,
+    "events_for_80pct_power_net": 792,
+    "years_for_80pct_power_net": 66.0,
+    "heldout_2016_2026_expected_t_net": 1.0,
+    "heldout_power_net": 0.259,
+    "heldout_power_net_holm5": 0.092,
+    "forward_1yr_power_net": 0.09
+   },
+   "1990-2002": {
+    "effect_per_event_pct": 0.369,
+    "event_sd_pct": 2.259,
+    "effect_net_of_8bps_rt_pct": 0.289,
+    "events_for_80pct_power_net": 378,
+    "years_for_80pct_power_net": 31.5,
+    "heldout_2016_2026_expected_t_net": 1.45,
+    "heldout_power_net": 0.422,
+    "heldout_power_net_holm5": 0.19,
+    "forward_1yr_power_net": 0.115
+   },
+   "2003-2015": {
+    "effect_per_event_pct": 0.175,
+    "event_sd_pct": 2.103,
+    "effect_net_of_8bps_rt_pct": 0.095,
+    "events_for_80pct_power_net": 3030,
+    "years_for_80pct_power_net": 252.5,
+    "heldout_2016_2026_expected_t_net": 0.51,
+    "heldout_power_net": 0.128,
+    "heldout_power_net_holm5": 0.035,
+    "forward_1yr_power_net": 0.068
+   }
+  },
+  "independent_bets_per_year": 12
+ },
+ "C1_TREND": {
+  "by_screen_period": {
+   "1927-1989": {
+    "sharpe_timing": 0.498,
+    "sharpe_buyhold": 0.393,
+    "rho": 0.662,
+    "active_return_ann_pct": -1.236,
+    "active_ir": -0.082,
+    "years_for_80pct_power_on_sharpe_difference": 384.0,
+    "maxdd_timing_pct": -42.9,
+    "maxdd_buyhold_pct": -83.7,
+    "switches_per_year_one_asset": 1.47,
+    "cost_drag_ann_pct_at_8bps_rt": 0.059
+   },
+   "1990-2015": {
+    "sharpe_timing": 0.649,
+    "sharpe_buyhold": 0.486,
+    "rho": 0.725,
+    "active_return_ann_pct": -0.234,
+    "active_ir": -0.023,
+    "years_for_80pct_power_on_sharpe_difference": 131.3,
+    "maxdd_timing_pct": -17.3,
+    "maxdd_buyhold_pct": -50.3,
+    "switches_per_year_one_asset": 1.31,
+    "cost_drag_ann_pct_at_8bps_rt": 0.052
+   },
+   "2003-2015": {
+    "sharpe_timing": 0.936,
+    "sharpe_buyhold": 0.617,
+    "rho": 0.665,
+    "active_return_ann_pct": 0.074,
+    "active_ir": 0.007,
+    "years_for_80pct_power_on_sharpe_difference": 42.6,
+    "maxdd_timing_pct": -17.1,
+    "maxdd_buyhold_pct": -50.3,
+    "switches_per_year_one_asset": 1.0,
+    "cost_drag_ann_pct_at_8bps_rt": 0.04
+   }
+  },
+  "note": "a switch is one trade; independent bets ~ switches per year x assets (about 1.3 x 5 = 6.5)"
+ },
+ "C3_SECTOR_MOMENTUM": {
+  "by_screen_period": {
+   "1927-1989": {
+    "gbp_lines_no_fx": {
+     "gross_ir": 0.322,
+     "cost_drag_ann_pct": 0.51,
+     "net_ir": 0.254,
+     "years_for_t2": 61.9,
+     "years_for_80pct_power": 95.7,
+     "heldout_10_7yr_power": 0.208,
+     "forward_1yr_power": 0.082
+    },
+    "usd_lines_fx": {
+     "gross_ir": 0.322,
+     "cost_drag_ann_pct": 1.27,
+     "net_ir": 0.152,
+     "years_for_t2": 173.4,
+     "years_for_80pct_power": 268.0,
+     "heldout_10_7yr_power": 0.125,
+     "forward_1yr_power": 0.068
+    }
+   },
+   "1990-2015": {
+    "gbp_lines_no_fx": {
+     "gross_ir": 0.353,
+     "cost_drag_ann_pct": 0.56,
+     "net_ir": 0.282,
+     "years_for_t2": 50.1,
+     "years_for_80pct_power": 77.5,
+     "heldout_10_7yr_power": 0.235,
+     "forward_1yr_power": 0.087
+    },
+    "usd_lines_fx": {
+     "gross_ir": 0.353,
+     "cost_drag_ann_pct": 1.39,
+     "net_ir": 0.177,
+     "years_for_t2": 127.6,
+     "years_for_80pct_power": 197.3,
+     "heldout_10_7yr_power": 0.143,
+     "forward_1yr_power": 0.071
+    }
+   },
+   "2003-2015": {
+    "gbp_lines_no_fx": {
+     "gross_ir": 0.271,
+     "cost_drag_ann_pct": 0.59,
+     "net_ir": 0.187,
+     "years_for_t2": 114.8,
+     "years_for_80pct_power": 177.5,
+     "heldout_10_7yr_power": 0.15,
+     "forward_1yr_power": 0.072
+    },
+    "usd_lines_fx": {
+     "gross_ir": 0.271,
+     "cost_drag_ann_pct": 1.48,
+     "net_ir": 0.06,
+     "years_for_t2": 1102.5,
+     "years_for_80pct_power": 1704.1,
+     "heldout_10_7yr_power": 0.074,
+     "forward_1yr_power": 0.057
+    }
+   }
+  },
+  "independent_bets_per_year": 12
+ },
+ "C4_PEAD_EAR": {
+  "events_per_year_top_quintile": 400,
+  "event_sd_pct": 12.2,
+  "cost_per_event_pct": 0.34,
+  "mde_gross_pct_1yr_neff_div1": 1.517,
+  "mde_gross_pct_1yr_neff_div2": 2.145,
+  "mde_gross_pct_1yr_neff_div4": 3.033,
+  "mde_gross_pct_3yr_neff_div1": 0.876,
+  "mde_gross_pct_3yr_neff_div2": 1.238,
+  "mde_gross_pct_3yr_neff_div4": 1.751,
+  "mde_gross_pct_10yr_neff_div1": 0.48,
+  "mde_gross_pct_10yr_neff_div2": 0.678,
+  "mde_gross_pct_10yr_neff_div4": 0.959,
+  "note": "the bar is drift above cost: a test sees only gross drift larger than cost + MDE; Martineau (2022) reports no PEAD in large stocks since 2006"
+ },
+ "C5_REVERSAL": {
+  "1927-1989": {
+   "long_only_gross_ann_pct": 2.388,
+   "long_only_gross_ir": 0.333
+  },
+  "1990-2015": {
+   "long_only_gross_ann_pct": 0.118,
+   "long_only_gross_ir": 0.015
+  },
+  "2003-2015": {
+   "long_only_gross_ann_pct": -1.604,
+   "long_only_gross_ir": -0.23
+  },
+  "cost_weekly_full_turnover_fx_ann_pct": 17.7,
+  "cost_monthly_full_turnover_fx_ann_pct": 4.1
+ },
+ "rejected": {
+  "overnight_drift_daily_round_trip_fx_ann_pct": 85.7,
+  "overnight_drift_daily_round_trip_no_fx_ann_pct": 10.1,
+  "pre_fomc_events_per_year": 8,
+  "earnings_premium_weekly_rotation_fx_ann_pct": 17.7
+ },
+ "assumptions": {
+  "FX_round_trip": 0.003,
+  "spread_rt_core_gbp_etf": 0.0008,
+  "spread_rt_sector_etf": 0.002,
+  "spread_rt_us_largecap": 0.0004,
+  "spreads": "UNVERIFIED estimates; the paper test's first job is to measure them"
+ }
+}

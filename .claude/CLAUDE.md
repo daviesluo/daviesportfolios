@@ -238,7 +238,10 @@ that follow from that evidence, in short:
   it went to the admission rule: SUI stays on the paper `trend-4h` and
   does not go live (§3.20's addendum). A coin joins a rule by that bar, never by a
   result alone; SUI's round trip is ~42 bps at its median UK book (23.7 bps
-  over 1,815 samples, §3.43; §3.20's ~33 came from 60) against the majors' 20. **A coin one venue lacks may run on the other
+  over 1,815 samples, §3.43; §3.20's ~33 came from 60) against the majors' 20.
+  **AVAX's UK book is about $31k a day** on a 30-day median of the daily candles (2026-10-01, §3.44), under
+  the bar's $100k: §3.8's $1.9m was one day's ticker. A $25 order rides its 9.7 bps touch; the seat is
+  Davies' call, and a book test is read on a 30-day median from now on. **A coin one venue lacks may run on the other
   alone** (Davies, 2026-09-21; §4.16): the two venues' symbol lists need
   not match — each `agent_strategies` row carries its own. A Kraken-only
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps
@@ -282,7 +285,10 @@ that follow from that evidence, in short:
   Davies said go. On 2026-09-25 he set the funded capital to $100. A slot
   is the capital divided by the coins, so it is $25, and the one-slot cap
   moved with it to $25. The later steps of $30 and $75 were written for
-  the $50 book and are not the next raises. The
+  the $50 book and are not the next raises; scaled to $100 the brief's
+  steps are $60 (two slots) and, after a clean week, $150 (four), on his
+  word. One slot was never priced (CAP, §3.44): it lets the coin list's
+  order pick the coin. The
   audit's D1–D10 and the $50 validation's D11/D12 are fixed and pinned
   (§4.32–§4.33).
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,

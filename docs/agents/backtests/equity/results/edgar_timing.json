@@ -1,0 +1,232 @@
+{
+ "AAPL": {
+  "n": 45,
+  "first": "2015-10-27",
+  "by_bucket": {
+   "after_close": 45
+  },
+  "examples": [
+   [
+    "2026-07-30",
+    "16:30 ET",
+    "after_close"
+   ],
+   [
+    "2026-04-30",
+    "16:30 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "MSFT": {
+  "n": 24,
+  "first": "2020-10-27",
+  "by_bucket": {
+   "after_close": 24
+  },
+  "examples": [
+   [
+    "2026-07-29",
+    "16:04 ET",
+    "after_close"
+   ],
+   [
+    "2026-04-29",
+    "16:03 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "AMZN": {
+  "n": 24,
+  "first": "2020-10-29",
+  "by_bucket": {
+   "after_close": 24
+  },
+  "examples": [
+   [
+    "2026-07-30",
+    "16:06 ET",
+    "after_close"
+   ],
+   [
+    "2026-04-29",
+    "16:18 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "GOOGL": {
+  "n": 13,
+  "first": "2023-07-25",
+  "by_bucket": {
+   "after_close": 13
+  },
+  "examples": [
+   [
+    "2026-07-22",
+    "16:01 ET",
+    "after_close"
+   ],
+   [
+    "2026-04-29",
+    "16:01 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "META": {
+  "n": 9,
+  "first": "2024-07-31",
+  "by_bucket": {
+   "after_close": 9
+  },
+  "examples": [
+   [
+    "2026-07-29",
+    "16:03 ET",
+    "after_close"
+   ],
+   [
+    "2026-04-29",
+    "16:05 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "NVDA": {
+  "n": 25,
+  "first": "2020-11-18",
+  "by_bucket": {
+   "after_close": 24,
+   "pre_open": 1
+  },
+  "examples": [
+   [
+    "2026-08-26",
+    "16:21 ET",
+    "after_close"
+   ],
+   [
+    "2026-05-20",
+    "16:21 ET",
+    "after_close"
+   ]
+  ]
+ },
+ "JPM": {
+  "n": 4,
+  "first": "2025-10-14",
+  "by_bucket": {
+   "pre_open": 4
+  },
+  "examples": [
+   [
+    "2026-07-14",
+    "06:30 ET",
+    "pre_open"
+   ],
+   [
+    "2026-04-14",
+    "06:32 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "JNJ": {
+  "n": 36,
+  "first": "2018-07-17",
+  "by_bucket": {
+   "pre_open": 35,
+   "after_close": 1
+  },
+  "examples": [
+   [
+    "2026-07-15",
+    "07:49 ET",
+    "pre_open"
+   ],
+   [
+    "2026-04-14",
+    "07:35 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "XOM": {
+  "n": 1,
+  "first": "2026-07-31",
+  "by_bucket": {
+   "pre_open": 1
+  },
+  "examples": [
+   [
+    "2026-07-31",
+    "06:31 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "PG": {
+  "n": 18,
+  "first": "2022-04-20",
+  "by_bucket": {
+   "pre_open": 18
+  },
+  "examples": [
+   [
+    "2026-07-29",
+    "07:03 ET",
+    "pre_open"
+   ],
+   [
+    "2026-04-24",
+    "07:01 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "WMT": {
+  "n": 14,
+  "first": "2023-05-18",
+  "by_bucket": {
+   "pre_open": 14
+  },
+  "examples": [
+   [
+    "2026-08-20",
+    "06:59 ET",
+    "pre_open"
+   ],
+   [
+    "2026-05-21",
+    "06:59 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "UNH": {
+  "n": 23,
+  "first": "2021-01-20",
+  "by_bucket": {
+   "pre_open": 23
+  },
+  "examples": [
+   [
+    "2026-07-16",
+    "06:00 ET",
+    "pre_open"
+   ],
+   [
+    "2026-04-21",
+    "06:02 ET",
+    "pre_open"
+   ]
+  ]
+ },
+ "_total_by_bucket": {
+  "after_close": 140,
+  "pre_open": 96
+ },
+ "_date_mismatch": {}
+}

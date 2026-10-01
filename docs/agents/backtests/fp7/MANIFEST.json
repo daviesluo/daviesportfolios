@@ -1,0 +1,106 @@
+{
+ "study": "fp7, the seventh search: Revolut X's UK book census, the coin/USDC books as maker quotes, Polymarket's reward-pool aggregates (research round of 2026-10-01)",
+ "write_up": "docs/agents/reviews/2026-10-01-research-round.md \u00a73; reference \u00a73.44",
+ "run": [
+  "python3 scripts/revx_census.py  # from this folder; -> samples/revx_census_2026-10-01.txt, identical on re-run",
+  "python3 scripts/screen_usdc_books.py  # from this folder; -> samples/usdc/screen_result.txt, identical on re-run",
+  "scripts/pull_usdc_books.py, reward_universe.py, reward_births.py fetch live (keyless) and print aggregates only"
+ ],
+ "sources": {
+  "samples/revx_*": "Revolut X public pairs and UK tickers, 2026-10-01 00:29 UTC",
+  "samples/usdc/prints_*": "Revolut X public UK trades, 2026-09-24 -> 10-01",
+  "samples/usdc/binance_*": "Binance data-api.binance.vision 1-minute klines, same window",
+  "samples/pm_*": "Polymarket CLOB /rewards/markets/current, keyless, aggregates only (the per-market list was deleted unread)",
+  "samples/smarkets_events_probe.json": "one keyless GET of Smarkets' public event list"
+ },
+ "committed": {
+  "samples/pm_reward_births_2026-10-01.txt": {
+   "bytes": 949,
+   "sha256": "c9fc653694744738afb16af8e75191816c2eabccdafb626b84eda1ac1814bcea"
+  },
+  "samples/pm_rewards_summary_2026-10-01.txt": {
+   "bytes": 223,
+   "sha256": "fd18ba9f144abc40e1c58eaf5c8b281d765247d8dd38e4ff9d19d3304fe98f08"
+  },
+  "samples/revx_census_2026-10-01.txt": {
+   "bytes": 3405,
+   "sha256": "b0a966eb8c153bbe9a94528adcf8a286c0a484944d5362c6aa39247dec59d728"
+  },
+  "samples/revx_index_vs_fx_2026-10-01.txt": {
+   "bytes": 860,
+   "sha256": "beb1129868519df9fba2992917c16e55b1238d624f2e0e75cab60864fb6379b0"
+  },
+  "samples/revx_pairs_2026-10-01.json": {
+   "bytes": 104905,
+   "sha256": "0aac6d0b0450e505d8a59d82edb16e326adddc819d126a0c8184df53424cda75"
+  },
+  "samples/revx_tickers_uk_2026-10-01.json": {
+   "bytes": 99217,
+   "sha256": "c3ee676e194ca0c3d74f82edab1de6674eea0e91ee32335440a806f2db47fc7b"
+  },
+  "samples/smarkets_events_probe.json": {
+   "bytes": 1583,
+   "sha256": "f80b7549f9c099681959349c517420caa44ff4523f0c1f5060b3f4d0f0f18251"
+  },
+  "samples/usdc/binance_HBARUSDC_1m.json.gz": {
+   "bytes": 78284,
+   "sha256": "8620bdc1c81555f0d4c858b09d1509c6db75f6ecf071453ff04770db6cb8d1f5"
+  },
+  "samples/usdc/binance_LINKUSDC_1m.json.gz": {
+   "bytes": 84754,
+   "sha256": "dd5ac25f274d3178bbde85a2d1293d7420301a2b558d34a5a5d007e1d5fc9448"
+  },
+  "samples/usdc/binance_PEPEUSDC_1m.json.gz": {
+   "bytes": 88291,
+   "sha256": "b58ad733113a6c4cd91e71efc9f81e6b9dba4dd21d80202e06cdd245c0e12178"
+  },
+  "samples/usdc/binance_SOLUSDC_1m.json.gz": {
+   "bytes": 88234,
+   "sha256": "07adafbc0cddb6e0494b7dcd21f9ed8dd4d05b05dfb537ba2569be07de619988"
+  },
+  "samples/usdc/prints_HBAR-USDC.json.gz": {
+   "bytes": 47416,
+   "sha256": "00ca32fd0d5ab9b26f51bde3fe7ab82f0448cfd96c8b5480915e989824b4adde"
+  },
+  "samples/usdc/prints_LINK-USDC.json.gz": {
+   "bytes": 43521,
+   "sha256": "b1f0f6ed403c50d8e082e689cca6e5ff7fa3ef036d4c96c1b7ecb51a40c0272f"
+  },
+  "samples/usdc/prints_PEPE-USDC.json.gz": {
+   "bytes": 44304,
+   "sha256": "70e796b2f2fee649159d5dc154da6d0ea30ebb4a04bc4753d078b318f97e8517"
+  },
+  "samples/usdc/prints_SOL-USDC.json.gz": {
+   "bytes": 2093,
+   "sha256": "d36c6469fc7c046fef51980bd1033b041086c5a2d7b95472d28666c53007d7a0"
+  },
+  "samples/usdc/pull_log.json": {
+   "bytes": 43900,
+   "sha256": "3127d5cd54b36ac9109ead44b58e5d2e3d34515643f8518804c235e9961d58a3"
+  },
+  "samples/usdc/screen_result.txt": {
+   "bytes": 2765,
+   "sha256": "7416457c1bd05642a65040e975f649312615612e1a177a42cfa06fcea1da9fd6"
+  },
+  "scripts/pull_usdc_books.py": {
+   "bytes": 2986,
+   "sha256": "14716d590085df1f72e1eb07c3cdbe9c558ece5ead2ab1a8e599ac0cb9250771"
+  },
+  "scripts/revx_census.py": {
+   "bytes": 1819,
+   "sha256": "a8e336e188957c208b822b5dbf1fba2d57de5039b4139c0307ae5ba5bac14150"
+  },
+  "scripts/reward_births.py": {
+   "bytes": 1958,
+   "sha256": "fd75eff170efaec79b6e932a566e6c025baa188d9474d37d091ed066408e760f"
+  },
+  "scripts/reward_universe.py": {
+   "bytes": 1838,
+   "sha256": "286b10ca079c8ab4161c3894115709e43019fbfda1972f4c6692d34ea89785b2"
+  },
+  "scripts/screen_usdc_books.py": {
+   "bytes": 2889,
+   "sha256": "44fa5217258b21f19ba4b8e1dba21a4d58a36ab7b2525e7385702ff7517ce351"
+  }
+ }
+}

@@ -1,0 +1,292 @@
+{
+ "screen_end": "2015-12-31",
+ "source": "Ken French data library, files built from CRSP 202608",
+ "note": "screening only; held-out window 2016-01 -> 2026-08 never read",
+ "tom": {
+  "1926-1989": {
+   "events": 762,
+   "tom4_mean_pct": 0.622,
+   "tom4_sd_pct": 2.01,
+   "nontom_daily_mean_pct": -0.0,
+   "tom_daily_mean_pct": 0.1558,
+   "diff_per_event_pct": 0.623,
+   "diff_t": 8.55,
+   "events_for_t2_at_this_effect": 42.0,
+   "timing_strategy_excess": {
+    "n": 762,
+    "mean_ann_pct": 7.469,
+    "sd_ann_pct": 7.121,
+    "sharpe_or_ir": 1.049,
+    "t": 8.36
+   },
+   "buy_hold_excess": {
+    "n": 762,
+    "mean_ann_pct": 7.461,
+    "sd_ann_pct": 19.726,
+    "sharpe_or_ir": 0.378,
+    "t": 3.01
+   },
+   "share_of_days_in_market": 0.178
+  },
+  "1990-2015": {
+   "events": 312,
+   "tom4_mean_pct": 0.344,
+   "tom4_sd_pct": 2.184,
+   "nontom_daily_mean_pct": 0.0177,
+   "tom_daily_mean_pct": 0.086,
+   "diff_per_event_pct": 0.273,
+   "diff_t": 2.21,
+   "events_for_t2_at_this_effect": 256.0,
+   "timing_strategy_excess": {
+    "n": 312,
+    "mean_ann_pct": 4.127,
+    "sd_ann_pct": 7.426,
+    "sharpe_or_ir": 0.556,
+    "t": 2.83
+   },
+   "buy_hold_excess": {
+    "n": 312,
+    "mean_ann_pct": 7.739,
+    "sd_ann_pct": 14.872,
+    "sharpe_or_ir": 0.52,
+    "t": 2.65
+   },
+   "share_of_days_in_market": 0.19
+  },
+  "1990-2002": {
+   "events": 157,
+   "tom4_mean_pct": 0.391,
+   "tom4_sd_pct": 2.259,
+   "nontom_daily_mean_pct": 0.0055,
+   "tom_daily_mean_pct": 0.0983,
+   "diff_per_event_pct": 0.369,
+   "diff_t": 2.04,
+   "events_for_t2_at_this_effect": 150.0,
+   "timing_strategy_excess": {
+    "n": 156,
+    "mean_ann_pct": 4.719,
+    "sd_ann_pct": 8.062,
+    "sharpe_or_ir": 0.585,
+    "t": 2.11
+   },
+   "buy_hold_excess": {
+    "n": 156,
+    "mean_ann_pct": 5.847,
+    "sd_ann_pct": 15.711,
+    "sharpe_or_ir": 0.372,
+    "t": 1.34
+   },
+   "share_of_days_in_market": 0.19
+  },
+  "2003-2015": {
+   "events": 156,
+   "tom4_mean_pct": 0.294,
+   "tom4_sd_pct": 2.103,
+   "nontom_daily_mean_pct": 0.0299,
+   "tom_daily_mean_pct": 0.0737,
+   "diff_per_event_pct": 0.175,
+   "diff_t": 1.04,
+   "events_for_t2_at_this_effect": 579.0,
+   "timing_strategy_excess": {
+    "n": 156,
+    "mean_ann_pct": 3.534,
+    "sd_ann_pct": 6.753,
+    "sharpe_or_ir": 0.523,
+    "t": 1.89
+   },
+   "buy_hold_excess": {
+    "n": 156,
+    "mean_ann_pct": 9.632,
+    "sd_ann_pct": 14.012,
+    "sharpe_or_ir": 0.687,
+    "t": 2.48
+   },
+   "share_of_days_in_market": 0.19
+  }
+ },
+ "trend_10m_sma_us_market": {
+  "1927-1989": {
+   "months": 752,
+   "timing_excess": {
+    "n": 752,
+    "mean_ann_pct": 6.649,
+    "sd_ann_pct": 13.358,
+    "sharpe_or_ir": 0.498,
+    "t": 3.94
+   },
+   "buyhold_excess": {
+    "n": 752,
+    "mean_ann_pct": 7.885,
+    "sd_ann_pct": 20.089,
+    "sharpe_or_ir": 0.393,
+    "t": 3.11
+   },
+   "active_vs_buyhold": {
+    "n": 752,
+    "mean_ann_pct": -1.236,
+    "sd_ann_pct": 15.05,
+    "sharpe_or_ir": -0.082,
+    "t": -0.65
+   },
+   "years_for_t2_active": null,
+   "maxdd_timing_pct": -42.9,
+   "maxdd_buyhold_pct": -83.7,
+   "switches_per_year": 1.47,
+   "share_months_invested": 0.705
+  },
+  "1990-2015": {
+   "months": 312,
+   "timing_excess": {
+    "n": 312,
+    "mean_ann_pct": 7.057,
+    "sd_ann_pct": 10.88,
+    "sharpe_or_ir": 0.649,
+    "t": 3.31
+   },
+   "buyhold_excess": {
+    "n": 312,
+    "mean_ann_pct": 7.291,
+    "sd_ann_pct": 14.996,
+    "sharpe_or_ir": 0.486,
+    "t": 2.48
+   },
+   "active_vs_buyhold": {
+    "n": 312,
+    "mean_ann_pct": -0.234,
+    "sd_ann_pct": 10.334,
+    "sharpe_or_ir": -0.023,
+    "t": -0.12
+   },
+   "years_for_t2_active": null,
+   "maxdd_timing_pct": -17.3,
+   "maxdd_buyhold_pct": -50.3,
+   "switches_per_year": 1.31,
+   "share_months_invested": 0.763
+  },
+  "2003-2015": {
+   "months": 156,
+   "timing_excess": {
+    "n": 156,
+    "mean_ann_pct": 8.905,
+    "sd_ann_pct": 9.518,
+    "sharpe_or_ir": 0.936,
+    "t": 3.37
+   },
+   "buyhold_excess": {
+    "n": 156,
+    "mean_ann_pct": 8.831,
+    "sd_ann_pct": 14.319,
+    "sharpe_or_ir": 0.617,
+    "t": 2.22
+   },
+   "active_vs_buyhold": {
+    "n": 156,
+    "mean_ann_pct": 0.074,
+    "sd_ann_pct": 10.693,
+    "sharpe_or_ir": 0.007,
+    "t": 0.02
+   },
+   "years_for_t2_active": 81632.7,
+   "maxdd_timing_pct": -17.1,
+   "maxdd_buyhold_pct": -50.3,
+   "switches_per_year": 1.0,
+   "share_months_invested": 0.795
+  }
+ },
+ "industry_momentum_top3_of_12": {
+  "1927-1989": {
+   "active_vs_equal_weight_12": {
+    "n": 750,
+    "mean_ann_pct": 2.405,
+    "sd_ann_pct": 7.46,
+    "sharpe_or_ir": 0.322,
+    "t": 2.55
+   },
+   "years_for_t2": 38.6,
+   "mean_share_of_book_replaced_per_month": 0.212
+  },
+  "1990-2015": {
+   "active_vs_equal_weight_12": {
+    "n": 312,
+    "mean_ann_pct": 2.795,
+    "sd_ann_pct": 7.925,
+    "sharpe_or_ir": 0.353,
+    "t": 1.8
+   },
+   "years_for_t2": 32.1,
+   "mean_share_of_book_replaced_per_month": 0.232
+  },
+  "2003-2015": {
+   "active_vs_equal_weight_12": {
+    "n": 156,
+    "mean_ann_pct": 1.898,
+    "sd_ann_pct": 7.006,
+    "sharpe_or_ir": 0.271,
+    "t": 0.98
+   },
+   "years_for_t2": 54.5,
+   "mean_share_of_book_replaced_per_month": 0.246
+  }
+ },
+ "strev_columns": [
+  "SMALL LoPRIOR",
+  "ME1 PRIOR2",
+  "SMALL HiPRIOR",
+  "BIG LoPRIOR",
+  "ME2 PRIOR2",
+  "BIG HiPRIOR"
+ ],
+ "strev_big_caps_monthly": {
+  "1927-1989": {
+   "long_short_BigLo_minus_BigHi": {
+    "n": 756,
+    "mean_ann_pct": 4.51,
+    "sd_ann_pct": 13.683,
+    "sharpe_or_ir": 0.33,
+    "t": 2.62
+   },
+   "long_only_BigLo_minus_Big_avg": {
+    "n": 756,
+    "mean_ann_pct": 2.388,
+    "sd_ann_pct": 7.167,
+    "sharpe_or_ir": 0.333,
+    "t": 2.64
+   },
+   "years_for_t2_long_only_gross": 36.1
+  },
+  "1990-2015": {
+   "long_short_BigLo_minus_BigHi": {
+    "n": 312,
+    "mean_ann_pct": 1.724,
+    "sd_ann_pct": 14.071,
+    "sharpe_or_ir": 0.123,
+    "t": 0.62
+   },
+   "long_only_BigLo_minus_Big_avg": {
+    "n": 312,
+    "mean_ann_pct": 0.118,
+    "sd_ann_pct": 7.889,
+    "sharpe_or_ir": 0.015,
+    "t": 0.08
+   },
+   "years_for_t2_long_only_gross": 17777.8
+  },
+  "2003-2015": {
+   "long_short_BigLo_minus_BigHi": {
+    "n": 156,
+    "mean_ann_pct": -1.261,
+    "sd_ann_pct": 12.332,
+    "sharpe_or_ir": -0.102,
+    "t": -0.37
+   },
+   "long_only_BigLo_minus_Big_avg": {
+    "n": 156,
+    "mean_ann_pct": -1.604,
+    "sd_ann_pct": 6.986,
+    "sharpe_or_ir": -0.23,
+    "t": -0.83
+   },
+   "years_for_t2_long_only_gross": null
+  }
+ }
+}

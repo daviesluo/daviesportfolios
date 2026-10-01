@@ -1,0 +1,9 @@
+BTC/GBP   bid 62897.29   ask 62904.39   mid 62900.84   index 62904.59   index-mid +0.60 bps
+USDC/USD  bid 1.0        ask 1.0002     mid 1.0001     index 0.9997     index-mid -4.00 bps
+BTC/USD   bid 83435.63   ask 83444.18   mid 83439.9    index 83445.77   index-mid +0.70 bps
+USDT/USD  bid 0.9992     ask 0.9993     mid 0.9992     index 0.9989     index-mid -3.00 bps
+USDC/GBP  bid 0.7536     ask 0.754      mid 0.7538     index 0.7536     index-mid -2.65 bps
+ETH/GBP   bid 2021.26    ask 2021.89    mid 2021.57    index 2021.67    index-mid +0.49 bps
+ETH/USD   bid 2681.61    ask 2682.14    mid 2681.87    index 2681.83    index-mid -0.15 bps
+USDT/GBP  bid 0.7531     ask 0.7535     mid 0.7533     index 0.753      index-mid -3.98 bps
+Kraken GBP/USD mid now 1.326715 (read 00:42:22 UTC; the Revolut X tickers were read ~00:20 UTC, so this is indicative only)

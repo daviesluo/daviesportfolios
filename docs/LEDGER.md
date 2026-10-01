@@ -104,6 +104,10 @@ list stays the short version; the plan is the reasoning behind it.
      Nothing else of `pm_rwc_*` before its verdict (RW-NEXT's no-peek list). **Its verdict** on or after 2026-10-23
      00:05 UTC by the frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after
      the check), then a migration takes the four `pmrwc*` rows out of `edge-calls-every-minute`.
+   - **POOLAGE (fp7, 2026-10-01, reference §3.44), only if RW or RW-E passes:** after the verdict, read RW's own
+     `others` by minute of day (`pm_rw_minutes`) to see how fast other makers arrive on a reward pool. Build no recorder
+     before that read and Davies' word; a recorder's data would cover RW-C's markets, so nobody reads it before 10-23
+     00:05 UTC. If both fail, drop it.
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -128,7 +132,10 @@ list stays the short version; the plan is the reasoning behind it.
    against the book); after a sell, the book flat and the account under one step. Report a live order, a fill, an
    order `pending` over 2 minutes, a missing decision, a live-row error or a failed tick. The cap is one slot; a
    later change is one statement (`update public.agent_risk set max_exposure_usd = … where id = 1;`), and Davies is
-   told when it runs. The 30 and 75 steps written for the $50 book are not the next raises. **Never trade by hand in
+   told when it runs. The 30 and 75 steps written for the $50 book are not the next raises. **CAP (2026-10-01,
+   reference §3.44):** one slot was never priced and lets the coin list's order pick the coin; the brief's steps scaled
+   to $100 are $60 (two slots) and, after a clean week, $150 (four), on Davies' word. AVAX's UK book is $31k a day on a
+   30-day median, under §4.15's $100k; its seat is his call (`reviews/2026-10-01-research-round.md` §5). **Never trade by hand in
    that account.** Rows, caps and the order path: `.claude/CLAUDE.md`'s Agents section, `docs/agents/go-live.md`,
    reference §3.31 and §4 items 32–34.
 
@@ -454,6 +461,10 @@ list stays the short version; the plan is the reasoning behind it.
      `eu-west-1` under his current attestation that he is in Ireland. When he says the transfer is done, fire the
      read-only probe `?action=probe&only=polymarket` through pg_net with the Vault `cron_secret` and record the
      collateral it reads.
+   - **The research round of 2026-10-01** (`reviews/2026-10-01-research-round.md` §5, reference §3.44): the live cap's
+     next step and AVAX's seat (item 3); whether US equities are in scope (EQ1: no rule earns a paper row at Trading
+     212; if they are, which account, a demo key, and whether the turn-of-the-month held-out test at 26 % power is worth
+     freezing). Nothing was added to paper; POOLAGE waits on 10-09 (item 2).
    - Binance: switch off "Enable Spot & Margin Trading" and universal transfer; Deribit: `trade:read_write`; until a
      use is decided. Neither account is funded, and nothing trades on either.
    - The venue survey's §10 questions (`docs/agents/venue-survey.md`): US state and SSN/ITIN, HKID, stay small or
@@ -579,6 +590,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-10-01 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The research round Davies asked for: everything runs, nothing earns a new paper row, and two facts move** (Davies: "目前在测的和交易的策略以及只测量、不交易的研究都进展如何？研究下有值得优化的地方或者值得新加入paper trading或测试与测量的策略吗？"). `reviews/2026-10-01-research-round.md`, reference §3.44, `backtests/cap/`, `backtests/fp7/`, `backtests/equity/`: three `opus-max` agents (the trend family, new candidates, US equities) and this session's own reads, every read inside the frozen tests' no-peek lists, every quoted script re-run byte-identical from the committed folders. The live row's $25 cap is one slot of four, a sizing no study had priced (CAP); the brief's next steps scaled to $100 are $60 and then $150, on his word (item 3). AVAX's UK book is $31k a day on a 30-day median, not §3.8's $1.9m, which was one day's ticker: corrected in §3.8, §3.11, §4.16 and `.claude/CLAUDE.md`, and a book test is read on a 30-day median from now on. fp7 found no untried quote book and no new payer; POOLAGE waits on RW's verdict (item 2). EQ1: no US-equity rule earns a paper row at Trading 212 (item 6). RW's state read also returned `dayActive`, the day's 39 active market ids, and no figure of any market.
 
 ### [2026-09-30 23:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

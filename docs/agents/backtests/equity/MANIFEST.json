@@ -1,0 +1,60 @@
+{
+ "study": "EQ1, US equities at Trading 212, phase 1: a screen on Ken French's CRSP-based files cut at 2015-12-31, power checks, and 8-K item 2.02 filing times (research round of 2026-10-01; nothing pre-registered)",
+ "write_up": "docs/agents/reviews/2026-10-01-research-round.md \u00a74; reference \u00a73.44",
+ "run": [
+  "python3 scripts/screen_french.py  # -> results/screen_french.json, byte-identical on 2026-10-01",
+  "python3 scripts/power.py  # -> results/power.json, byte-identical on 2026-10-01",
+  "SEC_USER_AGENT='<name> <email>' python3 scripts/edgar_timing.py  # fetches live into inputs/edgar/ (not committed)"
+ ],
+ "sources": {
+  "inputs/*.csv.gz": "Ken French data library, files built from CRSP 202608, fetched 2026-09-24; the scripts read nothing after 2015-12-31",
+  "inputs/t212_openapi.json": "Trading 212's OpenAPI spec, docs.trading212.com/_spec/api.json, read 2026-10-01",
+  "held_out_unseen": "2016-01 -> 2026-09: no return or statistic computed"
+ },
+ "committed": {
+  "inputs/12_Industry_Portfolios.csv.gz": {
+   "bytes": 155000,
+   "sha256": "b22a9024957276dccf50c113320e600870953cecc2ed80863a55b37dcaf53df5"
+  },
+  "inputs/6_Portfolios_ME_Prior_1_0.csv.gz": {
+   "bytes": 136417,
+   "sha256": "5260ef6f210d5be01f942eeccd62a5b6f042339985106086e2722e5927be968a"
+  },
+  "inputs/F-F_Research_Data_Factors.csv.gz": {
+   "bytes": 14188,
+   "sha256": "3d38091321dd9e8734942faa1cffa779a460331aae11cfc04ef524c07c0a64f2"
+  },
+  "inputs/F-F_Research_Data_Factors_daily.csv.gz": {
+   "bytes": 205517,
+   "sha256": "ac244ddd12706212aaf6a0d6c958df9972addbb9c390ad149b8456160ae9288c"
+  },
+  "inputs/t212_openapi.json": {
+   "bytes": 77378,
+   "sha256": "a272f70a713fa9f2f906e9b4be12136c9d5d63d7f9f48562e939aa35c4fc041d"
+  },
+  "results/edgar_timing.json": {
+   "bytes": 2872,
+   "sha256": "b7204054f536e672de258b6127028c66ba63532abb577108543b76eb2f074cd9"
+  },
+  "results/power.json": {
+   "bytes": 5963,
+   "sha256": "dd859360f9ca98c7dd0bfadbf10861a24d10a75d10e23e833d3eac083e1eadfa"
+  },
+  "results/screen_french.json": {
+   "bytes": 6358,
+   "sha256": "14e48793e16716e69ab49bd30badbbb88a97bfab923b4d40ff7d36dfb91f5ef6"
+  },
+  "scripts/edgar_timing.py": {
+   "bytes": 2518,
+   "sha256": "08c2ec608f67d59953f381268e9293f4edb20fcba6f81187f724ce2e946e992c"
+  },
+  "scripts/power.py": {
+   "bytes": 8763,
+   "sha256": "7a46cfc8cd1e1c2a15857f9d22cfd0ec5d7311c05669d20cd261c3532dd380af"
+  },
+  "scripts/screen_french.py": {
+   "bytes": 9192,
+   "sha256": "b92d26c53fb24e726d45831c68c9d8006a06bea174a882a413832e15e2514ee5"
+  }
+ }
+}

@@ -1,0 +1,2464 @@
+{
+ "rows": [
+  {
+   "sym": "QNT",
+   "qv": 4819393.09,
+   "spread": 27.498023579555614,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SOL",
+   "qv": 4105218.43,
+   "spread": 4.410854094036585,
+   "status": "active",
+   "in38": true,
+   "v38": 3300000.0
+  },
+  {
+   "sym": "BTC",
+   "qv": 3396269.64,
+   "spread": 1.1822916217012844,
+   "status": "active",
+   "in38": true,
+   "v38": 3600000.0
+  },
+  {
+   "sym": "ETH",
+   "qv": 1370220.7,
+   "spread": 1.4926264254585755,
+   "status": "active",
+   "in38": true,
+   "v38": 3200000.0
+  },
+  {
+   "sym": "XRP",
+   "qv": 1321077.21,
+   "spread": 4.712059506579536,
+   "status": "active",
+   "in38": true,
+   "v38": 2600000.0
+  },
+  {
+   "sym": "NEAR",
+   "qv": 475811.2,
+   "spread": 75.30788467890392,
+   "status": "active",
+   "in38": true,
+   "v38": 2800000.0
+  },
+  {
+   "sym": "ONDO",
+   "qv": 335133.3,
+   "spread": 19.988007195682613,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "INJ",
+   "qv": 285920.74,
+   "spread": 16.288855707887137,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AAVE",
+   "qv": 278077.9,
+   "spread": 4.216289350723362,
+   "status": "active",
+   "in38": true,
+   "v38": 54000.0
+  },
+  {
+   "sym": "LINK",
+   "qv": 275081.41,
+   "spread": 7.670048460760194,
+   "status": "active",
+   "in38": true,
+   "v38": 693000.0
+  },
+  {
+   "sym": "HBAR",
+   "qv": 212857.92,
+   "spread": 14.090487955528802,
+   "status": "active",
+   "in38": true,
+   "v38": 114000.0
+  },
+  {
+   "sym": "SUI",
+   "qv": 165613.71,
+   "spread": 24.142093464389667,
+   "status": "active",
+   "in38": true,
+   "v38": 942000.0
+  },
+  {
+   "sym": "AVAX",
+   "qv": 158600.42,
+   "spread": 11.9854330890148,
+   "status": "active",
+   "in38": true,
+   "v38": 1900000.0
+  },
+  {
+   "sym": "BERA",
+   "qv": 117489.43,
+   "spread": 27.673453251632097,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DOGE",
+   "qv": 116908.83,
+   "spread": 7.42823791584874,
+   "status": "active",
+   "in38": true,
+   "v38": 199000.0
+  },
+  {
+   "sym": "CRV",
+   "qv": 105547.26,
+   "spread": 8.859077390369347,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "USDT",
+   "qv": 103324.48,
+   "spread": 1.0007505629220814,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VIRTUAL",
+   "qv": 102922.84,
+   "spread": 78.67624102403963,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WLD",
+   "qv": 98485.92,
+   "spread": 27.894002789399273,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LTC",
+   "qv": 92258.42,
+   "spread": 8.790815832407938,
+   "status": "active",
+   "in38": true,
+   "v38": 44000.0
+  },
+  {
+   "sym": "ALEO",
+   "qv": 91749.6,
+   "spread": 46.16551790931567,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ENA",
+   "qv": 87236.54,
+   "spread": 18.907165815844227,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AMP",
+   "qv": 83535.31,
+   "spread": 85.48361564033597,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FET",
+   "qv": 82513.42,
+   "spread": 35.149384885764285,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "USDC",
+   "qv": 78080.69,
+   "spread": 1.99980001999778,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ADA",
+   "qv": 76781.94,
+   "spread": 6.923656505182702,
+   "status": "active",
+   "in38": true,
+   "v38": 122000.0
+  },
+  {
+   "sym": "PENGU",
+   "qv": 76137.52,
+   "spread": 20.876826722337352,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BONK",
+   "qv": 75255.65,
+   "spread": 20.332985648081877,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "UNI",
+   "qv": 74942.73,
+   "spread": 9.286312880795936,
+   "status": "active",
+   "in38": true,
+   "v38": 159000.0
+  },
+  {
+   "sym": "ALGO",
+   "qv": 60364.85,
+   "spread": 14.72206044133838,
+   "status": "active",
+   "in38": true,
+   "v38": 180000.0
+  },
+  {
+   "sym": "DASH",
+   "qv": 58290.52,
+   "spread": 26.308778473425015,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LCX",
+   "qv": 56670.74,
+   "spread": 74.62686567164134,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DOT",
+   "qv": 50208.06,
+   "spread": 13.947573532428395,
+   "status": "active",
+   "in38": true,
+   "v38": 769000.0
+  },
+  {
+   "sym": "PEPE",
+   "qv": 50008.32,
+   "spread": 11.01386106131473,
+   "status": "active",
+   "in38": true,
+   "v38": 102000.0
+  },
+  {
+   "sym": "HYPE",
+   "qv": 47708.03,
+   "spread": 22.521685030516345,
+   "status": "active",
+   "in38": true,
+   "v38": 123000.0
+  },
+  {
+   "sym": "XLM",
+   "qv": 46923.6,
+   "spread": 9.560888406644283,
+   "status": "active",
+   "in38": true,
+   "v38": 176000.0
+  },
+  {
+   "sym": "POND",
+   "qv": 42696.84,
+   "spread": 231.78807947019834,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ATH",
+   "qv": 42439.33,
+   "spread": 55.74795168510861,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "STG",
+   "qv": 42428.59,
+   "spread": 74.37315509109938,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FIL",
+   "qv": 38424.95,
+   "spread": 28.672464876231615,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZKC",
+   "qv": 37998.3,
+   "spread": 214.59227467811112,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ICP",
+   "qv": 35837.56,
+   "spread": 31.52253861510967,
+   "status": "active",
+   "in38": true,
+   "v38": 171000.0
+  },
+  {
+   "sym": "ARB",
+   "qv": 35225.35,
+   "spread": 19.801980198018995,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZRO",
+   "qv": 33845.27,
+   "spread": 28.706171826943535,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VVV",
+   "qv": 30700.77,
+   "spread": 42.909090909091674,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LDO",
+   "qv": 30040.32,
+   "spread": 21.791239921551558,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PYTH",
+   "qv": 29586.5,
+   "spread": 26.07561929595722,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DIMO",
+   "qv": 29258.63,
+   "spread": 432.97053990330807,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RAY",
+   "qv": 28812.26,
+   "spread": 35.98044113573951,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NEON",
+   "qv": 28704.22,
+   "spread": 500.78194628953895,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GTC",
+   "qv": 26460.89,
+   "spread": 42.28329809725133,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TRAC",
+   "qv": 25606.03,
+   "spread": 76.49043869516217,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RLS",
+   "qv": 25081.05,
+   "spread": 257.8923966207198,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SPX",
+   "qv": 20977.78,
+   "spread": 25.014212620808312,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ALEPH",
+   "qv": 20887.9,
+   "spread": 123.00861060274238,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FARM",
+   "qv": 19890.62,
+   "spread": 254.0882142159102,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MEW",
+   "qv": 19711.28,
+   "spread": 40.40404040404138,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "POL",
+   "qv": 18345.22,
+   "spread": 26.678523788351143,
+   "status": "active",
+   "in38": true,
+   "v38": 11000.0
+  },
+  {
+   "sym": "APT",
+   "qv": 18236.16,
+   "spread": 28.263103802671885,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "JUP",
+   "qv": 18039.37,
+   "spread": 12.14329083181577,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RENDER",
+   "qv": 16529.51,
+   "spread": 22.07737594617316,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "REZ",
+   "qv": 16360.64,
+   "spread": 105.59662090813214,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZEN",
+   "qv": 16240.87,
+   "spread": 89.07160173942042,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "QI",
+   "qv": 15895.39,
+   "spread": 215.20068317677092,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RARE",
+   "qv": 15800.65,
+   "spread": 46.920821114369616,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KSM",
+   "qv": 15741.33,
+   "spread": 102.3264793899041,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "METIS",
+   "qv": 15411.25,
+   "spread": 56.843679880328146,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RSR",
+   "qv": 15077.53,
+   "spread": 47.25339633786165,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GFI",
+   "qv": 13825.97,
+   "spread": 149.4124983188038,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AURORA",
+   "qv": 13691.33,
+   "spread": 5327.562174455285,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XCN",
+   "qv": 12690.58,
+   "spread": 21.85792349726687,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GALA",
+   "qv": 12229.83,
+   "spread": 21.687269572761785,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AUDIO",
+   "qv": 11717.45,
+   "spread": 108.76132930513573,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HFT",
+   "qv": 11451.73,
+   "spread": 50.37783375314802,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "POPCAT",
+   "qv": 11199.13,
+   "spread": 38.535645472061425,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AVT",
+   "qv": 11099.35,
+   "spread": 407.49796251018785,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NMR",
+   "qv": 10972.16,
+   "spread": 38.76310457228324,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CRO",
+   "qv": 10817.03,
+   "spread": 52.58935734022539,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AST",
+   "qv": 10763.63,
+   "spread": 1066.4718772826889,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "STX",
+   "qv": 10109.31,
+   "spread": 83.21030734129626,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PRIME",
+   "qv": 9606.02,
+   "spread": 71.29377227930414,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HNT",
+   "qv": 9552.87,
+   "spread": 41.39072847682123,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AKT",
+   "qv": 9436.28,
+   "spread": 62.305295950155816,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OP",
+   "qv": 9435.12,
+   "spread": 30.88803088803177,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XAN",
+   "qv": 9354.93,
+   "spread": 99.99612418123378,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SEI",
+   "qv": 8737.91,
+   "spread": 40.95563139931858,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "COTI",
+   "qv": 8245.79,
+   "spread": 44.543429844098014,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SHPING",
+   "qv": 8131.12,
+   "spread": 117.4743024963286,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ATOM",
+   "qv": 8034.66,
+   "spread": 20.176980947164193,
+   "status": "active",
+   "in38": true,
+   "v38": 17000.0
+  },
+  {
+   "sym": "TOSHI",
+   "qv": 8004.07,
+   "spread": 33.95585738539893,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KTA",
+   "qv": 7701.72,
+   "spread": 137.22854919714206,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PYR",
+   "qv": 7684.22,
+   "spread": 105.0788091068295,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FLOKI",
+   "qv": 7529.05,
+   "spread": 64.93506493506432,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VOXEL",
+   "qv": 7368.85,
+   "spread": 126.8498942917551,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "YFI",
+   "qv": 7327.62,
+   "spread": 18.176038601667777,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IP",
+   "qv": 7288.42,
+   "spread": 31.624124689406198,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MLN",
+   "qv": 6951.34,
+   "spread": 223.39027595269405,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CC",
+   "qv": 6900.26,
+   "spread": 19.603999215840048,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AVNT",
+   "qv": 6865.83,
+   "spread": 52.33761668554497,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GRT",
+   "qv": 6845.23,
+   "spread": 68.4931506849311,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GHST",
+   "qv": 6769.36,
+   "spread": 167.04631738800362,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CVX",
+   "qv": 6552.63,
+   "spread": 38.89609186886443,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FLR",
+   "qv": 6506.82,
+   "spread": 80.22299272554223,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MELANIA",
+   "qv": 6467.47,
+   "spread": 116.27906976744251,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MOG",
+   "qv": 6430.66,
+   "spread": 103.89610389610368,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GRASS",
+   "qv": 6375.22,
+   "spread": 60.62396133959187,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WIF",
+   "qv": 5824.73,
+   "spread": 20.206102242877368,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HOPR",
+   "qv": 5804.69,
+   "spread": 369.43136544730174,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SKY",
+   "qv": 5802.76,
+   "spread": 39.69451920174241,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "JTO",
+   "qv": 5790.36,
+   "spread": 43.35941182015211,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AERO",
+   "qv": 5784.52,
+   "spread": 24.360535931790523,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZAMA",
+   "qv": 5739.55,
+   "spread": 86.01530524946111,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SAND",
+   "qv": 5457.76,
+   "spread": 29.75849834039102,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SAFE",
+   "qv": 5235.94,
+   "spread": 87.71929824561411,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SPA",
+   "qv": 5162.87,
+   "spread": 123.89084212288533,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AIOZ",
+   "qv": 4975.92,
+   "spread": 87.3362445414848,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LMWR",
+   "qv": 4914.29,
+   "spread": 153.22217214961694,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CLANKER",
+   "qv": 4878.77,
+   "spread": 51.6729747498986,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XDC",
+   "qv": 4829.7,
+   "spread": 31.96314160247642,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FLOW",
+   "qv": 4813.43,
+   "spread": 67.5132615335161,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CHZ",
+   "qv": 4779.92,
+   "spread": 20.370999104911743,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MAGIC",
+   "qv": 4756.52,
+   "spread": 93.89671361502356,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IO",
+   "qv": 4750.98,
+   "spread": 112.61151214904258,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TON",
+   "qv": 4744.93,
+   "spread": 35.50256221321688,
+   "status": "active",
+   "in38": true,
+   "v38": 8000.0
+  },
+  {
+   "sym": "KARRAT",
+   "qv": 4640.17,
+   "spread": 97.22222222222157,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SUSHI",
+   "qv": 4495.91,
+   "spread": 44.64285714285636,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HIGH",
+   "qv": 4274.12,
+   "spread": 224.71910112359416,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XAUT",
+   "qv": 4145.96,
+   "spread": 8.499130770715489,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DRIFT",
+   "qv": 4057.14,
+   "spread": 103.00068316779742,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SHIB",
+   "qv": 4037.85,
+   "spread": 8.034653811220434,
+   "status": "active",
+   "in38": true,
+   "v38": 11000.0
+  },
+  {
+   "sym": "SNX",
+   "qv": 3753.44,
+   "spread": 35.481963335305025,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "EIGEN",
+   "qv": 3752.42,
+   "spread": 40.70004070004073,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ORCA",
+   "qv": 3541.06,
+   "spread": 86.54314968308137,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FORTH",
+   "qv": 3539.53,
+   "spread": 97.66306243460149,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PAXG",
+   "qv": 3520.06,
+   "spread": 10.488460884672413,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BNB",
+   "qv": 3456.29,
+   "spread": 7.1991569305554375,
+   "status": "active",
+   "in38": true,
+   "v38": 19000.0
+  },
+  {
+   "sym": "XPL",
+   "qv": 3417.68,
+   "spread": 67.77184079486395,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TRUMP",
+   "qv": 3392.82,
+   "spread": 18.01757931387236,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "EGLD",
+   "qv": 3377.28,
+   "spread": 55.79734404642418,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WAL",
+   "qv": 3287.6,
+   "spread": 85.47323652461921,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XTZ",
+   "qv": 2818.09,
+   "spread": 41.21096845775774,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IDEX",
+   "qv": 2800.24,
+   "spread": 410.2564102564103,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ETC",
+   "qv": 2791.9,
+   "spread": 29.275982434410317,
+   "status": "active",
+   "in38": true,
+   "v38": 8000.0
+  },
+  {
+   "sym": "MON",
+   "qv": 2768.58,
+   "spread": 30.902348578492848,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VET",
+   "qv": 2721.38,
+   "spread": 45.351473922902606,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WOO",
+   "qv": 2713.02,
+   "spread": 99.99999999999966,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TIA",
+   "qv": 2694.23,
+   "spread": 22.655188038060736,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "A8",
+   "qv": 2623.35,
+   "spread": 87.0773506252882,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MDT",
+   "qv": 2579.6,
+   "spread": 212.3142250530785,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WLFI",
+   "qv": 2514.52,
+   "spread": 18.162005085360686,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "JASMY",
+   "qv": 2381.3,
+   "spread": 53.82681125255449,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RED",
+   "qv": 2359.14,
+   "spread": 107.19322990126854,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ABT",
+   "qv": 2254.82,
+   "spread": 208.23620823620774,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GIGA",
+   "qv": 2215.01,
+   "spread": 96.04390578550277,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "L3",
+   "qv": 2212.33,
+   "spread": 67.22689075630123,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PLUME",
+   "qv": 2058.2,
+   "spread": 37.38317757009379,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VTHO",
+   "qv": 1992.34,
+   "spread": 131.48283418553692,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MINA",
+   "qv": 1957.94,
+   "spread": 102.4940211820978,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TRU",
+   "qv": 1943.88,
+   "spread": 686.0158311345642,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SYRUP",
+   "qv": 1901.43,
+   "spread": 34.3282583981629,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BICO",
+   "qv": 1849.12,
+   "spread": 78.14295564238108,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "STORJ",
+   "qv": 1846.43,
+   "spread": 280.7704864511915,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "API3",
+   "qv": 1841.56,
+   "spread": 38.240917782026415,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PUNDIX",
+   "qv": 1822.31,
+   "spread": 127.38853503184858,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AERGO",
+   "qv": 1806.34,
+   "spread": 247.17893605588316,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "COOKIE",
+   "qv": 1783.51,
+   "spread": 100.73552926127367,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LRDS",
+   "qv": 1736.95,
+   "spread": 233.4848739967445,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MANA",
+   "qv": 1705.39,
+   "spread": 55.71030640668529,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SUPER",
+   "qv": 1653.19,
+   "spread": 81.01265822784761,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DIA",
+   "qv": 1575.34,
+   "spread": 129.03225806451658,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "B3",
+   "qv": 1573.49,
+   "spread": 114.82775836245641,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CELO",
+   "qv": 1549.37,
+   "spread": 65.05667816658392,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AGLD",
+   "qv": 1522.26,
+   "spread": 170.27487229384593,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TRB",
+   "qv": 1518.24,
+   "spread": 36.211766409965136,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BCH",
+   "qv": 1503.94,
+   "spread": 20.763203026522653,
+   "status": "active",
+   "in38": true,
+   "v38": 928000.0
+  },
+  {
+   "sym": "SKL",
+   "qv": 1474.46,
+   "spread": 43.14063848144964,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "EDGE",
+   "qv": 1417.32,
+   "spread": 46.785644529032226,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TRX",
+   "qv": 1412.78,
+   "spread": 7.109004739337025,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "REQ",
+   "qv": 1393.69,
+   "spread": 142.41758241758214,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LPT",
+   "qv": 1390.1,
+   "spread": 112.93054771315653,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OXT",
+   "qv": 1227.94,
+   "spread": 131.33021589891396,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PNG",
+   "qv": 1216.93,
+   "spread": 199.71469329529222,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AXS",
+   "qv": 1183.25,
+   "spread": 78.0911062906735,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "COMP",
+   "qv": 1127.36,
+   "spread": 21.503195050208266,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ACS",
+   "qv": 1081.3,
+   "spread": 124.23164024587571,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ARKM",
+   "qv": 1042.24,
+   "spread": 68.10442678774001,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PARTI",
+   "qv": 1041.56,
+   "spread": 73.05041985163976,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AI",
+   "qv": 1033.54,
+   "spread": 90.1644691591917,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ALICE",
+   "qv": 1015.25,
+   "spread": 47.22550177095603,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BOBA",
+   "qv": 972.2,
+   "spread": 288.4615384615384,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BLUR",
+   "qv": 939.17,
+   "spread": 119.01928112354211,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "2Z",
+   "qv": 920.1,
+   "spread": 99.55285581709276,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ILV",
+   "qv": 872.59,
+   "spread": 46.260601387817516,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "COW",
+   "qv": 858.35,
+   "spread": 72.37635705669354,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OSMO",
+   "qv": 848.26,
+   "spread": 108.99182561308027,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZKJ",
+   "qv": 795.74,
+   "spread": 110.91150511598825,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZK",
+   "qv": 788.61,
+   "spread": 37.27171077152576,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HONEY",
+   "qv": 783.12,
+   "spread": 172.09128320239444,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BAL",
+   "qv": 771.89,
+   "spread": 179.91004497751013,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "EUL",
+   "qv": 687.26,
+   "spread": 99.63086406479447,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IMX",
+   "qv": 685.51,
+   "spread": 24.067388688326332,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TAIKO",
+   "qv": 671.06,
+   "spread": 298.5737277318384,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "W",
+   "qv": 660.27,
+   "spread": 81.27353390746727,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "APE",
+   "qv": 653.9,
+   "spread": 19.940179461616648,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CELR",
+   "qv": 635.63,
+   "spread": 45.07405022536925,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "POLS",
+   "qv": 628.06,
+   "spread": 212.4430955993949,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "VELO",
+   "qv": 572.97,
+   "spread": 75.08039268462024,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SXT",
+   "qv": 537.05,
+   "spread": 42.8082191780823,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CVC",
+   "qv": 534.7,
+   "spread": 171.36323052583725,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ACH",
+   "qv": 517.85,
+   "spread": 51.23543508800889,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MORPHO",
+   "qv": 501.32,
+   "spread": 32.453873429892724,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IMU",
+   "qv": 494.71,
+   "spread": 134.93049721032898,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MOODENG",
+   "qv": 494.0,
+   "spread": 61.430826329934,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ROSE",
+   "qv": 477.08,
+   "spread": 67.0391061452506,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "STRK",
+   "qv": 473.4,
+   "spread": 69.20415224913373,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IDOS",
+   "qv": 460.3,
+   "spread": 319.3376700177423,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FAI",
+   "qv": 412.93,
+   "spread": 80.58783594904298,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "C98",
+   "qv": 386.58,
+   "spread": 184.61538461538564,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OGN",
+   "qv": 385.62,
+   "spread": 102.81517747857939,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PENDLE",
+   "qv": 381.25,
+   "spread": 494.55984174085137,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DYDX",
+   "qv": 380.9,
+   "spread": 20.971688220901413,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ANKR",
+   "qv": 373.52,
+   "spread": 105.24185387573357,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PONKE",
+   "qv": 365.92,
+   "spread": 422.6254002134477,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KAVA",
+   "qv": 363.38,
+   "spread": 49.418604651163804,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PRO",
+   "qv": 293.62,
+   "spread": 139.58682300390853,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FORT",
+   "qv": 276.55,
+   "spread": 133.12202852614797,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ALCX",
+   "qv": 273.88,
+   "spread": 166.60630206446874,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SENT",
+   "qv": 271.38,
+   "spread": 46.94835680751145,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SPELL",
+   "qv": 271.05,
+   "spread": 108.87428101889824,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BLZ",
+   "qv": 270.88,
+   "spread": 162.6928471248252,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RLC",
+   "qv": 268.04,
+   "spread": 103.59792804143866,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NKN",
+   "qv": 265.35,
+   "spread": 73.07434195809346,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TNSR",
+   "qv": 262.78,
+   "spread": 99.40104498534508,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SWFTC",
+   "qv": 256.24,
+   "spread": 180.21412200558848,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BTRST",
+   "qv": 252.28,
+   "spread": 191.47084421235922,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NCT",
+   "qv": 224.19,
+   "spread": 195.3125000000005,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "CTSI",
+   "qv": 196.65,
+   "spread": 3.4764470710932014,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SD",
+   "qv": 193.7,
+   "spread": 129.97562956945495,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KAITO",
+   "qv": 183.15,
+   "spread": 86.33093525179865,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ARPA",
+   "qv": 181.29,
+   "spread": 74.81184370634075,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NOT",
+   "qv": 180.99,
+   "spread": 74.21827472928474,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "NEIRO",
+   "qv": 175.34,
+   "spread": 57.50556067921626,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TREE",
+   "qv": 174.12,
+   "spread": 109.81770261366142,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FIDA",
+   "qv": 171.6,
+   "spread": 88.90143230085452,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OCEAN",
+   "qv": 163.7,
+   "spread": 159.03307888040726,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LRC",
+   "qv": 149.83,
+   "spread": 67.40491092922544,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DOGS",
+   "qv": 148.67,
+   "spread": 55.084530375852054,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MASK",
+   "qv": 147.86,
+   "spread": 43.38394793926251,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KERNEL",
+   "qv": 147.85,
+   "spread": 105.21368139417153,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ENS",
+   "qv": 143.1,
+   "spread": 88.87614678898994,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ASM",
+   "qv": 136.36,
+   "spread": 76.46628162368854,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "T",
+   "qv": 129.75,
+   "spread": 120.49285934636309,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PRCL",
+   "qv": 127.45,
+   "spread": 318.71878220883326,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AWE",
+   "qv": 105.9,
+   "spread": 222.56224787870414,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RARI",
+   "qv": 103.98,
+   "spread": 175.69430766200367,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KNC",
+   "qv": 101.36,
+   "spread": 110.44103756448602,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SWELL",
+   "qv": 96.72,
+   "spread": 46.82686383241026,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "1INCH",
+   "qv": 95.93,
+   "spread": 32.581329910647874,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "AUCTION",
+   "qv": 95.71,
+   "spread": 96.74818597151311,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GST",
+   "qv": 88.48,
+   "spread": 192.4023446239209,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LA",
+   "qv": 87.38,
+   "spread": 92.40542881894335,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "OFC",
+   "qv": 85.58,
+   "spread": 48.84004884004897,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "XYO",
+   "qv": 82.76,
+   "spread": 138.90046392754869,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PROVE",
+   "qv": 80.61,
+   "spread": 117.66891682665589,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SPK",
+   "qv": 78.9,
+   "spread": 54.77895676520104,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BEAM",
+   "qv": 78.51,
+   "spread": 185.38482464006142,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ME",
+   "qv": 77.91,
+   "spread": 65.832784726794,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BAT",
+   "qv": 73.5,
+   "spread": 80.61807188444726,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "HOME",
+   "qv": 72.43,
+   "spread": 127.19665271966619,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BIGTIME",
+   "qv": 72.04,
+   "spread": 54.341673270688815,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "UMA",
+   "qv": 68.23,
+   "spread": 24.271844660194198,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SHDW",
+   "qv": 67.27,
+   "spread": 152.7657109759625,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PERP",
+   "qv": 66.39,
+   "spread": 232.018561484919,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SQD",
+   "qv": 65.92,
+   "spread": 129.75346841002144,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BNT",
+   "qv": 65.9,
+   "spread": 92.75362318840685,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GODS",
+   "qv": 64.67,
+   "spread": 133.68442373911302,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BENJI",
+   "qv": 64.62,
+   "spread": 245.398773006135,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GMT",
+   "qv": 64.32,
+   "spread": 46.51162790697485,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "GLM",
+   "qv": 64.27,
+   "spread": 118.530225207428,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TURBO",
+   "qv": 64.24,
+   "spread": 55.52579026837442,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SUKU",
+   "qv": 63.95,
+   "spread": 74.34944237918235,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZRX",
+   "qv": 63.92,
+   "spread": 26.214467109035862,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MATH",
+   "qv": 63.87,
+   "spread": 195.1219512195127,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DEGEN",
+   "qv": 63.84,
+   "spread": 130.11152416356788,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ZORA",
+   "qv": 63.78,
+   "spread": 59.35467575929807,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "POWR",
+   "qv": 63.38,
+   "spread": 134.62976813762126,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RAD",
+   "qv": 63.37,
+   "spread": 108.94941634241341,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RSC",
+   "qv": 63.29,
+   "spread": 87.46273196368595,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "KRL",
+   "qv": 63.29,
+   "spread": 97.71541644180593,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "RPL",
+   "qv": 63.09,
+   "spread": 56.28037861345562,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MSOL",
+   "qv": 63.05,
+   "spread": 133.41316860788652,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "TOKEN",
+   "qv": 62.96,
+   "spread": 262.0087336244548,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "BAND",
+   "qv": 62.9,
+   "spread": 114.75786091347268,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PNUT",
+   "qv": 62.7,
+   "spread": 29.717682020802453,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "ELA",
+   "qv": 62.7,
+   "spread": 59.90128942447011,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "MNDE",
+   "qv": 62.66,
+   "spread": 60.8628659476111,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LAYER",
+   "qv": 62.59,
+   "spread": 62.7521290900929,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "WAXL",
+   "qv": 62.39,
+   "spread": 117.6470588235287,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "LQTY",
+   "qv": 61.49,
+   "spread": 67.6818950930622,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "PROMPT",
+   "qv": 60.91,
+   "spread": 127.86181274275715,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DOGINME",
+   "qv": 60.11,
+   "spread": 212.22576655165807,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SOMI",
+   "qv": 0.0,
+   "spread": 63.489224716087115,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "DOLO",
+   "qv": 0.0,
+   "spread": 61.050260361404376,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "FLUID",
+   "qv": 0.0,
+   "spread": 51.77111716621288,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "IOTX",
+   "qv": 0.0,
+   "spread": 5964.912280701754,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  },
+  {
+   "sym": "SYND",
+   "qv": 0.0,
+   "spread": 235.5108216564693,
+   "status": "active",
+   "in38": false,
+   "v38": null
+  }
+ ],
+ "newOver": [
+  "QNT",
+  "ONDO",
+  "INJ",
+  "BERA",
+  "CRV",
+  "USDT",
+  "VIRTUAL"
+ ],
+ "crossed": [
+  "AAVE"
+ ]
+}

@@ -1,0 +1,38 @@
+pairs in configuration: 455  UK ticker rows: 393  non-UK rows dropped: 0
+UK quote currencies: {'GBP': 64, 'USD': 306, 'USDC': 23}
+
+UK books with a stablecoin/fiat/gold base, or a quote other than USD/GBP:
+  USDT/GBP     bid 0.7531       ask 0.7535       spread    5.31 bps  24h quote vol       111818
+  USDT/USD     bid 0.9992       ask 0.9993       spread     1.0 bps  24h quote vol       103324
+  USDC/USD     bid 1.0          ask 1.0002       spread     2.0 bps  24h quote vol        78081
+  USDC/GBP     bid 0.7536       ask 0.754        spread    5.31 bps  24h quote vol        64321
+  SOL/USDC     bid 117.698      ask 118.232      spread   45.27 bps  24h quote vol        34996
+  PEPE/USDC    bid 4.2619e-06   ask 4.295e-06    spread   77.36 bps  24h quote vol         9934
+  HBAR/USDC    bid 0.103999     ask 0.104257     spread   24.78 bps  24h quote vol         6224
+  XAUT/USD     bid 4144.24      ask 4148.18      spread     9.5 bps  24h quote vol         4146
+  PAXG/USD     bid 4150.49      ask 4155.4       spread   11.82 bps  24h quote vol         3520
+  LINK/USDC    bid 14.363       ask 14.374       spread    7.66 bps  24h quote vol         3072
+  SUI/USDC     bid 1.1636       ask 1.1662       spread   22.32 bps  24h quote vol         1773
+  DOT/USDC     bid 1.2198       ask 1.2237       spread   31.92 bps  24h quote vol         1209
+  BTC/USDC     bid 83382.45     ask 83522.66     spread    16.8 bps  24h quote vol         1000
+  PAXG/GBP     bid 3128.85      ask 3132.0       spread   10.06 bps  24h quote vol          892
+  ADA/USDC     bid 0.24602      ask 0.24666      spread   25.98 bps  24h quote vol          834
+  ETH/USDC     bid 2679.73      ask 2684.25      spread   16.85 bps  24h quote vol          833
+  BONK/USDC    bid 3.7838e-06   ask 3.8016e-06   spread   46.93 bps  24h quote vol          711
+  XAUT/GBP     bid 3124.22      ask 3127.61      spread   10.84 bps  24h quote vol          687
+  LTC/USDC     bid 67.135       ask 67.312       spread   26.33 bps  24h quote vol          448
+  ENA/USDC     bid 0.2656       ask 0.2664       spread   30.08 bps  24h quote vol          229
+  TRX/USDC     bid 0.33652      ask 0.33834      spread   53.94 bps  24h quote vol          123
+  AVAX/USDC    bid 10.889       ask 10.914       spread   22.93 bps  24h quote vol          110
+  XRP/USDC     bid 1.4863       ask 1.49         spread   24.86 bps  24h quote vol           92
+  BCH/USDC     bid 306.05       ask 306.873      spread   26.85 bps  24h quote vol           64
+  JUP/USDC     bid 0.3284       ask 0.3311       spread   81.88 bps  24h quote vol           63
+  SHIB/USDC    bid 5.7344e-06   ask 5.7616e-06   spread   47.32 bps  24h quote vol           63
+  BNB/USDC     bid 767.597      ask 769.368      spread   23.05 bps  24h quote vol           63
+  TON/USDC     bid 1.4922       ask 1.4975       spread   35.46 bps  24h quote vol           62
+  TRUMP/USDC   bid 2.0566       ask 2.0629       spread   30.59 bps  24h quote vol           60
+  XLM/USDC     bid 0.225432     ask 0.226091     spread   29.19 bps  24h quote vol           59
+  DOGE/USDC    bid 0.09436      ask 0.09458      spread   23.29 bps  24h quote vol            0
+
+all quote currencies in configuration: ['EUR', 'GBP', 'USD', 'USDC']
+configuration pairs with a stable/gold base: ['PAXG/GBP', 'PAXG/USD', 'USDC/EUR', 'USDC/GBP', 'USDC/USD', 'USDT/GBP', 'USDT/USD', 'XAUT/GBP', 'XAUT/USD']

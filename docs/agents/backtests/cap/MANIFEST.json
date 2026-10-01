@@ -1,0 +1,97 @@
+{
+ "study": "CAP, the live row's exposure cap priced with the house rule functions, and Revolut X's UK books on 30 days of daily candles (research round of 2026-10-01; a screen, not a pre-registered test)",
+ "write_up": "docs/agents/reviews/2026-10-01-research-round.md \u00a71-\u00a72; reference \u00a73.44",
+ "run": [
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write cap_study.ts  # -> results/cap_study.json, byte-identical on 2026-10-01",
+  "python3 scripts/pnl.py  # -> results/pnl_out.json from results/orders.json",
+  "python3 scripts/revx_universe.py  # -> results/revx_universe_out.json from inputs/pairs_*, inputs/tickers_uk_*",
+  "python3 scripts/fill_rate.py  # prints the Poisson tails and EX-GAP's timing"
+ ],
+ "sources": {
+  "inputs/*_1h_3y.json.gz": "Coinbase Exchange hourly candles, keyless, 2023-09-20 -> 2026-10-01, pulled 2026-10-01 by scripts/pull_coinbase.py",
+  "inputs/daily_volume_*.json, pairs_*, tickers_uk_*, books_uk_*": "Revolut X public endpoints, region=UK, read 2026-10-01 ~00:30 UTC (scripts/revx_daily_volume.py and the agent's reads)",
+  "results/orders.json, results/queries.sql": "production, SELECT only, 2026-10-01 00:21-00:40 UTC, within every frozen test's no-peek list"
+ },
+ "committed": {
+  "inputs/AVAX-USD_1h_3y.json.gz": {
+   "bytes": 492746,
+   "sha256": "6bf58da3e6a51560741ba64da413c11c637c220e3fe6840d37ad08ebe622ab2b"
+  },
+  "inputs/BTC-USD_1h_3y.json.gz": {
+   "bytes": 681393,
+   "sha256": "2522f211a38122b424155a2f47008829299b6b374dd04782c67884bd37557e2e"
+  },
+  "inputs/ETH-USD_1h_3y.json.gz": {
+   "bytes": 628214,
+   "sha256": "4df31e2d1af333cd4fb59279d0b31de42997be7f7a9e605cdd9c4ee6afe26bbc"
+  },
+  "inputs/SOL-USD_1h_3y.json.gz": {
+   "bytes": 551748,
+   "sha256": "8a0c316f40a5eab5cc4c2caae2cc5bcae545c0f30631125fa578491e49f1515b"
+  },
+  "inputs/books_uk_2026-10-01.json": {
+   "bytes": 5255,
+   "sha256": "4c107ac30e8471aff8ada274b97b3a53d172ad79b8480f614092822c9bcf6f37"
+  },
+  "inputs/daily_volume_30d.json": {
+   "bytes": 2341,
+   "sha256": "c57802c21ebcb176441e105eeba3e16fec5f83a53f775b7ca2906d4c1f59e2ef"
+  },
+  "inputs/daily_volume_monthly.json": {
+   "bytes": 2476,
+   "sha256": "6e32c5162a4fbd3bdfe0368d03641652b89df911567b63828d6f708f00847efc"
+  },
+  "inputs/pairs_2026-10-01.json": {
+   "bytes": 104905,
+   "sha256": "0aac6d0b0450e505d8a59d82edb16e326adddc819d126a0c8184df53424cda75"
+  },
+  "inputs/tickers_uk_2026-10-01.json": {
+   "bytes": 99265,
+   "sha256": "0a7f64f20be8a5145ac6227e2d13902cd030536b3acacbffdf06ddf0cf81f973"
+  },
+  "results/cap_study.json": {
+   "bytes": 37982,
+   "sha256": "166c5e5bf5f3d66bae264db7d4773a2320dbdcd9456f8d0a3cd0e1a9b6a2ef4a"
+  },
+  "results/orders.json": {
+   "bytes": 4804,
+   "sha256": "5454f9ae2c3eff327dd3fa0024ea87969d637dc0818d7f8ae7844117aa38361e"
+  },
+  "results/pnl_out.json": {
+   "bytes": 2399,
+   "sha256": "fd9b0a04b41a62dfd999215f655178eb55e5353512d2d1a4160c76fd35529f7a"
+  },
+  "results/queries.sql": {
+   "bytes": 23773,
+   "sha256": "0085236be96e5ffd5298977cfde8663377167f560d773c577d4a884e11a84a6f"
+  },
+  "results/revx_universe_out.json": {
+   "bytes": 40831,
+   "sha256": "3e0fcb6de715bf7196826f26cf50e094eb6ee6e0dfaa4b91c55c009ab30b65d5"
+  },
+  "scripts/cap_study.ts": {
+   "bytes": 14343,
+   "sha256": "0c619d1a19d33262c992c0ec63005248eee9c22f04f86bb1657bc8fea13fde01"
+  },
+  "scripts/fill_rate.py": {
+   "bytes": 1145,
+   "sha256": "6b1be96170868d2bdb61ec870d280a4825ebde6d2c84268d2cff943bdafb59ba"
+  },
+  "scripts/pnl.py": {
+   "bytes": 5375,
+   "sha256": "c0b9459d97a931105ba43ae454fc3aa97723f7bfa31dd2c66a9d763ed6e113d9"
+  },
+  "scripts/pull_coinbase.py": {
+   "bytes": 1622,
+   "sha256": "f67a4bcb990457825071fd1dd4ef2bbe1a051e6bfccc4321dac6e7642c2c7055"
+  },
+  "scripts/revx_daily_volume.py": {
+   "bytes": 1586,
+   "sha256": "b50dada509c55b76908c0b51eb2ed61e1bf48f8a3a0ffda83850f5fbc03dd575"
+  },
+  "scripts/revx_universe.py": {
+   "bytes": 3008,
+   "sha256": "7236ec20710d4a7aa3038b461a2b6f9b17385637d52522d6a89e172e29c7fae9"
+  }
+ }
+}

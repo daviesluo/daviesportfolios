@@ -1,0 +1,28 @@
+
+SOL-USDC: prints 135, matched 135, dust (<$1) 2, non-dust 133, non-dust $ 191,099 in 7 d ($27,300/day)
+  deviation bps (taker worse than fair = +): p10 -9.8 p50 8.8 p90 22.1; $-weighted mean 9.2
+  markout vs a maker (+ = against): 5 min mean 2.5 median -0.8; 60 min mean 10.7 median -5.3
+  k=10 bps:   48 prints through, $   2,348 capped notional, ceiling edge $  2.35 in 7 d ($0.335/day); 5-min markout on those $-3.94
+  k=20 bps:   17 prints through, $     693 capped notional, ceiling edge $  1.39 in 7 d ($0.198/day); 5-min markout on those $-3.80
+  k=30 bps:    7 prints through, $     308 capped notional, ceiling edge $  0.92 in 7 d ($0.132/day); 5-min markout on those $-1.24
+
+PEPE-USDC: prints 4344, matched 4344, dust (<$1) 4318, non-dust 26, non-dust $ 32,141 in 7 d ($4,592/day)
+  deviation bps (taker worse than fair = +): p10 -0.0 p50 24.0 p90 47.3; $-weighted mean 24.2
+  markout vs a maker (+ = against): 5 min mean -12.0 median -22.6; 60 min mean -15.2 median 11.2
+  k=10 bps:   20 prints through, $   1,743 capped notional, ceiling edge $  1.74 in 7 d ($0.249/day); 5-min markout on those $+1.78
+  k=20 bps:   15 prints through, $   1,348 capped notional, ceiling edge $  2.70 in 7 d ($0.385/day); 5-min markout on those $-0.00
+  k=30 bps:   11 prints through, $     948 capped notional, ceiling edge $  2.85 in 7 d ($0.406/day); 5-min markout on those $-0.63
+
+HBAR-USDC: prints 4199, matched 4199, dust (<$1) 4160, non-dust 39, non-dust $ 23,273 in 7 d ($3,325/day)
+  deviation bps (taker worse than fair = +): p10 -15.1 p50 14.5 p90 67.1; $-weighted mean 27.3
+  markout vs a maker (+ = against): 5 min mean 36.5 median 9.6; 60 min mean 10.6 median 85.8
+  k=10 bps:   24 prints through, $   2,148 capped notional, ceiling edge $  2.15 in 7 d ($0.307/day); 5-min markout on those $-14.39
+  k=20 bps:   14 prints through, $   1,327 capped notional, ceiling edge $  2.65 in 7 d ($0.379/day); 5-min markout on those $-15.31
+  k=30 bps:   12 prints through, $   1,127 capped notional, ceiling edge $  3.38 in 7 d ($0.483/day); 5-min markout on those $-13.28
+
+LINK-USDC: prints 4306, matched 4306, dust (<$1) 4242, non-dust 64, non-dust $ 426,192 in 7 d ($60,885/day)
+  deviation bps (taker worse than fair = +): p10 -6.5 p50 11.9 p90 35.9; $-weighted mean 29.3
+  markout vs a maker (+ = against): 5 min mean 10.2 median 1.4; 60 min mean 83.3 median 25.3
+  k=10 bps:   37 prints through, $   3,251 capped notional, ceiling edge $  3.25 in 7 d ($0.464/day); 5-min markout on those $-6.84
+  k=20 bps:   21 prints through, $   1,797 capped notional, ceiling edge $  3.59 in 7 d ($0.513/day); 5-min markout on those $-5.66
+  k=30 bps:   11 prints through, $     860 capped notional, ceiling edge $  2.58 in 7 d ($0.369/day); 5-min markout on those $-2.07

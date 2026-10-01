@@ -1,0 +1,120 @@
+{
+ "trend-4h-live": {
+  "capitalUsd": 100,
+  "fills": 2,
+  "entries": 1,
+  "exits": 1,
+  "realisedUsd": -0.6601,
+  "unrealisedUsd": 0.0,
+  "totalUsd": -0.6601,
+  "realisedPct": -0.66,
+  "unrealisedPct": 0.0,
+  "totalPct": -0.66,
+  "feesUsd": 0.052616,
+  "feesPct": 0.0526,
+  "open": {},
+  "sinceCapitalChange": {
+   "at": "2026-09-25T02:42:24+00:00",
+   "totalUsd": -0.6601,
+   "totalPct": -0.66,
+   "feesUsd": 0.052616,
+   "fillsAfter": 2
+  },
+  "daysRunning": 6.07,
+  "fillsPer90Days": 29.7
+ },
+ "trend-4h": {
+  "capitalUsd": 1000,
+  "fills": 8,
+  "entries": 4,
+  "exits": 4,
+  "realisedUsd": -11.8622,
+  "unrealisedUsd": 0.0,
+  "totalUsd": -11.8622,
+  "realisedPct": -1.186,
+  "unrealisedPct": 0.0,
+  "totalPct": -1.186,
+  "feesUsd": 1.070276,
+  "feesPct": 0.107,
+  "open": {},
+  "sinceCapitalChange": {
+   "at": "2026-09-27T20:00:37+00:00",
+   "totalUsd": -8.4998,
+   "totalPct": -0.85,
+   "feesUsd": 0.175696,
+   "fillsAfter": 1
+  },
+  "daysRunning": 10.25,
+  "fillsPer90Days": 70.2
+ },
+ "trend-1h": {
+  "capitalUsd": 1000,
+  "fills": 10,
+  "entries": 5,
+  "exits": 5,
+  "realisedUsd": -8.76,
+  "unrealisedUsd": 0.0,
+  "totalUsd": -8.76,
+  "realisedPct": -0.876,
+  "unrealisedPct": 0.0,
+  "totalPct": -0.876,
+  "feesUsd": 2.994777,
+  "feesPct": 0.2995,
+  "open": {},
+  "sinceCapitalChange": {
+   "at": "2026-09-27T21:35:40+00:00",
+   "totalUsd": -4.1933,
+   "totalPct": -0.419,
+   "feesUsd": 0.293227,
+   "fillsAfter": 1
+  },
+  "daysRunning": 10.25,
+  "fillsPer90Days": 87.8
+ },
+ "momentum-1d": {
+  "capitalUsd": 1000,
+  "fills": 3,
+  "entries": 3,
+  "exits": 0,
+  "realisedUsd": -0.9,
+  "unrealisedUsd": 39.8171,
+  "totalUsd": 38.9171,
+  "realisedPct": -0.09,
+  "unrealisedPct": 3.982,
+  "totalPct": 3.892,
+  "feesUsd": 0.9,
+  "feesPct": 0.09,
+  "open": {
+   "ETH/USD|paper": {
+    "base": 0.12667525,
+    "avgCost": 2631.4,
+    "mark": 2680.655,
+    "costUsd": 333.33,
+    "valueUsd": 339.57
+   },
+   "SOL/USD|paper": {
+    "base": 3.0288,
+    "avgCost": 110.054,
+    "mark": 118.092,
+    "costUsd": 333.33,
+    "valueUsd": 357.68
+   },
+   "BTC/USD|paper": {
+    "base": 0.004107,
+    "avgCost": 81161.66,
+    "mark": 83409.58,
+    "costUsd": 333.33,
+    "valueUsd": 342.56
+   }
+  },
+  "sinceCapitalChange": {
+   "at": "2026-09-27T21:35:40+00:00",
+   "totalUsd": -19.9636,
+   "totalPct": -1.996,
+   "feesUsd": 0.0,
+   "fillsAfter": 0
+  },
+  "daysRunning": 10.25,
+  "fillsPer90Days": 26.3
+ }
+}
