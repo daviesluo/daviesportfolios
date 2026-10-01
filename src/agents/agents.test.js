@@ -5,7 +5,11 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
-  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies } from './agents.js';
+  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
+  fmtFeeUsd4, fmtGbp, quotesLiveInventory, quotesLiveRungCards, quotesLiveStatus, quotesPageFor } from './agents.js';
+// The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
+// proves it is the server's own answer for its rows; the browser test serves it).
+import liveFixture from '../e2e/quotes_live_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -1371,6 +1375,86 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
     const ids = (tab) => alertsFor(dash, tab).map((a) => a.id);
     expect(ids('live')).toEqual(['pending-quotes-live', 'loss-stop-quotes-live']);
     expect(ids('testing')).toEqual(['pending-quotes-live']);
+  });
+});
+
+describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the paper test's page)", () => {
+  // `quotes.live` as the dashboard serves it for the fixture's book: £1,200 at £100 a rung, GBP/USD 1.32, read 17 Sep
+  // 23:00 UTC (00:00 BST): B holds a short of 132 USDC from £0.7591, E a long of 132 USDT from £0.7565.
+  const q = /** @type {any} */ (liveFixture.live);
+  const mask = (/** @type {string} */ s) => s.replace(/\d/g, '•');
+  it("opens from LIVE's row on its own page, and from TESTING's on the paper test's", () => {
+    const dash = { quotes: { ...liveFixture.live, live: q } };
+    expect(quotesPageFor(QUOTES_LIVE_ROW_ID, dash)).toBe('live');
+    expect(quotesPageFor(QUOTES_ROW_ID, dash)).toBe('paper');
+    // A dry run that has never traded is no LIVE row, so it has no page; without the paper test, TESTING's row has none.
+    expect(quotesPageFor(QUOTES_LIVE_ROW_ID, { quotes: { live: { ...q, tradedLive: false, entryBook: 'dry_run' } } })).toBe(null);
+    expect(quotesPageFor(QUOTES_ROW_ID, {})).toBe(null);
+    for (const id of ['trend-4h', RW_ROW_ID, null]) expect(quotesPageFor(id, dash)).toBe(null);
+  });
+  it("writes pounds where they read better, and fees unsigned to four places", () => {
+    expect([fmtGbp(1200), fmtGbp(-12), fmtGbp(0.227106, true), fmtGbp(600.696306), fmtGbp(0)]).toEqual(['£1,200', '-£12', '+£0.23', '£600.70', '£0']);
+    expect([fmtFeeUsd4(0.11839608), fmtFeeUsd4(0), fmtFeeUsd4(null)]).toEqual(['$0.1184', '$0', '—']);
+  });
+  it('says where it stands: armed since when, its POSTs against the governor, its loss stop, its last turn, each book\'s guards', () => {
+    const s = quotesLiveStatus(q);
+    expect([s.armed.value, s.armed.note, s.armed.warn]).toEqual(['16 Sep 10:00', 'entries go live', false]);
+    expect([s.posts.value, s.posts.note, s.posts.warn]).toEqual(['18 of 900', 'stops only at 950', false]);
+    expect([s.loss.value, s.loss.note, s.loss.warn]).toEqual(['not tripped', 'today +£0.23 · stop at -£12', false]);
+    expect([s.turn.value, s.turn.note, s.turn.warn]).toEqual(['17 Sep 23:59', 'running', false]);
+    expect(s.guards).toEqual([
+      { book: 'USDC-GBP', label: 'USDC/GBP', ok: true, text: 'no guard: entries may go' },
+      { book: 'USDT-GBP', label: 'USDT/GBP', ok: false, text: "no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001" },
+    ]);
+    // Under the mask: its money and the guards' figures, never its counts or its times.
+    const hidden = quotesLiveStatus(q, mask);
+    expect([hidden.loss.note, hidden.posts.value, hidden.turn.value]).toEqual(['today +£•.•• · stop at -£••', '18 of 900', '17 Sep 23:59']);
+    expect(hidden.guards[1].text).toBe("no new entries: de-peg: the USD book's last hourly close •.•••• is •• bps from its ••-hour median •.••••");
+    // The other states, each in its own words and amber.
+    const off = quotesLiveStatus({ ...q, armed: false, entryBook: null, why: 'live_confirmed_at is null: no entries; exits and the 24-hour stops stay armed' });
+    expect([off.armed.value, off.armed.note, off.armed.warn]).toEqual(['not armed', 'not armed: no new entries; its exits still run', true]);
+    expect(quotesLiveStatus({ ...q, entryBook: null, why: 'agent_risk.global_pause: every open order is cancelled, exits included, and nothing is placed' }).armed.note).toBe('global pause: nothing is placed');
+    const busy = quotesLiveStatus({ ...q, postsToday: { live: 912 }, detail: { ...q.detail, status: { ...q.detail.status, governor: { ...q.detail.status.governor, level: 'no-entries' } } } });
+    expect([busy.posts.value, busy.posts.note, busy.posts.warn]).toEqual(['912 of 900', 'entries withdrawn · stops only at 950', true]);
+    expect([quotesLiveStatus({ ...q, lossStopped: true }).loss.value, quotesLiveStatus({ ...q, running: false, lagMinutes: 5 }).turn.note]).toEqual(['tripped', 'no turn for 5 min']);
+  });
+  it('lists each book\'s six rungs with the live order on each, and what a rung holds under it', () => {
+    const cards = quotesLiveRungCards(q);
+    expect(cards.map((c) => [c.label, c.meta, c.trips, c.rows.length])).toEqual([
+      ['USDC/GBP', 'last trade £0.7576 · fair £0.7577', '1 · 100 % won', 6],
+      ['USDT/GBP', 'last trade £0.7572 · fair £0.7573', '2 · 50 % won', 6],
+    ]);
+    const [usdc, usdt] = cards;
+    expect(usdc.rows.map((r) => r.rung)).toEqual(['bid 0.1 %', 'bid 0.2 %', 'bid 0.3 %', 'ask 0.1 %', 'ask 0.2 %', 'ask 0.3 %']);
+    expect(usdc.rows[0]).toEqual({ key: 'USDC-GBP|bid|0.001', side: 'bid', rung: 'bid 0.1 %', order: '£0.7569', size: '132.12 USDC · £100', state: 'new', stateKey: 'new', since: '17 Sep 23:31', held: null });
+    expect([usdc.rows[4].order, usdc.rows[4].size, usdc.rows[4].since, usdc.rows[4].held?.text]).toEqual(['exit £0.7576', '132.00 USDC · £100', '17 Sep 21:01', 'sold 132.00 USDC at £0.7591 · since 17 Sep 21:00']);
+    expect(usdc.rows[4].held?.unrealisedUsd).toBeCloseTo(132 * (0.7591 - 0.7576) * 1.32, 12);
+    expect([usdt.rows[0].order, usdt.rows[0].size, usdt.rows[0].held?.text]).toEqual(['exit £0.7573', '132.00 USDT · £99.96', 'bought 132.00 USDT at £0.7565 · since 17 Sep 23:00']);
+    // The guard withdrew USDT's entries: those rungs rest nothing.
+    expect(usdt.rows.slice(1).map((r) => [r.order, r.state, r.held])).toEqual(Array(5).fill([null, null, null]));
+    expect(usdc.realisedUsd + usdt.realisedUsd).toBeCloseTo(q.realisedUsd, 12);   // the books add up to the LIVE row's realised
+    // Under the mask, every price, size and amount.
+    const hidden = quotesLiveRungCards(q, mask)[0].rows[4];
+    expect([hidden.order, hidden.size, hidden.held?.text]).toEqual(['exit £•.••••', '•••.•• USDC · £•••', 'sold •••.•• USDC at £•.•••• · since 17 Sep 21:00']);
+    expect(quotesLiveRungCards({ ...q, detail: null })).toEqual([]);
+  });
+  it("shows the account's coins as its last turn read them, each in pounds at its book's last trade", () => {
+    expect(quotesLiveInventory(q)).toEqual({
+      at: '17 Sep 23:59',
+      rows: [
+        { asset: 'GBP', amount: '£600.70', gbp: null },
+        { asset: 'USDC', amount: '263.64 USDC', gbp: '£199.74' },
+        { asset: 'USDT', amount: '527.64 USDT', gbp: '£399.53' },
+      ],
+    });
+    expect(quotesLiveInventory(q, mask)?.rows[1]).toEqual({ asset: 'USDC', amount: '•••.•• USDC', gbp: '£•••.••' });
+    expect(quotesLiveInventory({ ...q, detail: { ...q.detail, inventory: { at: null, assets: null } } })).toBe(null);
+  });
+  it("puts the LIVE row's own figures on its page's scoreboard", () => {
+    const r = /** @type {any} */ (quotesLiveRow(q));
+    expect([r.capitalUsd, r.openPositions, r.openOrders]).toEqual([1584, 2, 7]);
+    expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd, r.feesUsd, r.valueUsd]).toEqual([q.todayUsd, q.unrealisedUsd, q.realisedUsd, q.feesUsd, q.valueUsd]);
+    expect(r.todayUsd).toBeCloseTo((0.1056 + 0.198 - 0.168894 + 0.0924) * 1.32, 12);
   });
 });
 

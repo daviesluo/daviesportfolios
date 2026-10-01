@@ -156,6 +156,26 @@ places stay when the number is not whole.
   Revolut X card, in dollars at the day's pound rate — and a live order
   of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
+- **Stablecoin quotes on LIVE.** The live path's own row, once it has
+  traded real money on its own Revolut X account. Tap it for a page of its
+  own, which shows the real-money book and nothing of the paper test: the
+  same scoreboard as its row, with the capital in pounds beside funded and
+  the day's loss stop (1 % of the capital) beside today. Then STATUS: since
+  when live trading has been switched on and where new quotes go, the
+  orders it has sent today against the two limits (no new quotes past the
+  first, nothing but its 24-hour stops past the second), whether the loss
+  stop has stopped it for the day, when its last turn ran, and for each
+  book any reason it is quoting nothing. RUNGS: each book's six rungs, each
+  with the order resting on it (its price, its size in coins and in
+  pounds, its state and since when) and, under a rung that holds coins,
+  what it holds, since when and what that has made at the last trade.
+  INVENTORY: the pounds and coins in the account as its last turn read
+  them, each coin also in pounds, and the conversions that bought the
+  coins. Then its round trips (entry, exit, size, fees and what each
+  made), its fills, its latest orders with why each was refused or
+  cancelled, and its latest events: skipped quotes, a book's guards, a
+  stop. On a phone the tables keep their main columns. With values
+  hidden, every amount, price and size is hidden too.
 - **Stablecoin quotes variant-1.** Right after it: the same rule with nine
   rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
   fair, on the $3,600 its quotes would tie up, played minute by minute on

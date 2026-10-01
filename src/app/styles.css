@@ -1949,12 +1949,12 @@ body {
 .ag-share-revx { background: rgba(142,197,255,0.35); color: #e6f2ff; }
 .ag-share-binance { background: rgba(240,185,11,0.35); color: #fff6d6; }
 .ag-venue-cards, .ag-quotes-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.ag-venue-card, .ag-quotes-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
-.ag-venue-card-revx, .ag-quotes-card { border-left-color: rgba(142,197,255,0.7); }
+.ag-venue-card, .ag-quotes-card, .ag-ql-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
+.ag-venue-card-revx, .ag-quotes-card, .ag-ql-card { border-left-color: rgba(142,197,255,0.7); }
 .ag-venue-card-binance { border-left-color: rgba(240,185,11,0.75); }
 .ag-venue-card.is-warn, .ag-quotes-card.is-warn { border-color: var(--loss-dim); }
-.ag-venue-head, .ag-quotes-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
-.ag-quotes-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
+.ag-venue-head, .ag-quotes-head, .ag-ql-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
+.ag-quotes-grid, .ag-ql-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
 /* A venue card's two groups (holds, made), one under the other; side by side where the card has the width to itself. */
 .ag-venue-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px 36px; font-size: 12px; align-items: start; }
 .ag-venue-col { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 12px; align-items: baseline; }
@@ -1962,12 +1962,12 @@ body {
    narrower card broke it in two while Revolut X and Binance still fitted it. */
 .ag-venue-col > .ag-fig-label { min-width: max-content; }
 .ag-venue-grid .ag-fig-name { white-space: nowrap; }
-.ag-venue-col > span:nth-child(even), .ag-quotes-grid > span:nth-child(even) { text-align: right; }
+.ag-venue-col > span:nth-child(even), .ag-quotes-grid > span:nth-child(even), .ag-ql-grid > span:nth-child(even) { text-align: right; }
 /* The quote test's page: one card per book, its ladder a rung per row (0.1 / 0.2 / 0.3 % from interbank), bid and ask. */
-.ag-ladder { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
-.ag-ladder th { text-align: left; font-weight: 500; font-size: 10px; letter-spacing: 0.08em; padding: 0 0 4px; }
-.ag-ladder td { padding: 4px 0; border-top: 1px solid var(--line); }
-.ag-ladder th:nth-child(n+2), .ag-ladder td:nth-child(n+2) { text-align: right; }
+.ag-ladder, .ag-ql-ladder { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.ag-ladder th, .ag-ql-ladder th { text-align: left; font-weight: 500; font-size: 10px; letter-spacing: 0.08em; padding: 0 0 4px; }
+.ag-ladder td, .ag-ql-ladder td { padding: 4px 0; border-top: 1px solid var(--line); }
+.ag-ladder th:nth-child(n+2), .ag-ladder td:nth-child(n+2), .ag-ql-ladder th:nth-child(n+2), .ag-ql-ladder td:nth-child(n+2) { text-align: right; }
 .ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
 /* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a
@@ -2128,8 +2128,8 @@ body {
 .ag-basis-now { font-variant-numeric: tabular-nums; }
 .ag-basis-now.is-wide { color: var(--chalk); font-weight: 700; }
 .ag-basis-word { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #d9c37a; }
-.ag-venue-meta { display: block; margin-top: 3px; }
-.ag-venue-head, .ag-quotes-head { display: block; min-height: 40px; }
+.ag-venue-meta, .ag-ql-meta { display: block; margin-top: 3px; }
+.ag-venue-head, .ag-quotes-head, .ag-ql-head { display: block; min-height: 40px; }
 @media (max-width: 760px) {
   .ag-table .ag-col-wide { display: none; }
   .ag-alert { flex-wrap: wrap; }
@@ -2290,14 +2290,14 @@ body {
 .ag-rw-run { height: 3px; margin-bottom: 10px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-run > span, .ag-rw-meter > span { display: block; height: 100%; border-radius: 2px; background: #7d8bff; }
 .ag-rw-bar.is-warm-up .ag-rw-run { display: none; }
-.ag-rw-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ag-rw-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
+.ag-rw-tiles, .ag-ql-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ag-rw-tile, .ag-ql-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
 .ag-rw-tile-total { border-left: 3px solid rgba(125,139,255,0.75); }
-.ag-rw-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
-.ag-rw-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-rw-tile-k, .ag-ql-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
+.ag-rw-tile-v, .ag-ql-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ag-rw-of { font-size: 11px; font-weight: 400; }
 .ag-rw-tile-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
-.ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
+.ag-rw-tile-note, .ag-ql-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
 .ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
@@ -2305,8 +2305,8 @@ body {
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
 @media (max-width: 760px) {
-  .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .ag-rw-tile-v { font-size: 15px; }
+  .ag-rw-tiles, .ag-ql-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ag-rw-tile-v, .ag-ql-tile-v { font-size: 15px; }
 }
 
 /* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──
@@ -2370,3 +2370,22 @@ body {
   .ag-modetab-text { font-size: 10.5px; }
   .ag-nolive { padding: 36px 8px 32px; }
 }
+
+/* The live quotes' own page (Davies, 2026-10-01): the paper page's cards and ladders and RW's tiles, under classes of its
+   own that share their rules above. A tile or a book's guard that needs a look is amber, the stale dot's colour; a held
+   rung's line sits under its row, and so does an order's reason or an event's words, read from the left. */
+.ag-ql-tile.is-warn { border-left: 3px solid #d9a441; }
+/* One book a card, the full width: a rung's order has five columns, which two cards side by side could only wrap. */
+.ag-ql-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.ag-ql-ladder th, .ag-ql-ladder td { white-space: nowrap; }
+.ag-ql-ladder th:nth-child(n+2), .ag-ql-ladder td:nth-child(n+2) { padding-left: 14px; }
+.ag-ql-guards { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; line-height: 1.4; }
+.ag-ql-guard.is-warn .ag-ql-guard-text { color: #d9a441; }
+.ag-ql-ladder tr.ag-ql-held-row td { border-top: none; padding: 0 0 5px; font-size: 11px; color: var(--chalk-dim); white-space: normal; text-align: left; }
+.ag-ql-note { margin-top: 6px; font-size: 10.5px; line-height: 1.4; }
+.ag-ql-balances { margin-bottom: 10px; }
+.ag-quotes-live-detail .hl-sub { display: block; }
+.ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
+.ag-table tr.ag-ql-sub-row td { text-align: left; white-space: normal; padding-top: 0; font-size: 11px; line-height: 1.4; color: var(--chalk-dim); }
+/* Kept in view when a phone scrolls a wide table sideways, and as wide as the screen at most. */
+.ag-ql-sub { display: block; position: sticky; left: 10px; max-width: calc(100vw - 64px); }

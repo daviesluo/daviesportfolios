@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeUsd4, fmtGbp, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveInventory, quotesLiveRungCards, quotesLiveStatus, quotesPageFor, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -463,6 +463,259 @@ function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = qu
 
 /** A closed UTC day as the page names it: "25 Sep", in the site's own month table (en-GB alone writes "Sept"). @param {string} day */
 const dayLabel = (day) => fmtDayMonth(new Date(`${day}T00:00:00Z`), { locale: 'en-GB', timeZone: 'UTC' });
+
+/** A rung or an order's side, the way the round trips write it: bid green, ask red. @param {{ side: string | null, children?: any }} props */
+function RungSide({ side, children = null }) {
+  const cls = side === 'bid' || side === 'buy' ? 'buy' : 'sell';
+  return <span className={`ag-side ag-side-${cls}`}><span className="ag-side-mark" aria-hidden="true" />{children ?? side}</span>;
+}
+
+/**
+ * PR5's live executor, opened from its row in LIVE STRATEGIES (Davies, 2026-10-01: "改成它单独的" — it opened the paper
+ * test's page): the real-money book on its own Revolut X sub-account and nothing of the paper engine's record. The
+ * scoreboard is its LIVE row's own (`quotesLiveRow`), so the two read the same figures; then its STATUS, each rung's live
+ * order and holding, the account's coins and conversions, its round trips, fills, orders and events, all from the
+ * dashboard's `quotes.live.detail` (`quotesLiveDetail`). The paper page's parts and RW's are reused under classes of its
+ * own (`ag-ql-*`), which share their rules: the sweep tells the two quotes pages apart by their classes.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number }} props
+ */
+function QuotesLiveDetail({ q, m, at, nowMs }) {
+  const row = quotesLiveRow(q);
+  if (!row) return null;
+  const d = q.detail ?? null;
+  const st = quotesLiveStatus(q, m);
+  const cards = quotesLiveRungCards(q, m);
+  const inv = quotesLiveInventory(q, m);
+  const lossLimit = d?.status?.lossStop?.limitGbp;
+  /** @type {Array<[string, { value: string, note: string, warn: boolean }]>} */
+  const tiles = [['ARMED', st.armed], ['POSTS TODAY', st.posts], ['LOSS STOP', st.loss], ['LAST TURN', st.turn]];
+  const trips = d?.trips ?? [], fills = d?.fills ?? [], orders = d?.orders ?? [], events = d?.events ?? [], conversions = d?.conversions ?? [];
+  const empty = d ? null : 'Not in this answer: the next refresh brings it.';
+  /** @param {string} leg */
+  const legText = (leg) => (leg === 'convert' ? 'conversion' : leg);
+  return (
+    <div className="ag-detail ag-quotes-live-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="live" />
+        <VenueBadge id="revx" />
+        <StatusDot status={row.status} since={q.armed ? q.armedAt : null} nowMs={nowMs} live />
+      </div>
+      <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} aside={q.capitalGbp != null ? m(fmtGbp(q.capitalGbp)) : null} />
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} aside={lossLimit != null ? `(loss stop ${m(fmtGbp(lossLimit))})` : null} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtUsd(row.feesUsd))})`} />
+      </div>
+      {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
+      <section className="ag-section ag-ql-status">
+        <div className="ag-section-title mono">STATUS</div>
+        <div className="ag-ql-tiles">
+          {tiles.map(([k, t]) => (
+            <div key={k} className={`ag-ql-tile${t.warn ? ' is-warn' : ''}`}>
+              <div className="ag-ql-tile-k mono">{k}</div>
+              <div className="ag-ql-tile-v mono">{t.value}</div>
+              {t.note ? <div className="ag-ql-tile-note dim" title={k === 'ARMED' ? String(q.why ?? '') : undefined}>{t.note}</div> : null}
+            </div>
+          ))}
+        </div>
+        <div className="ag-ql-guards mono">
+          {st.guards.map((g) => (
+            <div key={g.book} className={`ag-ql-guard${g.ok ? '' : ' is-warn'}`}><span className="hl-strong">{g.label}</span> <span className="ag-ql-guard-text">{g.text}</span></div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-ql-rungs">
+        <div className="ag-section-title mono">RUNGS</div>
+        {cards.length === 0 && <div className="ag-empty dim">{empty}</div>}
+        <div className="ag-ql-cards">
+          {cards.map((c) => (
+            <div key={c.book} className="ag-ql-card">
+              <div className="ag-ql-head">
+                <span className="hl-strong mono">{c.label}</span>
+                <span className="dim mono ag-ql-meta">{c.meta}</span>
+              </div>
+              <table className="ag-ql-ladder mono">
+                <thead><tr><th className="dim">Rung</th><th className="dim">Order</th><th className="dim ag-ph">Size</th><th className="dim">State</th><th className="dim ag-ph">Since</th></tr></thead>
+                <tbody>
+                  {c.rows.map((r) => (
+                    <React.Fragment key={r.key}>
+                      <tr className="ag-ql-rung" data-rung={r.key}>
+                        <td className="dim">{r.rung}</td>
+                        <td>{r.order ?? <span className="dim">—</span>}</td>
+                        <td className="ag-ph">{r.size ?? ''}</td>
+                        <td>{r.state ? <span className={`ag-state-pill ag-state-${r.stateKey}`}>{r.state}</span> : <span className="dim">none</span>}</td>
+                        <td className="ag-ph dim">{r.since ?? ''}</td>
+                      </tr>
+                      {r.held && (
+                        <tr className="ag-ql-held-row" data-rung={r.key}>
+                          <td colSpan={5}>
+                            <span className="ag-state-pill ag-state-filled">held</span> {r.held.text}
+                            {r.held.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(r.held.unrealisedUsd) }}> {m(fmtUsd4(r.held.unrealisedUsd))}</span>}
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+              <div className="ag-ql-grid mono">
+                <span className="dim">round trips</span><span>{c.trips}</span>
+                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(c.realisedUsd) }}>{m(fmtUsd(c.realisedUsd, true))}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-ql-inventory">
+        <div className="ag-section-title mono">INVENTORY</div>
+        {inv ? (
+          <div className="ag-ql-card ag-ql-balances">
+            <div className="ag-ql-grid mono">
+              {inv.rows.map((a) => (
+                <React.Fragment key={a.asset}>
+                  <span className="dim">{a.asset}</span>
+                  <span>{a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}</span>
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="ag-ql-note dim">The account as its last turn read it{inv.at ? `, ${inv.at} ${UK_TZ}` : ''}: what rests in orders included, each coin in pounds at its book's last trade.</div>
+          </div>
+        ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono ag-ql-conversions">
+            <thead><tr>
+              <th className="hl-th">Converted ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">Coins</th><th className="hl-th ag-ph">Price</th>
+              <th className="hl-th ag-ph">Fee</th><th className="hl-th">Paid</th><th className="hl-th">State</th>
+            </tr></thead>
+            <tbody>
+              {conversions.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No conversion yet.'}</td></tr>}
+              {conversions.map((c) => (
+                <tr key={c.id}>
+                  <td className="dim">{when(c.ts)}</td>
+                  <td className="hl-strong">{quoteBookLabel(c.book)}</td>
+                  <td>{c.coins > 0 ? m(fmtQuoteQty(c.coins, c.book)) : <span className="dim">—</span>}</td>
+                  <td className="ag-ph">{m(fmtQuotePrice(c.avgPrice))}</td>
+                  <td className="ag-ph dim">{m(fmtGbp(c.feeGbp))}</td>
+                  <td>{c.paidGbp != null ? m(fmtGbp(c.paidGbp)) : <span className="dim">—</span>}</td>
+                  <td><span className={`ag-state-pill ag-state-${c.state}`}>{String(c.state).replace('_', ' ')}</span>{c.reason ? <>{' '}<span className="hl-sub dim">{m(c.reason)}</span></> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-ql-trips">
+        <div className="ag-section-title mono">ROUND TRIPS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
+              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th ag-ph">Size</th><th className="hl-th ag-ph">Fees</th><th className="hl-th">P&amp;L</th>
+            </tr></thead>
+            <tbody>
+              {trips.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>{empty ?? 'No round trip yet.'}</td></tr>}
+              {trips.map((t) => (
+                <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
+                  <td className="dim">{when(t.tExit)}{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
+                  <td className="hl-strong">{quoteBookLabel(t.book)}</td>
+                  <td><RungSide side={t.side}>{t.side === 'bid' ? 'bought' : 'sold'}</RungSide></td>
+                  <td className="ag-ph dim">{quoteRungLabel(t.k)}</td>
+                  <td>{m(fmtQuotePrice(t.entry))}</td>
+                  <td>{m(fmtQuotePrice(t.exit))}</td>
+                  <td className="ag-ph dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
+                  <td className="ag-ph dim">{m(fmtFeeUsd4(t.feesUsd))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd4(t.pnlUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-ql-fills">
+        <div className="ag-section-title mono">FILLS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
+              <th className="hl-th">Price</th><th className="hl-th">Size</th><th className="hl-th ag-ph">Fee</th>
+            </tr></thead>
+            <tbody>
+              {fills.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No fill yet.'}</td></tr>}
+              {fills.map((f) => (
+                <tr key={f.id} className={`txn-row txn-row-${f.venueSide}`}>
+                  <td className="dim">{when(f.ts)}</td>
+                  <td className="hl-strong">{quoteBookLabel(f.book)}</td>
+                  <td className="ag-ph dim">{f.side} {quoteRungLabel(f.k)}</td>
+                  <td><RungSide side={f.venueSide}>{`${f.venueSide} · ${legText(f.leg)}`}</RungSide></td>
+                  <td>{m(fmtQuotePrice(f.price))}</td>
+                  <td>{m(fmtQuoteQty(f.base, f.book))}</td>
+                  <td className="ag-ph dim">{m(fmtFeeUsd4(f.feeUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {/* An order's reason and an event's words are sentences: each goes on a line of its own under its row, as a
+          holding sits under its rung. In a column of their own they wrapped five deep and ran out of the table. */}
+      <section className="ag-section ag-ql-orders">
+        <div className="ag-section-title mono">ORDERS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Sent ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
+              <th className="hl-th">Price</th><th className="hl-th ag-ph">Size</th><th className="hl-th">State</th>
+            </tr></thead>
+            <tbody>
+              {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No order yet.'}</td></tr>}
+              {orders.map((o) => (
+                <React.Fragment key={o.id}>
+                  <tr className={`txn-row txn-row-${o.venueSide ?? 'buy'}${o.reason ? ' ag-ql-has-sub' : ''}`}>
+                    <td className="dim">{when(o.ts)}</td>
+                    <td className="hl-strong">{quoteBookLabel(o.book)}</td>
+                    <td className="ag-ph dim">{o.side ? `${o.side} ${quoteRungLabel(o.k)}` : 'conversion'}</td>
+                    <td><RungSide side={o.venueSide}>{`${o.venueSide ?? '—'} · ${legText(o.leg)}`}</RungSide></td>
+                    <td>{m(fmtQuotePrice(o.price))}</td>
+                    <td className="ag-ph">{m(fmtQuoteQty(o.base, o.book))}</td>
+                    <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
+                  </tr>
+                  {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-ql-events">
+        <div className="ag-section-title mono">EVENTS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr><th className="hl-th">Minute ({UK_TZ})</th><th className="hl-th">Kind</th><th className="hl-th">Where</th></tr></thead>
+            <tbody>
+              {events.length === 0 && <tr><td className="hl-empty dim" colSpan={3}>{empty ?? 'No event yet.'}</td></tr>}
+              {events.map((e) => (
+                <React.Fragment key={`${e.minute}|${e.kind}|${e.book}|${e.side}|${e.k}`}>
+                  <tr className="ag-ql-has-sub">
+                    <td className="dim">{when(e.minute)}</td>
+                    <td>{String(e.kind).replace('_', ' ')}</td>
+                    <td className="dim">{e.book ? quoteBookLabel(e.book) : 'both books'}{e.side ? ` ${e.side} ${quoteRungLabel(e.k)}` : ''}</td>
+                  </tr>
+                  <tr className="ag-ql-sub-row"><td colSpan={3}><span className="ag-ql-sub">{m(e.text)}</span></td></tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono ag-ql-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
+    </div>
+  );
+}
 
 /**
  * RW's status: the pessimistic total, the largest market's share of it, how many markets are being quoted today,
@@ -1321,7 +1574,11 @@ function AgentsModal({ hideValues, onClose }) {
   const tab = tabChoice ?? defaultAgentsTab(dash);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
-  const quotesOpen = (selected === QUOTES_ROW_ID || selected === QUOTES_LIVE_ROW_ID) && !!dash?.quotes;
+  // TESTING's "Stablecoin quotes" opens the paper test's page, LIVE's the live executor's own (Davies, 2026-10-01: LIVE's
+  // opened the paper page).
+  const quotesPage = quotesPageFor(selected, dash);
+  const quotesOpen = quotesPage === 'paper';
+  const quotesLiveOpen = quotesPage === 'live';
   const quotesVOpen = selected === QUOTESV_ROW_ID && !!dash?.quotesVariant && !!quotesV;
   const quotesDOpen = selected === QUOTESD_ROW_ID && !!dash?.quotesRuled && !!quotesD;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
@@ -1393,6 +1650,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} />
+        </div>
+      </Modal>
+    )}
+    {quotesLiveOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono">Stablecoin quotes</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} />
         </div>
       </Modal>
     )}

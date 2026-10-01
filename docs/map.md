@@ -551,7 +551,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: LIVE and TESTING tabs, each with its own scoreboard, venue cards and table; each strategy's status, deployed amount, positions, orders and chart, and the two paper tests' rows and pages, read from the `agents` function and kept in the browser so it opens drawn. |
+| `agents/agents.jsx`, `agents/agents.js`, `agents/agents_chart.js` | The Agents page: LIVE and TESTING tabs, each with its own scoreboard, venue cards and table; each strategy's status, deployed amount, positions, orders and chart, the paper tests' rows and pages, and the live stablecoin quotes' row and page, read from the `agents` function and kept in the browser so it opens drawn. |
 
 ### `supabase/functions/` — the server
 
@@ -710,6 +710,7 @@ before touching migration state.
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
 | `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 300 checks. |
+| `src/e2e/quotes_live_fixture.json` | The live stablecoin quotes' page as the dashboard serves it for a synthetic book worked out by hand: the browser test shows it, and the `agents` function's test proves it is that function's own answer. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |

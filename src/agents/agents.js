@@ -1242,6 +1242,129 @@ export function quotesLiveText(q) {
   return q.armed ? 'Live path: live and armed · on LIVE' : 'Live path: live, buying off · its exits still run · on LIVE';
 }
 
+/**
+ * Which quotes page a row opens (Davies, 2026-10-01: LIVE's "Stablecoin quotes" opened the paper test's page): TESTING's
+ * row opens the paper test's page, LIVE's row the live executor's own. Null for any other row, or a page with nothing to
+ * show: the live page needs its LIVE row (`quotesLiveRow`), the paper page its test.
+ * @param {string | null} selected  the row opened
+ * @param {any} dash
+ * @returns {'paper' | 'live' | null}
+ */
+export function quotesPageFor(selected, dash) {
+  if (selected === QUOTES_ROW_ID) return dash?.quotes ? 'paper' : null;
+  if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
+  return null;
+}
+
+/**
+ * Pounds, where they read more naturally than dollars on the live page: its capital, its loss stop, the account's
+ * balances. Written as `fmtUsd` writes dollars: "£1,200", "-£12", "+£0.23".
+ * @param {number | null | undefined} n @param {boolean} [signed]
+ */
+export const fmtGbp = (n, signed = false) => dropDot00(fmtMoney(n, { signed, compact: false, symbol: '£' }));
+
+/**
+ * A fee to four places, beside a trip's or a fill's P&L to four, and unsigned, since a fee only ever costs: "$0.1184".
+ * None is "$0".
+ * @param {number | null | undefined} n
+ */
+export const fmtFeeUsd4 = (n) => {
+  const s = fmtMoney(n, { compact: false, precision: 4 });
+  return /^\$0[.,]0000$/.test(s) ? '$0' : s;
+};
+
+/**
+ * The live page's STATUS (Davies, 2026-10-01): four tiles from the executor's own last turn — since when it is armed and
+ * where its entries go, its POSTs today against the governor's tiers, its loss stop, its last turn — and each book's
+ * guards. Money and the guards' figures go through `m`, the page's mask.
+ * @param {any} q  the dashboard's `quotes.live`
+ * @param {(s: string) => string} [m]
+ */
+export function quotesLiveStatus(q, m = (s) => s) {
+  const s = q?.detail?.status ?? null;
+  const why = String(q?.why ?? '');
+  const entries = q?.entryBook === 'live' ? 'entries go live'
+    : q?.entryBook === 'dry_run' ? 'back in dry run: entries are recorded, not sent'
+      : !q?.armed ? 'not armed: no new entries; its exits still run'
+        : /^agent_risk\.global_pause/.test(why) ? 'global pause: nothing is placed'
+          : `no new entries: ${why || 'its last turn did not say why'}`;
+  const posts = Number(q?.postsToday?.live) || 0;
+  const gov = s?.governor ?? null;
+  const level = gov?.level ?? 'all';
+  const loss = s?.lossStop ?? null;
+  return {
+    armed: { value: q?.armed && q?.armedAt ? fmtChartStamp(q.armedAt) : 'not armed', note: entries, warn: q?.entryBook !== 'live' },
+    posts: {
+      value: gov ? `${posts} of ${gov.entryAt}` : String(posts),
+      note: !gov ? '' : level === 'stops-only' ? 'stops only' : level === 'no-entries' ? `entries withdrawn · stops only at ${gov.stopsOnlyAt}` : `stops only at ${gov.stopsOnlyAt}`,
+      warn: level !== 'all',
+    },
+    loss: {
+      value: q?.lossStopped ? 'tripped' : 'not tripped',
+      note: loss ? `today ${m(fmtGbp(loss.todayGbp, true))} · stop at ${m(fmtGbp(loss.limitGbp))}` : '',
+      warn: !!q?.lossStopped,
+    },
+    turn: { value: s?.lastTurnAt ? fmtChartStamp(s.lastTurnAt) : '—', note: q?.running ? 'running' : `no turn for ${q?.lagMinutes ?? '?'} min`, warn: !q?.running },
+    guards: (s?.guards ?? []).map((/** @type {any} */ g) => ({
+      book: g.book, label: quoteBookLabel(g.book), ok: Array.isArray(g.reasons) && g.reasons.length === 0,
+      text: !Array.isArray(g.reasons) ? 'not read this turn' : g.reasons.length ? m(`no new entries: ${g.reasons.join('; ')}`) : 'no guard: entries may go',
+    })),
+  };
+}
+
+/**
+ * The live page's RUNGS: a card per book, a row per rung in the ladder's order (the bids, then the asks, nearest fair
+ * first). A rung shows its one live order — the entry it quotes, or the exit or stop of what it holds — with its size in
+ * coins and pounds, its state and since when; a rung that holds coins also shows what it holds, from when, and what that
+ * has made at the book's last trade. Every price, size and amount goes through `m`.
+ * @param {any} q  the dashboard's `quotes.live`
+ * @param {(s: string) => string} [m]
+ */
+export function quotesLiveRungCards(q, m = (s) => s) {
+  const d = q?.detail;
+  if (!d) return [];
+  return (d.books ?? []).map((/** @type {any} */ b) => ({
+    book: b.book, label: quoteBookLabel(b.book),
+    meta: `last trade ${m(fmtQuotePrice(b.lastPrice))}${b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}`,
+    trips: b.trips ? `${b.trips} · ${Math.round((100 * (Number(b.won) || 0)) / b.trips)} % won` : '0',
+    realisedUsd: Number(b.realisedUsd) || 0,
+    rows: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => {
+      const o = r.order;
+      return {
+        key: `${r.book}|${r.side}|${r.k}`, side: r.side, rung: `${r.side} ${quoteRungLabel(r.k)}`,
+        order: o ? `${o.leg === 'entry' ? '' : `${o.leg} `}${m(fmtQuotePrice(o.price))}` : null,
+        size: o ? `${m(fmtQuoteQty(o.base, r.book))} · ${m(fmtGbp(o.gbp))}` : null,
+        state: o ? (o.cancelling ? 'cancelling' : String(o.state).replace('_', ' ')) : null,
+        stateKey: o ? (o.cancelling ? 'pending' : String(o.state)) : null,
+        since: o ? fmtChartStamp(o.since) : null,
+        held: r.held ? {
+          text: `${r.side === 'bid' ? 'bought' : 'sold'} ${m(fmtQuoteQty(r.held.base, r.book))} at ${m(fmtQuotePrice(r.held.avgEntry))}${r.held.since ? ` · since ${fmtChartStamp(r.held.since)}` : ''}`,
+          unrealisedUsd: r.held.unrealisedUsd ?? null,
+        } : null,
+      };
+    }),
+  }));
+}
+
+/**
+ * The live page's INVENTORY: the account's pounds and coins as the executor last read them (balances, so what rests in
+ * orders is included), each coin also in pounds at its book's last trade. Null when the turn could not read them.
+ * @param {any} q  the dashboard's `quotes.live`
+ * @param {(s: string) => string} [m]
+ */
+export function quotesLiveInventory(q, m = (s) => s) {
+  const inv = q?.detail?.inventory;
+  if (!inv?.assets) return null;
+  return {
+    at: inv.at ? fmtChartStamp(inv.at) : null,
+    rows: inv.assets.map((/** @type {any} */ a) => ({
+      asset: a.asset,
+      amount: a.asset === 'GBP' ? m(fmtGbp(a.amount)) : m(fmtQuoteQty(a.amount, a.asset)),
+      gbp: a.asset === 'GBP' || a.gbp == null ? null : m(fmtGbp(a.gbp)),
+    })),
+  };
+}
+
 /** A price in GBP a coin, as the book quotes it: four places. @param {number | null | undefined} p */
 export const fmtQuotePrice = (p) => (p == null || !Number.isFinite(Number(p)) ? '—' : `£${Number(p).toFixed(4)}`);
 

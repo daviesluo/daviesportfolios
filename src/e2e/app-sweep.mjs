@@ -767,17 +767,20 @@ function readAgentsPanel(page) {
  * +$7.04, open orders −$21.53, so realised +$55.76, orders −$14.49, total +$34.23; the market $18.41 + $0.20 = $18.61.
  */
 /**
- * PR5's live executor trading real money (Davies, 2026-09-26), nothing else live: armed, one rung holding.
- *   capital £50 × 1.35 = $67.50; cost $50.00, marked $50.40: unrealised +$0.40 (+0.80 % on cost);
- *   realised +$0.27 (+0.40 % of $67.50), today +$0.54 (+0.80 % of $67.50)
+ * PR5's live executor trading real money (Davies, 2026-09-26), nothing else live: armed, two rungs holding. Its
+ * `quotes.live` is the dashboard's own answer for a book worked out by hand (`quotes_live_fixture.json`, whose rows the
+ * agents function's test turns into exactly this): £1,200 at £100 a rung, GBP/USD 1.32, so funded $1,584; trips A
+ * +£0.1056, C −£0.168894 (its 24-hour stop, fee £0.089694), D +£0.1188 (yesterday); held B 132 USDC sold at £0.7591 and
+ * E 132 USDT bought at £0.7565, marked at £0.7576 and £0.7572: +£0.1980 and +£0.0924.
+ *   deployed (132 × 0.7576 + 132 × 0.7572) × 1.32 = $263.94, 16.66 % of $1,584
+ *   today (0.1056 + 0.198 − 0.168894 + 0.0924) × 1.32 = +$0.30 (+0.02 %); its loss stop 1 % of £1,200 = −£12
+ *   unrealised 0.2904 × 1.32 = +$0.38, +0.15 % of its cost (132 × 0.7591 + 132 × 0.7565) × 1.32 = $264.08
+ *   realised 0.055506 × 1.32 = +$0.07 (0 % to two places), fees 0.089694 × 1.32 = $0.12
  */
+const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
-  return {
-    ...d,
-    quotes: { ...d.quotes, live: { ...d.quotes.live, dryRun: false, armed: true, armedAt: '2026-09-17T09:00:00.000Z', entryBook: 'live', postsToday: { dryRun: 0, live: 31 },
-      tradedLive: true, openOrders: 5, heldRungs: 1, fills: 4, realisedUsd: 0.27, todayUsd: 0.54, unrealisedUsd: 0.4, costUsd: 50, valueUsd: 50.4, feesUsd: 0 } },
-  };
+  return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
 };
 
 const AGENTS_RW_CENTS = () => {
@@ -3058,16 +3061,171 @@ async function run() {
       const p0 = await readAgentsPanel(page);
       const pNames = (await page.locator('.ag-strategies-live .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const sb0 = sbText(p0);
+      // AGENTS_PR5_LIVE's figures, worked by hand there.
       if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes'
-        && /^FUNDED=\$67\.50 \| DEPLOYED=\$50\.40\(74\.67%\) \| TODAY=\+\$0\.54\(\+0\.80%\) \| UNREALIZED G\/L=\+\$0\.40\(\+0\.80%\)/.test(sb0) && /REALIZED G\/L[^=]*=\+\$0\.27\(\+0\.40%\)$/.test(sb0)) {
+        && sb0 === 'FUNDED=$1,584 | DEPLOYED=$263.94(16.66%) | TODAY=+$0.30(+0.02%) | UNREALIZED G/L=+$0.38(+0.15%) | REALIZED G/L [(incl. fees $0.12)]=+$0.07(0%)') {
         ok(T('pr5-live'), `PR5 trading real money is LIVE's row, and LIVE opens on it: ${sb0}`);
       } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
+
+      // ---- LIVE's "Stablecoin quotes" opens a page of its own (Davies, 2026-10-01: it opened the paper test's) -------
+      // The live executor's real-money book and nothing of the paper engine's record, every figure the fixture's, worked by
+      // hand (AGENTS_PR5_LIVE); its scoreboard is its LIVE row's own. A phone keeps each table's story columns.
+      const readLivePage = () => page.evaluate(() => {
+        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+        const root = document.querySelector('.ag-quotes-live-detail');
+        if (!root) return null;
+        const tds = (/** @type {Element} */ tr) => [...tr.querySelectorAll('td')];
+        // A row and, joined to it, the line of its own under it (an order's reason, an event's words).
+        const rows = (/** @type {string} */ sel) => {
+          /** @type {string[]} */
+          const out = [];
+          for (const tr of root.querySelectorAll(`${sel} tbody tr`)) {
+            const t = tds(tr).map(txt).join(' | ');
+            if (tr.classList.contains('ag-ql-sub-row') && out.length) out[out.length - 1] += ` | ${t}`;
+            else out.push(t);
+          }
+          return out;
+        };
+        const subs = [...root.querySelectorAll('.ag-ql-sub')].map((el) => el.getBoundingClientRect());
+        const titles = document.querySelectorAll('.modal .modal-title');
+        const firstRung = root.querySelector('tr.ag-ql-rung');
+        return {
+          title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
+          head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
+          status: txt(root.querySelector('.ag-detail-head .ag-status-text')), tested: txt(root.querySelector('.ag-detail-head .ag-tested')),
+          scoreboard: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => {
+            const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
+            return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
+          }).join(' | '),
+          sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
+          tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
+          guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
+          cards: [...root.querySelectorAll('.ag-ql-rungs .ag-ql-card')].map((c) => ({
+            head: txt(c.querySelector('.ag-ql-head .hl-strong')), meta: txt(c.querySelector('.ag-ql-meta')),
+            rungs: [...c.querySelectorAll('tr.ag-ql-rung')].map((tr) => tds(tr).map(txt).join(' | ')),
+            held: [...c.querySelectorAll('tr.ag-ql-held-row')].map(txt), grid: [...c.querySelectorAll('.ag-ql-grid > span')].map(txt),
+          })),
+          // Which of a rung row's five cells a phone hides: its size and since.
+          rungHidden: firstRung ? tds(firstRung).map((td, i) => (td.getClientRects().length ? null : i)).filter((i) => i != null) : null,
+          balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
+          conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), orders: rows('.ag-ql-orders'), events: rows('.ag-ql-events'),
+          foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
+          // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
+          tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
+          subs: subs.length, subsOff: subs.filter((r) => r.left < 0 || r.right > document.documentElement.clientWidth + 1).length,
+          paperPage: document.querySelectorAll('.ag-quotes-detail').length,
+        };
+      });
+      const liveRowEl = page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
+      const liveRowGl = p0.rows[0]?.gl ?? [];
+      await liveRowEl.first().click();
+      await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const lp = await readLivePage();
+      await shot(page, 'agents-quotes-live');
+      const phoneView = vpWidth <= 760;
+      // Opened from LIVE, the page is the live executor's, and the paper test's is not open anywhere.
+      if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
+        ok(T('pr5-page'), "LIVE's Stablecoin quotes opens its own page over the list: LIVE, Revolut X, running · live 1d 14h, and the paper test's page is not open");
+      } else fail(T('pr5-page'), `LIVE's Stablecoin quotes opened ${lp ? `the live page with the paper page ${lp.paperPage}× beside it, title "${lp.title}", ${lp.modals} modals, head "${lp.head}", status "${lp.status}" "${lp.tested}"` : 'no live page'}`);
+      // Its scoreboard is the LIVE row's: the same today, unrealised and realised as the row it was opened from.
+      const sameAsRow = !!lp && liveRowGl.length === 3 && /TODAY[^=]*=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[0].replace(/\s+/g, '')
+        && /UNREALIZED G\/L=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[1].replace(/\s+/g, '') && /\| REALIZED G\/L[^=]*=(.+)$/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[2].replace(/\s+/g, '');
+      if (lp?.scoreboard === 'FUNDED [£1,200]=$1,584 | DEPLOYED=$263.94(16.66%) | TODAY [(loss stop -£12)]=+$0.30(+0.02%) | UNREALIZED G/L=+$0.38(+0.15%) | REALIZED G/L [(incl. fees $0.12)]=+$0.07(0%)' && sameAsRow) {
+        ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, with the capital and the loss stop in pounds: ${lp.scoreboard}`);
+      } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
+      if (lp && lp.sections.join(',') === 'STATUS,RUNGS,INVENTORY,ROUND TRIPS,FILLS,ORDERS,EVENTS'
+        && lp.tiles.join(' / ') === 'ARMED | 16 Sep 10:00 | entries go live / POSTS TODAY | 18 of 900 | stops only at 950 / LOSS STOP | not tripped | today +£0.23 · stop at -£12 / LAST TURN | 17 Sep 23:59 | running'
+        && lp.guards.join(' / ') === "USDC/GBP no guard: entries may go / USDT/GBP no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001 [amber]") {
+        ok(T('pr5-page'), `STATUS: armed since 16 Sep 10:00 and going live, 18 of 900 POSTs, the loss stop not tripped (today +£0.23 against -£12), the last turn at 23:59; USDT/GBP's de-peg guard in amber`);
+      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${JSON.stringify(lp?.tiles)}, guards ${JSON.stringify(lp?.guards)}`);
+      const RUNGS_USDC = ['bid 0.1 % | £0.7569 | 132.12 USDC · £100 | new | 17 Sep 23:31', 'bid 0.2 % | £0.7561 | 132.26 USDC · £100 | new | 17 Sep 23:31',
+        'bid 0.3 % | £0.7553 | 132.40 USDC · £100 | new | 17 Sep 23:31', 'ask 0.1 % | £0.7585 | 131.84 USDC · £100 | new | 17 Sep 23:31',
+        'ask 0.2 % | exit £0.7576 | 132.00 USDC · £100 | new | 17 Sep 21:01', 'ask 0.3 % | £0.7600 | 131.58 USDC · £100 | new | 17 Sep 23:31'];
+      const RUNGS_USDT = ['bid 0.1 % | exit £0.7573 | 132.00 USDT · £99.96 | new | 17 Sep 23:01',
+        ...['bid 0.2 %', 'bid 0.3 %', 'ask 0.1 %', 'ask 0.2 %', 'ask 0.3 %'].map((r) => `${r} | — |  | none | `)];
+      const [cUsdc, cUsdt] = lp?.cards ?? [];
+      if (lp && lp.cards.length === 2 && cUsdc.head === 'USDC/GBP' && cUsdc.meta === 'last trade £0.7576 · fair £0.7577' && JSON.stringify(cUsdc.rungs) === JSON.stringify(RUNGS_USDC)
+        && JSON.stringify(cUsdc.held) === JSON.stringify(['held sold 132.00 USDC at £0.7591 · since 17 Sep 21:00 +$0.2614']) && cUsdc.grid.join('|') === 'round trips|1 · 100 % won|realised|+$0.14'
+        && cUsdt.head === 'USDT/GBP' && cUsdt.meta === 'last trade £0.7572 · fair £0.7573' && JSON.stringify(cUsdt.rungs) === JSON.stringify(RUNGS_USDT)
+        && JSON.stringify(cUsdt.held) === JSON.stringify(['held bought 132.00 USDT at £0.7565 · since 17 Sep 23:00 +$0.1220']) && cUsdt.grid.join('|') === 'round trips|2 · 50 % won|realised|-$0.07'
+        && JSON.stringify(lp.rungHidden) === JSON.stringify(phoneView ? [2, 4] : [])) {
+        ok(T('pr5-page'), `RUNGS: the twelve rungs' live orders, price, size in coins and pounds, state and since; the short and the long each under its rung with what it has made (+$0.2614, +$0.1220); ${phoneView ? 'a phone drops size and since' : 'every column'}`);
+      } else fail(T('pr5-page'), `rung cards ${JSON.stringify(lp?.cards)}, hidden columns ${JSON.stringify(lp?.rungHidden)}`);
+      if (lp && lp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.74|USDT|527.64 USDT · £399.53'
+        && lp.conversions.join(' / ') === '16 Sep 10:03 | USDC/GBP | 395.64 USDC | £0.7574 | £0.27 | £299.93 | filled / 16 Sep 10:02 | USDT/GBP | 395.64 USDT | £0.7570 | £0.27 | £299.77 | filled') {
+        ok(T('pr5-page'), 'INVENTORY: £600.70, 263.64 USDC (£199.74) and 527.64 USDT (£399.53) as the last turn read them, and the two conversions, each £300 less a few pence');
+      } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}, conversions ${JSON.stringify(lp?.conversions)}`);
+      const TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | $0.1184 | -$0.2229',
+        '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | $0 | +$0.1394',
+        '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | $0 | +$0.1568'];
+      const tripsSum = (lp?.trips ?? []).reduce((a, r) => a + Number(/([+-])\$([\d.]+)$/.exec(r)?.slice(1).join('') ?? NaN), 0);
+      if (lp && JSON.stringify(lp.trips) === JSON.stringify(TRIPS) && Math.abs(tripsSum - 0.0733) < 1e-9) {
+        ok(T('pr5-page'), `ROUND TRIPS: the stop's -$0.2229 (its fee $0.1184), +$0.1394 and +$0.1568, newest first; they add up to REALIZED's +$0.07 (${tripsSum.toFixed(4)})`);
+      } else fail(T('pr5-page'), `round trips ${JSON.stringify(lp?.trips)}, sum ${tripsSum}`);
+      const fill0 = '17 Sep 23:00 | USDT/GBP | bid 0.1 % | buy · entry | £0.7565 | 132.00 USDT | $0', fill1 = '17 Sep 21:00 | USDT/GBP | bid 0.3 % | sell · stop | £0.7550 | 132.00 USDT | $0.1184';
+      const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy · entry | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
+      const order124 = "17 Sep 23:31 | USDT/GBP | ask 0.3 % | sell · entry | £0.7596 | 131.65 USDT | cancelled | guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001";
+      const order106 = '16 Sep 21:01 | USDT/GBP | bid 0.3 % | sell · exit | £0.7562 | 132.00 USDT | cancelled | the 24-hour stop';
+      if (lp && lp.fills.length === 8 && lp.fills[0] === fill0 && lp.fills[1] === fill1 && lp.orders.length === 24 && lp.orders[0] === order124 && lp.orders.includes(order114) && lp.orders.includes(order106)
+        && lp.events.join(' / ') === "17 Sep 23:50 | guard | USDT/GBP | no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001 / 16 Sep 10:00 | skip | USDC/GBP ask 0.1 % | no USDC to sell: the account holds none beyond what its own longs will sell / 16 Sep 10:00 | skip | USDT/GBP ask 0.1 % | no USDT to sell: the account holds none beyond what its own longs will sell"
+        && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lp.foot) && lp.overflow <= 1
+        // Seven reasons and three events' words, each a line of its own inside the screen; on a desk no table runs past its box.
+        && lp.subs === 10 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
+        ok(T('pr5-page'), `FILLS (8), ORDERS (24, each refusal and cancel with its reason on a line under it: the venue refused a post-only bid, the guard withdrew five, the 24-hour stop cancelled an exit) and EVENTS (the guard, two skips), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
+      } else fail(T('pr5-page'), `fills ${JSON.stringify(lp?.fills.slice(0, 2))} (${lp?.fills.length}), orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)} 106 ${lp?.orders.includes(order106)}, events ${JSON.stringify(lp?.events)}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-quotes-live-detail').count() === 0 && await page.locator('.ag-strategies-live .ag-row').count() === 1) ok(T('pr5-page'), 'closing it returns to LIVE');
+      else fail(T('pr5-page'), 'the live page did not close back to LIVE');
+
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
       if (p1.rows.length === 11 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
+      // TESTING's Stablecoin quotes still opens the paper test's page, as it was, with its line about the live path.
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const pp = await page.evaluate(() => ({
+        live: document.querySelectorAll('.ag-quotes-live-detail').length,
+        books: [...document.querySelectorAll('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong')].map((el) => (el.textContent || '').trim()),
+        ladder: document.querySelectorAll('.ag-quotes-detail .ag-ladder tbody tr').length,
+        trips: document.querySelectorAll('.ag-quotes-detail .ag-quote-trips tbody tr').length,
+        line: (document.querySelector('.ag-quotes-detail .ag-quotes-live-line')?.textContent || '').trim(),
+      }));
+      if (pp.live === 0 && pp.books.join(',') === 'USDC/GBP,USDT/GBP' && pp.ladder === 6 && pp.trips === 7 && pp.line === 'Live path: live and armed · on LIVE') {
+        ok(T('pr5-page'), "TESTING's Stablecoin quotes still opens the paper test's page: its two books, 6 ladder rows, 7 round trips, and \"Live path: live and armed · on LIVE\"");
+      } else fail(T('pr5-page'), `TESTING's Stablecoin quotes: live page ${pp.live}, books ${pp.books.join(',')}, ladder ${pp.ladder}, trips ${pp.trips}, line "${pp.line}"`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
+
+      // Under hide-values, every money figure, price and size on the live page is masked; its counts and times are not.
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+      await page.locator('.hide-eye').first().click();
+      await page.waitForTimeout(200);
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
+      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const hp = await readLivePage();
+      const digits = (/** @type {string} */ t) => /\d/.test(t);
+      const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
+      const hiddenOk = !!hp && /^FUNDED \[£•,•••\]=\$•,••• \| DEPLOYED=\$•••\.••\(16\.66%\)/.test(hp.scoreboard) && !/\$\d/.test(hp.scoreboard) && !/£\d/.test(hp.scoreboard)
+        && hp.tiles[2] === 'LOSS STOP | not tripped | today +£•.•• · stop at -£••' && hp.tiles[1] === 'POSTS TODAY | 18 of 900 | stops only at 950'
+        && !cellsAt(hp.cards.flatMap((c) => c.rungs.slice(0, 1)), [1, 2]).some(digits) && !hp.balances.filter((_, i) => i % 2).some(digits)
+        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt(hp.fills, [4, 5, 6]).some(digits) && !cellsAt(hp.orders, [4, 5]).some(digits)
+        && !cellsAt(hp.conversions, [2, 3, 4, 5]).some(digits) && !digits(hp.events[0].split(' | ')[3]);
+      if (hiddenOk) ok(T('pr5-page'), `hide-values masks the live page's money, prices, sizes and the guard's figures, and keeps its counts and times (${hp?.tiles[2]})`);
+      else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", tiles ${JSON.stringify(hp?.tiles)}, rung ${JSON.stringify(hp?.cards?.[0]?.rungs?.[0])}, balances ${JSON.stringify(hp?.balances)}, trip ${JSON.stringify(hp?.trips?.[0])}, event ${JSON.stringify(hp?.events?.[0])}`);
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+      await page.locator('.hide-eye').first().click();                       // values shown again for everything after this
+      await page.waitForTimeout(200);
 
       agentsMode = 'rw-cents';
       await openAgentsPage(page);

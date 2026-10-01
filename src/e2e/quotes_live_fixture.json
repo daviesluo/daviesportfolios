@@ -1,0 +1,1758 @@
+{
+  "about": "PR5's live executor's page as the dashboard serves it, for a synthetic book worked out by hand (no real balance or fill): £1,200 at £100 a rung, GBP/USD 1.32, armed 2026-09-16 09:00 UTC, read at the browser test's clock, 2026-09-17 23:00 UTC. `orders`, `events`, `config`, `state` and `paper` are the tables' rows; `live` is what `quotesLiveSummary` and `quotesLiveDetail` make of them, which the agents function's test asserts and the browser test serves. Trips: A bought 132 USDC at £0.7568 and sold at £0.7576 today (+£0.1056); B sold 132 USDC at £0.7591 today and holds the short (marked at £0.7576: +£0.1980); C bought 132 USDT at £0.7556 yesterday and its 24-hour stop sold at £0.7550 today, fee £0.089694 (−£0.168894); D sold 132 USDT at £0.7580 and bought back at £0.7571 yesterday (+£0.1188); E bought 132 USDT at £0.7565 today and holds (marked at £0.7572: +£0.0924). Two conversions bought 396 coins each at £0.7570 and £0.7574 with the 9 bps fee in the coin. USDT-GBP is under a de-peg guard since 22:50 UTC, which withdrew its five entries.",
+  "nowMs": 1789686000000,
+  "dayStartMs": 1789603200000,
+  "config": {
+    "dry_run": false,
+    "live_confirmed_at": "2026-09-16T09:00:00.000Z",
+    "capital_gbp": 1200
+  },
+  "state": {
+    "state": {
+      "at": "2026-09-17T22:59:26.000Z",
+      "minute": "2026-09-17T22:58:00.000Z",
+      "entryBook": "live",
+      "why": "live: dry_run is off and live_confirmed_at is set",
+      "dryRun": false,
+      "armed": true,
+      "account": true,
+      "guards": {
+        "USDC-GBP": [],
+        "USDT-GBP": [
+          "de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        ]
+      },
+      "posts": {
+        "dry_run": 0,
+        "live": 18
+      },
+      "governor": {
+        "dry_run": "all",
+        "live": "all"
+      },
+      "dayPnlGbp": 0.227106,
+      "lossStopped": false,
+      "balances": {
+        "GBP": 600.696306,
+        "USDC": 263.6436,
+        "USDT": 527.6436
+      },
+      "capitalGbp": 1200,
+      "held": [
+        {
+          "rung": "USDC-GBP|ask|0.002",
+          "held": 132,
+          "avgEntry": 0.7591,
+          "openedAt": "2026-09-17T20:00:00.000Z"
+        },
+        {
+          "rung": "USDT-GBP|bid|0.001",
+          "held": 132,
+          "avgEntry": 0.7565,
+          "openedAt": "2026-09-17T22:00:00.000Z"
+        }
+      ]
+    },
+    "updated_at": "2026-09-17T22:59:26.000Z",
+    "last_error": null
+  },
+  "paper": {
+    "state": {
+      "books": {
+        "USDC-GBP": {
+          "lastX": 1.32,
+          "lastPrint": {
+            "ts": 1789685930000,
+            "ticks": 7576
+          },
+          "rungs": [
+            {
+              "side": "bid",
+              "k": 0.001,
+              "mode": "quote",
+              "o": {
+                "ticks": 7569,
+                "fairAt": 0.75766
+              }
+            }
+          ]
+        },
+        "USDT-GBP": {
+          "lastX": 1.32,
+          "lastPrint": {
+            "ts": 1789685900000,
+            "ticks": 7572
+          },
+          "rungs": [
+            {
+              "side": "bid",
+              "k": 0.001,
+              "mode": "position",
+              "entry": 0.7565,
+              "qty": 132,
+              "o": {
+                "ticks": 7573,
+                "fairAt": 0.75727
+              }
+            }
+          ]
+        }
+      }
+    },
+    "last_minute": "2026-09-17T22:58:00.000Z",
+    "updated_at": "2026-09-17T22:59:25.000Z",
+    "last_error": null
+  },
+  "orders": [
+    {
+      "id": 101,
+      "ts": "2026-09-16T09:02:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": null,
+      "k": null,
+      "leg": "convert",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7607,
+      "base_size": 396,
+      "filled_base": 395.6436,
+      "avg_fill_price": 0.757,
+      "fee_gbp": 0.2697948,
+      "filled_at": "2026-09-16T09:02:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": true,
+        "postOnly": false,
+        "timeInForce": "ioc"
+      },
+      "response": {
+        "status": "filled",
+        "fee_currency": "USDT"
+      }
+    },
+    {
+      "id": 102,
+      "ts": "2026-09-16T09:03:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": null,
+      "k": null,
+      "leg": "convert",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7611,
+      "base_size": 396,
+      "filled_base": 395.6436,
+      "avg_fill_price": 0.7574,
+      "fee_gbp": 0.26993736,
+      "filled_at": "2026-09-16T09:03:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": true,
+        "postOnly": false,
+        "timeInForce": "ioc"
+      },
+      "response": {
+        "status": "filled",
+        "fee_currency": "USDC"
+      }
+    },
+    {
+      "id": 103,
+      "ts": "2026-09-16T11:50:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "sell",
+      "state": "filled",
+      "price": 0.758,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.758,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-16T12:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 104,
+      "ts": "2026-09-16T12:01:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "leg": "exit",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7571,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7571,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-16T13:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 105,
+      "ts": "2026-09-16T19:58:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.003,
+      "leg": "entry",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7556,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7556,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-16T20:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 106,
+      "ts": "2026-09-16T20:01:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.003,
+      "leg": "exit",
+      "side": "sell",
+      "state": "cancelled",
+      "price": 0.7562,
+      "base_size": 132,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T20:00:20.000Z",
+      "cancel_reason": "the 24-hour stop",
+      "cancelled_at": "2026-09-17T20:00:20.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 107,
+      "ts": "2026-09-17T09:40:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7568,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7568,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-17T10:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 108,
+      "ts": "2026-09-17T10:01:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "exit",
+      "side": "sell",
+      "state": "filled",
+      "price": 0.7576,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7576,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-17T10:30:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 109,
+      "ts": "2026-09-17T19:30:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.002,
+      "leg": "entry",
+      "side": "sell",
+      "state": "filled",
+      "price": 0.7591,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7591,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-17T20:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 110,
+      "ts": "2026-09-17T20:00:30.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.003,
+      "leg": "stop",
+      "side": "sell",
+      "state": "filled",
+      "price": 0.7519,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.755,
+      "fee_gbp": 0.089694,
+      "filled_at": "2026-09-17T20:00:30.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": true,
+        "postOnly": false,
+        "timeInForce": "ioc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 111,
+      "ts": "2026-09-17T20:01:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.002,
+      "leg": "exit",
+      "side": "buy",
+      "state": "new",
+      "price": 0.7576,
+      "base_size": 132,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 112,
+      "ts": "2026-09-17T21:30:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7565,
+      "base_size": 132,
+      "filled_base": 132,
+      "avg_fill_price": 0.7565,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-17T22:00:00.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "filled"
+      }
+    },
+    {
+      "id": 113,
+      "ts": "2026-09-17T22:01:00.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "exit",
+      "side": "sell",
+      "state": "new",
+      "price": 0.7573,
+      "base_size": 132,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 114,
+      "ts": "2026-09-17T22:30:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "buy",
+      "state": "rejected",
+      "price": 0.757,
+      "base_size": 132.10039,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": "2026-09-17T22:30:00.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": 400,
+        "error": "post-only order would cross the book",
+        "response": null,
+        "retriedAfter429": false
+      }
+    },
+    {
+      "id": 115,
+      "ts": "2026-09-17T22:31:00.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "buy",
+      "state": "new",
+      "price": 0.7569,
+      "base_size": 132.11784,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 116,
+      "ts": "2026-09-17T22:31:01.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.002,
+      "leg": "entry",
+      "side": "buy",
+      "state": "new",
+      "price": 0.7561,
+      "base_size": 132.25763,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 117,
+      "ts": "2026-09-17T22:31:02.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.003,
+      "leg": "entry",
+      "side": "buy",
+      "state": "new",
+      "price": 0.7553,
+      "base_size": 132.39772,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 118,
+      "ts": "2026-09-17T22:31:03.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "sell",
+      "state": "new",
+      "price": 0.7585,
+      "base_size": 131.83915,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 119,
+      "ts": "2026-09-17T22:31:04.000Z",
+      "mode": "live",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.003,
+      "leg": "entry",
+      "side": "sell",
+      "state": "new",
+      "price": 0.76,
+      "base_size": 131.57894,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "placedState": "new"
+      }
+    },
+    {
+      "id": 120,
+      "ts": "2026-09-17T22:31:05.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.002,
+      "leg": "entry",
+      "side": "buy",
+      "state": "cancelled",
+      "price": 0.7557,
+      "base_size": 132.32764,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T22:50:30.000Z",
+      "cancel_reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001",
+      "cancelled_at": "2026-09-17T22:50:30.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 121,
+      "ts": "2026-09-17T22:31:06.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "bid",
+      "k": 0.003,
+      "leg": "entry",
+      "side": "buy",
+      "state": "cancelled",
+      "price": 0.7549,
+      "base_size": 132.46787,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T22:50:30.000Z",
+      "cancel_reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001",
+      "cancelled_at": "2026-09-17T22:50:30.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 122,
+      "ts": "2026-09-17T22:31:07.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "sell",
+      "state": "cancelled",
+      "price": 0.7581,
+      "base_size": 131.90871,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T22:50:30.000Z",
+      "cancel_reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001",
+      "cancelled_at": "2026-09-17T22:50:30.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 123,
+      "ts": "2026-09-17T22:31:08.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.002,
+      "leg": "entry",
+      "side": "sell",
+      "state": "cancelled",
+      "price": 0.7588,
+      "base_size": 131.78703,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T22:50:30.000Z",
+      "cancel_reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001",
+      "cancelled_at": "2026-09-17T22:50:30.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 124,
+      "ts": "2026-09-17T22:31:09.000Z",
+      "mode": "live",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.003,
+      "leg": "entry",
+      "side": "sell",
+      "state": "cancelled",
+      "price": 0.7596,
+      "base_size": 131.64823,
+      "filled_base": 0,
+      "avg_fill_price": null,
+      "fee_gbp": 0,
+      "filled_at": null,
+      "cancel_requested_at": "2026-09-17T22:50:30.000Z",
+      "cancel_reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001",
+      "cancelled_at": "2026-09-17T22:50:30.000Z",
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "status": "cancelled"
+      }
+    },
+    {
+      "id": 125,
+      "ts": "2026-09-17T22:58:30.000Z",
+      "mode": "dry_run",
+      "book": "USDC-GBP",
+      "rung_side": "bid",
+      "k": 0.001,
+      "leg": "entry",
+      "side": "buy",
+      "state": "filled",
+      "price": 0.7569,
+      "base_size": 132.11784,
+      "filled_base": 132.11784,
+      "avg_fill_price": 0.5,
+      "fee_gbp": 0,
+      "filled_at": "2026-09-17T22:58:30.000Z",
+      "cancel_requested_at": null,
+      "cancel_reason": null,
+      "cancelled_at": null,
+      "request": {
+        "marketable": false,
+        "postOnly": true,
+        "timeInForce": "gtc"
+      },
+      "response": {
+        "dryRun": true
+      }
+    }
+  ],
+  "events": [
+    {
+      "mode": "live",
+      "minute": "2026-09-17T22:50:00.000Z",
+      "book": "USDT-GBP",
+      "rung_side": "-",
+      "k": 0,
+      "kind": "guard",
+      "detail": {
+        "reasons": [
+          "de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        ],
+        "before": []
+      }
+    },
+    {
+      "mode": "dry_run",
+      "minute": "2026-09-17T22:58:00.000Z",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "kind": "skip",
+      "detail": {
+        "reason": "not money: a dry-run row"
+      }
+    },
+    {
+      "mode": "live",
+      "minute": "2026-09-16T09:00:00.000Z",
+      "book": "USDT-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "kind": "skip",
+      "detail": {
+        "reason": "no USDT to sell: the account holds none beyond what its own longs will sell",
+        "coin": "USDT",
+        "free": 0,
+        "need": 131.90871,
+        "ticks": 7581,
+        "paperOid": 79,
+        "paperLive": "2026-09-16T09:01:00.000Z"
+      }
+    },
+    {
+      "mode": "live",
+      "minute": "2026-09-16T09:00:00.000Z",
+      "book": "USDC-GBP",
+      "rung_side": "ask",
+      "k": 0.001,
+      "kind": "skip",
+      "detail": {
+        "reason": "no USDC to sell: the account holds none beyond what its own longs will sell",
+        "coin": "USDC",
+        "free": 0,
+        "need": 131.83915,
+        "ticks": 7585,
+        "paperOid": 38,
+        "paperLive": "2026-09-16T09:01:00.000Z"
+      }
+    }
+  ],
+  "live": {
+    "dryRun": false,
+    "armed": true,
+    "armedAt": "2026-09-16T09:00:00.000Z",
+    "entryBook": "live",
+    "why": "live: dry_run is off and live_confirmed_at is set",
+    "running": true,
+    "lagMinutes": 1,
+    "lastError": null,
+    "postsToday": {
+      "dryRun": 0,
+      "live": 18
+    },
+    "lossStopped": false,
+    "capitalGbp": 1200,
+    "x": 1.32,
+    "capitalUsd": 1584,
+    "tradedLive": true,
+    "openOrders": 7,
+    "heldRungs": 2,
+    "unmarked": 0,
+    "pending": [],
+    "fills": 10,
+    "realisedUsd": 0.07326791999999824,
+    "todayUsd": 0.29977991999999265,
+    "unrealisedUsd": 0.3833279999999965,
+    "costUsd": 264.07814399999995,
+    "valueUsd": 263.938752,
+    "feesUsd": 0.11839608,
+    "detail": {
+      "status": {
+        "lastTurnAt": "2026-09-17T22:59:26.000Z",
+        "paperMinute": "2026-09-17T22:58:00.000Z",
+        "account": true,
+        "governor": {
+          "level": "all",
+          "entryAt": 900,
+          "stopsOnlyAt": 950
+        },
+        "lossStop": {
+          "limitGbp": -12,
+          "todayGbp": 0.22710599999999442
+        },
+        "guards": [
+          {
+            "book": "USDC-GBP",
+            "reasons": []
+          },
+          {
+            "book": "USDT-GBP",
+            "reasons": [
+              "de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+            ]
+          }
+        ]
+      },
+      "books": [
+        {
+          "book": "USDC-GBP",
+          "lastPrice": 0.7576,
+          "lastPrintAt": "2026-09-17T22:58:50.000Z",
+          "fair": 0.75766,
+          "realisedUsd": 0.139392000000004,
+          "trips": 1,
+          "won": 1
+        },
+        {
+          "book": "USDT-GBP",
+          "lastPrice": 0.7572,
+          "lastPrintAt": "2026-09-17T22:58:20.000Z",
+          "fair": 0.75727,
+          "realisedUsd": -0.06612408000000576,
+          "trips": 2,
+          "won": 1
+        }
+      ],
+      "rungs": [
+        {
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "order": {
+            "id": 115,
+            "leg": "entry",
+            "side": "buy",
+            "price": 0.7569,
+            "base": 132.11784,
+            "gbp": 99.999993096,
+            "state": "new",
+            "since": "2026-09-17T22:31:00.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": null,
+          "realisedGbp": 0.10560000000000302,
+          "realisedUsd": 0.139392000000004,
+          "fills": 2
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.002,
+          "order": {
+            "id": 116,
+            "leg": "entry",
+            "side": "buy",
+            "price": 0.7561,
+            "base": 132.25763,
+            "gbp": 99.999994043,
+            "state": "new",
+            "since": "2026-09-17T22:31:01.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "order": {
+            "id": 117,
+            "leg": "entry",
+            "side": "buy",
+            "price": 0.7553,
+            "base": 132.39772,
+            "gbp": 99.99999791599998,
+            "state": "new",
+            "since": "2026-09-17T22:31:02.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "order": {
+            "id": 118,
+            "leg": "entry",
+            "side": "sell",
+            "price": 0.7585,
+            "base": 131.83915,
+            "gbp": 99.99999527499999,
+            "state": "new",
+            "since": "2026-09-17T22:31:03.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "order": {
+            "id": 111,
+            "leg": "exit",
+            "side": "buy",
+            "price": 0.7576,
+            "base": 132,
+            "gbp": 100.0032,
+            "state": "new",
+            "since": "2026-09-17T20:01:00.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": {
+            "base": 132,
+            "avgEntry": 0.7591,
+            "since": "2026-09-17T20:00:00.000Z",
+            "costGbp": 100.2012,
+            "valueGbp": 100.0032,
+            "unrealisedGbp": 0.19799999999999285,
+            "unrealisedUsd": 0.2613599999999906
+          },
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 1
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.003,
+          "order": {
+            "id": 119,
+            "leg": "entry",
+            "side": "sell",
+            "price": 0.76,
+            "base": 131.57894,
+            "gbp": 99.99999439999999,
+            "state": "new",
+            "since": "2026-09-17T22:31:04.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "order": {
+            "id": 113,
+            "leg": "exit",
+            "side": "sell",
+            "price": 0.7573,
+            "base": 132,
+            "gbp": 99.9636,
+            "state": "new",
+            "since": "2026-09-17T22:01:00.000Z",
+            "filledBase": 0,
+            "cancelling": false
+          },
+          "held": {
+            "base": 132,
+            "avgEntry": 0.7565,
+            "since": "2026-09-17T22:00:00.000Z",
+            "costGbp": 99.85799999999999,
+            "valueGbp": 99.9504,
+            "unrealisedGbp": 0.09240000000000448,
+            "unrealisedUsd": 0.12196800000000592
+          },
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 1
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.002,
+          "order": null,
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "order": null,
+          "held": null,
+          "realisedGbp": -0.16889400000000593,
+          "realisedUsd": -0.22294008000000784,
+          "fills": 2
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "order": null,
+          "held": null,
+          "realisedGbp": 0.11880000000000157,
+          "realisedUsd": 0.1568160000000021,
+          "fills": 2
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "order": null,
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.003,
+          "order": null,
+          "held": null,
+          "realisedGbp": 0,
+          "realisedUsd": 0,
+          "fills": 0
+        }
+      ],
+      "inventory": {
+        "at": "2026-09-17T22:59:26.000Z",
+        "assets": [
+          {
+            "asset": "GBP",
+            "amount": 600.696306,
+            "gbp": 600.696306
+          },
+          {
+            "asset": "USDC",
+            "amount": 263.6436,
+            "gbp": 199.73639136
+          },
+          {
+            "asset": "USDT",
+            "amount": 527.6436,
+            "gbp": 399.53173391999997
+          }
+        ]
+      },
+      "conversions": [
+        {
+          "id": 102,
+          "ts": "2026-09-16T09:03:00.000Z",
+          "book": "USDC-GBP",
+          "coin": "USDC",
+          "state": "filled",
+          "limit": 0.7611,
+          "coins": 395.6436,
+          "avgPrice": 0.7574,
+          "feeGbp": 0.26993736,
+          "paidGbp": 299.93039999999996,
+          "reason": null
+        },
+        {
+          "id": 101,
+          "ts": "2026-09-16T09:02:00.000Z",
+          "book": "USDT-GBP",
+          "coin": "USDT",
+          "state": "filled",
+          "limit": 0.7607,
+          "coins": 395.6436,
+          "avgPrice": 0.757,
+          "feeGbp": 0.2697948,
+          "paidGbp": 299.772,
+          "reason": null
+        }
+      ],
+      "trips": [
+        {
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "tEntry": "2026-09-16T20:00:00.000Z",
+          "tExit": "2026-09-17T20:00:30.000Z",
+          "entry": 0.7556,
+          "exit": 0.755,
+          "qty": 132,
+          "how": "stop",
+          "feesGbp": 0.089694,
+          "pnlGbp": -0.16889400000000593,
+          "feesUsd": 0.11839608,
+          "pnlUsd": -0.22294008000000784
+        },
+        {
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "tEntry": "2026-09-17T10:00:00.000Z",
+          "tExit": "2026-09-17T10:30:00.000Z",
+          "entry": 0.7568,
+          "exit": 0.7576,
+          "qty": 132,
+          "how": "exit",
+          "feesGbp": 0,
+          "pnlGbp": 0.10560000000000302,
+          "feesUsd": 0,
+          "pnlUsd": 0.139392000000004
+        },
+        {
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "tEntry": "2026-09-16T12:00:00.000Z",
+          "tExit": "2026-09-16T13:00:00.000Z",
+          "entry": 0.758,
+          "exit": 0.7571,
+          "qty": 132,
+          "how": "exit",
+          "feesGbp": 0,
+          "pnlGbp": 0.11880000000000157,
+          "feesUsd": 0,
+          "pnlUsd": 0.1568160000000021
+        }
+      ],
+      "tripCount": 3,
+      "tripsWon": 2,
+      "fills": [
+        {
+          "id": 112,
+          "ts": "2026-09-17T22:00:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7565,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 110,
+          "ts": "2026-09-17T20:00:30.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "stop",
+          "venueSide": "sell",
+          "price": 0.755,
+          "base": 132,
+          "feeGbp": 0.089694,
+          "feeUsd": 0.11839608
+        },
+        {
+          "id": 109,
+          "ts": "2026-09-17T20:00:00.000Z",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7591,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 108,
+          "ts": "2026-09-17T10:30:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "exit",
+          "venueSide": "sell",
+          "price": 0.7576,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 107,
+          "ts": "2026-09-17T10:00:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7568,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 105,
+          "ts": "2026-09-16T20:00:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7556,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 104,
+          "ts": "2026-09-16T13:00:00.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "exit",
+          "venueSide": "buy",
+          "price": 0.7571,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        },
+        {
+          "id": 103,
+          "ts": "2026-09-16T12:00:00.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.758,
+          "base": 132,
+          "feeGbp": 0,
+          "feeUsd": 0
+        }
+      ],
+      "orders": [
+        {
+          "id": 124,
+          "ts": "2026-09-17T22:31:09.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7596,
+          "base": 131.64823,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "id": 123,
+          "ts": "2026-09-17T22:31:08.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7588,
+          "base": 131.78703,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "id": 122,
+          "ts": "2026-09-17T22:31:07.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7581,
+          "base": 131.90871,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "id": 121,
+          "ts": "2026-09-17T22:31:06.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7549,
+          "base": 132.46787,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "id": 120,
+          "ts": "2026-09-17T22:31:05.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.002,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7557,
+          "base": 132.32764,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "id": 119,
+          "ts": "2026-09-17T22:31:04.000Z",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.76,
+          "base": 131.57894,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 118,
+          "ts": "2026-09-17T22:31:03.000Z",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7585,
+          "base": 131.83915,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 117,
+          "ts": "2026-09-17T22:31:02.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7553,
+          "base": 132.39772,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 116,
+          "ts": "2026-09-17T22:31:01.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.002,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7561,
+          "base": 132.25763,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 115,
+          "ts": "2026-09-17T22:31:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7569,
+          "base": 132.11784,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 114,
+          "ts": "2026-09-17T22:30:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.757,
+          "base": 132.10039,
+          "state": "rejected",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "refused by the venue: post-only order would cross the book"
+        },
+        {
+          "id": 113,
+          "ts": "2026-09-17T22:01:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "exit",
+          "venueSide": "sell",
+          "price": 0.7573,
+          "base": 132,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 112,
+          "ts": "2026-09-17T21:30:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7565,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7565,
+          "reason": null
+        },
+        {
+          "id": 111,
+          "ts": "2026-09-17T20:01:00.000Z",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "leg": "exit",
+          "venueSide": "buy",
+          "price": 0.7576,
+          "base": 132,
+          "state": "new",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": null
+        },
+        {
+          "id": 110,
+          "ts": "2026-09-17T20:00:30.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "stop",
+          "venueSide": "sell",
+          "price": 0.7519,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.755,
+          "reason": null
+        },
+        {
+          "id": 109,
+          "ts": "2026-09-17T19:30:00.000Z",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.002,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.7591,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7591,
+          "reason": null
+        },
+        {
+          "id": 108,
+          "ts": "2026-09-17T10:01:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "exit",
+          "venueSide": "sell",
+          "price": 0.7576,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7576,
+          "reason": null
+        },
+        {
+          "id": 107,
+          "ts": "2026-09-17T09:40:00.000Z",
+          "book": "USDC-GBP",
+          "side": "bid",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7568,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7568,
+          "reason": null
+        },
+        {
+          "id": 106,
+          "ts": "2026-09-16T20:01:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "exit",
+          "venueSide": "sell",
+          "price": 0.7562,
+          "base": 132,
+          "state": "cancelled",
+          "filledBase": 0,
+          "avgPrice": null,
+          "reason": "the 24-hour stop"
+        },
+        {
+          "id": 105,
+          "ts": "2026-09-16T19:58:00.000Z",
+          "book": "USDT-GBP",
+          "side": "bid",
+          "k": 0.003,
+          "leg": "entry",
+          "venueSide": "buy",
+          "price": 0.7556,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7556,
+          "reason": null
+        },
+        {
+          "id": 104,
+          "ts": "2026-09-16T12:01:00.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "exit",
+          "venueSide": "buy",
+          "price": 0.7571,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.7571,
+          "reason": null
+        },
+        {
+          "id": 103,
+          "ts": "2026-09-16T11:50:00.000Z",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "leg": "entry",
+          "venueSide": "sell",
+          "price": 0.758,
+          "base": 132,
+          "state": "filled",
+          "filledBase": 132,
+          "avgPrice": 0.758,
+          "reason": null
+        },
+        {
+          "id": 102,
+          "ts": "2026-09-16T09:03:00.000Z",
+          "book": "USDC-GBP",
+          "side": null,
+          "k": null,
+          "leg": "convert",
+          "venueSide": "buy",
+          "price": 0.7611,
+          "base": 396,
+          "state": "filled",
+          "filledBase": 395.6436,
+          "avgPrice": 0.7574,
+          "reason": null
+        },
+        {
+          "id": 101,
+          "ts": "2026-09-16T09:02:00.000Z",
+          "book": "USDT-GBP",
+          "side": null,
+          "k": null,
+          "leg": "convert",
+          "venueSide": "buy",
+          "price": 0.7607,
+          "base": 396,
+          "state": "filled",
+          "filledBase": 395.6436,
+          "avgPrice": 0.757,
+          "reason": null
+        }
+      ],
+      "events": [
+        {
+          "minute": "2026-09-17T22:50:00.000Z",
+          "kind": "guard",
+          "book": "USDT-GBP",
+          "side": null,
+          "k": null,
+          "text": "no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001"
+        },
+        {
+          "minute": "2026-09-16T09:00:00.000Z",
+          "kind": "skip",
+          "book": "USDC-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "text": "no USDC to sell: the account holds none beyond what its own longs will sell"
+        },
+        {
+          "minute": "2026-09-16T09:00:00.000Z",
+          "kind": "skip",
+          "book": "USDT-GBP",
+          "side": "ask",
+          "k": 0.001,
+          "text": "no USDT to sell: the account holds none beyond what its own longs will sell"
+        }
+      ]
+    }
+  }
+}
