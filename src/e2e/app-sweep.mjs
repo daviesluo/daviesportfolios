@@ -809,8 +809,9 @@ const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fi
 /**
  * "Reward quotes live-prep" (`0077`): the dashboard's own answer (`prepSummary`) for a record worked out by hand at this
  * sweep's clock (`prep_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its
- * `input`): capital $320, held $8.77 at the mids against $8.35, today +$1.17, unrealised +$0.42, realised +$1.95 =
- * rewards +$1.70 + orders +$0.25; rewards at R = 0.40 +$0.68; the fills' P&L +$0.67. Served only in the `prep` mode.
+ * `input`): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
+ * unrealised +$0.42, realised +$1.95 = rewards +$1.70 + orders +$0.25; the fills' P&L +$0.67; RW's worst case +$1.00.
+ * Served only in the `prep` mode.
  */
 const PREP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./prep_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_PR5_LIVE = () => {
@@ -3517,9 +3518,10 @@ async function run() {
       const prGreen = await prRow.first().locator('.ag-dot-running').count();
       const prNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const prAfter = await readAgentsPanel(page);
-      if (prNames.at(-1) === 'Reward quotes live-prep' && /Polymarket/.test(prText) && /2 open · \$320 cap/.test(prText) && /\+\$1\.17 \(\+0\.37%\)/.test(prText)
+      // Today is the change since 16 Sep's close, as RW's: the total 2.37 less that day's 0.90, +$1.47, 0.46 % of $320.
+      if (prNames.at(-1) === 'Reward quotes live-prep' && /Polymarket/.test(prText) && /2 open · \$320 cap/.test(prText) && /\+\$1\.47 \(\+0\.46%\)/.test(prText)
         && /\+\$0\.42 \(\+5\.03%\)/.test(prText) && /\+\$1\.95 \(\+0\.61%\)/.test(prText) && /every minute/.test(prText) && prGreen === 1) {
-        ok(T('prep'), 'the last testing row is "Reward quotes live-prep" on Polymarket: 2 open of its $320 cap, today +$1.17 (+0.37%), unrealised +$0.42 (+5.03%), realised +$1.95 (+0.61%), every minute, green');
+        ok(T('prep'), 'the last testing row is "Reward quotes live-prep" on Polymarket: 2 open of its $320 cap, today +$1.47 (+0.46%), unrealised +$0.42 (+5.03%), realised +$1.95 (+0.61%), every minute, green');
       } else fail(T('prep'), `live-prep row "${prText}" (last of ${prNames.join(' | ')}), green dots ${prGreen}`);
       // What it adds, read off the page with and without it: exactly its own figures, on the scoreboard and on the card.
       const prAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
@@ -3530,68 +3532,70 @@ async function run() {
       // Its deployed is what it holds, $8.77, and what its quotes tie up, $24.34 (Davies, 2026-10-01): $33.11. The
       // scoreboard's DEPLOYED is shown to the dollar from $1,000: $1,428.85 + $33.11 = $1,461.96 reads $1,429 then $1,462,
       // 33 more. The card, under $1,000, adds $33.11.
-      if (prSbDiff.join(',') === '320,33,1.17,0.42,1.95' && prCardDiff.join(',') === '320,33.11,1.17,0.42,1.95,1.7,0.25' && pmA?.meta === '5 strategies') {
-        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $1,429 to $1,462 on the scoreboard, shown to the dollar), today +$1.17, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 5");
+      if (prSbDiff.join(',') === '320,33,1.47,0.42,1.95' && prCardDiff.join(',') === '320,33.11,1.47,0.42,1.95,1.7,0.25' && pmA?.meta === '5 strategies') {
+        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $1,429 to $1,462 on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 5");
       } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
       await prRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-prep-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
-      const prp = await page.evaluate(() => {
+      // Its page is RW's (Davies, 2026-10-01: "the same as the other Reward quotes pages"), read the way RW's is.
+      const prRead = () => page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-        const d = document.querySelector('.ag-prep-detail');
+        const d = document.querySelector('.ag-rw-detail');
         const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
         return {
           title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
           labels: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-name') ?? [])].map(txt),
           funded: txt(d?.querySelector('.ag-scoreboard-sm .sb-value')),
           deployed: txt(d?.querySelector('.ag-scoreboard-sm .ag-sb-cell-deployed .sb-value')),
+          sb: [...(d?.querySelectorAll('.ag-scoreboard-sm .sb-value, .ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
           split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
           sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
-          tiles: [...(d?.querySelectorAll('.ag-prep-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-prep-tile-k'))}=${txt(t.querySelector('.ag-prep-tile-v'))}`),
-          days: rows('.ag-prep-days'), markets: rows('.ag-prep-markets'), fills: rows('.ag-prep-fills'),
+          tiles: [...(d?.querySelectorAll('.ag-rw-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`),
+          days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
           warn: d?.querySelectorAll('.ag-warn-line').length ?? -1,
           overflow: d ? d.scrollWidth - d.clientWidth : -1,
         };
       });
+      const prp = await prRead();
       await shot(page, 'agents-prep');
-      const prDayOk = prp.days.length === 2 && /· today$/.test(prp.days[0][0]) && prp.days[0].slice(1).join('|') === '2|+$0.67|+$0.50|+$0.20|+$0.87'
-        && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '2|-$0.30|+$1.20|+$0.48|+$0.18';
-      const prMktOk = prp.markets.map((r) => r.join('|')).join(' / ') === 'Will A happen?|$8|46¢ / 48¢|5 Yes · 4 No|47¢ / Will B happen?|$7|20.1¢ / 22.9¢|20 Yes · 0 No|21.5¢';
+      // Days: today 4.90 + 19.44 of quotes, two fills, +$0.50 of rewards and +$1.47 in all; 16 Sep 4.90 + 19.40, two fills,
+      // +$1.20 and +$0.90 (its fills −$0.30). The layer keeps no worst case for a day, so both read a dash, never $0.00.
+      const prDayOk = prp.days.length === 2 && /· today$/.test(prp.days[0][0]) && prp.days[0].slice(1).join('|') === '$24.34|2|—|+$0.50|+$1.47'
+        && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '$24.30|2|—|+$1.20|+$0.90';
+      // Quotes: each market's pool, RW's bid / ask, its share of the pool at the last minute, what it holds by token, and
+      // its rewards and orders adding up to its total: A 1.00 + 0.39 = 1.39, B 0.70 + 0.28 = 0.98.
+      const prMktOk = prp.markets.map((r) => r.join('|')).join(' / ')
+        === 'Will A happen?|$8|46¢ / 48¢|4 %|5 Yes · 4 No|+$1|+$0.39|+$1.39 / Will B happen?|$7|20.1¢ / 22.9¢|3 %|20 Yes|+$0.70|+$0.28|+$0.98';
       const prFillOk = prp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will A happen?|sold Yes|5|50¢ / Will B happen?|bought Yes|20|20.1¢ / Will A happen?|bought No|4|52¢ / Will A happen?|bought Yes|10|45¢';
-      // DEPLOYED: $8.77 held and $24.34 its quotes tie up, $33.11, 10.35 % of its $320 (Davies, 2026-10-01).
+      // DEPLOYED: $8.77 held and $24.34 its quotes tie up, $33.11, 10.35 % of its $320 (Davies, 2026-10-01). STATUS: RW's
+      // worst case on the two accounts, +$1.00; the best market's share of the total, 1.39 / 2.37 = 59 %.
       if (prp.title === 'Reward quotes live-prep' && prp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(prp.funded)
         && prp.deployed === '$33.11(10.35%)'
-        && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'FIGURES,DAYS,QUOTES,FILLS'
-        && prp.tiles.join('|') === 'REWARDS (FORMULA)=+$1.70|REWARDS AT R = 0.40=+$0.68|FILLS P&L=+$0.67|HELD AT THE MID=$8.77'
+        && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
+        && prp.tiles.join('|') === 'WORST CASE=+$1|TOP SHARE=59 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
         && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {
-        ok(T('prep'), 'its page: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; FIGURES +$1.70 at the formula, +$0.68 at R = 0.40, fills +$0.67, $8.77 held; today +$0.87 and 16 Sep +$0.18 at R = 0.40; both markets\' bid / ask and holdings; the four fills newest first');
+        ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, a dash where no worst case is kept; each market's share, holdings by token and parts adding up; the four fills newest first");
       } else fail(T('prep'), `live-prep page: ${JSON.stringify(prp)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
-      // Under hide-values every prAmount, price and holding on its page is prMasked; counts, days and times are not.
+      // Under hide-values every amount, price and holding on its page is masked; counts, shares, days and times are not.
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);
       await page.locator('.hide-eye').first().click();
       await page.waitForTimeout(200);
       await openAgentsPage(page);
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click().catch(() => {});
-      await page.waitForSelector('.ag-prep-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
-      const prh = await page.evaluate(() => {
-        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-        const d = document.querySelector('.ag-prep-detail');
-        const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
-        return {
-          sb: [...(d?.querySelectorAll('.ag-scoreboard-sm .sb-value, .ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
-          tiles: [...(d?.querySelectorAll('.ag-prep-tile-v') ?? [])].map(txt),
-          days: rows('.ag-prep-days'), markets: rows('.ag-prep-markets'), fills: rows('.ag-prep-fills'),
-        };
-      });
+      const prh = await prRead();
       const prDig = (/** @type {string} */ t) => /\d/.test(t);
-      const prMasked = prh.sb.length > 0 && !prh.sb.some((t) => /\$\d/.test(t)) && prh.tiles.length === 4 && !prh.tiles.some(prDig)
-        && prh.days.length === 2 && !prh.days.some((r) => r.slice(2).some(prDig)) && prh.days.every((r) => prDig(r[0]) && prDig(r[1]))
-        && prh.markets.length === 2 && !prh.markets.some((r) => r.slice(1).some(prDig)) && prh.fills.length === 4 && !prh.fills.some((r) => r.slice(3).some(prDig)) && prh.fills.every((r) => prDig(r[0]));
-      if (prMasked) ok(T('prep'), `hide-values masks its page's amounts, prices and holdings and keeps its days, counts and times (held reads "${prh.markets[0]?.[3]}")`);
+      const prMasked = prh.sb.length > 0 && !prh.sb.some((t) => /\$\d/.test(t))
+        && prh.tiles.length === 4 && /^WORST CASE=/.test(prh.tiles[0]) && !prDig(prh.tiles[0]) && prh.tiles.slice(1).every((t) => prDig(t.split('=')[1] ?? ''))
+        && prh.days.length === 2 && prh.days.every((r) => prDig(r[0]) && !prDig(r[1]) && prDig(r[2]) && !r.slice(3).some(prDig))
+        && prh.markets.length === 2 && !prh.markets.some((r) => r.filter((_, i) => i !== 3).slice(1).some(prDig)) && prh.markets.every((r) => prDig(r[3]))
+        && prh.fills.length === 4 && !prh.fills.some((r) => r.slice(3).some(prDig)) && prh.fills.every((r) => prDig(r[0]));
+      if (prMasked) ok(T('prep'), `hide-values masks its page's amounts, prices and holdings and keeps its days, counts, shares and times (held reads "${prh.markets[0]?.[4]}")`);
       else fail(T('prep'), `under the mask: ${JSON.stringify(prh)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(200);

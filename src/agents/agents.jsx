@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -655,12 +655,13 @@ function RwBar({ v, r, usd }) {
 /**
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
  * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
- * bid and ask, our share of the pool), and the fills with the prints that proved them.
+ * bid and ask, our share of the pool), and the fills with the prints that proved them. Every Reward quotes row opens
+ * this page, the live-prep layer's included (Davies, 2026-10-01: "the same as the other Reward quotes pages").
  * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number, row?: any }} props
  */
 function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
-  // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`), and
-  // RW-C's from its own engine run (`rwcRow`); RW's own is `rwRow`.
+  // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`),
+  // RW-C's from its own engine run (`rwcRow`), and the live-prep's from its own layer (`prepRow`); RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
@@ -695,6 +696,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
       {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
       {row.id.startsWith(RWX_ROW_PREFIX) && rwxCheckWarn(r) && <div className="ag-warn-line">{rwxCheckWarn(r)}</div>}
+      {row.id === PREP_ROW_ID && prepStopText(r) && <div className="ag-warn-line">{prepStopText(r)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
       <section className="ag-section ag-rw-days">
@@ -708,10 +710,11 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
               {dayRows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>{waiting ?? 'No day yet.'}</td></tr>}
               {dayRows.map((d) => (
                 <tr key={d.live ? 'today' : d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
-                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}</td>
-                  <td>{m(fmtUsd(d.capitalUsd))}</td>
+                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}{d.stop ? ' · stopped' : ''}</td>
+                  <td>{d.capitalUsd == null ? '—' : m(fmtUsd(d.capitalUsd))}</td>
                   <td className="ag-ph">{d.fills}</td>
-                  <td className="ag-ph ag-gl" style={{ color: pctColor(d.stressUsd) }}>{usd(d.stressUsd)}</td>
+                  {/* A worst case that was not recorded (the live-prep's closed days) is a dash, never $0.00. */}
+                  <td className="ag-ph ag-gl" style={d.stressUsd == null ? undefined : { color: pctColor(d.stressUsd) }}>{d.stressUsd == null ? '—' : usd(d.stressUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
                 </tr>
@@ -737,9 +740,10 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                   <tr key={x.cond}>
                     <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
                     <td className="ag-ph">{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
-                    <td className="ag-ph">{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : '—'}</td>
+                    {/* The live-prep's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
+                    <td className="ag-ph">{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
                     <td className="ag-ph">{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
-                    <td>{m(rwHeldText(x.net))}</td>
+                    <td>{m(rwHeldOf(x))}</td>
                     <td className="ag-ph ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>
                     <td className="ag-ph ag-gl" style={{ color: pctColor(c.b) }}>{usd(c.b)}</td>
                     <td className="ag-gl" style={{ color: pctColor(c.total) }}>{usd(c.total)}</td>
@@ -759,142 +763,15 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
             </tr></thead>
             <tbody>
               {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>{waiting ?? 'No fill yet.'}</td></tr>}
-              {recent.map((f) => (
-                <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${f.side === 'bid' ? 'buy' : 'sell'}`}>
-                  <td className="dim">{when(f.ts)}</td>
-                  <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{f.q || f.cond}</span></td>
-                  <td><span className={`ag-side ag-side-${f.side === 'bid' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{f.side === 'bid' ? 'bought Yes' : 'sold Yes'}</span></td>
-                  <td className="ag-col-shares">{m(rwShareText(f.size))}</td>
-                  <td className="ag-col-price">{m(fmtCents(f.price))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <div className="ag-updated dim mono ag-rw-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
-    </div>
-  );
-}
-
-/**
- * "Reward quotes live-prep" (`0077`), opened from its row in TESTING STRATEGIES: Polymarket's order path, its own
- * dry-run orders filled on paper from the public prints by RW's rule (Davies, 2026-10-01: a day of paper before it goes
- * live). The strategy page's header and scoreboard, then its figures — the rewards at the formula and at R = 0.40,
- * what the fills made, the open inventory at the mid —, its days, today's markets with each bid and ask the path rested,
- * and the newest paper fills. Every amount goes through `m`, so hide-values masks it.
- * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number }} props
- */
-function PrepDetail({ r, m, at, nowMs }) {
-  const row = prepRow(r);
-  if (!row) return null;
-  const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
-  /** @param {number | null | undefined} x */
-  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  /** @type {Array<[string, number, boolean]>} */
-  const tiles = [
-    ['REWARDS (FORMULA)', Number(r.rewardUsd) || 0, true],
-    ['REWARDS AT R = 0.40', Number(r.rewardR40Usd) || 0, true],
-    ['FILLS P&L', Number(r.fillsPnlUsd) || 0, true],
-    ['HELD AT THE MID', Number(r.heldUsd) || 0, false],
-  ];
-  /** @param {number | null | undefined} n */
-  const shares = (n) => (Number(n) > 0 ? rwShareText(Number(n)) : '0');
-  return (
-    <div className="ag-detail ag-prep-detail">
-      <div className="ag-detail-head">
-        <ModeBadge mode="paper" />
-        <VenueBadge id={row.venueId} />
-        <StatusDot status={row.status} since={r.startedAt ?? null} nowMs={nowMs} />
-      </div>
-      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
-      <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m}
-          split={[['rewards', row.rewards.realisedUsd], ['orders', row.orders.realisedUsd]]} />
-      </div>
-      {!r.running && <div className="ag-warn-line">{row.status.detail}</div>}
-      {r.running && (r.stopDay || r.stopTotal) && <div className="ag-warn-line">{row.status.detail}</div>}
-      <section className="ag-section ag-prep-figures">
-        <div className="ag-section-title mono">FIGURES</div>
-        <div className="ag-prep-tiles">
-          {tiles.map(([k, v, signed]) => (
-            <div key={k} className="ag-prep-tile">
-              <div className="ag-prep-tile-k mono">{k}</div>
-              <div className="ag-prep-tile-v mono" style={signed ? { color: pctColor(v) } : undefined}>{signed ? usd(v) : m(fmtUsd(v))}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="ag-section ag-prep-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th ag-ph">Fills</th><th className="hl-th">Fills P&amp;L</th><th className="hl-th ag-ph">Rewards</th>
-              <th className="hl-th">At R = 0.40</th><th className="hl-th">Day at R = 0.40</th>
-            </tr></thead>
-            <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day yet.</td></tr>}
-              {days.map((d) => (
-                <tr key={d.live ? 'today' : d.day}>
-                  <td className="dim">{dayLabel(d.day)}{d.live ? ' · today' : ''}{d.stop ? ' · stopped' : ''}</td>
-                  <td className="ag-ph">{d.fills}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.fillsPnlUsd) }}>{usd(d.fillsPnlUsd)}</td>
-                  <td className="ag-ph ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.rewardR40Usd) }}>{usd(d.rewardR40Usd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.pnlR40Usd) }}>{usd(d.pnlR40Usd)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ag-section ag-prep-markets">
-        <div className="ag-section-title mono">QUOTES</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Market</th><th className="hl-th ag-ph">Pool/day</th><th className="hl-th">Bid / ask</th><th className="hl-th">Held</th><th className="hl-th ag-ph">Mid</th>
-            </tr></thead>
-            <tbody>
-              {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No market chosen today yet.</td></tr>}
-              {markets.map((x) => (
-                <tr key={x.cond}>
-                  <td className="hl-strong ag-prep-market"><span className="ag-prep-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
-                  <td className="ag-ph">{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
-                  <td>{x.bid != null || x.ask != null ? `${x.bid != null ? m(fmtCents(x.bid)) : '—'} / ${x.ask != null ? m(fmtCents(x.ask)) : '—'}` : (x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—')}</td>
-                  <td>{m(`${shares(x.yes)} Yes · ${shares(x.no)} No`)}</td>
-                  <td className="ag-ph">{x.mark != null ? m(fmtCents(x.mark)) : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ag-section ag-prep-fills">
-        <div className="ag-section-title mono">FILLS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Market</th><th className="hl-th">Side</th><th className="hl-th ag-col-shares">Shares</th><th className="hl-th ag-col-price">Price</th>
-            </tr></thead>
-            <tbody>
-              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No fill yet.</td></tr>}
               {recent.map((f) => {
-                const buy = f.tokenSide === 'BUY';
+                const fv = rwFillView(f);
                 return (
-                  <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${buy ? 'buy' : 'sell'}`}>
+                  <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${fv.buy ? 'buy' : 'sell'}`}>
                     <td className="dim">{when(f.ts)}</td>
-                    <td className="hl-strong"><span className="ag-prep-q" title={f.q}>{f.q || f.cond}</span></td>
-                    <td><span className={`ag-side ag-side-${buy ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{buy ? 'bought' : 'sold'} {f.outcome === 'yes' ? 'Yes' : 'No'}</span></td>
+                    <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{f.q || f.cond}</span></td>
+                    <td><span className={`ag-side ag-side-${fv.buy ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{fv.text}</span></td>
                     <td className="ag-col-shares">{m(rwShareText(f.size))}</td>
-                    <td className="ag-col-price">{m(fmtCents(f.tokenPrice))}</td>
+                    <td className="ag-col-price">{m(fmtCents(fv.price))}</td>
                   </tr>
                 );
               })}
@@ -902,7 +779,7 @@ function PrepDetail({ r, m, at, nowMs }) {
           </table>
         </div>
       </section>
-      <div className="ag-updated dim mono ag-prep-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
+      <div className="ag-updated dim mono ag-rw-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
     </div>
   );
 }
@@ -1795,7 +1672,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PrepDetail r={dash.prep} m={m} at={dash.at} nowMs={now} />
+          <RwDetail r={dash.prep} m={m} at={dash.at} nowMs={now} row={prep} />
         </div>
       </Modal>
     )}

@@ -9,7 +9,38 @@
     "lastDecided": 1789685880000,
     "dayOf": 1789603200000,
     "statusAt": 0,
-    "acc": {},
+    "acc": {
+     "0x00000000000000000000000000000000000000000000000000000000000000a1": {
+      "net": 1,
+      "cash": -0.08,
+      "reward": 1,
+      "fills": 3,
+      "fillShares": 19,
+      "tickCost": 0.19,
+      "firstCap": 4.9,
+      "maxInvCost": 4.5,
+      "lastM": 0.47,
+      "lastAb": 0.46,
+      "lastAa": 0.48,
+      "quotedMinutes": 2000,
+      "settled": null
+     },
+     "0x00000000000000000000000000000000000000000000000000000000000000b2": {
+      "net": 20,
+      "cash": -4.02,
+      "reward": 0.7,
+      "fills": 1,
+      "fillShares": 20,
+      "tickCost": 0.02,
+      "firstCap": 19.4,
+      "maxInvCost": 4.02,
+      "lastM": 0.215,
+      "lastAb": 0.2,
+      "lastAa": 0.23,
+      "quotedMinutes": 1500,
+      "settled": null
+     }
+    },
     "tokens": {
      "0x00000000000000000000000000000000000000000000000000000000000000a1": {
       "yes": "1001",
@@ -48,19 +79,10 @@
    {
     "day": "2026-09-16",
     "reward": 1.2,
-    "reward_r40": 0.48,
-    "fills_pnl_day": -0.3,
     "fills_pnl_total": -0.3,
-    "pnl_day_r40": 0.18,
-    "held_value": 4.5,
     "fills": 2,
-    "minutes_matched": 2700,
-    "minutes_dark": 180,
-    "minutes_diverged": 0,
-    "minutes_missing": 0,
     "stop_day": false,
-    "stop_total": false,
-    "markets": 2
+    "stop_total": false
    }
   ],
   "latest": [
@@ -74,9 +96,7 @@
     "qb": true,
     "qa": true,
     "close_only": false,
-    "yes_held": 5,
-    "no_held": 4,
-    "mark": 0.47
+    "reward": 0.0002
    },
    {
     "minute": "2026-09-17T22:58:00.000Z",
@@ -88,9 +108,17 @@
     "qb": true,
     "qa": true,
     "close_only": false,
-    "yes_held": 20,
-    "no_held": 0,
-    "mark": 0.215
+    "reward": 0.00014
+   }
+  ],
+  "rates": [
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000a1",
+    "rate": 8
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000b2",
+    "rate": 7
    }
   ],
   "fills": [
@@ -163,12 +191,31 @@
   "settlements": [],
   "markets": [
    {
+    "day": "2026-09-16",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000a1",
+    "question": "Will A happen?",
+    "reward_rate": 8,
+    "rank": 1,
+    "n_size": 5,
+    "capital": 4.9
+   },
+   {
+    "day": "2026-09-16",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000b2",
+    "question": "Will B happen?",
+    "reward_rate": 7,
+    "rank": 2,
+    "n_size": 20,
+    "capital": 19.4
+   },
+   {
     "day": "2026-09-17",
     "cond": "0x00000000000000000000000000000000000000000000000000000000000000a1",
     "question": "Will A happen?",
     "reward_rate": 8,
     "rank": 1,
-    "n_size": 5
+    "n_size": 5,
+    "capital": 4.9
    },
    {
     "day": "2026-09-17",
@@ -176,7 +223,8 @@
     "question": "Will B happen?",
     "reward_rate": 7,
     "rank": 2,
-    "n_size": 20
+    "n_size": 20,
+    "capital": 19.44
    }
   ]
  },
@@ -185,10 +233,17 @@
   "lagMinutes": 2,
   "running": true,
   "lastError": null,
+  "phase": "run",
+  "runStart": null,
+  "runEnd": null,
+  "dayOfRun": null,
+  "finished": false,
+  "catchingUp": false,
+  "notStarted": false,
   "startedAt": "2026-09-16T00:00:00.000Z",
   "capUsd": 320,
+  "capitalUsd": 24.34,
   "rewardUsd": 1.7,
-  "rewardR40Usd": 0.68,
   "fillsPnlUsd": 0.67,
   "heldUsd": 8.77,
   "quotedUsd": 24.34,
@@ -197,11 +252,11 @@
   "realisedFillsUsd": 0.25,
   "unrealisedUsd": 0.42,
   "totalUsd": 2.37,
-  "totalR40Usd": 1.35,
-  "todayUsd": 1.17,
-  "todayR40Usd": 0.87,
-  "todayRewardUsd": 0.5,
-  "todayFillsPnlUsd": 0.67,
+  "stressUsd": 1,
+  "mismatchUsd": 0,
+  "bestMarketUsd": 1.39,
+  "todayUsd": 1.47,
+  "fills": 4,
   "stopDay": null,
   "stopTotal": null,
   "open": 2,
@@ -213,14 +268,16 @@
     "rank": 1,
     "quoting": true,
     "ratePerDay": 8,
-    "n": 5,
     "cls": "matched",
     "bid": 0.46,
     "ask": 0.48,
-    "closeOnly": false,
     "yes": 5,
     "no": 4,
-    "mark": 0.47
+    "mark": 0.47,
+    "share": 0.036,
+    "rewardUsd": 1,
+    "fillsPnlUsd": 0.39,
+    "totalUsd": 1.39
    },
    {
     "cond": "0x00000000000000000000000000000000000000000000000000000000000000b2",
@@ -228,14 +285,16 @@
     "rank": 2,
     "quoting": true,
     "ratePerDay": 7,
-    "n": 20,
     "cls": "matched",
     "bid": 0.201,
     "ask": 0.229,
-    "closeOnly": false,
     "yes": 20,
     "no": 0,
-    "mark": 0.215
+    "mark": 0.215,
+    "share": 0.0288,
+    "rewardUsd": 0.7,
+    "fillsPnlUsd": 0.28,
+    "totalUsd": 0.98
    }
   ],
   "recent": [
@@ -294,31 +353,14 @@
   ],
   "days": [
    {
-    "day": "2026-09-17",
-    "live": true,
-    "rewardUsd": 0.5,
-    "rewardR40Usd": 0.2,
-    "fillsPnlUsd": 0.67,
-    "pnlR40Usd": 0.87,
-    "fills": 2,
-    "matched": 2700,
-    "dark": 54,
-    "diverged": 2,
-    "missing": 1,
-    "stop": false
-   },
-   {
     "day": "2026-09-16",
+    "phase": "run",
     "live": false,
+    "totalUsd": 0.9,
+    "stressUsd": null,
     "rewardUsd": 1.2,
-    "rewardR40Usd": 0.48,
-    "fillsPnlUsd": -0.3,
-    "pnlR40Usd": 0.18,
     "fills": 2,
-    "matched": 2700,
-    "dark": 180,
-    "diverged": 0,
-    "missing": 0,
+    "capitalUsd": 24.3,
     "stop": false
    }
   ]

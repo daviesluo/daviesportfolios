@@ -592,7 +592,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function on variant-1's rate with rule D on entries, in tables of its own. |
 | `agents/quotes_ruled.test.ts` | Pins rule D's band, that both arms decide on PR5's stored rate with no feed read, and that the driver writes none of variant-1's tables. |
 | `agents/pm_prep.ts` | "Reward quotes live-prep": the order path's own dry-run orders filled on paper from Polymarket's public prints by RW's rule, two minutes behind, with the path's own P&L, stops and settlement, into its own tables; nothing of the path's written. |
-| `agents/pm_prep_view.ts` | "Reward quotes live-prep" as the Agents page shows it: its row and page figures from the layer's own records by its own functions. |
+| `agents/pm_prep_view.ts` | "Reward quotes live-prep" as the Agents page shows it, in RW's shape: its row and Reward quotes' page, every figure from the layer's own records by the functions that made them. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model; and the two GBP books' index prices, for the quote pages. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |

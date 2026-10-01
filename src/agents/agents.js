@@ -1542,6 +1542,8 @@ export function rwBarTileKeys(_phase) {
  * The UTC day still in progress, in the same columns as a closed day. Closed days are each the change since the
  * previous close of the same phase; this row is the snapshot minus those changes, so it does not repeat them.
  * Its total is the scoreboard's today (`todayUsd`). Costs are the capital at work now, a level, as on a closed day.
+ * A closed day whose worst case was not recorded (null: the live-prep layer keeps none) leaves today's unknown too,
+ * and a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (the live-prep's).
  * @param {any} r  the dashboard's `rw`
  * @param {string | number | null | undefined} [at]  when the page was read; the day's label
  */
@@ -1556,11 +1558,41 @@ export function rwTodayRow(r, at) {
   return {
     day, phase, live: true,
     totalUsd: Number(r.todayUsd) || 0,
-    stressUsd: (Number(r.stressUsd) || 0) - sum('stressUsd'),
+    stressUsd: closed.some((d) => d.stressUsd == null) ? null : (Number(r.stressUsd) || 0) - sum('stressUsd'),
     rewardUsd: (Number(r.rewardUsd) || 0) - sum('rewardUsd'),
     fills: (Number(r.fills) || 0) - sum('fills'),
-    capitalUsd: Number(r.capitalUsd) || 0,
+    capitalUsd: r.capitalUsd == null ? null : Number(r.capitalUsd) || 0,
+    stop: !!r.stopTotal || (!!r.stopDay && r.stopDay === day),
   };
+}
+
+/**
+ * What a Reward quotes market holds, as a holder reads it. RW's paper nets its fills into YES shares (`net`; a short YES
+ * is long NO). The live-prep layer books the order path's tokens, which buys NO where RW sells YES and nets nothing, so
+ * it can hold both: "5 Yes · 4 No".
+ * @param {{ net?: number | null, yes?: number | null, no?: number | null }} x  one of the page's markets
+ */
+export function rwHeldOf(x) {
+  if (x.yes == null && x.no == null) return rwHeldText(x.net);
+  const yes = Number(x.yes) || 0, no = Number(x.no) || 0;
+  const parts = [...(yes > 0 ? [`${dropDot00(yes.toFixed(2))} Yes`] : []), ...(no > 0 ? [`${dropDot00(no.toFixed(2))} No`] : [])];
+  return parts.length ? parts.join(' · ') : '—';
+}
+
+/**
+ * A fill as the Reward quotes pages list it: what was done, and at what price. RW's are in its one YES book (a bid bought
+ * YES, an ask sold it); the live-prep layer's are the order path's own token trades, "bought No" at the NO price, as the
+ * venue would list them.
+ * @param {{ side?: string, price?: number, tokenSide?: string, outcome?: string, tokenPrice?: number }} f
+ * @returns {{ buy: boolean, text: string, price: number }}
+ */
+export function rwFillView(f) {
+  if (f.tokenSide) {
+    const buy = f.tokenSide === 'BUY';
+    return { buy, text: `${buy ? 'bought' : 'sold'} ${f.outcome === 'yes' ? 'Yes' : 'No'}`, price: Number(f.tokenPrice) };
+  }
+  const buy = f.side === 'bid';
+  return { buy, text: buy ? 'bought Yes' : 'sold Yes', price: Number(f.price) };
 }
 
 /**
@@ -1722,11 +1754,20 @@ export function rwcRow(r) {
 export const PREP_ROW_ID = '__prep';
 
 /**
+ * A live-prep loss stop that holds it close-only, in words, or '' (the dashboard sends a day stop only on its own UTC day).
+ * @param {any} r  the dashboard's `prep`
+ */
+export function prepStopText(r) {
+  return r?.stopTotal ? 'its total loss stop has tripped: close-only' : r?.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
+}
+
+/**
  * "Reward quotes live-prep" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
  * for a day before it goes live) as a row of TESTING STRATEGIES on the Polymarket card, in the cells a strategy's row has.
- * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid;
- * unrealised is that against what it cost; realised is the rewards at the formula and what closing trades made, split
- * on the row for the page and the card. Every figure is the dashboard's `prep`, made by the layer's own functions.
+ * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
+ * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
+ * what it cost; realised is the rewards at the formula and what closing trades made, split on the row for the page and
+ * the card. Every figure is the dashboard's `prep`, made by the layer's own functions; its page is RW's (`RwDetail`).
  * null keeps it off the table.
  * @param {any} r  the dashboard's `prep`
  */
@@ -1735,7 +1776,7 @@ export function prepRow(r) {
   const capital = Number(r.capUsd) || 0, cost = Number(r.costUsd) || 0;
   const pct = (/** @type {number} */ usd, /** @type {number} */ base) => (base > 0 ? (Number(usd) / base) * 100 : null);
   const quoting = Number(r.quoting) || 0;
-  const stopped = r.stopTotal ? 'its total loss stop has tripped: close-only' : r.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
+  const stopped = prepStopText(r);
   return {
     id: PREP_ROW_ID,
     name: 'Reward quotes live-prep',

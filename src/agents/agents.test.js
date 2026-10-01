@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, prepRow,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, prepRow, prepStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1520,7 +1520,7 @@ describe('prepRow ("Reward quotes live-prep", 0077)', () => {
     if (!row) throw new Error('no row for the fixture');
     expect(row).toMatchObject({
       id: PREP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, heldUsd: 8.77, costUsd: 8.35, todayUsd: 1.17, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
+      capitalUsd: 320, heldUsd: 8.77, costUsd: 8.35, todayUsd: 1.47, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
       rewards: { realisedUsd: 1.7, unrealisedUsd: 0 }, orders: { realisedUsd: 0.25, unrealisedUsd: 0.42 },
       status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
     });
@@ -1529,8 +1529,9 @@ describe('prepRow ("Reward quotes live-prep", 0077)', () => {
     // = 19.44 — $24.34, so $33.11.
     expect(prepFixture.output.quotedUsd).toBe(24.34);
     expect(row.valueUsd).toBeCloseTo(8.77 + 4.9 + 19.44, 9);
-    // Today and realised on its capital (the path's total cap), unrealised on what it holds at cost.
-    expect(row.todayPct).toBeCloseTo((1.17 / 320) * 100, 9);
+    // Today and realised on its capital (the path's total cap), unrealised on what it holds at cost. Today is the change
+    // since the last close, as RW's: the total 2.37 less 16 Sep's close, 0.90.
+    expect(row.todayPct).toBeCloseTo((1.47 / 320) * 100, 9);
     expect(row.realisedPct).toBeCloseTo((1.95 / 320) * 100, 9);
     expect(row.unrealisedPct).toBeCloseTo((0.42 / 8.35) * 100, 9);
     // Realised is its rewards and what closing trades made, to the cent.
@@ -1542,5 +1543,41 @@ describe('prepRow ("Reward quotes live-prep", 0077)', () => {
     expect(prepRow({ ...prepFixture.output, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'paper', running: false, tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
     expect(prepRow({ ...prepFixture.output, stopDay: '2026-09-17' })?.status).toMatchObject({ running: true, tone: 'stale', detail: 'its day loss stop has tripped: close-only for the rest of the UTC day' });
     expect(prepRow({ ...prepFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
+    expect([prepStopText(prepFixture.output), prepStopText(null)]).toEqual(['', '']);
+  });
+});
+
+describe("the live-prep's page is RW's (Davies, 2026-10-01)", () => {
+  const r = prepFixture.output;
+  it("reads its STATUS and its scoreboard's split from RW's own functions on the dashboard's figures", () => {
+    const v = rwView(r);
+    // Worst case 1.00 (A 0.69 + B 0.31), the best market A's 1.39 of 2.37, two markets quoting and two held.
+    expect(v).toMatchObject({ phase: 'run', bestShareText: '59 %', stoppedText: '', mismatch: false, since: '2026-09-16T00:00:00.000Z', runEnd: null });
+    expect([r.stressUsd, r.quoting, r.open]).toEqual([1, 2, 2]);
+    expect(rwTestedSince(v)).toBe('2026-09-16T00:00:00.000Z');
+    // Its rewards and orders split realised as the row does, to the cent: +$1.70 and +$0.25.
+    expect([v?.rewardUsd, v?.totalUsd]).toEqual([1.7, 2.37]);
+  });
+  it("adds today to its closed days, which add up to its total; a worst case not recorded is unknown, never $0.00", () => {
+    const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
+    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 2, capitalUsd: 24.34, stressUsd: null, stop: false });
+    expect(today?.totalUsd).toBeCloseTo(1.47, 12);
+    expect(today?.rewardUsd).toBeCloseTo(0.5, 12);
+    expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
+    // Before its first close the running worst case is today's; RW's rows, whose days all keep theirs, are unchanged.
+    expect(rwTodayRow({ ...r, days: [] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(1);
+    expect(rwTodayRow({ ...r, days: [{ ...r.days[0], stressUsd: 0.4 }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.6, 12);
+    // A level it does not know stays unknown; a loss stop of the day marks it.
+    expect(rwTodayRow({ ...r, capitalUsd: null }, '2026-09-17T23:00:00Z')?.capitalUsd).toBe(null);
+    expect(rwTodayRow({ ...r, stopDay: '2026-09-17' }, '2026-09-17T23:00:00Z')?.stop).toBe(true);
+  });
+  it("lists what each market holds by token and each fill as the order path's own trade", () => {
+    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['5 Yes · 4 No', '20 Yes']);
+    expect([rwHeldOf({ yes: 0, no: 2.5 }), rwHeldOf({ yes: 0, no: 0 }), rwHeldOf({ net: -3 }), rwHeldOf({ net: 0 })]).toEqual(['2.50 No', '—', '3 No', '—']);
+    expect(r.recent.map((f) => { const x = rwFillView(f); return `${x.buy ? 'buy' : 'sell'} ${x.text} ${fmtCents(x.price)}`; }))
+      .toEqual(['sell sold Yes 50¢', 'buy bought Yes 20.1¢', 'buy bought No 52¢', 'buy bought Yes 45¢']);
+    // RW's fills are in its one YES book.
+    expect([rwFillView({ side: 'bid', price: 0.45 }), rwFillView({ side: 'ask', price: 0.48 })]).toEqual([
+      { buy: true, text: 'bought Yes', price: 0.45 }, { buy: false, text: 'sold Yes', price: 0.48 }]);
   });
 });

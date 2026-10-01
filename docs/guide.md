@@ -256,16 +256,17 @@ places stay when the number is not whole.
   from the trades the public sees, two minutes behind the clock, and keeps
   what they would hold, at the mid, and what they would have made. Its cap
   is the account's own limit; deployed is what its resting quotes tie up
-  and what it holds, as on Reward quotes. Its page: the same scoreboard, with realised
-  split into rewards and orders; FIGURES, the rewards worked out by
-  Polymarket's formula, the same at 0.40 of that (what the paper tests
-  need to break even, since nobody yet knows how much of the formula is
-  actually paid), what the fills made, and what is held at the mid; the
-  days, each with its fills' profit and its rewards, and the day at 0.40;
-  today's markets, each with the bid and ask the account had resting and
-  the Yes and No shares held; and the latest fills. If the account's own
-  loss limit would have been hit, its dot turns amber and says so: from
-  then on, as the real account would, it only sells what it holds.
+  and what it holds, as on Reward quotes. Its page is Reward quotes' page:
+  the same scoreboard and status; the days, each with what its markets'
+  quotes need, its fills, its rewards and what it made, adding up to the
+  total; today's markets, each with the bid and ask the account had
+  resting (or why there were none of the rule's), its share of the pool,
+  what it holds, and what its rewards and orders made; and the latest
+  fills, as the account trades them: it buys No where Reward quotes sells
+  Yes, so it can hold both. It keeps no worst case for each day, so that
+  column shows a dash; the running one is in its status. If the account's
+  own loss limit would have been hit, its dot turns amber and says so:
+  from then on, as the real account would, it only sells what it holds.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as
