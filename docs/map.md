@@ -594,7 +594,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pm_prep.ts` | "Reward quotes live-prep": the order path's own dry-run orders filled on paper from Polymarket's public prints by RW's rule, two minutes behind, with the path's own P&L, stops and settlement, into its own tables; nothing of the path's written. |
 | `agents/pm_prep_view.ts` | "Reward quotes live-prep" as the Agents page shows it: its row and page figures from the layer's own records by its own functions. |
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
-| `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model. |
+| `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model; and the two GBP books' index prices, for the quote pages. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
 | `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks, on RW's minutes and on RW-C's. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, RW-E's and its variants' rows read the same way from their replays' arms, and RW-C's from its own engine run: from the engine's own state and records by the engine's own functions. |
@@ -704,6 +704,7 @@ before touching migration state.
 | `0075_edge_call_watchdog.sql` | Moves the one-minute job's list into a table (`edge_calls`: 0074's rows unchanged, which calls may run again, and the watchdog's row), adds each call's beat (`edge_call_beats`, kept two days) and the watchdog's record of its retries (`edge_call_retries`), and points the job at the table. |
 | `0076_pm_live_calibration.sql` | Readies Polymarket's order path for its live calibration, left in dry-run and unarmed: the day's market count and budget, the live test's caps, the markets keyed by market, each minute's formula reward, the daily reward readout and settled markets. |
 | `0077_pm_live_prep.sql` | "Reward quotes live-prep"'s tables (state, prints, market-minutes, fills, days, settlements, events), its lease and its row of the one-minute job. |
+| `0078_quote_tickers.sql` | Revolut X's USDC/GBP and USDT/GBP tickers (`agent_quote_tickers`, a row a book), whose index price the stablecoin quote pages value coins at, as the account does. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
