@@ -641,6 +641,33 @@ export function glText(usd, pct) {
 }
 
 /**
+ * Money in a row's own currency (Davies, 2026-10-01: the stablecoin quotes trade pounds, so their pages and rows are in
+ * pounds; a tab's scoreboard and the venue cards add every row up in dollars). "USD" unless the row says "GBP".
+ * @param {number | null | undefined} n @param {string | undefined} ccy @param {boolean} [signed]
+ */
+export const fmtIn = (n, ccy, signed = false) => (ccy === 'GBP' ? fmtGbp(n, signed) : fmtUsd(n, signed));
+
+/** `glText` in a row's own currency: "+£1.52 (+0.13%)". @param {number | null | undefined} n @param {number | null | undefined} pct @param {string | undefined} ccy */
+export function glTextIn(n, pct, ccy) {
+  const money = fmtIn(n ?? 0, ccy, true);
+  return pct == null || !Number.isFinite(pct) ? money : `${money} (${fmtPctSigned(pct, 2)})`;
+}
+
+/**
+ * What a row shows, in its own currency: its capital, deployed, today, unrealised and realised with their percents, and
+ * its fees. A row in pounds carries them as `gbp`; every other row shows its dollars, which are also what the tab's
+ * scoreboard adds up for every row.
+ * @param {any} r
+ */
+export function rowMoney(r) {
+  if (r?.ccy === 'GBP' && r.gbp) return { ccy: 'GBP', ...r.gbp };
+  return {
+    ccy: 'USD', capital: r.capitalUsd, value: r.valueUsd, today: r.todayUsd, todayPct: r.todayPct, unrealised: r.unrealisedUsd,
+    unrealisedPct: r.unrealisedPct, realised: r.realisedUsd, realisedPct: r.realisedPct, fees: r.feesUsd ?? null,
+  };
+}
+
+/**
  * What a set of strategy rows adds up to, summed in the payload's order — the sum `dashboard()` makes over the same
  * rows for its `totals` and `byVenue`, so over every row it is the server's figure to the last bit.
  * @param {any[]} strategies
@@ -1131,6 +1158,11 @@ export function quotesRow(q) {
   const openUsd = Number(q.openUsd) || 0;
   const unrealised = q.unrealisedUsd == null ? null : Number(q.unrealisedUsd);
   const v = /** @type {NonNullable<ReturnType<typeof quotesView>>} */ (quotesView(q));
+  // In pounds, the books' own currency: its capital, set in dollars, at the books' last rate (`capitalGbp`).
+  const capG = q.capitalGbp == null ? null : Number(q.capitalGbp), openG = Number(q.openGbp) || 0;
+  const unrealG = q.unrealisedGbp == null ? null : Number(q.unrealisedGbp);
+  /** @param {unknown} n @param {number | null} base */
+  const pctOf = (n, base) => (base != null && base > 0 && n != null ? (Number(n) / base) * 100 : null);
   return {
     id: QUOTES_ROW_ID,
     name: 'Stablecoin quotes',
@@ -1146,6 +1178,13 @@ export function quotesRow(q) {
     todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
     unrealisedUsd: unrealised ?? 0, unrealisedPct: unrealised != null && openUsd > 0 ? (unrealised / openUsd) * 100 : null,
     realisedUsd: q.realisedUsd ?? 0, realisedPct: q.realisedPct ?? null,
+    // Without the books' rate (no print yet) it stays in dollars.
+    ccy: capG != null ? 'GBP' : 'USD',
+    gbp: capG != null ? {
+      capital: capG, value: openG, today: Number(q.todayGbp) || 0, todayPct: pctOf(q.todayGbp, capG),
+      unrealised: unrealG ?? 0, unrealisedPct: unrealG != null && openG > 0 ? (unrealG / openG) * 100 : null,
+      realised: Number(q.realisedGbp) || 0, realisedPct: pctOf(q.realisedGbp, capG), fees: null,
+    } : null,
     nextText: 'every minute',
     openPositions: v.open,
     status: q.running
@@ -1221,6 +1260,16 @@ export function quotesLiveRow(q) {
     todayUsd: Number(q.todayUsd) || 0, todayPct: pct(q.todayUsd, capital),
     unrealisedUsd: Number(q.unrealisedUsd) || 0, unrealisedPct: pct(q.unrealisedUsd, cost),
     realisedUsd: Number(q.realisedUsd) || 0, realisedPct: pct(q.realisedUsd, capital),
+    // In pounds, the book's own (Davies, 2026-10-01): what its row and its page show. The dollars above are what LIVE's
+    // scoreboard adds up.
+    ccy: 'GBP',
+    gbp: {
+      capital: Number(q.capitalGbp) || 0, value: Number(q.valueGbp) || 0,
+      today: Number(q.todayGbp) || 0, todayPct: pct(q.todayGbp, Number(q.capitalGbp) || 0),
+      unrealised: Number(q.unrealisedGbp) || 0, unrealisedPct: pct(q.unrealisedGbp, Number(q.costGbp) || 0),
+      realised: Number(q.realisedGbp) || 0, realisedPct: pct(q.realisedGbp, Number(q.capitalGbp) || 0),
+      fees: Number(q.feesGbp) || 0,
+    },
     nextText: 'every minute',
     openPositions: Number(q.heldRungs) || 0, openOrders: Number(q.openOrders) || 0,
     holdsLive: (Number(q.heldRungs) || 0) > 0, armed: !!q.armed,
@@ -1257,59 +1306,59 @@ export function quotesPageFor(selected, dash) {
 }
 
 /**
- * Pounds, where they read more naturally than dollars on the live page: its capital, its loss stop, the account's
- * balances. Written as `fmtUsd` writes dollars: "£1,200", "-£12", "+£0.23".
+ * Pounds, the stablecoin quotes' own currency: their capital, P&L, loss stop and balances (Davies, 2026-10-01). Written
+ * as `fmtUsd` writes dollars: "£1,200", "-£12", "+£0.23".
  * @param {number | null | undefined} n @param {boolean} [signed]
  */
 export const fmtGbp = (n, signed = false) => dropDot00(fmtMoney(n, { signed, compact: false, symbol: '£' }));
 
-/**
- * A fee to four places, beside a trip's or a fill's P&L to four, and unsigned, since a fee only ever costs: "$0.1184".
- * None is "$0".
- * @param {number | null | undefined} n
- */
-export const fmtFeeUsd4 = (n) => {
-  const s = fmtMoney(n, { compact: false, precision: 4 });
-  return /^\$0[.,]0000$/.test(s) ? '$0' : s;
+/** Signed pounds to four places, as `fmtUsd4` writes dollars: a trip's, a rung's or a day's P&L. Zero is "£0". @param {number | null | undefined} n */
+export const fmtGbp4 = (n) => {
+  const s = fmtMoney(n, { signed: true, compact: false, precision: 4, symbol: '£' });
+  return /^[+-]?£0[.,]0000$/.test(s) ? '£0' : s;
 };
 
 /**
- * The live page's RUNGS: a card per book, a row per rung in the ladder's order (the bids, then the asks, nearest fair
- * first). A rung shows its one live order — the entry it quotes, or the exit or stop of what it holds — with its size in
- * coins and pounds, its state and since when; a rung that holds coins also shows what it holds, from when, and what that
- * has made at the book's last trade. Every price, size and amount goes through `m`.
- * @param {any} q  the dashboard's `quotes.live`
- * @param {(s: string) => string} [m]
+ * A fee to four places, beside a trip's P&L to four, and unsigned, since a fee only ever costs: "£0.0900". None is "£0".
+ * @param {number | null | undefined} n
  */
-export function quotesLiveRungCards(q, m = (s) => s) {
+export const fmtFeeGbp4 = (n) => {
+  const s = fmtMoney(n, { compact: false, precision: 4, symbol: '£' });
+  return /^£0[.,]0000$/.test(s) ? '£0' : s;
+};
+
+/**
+ * An order's side on the live page's ORDERS (Davies, 2026-10-01: the word "entry" on almost every row said nothing):
+ * "buy" or "sell" for an entry, and the leg after it for anything else: "sell · exit", "sell · stop", "buy · conversion".
+ * @param {string | null | undefined} venueSide @param {string} leg
+ */
+export const liveOrderSideText = (venueSide, leg) =>
+  (leg === 'entry' ? `${venueSide ?? '—'}` : `${venueSide ?? '—'} · ${leg === 'convert' ? 'conversion' : leg}`);
+
+/**
+ * The live page's BOOKS (Davies, 2026-10-01: the paper test's BOOKS, clearer than its RUNGS): each book's card in the
+ * paper page's shape, so `quoteLadderRows` lays out its six rungs as the paper's: a rung holding coins is held at its
+ * average entry, with what it has made at the book's last trade; one with an order resting quotes that order's price
+ * (its exit, when it holds nothing); any other is idle. Pounds, the book's own currency.
+ * @param {any} q  the dashboard's `quotes.live`
+ */
+export function quotesLiveBooks(q) {
   const d = q?.detail;
   if (!d) return [];
   return (d.books ?? []).map((/** @type {any} */ b) => ({
-    book: b.book, label: quoteBookLabel(b.book),
-    meta: `last trade ${m(fmtQuotePrice(b.lastPrice))}${b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}`,
-    trips: b.trips ? `${b.trips} · ${Math.round((100 * (Number(b.won) || 0)) / b.trips)} % won` : '0',
-    realisedUsd: Number(b.realisedUsd) || 0,
-    rows: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => {
-      const o = r.order;
-      return {
-        key: `${r.book}|${r.side}|${r.k}`, side: r.side, rung: `${r.side} ${quoteRungLabel(r.k)}`,
-        order: o ? `${o.leg === 'entry' ? '' : `${o.leg} `}${m(fmtQuotePrice(o.price))}` : null,
-        size: o ? `${m(fmtQuoteQty(o.base, r.book))} · ${m(fmtGbp(o.gbp))}` : null,
-        state: o ? (o.cancelling ? 'cancelling' : String(o.state).replace('_', ' ')) : null,
-        stateKey: o ? (o.cancelling ? 'pending' : String(o.state)) : null,
-        since: o ? fmtChartStamp(o.since) : null,
-        held: r.held ? {
-          text: `${r.side === 'bid' ? 'bought' : 'sold'} ${m(fmtQuoteQty(r.held.base, r.book))} at ${m(fmtQuotePrice(r.held.avgEntry))}${r.held.since ? ` · since ${fmtChartStamp(r.held.since)}` : ''}`,
-          unrealisedUsd: r.held.unrealisedUsd ?? null,
-        } : null,
-      };
-    }),
+    book: b.book, lastPrice: b.lastPrice, fair: b.fair, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
+    realisedGbp: Number(b.realisedGbp) || 0,
+    rungs: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => (r.held
+      ? { side: r.side, k: r.k, mode: 'position', entry: r.held.avgEntry, heldSince: r.held.since, unrealisedGbp: r.held.unrealisedGbp ?? null }
+      : r.order ? { side: r.side, k: r.k, mode: 'quote', price: r.order.price } : { side: r.side, k: r.k, mode: 'idle' })),
   }));
 }
 
 /**
  * The live page's INVENTORY: the account's pounds and coins as the executor last read them (balances, so what rests in
- * orders is included), each coin also in pounds at its book's last trade. Null when the turn could not read them.
+ * orders is included), each coin also in pounds at its book's last trade and with its unrealised against what it cost
+ * (Davies, 2026-10-01: his account page shows it), which add up to the scoreboard's. Null when the turn could not read
+ * them.
  * @param {any} q  the dashboard's `quotes.live`
  * @param {(s: string) => string} [m]
  */
@@ -1322,6 +1371,7 @@ export function quotesLiveInventory(q, m = (s) => s) {
       asset: a.asset,
       amount: a.asset === 'GBP' ? m(fmtGbp(a.amount)) : m(fmtQuoteQty(a.amount, a.asset)),
       gbp: a.asset === 'GBP' || a.gbp == null ? null : m(fmtGbp(a.gbp)),
+      unrealisedGbp: a.asset === 'GBP' || a.unrealisedGbp == null ? null : Number(a.unrealisedGbp),
     })),
   };
 }
@@ -1376,9 +1426,9 @@ export function quoteLadderRows(book) {
   const ks = [...new Set(rungs.map((r) => Number(r.k)).filter((k) => Number.isFinite(k)))].sort((a, b) => a - b);
   /** @param {any} r */
   const cell = (r) => {
-    if (!r || r.mode === 'idle') return { state: 'idle', price: null, unrealisedUsd: null, heldSince: null };
-    if (r.mode === 'position') return { state: 'held', price: r.entry ?? null, unrealisedUsd: r.unrealisedUsd ?? null, heldSince: r.heldSince ?? null };
-    return { state: 'quoting', price: r.price ?? null, unrealisedUsd: null, heldSince: null };
+    if (!r || r.mode === 'idle') return { state: 'idle', price: null, unrealisedUsd: null, unrealisedGbp: null, heldSince: null };
+    if (r.mode === 'position') return { state: 'held', price: r.entry ?? null, unrealisedUsd: r.unrealisedUsd ?? null, unrealisedGbp: r.unrealisedGbp ?? null, heldSince: r.heldSince ?? null };
+    return { state: 'quoting', price: r.price ?? null, unrealisedUsd: null, unrealisedGbp: null, heldSince: null };
   };
   return ks.map((k) => ({
     k,

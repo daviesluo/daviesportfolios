@@ -181,11 +181,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `pending` past 2 minutes; the state row is under 3 minutes old. Kill switch: `update
      public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (cancels entries; exits and stops stay
      armed); `global_pause` cancels everything.
-   - **Its page (2026-10-01, Davies: "改成它单独的"):** LIVE's "Stablecoin quotes" opens a page of its own — the
-     scoreboard (the LIVE row's own figures), the twelve rungs, inventory and conversions, round trips, fills, and the
-     newest orders bar the cancelled ones, a refusal with its reason (`quotesLiveDetail`, `quotes.live.detail`); TESTING's
-     row opens the paper page. Its STATUS tiles, the inventory's note and EVENTS were taken off on his word (18:10 UTC);
-     the payload still carries `status` and `events` for a query.
+   - **Its page (2026-10-01, Davies: "改成它单独的"; reshaped on his word 18:30–19:00 UTC):** LIVE's "Stablecoin quotes"
+     opens a page of its own, in pounds — the scoreboard (the LIVE row's own figures), the paper page's BOOKS, INVENTORY
+     (each coin with its unrealised), DAYS, ROUND TRIPS and ORDERS (no empty cancels, read so server-side; an entry by its
+     side alone); TESTING's row opens the paper page. A round trip carries the conversion fee of the coins it sold (FIFO
+     per book, booked at its close); UNREALIZED and DEPLOYED are the account's coins against their cost. Every stablecoin
+     quotes row and page is in pounds; tab scoreboards and VENUES add them up in dollars.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
@@ -534,6 +535,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 19:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5's live page rebuilt on Davies' word, and every stablecoin quotes figure in pounds.** His asks, 18:30–19:00 UTC: "scoreboard里的(incl. fees $0)怎么没算底下的货币转换费"; RUNGS → the paper page's BOOKS; DAYS under INVENTORY; the conversions table and FILLS deleted; "ROUND TRIPS表格里的fees列加上那笔所用的货币转换费，并也计算到后一列的p&l里"; ORDERS' side without the word "entry" (he then asked for ORDERS to go, and took that back: "这句话当我没说过"; it stays the order history, since current quotes would repeat BOOKS); from his exchange account's screenshot, the coins' own unrealised P&L on the scoreboard; and "法币金额都应该是英镑而不是美元吧，可以在agents页的汇总scoreboard里换算成美元显示，这个逻辑在testing页面也一样". Server (`agents/index.ts`): `liveConversionShares` gives each live ask entry the conversion fee of the coins it sold (FIFO per book, a later conversion gives an earlier fill nothing), `withConversionFees` books it on the fill that closes the trip, so a trip's fees and P&L carry it and the trips still add up to REALIZED; `liveCoinBooks` marks the account's coins (the executor's last balances, else the book's own count) against their cost — conversions paid, less fees booked to trips, plus what the holding rungs paid or sold for — for UNREALIZED, DEPLOYED and INVENTORY; `liveDays` (rungBook increments, conversion shares included, so the days add up to REALIZED); `QUOTES_LIVE_ORDERS_FILTER` drops empty cancels where ORDERS is read; the events, conversions and status reads are gone. Pounds beside the dollars in `quotesLiveSummary` and `quotesSummary` (a paper trip's pounds are its own `qty × Δprice`, `quoteTripGbp`; its $ capital at the books' rate). Client: rows carry `ccy`/`gbp` (`rowMoney`), the table, cards and both quote pages show pounds, `QuoteBooks`/`QuoteDaysTable` shared; `dropDot00` drops the sign of a pound amount that rounds to zero ("-£0" was showing). The executor's loss stop is untouched: TODAY is still its reading less the conversion fees of trips closed today. Pinned by closed form: the fixture's realised + unrealised = its account value − capital (−£0.0355687, exact), D's share 132/395.6436 of £0.2697948; vitest pins the rows' pounds and the formatters; the sweep reads the hand-worked pounds on both pages and both tables, and LIVE's dollars ($791.03 deployed). Production read-only: 2 conversions (£0.054 fees), one completed ask trip, which now carries about £0.009 of them. The working-with-davies skill records both rules.
 
 ### [2026-10-01 18:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

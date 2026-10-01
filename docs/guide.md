@@ -131,7 +131,9 @@ places stay when the number is not whole.
   row per strategy: a status dot (green running, amber stale, grey paused),
   its exchange, what it has deployed (the same dollars the scoreboard calls
   deployed), today, unrealised and realised gain, and a countdown
-  to its next decision; the tab says the mode, so a row does not, and a
+  to its next decision. The stablecoin quotes trade pounds, so their rows,
+  and their pages, are in pounds; the tab's scoreboard and the exchange cards
+  add them up in dollars at the day's pound rate; the tab says the mode, so a row does not, and a
   live strategy's name does not carry "live". A name does not carry its
   exchange either: the exchange column says it. On a phone each row is a
   card with the same figures, and no line under them says what a percent
@@ -141,10 +143,11 @@ places stay when the number is not whole.
 - **Stablecoin quotes.** The first of the tests, after the testing strategies: a
   four-week paper test of resting quotes 0.1–0.3 % either side of the
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
-  minute. Its row reads like a strategy's, on the $1,200 the quotes would
-  tie up; its dot turns amber if it stops. Tap it for its page: the same
-  scoreboard, then each book's six rungs (the price each quotes, or what
-  it holds and has made at the last trade), then DAYS — each UTC day,
+  minute. Its row reads like a strategy's, in pounds, on the $1,200 the
+  quotes would tie up (in pounds at the day's rate); its dot turns amber if
+  it stops. Tap it for its page, in pounds: the same scoreboard, then BOOKS,
+  each book's six rungs (the price each quotes, or what it holds and has
+  made at the last trade), then DAYS — each UTC day,
   newest first: the orders it placed (of the 1,000 a day the exchange
   allows), its fills, the round trips that closed and what they made;
   today's row is TODAY above, and the days add up to REALIZED — and the
@@ -152,29 +155,38 @@ places stay when the number is not whole.
   rested as a maker; only its 24-hour stop would take the book). On a
   phone, DAYS keeps the day, the round trips and what they made. From its live path's first real
   order, the page also says what that path is doing, and it is also a
-  row of LIVE — its real-money book, in LIVE's totals and its
-  Revolut X card, in dollars at the day's pound rate — and a live order
-  of its that needs a person shows on both tabs.
+  row of LIVE — its real-money book, in pounds on its row and its page, and
+  in LIVE's totals and its Revolut X card in dollars at the day's pound
+  rate — and a live order of its that needs a person shows on both tabs.
   The foot is when the page was read, and that it refreshes every minute.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
-  own, which shows the real-money book and nothing of the paper test: the
-  same scoreboard as its row, with the capital in pounds beside funded and
-  the day's loss stop (1 % of the capital) beside today. Then RUNGS: each
-  book's six rungs, each with the order resting on it (its price, its
-  size in coins and in pounds, its state and since when) and, under a
-  rung that holds coins, what it holds, since when and what that has made
-  at the last trade. INVENTORY: the pounds and coins in the account, each
-  coin also in pounds, and the conversions that bought the coins. Then its
-  round trips (entry, exit, size, fees and what each made), its fills, and
-  its latest orders, with why any was refused; a cancelled order is left
-  out, since every re-price cancels one. A warning line shows under the
-  scoreboard only when its last turn is late or failed. On a phone the
-  tables keep their main columns. With values hidden, every amount, price
-  and size is hidden too.
+  own, in pounds, which shows the real-money book and nothing of the paper
+  test: the same scoreboard as its row, with the day's loss stop (1 % of
+  the capital) beside today. Deployed is the coins in the account at each
+  book's last trade, and unrealised is those coins against what they cost:
+  the pounds the conversions paid for them, fee included, and what the
+  rungs holding paid or sold for. The fees beside realised include the
+  conversion fee of the coins each round trip sold. Then BOOKS, as on the
+  paper test's page: each book's six rungs, each with the price of the
+  order resting on it, or what it holds and has made at the last trade.
+  INVENTORY: the pounds and coins in the account, each coin also in pounds
+  and with its unrealised; the coins add up to deployed and their
+  unrealised to the scoreboard's. DAYS: each UTC day's orders, entry
+  fills, round trips and what it realised, which add up to realised. Then
+  its round trips (entry, exit, size, fees and what each made: a round
+  trip that sold coins a conversion bought carries that conversion's fee
+  on those coins, in its fees and its P&L), and its latest orders, with
+  why any was refused: an entry by its side alone, anything else with its
+  leg ("sell · exit"); a cancel that filled nothing is left out, since
+  every re-price makes one. A warning line shows under the scoreboard only
+  when its last turn is late or failed. On a phone the tables keep their
+  main columns. With values hidden, every amount, price and size is hidden
+  too.
 - **Stablecoin quotes variant-1.** Right after it: the same rule with nine
   rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
-  fair, on the $3,600 its quotes would tie up, played minute by minute on
+  fair, on the $3,600 its quotes would tie up (in pounds, as its row and page
+  are), played minute by minute on
   exactly the trades and rates the quote test recorded, so the two can be
   compared day by day. Its page is the quote test's, with nine rungs a side
   in each book. The name in the table is two lines, and the first is the

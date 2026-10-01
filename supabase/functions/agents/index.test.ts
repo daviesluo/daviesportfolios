@@ -8,8 +8,8 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  liveBookGbp, liveEventText, liveOrderReason, liveRungs, liveRungTrips, quotesLiveDetail, QUOTE_LIVE_ORDER_COLUMNS, QUOTE_LIVE_REASON_COLUMNS,
-  QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_PAGE_CONVERSIONS, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveEventRow, type QuoteLiveRecentRow,
+  liveBookGbp, liveCoinBooks, liveConversionShares, liveOrderReason, liveRungs, liveRungTrips, quotesLiveDetail, QUOTE_LIVE_ORDER_COLUMNS,
+  QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
 import type { RungFill } from "./quotes_live.ts";
@@ -566,6 +566,12 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   assertEquals([q.trips, q.won, q.open, q.ordersToday, q.fillsToday], [3, 2, 1, 2, 1]);
   assertAlmostEquals(q.openUsd, 75 * 1.33, 1e-9);                     // a position is its GBP notional at the last rate
   assertEquals([q.lagMinutes, q.running], [2, true]);
+  // In pounds: the trips stored without prices at the rate, the capital set in dollars at the rate, a position its notional.
+  assertEquals(q.x, 1.33);
+  assertAlmostEquals(q.realisedGbp, 0.40 / 1.33, 1e-12);
+  assertAlmostEquals(q.todayGbp, 0.12 / 1.33, 1e-12);
+  assertAlmostEquals(q.capitalGbp!, QUOTES_CAPITAL_USD / 1.33, 1e-9);
+  assertEquals(q.openGbp, 75);
   // Each trip carries its size in coins, for the page's size column; a trip stored without one says so.
   assertEquals(q.recent.map((t) => t.qty), [79.4436, null, null]);
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
@@ -582,10 +588,20 @@ Deno.test("quoteDays: the quote test's days, newest first, today marked, numbers
     { day: "2026-09-22", orders: 0, fills: 0, trips: 1, won: 0, realised_usd: "-0.0400" },
   ];
   assertEquals(quoteDays(rows, dayStart), [
-    { day: "2026-09-24", orders: 61, fills: 2, trips: 1, won: 1, realisedUsd: 0.12, today: true },
-    { day: "2026-09-23", orders: 140, fills: 3, trips: 2, won: 1, realisedUsd: 0.0935, today: false },
-    { day: "2026-09-22", orders: 0, fills: 0, trips: 1, won: 0, realisedUsd: -0.04, today: false },
+    { day: "2026-09-24", orders: 61, fills: 2, trips: 1, won: 1, realisedUsd: 0.12, realisedGbp: 0, today: true },
+    { day: "2026-09-23", orders: 140, fills: 3, trips: 2, won: 1, realisedUsd: 0.0935, realisedGbp: 0, today: false },
+    { day: "2026-09-22", orders: 0, fills: 0, trips: 1, won: 0, realisedUsd: -0.04, realisedGbp: 0, today: false },
   ]);
+  // In pounds, each day is the trips that closed in it, priced as the engine priced them before its rate.
+  const trips = [
+    { book: "USDC-GBP", side: "bid", qty: 100, entry: 0.75, exit: 0.7508, t_exit: "2026-09-24T10:00:00Z", pnl_usd: 0.108, notional_usd: 101.25 },
+    { book: "USDT-GBP", side: "ask", qty: "50", entry: "0.7600", exit: "0.7590", t_exit: "2026-09-24T11:00:00Z", pnl_usd: 0.0675, notional_usd: 51.3 },
+    { book: "USDT-GBP", t_exit: "2026-09-23T09:00:00Z", pnl_usd: 0.0935, notional_usd: 50 },              // no prices: its dollars at the rate
+  ];
+  const withGbp = quoteDays(rows, dayStart, trips, 1.35);
+  assertAlmostEquals(withGbp[0].realisedGbp, 100 * 0.0008 + 50 * 0.001, 1e-12);
+  assertAlmostEquals(withGbp[1].realisedGbp, 0.0935 / 1.35, 1e-12);
+  assertEquals(withGbp[2].realisedGbp, 0);
   assertEquals(quoteDays([], dayStart), []);
   // The summary passes them through; without the view (before `0070`) it has none, and the page says so.
   const now = dayStart + 12 * 3600e3;
@@ -767,9 +783,11 @@ Deno.test("quotesLiveSummary: PR5's real-money book from its live fills, in USD 
   assertEquals([r.tradedLive, r.dryRun, r.armed, r.running, r.entryBook], [true, false, true, true, "live"]);
   assertEquals([r.fills, r.openOrders, r.heldRungs, r.pending.map((p) => p.id)], [3, 1, 1, [4]]);
   assertAlmostEquals(r.capitalUsd!, 67.5, 1e-9);
+  assertEquals(r.lossStopGbp, -0.5);                                                    // 1 % of £50
   assertAlmostEquals(r.realisedUsd!, 0.01 * 1.35, 1e-12);
   assertAlmostEquals(r.unrealisedUsd!, 5 * (0.739 - 0.737) * 1.35, 1e-12);
   assertAlmostEquals(r.todayUsd!, (0.01 + 5 * (0.739 - 0.737)) * 1.35, 1e-12);        // the loss stop's own figure
+  // No conversion and no balances read: the coins are the book's own count, the 5 the bid holds, at what they cost.
   assertAlmostEquals(r.costUsd!, 5 * 0.737 * 1.35, 1e-12);
   assertAlmostEquals(r.valueUsd!, 5 * 0.739 * 1.35, 1e-12);
   // In dry-run with nothing sent: no money, what it would have sent today, and whether it is keeping up.
@@ -790,15 +808,12 @@ function liveReads(f: typeof liveFixture) {
   }));
   const live = (f.orders as Row[]).filter((r) => r.mode === "live");
   const asc = (a: Row, b: Row) => Number(a.id) - Number(b.id);
-  const cmp = (a: unknown, b: unknown) => (String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0);
   return {
     orders: [...live].sort(asc).map(pick(QUOTE_LIVE_SUMMARY_COLUMNS)) as QuoteLiveOrderView[],
     open: live.filter((r) => ["pending", "new", "partially_filled"].includes(String(r.state))).sort(asc).map(pick(QUOTE_LIVE_ORDER_COLUMNS)) as QuoteLiveOrderView[],
-    recent: [...live].sort((a, b) => asc(b, a)).slice(0, QUOTES_LIVE_PAGE_ROWS).map(pick(QUOTE_LIVE_REASON_COLUMNS)) as QuoteLiveRecentRow[],
-    conversions: live.filter((r) => r.leg === "convert").sort((a, b) => asc(b, a)).slice(0, QUOTES_LIVE_PAGE_CONVERSIONS).map(pick(QUOTE_LIVE_REASON_COLUMNS)) as QuoteLiveRecentRow[],
-    events: (f.events as Row[]).filter((e) => e.mode === "live")
-      .sort((a, b) => cmp(b.minute, a.minute) || cmp(a.book, b.book) || cmp(a.rung_side, b.rung_side) || Number(a.k) - Number(b.k) || cmp(a.kind, b.kind))
-      .slice(0, QUOTES_LIVE_PAGE_ROWS).map(pick("minute,book,rung_side,k,kind,detail")) as QuoteLiveEventRow[],
+    // `QUOTES_LIVE_ORDERS_FILTER`: a cancel that filled nothing is not read.
+    recent: live.filter((r) => r.state !== "cancelled" || Number(r.filled_base) > 0).sort((a, b) => asc(b, a)).slice(0, QUOTES_LIVE_PAGE_ROWS)
+      .map(pick(QUOTE_LIVE_REASON_COLUMNS)) as QuoteLiveRecentRow[],
   };
 }
 
@@ -808,25 +823,32 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   // deno-lint-ignore no-explicit-any
   const base: any = { config: f.config, state: f.state, orders: reads.orders, paper: f.paper, nowMs: f.nowMs, dayStartMs: f.dayStartMs };
   const row = quotesLiveSummary(base)!;
-  const d = quotesLiveDetail({ ...base, open: reads.open, recent: reads.recent, conversions: reads.conversions, events: reads.events })!;
+  const d = quotesLiveDetail({ ...base, open: reads.open, recent: reads.recent })!;
   const x = 1.32;
-  // The book by hand, in pounds (the fixture's `about` names the five trips): realised A 132 × 0.0008 = 0.1056, C 132 ×
-  // −0.0006 − 0.089694 = −0.168894, D 132 × 0.0009 = 0.1188; held B 132 × (0.7591 − 0.7576) = 0.1980 and E 132 ×
-  // (0.7572 − 0.7565) = 0.0924; today is A, C's stop and both holdings; D closed yesterday.
-  assertAlmostEquals(row.realisedUsd!, (0.1056 - 0.168894 + 0.1188) * x, 1e-12);
-  assertAlmostEquals(row.todayUsd!, (0.1056 + 0.198 - 0.168894 + 0.0924) * x, 1e-12);
-  assertAlmostEquals(row.unrealisedUsd!, (0.198 + 0.0924) * x, 1e-12);
-  assertAlmostEquals(row.costUsd!, (132 * 0.7591 + 132 * 0.7565) * x, 1e-9);
-  assertAlmostEquals(row.valueUsd!, (132 * 0.7576 + 132 * 0.7572) * x, 1e-9);
-  assertAlmostEquals(row.feesUsd!, 0.089694 * x, 1e-12);
-  assertEquals([row.capitalUsd, row.openOrders, row.heldRungs, row.fills, row.postsToday.live, row.running], [1584, 7, 2, 10, 18, true]);
-
-  // STATUS: the governor's tiers, the loss stop against 1 % of £1,200, its TODAY in pounds, and each book's guards.
-  assertEquals(d.status.governor, { level: "all", entryAt: 900, stopsOnlyAt: 950 });
-  assertEquals(d.status.lossStop.limitGbp, -12);
-  assertAlmostEquals(d.status.lossStop.todayGbp, row.todayUsd! / x, 1e-12);
-  assertEquals(d.status.guards.map((g) => [g.book, g.reasons?.length]), [["USDC-GBP", 0], ["USDT-GBP", 1]]);
-  assertEquals([d.status.lastTurnAt, d.status.paperMinute, d.status.account], ["2026-09-17T22:59:26.000Z", "2026-09-17T22:58:00.000Z", true]);
+  // The book by hand, in pounds (the fixture's `about` names the five trips). The conversions bought 395.6436 coins each
+  // net of their fee: USDT at 0.7570 (fee 0.2697948), USDC at 0.7574 (fee 0.26993736), £299.772 and £299.9304 paid.
+  // D's ask sold 132 of the USDT conversion's coins, so D carries 132 / 395.6436 of its fee; B's ask sold 132 of the
+  // USDC conversion's, and B is still open, so its share is in no trip yet.
+  const shareD = 132 * 0.2697948 / 395.6436;
+  const A = 0.1056, C = -0.168894, D = 0.1188 - shareD;
+  assertAlmostEquals(row.realisedUsd!, (A + C + D) * x, 1e-12);
+  assertAlmostEquals(row.todayUsd!, (A + C + 0.198 + 0.0924) * x, 1e-12);          // A, C's stop and both holdings: the stop's 0.227106
+  assertAlmostEquals(row.todayUsd! / x, f.state.state.dayPnlGbp, 1e-12);
+  assertAlmostEquals(row.feesUsd!, (0.089694 + shareD) * x, 1e-12);
+  // What it holds is the account's coins against their cost: USDC 263.6436 (the conversion's less B's 132 short), cost
+  // £299.9304 less what B sold for; USDT 527.6436 (the conversion's and E's 132), cost £299.772 less D's booked share plus
+  // what E paid. Each marked at its book's last print.
+  const usdcCost = 299.9304 - 132 * 0.7591, usdtCost = 299.772 - shareD + 132 * 0.7565;
+  const usdcValue = 263.6436 * 0.7576, usdtValue = 527.6436 * 0.7572;
+  assertAlmostEquals(row.costUsd!, (usdcCost + usdtCost) * x, 1e-9);
+  assertAlmostEquals(row.valueUsd!, (usdcValue + usdtValue) * x, 1e-9);
+  assertAlmostEquals(row.unrealisedUsd!, (usdcValue - usdcCost + usdtValue - usdtCost) * x, 1e-9);
+  // …which is the rungs' marks and the conversions' own: B +0.198 and the USDC conversion 395.6436 × (0.7576 − 0.7574)
+  // less its fee; E +0.0924 and the USDT conversion 395.6436 × (0.7572 − 0.7570) less the part of its fee D has not taken.
+  assertAlmostEquals(row.unrealisedUsd! / x, 0.198 + 395.6436 * 0.0002 - 0.26993736 + 0.0924 + 395.6436 * 0.0002 - (0.2697948 - shareD), 1e-9);
+  // Realised and unrealised together are the account's value less its capital: £600.696306 and the coins, less £1,200.
+  assertAlmostEquals((row.realisedUsd! + row.unrealisedUsd!) / x, 600.696306 + usdcValue + usdtValue - 1200, 1e-9);
+  assertEquals([row.capitalUsd, row.lossStopGbp, row.openOrders, row.heldRungs, row.fills, row.postsToday.live, row.running], [1584, -12, 7, 2, 10, 18, true]);
 
   // The twelve rungs, in the walk's order, each with its one open order; the two holding rungs show their exits.
   assertEquals(d.rungs.map((r) => `${r.book}|${r.side}|${r.k}:${r.order ? `${r.order.leg}#${r.order.id}` : "-"}${r.held ? ":held" : ""}`), [
@@ -835,68 +857,143 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
     "USDT-GBP|bid|0.001:exit#113:held", "USDT-GBP|bid|0.002:-", "USDT-GBP|bid|0.003:-",
     "USDT-GBP|ask|0.001:-", "USDT-GBP|ask|0.002:-", "USDT-GBP|ask|0.003:-",
   ]);
-  const usdc1 = d.rungs[0].order!;
-  assertEquals([usdc1.side, usdc1.price, usdc1.base, usdc1.state, usdc1.since, usdc1.cancelling], ["buy", 0.7569, 132.11784, "new", "2026-09-17T22:31:00.000Z", false]);
-  assertAlmostEquals(usdc1.gbp, 132.11784 * 0.7569, 1e-12);                  // £100 a rung, floored to the coin's step
+  assertEquals(d.rungs[0].order, { id: 115, leg: "entry", price: 0.7569, state: "new" });
   const b = d.rungs[4], e = d.rungs[6];
-  assertEquals([b.held!.base, b.held!.avgEntry, b.held!.since, b.order!.side, b.order!.price], [132, 0.7591, "2026-09-17T20:00:00.000Z", "buy", 0.7576]);
+  assertEquals([b.held!.base, b.held!.avgEntry, b.held!.since, b.order!.price], [132, 0.7591, "2026-09-17T20:00:00.000Z", 0.7576]);
   assertAlmostEquals(b.held!.unrealisedUsd!, 0.198 * x, 1e-12);
   assertAlmostEquals(e.held!.unrealisedUsd!, 0.0924 * x, 1e-12);
-  // Each holding is the row's own: its cost, value and unrealised add up to the LIVE row's.
-  assertAlmostEquals((b.held!.costGbp + e.held!.costGbp) * x, row.costUsd!, 1e-9);
-  assertAlmostEquals((b.held!.valueGbp + e.held!.valueGbp) * x, row.valueUsd!, 1e-9);
-  assertAlmostEquals(b.held!.unrealisedUsd! + e.held!.unrealisedUsd!, row.unrealisedUsd!, 1e-12);
+  assertAlmostEquals(b.realisedGbp, 0, 1e-15);                                 // B's share of the conversion waits for its close
 
   // Each book's card: last trade and fair from the paper engine, its own realised and trips; the books add up to the row.
   assertEquals(d.books.map((k) => [k.book, k.lastPrice, k.fair, k.trips, k.won]), [["USDC-GBP", 0.7576, 0.75766, 1, 1], ["USDT-GBP", 0.7572, 0.75727, 2, 1]]);
-  assertAlmostEquals(d.books[0].realisedUsd!, 0.1056 * x, 1e-12);
-  assertAlmostEquals(d.books[1].realisedUsd!, (-0.168894 + 0.1188) * x, 1e-12);
+  assertAlmostEquals(d.books[0].realisedUsd!, A * x, 1e-12);
+  assertAlmostEquals(d.books[1].realisedUsd!, (C + D) * x, 1e-12);
   assertAlmostEquals(d.books[0].realisedUsd! + d.books[1].realisedUsd!, row.realisedUsd!, 1e-12);
 
-  // Round trips, newest first, each the step it adds to its rung's realised: every rung but the two holding is flat, and
-  // those two have realised nothing, so the trips add up to REALIZED.
+  // Round trips, newest first; D's fees are its conversion share and its P&L carries it; no rung has exited in part, so
+  // the trips add up to REALIZED.
   assertEquals(d.trips.map((t) => [t.book, t.side, t.k, t.how, t.entry, t.exit, t.qty, t.tExit]), [
     ["USDT-GBP", "bid", 0.003, "stop", 0.7556, 0.755, 132, "2026-09-17T20:00:30.000Z"],
     ["USDC-GBP", "bid", 0.001, "exit", 0.7568, 0.7576, 132, "2026-09-17T10:30:00.000Z"],
     ["USDT-GBP", "ask", 0.001, "exit", 0.758, 0.7571, 132, "2026-09-16T13:00:00.000Z"],
   ]);
-  assertAlmostEquals(d.trips[0].pnlGbp, -0.168894, 1e-12);
+  assertAlmostEquals(d.trips[0].pnlGbp, C, 1e-12);
   assertAlmostEquals(d.trips[0].feesUsd!, 0.089694 * x, 1e-12);
-  assertAlmostEquals(d.trips[1].pnlGbp, 0.1056, 1e-12);
-  assertAlmostEquals(d.trips[2].pnlGbp, 0.1188, 1e-12);
+  assertAlmostEquals(d.trips[1].pnlGbp, A, 1e-12);
+  assertAlmostEquals(d.trips[1].feesGbp, 0, 1e-15);                            // a bid buys before it sells: no conversion
+  assertAlmostEquals(d.trips[2].feesGbp, shareD, 1e-12);
+  assertAlmostEquals(d.trips[2].pnlGbp, D, 1e-12);
   assertAlmostEquals(d.trips.reduce((a, t) => a + t.pnlUsd!, 0), row.realisedUsd!, 1e-12);
   assertEquals([d.tripCount, d.tripsWon], [3, 2]);
 
-  // The account as the executor read it, each coin at its book's last print; the conversions, with what the pounds paid.
-  assertEquals(d.inventory.assets!.map((a) => a.asset), ["GBP", "USDC", "USDT"]);
-  assertAlmostEquals(d.inventory.assets![1].gbp!, 263.6436 * 0.7576, 1e-9);
-  assertAlmostEquals(d.inventory.assets![2].gbp!, 527.6436 * 0.7572, 1e-9);
-  assertEquals(d.conversions.map((c) => [c.id, c.coin, c.coins, c.avgPrice, c.state]), [[102, "USDC", 395.6436, 0.7574, "filled"], [101, "USDT", 395.6436, 0.757, "filled"]]);
-  assertAlmostEquals(d.conversions[0].paidGbp!, 396 * 0.7574, 1e-9);      // 9 bps taken in the coin: the gross at the price
-  assertAlmostEquals(d.conversions[1].paidGbp!, 396 * 0.757, 1e-9);
+  // DAYS, newest first: 18 orders sent today and 6 yesterday (the conversions among them), the entry fills of each day,
+  // the trips that closed, and what was realised, which adds up to REALIZED.
+  assertEquals(d.days.map((y) => [y.day, y.today, y.orders, y.fills, y.trips, y.won]), [["2026-09-17", true, 18, 3, 2, 1], ["2026-09-16", false, 6, 2, 1, 1]]);
+  assertAlmostEquals(d.days[0].realisedGbp, A + C, 1e-12);
+  assertAlmostEquals(d.days[1].realisedGbp, D, 1e-12);
+  assertAlmostEquals(d.days.reduce((a, y) => a + y.realisedUsd!, 0), row.realisedUsd!, 1e-12);
 
-  // Fills, newest first, the venue's side from the rung's; orders, newest first, with why each ended as it did; events.
-  assertEquals(d.fills.map((x) => `${x.id}:${x.leg}:${x.venueSide}`), ["112:entry:buy", "110:stop:sell", "109:entry:sell", "108:exit:sell", "107:entry:buy", "105:entry:buy", "104:exit:buy", "103:entry:sell"]);
-  assertEquals(d.orders.length, 24);                                        // the dry-run row is not the live book's
-  assertEquals(d.orders.map((o) => o.id).slice(0, 3), [124, 123, 122]);
-  const why = Object.fromEntries(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]));
-  assertEquals(why[114], "refused by the venue: post-only order would cross the book");
-  assertEquals(why[106], "the 24-hour stop");
-  assertEquals(why[124], "guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001");
-  assertEquals(Object.keys(why).length, 7);                                 // five guard cancels, the refusal, the stop's cancel
-  assertEquals(d.events.map((x) => `${x.kind}:${x.book}:${x.side}:${x.k}`), ["guard:USDT-GBP:null:null", "skip:USDC-GBP:ask:0.001", "skip:USDT-GBP:ask:0.001"]);
-  assertEquals(d.events[0].text, "no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001");
+  // The account as the executor read it: each coin at its book's last print, with its cost and unrealised; the coins add
+  // up to the row's deployed and their unrealised to its UNREALIZED.
+  const inv = d.inventory.assets!;
+  assertEquals(inv.map((a) => [a.asset, a.amount]), [["GBP", 600.696306], ["USDC", 263.6436], ["USDT", 527.6436]]);
+  assertAlmostEquals(inv[1].gbp!, usdcValue, 1e-9);
+  assertAlmostEquals(inv[2].gbp!, usdtValue, 1e-9);
+  assertAlmostEquals(inv[1].costGbp!, usdcCost, 1e-9);
+  assertAlmostEquals((inv[1].gbp! + inv[2].gbp!) * x, row.valueUsd!, 1e-9);
+  assertAlmostEquals(inv[1].unrealisedUsd! + inv[2].unrealisedUsd!, row.unrealisedUsd!, 1e-12);
+  assertEquals([inv[0].unrealisedGbp, inv[0].costGbp], [null, null]);
+
+  // ORDERS: the 24 newest less the six cancels that filled nothing, newest first; the one refusal says why.
+  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 105, 104, 103, 102, 101]);
+  assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), [[114, "refused by the venue: post-only order would cross the book"]]);
+  assertEquals(QUOTES_LIVE_ORDERS_FILTER, "or=(state.neq.cancelled,filled_base.gt.0)");
 
   // What the browser test serves the page is exactly this function's answer for these rows.
   assertEquals<unknown>({ ...row, detail: d }, f.live);
-  assertEquals(quotesLiveDetail({ ...base, config: null, open: [], recent: [], conversions: [], events: [] }), null);
+  assertEquals(quotesLiveDetail({ ...base, config: null, open: [], recent: [] }), null);
+});
+
+Deno.test("liveConversionShares: an ask's coins come out of the conversions first in, first out, each carrying its fee per coin", () => {
+  const day = Date.UTC(2026, 9, 1), h = 3600e3;
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: new Date(day + id * h).toISOString(), mode: "live", book: "USDC-GBP", rung_side: "ask", k: 0.001, leg: "entry", state: "filled",
+    filled_base: 0, avg_fill_price: 0.76, price: 0.76, fee_gbp: 0, filled_at: new Date(day + id * h).toISOString(), ...over,
+  });
+  const orders = [
+    o(1, { rung_side: null, k: null, leg: "convert", filled_base: 10, fee_gbp: 0.01 }),         // £0.001 a coin
+    o(2, { rung_side: null, k: null, leg: "convert", filled_base: 20, fee_gbp: 0.04 }),         // £0.002 a coin
+    o(3, { filled_base: 6 }),                                                                   // 6 of the first
+    o(4, { k: 0.002, filled_base: 8 }),                                                         // the first's 4, then 4 of the second
+    o(5, { rung_side: "bid", filled_base: 50 }),                                                // a bid buys first: none
+    o(6, { leg: "exit", filled_base: 6 }),                                                      // an exit buys back: none
+    o(7, { k: 0.003, filled_base: 100 }),                                                       // what is left: 16 of the second
+    o(8, { book: "USDT-GBP", filled_base: 5 }),                                                 // another book's coins: no conversion of its own
+    o(9, { mode: "dry_run", rung_side: null, k: null, leg: "convert", filled_base: 99, fee_gbp: 9 }),
+  ];
+  const s = liveConversionShares(orders);
+  assertEquals([...s.keys()], [3, 4, 7]);
+  assertAlmostEquals(s.get(3)!, 6 * 0.001, 1e-15);
+  assertAlmostEquals(s.get(4)!, 4 * 0.001 + 4 * 0.002, 1e-15);
+  assertAlmostEquals(s.get(7)!, 16 * 0.002, 1e-15);
+  assertAlmostEquals([...s.values()].reduce((a, v) => a + v, 0), 0.05, 1e-15);              // every coin sold: the fees, whole
+  // A conversion bought after an ask's fill gave that fill nothing.
+  const late = liveConversionShares([o(3, { filled_base: 6 }), o(4, { rung_side: null, k: null, leg: "convert", filled_base: 10, fee_gbp: 0.01 })]);
+  assertEquals(late.size, 0);
+});
+
+Deno.test("withConversionFees: a trip's conversion fee goes on the fill that brings its rung back to flat, never on one still open", () => {
+  const day = Date.UTC(2026, 9, 1), h = 3600e3;
+  const fill = (id: number, leg: RungFill["leg"], base: number, price: number, at: number): RungFill => ({ id, ts: day + at * h, leg, base, price, feeGbp: 0 });
+  const shares = new Map([[1, 0.03], [2, 0.01], [5, 0.02]]);
+  // An ask rung: sold 10 and 5 (shares 0.03 and 0.01), bought back 15 in two exits, then sold 7 (share 0.02) and holds.
+  const out = withConversionFees("ask", [fill(5, "entry", 7, 0.77, 9), fill(1, "entry", 10, 0.76, 1), fill(2, "entry", 5, 0.761, 2),
+    fill(3, "exit", 8, 0.759, 3), fill(4, "exit", 7, 0.758, 4)], shares, day);
+  assertEquals(out.map((f) => [f.id, f.feeGbp]), [[1, 0], [2, 0], [3, 0], [4, 0.04], [5, 0]]);
+  const trips = liveRungTrips({ book: "USDC-GBP", side: "ask", k: 0.001, fills: out }, day);
+  assertEquals(trips.length, 1);
+  assertAlmostEquals(trips[0].feesGbp, 0.04, 1e-15);
+});
+
+Deno.test("liveCoinBooks: the account's coins against what they cost; the book's own count where its balances went unread", () => {
+  const day = Date.UTC(2026, 9, 1), h = 3600e3;
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: new Date(day + id * h).toISOString(), mode: "live", book: "USDT-GBP", rung_side: null, k: null, leg: "convert", state: "filled",
+    filled_base: 0, avg_fill_price: 0.76, price: 0.76, fee_gbp: 0, filled_at: new Date(day + id * h).toISOString(), ...over,
+  });
+  const orders = [
+    o(1, { filled_base: 100, avg_fill_price: 0.76, fee_gbp: 0.0684 }),                         // £76.0684 for 100
+    o(2, { rung_side: "ask", k: 0.001, leg: "entry", filled_base: 10, avg_fill_price: 0.762 }),
+  ];
+  const paper = { state: { books: { "USDC-GBP": { lastX: 1.3, lastPrint: { ticks: 7600 } }, "USDT-GBP": { lastX: 1.3, lastPrint: { ticks: 7550 } } } }, last_minute: null, updated_at: "", last_error: null };
+  // deno-lint-ignore no-explicit-any
+  const rungs = liveRungs(orders, paper as any, day);
+  // Read: 90 USDT in the account. Cost: £76.0684 paid, less the £7.62 the open short sold for.
+  const read = liveCoinBooks(orders, rungs, { GBP: 31.55, USDT: 90, USDC: 0 });
+  const usdt = read.find((c) => c.coin === "USDT")!;
+  assertEquals([usdt.coins, usdt.mark], [90, 0.755]);
+  assertAlmostEquals(usdt.costGbp, 76.0684 - 7.62, 1e-12);
+  assertAlmostEquals(usdt.unrealisedGbp!, 90 * 0.755 - (76.0684 - 7.62), 1e-12);
+  // = the short's mark 10 × (0.762 − 0.755) and the conversion's 100 × (0.755 − 0.760) less its whole fee (no trip has closed).
+  assertAlmostEquals(usdt.unrealisedGbp!, 10 * 0.007 + 100 * -0.005 - 0.0684, 1e-12);
+  assertEquals(read.find((c) => c.coin === "USDC")!.unrealisedGbp, 0);
+  // Unread: the book's own count, 100 bought less 10 sold.
+  assertEquals(liveCoinBooks(orders, rungs, null).find((c) => c.coin === "USDT")!.coins, 90);
+  // No print: valued at its cost, its unrealised unknown, and counted unmarked.
+  const dark = { ...paper, state: { books: { ...paper.state.books, "USDT-GBP": { lastX: 1.3, lastPrint: null } } } };
+  // deno-lint-ignore no-explicit-any
+  const r2 = liveRungs(orders, dark as any, day);
+  const c2 = liveCoinBooks(orders, r2, { USDT: 90 });
+  const u2 = c2.find((c) => c.coin === "USDT")!;
+  assertEquals([u2.unrealisedGbp, u2.valueGbp], [null, u2.costGbp]);
+  assertEquals(liveBookGbp(r2, c2).unmarked, 2);                                              // the short and the coins
 });
 
 Deno.test("liveRungs: the LIVE row's totals are its rungs', walked once; a rung with no print holds an unknown, not a zero", () => {
   const f = liveFixture;
   // deno-lint-ignore no-explicit-any
   const rungs = liveRungs(liveReads(f).orders, f.paper as any, f.dayStartMs);
-  const t = liveBookGbp(rungs);
+  const t = liveBookGbp(rungs, liveCoinBooks(liveReads(f).orders, rungs, f.state.state.balances));
   assertEquals(rungs.length, 12);
   assertAlmostEquals(t.realised, rungs.reduce((a, r) => a + r.rb.realisedGbp, 0), 1e-15);
   assertEquals([t.heldRungs, t.unmarked], [2, 0]);
@@ -904,8 +1001,9 @@ Deno.test("liveRungs: the LIVE row's totals are its rungs', walked once; a rung 
   const dark = { ...f.paper, state: { books: { ...f.paper.state.books, "USDT-GBP": { ...f.paper.state.books["USDT-GBP"], lastPrint: null } } } };
   // deno-lint-ignore no-explicit-any
   const r2 = liveRungs(liveReads(f).orders, dark as any, f.dayStartMs);
-  const t2 = liveBookGbp(r2);
-  assertEquals([t2.unmarked, r2[6].mark, r2[6].marked, r2[6].valueGbp], [1, null, 0, 132 * 0.7565]);
+  const t2 = liveBookGbp(r2, liveCoinBooks(liveReads(f).orders, r2, f.state.state.balances));
+  // The holding rung and the book's coins: two unknowns.
+  assertEquals([t2.unmarked, r2[6].mark, r2[6].marked, r2[6].valueGbp], [2, null, 0, 132 * 0.7565]);
 });
 
 Deno.test("liveRungTrips: a trip runs from flat to flat, exits averaged, partial exits included; an open one is no trip yet", () => {
@@ -932,7 +1030,7 @@ Deno.test("liveRungTrips: a trip runs from flat to flat, exits averaged, partial
   assertAlmostEquals(ask[0].pnlGbp, 10 * (0.76 - 0.761) - 0.0068, 1e-12);
 });
 
-Deno.test("liveOrderReason and liveEventText: each says why, in the executor's own words where it wrote them", () => {
+Deno.test("liveOrderReason: each says why, in the executor's own words where it wrote them", () => {
   const now = Date.UTC(2026, 9, 1, 12);
   const o = (over: Partial<QuoteLiveRecentRow>): QuoteLiveRecentRow => ({
     id: 1, ts: new Date(now - 30e3).toISOString(), mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", state: "new",
@@ -951,11 +1049,6 @@ Deno.test("liveOrderReason and liveEventText: each says why, in the executor's o
   assertEquals(liveOrderReason(o({ state: "rejected", response: { status: 400 } }), now), "refused by the venue");
   assertEquals(liveOrderReason(o({ state: "filled", filled_base: 4, cancelled_at: new Date(now).toISOString() }), now), "filled in part; the rest was cancelled");
   assertEquals(liveOrderReason(o({ state: "filled", filled_base: 10, filled_at: new Date(now).toISOString() }), now), null);
-  const ev = (kind: string, detail: Record<string, unknown>): QuoteLiveEventRow => ({ minute: new Date(now).toISOString(), book: "USDC-GBP", rung_side: "-", k: 0, kind, detail });
-  assertEquals(liveEventText(ev("guard", { reasons: [], before: ["no pair config this turn"] })), "its guards cleared: entries may go again");
-  assertEquals(liveEventText(ev("stop_unfilled", { orderId: 9, limit: 0.7519, base: 132, filled: 0 })), "the 24-hour stop came back unfilled at its limit £0.7519; it is tried again in an hour");
-  assertEquals(liveEventText(ev("stop_unfilled", { limit: 0.7519, base: 132, filled: 40 })), "the 24-hour stop came back with 40 of 132 filled at its limit £0.7519; it is tried again in an hour");
-  assertEquals(liveEventText(ev("loss_stop", { dayPnlGbp: -12.3456, limitGbp: -12 })), "today's P&L -£12.35 reached the loss stop at -£12.00: no new entries until 00:00 UTC");
 });
 
 Deno.test("serveRequest — a cron call writes its beat under its own key before its action runs; an app token's writes none (0075)", async () => {

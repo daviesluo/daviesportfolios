@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeUsd4, fmtGbp, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveInventory, quotesLiveRungCards, quotesPageFor, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -125,15 +125,16 @@ function SbLabel({ label, asides = [] }) {
  * is in the figure (the fees on realised). A percent no longer names its base beside the title (Davies, 2026-09-24):
  * the number beside the dollars is enough. `split` is what the figure is made of, each part on its own line under it
  * (Davies, 2026-09-25): one running line wrapped through the amount.
- * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | null, split?: Array<[string, number]> | null, cls?: string }} props
+ * `ccy` is the figure's currency: dollars, or pounds on the stablecoin quotes' pages (Davies, 2026-10-01).
+ * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | null, split?: Array<[string, number]> | null, cls?: string, ccy?: string }} props
  */
-function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
+function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '', ccy = 'USD' }) {
   const hasPct = pct != null && Number.isFinite(pct);
   return (
     <div className={`ag-sb-cell ${cls}`}>
       <SbLabel label={label} asides={[aside]} />
       <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
-        <span className="ag-sb-usd">{m(fmtUsd(usd ?? 0, true))}</span>
+        <span className="ag-sb-usd">{m(fmtIn(usd ?? 0, ccy, true))}</span>
         {hasPct ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
       </div>
       <div className="ag-sb-extra">
@@ -141,7 +142,7 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
           <span className="ag-sb-split mono">
             {split.map(([k, v]) => (
               <span key={k} className="ag-sb-split-line">
-                <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtUsd(v, true))}</span>
+                <span className="dim">{k}</span>{' '}<span className="ag-sb-split-v" style={{ color: pctColor(v) }}>{m(fmtIn(v, ccy, true))}</span>
               </span>
             ))}
           </span>
@@ -154,23 +155,23 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '' }) {
 /**
  * The scoreboard's first two cells (Davies, 2026-09-24): what the strategies are funded with, then what they have
  * deployed of it, as a percent beside the figure. On a tab, FUNDED also says how many strategies the board adds up.
- * @param {{ fundedUsd: number, deployedUsd: number, m: (s: string) => string, aside?: string | null }} props
+ * @param {{ fundedUsd: number, deployedUsd: number, m: (s: string) => string, aside?: string | null, ccy?: string }} props
  */
-function FundedCells({ fundedUsd, deployedUsd, m, aside = null }) {
+function FundedCells({ fundedUsd, deployedUsd, m, aside = null, ccy = 'USD' }) {
   const pct = fundedUsd > 0 ? (deployedUsd / fundedUsd) * 100 : null;
   const hasPct = pct != null && Number.isFinite(pct);
   return (
     <>
       <div className="ag-sb-cell ag-sb-cell-main ag-sb-cell-funded">
         <SbLabel label="FUNDED" asides={[aside]} />
-        <div className="sb-value sb-value-lg mono">{m(fmtUsd(fundedUsd))}</div>
+        <div className="sb-value sb-value-lg mono">{m(fmtIn(fundedUsd, ccy))}</div>
         <div className="ag-sb-extra" />
       </div>
       <div className="ag-sb-divider" />
       <div className="ag-sb-cell ag-sb-cell-main ag-sb-cell-deployed">
         <SbLabel label="DEPLOYED" />
         <div className="sb-value sb-value-lg mono">
-          {m(fmtUsd(deployedUsd))}{hasPct ? <span className="ag-sb-deployed-pct">({fmtPct2(pct)})</span> : null}
+          {m(fmtIn(deployedUsd, ccy))}{hasPct ? <span className="ag-sb-deployed-pct">({fmtPct2(pct)})</span> : null}
         </div>
         <div className="ag-sb-extra" />
       </div>
@@ -335,29 +336,101 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
 
 
 
-/** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print. */
+/** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print, in pounds. */
 function LadderCell({ c, m }) {
   if (c.state === 'idle') return <span className="dim">idle</span>;
   if (c.state === 'quoting') return <span>{m(fmtQuotePrice(c.price))}</span>;
   return (
     <span className="ag-qheld">
       <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price))}
-      {c.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedUsd) }}> {m(fmtUsd4(c.unrealisedUsd))}</span>}
+      {c.unrealisedGbp != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedGbp) }}> {m(fmtGbp4(c.unrealisedGbp))}</span>}
     </span>
+  );
+}
+
+/**
+ * The quote pages' BOOKS: a card per book, its last trade and fair, its ladder of rungs (`quoteLadderRows`), its round
+ * trips and what it has realised, in pounds. The paper page and the live page show the same section (Davies, 2026-10-01:
+ * the paper page's BOOKS read more clearly than the live page's RUNGS).
+ * @param {{ books: any[], m: (s: string) => string, empty?: string | null }} props
+ */
+function QuoteBooks({ books, m, empty = null }) {
+  return (
+    <section className="ag-section ag-quote-books">
+      <div className="ag-section-title mono">BOOKS</div>
+      {books.length === 0 && empty && <div className="ag-empty dim">{empty}</div>}
+      <div className="ag-quotes-cards">
+        {books.map((b) => (
+          <div key={b.book} className="ag-quotes-card">
+            <div className="ag-quotes-head">
+              <span className="hl-strong mono">{quoteBookLabel(b.book)}</span>
+              <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}</span>
+            </div>
+            <table className="ag-ladder mono">
+              <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
+              <tbody>
+                {quoteLadderRows(b).map((r) => (
+                  <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} /></td><td><LadderCell c={r.ask} m={m} /></td></tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="ag-quotes-grid mono">
+              <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
+              <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedGbp) }}>{m(fmtGbp4(b.realisedGbp ?? 0))}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The quote pages' DAYS, newest first (Davies, 2026-09-28; on the live page under INVENTORY, 2026-10-01): each UTC day's
+ * orders, entry fills, the round trips that closed and what it realised, in pounds. The days add up to REALIZED.
+ * @param {{ days: any[], m: (s: string) => string, empty?: string | null }} props
+ */
+function QuoteDaysTable({ days, m, empty = null }) {
+  return (
+    <section className="ag-section ag-quote-days">
+      <div className="ag-section-title mono">DAYS</div>
+      <div className="hl-scroll">
+        <table className="hl-table ag-table ag-log mono">
+          <thead><tr>
+            <th className="hl-th">Day (UTC)</th><th className="hl-th ag-ph">Orders</th><th className="hl-th ag-ph">Fills</th>
+            <th className="hl-th">Round trips</th><th className="hl-th">Realised</th>
+          </tr></thead>
+          <tbody>
+            {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>{empty ?? 'No day yet.'}</td></tr>}
+            {days.map((d) => (
+              <tr key={d.day}>
+                <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                <td className="ag-ph">{d.orders}</td>
+                <td className="ag-ph">{d.fills}</td>
+                <td>{d.trips ? `${d.trips} · ${Math.round((100 * d.won) / d.trips)} % won` : '0'}</td>
+                <td className="ag-gl" style={{ color: pctColor(d.realisedGbp) }}>{m(fmtGbp4(d.realisedGbp))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
 /**
  * PR5's quotes on paper (reference §4 item 31), opened from their row in TESTING STRATEGIES: the strategy page's
  * header and scoreboard, then what differs — two books of six rungs instead of coins and a chart, and the round trips
- * instead of the orders. Its cards use the quote classes, which share the venue cards' rules without being venue
- * cards: the sweep finds a venue card by its class. Its variant (`quotesVariant`) is the same page under its own title
- * and row: nine rungs a side, so nine ladder rows a book.
+ * instead of the orders. Its money is in pounds, the books' own (Davies, 2026-10-01); TESTING's scoreboard adds it up in
+ * dollars. Its cards use the quote classes, which share the venue cards' rules without being venue cards: the sweep
+ * finds a venue card by its class. Its variant (`quotesVariant`) is the same page under its own title and row: nine
+ * rungs a side, so nine ladder rows a book.
  */
 function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = quotesRow }) {
   const v = quotesView(q);
   const row = rowOf(q);
   if (!v || !row) return null;
+  const x = rowMoney(row);
   const recent = q.recent ?? [];
   // Each UTC day, newest first, below the books (Davies, 2026-09-28: Reward quotes' days table, here too). Today's row
   // is TODAY above, and the rows add up to REALIZED G/L: both are the same round trips (`quoteDays`).
@@ -371,65 +444,19 @@ function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = qu
       </div>
       <h3 className="ag-detail-title mono sr-only">{title}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
+        <FundedCells fundedUsd={x.capital} deployedUsd={x.value} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
+        <GlCell label="TODAY" usd={x.today} pct={x.todayPct} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <GlCell label="UNREALIZED G/L" usd={x.unrealised} pct={x.unrealisedPct} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} />
+        <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} />
       </div>
       {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
       {q.checkMaxUsd != null && Number(q.checkMaxUsd) >= 0.01 && <div className="ag-warn-line">deviation from variant-1 is ${Number(q.checkMaxUsd).toFixed(4)}</div>}
       {quotesLiveText(q.live) && <div className="ag-quotes-live-line dim">{quotesLiveText(q.live)}</div>}
-      <section className="ag-section ag-quote-books">
-        <div className="ag-section-title mono">BOOKS</div>
-        <div className="ag-quotes-cards">
-          {(q.books ?? []).map((b) => (
-            <div key={b.book} className="ag-quotes-card">
-              <div className="ag-quotes-head">
-                <span className="hl-strong mono">{quoteBookLabel(b.book)}</span>
-                <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}</span>
-              </div>
-              <table className="ag-ladder mono">
-                <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
-                <tbody>
-                  {quoteLadderRows(b).map((r) => (
-                    <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} /></td><td><LadderCell c={r.ask} m={m} /></td></tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="ag-quotes-grid mono">
-                <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
-                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedUsd) }}>{m(fmtUsd(b.realisedUsd ?? 0, true))}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="ag-section ag-quote-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th ag-ph">Orders</th><th className="hl-th ag-ph">Fills</th>
-              <th className="hl-th">Round trips</th><th className="hl-th">Realised</th>
-            </tr></thead>
-            <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet.</td></tr>}
-              {days.map((d) => (
-                <tr key={d.day}>
-                  <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
-                  <td className="ag-ph">{d.orders}</td>
-                  <td className="ag-ph">{d.fills}</td>
-                  <td>{d.trips ? `${d.trips} · ${Math.round((100 * d.won) / d.trips)} % won` : '0'}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.realisedUsd) }}>{m(fmtUsd4(d.realisedUsd))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <QuoteBooks books={q.books ?? []} m={m} />
+      <QuoteDaysTable days={days} m={m} />
       <section className="ag-section ag-quote-trips">
         <div className="ag-section-title mono">ROUND TRIPS</div>
         <div className="hl-scroll">
@@ -449,7 +476,7 @@ function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = qu
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
                   <td className="dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd4(t.pnlUsd))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
                 </tr>
               ))}
             </tbody>
@@ -472,26 +499,23 @@ function RungSide({ side, children = null }) {
 
 /**
  * PR5's live executor, opened from its row in LIVE STRATEGIES (Davies, 2026-10-01: "改成它单独的" — it opened the paper
- * test's page): the real-money book on its own Revolut X sub-account and nothing of the paper engine's record. The
- * scoreboard is its LIVE row's own (`quotesLiveRow`), so the two read the same figures; then each rung's live order and
- * holding, the account's coins and conversions, its round trips, fills and orders, all from the dashboard's
- * `quotes.live.detail` (`quotesLiveDetail`). Davies took its STATUS tiles, the inventory's note and its EVENTS off the
- * page, and a cancelled order out of ORDERS (2026-10-01): a re-price cancels an order every few minutes. The paper page's parts and RW's are reused under classes of its
- * own (`ag-ql-*`), which share their rules: the sweep tells the two quotes pages apart by their classes.
+ * test's page): the real-money book on its own Revolut X sub-account and nothing of the paper engine's record, in
+ * pounds, the book's own currency. The scoreboard is its LIVE row's own (`quotesLiveRow`), so the two read the same
+ * figures; then the paper page's BOOKS (each rung's live order or holding), the account's coins with their unrealised,
+ * its DAYS, its round trips (each carrying the conversion fee of the coins it sold) and its newest orders, all from the
+ * dashboard's `quotes.live.detail` (`quotesLiveDetail`). Davies took its STATUS tiles, the inventory's note, its
+ * conversions, fills and events off the page, and a cancel that filled nothing out of ORDERS (2026-10-01). The paper
+ * page's parts are reused under a container of its own: the sweep tells the two quotes pages apart by it.
  * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
 function QuotesLiveDetail({ q, m, at, nowMs }) {
   const row = quotesLiveRow(q);
   if (!row) return null;
+  const x = rowMoney(row);
   const d = q.detail ?? null;
-  const cards = quotesLiveRungCards(q, m);
   const inv = quotesLiveInventory(q, m);
-  const lossLimit = d?.status?.lossStop?.limitGbp;
-  const trips = d?.trips ?? [], fills = d?.fills ?? [], conversions = d?.conversions ?? [];
-  const orders = (d?.orders ?? []).filter((/** @type {any} */ o) => o.state !== 'cancelled');
+  const trips = d?.trips ?? [], orders = d?.orders ?? [];
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
-  /** @param {string} leg */
-  const legText = (leg) => (leg === 'convert' ? 'conversion' : leg);
   return (
     <div className="ag-detail ag-quotes-live-detail">
       <div className="ag-detail-head">
@@ -501,58 +525,17 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
       </div>
       <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} aside={q.capitalGbp != null ? m(fmtGbp(q.capitalGbp)) : null} />
+        <FundedCells fundedUsd={x.capital} deployedUsd={x.value} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} aside={lossLimit != null ? `(loss stop ${m(fmtGbp(lossLimit))})` : null} />
+        <GlCell label="TODAY" usd={x.today} pct={x.todayPct} m={m} ccy={x.ccy} aside={q.lossStopGbp != null ? `(loss stop ${m(fmtGbp(q.lossStopGbp))})` : null} />
         <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <GlCell label="UNREALIZED G/L" usd={x.unrealised} pct={x.unrealisedPct} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtUsd(row.feesUsd))})`} />
+        <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(x.fees, x.ccy))})`} />
       </div>
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
-      <section className="ag-section ag-ql-rungs">
-        <div className="ag-section-title mono">RUNGS</div>
-        {cards.length === 0 && <div className="ag-empty dim">{empty}</div>}
-        <div className="ag-ql-cards">
-          {cards.map((c) => (
-            <div key={c.book} className="ag-ql-card">
-              <div className="ag-ql-head">
-                <span className="hl-strong mono">{c.label}</span>
-                <span className="dim mono ag-ql-meta">{c.meta}</span>
-              </div>
-              <table className="ag-ql-ladder mono">
-                <thead><tr><th className="dim">Rung</th><th className="dim">Order</th><th className="dim ag-ph">Size</th><th className="dim">State</th><th className="dim ag-ph">Since</th></tr></thead>
-                <tbody>
-                  {c.rows.map((r) => (
-                    <React.Fragment key={r.key}>
-                      <tr className="ag-ql-rung" data-rung={r.key}>
-                        <td className="dim">{r.rung}</td>
-                        <td>{r.order ?? <span className="dim">—</span>}</td>
-                        <td className="ag-ph">{r.size ?? ''}</td>
-                        <td>{r.state ? <span className={`ag-state-pill ag-state-${r.stateKey}`}>{r.state}</span> : <span className="dim">none</span>}</td>
-                        <td className="ag-ph dim">{r.since ?? ''}</td>
-                      </tr>
-                      {r.held && (
-                        <tr className="ag-ql-held-row" data-rung={r.key}>
-                          <td colSpan={5}>
-                            <span className="ag-state-pill ag-state-filled">held</span> {r.held.text}
-                            {r.held.unrealisedUsd != null && <span className="ag-gl" style={{ color: pctColor(r.held.unrealisedUsd) }}> {m(fmtUsd4(r.held.unrealisedUsd))}</span>}
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-              <div className="ag-ql-grid mono">
-                <span className="dim">round trips</span><span>{c.trips}</span>
-                <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(c.realisedUsd) }}>{m(fmtUsd(c.realisedUsd, true))}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <QuoteBooks books={quotesLiveBooks(q)} m={m} empty={empty} />
       <section className="ag-section ag-ql-inventory">
         <div className="ag-section-title mono">INVENTORY</div>
         {inv ? (
@@ -561,35 +544,17 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
               {inv.rows.map((a) => (
                 <React.Fragment key={a.asset}>
                   <span className="dim">{a.asset}</span>
-                  <span>{a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}</span>
+                  <span>
+                    {a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}
+                    {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
+                  </span>
                 </React.Fragment>
               ))}
             </div>
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono ag-ql-conversions">
-            <thead><tr>
-              <th className="hl-th">Converted ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">Coins</th><th className="hl-th ag-ph">Price</th>
-              <th className="hl-th ag-ph">Fee</th><th className="hl-th">Paid</th><th className="hl-th">State</th>
-            </tr></thead>
-            <tbody>
-              {conversions.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No conversion yet.'}</td></tr>}
-              {conversions.map((c) => (
-                <tr key={c.id}>
-                  <td className="dim">{when(c.ts)}</td>
-                  <td className="hl-strong">{quoteBookLabel(c.book)}</td>
-                  <td>{c.coins > 0 ? m(fmtQuoteQty(c.coins, c.book)) : <span className="dim">—</span>}</td>
-                  <td className="ag-ph">{m(fmtQuotePrice(c.avgPrice))}</td>
-                  <td className="ag-ph dim">{m(fmtGbp(c.feeGbp))}</td>
-                  <td>{c.paidGbp != null ? m(fmtGbp(c.paidGbp)) : <span className="dim">—</span>}</td>
-                  <td><span className={`ag-state-pill ag-state-${c.state}`}>{String(c.state).replace('_', ' ')}</span>{c.reason ? <>{' '}<span className="hl-sub dim">{m(c.reason)}</span></> : null}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </section>
+      <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} />
       <section className="ag-section ag-ql-trips">
         <div className="ag-section-title mono">ROUND TRIPS</div>
         <div className="hl-scroll">
@@ -609,33 +574,8 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
                   <td className="ag-ph dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
-                  <td className="ag-ph dim">{m(fmtFeeUsd4(t.feesUsd))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlUsd) }}>{m(fmtUsd4(t.pnlUsd))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ag-section ag-ql-fills">
-        <div className="ag-section-title mono">FILLS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
-              <th className="hl-th">Price</th><th className="hl-th">Size</th><th className="hl-th ag-ph">Fee</th>
-            </tr></thead>
-            <tbody>
-              {fills.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No fill yet.'}</td></tr>}
-              {fills.map((f) => (
-                <tr key={f.id} className={`txn-row txn-row-${f.venueSide}`}>
-                  <td className="dim">{when(f.ts)}</td>
-                  <td className="hl-strong">{quoteBookLabel(f.book)}</td>
-                  <td className="ag-ph dim">{f.side} {quoteRungLabel(f.k)}</td>
-                  <td><RungSide side={f.venueSide}>{`${f.venueSide} · ${legText(f.leg)}`}</RungSide></td>
-                  <td>{m(fmtQuotePrice(f.price))}</td>
-                  <td>{m(fmtQuoteQty(f.base, f.book))}</td>
-                  <td className="ag-ph dim">{m(fmtFeeUsd4(f.feeUsd))}</td>
+                  <td className="ag-ph dim">{m(fmtFeeGbp4(t.feesGbp))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
                 </tr>
               ))}
             </tbody>
@@ -660,7 +600,7 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
                     <td className="dim">{when(o.ts)}</td>
                     <td className="hl-strong">{quoteBookLabel(o.book)}</td>
                     <td className="ag-ph dim">{o.side ? `${o.side} ${quoteRungLabel(o.k)}` : 'conversion'}</td>
-                    <td><RungSide side={o.venueSide}>{`${o.venueSide ?? '—'} · ${legText(o.leg)}`}</RungSide></td>
+                    <td><RungSide side={o.venueSide}>{liveOrderSideText(o.venueSide, o.leg)}</RungSide></td>
                     <td>{m(fmtQuotePrice(o.price))}</td>
                     <td className="ag-ph">{m(fmtQuoteQty(o.base, o.book))}</td>
                     <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
@@ -866,29 +806,32 @@ function NameCell({ r, m, onOpen }) {
     <div className="ag-name-wrap">
       <span className={`ag-dot ag-dot-${r.status.tone}`} title={r.status.detail} role="img" aria-label={r.status.detail} />
       <button type="button" className="ag-name-btn ag-name" onClick={() => onOpen(r.id)}><NameText name={r.name} /></button>
-      <span className="hl-sub dim">{r.openPositions} open · {m(fmtUsd(r.capitalUsd))} cap</span>
+      <span className="hl-sub dim">{r.openPositions} open · {m(fmtIn(rowMoney(r).capital, rowMoney(r).ccy))} cap</span>
     </div>
   );
 }
 
 /** A row's unrealised. A row whose percent is not on cost still says so under the figure. */
 function UnrealisedCell({ r, m }) {
+  const x = rowMoney(r);
   return (
     <>
-      <span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
+      <span className="ag-gl" style={{ color: pctColor(x.unrealised) }}>{m(glTextIn(x.unrealised, x.unrealisedPct, x.ccy))}</span>
       {r.unrealisedOf && r.unrealisedPct != null && Number.isFinite(r.unrealisedPct) ? <span className="ag-cell-base dim">% of {r.unrealisedOf}</span> : null}
     </>
   );
 }
 
+// A row's money is in its own currency (`rowMoney`): the stablecoin quotes' in pounds (Davies, 2026-10-01).
 function StrategyCell({ id, r, m, onOpen }) {
+  const x = rowMoney(r);
   switch (id) {
     case 'name': return <NameCell r={r} m={m} onOpen={onOpen} />;
     case 'venue': return <VenueBadge id={r.venueId} />;
-    case 'deployed': return <span className="ag-deployed">{m(fmtUsd(r.valueUsd))}</span>;
-    case 'today': return <span className="ag-gl" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>;
+    case 'deployed': return <span className="ag-deployed">{m(fmtIn(x.value, x.ccy))}</span>;
+    case 'today': return <span className="ag-gl" style={{ color: pctColor(x.today) }}>{m(glTextIn(x.today, x.todayPct, x.ccy))}</span>;
     case 'unrealised': return <UnrealisedCell r={r} m={m} />;
-    case 'realised': return <span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>;
+    case 'realised': return <span className="ag-gl" style={{ color: pctColor(x.realised) }}>{m(glTextIn(x.realised, x.realisedPct, x.ccy))}</span>;
     case 'next': return <span className="dim ag-next">{r.nextText}</span>;
     default: return null;
   }
@@ -923,21 +866,21 @@ function StrategyCards({ rows, m, onOpen }) {
   if (!rows.length) return <div className="ag-empty dim">No strategies yet.</div>;
   return (
     <div className="ag-cards">
-      {rows.map((r) => (
+      {rows.map((r) => { const x = rowMoney(r); return (
         <div key={r.id} className="ag-card-strategy ag-row" onClick={() => onOpen(r.id)}>
           <div className="ag-card-head ag-name-cell">
             <NameCell r={r} m={m} onOpen={onOpen} />
           </div>
           <div className="ag-card-badges"><VenueBadge id={r.venueId} /></div>
           <div className="ag-card-gl mono">
-            <FigLabel name="deployed" /><span className="ag-deployed">{m(fmtUsd(r.valueUsd))}</span>
-            <FigLabel name="today" /><span className="ag-gl ag-card-today" style={{ color: pctColor(r.todayUsd) }}>{m(glText(r.todayUsd, r.todayPct))}</span>
-            <FigLabel name="unrealised" /><span className="ag-gl" style={{ color: pctColor(r.unrealisedUsd) }}>{m(glText(r.unrealisedUsd, r.unrealisedPct))}</span>
-            <FigLabel name="realised" /><span className="ag-gl" style={{ color: pctColor(r.realisedUsd) }}>{m(glText(r.realisedUsd, r.realisedPct))}</span>
+            <FigLabel name="deployed" /><span className="ag-deployed">{m(fmtIn(x.value, x.ccy))}</span>
+            <FigLabel name="today" /><span className="ag-gl ag-card-today" style={{ color: pctColor(x.today) }}>{m(glTextIn(x.today, x.todayPct, x.ccy))}</span>
+            <FigLabel name="unrealised" /><span className="ag-gl" style={{ color: pctColor(x.unrealised) }}>{m(glTextIn(x.unrealised, x.unrealisedPct, x.ccy))}</span>
+            <FigLabel name="realised" /><span className="ag-gl" style={{ color: pctColor(x.realised) }}>{m(glTextIn(x.realised, x.realisedPct, x.ccy))}</span>
             <FigLabel name="next" /><span className="ag-next">{r.nextText}</span>
           </div>
         </div>
-      ))}
+      ); })}
     </div>
   );
 }

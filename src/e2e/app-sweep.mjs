@@ -317,6 +317,26 @@ const QUOTE_TRIPS = [
 ];
 
 /**
+ * The pounds the dashboard sends beside a quote summary's dollars (`quotesSummary`, Davies 2026-10-01: the stablecoin
+ * quotes' pages and rows are in pounds), at its books' rate. These fixtures were written in dollars, so each figure in
+ * pounds is its dollars over 1.32: every sum that held in dollars holds in pounds.
+ * @param {any} q
+ */
+const inPounds = (q) => {
+  const x = q.books.find((b) => b.lastX > 0)?.lastX ?? null;
+  const g = (usd) => (usd == null || x == null ? null : usd / x);
+  return {
+    ...q, x, capitalGbp: g(q.capitalUsd), realisedGbp: g(q.realisedUsd), todayGbp: g(q.todayUsd), openGbp: g(q.openUsd) ?? 0, unrealisedGbp: g(q.unrealisedUsd),
+    books: q.books.map((b) => ({
+      ...b, realisedGbp: g(b.realisedUsd), openGbp: g(b.openUsd) ?? 0, unrealisedGbp: g(b.unrealisedUsd),
+      rungs: b.rungs.map((r) => ({ ...r, valueGbp: g(r.valueUsd), unrealisedGbp: g(r.unrealisedUsd) })),
+    })),
+    recent: q.recent.map((t) => ({ ...t, pnlGbp: g(t.pnlUsd) })),
+    days: q.days.map((d) => ({ ...d, realisedGbp: g(d.realisedUsd) })),
+  };
+};
+
+/**
  * "Stablecoin quotes - variant" (Davies, 2026-09-28): PR5's rule with nine rungs a side on four keys, replayed from the
  * quote test's own minutes, in the quote test's summary shape. Consistent with itself: $100 a rung over 36 rungs is its
  * $3,600; one bid held on USDC/GBP's 0.075 % rung (+$0.05 marked); two round trips, +$0.05 today on the 0.075 % bid and
@@ -331,7 +351,7 @@ const quotesvRungs = (fair, held = {}) => ['bid', 'ask'].flatMap((side) => QUOTE
 const QUOTESV_TRIPS = [
   quoteTrip(20, 'USDC-GBP', 'bid', 0.00075, 0.7545, 0.7551, 'maker', 0.05), quoteTrip(1500, 'USDT-GBP', 'ask', 0.0003, 0.7551, 0.7547, 'maker', 0.04),
 ];
-const AGENTS_QUOTESD = (at) => ({
+const AGENTS_QUOTESD = (at) => inPounds({
   startedAt: new Date(NOW_MS - 20 * 3600e3).toISOString(), lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 3600,
   realisedUsd: 0.12, realisedPct: 0.0033, todayUsd: 0.07, todayPct: 0.0019, trips: 1, won: 1, open: 0, openUsd: 0, unrealisedUsd: 0,
   ordersToday: 80, fillsToday: 1, arm: 'd', checkMaxUsd: 0.02, checkDays: 1,
@@ -344,7 +364,7 @@ const AGENTS_QUOTESD = (at) => ({
   recent: [quoteTrip(40, 'USDC-GBP', 'ask', 0.0003, 0.7552, 0.7546, 'maker', 0.12)],
   days: [{ day: '2026-09-17', orders: 80, fills: 1, trips: 1, won: 1, realisedUsd: 0.12, today: true }],
 });
-const AGENTS_QUOTESV = (at) => ({
+const AGENTS_QUOTESV = (at) => inPounds({
   startedAt: new Date(NOW_MS - 20 * 3600e3).toISOString(), lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 3600,
   realisedUsd: 0.09, realisedPct: 0.0025, todayUsd: 0.05, todayPct: 0.0014, trips: 2, won: 2, open: 1, openUsd: 99.9, unrealisedUsd: 0.05,
   ordersToday: 350, fillsToday: 3,
@@ -579,7 +599,7 @@ const AGENTS_DASHBOARD = (() => {
     // PR5's quotes on paper (`0051`): a row of TESTING STRATEGIES since 2026-09-23, with a page of its own. Consistent
     // with itself: the books' trips (4 + 3) and realised (0.30 + 0.12) are the totals, the one held rung is `open`, and
     // `recent` is every trip, newest first.
-    quotes: { startedAt: '2026-09-16T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
+    quotes: inPounds({ startedAt: '2026-09-16T15:09:00.000Z', lastMinute: at, lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
       realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14,
       ordersToday: 205, fillsToday: 8, books: QUOTE_BOOKS, recent: QUOTE_TRIPS,
       // Its days (`0070`, as quoteDays shapes them), newest first, from the same round trips: today's three make +$0.12
@@ -591,7 +611,7 @@ const AGENTS_DASHBOARD = (() => {
       // Its live executor (`0052`) in dry-run, as quotesLiveSummary shapes it: no money, what it would have sent today.
       live: { dryRun: true, armed: false, armedAt: null, entryBook: 'dry_run', why: '', running: true, lagMinutes: 0, lastError: null,
         postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
-        openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } },
+        openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } }),
     rw: AGENTS_RW(dayStartMs),
     rwe: AGENTS_RWE(dayStartMs),
     rwx: AGENTS_RWX(dayStartMs),
@@ -2130,8 +2150,11 @@ async function run() {
       const pctOfLines = await page.locator('.ag-strategies .ag-row').evaluateAll((els) => els.filter((el) => /% of /.test(el.textContent || '')).length);
       if (pctOfLines === 0) ok(S('agents'), 'no strategy card or row carries a "% of …" line');
       else fail(S('agents'), `${pctOfLines} strategy rows still say "% of …"`);
-      if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?\$[\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))) {
-        ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}")`);
+      // The stablecoin quotes' row is in pounds, its books' own (Davies, 2026-10-01): its three cells, and only those.
+      const poundCells = glCells.filter((g) => /£/.test(g)).map((g) => g.trim());
+      if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?[$£][\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))
+        && poundCells.join(' | ') === '+£0.09 (+0.01%) | +£0.11 (+0.14%) | +£0.32 (+0.04%)') {
+        ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}"), the stablecoin quotes' in pounds (${poundCells.join(', ')})`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
       // NEXT reads whole on every row. The quote test's "every minute" needs 93 px where the table gives the column
       // 66, and was ellipsised to "every mi…" (Davies, 2026-09-23); it now breaks between its words inside the row.
@@ -2152,7 +2175,9 @@ async function run() {
       const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.ag-sb-name:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
-      const rowTodaySum = Math.round(rowToday.reduce((a, t) => a + money(String(t).split('(')[0]), 0) * 100);
+      // A row in pounds (the stablecoin quotes') counts at its dollars, the $0.12 the scoreboard adds: its £0.09 is rounded.
+      const rowTodaySum = Math.round((rowToday.filter((t) => !/£/.test(t)).reduce((a, t) => a + money(String(t).split('(')[0]), 0)
+        + (rowToday.some((t) => t === '+£0.09 (+0.01%)') ? 0.12 : NaN)) * 100);
       if (rowTodaySum === Math.round(money(sbToday) * 100) && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
         ok(S('agents'), `today on the scoreboard (${(sbToday || '').trim()}) is the rows' today added up, and the row with a book still reads +$0.42`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
@@ -2245,9 +2270,12 @@ async function run() {
       const quoteRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
       const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
-      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && !/not in the scoreboard/.test(quoteRowText) && /1 open · \$1,200 cap/.test(quoteRowText)
-        && /\+\$0\.42/.test(quoteRowText) && /\+\$0\.12/.test(quoteRowText) && /\+\$0\.14 \(\+0\.14%\)/.test(quoteRowText) && !/% of deployed/.test(quoteRowText) && oldCard === 0) {
-        ok(S('agents'), 'the quote test is a testing row: Revolut X, 1 open of $1,200, counted in the scoreboard, today +$0.12, unrealised +$0.14 with no "% of deployed", realised +$0.42; no card below');
+      // In pounds (Davies, 2026-10-01): the $1,200 at the books' 1.32 is £909.09, what it holds £75.57, today £0.09,
+      // unrealised £0.11 (0.14 % of what it holds), realised £0.32; the scoreboard adds its dollars.
+      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && !/not in the scoreboard/.test(quoteRowText) && /1 open · £909\.09 cap/.test(quoteRowText)
+        && / £75\.57 /.test(quoteRowText) && /\+£0\.09 \(\+0\.01%\)/.test(quoteRowText) && /\+£0\.11 \(\+0\.14%\)/.test(quoteRowText) && /\+£0\.32 \(\+0\.04%\)/.test(quoteRowText)
+        && !/\$/.test(quoteRowText) && !/% of deployed/.test(quoteRowText) && oldCard === 0) {
+        ok(S('agents'), 'the quote test is a testing row, in pounds: Revolut X, 1 open of £909.09, holding £75.57, today +£0.09, unrealised +£0.11 with no "% of deployed", realised +£0.32; no card below');
       } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
@@ -2279,9 +2307,9 @@ async function run() {
         ok(S('agents'), `the round trips give each trip's size where "exit as" was, on a phone too: ${qTripSize}`);
       } else fail(S('agents'), `round trips: heads ${qTripHeads.join(',')}, first size "${qTripSize}" (shown ${qTripSizeShown})`);
       if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
-        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+\$0\.1400$/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, ''))
-        && /\+\$0\.1000$/.test(qFirst.trim()) && qStacked === 2) {
-        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+$0.1400), and all 7 round trips, newest first, each P&L to four places like its prices');
+        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+£0\.1061$/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, ''))
+        && /\+£0\.0758$/.test(qFirst.trim()) && qStacked === 2) {
+        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+£0.1061), and all 7 round trips, newest first, each P&L in pounds to four places like its prices');
       } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
       // DAYS, right below BOOKS (Davies, 2026-09-28: Reward quotes' days table, here too): newest first, today's row is
       // the scoreboard's TODAY, the rows add up to its REALIZED G/L, and a phone keeps the day, the trips and the P&L.
@@ -2294,15 +2322,17 @@ async function run() {
         const c = cells.find((el) => (el.querySelector('.ag-sb-name')?.textContent || '').trim() === n);
         return c ? (c.textContent || '').replace(/\s+/g, ' ') : '';
       }, name);
-      const dollars = (t) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(t || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
+      const dollars = (t) => { const x = /([+-]?)[$£]([\d,]+(?:\.\d+)?)/.exec(t || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
       const qTodayCell = dollars(await qCell('TODAY')), qRealCell = dollars(await qCell('REALIZED G/L'));
       const dayCells = qDays.map((r) => r.map((c) => c.t));
       const phoneCols = qDays.every((r) => r[1] && r[2] && r[1].shown === (vp.name !== 'phone') && r[2].shown === (vp.name !== 'phone') && r[0].shown && r[3].shown && r[4].shown);
       const daySum = qDays.reduce((a, r) => a + dollars(r[4]?.t), 0);
       if (qOrder.join(',') === 'books,days,trips' && qDayHeads.join(',') === 'Day (UTC),Orders,Fills,Round trips,Realised'
-        && dayCells.map((r) => r.join('|')).join(' / ') === '17 Sep · today|205|8|3 · 67 % won|+$0.1200 / 16 Sep|120|5|4 · 100 % won|+$0.3000'
-        && Math.abs(dollars(qDays[0][4].t) - qTodayCell) < 1e-9 && Math.abs(daySum - qRealCell) < 1e-9 && phoneCols) {
-        ok(S('agents'), `DAYS sits right below BOOKS, newest first: today's +$0.1200 is TODAY (${qTodayCell}), the days add up to REALIZED (${qRealCell}), and ${vp.name === 'phone' ? 'a phone keeps the day, the trips and the P&L' : 'orders and fills show beside them'}`);
+        && dayCells.map((r) => r.join('|')).join(' / ') === '17 Sep · today|205|8|3 · 67 % won|+£0.0909 / 16 Sep|120|5|4 · 100 % won|+£0.2273'
+        // In pounds, to four places beside the scoreboard's two: today's is TODAY and the days add up to REALIZED, each to
+        // the scoreboard's penny.
+        && Math.abs(dollars(qDays[0][4].t) - qTodayCell) < 0.005 && Math.abs(daySum - qRealCell) < 0.005 && phoneCols) {
+        ok(S('agents'), `DAYS sits right below BOOKS, newest first, in pounds: today's +£0.0909 is TODAY (£${qTodayCell}), the days add up to REALIZED (£${qRealCell}), and ${vp.name === 'phone' ? 'a phone keeps the day, the trips and the P&L' : 'orders and fills show beside them'}`);
       } else fail(S('agents'), `quote DAYS: sections ${qOrder.join(',')}, heads ${qDayHeads.join(',')}, rows ${JSON.stringify(qDays)}, TODAY ${qTodayCell}, REALIZED ${qRealCell}, sum ${daySum}`);
       const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the quote page has the same refresh button beside close');
@@ -2583,7 +2613,8 @@ async function run() {
       const depSel = vpWidth > 760 ? 'td.ag-col-deployed .ag-deployed' : '.ag-card-strategy .ag-deployed';
       const depHeads = vpWidth > 760 ? (await page.locator('.ag-strategies thead th').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()) : [];
       const depCells = (await page.locator(depSel).allTextContents()).map((t) => t.trim());
-      const depSum = Math.round(depCells.reduce((a, t) => a + money(t), 0) * 100);
+      // A row in pounds (the stablecoin quotes', £75.57) adds its dollars, $99.75: its pounds are its dollars over 1.32.
+      const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£75.57' ? 99.75 : NaN) : money(t)), 0) * 100);
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);
       const depHeadOk = vpWidth <= 760 || (depHeads[1] === 'Venue' && depHeads[2] === 'Deployed');
@@ -3063,7 +3094,8 @@ async function run() {
       const sb0 = sbText(p0);
       // AGENTS_PR5_LIVE's figures, worked by hand there.
       if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes'
-        && sb0 === 'FUNDED=$1,584 | DEPLOYED=$263.94(16.66%) | TODAY=+$0.30(+0.02%) | UNREALIZED G/L=+$0.38(+0.15%) | REALIZED G/L [(incl. fees $0.12)]=+$0.07(0%)') {
+        // In dollars, LIVE's adding up: £599.27 of coins, £0.227106 today, -£0.0345 realised with £0.1797 of fees, at 1.32.
+        && sb0 === 'FUNDED=$1,584 | DEPLOYED=$791.03(49.94%) | TODAY=+$0.30(+0.02%) | UNREALIZED G/L=$0(0%) | REALIZED G/L [(incl. fees $0.24)]=-$0.05(0%)') {
         ok(T('pr5-live'), `PR5 trading real money is LIVE's row, and LIVE opens on it: ${sb0}`);
       } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
 
@@ -3088,7 +3120,6 @@ async function run() {
         };
         const subs = [...root.querySelectorAll('.ag-ql-sub')].map((el) => el.getBoundingClientRect());
         const titles = document.querySelectorAll('.modal .modal-title');
-        const firstRung = root.querySelector('tr.ag-ql-rung');
         return {
           title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
           head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
@@ -3100,14 +3131,15 @@ async function run() {
           sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
           tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
           guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
-          cards: [...root.querySelectorAll('.ag-ql-rungs .ag-ql-card')].map((c) => ({
-            head: txt(c.querySelector('.ag-ql-head .hl-strong')), meta: txt(c.querySelector('.ag-ql-meta')),
-            rungs: [...c.querySelectorAll('tr.ag-ql-rung')].map((tr) => tds(tr).map(txt).join(' | ')),
-            held: [...c.querySelectorAll('tr.ag-ql-held-row')].map(txt), grid: [...c.querySelectorAll('.ag-ql-grid > span')].map(txt),
+          // BOOKS, as the paper page draws them (Davies, 2026-10-01): a card per book, its ladder, its trips and realised.
+          cards: [...root.querySelectorAll('.ag-quote-books .ag-quotes-card')].map((c) => ({
+            head: txt(c.querySelector('.ag-quotes-head .hl-strong')), meta: txt(c.querySelector('.ag-quotes-head .ag-venue-meta')),
+            ladder: [...c.querySelectorAll('.ag-ladder tbody tr')].map((tr) => tds(tr).map(txt).join(' | ')),
+            grid: [...c.querySelectorAll('.ag-quotes-grid > span')].map(txt),
           })),
-          // Which of a rung row's five cells a phone hides: its size and since.
-          rungHidden: firstRung ? tds(firstRung).map((td, i) => (td.getClientRects().length ? null : i)).filter((i) => i != null) : null,
+          oldRungs: root.querySelectorAll('.ag-ql-rungs, tr.ag-ql-rung').length,
           balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
+          days: rows('.ag-quote-days'),
           conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), orders: rows('.ag-ql-orders'), events: rows('.ag-ql-events'),
           notes: root.querySelectorAll('.ag-ql-note').length,
           foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
@@ -3129,53 +3161,66 @@ async function run() {
       if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
         ok(T('pr5-page'), "LIVE's Stablecoin quotes opens its own page over the list: LIVE, Revolut X, running · live 1d 14h, and the paper test's page is not open");
       } else fail(T('pr5-page'), `LIVE's Stablecoin quotes opened ${lp ? `the live page with the paper page ${lp.paperPage}× beside it, title "${lp.title}", ${lp.modals} modals, head "${lp.head}", status "${lp.status}" "${lp.tested}"` : 'no live page'}`);
-      // Its scoreboard is the LIVE row's: the same today, unrealised and realised as the row it was opened from.
+      // Its scoreboard is the LIVE row's, in pounds (Davies, 2026-10-01): the same today, unrealised and realised as the
+      // row it was opened from. The fixture by hand: deployed is the account's coins at the books' last trades, 263.6436
+      // USDC at £0.7576 and 527.6436 USDT at £0.7572 (£599.27, 49.94 % of £1,200); today is the executor's loss stop's
+      // £0.227106; realised is the three trips, -£0.0345, its fees the stop's £0.0897 and D's share of the USDT
+      // conversion's fee, 132 / 395.6436 of £0.2698 (£0.0900); unrealised is the coins against their cost, about nothing.
       const sameAsRow = !!lp && liveRowGl.length === 3 && /TODAY[^=]*=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[0].replace(/\s+/g, '')
         && /UNREALIZED G\/L=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[1].replace(/\s+/g, '') && /\| REALIZED G\/L[^=]*=(.+)$/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[2].replace(/\s+/g, '');
-      if (lp?.scoreboard === 'FUNDED [£1,200]=$1,584 | DEPLOYED=$263.94(16.66%) | TODAY [(loss stop -£12)]=+$0.30(+0.02%) | UNREALIZED G/L=+$0.38(+0.15%) | REALIZED G/L [(incl. fees $0.12)]=+$0.07(0%)' && sameAsRow) {
-        ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, with the capital and the loss stop in pounds: ${lp.scoreboard}`);
+      if (lp?.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£599.27(49.94%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=£0(0%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)' && sameAsRow) {
+        ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, in pounds, the conversion fee D used among its fees: ${lp.scoreboard}`);
       } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
-      // Davies, 2026-10-01: no STATUS tiles, no guard lines, no note under the inventory and no EVENTS on this page.
-      if (lp && lp.sections.join(',') === 'RUNGS,INVENTORY,ROUND TRIPS,FILLS,ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
-        && lp.events.length === 0 && lp.notes === 0) {
-        ok(T('pr5-page'), 'its sections are RUNGS, INVENTORY, ROUND TRIPS, FILLS and ORDERS: no STATUS tiles, guard lines, inventory note or EVENTS');
-      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${JSON.stringify(lp?.tiles)}, guards ${JSON.stringify(lp?.guards)}, events ${lp?.events.length}, notes ${lp?.notes}`);
-      const RUNGS_USDC = ['bid 0.1 % | £0.7569 | 132.12 USDC · £100 | new | 17 Sep 23:31', 'bid 0.2 % | £0.7561 | 132.26 USDC · £100 | new | 17 Sep 23:31',
-        'bid 0.3 % | £0.7553 | 132.40 USDC · £100 | new | 17 Sep 23:31', 'ask 0.1 % | £0.7585 | 131.84 USDC · £100 | new | 17 Sep 23:31',
-        'ask 0.2 % | exit £0.7576 | 132.00 USDC · £100 | new | 17 Sep 21:01', 'ask 0.3 % | £0.7600 | 131.58 USDC · £100 | new | 17 Sep 23:31'];
-      const RUNGS_USDT = ['bid 0.1 % | exit £0.7573 | 132.00 USDT · £99.96 | new | 17 Sep 23:01',
-        ...['bid 0.2 %', 'bid 0.3 %', 'ask 0.1 %', 'ask 0.2 %', 'ask 0.3 %'].map((r) => `${r} | — |  | none | `)];
+      // Davies, 2026-10-01: no STATUS tiles, guard lines, inventory note, conversions, FILLS or EVENTS; the paper page's
+      // BOOKS in place of RUNGS, and DAYS under INVENTORY.
+      if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
+        && lp.events.length === 0 && lp.notes === 0 && lp.conversions.length === 0 && lp.fills.length === 0 && lp.oldRungs === 0) {
+        ok(T('pr5-page'), 'its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS and ORDERS: no STATUS, RUNGS, conversions, FILLS or EVENTS');
+      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${lp?.tiles.length}, guards ${lp?.guards.length}, events ${lp?.events.length}, notes ${lp?.notes}, conversions ${lp?.conversions.length}, fills ${lp?.fills.length}, rungs ${lp?.oldRungs}`);
+      // BOOKS: each rung's live order, or what it holds at its entry with what that has made in pounds at the last trade:
+      // B sold 132 USDC at £0.7591 (+£0.1980 at £0.7576), E bought 132 USDT at £0.7565 (+£0.0924 at £0.7572); USDT/GBP's
+      // guard withdrew its entries. Each book's realised: A's +£0.1056; C's -£0.1689 and D's +£0.0288.
       const [cUsdc, cUsdt] = lp?.cards ?? [];
-      if (lp && lp.cards.length === 2 && cUsdc.head === 'USDC/GBP' && cUsdc.meta === 'last trade £0.7576 · fair £0.7577' && JSON.stringify(cUsdc.rungs) === JSON.stringify(RUNGS_USDC)
-        && JSON.stringify(cUsdc.held) === JSON.stringify(['held sold 132.00 USDC at £0.7591 · since 17 Sep 21:00 +$0.2614']) && cUsdc.grid.join('|') === 'round trips|1 · 100 % won|realised|+$0.14'
-        && cUsdt.head === 'USDT/GBP' && cUsdt.meta === 'last trade £0.7572 · fair £0.7573' && JSON.stringify(cUsdt.rungs) === JSON.stringify(RUNGS_USDT)
-        && JSON.stringify(cUsdt.held) === JSON.stringify(['held bought 132.00 USDT at £0.7565 · since 17 Sep 23:00 +$0.1220']) && cUsdt.grid.join('|') === 'round trips|2 · 50 % won|realised|-$0.07'
-        && JSON.stringify(lp.rungHidden) === JSON.stringify(phoneView ? [2, 4] : [])) {
-        ok(T('pr5-page'), `RUNGS: the twelve rungs' live orders, price, size in coins and pounds, state and since; the short and the long each under its rung with what it has made (+$0.2614, +$0.1220); ${phoneView ? 'a phone drops size and since' : 'every column'}`);
-      } else fail(T('pr5-page'), `rung cards ${JSON.stringify(lp?.cards)}, hidden columns ${JSON.stringify(lp?.rungHidden)}`);
-      if (lp && lp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.74|USDT|527.64 USDT · £399.53'
-        && lp.conversions.join(' / ') === '16 Sep 10:03 | USDC/GBP | 395.64 USDC | £0.7574 | £0.27 | £299.93 | filled / 16 Sep 10:02 | USDT/GBP | 395.64 USDT | £0.7570 | £0.27 | £299.77 | filled') {
-        ok(T('pr5-page'), 'INVENTORY: £600.70, 263.64 USDC (£199.74) and 527.64 USDT (£399.53) as the last turn read them, and the two conversions, each £300 less a few pence');
-      } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}, conversions ${JSON.stringify(lp?.conversions)}`);
-      const TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | $0.1184 | -$0.2229',
-        '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | $0 | +$0.1394',
-        '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | $0 | +$0.1568'];
-      const tripsSum = (lp?.trips ?? []).reduce((a, r) => a + Number(/([+-])\$([\d.]+)$/.exec(r)?.slice(1).join('') ?? NaN), 0);
-      if (lp && JSON.stringify(lp.trips) === JSON.stringify(TRIPS) && Math.abs(tripsSum - 0.0733) < 1e-9) {
-        ok(T('pr5-page'), `ROUND TRIPS: the stop's -$0.2229 (its fee $0.1184), +$0.1394 and +$0.1568, newest first; they add up to REALIZED's +$0.07 (${tripsSum.toFixed(4)})`);
+      if (lp && lp.cards.length === 2 && cUsdc.head === 'USDC/GBP' && cUsdc.meta === 'last trade £0.7576 · fair £0.7577'
+        && cUsdc.ladder.join(' / ') === '0.1 % | £0.7569 | £0.7585 / 0.2 % | £0.7561 | held £0.7591 +£0.1980 / 0.3 % | £0.7553 | £0.7600'
+        && cUsdc.grid.join('|') === 'round trips|1 · 100 % won|realised|+£0.1056'
+        && cUsdt.head === 'USDT/GBP' && cUsdt.meta === 'last trade £0.7572 · fair £0.7573'
+        && cUsdt.ladder.join(' / ') === '0.1 % | held £0.7565 +£0.0924 | idle / 0.2 % | idle | idle / 0.3 % | idle | idle'
+        && cUsdt.grid.join('|') === 'round trips|2 · 50 % won|realised|-£0.1401') {
+        ok(T('pr5-page'), 'BOOKS: the paper page\'s ladders, each rung\'s live order or holding (+£0.1980, +£0.0924), and each book\'s realised in pounds');
+      } else fail(T('pr5-page'), `books ${JSON.stringify(lp?.cards)}`);
+      // INVENTORY: each coin in pounds and against its cost. USDC: B's +£0.1980 and the conversion's 395.6436 × (0.7576 −
+      // 0.7574) less its £0.2699 fee, +£0.0072; USDT: E's +£0.0924 and 395.6436 × (0.7572 − 0.7570) less the £0.1798 of its
+      // fee D has not taken, -£0.0083. Together the scoreboard's UNREALIZED.
+      if (lp && lp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.74 +£0.0072|USDT|527.64 USDT · £399.53 -£0.0083') {
+        ok(T('pr5-page'), 'INVENTORY: £600.70, 263.64 USDC (£199.74, +£0.0072) and 527.64 USDT (£399.53, -£0.0083), each coin against what it cost');
+      } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}`);
+      // DAYS: today 18 orders, 3 entry fills, A and C closed (-£0.0633); 16 Sep 6 orders (the conversions among them), 2
+      // entry fills, D (+£0.0288). They add up to REALIZED, -£0.0345.
+      const DAYS = ['17 Sep · today | 18 | 3 | 2 · 50 % won | -£0.0633', '16 Sep | 6 | 2 | 1 · 100 % won | +£0.0288'];
+      if (lp && JSON.stringify(lp.days) === JSON.stringify(DAYS)) ok(T('pr5-page'), `DAYS under INVENTORY: ${lp.days.join(' / ')}, which add up to REALIZED`);
+      else fail(T('pr5-page'), `days ${JSON.stringify(lp?.days)}`);
+      // ROUND TRIPS: D's fees are its share of the USDT conversion's fee and its P&L carries it (+£0.1188 − £0.0900).
+      const TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | £0.0897 | -£0.1689',
+        '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | £0 | +£0.1056',
+        '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | £0.0900 | +£0.0288'];
+      const tripsSum = (lp?.trips ?? []).reduce((a, r) => a + Number(/([+-])£([\d.]+)$/.exec(r)?.slice(1).join('') ?? NaN), 0);
+      if (lp && JSON.stringify(lp.trips) === JSON.stringify(TRIPS) && Math.abs(tripsSum - -0.0345) < 1e-9) {
+        ok(T('pr5-page'), `ROUND TRIPS in pounds, D's conversion fee in its fees and its P&L; they add up to REALIZED's -£0.03 (${tripsSum.toFixed(4)})`);
       } else fail(T('pr5-page'), `round trips ${JSON.stringify(lp?.trips)}, sum ${tripsSum}`);
-      const fill0 = '17 Sep 23:00 | USDT/GBP | bid 0.1 % | buy · entry | £0.7565 | 132.00 USDT | $0', fill1 = '17 Sep 21:00 | USDT/GBP | bid 0.3 % | sell · stop | £0.7550 | 132.00 USDT | $0.1184';
-      const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy · entry | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
-      const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell · entry | £0.7600 | 131.58 USDC | new';
-      // The fixture's 24 newest orders less its 6 cancelled ones (Davies, 2026-10-01: a cancelled order is not shown): 18,
-      // the newest the 0.3 % USDC ask, and the one refusal with its reason on a line under it.
-      if (lp && lp.fills.length === 8 && lp.fills[0] === fill0 && lp.fills[1] === fill1 && lp.orders.length === 18 && lp.orders[0] === order119 && lp.orders.includes(order114)
+      // ORDERS: the side alone for an entry (Davies, 2026-10-01: "entry" said nothing on almost every row), the leg after it
+      // for anything else; 18 of the fixture's 24, its six cancels that filled nothing left out where they are read.
+      const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
+      const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell | £0.7600 | 131.58 USDC | new';
+      const orderSides = (lp?.orders ?? []).map((r) => r.split(" | ")[3]);
+      if (lp && lp.orders.length === 18 && lp.orders[0] === order119 && lp.orders.includes(order114) && !orderSides.some((x) => /entry/.test(x))
+        && orderSides.includes('sell · exit') && orderSides.includes('sell · stop') && orderSides.includes('buy · conversion')
         && !lp.orders.some((r) => / \| cancelled( \||$)/.test(r))
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lp.foot) && lp.overflow <= 1
         // The refusal's reason, a line of its own inside the screen; on a desk no table runs past its box.
         && lp.subs === 1 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
-        ok(T('pr5-page'), `FILLS (8) and ORDERS (18, no cancelled order; the venue's refusal of a post-only bid with its reason on a line under it), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
-      } else fail(T('pr5-page'), `fills ${JSON.stringify(lp?.fills.slice(0, 2))} (${lp?.fills.length}), orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)}, cancelled shown ${lp?.orders.filter((r) => / \| cancelled( \||$)/.test(r)).length}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
+        ok(T('pr5-page'), `ORDERS (18, no empty cancel; an entry by its side alone, "sell · exit", "sell · stop", "buy · conversion"; the refusal's reason under it), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
+      } else fail(T('pr5-page'), `orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)}, sides ${JSON.stringify([...new Set(orderSides)])}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-quotes-live-detail').count() === 0 && await page.locator('.ag-strategies-live .ag-row').count() === 1) ok(T('pr5-page'), 'closing it returns to LIVE');
@@ -3215,13 +3260,14 @@ async function run() {
       const hp = await readLivePage();
       const digits = (/** @type {string} */ t) => /\d/.test(t);
       const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
-      const hiddenOk = !!hp && /^FUNDED \[£•,•••\]=\$•,••• \| DEPLOYED=\$•••\.••\(16\.66%\)/.test(hp.scoreboard) && !/\$\d/.test(hp.scoreboard) && !/£\d/.test(hp.scoreboard)
+      const hiddenOk = !!hp && /^FUNDED=£•,••• \| DEPLOYED=£•••\.••\(49\.94%\)/.test(hp.scoreboard) && !/[$£]\d/.test(hp.scoreboard)
         && hp.scoreboard.includes('TODAY [(loss stop -£••)]') && hp.tiles.length === 0 && hp.events.length === 0
-        && !cellsAt(hp.cards.flatMap((c) => c.rungs.slice(0, 1)), [1, 2]).some(digits) && !hp.balances.filter((_, i) => i % 2).some(digits)
-        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt(hp.fills, [4, 5, 6]).some(digits) && !cellsAt(hp.orders, [4, 5]).some(digits)
-        && !cellsAt(hp.conversions, [2, 3, 4, 5]).some(digits);
+        && !cellsAt(hp.cards.flatMap((c) => c.ladder), [1, 2]).some(digits) && !hp.cards.flatMap((c) => c.grid.slice(3)).some(digits)
+        && !hp.balances.filter((_, i) => i % 2).some(digits) && !cellsAt(hp.days, [4]).some(digits)
+        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt(hp.orders, [4, 5]).some(digits)
+        && hp.days.length === 2 && cellsAt(hp.days, [1]).join(',') === '18,6';
       if (hiddenOk) ok(T('pr5-page'), "hide-values masks the live page's money, prices and sizes, the loss stop in its scoreboard included, and keeps its counts and times");
-      else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", tiles ${hp?.tiles.length}, events ${hp?.events.length}, rung ${JSON.stringify(hp?.cards?.[0]?.rungs?.[0])}, balances ${JSON.stringify(hp?.balances)}, trip ${JSON.stringify(hp?.trips?.[0])}`);
+      else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", ladder ${JSON.stringify(hp?.cards?.[0]?.ladder)}, balances ${JSON.stringify(hp?.balances)}, days ${JSON.stringify(hp?.days)}, trip ${JSON.stringify(hp?.trips?.[0])}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(200);
       await page.keyboard.press('Escape');
@@ -3436,8 +3482,10 @@ async function run() {
       if (await qvRow.count() === 1 && await qdRow.count() === 1 && qvAt > 0 && qvNames[qvAt - 1] === 'Stablecoin quotes' && qvNames[qvAt + 1] === 'Stablecoin quotes variant-2'
         && qvHead === 'Stablecoin quotes' && qvQual === 'variant-1' && qdHead === 'Stablecoin quotes' && qdQual === 'variant-2'
         && qvClip >= 0 && qvClip <= 1 && qdClip >= 0 && qdClip <= 1
-        && /Revolut X/.test(qvText) && /1 open · \$3,600 cap/.test(qvText) && /\+\$0\.09/.test(qvText) && /\+\$0\.05/.test(qvText) && /every minute/.test(qvText)
-        && /0 open · \$3,600 cap/.test(qdText) && /\+\$0\.12/.test(qdText) && /\+\$0\.07/.test(qdText)
+        // In pounds at the books' 1.32 (Davies, 2026-10-01): $3,600 is £2,727; variant-1's realised $0.09 is £0.07, its
+        // today $0.05 £0.04; variant-2's realised $0.12 is £0.09, its today $0.07 £0.05.
+        && /Revolut X/.test(qvText) && /1 open · £2,727 cap/.test(qvText) && /\+£0\.07 \(0%\)/.test(qvText) && /\+£0\.04 \(0%\)/.test(qvText) && /every minute/.test(qvText)
+        && /0 open · £2,727 cap/.test(qdText) && /\+£0\.09 \(0%\)/.test(qdText) && /\+£0\.05 \(0%\)/.test(qdText) && !/\$/.test(qvText + qdText)
         && qvRevx?.pairs['funded (Paper)'] === '$8,580') {
         ok(T('quotesv'), 'variant-1 and variant-2 sit after the quote test, each name on two lines with "Stablecoin quotes" whole, and TESTING\'s Revolut X card counts both ($8,580)');
       } else fail(T('quotesv'), `variant rows "${qvText}" / "${qdText}" at ${qvAt} of ${qvNames.join(' | ')}; heads ${qvHead}/${qdHead} quals ${qvQual}/${qdQual} clip ${qvClip}/${qdClip}; Revolut X ${JSON.stringify(qvRevx?.pairs)}`);
@@ -3458,7 +3506,7 @@ async function run() {
       await shot(page, 'agents-quotes-variant');
       if (qvTitle === 'Stablecoin quotes variant-1' && qvHidden === 'Stablecoin quotes variant-1' && qvBooks.join(',') === 'USDC/GBP,USDT/GBP'
         && qvLadder.join(',') === '0.03 %,0.05 %,0.075 %,0.1 %,0.125 %,0.15 %,0.2 %,0.25 %,0.3 %' && qvRungs === 18
-        && qvHeld.length === 1 && /held £0\.7545 \+\$0\.0500$/.test(qvHeld[0]) && qvTripRungs.join(',') === '0.075 %,0.03 %'
+        && qvHeld.length === 1 && /held £0\.7545 \+£0\.0379$/.test(qvHeld[0]) && qvTripRungs.join(',') === '0.075 %,0.03 %'
         && qvDays.length === 2 && /· today$/.test(qvDays[0]) && qvLive === 0 && qvWarn === 0 && qvOverflow >= 0 && qvOverflow <= 1) {
         ok(T('quotesv'), 'variant-1\'s page: its own title, both books with nine rungs a side (0.03 % … 0.3 %, 0.075 % and 0.125 % in full), the held 0.075 % bid, two round trips, two days, no deviation warning, nothing wider than the page');
       } else fail(T('quotesv'), `variant-1 page: title "${qvTitle}" / "${qvHidden}", books ${qvBooks.join(',')}, ladder ${qvLadder.join(',')} (${qvRungs} rows), held ${qvHeld.join(' | ')}, trip rungs ${qvTripRungs.join(',')}, days ${qvDays.join(' | ')}, live lines ${qvLive}, warnings ${qvWarn}, overflow ${qvOverflow}`);

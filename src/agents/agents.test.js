@@ -6,7 +6,7 @@ import {
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
-  fmtFeeUsd4, fmtGbp, quotesLiveInventory, quotesLiveRungCards, quotesPageFor } from './agents.js';
+  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
@@ -78,6 +78,8 @@ describe('formatting', () => {
     // A browser that writes a decimal comma: a loss under a dollar keeps its minus (it read "$0,50"), and ",00" goes.
     expect(dropDot00('-$0,50')).toBe('-$0,50');
     expect(dropDot00('-$0,00')).toBe('$0');
+    // Pounds as dollars (Davies, 2026-10-01: the stablecoin quotes' pages): a loss that rounds to nothing is no loss.
+    expect([dropDot00('-£0.00'), dropDot00('+£0.00'), dropDot00('-£0.50'), dropDot00('-£1,000.00')]).toEqual(['£0', '£0', '-£0.50', '-£1,000']);
     expect(dropDot00('+$1.234,00')).toBe('+$1.234');
     expect(dropDot00('$1,000')).toBe('$1,000');
     expect(dropDot00('-$1,000.00')).toBe('-$1,000');
@@ -949,6 +951,21 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
     expect(r?.unrealisedPct).toBeCloseTo((0.14 / 99.75) * 100, 12);
     expect(r?.status.tone).toBe('running');
   });
+  it('shows pounds, the books\' own, and keeps its dollars for the tab\'s scoreboard (Davies, 2026-10-01)', () => {
+    // The capital, set in dollars, at the books' last rate 1.3333; the rest as the server worked them out in pounds.
+    const g = { ...q, x: 1.3333, capitalGbp: 900, realisedGbp: 0.36, todayGbp: 0.09, openGbp: 74.8, unrealisedGbp: 0.105 };
+    const r = quotesRow(g);
+    expect([r?.ccy, r?.capitalUsd, r?.realisedUsd]).toEqual(['GBP', 1200, 0.42]);
+    const x = rowMoney(r);
+    expect([x.ccy, x.capital, x.value, x.today, x.realised, x.unrealised]).toEqual(['GBP', 900, 74.8, 0.09, 0.36, 0.105]);
+    expect(x.realisedPct).toBeCloseTo((0.36 / 900) * 100, 12);
+    expect(x.todayPct).toBeCloseTo((0.09 / 900) * 100, 12);
+    expect(x.unrealisedPct).toBeCloseTo((0.105 / 74.8) * 100, 12);
+    expect(glTextIn(x.realised, x.realisedPct, x.ccy)).toBe('+£0.36 (+0.04%)');
+    // Before the books have a rate it stays in dollars, as every other row is.
+    expect(rowMoney(quotesRow(q))).toMatchObject({ ccy: 'USD', capital: 1200, value: 99.75, realised: 0.42 });
+    expect([fmtIn(1200, 'GBP'), fmtIn(1200, 'USD'), fmtIn(-0.5, 'GBP', true), fmtIn(0.5, undefined, true)]).toEqual(['£1,200', '$1,200', '-£0.50', '+$0.50']);
+  });
   it('is amber with the reason when it has stopped, flat when it holds nothing, and absent before it exists', () => {
     expect(quotesRow({ ...q, running: false, lagMinutes: 12 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 12 min old' });
     expect(quotesRow({ ...q, open: 0, openUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
@@ -1225,7 +1242,7 @@ describe('splitCents — parts that add up to their total as printed', () => {
 describe('quoteLadderRows — a book as the page draws it', () => {
   const book = { book: 'USDC-GBP', rungs: [
     { side: 'bid', k: 0.002, mode: 'quote', price: 0.7535 },
-    { side: 'bid', k: 0.001, mode: 'position', price: 0.755, entry: 0.7542, unrealisedUsd: 0.14, heldSince: '2026-09-24T11:40:00.000Z' },
+    { side: 'bid', k: 0.001, mode: 'position', price: 0.755, entry: 0.7542, unrealisedUsd: 0.14, unrealisedGbp: 0.105, heldSince: '2026-09-24T11:40:00.000Z' },
     { side: 'ask', k: 0.001, mode: 'quote', price: 0.7559 },
     { side: 'ask', k: 0.002, mode: 'idle', price: null },
   ] };
@@ -1233,7 +1250,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const rows = quoteLadderRows(book);
     expect(rows.map((r) => r.label)).toEqual(['0.1 %', '0.2 %']);
     // A held rung shows what it paid, not the exit it is quoting; a quoting rung shows its price.
-    expect(rows[0].bid).toEqual({ state: 'held', price: 0.7542, unrealisedUsd: 0.14, heldSince: '2026-09-24T11:40:00.000Z' });
+    expect(rows[0].bid).toEqual({ state: 'held', price: 0.7542, unrealisedUsd: 0.14, unrealisedGbp: 0.105, heldSince: '2026-09-24T11:40:00.000Z' });
     expect(rows[0].ask).toMatchObject({ state: 'quoting', price: 0.7559 });
     expect(rows[1].bid).toMatchObject({ state: 'quoting', price: 0.7535 });
     expect(rows[1].ask.state).toBe('idle');
@@ -1339,6 +1356,7 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
     dryRun: false, armed: true, entryBook: 'live', running: true, lagMinutes: 0, postsToday: { dryRun: 0, live: 7 }, lossStopped: false,
     capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: true, openOrders: 1, heldRungs: 1, pending: [], fills: 3,
     realisedUsd: 0.0135, todayUsd: 0.027, unrealisedUsd: 0.0135, costUsd: 4.97475, valueUsd: 4.98825, feesUsd: 0,
+    realisedGbp: 0.01, todayGbp: 0.02, unrealisedGbp: 0.01, costGbp: 3.685, valueGbp: 3.695, feesGbp: 0,
   };
   const paperRow = { id: 'trend-4h', venue: 'revx', mode: 'paper', capitalUsd: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 1, feesUsd: 0, todayUsd: 0, positions: [] };
   it('is a LIVE row from its first real order, in USD, with its percents on its own bases; dry-run keeps it off', () => {
@@ -1347,6 +1365,11 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
     expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.openPositions, r.holdsLive, r.armed]).toEqual([QUOTES_LIVE_ROW_ID, 'Stablecoin quotes', 'live', 'revx', 67.5, 1, true, true]);
     expect(r.unrealisedPct).toBeCloseTo(0.0135 / 4.97475 * 100, 9);
     expect(r.realisedPct).toBeCloseTo(0.0135 / 67.5 * 100, 9);
+    // Shown in pounds, the book's own (Davies, 2026-10-01), its percents on the same bases.
+    const x = rowMoney(r);
+    expect([x.ccy, x.capital, x.value, x.today, x.unrealised, x.realised, x.fees]).toEqual(['GBP', 50, 3.695, 0.02, 0.01, 0.01, 0]);
+    expect(x.todayPct).toBeCloseTo(0.02 / 50 * 100, 12);
+    expect(x.unrealisedPct).toBeCloseTo(0.01 / 3.685 * 100, 12);
     expect(quotesLiveRow({ ...ql, tradedLive: false, entryBook: 'dry_run', dryRun: true })).toBe(null);
     expect(quotesLiveRow(null)).toBe(null);
   });
@@ -1392,40 +1415,37 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
     expect(quotesPageFor(QUOTES_ROW_ID, {})).toBe(null);
     for (const id of ['trend-4h', RW_ROW_ID, null]) expect(quotesPageFor(id, dash)).toBe(null);
   });
-  it("writes pounds where they read better, and fees unsigned to four places", () => {
+  it('writes pounds as the dollars are written, fees unsigned to four places, and an entry by its side alone', () => {
     expect([fmtGbp(1200), fmtGbp(-12), fmtGbp(0.227106, true), fmtGbp(600.696306), fmtGbp(0)]).toEqual(['£1,200', '-£12', '+£0.23', '£600.70', '£0']);
-    expect([fmtFeeUsd4(0.11839608), fmtFeeUsd4(0), fmtFeeUsd4(null)]).toEqual(['$0.1184', '$0', '—']);
+    expect([fmtGbp4(0.0287874), fmtGbp4(-0.168894), fmtGbp4(0), fmtGbp4(null)]).toEqual(['+£0.0288', '-£0.1689', '£0', '—']);
+    expect([fmtFeeGbp4(0.0900126), fmtFeeGbp4(0), fmtFeeGbp4(null)]).toEqual(['£0.0900', '£0', '—']);
+    // Davies, 2026-10-01: "entry" said nothing on almost every row.
+    expect([liveOrderSideText('buy', 'entry'), liveOrderSideText('sell', 'exit'), liveOrderSideText('sell', 'stop'), liveOrderSideText('buy', 'convert'), liveOrderSideText(null, 'entry')])
+      .toEqual(['buy', 'sell · exit', 'sell · stop', 'buy · conversion', '—']);
   });
-  it('lists each book\'s six rungs with the live order on each, and what a rung holds under it', () => {
-    const cards = quotesLiveRungCards(q);
-    expect(cards.map((c) => [c.label, c.meta, c.trips, c.rows.length])).toEqual([
-      ['USDC/GBP', 'last trade £0.7576 · fair £0.7577', '1 · 100 % won', 6],
-      ['USDT/GBP', 'last trade £0.7572 · fair £0.7573', '2 · 50 % won', 6],
+  it("lays each book out as the paper page's BOOKS: a rung held at its entry, one quoting its order's price, the rest idle", () => {
+    const books = quotesLiveBooks(q);
+    expect(books.map((b) => [b.book, b.lastPrice, b.fair, b.trips, b.won])).toEqual([['USDC-GBP', 0.7576, 0.75766, 1, 1], ['USDT-GBP', 0.7572, 0.75727, 2, 1]]);
+    const [usdc, usdt] = books.map((b) => quoteLadderRows(b));
+    expect(usdc.map((r) => [r.label, r.bid.state, r.bid.price, r.ask.state, r.ask.price])).toEqual([
+      ['0.1 %', 'quoting', 0.7569, 'quoting', 0.7585],
+      ['0.2 %', 'quoting', 0.7561, 'held', 0.7591],                        // B: sold 132 at 0.7591, its exit resting
+      ['0.3 %', 'quoting', 0.7553, 'quoting', 0.76],
     ]);
-    const [usdc, usdt] = cards;
-    expect(usdc.rows.map((r) => r.rung)).toEqual(['bid 0.1 %', 'bid 0.2 %', 'bid 0.3 %', 'ask 0.1 %', 'ask 0.2 %', 'ask 0.3 %']);
-    expect(usdc.rows[0]).toEqual({ key: 'USDC-GBP|bid|0.001', side: 'bid', rung: 'bid 0.1 %', order: '£0.7569', size: '132.12 USDC · £100', state: 'new', stateKey: 'new', since: '17 Sep 23:31', held: null });
-    expect([usdc.rows[4].order, usdc.rows[4].size, usdc.rows[4].since, usdc.rows[4].held?.text]).toEqual(['exit £0.7576', '132.00 USDC · £100', '17 Sep 21:01', 'sold 132.00 USDC at £0.7591 · since 17 Sep 21:00']);
-    expect(usdc.rows[4].held?.unrealisedUsd).toBeCloseTo(132 * (0.7591 - 0.7576) * 1.32, 12);
-    expect([usdt.rows[0].order, usdt.rows[0].size, usdt.rows[0].held?.text]).toEqual(['exit £0.7573', '132.00 USDT · £99.96', 'bought 132.00 USDT at £0.7565 · since 17 Sep 23:00']);
-    // The guard withdrew USDT's entries: those rungs rest nothing.
-    expect(usdt.rows.slice(1).map((r) => [r.order, r.state, r.held])).toEqual(Array(5).fill([null, null, null]));
-    expect(usdc.realisedUsd + usdt.realisedUsd).toBeCloseTo(q.realisedUsd, 12);   // the books add up to the LIVE row's realised
-    // Under the mask, every price, size and amount.
-    const hidden = quotesLiveRungCards(q, mask)[0].rows[4];
-    expect([hidden.order, hidden.size, hidden.held?.text]).toEqual(['exit £•.••••', '•••.•• USDC · £•••', 'sold •••.•• USDC at £•.•••• · since 17 Sep 21:00']);
-    expect(quotesLiveRungCards({ ...q, detail: null })).toEqual([]);
+    expect(usdc[1].ask.unrealisedGbp).toBeCloseTo(132 * (0.7591 - 0.7576), 12);
+    // USDT's guard withdrew its entries: E holds on the 0.1 % bid, every other rung is idle.
+    expect(usdt.map((r) => [r.bid.state, r.ask.state])).toEqual([['held', 'idle'], ['idle', 'idle'], ['idle', 'idle']]);
+    expect(usdt[0].bid.unrealisedGbp).toBeCloseTo(132 * (0.7572 - 0.7565), 12);
+    // The books' realised, in pounds, add up to the LIVE row's.
+    expect(books[0].realisedGbp + books[1].realisedGbp).toBeCloseTo(q.realisedGbp, 12);
+    expect(quotesLiveBooks({ ...q, detail: null })).toEqual([]);
   });
-  it("shows the account's coins as its last turn read them, each in pounds at its book's last trade", () => {
-    expect(quotesLiveInventory(q)).toEqual({
-      at: '17 Sep 23:59',
-      rows: [
-        { asset: 'GBP', amount: '£600.70', gbp: null },
-        { asset: 'USDC', amount: '263.64 USDC', gbp: '£199.74' },
-        { asset: 'USDT', amount: '527.64 USDT', gbp: '£399.53' },
-      ],
-    });
-    expect(quotesLiveInventory(q, mask)?.rows[1]).toEqual({ asset: 'USDC', amount: '•••.•• USDC', gbp: '£•••.••' });
+  it("shows the account's coins as its last turn read them, each in pounds and with its unrealised, which add up to UNREALIZED", () => {
+    const inv = quotesLiveInventory(q);
+    expect(inv?.rows.map((a) => [a.asset, a.amount, a.gbp])).toEqual([['GBP', '£600.70', null], ['USDC', '263.64 USDC', '£199.74'], ['USDT', '527.64 USDT', '£399.53']]);
+    expect(inv?.rows[0].unrealisedGbp).toBe(null);
+    expect(/** @type {number} */ (inv?.rows[1].unrealisedGbp) + /** @type {number} */ (inv?.rows[2].unrealisedGbp)).toBeCloseTo(q.unrealisedGbp, 12);
+    expect(quotesLiveInventory(q, mask)?.rows[1]).toMatchObject({ asset: 'USDC', amount: '•••.•• USDC', gbp: '£•••.••' });
     expect(quotesLiveInventory({ ...q, detail: { ...q.detail, inventory: { at: null, assets: null } } })).toBe(null);
   });
   it("puts the LIVE row's own figures on its page's scoreboard", () => {
@@ -1433,6 +1453,12 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
     expect([r.capitalUsd, r.openPositions, r.openOrders]).toEqual([1584, 2, 7]);
     expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd, r.feesUsd, r.valueUsd]).toEqual([q.todayUsd, q.unrealisedUsd, q.realisedUsd, q.feesUsd, q.valueUsd]);
     expect(r.todayUsd).toBeCloseTo((0.1056 + 0.198 - 0.168894 + 0.0924) * 1.32, 12);
+    // …and in pounds, what the page shows: TODAY is what the executor's loss stop reads; the fees are the stop's and D's
+    // share of the USDT conversion's fee (it sold 132 of the 395.6436 coins that conversion bought).
+    const x = rowMoney(r);
+    expect([x.ccy, x.capital]).toEqual(['GBP', 1200]);
+    expect(x.today).toBeCloseTo(0.1056 + 0.198 - 0.168894 + 0.0924, 12);
+    expect(x.fees).toBeCloseTo(0.089694 + 132 * 0.2697948 / 395.6436, 12);
   });
 });
 

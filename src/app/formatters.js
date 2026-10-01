@@ -114,7 +114,7 @@ export const fmtMoney = (n, opts = {}) => {
 export function dropDot00(text) {
   return String(text)
     .replace(/(\d)[.,]00(?!\d)/g, '$1')
-    .replace(/[+-](\$)?0(?![\d.,])/g, (_, dollar) => `${dollar || ''}0`);
+    .replace(/[+-]([$£¥])?0(?![\d.,])/g, (_, sym) => `${sym || ''}0`);
 }
 
 /**

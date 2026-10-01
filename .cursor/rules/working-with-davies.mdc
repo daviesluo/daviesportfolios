@@ -361,6 +361,18 @@ Changing any of these means re-opening a decision he has already made.
   treat "three tiles" as a reason to force a horizontal stack — he
   reverted that. Fix the strip in front of you, not a general layout
   theory.
+- **A strategy that trades pounds shows pounds.** The stablecoin quotes
+  (paper, its variants, and the live executor) show every amount in
+  pounds on their pages and their table rows; only a tab's scoreboard
+  and the venue cards add them up in dollars, at the books' last rate
+  (Davies, 2026-10-01: "法币金额都应该是英镑而不是美元吧，可以在agents页的汇总
+  scoreboard里换算成美元显示"). A row carries both: `gbp` to show, its
+  dollars to add up.
+- **A cost the strategy needed is the strategy's cost.** The live
+  quotes' conversion fees (pounds into the coins its asks sell) belong to
+  the round trips that sold those coins, first in first out, in their fees
+  and P&L; the coins the account holds are marked against what they cost,
+  as his exchange account page does (2026-10-01).
 
 ### Ledger edits
 
