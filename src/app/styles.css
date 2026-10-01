@@ -1973,9 +1973,9 @@ body {
 /* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a
    phone, where the market keeps only what it holds and its total beside it), the whole of it in the title. One line cut
    "…between 78-79°F on September 17?" down to "Will the highest temperature in Los Ang…", which names no market. */
-.ag-rw-q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; max-width: 340px; margin: 0 auto; line-height: 1.35; }
-.ag-rw-market .hl-sub { display: block; font-weight: 400; }
-@media (max-width: 760px) { .ag-rw-q { max-width: 200px; -webkit-line-clamp: 4; } }
+.ag-rw-q, .ag-prep-q { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; max-width: 340px; margin: 0 auto; line-height: 1.35; }
+.ag-rw-market .hl-sub, .ag-prep-market .hl-sub { display: block; font-weight: 400; }
+@media (max-width: 760px) { .ag-rw-q, .ag-prep-q { max-width: 200px; -webkit-line-clamp: 4; } }
 /* RW-C's page title, "Reward quotes confirmation", is 8 px wider than a 390 px phone leaves a title beside its two
    buttons: it breaks between its words there, rather than lose its last letters to the ellipsis other titles keep. */
 @media (max-width: 760px) { .modal-title.ag-title-wraps { white-space: normal; text-overflow: clip; } }
@@ -2290,11 +2290,11 @@ body {
 .ag-rw-run { height: 3px; margin-bottom: 10px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-run > span, .ag-rw-meter > span { display: block; height: 100%; border-radius: 2px; background: #7d8bff; }
 .ag-rw-bar.is-warm-up .ag-rw-run { display: none; }
-.ag-rw-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ag-rw-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
+.ag-rw-tiles, .ag-prep-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ag-rw-tile, .ag-prep-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
 .ag-rw-tile-total { border-left: 3px solid rgba(125,139,255,0.75); }
-.ag-rw-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
-.ag-rw-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-rw-tile-k, .ag-prep-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
+.ag-rw-tile-v, .ag-prep-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ag-rw-of { font-size: 11px; font-weight: 400; }
 .ag-rw-tile-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
@@ -2305,8 +2305,8 @@ body {
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
 @media (max-width: 760px) {
-  .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .ag-rw-tile-v { font-size: 15px; }
+  .ag-rw-tiles, .ag-prep-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ag-rw-tile-v, .ag-prep-tile-v { font-size: 15px; }
 }
 
 /* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──

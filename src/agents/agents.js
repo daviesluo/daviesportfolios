@@ -1710,6 +1710,49 @@ export function rwcRow(r) {
 }
 
 /** RW-E's paper test's id among the table's rows. */
+/** "Reward quotes live-prep"'s id among the table's rows. */
+export const PREP_ROW_ID = '__prep';
+
+/**
+ * "Reward quotes live-prep" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
+ * for a day before it goes live) as a row of TESTING STRATEGIES on the Polymarket card, in the cells a strategy's row has.
+ * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid;
+ * unrealised is that against what it cost; realised is the rewards at the formula and what closing trades made, split
+ * on the row for the page and the card. Every figure is the dashboard's `prep`, made by the layer's own functions.
+ * null keeps it off the table.
+ * @param {any} r  the dashboard's `prep`
+ */
+export function prepRow(r) {
+  if (!r) return null;
+  const capital = Number(r.capUsd) || 0, cost = Number(r.costUsd) || 0;
+  const pct = (/** @type {number} */ usd, /** @type {number} */ base) => (base > 0 ? (Number(usd) / base) * 100 : null);
+  const quoting = Number(r.quoting) || 0;
+  const stopped = r.stopTotal ? 'its total loss stop has tripped: close-only' : r.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
+  return {
+    id: PREP_ROW_ID,
+    name: 'Reward quotes live-prep',
+    venue: venueLabel('polymarket'),
+    venueId: 'polymarket',
+    mode: 'paper',
+    scoreDeployed: true,
+    capitalUsd: capital,
+    valueUsd: Number(r.heldUsd) || 0,
+    costUsd: cost,
+    todayUsd: Number(r.todayUsd) || 0, todayPct: pct(Number(r.todayUsd) || 0, capital),
+    unrealisedUsd: Number(r.unrealisedUsd) || 0, unrealisedPct: pct(Number(r.unrealisedUsd) || 0, cost), unrealisedBaseUsd: cost,
+    realisedUsd: Number(r.realisedUsd) || 0, realisedPct: pct(Number(r.realisedUsd) || 0, capital),
+    rewards: { realisedUsd: Number(r.rewardUsd) || 0, unrealisedUsd: 0 },
+    orders: { realisedUsd: Number(r.realisedFillsUsd) || 0, unrealisedUsd: Number(r.unrealisedUsd) || 0 },
+    nextText: 'every minute',
+    openPositions: Number(r.open) || 0,
+    status: !r.running
+      ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${Number(r.lagMinutes) || 0} min old` }
+      : stopped
+        ? { label: 'paper', running: true, tone: 'stale', detail: stopped }
+        : { label: 'paper', running: true, tone: 'running', detail: `the order path's quotes in ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` },
+  };
+}
+
 export const RWE_ROW_ID = '__rwe';
 
 /**

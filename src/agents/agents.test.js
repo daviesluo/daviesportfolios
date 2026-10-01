@@ -4,12 +4,13 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, prepRow,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
+import prepFixture from '../e2e/prep_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -1487,5 +1488,31 @@ describe('how long a strategy has been under test (Davies, 2026-09-28)', () => {
     expect(fmtQuoteQty(99.3012, 'USDC-GBP')).toBe('99.30 USDC');
     expect(fmtQuoteQty('132.6', 'USDT/GBP')).toBe('132.60 USDT');
     expect(fmtQuoteQty(null, 'USDC-GBP')).toBe('—');
+  });
+});
+
+describe('prepRow ("Reward quotes live-prep", 0077)', () => {
+  it("reads the dashboard's own figures for the hand-worked record into a strategy row's cells, on the Polymarket card", () => {
+    const row = prepRow(prepFixture.output);
+    if (!row) throw new Error('no row for the fixture');
+    expect(row).toMatchObject({
+      id: PREP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
+      capitalUsd: 320, valueUsd: 8.77, costUsd: 8.35, todayUsd: 1.17, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
+      rewards: { realisedUsd: 1.7, unrealisedUsd: 0 }, orders: { realisedUsd: 0.25, unrealisedUsd: 0.42 },
+      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
+    });
+    // Today and realised on its capital (the path's total cap), unrealised on what it holds at cost.
+    expect(row.todayPct).toBeCloseTo((1.17 / 320) * 100, 9);
+    expect(row.realisedPct).toBeCloseTo((1.95 / 320) * 100, 9);
+    expect(row.unrealisedPct).toBeCloseTo((0.42 / 8.35) * 100, 9);
+    // Realised is its rewards and what closing trades made, to the cent.
+    expect(row.rewards.realisedUsd + row.orders.realisedUsd).toBeCloseTo(row.realisedUsd, 9);
+  });
+
+  it('is off the table without a state; stale when its last minute is old; amber while a loss stop holds it close-only', () => {
+    expect(prepRow(null)).toBe(null);
+    expect(prepRow({ ...prepFixture.output, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'paper', running: false, tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
+    expect(prepRow({ ...prepFixture.output, stopDay: '2026-09-17' })?.status).toMatchObject({ running: true, tone: 'stale', detail: 'its day loss stop has tripped: close-only for the rest of the UTC day' });
+    expect(prepRow({ ...prepFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
   });
 });

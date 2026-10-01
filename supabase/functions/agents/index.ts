@@ -117,8 +117,9 @@ import {
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
-import { PM_LIVE_TIMEOUT_MS, runPmLive } from "./pm_live.ts";
+import { PM_LIVE_TIMEOUT_MS, runPmLive, type PmSettlement } from "./pm_live.ts";
 import { runPmPrep } from "./pm_prep.ts";
+import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -1450,6 +1451,24 @@ async function dashboard(now: number) {
       return { rw: out && { ...out, e }, rwe: arm && { ...arm, e }, rwx };
     } catch { return { rw: null, rwe: null, rwx: [] }; }
   })();
+  // "Reward quotes live-prep" (`0077`): the order path's dry-run filled on paper, a row of TESTING with a page of its own,
+  // read from its own tables (the state first: it is saved after the fills it counts) and the path's day and total cap.
+  const prep = await (async () => {
+    try {
+      const st = await d.select<PrepStateRow>("pm_prep_state", "id=eq.1&select=state,last_minute,last_error,updated_at");
+      const last = st[0]?.last_minute;
+      if (!last) return null;
+      const [days, latest, fills, settlements, markets, cfg] = await Promise.all([
+        d.select<PrepDayRow>("pm_prep_days", "select=day,reward,reward_r40,fills_pnl_day,fills_pnl_total,pnl_day_r40,held_value,fills,minutes_matched,minutes_dark,minutes_diverged,minutes_missing,stop_day,stop_total,markets&order=day.asc&limit=400"),
+        d.select<PrepMinuteRow>("pm_prep_minutes", `minute=eq.${encodeURIComponent(last)}&select=minute,cond,class,b,a,n,qb,qa,close_only,yes_held,no_held,mark&order=cond.asc`),
+        d.selectAll<PrepFillRow>("pm_prep_fills", "select=cond,minute,print_id,ts,side,price,size,token,token_side,token_price,close_only&order=cond.asc,minute.asc,print_id.asc"),
+        d.selectAll<PmSettlement>("pm_prep_settlements", "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
+        d.select<PrepMarketRow>("pm_live_markets", `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,question,reward_rate,rank,n_size&order=rank.asc`),
+        d.select<{ cap_total_usd: number | string }>("pm_live_config", "id=eq.1&select=cap_total_usd"),
+      ]);
+      return prepSummary({ state: st[0], days, latest, fills, settlements, markets, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
+    } catch { return null; }
+  })();
   const rwc = await rwcRead;
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
@@ -1481,6 +1500,8 @@ async function dashboard(now: number) {
     rwx,
     /** RW-C, the same quotes forward on 2026-10-09 → 10-23 (`0069`); null until its tables exist. */
     rwc,
+    /** "Reward quotes live-prep", the order path's dry-run filled on paper (`0077`); null until it has a state. */
+    prep,
   };
 }
 
