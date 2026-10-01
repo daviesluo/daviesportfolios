@@ -50,7 +50,7 @@
 //     the book's own longs will sell. With none, the ask is SKIPPED: an event, not an error. The one-off GBP to coin
 //     conversion is `runQuotesConvert`, an operator's call, never the minute loop's.
 
-import { floorToStep, type PairConfig } from "../_shared/agents_strategy.ts";
+import { ceilToStep, floorToStep, type PairConfig } from "../_shared/agents_strategy.ts";
 import { revxPublic } from "../_shared/revx.ts";
 import type { OrderView, Venue } from "../_shared/venue.ts";
 import type { Db } from "./db.ts";
@@ -151,10 +151,23 @@ export function sameDecision(o: Pick<LiveOrderRow, "paper_oid" | "paper_live">, 
   return o.paper_oid != null && Number(o.paper_oid) === t.oid && o.paper_live != null && Date.parse(o.paper_live) === t.live;
 }
 
-/** A rung's order size at `price`: its share of the capital in coin, floored to the pair's step; null under the venue's minimums. */
-export function rungBase(gbp: number, price: number, pair: PairConfig): string | null {
+/** A rung's order size at `price`: its share of the capital in coin, floored to the pair's step; null under the venue's minimums.
+ *
+ * A sell takes one base step more when that step carries its proceeds over a whole penny. Revolut X credits a sell's GBP
+ * FLOORED to the penny and debits a buy's rounded up (PR5's first live hour, 2026-10-01: fill 1184 sold 13.18565 USDT at
+ * 0.7584, £9.99999696, and was credited £9.99, the venue's average price 0.7576 derived from it; both conversions,
+ * £29.999999, cost £30.00). Sized down to the step, a £10 rung's sell lands a hair under £10 and loses the penny, the
+ * 0.1 % rung's whole edge; one step up (0.00001 of a coin, under £0.00001) lands it on £10.00. A buy sized down already
+ * lands just under the pound it pays. Under any other rounding the extra step costs at most its own value.
+ */
+export function rungBase(gbp: number, price: number, pair: PairConfig, side: "buy" | "sell" = "buy"): string | null {
   if (!(gbp > 0) || !(price > 0)) return null;
-  const base = floorToStep(gbp / price, pair.base_step);
+  let base = floorToStep(gbp / price, pair.base_step);
+  if (side === "sell") {
+    const up = ceilToStep(gbp / price, pair.base_step);
+    const pence = (b: string) => Math.floor(Number(b) * price * 100 + 1e-9);
+    if (up !== base && pence(up) > pence(base)) base = up;
+  }
   const b = Number(base);
   if (!(b >= Number(pair.min_order_size)) || !(b * price >= Number(pair.min_order_size_quote))) return null;
   return base;
@@ -938,9 +951,9 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         if (last && sameDecision(last, target) && ((last.state === "rejected" && !wasRateLimited(last)) || last.state === "pending")) continue;
         const pair = pairs[LIVE_SYMBOL[r.book]];
         const price = target.ticks * QUOTE_TICK;
-        const base = rungBase(gbpPerRung, price, pair);
-        if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpPerRung, price }); continue; }
         const side = venueSideOf(r.side, "entry");
+        const base = rungBase(gbpPerRung, price, pair, side);
+        if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpPerRung, price }); continue; }
         if (side === "buy") {
           const need = Number(base) * price;
           if (!((free.GBP ?? 0) + 1e-9 >= need)) { await skipEvent(mode, r, target, "not enough free GBP", { needGbp: need, freeGbp: free.GBP ?? 0 }); continue; }
@@ -1040,7 +1053,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const heldBy = (side: Side) => Math.max(0, fills.filter((o) => o.book === book && o.rung_side === side).reduce((a, o) => a + (o.leg === "entry" ? 1 : -1) * Number(o.filled_base), 0));
   const beyond = (bal[coin] ?? 0) - heldBy("bid") + heldBy("ask");
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
-  const asksNeed = QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capital), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair) ?? 0), 0);
+  const asksNeed = QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capital), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, three asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
   if ((bal.GBP ?? 0) - openBuys < Number(base) * price * 1.0009) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${Number(base) * price} needed at the limit with the fee` };

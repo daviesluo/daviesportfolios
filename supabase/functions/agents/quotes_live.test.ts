@@ -118,6 +118,19 @@ Deno.test("the rungs split the capital as the frozen shape does: £50 over twelv
   assertEquals([venueSideOf("bid", "entry"), venueSideOf("bid", "exit"), venueSideOf("ask", "entry"), venueSideOf("ask", "stop")], ["buy", "sell", "sell", "buy"]);
 });
 
+Deno.test("rungBase: a sell takes one base step more when it carries the proceeds over a whole penny — the venue floors a sell's GBP — and a buy stays floored", () => {
+  // Fill 1184 (2026-10-01): 13.18565 USDT sold at 0.7584 is £9.99999696, and the venue credited £9.99.
+  assertEquals(rungBase(10, 0.7584, GBP_BOOK_PAIR, "buy"), "13.18565");
+  assertEquals(rungBase(10, 0.7584, GBP_BOOK_PAIR), "13.18565");                 // a buy by default
+  assertEquals(rungBase(10, 0.7584, GBP_BOOK_PAIR, "sell"), "13.18566");         // £10.000004544: credited £10.00
+  assertEquals(rungBase(10, 0.7591, GBP_BOOK_PAIR, "sell"), "13.17350");         // £10.000003850
+  // A sell whose next step does not reach the next penny keeps the floor: £50 over twelve rungs at 0.7584.
+  assertEquals([rungBase(50 / 12, 0.7584, GBP_BOOK_PAIR, "sell"), rungBase(50 / 12, 0.7584, GBP_BOOK_PAIR, "buy")], ["5.49402", "5.49402"]);
+  // What the venue credits for each, floored to the penny: the step up is worth a penny, and costs a hundred-thousandth of a coin.
+  const credited = (base: string, price: number) => Math.floor(Number(base) * price * 100 + 1e-9) / 100;
+  assertEquals([credited("13.18565", 0.7584), credited(rungBase(10, 0.7584, GBP_BOOK_PAIR, "sell")!, 0.7584)], [9.99, 10]);
+});
+
 Deno.test("rungBook: a bid rung's round trip and an ask rung's, in GBP; fees come off; dust is carried, never held against a stop", () => {
   const day = Date.parse("2026-09-24T00:00:00Z");
   const bid = rungBook("bid", [
