@@ -235,32 +235,36 @@ function FigLabel({ name, title }) {
  * slice says when it fits; a slice too narrow for that shows the percent
  * alone, measured against the slice rather than a fixed share (Davies,
  * 2026-09-25). A cutoff of 12% still painted the middle of "Polymarket".
+ * A slice too narrow even for its percent says nothing, and its title still
+ * does: a 2% slice on a phone painted the middle of "2%" (2026-10-01, once
+ * the stablecoin quotes' deployed counted every rung at work).
  * @param {{ s: { id: string, widthPct: number, title: string, text: string, short: string } }} props
  */
 function ShareSegment({ s }) {
   const ref = React.useRef(/** @type {HTMLSpanElement | null} */ (null));
-  const [narrow, setNarrow] = React.useState(false);
+  const [shown, setShown] = React.useState(/** @type {'full' | 'short' | 'none'} */ ('full'));
   React.useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || !s.text) { setNarrow(false); return undefined; }
+    if (!el || !s.text) { setShown('full'); return undefined; }
     const fit = () => {
       const probe = document.createElement('span');
       const cs = getComputedStyle(el);
       probe.style.cssText = `position:absolute;left:0;top:0;visibility:hidden;white-space:nowrap;font:${cs.font};letter-spacing:${cs.letterSpacing};`;
-      probe.textContent = s.text;
       el.appendChild(probe);
-      const tooNarrow = probe.offsetWidth > el.clientWidth + 1;
+      const fits = (/** @type {string} */ t) => { probe.textContent = t; return probe.offsetWidth <= el.clientWidth + 1; };
+      /** @type {'full' | 'short' | 'none'} */
+      const next = fits(s.text) ? 'full' : fits(s.short) ? 'short' : 'none';
       probe.remove();
-      setNarrow((prev) => (prev === tooNarrow ? prev : tooNarrow));
+      setShown((prev) => (prev === next ? prev : next));
     };
     fit();
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
     ro?.observe(el);
     return () => ro?.disconnect();
-  }, [s.text]);
+  }, [s.text, s.short]);
   return (
     <span ref={ref} className={`ag-share ag-share-${s.id}`} style={{ width: `${s.widthPct}%` }} title={s.title}>
-      {narrow ? s.short : s.text}
+      {shown === 'full' ? s.text : shown === 'short' ? s.short : ''}
     </span>
   );
 }
@@ -349,9 +353,10 @@ function LadderCell({ c, m }) {
 }
 
 /**
- * The quote pages' BOOKS: a card per book, its last trade and fair, its ladder of rungs (`quoteLadderRows`), its round
- * trips and what it has realised, in pounds. The paper page and the live page show the same section (Davies, 2026-10-01:
- * the paper page's BOOKS read more clearly than the live page's RUNGS).
+ * The quote pages' BOOKS: a card per book, its last trade, fair and index price, its ladder of rungs (`quoteLadderRows`),
+ * its round trips and what it has realised, in pounds. A held rung's P&L is at the index price while one is fresh, as
+ * Revolut X values coins, else at the last trade. The paper page and the live page show the same section (Davies,
+ * 2026-10-01: the paper page's BOOKS read more clearly than the live page's RUNGS).
  * @param {{ books: any[], m: (s: string) => string, empty?: string | null }} props
  */
 function QuoteBooks({ books, m, empty = null }) {
@@ -364,7 +369,7 @@ function QuoteBooks({ books, m, empty = null }) {
           <div key={b.book} className="ag-quotes-card">
             <div className="ag-quotes-head">
               <span className="hl-strong mono">{quoteBookLabel(b.book)}</span>
-              <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}</span>
+              <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}{b.index != null ? ` · index ${m(fmtQuotePrice(b.index))}` : ''}</span>
             </div>
             <table className="ag-ladder mono">
               <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
@@ -546,6 +551,7 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
                   <span className="dim">{a.asset}</span>
                   <span>
                     {a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}
+                    {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
                     {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
                   </span>
                 </React.Fragment>

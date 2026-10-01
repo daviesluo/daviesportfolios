@@ -537,16 +537,18 @@ export function quoteDays(rows: QuoteDayRow[], dayStartMs: number, trips: QuoteT
 
 /**
  * One book of the quote test for its page: each rung's state and price (GBP a coin), what a held rung is worth and has
- * made, and the book's round trips. A held rung is marked at the book's last print, the same price a trip's P&L would
- * use (`quotes.ts`: qty × (exit − entry) for a bid, the other way for an ask, in USD at the book's last rate).
+ * made, and the book's round trips. A held rung is marked at the book's index price while one is fresh (`index`, the
+ * price Revolut X values coins at; Davies, 2026-10-01), else at its last print, the price a trip's P&L would use
+ * (`quotes.ts`: qty × (exit − entry) for a bid, the other way for an ask, in USD at the book's last rate).
  */
-export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripRow[]) {
+export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripRow[], index: number | null = null) {
   const x = b.lastX ?? null;
   const last = b.lastPrint?.ticks != null ? b.lastPrint.ticks * QUOTE_TICK : null;
+  const markPx = index ?? last;
   const rungs = (b.rungs ?? []).map((r) => {
     const held = r.mode === "position";
-    const unrealisedGbp = held && last != null && r.qty != null && r.entry != null
-      ? (r.side === "bid" ? r.qty * (last - r.entry) : r.qty * (r.entry - last))
+    const unrealisedGbp = held && markPx != null && r.qty != null && r.entry != null
+      ? (r.side === "bid" ? r.qty * (markPx - r.entry) : r.qty * (r.entry - markPx))
       : null;
     const unrealisedUsd = unrealisedGbp != null && x != null ? unrealisedGbp * x : null;
     return {
@@ -560,7 +562,7 @@ export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripR
   const mine = trips.filter((t) => t.book === name);
   const heldRungs = rungs.filter((r) => r.mode === "position");
   return {
-    book: name, lastX: x, lastPrice: last, lastPrintAt: b.lastPrint?.ts != null ? new Date(b.lastPrint.ts).toISOString() : null,
+    book: name, lastX: x, lastPrice: last, index, rungCount: rungs.length, lastPrintAt: b.lastPrint?.ts != null ? new Date(b.lastPrint.ts).toISOString() : null,
     fair: (b.rungs ?? []).map((r) => r.o?.fairAt).find((f) => f != null) ?? null,
     rungs,
     quoting: rungs.filter((r) => r.mode === "quote").length, held: heldRungs.length,
@@ -578,11 +580,14 @@ export function quoteBookView(name: string, b: QuoteBookState, trips: QuoteTripR
  * its round trips, what it holds, its orders today against Revolut X's 1,000 a day, and whether it is keeping up (it
  * decides one minute behind the clock, so a last minute more than five back means it has stopped).
  */
-export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number, days: QuoteDayRow[] = [], capitalUsd = QUOTES_CAPITAL_USD) {
+export function quotesSummary(
+  st: QuoteStateRow | null, trips: QuoteTripRow[], today: Array<{ kind: string }>, startedAt: string | null, nowMs: number, dayStartMs: number,
+  days: QuoteDayRow[] = [], capitalUsd = QUOTES_CAPITAL_USD, index: Partial<Record<QuoteBook, number>> = {},
+) {
   if (!st || !st.last_minute) return null;
   const pnl = trips.reduce((a, t) => a + Number(t.pnl_usd), 0);
   const todayPnl = trips.filter((t) => Date.parse(t.t_exit) >= dayStartMs).reduce((a, t) => a + Number(t.pnl_usd), 0);
-  const books = Object.keys(st.state.books ?? {}).sort().map((name) => quoteBookView(name, st.state.books![name], trips));
+  const books = Object.keys(st.state.books ?? {}).sort().map((name) => quoteBookView(name, st.state.books![name], trips, index[name as QuoteBook] ?? null));
   const lagMinutes = Math.round((nowMs - Date.parse(st.last_minute)) / 60e3);
   // The books' last GBP/USD, as the live book's (`liveRateOf`): its capital, set in dollars, in pounds.
   const x = books.map((b) => b.lastX).find((v) => v != null && v > 0) ?? null;
@@ -608,7 +613,22 @@ export function quotesSummary(st: QuoteStateRow | null, trips: QuoteTripRow[], t
     x, capitalGbp: x ? capitalUsd / x : null, realisedGbp: pnlGbp, todayGbp,
     openGbp: books.reduce((a, b) => a + b.openGbp, 0),
     unrealisedGbp: books.some((b) => b.unrealisedGbp == null) ? null : books.reduce((a, b) => a + (b.unrealisedGbp ?? 0), 0),
+    // What its quotes have at work (Davies, 2026-10-01: DEPLOYED is every pound quoted out, as on the live page): each
+    // rung quoting its share of the capital, and what the held rungs hold.
+    ...quotesDeployed(books, capitalUsd, x),
   };
+}
+
+/**
+ * What a paper quote test has at work: each quoting rung its share of the capital (capital ÷ rungs, $100 a rung), and
+ * each held rung what it holds. In dollars and, at the books' rate, in pounds; a test with every rung quoting or held
+ * has its whole capital at work.
+ */
+export function quotesDeployed(books: Array<{ rungCount: number; quoting: number; openUsd: number; openGbp: number }>, capitalUsd: number, x: number | null) {
+  const rungs = books.reduce((a, b) => a + b.rungCount, 0), quoting = books.reduce((a, b) => a + b.quoting, 0);
+  const rungUsd = rungs > 0 ? capitalUsd / rungs : 0;
+  const deployedUsd = books.reduce((a, b) => a + b.openUsd, 0) + quoting * rungUsd;
+  return { deployedUsd, deployedGbp: x ? books.reduce((a, b) => a + b.openGbp, 0) + (quoting * rungUsd) / x : null };
 }
 
 /** A round trip of the quote variant (`agent_quotev_trips`, `0071`): PR5's row, with its arm. */
@@ -629,13 +649,16 @@ type QuoteVariantStateRow = {
  * against the governor's 600 / 700, and arm `top5`'s totals on its $2,000. No live path (`live: null`). Null until the
  * engine has saved a state.
  */
-export function quotesVariantSummary(input: { state: QuoteVariantStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number }) {
+export function quotesVariantSummary(input: {
+  state: QuoteVariantStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number;
+  index?: Partial<Record<QuoteBook, number>>;
+}) {
   const st = input.state;
   if (!st || !st.last_minute) return null;
   const arm = (a: VariantArmName) => {
     const row: QuoteStateRow = { state: { books: st.state.arms?.[a]?.books ?? {} }, last_minute: st.last_minute, updated_at: st.updated_at, last_error: st.last_error };
     const s = quotesSummary(row, input.trips.filter((t) => t.arm === a), [], new Date(VARIANT_START).toISOString(), input.nowMs, input.dayStartMs,
-      input.days.filter((d) => d.arm === a), variantCapitalUsd(VARIANT_ARMS[a]))!;
+      input.days.filter((d) => d.arm === a), variantCapitalUsd(VARIANT_ARMS[a]), input.index)!;
     const today = s.days.find((d) => d.today);
     return { ...s, ordersToday: today?.orders ?? 0, fillsToday: today?.fills ?? 0 };
   };
@@ -670,12 +693,15 @@ type QuoteRuledStateRow = {
  * shape of PR5's `quotes`, on the $3,600 its quotes lock. Beside it, each key's POSTs today and the deviation check
  * against PR5V's arm `main` (`checkMaxUsd`, `checkDays`). Arm `v1` is not shown. Null until the engine has saved a state.
  */
-export function quotesRuledSummary(input: { state: QuoteRuledStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number }) {
+export function quotesRuledSummary(input: {
+  state: QuoteRuledStateRow | null; trips: QuoteVariantTripRow[]; days: QuoteVariantDayRow[]; nowMs: number; dayStartMs: number;
+  index?: Partial<Record<QuoteBook, number>>;
+}) {
   const st = input.state;
   if (!st || !st.last_minute) return null;
   const row: QuoteStateRow = { state: { books: st.state.arms?.d?.books ?? {} }, last_minute: st.last_minute, updated_at: st.updated_at, last_error: st.last_error };
   const s = quotesSummary(row, input.trips.filter((t) => t.arm === "d"), [], new Date(VARIANT_START).toISOString(), input.nowMs, input.dayStartMs,
-    input.days.filter((d) => d.arm === "d"), variantCapitalUsd(RULED_ARMS.d))!;
+    input.days.filter((d) => d.arm === "d"), variantCapitalUsd(RULED_ARMS.d), input.index)!;
   const today = s.days.find((d) => d.today);
   const gov = st.state.arms?.d?.gov, day = Math.floor(input.dayStartMs / 86400e3);
   return {
@@ -725,7 +751,35 @@ export const QUOTES_LIVE_PAGE_ROWS = 50;
  */
 export const QUOTES_LIVE_ORDERS_FILTER = "or=(state.neq.cancelled,filled_base.gt.0)";
 /** The columns of a live order the LIVE row's figures read: every live order, paged. */
-export const QUOTE_LIVE_SUMMARY_COLUMNS = "id,ts,mode,book,rung_side,k,leg,state,filled_base,avg_fill_price,price,fee_gbp,filled_at";
+export const QUOTE_LIVE_SUMMARY_COLUMNS = "id,ts,mode,book,rung_side,k,leg,side,state,base_size,filled_base,avg_fill_price,price,fee_gbp,filled_at";
+/** A GBP ticker as the books recorder keeps it (`agent_quote_tickers`, 0078): the price Revolut X values the coins at. */
+export type QuoteTickerRow = { book: string; index_price: number | string; ts: string };
+/** How old a ticker may be and still price the coins: a few of the recorder's minutes, which can each miss a read. */
+export const QUOTE_TICKER_FRESH_MS = 10 * 60e3;
+
+/**
+ * The price each book's coins are valued at (Davies, 2026-10-01: his Revolut X account page values them at the public
+ * ticker's index price, and the page at the last trade read differently): the book's index price while its ticker is
+ * fresh; none otherwise, and the coins fall back to the book's last trade.
+ */
+export function liveIndexPrices(rows: QuoteTickerRow[], nowMs: number): Partial<Record<QuoteBook, number>> {
+  const out: Partial<Record<QuoteBook, number>> = {};
+  for (const r of rows) {
+    const p = Number(r.index_price), age = nowMs - Date.parse(r.ts);
+    if (QUOTE_BOOKS.includes(r.book as QuoteBook) && p > 0 && age >= 0 && age <= QUOTE_TICKER_FRESH_MS) out[r.book as QuoteBook] = p;
+  }
+  return out;
+}
+
+/**
+ * The pounds the live account has resting in buy orders: each open buy's unfilled size at its price, the bids' entries
+ * and the asks' exits. With the coins, what its quotes have at work (Davies, 2026-10-01: "这里的DEPLOYED应该是120毕竟每一笔
+ * 钱都quote出去了").
+ */
+export function liveRestingBuysGbp(orders: QuoteLiveOrderView[]): number {
+  return orders.filter((o) => o.mode === "live" && o.side === "buy" && LIVE_OPEN_STATES.includes(o.state))
+    .reduce((a, o) => a + Math.max(0, Number(o.base_size ?? 0) - Number(o.filled_base || 0)) * Number(o.price), 0);
+}
 /** The columns of a live order the live page reads for what rests on each rung. */
 export const QUOTE_LIVE_ORDER_COLUMNS = "id,ts,mode,book,rung_side,k,leg,side,state,price,base_size,filled_base,avg_fill_price,fee_gbp,filled_at,cancel_requested_at";
 /** …and for the newest orders, with what says why each ended as it did. */
@@ -844,7 +898,10 @@ export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | n
 }
 
 /** A book's coins in the account, against what they cost (`liveCoinBooks`). */
-export type LiveCoinBook = { book: QuoteBook; coin: string; coins: number; mark: number | null; costGbp: number; valueGbp: number; unrealisedGbp: number | null };
+export type LiveCoinBook = {
+  book: QuoteBook; coin: string; coins: number; mark: number | null; markFrom: "index" | "last trade" | null;
+  costGbp: number; valueGbp: number; unrealisedGbp: number | null;
+};
 
 /**
  * Each book's coins as the account holds them, against what they cost (Davies, 2026-10-01: his account page shows each
@@ -852,11 +909,12 @@ export type LiveCoinBook = { book: QuoteBook; coin: string; coins: number; mark:
  * balances, or, where it could not read them, the book's own count (what the conversions bought, plus what its bids
  * hold, less what its asks have sold). What they cost: the pounds the conversions paid, fee included, less the
  * conversion fees already booked to closed trips (`withConversionFees`), plus what the bids holding paid, less what the
- * asks holding sold for. Marked at the book's last print, as the rungs are, value less cost is the unrealised of every
- * coin the book holds: the rungs' marks, and the conversions' own (their price, their fee and the pound's moves since).
- * A book with no print is valued at its cost, its unrealised unknown.
+ * asks holding sold for. Valued at the book's index price, as Revolut X's account page values them (`liveIndexPrices`), or
+ * at its last print while no fresh index is to hand, value less cost is the unrealised of every coin the book holds: the
+ * rungs' marks, and the conversions' own (their price, their fee and the pound's moves since). A book with neither price
+ * is valued at its cost, its unrealised unknown.
  */
-export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], balances: Record<string, number> | null | undefined): LiveCoinBook[] {
+export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], balances: Record<string, number> | null | undefined, index: Partial<Record<QuoteBook, number>> = {}): LiveCoinBook[] {
   const conversions = orders.filter((o) => o.mode === "live" && o.leg === "convert" && Number(o.filled_base) > 0);
   return QUOTE_BOOKS.map((b) => {
     const mine = rungs.filter((r) => r.book === b);
@@ -867,9 +925,10 @@ export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], b
     const costGbp = paid - mine.reduce((a, r) => a + r.convFeesGbp, 0) + mine.reduce((a, r) => a + signed(r) * r.rb.avgEntry, 0);
     const read = balances?.[coinOf(b)];
     const coins = read != null && Number.isFinite(Number(read)) ? Number(read) : ownCount;
-    const mark = mine[0]?.mark ?? null;
+    const mark = index[b] ?? mine[0]?.mark ?? null;
+    const markFrom = index[b] != null ? "index" as const : mark != null ? "last trade" as const : null;
     const valueGbp = mark == null ? costGbp : coins * mark;
-    return { book: b, coin: coinOf(b), coins, mark, costGbp, valueGbp, unrealisedGbp: mark == null ? null : valueGbp - costGbp };
+    return { book: b, coin: coinOf(b), coins, mark, markFrom, costGbp, valueGbp, unrealisedGbp: mark == null ? null : valueGbp - costGbp };
   });
 }
 
@@ -904,13 +963,19 @@ export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
  * top-up paid, under a penny a rung). Its fees and realised carry those conversion fees too. GBP becomes USD at the
  * paper books' last GBP/USD, so LIVE can add it to the strategies.
  */
-export function quotesLiveSummary(input: { config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number }) {
+export function quotesLiveSummary(input: {
+  config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number;
+  tickers?: QuoteTickerRow[];
+}) {
   const cfg = input.config;
   if (!cfg) return null;
   const live = input.orders.filter((o) => o.mode === "live");
   const x = liveRateOf(input.paper);
   const rungs = liveRungs(input.orders, input.paper, input.dayStartMs);
-  const { realised, today, unrealised, cost, value, fees, heldRungs, unmarked } = liveBookGbp(rungs, liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state)));
+  const { realised, today, unrealised, cost, value: coinsGbp, fees, heldRungs, unmarked } = liveBookGbp(rungs,
+    liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state), liveIndexPrices(input.tickers ?? [], input.nowMs)));
+  // Deployed: what its quotes have at work, the coins and the pounds resting in buys.
+  const value = coinsGbp + liveRestingBuysGbp(live);
   const usd = (gbp: number) => (x == null ? null : gbp * x);
   const age = input.state ? input.nowMs - Date.parse(input.state.updated_at) : Infinity;
   const open = live.filter((o) => ["pending", "new", "partially_filled"].includes(o.state));
@@ -931,7 +996,7 @@ export function quotesLiveSummary(input: { config: QuoteLiveConfigRow | null; st
     realisedUsd: usd(realised), todayUsd: usd(today), unrealisedUsd: usd(unrealised), costUsd: usd(cost), valueUsd: usd(value), feesUsd: usd(fees),
     // In pounds, the book's own currency: what its page and its LIVE row show (Davies, 2026-10-01); the dollars above are
     // what LIVE's scoreboard adds up.
-    realisedGbp: realised, todayGbp: today, unrealisedGbp: unrealised, costGbp: cost, valueGbp: value, feesGbp: fees,
+    realisedGbp: realised, todayGbp: today, unrealisedGbp: unrealised, costGbp: cost, valueGbp: value, feesGbp: fees, coinsGbp,
   };
 }
 
@@ -1032,7 +1097,7 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
  */
 export function quotesLiveDetail(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; open: QuoteLiveOrderView[];
-  recent: QuoteLiveRecentRow[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number;
+  recent: QuoteLiveRecentRow[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number; tickers?: QuoteTickerRow[];
 }) {
   const cfg = input.config;
   if (!cfg) return null;
@@ -1045,13 +1110,14 @@ export function quotesLiveDetail(input: {
   const trips = rungs.flatMap((r) => liveRungTrips(r, input.dayStartMs))
     .sort((a, b) => Date.parse(b.tExit) - Date.parse(a.tExit) || Date.parse(b.tEntry) - Date.parse(a.tEntry));
   const balances = liveBalancesOf(input.state);
-  const coinBooks = liveCoinBooks(input.orders, rungs, balances);
+  const index = liveIndexPrices(input.tickers ?? [], input.nowMs);
+  const coinBooks = liveCoinBooks(input.orders, rungs, balances, index);
   return {
     books: QUOTE_BOOKS.map((b) => {
       const v = paperBooks[b] ? quoteBookView(b, paperBooks[b], []) : null;
       const mine = trips.filter((t) => t.book === b);
       return {
-        book: b, lastPrice: v?.lastPrice ?? null, lastPrintAt: v?.lastPrintAt ?? null, fair: v?.fair ?? null,
+        book: b, lastPrice: v?.lastPrice ?? null, lastPrintAt: v?.lastPrintAt ?? null, fair: v?.fair ?? null, index: index[b] ?? null,
         realisedGbp: rungs.filter((r) => r.book === b).reduce((a, r) => a + r.rb.realisedGbp, 0),
         realisedUsd: usd(rungs.filter((r) => r.book === b).reduce((a, r) => a + r.rb.realisedGbp, 0)),
         trips: mine.length, won: mine.filter((t) => t.pnlGbp > 0).length,
@@ -1062,13 +1128,17 @@ export function quotesLiveDetail(input: {
       return {
         book: r.book, side: r.side, k: r.k,
         order: o && { id: o.id, leg: o.leg, price: Number(o.price), state: o.state },
-        held: r.held
-          ? {
+        held: (() => {
+          if (!r.held) return null;
+          // Marked as the coins are, at the book's index price while one is fresh, else at its last print; with neither,
+          // what it has made is unknown, not zero. (TODAY marks it at the last print, as the executor's loss stop does.)
+          const px = index[r.book] ?? r.mark;
+          const made = px == null ? null : markedGbp(r.side, r.rb, px);
+          return {
             base: r.rb.held, avgEntry: r.rb.avgEntry, since: r.rb.openedAt != null ? isoOf(r.rb.openedAt) : null, costGbp: r.costGbp, valueGbp: r.valueGbp,
-            // No print on its book yet: what it has made is unknown, not zero.
-            unrealisedGbp: r.mark == null ? null : r.marked, unrealisedUsd: r.mark == null ? null : usd(r.marked),
-          }
-          : null,
+            unrealisedGbp: made, unrealisedUsd: usd(made),
+          };
+        })(),
         realisedGbp: r.rb.realisedGbp, realisedUsd: usd(r.rb.realisedGbp), fills: r.fills.length,
       };
     }),
@@ -1078,9 +1148,9 @@ export function quotesLiveDetail(input: {
     inventory: {
       at: st.at ?? input.state?.updated_at ?? null,
       assets: balances && [
-        { asset: "GBP", amount: Number(balances.GBP ?? 0), gbp: Number(balances.GBP ?? 0), costGbp: null, unrealisedGbp: null, unrealisedUsd: null },
+        { asset: "GBP", amount: Number(balances.GBP ?? 0), gbp: Number(balances.GBP ?? 0), price: null, priceFrom: null, costGbp: null, unrealisedGbp: null, unrealisedUsd: null },
         ...coinBooks.map((c) => ({
-          asset: c.coin, amount: c.coins, gbp: c.mark == null ? null : c.valueGbp, costGbp: c.costGbp,
+          asset: c.coin, amount: c.coins, gbp: c.mark == null ? null : c.valueGbp, price: c.mark, priceFrom: c.markFrom, costGbp: c.costGbp,
           unrealisedGbp: c.unrealisedGbp, unrealisedUsd: usd(c.unrealisedGbp),
         })),
       ],
@@ -1335,6 +1405,11 @@ async function dashboard(now: number) {
     Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
   }
 
+  // The GBP books' index prices (0078), read once for every stablecoin quotes test: what their coins and held rungs are
+  // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
+  const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
+  const quoteIndexRead = quoteTickersRead.then((rows) => liveIndexPrices(rows, now));
+
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
   const quotesVariantRead = (async () => {
@@ -1345,7 +1420,7 @@ async function dashboard(now: number) {
         d.selectAll<QuoteVariantTripRow>("agent_quotev_trips", "select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
         d.select<QuoteVariantDayRow>("agent_quotev_days", "select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc,arm.asc&limit=120"),
       ]);
-      return quotesVariantSummary({ state: st[0], trips, days, nowMs: now, dayStartMs });
+      return quotesVariantSummary({ state: st[0], trips, days, nowMs: now, dayStartMs, index: await quoteIndexRead });
     } catch { return null; }
   })();
 
@@ -1358,7 +1433,7 @@ async function dashboard(now: number) {
         d.selectAll<QuoteVariantTripRow>("agent_quoted_trips", "arm=eq.d&select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
         d.select<QuoteVariantDayRow>("agent_quoted_days", "arm=eq.d&select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60"),
       ]);
-      return quotesRuledSummary({ state: st[0], trips, days, nowMs: now, dayStartMs });
+      return quotesRuledSummary({ state: st[0], trips, days, nowMs: now, dayStartMs, index: await quoteIndexRead });
     } catch { return null; }
   })();
 
@@ -1373,17 +1448,18 @@ async function dashboard(now: number) {
       ]);
       // Its days (`0070`), read apart: before the view exists, the page shows the test without them.
       const days = await d.select<QuoteDayRow>("agent_quote_days", "select=day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60").catch(() => [] as QuoteDayRow[]);
-      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs, days);
+      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs, days, QUOTES_CAPITAL_USD, await quoteIndexRead);
       // Its live executor (`0052`): the real-money book it trades, once it trades one. Its own tables; before they
       // exist, the page shows the paper test alone.
       const live = await (async () => {
         try {
-          const [cfg, lst, orders] = await Promise.all([
+          const [cfg, lst, orders, tickers] = await Promise.all([
             d.select<QuoteLiveConfigRow>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"),
             d.select<QuoteLiveStateRow>("agent_quote_live_state", "id=eq.1&select=state,updated_at,last_error"),
             d.selectAll<QuoteLiveOrderView>("agent_quote_live_orders", `mode=eq.live&select=${QUOTE_LIVE_SUMMARY_COLUMNS}&order=id.asc`),
+            quoteTickersRead,
           ]);
-          const base = { config: cfg[0] ?? null, state: lst[0] ?? null, orders, paper: st[0] ?? null, nowMs: now, dayStartMs };
+          const base = { config: cfg[0] ?? null, state: lst[0] ?? null, orders, paper: st[0] ?? null, nowMs: now, dayStartMs, tickers };
           const summary = quotesLiveSummary(base);
           if (!summary) return null;
           // Its own page, once it is a row of LIVE (Davies, 2026-10-01: it opened the paper test's page), from the rows above

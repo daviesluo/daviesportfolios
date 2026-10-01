@@ -14,6 +14,12 @@
 import type { Db } from "./db.ts";
 
 export const BOOK_SYMBOLS = ["USDC-USD", "USDT-USD", "USDC-GBP", "USDT-GBP"] as const;
+/**
+ * The books whose ticker it also reads, once a minute after the books (0078): the live stablecoin quotes' coins are valued
+ * at the ticker's `index_price`, the price Revolut X's own account page values them at (Davies, 2026-10-01).
+ */
+export const TICKER_BOOKS = ["USDC-GBP", "USDT-GBP"] as const;
+export type TickerBook = typeof TICKER_BOOKS[number];
 export type BookSymbol = typeof BOOK_SYMBOLS[number];
 /** Levels kept a side: the public book's own page of five. */
 export const BOOK_LEVELS = 5;
@@ -61,7 +67,30 @@ export function bookLevels(raw: unknown): BookSides | null {
 /** Whether two readings of a book are the same book: every level's price, quantity and order count. */
 export const sameBook = (a: BookSides | null, b: BookSides | null) => !!a && !!b && JSON.stringify(a) === JSON.stringify(b);
 
-export type BooksReport = { recorded: number; unchanged: number; errors: string[]; skipped: BookSymbol[] };
+export type BooksReport = { recorded: number; unchanged: number; errors: string[]; skipped: BookSymbol[]; tickers: number };
+
+/** A ticker as `agent_quote_tickers` keeps it: the book's index price, its touch and last trade, when it was read. */
+export type TickerRow = { book: TickerBook; index_price: number; bid: number | null; ask: number | null; mid: number | null; last_price: number | null; ts: string };
+
+/**
+ * The public tickers (`{ data: [{ symbol: "USDT/GBP", bid, ask, mid, index_price, last_price, region }] }`) as rows of
+ * `agent_quote_tickers`: the two GBP books only, the UK's (a row naming another region is dropped, one naming none is
+ * trusted, as `quotesForRegion` reads them), and only with an index price above zero.
+ */
+export function tickerRows(raw: unknown, at: string): TickerRow[] {
+  const top = raw && typeof raw === "object" ? raw as Record<string, unknown> : null;
+  if (!top || !Array.isArray(top.data)) return [];
+  const num = (v: unknown) => (v == null || !Number.isFinite(Number(v)) || Number(v) <= 0 ? null : Number(v));
+  const out: TickerRow[] = [];
+  for (const r of top.data as Array<Record<string, unknown>>) {
+    const book = String(r?.symbol ?? "").replace("/", "-") as TickerBook;
+    if (!TICKER_BOOKS.includes(book) || (r.region != null && r.region !== "UK")) continue;
+    const index = num(r.index_price);
+    if (index == null) continue;
+    out.push({ book, index_price: index, bid: num(r.bid), ask: num(r.ask), mid: num(r.mid), last_price: num(r.last_price), ts: at });
+  }
+  return out;
+}
 
 type Stored = { ts: string; bids: BookLevel[]; asks: BookLevel[]; reads: number | null };
 
@@ -74,13 +103,13 @@ type Stored = { ts: string; bids: BookLevel[]; asks: BookLevel[]; reads: number 
 export async function runBooks(d: {
   db: Db; clock?: () => number; fetchImpl?: typeof fetch; pause?: (ms: number) => Promise<void>;
 }): Promise<BooksReport> {
-  const report: BooksReport = { recorded: 0, unchanged: 0, errors: [], skipped: [] };
+  const report: BooksReport = { recorded: 0, unchanged: 0, errors: [], skipped: [], tickers: 0 };
   const clock = d.clock ?? (() => Date.now());
   const f = d.fetchImpl ?? fetch;
   const pause = d.pause ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const t0 = clock();
   const order = bookOrder(t0);
-  let last = 0;
+  let last = 0, limited = false;
   for (const [i, b] of order.entries()) {
     const wait = last ? last + BOOKS_GAP_MS - clock() : 0;
     if (wait > 0) await pause(wait);
@@ -94,6 +123,7 @@ export async function runBooks(d: {
       if (res.status === 429) {
         report.errors.push(`${b}: 429`);
         report.skipped.push(...order.slice(i + 1));
+        limited = true;
         break;
       }
       if (!res.ok) throw new Error(`${res.status}`);
@@ -109,6 +139,27 @@ export async function runBooks(d: {
         report.recorded++;
       }
     } catch (e) { report.errors.push(`${b}: ${e instanceof Error ? e.message : String(e)}`.slice(0, 200)); }
+  }
+  // Then the two GBP tickers, in one read (0078): a gap after the last book, inside the budget, and not after a 429.
+  if (!limited) {
+    const wait = last ? last + BOOKS_GAP_MS - clock() : 0;
+    if (wait > 0) await pause(wait);
+    if (clock() - t0 <= BOOKS_BUDGET_MS) {
+      try {
+        const res = await f(`${BOOK_HOST}/api/1.0/public/tickers?symbols=${TICKER_BOOKS.join(",")}&region=UK`,
+          { headers: { accept: "application/json" }, signal: AbortSignal.timeout(BOOK_TIMEOUT_MS) });
+        const body = await res.text();
+        if (res.status === 429) report.errors.push("tickers: 429");
+        else {
+          if (!res.ok) throw new Error(`${res.status}`);
+          let rows: TickerRow[] = [];
+          try { rows = tickerRows(JSON.parse(body), new Date(clock()).toISOString()); } catch { /* unreadable below */ }
+          if (!rows.length) throw new Error("unreadable tickers");
+          await d.db.upsert("agent_quote_tickers", rows, "book");
+          report.tickers = rows.length;
+        }
+      } catch (e) { report.errors.push(`tickers: ${e instanceof Error ? e.message : String(e)}`.slice(0, 200)); }
+    }
   }
   return report;
 }

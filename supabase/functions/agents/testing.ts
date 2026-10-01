@@ -110,6 +110,8 @@ const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
   pm_rw_x_days: { columns: ["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail", "closed_at"], key: "day,arm" },
   // The stablecoin books' record (0057).
   agent_book_levels: { columns: ["book", "ts", "bids", "asks", "seen_until", "reads"], key: "book,ts" },
+  // 0078: the two GBP tickers, one row a book, the latest read.
+  agent_quote_tickers: { columns: ["book", "index_price", "bid", "ask", "mid", "last_price", "ts"], key: "book" },
 };
 // RW-C's tables (0069): every one of RW's eleven, the same shape under the name `pm_rwc_…`, held to the same rules.
 for (const t of Object.keys(PMRW_TABLES).filter((x) => x.startsWith("pm_rw_"))) PMRW_TABLES[t.replace(/^pm_rw_/, "pm_rwc_")] = PMRW_TABLES[t];
@@ -332,6 +334,10 @@ export function schemaRefusal(table: string, r: Row): string | null {
     if (table === "agent_book_levels") {
       return notNull(["book", "ts", "bids", "asks"]) ?? check("book", ["USDC-USD", "USDT-USD", "USDC-GBP", "USDT-GBP"].includes(String(r.book)))
         ?? check("reads", r.reads == null || Number(r.reads) >= 1);
+    }
+    // 0078's checks: one of the two GBP books, an index price above zero.
+    if (table === "agent_quote_tickers") {
+      return notNull(["book", "index_price", "ts"]) ?? check("book", ["USDC-GBP", "USDT-GBP"].includes(String(r.book))) ?? check("index_price", Number(r.index_price) > 0);
     }
     if (shape === "pm_rw_e_days" || shape === "pm_rw_x_days") {
       const arms = shape === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3"];

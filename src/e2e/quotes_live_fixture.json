@@ -1,5 +1,5 @@
 {
-  "about": "PR5's live executor's page as the dashboard serves it, for a synthetic book worked out by hand (no real balance or fill): £1,200 at £100 a rung, GBP/USD 1.32, armed 2026-09-16 09:00 UTC, read at the browser test's clock, 2026-09-17 23:00 UTC. `orders`, `config`, `state` and `paper` are the tables' rows; `live` is what `quotesLiveSummary` and `quotesLiveDetail` make of them, which the agents function's test asserts and the browser test serves. Trips: A bought 132 USDC at £0.7568 and sold at £0.7576 today (+£0.1056); B sold 132 USDC at £0.7591 today and holds the short (marked at £0.7576: +£0.1980); C bought 132 USDT at £0.7556 yesterday and its 24-hour stop sold at £0.7550 today, fee £0.089694 (−£0.168894); D sold 132 USDT at £0.7580 and bought back at £0.7571 yesterday (+£0.1188); E bought 132 USDT at £0.7565 today and holds (marked at £0.7572: +£0.0924). Two conversions bought 396 coins each at £0.7570 and £0.7574 with the 9 bps fee in the coin; D's ask sold 132 of the USDT conversion's coins, so D carries 132/395.6436 of its fee, and B's share waits for B to close. USDT-GBP is under a de-peg guard since 22:50 UTC, which withdrew its five entries.",
+  "about": "PR5's live executor's page as the dashboard serves it, for a synthetic book worked out by hand (no real balance or fill): £1,200 at £100 a rung, GBP/USD 1.32, armed 2026-09-16 09:00 UTC, read at the browser test's clock, 2026-09-17 23:00 UTC. `orders`, `config`, `state`, `paper` and `tickers` are the tables' rows (the coins valued at the tickers' index prices, USDC £0.7575 and USDT £0.7570, as Revolut X's account page values them); `live` is what `quotesLiveSummary` and `quotesLiveDetail` make of them, which the agents function's test asserts and the browser test serves. Trips: A bought 132 USDC at £0.7568 and sold at £0.7576 today (+£0.1056); B sold 132 USDC at £0.7591 today and holds the short (marked at £0.7576: +£0.1980); C bought 132 USDT at £0.7556 yesterday and its 24-hour stop sold at £0.7550 today, fee £0.089694 (−£0.168894); D sold 132 USDT at £0.7580 and bought back at £0.7571 yesterday (+£0.1188); E bought 132 USDT at £0.7565 today and holds (marked at £0.7572: +£0.0924). Two conversions bought 396 coins each at £0.7570 and £0.7574 with the 9 bps fee in the coin; D's ask sold 132 of the USDT conversion's coins, so D carries 132/395.6436 of its fee, and B's share waits for B to close. USDT-GBP is under a de-peg guard since 22:50 UTC, which withdrew its five entries.",
   "nowMs": 1789686000000,
   "dayStartMs": 1789603200000,
   "config": {
@@ -810,6 +810,18 @@
       }
     }
   ],
+  "tickers": [
+    {
+      "book": "USDC-GBP",
+      "index_price": 0.7575,
+      "ts": "2026-09-17T22:59:40.000Z"
+    },
+    {
+      "book": "USDT-GBP",
+      "index_price": 0.757,
+      "ts": "2026-09-17T22:59:40.000Z"
+    }
+  ],
   "live": {
     "dryRun": false,
     "armed": true,
@@ -836,16 +848,17 @@
     "fills": 10,
     "realisedUsd": -0.04554872698228582,
     "todayUsd": 0.29977991999999265,
-    "unrealisedUsd": -0.001401983417686097,
+    "unrealisedUsd": -0.1755008490177204,
     "costUsd": 791.0353273530177,
-    "valueUsd": 791.0339253696,
+    "valueUsd": 1318.8640307766,
     "feesUsd": 0.23721272698228407,
     "realisedGbp": -0.03450661135021653,
     "todayGbp": 0.22710599999999442,
-    "unrealisedGbp": -0.0010621086497621945,
+    "unrealisedGbp": -0.13295518864978817,
     "costGbp": 599.2691873886497,
-    "valueGbp": 599.2681252799999,
+    "valueGbp": 999.139417255,
     "feesGbp": 0.1797066113502152,
+    "coinsGbp": 599.1362322,
     "detail": {
       "books": [
         {
@@ -853,6 +866,7 @@
           "lastPrice": 0.7576,
           "lastPrintAt": "2026-09-17T22:58:50.000Z",
           "fair": 0.75766,
+          "index": 0.7575,
           "realisedGbp": 0.10560000000000302,
           "realisedUsd": 0.139392000000004,
           "trips": 1,
@@ -863,6 +877,7 @@
           "lastPrice": 0.7572,
           "lastPrintAt": "2026-09-17T22:58:20.000Z",
           "fair": 0.75727,
+          "index": 0.757,
           "realisedGbp": -0.14010661135021957,
           "realisedUsd": -0.18494072698228983,
           "trips": 2,
@@ -946,8 +961,8 @@
             "since": "2026-09-17T20:00:00.000Z",
             "costGbp": 100.2012,
             "valueGbp": 100.0032,
-            "unrealisedGbp": 0.19799999999999285,
-            "unrealisedUsd": 0.2613599999999906
+            "unrealisedGbp": 0.21120000000000605,
+            "unrealisedUsd": 0.278784000000008
           },
           "realisedGbp": 0,
           "realisedUsd": 0,
@@ -984,8 +999,8 @@
             "since": "2026-09-17T22:00:00.000Z",
             "costGbp": 99.85799999999999,
             "valueGbp": 99.9504,
-            "unrealisedGbp": 0.09240000000000448,
-            "unrealisedUsd": 0.12196800000000592
+            "unrealisedGbp": 0.06600000000000739,
+            "unrealisedUsd": 0.08712000000000976
           },
           "realisedGbp": 0,
           "realisedUsd": 0,
@@ -1049,6 +1064,8 @@
             "asset": "GBP",
             "amount": 600.696306,
             "gbp": 600.696306,
+            "price": null,
+            "priceFrom": null,
             "costGbp": null,
             "unrealisedGbp": null,
             "unrealisedUsd": null
@@ -1056,18 +1073,22 @@
           {
             "asset": "USDC",
             "amount": 263.6436,
-            "gbp": 199.73639136,
+            "gbp": 199.71002699999997,
+            "price": 0.7575,
+            "priceFrom": "index",
             "costGbp": 199.72919999999996,
-            "unrealisedGbp": 0.007191360000035729,
-            "unrealisedUsd": 0.009492595200047162
+            "unrealisedGbp": -0.019172999999995,
+            "unrealisedUsd": -0.0253083599999934
           },
           {
             "asset": "USDT",
             "amount": 527.6436,
-            "gbp": 399.53173391999997,
+            "gbp": 399.42620519999997,
+            "price": 0.757,
+            "priceFrom": "index",
             "costGbp": 399.53998738864976,
-            "unrealisedGbp": -0.008253468649797924,
-            "unrealisedUsd": -0.01089457861773326
+            "unrealisedGbp": -0.11378218864979317,
+            "unrealisedUsd": -0.150192489017727
           }
         ]
       },

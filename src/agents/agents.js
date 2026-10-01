@@ -710,9 +710,10 @@ export function scoreboardView(dash, tab = null, tests = []) {
   const capital = t.capitalUsd;
   const unrealised = t.unrealisedUsd, realised = t.realisedUsd, today = t.todayUsd, cost = t.costUsd, value = t.valueUsd;
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
-  // A paper test's unrealised is on what it has deployed; a row with a cost of its own (the live executor) is on its cost,
-  // which `cost` already holds.
-  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' || s?.scoreDeployed ? (Number(s.valueUsd) || 0) - (Number(s.costUsd) || 0) : 0), 0);
+  // A paper test's unrealised is on what it holds (`heldUsd`: the stablecoin quotes' deployed also counts their quoting
+  // rungs, Davies 2026-10-01) or else on what it has deployed; a row with a cost of its own (the live executor) is on its
+  // cost, which `cost` already holds.
+  const unrealisedBase = cost + extra.reduce((a, s) => a + (s?.unrealisedOf === 'deployed' || s?.scoreDeployed ? (Number(s.heldUsd ?? s.valueUsd) || 0) - (Number(s.costUsd) || 0) : 0), 0);
   return {
     strategies: rows.length, tests: extra.length,
     capitalUsd: capital, valueUsd: value, costUsd: cost, feesUsd: t.feesUsd,
@@ -908,7 +909,7 @@ export function venueRows(dash, tab = null, tests = []) {
     // As the scoreboard: a paper test's unrealised is on what it has deployed, a row with a cost of its own on its cost.
     const isDeployed = (/** @type {any} */ t) => t?.unrealisedOf === 'deployed' || !!t?.scoreDeployed;
     const cost = [...on, ...folded.filter((t) => !isDeployed(t))].reduce((a, s) => a + (Number(s.costUsd) || 0), 0);
-    const deployed = folded.filter(isDeployed).reduce((a, s) => a + (Number(s.valueUsd) || 0), 0);
+    const deployed = folded.filter(isDeployed).reduce((a, s) => a + (Number(s.heldUsd ?? s.valueUsd) || 0), 0);
     return [id, {
       ...sumRows([...on, ...folded]), strategies: on.length, tests: folded.length,
       live: [...on, ...folded].filter((/** @type {any} */ s) => s.mode === 'live').length,
@@ -1174,14 +1175,16 @@ export function quotesRow(q) {
     // the heading no longer carries a base either (Davies, 2026-09-25).
     scoreDeployed: true,
     capitalUsd: Number(q.capitalUsd) || 0,
-    valueUsd: openUsd,
+    // Deployed is what its quotes have at work: each quoting rung's share of the capital and what the held rungs hold
+    // (Davies, 2026-10-01, as on the live page); unrealised stays a percent of what is held, here and in the scoreboard.
+    valueUsd: q.deployedUsd != null ? Number(q.deployedUsd) : openUsd, heldUsd: openUsd,
     todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
     unrealisedUsd: unrealised ?? 0, unrealisedPct: unrealised != null && openUsd > 0 ? (unrealised / openUsd) * 100 : null,
     realisedUsd: q.realisedUsd ?? 0, realisedPct: q.realisedPct ?? null,
     // Without the books' rate (no print yet) it stays in dollars.
     ccy: capG != null ? 'GBP' : 'USD',
     gbp: capG != null ? {
-      capital: capG, value: openG, today: Number(q.todayGbp) || 0, todayPct: pctOf(q.todayGbp, capG),
+      capital: capG, value: q.deployedGbp != null ? Number(q.deployedGbp) : openG, today: Number(q.todayGbp) || 0, todayPct: pctOf(q.todayGbp, capG),
       unrealised: unrealG ?? 0, unrealisedPct: unrealG != null && openG > 0 ? (unrealG / openG) * 100 : null,
       realised: Number(q.realisedGbp) || 0, realisedPct: pctOf(q.realisedGbp, capG), fees: null,
     } : null,
@@ -1346,7 +1349,7 @@ export function quotesLiveBooks(q) {
   const d = q?.detail;
   if (!d) return [];
   return (d.books ?? []).map((/** @type {any} */ b) => ({
-    book: b.book, lastPrice: b.lastPrice, fair: b.fair, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
+    book: b.book, lastPrice: b.lastPrice, fair: b.fair, index: b.index ?? null, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
     realisedGbp: Number(b.realisedGbp) || 0,
     rungs: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => (r.held
       ? { side: r.side, k: r.k, mode: 'position', entry: r.held.avgEntry, heldSince: r.held.since, unrealisedGbp: r.held.unrealisedGbp ?? null }
@@ -1356,9 +1359,10 @@ export function quotesLiveBooks(q) {
 
 /**
  * The live page's INVENTORY: the account's pounds and coins as the executor last read them (balances, so what rests in
- * orders is included), each coin also in pounds at its book's last trade and with its unrealised against what it cost
- * (Davies, 2026-10-01: his account page shows it), which add up to the scoreboard's. Null when the turn could not read
- * them.
+ * orders is included), each coin also in pounds at the price it is valued at — its ticker's index price, as Revolut X's
+ * account page values it, or its book's last trade while no fresh index is to hand — and with its unrealised against
+ * what it cost (Davies, 2026-10-01: his account page shows it), which add up to the scoreboard's. Null when the turn
+ * could not read them.
  * @param {any} q  the dashboard's `quotes.live`
  * @param {(s: string) => string} [m]
  */
@@ -1371,6 +1375,8 @@ export function quotesLiveInventory(q, m = (s) => s) {
       asset: a.asset,
       amount: a.asset === 'GBP' ? m(fmtGbp(a.amount)) : m(fmtQuoteQty(a.amount, a.asset)),
       gbp: a.asset === 'GBP' || a.gbp == null ? null : m(fmtGbp(a.gbp)),
+      price: a.asset === 'GBP' || a.price == null ? null : m(fmtQuotePrice(a.price)),
+      priceFrom: a.asset === 'GBP' ? null : a.priceFrom ?? null,
       unrealisedGbp: a.asset === 'GBP' || a.unrealisedGbp == null ? null : Number(a.unrealisedGbp),
     })),
   };

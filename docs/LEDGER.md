@@ -141,11 +141,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      2026-10-01's own selection and closes 10-03 00:00, read by `prep_check_addendum1.sql` (pinned the same way; the
      same conditions, per day where they read a day). Today's selection needs 0074's two placeholder rows out of
      `pm_live_markets`, by the addendum's one statement (`delete from public.pm_live_markets where day = date
-     '2026-10-01' and reward_rate is null and max_spread is null;`): **the connector's execute_sql timed out twice
-     (20:00, 20:01 UTC) waiting for a confirmation this session never got, and nothing ran** — Davies runs it in the SQL
-     editor, or confirms it in the connector. **Next:** once it has run, read that the path chose 2026-10-01's markets
-     (one `selected_at`, a reward rate, `max_spread` set) and that `pm_prep_minutes` has `matched` rows; 10-02's
-     selection at 00:00 UTC (by 00:10); at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
+     '2026-10-01' and reward_rate is null and max_spread is null;`): Davies ran it in the SQL editor at ~20:22 UTC (the
+     connector's execute_sql timed out three times waiting for a confirmation that never reached him). The path chose
+     today's two markets at **20:23:00 UTC** in one run, inside the rules (rate $8 each, max spread 8.5 and 5.5, N 20,
+     formula $8 a day each, $35 of $40), with dry-run orders from 20:23, the layer two minutes behind and no fault. **The
+     window is 2026-10-01 21:00 → 10-03 00:00 UTC** (1,620 minutes: a1 ≥ 1,604, a2 ≤ 16). **Next:** 10-02's selection
+     at 00:00 UTC (by 00:10); at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
      deployed before 10-02 00:00 makes it `prep_check.sql`, as frozen); every row PASS → the go-time statement, word for
      word, on his word above; any FAIL → no go-live, fix and report. A fix deployed inside the window ends it as FAIL; the
      next full UTC day after the fix is the new window (the prereg's addendum first). (f) needs his funding (pUSD ≥ $81,
@@ -205,8 +206,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      opens a page of its own, in pounds — the scoreboard (the LIVE row's own figures), the paper page's BOOKS, INVENTORY
      (each coin with its unrealised), DAYS, ROUND TRIPS and ORDERS (no empty cancels, read so server-side; an entry by its
      side alone); TESTING's row opens the paper page. A round trip carries the conversion fee of the coins it sold (FIFO
-     per book, booked at its close); UNREALIZED and DEPLOYED are the account's coins against their cost. Every stablecoin
-     quotes row and page is in pounds; tab scoreboards and VENUES add them up in dollars.
+     per book, booked at its close). Coins are valued at Revolut X's ticker `index_price`, as the account values them
+     (`agent_quote_tickers`, `0078`, written by `books`; the last print when the index is over 10 minutes old): UNREALIZED
+     is the coins at the index against their cost, DEPLOYED the coins at the index plus the pounds its resting buys tie
+     up (Davies: "每一笔钱都quote出去了"). The paper tests' DEPLOYED is every rung at work (quoting rungs' share of the capital
+     plus what is held); their unrealised stays on what is held. Every stablecoin quotes row and page is in pounds; tab
+     scoreboards and VENUES add them up in dollars.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
@@ -354,10 +359,6 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
       at 16 pairs or after 2027-01-31 and then disables itself. **Count 2026-10-01 09:24 UTC: 2 pairs.**
 
 6. **Davies' to decide or to do; nothing waits on them:**
-   - **Reward quotes live-prep, now** (item 2, Addendum 1): run in the Supabase SQL editor, or confirm in the connector,
-     `delete from public.pm_live_markets where day = date '2026-10-01' and reward_rate is null and max_spread is null;`
-     (0074's two placeholders; the connector's execute_sql timed out twice waiting for a confirmation). The path then
-     chooses today's markets within a minute, and the window opens on the next full UTC hour.
    - **The errors box** (2026-10-01): 219 rows of one fault fixed at 09:35 fill its 24-hour summary until 09:35 UTC on
      10-02. Deleting them (one migration, kind `agents.pm_live`, 05:50–09:35, naming the China Open market) was refused
      by the session's permission classifier; his to approve, or click Acknowledge in the badge, or let them age out.
@@ -559,6 +560,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 20:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Stablecoin quotes value coins at Revolut X's index price, and DEPLOYED is every pound at work.** Davies, on two screenshots of his Revolut account beside PR5's live page: "这两个地方的UNREALIZED G/L为什么不一样，另外这里的DEPLOYED应该是120毕竟每一笔钱都quote出去了？", then "你这些做好后把testing页的几个Stablecoin quotes也同步". Measured: the account marks a coin at the ticker's `index_price` (USDT 0.7570, the index, where the mid was 0.7573), at its average cost with fees; the page marked at the last trade (0.7588 / 0.7576). At the index, USDC's unrealised is the account's; USDT's differs only by the round trip the page books as realised (−£0.0195) and the account folds into its average cost. `0078` adds `agent_quote_tickers` (a row a book, replaced), written by `books` after its levels from one keyless read of `/api/1.0/public/tickers` (none after a 429 or past the budget); the dashboard reads it, and an index more than 10 minutes old falls back to the last print (`liveIndexPrices`). The live page: UNREALIZED, BOOKS and INVENTORY at the index, the price beside each coin; DEPLOYED is the coins at the index and the pounds its resting buys tie up (`liveRestingBuysGbp`; the fixture £999.14 of £1,200, 83.26 %). The paper test and both variants: DEPLOYED is each quoting rung's share of the capital and what the held rungs hold (`quotesDeployed`), held rungs marked at the index; their unrealised percent stays on what is held, in the row and in TESTING's scoreboard and card (`heldUsd`), so the base did not move. VENUES' share bar leaves blank a slice too narrow even for its percent: with the quote tests' deployed, Polymarket's 2 % slice was 9 px on a phone and painted the middle of "2%" (counterfactual: the old slice fails the sweep's fit and pinch checks on the phone). Pinned: Deno 54 (coins at the index by hand, the resting buys, realised + unrealised = account value − capital, paper deployed, the ticker read's 429/503/budget), vitest 111 (the scoreboard's unrealised base unmoved by quoting rungs), the sweep (PR5 page £999.14 (83.26 %), BOOKS at the index, INVENTORY with its prices, TESTING $1,252 (22.53 %), the Revolut X card $1,221 (88.50 %), the variants' £2,727, the share bar 98 % / 2 % and the pinched slice; sums compared at the scoreboard's whole dollars from $1,000). **Not on main yet:** `docs/map.md` needs `0078`'s row, and reading that file was refused by the session's permission classifier at 19:58 UTC (while a migration that deleted rows was being prepared); Davies' word is asked for. Until then this commit is on `claude/relaxed-sagan-yuzaf0` only (no workflow runs on that branch); the row is the next commit, and the two go to main together.
 
 ### [2026-10-01 20:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

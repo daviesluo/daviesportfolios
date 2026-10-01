@@ -8,7 +8,8 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  liveBookGbp, liveCoinBooks, liveConversionShares, liveOrderReason, liveRungs, liveRungTrips, quotesLiveDetail, QUOTE_LIVE_ORDER_COLUMNS,
+  liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, QUOTE_LIVE_ORDER_COLUMNS,
+  QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
 } from "./index.ts";
 import type { OrderRow } from "./tick.ts";
@@ -572,6 +573,9 @@ Deno.test("quotesSummary: P&L on the $1,200 the quotes lock, today's apart, what
   assertAlmostEquals(q.todayGbp, 0.12 / 1.33, 1e-12);
   assertAlmostEquals(q.capitalGbp!, QUOTES_CAPITAL_USD / 1.33, 1e-9);
   assertEquals(q.openGbp, 75);
+  // Deployed is what its quotes have at work: four rungs share the $1,200 ($300 each); two quote, one holds £75.
+  assertAlmostEquals(q.deployedUsd, 75 * 1.33 + 2 * 300, 1e-9);
+  assertAlmostEquals(q.deployedGbp!, 75 + 600 / 1.33, 1e-9);
   // Each trip carries its size in coins, for the page's size column; a trip stored without one says so.
   assertEquals(q.recent.map((t) => t.qty), [79.4436, null, null]);
   const stale = quotesSummary({ ...st, last_minute: new Date(now - 10 * 60e3).toISOString() }, [], [], null, now, dayStart)!;
@@ -654,6 +658,17 @@ Deno.test("quotesSummary: each book's ladder for its page, held rungs marked at 
   // No print yet on a book that holds: its unrealised is unknown, not zero, and so is the total.
   const dark = quotesSummary({ ...st, state: { books: { "USDC-GBP": { ...st.state.books["USDC-GBP"], lastPrint: null } } } }, [], [], null, now, dayStart)!;
   assertEquals([dark.books[0].unrealisedUsd, dark.unrealisedUsd], [null, null]);
+  // With a fresh index price, what is held is marked at it, as Revolut X values coins (Davies, 2026-10-01); the dark
+  // book has a price again. The book says which index it used.
+  const at = quotesSummary(st, [], [], null, now, dayStart, [], QUOTES_CAPITAL_USD, { "USDC-GBP": 0.7546 })!;
+  assertEquals([at.books[0].index, at.books[1].index], [0.7546, null]);
+  assertAlmostEquals(at.books[0].unrealisedGbp!, 132.5 * (0.7546 - 0.7542), 1e-12);
+  assertAlmostEquals(at.books[1].unrealisedGbp!, 100 * (0.7560 - 0.7548), 1e-12);      // no index: the last print
+  const darkAt = quotesSummary({ ...st, state: { books: { "USDC-GBP": { ...st.state.books["USDC-GBP"], lastPrint: null } } } }, [], [], null, now, dayStart, [], QUOTES_CAPITAL_USD, { "USDC-GBP": 0.7546 })!;
+  assertAlmostEquals(darkAt.unrealisedGbp!, 132.5 * (0.7546 - 0.7542), 1e-12);
+  // Deployed: the five rungs share the $1,200 ($240 each); two quote, two hold their notional.
+  assertAlmostEquals(q.deployedUsd, (99.9315 + 75.6) * 1.32 + 2 * 240, 1e-9);
+  assertAlmostEquals(q.deployedGbp!, 99.9315 + 75.6 + 480 / 1.32, 1e-9);
 });
 
 Deno.test("quotesVariantSummary: arm main in exactly the shape of PR5's quotes, on its $3,600, with the keys' POSTs today and top5's totals beside it", () => {
@@ -821,7 +836,7 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   const f = liveFixture;
   const reads = liveReads(f);
   // deno-lint-ignore no-explicit-any
-  const base: any = { config: f.config, state: f.state, orders: reads.orders, paper: f.paper, nowMs: f.nowMs, dayStartMs: f.dayStartMs };
+  const base: any = { config: f.config, state: f.state, orders: reads.orders, paper: f.paper, nowMs: f.nowMs, dayStartMs: f.dayStartMs, tickers: f.tickers };
   const row = quotesLiveSummary(base)!;
   const d = quotesLiveDetail({ ...base, open: reads.open, recent: reads.recent })!;
   const x = 1.32;
@@ -837,15 +852,19 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertAlmostEquals(row.feesUsd!, (0.089694 + shareD) * x, 1e-12);
   // What it holds is the account's coins against their cost: USDC 263.6436 (the conversion's less B's 132 short), cost
   // £299.9304 less what B sold for; USDT 527.6436 (the conversion's and E's 132), cost £299.772 less D's booked share plus
-  // what E paid. Each marked at its book's last print.
+  // what E paid. Each valued at its ticker's index price, as Revolut X's account page values it: USDC £0.7575, USDT £0.7570.
   const usdcCost = 299.9304 - 132 * 0.7591, usdtCost = 299.772 - shareD + 132 * 0.7565;
-  const usdcValue = 263.6436 * 0.7576, usdtValue = 527.6436 * 0.7572;
+  const usdcValue = 263.6436 * 0.7575, usdtValue = 527.6436 * 0.757;
+  // Deployed is what its quotes have at work: the coins, and the pounds resting in its four buys (#111, #115–#117).
+  const restingBuys = 132 * 0.7576 + 132.11784 * 0.7569 + 132.25763 * 0.7561 + 132.39772 * 0.7553;
   assertAlmostEquals(row.costUsd!, (usdcCost + usdtCost) * x, 1e-9);
-  assertAlmostEquals(row.valueUsd!, (usdcValue + usdtValue) * x, 1e-9);
+  assertAlmostEquals(row.valueUsd!, (usdcValue + usdtValue + restingBuys) * x, 1e-9);
+  assertAlmostEquals(row.valueGbp, 999.139418, 1e-6);                         // 83.26 % of the £1,200
   assertAlmostEquals(row.unrealisedUsd!, (usdcValue - usdcCost + usdtValue - usdtCost) * x, 1e-9);
-  // …which is the rungs' marks and the conversions' own: B +0.198 and the USDC conversion 395.6436 × (0.7576 − 0.7574)
-  // less its fee; E +0.0924 and the USDT conversion 395.6436 × (0.7572 − 0.7570) less the part of its fee D has not taken.
-  assertAlmostEquals(row.unrealisedUsd! / x, 0.198 + 395.6436 * 0.0002 - 0.26993736 + 0.0924 + 395.6436 * 0.0002 - (0.2697948 - shareD), 1e-9);
+  // …which is the rungs' marks and the conversions' own, all at the index: B 132 × (0.7591 − 0.7575) and the USDC
+  // conversion 395.6436 × (0.7575 − 0.7574) less its fee; E 132 × (0.7570 − 0.7565) and the USDT conversion 395.6436 ×
+  // (0.7570 − 0.7570) less the part of its fee D has not taken.
+  assertAlmostEquals(row.unrealisedUsd! / x, 132 * 0.0016 + 395.6436 * 0.0001 - 0.26993736 + 132 * 0.0005 - (0.2697948 - shareD), 1e-9);
   // Realised and unrealised together are the account's value less its capital: £600.696306 and the coins, less £1,200.
   assertAlmostEquals((row.realisedUsd! + row.unrealisedUsd!) / x, 600.696306 + usdcValue + usdtValue - 1200, 1e-9);
   assertEquals([row.capitalUsd, row.lossStopGbp, row.openOrders, row.heldRungs, row.fills, row.postsToday.live, row.running], [1584, -12, 7, 2, 10, 18, true]);
@@ -860,12 +879,13 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertEquals(d.rungs[0].order, { id: 115, leg: "entry", price: 0.7569, state: "new" });
   const b = d.rungs[4], e = d.rungs[6];
   assertEquals([b.held!.base, b.held!.avgEntry, b.held!.since, b.order!.price], [132, 0.7591, "2026-09-17T20:00:00.000Z", 0.7576]);
-  assertAlmostEquals(b.held!.unrealisedUsd!, 0.198 * x, 1e-12);
-  assertAlmostEquals(e.held!.unrealisedUsd!, 0.0924 * x, 1e-12);
+  // What each holding has made, at its book's index price as the coins are: B 132 × (0.7591 − 0.7575), E 132 × (0.7570 − 0.7565).
+  assertAlmostEquals(b.held!.unrealisedUsd!, 132 * 0.0016 * x, 1e-12);
+  assertAlmostEquals(e.held!.unrealisedUsd!, 132 * 0.0005 * x, 1e-12);
   assertAlmostEquals(b.realisedGbp, 0, 1e-15);                                 // B's share of the conversion waits for its close
 
   // Each book's card: last trade and fair from the paper engine, its own realised and trips; the books add up to the row.
-  assertEquals(d.books.map((k) => [k.book, k.lastPrice, k.fair, k.trips, k.won]), [["USDC-GBP", 0.7576, 0.75766, 1, 1], ["USDT-GBP", 0.7572, 0.75727, 2, 1]]);
+  assertEquals(d.books.map((k) => [k.book, k.lastPrice, k.fair, k.index, k.trips, k.won]), [["USDC-GBP", 0.7576, 0.75766, 0.7575, 1, 1], ["USDT-GBP", 0.7572, 0.75727, 0.757, 2, 1]]);
   assertAlmostEquals(d.books[0].realisedUsd!, A * x, 1e-12);
   assertAlmostEquals(d.books[1].realisedUsd!, (C + D) * x, 1e-12);
   assertAlmostEquals(d.books[0].realisedUsd! + d.books[1].realisedUsd!, row.realisedUsd!, 1e-12);
@@ -900,7 +920,8 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertAlmostEquals(inv[1].gbp!, usdcValue, 1e-9);
   assertAlmostEquals(inv[2].gbp!, usdtValue, 1e-9);
   assertAlmostEquals(inv[1].costGbp!, usdcCost, 1e-9);
-  assertAlmostEquals((inv[1].gbp! + inv[2].gbp!) * x, row.valueUsd!, 1e-9);
+  assertEquals(inv.map((a) => [a.price, a.priceFrom]), [[null, null], [0.7575, "index"], [0.757, "index"]]);
+  assertAlmostEquals((inv[1].gbp! + inv[2].gbp! + restingBuys) * x, row.valueUsd!, 1e-9);
   assertAlmostEquals(inv[1].unrealisedUsd! + inv[2].unrealisedUsd!, row.unrealisedUsd!, 1e-12);
   assertEquals([inv[0].unrealisedGbp, inv[0].costGbp], [null, null]);
 
@@ -955,6 +976,28 @@ Deno.test("withConversionFees: a trip's conversion fee goes on the fill that bri
   assertAlmostEquals(trips[0].feesGbp, 0.04, 1e-15);
 });
 
+Deno.test("liveIndexPrices and liveRestingBuysGbp: a fresh index prices the coins; the open buys' unfilled pounds are at work", () => {
+  const now = Date.UTC(2026, 9, 1, 19, 40);
+  const at = (msAgo: number) => new Date(now - msAgo).toISOString();
+  assertEquals(liveIndexPrices([
+    { book: "USDC-GBP", index_price: "0.7575", ts: at(60e3) },
+    { book: "USDT-GBP", index_price: 0.757, ts: at(QUOTE_TICKER_FRESH_MS) },        // at the limit: still fresh
+    { book: "BTC-GBP", index_price: 60000, ts: at(0) },                             // not a quotes book
+  ], now), { "USDC-GBP": 0.7575, "USDT-GBP": 0.757 });
+  assertEquals(liveIndexPrices([{ book: "USDT-GBP", index_price: 0.757, ts: at(QUOTE_TICKER_FRESH_MS + 1) }], now), {});   // stale: the last trade instead
+  assertEquals(liveIndexPrices([{ book: "USDT-GBP", index_price: 0, ts: at(0) }], now), {});
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: at(0), mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", state: "new",
+    base_size: 132, filled_base: 0, avg_fill_price: null, price: 0.75, fee_gbp: 0, filled_at: null, ...over,
+  });
+  assertAlmostEquals(liveRestingBuysGbp([
+    o(1, {}),                                                                        // £99
+    o(2, { state: "partially_filled", filled_base: 32 }),                             // 100 left: £75
+    o(3, { state: "pending" }),                                                       // sent, unanswered: £99
+    o(4, { side: "sell" }), o(5, { state: "filled", filled_base: 132 }), o(6, { mode: "dry_run" }),
+  ]), 132 * 0.75 + 100 * 0.75 + 132 * 0.75, 1e-12);
+});
+
 Deno.test("liveCoinBooks: the account's coins against what they cost; the book's own count where its balances went unread", () => {
   const day = Date.UTC(2026, 9, 1), h = 3600e3;
   const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
@@ -979,6 +1022,11 @@ Deno.test("liveCoinBooks: the account's coins against what they cost; the book's
   assertEquals(read.find((c) => c.coin === "USDC")!.unrealisedGbp, 0);
   // Unread: the book's own count, 100 bought less 10 sold.
   assertEquals(liveCoinBooks(orders, rungs, null).find((c) => c.coin === "USDT")!.coins, 90);
+  // With a fresh index price, the coins are valued at it, as Revolut X's account page values them.
+  const atIndex = liveCoinBooks(orders, rungs, { USDT: 90 }, { "USDT-GBP": 0.756 }).find((c) => c.coin === "USDT")!;
+  assertEquals([atIndex.mark, atIndex.markFrom], [0.756, "index"]);
+  assertAlmostEquals(atIndex.unrealisedGbp!, 90 * 0.756 - (76.0684 - 7.62), 1e-12);
+  assertEquals(usdt.markFrom, "last trade");
   // No print: valued at its cost, its unrealised unknown, and counted unmarked.
   const dark = { ...paper, state: { books: { ...paper.state.books, "USDT-GBP": { lastX: 1.3, lastPrint: null } } } };
   // deno-lint-ignore no-explicit-any

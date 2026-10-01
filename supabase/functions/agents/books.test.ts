@@ -2,7 +2,7 @@
 // stored only when it changed, and the public bucket (about a token a second) never asked for two books at once.
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { bookLevels, bookOrder, BOOK_SYMBOLS, BOOKS_BUDGET_MS, BOOKS_GAP_MS, BOOKS_START_MS, booksDelayMs, runBooks, sameBook } from "./books.ts";
+import { bookLevels, bookOrder, BOOK_SYMBOLS, BOOKS_BUDGET_MS, BOOKS_GAP_MS, BOOKS_START_MS, booksDelayMs, runBooks, sameBook, TICKER_BOOKS, tickerRows } from "./books.ts";
 import { memDb } from "./testing.ts";
 
 // USDC-USD as the public endpoint served it on 2026-09-26 (levels trimmed), with the asks' order shuffled.
@@ -14,13 +14,23 @@ const served = (bid: string) => ({
   metadata: { region: "UK", timestamp: 1790445914507 },
 });
 
+// The GBP tickers as the public endpoint served them on 2026-10-01 19:34 UTC, with an EEA row the UK's reader drops.
+const servedTickers = (usdtIndex: string) => ({
+  data: [
+    { symbol: "USDT/GBP", bid: "0.7571", ask: "0.7575", mid: "0.7573", index_price: usdtIndex, last_price: "0.7573", region: "UK" },
+    { symbol: "USDC/GBP", bid: "0.7574", ask: "0.7579", mid: "0.7576", index_price: "0.7575", last_price: "0.7574", region: "UK" },
+    { symbol: "USDT/GBP", bid: "0.7601", ask: "0.7609", mid: "0.7605", index_price: "0.7604", last_price: "0.7605", region: "EEA" },
+  ],
+  metadata: { timestamp: 1790883284592 },
+});
+
 /**
- * A venue on a fake clock: each request takes `latencyMs`, `status(book)` decides its answer, and it counts how many
- * requests are in flight at once and when each one started.
+ * A venue on a fake clock: each request takes `latencyMs`, `status(book)` decides its answer ("tickers" for the tickers'
+ * read), and it counts how many requests are in flight at once and when each one started.
  */
 function venue(t0: number, status: (book: string) => number = () => 200, latencyMs = 150) {
   let t = t0, inFlight = 0;
-  const v = { bid: "0.9999", maxInFlight: 0, calls: [] as Array<{ book: string; at: number }>, pauses: [] as number[] };
+  const v = { bid: "0.9999", usdtIndex: "0.7570", maxInFlight: 0, calls: [] as Array<{ book: string; at: number }>, pauses: [] as number[] };
   const clock = () => t;
   const pause = (ms: number) => { v.pauses.push(ms); t += ms; return Promise.resolve(); };
   const fetchImpl = (async (input: string | URL | Request) => {
@@ -34,7 +44,8 @@ function venue(t0: number, status: (book: string) => number = () => 200, latency
     t += latencyMs;
     inFlight--;
     const s = status(book);
-    return new Response(s === 200 ? JSON.stringify(served(v.bid)) : "no", { status: s });
+    if (book === "tickers" && u.searchParams.get("symbols") !== "USDC-GBP,USDT-GBP") return new Response("wrong symbols", { status: 400 });
+    return new Response(s === 200 ? JSON.stringify(book === "tickers" ? servedTickers(v.usdtIndex) : served(v.bid)) : "no", { status: s });
   }) as typeof fetch;
   return { v, clock, pause, fetchImpl, advance: (ms: number) => { t += ms; } };
 }
@@ -51,13 +62,13 @@ Deno.test("bookLevels reads the public book best level first, with each level's 
 });
 
 Deno.test("runBooks stores a book when it changes, extends the row while it stands still, and a book it cannot read skips alone", async () => {
-  const { db, tables } = memDb({ agent_book_levels: [] }, { now: () => Date.now() });
+  const { db, tables } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
   const t0 = Date.UTC(2026, 8, 27, 10, 0, 40);
   let down = "";
   const w = venue(t0, (b) => (b === down ? 503 : 200));
   const run = () => runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
   const r1 = await run();
-  assertEquals([r1.recorded, r1.unchanged, r1.errors, r1.skipped], [4, 0, [], []]);
+  assertEquals([r1.recorded, r1.unchanged, r1.errors, r1.skipped, r1.tickers], [4, 0, [], [], 2]);
   w.advance(60e3);
   const r2 = await run();
   assertEquals([r2.recorded, r2.unchanged], [0, 4]);
@@ -67,12 +78,20 @@ Deno.test("runBooks stores a book when it changes, extends the row while it stan
   assertEquals([r3.recorded, r3.unchanged, r3.errors], [3, 0, ["USDT-GBP: 503"]]);
   assertEquals(tables.agent_book_levels.length, 7);
   // USDC-USD, by hand: 10:00 is a minute divisible by four, so it goes first (read at :40.000, answered at :40.150).
-  // Run 2 starts where run 1 ended (:43.900) plus a minute; 10:01 turns the order by one, so USDC-USD goes fourth,
-  // three gaps later: 10:01:47.650, answered at :47.800. Run 3 starts at 10:02:47.800 and reads it third: :50.450.
+  // The reads start a gap (1.25 s) apart and take 0.15 s, and each run ends with the tickers' read a gap after its last
+  // book: run 1's books start at :40.000, :41.250, :42.500 and :43.750, its tickers at :45.000, answered at :45.150.
+  // Run 2 starts a minute later, 10:01:45.150; 10:01 turns the order by one, so USDC-USD goes fourth, three gaps on:
+  // :48.900, answered at :49.050, and its tickers end at :50.300. Run 3 starts at 10:02:50.300 and reads USDC-USD third,
+  // two gaps on: :52.800, answered at :52.950; its tickers start at :55.300 and are answered at :55.450.
   const usdc = tables.agent_book_levels.filter((r) => r.book === "USDC-USD");
   assertEquals(usdc.map((r) => [r.ts, r.seen_until, r.reads]), [
-    ["2026-09-27T10:00:40.150Z", "2026-09-27T10:01:47.800Z", 2],
-    ["2026-09-27T10:02:50.450Z", "2026-09-27T10:02:50.450Z", 1],
+    ["2026-09-27T10:00:40.150Z", "2026-09-27T10:01:49.050Z", 2],
+    ["2026-09-27T10:02:52.950Z", "2026-09-27T10:02:52.950Z", 1],
+  ]);
+  // The tickers: one row a book, the latest read, the UK's index price.
+  assertEquals(tables.agent_quote_tickers.map((r) => [r.book, r.index_price, r.mid, r.ts]).sort(), [
+    ["USDC-GBP", 0.7575, 0.7576, "2026-09-27T10:02:55.450Z"],
+    ["USDT-GBP", 0.757, 0.7573, "2026-09-27T10:02:55.450Z"],
   ]);
   // USDT-GBP could not be read at 10:02: its row still ends where it was last seen.
   assertEquals(tables.agent_book_levels.filter((r) => r.book === "USDT-GBP").map((r) => r.reads), [2]);
@@ -81,26 +100,27 @@ Deno.test("runBooks stores a book when it changes, extends the row while it stan
 
 Deno.test("runBooks never asks for two books at once, and spaces its reads a little more than a token a second", async () => {
   // Pins the fix of 2026-09-26: the first version sent all four at :00 and lost three of them to 429 every minute.
-  const { db } = memDb({ agent_book_levels: [] }, { now: () => Date.now() });
+  const { db } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
   const w = venue(Date.UTC(2026, 8, 27, 10, 3, 40));
   const r = await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
-  assertEquals(r.recorded, 4);
+  assertEquals([r.recorded, r.tickers], [4, 2]);
   assertEquals(w.v.maxInFlight, 1);
-  assertEquals(w.v.calls.map((c) => c.book), bookOrder(Date.UTC(2026, 8, 27, 10, 3, 40)));
+  // The four books, then the tickers: five reads, one at a time, the same gap apart.
+  assertEquals(w.v.calls.map((c) => c.book), [...bookOrder(Date.UTC(2026, 8, 27, 10, 3, 40)), "tickers"]);
   const gaps = w.v.calls.slice(1).map((c, i) => c.at - w.v.calls[i].at);
-  assertEquals(gaps, [BOOKS_GAP_MS, BOOKS_GAP_MS, BOOKS_GAP_MS]);
+  assertEquals(gaps, [BOOKS_GAP_MS, BOOKS_GAP_MS, BOOKS_GAP_MS, BOOKS_GAP_MS]);
 });
 
 Deno.test("a 429 ends the minute's reads, and the next minute starts at another book", async () => {
-  const { db, tables } = memDb({ agent_book_levels: [] }, { now: () => Date.now() });
+  const { db, tables } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
   const t0 = Date.UTC(2026, 8, 27, 10, 0, 40);
   let busy = true;
   const w = venue(t0, () => (busy ? 429 : 200));
   const first = bookOrder(t0);
   const r1 = await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
   assertEquals([r1.recorded, r1.errors, r1.skipped], [0, [`${first[0]}: 429`], first.slice(1)]);
-  assertEquals(w.v.calls.length, 1);                    // nothing more was asked of the bucket that minute
-  assertEquals(tables.agent_book_levels.length, 0);
+  assertEquals(w.v.calls.length, 1);                    // nothing more was asked of the bucket that minute, tickers included
+  assertEquals([tables.agent_book_levels.length, tables.agent_quote_tickers.length, r1.tickers], [0, 0, 0]);
   busy = false;
   w.advance(60e3);
   const r2 = await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
@@ -109,11 +129,12 @@ Deno.test("a 429 ends the minute's reads, and the next minute starts at another 
 });
 
 Deno.test("a slow venue stops the reads once the budget is spent, so a run ends inside its cron call", async () => {
-  const { db } = memDb({ agent_book_levels: [] }, { now: () => Date.now() });
+  const { db } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
   const w = venue(Date.UTC(2026, 8, 27, 10, 5, 40), () => 200, 5_000);
   const r = await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
-  // Reads start at 0, 5 and 10 s; the fourth would start at 15 s, past the 12 s budget.
-  assertEquals([r.recorded, r.skipped.length], [3, 1]);
+  // Reads start at 0, 5 and 10 s; the fourth would start at 15 s, past the 12 s budget, and so would the tickers'.
+  assertEquals([r.recorded, r.skipped.length, r.tickers], [3, 1, 0]);
+  assertEquals(w.v.calls.some((c) => c.book === "tickers"), false);
   assertEquals(BOOKS_BUDGET_MS, 12e3);
 });
 
@@ -128,4 +149,30 @@ Deno.test("the cron call waits until 40 s into the minute, and not at all past i
   assertEquals(bookOrder(m).length, 4);
   assertEquals(bookOrder(m + 60e3)[0], bookOrder(m)[1]);
   assertEquals(bookOrder(m + 4 * 60e3), bookOrder(m));
+});
+
+Deno.test("tickerRows keeps the two GBP books' UK index price; a ticker refused or unreadable stores nothing and says so", async () => {
+  const at = "2026-10-01T19:34:44.000Z";
+  assertEquals(tickerRows(servedTickers("0.7570"), at), [
+    { book: "USDT-GBP", index_price: 0.757, bid: 0.7571, ask: 0.7575, mid: 0.7573, last_price: 0.7573, ts: at },
+    { book: "USDC-GBP", index_price: 0.7575, bid: 0.7574, ask: 0.7579, mid: 0.7576, last_price: 0.7574, ts: at },
+  ]);
+  assertEquals(TICKER_BOOKS, ["USDC-GBP", "USDT-GBP"]);
+  // No index price, another book, or no data: no row.
+  assertEquals(tickerRows({ data: [{ symbol: "USDT/GBP", index_price: "0", region: "UK" }, { symbol: "BTC/GBP", index_price: "60000" }] }, at), []);
+  assertEquals(tickerRows({ data: "x" }, at), []);
+  for (const [status, want] of [[429, "tickers: 429"], [503, "tickers: 503"]] as const) {
+    const { db, tables } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
+    const w = venue(Date.UTC(2026, 8, 27, 10, 9, 40), (b) => (b === "tickers" ? status : 200));
+    const r = await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
+    assertEquals([r.recorded, r.tickers, r.errors, tables.agent_quote_tickers.length], [4, 0, [want], 0]);
+  }
+  // A later read replaces the book's row: one row a book, the latest.
+  const { db, tables } = memDb({ agent_book_levels: [], agent_quote_tickers: [] }, { now: () => Date.now() });
+  const w = venue(Date.UTC(2026, 8, 27, 10, 9, 40));
+  await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
+  w.v.usdtIndex = "0.7566";
+  w.advance(60e3);
+  await runBooks({ db, clock: w.clock, pause: w.pause, fetchImpl: w.fetchImpl });
+  assertEquals(tables.agent_quote_tickers.filter((r) => r.book === "USDT-GBP").map((r) => r.index_price), [0.7566]);
 });

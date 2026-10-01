@@ -144,10 +144,13 @@ places stay when the number is not whole.
   four-week paper test of resting quotes 0.1–0.3 % either side of the
   interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
   minute. Its row reads like a strategy's, in pounds, on the $1,200 the
-  quotes would tie up (in pounds at the day's rate); its dot turns amber if
+  quotes would tie up (in pounds at the day's rate). Deployed is every pound
+  at work: each quoting rung's share of the $1,200 and what the rungs holding
+  coins hold; unrealised is a percent of what is held. Its dot turns amber if
   it stops. Tap it for its page, in pounds: the same scoreboard, then BOOKS,
   each book's six rungs (the price each quotes, or what it holds and has
-  made at the last trade), then DAYS — each UTC day,
+  made at Revolut X's index price, the price the account values coins at;
+  each book's head shows its last trade, fair and index), then DAYS — each UTC day,
   newest first: the orders it placed (of the 1,000 a day the exchange
   allows), its fills, the round trips that closed and what they made;
   today's row is TODAY above, and the days add up to REALIZED — and the
@@ -163,16 +166,18 @@ places stay when the number is not whole.
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper
   test: the same scoreboard as its row, with the day's loss stop (1 % of
-  the capital) beside today. Deployed is the coins in the account at each
-  book's last trade, and unrealised is those coins against what they cost:
-  the pounds the conversions paid for them, fee included, and what the
-  rungs holding paid or sold for. The fees beside realised include the
-  conversion fee of the coins each round trip sold. Then BOOKS, as on the
-  paper test's page: each book's six rungs, each with the price of the
-  order resting on it, or what it holds and has made at the last trade.
-  INVENTORY: the pounds and coins in the account, each coin also in pounds
-  and with its unrealised; the coins add up to deployed and their
-  unrealised to the scoreboard's. DAYS: each UTC day's orders, entry
+  the capital) beside today. Deployed is every pound at work: the coins in
+  the account at Revolut X's index price (the price the account values them
+  at; the last trade when the index is more than ten minutes old) and the
+  pounds its resting buys tie up. Unrealised is those coins at the index
+  against what they cost: the pounds the conversions paid for them, fee
+  included, and what the rungs holding paid or sold for. The fees beside
+  realised include the conversion fee of the coins each round trip sold.
+  Then BOOKS, as on the paper test's page: each book's six rungs, each with
+  the price of the order resting on it, or what it holds and has made at
+  the index. INVENTORY: the pounds and coins in the account, each coin also
+  in pounds at the index price shown beside it, and with its unrealised;
+  their unrealised add up to the scoreboard's. DAYS: each UTC day's orders, entry
   fills, round trips and what it realised, which add up to realised. Then
   its round trips (entry, exit, size, fees and what each made: a round
   trip that sold coins a conversion bought carries that conversion's fee

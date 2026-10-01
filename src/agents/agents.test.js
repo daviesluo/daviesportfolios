@@ -806,6 +806,15 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(testing.unrealisedOf).toBe('cost and deployed');
     expect(testing.unrealisedBase).toBeCloseTo(29.9 + 99.75 + 14.4, 10);   // the three paper rows' cost, plus what the tests hold
     expect(testing.unrealisedPct).toBeCloseTo(testing.unrealisedUsd / testing.unrealisedBase * 100, 9);
+    // Davies, 2026-10-01: the quotes' DEPLOYED is every rung at work, eleven quoting at $100 and the held one, $1,199.75. The
+    // scoreboard and the Revolut X card add that, and their unrealised stays on what is held: the base does not move.
+    const qd = quotesRow({ capitalUsd: 1200, openUsd: 99.75, deployedUsd: 1199.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
+    const testingD = scoreboardView(dash, 'testing', [qd, w]);
+    expect(testingD.valueUsd).toBeCloseTo(paper.valueUsd + 1199.75 + 14.4, 10);
+    expect(testingD.unrealisedBase).toBeCloseTo(testing.unrealisedBase, 10);
+    const revxD = venueRows(dash, 'testing', [qd, w]).find((c) => c.id === 'revx');
+    expect(revxD?.valueUsd).toBeCloseTo((venueRows(dash, 'testing', [q, w]).find((c) => c.id === 'revx')?.valueUsd ?? NaN) + 1100, 10);
+    expect(revxD?.unrealisedPct).toBeCloseTo(venueRows(dash, 'testing', [q, w]).find((c) => c.id === 'revx')?.unrealisedPct ?? NaN, 10);
     // Each tab adds the rows its caller hands it: the page hands TESTING the paper tests and LIVE only PR5's live executor.
     expect(scoreboardView(dash, 'live').capitalUsd).toBe(50);
     const cards = venueRows(dash, 'testing', [q, w]);
@@ -963,6 +972,10 @@ describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
     expect(x.todayPct).toBeCloseTo((0.09 / 900) * 100, 12);
     expect(x.unrealisedPct).toBeCloseTo((0.105 / 74.8) * 100, 12);
     expect(glTextIn(x.realised, x.realisedPct, x.ccy)).toBe('+£0.36 (+0.04%)');
+    // Deployed is what its quotes have at work, when the server says (Davies, 2026-10-01): every pound quoted out.
+    const dep = rowMoney(quotesRow({ ...g, deployedUsd: 1199.75, deployedGbp: 899.81 }));
+    expect([dep.value, quotesRow({ ...g, deployedUsd: 1199.75 })?.valueUsd]).toEqual([899.81, 1199.75]);
+    expect(dep.unrealisedPct).toBeCloseTo((0.105 / 74.8) * 100, 12);                  // unrealised stays on what is held
     // Before the books have a rate it stays in dollars, as every other row is.
     expect(rowMoney(quotesRow(q))).toMatchObject({ ccy: 'USD', capital: 1200, value: 99.75, realised: 0.42 });
     expect([fmtIn(1200, 'GBP'), fmtIn(1200, 'USD'), fmtIn(-0.5, 'GBP', true), fmtIn(0.5, undefined, true)]).toEqual(['£1,200', '$1,200', '-£0.50', '+$0.50']);
@@ -1426,27 +1439,31 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
   });
   it("lays each book out as the paper page's BOOKS: a rung held at its entry, one quoting its order's price, the rest idle", () => {
     const books = quotesLiveBooks(q);
-    expect(books.map((b) => [b.book, b.lastPrice, b.fair, b.trips, b.won])).toEqual([['USDC-GBP', 0.7576, 0.75766, 1, 1], ['USDT-GBP', 0.7572, 0.75727, 2, 1]]);
+    expect(books.map((b) => [b.book, b.lastPrice, b.fair, b.index, b.trips, b.won])).toEqual([['USDC-GBP', 0.7576, 0.75766, 0.7575, 1, 1], ['USDT-GBP', 0.7572, 0.75727, 0.757, 2, 1]]);
     const [usdc, usdt] = books.map((b) => quoteLadderRows(b));
     expect(usdc.map((r) => [r.label, r.bid.state, r.bid.price, r.ask.state, r.ask.price])).toEqual([
       ['0.1 %', 'quoting', 0.7569, 'quoting', 0.7585],
       ['0.2 %', 'quoting', 0.7561, 'held', 0.7591],                        // B: sold 132 at 0.7591, its exit resting
       ['0.3 %', 'quoting', 0.7553, 'quoting', 0.76],
     ]);
-    expect(usdc[1].ask.unrealisedGbp).toBeCloseTo(132 * (0.7591 - 0.7576), 12);
+    // What a holding has made, at its book's index price as the coins are valued: B 132 × (0.7591 − 0.7575).
+    expect(usdc[1].ask.unrealisedGbp).toBeCloseTo(132 * (0.7591 - 0.7575), 12);
     // USDT's guard withdrew its entries: E holds on the 0.1 % bid, every other rung is idle.
     expect(usdt.map((r) => [r.bid.state, r.ask.state])).toEqual([['held', 'idle'], ['idle', 'idle'], ['idle', 'idle']]);
-    expect(usdt[0].bid.unrealisedGbp).toBeCloseTo(132 * (0.7572 - 0.7565), 12);
+    expect(usdt[0].bid.unrealisedGbp).toBeCloseTo(132 * (0.757 - 0.7565), 12);
     // The books' realised, in pounds, add up to the LIVE row's.
     expect(books[0].realisedGbp + books[1].realisedGbp).toBeCloseTo(q.realisedGbp, 12);
     expect(quotesLiveBooks({ ...q, detail: null })).toEqual([]);
   });
-  it("shows the account's coins as its last turn read them, each in pounds and with its unrealised, which add up to UNREALIZED", () => {
+  it("shows the account's coins as its last turn read them, each at its index price and with its unrealised, which add up to UNREALIZED", () => {
     const inv = quotesLiveInventory(q);
-    expect(inv?.rows.map((a) => [a.asset, a.amount, a.gbp])).toEqual([['GBP', '£600.70', null], ['USDC', '263.64 USDC', '£199.74'], ['USDT', '527.64 USDT', '£399.53']]);
+    // Valued at the tickers' index prices, as Revolut X's account page values them: USDC £0.7575, USDT £0.7570.
+    expect(inv?.rows.map((a) => [a.asset, a.amount, a.gbp, a.price, a.priceFrom])).toEqual([
+      ['GBP', '£600.70', null, null, null], ['USDC', '263.64 USDC', '£199.71', '£0.7575', 'index'], ['USDT', '527.64 USDT', '£399.43', '£0.7570', 'index'],
+    ]);
     expect(inv?.rows[0].unrealisedGbp).toBe(null);
     expect(/** @type {number} */ (inv?.rows[1].unrealisedGbp) + /** @type {number} */ (inv?.rows[2].unrealisedGbp)).toBeCloseTo(q.unrealisedGbp, 12);
-    expect(quotesLiveInventory(q, mask)?.rows[1]).toMatchObject({ asset: 'USDC', amount: '•••.•• USDC', gbp: '£•••.••' });
+    expect(quotesLiveInventory(q, mask)?.rows[1]).toMatchObject({ asset: 'USDC', amount: '•••.•• USDC', gbp: '£•••.••', price: '£•.••••' });
     expect(quotesLiveInventory({ ...q, detail: { ...q.detail, inventory: { at: null, assets: null } } })).toBe(null);
   });
   it("puts the LIVE row's own figures on its page's scoreboard", () => {
