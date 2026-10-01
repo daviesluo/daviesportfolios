@@ -373,9 +373,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    bundle, his call), 9 open. Worth doing, in order: the app icon; one shared Trading 212 ticker map; a plausibility
    band on quotes; error boundaries per surface; and item 3 measured before it is touched. Seven questions there wait
    on Davies, the first whether `APP_AUTH_SECRET` was rotated with the two passwords.
-   - **10-01, after 10:00 UTC:** the recorders' first audits of each other run (09:30 and 10:00). With the Trading 212
-     retry deployed both should pass (≥ 90 % of the buckets owed); read `ops_errors` for kind `recorder.watch`, and if
-     either is short, count the night's buckets as the 2026-09-30 history entry did before changing anything.
+   - **10-01: the recorders' first audits of each other pass** (read 10:22 UTC). The night of 10-01, 00:00–08:00 UTC:
+     `overnight_intraday_points` 96 of 96 buckets, `price_snapshots` 96 of 96, both 96 (65/30/15 and 71/54/29 on the
+     two nights before the Trading 212 retry); `price_snapshots` 288 of 288 in the 24 hours to 09:20; no `recorder.watch`
+     row has ever been written. The retry closed the overnight gap.
 
 8. **US equities at Trading 212: nothing to run** (EQ1, EQ2, DFC, DAT; reference §3.44–§3.45). Davies, 2026-10-01: the Invest
    account is USD (no FX on US instruments), the ISA GBP; research deeply, and a trading key follows only if something
@@ -502,6 +503,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 10:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The recorders' first audits pass, and RW, RW-E and RW-X are healthy** (the 10:20 wake; items 7 and 2; read-only, no market-level figure). Recorders: item 7's line. RW: `last_minute` 10:20 at 10:22, no `last_error`; today's selection 14 rows, made at 00:00:00.65; `pm_rw_days` 7 rows, the last 09-30. RW-E: `last_minute` 10:19, no error, `checkMaxUsd` 0, `diverged` empty. RW-X: `last_minute` 10:19, no error, `checkMaxUsd` 0 and `checkEMaxUsd` 0 over 6 days; arms' `diverged`: rw 0, e 0, x1 0, x2 5, x3 3 (the pause arms replaying a market on their own after a pause, by design). pg_net keeps about six hours of replies: 4,895, of which 5 were 503 `BOOT_ERROR` in eu-west-2, and the edge logs name their calls: `pmrw-x` (04:28, 08:40), `pmrwc-x` (04:40), `pmrwc-e` (08:49) and `quotes` (09:28) — replays that catch up on their next call, RW-C calls that do nothing before 10-08, and PR5's engine, current at 10:22 with no error. None was `pmrw-select`, the tick or the order path (eu-west-1). The page's "fills and total differ" warning was not read: the page needs the app's password.
 
 ### [2026-10-01 09:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
