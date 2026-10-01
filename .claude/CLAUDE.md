@@ -683,8 +683,9 @@ that follow from that evidence, in short:
   tests for `docs/`, whose pre-registrations and fixtures they read);
   anything else every gate. Everything runs at once: the checks that
   read the source beside the bundle's line — built, then the browser
-  sweep's desktop and phone halves (each on a port of its own), the perf
-  matrix and the size budget together. Each step prints its seconds.
+  sweep in shards (each a viewport and a group of its parts,
+  `SWEEP_PART`), the perf matrix and the size budget together, each on a
+  port the system has free. Each step prints its seconds.
   `--full` forces every gate. CI runs every gate on every push either
   way.
 - Cloudflare Pages Git builds (watch paths `dist/*` when set in the
@@ -759,11 +760,14 @@ from anywhere in the repository (`--full`: every one).
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
   `src/e2e/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (242 checks). A hard CI
+  drives it in real Chromium at both breakpoints (487 checks). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that
   ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` instead.
+  `sh bin/gates.sh` runs it in shards at once, each a viewport
+  (`SWEEP_VIEWPORT`) and some of its parts (`SWEEP_PART`) on a free port
+  (`SWEEP_PORT=0`); unset, one process runs it whole, as CI does.
   Every bug it has caught was live while `npm test` and the Edge suite
   were green, because each was an integration failure.
 - `npm run verify:perf` — the performance-panel matrix in

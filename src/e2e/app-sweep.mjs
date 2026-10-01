@@ -47,6 +47,11 @@
 //
 // It needs Chromium once per machine (`npx playwright install chromium`);
 // a container that ships its own can set PLAYWRIGHT_CHROMIUM_PATH instead.
+//
+// `bin/gates.sh` runs it in shards at once instead: each process takes one
+// viewport (`SWEEP_VIEWPORT`) and some of the sweep's parts (`SWEEP_PART`,
+// named in PARTS below), on a port the system has free (`SWEEP_PORT=0`).
+// Unset, one process runs every part at both widths, as CI does.
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -69,7 +74,28 @@ const ONLY = process.env.SWEEP_VIEWPORT || '';
 if (ONLY && ONLY !== 'desktop' && ONLY !== 'phone') throw new Error(`SWEEP_VIEWPORT is desktop or phone, not ${ONLY}`);
 const runs = (/** @type {string} */ name) => !ONLY || ONLY === name;
 const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phone', width: 390, height: 844 }].filter((vp) => runs(vp.name));
-const PORT = Number(process.env.SWEEP_PORT) || 8932;
+/**
+ * `SWEEP_PART` runs some of the sweep's parts and not the others, so `bin/gates.sh` can run it as several processes at
+ * once (Davies, 2026-10-01: "还有没有可以一起并行跑的内容"): a run is nine tenths waiting on its pages, not working the
+ * CPU, so processes side by side finish in the time of the longest. The parts are the sections that open pages of their
+ * own, named below in the order they run; `main` is sections 1–8, which share one page per viewport. A comma-separated
+ * list runs the parts named; `-name` leaves one out, so a list of `-` names alone runs every part but those (the shard
+ * that takes what the others do not, a part added later included). Unset, every part runs, as CI runs them. A part
+ * leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the same thing
+ * whatever ran before it.
+ */
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'main', 'viewer'];
+const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
+for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
+const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
+/** The viewports a part's section runs at: every one this run has, or none when the part is not picked. */
+const viewports = (/** @type {string} */ name) => (part(name) ? VIEWPORTS : []);
+/**
+ * The port the bundle is served on. `SWEEP_PORT=0` takes one the system has free, read back once the server listens, so
+ * runs side by side never ask for the same one: gates.sh's shards do, and a fixed pair collided whenever two gate runs,
+ * or a gate run and a sweep by hand, shared a machine.
+ */
+let PORT = process.env.SWEEP_PORT === '0' ? 0 : Number(process.env.SWEEP_PORT) || 8932;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -1108,6 +1134,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
 
 async function run() {
   await new Promise((r) => server.listen(PORT, r));
+  PORT = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
   // Let Playwright resolve its own browser (what CI does after
   // `playwright install chromium`). A container that ships a prebuilt
   // Chromium instead can point at it with PLAYWRIGHT_CHROMIUM_PATH —
@@ -1130,7 +1157,7 @@ async function run() {
   // replace it. Held until released, not for a fixed 700 ms: the hold starts
   // when the board first mounts, and a page whose code has already arrived is
   // drawn at once (lazyPage) — which is right, and not what this checks.
-  if (runs('desktop')) {
+  if (runs('desktop') && part('frame')) {
     /** @type {() => void} */
     let releaseCode = () => {};
     const codeHeld = new Promise((r) => { releaseCode = r; });
@@ -1165,7 +1192,7 @@ async function run() {
   // itself once (after refreshing the chunk and dropping its caches), report
   // `chunk.load` and never `render.crash`, show no RENDER ERROR screen, and
   // open the page after the reload.
-  if (runs('desktop')) {
+  if (runs('desktop') && part('recovery')) {
     let poisonedOnce = false;
     const poison = async (page) => {
       await page.route('**/assets/holdings_list-*.js', async (route) => {
@@ -1210,7 +1237,7 @@ async function run() {
   // the page has settled: the button must bring it in at once, and the app's
   // own refresh must once the 24H window's five minutes have passed (driven
   // through its return-to-the-tab catch-up, the tick's own code path).
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('perf-refresh')) {
     const S = (n) => `${vp.name}/perf-refresh/${n}`;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
     const spReading = () => page.evaluate(() => {
@@ -1260,7 +1287,7 @@ async function run() {
   // dropped a failed one without a word, so the board looked saved while the server never had the change; and the
   // cross-tab reload took whatever the load answered, which on a failed load is the demo book. The change here arrives
   // as it does after a tab died mid-edit: a draft in sessionStorage, replayed on mount and saved.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('save-retry')) {
     const S = (n) => `${vp.name}/save-retry/${n}`;
     const draft = JSON.parse(JSON.stringify(PORTFOLIO));
     draft.holdings.NOVA.shares = 6;
@@ -1316,7 +1343,7 @@ async function run() {
   // book's prices are live. The book now has a point of its own at the
   // current minute and the futures' line ends at its last print; and the
   // futures are asked for again after a minute, not five.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('perf-live-edge')) {
     const S = (n) => `${vp.name}/perf-live-edge/${n}`;
     ES_LIVE = 1;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
@@ -1442,7 +1469,7 @@ async function run() {
   // 0.95x — every Edge Function answer is held back 1.5 s, and the page is
   // read every frame from the reload on. Nothing may differ from what was
   // on screen before it: not the first paint, not after the answers land.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('reload')) {
     const S = (n) => `${vp.name}/reload/${n}`;
     loadOverride = storedAt(0.9);
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
@@ -1524,7 +1551,7 @@ async function run() {
   // page installs the worker, the server then serves a changed one, the page's
   // own update check finds it waiting, and RELOAD is pressed — with the server
   // row's prices at 0.95x, every answer held back 1.5 s and a non-default pref.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('banner-reload')) {
     const S = (n) => `${vp.name}/banner-reload/${n}`;
     loadOverride = storedAt(0.9);
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses);
@@ -1605,7 +1632,7 @@ async function run() {
   // back 1.5 s, the page is opened the moment the board paints, and it must
   // be drawn from the first read — with values hidden too, where the kept
   // copy must be masked like everything else.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('agents-reload')) {
     const S = (n) => `${vp.name}/agents-reload/${n}`;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
     const openAgents = async () => {
@@ -1677,7 +1704,7 @@ async function run() {
     await ctx.close();
   }
 
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('main')) {
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses);
     const S = (n) => `${vp.name}/${n}`;
 
@@ -3829,7 +3856,7 @@ async function run() {
   // and sell with its date and price) nor the Investment view (the book in
   // dollars against the money paid in). The phone matters on its own: the
   // panel there is the sidebar's copy, a separate mount of the same code.
-  for (const vp of VIEWPORTS) {
+  for (const vp of viewports('viewer')) {
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { token: RO_TOKEN });
     const S = (n) => `${vp.name}/viewer/${n}`;
     await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});

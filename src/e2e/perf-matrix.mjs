@@ -53,7 +53,9 @@ if (!Number.isFinite(NOW_MS)) throw new Error(`PERF_MATRIX_CLOCK is not a date: 
 // file against ROOT with `startsWith`.
 const ROOT = path.resolve(
   process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'dist'));
-const PORT = 8931;
+// `PERF_PORT=0` serves on a port the system has free, read back once the server listens: bin/gates.sh asks for one, so
+// two gate runs on one machine never ask for the same port (the fixed 8931 collided). Unset, 8931, as CI runs it.
+let PORT = process.env.PERF_PORT === '0' ? 0 : Number(process.env.PERF_PORT) || 8931;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -242,6 +244,7 @@ async function run() {
     process.exit(2);
   }
   await new Promise((r) => server.listen(PORT, r));
+  PORT = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
   const browser = await chromium.launch({
     ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }

@@ -17,8 +17,14 @@
 #
 # Everything at once, each step's time printed (Davies, 2026-09-27: still slow; five and a half minutes before this):
 # the checks that read the source, beside the bundle's own line — built, then everything that reads it at once: the
-# browser sweep in two processes, desktop and phone, each on a port of its own (`SWEEP_VIEWPORT`, `SWEEP_PORT`; no
-# check compares the two), the perf matrix and the size budget. Nothing that reads the source reads dist/.
+# browser sweep in shards, the perf matrix and the size budget. Nothing that reads the source reads dist/.
+#
+# The sweep's shards (Davies, 2026-10-01: "gates的运行还可以更快吗 还有没有可以一起并行跑的内容"): a run of the sweep is
+# mostly waiting on its pages (a phone's alone: 222 s of wall time on 22 s of CPU), so it runs as several processes at
+# once, each one viewport (`SWEEP_VIEWPORT`) and a group of the sweep's parts (`SWEEP_PART`; no check compares two
+# processes), and a viewport's last shard runs every part its other shards leave out, so together they are always the
+# whole sweep. Every process that serves the bundle takes a port the system has free (`SWEEP_PORT=0`, `PERF_PORT=0`):
+# fixed ports collided whenever two gate runs, or a gate run and a sweep by hand, shared a machine.
 set -e
 ROOT="$(git rev-parse --show-toplevel)"
 LOGS="$(mktemp -d)"
@@ -84,14 +90,30 @@ EDGE_CHECK="edge-check|cd .. && npx --yes deno@1.46.3 check --quiet supabase/fun
 # Deno 1.x, as CI's setup-deno v1.x: its last release is 1.46.3. A bare `npx deno` fetches Deno 2 instead.
 EDGE_TEST="edge-test|cd .. && npx --yes deno@1.46.3 test --allow-env supabase/functions/"
 
+# One viewport's sweep shards, a "name|command" line each: a process for each group of parts given, and one for every
+# part those leave out (`SWEEP_PART=-a,-b`), so a part added to the sweep later runs without a change here.
+sweep_shards() {
+  vp=$1; shift; others=""
+  for g in "$@"; do
+    echo "sweep-$vp-${g%%,*}|SWEEP_VIEWPORT=$vp SWEEP_PART=$g SWEEP_PORT=0 node e2e/app-sweep.mjs ../dist"
+    others="$others,-$(echo "$g" | sed 's/,/,-/g')"
+  done
+  echo "sweep-$vp-rest|SWEEP_VIEWPORT=$vp SWEEP_PART=${others#,} SWEEP_PORT=0 node e2e/app-sweep.mjs ../dist"
+}
+
 # The bundle's line: built, then everything that reads it at once. It runs as one step beside the source checks.
 bundle() {
   t=$(date +%s)
   npm run build > "$LOGS/build.log" 2>&1 || { echo "FAIL build"; cat "$LOGS/build.log"; return 1; }
   echo "ok   build ($(( $(date +%s) - t )) s)"
-  together "sweep-desktop|SWEEP_VIEWPORT=desktop SWEEP_PORT=8932 node e2e/app-sweep.mjs ../dist" \
-    "sweep-phone|SWEEP_VIEWPORT=phone SWEEP_PORT=8933 node e2e/app-sweep.mjs ../dist" \
-    "perf|npm run verify:perf" "size|npx size-limit"
+  # Two shards a viewport, by each part's seconds alone on an idle 4-core machine (2026-10-01): `main`, sections 1–8 on
+  # one page, ~120 s at either width, and the rest, ~38 s on a desktop and ~100 s on a phone.
+  shards="$(sweep_shards desktop main; sweep_shards phone main)"
+  set --
+  while IFS= read -r s; do set -- "$@" "$s"; done <<EOF
+$shards
+EOF
+  together "$@" "perf|PERF_PORT=0 npm run verify:perf" "size|npx size-limit"
 }
 
 T0=$(date +%s)
