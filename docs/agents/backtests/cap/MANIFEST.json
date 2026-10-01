@@ -2,15 +2,18 @@
  "study": "CAP, the live row's exposure cap priced with the house rule functions, and Revolut X's UK books on 30 days of daily candles (research round of 2026-10-01; a screen, not a pre-registered test)",
  "write_up": "docs/agents/reviews/2026-10-01-research-round.md \u00a71-\u00a72; reference \u00a73.44",
  "run": [
-  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write cap_study.ts  # -> results/cap_study.json, byte-identical on 2026-10-01",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write cap_study.ts  # -> results/cap_study.json and cash_needed.json (caps $25-$150, the account's cash as a second limit; byte-identical 2026-10-01)",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write cap_revx.ts  # Revolut X's own UK 4h tape -> results/cap_revx.json and cash_needed_revx.json",
   "python3 scripts/pnl.py  # -> results/pnl_out.json from results/orders.json",
-  "python3 scripts/revx_universe.py  # -> results/revx_universe_out.json from inputs/pairs_*, inputs/tickers_uk_*",
-  "python3 scripts/fill_rate.py  # prints the Poisson tails and EX-GAP's timing"
+  "python3 scripts/revx_universe.py  # -> results/revx_universe_out.json",
+  "python3 scripts/fill_rate.py  # prints the Poisson tails and EX-GAP's timing",
+  "scripts/pull_coinbase.py, pull_revx_4h.py and revx_daily_volume.py fetch live (keyless) into inputs/: do not re-run them in place"
  ],
  "sources": {
   "inputs/*_1h_3y.json.gz": "Coinbase Exchange hourly candles, keyless, 2023-09-20 -> 2026-10-01, pulled 2026-10-01 by scripts/pull_coinbase.py",
   "inputs/daily_volume_*.json, pairs_*, tickers_uk_*, books_uk_*": "Revolut X public endpoints, region=UK, read 2026-10-01 ~00:30 UTC (scripts/revx_daily_volume.py and the agent's reads)",
-  "results/orders.json, results/queries.sql": "production, SELECT only, 2026-10-01 00:21-00:40 UTC, within every frozen test's no-peek list"
+  "results/orders.json, results/queries.sql": "production, SELECT only, 2026-10-01 00:21-00:40 UTC, within every frozen test's no-peek list",
+  "inputs/revx_4h/": "Revolut X public UK 4h candles, 2025-09-25 -> 2026-09-30, 16 keyless requests on 2026-10-01 (scripts/pull_revx_4h.py)"
  },
  "committed": {
   "inputs/AVAX-USD_1h_3y.json.gz": {
@@ -45,13 +48,45 @@
    "bytes": 104905,
    "sha256": "0aac6d0b0450e505d8a59d82edb16e326adddc819d126a0c8184df53424cda75"
   },
+  "inputs/revx_4h/AVAX-USD_4h_revx.json": {
+   "bytes": 126085,
+   "sha256": "dc9e2658fbd002acb771c031461b9cb6e17e858e71fa4242b650651d7c119784"
+  },
+  "inputs/revx_4h/BTC-USD_4h_revx.json": {
+   "bytes": 153205,
+   "sha256": "c749920c4bfc32e285b983c2818d22f7d046e2acb6ff43e89678ee0c4c3715c9"
+  },
+  "inputs/revx_4h/ETH-USD_4h_revx.json": {
+   "bytes": 145255,
+   "sha256": "4a53979222688ee2c5e7ba8eabb49ffd5998bd810aad267ac73091fda44355dc"
+  },
+  "inputs/revx_4h/SOL-USD_4h_revx.json": {
+   "bytes": 136383,
+   "sha256": "a71adef4662ae73b2d5c17ba86ffbb35af1c07154ae1e9c22f4914fad9bee6a7"
+  },
+  "inputs/revx_4h/pull_log.json": {
+   "bytes": 3520,
+   "sha256": "47c2715d9ca6305f3e2cd87dd32486150663f5aee13ed66184881daa881c6bff"
+  },
   "inputs/tickers_uk_2026-10-01.json": {
    "bytes": 99265,
    "sha256": "0a7f64f20be8a5145ac6227e2d13902cd030536b3acacbffdf06ddf0cf81f973"
   },
+  "results/cap_revx.json": {
+   "bytes": 41829,
+   "sha256": "8dcf7677f136f30a9fd7077837e5b7daded648d47a9eb8c9f756b0393a67bcdf"
+  },
   "results/cap_study.json": {
-   "bytes": 37982,
-   "sha256": "166c5e5bf5f3d66bae264db7d4773a2320dbdcd9456f8d0a3cd0e1a9b6a2ef4a"
+   "bytes": 91763,
+   "sha256": "ce920be85b0f263251eb4936308e526907296bafd10d1486e6bf2378da926da9"
+  },
+  "results/cash_needed.json": {
+   "bytes": 222,
+   "sha256": "9a8d1e164834d1b711b8ce1b3eaa42ce7a1b2e1ee09c1b4b3b13fa728a867935"
+  },
+  "results/cash_needed_revx.json": {
+   "bytes": 70,
+   "sha256": "b3e7f2c0c952db8e350d038b0efb6d186d0c6d02fa78210c9034e07a3f915cdd"
   },
   "results/orders.json": {
    "bytes": 4804,
@@ -69,9 +104,13 @@
    "bytes": 40831,
    "sha256": "3e0fcb6de715bf7196826f26cf50e094eb6ee6e0dfaa4b91c55c009ab30b65d5"
   },
+  "scripts/cap_revx.ts": {
+   "bytes": 18943,
+   "sha256": "07465a6318f6f80e8a7680cad0c604972a7b3f803013e63bcc5c283426006920"
+  },
   "scripts/cap_study.ts": {
-   "bytes": 14343,
-   "sha256": "0c619d1a19d33262c992c0ec63005248eee9c22f04f86bb1657bc8fea13fde01"
+   "bytes": 17859,
+   "sha256": "7c22ed32c172ff1eb39fdfc564b7aa38f333238eaee119a3a49f14b5bbec8efe"
   },
   "scripts/fill_rate.py": {
    "bytes": 1145,
@@ -84,6 +123,10 @@
   "scripts/pull_coinbase.py": {
    "bytes": 1622,
    "sha256": "f67a4bcb990457825071fd1dd4ef2bbe1a051e6bfccc4321dac6e7642c2c7055"
+  },
+  "scripts/pull_revx_4h.py": {
+   "bytes": 2443,
+   "sha256": "b70942e28e556ec6b04285bb02c749d6394b4868fd7b4d9d6c969afda0154c99"
   },
   "scripts/revx_daily_volume.py": {
    "bytes": 1586,

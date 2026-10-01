@@ -1,0 +1,8 @@
+calls 39, rewarded markets 18644, total $236,873 a day
+  rate $0-10 a day: 14876 markets, $39,038 a day (16.5 %)
+  rate $10-20 a day: 838 markets, $10,958 a day (4.6 %)
+  rate $20-50 a day: 1064 markets, $30,045 a day (12.7 %)
+  rate $50-100 a day: 1627 markets, $84,853 a day (35.8 %)
+  rate $100-inf a day: 239 markets, $71,978 a day (30.4 %)
+  all: n 18644; min size p10/p50/p90 20/20/50 shares; share with min size <= 20: 79.8 %; <= 50: 96.7 %; max spread p10/p50/p90 4.5/4.5/6.5 c
+  rate >= $10 (RW's universe): n 3768; min size p10/p50/p90 20/20/60 shares; share with min size <= 20: 69.2 %; <= 50: 87.6 %; max spread p10/p50/p90 4.5/4.5/6 c

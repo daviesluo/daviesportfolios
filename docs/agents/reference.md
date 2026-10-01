@@ -3121,6 +3121,11 @@ read inside each frozen test's no-peek list; it re-ran every quoted script and e
   10-month trend is a drawdown rule (−17.3 % against −50.3 %), industry momentum needs 50–115 years to t = 2, and the
   turn of the month decayed from 0.62 % a turn before 1990 to 0.18 % in 2003–2015. The one test worth freezing, if
   US equities are in scope, is the turn of the month on CSP1.L over the unseen 2016–2026, at 26 % power.
+- **The cap is $60 since 2026-10-01 02:24:51 UTC** (two slots; Davies' word to verify and then do it). The audit
+  found no defect on the paths several live positions use, and pins them in `agents/tick.test.ts`; on Revolut X's
+  own UK tape two slots double the bear year's drawdown, on Coinbase's three years they nearly double the return.
+  Four slots ($150, after a clean week) need the account at $100.20 or more: it holds $99.34, and $112–$115 never
+  refused an entry over the windows. Review §7.
 
 ## 4. Design consequences (decided by the evidence above)
 

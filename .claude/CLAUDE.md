@@ -285,10 +285,12 @@ that follow from that evidence, in short:
   Davies said go. On 2026-09-25 he set the funded capital to $100. A slot
   is the capital divided by the coins, so it is $25, and the one-slot cap
   moved with it to $25. The later steps of $30 and $75 were written for
-  the $50 book and are not the next raises; scaled to $100 the brief's
-  steps are $60 (two slots) and, after a clean week, $150 (four), on his
-  word. One slot was never priced (CAP, §3.44): it lets the coin list's
-  order pick the coin. The
+  the $50 book and are not the next raises. One slot was never priced
+  (CAP, §3.44): it lets the coin list's order pick the coin. On his word
+  the cap is **$60 (two slots) since 2026-10-01 02:24:51 UTC**, and $150
+  (four) follows a clean week once the account holds ≥ $100.20 ($115
+  recommended): the tick does not check USD before a live buy, and a buy
+  the venue refuses is recorded rejected and not re-sent. The
   audit's D1–D10 and the $50 validation's D11/D12 are fixed and pinned
   (§4.32–§4.33).
 - **Jev gates entries with the v2 question at 0.45 (since 2026-09-23,

@@ -18,7 +18,7 @@
 // the day's open.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { JEV_ENTER_MIN, JEV_QUESTION_VERSION, jevQuestions, positionFromFills, type Candle, type CategoricalState } from "../_shared/agents_strategy.ts";
-import type { OrderView, Quote, Venue, VenueId } from "../_shared/venue.ts";
+import type { LimitOrder, OrderView, PlaceResult, Quote, Venue, VenueId } from "../_shared/venue.ts";
 import { orderViewProblem, toOrderView, type VenueOrder } from "../_shared/revx.ts";
 import { PAGE_ROWS } from "./db.ts";
 import { jevFetch, memDb, schemaRefusal } from "./testing.ts";
@@ -62,6 +62,10 @@ function stubVenue(id: VenueId, o: {
   /** The venue's raw order JSON: read back through the REAL Revolut X `orderViewProblem` / `toOrderView`, exactly as `revxVenue.order` does. */
   orderReply?: VenueOrder;
   onPlace?: () => void; placedState?: "new" | "filled"; noQuote?: boolean; candlesDown?: () => boolean; balances?: Record<string, number>;
+  /** A venue refusal for this order (a 4xx), or null to accept it: how a live buy the account cannot fund is answered. */
+  placeGate?: (req: LimitOrder) => PlaceResult | null;
+  /** Give each accepted order its own venue id (`V-<n>`), for turns that place several live orders. */
+  uniqueOrderIds?: boolean;
 }) {
   const calls: string[] = [];
   const v: Venue = {
@@ -74,7 +78,11 @@ function stubVenue(id: VenueId, o: {
     },
     quotes: (syms) => { calls.push(`quotes ${syms.join(",")}`); return Promise.resolve(o.noQuote ? {} : Object.fromEntries(syms.map((s) => [s, o.quote]))); },
     pairs: (syms) => Promise.resolve(Object.fromEntries(syms.map((s) => [s, PAIR]))),
-    placeLimit: (req) => { o.onPlace?.(); calls.push(`place ${req.side} ${req.base}@${req.price}${req.marketable ? " taker" : ""}`); return Promise.resolve({ ok: true as const, venueOrderId: "V-1", state: o.placedState ?? "new" as const, response: { echo: req } }); },
+    placeLimit: (req) => {
+      o.onPlace?.(); calls.push(`place ${req.side} ${req.base}@${req.price}${req.marketable ? " taker" : ""}`);
+      const refused = o.placeGate?.(req); if (refused) return Promise.resolve(refused);
+      return Promise.resolve({ ok: true as const, venueOrderId: o.uniqueOrderIds ? `V-${calls.length}` : "V-1", state: o.placedState ?? "new" as const, response: { echo: req } });
+    },
     cancel: (vid) => { calls.push(`cancel ${vid}`); return Promise.resolve({ ok: o.cancelOk ?? true }); },
     order: (vid) => {
       calls.push(`order ${vid}`);
@@ -112,6 +120,7 @@ function world(opts: {
   jevCaution?: number; jevDirect?: boolean;
   /** A LIVE-capable Revolut X stub: credentials, the venue's balances, one order view, what a placement replies. */
   revxCanTrade?: boolean; revxBalances?: Record<string, number>; revxOrderView?: OrderView; revxPlacedState?: "new" | "filled"; revxNoQuote?: boolean;
+  revxPlaceGate?: (req: LimitOrder) => PlaceResult | null; revxUniqueOrderIds?: boolean;
   revxOrderReply?: VenueOrder;
 } = {}) {
   const now = opts.now ?? NOW;
@@ -123,7 +132,7 @@ function world(opts: {
   const jevLog: string[] = [];
   const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, orderViews: opts.orderViews, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote, candlesDown: opts.krakenCandlesDown });
   const revxQuote = opts.revxQuote ?? { bid: quote.bid + 0.02, ask: quote.ask + 0.02 };
-  const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: opts.revxCanTrade ?? false, balances: opts.revxBalances, orderView: opts.revxOrderView, orderReply: opts.revxOrderReply, placedState: opts.revxPlacedState, noQuote: opts.revxNoQuote });
+  const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: opts.revxCanTrade ?? false, balances: opts.revxBalances, orderView: opts.revxOrderView, orderReply: opts.revxOrderReply, placedState: opts.revxPlacedState, noQuote: opts.revxNoQuote, placeGate: opts.revxPlaceGate, uniqueOrderIds: opts.revxUniqueOrderIds });
   // Binance as production builds it (`binancePaperVenue`): 10 bps a side, no key, its own touch a little off the others'.
   const binanceQuote = { bid: quote.bid + 0.05, ask: quote.ask + 0.05 };
   const binance = stubVenue("binance", { series: ser, c1m, quote: binanceQuote, feeBps: { maker: 10, taker: 10 }, canTrade: false });
@@ -2076,4 +2085,56 @@ Deno.test("a LIVE Revolut X order is read back through the real client's reader:
   assertEquals(w2.mem.tables.agent_orders[0].state, "new");
   assert(r2.errors.some((e) => e.includes("does not know")), r2.errors.join("; "));
   assertEquals(w2.mem.tables.agent_orders.filter((x) => x.side === "sell").map((x) => [x.mode, x.base_size]), [["live", 0.1]]);
+});
+
+// The live row past one slot (2026-10-01: its cap went from $25, one slot of four, to $60, two; $150, four, follows a
+// clean week). Until then it had only ever held one coin, so nothing pinned how several live entries in one turn meet
+// the cap, what a buy the account cannot fund leaves behind, or the daily loss limit across two live positions.
+const LIVE4 = ["BTC/USD", "ETH/USD", "SOL/USD", "AVAX/USD"];
+const liveRow = (over: Partial<StrategyRow> = {}): StrategyRow => strategy({ id: "trend-4h-live", venue: "revx", signal_venue: "kraken", name: "Trend 4h · live", symbols: LIVE4, mode: "live", capital_usd: 100, params: { fast: 20, slow: 100, breakoutUp: 55, breakoutDown: 20, atrN: 14, atrStop: 3, volN: 42, enterMin: 0.45, exitMax: 0.3 }, ...over });
+const fourSeries = () => Object.fromEntries(LIVE4.map((s) => [s, series()]));
+const armed = (cap: number, over: Partial<RiskRow> = {}) => ({ max_exposure_usd: cap, live_confirmed_at: "2026-09-24T22:53:09Z", ...over });
+
+for (const [cap, expectOrders] of [[25, 1], [50, 2], [60, 2], [100, 4], [110, 4], [150, 4]] as const) {
+  Deno.test(`live row: four coins signal on one bar under a $${cap} cap — ${expectOrders} live order(s), each later coin gated on the exposure the turn's earlier orders added`, async () => {
+    const w = world({ strategies: [liveRow()], series: fourSeries(), revxCanTrade: true, revxUniqueOrderIds: true, risk: armed(cap) });
+    const r = await tick(w.deps);
+    const orders = w.mem.tables.agent_orders;
+    assertEquals(orders.length, expectOrders, r.errors.join("; "));
+    assertEquals(orders.map((o) => o.symbol), LIVE4.slice(0, expectOrders));                 // the row's own order picks the coins
+    for (const d of w.mem.tables.agent_decisions.slice(expectOrders)) assert(String(d.risk_reason).includes("exposure"), String(d.risk_reason));
+  });
+}
+
+Deno.test("live row: a buy the venue refuses for lack of USD is recorded rejected, reported, and not sent again on the same bar", async () => {
+  let usd = 74.35;   // two $25 buys fit, the third does not
+  const gate = (req: LimitOrder): PlaceResult | null => {
+    if (req.side !== "buy") return null;
+    const need = Number(req.base) * Number(req.price);
+    if (need > usd) return { ok: false, status: 400, error: "Insufficient balance", response: { raw: "{\"message\":\"Insufficient balance\"}" } };
+    usd -= need; return null;
+  };
+  const w = world({ strategies: [liveRow()], series: fourSeries(), revxCanTrade: true, revxUniqueOrderIds: true, risk: armed(150), revxPlaceGate: gate });
+  const r = await tick(w.deps);
+  const orders = w.mem.tables.agent_orders;
+  assertEquals(orders.map((o) => [o.symbol, o.state]), [["BTC/USD", "new"], ["ETH/USD", "new"], ["SOL/USD", "rejected"], ["AVAX/USD", "rejected"]]);
+  assert(r.errors.some((e) => e.includes("rejected → 400 Insufficient balance")), r.errors.join("; "));
+  // The next minute the bar is already decided for SOL and AVAX: nothing is sent again.
+  const before = orders.length;
+  w.deps.now = NOW + ONE_M;
+  await tick(w.deps);
+  assertEquals(w.mem.tables.agent_orders.length, before);
+});
+
+Deno.test("live row: two live positions down 12 % since today's open — the daily loss limit refuses a third coin's entry, and both floors still sell", async () => {
+  const mark = world().revxQuote.bid;
+  const buy = (id: number, sym: string) => longSince(ONE_H, mark * 1.12, 25 / (mark * 1.12), { id, symbol: sym, mode: "live", venue: "revx", strategy_id: "trend-4h-live", client_order_id: `c${id}` });
+  const w = world({ strategies: [liveRow()], series: fourSeries(), revxCanTrade: true, revxUniqueOrderIds: true, risk: armed(150), orders: [buy(61, "BTC/USD"), buy(62, "ETH/USD")],
+    revxBalances: { USD: 49.34, BTC: 25 / (mark * 1.12), ETH: 25 / (mark * 1.12) } });
+  await tick(w.deps);
+  const sells = w.mem.tables.agent_orders.filter((o) => o.side === "sell");
+  assertEquals(sells.map((o) => o.symbol).sort(), ["BTC/USD", "ETH/USD"]);
+  const sol = w.mem.tables.agent_decisions.find((d) => d.symbol === "SOL/USD")!;
+  assertEquals(sol.risk_allowed, false);
+  assert(String(sol.risk_reason).includes("daily loss limit"), String(sol.risk_reason));
 });

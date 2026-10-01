@@ -1,0 +1,34 @@
+{
+ "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes",
+ "write_up": "docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md",
+ "run": [
+  "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
+  "python3 scripts/reward_agg.py  # live, keyless; aggregates only, no per-market row written or printed"
+ ],
+ "sources": {
+  "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",
+  "results/bridge_quotes.txt": "bridge.polymarket.com /quote, keyless, 2026-10-01 ~02:00 UTC; nothing created"
+ },
+ "committed": {
+  "results/bridge_quotes.txt": {
+   "bytes": 1251,
+   "sha256": "64f79ef85cb7d21afac78ab0b8250d2400eb0c866b74f5901e104039eb0bcc0b"
+  },
+  "results/ratio_power_out.txt": {
+   "bytes": 593,
+   "sha256": "bf36ccad7d5e0969a1144c7a4c227ac7fb4f5e44ed62d18a70a97a6102166814"
+  },
+  "results/reward_agg_out.txt": {
+   "bytes": 648,
+   "sha256": "81e0b5d55c1c28965dd2780bed79340ad24943e6a5543e28d37d55c5a1ac406c"
+  },
+  "scripts/ratio_power.py": {
+   "bytes": 2061,
+   "sha256": "67d11b44685f437235be8020c9a14972eb8ffb4e3a310c64e060684b1fa4f38a"
+  },
+  "scripts/reward_agg.py": {
+   "bytes": 2379,
+   "sha256": "1b69e3c0f711a6918ee9ed7c62e66be09b46d4adb5d45e5ec4b8a664cd342094"
+  }
+ }
+}

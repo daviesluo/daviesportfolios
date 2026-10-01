@@ -1,5 +1,10 @@
 # Going live — what would run, what it is expected to do, and what I would not turn on
 
+> **Where it stands (2026-10-01):** the row has been live since 2026-09-24 and funded at $100 since 09-25 (four $25
+> slots). Its first round trip (SOL, 09-25 → 09-28) settled clean, and on Davies' word the cap went from one slot
+> ($25) to two ($60) at 2026-10-01 02:24:51 UTC; four ($150) follow a clean week once the account holds at least
+> $100.20 (reference §3.44, `reviews/2026-10-01-research-round.md` §7). The notes below are the brief as written.
+>
 > **2026-09-24: the live row starts at $50, not $100** (Davies; reference
 > §3.31, §4 items 33–34). The draft now has four $12.50 slots and an
 > exposure cap of $15, one slot, for the first round trip. A person reads

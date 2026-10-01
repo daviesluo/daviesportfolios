@@ -17,7 +17,7 @@
 // Not modelled (as in every house study): Jev's gate, the $5 daily loss limit, the 40 orders a day.
 //
 // Run from this folder: npx --yes deno@1.46.3 run --allow-read --allow-write cap_study.ts
-// Reads ../inputs/{SYM}-USD_1h_3y.json.gz (pull_coinbase.py), writes ../results/cap_study.json.
+// Reads ../inputs/{SYM}-USD_1h_3y.json.gz and ../inputs/revx_4h/{SYM}-USD_4h_revx.json (pull_revx_4h.py), writes ../results/cap_revx.json.
 import { COSTS, resample, run, SHIPPED_STOPS, spreadOf, stopsForKind } from "../../../../../supabase/functions/agents/backtest.ts";
 import { applyFill, buildSnapshot, DEFAULT_TREND, FLAT, precompute, ruleFor, type Candle, type Position } from "../../../../../supabase/functions/_shared/agents_strategy.ts";
 
@@ -31,21 +31,28 @@ const CAPITAL = 100, SLOT = CAPITAL / SYMS.length;
 
 type Series = { c4h: Candle[]; daily: Candle[]; idx: Map<number, number> };
 const data: Record<string, Series> = {};
+// AUDIT cross-check tape: Revolut X's own public UK 4h candles (keyless, pull_revx_4h.py), with Coinbase's
+// 4h bars spliced strictly BEFORE the venue's first bar for warm-up (as backtest_set2.ts splices Kraken's). The daily series
+// is the combined 4h tape resampled to UTC days. Coverage (the share of scored bars that are Revolut X's own) is reported.
+const REVX_FIRST: Record<string, number> = {};
 for (const s of SYMS) {
   const gz = await Deno.readFile(`${HERE}../inputs/${s.replace("/", "-")}_1h_3y.json.gz`);
   const raw: number[][] = JSON.parse(await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
   const hourly: Candle[] = raw.map(([t, o, h, l, c, v]) => ({ start: t * 1000, open: o, high: h, low: l, close: c, volume: v }));
-  const c4h = resample(hourly, 4), daily = resample(hourly, 24);
+  const cb4h = resample(hourly, 4);
+  const rx: number[][] = JSON.parse(await Deno.readTextFile(`${HERE}../inputs/revx_4h/${s.replace("/", "-")}_4h_revx.json`));
+  const rx4h: Candle[] = rx.map(([t, o, h, l, c, v]) => ({ start: t, open: o, high: h, low: l, close: c, volume: v }));
+  REVX_FIRST[s] = rx4h[0].start;
+  const c4h = [...cb4h.filter((c) => c.start < rx4h[0].start), ...rx4h];
+  const daily = resample(c4h, 24);
   data[s] = { c4h, daily, idx: new Map(c4h.map((c, i) => [c.start, i])) };
 }
 
 const WINDOWS: Record<string, [string, string]> = {
-  // testingset.json s2_rows windows A and B (`from`, `to`), the dates every published live-row figure uses
+  // window A as every published live-row figure dates it; its first 15 days are Coinbase's (the venue's tape starts 2025-09-25)
   A: ["2025-09-10", "2026-09-21"],
-  B: ["2024-08-31", "2025-09-21"],
-  // the one path the data covers (warm-up excluded), and the days since the studies' data ended
-  ALL: ["2023-10-20", "2026-09-30"],
-  NEW: ["2026-09-21", "2026-09-30"],
+  // the venue's own span: every scored bar is Revolut X's (Coinbase's bars are warm-up only)
+  RX: ["2025-09-25", "2026-09-30"],
 };
 
 function bounds(s: string, w: [string, string]): [number, number] {
@@ -200,7 +207,7 @@ for (const [wn, w] of Object.entries(WINDOWS)) {
 }
 
 // 2. The cap arms, in the live loop's fixed-slot bookkeeping.
-const CAPS = [25, 50, 60, 75, 100, 110, 150, Infinity];   // AUDIT: 60 and 150 added
+const CAPS = [25, 50, 60, 100, 150, Infinity];   // AUDIT cross-check caps
 const arms: Record<string, unknown> = {};
 for (const [wn, w] of Object.entries(WINDOWS)) {
   arms[wn] = Object.fromEntries(CAPS.map((cap) => [cap === Infinity ? "none" : `$${cap}`, joint(w, "slot", cap)]));
@@ -218,8 +225,7 @@ for (const [wn, w] of Object.entries(WINDOWS)) {
 const perms = (a: string[]): string[][] => a.length <= 1 ? [a] : a.flatMap((x, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map((r) => [x, ...r]));
 const orderSensitivity: Record<string, unknown> = {};
 for (const [wn, w] of Object.entries(WINDOWS)) {
-  if (wn === "NEW") continue;
-  for (const cap of [25, 50, 60, 75, 150]) {   // AUDIT: 60 and 150 added
+  for (const cap of [25, 50, 60, 150]) {
     const pnls = perms(SYMS).map((o) => (joint(w, "slot", cap, o) as { pnlUsd: number }).pnlUsd).sort((a, b) => a - b);
     orderSensitivity[`${wn} $${cap}`] = { orders: pnls.length, minPnlUsd: pnls[0], medianPnlUsd: pnls[Math.floor(pnls.length / 2)], maxPnlUsd: pnls[pnls.length - 1] };
   }
@@ -235,7 +241,13 @@ const out = {
   arms,
   cashArms,
 };
-await Deno.writeTextFile(`${HERE}../results/cap_study.json`, JSON.stringify(out, null, 1));
+const coverage: Record<string, unknown> = {};
+for (const [wn, w] of Object.entries(WINDOWS)) for (const s of SYMS) {
+  const [from, to] = bounds(s, w); const c = data[s].c4h.slice(Math.max(from, DEFAULT_TREND.slow + 1), to - 1);
+  coverage[`${wn} ${s}`] = { scored: c.length, revxOwn: c.filter((x) => x.start >= REVX_FIRST[s]).length };
+}
+console.log("COVERAGE", JSON.stringify(coverage));
+await Deno.writeTextFile(`${HERE}../results/cap_revx.json`, JSON.stringify({ ...out, coverage }, null, 1));
 console.log(JSON.stringify({ worstAbsDiff: worst, cells: Object.keys(fidelity).length }));
 for (const [wn, a] of Object.entries({ ...Object.fromEntries(Object.entries(arms).map(([k, v]) => [k, v])), ...Object.fromEntries(Object.entries(cashArms).map(([k, v]) => [k + "-cash", v])) } as Record<string, Record<string, Record<string, unknown>>>)) {
   for (const [k, v] of Object.entries(a)) console.log(wn, k, JSON.stringify({ pnlUsd: v.pnlUsd, ret: v.ret, maxDD: v.maxDD, retOverDD: v.retOverDD, fills: v.fills, entries: v.entries, refused: v.refusedEntries, stops: v.stopsHit, maxOpen: v.maxOpen, barsAllFourOpen: v.barsAllFourOpen, cashRefused: v.cashRefused, meanOpenSlots: v.meanOpenSlots, daysDown5: v.daysBookDown5UsdFromDayOpen, barsWithAPosition: v.barsWithAPosition, bars: v.bars }));
@@ -245,7 +257,7 @@ for (const [wn, a] of Object.entries({ ...Object.fromEntries(Object.entries(arms
 // per cap, under the assumption that the venue wants slot x 1.001 free for a $25 IOC buy.
 const cashNeeded: Record<string, unknown> = {};
 for (const [wn, w] of Object.entries(WINDOWS)) {
-  for (const cap of [60, 110, 150]) {
+  for (const cap of [60, 150]) {
     let need: number | null = null;
     for (let cash = 50; cash <= 160; cash += 0.25) {
       const r = joint(w, "slot", cap, SYMS, cash) as { cashRefused: number };
@@ -255,7 +267,7 @@ for (const [wn, w] of Object.entries(WINDOWS)) {
   }
 }
 console.log("CASH-NEEDED", JSON.stringify(cashNeeded));
-await Deno.writeTextFile(`${HERE}../results/cash_needed.json`, JSON.stringify(cashNeeded, null, 1));
+await Deno.writeTextFile(`${HERE}../results/cash_needed_revx.json`, JSON.stringify(cashNeeded, null, 1));
 
 // AUDIT: the same caps with the $5 daily loss limit applied (approximated at 4h closes).
 const dllArms: Record<string, unknown> = {};

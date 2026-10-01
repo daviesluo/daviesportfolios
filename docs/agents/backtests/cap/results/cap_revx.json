@@ -1,0 +1,2243 @@
+{
+ "orderSensitivity": {
+  "A $25": {
+   "orders": 24,
+   "minPnlUsd": 9.2242,
+   "medianPnlUsd": 9.8706,
+   "maxPnlUsd": 10.0841
+  },
+  "A $50": {
+   "orders": 24,
+   "minPnlUsd": 10.682,
+   "medianPnlUsd": 10.682,
+   "maxPnlUsd": 10.682
+  },
+  "A $60": {
+   "orders": 24,
+   "minPnlUsd": 8.1126,
+   "medianPnlUsd": 8.5852,
+   "maxPnlUsd": 8.6285
+  },
+  "A $150": {
+   "orders": 24,
+   "minPnlUsd": 9.551,
+   "medianPnlUsd": 9.551,
+   "maxPnlUsd": 9.551
+  },
+  "RX $25": {
+   "orders": 24,
+   "minPnlUsd": 3.2415,
+   "medianPnlUsd": 3.888,
+   "maxPnlUsd": 3.888
+  },
+  "RX $50": {
+   "orders": 24,
+   "minPnlUsd": 3.3228,
+   "medianPnlUsd": 3.3228,
+   "maxPnlUsd": 3.3228
+  },
+  "RX $60": {
+   "orders": 24,
+   "minPnlUsd": 1.0567,
+   "medianPnlUsd": 1.5293,
+   "maxPnlUsd": 1.5726
+  },
+  "RX $150": {
+   "orders": 24,
+   "minPnlUsd": 1.52,
+   "medianPnlUsd": 1.52,
+   "maxPnlUsd": 1.52
+  }
+ },
+ "study": "CAP — the live row's exposure cap priced with the house rule functions (research screen, 2026-10-01; not a pre-registered test)",
+ "inputs": {
+  "source": "Coinbase Exchange hourly candles, keyless, pulled 2026-10-01 (pull_coinbase.py), resampled by backtest.ts resample()",
+  "symbols": [
+   "BTC/USD",
+   "ETH/USD",
+   "SOL/USD",
+   "AVAX/USD"
+  ],
+  "params": {
+   "fast": 20,
+   "slow": 100,
+   "breakoutUp": 55,
+   "breakoutDown": 20,
+   "atrN": 14,
+   "atrStop": 3,
+   "volN": 42
+  },
+  "costs": "COSTS.revx (9 bps taker + half-spread)",
+  "stops": {
+   "maxLossPct": 0.08,
+   "atrStop": null,
+   "atrN": 14,
+   "reentryBars": 2
+  },
+  "capitalUsd": 100,
+  "slotUsd": 25
+ },
+ "windows": {
+  "A": [
+   "2025-09-10",
+   "2026-09-21"
+  ],
+  "RX": [
+   "2025-09-25",
+   "2026-09-30"
+  ]
+ },
+ "fidelity": {
+  "worstAbsDiff": 0,
+  "cells": 8,
+  "detail": {
+   "A BTC/USD": {
+    "runRet": -0.111951,
+    "jointRet": -0.111951,
+    "runTrades": 28,
+    "jointTrades": 28,
+    "maxAbsDiff": 0
+   },
+   "A ETH/USD": {
+    "runRet": -0.102168,
+    "jointRet": -0.102168,
+    "runTrades": 24,
+    "jointTrades": 24,
+    "maxAbsDiff": 0
+   },
+   "A SOL/USD": {
+    "runRet": 0.202164,
+    "jointRet": 0.202164,
+    "runTrades": 14,
+    "jointTrades": 14,
+    "maxAbsDiff": 0
+   },
+   "A AVAX/USD": {
+    "runRet": 0.337123,
+    "jointRet": 0.337123,
+    "runTrades": 11,
+    "jointTrades": 11,
+    "maxAbsDiff": 0
+   },
+   "RX BTC/USD": {
+    "runRet": -0.101835,
+    "jointRet": -0.101835,
+    "runTrades": 28,
+    "jointTrades": 28,
+    "maxAbsDiff": 0
+   },
+   "RX ETH/USD": {
+    "runRet": -0.107145,
+    "jointRet": -0.107145,
+    "runTrades": 26,
+    "jointTrades": 26,
+    "maxAbsDiff": 0
+   },
+   "RX SOL/USD": {
+    "runRet": 0.082502,
+    "jointRet": 0.082502,
+    "runTrades": 16,
+    "jointTrades": 16,
+    "maxAbsDiff": 0
+   },
+   "RX AVAX/USD": {
+    "runRet": 0.103292,
+    "jointRet": 0.103292,
+    "runTrades": 8,
+    "jointTrades": 8,
+    "maxAbsDiff": 0
+   }
+  }
+ },
+ "arms": {
+  "A": {
+   "$25": {
+    "capUsd": 25,
+    "pnlUsd": 9.8706,
+    "ret": 0.09871,
+    "maxDD": 0.0749,
+    "retOverDD": 1.318,
+    "fills": 41,
+    "entries": 21,
+    "refusedEntries": 47,
+    "stopsHit": 0,
+    "feesUsd": 0.9247,
+    "barsWithAPosition": 488,
+    "bars": 2255,
+    "meanOpenSlots": 0.2164,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 1,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -1.9035,
+      "trades": 16,
+      "entries": 8,
+      "refused": 16,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.9331,
+      "trades": 10,
+      "entries": 5,
+      "refused": 15,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 7.0931,
+      "trades": 10,
+      "entries": 5,
+      "refused": 6,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.614,
+      "trades": 5,
+      "entries": 3,
+      "refused": 10,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-09-10T04:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-09-10T12:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-09-10T20:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-09-13T00:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-09-13T04:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$50": {
+    "capUsd": 50,
+    "pnlUsd": 10.682,
+    "ret": 0.10682,
+    "maxDD": 0.08579,
+    "retOverDD": 1.245,
+    "fills": 47,
+    "entries": 24,
+    "refusedEntries": 38,
+    "stopsHit": 0,
+    "feesUsd": 1.0606,
+    "barsWithAPosition": 488,
+    "bars": 2255,
+    "meanOpenSlots": 0.2554,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -1.9035,
+      "trades": 16,
+      "entries": 8,
+      "refused": 16,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -3.4982,
+      "trades": 14,
+      "entries": 7,
+      "refused": 11,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 7.0931,
+      "trades": 10,
+      "entries": 5,
+      "refused": 6,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 8.9906,
+      "trades": 7,
+      "entries": 4,
+      "refused": 5,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-09-18T00:00:00.000Z",
+      "sym": "BTC/USD",
+      "held": [
+       "AVAX/USD"
+      ]
+     },
+     {
+      "t": "2025-10-05T04:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T12:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T16:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-26T20:00:00.000Z",
+      "sym": "BTC/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$60": {
+    "capUsd": 60,
+    "pnlUsd": 8.1559,
+    "ret": 0.08156,
+    "maxDD": 0.15013,
+    "retOverDD": 0.543,
+    "fills": 65,
+    "entries": 33,
+    "refusedEntries": 18,
+    "stopsHit": 0,
+    "feesUsd": 1.4637,
+    "barsWithAPosition": 490,
+    "bars": 2255,
+    "meanOpenSlots": 0.3304,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -3.5702,
+      "trades": 24,
+      "entries": 12,
+      "refused": 7,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -1.0361,
+      "trades": 20,
+      "entries": 10,
+      "refused": 3,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 5.4749,
+      "trades": 12,
+      "entries": 6,
+      "refused": 4,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T00:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T16:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-06T12:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-13T20:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$100": {
+    "capUsd": 100,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150": {
+    "capUsd": 150,
+    "pnlUsd": 9.551,
+    "ret": 0.09551,
+    "maxDD": 0.16753,
+    "retOverDD": 0.57,
+    "fills": 77,
+    "entries": 39,
+    "refusedEntries": 0,
+    "stopsHit": 0,
+    "feesUsd": 1.7352,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.4058,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 4,
+    "barsAllFourOpen": 28,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 8.6015,
+      "trades": 11,
+      "entries": 6,
+      "refused": 0,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": []
+   },
+   "none": {
+    "capUsd": null,
+    "pnlUsd": 9.551,
+    "ret": 0.09551,
+    "maxDD": 0.16753,
+    "retOverDD": 0.57,
+    "fills": 77,
+    "entries": 39,
+    "refusedEntries": 0,
+    "stopsHit": 0,
+    "feesUsd": 1.7352,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.4058,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 4,
+    "barsAllFourOpen": 28,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 8.6015,
+      "trades": 11,
+      "entries": 6,
+      "refused": 0,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": []
+   }
+  },
+  "RX": {
+   "$25": {
+    "capUsd": 25,
+    "pnlUsd": 3.888,
+    "ret": 0.03888,
+    "maxDD": 0.07377,
+    "retOverDD": 0.527,
+    "fills": 40,
+    "entries": 20,
+    "refusedEntries": 50,
+    "stopsHit": 0,
+    "feesUsd": 0.9043,
+    "barsWithAPosition": 477,
+    "bars": 2219,
+    "meanOpenSlots": 0.215,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 1,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -1.9035,
+      "trades": 16,
+      "entries": 8,
+      "refused": 18,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.9331,
+      "trades": 10,
+      "entries": 5,
+      "refused": 19,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 5.2786,
+      "trades": 10,
+      "entries": 5,
+      "refused": 8,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 3.4459,
+      "trades": 4,
+      "entries": 2,
+      "refused": 5,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-05T04:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T12:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T16:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-26T20:00:00.000Z",
+      "sym": "BTC/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$50": {
+    "capUsd": 50,
+    "pnlUsd": 3.3228,
+    "ret": 0.03323,
+    "maxDD": 0.07935,
+    "retOverDD": 0.419,
+    "fills": 44,
+    "entries": 22,
+    "refusedEntries": 46,
+    "stopsHit": 0,
+    "feesUsd": 0.9939,
+    "barsWithAPosition": 477,
+    "bars": 2219,
+    "meanOpenSlots": 0.2402,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -1.9035,
+      "trades": 16,
+      "entries": 8,
+      "refused": 18,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -3.4982,
+      "trades": 14,
+      "entries": 7,
+      "refused": 15,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 5.2786,
+      "trades": 10,
+      "entries": 5,
+      "refused": 8,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 3.4459,
+      "trades": 4,
+      "entries": 2,
+      "refused": 5,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-05T04:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T12:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-06T16:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD"
+      ]
+     },
+     {
+      "t": "2025-10-26T20:00:00.000Z",
+      "sym": "BTC/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$60": {
+    "capUsd": 60,
+    "pnlUsd": 1.1,
+    "ret": 0.011,
+    "maxDD": 0.14725,
+    "retOverDD": 0.075,
+    "fills": 62,
+    "entries": 31,
+    "refusedEntries": 23,
+    "stopsHit": 0,
+    "feesUsd": 1.3972,
+    "barsWithAPosition": 477,
+    "bars": 2219,
+    "meanOpenSlots": 0.3159,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -3.1282,
+      "trades": 22,
+      "entries": 11,
+      "refused": 10,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -1.1748,
+      "trades": 22,
+      "entries": 11,
+      "refused": 3,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 3.6604,
+      "trades": 12,
+      "entries": 6,
+      "refused": 6,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T00:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T16:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-06T12:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-13T20:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$100": {
+    "capUsd": 100,
+    "pnlUsd": 1.0189,
+    "ret": 0.01019,
+    "maxDD": 0.16531,
+    "retOverDD": 0.062,
+    "fills": 74,
+    "entries": 37,
+    "refusedEntries": 6,
+    "stopsHit": 0,
+    "feesUsd": 1.6674,
+    "barsWithAPosition": 496,
+    "bars": 2219,
+    "meanOpenSlots": 0.3867,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 4.1996,
+      "trades": 14,
+      "entries": 7,
+      "refused": 2,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-09-21T08:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "AVAX/USD"
+      ]
+     }
+    ]
+   },
+   "$150": {
+    "capUsd": 150,
+    "pnlUsd": 1.52,
+    "ret": 0.0152,
+    "maxDD": 0.16531,
+    "retOverDD": 0.092,
+    "fills": 78,
+    "entries": 39,
+    "refusedEntries": 0,
+    "stopsHit": 0,
+    "feesUsd": 1.758,
+    "barsWithAPosition": 498,
+    "bars": 2219,
+    "meanOpenSlots": 0.4074,
+    "daysBookDown5UsdFromDayOpen": 1,
+    "maxOpen": 4,
+    "barsAllFourOpen": 41,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 3.3865,
+      "trades": 16,
+      "entries": 8,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 3.0569,
+      "trades": 8,
+      "entries": 4,
+      "refused": 0,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": []
+   },
+   "none": {
+    "capUsd": null,
+    "pnlUsd": 1.52,
+    "ret": 0.0152,
+    "maxDD": 0.16531,
+    "retOverDD": 0.092,
+    "fills": 78,
+    "entries": 39,
+    "refusedEntries": 0,
+    "stopsHit": 0,
+    "feesUsd": 1.758,
+    "barsWithAPosition": 498,
+    "bars": 2219,
+    "meanOpenSlots": 0.4074,
+    "daysBookDown5UsdFromDayOpen": 1,
+    "maxOpen": 4,
+    "barsAllFourOpen": 41,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": null,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 3.3865,
+      "trades": 16,
+      "entries": 8,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 3.0569,
+      "trades": 8,
+      "entries": 4,
+      "refused": 0,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": []
+   }
+  }
+ },
+ "cashArms": {
+  "A": {
+   "$60 cash $99.34": {
+    "capUsd": 60,
+    "pnlUsd": 8.1559,
+    "ret": 0.08156,
+    "maxDD": 0.15013,
+    "retOverDD": 0.543,
+    "fills": 65,
+    "entries": 33,
+    "refusedEntries": 18,
+    "stopsHit": 0,
+    "feesUsd": 1.4637,
+    "barsWithAPosition": 490,
+    "bars": 2255,
+    "meanOpenSlots": 0.3304,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -3.5702,
+      "trades": 24,
+      "entries": 12,
+      "refused": 7,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -1.0361,
+      "trades": 20,
+      "entries": 10,
+      "refused": 3,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 5.4749,
+      "trades": 12,
+      "entries": 6,
+      "refused": 4,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T00:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T16:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-06T12:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-13T20:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $99.34": {
+    "capUsd": 150,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $100": {
+    "capUsd": 150,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 100,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $101": {
+    "capUsd": 150,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 101,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $105": {
+    "capUsd": 150,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 105,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "none cash $99.34": {
+    "capUsd": null,
+    "pnlUsd": 8.2368,
+    "ret": 0.08237,
+    "maxDD": 0.16753,
+    "retOverDD": 0.492,
+    "fills": 75,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.6889,
+    "barsWithAPosition": 509,
+    "bars": 2255,
+    "meanOpenSlots": 0.3933,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.8119,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.2528,
+      "trades": 24,
+      "entries": 12,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 6.0141,
+      "trades": 14,
+      "entries": 7,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 7.2873,
+      "trades": 9,
+      "entries": 5,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   }
+  },
+  "RX": {
+   "$60 cash $99.34": {
+    "capUsd": 60,
+    "pnlUsd": 1.1,
+    "ret": 0.011,
+    "maxDD": 0.14725,
+    "retOverDD": 0.075,
+    "fills": 62,
+    "entries": 31,
+    "refusedEntries": 23,
+    "stopsHit": 0,
+    "feesUsd": 1.3972,
+    "barsWithAPosition": 477,
+    "bars": 2219,
+    "meanOpenSlots": 0.3159,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 2,
+    "barsAllFourOpen": 0,
+    "cashRefused": 0,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -3.1282,
+      "trades": 22,
+      "entries": 11,
+      "refused": 10,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -1.1748,
+      "trades": 22,
+      "entries": 11,
+      "refused": 3,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 3.6604,
+      "trades": 12,
+      "entries": 6,
+      "refused": 6,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2025-10-27T00:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T00:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-05T16:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-06T12:00:00.000Z",
+      "sym": "SOL/USD",
+      "held": [
+       "BTC/USD",
+       "ETH/USD"
+      ]
+     },
+     {
+      "t": "2026-01-13T20:00:00.000Z",
+      "sym": "ETH/USD",
+      "held": [
+       "BTC/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $99.34": {
+    "capUsd": 150,
+    "pnlUsd": 1.0189,
+    "ret": 0.01019,
+    "maxDD": 0.16531,
+    "retOverDD": 0.062,
+    "fills": 74,
+    "entries": 37,
+    "refusedEntries": 6,
+    "stopsHit": 0,
+    "feesUsd": 1.6674,
+    "barsWithAPosition": 496,
+    "bars": 2219,
+    "meanOpenSlots": 0.3867,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 6,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 4.1996,
+      "trades": 14,
+      "entries": 7,
+      "refused": 2,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-09-21T08:00:00.000Z",
+      "sym": "SOL/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "AVAX/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $100": {
+    "capUsd": 150,
+    "pnlUsd": 1.0189,
+    "ret": 0.01019,
+    "maxDD": 0.16531,
+    "retOverDD": 0.062,
+    "fills": 74,
+    "entries": 37,
+    "refusedEntries": 6,
+    "stopsHit": 0,
+    "feesUsd": 1.6674,
+    "barsWithAPosition": 496,
+    "bars": 2219,
+    "meanOpenSlots": 0.3867,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 6,
+    "dllRefused": 0,
+    "cashUsd": 100,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 4.1996,
+      "trades": 14,
+      "entries": 7,
+      "refused": 2,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-09-21T08:00:00.000Z",
+      "sym": "SOL/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "AVAX/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $101": {
+    "capUsd": 150,
+    "pnlUsd": 1.0189,
+    "ret": 0.01019,
+    "maxDD": 0.16531,
+    "retOverDD": 0.062,
+    "fills": 74,
+    "entries": 37,
+    "refusedEntries": 6,
+    "stopsHit": 0,
+    "feesUsd": 1.6674,
+    "barsWithAPosition": 496,
+    "bars": 2219,
+    "meanOpenSlots": 0.3867,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 6,
+    "dllRefused": 0,
+    "cashUsd": 101,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 4.1996,
+      "trades": 14,
+      "entries": 7,
+      "refused": 2,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-09-21T08:00:00.000Z",
+      "sym": "SOL/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "AVAX/USD"
+      ]
+     }
+    ]
+   },
+   "$150 cash $105": {
+    "capUsd": 150,
+    "pnlUsd": 0.2058,
+    "ret": 0.00206,
+    "maxDD": 0.16531,
+    "retOverDD": 0.012,
+    "fills": 76,
+    "entries": 38,
+    "refusedEntries": 4,
+    "stopsHit": 0,
+    "feesUsd": 1.7117,
+    "barsWithAPosition": 498,
+    "bars": 2219,
+    "meanOpenSlots": 0.3948,
+    "daysBookDown5UsdFromDayOpen": 1,
+    "maxOpen": 4,
+    "barsAllFourOpen": 13,
+    "cashRefused": 4,
+    "dllRefused": 0,
+    "cashUsd": 105,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 3.3865,
+      "trades": 16,
+      "entries": 8,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     }
+    ]
+   },
+   "none cash $99.34": {
+    "capUsd": null,
+    "pnlUsd": 1.0189,
+    "ret": 0.01019,
+    "maxDD": 0.16531,
+    "retOverDD": 0.062,
+    "fills": 74,
+    "entries": 37,
+    "refusedEntries": 6,
+    "stopsHit": 0,
+    "feesUsd": 1.6674,
+    "barsWithAPosition": 496,
+    "bars": 2219,
+    "meanOpenSlots": 0.3867,
+    "daysBookDown5UsdFromDayOpen": 0,
+    "maxOpen": 3,
+    "barsAllFourOpen": 0,
+    "cashRefused": 6,
+    "dllRefused": 0,
+    "cashUsd": 99.34,
+    "per": {
+     "BTC/USD": {
+      "pnlUsd": -2.5319,
+      "trades": 28,
+      "entries": 14,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "ETH/USD": {
+      "pnlUsd": -2.3915,
+      "trades": 26,
+      "entries": 13,
+      "refused": 0,
+      "stopsHit": 0
+     },
+     "SOL/USD": {
+      "pnlUsd": 4.1996,
+      "trades": 14,
+      "entries": 7,
+      "refused": 2,
+      "stopsHit": 0
+     },
+     "AVAX/USD": {
+      "pnlUsd": 1.7426,
+      "trades": 6,
+      "entries": 3,
+      "refused": 4,
+      "stopsHit": 0
+     }
+    },
+    "refusedSample": [
+     {
+      "t": "2026-08-20T16:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T04:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-21T20:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-08-22T00:00:00.000Z",
+      "sym": "AVAX/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "SOL/USD"
+      ]
+     },
+     {
+      "t": "2026-09-21T08:00:00.000Z",
+      "sym": "SOL/USD (cash)",
+      "held": [
+       "BTC/USD",
+       "ETH/USD",
+       "AVAX/USD"
+      ]
+     }
+    ]
+   }
+  }
+ },
+ "coverage": {
+  "A BTC/USD": {
+   "scored": 2255,
+   "revxOwn": 2165
+  },
+  "A ETH/USD": {
+   "scored": 2255,
+   "revxOwn": 2165
+  },
+  "A SOL/USD": {
+   "scored": 2255,
+   "revxOwn": 2165
+  },
+  "A AVAX/USD": {
+   "scored": 2255,
+   "revxOwn": 2165
+  },
+  "RX BTC/USD": {
+   "scored": 2219,
+   "revxOwn": 2219
+  },
+  "RX ETH/USD": {
+   "scored": 2219,
+   "revxOwn": 2219
+  },
+  "RX SOL/USD": {
+   "scored": 2219,
+   "revxOwn": 2219
+  },
+  "RX AVAX/USD": {
+   "scored": 2219,
+   "revxOwn": 2219
+  }
+ }
+}

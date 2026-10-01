@@ -217,3 +217,35 @@ On its merits, no. `backtests/equity/`.
   `scripts/pull_usdc_books.py` → `samples/usdc/`; `scripts/screen_usdc_books.py` → `samples/usdc/screen_result.txt`;
   `scripts/reward_universe.py` and `scripts/reward_births.py` (live, aggregates only) → `samples/pm_*.txt`.
 - Each folder's `MANIFEST.json` lists every file with its sha256.
+
+## 7. Addendum, 2026-10-01 02:24 UTC: the live cap is $60
+
+Davies, the same morning: "按照你的建议验证后确定好了就去做，确保上线的这个策略各个方面都最佳" — verify the recommendation
+($60 now, $150 after a clean week; AVAX kept) and then do it, and make sure every aspect of the live strategy is at
+its best. An audit agent checked it read-only and the coordinator re-ran its work from the committed folders
+(`backtests/cap/`, byte-identical).
+
+- **The statement is aimed right.** `agent_risk` holds one row (`CHECK (id = 1)`), and `max_exposure_usd` is the only
+  setting that held the row to one slot: the per-order limit is the slot × 1.1 ($27.50), the 40-order cap and the $5
+  daily limit were never close, and nothing else trades in the `revx|live` bucket.
+- **The tick does what CAP assumed.** An entry placed earlier in a turn counts against the next coin's gate; with all
+  four coins signalling on one bar it places 1 / 2 / 2 / 4 / 4 / 4 live orders at $25 / $50 / $60 / $100 / $110 / $150,
+  in the row's coin order. Now pinned in `agents/tick.test.ts` ("live row: …"), with a buy the venue refuses for lack
+  of USD (recorded rejected, reported, not re-sent on the bar) and the daily loss limit across two live positions
+  (a third entry refused, both floors still sell). No code defect was found on the paths two or four concurrent
+  positions use for the first time (exposure, D11/D12 per coin, the floor, the loss limit, the order cap,
+  reconciliation, re-sends, the cooldown).
+- **$60 is the true two-slot cap.** Exposure is marked to market, so $50 is two slots only while the first position is
+  at or below cost. On the Coinbase tape, $60 against $25: window A +$11.24 against +$11.77 (drawdown 13.9 % against
+  7.3 %), window B +$26.31 against +$8.91 (7.8 % against 8.7 %), three years +$81.49 against +$43.81 (9.0 % against
+  6.8 %, the best return on drawdown of any cap). On Revolut X's own UK 4h tape (`scripts/cap_revx.ts`, window A and the
+  venue's rolling year): +$8.16 against +$9.87 (15.0 % against 7.5 %) and +$1.10 against +$3.89. More slots help the
+  bull windows and add drawdown in the bear one; no cap wins everywhere, and these windows were seen before.
+- **Money, not code, limits four slots.** The tick does not check USD before a live buy. The account holds $99.34 (the
+  read-only probe, 01:56 UTC: USD total and available 99.34, nothing reserved, no coin, no open order). Two slots need
+  $50.10; four need $100.20, and never refusing an entry over the windows needed $104–$115 (`results/cash_needed*.json`).
+- **Done:** `update public.agent_risk set max_exposure_usd = 60, updated_at = now() where id = 1;` at 2026-10-01
+  02:24:51 UTC, read back (daily limit $5, 40 orders, `global_pause` false, `live_confirmed_at` unchanged); the next
+  minutes ran with no error. Every other setting has a priced reason in reference §3–§4 and nothing new against it.
+- **Next:** on 2026-10-08 the clean-week checks (`scripts/cap/clean_week.sql`, AVAX's book by `scripts/cap/book_30d.py`,
+  the probe); $150 only if they are clean and the account holds at least $100.20 (about $115 recommended).

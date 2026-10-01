@@ -108,6 +108,13 @@ list stays the short version; the plan is the reasoning behind it.
      `others` by minute of day (`pm_rw_minutes`) to see how fast other makers arrive on a reward pool. Build no recorder
      before that read and Davies' word; a recorder's data would cover RW-C's markets, so nobody reads it before 10-23
      00:05 UTC. If both fail, drop it.
+   - **The first live step, pre-studied 2026-10-01** (`reviews/2026-10-01-polymarket-live-prestudy.md`, `backtests/pmlive/`;
+     Davies asked which Polymarket strategy suits a live experiment): the RW-NEXT candidate, live at small scale as a
+     calibration of what Polymarket actually pays (R = actual / formula rewards; RW's six paper days break even at R ≈
+     0.40, 0.58 at the stress fills), only after RW-C passes and on his word under Part 4: about 6 markets, ~12 days in
+     Ireland, a $300 cap in code, about $400 funded. No money moves before then; its twelve preconditions are listed
+     there. Options put to him: 0 as frozen (recommended; first order ~10-29 to 11-01) or 1, a recorded deviation that
+     builds the rule-independent order path inert during RW-C (~5–7 days sooner).
    - **Only if RW (or RW-E) passes, and only on Davies' word: design, not build, a live test.** It runs only in
      `eu-west-1` (refuse unless `SB_REGION` is `eu-west-1`); it opens a position only while his attestation that he is
      in Ireland is current (an expiring timestamp he sets in conversation), and otherwise reduces or closes only; never
@@ -132,10 +139,14 @@ list stays the short version; the plan is the reasoning behind it.
    against the book); after a sell, the book flat and the account under one step. Report a live order, a fill, an
    order `pending` over 2 minutes, a missing decision, a live-row error or a failed tick. The cap is one slot; a
    later change is one statement (`update public.agent_risk set max_exposure_usd = … where id = 1;`), and Davies is
-   told when it runs. The 30 and 75 steps written for the $50 book are not the next raises. **CAP (2026-10-01,
-   reference §3.44):** one slot was never priced and lets the coin list's order pick the coin; the brief's steps scaled
-   to $100 are $60 (two slots) and, after a clean week, $150 (four), on Davies' word. AVAX's UK book is $31k a day on a
-   30-day median, under §4.15's $100k; its seat is his call (`reviews/2026-10-01-research-round.md` §5). **Never trade by hand in
+   told when it runs. The 30 and 75 steps written for the $50 book are not the next raises. **The cap is $60 (two slots)
+   since 2026-10-01 02:24:51 UTC** on Davies' word ("按照你的建议验证后确定好了就去做"), after an audit found no defect
+   (`reviews/2026-10-01-research-round.md` §7, reference §3.44; pins in `agents/tick.test.ts`). **$150 (four) on 2026-10-08**
+   (wake `trig_01THvHcphx5gngXugfwwy788`, 06:20 UTC): only if `scripts/cap/clean_week.sql` CW-1–CW-9 are clean, AVAX's
+   book (`scripts/cap/book_30d.py`, baseline $31,007) is no worse, and the probe reads USD ≥ $100.20: the account holds
+   $99.34 and Davies was asked to top it up to about $115 (the tick does not check USD before a buy; a refused buy is
+   recorded rejected and not re-sent). Otherwise keep $60 and tell him what is missing. AVAX stays (his word); re-read its
+   book before any raise of the capital. **Never trade by hand in
    that account.** Rows, caps and the order path: `.claude/CLAUDE.md`'s Agents section, `docs/agents/go-live.md`,
    reference §3.31 and §4 items 32–34.
 
@@ -457,7 +468,8 @@ list stays the short version; the plan is the reasoning behind it.
      no balance. Before money reaches the Polymarket wallet, said to him on 2026-09-30: its key was exposed to another
      tool (item 2: keep the wallet empty or small; revoking that tool's Supabase token is his); the proxy wallet
      carries unlimited pUSD allowances to four spenders (reference §2d's probe), harmless only while it is empty;
-     nothing may open a position there until RW or RW-E passes on 10-09 and he says go, and then only from
+     nothing may open a position there until RW-C passes on 10-23 (RW-NEXT, which amends "RW or RW-E passes on 10-09")
+     and he says go, and then only from
      `eu-west-1` under his current attestation that he is in Ireland. When he says the transfer is done, fire the
      read-only probe `?action=probe&only=polymarket` through pg_net with the Vault `cron_secret` and record the
      collateral it reads.
@@ -476,6 +488,19 @@ list stays the short version; the plan is the reasoning behind it.
    - A clone made before `main`'s history was rewritten (2026-09-24) must be re-cloned or reset to `origin/main`;
      `docs/commit-map-2026-09-24.md` maps the old hashes. Every clone runs `sh bin/setup.sh` once, or the ledger hook
      is off there.
+
+6b. **Parked for later** (Davies, 2026-10-01: "其他的都先记下来，之后再考虑"; reference §3.44, the research round's §3 and
+   the live pre-study). Each needs his word to start; none is running.
+   - POOLAGE: how fast other makers reach a new reward pool; only if RW or RW-E passes on 10-09 (item 2).
+   - A venue where this account may open event positions: Smarkets' event list answered keylessly, Betfair's API needs
+     a key. A survey first.
+   - Polymarket Combos maker (signed quotes within 400 ms: an always-on process and the Ireland rule), the UMA
+     disputer's bounty and listing announcements (both races), Revolut X's `index_price` as a fair value (one
+     observation; no frozen test may switch), a Revolut X coin-book recorder (it would share the public token bucket with
+     the tick, PR5 and QUEUE's recorder; not before QUEUE's export).
+   - Closed, no hope (his question of 2026-10-01): coin/USDC maker quotes on the 23 UK books (a ceiling of $0.13–0.51 a day
+     a book that the 5-minute drift takes back, and re-pricing beyond the 1,000-a-day budget); token unlocks (the payer
+     makes prices fall, which only a short can use, and a +2 % mean needs about 1,200 events).
 
 7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
    2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30, so 17 of 28 done, 1 partly, 1 not doing (the committed
@@ -520,7 +545,8 @@ Facts a fresh session would otherwise rediscover:
   verdict); `trig_01Myqe75KezMbWXZ15qK8mBD` 10-24 09:20 (the reading scripts); `trig_01SekCNjJaux9Qbhn2Yaj7QD` 10-28
   01:20 (PR5V's and variant-2's readings); `trig_01Q3DV4MArsf3tQ1Po8yCh1X` 11-02 00:40 (QUEUE's and PR5-W's exports);
   `trig_01Ecb6B2TUMRhvYiyc3a8BuE` 11-20 09:20 (PR5-W's count script); `trig_01JVzTyxtpoSkB7Wgw2eRkqk` 11-25 00:40
-  (PR5-W's reading); `trig_018Ni6ydYybx39fE2wn7ZLeo` the 1st of each month 09:23 (EX-GAP's count). Each wake delegates
+  (PR5-W's reading); `trig_018Ni6ydYybx39fE2wn7ZLeo` the 1st of each month 09:23 (EX-GAP's count); and, set 2026-10-01 on
+  Davies' word, `trig_01THvHcphx5gngXugfwwy788` 10-08 06:20 (the live cap's clean week and its $150 step, item 3). Each wake delegates
   only to `sonnet-max` (easy work) or `opus-max` (important or difficult work), as Davies ruled for every sub-agent on
   2026-09-30, and checks their work before committing.
   Why not their own sessions: a Routine created from a session here cannot store connectors ("not available for this
@@ -590,6 +616,10 @@ Facts a fresh session would otherwise rediscover:
   writes are gitignored.
 
 ## History, newest first
+
+### [2026-10-01 02:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The live cap is $60, verified first; Polymarket's first live step is pre-studied; coin/USDC and token unlocks are closed; the rest is parked** (Davies: "按照你的建议验证后确定好了就去做，确保上线的这个策略各个方面都最佳"; "你研究下哪个策略最适合进live实验…之后和我确认"; "其他的都先记下来，之后再考虑"). An audit agent read the live row's configuration and code and re-priced the cap on two tapes (`reviews/2026-10-01-research-round.md` §7, `backtests/cap/`, re-run byte-identical from the repository): no defect, and `max_exposure_usd` is the only setting that binds. Two slots need $50.10 and the account holds $99.34 (the read-only probe, request 106565: USD total and available 99.34, nothing reserved, no coin, no open order); four need at least $100.20. `update public.agent_risk set max_exposure_usd = 60, updated_at = now() where id = 1;` ran at 02:24:51 UTC and read back, and the next minutes ran clean. Eight pins of the multi-slot paths are in `agents/tick.test.ts` (111 pass). The $150 step waits for 10-08 and the money (item 3, wake `trig_01THvHcphx5gngXugfwwy788`). Polymarket (`reviews/2026-10-01-polymarket-live-prestudy.md`, item 2): the RW-NEXT candidate, as a live calibration of what Polymarket pays, only after RW-C passes; no money moves before. Item 6's Kraken bullet now names RW-C's pass, as RW-NEXT amends it. Item 6b parks the rest and closes coin/USDC and token unlocks.
 
 ### [2026-10-01 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

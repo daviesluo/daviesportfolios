@@ -1,0 +1,12 @@
+polygon-USDC 100000000 in 100.0002 out 99.976389 ms 27000 gas 0.004444 appFee% 0 fill% 0 impact$ 0.023811
+polygon-USDC 500000000 in 500.001 out 499.881905 ms 27000 gas 0.004444 appFee% 0 fill% 0 impact$ 0.119095
+polygon-USDC.e 100000000 in 99.9963 out 99.9963 ms 27000 gas 0.020844 appFee% 0 fill% 0 impact$ 0
+polygon-USDC.e 500000000 in 499.9815 out 499.9815 ms 27000 gas 0.020858 appFee% 0 fill% 0 impact$ 0
+base-USDC 100000000 in 100.0002 out 99.976789 ms 27000 gas 0.002176 appFee% 0 fill% 0 impact$ 0.023411
+base-USDC 500000000 in 499.989 out 499.881905 ms 27000 gas 0.002176 appFee% 0 fill% 0 impact$ 0.107095
+arbitrum-USDC 100000000 in 100.0002 out 99.976789 ms 27000 gas 0.004584 appFee% 0 fill% 0 impact$ 0.023411
+arbitrum-USDC 500000000 in 500.001 out 499.881905 ms 27000 gas 0.004613 appFee% 0 fill% 0 impact$ 0.119095
+solana-USDC 100000000 in 99.9978 out 99.976389 ms 27000 gas 0.04103 appFee% 0 fill% 0 impact$ 0.021411
+solana-USDC 500000000 in 499.989 out 499.881904 ms 27000 gas 0.041338 appFee% 0 fill% 0 impact$ 0.107096
+ethereum-USDC 100000000 in 99.9978 out 99.976389 ms 27000 gas 0.046477 appFee% 0 fill% 0 impact$ 0.021411
+ethereum-USDC 500000000 in 499.989 out 499.881904 ms 27000 gas 0.046488 appFee% 0 fill% 0 impact$ 0.107096
