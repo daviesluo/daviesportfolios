@@ -470,20 +470,23 @@ that follow from that evidence, in short:
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID
   when a minute did not trade — read fills from prints. **Its live path is
-  built and runs in DRY-RUN** (migration `0052`, `agents/quotes_live.ts`,
-  reference §4 item 35): on PR5's own sub-account (£50, key `_2`) it carries
-  out the paper engine's decisions order for order, under the design's
+  LIVE since 2026-10-01 16:29:53 UTC** (migration `0052`,
+  `agents/quotes_live.ts`, reference §4 item 35; Davies' word the same
+  afternoon, after the settings were verified in
+  `reviews/2026-10-01-pr5-live-go.md`): on PR5's own sub-account (key
+  `_2`, capital £120, £10 a rung) it carries out the paper engine's
+  decisions order for order, at the paper's prices, under the design's
   limits (a POST governor at 900/950, raised from 600/700 on Davies' word
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a
   bounded 24-hour stop; a refused exit sent again only after a newer print
-  that is not through it), and records every order it
-  WOULD send. Going live is one statement on Davies' word after at least a
-  day of dry-run watched against the paper engine: `update
+  that is not through it). Its asks hold coin bought by `quotes-convert`
+  (£30 of each, 16:31–16:32 UTC). It went live with `update
   public.agent_quote_live_config set dry_run = false, live_confirmed_at =
   now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
   stay armed); `global_pause` cancels everything. From its first real
   order it is also a row of LIVE (`quotesLiveRow`, 2026-09-26): its
-  real-money book from its own fills, in LIVE's totals.
+  real-money book from its own fills, in LIVE's totals. PR5's paper test
+  still decides PR5 on 2026-10-21.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims one second
   INTO its minute, never a bar start; a dislocation decision the minute).
