@@ -299,7 +299,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
         the reading.
    7. **EX-GAP: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-ex-gap-prereg.md`). At least 8 pairs by its date,
       else undecided. Counted on the 1st of each month at 09:23 UTC by `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads
-      at 16 pairs or after 2027-01-31 and then disables itself.
+      at 16 pairs or after 2027-01-31 and then disables itself. **Count 2026-10-01 09:24 UTC: 2 pairs.**
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages:** the watch paths (Include `dist/*`) and the Direct Upload Action (`pages-deploy.yml`, both
