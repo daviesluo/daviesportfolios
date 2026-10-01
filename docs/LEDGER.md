@@ -118,7 +118,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      calibration of R, RW's quoting as RW-E applies it, only on rewarded markets under $10 a day (outside RW's and
      RW-C's universe, so neither frozen test is touched and no post-09-28 RW figure is read); built in DRY-RUN with
      sends ready in code, going live one statement on his word after his funding. Being built (2026-10-01); he says the
-     key was not leaked.
+     key was not leaked. **He agreed (~15:25 UTC): "同意你polymarket的方案".**
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -168,8 +168,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      path, dry-run since 09-24; the variants have none and read on 10-28). What he must decide first: the live orders
      rest at the paper engine's prices, so a small taker they absorb would otherwise have printed through and filled a
      paper order — going live before 10-21 / 10-28 affects PR5's verdict, the variants' readings and PR5-W. Preparing
-     it (settings at £120, inventory, the interaction's size) was **refused by this session's permission classifier**
-     (a sub-agent launch, ~15:10 UTC) and waits for his approval; nothing was changed.
+     it (settings at £120, inventory, the interaction's size) was refused by this session's permission classifier
+     (a sub-agent launch, ~15:10 UTC). **He then approved it (~15:25 UTC):** "Stablecoin quotes你验证确定一切设置都是最佳，
+     没有任何值得优化后可以上线，我那个子账户已经补充资金到120英镑了，另外每日的下单限制目前是600对吧？可以改到900，毕竟另外那个上线策略每日下单不可能超过100" —
+     verify every setting, then go live; the probe read GBP 120.00, no order (request 117453, 15:25:55 UTC); the live
+     executor's governor withdraws entries at 900 instead of 600. Being verified and prepared (2026-10-01).
 
    - A live test on that £50 as a measurement, never as a return (Davies' question, 2026-09-28; answered yes, with
      what it would show): deferred on his word, "£50 实盘之后再说".
@@ -520,6 +523,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 15:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies agreed the Polymarket plan and approved PR5's live preparation** (items 2 and 4). He asked why a small live test should matter to the paper tests; the answer given: RW's selection picks the pools with the fewest other makers, so a live copy of the same rule would quote the same markets at the same size and price as RW-C and halve its paper share where it is alone, while PR5's effect is limited to takers whose remainder at our price is at most £10 and is to be measured, not assumed. He agreed the first ("同意你polymarket的方案"), approved PR5 live after verification, topped its sub-account up to £120 (probe 117453: GBP 120.00, no order) and set the live executor's governor to 900. A third agent verifies PR5's settings; production steps stay with the coordinating session.
 
 ### [2026-10-01 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
