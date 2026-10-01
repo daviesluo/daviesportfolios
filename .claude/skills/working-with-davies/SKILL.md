@@ -637,6 +637,13 @@ Read these as a checklist before pushing.
   the double must honour in ONE function both call, and when you add a
   guard to a real client, grep every stub of that client in the same
   change.
+  A third, on PR5's first live hour (2026-10-01): the fake Revolut X
+  carried a cancel out the instant it answered 204, the real one a moment
+  later, so the executor's read-back straight after its DELETE saw `new`,
+  froze 3 then 7 of 11 re-priced rungs for a minute and wrote an error
+  each time. Seven days of dry-run could not see it: a dry-run cancel never
+  reaches the venue. The double now lands a cancel a read later
+  (`cancelLagReads`), and the first live hour is watched, not trusted.
 - **A label is not the thing it labels.** A strategy row's `mode` was
   used as the identity of its positions, the bucket of its exposure, the
   mode written on its orders and the switch for its live gate. Flip the

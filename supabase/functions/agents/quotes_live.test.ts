@@ -14,7 +14,7 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS,
+  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited,
 } from "./quotes_live.ts";
@@ -454,10 +454,13 @@ Deno.test("live: a cancel the venue does not carry out FREEZES the rung — no r
   w.setFx(T0, T0 + 30 * H, 1.3300);                                   // the paper engine re-prices at T0+M
   const r1 = await w.step(T0 + M);
   assertEquals([w.posts(), w.rx.resting().length], [6, 6]);           // no replacement went out: one order per rung, still
-  assert(r1.errors.filter((e) => e.includes("FROZEN")).length === 6, JSON.stringify(r1.errors));
+  // The first turn's freeze is the venue a moment behind, as far as anyone can tell: frozen, read again twice, no error.
+  assertEquals(r1.errors.filter((e) => e.includes("FROZEN")), []);
+  assertEquals(r1.cancelled.filter((c) => c.outcome === "frozen").length, 6);
   assert(w.open("live").every((o) => o.cancel_requested_at != null));
-  await w.step(T0 + 2 * M);                                            // still not done: still frozen, asked again
-  assertEquals([w.posts(), w.rx.resting().length], [6, 6]);
+  const r2 = await w.step(T0 + 2 * M);                                 // a minute on, still not done: still frozen, asked again,
+  assertEquals([w.posts(), w.rx.resting().length], [6, 6]);           // and now it is an error, once a rung
+  assertEquals(r2.errors.filter((e) => e.includes("FROZEN") && e.includes("first asked at")).length, 6, JSON.stringify(r2.errors));
   w.rx.cancelMode = "ok";
   await w.step(T0 + 3 * M);                                            // confirmed at last: the replacements go out
   assertEquals([w.posts(), w.rx.resting().map((o) => o.price).sort()], [12, ["0.7496", "0.7496", "0.7503", "0.7503", "0.7511", "0.7511"]]);
@@ -466,6 +469,38 @@ Deno.test("live: a cancel the venue does not carry out FREEZES the rung — no r
   w.setFx(T0 + 3 * M, T0 + 30 * H, X);
   await w.step(T0 + 4 * M);
   assertEquals([w.rx.resting().length, w.posts()], [6, 18]);
+});
+
+Deno.test("live: the venue carries a cancel out a moment after its 204 (PR5's first live hour) — read again, confirmed in the same turn, replaced, no error", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  assertEquals(w.rx.cancelLagReads, 1);                                // the double as the venue was measured
+  await w.step(T0);
+  w.setFx(T0, T0 + 30 * H, 1.3300);                                   // the paper engine re-prices every quote at T0+M
+  const r = await w.step(T0 + M);
+  // Each read-back straight after the DELETE says `new`; one pause later it says cancelled, and the replacement goes out.
+  assertEquals([w.posts(), w.deletes(), w.rx.resting().length], [12, 6, 6]);
+  assertEquals(r.errors, []);
+  assertEquals(r.cancelled.map((c) => c.outcome), Array(6).fill("cancelled"));
+  assertEquals(w.pauses.taken.filter((ms) => ms === QUOTE_LIVE_CANCEL_REREAD_MS[0]).length, 6);
+  assertEquals(w.pauses.taken.filter((ms) => ms === QUOTE_LIVE_CANCEL_REREAD_MS[1]).length, 0);
+  assertEquals(w.rx.resting().map((o) => o.price).sort(), ["0.7496", "0.7496", "0.7503", "0.7503", "0.7511", "0.7511"]);
+  assert(w.orders().filter((o) => o.state === "cancelled").every((o) => o.cancel_requested_at != null && o.cancelled_at != null));
+});
+
+Deno.test("live: a cancel slower than the re-reads freezes its rung for a turn without an error; the next turn confirms it and replaces it", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  await w.step(T0);
+  w.rx.cancelLagReads = 3;                                             // open on the read-back and both re-reads
+  w.setFx(T0, T0 + 30 * H, 1.3300);
+  const r1 = await w.step(T0 + M);
+  assertEquals([w.posts(), w.rx.resting().length], [6, 6]);           // never two orders on a rung
+  assertEquals(r1.errors, []);
+  assertEquals(r1.cancelled.map((c) => c.outcome), Array(6).fill("frozen"));
+  assertEquals(w.pauses.taken.filter((ms) => (QUOTE_LIVE_CANCEL_REREAD_MS as readonly number[]).includes(ms)), Array(6).fill([...QUOTE_LIVE_CANCEL_REREAD_MS]).flat());
+  const r2 = await w.step(T0 + 2 * M);                                 // the venue has carried them out by now
+  assertEquals(r2.errors, []);
+  assertEquals([w.posts(), w.rx.resting().length], [12, 6]);
+  assertEquals(w.rx.resting().map((o) => o.price).sort(), ["0.7496", "0.7496", "0.7503", "0.7503", "0.7511", "0.7511"]);
 });
 
 Deno.test("live: a fill is booked only from the venue's read-back — the paper's print fills nothing live, the venue's fill is the position", async () => {

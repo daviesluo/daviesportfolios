@@ -986,6 +986,8 @@ export const fakePrice = (t: number) => 100 * Math.pow(1.002, (t - FAKE_EPOCH) /
 type FakeOrder = {
   id: string; client_order_id: string; symbol: string; side: "buy" | "sell"; status: string; price: string; quantity: string;
   filled: number; avg: number | null; fee: number; tif: string; postOnly: boolean; created: number;
+  /** A DELETE taken and not yet carried out (`cancelLagReads`): when it was asked, and how many reads still show it open. */
+  cancelAsked?: number; cancelReadsLeft?: number;
 };
 
 /** Revolut X's own configuration of PR5's two GBP books (public pair list, 2026-09-24 00:12 UTC; `backtests/pr5_live/inputs`). */
@@ -1010,6 +1012,13 @@ export class FakeRevx {
    * arrives (the caller's fetch throws).
    */
   cancelMode: "ok" | "lost" | "timeout" = "ok";
+  /**
+   * A DELETE the venue takes is carried out a moment later, not before its 204: the order reads back `new` (and can still
+   * fill) for this many reads of it, or until a second has passed, whichever comes first. Production, PR5's first live
+   * hour (2026-10-01 16:37 and 16:41 UTC): the read-back straight after the DELETE still showed 3 of 11, then 7 of 11
+   * orders `new`, and every one read back cancelled by the next turn. One read is the venue as measured; 0 cancels at once.
+   */
+  cancelLagReads = 1;
   /** How a post-only order that would cross is refused: taken and then `rejected` (the read-back says so), or a 400 at once. */
   postOnlyRefusal: "status" | "http-400" = "status";
   /**
@@ -1049,10 +1058,25 @@ export class FakeRevx {
     const half = (this.spreadBps[sym] ?? 2) / 2 / 1e4;
     return { bid: Math.round(mid * (1 - half) * 100) / 100, ask: Math.round(mid * (1 + half) * 100) / 100 };
   }
+  /**
+   * A cancel the venue took lands once its reads are used up or a second has passed: until then the order is open as before.
+   * `read` is a read of this order (GET /orders/{id}); any other look (the active list, the balances, a trade) only checks
+   * the clock.
+   */
+  private landCancel(o: FakeOrder, read = false): void {
+    if (o.cancelAsked == null) return;
+    if (o.status !== "new" && o.status !== "partially_filled") { o.cancelAsked = o.cancelReadsLeft = undefined; return; }
+    if (this.now() - o.cancelAsked >= 1_000 || (read && (o.cancelReadsLeft ?? 0) <= 0)) {
+      o.status = "cancelled"; o.cancelAsked = o.cancelReadsLeft = undefined;
+      return;
+    }
+    if (read) o.cancelReadsLeft = (o.cancelReadsLeft ?? 0) - 1;
+  }
   /** What resting orders hold back of an asset: a resting buy its quote currency, a resting sell its coin. */
   reserved(asset: string): number {
     let n = 0;
     for (const o of this.orders.values()) {
+      this.landCancel(o);
       if (o.status !== "new" && o.status !== "partially_filled") continue;
       const [base, quote] = o.symbol.split("/"), left = Number(o.quantity) - o.filled;
       if (o.side === "buy" && quote === asset) n += left * Number(o.price);
@@ -1066,6 +1090,7 @@ export class FakeRevx {
    */
   fillResting(id: string, qty: number) {
     const o = this.orders.get(id);
+    if (o) this.landCancel(o);
     if (!o || (o.status !== "new" && o.status !== "partially_filled")) throw new Error(`fake revx: ${id} is not resting`);
     const [base, quote] = o.symbol.split("/"), px = Number(o.price);
     const q = Math.min(qty, Number(o.quantity) - o.filled);
@@ -1077,6 +1102,7 @@ export class FakeRevx {
   }
   /** Every order still resting on `symbol` (slash form). */
   resting(symbol?: string): FakeOrder[] {
+    for (const o of this.orders.values()) this.landCancel(o);
     return [...this.orders.values()].filter((o) => (o.status === "new" || o.status === "partially_filled") && (!symbol || o.symbol === symbol));
   }
   private view(o: FakeOrder): Record<string, unknown> {
@@ -1161,7 +1187,10 @@ export class FakeRevx {
       if (this.loseReply) return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
       return json(200, { data: { venue_order_id: o.id, client_order_id: o.client_order_id, state: this.placementReply === "new" ? "new" : o.status } });
     }
-    if (p === "/api/1.0/orders/active") return json(200, { data: [...this.orders.values()].filter((o) => o.status === "new" || o.status === "partially_filled").map((o) => this.view(o)), metadata: { timestamp: this.now() } });
+    if (p === "/api/1.0/orders/active") {
+      for (const o of this.orders.values()) this.landCancel(o);
+      return json(200, { data: [...this.orders.values()].filter((o) => o.status === "new" || o.status === "partially_filled").map((o) => this.view(o)), metadata: { timestamp: this.now() } });
+    }
     if (p === "/api/1.0/orders/historical") {
       if (this.down.history) return unavailable();
       // Finished orders in [start_date, end_date], as the venue documents the list: WITHOUT total_fee and fee_currency, which
@@ -1177,14 +1206,17 @@ export class FakeRevx {
       const o = this.orders.get(p.split("/").at(-1)!);
       if (!o) return json(404, { message: "Order not found" });
       if (m === "DELETE") {
+        this.landCancel(o);
         if (o.status === "new" || o.status === "partially_filled") {
           if (this.cancelMode === "lost") return json(204, null);                 // said and not done
-          o.status = "cancelled";
+          if (this.cancelLagReads > 0) { o.cancelAsked ??= this.now(); o.cancelReadsLeft ??= this.cancelLagReads; }   // taken: carried out a moment later
+          else o.status = "cancelled";
           if (this.cancelMode === "timeout") return Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"));
           return json(204, null);
         }
         return this.deleteFinished === 204 ? json(204, null) : json(404, { message: "Order is not active" });
       }
+      this.landCancel(o, true);
       return json(200, { data: this.view(o) });
     }
     if (p === "/api/1.0/balances") {

@@ -91,6 +91,13 @@ export const QUOTE_LIVE_CONVERT_MAX_FRACTION = 0.25; // one conversion buys at m
 export const QUOTE_LIVE_POST_GAP_MS = 125;
 /** A POST the venue answers 429 was not taken: it is sent once more after this, the second's bucket refilled. */
 export const QUOTE_LIVE_429_WAIT_MS = 1_000;
+/**
+ * A cancel the venue took is carried out a moment AFTER its 204: on PR5's first live hour (2026-10-01 16:37 and 16:41 UTC)
+ * the read-back straight after the DELETE still showed 3 of 11, then 7 of 11 re-priced orders `new`, and every one read
+ * back cancelled a minute later. Each froze its rung for that minute and wrote an error. So a cancel still open on its
+ * read-back is read again after these pauses before its rung is frozen: about a second in all, at most twice per cancel.
+ */
+export const QUOTE_LIVE_CANCEL_REREAD_MS = [300, 700] as const;
 
 export type LiveMode = "dry_run" | "live";
 export type LiveLeg = "entry" | "exit" | "stop" | "convert";
@@ -646,7 +653,10 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   /**
    * Take an order off the book, CONFIRMED: the DELETE, then the order read back. Only a read-back showing it cancelled
    * (or filled) confirms it. A 204 alone does not: a lost cancel followed by the replacement would put two orders on one
-   * rung. Unconfirmed, the row keeps `cancel_requested_at`, the rung is frozen, and every later turn asks again.
+   * rung. The venue carries a cancel out a moment after its 204, so an order still open on its read-back is read again
+   * (`QUOTE_LIVE_CANCEL_REREAD_MS`). Unconfirmed after that, the row keeps `cancel_requested_at`, the rung is frozen, and
+   * every later turn asks again. A freeze is an error only from the turn after the cancel was first asked: one the venue
+   * has not carried out within a minute is not the venue being a moment behind.
    */
   const cancelConfirmed = async (o: LiveOrderRow, reason: string): Promise<"cancelled" | "filled" | "frozen"> => {
     const label = o.rung_side ? rungLabel(o.book, o.rung_side, o.k!) : `${o.book}|convert`;
@@ -665,10 +675,19 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       report.errors.push(`${label}: cannot cancel ${o.client_order_id} (${!o.venue_order_id ? "the venue's id for it is not known yet" : "PR5's key is not loaded"}); the rung is frozen`);
       return out("frozen");
     }
+    const askedBefore = !!o.cancel_requested_at && Date.parse(o.cancel_requested_at) < Date.parse(nowIso);
     if (!o.cancel_requested_at) await patchRow(ctx, o, { cancel_requested_at: nowIso, cancel_reason: reason });
     let refused: string | null = null;
     try { const c = await acct.cancel(o.venue_order_id); if (!c.ok) refused = c.error ?? "refused"; } catch (e) { refused = msg(e); }
-    const v = await acct.order(o.venue_order_id).catch((e) => ({ ok: false as const, error: msg(e) }));
+    const venueOrderId = o.venue_order_id;
+    const read = () => acct.order(venueOrderId).catch((e) => ({ ok: false as const, error: msg(e) }));
+    const open = (state: string) => state === "new" || state === "partially_filled";
+    let v = await read();
+    for (const ms of QUOTE_LIVE_CANCEL_REREAD_MS) {
+      if (!v.ok || !open(v.view.state)) break;
+      await ctx.pause(ms);
+      v = await read();
+    }
     if (!v.ok) {
       report.errors.push(`${label}: cancel of ${o.venue_order_id} could not be read back (${v.error}); the rung is FROZEN until it is`);
       return out("frozen");
@@ -676,7 +695,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     await settleFromView(o, v.view);
     if (o.state === "cancelled" || o.state === "rejected") return out("cancelled");
     if (o.state === "filled") return out("filled");
-    report.errors.push(`${label}: cancel of ${o.venue_order_id} sent${refused ? ` (${refused})` : ""}, and the venue still shows it ${v.view.state}; the rung is FROZEN: no replacement until the venue shows it cancelled`);
+    if (askedBefore) report.errors.push(`${label}: cancel of ${o.venue_order_id} first asked at ${o.cancel_requested_at} and sent again${refused ? ` (${refused})` : ""}, and the venue still shows it ${v.view.state}; the rung is FROZEN: no replacement until the venue shows it cancelled`);
     return out("frozen");
   };
 
