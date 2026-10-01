@@ -1260,7 +1260,9 @@ async function run() {
       }
       return got;
     };
-    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    // `:visible`, here and in the sections after: the panel is drawn twice, and on a phone the first copy in the page is
+    // the desktop column's, never shown, so a wait for the first `.perf-legend-item` to show ran out its 15 s every time.
+    await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
     const before = await readingEnds('+4.00%');
     SP_BUMP = 1.01;                                    // 5000 → 5252: +5.04 %
     await page.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
@@ -1352,7 +1354,7 @@ async function run() {
     const S = (n) => `${vp.name}/perf-live-edge/${n}`;
     ES_LIVE = 1;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
-    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
     await page.locator('#perf-tab-sp:visible').first().click().catch(() => {});
     await page.locator('.ext-switch:visible').first().click().catch(() => {});
     await page.waitForTimeout(900);
@@ -1496,7 +1498,7 @@ async function run() {
       return { pf, day, chart, flat };
     });
     await page.waitForFunction((want) => (document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.]/g, '') !== '' && Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
-    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
     await page.waitForTimeout(2500);
     const before = await read();
     const stores = await page.evaluate(() => new Promise((res) => {
@@ -1574,7 +1576,7 @@ async function run() {
       return { old: !!(/** @type {any} */ (window)).__beforeBanner, pf, day, chart };
     });
     await page.waitForFunction((want) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
-    await page.waitForSelector('.perf-legend-item', { state: 'visible', timeout: 15_000 }).catch(() => {});
+    await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
     const installed = await page.evaluate(async () => {
       for (let i = 0; i < 100; i++) {
         const r = await navigator.serviceWorker.getRegistration();
@@ -2353,7 +2355,8 @@ async function run() {
       const qHeld = (await page.locator('.ag-quotes-detail .ag-ladder .ag-qheld').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const qTrips = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').count();
       const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
-      const qLive = ((await page.locator('.ag-quotes-detail .ag-quotes-live-line').textContent().catch(() => '')) || '').trim();
+      // Read without waiting: `textContent()` waits up to 30 s for its element, and this line is the one that must be absent.
+      const qLive = (await page.locator('.ag-quotes-detail .ag-quotes-live-line').allTextContents()).join(' ').trim();
       await shot(page, 'agents-quotes');
       const qStacked = await page.locator('.modal').count();
       // A dry run that has never traded says nothing (Davies, 2026-09-28).
@@ -2464,7 +2467,7 @@ async function run() {
       const rNote = await page.locator('.ag-rw-note').count();
       const rFoot = ((await page.locator('.ag-rw-foot').textContent().catch(() => '')) || '').trim();
       const rMeta = await page.locator('.ag-rw-detail .ag-detail-head .ag-venue-meta').count();
-      const rWhen = ((await page.locator('.ag-rw-bar .ag-rw-when').textContent().catch(() => '')) || '').trim();
+      const rWhen = (await page.locator('.ag-rw-bar .ag-rw-when').allTextContents()).join(' ').trim();   // absent: no 30 s wait
       const rTiles = (await page.locator('.ag-rw-bar .ag-rw-tile-k').allTextContents()).map((t) => t.trim());
       const rWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
       // A market is its question: the first one reads to its date, in two lines on a desk and four on a phone.
@@ -3865,7 +3868,7 @@ async function run() {
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { token: RO_TOKEN });
     const S = (n) => `${vp.name}/viewer/${n}`;
     await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});
-    await page.waitForSelector('.perf-lbl', { state: 'visible', timeout: 10_000 }).catch(() => {});
+    await page.waitForSelector('.perf-lbl:visible', { state: 'visible', timeout: 10_000 }).catch(() => {});
     const badge = await page.locator('.ro-badge:visible').count();
     const invTabs = await page.locator('#perf-tab-inv').count();
     const title = ((await page.locator('.panel:has(.perf-range-btn) .panel-title:visible').first().textContent().catch(() => '')) || '').trim();

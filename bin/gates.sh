@@ -106,8 +106,8 @@ bundle() {
   t=$(date +%s)
   npm run build > "$LOGS/build.log" 2>&1 || { echo "FAIL build"; cat "$LOGS/build.log"; return 1; }
   echo "ok   build ($(( $(date +%s) - t )) s)"
-  # Two shards a viewport, by each part's seconds alone on an idle 4-core machine (2026-10-01): `main`, sections 1–8 on
-  # one page, ~120 s at either width, and the rest, ~38 s on a desktop and ~100 s on a phone.
+  # Two shards a viewport, by each part's seconds on an idle 4-core machine (2026-10-01): `main`, sections 1–8 on one
+  # page, ~65 s at either width, and the rest ~35 s.
   shards="$(sweep_shards desktop main; sweep_shards phone main)"
   set --
   while IFS= read -r s; do set -- "$@" "$s"; done <<EOF
