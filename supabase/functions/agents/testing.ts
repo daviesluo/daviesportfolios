@@ -170,6 +170,42 @@ const PM_LIVE_SCHEMA: Record<string, { columns: string[]; key: string | null }> 
   pm_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
 };
 const PM_LIVE_OPEN = ["pending", "live"];
+/**
+ * "Reward quotes live-prep"'s tables as 0077 creates them: their columns, the unique key each upsert names, the NOT NULL
+ * columns a proposed row must carry, and their CHECKs. Exported for its tests.
+ */
+export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; notNull: string[]; check?: (r: Row) => string | null }> = {
+  pm_prep_state: { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id", notNull: ["id", "state"], check: (r) => (r.id === 1 ? null : "id") },
+  pm_prep_prints: {
+    columns: ["id", "cond", "ts", "side", "oi", "price", "size"], key: "id", notNull: ["id", "cond", "ts", "side", "oi", "price", "size"],
+    check: (r) => (["BUY", "SELL"].includes(String(r.side)) ? null : "side"),
+  },
+  pm_prep_minutes: {
+    columns: ["minute", "cond", "class", "bb", "ba", "b", "a", "n", "qb", "qa", "close_only", "reward", "fills", "yes_held", "no_held", "mark", "detail"],
+    key: "minute,cond", notNull: ["minute", "cond", "class"],
+    check: (r) => (!["matched", "dark", "diverged", "held"].includes(String(r.class)) ? "class" : r.reward != null && !(Number(r.reward) >= 0) ? "reward"
+      : r.fills != null && !(Number(r.fills) >= 0) ? "fills" : null),
+  },
+  pm_prep_fills: {
+    columns: ["cond", "minute", "print_id", "ts", "side", "price", "size", "token", "token_side", "token_price", "close_only"], key: "cond,minute,print_id",
+    notNull: ["cond", "minute", "print_id", "ts", "side", "price", "size", "token", "token_side", "token_price"],
+    check: (r) => (!["bid", "ask"].includes(String(r.side)) ? "side" : !(Number(r.size) > 0) ? "size" : !["BUY", "SELL"].includes(String(r.token_side)) ? "token_side"
+      : !(Number(r.token_price) > 0 && Number(r.token_price) < 1) ? "token_price" : null),
+  },
+  pm_prep_days: {
+    columns: ["day", "reward", "reward_r40", "fills_pnl_day", "fills_pnl_total", "pnl_day_r40", "held_value", "fills", "minutes_matched", "minutes_dark",
+      "minutes_diverged", "minutes_missing", "stop_day", "stop_total", "markets", "detail", "closed_at"],
+    key: "day", notNull: ["day"],
+  },
+  pm_prep_settlements: {
+    columns: ["cond", "yes_token", "no_token", "payout", "closed_time", "settled_at", "detail"], key: "cond", notNull: ["cond", "yes_token", "no_token", "payout", "settled_at"],
+    check: (r) => (Number(r.payout) >= 0 && Number(r.payout) <= 1 ? null : "payout"),
+  },
+  pm_prep_events: {
+    columns: ["minute", "kind", "detail"], key: "minute,kind", notNull: ["minute", "kind"],
+    check: (r) => (["loss_stop_day", "loss_stop_total", "settlement"].includes(String(r.kind)) ? null : "kind"),
+  },
+};
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -364,6 +400,15 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? check("filled_base", Number(r.filled_base) >= 0)
       ?? (((r.leg === "convert") === (r.rung_side == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
       ?? (((r.rung_side == null) === (r.k == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
+  }
+  if (table in PM_PREP_SCHEMA) {
+    const sc = PM_PREP_SCHEMA[table];
+    const unknown = Object.keys(r).find((c) => !sc.columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    const nn = notNull(sc.notNull);
+    if (nn) return nn;
+    const bad = sc.check?.(r) ?? null;
+    return bad ? `new row for relation "${table}" violates check constraint "${table}_${bad}_check"` : null;
   }
   if (table in PM_LIVE_SCHEMA) {
     const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[table].columns.includes(c));
@@ -606,7 +651,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
         || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)
-        || (table in PM_LIVE_SCHEMA && onConflict !== PM_LIVE_SCHEMA[table].key)) {
+        || (table in PM_LIVE_SCHEMA && onConflict !== PM_LIVE_SCHEMA[table].key)
+        || (table in PM_PREP_SCHEMA && onConflict !== PM_PREP_SCHEMA[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -618,7 +664,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // to that (their decisions are written as upserts onto rows recorded a minute earlier).
         // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in. The order path's
         // (0074) too: every upsert it makes proposes whole rows.
-        const why = schemaRefusal(table, table in PMRW_TABLES || table in PM_LIVE_SCHEMA ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
+        const why = schemaRefusal(table, table in PMRW_TABLES || table in PM_LIVE_SCHEMA || table in PM_PREP_SCHEMA ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
         if (table === "pm_live_fills" && !(tables.pm_live_orders ?? []).some((o) => o.hash === r.hash)) {
           return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "pm_live_fills" violates foreign key constraint "pm_live_fills_hash_fkey"`));

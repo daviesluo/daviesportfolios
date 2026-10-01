@@ -3503,6 +3503,19 @@ every script re-run byte-identical by the coordinating session).
                  dry_run = false, live_confirmed_at = now(), updated_at = now()
             from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at from public.pm_live_state where id = 1) s
            where c.id = 1;
+    - **Before going live it is paper-traded for a day: "Reward quotes live-prep" (2026-10-01, migration `0077`,
+      `agents/pm_prep.ts`; Davies: "要不要先上线Reward quotes live-prep测试一下？…纸面测试24小时之后再验证一遍没问题自动上线").**
+      It fills the path's OWN dry-run orders on paper: two minutes behind, each market-minute of the path's record where
+      what rested after its turn is RW's quote on the row it decided on is decided by RW's `stepRw` on that row and the
+      market's public prints (fills, the 3N stop on the paper inventory, the reward line); where nothing rested it is
+      dark, where something else rested it is diverged and not quoted. Fills are booked as the path books its own
+      (`tokenBooks`, `bookPnl`), its loss stops act on paper as live (then only `closeOnly`'s sells, each side alone
+      through `stepRw`), resolved markets settle at Gamma's payout; rewards at the formula and at R = 0.40. It writes
+      only `pm_prep_*`: the path's dry-run is the same minute for minute with it on and off (pinned). On RW's golden day,
+      fed as the path would rest RW's quotes, it reproduces rw_test.py's fills, inventory and rewards on the 20 markets
+      the −$25 stop never stops, and RW's fills up to the stop on the other 9. Pre-registered before its window
+      (`reviews/2026-10-01-polymarket-live-prep-prereg.md`: 2026-10-02 00:00 → 10-03 00:00 UTC, conditions (a)–(g) read
+      by `backtests/pmlive/prep_check.sql`); all PASS and the go-time statement above runs on that word.
 
 37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item). **Its first version read the four books at once at :00 and lost three to 429 every minute** (18:16–18:20 UTC: the public bucket is about a token a second, and the tick reads it from :00); from migration `0058` it reads 40 s into the minute, after the tick's reads and PR5's (from :25), one book every 1.25 s in an order that turns each minute, and stops at the first 429. A row's `ts` is the instant its reading arrived, `seen_until` the last reading that found the same book and `reads` how many did, so a book that stood still is told apart from one nobody read.
 

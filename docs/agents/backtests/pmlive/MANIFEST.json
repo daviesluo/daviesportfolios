@@ -4,7 +4,8 @@
  "run": [
   "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
   "python3 scripts/reward_agg.py  # live, keyless; aggregates only, no per-market row written or printed",
-  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env selection_time.ts 3 6 120 > ../results/selection_time_out.txt  # live, keyless; scores only the [$6, $10) universe and names no market"
+  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env selection_time.ts 3 6 120 > ../results/selection_time_out.txt  # live, keyless; scores only the [$6, $10) universe and names no market",
+  "prep_check.sql  # the live-prep pre-registration's check (reviews/2026-10-01-polymarket-live-prep-prereg.md): read-only, one statement, run once at or after 2026-10-03 00:10 UTC; its sha256 is pinned by src/pm_prep_prereg.test.js"
  ],
  "sources": {
   "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",

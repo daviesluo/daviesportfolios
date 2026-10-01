@@ -39,6 +39,8 @@ const PAGED_KEYS: Record<string, string> = {
   yt_video_reads: "video_id,ts", yt_channel_reads: "channel_id,ts", pm_view_books: "token,ts",
   // The Polymarket order path's fills (0074): one row per trade and order; its minutes (0076): one per mode, minute and market.
   pm_live_fills: "trade_id,hash", pm_live_minutes: "mode,minute,cond", pm_live_settlements: "cond",
+  // "Reward quotes live-prep" (0077): its market-minutes, its fills and its settlements, each by its primary key.
+  pm_prep_minutes: "minute,cond", pm_prep_fills: "cond,minute,print_id", pm_prep_settlements: "cond",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

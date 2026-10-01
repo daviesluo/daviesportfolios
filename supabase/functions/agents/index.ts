@@ -37,6 +37,11 @@
 //                             A dry-run until `pm_live_config` says otherwise:
 //                             sends are enabled in code and the key is loaded.
 //                             Cron bearer only.
+//   POST ?action=pmprep     — "Reward quotes live-prep" (pm_prep.ts, 0077): the
+//                             order path's own dry-run decisions filled on
+//                             paper from Polymarket's public prints by RW's
+//                             rule, two minutes behind; its own tables only,
+//                             the path's read only. Keyless. Every minute.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -113,6 +118,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
 import { PM_LIVE_TIMEOUT_MS, runPmLive } from "./pm_live.ts";
+import { runPmPrep } from "./pm_prep.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -376,6 +382,17 @@ export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch;
     await reportServerError("agents.pm_live", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
+}
+
+/**
+ * "Reward quotes live-prep", one run (`pm_prep.ts`, 0077): the order path's dry-run decisions filled on paper. Keyless;
+ * it reads the path's tables and writes only its own. Its faults go to `ops_errors` as `agents.pm_prep`, which the
+ * pre-registration's check reads.
+ */
+export async function runPmPrepAction(deps: { db?: Db; now?: number } = {}) {
+  const report = await runPmPrep({ db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID() });
+  if (report.errors.length) await reportServerError("agents.pm_prep", tickErrorReport(report));
+  return report;
 }
 
 export async function runTick(now = Date.now()) {
@@ -1942,6 +1959,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
+  // "Reward quotes live-prep" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
+  if (action === "pmprep" && req.method === "POST" && operator) return json(200, await runPmPrepAction());
   // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
   if (action === "views" && req.method === "POST" && operator) {
     const key = youtubeKey();
