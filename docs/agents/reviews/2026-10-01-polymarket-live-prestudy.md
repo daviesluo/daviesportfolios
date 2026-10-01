@@ -114,3 +114,13 @@ order in that conversation.
 The scoring-duration rule; whether the $1 payout minimum is per address or per market; shares or USDC for the minimum
 size; whether the reward endpoints accept signature type 3; official EIP-712 vectors; staging or Amoy for an outside
 account; Kraken's Travel Rule questions; whether a new account is shown a new attestation.
+
+## Davies' decision (2026-10-01)
+
+"“选项 1：违反原规则的先后顺序，在 RW-C 期间先把下单通道建好、只空跑，可以早约 5–7 天” - 这个你现在就建好吧 我之后长期在爱尔兰，如果
+变动需要更改会和你说，不和你说关就一直没事 也不用问我". He chose Option 1: the rule-independent order path is built now,
+during RW-C, and only dry-run, as a recorded deviation of RW-NEXT's ordering on his word. And his Ireland attestation is
+standing: he will be in Ireland long-term, it stays current until he says it changed, and nobody asks him. That
+replaces the expiring timestamp of RW-NEXT Part 4 and of precondition 9 above; Part 4's frozen file is not edited. The
+other preconditions stand; 5 and 6 are now to be met during RW-C rather than after it, and the build and its dry-run
+are recorded in the ledger (item 2).

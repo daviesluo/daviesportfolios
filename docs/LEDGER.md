@@ -86,10 +86,19 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      0.40, 0.58 at the stress fills), only after RW-C passes and on his word under Part 4: about 6 markets, ~12 days in
      Ireland, a $300 cap in code, about $400 funded. No money moves before then; its twelve preconditions are listed
      there. Options put to him: 0 as frozen (recommended; first order ~10-29 to 11-01) or 1, a recorded deviation that
-     builds the rule-independent order path inert during RW-C (~5–7 days sooner).
+     builds the rule-independent order path inert during RW-C (~5–7 days sooner). **He chose 1 on 2026-10-01** ("这个你现在
+     就建好吧"): a recorded deviation of RW-NEXT's ordering ("before any live test or design") and of this item's "design,
+     not build", on his word. **Being built (2026-10-01):** the rule-independent path in new modules (EIP-712 V2 orders
+     pinned against the official client's vectors, the order client behind an off switch in code, a pending row before
+     every POST, reconciliation by order hash, the region, geoblock, closed-only and Ireland gates, caps, kill switches),
+     dry-run every minute in `eu-west-1` only on markets outside RW's universe (reward rate under $10 a day), loading no
+     private key and reading nothing of `pm_rw*` or `pm_rwc_*`. Nothing is sent; a first live order still needs RW-C's
+     pass, his word on the live design, a reviewed commit that turns sends on, and the pre-study's other preconditions.
 
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
-     only; positions opened only while his Ireland attestation is current, otherwise reduce or close only; never a VPN,
+     only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
+     since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
+     he says it changed, and nobody asks him; this replaces Part 4's "an expiring timestamp", the frozen file unedited); never a VPN,
      a proxy or anyone else's account; `_shared/polymarket.ts` GET-only until the design is agreed; the Terms of Use bar
      (fp4 §0) stated as his accepted risk; the wallet kept small (its key was exposed to another tool; revoking that
      tool's token is his).
@@ -308,7 +317,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      carries unlimited pUSD allowances to four spenders (reference §2d's probe), harmless only while it is empty;
      nothing may open a position there until RW-C passes on 10-23 (RW-NEXT, which amends "RW or RW-E passes on 10-09")
      and he says go, and then only from
-     `eu-west-1` under his current attestation that he is in Ireland. When he says the transfer is done, fire the
+     `eu-west-1` under his attestation that he is in Ireland (standing since 2026-10-01, item 2). When he says the transfer is done, fire the
      read-only probe `?action=probe&only=polymarket` through pg_net with the Vault `cron_secret` and record the
      collateral it reads.
    - **The research round of 2026-10-01** (`reviews/2026-10-01-research-round.md` §5, reference §3.44): the live cap's
@@ -357,6 +366,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    year at 8 bps). Month-end calendar rules, PEAD, reversal, overnight drift, low volatility, index additions and
    pre-FOMC drift are closed. TAC (Treasury auctions) and IS49 (industry seasonality) were drafted and not frozen; neither
    is recommended on its power. No trading key is needed. Any future live path keeps EQ2's guardrails (research round §8).
+   - **MSTR against Bitcoin, BMNR against Ether, and the like** (Davies, 2026-10-01: "mstr和比特币之间，还有bmnr和以太坊之间的
+     套利机会或者其他类似的？有希望吗？"): a study is running (DAT, 2026-10-01), screen on MSTR to 2024-12-31 with 2025 onwards
+     held out and unseen; BMNR's history is descriptive only. Its answer and any frozen test land here.
 
 ## Machine and platform setup
 
@@ -469,23 +481,27 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
-### [2026-10-01 04:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-01 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies chose Option 1 for Polymarket, and his Ireland attestation is now standing** ("“选项 1：…可以早约 5–7 天” - 这个你现在就建好吧 我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我"). The order path is being built now, inert, in a worktree, by one agent; it lands with its own entry (item 2). The attestation is current until he says it changed and nobody asks him; item 2, item 6 and `CLAUDE.md` say so, and the pre-study records his choice. RW-NEXT's frozen file is not edited: the deviation of its ordering and the end of its "expiring timestamp" are recorded here and in item 2. A second agent studies MSTR against Bitcoin and BMNR against Ether (item 8). Five headers below were stamped ahead of their commits and now carry the commit times, read from git and checked against the database's clock (`select now()` agreed with `date` to two seconds): 04:05 → 03:19, 03:55 → 03:17, 03:40 → 03:07, 03:05 → 02:44, 02:35 → 02:32.
+
+### [2026-10-01 03:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **DFC failed, as frozen** (`reviews/2026-10-01-dfc-study.md`; `equity2/results/heldout_dfc.json`, two runs byte-identical at the freeze commit `99123378`): neither hypothesis clears its Holm step (H1 D 4.87 bp a day, t 0.77, p 0.219; H2 7.97, t 1.42, p 0.076, its second half negative), and the dodge rule lost 2.87 % and 1.21 % a year net of 8 bps against a market that returned 13.54 % a year over cash. By the pre-registration's §11, month-end calendar rules are closed at this size, and US equities have nothing to run (item 8). No deviation.
 
-### [2026-10-01 03:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-01 03:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **DFC is frozen** (`docs/agents/reviews/2026-10-01-dfc-prereg.md`, sha256 `65c675aa…`; `equity2/scripts/heldout_dfc_pull.py` `4926a5e6…` and `heldout_dfc_score.py` `8a1a0984…`, in this one commit). The review's second pass found the guard checked against HEAD rather than the freeze commit and one wrong figure in §7; both fixed with its tested code and text, with its optional items (a missing-code stop, the best month defined, §8 and §10 worded as the code runs, English glosses). The final scorer reproduced every pre-2016 screen number on eight spans, 0 mismatches. Step 1 (dates only) read 2,680 days, 127 turns, 20 / 80 / 27. Nothing after 2015-12-31 but dates has been read by anyone (item 8).
 
-### [2026-10-01 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-01 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **EQ2's screens are committed; EQ1's missing-code check is fixed; DFC's pre-registration is revised and in its review's second pass** (Davies on 10-01: research the USD account's strategies, and post-earnings drift and the turn of the month if still worth it). EQ2 (an `opus-max` agent; the coordinator re-ran its DFC screens byte-identical from `docs/agents/backtests/equity2/`): with no FX the verdicts stand, because power binds, not cost; DFC is the one test worth running. An independent review found seven blocking defects in its draft (a freeze guard that checked the draft, an unpinned input, no verdict in code, an open Holm family, uncoded descriptive lines, two disclosure errors, an optimistic power statement), each fixed; the scorer is the review's. EQ1's `screen_french.py` compared missing codes after dividing by 100 (−99.99/100 is not ≤ −0.9999); fixed, and its results re-ran byte-identical (item 8).
 
-### [2026-10-01 03:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-01 02:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The ledger is slimmed, under the protocol's archiving rule** (Davies: "ledger目前是不是过长了？如果是的话按照skill的要求优化下，避免不必要的过多usage limit消耗"): 1,203 lines and about 54,500 tokens to 540 lines and about 16,400. The what-remains list as it stood and the 79 history sections of 2026-09-25 → 09-28 moved word for word to `docs/handover.md` Part 2, under "LEDGER.md, archived 2026-10-01", oldest first; a script checked that the old list and every moved section arrived intact, that the handover changed only by that insertion, and that the 16 kept sections are unchanged. The list was rewritten to what is open and keeps its item numbers, which the fifteen scheduled wakes and the 10-08 cap wake quote: items 1 and 5 are one-line closures, item 2 keeps its health checks, the verdict's steps a–g and RW-C's checks word for word, items 4 and 5a keep their frozen tests' dates, owners, freeze lines and dry-run records, and item 8 (US equities) is new.
 
-### [2026-10-01 02:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-01 02:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The live cap is $60, verified first; Polymarket's first live step is pre-studied; coin/USDC and token unlocks are closed; the rest is parked** (Davies: "按照你的建议验证后确定好了就去做，确保上线的这个策略各个方面都最佳"; "你研究下哪个策略最适合进live实验…之后和我确认"; "其他的都先记下来，之后再考虑"). An audit agent read the live row's configuration and code and re-priced the cap on two tapes (`reviews/2026-10-01-research-round.md` §7, `backtests/cap/`, re-run byte-identical from the repository): no defect, and `max_exposure_usd` is the only setting that binds. Two slots need $50.10 and the account holds $99.34 (the read-only probe, request 106565: USD total and available 99.34, nothing reserved, no coin, no open order); four need at least $100.20. `update public.agent_risk set max_exposure_usd = 60, updated_at = now() where id = 1;` ran at 02:24:51 UTC and read back, and the next minutes ran clean. Eight pins of the multi-slot paths are in `agents/tick.test.ts` (111 pass). The $150 step waits for 10-08 and the money (item 3, wake `trig_01THvHcphx5gngXugfwwy788`). Polymarket (`reviews/2026-10-01-polymarket-live-prestudy.md`, item 2): the RW-NEXT candidate, as a live calibration of what Polymarket pays, only after RW-C passes; no money moves before. Item 6's Kraken bullet now names RW-C's pass, as RW-NEXT amends it. Item 6b parks the rest and closes coin/USDC and token unlocks.
 
