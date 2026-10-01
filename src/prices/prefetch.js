@@ -164,6 +164,12 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     // assignment (the catch returns), so no initializer.
     /** @type {Record<string, any[]>} */
     let batch;
+    // The rows' `ts` is when they were ASKED for, read before the requests go out, never when the answer lands: the
+    // performance panel's refresh trusts a row younger than its TTL, and an answer asked for before a gap (a phone
+    // locked with this prefetch in flight) would otherwise count as new after it. The browser sweep found it
+    // (perf-refresh/tick, 2026-10-01): this function's 24H batch, asked at 23:00, landed once the clock read 23:06 and
+    // was stamped 23:06, so the panel's refresh six minutes on fetched nothing. perf_chart.jsx has the rest.
+    const askedAt = Date.now();
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         ixStale.length > 0
@@ -180,12 +186,11 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     // ---- Write this range's chunk to YtdStore + ChartStore.
     // Per-entry sets — IDB has no quota concern so we don't merge
     // into a single big object then trim.
-    const now = Date.now();
     for (const s of meta.stale) {
       let data = batch[s];
       data = applyVariantFilter(data, meta.params.variant);
       if (data) {
-        YtdStore.set(meta.ytdKey(s), { ts: now, data });
+        YtdStore.set(meta.ytdKey(s), { ts: askedAt, data });
       }
     }
     for (const t of modalSymbols) {
@@ -200,7 +205,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
         ? filterToLastHours(data, 120)
         : applyVariantFilter(data, meta.params.variant);
       if (data && data.length >= 2) {
-        ChartStore.set(meta.tickerKey(t), { ts: now, data });
+        ChartStore.set(meta.tickerKey(t), { ts: askedAt, data });
       }
     }
     // Top Movers reads these rows synchronously to price its non-TODAY

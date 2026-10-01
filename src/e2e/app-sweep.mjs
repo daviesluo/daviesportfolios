@@ -1223,10 +1223,14 @@ async function run() {
     SP_BUMP = 1.02;                                    // 5000 → 5304: +6.08 %
     await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-    // 20 s, not the 8 s the other readings get: the catch-up refetches the window and redraws, and with both sweeps,
-    // the perf matrix and the size budget running at once it missed 8 s in two full gate runs on 2026-10-01 (desktop)
-    // and one on 09-30 (phone), each passing alone. The wait ends the moment the reading arrives; the time it took is
-    // printed, so a drift toward the limit shows before it fails.
+    // The misses this check had while every gate ran at once (two on 2026-10-01, desktop, one on 09-30, phone, each
+    // passing alone) were a race in the app, not slowness: the reading came in within about a second or never, and the
+    // 20 s it was then given changed nothing. The button's refresh also prefetches the window, and under load that
+    // prefetch's 24H batch, asked at 23:00, landed after the clock above moved and was stamped 23:06; the catch-up then
+    // found every row fresh and fetched nothing. A row's age now counts from when it was asked for (perf_chart.jsx,
+    // PERF_CACHE_TTL_MS): this section cut out and run under load failed 10 of 100 times before, 0 of 100 run beside
+    // them after. The wait ends the moment the reading arrives; the time it took is printed, so a drift toward the limit
+    // shows before it fails.
     const tickT0 = Date.now();
     const ticked = await readingEnds('+6.08%', 20_000);
     const tickS = ((Date.now() - tickT0) / 1000).toFixed(1);

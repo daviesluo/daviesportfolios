@@ -364,7 +364,9 @@ How the less obvious parts work, and why they are built the way they are.
   fetch resolves (parallel `Promise.all`) so fast ranges (1D / 1W /
   YTD) land in cache without waiting on the slow ones (the two
   60-minute `3mo` pulls behind 1M's MA history and 3M's own bars).
-  TTL-aligned per range (5 m / 15 m / 1 h / 1 h / 12 h); auto-refresh
+  TTL-aligned per range (5 m / 15 m / 1 h / 1 h / 12 h), a chart
+  range's row aged from when its fetch was asked, not when the
+  answer landed (an answer that lands after a gap is not new); auto-refresh
   ticks skip the prefetch since they'd re-fetch with nothing fresh
   to show.
 - **PWA** — installable on iOS / Android home screen, offline-capable

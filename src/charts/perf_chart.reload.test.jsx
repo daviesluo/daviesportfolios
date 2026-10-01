@@ -57,6 +57,7 @@ vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
 
 import { PerfChart, perfBarsIncomplete, perfSeedFrom, perfSeedSignature, _resetPerfSeedMemo } from './perf_chart.jsx';
 import { refreshPriceSnapshots } from '../prices/price_snapshots.js';
+import { fetchHistorical } from '../prices/historical.js';
 import { YtdStore } from '../prices/chart_store.js';
 import { Storage } from '../app/storage.js';
 
@@ -308,6 +309,76 @@ describe('PerfChart on a refresh', () => {
       await answerWith('tickers', SP2, ACME2);
       expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+6.00%']);
     } finally { clock.mockRestore(); }
+  });
+
+  // The browser sweep's perf-refresh/tick check (2026-10-01), failing about one run in ten under load: a fetch asked
+  // at 23:00 landed once the clock read 23:06 and was stamped 23:06, so the refresh six minutes on found every row
+  // fresh, fetched nothing, and the panel kept the bars from before. A phone locked with a refresh's fetch still out
+  // does the same. A row's age now counts from when it was asked for.
+  it('counts a row from when it was asked: a refresh asked before a gap and answered after it is asked for again', async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const { container, rerender } = await opened(t0);
+      // The button at t0: both batches are asked for…
+      rerender(chart({ refreshedAt: t0, forceRefreshKey: 1 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      // …and answered only once the clock reads six minutes on, with what was true when they were asked.
+      clock.mockReturnValue(t0 + 6 * 60e3);
+      await answerWith('sp', SP, ACME);
+      await answerWith('tickers', SP, ACME);
+      // The app's refresh six minutes on: those answers are six minutes old, so both are asked for again.
+      rerender(chart({ refreshedAt: t0 + 6 * 60e3, forceRefreshKey: 1 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+      await answerWith('sp', SP2, ACME2);
+      await answerWith('tickers', SP2, ACME2);
+      expect(legend(container)).toEqual(['PORTFOLIO+20.00%', 'S&P 500+6.00%']);
+    } finally { clock.mockRestore(); }
+  });
+
+  it('counts the window\'s first load from when it was asked, too', async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    try {
+      const view = render(chart({ refreshedAt: t0 }));
+      await flush();
+      clock.mockReturnValue(t0 + 6 * 60e3);
+      await answer('sp');
+      await answer('tickers');
+      ctl.batches.length = 0;          // the other ranges' warm-up
+      view.rerender(chart({ refreshedAt: t0 + 6 * 60e3 }));
+      await flush();
+      expect(asked()).toEqual(['ACME', '^GSPC']);
+    } finally { clock.mockRestore(); }
+  });
+
+  it('stamps the other ranges\' warm-up and the benchmark\'s retry with when they were asked', async () => {
+    const t0 = Date.now();
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    const retry = vi.mocked(fetchHistorical);
+    retry.mockClear();
+    try {
+      render(chart({ refreshedAt: t0 }));
+      await flush();
+      // The benchmark's batch comes back without it: the window asks for it alone after 600 ms, and that answer lands
+      // once the clock reads six minutes on.
+      const i = ctl.batches.findIndex((b) => b.symbols.includes('^GSPC'));
+      const [sp] = ctl.batches.splice(i, 1);
+      await act(async () => { sp.resolve({}); await new Promise((r) => setTimeout(r, 0)); });
+      await answer('tickers');
+      retry.mockImplementationOnce(async () => { clock.mockReturnValue(t0 + 6 * 60e3); return SP; });
+      await act(async () => { await new Promise((r) => setTimeout(r, 700)); });
+      expect(retry).toHaveBeenCalledTimes(1);
+      expect(YtdStore.get(`y${YEAR}|1D:closed|^GSPC`)?.ts).toBe(t0);
+      // The other ranges' warm-up asked for its first (1W) when the window had drawn, at t0; it is answered twenty
+      // minutes on, past 1W's fifteen, and is stamped t0.
+      expect(ctl.batches.map((b) => b.symbols.join(','))).toEqual(['^GSPC,ACME']);
+      clock.mockReturnValue(t0 + 20 * 60e3);
+      await answer('sp');
+      expect(YtdStore.get(`y${YEAR}|1W:std|^GSPC`)?.ts).toBe(t0);
+    } finally { clock.mockRestore(); retry.mockReset(); retry.mockImplementation(() => Promise.resolve(null)); }
   });
 
   it('re-reads the recorded prices at a refresh once a new five-minute sample is due, and at the button always', async () => {

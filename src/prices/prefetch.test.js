@@ -140,3 +140,45 @@ describe('prefetchAllChartData → TickerChartModal cache-key contract', () => {
     }
   });
 });
+
+// The browser sweep's perf-refresh/tick check (2026-10-01), failing about one run in ten under load: this prefetch's
+// 24H batch, asked at 23:00, landed once the page's clock read 23:06 and was stamped 23:06, so the performance panel's
+// refresh six minutes on found the window fresh and fetched nothing. A phone locked mid-refresh does the same.
+describe('prefetchAllChartData stamps', () => {
+  it('each row with when its fetch was asked, not when the answer landed', async () => {
+    const t0 = Date.parse('2026-09-17T23:00:00Z');
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(t0);
+    /** @type {Array<() => void>} */
+    const held = [];
+    let holding = true;
+    /** @type {any} */ (globalThis.fetch).mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.includes('/functions/v1/chart')) {
+        if (holding) await new Promise((r) => { held.push(() => r(undefined)); });
+        const tickers = new URL(u).searchParams.get('tickers')?.split(',') ?? [];
+        const out = {};
+        for (const t of tickers) {
+          out[t] = [];
+          for (let i = 11; i >= 0; i--) out[t].push({ date: new Date(t0 - i * 5 * 60_000).toISOString().slice(0, 16), close: 100 + i });
+        }
+        return /** @type {any} */ ({ ok: true, json: async () => out });
+      }
+      if (u.includes('/functions/v1/fundamentals')) return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+      return new Promise(() => {});
+    });
+    const { prefetchAllChartData } = await import('./prefetch.js');
+    const done = prefetchAllChartData({ tickers: ['NVDA'], spSymbol: '^GSPC', extendedHours: false, phase: 'regular' });
+    // Every range's batch is asked for at 23:00 (1D, 1W, 1M, 3M, YTD, 1Y)…
+    await vi.waitFor(() => expect(held.length).toBe(6));
+    // …and every answer lands once the clock reads 23:06.
+    clock.mockReturnValue(t0 + 6 * 60e3);
+    holding = false;
+    for (const release of held.splice(0)) release();
+    await done;
+    const year = new Date().getFullYear();
+    expect(YtdStore.get(`y${year}|1D:reg|^GSPC`)?.ts).toBe(t0);
+    expect(YtdStore.get(`y${year}|1D:reg|NVDA`)?.ts).toBe(t0);
+    expect(ChartStore.get('NVDA|1D|reg|regular')?.ts).toBe(t0);
+    clock.mockRestore();
+  });
+});

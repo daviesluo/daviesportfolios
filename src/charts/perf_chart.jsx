@@ -160,6 +160,17 @@ function RangeButtons({ rangeKey, onChange }) {
 // Stale-while-revalidate (below) renders the chart instantly past TTL
 // while a fresh fetch runs silently in background — these caps just
 // govern when the silent refetch fires.
+//
+// A row's age counts from when its fetch was ASKED, not from when the
+// answer arrived: every writer of these rows (the three effects below and
+// prefetch.js) stamps `ts` before its request goes out. Stamped on
+// arrival, an answer to a question asked before a gap (a phone locked, a
+// laptop asleep, with a refresh's fetch still out) counted as new after
+// it, so the refresh on return found the window fresh, fetched nothing,
+// and the panel kept the bars from before the gap for another TTL. The
+// browser sweep's perf-refresh/tick check found it (2026-10-01): the
+// prefetch's 24H batch, asked at 23:00, landed after the clock had moved
+// to 23:06 and was stamped 23:06.
 const PERF_CACHE_TTL_MS = {
   '1D':  5  * 60 * 1000,
   '1W':  15 * 60 * 1000,
@@ -437,15 +448,17 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const merged = { ...initial };
     const newEntries = { ...entries };
 
-    /** @param {any} batch  one batch's bars by symbol @param {'sp' | 'tickers'} part */
-    const applyBatch = (batch, part) => {
-      const now = Date.now();
+    /**
+     * @param {any} batch  one batch's bars by symbol @param {'sp' | 'tickers'} part
+     * @param {number} askedAt  when that batch's request went out: its rows' `ts` (see PERF_CACHE_TTL_MS)
+     */
+    const applyBatch = (batch, part, askedAt) => {
       for (const s of stale) {
         let data = batch[s];
         data = applyVariantFilter(data, params.variant);
         if (data) {
           merged[s] = data;
-          newEntries[s] = { ts: now, data };
+          newEntries[s] = { ts: askedAt, data };
         }
       }
       savePerfCache(year, cacheKey, newEntries);
@@ -467,13 +480,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       setLoading(false);
     };
 
+    const askedAt = Date.now();
     const spPromise = staleSp.length > 0
       ? fetchHistoricalBatch(staleSp, params.yahooRange, params.interval, params.includePrePost)
-          .then(b => { if (!cancelled) applyBatch(b, 'sp'); return b; })
+          .then(b => { if (!cancelled) applyBatch(b, 'sp', askedAt); return b; })
       : Promise.resolve({});
     const tickersPromise = staleTickers.length > 0
       ? fetchHistoricalBatch(staleTickers, params.yahooRange, params.interval, params.includePrePost)
-          .then(b => { if (!cancelled) applyBatch(b, 'tickers'); return b; })
+          .then(b => { if (!cancelled) applyBatch(b, 'tickers', askedAt); return b; })
       : Promise.resolve({});
 
     (async () => {
@@ -486,12 +500,13 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         for (let i = 0; i < 3 && !merged[spSymbol]; i++) {
           await new Promise(r => setTimeout(r, 600 * (i + 1)));
           if (cancelled) return;
+          const retryAskedAt = Date.now();
           const retry = await fetchHistorical(spSymbol, params.yahooRange, params.interval, params.includePrePost).catch(() => null);
           if (retry) {
             merged[spSymbol] = retry;
-            newEntries[spSymbol] = { ts: Date.now(), data: retry };
+            newEntries[spSymbol] = { ts: retryAskedAt, data: retry };
             savePerfCache(year, cacheKey, newEntries);
-            applyBatch({ [spSymbol]: retry }, 'sp');
+            applyBatch({ [spSymbol]: retry }, 'sp', retryAskedAt);
           }
         }
       }
@@ -594,10 +609,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         /** @type {Record<string, any>} */
         const batch = { ...spBatch, ...tickerBatch };
         const next = { ...loadPerfCache(year, cacheKey) };
-        const at = Date.now();
         for (const sym of stale) {
           const data = applyVariantFilter(batch[sym], params.variant);
-          if (data) next[sym] = { ts: at, data };
+          // `now` is when this refresh asked, read before its requests went out (see PERF_CACHE_TTL_MS).
+          if (data) next[sym] = { ts: now, data };
         }
         savePerfCache(year, cacheKey, next);
         if (liveKeyRef.current !== key) return;
@@ -647,14 +662,14 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         });
         if (stale.length === 0) continue;
         const params = perfFetchParams(rk, extendedHours, phase);
+        const askedAt = Date.now();     // the rows' `ts`: when they were asked for (see PERF_CACHE_TTL_MS)
         const batch = await fetchHistoricalBatch(stale, params.yahooRange, params.interval, params.includePrePost);
         if (cancelled) return;
         const newEntries = { ...entries };
-        const now = Date.now();
         for (const s of stale) {
           let data = batch[s];
           data = applyVariantFilter(data, params.variant);
-          if (data) newEntries[s] = { ts: now, data };
+          if (data) newEntries[s] = { ts: askedAt, data };
         }
         savePerfCache(year, cacheKey, newEntries);
       }
