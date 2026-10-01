@@ -154,7 +154,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    that account.** Rows, caps and the order path: `.claude/CLAUDE.md`'s Agents section, `docs/agents/go-live.md`,
    reference §3.31 and §4 items 32–34.
 
-4. **PR5 (GBP stablecoin quotes): paper and dry-run; NO-GO for live until its four-week review on 2026-10-21.** The
+4. **PR5 (GBP stablecoin quotes): paper and dry-run; going live on Davies' word of 2026-10-01 at £10 a rung** (settings
+   verified in `reviews/2026-10-01-pr5-live-go.md`; the four-week paper review on 2026-10-21 still decides PR5). The
    paper test runs since 2026-09-23 15:09 UTC (`agents/quotes.ts`, `0051`, reference §4 item 31) and is decided by
    the spec's six conditions (`reviews/2026-09-23-pr5-paper-test-spec.md`); plan with ~$0.42 a day, the rate since
    the books tightened in the week of 2026-08-24. Its live path runs in DRY-RUN since 2026-09-24 02:40 UTC on PR5's
@@ -175,7 +176,15 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      (a sub-agent launch, ~15:10 UTC). **He then approved it (~15:25 UTC):** "Stablecoin quotes你验证确定一切设置都是最佳，
      没有任何值得优化后可以上线，我那个子账户已经补充资金到120英镑了，另外每日的下单限制目前是600对吧？可以改到900，毕竟另外那个上线策略每日下单不可能超过100" —
      verify every setting, then go live; the probe read GBP 120.00, no order (request 117453, 15:25:55 UTC); the live
-     executor's governor withdraws entries at 900 instead of 600. Being verified and prepared (2026-10-01).
+     executor's governor withdraws entries at 900 instead of 600. **Verified (16:20 UTC):** every setting kept but two,
+     both in code and pinned: the governor at 900/950, and a refused exit that now waits for a newer print not through
+     it (it was re-sent every minute). Same price as the paper, not a tick behind. Inventory: £30 into each coin through
+     `quotes-convert` after the first live turn; the second conversion's GBP check beside six resting bids needs the
+     account at ≥ £120.20, and Davies topped it up to £120.20 (~16:22 UTC, his word). **The steps, in order:** the
+     deploy of this change; probe `only=revx2` (GBP ≥ 120.20, no order); `update public.agent_quote_live_config set
+     capital_gbp = 120 where id = 1;` while dry-run, and its dry-run bids read about 13.2 coins; the go statement above;
+     six live bids next turn; convert USDT-GBP then USDC-GBP (£30 each, preview then `"send": true`); the asks the turn
+     after; the review's first-hour checks.
 
    - A live test on that £50 as a measurement, never as a return (Davies' question, 2026-09-28; answered yes, with
      what it would show): deferred on his word, "£50 实盘之后再说".
@@ -526,6 +535,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 16:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5's live settings verified at £120, and the two that were not right fixed** (Davies: "Stablecoin quotes你验证确定一切设置都是最佳，没有任何值得优化后可以上线…可以改到900"). `reviews/2026-10-01-pr5-live-go.md`; `backtests/pr5_live/go_live_120.py` → `go_live_120.json`, on the committed pre-test data and the day's public books only (its port of the frozen minute loop reproduces `simulate()` trip for trip and order for order on both windows; re-run byte-identical); nothing of PR5's paper record, dry-run, PR5V, variant-2 or PR5-W was read. Kept, each with its number: capital 120 (£10 a rung, about 13.2 coins an order, 100× the venue's minimum), the −1 % loss stop (worst day −£0.92 at £10 rungs in 273 wide-market days, never tripped), the 50 bps de-peg guard, the 2-hour stale USD hour, the ±50 bps 24-hour stop, the £30 conversion cap. Changed in `agents/quotes_live.ts`: the governor at **900/950** (Davies' 900; stops-only at 950 leaves 50 under the venue's 1,000; on 281 days entries withdrawn on 18 instead of 73, $665.68 against $580.95 at $100 rungs, the venue's bucket never under 555), and **a refused exit waits as the rule's refused order waits** — sent again only once the paper engine holds a newer print that is not through it (`exitMayGo`, `request.paperLastPrint`): before, a refused post-only exit went out every minute, 872 of 1,150 exit POSTs in the tightened market. Same price as the paper recommended: the live orders take 7 of PR5's 102 paper trips in the tightened market, the smallest, and the study's P&L moves +0.49 %; a tick behind takes none but costs the live test a fifth of its fills. 42 tests in `quotes_live.test.ts`; each new part removed fails at least one. Davies topped the sub-account up to £120.20 for the second conversion's GBP check. Next: deploy, probe, capital 120, the go statement, convert, first-hour checks (item 4).
 
 ### [2026-10-01 16:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

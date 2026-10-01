@@ -1,0 +1,2495 @@
+{
+ "capitalGbp": 120.0,
+ "coupled": {
+  "tight": {
+   "oneTickBehind_12rungs": {
+    "live": {
+     "entriesRefused": 73,
+     "entryFills": 85,
+     "entryFillsOnADecisionThePaperAlsoFilled": 84,
+     "entryFillsPerDay": 3.04,
+     "exitFills": 87,
+     "exitsRefused": 37,
+     "pnlGbp": 1.25304,
+     "pnlGbpPerDay": 0.04475,
+     "postsByKind": {
+      "entry": 5333,
+      "exit": 312,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 430,
+      "mean": 201.6,
+      "p95": 351
+     },
+     "roundTrips": 88,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 864.2,
+      "maxPostsInAny24h": 532,
+      "posts": 5646
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 0,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.70744,
+       "trips": 13
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8438,
+       "trips": 21
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83171,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.89087,
+       "trips": 19
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.62379,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": -0.0,
+     "deltaPnlUsd": -1e-05,
+     "deltaTrips": 0,
+     "goneTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "newTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "pnlUsdAt100": 11.66883,
+     "trips": 102,
+     "tripsNotInBaseline": 0
+    }
+   },
+   "oneTickBehind_12rungs_exitSentEveryTurn": {
+    "live": {
+     "entriesRefused": 75,
+     "entryFills": 85,
+     "entryFillsOnADecisionThePaperAlsoFilled": 84,
+     "entryFillsPerDay": 3.04,
+     "exitFills": 86,
+     "exitsRefused": 769,
+     "pnlGbp": 1.16895,
+     "pnlGbpPerDay": 0.04175,
+     "postsByKind": {
+      "entry": 5352,
+      "exit": 1031,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 506,
+      "mean": 228.0,
+      "p95": 439
+     },
+     "roundTrips": 87,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 774.2,
+      "maxPostsInAny24h": 585,
+      "posts": 6384
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 0,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.70744,
+       "trips": 13
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8438,
+       "trips": 21
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83171,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.89087,
+       "trips": 19
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.62379,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": -0.0,
+     "deltaPnlUsd": -1e-05,
+     "deltaTrips": 0,
+     "goneTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "newTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "pnlUsdAt100": 11.66883,
+     "trips": 102,
+     "tripsNotInBaseline": 0
+    }
+   },
+   "oneTickBehind_bidsOnly": {
+    "live": {
+     "entriesRefused": 58,
+     "entryFills": 48,
+     "entryFillsOnADecisionThePaperAlsoFilled": 47,
+     "entryFillsPerDay": 1.71,
+     "exitFills": 48,
+     "exitsRefused": 25,
+     "pnlGbp": 0.79057,
+     "pnlGbpPerDay": 0.02823,
+     "postsByKind": {
+      "entry": 2575,
+      "exit": 211,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 214,
+      "mean": 99.5,
+      "p95": 175
+     },
+     "roundTrips": 49,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 963.1,
+      "maxPostsInAny24h": 235,
+      "posts": 2787
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 0,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.70744,
+       "trips": 13
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8438,
+       "trips": 21
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83171,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.89088,
+       "trips": 19
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.6238,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": 0.0,
+     "deltaPnlUsd": 1e-05,
+     "deltaTrips": 0,
+     "goneTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "newTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "pnlUsdAt100": 11.66885,
+     "trips": 102,
+     "tripsNotInBaseline": 0
+    }
+   },
+   "paperBaseline": {
+    "pnlUsdAt100": 11.66884,
+    "trips": 102
+   },
+   "samePrice_12rungs": {
+    "live": {
+     "entriesRefused": 105,
+     "entryFills": 106,
+     "entryFillsOnADecisionThePaperAlsoFilled": 101,
+     "entryFillsPerDay": 3.79,
+     "exitFills": 113,
+     "exitsRefused": 36,
+     "pnlGbp": 1.33366,
+     "pnlGbpPerDay": 0.04763,
+     "postsByKind": {
+      "entry": 5365,
+      "exit": 310,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 431,
+      "mean": 202.7,
+      "p95": 349
+     },
+     "roundTrips": 114,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 865.2,
+      "maxPostsInAny24h": 533,
+      "posts": 5676
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 8,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.76121,
+       "trips": 10
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8295,
+       "trips": 19
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83175,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.90887,
+       "trips": 17
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.62379,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": 0.49,
+     "deltaPnlUsd": 0.05749,
+     "deltaTrips": -7,
+     "goneTrips": {
+      "meanNotionalUsd": 21.81,
+      "pnlUsd": 0.44942
+     },
+     "newTrips": {
+      "meanNotionalUsd": 50.55,
+      "pnlUsd": 0.0342
+     },
+     "pnlUsdAt100": 11.72633,
+     "trips": 95,
+     "tripsNotInBaseline": 1
+    }
+   },
+   "samePrice_12rungs_exitSentEveryTurn": {
+    "live": {
+     "entriesRefused": 105,
+     "entryFills": 106,
+     "entryFillsOnADecisionThePaperAlsoFilled": 101,
+     "entryFillsPerDay": 3.79,
+     "exitFills": 111,
+     "exitsRefused": 872,
+     "pnlGbp": 1.32422,
+     "pnlGbpPerDay": 0.04729,
+     "postsByKind": {
+      "entry": 5367,
+      "exit": 1150,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 545,
+      "mean": 232.8,
+      "p95": 476
+     },
+     "roundTrips": 112,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 733.2,
+      "maxPostsInAny24h": 596,
+      "posts": 6518
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 8,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.76121,
+       "trips": 10
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8295,
+       "trips": 19
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83175,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.90887,
+       "trips": 17
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.62379,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": 0.49,
+     "deltaPnlUsd": 0.05749,
+     "deltaTrips": -7,
+     "goneTrips": {
+      "meanNotionalUsd": 21.81,
+      "pnlUsd": 0.44942
+     },
+     "newTrips": {
+      "meanNotionalUsd": 50.55,
+      "pnlUsd": 0.0342
+     },
+     "pnlUsdAt100": 11.72633,
+     "trips": 95,
+     "tripsNotInBaseline": 1
+    }
+   },
+   "samePrice_bidsOnly": {
+    "live": {
+     "entriesRefused": 80,
+     "entryFills": 61,
+     "entryFillsOnADecisionThePaperAlsoFilled": 59,
+     "entryFillsPerDay": 2.18,
+     "exitFills": 65,
+     "exitsRefused": 20,
+     "pnlGbp": 0.85106,
+     "pnlGbpPerDay": 0.03039,
+     "postsByKind": {
+      "entry": 2617,
+      "exit": 197,
+      "stop": 1
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 215,
+      "mean": 100.5,
+      "p95": 175
+     },
+     "roundTrips": 66,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 960.1,
+      "maxPostsInAny24h": 236,
+      "posts": 2815
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 80.03,
+     "baselineTripsGone": 2,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 0.70744,
+       "baseTrips": 13,
+       "pnl": 0.70744,
+       "trips": 13
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 1.8438,
+       "baseTrips": 21,
+       "pnl": 1.8295,
+       "trips": 19
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 0.83171,
+       "baseTrips": 5,
+       "pnl": 0.83175,
+       "trips": 5
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 0.35328,
+       "baseTrips": 1,
+       "pnl": 0.35328,
+       "trips": 1
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 0.89088,
+       "baseTrips": 19,
+       "pnl": 0.89088,
+       "trips": 19
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 0.6238,
+       "baseTrips": 6,
+       "pnl": 0.6238,
+       "trips": 6
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 0.73327,
+       "baseTrips": 3,
+       "pnl": 0.73327,
+       "trips": 3
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 1.6582,
+       "baseTrips": 17,
+       "pnl": 1.6582,
+       "trips": 17
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 1.74224,
+       "baseTrips": 9,
+       "pnl": 1.74224,
+       "trips": 9
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 2.28423,
+       "baseTrips": 8,
+       "pnl": 2.28423,
+       "trips": 8
+      }
+     },
+     "deltaPnlPct": -0.12,
+     "deltaPnlUsd": -0.01426,
+     "deltaTrips": -2,
+     "goneTrips": {
+      "meanNotionalUsd": 50.39,
+      "pnlUsd": 0.353
+     },
+     "newTrips": {
+      "meanNotionalUsd": null,
+      "pnlUsd": 0
+     },
+     "pnlUsdAt100": 11.65458,
+     "trips": 100,
+     "tripsNotInBaseline": 0
+    }
+   }
+  },
+  "wide": {
+   "oneTickBehind_12rungs": {
+    "live": {
+     "entriesRefused": 2361,
+     "entryFills": 6422,
+     "entryFillsOnADecisionThePaperAlsoFilled": 6407,
+     "entryFillsPerDay": 23.52,
+     "exitFills": 7003,
+     "exitsRefused": 1152,
+     "pnlGbp": 115.20251,
+     "pnlGbpPerDay": 0.42199,
+     "postsByKind": {
+      "entry": 82168,
+      "exit": 26634,
+      "stop": 65
+     },
+     "postsPerDay": {
+      "daysOver1000": 11,
+      "daysOver900": 13,
+      "daysOver950": 13,
+      "max": 1805,
+      "mean": 378.1,
+      "p95": 864
+     },
+     "roundTrips": 6981,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": -129.4,
+      "maxPostsInAny24h": 1858,
+      "posts": 103220
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 889,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 31.22731,
+       "trips": 582
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.27517,
+       "trips": 167
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 2.14141,
+       "trips": 17
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 37.06623,
+       "trips": 688
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 32.84001,
+       "trips": 287
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 10.37072,
+       "trips": 55
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 85.96103,
+       "trips": 1510
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.74166,
+       "trips": 1062
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 91.6189,
+       "trips": 463
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 87.95496,
+       "trips": 1533
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 120.22685,
+       "trips": 986
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 76.06355,
+       "trips": 397
+      }
+     },
+     "deltaPnlPct": 1.78,
+     "deltaPnlUsd": 12.58496,
+     "deltaTrips": -445,
+     "goneTrips": {
+      "meanNotionalUsd": 13.34,
+      "pnlUsd": 19.4736
+     },
+     "newTrips": {
+      "meanNotionalUsd": 47.14,
+      "pnlUsd": 35.67205
+     },
+     "pnlUsdAt100": 720.48779,
+     "trips": 7747,
+     "tripsNotInBaseline": 444
+    }
+   },
+   "oneTickBehind_12rungs_exitSentEveryTurn": {
+    "live": {
+     "entriesRefused": 2367,
+     "entryFills": 6453,
+     "entryFillsOnADecisionThePaperAlsoFilled": 6438,
+     "entryFillsPerDay": 23.64,
+     "exitFills": 7037,
+     "exitsRefused": 41084,
+     "pnlGbp": 115.59377,
+     "pnlGbpPerDay": 0.42342,
+     "postsByKind": {
+      "entry": 82724,
+      "exit": 66828,
+      "stop": 61
+     },
+     "postsPerDay": {
+      "daysOver1000": 30,
+      "daysOver900": 46,
+      "daysOver950": 38,
+      "max": 2489,
+      "mean": 525.7,
+      "p95": 1369
+     },
+     "roundTrips": 7012,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": -2308.7,
+      "maxPostsInAny24h": 2528,
+      "posts": 143508
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 893,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 31.22787,
+       "trips": 583
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.28624,
+       "trips": 168
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 2.14141,
+       "trips": 17
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 36.8477,
+       "trips": 686
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 32.75712,
+       "trips": 286
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 10.37073,
+       "trips": 55
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 85.9101,
+       "trips": 1508
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.66484,
+       "trips": 1061
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 91.73396,
+       "trips": 463
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 87.84979,
+       "trips": 1533
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 120.22683,
+       "trips": 986
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 76.06621,
+       "trips": 398
+      }
+     },
+     "deltaPnlPct": 1.72,
+     "deltaPnlUsd": 12.17998,
+     "deltaTrips": -448,
+     "goneTrips": {
+      "meanNotionalUsd": 13.64,
+      "pnlUsd": 19.89384
+     },
+     "newTrips": {
+      "meanNotionalUsd": 47.11,
+      "pnlUsd": 35.9106
+     },
+     "pnlUsdAt100": 720.08281,
+     "trips": 7744,
+     "tripsNotInBaseline": 445
+    }
+   },
+   "oneTickBehind_bidsOnly": {
+    "live": {
+     "entriesRefused": 1187,
+     "entryFills": 3371,
+     "entryFillsOnADecisionThePaperAlsoFilled": 3360,
+     "entryFillsPerDay": 12.35,
+     "exitFills": 3658,
+     "exitsRefused": 650,
+     "pnlGbp": 58.7117,
+     "pnlGbpPerDay": 0.21506,
+     "postsByKind": {
+      "entry": 39054,
+      "exit": 14941,
+      "stop": 42
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 885,
+      "mean": 187.7,
+      "p95": 438
+     },
+     "roundTrips": 3651,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 755.7,
+      "maxPostsInAny24h": 908,
+      "posts": 51255
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 497,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 32.03157,
+       "trips": 585
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.22049,
+       "trips": 176
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 2.14682,
+       "trips": 19
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 36.33031,
+       "trips": 709
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 33.1468,
+       "trips": 290
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 10.40258,
+       "trips": 55
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 87.66946,
+       "trips": 1534
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.05305,
+       "trips": 1106
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 90.15872,
+       "trips": 484
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 86.00419,
+       "trips": 1596
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 118.93998,
+       "trips": 1006
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 76.06497,
+       "trips": 407
+      }
+     },
+     "deltaPnlPct": 1.31,
+     "deltaPnlUsd": 9.26611,
+     "deltaTrips": -225,
+     "goneTrips": {
+      "meanNotionalUsd": 11.95,
+      "pnlUsd": 9.83003
+     },
+     "newTrips": {
+      "meanNotionalUsd": 43.57,
+      "pnlUsd": 20.83936
+     },
+     "pnlUsdAt100": 717.16894,
+     "trips": 7967,
+     "tripsNotInBaseline": 272
+    }
+   },
+   "paperBaseline": {
+    "pnlUsdAt100": 707.90283,
+    "trips": 8192
+   },
+   "samePrice_12rungs": {
+    "live": {
+     "entriesRefused": 3007,
+     "entryFills": 7332,
+     "entryFillsOnADecisionThePaperAlsoFilled": 7298,
+     "entryFillsPerDay": 26.86,
+     "exitFills": 8006,
+     "exitsRefused": 1312,
+     "pnlGbp": 116.28797,
+     "pnlGbpPerDay": 0.42596,
+     "postsByKind": {
+      "entry": 82181,
+      "exit": 29096,
+      "stop": 62
+     },
+     "postsPerDay": {
+      "daysOver1000": 10,
+      "daysOver900": 13,
+      "daysOver950": 12,
+      "max": 1801,
+      "mean": 387.1,
+      "p95": 864
+     },
+     "roundTrips": 7958,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": -93.4,
+      "maxPostsInAny24h": 1850,
+      "posts": 105666
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 1818,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 32.25121,
+       "trips": 513
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.56802,
+       "trips": 156
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 1.95828,
+       "trips": 14
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 36.23642,
+       "trips": 610
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 32.8236,
+       "trips": 263
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 9.37086,
+       "trips": 50
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 84.11415,
+       "trips": 1377
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.65768,
+       "trips": 986
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 89.17291,
+       "trips": 430
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 87.06034,
+       "trips": 1431
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 116.97877,
+       "trips": 929
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 74.95434,
+       "trips": 374
+      }
+     },
+     "deltaPnlPct": 0.32,
+     "deltaPnlUsd": 2.24375,
+     "deltaTrips": -1059,
+     "goneTrips": {
+      "meanNotionalUsd": 17.75,
+      "pnlUsd": 50.66246
+     },
+     "newTrips": {
+      "meanNotionalUsd": 46.68,
+      "pnlUsd": 57.39136
+     },
+     "pnlUsdAt100": 710.14658,
+     "trips": 7133,
+     "tripsNotInBaseline": 759
+    }
+   },
+   "samePrice_12rungs_exitSentEveryTurn": {
+    "live": {
+     "entriesRefused": 3019,
+     "entryFills": 7373,
+     "entryFillsOnADecisionThePaperAlsoFilled": 7337,
+     "entryFillsPerDay": 27.01,
+     "exitFills": 8044,
+     "exitsRefused": 53643,
+     "pnlGbp": 116.9699,
+     "pnlGbpPerDay": 0.42846,
+     "postsByKind": {
+      "entry": 82722,
+      "exit": 81765,
+      "stop": 60
+     },
+     "postsPerDay": {
+      "daysOver1000": 47,
+      "daysOver900": 63,
+      "daysOver950": 58,
+      "max": 2517,
+      "mean": 580.0,
+      "p95": 1634
+     },
+     "roundTrips": 7996,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": -2532.1,
+      "maxPostsInAny24h": 2574,
+      "posts": 158347
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 1821,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 32.35982,
+       "trips": 514
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.32133,
+       "trips": 155
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 1.95828,
+       "trips": 14
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 36.15192,
+       "trips": 609
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 33.007,
+       "trips": 263
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 9.37088,
+       "trips": 50
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 84.20565,
+       "trips": 1377
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.73468,
+       "trips": 986
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 89.17298,
+       "trips": 430
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 86.91185,
+       "trips": 1431
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 117.17106,
+       "trips": 929
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 75.00825,
+       "trips": 374
+      }
+     },
+     "deltaPnlPct": 0.35,
+     "deltaPnlUsd": 2.47087,
+     "deltaTrips": -1060,
+     "goneTrips": {
+      "meanNotionalUsd": 17.74,
+      "pnlUsd": 50.76955
+     },
+     "newTrips": {
+      "meanNotionalUsd": 46.86,
+      "pnlUsd": 57.52178
+     },
+     "pnlUsdAt100": 710.3737,
+     "trips": 7132,
+     "tripsNotInBaseline": 761
+    }
+   },
+   "samePrice_bidsOnly": {
+    "live": {
+     "entriesRefused": 1561,
+     "entryFills": 3883,
+     "entryFillsOnADecisionThePaperAlsoFilled": 3860,
+     "entryFillsPerDay": 14.22,
+     "exitFills": 4221,
+     "exitsRefused": 759,
+     "pnlGbp": 59.91177,
+     "pnlGbpPerDay": 0.21946,
+     "postsByKind": {
+      "entry": 39149,
+      "exit": 16410,
+      "stop": 43
+     },
+     "postsPerDay": {
+      "daysOver1000": 0,
+      "daysOver900": 0,
+      "daysOver950": 0,
+      "max": 874,
+      "mean": 193.4,
+      "p95": 451
+     },
+     "roundTrips": 4198,
+     "stopsUnfilledAtTheBound": 0,
+     "withoutAGovernor": {
+      "dayBucketLowest": 775.7,
+      "maxPostsInAny24h": 893,
+      "posts": 52792
+     }
+    },
+    "paper": {
+     "baselineMeanNotionalUsd": 50.46,
+     "baselineTripsGone": 1038,
+     "by": {
+      "USDC-GBP ask 0.001": {
+       "basePnl": 31.20923,
+       "baseTrips": 614,
+       "pnl": 32.06352,
+       "trips": 583
+      },
+      "USDC-GBP ask 0.002": {
+       "basePnl": 17.93777,
+       "baseTrips": 182,
+       "pnl": 18.4654,
+       "trips": 174
+      },
+      "USDC-GBP ask 0.003": {
+       "basePnl": 2.14685,
+       "baseTrips": 19,
+       "pnl": 2.13947,
+       "trips": 18
+      },
+      "USDC-GBP bid 0.001": {
+       "basePnl": 36.07035,
+       "baseTrips": 719,
+       "pnl": 35.77161,
+       "trips": 619
+      },
+      "USDC-GBP bid 0.002": {
+       "basePnl": 33.42526,
+       "baseTrips": 307,
+       "pnl": 33.14046,
+       "trips": 265
+      },
+      "USDC-GBP bid 0.003": {
+       "basePnl": 10.45217,
+       "baseTrips": 60,
+       "pnl": 9.40272,
+       "trips": 50
+      },
+      "USDT-GBP ask 0.001": {
+       "basePnl": 86.42483,
+       "baseTrips": 1581,
+       "pnl": 87.68733,
+       "trips": 1530
+      },
+      "USDT-GBP ask 0.002": {
+       "basePnl": 123.16087,
+       "baseTrips": 1130,
+       "pnl": 126.28753,
+       "trips": 1103
+      },
+      "USDT-GBP ask 0.003": {
+       "basePnl": 88.96711,
+       "baseTrips": 491,
+       "pnl": 90.311,
+       "trips": 483
+      },
+      "USDT-GBP bid 0.001": {
+       "basePnl": 86.19269,
+       "baseTrips": 1603,
+       "pnl": 86.28361,
+       "trips": 1480
+      },
+      "USDT-GBP bid 0.002": {
+       "basePnl": 116.69595,
+       "baseTrips": 1053,
+       "pnl": 115.10328,
+       "trips": 946
+      },
+      "USDT-GBP bid 0.003": {
+       "basePnl": 75.21978,
+       "baseTrips": 433,
+       "pnl": 74.33534,
+       "trips": 382
+      }
+     },
+     "deltaPnlPct": 0.44,
+     "deltaPnlUsd": 3.08842,
+     "deltaTrips": -559,
+     "goneTrips": {
+      "meanNotionalUsd": 15.82,
+      "pnlUsd": 24.46287
+     },
+     "newTrips": {
+      "meanNotionalUsd": 42.39,
+      "pnlUsd": 31.00958
+     },
+     "pnlUsdAt100": 710.99125,
+     "trips": 7633,
+     "tripsNotInBaseline": 479
+    }
+   }
+  }
+ },
+ "fidelity": {
+  "tight/USDC-GBP/primary": {
+   "identical": true,
+   "trips": 40
+  },
+  "tight/USDC-GBP/stress": {
+   "identical": true,
+   "trips": 31
+  },
+  "tight/USDT-GBP/primary": {
+   "identical": true,
+   "trips": 62
+  },
+  "tight/USDT-GBP/stress": {
+   "identical": true,
+   "trips": 50
+  },
+  "tight/committed": {
+   "pnlUsd": 11.6688,
+   "trips": 102
+  },
+  "wide/USDC-GBP/primary": {
+   "identical": true,
+   "trips": 1940
+  },
+  "wide/USDC-GBP/stress": {
+   "identical": true,
+   "trips": 1622
+  },
+  "wide/USDT-GBP/primary": {
+   "identical": true,
+   "trips": 6352
+  },
+  "wide/USDT-GBP/stress": {
+   "identical": true,
+   "trips": 5640
+  },
+  "wide/committed": {
+   "pnlUsd": 707.9,
+   "trips": 8192
+  }
+ },
+ "firstOrder": {
+  "tight": {
+   "absorbed": 16,
+   "by": {
+    "USDC-GBP entry ask 0.001": {
+     "absorbed": 4,
+     "fills": 13,
+     "share": 0.308
+    },
+    "USDC-GBP entry bid 0.001": {
+     "absorbed": 1,
+     "fills": 21,
+     "share": 0.048
+    },
+    "USDC-GBP entry bid 0.002": {
+     "absorbed": 0,
+     "fills": 5,
+     "share": 0.0
+    },
+    "USDC-GBP entry bid 0.003": {
+     "absorbed": 0,
+     "fills": 1,
+     "share": 0.0
+    },
+    "USDC-GBP exit ask 0.001": {
+     "absorbed": 1,
+     "fills": 13,
+     "share": 0.077
+    },
+    "USDC-GBP exit bid 0.001": {
+     "absorbed": 3,
+     "fills": 20,
+     "share": 0.15
+    },
+    "USDC-GBP exit bid 0.002": {
+     "absorbed": 1,
+     "fills": 5,
+     "share": 0.2
+    },
+    "USDC-GBP exit bid 0.003": {
+     "absorbed": 0,
+     "fills": 1,
+     "share": 0.0
+    },
+    "USDT-GBP entry ask 0.001": {
+     "absorbed": 1,
+     "fills": 19,
+     "share": 0.053
+    },
+    "USDT-GBP entry ask 0.002": {
+     "absorbed": 0,
+     "fills": 6,
+     "share": 0.0
+    },
+    "USDT-GBP entry ask 0.003": {
+     "absorbed": 0,
+     "fills": 3,
+     "share": 0.0
+    },
+    "USDT-GBP entry bid 0.001": {
+     "absorbed": 0,
+     "fills": 17,
+     "share": 0.0
+    },
+    "USDT-GBP entry bid 0.002": {
+     "absorbed": 0,
+     "fills": 9,
+     "share": 0.0
+    },
+    "USDT-GBP entry bid 0.003": {
+     "absorbed": 0,
+     "fills": 8,
+     "share": 0.0
+    },
+    "USDT-GBP exit ask 0.001": {
+     "absorbed": 2,
+     "fills": 19,
+     "share": 0.105
+    },
+    "USDT-GBP exit ask 0.002": {
+     "absorbed": 1,
+     "fills": 6,
+     "share": 0.167
+    },
+    "USDT-GBP exit ask 0.003": {
+     "absorbed": 1,
+     "fills": 3,
+     "share": 0.333
+    },
+    "USDT-GBP exit bid 0.001": {
+     "absorbed": 1,
+     "fills": 17,
+     "share": 0.059
+    },
+    "USDT-GBP exit bid 0.002": {
+     "absorbed": 0,
+     "fills": 9,
+     "share": 0.0
+    },
+    "USDT-GBP exit bid 0.003": {
+     "absorbed": 0,
+     "fills": 8,
+     "share": 0.0
+    }
+   },
+   "fills": 203,
+   "share": 0.0788
+  },
+  "wide": {
+   "absorbed": 1875,
+   "by": {
+    "USDC-GBP entry ask 0.001": {
+     "absorbed": 103,
+     "fills": 614,
+     "share": 0.168
+    },
+    "USDC-GBP entry ask 0.002": {
+     "absorbed": 28,
+     "fills": 182,
+     "share": 0.154
+    },
+    "USDC-GBP entry ask 0.003": {
+     "absorbed": 2,
+     "fills": 19,
+     "share": 0.105
+    },
+    "USDC-GBP entry bid 0.001": {
+     "absorbed": 119,
+     "fills": 719,
+     "share": 0.166
+    },
+    "USDC-GBP entry bid 0.002": {
+     "absorbed": 39,
+     "fills": 307,
+     "share": 0.127
+    },
+    "USDC-GBP entry bid 0.003": {
+     "absorbed": 5,
+     "fills": 60,
+     "share": 0.083
+    },
+    "USDC-GBP exit ask 0.001": {
+     "absorbed": 112,
+     "fills": 613,
+     "share": 0.183
+    },
+    "USDC-GBP exit ask 0.002": {
+     "absorbed": 32,
+     "fills": 181,
+     "share": 0.177
+    },
+    "USDC-GBP exit ask 0.003": {
+     "absorbed": 3,
+     "fills": 18,
+     "share": 0.167
+    },
+    "USDC-GBP exit bid 0.001": {
+     "absorbed": 127,
+     "fills": 703,
+     "share": 0.181
+    },
+    "USDC-GBP exit bid 0.002": {
+     "absorbed": 56,
+     "fills": 301,
+     "share": 0.186
+    },
+    "USDC-GBP exit bid 0.003": {
+     "absorbed": 14,
+     "fills": 60,
+     "share": 0.233
+    },
+    "USDT-GBP entry ask 0.001": {
+     "absorbed": 160,
+     "fills": 1581,
+     "share": 0.101
+    },
+    "USDT-GBP entry ask 0.002": {
+     "absorbed": 113,
+     "fills": 1130,
+     "share": 0.1
+    },
+    "USDT-GBP entry ask 0.003": {
+     "absorbed": 38,
+     "fills": 491,
+     "share": 0.077
+    },
+    "USDT-GBP entry bid 0.001": {
+     "absorbed": 155,
+     "fills": 1603,
+     "share": 0.097
+    },
+    "USDT-GBP entry bid 0.002": {
+     "absorbed": 94,
+     "fills": 1053,
+     "share": 0.089
+    },
+    "USDT-GBP entry bid 0.003": {
+     "absorbed": 39,
+     "fills": 433,
+     "share": 0.09
+    },
+    "USDT-GBP exit ask 0.001": {
+     "absorbed": 167,
+     "fills": 1577,
+     "share": 0.106
+    },
+    "USDT-GBP exit ask 0.002": {
+     "absorbed": 112,
+     "fills": 1126,
+     "share": 0.099
+    },
+    "USDT-GBP exit ask 0.003": {
+     "absorbed": 50,
+     "fills": 488,
+     "share": 0.102
+    },
+    "USDT-GBP exit bid 0.001": {
+     "absorbed": 161,
+     "fills": 1600,
+     "share": 0.101
+    },
+    "USDT-GBP exit bid 0.002": {
+     "absorbed": 106,
+     "fills": 1050,
+     "share": 0.101
+    },
+    "USDT-GBP exit bid 0.003": {
+     "absorbed": 40,
+     "fills": 431,
+     "share": 0.093
+    }
+   },
+   "fills": 16340,
+   "share": 0.1147
+  }
+ },
+ "frozenSimSha256": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a",
+ "governor": {
+  "2025-12-16_to_09-23": {
+   "600/700": {
+    "dayBucketLowest": 757.1,
+    "daysEntriesWithdrawn": 73,
+    "daysOver": {
+     "1000": 0,
+     "600": 65,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 1010,
+    "mostStopsInADay": 3,
+    "pnlUsdAt100": 580.95248,
+    "posts": 98967,
+    "postsAfterTheEntryTier": {
+     "days": 65,
+     "max": 100,
+     "median": 9
+    },
+    "postsPerDay": {
+     "max": 700,
+     "mean": 352.2,
+     "p95": 628
+    },
+    "stops": 41,
+    "trips": 6659
+   },
+   "900/930": {
+    "dayBucketLowest": 547.5,
+    "daysEntriesWithdrawn": 18,
+    "daysOver": {
+     "1000": 0,
+     "600": 71,
+     "700": 44,
+     "900": 17,
+     "950": 0
+    },
+    "maxPostsInAny24h": 1281,
+    "mostStopsInADay": 3,
+    "pnlUsdAt100": 666.85028,
+    "posts": 109681,
+    "postsAfterTheEntryTier": {
+     "days": 17,
+     "max": 30,
+     "median": 8
+    },
+    "postsPerDay": {
+     "max": 930,
+     "mean": 390.3,
+     "p95": 904
+    },
+    "stops": 45,
+    "trips": 7695
+   },
+   "900/950": {
+    "dayBucketLowest": 555.5,
+    "daysEntriesWithdrawn": 18,
+    "daysOver": {
+     "1000": 0,
+     "600": 71,
+     "700": 44,
+     "900": 17,
+     "950": 0
+    },
+    "maxPostsInAny24h": 1281,
+    "mostStopsInADay": 3,
+    "pnlUsdAt100": 665.68021,
+    "posts": 109722,
+    "postsAfterTheEntryTier": {
+     "days": 17,
+     "max": 50,
+     "median": 8
+    },
+    "postsPerDay": {
+     "max": 950,
+     "mean": 390.5,
+     "p95": 904
+    },
+    "stops": 45,
+    "trips": 7694
+   },
+   "900/970": {
+    "dayBucketLowest": 547.5,
+    "daysEntriesWithdrawn": 18,
+    "daysOver": {
+     "1000": 0,
+     "600": 71,
+     "700": 44,
+     "900": 17,
+     "950": 1
+    },
+    "maxPostsInAny24h": 1281,
+    "mostStopsInADay": 3,
+    "pnlUsdAt100": 666.40248,
+    "posts": 109737,
+    "postsAfterTheEntryTier": {
+     "days": 17,
+     "max": 70,
+     "median": 8
+    },
+    "postsPerDay": {
+     "max": 970,
+     "mean": 390.5,
+     "p95": 904
+    },
+    "stops": 45,
+    "trips": 7695
+   },
+   "none": {
+    "dayBucketLowest": -448.4,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 14,
+     "600": 71,
+     "700": 44,
+     "900": 18,
+     "950": 14
+    },
+    "maxPostsInAny24h": 1906,
+    "mostStopsInADay": 3,
+    "pnlUsdAt100": 695.9055,
+    "posts": 114209,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 1856,
+     "mean": 406.4,
+     "p95": 942
+    },
+    "stops": 45,
+    "trips": 8055
+   }
+  },
+  "tight_2026-08-26_to_09-23": {
+   "600/700": {
+    "dayBucketLowest": 858.2,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 0,
+     "600": 0,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 555,
+    "mostStopsInADay": 1,
+    "pnlUsdAt100": 11.66884,
+    "posts": 5740,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 441,
+     "mean": 205.0,
+     "p95": 353
+    },
+    "stops": 1,
+    "trips": 102
+   },
+   "900/930": {
+    "dayBucketLowest": 858.2,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 0,
+     "600": 0,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 555,
+    "mostStopsInADay": 1,
+    "pnlUsdAt100": 11.66884,
+    "posts": 5740,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 441,
+     "mean": 205.0,
+     "p95": 353
+    },
+    "stops": 1,
+    "trips": 102
+   },
+   "900/950": {
+    "dayBucketLowest": 858.2,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 0,
+     "600": 0,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 555,
+    "mostStopsInADay": 1,
+    "pnlUsdAt100": 11.66884,
+    "posts": 5740,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 441,
+     "mean": 205.0,
+     "p95": 353
+    },
+    "stops": 1,
+    "trips": 102
+   },
+   "900/970": {
+    "dayBucketLowest": 858.2,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 0,
+     "600": 0,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 555,
+    "mostStopsInADay": 1,
+    "pnlUsdAt100": 11.66884,
+    "posts": 5740,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 441,
+     "mean": 205.0,
+     "p95": 353
+    },
+    "stops": 1,
+    "trips": 102
+   },
+   "none": {
+    "dayBucketLowest": 858.2,
+    "daysEntriesWithdrawn": 0,
+    "daysOver": {
+     "1000": 0,
+     "600": 0,
+     "700": 0,
+     "900": 0,
+     "950": 0
+    },
+    "maxPostsInAny24h": 555,
+    "mostStopsInADay": 1,
+    "pnlUsdAt100": 11.66884,
+    "posts": 5740,
+    "postsAfterTheEntryTier": null,
+    "postsPerDay": {
+     "max": 441,
+     "mean": 205.0,
+     "p95": 353
+    },
+    "stops": 1,
+    "trips": 102
+   }
+  }
+ },
+ "guards": {
+  "tight": {
+   "staleUsdHour": {
+    "USDC-GBP": {
+     "minutesWithFair": 28809,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "productionLagMaxMin": 118.0,
+     "productionLagOver120min": 0,
+     "productionLagOver180min": 0,
+     "productionLagP99Min": 118.0,
+     "specLagOver120min": 0,
+     "theirPnlUsdAt100": 0.0
+    },
+    "USDT-GBP": {
+     "minutesWithFair": 28809,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "productionLagMaxMin": 118.0,
+     "productionLagOver120min": 0,
+     "productionLagOver180min": 0,
+     "productionLagP99Min": 118.0,
+     "specLagOver120min": 0,
+     "theirPnlUsdAt100": 0.0
+    }
+   },
+   "stopBound": {
+    "USDC-GBP": {
+     "medianBps": -5.5,
+     "stops": 1,
+     "whileDark": 1,
+     "within50bps": 1,
+     "worstBps": -5.5
+    },
+    "USDT-GBP": {
+     "medianBps": null,
+     "stops": 0,
+     "whileDark": 0,
+     "within50bps": 0,
+     "worstBps": null
+    }
+   },
+   "thresholdsBps": {
+    "100": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 0,
+     "ofEntries": 102,
+     "ofPnlUsdAt100": 11.66884,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "theirPnlUsdAt100": 0,
+     "theirWinRate": null
+    },
+    "25": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 416,
+     "ofEntries": 102,
+     "ofPnlUsdAt100": 11.66884,
+     "paperEntriesTheLiveWouldMiss": 2,
+     "theirPnlUsdAt100": 0.51551,
+     "theirWinRate": 1.0
+    },
+    "50": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 26,
+     "ofEntries": 102,
+     "ofPnlUsdAt100": 11.66884,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "theirPnlUsdAt100": 0,
+     "theirWinRate": null
+    },
+    "75": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 0,
+     "ofEntries": 102,
+     "ofPnlUsdAt100": 11.66884,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "theirPnlUsdAt100": 0,
+     "theirWinRate": null
+    }
+   }
+  },
+  "wide": {
+   "staleUsdHour": {
+    "USDC-GBP": {
+     "minutesWithFair": 306738,
+     "paperEntriesTheLiveWouldMiss": 4,
+     "productionLagMaxMin": 538.0,
+     "productionLagOver120min": 1010,
+     "productionLagOver180min": 714,
+     "productionLagP99Min": 118.0,
+     "specLagOver120min": 717,
+     "theirPnlUsdAt100": 0.35393
+    },
+    "USDT-GBP": {
+     "minutesWithFair": 286684,
+     "paperEntriesTheLiveWouldMiss": 9,
+     "productionLagMaxMin": 538.0,
+     "productionLagOver120min": 534,
+     "productionLagOver180min": 358,
+     "productionLagP99Min": 118.0,
+     "specLagOver120min": 359,
+     "theirPnlUsdAt100": 0.7503
+    }
+   },
+   "stopBound": {
+    "USDC-GBP": {
+     "medianBps": -17.7,
+     "stops": 25,
+     "whileDark": 12,
+     "within50bps": 25,
+     "worstBps": -27.4
+    },
+    "USDT-GBP": {
+     "medianBps": -25.1,
+     "stops": 19,
+     "whileDark": 5,
+     "within50bps": 19,
+     "worstBps": -40.6
+    }
+   },
+   "thresholdsBps": {
+    "100": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 129,
+     "ofEntries": 8192,
+     "ofPnlUsdAt100": 707.90283,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "theirPnlUsdAt100": 0,
+     "theirWinRate": null
+    },
+    "25": {
+     "byUsdLeg": 33,
+     "minutesBlocked": 129730,
+     "ofEntries": 8192,
+     "ofPnlUsdAt100": 707.90283,
+     "paperEntriesTheLiveWouldMiss": 1678,
+     "theirPnlUsdAt100": 140.55673,
+     "theirWinRate": 0.952
+    },
+    "50": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 2437,
+     "ofEntries": 8192,
+     "ofPnlUsdAt100": 707.90283,
+     "paperEntriesTheLiveWouldMiss": 3,
+     "theirPnlUsdAt100": 0.16139,
+     "theirWinRate": 1.0
+    },
+    "75": {
+     "byUsdLeg": 0,
+     "minutesBlocked": 193,
+     "ofEntries": 8192,
+     "ofPnlUsdAt100": 707.90283,
+     "paperEntriesTheLiveWouldMiss": 0,
+     "theirPnlUsdAt100": 0,
+     "theirWinRate": null
+    }
+   }
+  }
+ },
+ "inventory": {
+  "account_120": {
+   "gbpLeftForTheBids_coinFee": 60.00001,
+   "gbpLeftForTheBids_gbpFee": 59.94601,
+   "withNoBidResting": {
+    "firstPasses": true,
+    "secondPasses": true
+   },
+   "withSixBidsResting": {
+    "firstPasses": true,
+    "secondPasses": false
+   }
+  },
+  "account_120.5": {
+   "gbpLeftForTheBids_coinFee": 60.50001,
+   "gbpLeftForTheBids_gbpFee": 60.44601,
+   "withNoBidResting": {
+    "firstPasses": true,
+    "secondPasses": true
+   },
+   "withSixBidsResting": {
+    "firstPasses": true,
+    "secondPasses": true
+   }
+  },
+  "account_121": {
+   "gbpLeftForTheBids_coinFee": 61.00001,
+   "gbpLeftForTheBids_gbpFee": 60.94601,
+   "withNoBidResting": {
+    "firstPasses": true,
+    "secondPasses": true
+   },
+   "withSixBidsResting": {
+    "firstPasses": true,
+    "secondPasses": true
+   }
+  },
+  "books": {
+   "USDC-GBP": {
+    "askOverFairBps": 2.3,
+    "asksNeedCoin": 39.51702,
+    "bestAsk": 0.7578,
+    "bestAskQty": 5000.22587,
+    "bestBid": 0.7573,
+    "bidsGbp": 29.99999,
+    "convert30": {
+     "base": 39.58828,
+     "checkGbpAtLimit": 30.16964,
+     "coinNetOfA9bpsCoinFee": 39.55265,
+     "costVsFairGbp": 0.0339,
+     "limit": 0.7614,
+     "marginOverAsksNeed_coinFee": 0.03563,
+     "marginOverAsksNeed_gbpFee": 0.07126,
+     "spendGbp": 30.0
+    },
+    "fair": 0.757626,
+    "spreadBps": 6.6
+   },
+   "USDT-GBP": {
+    "askOverFairBps": 3.7,
+    "asksNeedCoin": 39.54828,
+    "bestAsk": 0.7573,
+    "bestAskQty": 6746.2,
+    "bestBid": 0.757,
+    "bidsGbp": 29.99998,
+    "convert30": {
+     "base": 39.61441,
+     "checkGbpAtLimit": 30.16577,
+     "coinNetOfA9bpsCoinFee": 39.57876,
+     "costVsFairGbp": 0.0381,
+     "limit": 0.7608,
+     "marginOverAsksNeed_coinFee": 0.03048,
+     "marginOverAsksNeed_gbpFee": 0.06613,
+     "spendGbp": 29.99999
+    },
+    "fair": 0.75702,
+    "spreadBps": 3.96
+   }
+  },
+  "sixBidsGbp": 59.99998,
+  "totalCostVsFairGbp": 0.072,
+  "x": 1.3200448751449585,
+  "xBar": "2026-10-01T15:37"
+ },
+ "lossStop": {
+  "tight": {
+   "days": 28,
+   "daysAtOrUnder": {
+    "-0.3": 0,
+    "-0.6": 0,
+    "-1.2": 0,
+    "-2.4": 0
+   },
+   "medianDayLowGbp": -0.00384,
+   "p1DayLowGbp": -0.05827,
+   "worstDayLowGbp": -0.05827,
+   "worstFive": [
+    {
+     "day": "2026-08-30",
+     "lowGbp": -0.05827
+    },
+    {
+     "day": "2026-09-21",
+     "lowGbp": -0.03488
+    },
+    {
+     "day": "2026-08-28",
+     "lowGbp": -0.03128
+    },
+    {
+     "day": "2026-08-31",
+     "lowGbp": -0.02573
+    },
+    {
+     "day": "2026-09-22",
+     "lowGbp": -0.02272
+    }
+   ]
+  },
+  "wide": {
+   "days": 273,
+   "daysAtOrUnder": {
+    "-0.3": 2,
+    "-0.6": 2,
+    "-1.2": 0,
+    "-2.4": 0
+   },
+   "medianDayLowGbp": -0.01618,
+   "p1DayLowGbp": -0.17305,
+   "worstDayLowGbp": -0.92257,
+   "worstFive": [
+    {
+     "day": "2026-03-16",
+     "lowGbp": -0.92257
+    },
+    {
+     "day": "2026-03-17",
+     "lowGbp": -0.83262
+    },
+    {
+     "day": "2026-01-09",
+     "lowGbp": -0.17305
+    },
+    {
+     "day": "2026-04-02",
+     "lowGbp": -0.16626
+    },
+    {
+     "day": "2026-01-28",
+     "lowGbp": -0.13811
+    }
+   ]
+  }
+ },
+ "pr5vSimSha256": "54ad41982d143758ece6ee8e5bb48d5a4aafe1dc0429ccc0af6d1c57282de27a",
+ "rungGbp": 10.0,
+ "sizing": {
+  "atTodaysFair": {
+   "USDC-GBP": {
+    "fair": 0.757626,
+    "rungs": [
+     {
+      "base": 13.21353,
+      "gbp": 10.0,
+      "k": 0.001,
+      "price": 0.7568,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.22576,
+      "gbp": 10.0,
+      "k": 0.002,
+      "price": 0.7561,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.23977,
+      "gbp": 10.0,
+      "k": 0.003,
+      "price": 0.7553,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.18565,
+      "gbp": 10.0,
+      "k": 0.001,
+      "price": 0.7584,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.17175,
+      "gbp": 9.99999,
+      "k": 0.002,
+      "price": 0.7592,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.15962,
+      "gbp": 10.0,
+      "k": 0.003,
+      "price": 0.7599,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     }
+    ]
+   },
+   "USDT-GBP": {
+    "fair": 0.75702,
+    "rungs": [
+     {
+      "base": 13.22401,
+      "gbp": 10.0,
+      "k": 0.001,
+      "price": 0.7562,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.23626,
+      "gbp": 9.99999,
+      "k": 0.002,
+      "price": 0.7555,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.25029,
+      "gbp": 9.99999,
+      "k": 0.003,
+      "price": 0.7547,
+      "side": "bid",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.19609,
+      "gbp": 10.0,
+      "k": 0.001,
+      "price": 0.7578,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.18217,
+      "gbp": 9.99999,
+      "k": 0.002,
+      "price": 0.7586,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     },
+     {
+      "base": 13.17002,
+      "gbp": 10.0,
+      "k": 0.003,
+      "price": 0.7593,
+      "side": "ask",
+      "timesTheMinimum": 100.0
+     }
+    ]
+   }
+  },
+  "frozenRuleAt10Gbp": {
+   "tight": {
+    "by_book_side": {
+     "USDC-GBP ask": {
+      "pnl_gbp": 0.09713,
+      "trips": 13
+     },
+     "USDC-GBP bid": {
+      "pnl_gbp": 0.3232,
+      "trips": 27
+     },
+     "USDT-GBP ask": {
+      "pnl_gbp": 0.31829,
+      "trips": 28
+     },
+     "USDT-GBP bid": {
+      "pnl_gbp": 0.57,
+      "trips": 34
+     }
+    },
+    "entries_under_10gbp": 13,
+    "entries_under_venue_minimum": 0,
+    "pct_per_year": null,
+    "pct_per_year_on_120": 14.22,
+    "per_day": 0.04674,
+    "pnl": 1.30862,
+    "pnl_usd": 1.76273,
+    "taker_exits": 1,
+    "trips": 102,
+    "won": 0.9412
+   },
+   "wide": {
+    "by_book_side": {
+     "USDC-GBP ask": {
+      "pnl_gbp": 8.08843,
+      "trips": 815
+     },
+     "USDC-GBP bid": {
+      "pnl_gbp": 11.96516,
+      "trips": 1086
+     },
+     "USDT-GBP ask": {
+      "pnl_gbp": 44.95842,
+      "trips": 3202
+     },
+     "USDT-GBP bid": {
+      "pnl_gbp": 41.91777,
+      "trips": 3089
+     }
+    },
+    "entries_under_10gbp": 2684,
+    "entries_under_venue_minimum": 141,
+    "pct_per_year": null,
+    "pct_per_year_on_120": 119.14,
+    "per_day": 0.39168,
+    "pnl": 106.92979,
+    "pnl_usd": 143.68614,
+    "taker_exits": 44,
+    "trips": 8192,
+    "won": 0.9436
+   }
+  },
+  "pairs": {
+   "USDC/GBP": {
+    "base": "USDC",
+    "base_step": "0.00001",
+    "max_order_size": "4000000",
+    "max_order_size_quote": "1000000",
+    "min_order_size": "0.00001",
+    "min_order_size_quote": "0.1",
+    "quote": "GBP",
+    "quote_step": "0.0001",
+    "slippage": 5,
+    "status": "active"
+   },
+   "USDT/GBP": {
+    "base": "USDT",
+    "base_step": "0.00001",
+    "max_order_size": "4000000",
+    "max_order_size_quote": "1000000",
+    "min_order_size": "0.00001",
+    "min_order_size_quote": "0.1",
+    "quote": "GBP",
+    "quote_step": "0.0001",
+    "slippage": 5,
+    "status": "active"
+   }
+  },
+  "rungGbp": 10.0
+ },
+ "windows": {
+  "tight": {
+   "days": 28.0,
+   "entriesFrom": {
+    "USDC-GBP": "2026-08-26T00:00",
+    "USDT-GBP": "2026-08-26T00:00"
+   },
+   "entriesTo": "2026-09-23T00:00"
+  },
+  "wide": {
+   "days": 273.0,
+   "entriesFrom": {
+    "USDC-GBP": "2025-11-26T00:00",
+    "USDT-GBP": "2025-12-16T00:00"
+   },
+   "entriesTo": "2026-08-26T00:00"
+  }
+ }
+}

@@ -14,7 +14,7 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS,
+  bookInputs, crossesBook, dustBase, entryBookOf, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited,
 } from "./quotes_live.ts";
@@ -165,7 +165,10 @@ Deno.test("bookInputs and entryGuards: the rule's fair on the stored inputs, and
 });
 
 Deno.test("the governor, the loss stop, the stop's bound and the book an order meets", () => {
-  assertEquals([governorLevel(599), governorLevel(QUOTE_LIVE_ENTRY_POSTS), governorLevel(699), governorLevel(QUOTE_LIVE_STOPS_ONLY_POSTS)], ["all", "no-entries", "no-entries", "stops-only"]);
+  // Davies, 2026-10-01: entries to 900 a UTC day (600 before), stops only from 950 (700 before).
+  assertEquals([QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_STOPS_ONLY_POSTS], [900, 950]);
+  assertEquals([governorLevel(600), governorLevel(700), governorLevel(899), governorLevel(900), governorLevel(949), governorLevel(950)],
+    ["all", "all", "all", "no-entries", "no-entries", "stops-only"]);
   assertEquals([lossStopHit(-0.49, 50), lossStopHit(-0.5, 50), lossStopHit(-0.6, 50)], [false, true, true]);
   assertEquals([stopDue(T0, T0 + DAY - 1), stopDue(T0, T0 + DAY), stopDue(null, T0 + 9 * DAY)], [false, true, false]);
   // fair 0.755401: a long sells no lower than 0.7517 (fair − 50 bps, rounded up); a short buys back no higher than 0.7591.
@@ -580,6 +583,83 @@ Deno.test("the governor: from 600 POSTs today the entry quotes are withdrawn (DE
   const r2 = await w.step(T0 + 2 * M);
   assertEquals(r2.placed, []);
   assertEquals(w.rx.resting().map((o) => o.price), ["0.7555"]);
+});
+
+Deno.test("Davies' 900: with 700 POSTs today the six bids still go out (the old governor sent only stops from 700); at 900 they are withdrawn", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  const filler = async (n: number) => { for (let i = 0; i < n; i++) await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.003, leg: "entry", side: "sell", price: 0.76, base_size: 1, state: "rejected", ts: iso(T0 + M) }); };
+  await filler(700);
+  const r = await w.step(T0);
+  assertEquals(r.placed.filter((p) => p.leg === "entry" && p.side === "buy").length, 6, JSON.stringify(r.placed));
+  assertEquals(r.posts.live, 706);
+  assertEquals(w.rx.resting().filter((o) => o.side === "buy").length, 6);
+  await filler(900 - 706);                                            // 900 POSTs today
+  const r2 = await w.step(T0 + M);
+  assertEquals(r2.placed, []);
+  assertEquals(w.rx.resting().length, 0);                             // every bid withdrawn, by DELETE
+  assertEquals(w.deletes(), 6);
+});
+
+Deno.test("exitMayGo: a refused exit waits for a newer print that is not through it; a refusal of an earlier holding, or a 429, holds nothing back", () => {
+  const lp = (id: string, ticks: number, side: "buy" | "sell") => ({ ts: T0, ticks, qty: 1, side, id });
+  const refused = { ts: iso(T0), state: "rejected", response: { status: 400 }, request: { paperLastPrint: { id: "p1", ticks: 7557, side: "buy" as const } } };
+  assertEquals(exitMayGo(null, T0 - H, "ask", 7555, lp("p1", 7557, "buy")), true);                          // never refused
+  assertEquals(exitMayGo({ ...refused, state: "cancelled" }, T0 - H, "ask", 7555, lp("p1", 7557, "buy")), true);
+  assertEquals(exitMayGo(refused, T0 - H, "ask", 7555, lp("p1", 7557, "buy")), false);                      // nothing new has printed
+  // Refused while the last print was NOT through it (the venue's book moved without a trade): still nothing new to go on.
+  const quiet = { ...refused, request: { paperLastPrint: { id: "p0", ticks: 7552, side: "buy" as const } } };
+  assertEquals(exitMayGo(quiet, T0 - H, "ask", 7555, lp("p0", 7552, "buy")), false);
+  assertEquals(exitMayGo(refused, T0 - H, "ask", 7555, lp("p2", 7556, "sell")), false);                     // newer, and still through the ask
+  assertEquals(exitMayGo(refused, T0 - H, "ask", 7555, lp("p2", 7555, "sell")), false);                     // a seller at the ask's own price: through
+  assertEquals(exitMayGo(refused, T0 - H, "ask", 7555, lp("p2", 7555, "buy")), true);                       // a buyer at it: the market has left
+  assertEquals(exitMayGo(refused, T0 - H, "ask", 7555, lp("p2", 7552, "buy")), true);
+  assertEquals(exitMayGo(refused, T0 + H, "ask", 7555, lp("p1", 7557, "buy")), true);                       // the refusal was an earlier holding's
+  assertEquals(exitMayGo({ ...refused, response: { status: 429 } }, T0 - H, "ask", 7555, lp("p1", 7557, "buy")), true);
+  // A short's exit is a bid: through when the market printed below it.
+  assertEquals(exitMayGo({ ...refused, request: { paperLastPrint: { id: "p1", ticks: 7550, side: "sell" } } }, T0 - H, "bid", 7554, lp("p2", 7553, "sell")), false);
+  assertEquals(exitMayGo({ ...refused, request: { paperLastPrint: { id: "p1", ticks: 7550, side: "sell" } } }, T0 - H, "bid", 7554, lp("p2", 7556, "buy")), true);
+});
+
+for (const refusal of ["http-400", "status"] as const) {
+  Deno.test(`live: an exit the venue refuses (${refusal}) waits as the rule's refused order waits — not sent again until a newer print is not through it`, async () => {
+    const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+    // A long of 5 USDC on the 0.2 % bid rung, filled an hour ago: its exit is a sell at fair rounded up, 0.7555.
+    await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+    w.rx.postOnlyRefusal = refusal;
+    w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 };          // the book is through the exit: a post-only sell at 0.7555 crosses
+    const exitPosts = () => w.orders().filter((o) => o.leg === "exit").length;
+    const print = (id: string, ticks: number, side: "buy" | "sell", at: number) => ({ "USDC-GBP": [{ ts: at, ticks, qty: 100, side, id }] });
+    await w.step(T0, print("a", 7557, "buy", T0 + 5e3));
+    assertEquals(exitPosts(), 1);
+    const first = w.orders().find((o) => o.leg === "exit")!;
+    assertEquals((first.request as { paperLastPrint?: { id: string } }).paperLastPrint?.id, "a");
+    await w.step(T0 + M);                                               // nothing printed: it waits (the old executor sent it again)
+    assertEquals(exitPosts(), 1);
+    assertEquals(w.orders().find((o) => o.leg === "exit")!.state, "rejected");
+    await w.step(T0 + 2 * M, print("b", 7556, "sell", T0 + 2 * M + 5e3));  // newer, and still through the ask: it waits
+    assertEquals(exitPosts(), 1);
+    // The market leaves: the book comes back under the exit, and a print below it.
+    w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7549, ask: 0.7553 };
+    await w.step(T0 + 3 * M, print("c", 7552, "buy", T0 + 3 * M + 5e3));
+    assertEquals(exitPosts(), 2);
+    assertEquals(w.rx.resting().filter((o) => o.side === "sell").map((o) => o.price), ["0.7555"]);   // the exit rests (the other rungs' bids beside it)
+  });
+}
+
+Deno.test("live: an exit refused while the tape shows nothing through it (the book moved without a trade) is not sent every minute — once per newer print", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  w.rx.postOnlyRefusal = "http-400";
+  w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 };
+  const exitPosts = () => w.orders().filter((o) => o.leg === "exit").length;
+  await w.step(T0, { "USDC-GBP": [{ ts: T0 + 5e3, ticks: 7552, qty: 100, side: "buy", id: "q" }] });   // the last print is under the exit
+  assertEquals(exitPosts(), 1);
+  for (let i = 1; i <= 5; i++) await w.step(T0 + i * M);             // five quiet minutes: the book still through, no print
+  assertEquals(exitPosts(), 1);
+  await w.step(T0 + 6 * M, { "USDC-GBP": [{ ts: T0 + 6 * M + 5e3, ticks: 7553, qty: 100, side: "buy", id: "r" }] });
+  assertEquals(exitPosts(), 2);                                       // a newer print, not through it: one more try (refused again)
+  await w.step(T0 + 7 * M);
+  assertEquals(exitPosts(), 2);
 });
 
 Deno.test("the daily loss stop: at −1 % of capital realised today plus marked, no entries for the rest of the UTC day; exits stay armed; the next day quotes again", async () => {

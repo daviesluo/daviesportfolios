@@ -32,8 +32,10 @@
 //     GET, which the dry-run does when the key loads ("the dry-run on the real account").
 //
 // ITS HARD LIMITS, each enforced here and pinned in quotes_live.test.ts:
-//   * The order governor, on its own POSTs in a UTC day. At 600 the entry quotes are withdrawn, which costs DELETEs only,
-//     and exits and stops go on. At 700 nothing is placed but the 24-hour stops.
+//   * The order governor, on its own POSTs in a UTC day. At 900 the entry quotes are withdrawn, which costs DELETEs only,
+//     and exits and stops go on. At 950 nothing is placed but the 24-hour stops.
+//   * A refused exit waits as the rule's own refused order waits: it is sent again only once the paper engine holds a
+//     newer print than it held at the refusal, and that print is not through the exit's price.
 //   * The daily loss stop. At −1 % of capital, realised today plus marked, there are no entries for the rest of the UTC day.
 //   * The de-peg guard. A book quotes no entry while its USD book's last hourly close is more than 50 bps from its 24-hour
 //     median, or while the GBP book's last print is more than 50 bps from fair.
@@ -53,8 +55,8 @@ import { revxPublic } from "../_shared/revx.ts";
 import type { OrderView, Venue } from "../_shared/venue.ts";
 import type { Db } from "./db.ts";
 import {
-  exitTicks, fairUAt, fxAt, QUOTE_BOOKS, QUOTE_FX_LOOKBACK_MS, QUOTE_REPRICE, QUOTE_REVX_GAP_MS, QUOTE_RUNGS, QUOTE_STOP_MS, QUOTE_TICK, QUOTE_USD_BOOK,
-  type QuoteBook, type QuoteState, type Rung, type Side,
+  blocks, exitTicks, fairUAt, fxAt, QUOTE_BOOKS, QUOTE_FX_LOOKBACK_MS, QUOTE_REPRICE, QUOTE_REVX_GAP_MS, QUOTE_RUNGS, QUOTE_STOP_MS, QUOTE_TICK, QUOTE_USD_BOOK,
+  type Print, type QuoteBook, type QuoteState, type Rung, type Side,
 } from "./quotes.ts";
 import { bookLiveBuy, fillStamp, isUniqueViolation, withFeeNote, type FromAccount } from "./tick.ts";
 
@@ -64,9 +66,16 @@ const M = 60e3, H = 3600e3, DAY = 86400e3;
 export const LIVE_SYMBOL: Record<QuoteBook, "USDC/GBP" | "USDT/GBP"> = { "USDC-GBP": "USDC/GBP", "USDT-GBP": "USDT/GBP" };
 /** Twelve rungs: two books, two sides, three distances. The capital is split evenly over them, as the frozen shape splits its $1,200. */
 export const QUOTE_LIVE_RUNG_COUNT = QUOTE_BOOKS.length * 2 * QUOTE_RUNGS.length;
-/** The order governor (design, "What it would send"): its own POSTs in a UTC day. */
-export const QUOTE_LIVE_ENTRY_POSTS = 600;          // from here, no entry quotes: the resting ones are withdrawn
-export const QUOTE_LIVE_STOPS_ONLY_POSTS = 700;     // from here, nothing but the 24-hour stops
+/**
+ * The order governor (design, "What it would send"): its own POSTs in a UTC day. Davies, 2026-10-01: entries go on to 900
+ * (600 before), because `trend-4h-live` never sends 100 a day. Stops-only at 950 leaves 50 under the venue's 1,000 for the
+ * stops, which are always sent, and for that row if the 1,000 is shared (undocumented, reference §2). On PR5's committed
+ * prints from 2025-12-16, both books on one account (`backtests/pr5_live/go_live_120.json`), entries were withdrawn on 18
+ * of 281 days, the exits after that took a median of 8 POSTs and reached 950 on one day, no day sent more than 3 stops,
+ * and the venue's day bucket (1,000 tokens, refilled continuously) never fell below 555.
+ */
+export const QUOTE_LIVE_ENTRY_POSTS = 900;          // from here, no entry quotes: the resting ones are withdrawn
+export const QUOTE_LIVE_STOPS_ONLY_POSTS = 950;     // from here, nothing but the 24-hour stops
 export const QUOTE_LIVE_LOSS_FRACTION = 0.01;       // the daily loss stop: 1 % of capital, realised today plus marked
 export const QUOTE_LIVE_DEPEG = 0.005;              // 50 bps: the quotes sit 10–30 bps from fair, so a 50 bps gap means fair is stale
 export const QUOTE_LIVE_USD_STALE_MS = 2 * H;       // the USD book's newest hour may have ended at most this long before the minute
@@ -228,6 +237,30 @@ export function wasRateLimited(o: { state?: unknown; response?: unknown }): bool
   return o.state === "rejected" && Number((o.response as { status?: unknown } | null | undefined)?.status) === 429;
 }
 
+/** The paper engine's last print as an exit row records it (`request.paperLastPrint`): what a refused exit waits on. */
+export type SeenPrint = { id: string; ticks: number; side: Print["side"] };
+export const seenPrint = (p: Print | null | undefined): SeenPrint | null => (p ? { id: p.id, ticks: p.ticks, side: p.side } : null);
+
+/**
+ * May a rung send its exit now? A post-only exit the venue refused waits as the rule's own refused order waits
+ * (`stepMinute` re-places one at the first turn whose last print is no longer through it): it goes again only once the paper
+ * engine holds a NEWER print than it held when the refused exit was sent, and that print is not through the exit's price
+ * (`blocks`, the rule's test). Before this the executor sent a refused exit again on every turn: on PR5's committed prints
+ * that was 872 of 1,150 exit POSTs in the tightened market and 53,643 of 81,765 in the wide one, where it took the POSTs
+ * past 900 on 63 days instead of 13 (`backtests/pr5_live/go_live_120.json`). A refusal of an earlier holding, or one the
+ * rate limit turned away (`wasRateLimited`), holds nothing back.
+ */
+export function exitMayGo(
+  prev: { ts: string; state: string; response?: unknown; request?: { paperLastPrint?: SeenPrint | null } | null } | null,
+  heldSince: number | null, exitSide: Side, ticks: number, lastPrint: Print | null,
+): boolean {
+  if (!prev || prev.state !== "rejected" || wasRateLimited(prev)) return true;
+  if (heldSince != null && Date.parse(prev.ts) < heldSince) return true;
+  const seen = prev.request?.paperLastPrint?.id ?? null;
+  if ((lastPrint?.id ?? null) === seen) return false;               // nothing has printed since the venue refused it
+  return !blocks(exitSide, ticks, lastPrint);                      // the market is still through it
+}
+
 /** The governor's level for a count of today's POSTs. */
 export function governorLevel(postsToday: number): "all" | "no-entries" | "stops-only" {
   return postsToday >= QUOTE_LIVE_STOPS_ONLY_POSTS ? "stops-only" : postsToday >= QUOTE_LIVE_ENTRY_POSTS ? "no-entries" : "all";
@@ -334,6 +367,8 @@ async function patchRow(ctx: Ctx, o: LiveOrderRow, p: Partial<LiveOrderRow>): Pr
 async function placeOrder(ctx: Ctx, o: {
   mode: LiveMode; book: QuoteBook; rungSide: Side | null; k: number | null; leg: LiveLeg; side: "buy" | "sell"; ticks: number; base: string;
   marketable: boolean; fair: number | null; paper?: PaperTarget | null;
+  /** An exit's: the paper engine's last print as the order goes out, which a refusal waits past (`exitMayGo`). */
+  lastPrint?: SeenPrint | null;
 }): Promise<LiveOrderRow | null> {
   const { d, report } = ctx;
   const label = o.rungSide ? rungLabel(o.book, o.rungSide, o.k!) : `${o.book}|convert`;
@@ -344,7 +379,7 @@ async function placeOrder(ctx: Ctx, o: {
   const clientOrderId = d.uuid();
   const request = {
     clientOrderId, symbol: LIVE_SYMBOL[o.book], side: o.side, base: o.base, price, postOnly: !o.marketable, marketable: o.marketable,
-    timeInForce: o.marketable ? "ioc" : "gtc", crossesBook: crosses,
+    timeInForce: o.marketable ? "ioc" : "gtc", crossesBook: crosses, ...(o.lastPrint !== undefined ? { paperLastPrint: o.lastPrint } : {}),
   };
   let row: LiveOrderRow;
   try {
@@ -819,11 +854,18 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         continue;
       }
       if (governorLevel(report.posts.live) === "stops-only") continue;
+      const lastPrint = paper?.books?.[r.book]?.lastPrint ?? null;
       if (!o) {
         if (fair == null) continue;                                                                   // the rule places an exit only at a fair
         const ticks = exitTicks(fair, r.side);
+        // An exit the venue refused waits as the rule's refused order waits: for a newer print, and one not through it.
+        const prev = lastLeg(r, "exit");
+        if (prev && prev.state === "rejected") {
+          const request = (await d.db.select<{ request: { paperLastPrint?: SeenPrint | null } | null }>("agent_quote_live_orders", `id=eq.${prev.id}&select=request`))[0]?.request ?? null;
+          if (!exitMayGo({ ...prev, request }, r.live.openedAt, r.side === "bid" ? "ask" : "bid", ticks, lastPrint)) continue;
+        }
         const base = exitBase(r, ticks * QUOTE_TICK, null);
-        if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair });
+        if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
         continue;
       }
       // A resting exit follows fair by the rule's own step, on inputs that still stand; stale, it keeps its price.
@@ -832,7 +874,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       if (c !== "cancelled") continue;
       const ticks = exitTicks(fair, r.side);
       const base = exitBase(r, ticks * QUOTE_TICK, null);
-      if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair });
+      if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
     } catch (e) {
       report.errors.push(`${r.label}: ${msg(e)}`);
     }
