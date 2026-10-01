@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeUsd4, fmtGbp, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveInventory, quotesLiveRungCards, quotesLiveStatus, quotesPageFor, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeUsd4, fmtGbp, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveInventory, quotesLiveRungCards, quotesPageFor, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwTestedSince, rweCheckWarn, rweRow, rwHeldText, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -473,9 +473,10 @@ function RungSide({ side, children = null }) {
 /**
  * PR5's live executor, opened from its row in LIVE STRATEGIES (Davies, 2026-10-01: "改成它单独的" — it opened the paper
  * test's page): the real-money book on its own Revolut X sub-account and nothing of the paper engine's record. The
- * scoreboard is its LIVE row's own (`quotesLiveRow`), so the two read the same figures; then its STATUS, each rung's live
- * order and holding, the account's coins and conversions, its round trips, fills, orders and events, all from the
- * dashboard's `quotes.live.detail` (`quotesLiveDetail`). The paper page's parts and RW's are reused under classes of its
+ * scoreboard is its LIVE row's own (`quotesLiveRow`), so the two read the same figures; then each rung's live order and
+ * holding, the account's coins and conversions, its round trips, fills and orders, all from the dashboard's
+ * `quotes.live.detail` (`quotesLiveDetail`). Davies took its STATUS tiles, the inventory's note and its EVENTS off the
+ * page, and a cancelled order out of ORDERS (2026-10-01): a re-price cancels an order every few minutes. The paper page's parts and RW's are reused under classes of its
  * own (`ag-ql-*`), which share their rules: the sweep tells the two quotes pages apart by their classes.
  * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
@@ -483,13 +484,11 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
   const row = quotesLiveRow(q);
   if (!row) return null;
   const d = q.detail ?? null;
-  const st = quotesLiveStatus(q, m);
   const cards = quotesLiveRungCards(q, m);
   const inv = quotesLiveInventory(q, m);
   const lossLimit = d?.status?.lossStop?.limitGbp;
-  /** @type {Array<[string, { value: string, note: string, warn: boolean }]>} */
-  const tiles = [['ARMED', st.armed], ['POSTS TODAY', st.posts], ['LOSS STOP', st.loss], ['LAST TURN', st.turn]];
-  const trips = d?.trips ?? [], fills = d?.fills ?? [], orders = d?.orders ?? [], events = d?.events ?? [], conversions = d?.conversions ?? [];
+  const trips = d?.trips ?? [], fills = d?.fills ?? [], conversions = d?.conversions ?? [];
+  const orders = (d?.orders ?? []).filter((/** @type {any} */ o) => o.state !== 'cancelled');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   /** @param {string} leg */
   const legText = (leg) => (leg === 'convert' ? 'conversion' : leg);
@@ -512,23 +511,6 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
       </div>
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
-      <section className="ag-section ag-ql-status">
-        <div className="ag-section-title mono">STATUS</div>
-        <div className="ag-ql-tiles">
-          {tiles.map(([k, t]) => (
-            <div key={k} className={`ag-ql-tile${t.warn ? ' is-warn' : ''}`}>
-              <div className="ag-ql-tile-k mono">{k}</div>
-              <div className="ag-ql-tile-v mono">{t.value}</div>
-              {t.note ? <div className="ag-ql-tile-note dim" title={k === 'ARMED' ? String(q.why ?? '') : undefined}>{t.note}</div> : null}
-            </div>
-          ))}
-        </div>
-        <div className="ag-ql-guards mono">
-          {st.guards.map((g) => (
-            <div key={g.book} className={`ag-ql-guard${g.ok ? '' : ' is-warn'}`}><span className="hl-strong">{g.label}</span> <span className="ag-ql-guard-text">{g.text}</span></div>
-          ))}
-        </div>
-      </section>
       <section className="ag-section ag-ql-rungs">
         <div className="ag-section-title mono">RUNGS</div>
         {cards.length === 0 && <div className="ag-empty dim">{empty}</div>}
@@ -583,7 +565,6 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
                 </React.Fragment>
               ))}
             </div>
-            <div className="ag-ql-note dim">The account as its last turn read it{inv.at ? `, ${inv.at} ${UK_TZ}` : ''}: what rests in orders included, each coin in pounds at its book's last trade.</div>
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
         <div className="hl-scroll">
@@ -661,8 +642,8 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
           </table>
         </div>
       </section>
-      {/* An order's reason and an event's words are sentences: each goes on a line of its own under its row, as a
-          holding sits under its rung. In a column of their own they wrapped five deep and ran out of the table. */}
+      {/* An order's reason is a sentence: it goes on a line of its own under its row, as a holding sits under its rung. In
+          a column of its own it wrapped five deep and ran out of the table. */}
       <section className="ag-section ag-ql-orders">
         <div className="ag-section-title mono">ORDERS</div>
         <div className="hl-scroll">
@@ -685,27 +666,6 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
                     <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
                   </tr>
                   {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="ag-section ag-ql-events">
-        <div className="ag-section-title mono">EVENTS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr><th className="hl-th">Minute ({UK_TZ})</th><th className="hl-th">Kind</th><th className="hl-th">Where</th></tr></thead>
-            <tbody>
-              {events.length === 0 && <tr><td className="hl-empty dim" colSpan={3}>{empty ?? 'No event yet.'}</td></tr>}
-              {events.map((e) => (
-                <React.Fragment key={`${e.minute}|${e.kind}|${e.book}|${e.side}|${e.k}`}>
-                  <tr className="ag-ql-has-sub">
-                    <td className="dim">{when(e.minute)}</td>
-                    <td>{String(e.kind).replace('_', ' ')}</td>
-                    <td className="dim">{e.book ? quoteBookLabel(e.book) : 'both books'}{e.side ? ` ${e.side} ${quoteRungLabel(e.k)}` : ''}</td>
-                  </tr>
-                  <tr className="ag-ql-sub-row"><td colSpan={3}><span className="ag-ql-sub">{m(e.text)}</span></td></tr>
                 </React.Fragment>
               ))}
             </tbody>

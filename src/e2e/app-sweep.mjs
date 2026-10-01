@@ -3109,6 +3109,7 @@ async function run() {
           rungHidden: firstRung ? tds(firstRung).map((td, i) => (td.getClientRects().length ? null : i)).filter((i) => i != null) : null,
           balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
           conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), orders: rows('.ag-ql-orders'), events: rows('.ag-ql-events'),
+          notes: root.querySelectorAll('.ag-ql-note').length,
           foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
           // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
           tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
@@ -3134,11 +3135,11 @@ async function run() {
       if (lp?.scoreboard === 'FUNDED [£1,200]=$1,584 | DEPLOYED=$263.94(16.66%) | TODAY [(loss stop -£12)]=+$0.30(+0.02%) | UNREALIZED G/L=+$0.38(+0.15%) | REALIZED G/L [(incl. fees $0.12)]=+$0.07(0%)' && sameAsRow) {
         ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, with the capital and the loss stop in pounds: ${lp.scoreboard}`);
       } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
-      if (lp && lp.sections.join(',') === 'STATUS,RUNGS,INVENTORY,ROUND TRIPS,FILLS,ORDERS,EVENTS'
-        && lp.tiles.join(' / ') === 'ARMED | 16 Sep 10:00 | entries go live / POSTS TODAY | 18 of 900 | stops only at 950 / LOSS STOP | not tripped | today +£0.23 · stop at -£12 / LAST TURN | 17 Sep 23:59 | running'
-        && lp.guards.join(' / ') === "USDC/GBP no guard: entries may go / USDT/GBP no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001 [amber]") {
-        ok(T('pr5-page'), `STATUS: armed since 16 Sep 10:00 and going live, 18 of 900 POSTs, the loss stop not tripped (today +£0.23 against -£12), the last turn at 23:59; USDT/GBP's de-peg guard in amber`);
-      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${JSON.stringify(lp?.tiles)}, guards ${JSON.stringify(lp?.guards)}`);
+      // Davies, 2026-10-01: no STATUS tiles, no guard lines, no note under the inventory and no EVENTS on this page.
+      if (lp && lp.sections.join(',') === 'RUNGS,INVENTORY,ROUND TRIPS,FILLS,ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
+        && lp.events.length === 0 && lp.notes === 0) {
+        ok(T('pr5-page'), 'its sections are RUNGS, INVENTORY, ROUND TRIPS, FILLS and ORDERS: no STATUS tiles, guard lines, inventory note or EVENTS');
+      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${JSON.stringify(lp?.tiles)}, guards ${JSON.stringify(lp?.guards)}, events ${lp?.events.length}, notes ${lp?.notes}`);
       const RUNGS_USDC = ['bid 0.1 % | £0.7569 | 132.12 USDC · £100 | new | 17 Sep 23:31', 'bid 0.2 % | £0.7561 | 132.26 USDC · £100 | new | 17 Sep 23:31',
         'bid 0.3 % | £0.7553 | 132.40 USDC · £100 | new | 17 Sep 23:31', 'ask 0.1 % | £0.7585 | 131.84 USDC · £100 | new | 17 Sep 23:31',
         'ask 0.2 % | exit £0.7576 | 132.00 USDC · £100 | new | 17 Sep 21:01', 'ask 0.3 % | £0.7600 | 131.58 USDC · £100 | new | 17 Sep 23:31'];
@@ -3165,15 +3166,16 @@ async function run() {
       } else fail(T('pr5-page'), `round trips ${JSON.stringify(lp?.trips)}, sum ${tripsSum}`);
       const fill0 = '17 Sep 23:00 | USDT/GBP | bid 0.1 % | buy · entry | £0.7565 | 132.00 USDT | $0', fill1 = '17 Sep 21:00 | USDT/GBP | bid 0.3 % | sell · stop | £0.7550 | 132.00 USDT | $0.1184';
       const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy · entry | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
-      const order124 = "17 Sep 23:31 | USDT/GBP | ask 0.3 % | sell · entry | £0.7596 | 131.65 USDT | cancelled | guard: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001";
-      const order106 = '16 Sep 21:01 | USDT/GBP | bid 0.3 % | sell · exit | £0.7562 | 132.00 USDT | cancelled | the 24-hour stop';
-      if (lp && lp.fills.length === 8 && lp.fills[0] === fill0 && lp.fills[1] === fill1 && lp.orders.length === 24 && lp.orders[0] === order124 && lp.orders.includes(order114) && lp.orders.includes(order106)
-        && lp.events.join(' / ') === "17 Sep 23:50 | guard | USDT/GBP | no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001 / 16 Sep 10:00 | skip | USDC/GBP ask 0.1 % | no USDC to sell: the account holds none beyond what its own longs will sell / 16 Sep 10:00 | skip | USDT/GBP ask 0.1 % | no USDT to sell: the account holds none beyond what its own longs will sell"
+      const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell · entry | £0.7600 | 131.58 USDC | new';
+      // The fixture's 24 newest orders less its 6 cancelled ones (Davies, 2026-10-01: a cancelled order is not shown): 18,
+      // the newest the 0.3 % USDC ask, and the one refusal with its reason on a line under it.
+      if (lp && lp.fills.length === 8 && lp.fills[0] === fill0 && lp.fills[1] === fill1 && lp.orders.length === 18 && lp.orders[0] === order119 && lp.orders.includes(order114)
+        && !lp.orders.some((r) => / \| cancelled( \||$)/.test(r))
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lp.foot) && lp.overflow <= 1
-        // Seven reasons and three events' words, each a line of its own inside the screen; on a desk no table runs past its box.
-        && lp.subs === 10 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
-        ok(T('pr5-page'), `FILLS (8), ORDERS (24, each refusal and cancel with its reason on a line under it: the venue refused a post-only bid, the guard withdrew five, the 24-hour stop cancelled an exit) and EVENTS (the guard, two skips), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
-      } else fail(T('pr5-page'), `fills ${JSON.stringify(lp?.fills.slice(0, 2))} (${lp?.fills.length}), orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)} 106 ${lp?.orders.includes(order106)}, events ${JSON.stringify(lp?.events)}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
+        // The refusal's reason, a line of its own inside the screen; on a desk no table runs past its box.
+        && lp.subs === 1 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
+        ok(T('pr5-page'), `FILLS (8) and ORDERS (18, no cancelled order; the venue's refusal of a post-only bid with its reason on a line under it), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
+      } else fail(T('pr5-page'), `fills ${JSON.stringify(lp?.fills.slice(0, 2))} (${lp?.fills.length}), orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)}, cancelled shown ${lp?.orders.filter((r) => / \| cancelled( \||$)/.test(r)).length}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-quotes-live-detail').count() === 0 && await page.locator('.ag-strategies-live .ag-row').count() === 1) ok(T('pr5-page'), 'closing it returns to LIVE');
@@ -3214,12 +3216,12 @@ async function run() {
       const digits = (/** @type {string} */ t) => /\d/.test(t);
       const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
       const hiddenOk = !!hp && /^FUNDED \[£•,•••\]=\$•,••• \| DEPLOYED=\$•••\.••\(16\.66%\)/.test(hp.scoreboard) && !/\$\d/.test(hp.scoreboard) && !/£\d/.test(hp.scoreboard)
-        && hp.tiles[2] === 'LOSS STOP | not tripped | today +£•.•• · stop at -£••' && hp.tiles[1] === 'POSTS TODAY | 18 of 900 | stops only at 950'
+        && hp.scoreboard.includes('TODAY [(loss stop -£••)]') && hp.tiles.length === 0 && hp.events.length === 0
         && !cellsAt(hp.cards.flatMap((c) => c.rungs.slice(0, 1)), [1, 2]).some(digits) && !hp.balances.filter((_, i) => i % 2).some(digits)
         && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt(hp.fills, [4, 5, 6]).some(digits) && !cellsAt(hp.orders, [4, 5]).some(digits)
-        && !cellsAt(hp.conversions, [2, 3, 4, 5]).some(digits) && !digits(hp.events[0].split(' | ')[3]);
-      if (hiddenOk) ok(T('pr5-page'), `hide-values masks the live page's money, prices, sizes and the guard's figures, and keeps its counts and times (${hp?.tiles[2]})`);
-      else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", tiles ${JSON.stringify(hp?.tiles)}, rung ${JSON.stringify(hp?.cards?.[0]?.rungs?.[0])}, balances ${JSON.stringify(hp?.balances)}, trip ${JSON.stringify(hp?.trips?.[0])}, event ${JSON.stringify(hp?.events?.[0])}`);
+        && !cellsAt(hp.conversions, [2, 3, 4, 5]).some(digits);
+      if (hiddenOk) ok(T('pr5-page'), "hide-values masks the live page's money, prices and sizes, the loss stop in its scoreboard included, and keeps its counts and times");
+      else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", tiles ${hp?.tiles.length}, events ${hp?.events.length}, rung ${JSON.stringify(hp?.cards?.[0]?.rungs?.[0])}, balances ${JSON.stringify(hp?.balances)}, trip ${JSON.stringify(hp?.trips?.[0])}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(200);
       await page.keyboard.press('Escape');

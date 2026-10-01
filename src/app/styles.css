@@ -2290,14 +2290,14 @@ body {
 .ag-rw-run { height: 3px; margin-bottom: 10px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-run > span, .ag-rw-meter > span { display: block; height: 100%; border-radius: 2px; background: #7d8bff; }
 .ag-rw-bar.is-warm-up .ag-rw-run { display: none; }
-.ag-rw-tiles, .ag-ql-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ag-rw-tile, .ag-ql-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
+.ag-rw-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ag-rw-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
 .ag-rw-tile-total { border-left: 3px solid rgba(125,139,255,0.75); }
-.ag-rw-tile-k, .ag-ql-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
-.ag-rw-tile-v, .ag-ql-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-rw-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
+.ag-rw-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ag-rw-of { font-size: 11px; font-weight: 400; }
 .ag-rw-tile-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
-.ag-rw-tile-note, .ag-ql-tile-note { font-size: 10.5px; line-height: 1.35; }
+.ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
 .ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
@@ -2305,8 +2305,8 @@ body {
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
 @media (max-width: 760px) {
-  .ag-rw-tiles, .ag-ql-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .ag-rw-tile-v, .ag-ql-tile-v { font-size: 15px; }
+  .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ag-rw-tile-v { font-size: 15px; }
 }
 
 /* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──
@@ -2374,15 +2374,11 @@ body {
 /* The live quotes' own page (Davies, 2026-10-01): the paper page's cards and ladders and RW's tiles, under classes of its
    own that share their rules above. A tile or a book's guard that needs a look is amber, the stale dot's colour; a held
    rung's line sits under its row, and so does an order's reason or an event's words, read from the left. */
-.ag-ql-tile.is-warn { border-left: 3px solid #d9a441; }
 /* One book a card, the full width: a rung's order has five columns, which two cards side by side could only wrap. */
 .ag-ql-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .ag-ql-ladder th, .ag-ql-ladder td { white-space: nowrap; }
 .ag-ql-ladder th:nth-child(n+2), .ag-ql-ladder td:nth-child(n+2) { padding-left: 14px; }
-.ag-ql-guards { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; line-height: 1.4; }
-.ag-ql-guard.is-warn .ag-ql-guard-text { color: #d9a441; }
 .ag-ql-ladder tr.ag-ql-held-row td { border-top: none; padding: 0 0 5px; font-size: 11px; color: var(--chalk-dim); white-space: normal; text-align: left; }
-.ag-ql-note { margin-top: 6px; font-size: 10.5px; line-height: 1.4; }
 .ag-ql-balances { margin-bottom: 10px; }
 .ag-quotes-live-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }

@@ -6,7 +6,7 @@ import {
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
-  fmtFeeUsd4, fmtGbp, quotesLiveInventory, quotesLiveRungCards, quotesLiveStatus, quotesPageFor } from './agents.js';
+  fmtFeeUsd4, fmtGbp, quotesLiveInventory, quotesLiveRungCards, quotesPageFor } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
@@ -1395,28 +1395,6 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
   it("writes pounds where they read better, and fees unsigned to four places", () => {
     expect([fmtGbp(1200), fmtGbp(-12), fmtGbp(0.227106, true), fmtGbp(600.696306), fmtGbp(0)]).toEqual(['£1,200', '-£12', '+£0.23', '£600.70', '£0']);
     expect([fmtFeeUsd4(0.11839608), fmtFeeUsd4(0), fmtFeeUsd4(null)]).toEqual(['$0.1184', '$0', '—']);
-  });
-  it('says where it stands: armed since when, its POSTs against the governor, its loss stop, its last turn, each book\'s guards', () => {
-    const s = quotesLiveStatus(q);
-    expect([s.armed.value, s.armed.note, s.armed.warn]).toEqual(['16 Sep 10:00', 'entries go live', false]);
-    expect([s.posts.value, s.posts.note, s.posts.warn]).toEqual(['18 of 900', 'stops only at 950', false]);
-    expect([s.loss.value, s.loss.note, s.loss.warn]).toEqual(['not tripped', 'today +£0.23 · stop at -£12', false]);
-    expect([s.turn.value, s.turn.note, s.turn.warn]).toEqual(['17 Sep 23:59', 'running', false]);
-    expect(s.guards).toEqual([
-      { book: 'USDC-GBP', label: 'USDC/GBP', ok: true, text: 'no guard: entries may go' },
-      { book: 'USDT-GBP', label: 'USDT/GBP', ok: false, text: "no new entries: de-peg: the USD book's last hourly close 1.0062 is 61 bps from its 24-hour median 1.0001" },
-    ]);
-    // Under the mask: its money and the guards' figures, never its counts or its times.
-    const hidden = quotesLiveStatus(q, mask);
-    expect([hidden.loss.note, hidden.posts.value, hidden.turn.value]).toEqual(['today +£•.•• · stop at -£••', '18 of 900', '17 Sep 23:59']);
-    expect(hidden.guards[1].text).toBe("no new entries: de-peg: the USD book's last hourly close •.•••• is •• bps from its ••-hour median •.••••");
-    // The other states, each in its own words and amber.
-    const off = quotesLiveStatus({ ...q, armed: false, entryBook: null, why: 'live_confirmed_at is null: no entries; exits and the 24-hour stops stay armed' });
-    expect([off.armed.value, off.armed.note, off.armed.warn]).toEqual(['not armed', 'not armed: no new entries; its exits still run', true]);
-    expect(quotesLiveStatus({ ...q, entryBook: null, why: 'agent_risk.global_pause: every open order is cancelled, exits included, and nothing is placed' }).armed.note).toBe('global pause: nothing is placed');
-    const busy = quotesLiveStatus({ ...q, postsToday: { live: 912 }, detail: { ...q.detail, status: { ...q.detail.status, governor: { ...q.detail.status.governor, level: 'no-entries' } } } });
-    expect([busy.posts.value, busy.posts.note, busy.posts.warn]).toEqual(['912 of 900', 'entries withdrawn · stops only at 950', true]);
-    expect([quotesLiveStatus({ ...q, lossStopped: true }).loss.value, quotesLiveStatus({ ...q, running: false, lagMinutes: 5 }).turn.note]).toEqual(['tripped', 'no turn for 5 min']);
   });
   it('lists each book\'s six rungs with the live order on each, and what a rung holds under it', () => {
     const cards = quotesLiveRungCards(q);

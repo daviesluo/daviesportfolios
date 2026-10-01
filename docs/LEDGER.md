@@ -181,9 +181,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `pending` past 2 minutes; the state row is under 3 minutes old. Kill switch: `update
      public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (cancels entries; exits and stops stay
      armed); `global_pause` cancels everything.
-   - **Its page (2026-10-01, Davies: "改成它单独的"):** LIVE's "Stablecoin quotes" opens a page of its own — status, the
-     scoreboard (the LIVE row's own figures), the twelve rungs, inventory and conversions, round trips, fills, the newest
-     50 orders with their reasons, events (`quotesLiveDetail`, `quotes.live.detail`); TESTING's row opens the paper page.
+   - **Its page (2026-10-01, Davies: "改成它单独的"):** LIVE's "Stablecoin quotes" opens a page of its own — the
+     scoreboard (the LIVE row's own figures), the twelve rungs, inventory and conversions, round trips, fills, and the
+     newest orders bar the cancelled ones, a refusal with its reason (`quotesLiveDetail`, `quotes.live.detail`); TESTING's
+     row opens the paper page. Its STATUS tiles, the inventory's note and EVENTS were taken off on his word (18:10 UTC);
+     the payload still carries `status` and `events` for a query.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
@@ -532,6 +534,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 18:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5's live page trimmed on Davies' word, and Polymarket's key confirmed loaded.** Davies, having looked at the page: "这些部分全删了" (STATUS: ARMED, POSTS TODAY, LOSS STOP, LAST TURN, the two books' guard lines), the inventory's note "删了", "ORDERS里canceled的全删了不用显示", "EVENTS表也删了，但其中skip是啥意思？是有问题需要修复吗？". Done in the page only (`agents.jsx`; `quotesLiveStatus` and its test and CSS removed as dead): RUNGS, INVENTORY, ROUND TRIPS, FILLS and ORDERS remain, ORDERS leaves out every cancelled order (a re-price cancels one every few minutes), the warning line under the scoreboard stays for a late or failed turn; the sweep's checks now read those five sections, no tiles, guards, note or events, and 18 of the fixture's 24 orders (its 6 cancelled left out) with the one refusal's reason; under hide-values the check reads the loss stop masked in the scoreboard (`-£••`), where it read the LOSS STOP tile. The skips: every live event is one of six from the first live turn (16:30 UTC, keyed to the paper decision's minute, 16:27) — the six asks skipped because the account held no USDC or USDT before the conversions at 16:31–16:32; none since. Nothing to fix. Polymarket: `pm_live_state` at 18:11 UTC reads `keyed` true and no `signerProblem`, mode dry-run because the row's `dry_run` is on, pUSD 0.036673: the path is ready but for his funding and his go.
 
 ### [2026-10-01 18:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

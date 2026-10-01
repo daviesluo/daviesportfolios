@@ -1274,45 +1274,6 @@ export const fmtFeeUsd4 = (n) => {
 };
 
 /**
- * The live page's STATUS (Davies, 2026-10-01): four tiles from the executor's own last turn — since when it is armed and
- * where its entries go, its POSTs today against the governor's tiers, its loss stop, its last turn — and each book's
- * guards. Money and the guards' figures go through `m`, the page's mask.
- * @param {any} q  the dashboard's `quotes.live`
- * @param {(s: string) => string} [m]
- */
-export function quotesLiveStatus(q, m = (s) => s) {
-  const s = q?.detail?.status ?? null;
-  const why = String(q?.why ?? '');
-  const entries = q?.entryBook === 'live' ? 'entries go live'
-    : q?.entryBook === 'dry_run' ? 'back in dry run: entries are recorded, not sent'
-      : !q?.armed ? 'not armed: no new entries; its exits still run'
-        : /^agent_risk\.global_pause/.test(why) ? 'global pause: nothing is placed'
-          : `no new entries: ${why || 'its last turn did not say why'}`;
-  const posts = Number(q?.postsToday?.live) || 0;
-  const gov = s?.governor ?? null;
-  const level = gov?.level ?? 'all';
-  const loss = s?.lossStop ?? null;
-  return {
-    armed: { value: q?.armed && q?.armedAt ? fmtChartStamp(q.armedAt) : 'not armed', note: entries, warn: q?.entryBook !== 'live' },
-    posts: {
-      value: gov ? `${posts} of ${gov.entryAt}` : String(posts),
-      note: !gov ? '' : level === 'stops-only' ? 'stops only' : level === 'no-entries' ? `entries withdrawn · stops only at ${gov.stopsOnlyAt}` : `stops only at ${gov.stopsOnlyAt}`,
-      warn: level !== 'all',
-    },
-    loss: {
-      value: q?.lossStopped ? 'tripped' : 'not tripped',
-      note: loss ? `today ${m(fmtGbp(loss.todayGbp, true))} · stop at ${m(fmtGbp(loss.limitGbp))}` : '',
-      warn: !!q?.lossStopped,
-    },
-    turn: { value: s?.lastTurnAt ? fmtChartStamp(s.lastTurnAt) : '—', note: q?.running ? 'running' : `no turn for ${q?.lagMinutes ?? '?'} min`, warn: !q?.running },
-    guards: (s?.guards ?? []).map((/** @type {any} */ g) => ({
-      book: g.book, label: quoteBookLabel(g.book), ok: Array.isArray(g.reasons) && g.reasons.length === 0,
-      text: !Array.isArray(g.reasons) ? 'not read this turn' : g.reasons.length ? m(`no new entries: ${g.reasons.join('; ')}`) : 'no guard: entries may go',
-    })),
-  };
-}
-
-/**
  * The live page's RUNGS: a card per book, a row per rung in the ladder's order (the bids, then the asks, nearest fair
  * first). A rung shows its one live order — the entry it quotes, or the exit or stop of what it holds — with its size in
  * coins and pounds, its state and since when; a rung that holds coins also shows what it holds, from when, and what that
