@@ -274,7 +274,9 @@ by the coordinator for the DFC screens).
   and selling windows was 15.46 bp (t 3.82) in 1990–2015 and steady by decade; the one rule that can beat the index,
   out over the selling window and in otherwise, made +2.43 % a year net of 8 bps over 1990–2015 but −0.02 % in
   2010–2015, its t only 1.41. Pre-registered (`reviews/2026-10-01-dfc-prereg.md`), reviewed independently, frozen and
-  run once on CRSP's unseen 2016-01 → 2026-08; expect a fail.
+  run once on CRSP's unseen 2016-01 → 2026-08: **it failed** (`reviews/2026-10-01-dfc-study.md`). The spread was 4.87 bp
+  a day (t 0.77) on the settlement-adjusted windows and 7.97 (t 1.42) on the paper's, and the dodge rule lost 2.87 % and
+  1.21 % a year net of 8 bps. Month-end calendar rules are closed at this size.
 - **Second and third**: the Treasury auction cycle on IDTL (held-out power about 0.42) and industry seasonality (no
   named payer); drafted, not frozen.
 - **Guardrails for any live path** (EQ2 §4): both accounts hold Davies' own portfolio, which the app reads. A loop

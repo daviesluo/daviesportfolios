@@ -3126,6 +3126,12 @@ read inside each frozen test's no-peek list; it re-ran every quoted script and e
   own UK tape two slots double the bear year's drawdown, on Coinbase's three years they nearly double the return.
   Four slots ($150, after a clean week) need the account at $100.20 or more: it holds $99.34, and $112–$115 never
   refused an entry over the windows. Review §7.
+- **EQ2 and DFC (the same day; review §8, `reviews/2026-10-01-dfc-study.md`): US equities have nothing to run.** In the
+  USD Invest account no FX is paid, and the verdicts stand: power binds, not cost. The one test worth running, the
+  month-end dash for cash (Etula et al. 2020), was pre-registered, reviewed twice, frozen (`99123378`) and run once on
+  CRSP's unseen 2016-01 → 2026-08: the spread fell from 15.46 bp a day (t 3.82, 1990–2015) to 4.87 (t 0.77) on the
+  settlement-adjusted windows and 7.97 (t 1.42) on the paper's, and the dodge rule lost 2.87 % and 1.21 % a year net of
+  8 bps against a market that returned 13.54 % a year over cash. Month-end calendar rules are closed at this size.
 
 ## 4. Design consequences (decided by the evidence above)
 

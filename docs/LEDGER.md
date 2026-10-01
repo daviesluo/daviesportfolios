@@ -349,17 +349,14 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      retry deployed both should pass (≥ 90 % of the buckets owed); read `ops_errors` for kind `recorder.watch`, and if
      either is short, count the night's buckets as the 2026-09-30 history entry did before changing anything.
 
-8. **US equities at Trading 212 (EQ1, EQ2; reference §3.44).** Davies, 2026-10-01: the Invest account is USD (no FX on
-   US instruments) and the ISA GBP; research deeply, and a trading key follows only if something can go live. EQ2's
-   screens are in `docs/agents/backtests/equity2/`. Nothing earns a paper row on what is known; the one test worth running
-   is **DFC**, the month-end dash for cash (Etula et al. 2020), on CRSP's unseen 2016-01 → 2026-08. Its draft was revised
-   on an independent review (seven blocking findings, then two more in its second pass, all applied) and **frozen
-   2026-10-01 by the commit that adds `reviews/2026-10-01-dfc-prereg.md` with its two scripts**; next, step 1, step 2
-   twice (byte-identical), and the write-up `reviews/2026-10-01-dfc-study.md` (expect a fail: every condition holds
-   about 0.3–0.4 of the time at the screen's effect). PEAD, TOM as EQ1 defined it, reversal, overnight drift, low volatility,
-   index additions and pre-FOMC drift are closed; TAC (Treasury auctions) and IS49 (industry seasonality) are drafted and
-   not frozen (the drafts stay in the session's scratchpad). No trading key before a pass, a paper row and a demo-account
-   test (guardrails in EQ2 §4).
+8. **US equities at Trading 212: nothing to run** (EQ1, EQ2, DFC; reference §3.44). Davies, 2026-10-01: the Invest
+   account is USD (no FX on US instruments), the ISA GBP; research deeply, and a trading key follows only if something
+   can go live. Nothing can: without FX the verdicts stand, because power binds, not cost (research round §8), and the
+   one test worth running, DFC, the month-end dash for cash, **failed** on CRSP's unseen 2016-01 → 2026-08
+   (`reviews/2026-10-01-dfc-study.md`, frozen `99123378`: H1 p 0.219, H2 p 0.076; the dodge rule −2.87 % and −1.21 % a
+   year at 8 bps). Month-end calendar rules, PEAD, reversal, overnight drift, low volatility, index additions and
+   pre-FOMC drift are closed. TAC (Treasury auctions) and IS49 (industry seasonality) were drafted and not frozen; neither
+   is recommended on its power. No trading key is needed. Any future live path keeps EQ2's guardrails (research round §8).
 
 ## Machine and platform setup
 
@@ -471,6 +468,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 04:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**DFC failed, as frozen** (`reviews/2026-10-01-dfc-study.md`; `equity2/results/heldout_dfc.json`, two runs byte-identical at the freeze commit `99123378`): neither hypothesis clears its Holm step (H1 D 4.87 bp a day, t 0.77, p 0.219; H2 7.97, t 1.42, p 0.076, its second half negative), and the dodge rule lost 2.87 % and 1.21 % a year net of 8 bps against a market that returned 13.54 % a year over cash. By the pre-registration's §11, month-end calendar rules are closed at this size, and US equities have nothing to run (item 8). No deviation.
 
 ### [2026-10-01 03:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

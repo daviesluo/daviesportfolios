@@ -1126,6 +1126,10 @@
    "bytes": 150450,
    "sha256": "5a637d0960567150897688a10e139d13a084a77b28effa54d01a93ef90f2bfda"
   },
+  "results/heldout_dfc.json": {
+   "bytes": 4296,
+   "sha256": "37d085c11d618f43e025c8f44d7e6a80da68ad1279e8fe14a29021540f1e1e4c"
+  },
   "results/lse_lines_meta.json": {
    "bytes": 806,
    "sha256": "39c123042793bdf277de55a956faca94eef03174c8e335553fe6503209eb7349"
@@ -1253,6 +1257,7 @@
   "run": [
    "python3 docs/agents/backtests/equity2/scripts/heldout_dfc_pull.py  # step 1, dates only",
    "python3 docs/agents/backtests/equity2/scripts/heldout_dfc_score.py  # step 2, run twice, byte-identical, -> results/heldout_dfc.json"
-  ]
+  ],
+  "result": "results/heldout_dfc.json: neither hypothesis passes (H1 p 0.219, H2 p 0.076; the dodge rule -2.87 / -1.21 % a year at 8 bps); write-up reviews/2026-10-01-dfc-study.md"
  }
 }

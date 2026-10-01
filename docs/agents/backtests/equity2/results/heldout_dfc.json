@@ -1,0 +1,123 @@
+{
+ "H1": {
+  "conditions": {
+   "1_holm": false,
+   "2_each_half_D": true,
+   "3_dodge_total_and_halves_8bps": false,
+   "4_dodge_total_16bps": false,
+   "5_not_one_month_8bps": false,
+   "6_ann_at_least_1pct_8bps": false,
+   "pass": false
+  },
+  "descriptive": {
+   "bh_excess_ann_pct": 13.53841791044776,
+   "bh_vol_ann_pct": 18.363072607989412,
+   "dodge_16bps_ann_pct": -3.8305511811023623,
+   "dodge_3bps_ann_pct": -2.270551181102363,
+   "dodge_4bps_ann_pct": -2.390551181102362,
+   "dodge_8bps_ann_pct": -2.8705511811023623,
+   "dodge_8bps_cash_at_zero_ann_pct": -3.413858267716536,
+   "pb_only_16bps_minus_bh_ann_pct": -9.608654130920204,
+   "pb_only_3bps_minus_bh_ann_pct": -8.048654130920204,
+   "pb_only_4bps_minus_bh_ann_pct": -8.168654130920203,
+   "pb_only_8bps_minus_bh_ann_pct": -8.648654130920203,
+   "pb_only_vol_ann_pct": 8.179847441241172,
+   "tom_only_16bps_minus_bh_ann_pct": -12.267551768715478,
+   "tom_only_3bps_minus_bh_ann_pct": -10.70755176871548,
+   "tom_only_4bps_minus_bh_ann_pct": -10.827551768715479,
+   "tom_only_8bps_minus_bh_ann_pct": -11.307551768715477,
+   "tom_only_vol_ann_pct": 6.962906282007069
+  },
+  "numbers": {
+   "D_bps_day": 4.870941132358455,
+   "D_first_half": 5.789040060468635,
+   "D_second_half": 3.9671875000000014,
+   "dodge16_total_pct": -40.540000000000006,
+   "dodge8_ann_pct": -2.8705511811023623,
+   "dodge8_best_month": 202002,
+   "dodge8_best_share": null,
+   "dodge8_first_half_pct": -13.569999999999999,
+   "dodge8_second_half_pct": -16.810000000000006,
+   "dodge8_total_pct": -30.380000000000003,
+   "dodge8_without_best_pct": -37.65,
+   "n": 127,
+   "t": 0.765611879876914
+  },
+  "p_boot": 0.21897810218978103
+ },
+ "H2": {
+  "conditions": {
+   "1_holm": false,
+   "2_each_half_D": false,
+   "3_dodge_total_and_halves_8bps": false,
+   "4_dodge_total_16bps": false,
+   "5_not_one_month_8bps": false,
+   "6_ann_at_least_1pct_8bps": false,
+   "pass": false
+  },
+  "descriptive": {
+   "bh_excess_ann_pct": 13.53841791044776,
+   "bh_vol_ann_pct": 18.363072607989412,
+   "dodge_16bps_ann_pct": -2.174173228346457,
+   "dodge_3bps_ann_pct": -0.6141732283464567,
+   "dodge_4bps_ann_pct": -0.734173228346456,
+   "dodge_8bps_ann_pct": -1.2141732283464568,
+   "dodge_8bps_cash_at_zero_ann_pct": -1.75748031496063,
+   "pb_only_16bps_minus_bh_ann_pct": -8.407709249030434,
+   "pb_only_3bps_minus_bh_ann_pct": -6.847709249030435,
+   "pb_only_4bps_minus_bh_ann_pct": -6.967709249030435,
+   "pb_only_8bps_minus_bh_ann_pct": -7.447709249030435,
+   "pb_only_vol_ann_pct": 8.592085745487982,
+   "tom_only_16bps_minus_bh_ann_pct": -12.267551768715478,
+   "tom_only_3bps_minus_bh_ann_pct": -10.70755176871548,
+   "tom_only_4bps_minus_bh_ann_pct": -10.827551768715479,
+   "tom_only_8bps_minus_bh_ann_pct": -11.307551768715477,
+   "tom_only_vol_ann_pct": 6.962906282007069
+  },
+  "numbers": {
+   "D_bps_day": 7.970078740157484,
+   "D_first_half": 16.41859410430839,
+   "D_second_half": -0.3464285714285689,
+   "dodge16_total_pct": -23.010000000000005,
+   "dodge8_ann_pct": -1.2141732283464568,
+   "dodge8_best_month": 201812,
+   "dodge8_best_share": null,
+   "dodge8_first_half_pct": 6.150000000000003,
+   "dodge8_second_half_pct": -19.000000000000007,
+   "dodge8_total_pct": -12.85,
+   "dodge8_without_best_pct": -20.71,
+   "n": 127,
+   "t": 1.4211026224184287
+  },
+  "p_boot": 0.07639236076392361
+ },
+ "events": 127,
+ "first_T": 20160129,
+ "halves": {
+  "first": [
+   20160129,
+   20210331
+  ],
+  "second": [
+   20210430,
+   20260731
+  ]
+ },
+ "last_T": 20260731,
+ "provenance": {
+  "freeze_commit": "99123378d1d15f326020b64275dacd0a659ad9a6",
+  "head": "99123378d1d15f326020b64275dacd0a659ad9a6",
+  "numpy": "2.4.6",
+  "python": "3.11.15",
+  "sha256": {
+   "docs/agents/backtests/equity/inputs/F-F_Research_Data_Factors_daily.csv.gz": "ac244ddd12706212aaf6a0d6c958df9972addbb9c390ad149b8456160ae9288c",
+   "docs/agents/backtests/equity2/scripts/heldout_dfc_pull.py": "4926a5e6546639d508518c4a27fe33977008e22bf35fea3749d530cc826995ed",
+   "docs/agents/backtests/equity2/scripts/heldout_dfc_score.py": "8a1a0984f2afc6bdf27581ffa80ff2b672f546d83aa7fda0bcb4b338623fc60a",
+   "docs/agents/reviews/2026-10-01-dfc-prereg.md": "65c675aa89832507807176e2dc7da264fe41f337b11feba731cbb8024571fad8"
+  }
+ },
+ "verdict": {
+  "passing": [],
+  "rule_that_runs": null
+ }
+}
