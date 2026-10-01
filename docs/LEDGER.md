@@ -118,7 +118,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      calibration of R, RW's quoting as RW-E applies it, only on rewarded markets under $10 a day (outside RW's and
      RW-C's universe, so neither frozen test is touched and no post-09-28 RW figure is read); built in DRY-RUN with
      sends ready in code, going live one statement on his word after his funding. Being built (2026-10-01); he says the
-     key was not leaked. **He agreed (~15:25 UTC): "同意你polymarket的方案".**
+     key was not leaked. **He agreed (~15:25 UTC): "同意你polymarket的方案".** Funding: about $300, not ~$400 ("没有400刀那么多闲钱，
+     我觉得既然300刀上限的话我转300就可以了吧？"), USDC on Polygon from Kraken to his polymarket.com Deposit address, $5 first and
+     checked by the probe; so `cap_total_usd` ≈ the deposit less the −$75 stop and a margin (≈ $220, 4–5 markets),
+     set from the balance the probe reads, so no order is ever refused for lack of collateral.
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
