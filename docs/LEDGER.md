@@ -104,7 +104,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `select day, kind, cond, reward_rate, rank, detail->'note' from public.pm_live_markets order by day desc;` — two
      markets, the selection's `ms` under 40 s; `select ts, mode, side, price, size, state, gate from public.pm_live_orders
      order by id desc limit 20;` — dry-run rows only. A selection that never completes inside 40 s leaves the dry-run
-     idle: then read the listing faster or less of it.
+     idle: then read the listing faster or less of it. **First minutes verified** (05:31–05:32 UTC): `sbRegion`
+     eu-west-1 (so `forceFunctionRegion` works through pg_net), every gate true, the geoblock `blocked: true`, IE;
+     the selection took 30.6 s (39 reward pages, 18,780 rewarded rows) and picked two unrewarded markets; four dry-run
+     rows, none since (nothing changed); no `last_error`, no `ops_errors`; the job's other calls all 200 (05:30's one
+     404 was this call reaching the function before its deploy finished at 05:30:41).
 
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
