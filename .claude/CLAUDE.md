@@ -505,7 +505,9 @@ that follow from that evidence, in short:
   `filled_quantity` is gross (D4). A live buy books only what the account
   can sell: whole base steps (D11), and, when the venue did not report the
   fee, its balance of the coin (D12). A cancel whose
-  read-back fails leaves the row open. The fills query is paged. The
+  read-back fails leaves the row open, and so does one the venue still
+  shows resting after two re-reads: Revolut X carries a cancel out a
+  moment after its 204 (PR5's first live hour, 2026-10-01). The fills query is paged. The
   daily loss limit blocks new risk only, never an exit; a resting exit
   order never outranks a stop (it is cancelled first); a re-quote passes
   the same gate as any order. Paper rows have their own exposure cap

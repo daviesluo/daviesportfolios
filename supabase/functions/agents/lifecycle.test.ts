@@ -16,7 +16,7 @@ import { krakenVenue } from "../_shared/kraken.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import { FakeKraken, FakeRevx, jevFetch, memDb, type Row } from "./testing.ts";
 import { floorToStep } from "../_shared/agents_strategy.ts";
-import { MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
+import { CANCEL_REREAD_MS, MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
 
 const ONE_M = 60e3, FOUR_H = 4 * 3600e3;
 const BAR0 = Date.parse("2026-09-23T04:00:00Z");
@@ -46,6 +46,7 @@ async function world(start: number) {
   const { privateKey } = await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair;
   const venues = { revx: revxVenue({ apiKey: "k".repeat(64), privateKey }, rx.fetch, REVX_REGION, () => now), kraken: krakenVenue(null, kr.fetch) };
   const jevLog: string[] = [];
+  const pauses: number[] = [];
   const T = mem.tables;
   const orders = () => T.agent_orders;
   const decisions = () => T.agent_decisions;
@@ -54,8 +55,10 @@ async function world(start: number) {
     /** One cron minute at `t`. */
     at: (t: number): Promise<TickReport> => {
       now = t;
-      return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ log: jevLog }), uuid: () => crypto.randomUUID() });
+      return tick({ db: mem.db, venues, jev: { openrouterKey: "k" }, now, fetchImpl: jevFetch({ log: jevLog }), uuid: () => crypto.randomUUID(), pause: (ms) => { pauses.push(ms); return Promise.resolve(); } });
     },
+    /** Every wait the tick took inside a turn (a cancel's re-read). */
+    pauses,
     row: () => T.agent_strategies[0],
     risk: () => T.agent_risk[0],
     orders, decisions,
@@ -368,6 +371,67 @@ Deno.test("lifecycle: a venue that names a filled order's status in a word the c
   const stop = w.lastDecision();
   assertEquals([(stop.numbers as Row).kind, stop.final_action, stop.risk_allowed], ["protective", "exit", true]);
   assertEquals([w.live().at(-1)!.side, w.live().at(-1)!.base_size, w.venueBtc()], ["sell", bought, 0]);
+});
+
+/**
+ * A live buy RESTING on Revolut X since `placedAt`, as a post-only order would rest: the venue holds it, the record says so.
+ * The live row takes the touch, so nothing of the loop rests in production today; this is the shape a too-old cancel meets.
+ */
+function seedResting(w: Awaited<ReturnType<typeof world>>, placedAt: number) {
+  const venueId = "resting-1", base = "0.0001";
+  const price = (Math.floor(w.rx.quote("BTC/USD").bid * 0.98 * 100) / 100).toFixed(2);
+  w.rx.orders.set(venueId, { id: venueId, client_order_id: crypto.randomUUID(), symbol: "BTC/USD", side: "buy", status: "new", price, quantity: base, filled: 0, avg: null, fee: 0, tif: "gtc", postOnly: true, created: placedAt });
+  w.T.agent_orders.push({
+    id: 9001, ts: new Date(placedAt).toISOString(), strategy_id: "trend-4h-live", decision_id: null, venue: "revx", symbol: "BTC/USD", mode: "live", side: "buy",
+    order_type: "limit", price: Number(price), base_size: Number(base), client_order_id: w.rx.orders.get(venueId)!.client_order_id, venue_order_id: venueId,
+    state: "new", request: { marketable: false, postOnly: true }, response: { placedState: "new" }, filled_base: 0, avg_fill_price: null, fee_usd: 0, requotes: 0,
+    filled_at: null, cancelled_at: null, updated_at: new Date(placedAt).toISOString(),
+  });
+  return venueId;
+}
+
+Deno.test("lifecycle: a live cancel the venue carries out a moment after its 204 is read again, and never settled while the order still rests", async () => {
+  // Revolut X answers a DELETE before it carries it out (PR5's first live hour, 2026-10-01). Until then the loop read the
+  // order once and settled it `cancelled` whatever the venue said, so an order still resting could fill into no book.
+  const t = B(0) + 5 * ONE_M;
+  const w = await world(t);
+  const id = seedResting(w, t - MAX_ORDER_AGE_MS - 10 * ONE_M);
+  assertEquals(w.rx.cancelLagReads, 1);                                          // the venue as measured
+  const r = await w.at(t);
+  assert(w.rx.calls.includes(`DELETE /api/1.0/orders/${id}`), w.rx.calls.join(","));
+  assertEquals(r.errors, [], why(r));
+  assertEquals(w.order(9001).state, "cancelled", why(r));
+  assertEquals(w.rx.orders.get(id)!.status, "cancelled");                         // settled only once the venue says it is gone
+  assertEquals(w.pauses, [CANCEL_REREAD_MS[0]]);                                 // one re-read was enough
+});
+
+Deno.test("lifecycle: a live cancel slower than the re-reads leaves the order open for a turn, without an error; the next turn settles it from the venue", async () => {
+  const t = B(0) + 5 * ONE_M;
+  const w = await world(t);
+  const id = seedResting(w, t - MAX_ORDER_AGE_MS - 10 * ONE_M);
+  w.rx.cancelLagReads = 5;                                                       // still resting on the read-back and both re-reads
+  const r1 = await w.at(t);
+  assertEquals(r1.errors, [], why(r1));
+  assert(r1.skipped.some((x) => x.includes("still shows it new")), why(r1));
+  assertEquals([w.order(9001).state, w.rx.resting().length], ["new", 1]);       // never settled while the venue holds it
+  assertEquals(typeof (w.order(9001).response as Row).cancelAskedAt, "string");
+  assertEquals((w.order(9001).response as Row).placedState, "new");               // the placement reply is kept
+  assertEquals(w.pauses, [...CANCEL_REREAD_MS]);
+  const r2 = await w.at(t + ONE_M);                                               // a second on, the venue has carried it out
+  assertEquals(r2.errors, [], why(r2));
+  assertEquals([w.order(9001).state, w.rx.orders.get(id)!.status], ["cancelled", "cancelled"]);
+});
+
+Deno.test("lifecycle: a live cancel the venue never carries out is an error from the turn after it was first asked, and the order is never settled", async () => {
+  const t = B(0) + 5 * ONE_M;
+  const w = await world(t);
+  seedResting(w, t - MAX_ORDER_AGE_MS - 10 * ONE_M);
+  w.rx.cancelMode = "lost";                                                      // 204, and the order stays on the book
+  const r1 = await w.at(t);
+  assertEquals(r1.errors.filter((e) => e.includes("first asked at")), [], why(r1));
+  const r2 = await w.at(t + ONE_M);
+  assert(r2.errors.some((e) => e.includes("first asked at") && e.includes("still shows it new")), why(r2));
+  assertEquals([w.order(9001).state, w.rx.resting().length], ["new", 1]);
 });
 
 Deno.test("lifecycle: a buy whose reply never arrived is found in the venue's order history and settled from the order itself", async () => {

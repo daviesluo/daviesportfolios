@@ -93,6 +93,13 @@ export const REQUOTE_AFTER_MS = 3 * 60e3;         // an unfilled resting order o
 export const REQUOTE_MOVE_BPS = 5;                // … when the touch has moved this far from it
 export const MAX_REQUOTES = 5;                    // then the decision lapses until the next bar
 export const MAX_ORDER_AGE_MS = 60 * 60e3;        // nothing rests longer than an hour
+/**
+ * Revolut X carries a cancel out a moment AFTER its 204: on PR5's first live hour (2026-10-01) the read-back straight
+ * after a DELETE still showed 3 of 11, then 7 of 11 orders `new` (reference §4 item 35). So a live cancel still open on
+ * its read-back is read again after these pauses, and one still open after them is left open for the next turn to
+ * settle from the venue's own view — never settled as cancelled while the venue may still fill it.
+ */
+export const CANCEL_REREAD_MS = [300, 700] as const;
 export const LEASE_MS = 55e3;                     // one turn holds the tick lease this long at most (under the cron minute)
 export const REENTRY_BARS = 2;                    // after ANY exit, no entry for this many of the rule's own bars
 // An entry is one slot of its row, capital ÷ the positions it can hold (`slotUsdOf`). Until 2026-09-23 it was also capped
@@ -161,6 +168,8 @@ export type TickDeps = {
   uuid: () => string;
   /** Wall clock for the turn budget and the lease renewal; injectable so a test can make a turn run long. */
   clock?: () => number;
+  /** A wait inside the turn (a cancel's re-read, `CANCEL_REREAD_MS`); injectable so a test need not sleep. */
+  pause?: (ms: number) => Promise<void>;
 };
 
 export type TickReport = {
@@ -604,6 +613,7 @@ function trailed(pos: Position, bars: Candle[], lastClosedIdx: number): Position
 }
 
 async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: string): Promise<void> {
+  const pause = d.pause ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const clock = d.clock ?? (() => Date.now());
   const started = clock();
   const elapsed = () => clock() - started;
@@ -844,17 +854,40 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
    * cancel, the row stays OPEN: the cancel is done and cannot be undone, so
    * settling the row blind would write "nothing filled" over a fill the
    * venue may have made; the next turn reads the order and settles it from
-   * the venue's own view. Paper: the row is closed.
+   * the venue's own view. The same holds while the venue still shows the
+   * order resting: it carries a cancel out a moment after its 204, so the
+   * order is read again (`CANCEL_REREAD_MS`), and one still resting stays
+   * open — until 2026-10-01 it was settled `cancelled` here, and an order
+   * that went on resting could have filled into no book. The first ask is
+   * kept on the row (`response.cancelAskedAt`): a cancel still not carried
+   * out on a later turn is an error. Paper: the row is closed.
    */
   const cancelOrder = async (o: OrderRow, why: string): Promise<"cancelled" | "filled" | "failed"> => {
     const key = `${o.strategy_id}|${o.symbol}`;
     const venue = d.venues[o.venue];
     if (o.mode === "live") {
       if (!venue?.canTrade || !o.venue_order_id) { report.errors.push(`${key}: ${why}, but no ${o.venue} credentials to cancel ${o.client_order_id}`); return "failed"; }
+      const asked = (o.response as { cancelAskedAt?: unknown } | null)?.cancelAskedAt;
+      const firstAsk = typeof asked === "string" ? asked : null;
+      if (!firstAsk) await d.db.update("agent_orders", `id=eq.${o.id}`, { response: { ...((o.response as Record<string, unknown> | null) ?? {}), cancelAskedAt: nowIso }, updated_at: nowIso });
       const c = await venue.cancel(o.venue_order_id);
       if (!c.ok) { report.errors.push(`${key}: cancel ${o.venue_order_id} → ${c.error}`); return "failed"; }
-      const after = await venue.order(o.venue_order_id);
+      const venueOrderId = o.venue_order_id;
+      let after = await venue.order(venueOrderId);
+      for (const ms of CANCEL_REREAD_MS) {
+        if (!after.ok || (after.view.state !== "new" && after.view.state !== "partially_filled")) break;
+        await pause(ms);
+        after = await venue.order(venueOrderId);
+      }
       if (!after.ok) { report.errors.push(`${key}: cancelled ${o.venue_order_id} but could not read it back (${after.error}); left open for the next turn to settle from the venue`); return "failed"; }
+      // Still resting, in whole or in part: what is left can still fill, so nothing here is settled. The next turn reads the
+      // order and books what the venue says filled, as it books any open order.
+      if (after.view.state === "new" || after.view.state === "partially_filled") {
+        if (after.view.filledBase > 0) unreadable.add(o.id);     // the part that filled is held: the floor counts it by the balance
+        if (firstAsk) report.errors.push(`${key}: cancel of ${o.venue_order_id} first asked at ${firstAsk} and asked again; ${o.venue} still shows it ${after.view.state} — left open, settled from the venue's own view`);
+        else report.skipped.push(`${key}: cancel of ${o.venue_order_id} taken; ${o.venue} still shows it ${after.view.state} — settled next turn from its own view`);
+        return "failed";
+      }
       if (after.view.filledBase > 0) {
         // Cancelled, and filled before the cancel landed; if the fill cannot be booked this turn the row stays open.
         const booked = await settledBase(o, after.view, after.view.filledBase);
