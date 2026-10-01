@@ -114,6 +114,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      and a 404 book drops a selected market for the day (recorded once, its kind chosen again without it); verified
      09:35–09:38. The second selection took 36.6 s of its 40: if one runs out, read the listing faster or less of it.
 
+   - **Davies, 2026-10-01 afternoon: prepare a live test now** ("确保Polymarket可以上线测试（我准备把kraken的钱转到polymarket里去，密钥没有泄露，这些钱对我来说没多少，可以用来测试真实reward情况）…准备上线"). The session's choice: a
+     calibration of R, RW's quoting as RW-E applies it, only on rewarded markets under $10 a day (outside RW's and
+     RW-C's universe, so neither frozen test is touched and no post-09-28 RW figure is read); built in DRY-RUN with
+     sends ready in code, going live one statement on his word after his funding. Being built (2026-10-01); he says the
+     key was not leaked.
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -138,8 +143,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    since 2026-10-01 02:24:51 UTC** on Davies' word ("按照你的建议验证后确定好了就去做"), after an audit found no defect
    (`reviews/2026-10-01-research-round.md` §7, reference §3.44; pins in `agents/tick.test.ts`). **$150 (four) on 2026-10-08**
    (wake `trig_01THvHcphx5gngXugfwwy788`, 06:20 UTC): only if `scripts/cap/clean_week.sql` CW-1–CW-9 are clean, AVAX's
-   book (`scripts/cap/book_30d.py`, baseline $31,007) is no worse, and the probe reads USD ≥ $100.20: the account holds
-   $99.34 and Davies was asked to top it up to about $115 (the tick does not check USD before a buy; a refused buy is
+   book (`scripts/cap/book_30d.py`, baseline $31,007) is no worse, and the probe reads USD ≥ $100.20: **Davies topped
+   it up — the probe read USD 120.00 total and available, nothing reserved, no coin (request 117164, 2026-10-01
+   15:04:56 UTC)**, so the money condition is met (the tick does not check USD before a buy; a refused buy is
    recorded rejected and not re-sent). Otherwise keep $60 and tell him what is missing. AVAX stays (his word); re-read its
    book before any raise of the capital. **Never trade by hand in
    that account.** Rows, caps and the order path: `.claude/CLAUDE.md`'s Agents section, `docs/agents/go-live.md`,
@@ -157,6 +163,13 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      for the asks: `POST ?action=quotes-convert {"book":"USDT-GBP","gbp":12.5}` previews the conversion; `"send": true`
      sends it, only while live and armed.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
+   - **Davies, 2026-10-01: take it live now** ("Stablecoin quotes我打算用那个目前有59英镑的子账户也进行上线测试…如果需要的话我再加一些钱也可以比如100或120左右…准备上线"); the probe read GBP 59.33 and no coin (request 117164). The
+     session's choice for him: PR5 itself at £120, £10 a rung (the rule that passed unseen data, the only one with a live
+     path, dry-run since 09-24; the variants have none and read on 10-28). What he must decide first: the live orders
+     rest at the paper engine's prices, so a small taker they absorb would otherwise have printed through and filled a
+     paper order — going live before 10-21 / 10-28 affects PR5's verdict, the variants' readings and PR5-W. Preparing
+     it (settings at £120, inventory, the interaction's size) was **refused by this session's permission classifier**
+     (a sub-agent launch, ~15:10 UTC) and waits for his approval; nothing was changed.
 
    - A live test on that £50 as a measurement, never as a return (Davies' question, 2026-09-28; answered yes, with
      what it would show): deferred on his word, "£50 实盘之后再说".
@@ -306,6 +319,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
       at 16 pairs or after 2027-01-31 and then disables itself. **Count 2026-10-01 09:24 UTC: 2 pairs.**
 
 6. **Davies' to decide or to do; nothing waits on them:**
+   - **The errors box** (2026-10-01): 219 rows of one fault fixed at 09:35 fill its 24-hour summary until 09:35 UTC on
+     10-02. Deleting them (one migration, kind `agents.pm_live`, 05:50–09:35, naming the China Open market) was refused
+     by the session's permission classifier; his to approve, or click Acknowledge in the badge, or let them age out.
+   - **PR5 live now** (item 4): approve the preparation the classifier refused, and decide the paper-test interaction.
    - **Cloudflare Pages:** the watch paths (Include `dist/*`) and the Direct Upload Action (`pages-deploy.yml`, both
      secrets) are set (2026-09-27). Left, his click: turn off Pages' own Git build's automatic deployments (Settings →
      Build → Branch control), which grokbot is doing (2026-09-30); then check the next `dist/` push: its `pages-deploy`
@@ -503,6 +520,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Davies' afternoon round: the live account verified at $120; Polymarket's live calibration and a boot-error watchdog being built; PR5's live preparation and the errors box's cleanup refused by the permission classifier.** The read-only probe (request 117164, 15:04:56 UTC): the live row's account USD 120.00 total and available, no coin (item 3: the $150 step's money condition is met; the clean week still ends 10-08); PR5's sub-account GBP 59.33, no coin. The errors box (a 24-hour summary): 219 `agents.pm_live` rows of the one fault fixed at 09:35 (32 "book not two-sided" while the match played, 187 "404" after it closed) and one geoblock timeout at 10:20; a migration deleting the 219 was refused ("Cloud Storage Mass Delete"), so they leave the box by 09:35 UTC on 10-02, the badge's Acknowledge hides them on one device, and deleting them is his call. Boot errors: 19 in 24 h, all `agents`, each ~10.1–10.9 s after the request with no boot failure logged (Supabase's "boot_error" class; normal boots 18–82 ms): the platform failing to start a worker at the top of the minute, about 0.1 % of calls; one agent builds a watchdog that re-invokes a call that never started within its minute. A second builds Polymarket's calibration (item 2). The third, PR5's live preparation (item 4), was refused at launch.
 
 ### [2026-10-01 10:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
