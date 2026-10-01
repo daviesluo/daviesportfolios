@@ -1,5 +1,9 @@
 // Pins for Polymarket's order module (`_shared/polymarket_orders.ts`): the CLOB V2 order against Polymarket's own
-// clients, byte for byte, and the wire that sends nothing but a GET while `PM_ORDER_SENDS_ENABLED` is false.
+// clients, byte for byte; the signing key's loader, which keeps the key only when it is the stored signer's; and the
+// wire, whose code switch `PM_ORDER_SENDS_ENABLED` is true since 2026-10-01 (the live calibration), so what it pins is
+// the locks that remain in it: its routes, a POST only from eu-west-1, L2 headers to the CLOB only, and a caller's
+// `sendsEnabled: false`, which lowers the switch and can never raise it. The config's locks (`dry_run`,
+// `live_confirmed_at`) and every gate are pinned in pm_live.test.ts.
 //
 // The vectors are docs/agents/backtests/pmlive/vectors/vectors.json: eight orders the official TypeScript client
 // (@polymarket/clob-client-v2 1.2.0) built, hashed and signed offline with Hardhat's published test key #0 — BUY and
@@ -155,17 +159,35 @@ const PLANTED: Record<string, string> = {
   POLYMARKET_FUNDER_ADDRESS: "0x00000000000000000000000000000000000000f1", POLYMARKET_SIGNER_ADDRESS: TEST_ADDRESS.toLowerCase(), POLYMARKET_SIG_TYPE: "1",
 };
 
-Deno.test("loadPmLiveEnv never reads POLYMARKET_PRIVATE_KEY: no key is loaded in this phase; it reads the L2 credentials and addresses and leaks none", () => {
+Deno.test("loadPmLiveEnv loads the signing key into a holder that never prints, only when it is the stored signer's, and scrubs every spelling of it", () => {
   const asked: string[] = [];
   const env = loadPmLiveEnv((n) => { asked.push(n); return PLANTED[n]; });
-  assert(!asked.includes("POLYMARKET_PRIVATE_KEY"), asked.join());
-  assertEquals(env.check.read.includes("POLYMARKET_PRIVATE_KEY"), false);
-  assertEquals([env.signer, env.funder, env.sigType, env.check.problems], [TEST_ADDRESS, "0x00000000000000000000000000000000000000F1".replace("F1", "f1"), 1, []]);
+  assert(asked.includes("POLYMARKET_PRIVATE_KEY"), asked.join());
+  assertEquals([env.signer, env.funder, env.sigType, env.check.problems, env.keyProblem], [TEST_ADDRESS, "0x00000000000000000000000000000000000000F1".replace("F1", "f1"), 1, [], null]);
   assert(env.creds);
-  for (const text of [JSON.stringify(env), Deno.inspect(env, { depth: 10, showHidden: true })]) {
-    for (const s of [PLANTED.POLYMARKET_CLOB_API_KEY, PLANTED.POLYMARKET_API_SECRET, PLANTED.POLYMARKET_CLOB_PASSPHRASE]) assert(!text.includes(s), text.slice(0, 80));
+  assertEquals(env.key?.address(), TEST_ADDRESS);                                           // the key is the stored signer's
+  const hex = TEST_KEY.slice(2);
+  for (const text of [JSON.stringify(env), Deno.inspect(env, { depth: 10, showHidden: true }), JSON.stringify(env.check)]) {
+    for (const s of [PLANTED.POLYMARKET_CLOB_API_KEY, PLANTED.POLYMARKET_API_SECRET, PLANTED.POLYMARKET_CLOB_PASSPHRASE, hex.slice(0, 20), hex.slice(30, 50).toUpperCase()]) assert(!text.includes(s), text.slice(0, 80));
   }
   assertEquals(env.scrub({ e: `echo ${PLANTED.POLYMARKET_CLOB_PASSPHRASE} and ${PLANTED.POLYMARKET_API_SECRET.replace(/=+$/, "")}` }), { e: "echo [redacted] and [redacted]" });
+  // The key in every spelling an error could echo it in: 0x or not, either case, percent-encoded.
+  for (const k of [TEST_KEY, hex, hex.toUpperCase(), `0x${hex.toUpperCase()}`, encodeURIComponent(TEST_KEY)]) assertEquals(env.scrub({ e: `got ${k}` }), { e: "got [redacted]" }, k);
+  // A key that is not the signer's is not kept: it could sign nothing the venue takes, and the path stays a dry-run. It
+  // is scrubbed all the same, and no message quotes it.
+  const other = `0x${"11".repeat(32)}`;
+  const wrong = loadPmLiveEnv((n) => (n === "POLYMARKET_PRIVATE_KEY" ? other : PLANTED[n]));
+  assertEquals([wrong.key, wrong.keyProblem], [null, "the private key's address is not POLYMARKET_SIGNER_ADDRESS: no order can be signed"]);
+  assert(wrong.check.problems.includes(wrong.keyProblem!));
+  assertEquals(wrong.scrub({ e: other }), { e: "[redacted]" });
+  // Malformed, missing, or with no valid signer to check it against: no key, and the reason in fixed words.
+  const malformed = loadPmLiveEnv((n) => (n === "POLYMARKET_PRIVATE_KEY" ? "0xnot-a-key-at-all-but-long" : PLANTED[n]));
+  assertEquals([malformed.key, malformed.keyProblem], [null, "POLYMARKET_PRIVATE_KEY is not a valid 32-byte secp256k1 key: no order can be signed"]);
+  assertEquals(malformed.scrub({ e: "0xnot-a-key-at-all-but-long" }), { e: "[redacted]" });
+  const missing = loadPmLiveEnv((n) => (n === "POLYMARKET_PRIVATE_KEY" ? undefined : PLANTED[n]));
+  assertEquals([missing.key, missing.keyProblem], [null, "POLYMARKET_PRIVATE_KEY missing: no order can be signed"]);
+  const unsigned = loadPmLiveEnv((n) => (n === "POLYMARKET_SIGNER_ADDRESS" ? "nope" : PLANTED[n]));
+  assertEquals([unsigned.key, unsigned.keyProblem], [null, "no valid POLYMARKET_SIGNER_ADDRESS to check the key against: no order can be signed"]);
   const bad = loadPmLiveEnv((n) => ({ ...PLANTED, POLYMARKET_SIG_TYPE: "3", POLYMARKET_SIGNER_ADDRESS: "nope", POLYMARKET_CLOB_PASSPHRASE: "" } as Record<string, string>)[n]);
   assertEquals([bad.creds, bad.signer], [null, null]);
   for (const p of ["POLYMARKET_CLOB_PASSPHRASE / POLYMARKET_API_PASSPHRASE missing", "POLYMARKET_SIGNER_ADDRESS is not", "POLYMARKET_SIG_TYPE is 3"]) {
@@ -192,34 +214,50 @@ async function withRegion<T>(region: string | null, f: () => Promise<T>): Promis
   try { return await f(); } finally { if (prev === undefined) Deno.env.delete("SB_REGION"); else Deno.env.set("SB_REGION", prev); }
 }
 
-Deno.test("PM_ORDER_SENDS_ENABLED is false in this build. Flipping it is the reviewed commit that turns the order path on, and changes this pin", () => {
-  assertEquals(PM_ORDER_SENDS_ENABLED, false);
+Deno.test("PM_ORDER_SENDS_ENABLED is true since 2026-10-01 (the live calibration): the config row is the lock, and setting this false again is the code's own kill switch", () => {
+  assertEquals(PM_ORDER_SENDS_ENABLED, true);
 });
 
-Deno.test("pmOrderCall sends no POST and no DELETE while sends are off: a POST outside eu-west-1 is refused for its region first; a cancel from any region only for the switch; nothing reaches fetch", async () => {
+Deno.test("the wire's locks that remain: a POST leaves only from eu-west-1 (a cancel from anywhere); a caller's `sendsEnabled: false` keeps every write at home; with both open, the writes reach fetch", async () => {
   const { seen, fetchImpl } = recorder();
   const o = { fetchImpl, creds: CREDS(), address: TEST_ADDRESS };
   const body = postOrderBody({ ...(vectors.orders[0].order as PmOrderStruct & { expiration: string }), signature: vectors.orders[0].signature }, vectors.owner, "GTD", true);
-  for (const region of ["eu-west-2", null]) {
+  // The region, checked first: refused outside Ireland whatever else is open.
+  for (const region of ["eu-west-2", "us-east-1", null]) {
     const r = await withRegion(region, () => pmOrderCall("POST", "https://clob.polymarket.com/order", body, o));
-    assertEquals([r.ok, r.refused], [false, "region"]);
-  }
-  const fromIreland = await withRegion("eu-west-1", () => pmOrderCall("POST", "https://clob.polymarket.com/order", body, o));
-  assertEquals([fromIreland.ok, fromIreland.refused], [false, "sends-disabled"]);
-  for (const region of ["eu-west-2", "eu-west-1", null]) {
-    const del = await withRegion(region, () => pmOrderCall("DELETE", "https://clob.polymarket.com/order", cancelOrderBody(vectors.orders[0].hash), o));
-    assertEquals(del.refused, "sends-disabled");                         // never "region": the kill switch depends on none
-    assertEquals((await withRegion(region, () => pmOrderCall("DELETE", "https://clob.polymarket.com/cancel-all", undefined, o))).refused, "sends-disabled");
+    assertEquals([r.ok, r.refused], [false, "region"], String(region));
   }
   assertEquals(seen.length, 0);
-  // The venue's own writes go through the same call: refused, and nothing leaves.
-  const v = pmVenue({ ...o, sigType: 1 });
+  // A caller's switch lowers the code's: no POST and no DELETE from any region, and nothing reaches fetch.
+  const off = { ...o, sendsEnabled: false };
+  assertEquals((await withRegion("eu-west-1", () => pmOrderCall("POST", "https://clob.polymarket.com/order", body, off))).refused, "sends-disabled");
+  for (const region of ["eu-west-2", "eu-west-1", null]) {
+    assertEquals((await withRegion(region, () => pmOrderCall("DELETE", "https://clob.polymarket.com/order", cancelOrderBody(vectors.orders[0].hash), off))).refused, "sends-disabled");
+    assertEquals((await withRegion(region, () => pmOrderCall("DELETE", "https://clob.polymarket.com/cancel-all", undefined, off))).refused, "sends-disabled");
+  }
+  const vOff = pmVenue({ ...off, sigType: 1 });
   await withRegion("eu-west-1", async () => {
-    assertEquals((await v.postOrder({ ...vectors.orders[0].order, signature: vectors.orders[0].signature } as never, "GTD", true)).refused, "sends-disabled");
-    assertEquals((await v.cancelOrder(vectors.orders[0].hash)).refused, "sends-disabled");
-    assertEquals((await v.cancelAll()).refused, "sends-disabled");
+    assertEquals((await vOff.postOrder({ ...vectors.orders[0].order, signature: vectors.orders[0].signature } as never, "GTD", true)).refused, "sends-disabled");
+    assertEquals((await vOff.cancelOrder(vectors.orders[0].hash)).refused, "sends-disabled");
+    assertEquals((await vOff.cancelAll()).refused, "sends-disabled");
   });
   assertEquals(seen.length, 0);
+  // Both open: the POST leaves from eu-west-1 with its exact body and L2 headers; a cancel leaves from any region (the
+  // kill switch never depends on one). `sendsEnabled: true` is the default and raises nothing.
+  const v = pmVenue({ ...o, sigType: 1, sendsEnabled: true, now: () => 1_790_000_000_000 });
+  const posted = await withRegion("eu-west-1", () => v.postOrder({ ...vectors.orders[0].order, signature: vectors.orders[0].signature } as never, "GTD", true));
+  assertEquals([posted.ok, posted.refused], [true, undefined]);
+  for (const region of ["eu-west-2", null]) {
+    assertEquals((await withRegion(region, () => v.cancelOrder(vectors.orders[0].hash))).ok, true);
+    assertEquals((await withRegion(region, () => v.cancelAll())).ok, true);
+  }
+  assertEquals(seen.map((x) => `${x.method} ${x.url}`), [
+    "POST https://clob.polymarket.com/order", "DELETE https://clob.polymarket.com/order", "DELETE https://clob.polymarket.com/cancel-all",
+    "DELETE https://clob.polymarket.com/order", "DELETE https://clob.polymarket.com/cancel-all",
+  ]);
+  assertEquals(seen[0].body, CREDS().orderBody({ ...vectors.orders[0].order, signature: vectors.orders[0].signature } as never, "GTD", true));
+  assertEquals(seen[0].headers.POLY_SIGNATURE, await polyHmacSignature(btoa("PLANTED-L2-SECRET-32-BYTES-LONG!"), 1790000000, "POST", "/order", seen[0].body));
+  assert(seen.every((x) => x.redirect === "manual"));
 });
 
 Deno.test("pmOrderCall reaches only its routes: every other path, method, host or id is refused before fetch", async () => {
@@ -231,6 +269,8 @@ Deno.test("pmOrderCall reaches only its routes: every other path, method, host o
     ["GET", "https://clob.polymarket.com/data/order/0x1234"], ["GET", `https://clob.polymarket.com/data/order/${vectors.orders[0].hash.toUpperCase().replace("0X", "0x")}`],
     ["GET", "https://clob.polymarket.com/book/../order"], ["GET", "https://evil.example/book"], ["GET", "http://clob.polymarket.com/book"],
     ["POST", "https://gamma-api.polymarket.com/markets/keyset"], ["GET", "https://relayer-v2.polymarket.com/submit"], ["GET", "not a url"],
+    ["POST", "https://clob.polymarket.com/orders-scoring"], ["GET", "https://clob.polymarket.com/rewards/user/markets"], ["POST", "https://clob.polymarket.com/order-scoring"],
+    ["GET", "https://clob.polymarket.com/rebates/current/extra"], ["DELETE", "https://clob.polymarket.com/rewards/user"],
   ] as Array<["GET" | "POST" | "DELETE", string]>) {
     const r = await withRegion("eu-west-1", () => pmOrderCall(method, url, method === "GET" ? undefined : "{}", o));
     assertEquals(r.refused, "route", `${method} ${url}`);
@@ -238,6 +278,15 @@ Deno.test("pmOrderCall reaches only its routes: every other path, method, host o
   assertEquals(seen.length, 0);
   assertEquals(PM_ORDER_ROUTES.filter((r) => r.method !== "GET").map((r) => `${r.method} ${r.url}`), [
     "POST https://clob.polymarket.com/order", "DELETE https://clob.polymarket.com/order", "DELETE https://clob.polymarket.com/cancel-all",
+  ]);
+  // The reads, each with whether it carries the account's L2 headers: the market's, the geoblock and the maker rebates
+  // keyless; the account's (closed-only, balances, its orders and trades, order scoring, its earnings) signed.
+  assertEquals(PM_ORDER_ROUTES.filter((r) => r.method === "GET").map((r) => `${r.url} ${r.l2 ? "L2" : "-"}`), [
+    "https://clob.polymarket.com/book -", "https://clob.polymarket.com/rewards/markets/current -", "https://gamma-api.polymarket.com/markets/keyset -",
+    "https://polymarket.com/api/geoblock -", "https://clob.polymarket.com/rebates/current -",
+    "https://clob.polymarket.com/auth/ban-status/closed-only L2", "https://clob.polymarket.com/balance-allowance L2", "https://clob.polymarket.com/data/order/{id} L2",
+    "https://clob.polymarket.com/data/trades L2", "https://clob.polymarket.com/order-scoring L2", "https://clob.polymarket.com/rewards/user L2",
+    "https://clob.polymarket.com/rewards/user/total L2", "https://clob.polymarket.com/rewards/user/percentages L2",
   ]);
   // Every route that carries L2 headers is on the CLOB host, so the credentials can reach nothing else; the call checks
   // the host again before it signs, a second guard that only a new route elsewhere would reach.
@@ -255,7 +304,16 @@ Deno.test("a GET goes out as a GET, follows no redirect, carries L2 headers only
   await v.trade("trade-9");
   await v.closedOnly();
   await v.rewardsPage(true, "Mg==");
-  await v.gammaMarkets("Ng==");
+  const c1 = `0x${"aa".repeat(32)}`, c2 = `0x${"bb".repeat(32)}`, maker = "0x00000000000000000000000000000000000000f1";
+  await v.gammaByConditions([c1, c2], false);
+  await v.gammaByConditions([c1], true);
+  await v.collateral();
+  await v.orderScoring(vectors.orders[0].hash);
+  await v.rewardPercentages();
+  await v.userEarnings("2026-10-01", false, "MA==");
+  await v.userEarnings("2026-10-01", true, "");
+  await v.userEarningsTotal("2026-10-01", true);
+  await v.rebates("2026-10-01", maker);
   assertEquals(seen.map((s) => [s.method, s.redirect]).every(([m, r]) => m === "GET" && r === "manual"), true);
   assertEquals(seen.map((s) => s.url), [
     "https://polymarket.com/api/geoblock",
@@ -265,13 +323,22 @@ Deno.test("a GET goes out as a GET, follows no redirect, carries L2 headers only
     "https://clob.polymarket.com/data/trades?id=trade-9",
     "https://clob.polymarket.com/auth/ban-status/closed-only",
     "https://clob.polymarket.com/rewards/markets/current?sponsored=true&next_cursor=Mg%3D%3D",
-    "https://gamma-api.polymarket.com/markets/keyset?closed=false&limit=100&order=volume24hr&ascending=false&after_cursor=Ng%3D%3D",
+    `https://gamma-api.polymarket.com/markets/keyset?limit=100&closed=false&condition_ids=${c1}&condition_ids=${c2}`,
+    `https://gamma-api.polymarket.com/markets/keyset?limit=100&closed=true&condition_ids=${c1}`,
+    "https://clob.polymarket.com/balance-allowance?asset_type=COLLATERAL&signature_type=1",
+    `https://clob.polymarket.com/order-scoring?order_id=${vectors.orders[0].hash}`,
+    "https://clob.polymarket.com/rewards/user/percentages?signature_type=1",
+    "https://clob.polymarket.com/rewards/user?date=2026-10-01&signature_type=1&next_cursor=MA%3D%3D",
+    "https://clob.polymarket.com/rewards/user?date=2026-10-01&signature_type=1&sponsored=true",
+    "https://clob.polymarket.com/rewards/user/total?date=2026-10-01&signature_type=1&sponsored=true",
+    `https://clob.polymarket.com/rebates/current?date=2026-10-01&maker_address=${maker}`,
   ]);
   const l2 = seen.map((s) => Object.keys(s.headers).some((k) => k.startsWith("POLY_")));
-  assertEquals(l2, [false, false, true, true, true, true, false, false]);
+  assertEquals(l2, [false, false, true, true, true, true, false, false, false, true, true, true, true, true, true, false]);
   const bal = seen[2].headers;
   assertEquals([bal.POLY_ADDRESS, bal.POLY_TIMESTAMP], [TEST_ADDRESS, "1790000000"]);
   assertEquals(bal.POLY_SIGNATURE, await polyHmacSignature(btoa("PLANTED-L2-SECRET-32-BYTES-LONG!"), 1790000000, "GET", "/balance-allowance"));
+  assertEquals(seen[12].headers.POLY_SIGNATURE, await polyHmacSignature(btoa("PLANTED-L2-SECRET-32-BYTES-LONG!"), 1790000000, "GET", "/rewards/user"));
   // Without credentials an account route is refused here, and the public ones still go.
   const none = recorder();
   const anon = pmVenue({ fetchImpl: none.fetchImpl, creds: null, address: null, sigType: 1 });

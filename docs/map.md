@@ -577,13 +577,13 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, variant-1's replay and variant-2's, RW's paper minute and daily selection, Polymarket's order path in dry-run, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, variant-1's replay and variant-2's, RW's paper minute and daily selection, Polymarket's order path, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/views.ts` | Records Polymarket's view-count markets and the YouTube counters they resolve on: every minute, and every second around each market's deadline, stored when they change. Reads only. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
 | `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
-| `agents/pm_live.ts` | Polymarket's order path, built inert: every minute from eu-west-1 a dry-run that records the runtime's region and every gate and writes the orders it would send, on two markets a day outside RW's universe; its live half runs only in its tests. |
+| `agents/pm_live.ts` | Polymarket's order path for the live calibration of liquidity rewards: every minute from eu-west-1, RW's quotes on the day's rewarded markets from $6 to under $10, each minute's formula reward and, once a day, what Polymarket paid; a dry-run until its config row is unlocked. |
 | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
 | `agents/quotes_variant.ts` | "Stablecoin quotes variant-1" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
 | `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
@@ -604,7 +604,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/revx.ts`, `_shared/kraken.ts`, `_shared/venue.ts` | The Revolut X and Kraken clients (signing, candles, quotes, orders) behind one venue interface, which Binance's paper venue also implements. |
 | `_shared/jev.ts` | The TypeSafe Jev client: typed questions in, probabilities out. |
 | `_shared/polymarket.ts` | A read-only Polymarket client for the probe: the stored credentials, request signing, the private key's address, and the account checks. Nothing in it can trade. |
-| `_shared/polymarket_orders.ts` | Polymarket's CLOB V2 orders: the EIP-712 order, its hash (the order id) and signature, pinned to the official client's vectors, and the one call that may reach the CLOB, which sends nothing but a GET while its constant is false. |
+| `_shared/polymarket_orders.ts` | Polymarket's CLOB V2 orders: the EIP-712 order, its hash (the order id) and signature, pinned to the official client's vectors; the loader that keeps the signing key only for the stored signer; and the one call that may reach the CLOB, by a fixed list of routes, a POST only from eu-west-1. |
 | `_shared/polymarket_public.ts` | Keyless reads of Polymarket's public endpoints (reward programme, markets, events, books, prints) for RW's paper test and the view recorder. It reads no credential and cannot trade. |
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
@@ -698,6 +698,7 @@ before touching migration state.
 | `0073_quoted_truefx_before_turn.sql` | Records when variant-2's TrueFX snapshot was read (while it read one), and refuses a TrueFX minute read at or after the minute it prices. |
 | `0074_pm_live.sql` | Adds Polymarket's order path in dry-run: its config (dry-run, unarmed, Davies' standing Ireland attestation, the capped limits), the day's markets, its orders, fills, events and state, its lease, and its call in the one-minute job from eu-west-1. |
 | `0075_edge_call_watchdog.sql` | Moves the one-minute job's list into a table (`edge_calls`: 0074's rows unchanged, which calls may run again, and the watchdog's row), adds each call's beat (`edge_call_beats`, kept two days) and the watchdog's record of its retries (`edge_call_retries`), and points the job at the table. |
+| `0076_pm_live_calibration.sql` | Readies Polymarket's order path for its live calibration, left in dry-run and unarmed: the day's market count and budget, the live test's caps, the markets keyed by market, each minute's formula reward, the daily reward readout and settled markets. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -739,7 +740,7 @@ before touching migration state.
 | `docs/agents/backtests/views/` | VIEWS phase 1, on Polymarket's YouTube view-count markets: the keyless pull scripts, the committed universe, split and exploration inputs, and the results (`scripts/run_all.py` re-runs them), listed in `MANIFEST.json`. |
 | `docs/agents/backtests/wxsrc/` | WXSRC, the fastest source of each temperature city's deciding observation and the weather models against the price: the per-city source table, the live latency poll, the Hong Kong archive study, the keyless and keyed candidates' exploration, and the HRRR intraday scoring, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/cap/` | CAP, the live row's exposure cap priced with the house rule functions, and Revolut X's UK books on 30 days of daily candles: the pulls, the scripts, and `results/queries.sql` with every read and its output, listed in `MANIFEST.json`. |
-| `docs/agents/backtests/pmlive/` | Polymarket's first live step, a read-only pre-study: the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes, listed in `MANIFEST.json`; `vectors/` regenerates the order path's signing vectors from Polymarket's official clients. |
+| `docs/agents/backtests/pmlive/` | Polymarket's first live step, a read-only pre-study: the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, the bridge's quotes and the live calibration's selection timed through the order path's own code, listed in `MANIFEST.json`; `vectors/` regenerates the order path's signing vectors from Polymarket's official clients. |
 | `docs/agents/backtests/fp7/` | fp7, the seventh search: Revolut X's UK book census, the coin/USDC books as maker quotes, and Polymarket's reward-pool aggregates; its scripts run from the folder, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/equity2/` | EQ2, US strategies at Trading 212 (USD Invest and GBP ISA): screens cut at 2015-12-31 as they are parsed (month-end windows, settlement eras, industry seasonality, the Treasury auction cycle, the S&P 500 survivorship hole) and the power checks, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/equity/` | EQ1, US equities at Trading 212: the screen on Ken French's files cut at 2015-12-31, the power checks, and the earnings filings' times on EDGAR, listed in `MANIFEST.json`. |
@@ -807,7 +808,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmrwc-select  every 5 min, from 2026-10-08   the day's portfolio for RW-C, once a UTC day → pm_rwc_selection
  ├─ agents ?action=pmrwc-e / pmrwc-x  every minute, from 10-09 00:02   RW-C's stored minutes replayed, RW-E and its variants → pm_rwc_e_* / pm_rwc_x_*
  ├─ agents ?action=books  every minute, from :40   Revolut X's four stablecoin books, one at a time, when they change → agent_book_levels
- ├─ agents ?action=pmlive  every minute, from eu-west-1   Polymarket's order path, dry-run: every gate and the orders it would send → pm_live_*
+ ├─ agents ?action=pmlive  every minute, from eu-west-1   Polymarket's order path (a dry-run until armed): RW's quotes, each minute's formula, the daily readout → pm_live_*
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache, call beats
 ```
@@ -938,7 +939,7 @@ A copy-pasteable shape of the app-level vars lives at
 | `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. |
 | `KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY` | `agents` | Optional. Kraken key and its base64 secret (fee tier, balances, the probe; candles need no key). |
 | `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` | `agents` | Optional. The Jev decision model through OpenRouter, with TypeSafe's own endpoint as the fallback; without either the model is not asked and entries hold. |
-| `POLYMARKET_PRIVATE_KEY`, `POLYMARKET_CLOB_API_KEY`, `POLYMARKET_CLOB_SECRET`, `POLYMARKET_CLOB_PASSPHRASE` (each also read as `POLYMARKET_API_*`), `POLYMARKET_FUNDER_ADDRESS`, `POLYMARKET_SIGNER_ADDRESS`, `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` | `agents` | Optional. A Polymarket account, read by the probe (`?action=probe&only=polymarket`): the signing key, the CLOB's API credentials, and the account's addresses and settings. The order path's dry-run (`?action=pmlive`) reads the API credentials and the two addresses, never the signing key. Nothing trades there. |
+| `POLYMARKET_PRIVATE_KEY`, `POLYMARKET_CLOB_API_KEY`, `POLYMARKET_CLOB_SECRET`, `POLYMARKET_CLOB_PASSPHRASE` (each also read as `POLYMARKET_API_*`), `POLYMARKET_FUNDER_ADDRESS`, `POLYMARKET_SIGNER_ADDRESS`, `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` | `agents` | Optional. A Polymarket account, read by the probe (`?action=probe&only=polymarket`): the signing key, the CLOB's API credentials, and the account's addresses and settings. The order path (`?action=pmlive`) reads the API credentials, the two addresses and the signing key, kept only when it is the stored signer's; it places nothing until its config row is unlocked. |
 
 ### 4. Wire the client
 

@@ -537,22 +537,37 @@ that follow from that evidence, in short:
   Davies is there** (reference §2d, §6). The United Kingdom is "close-only
   on the frontend AND the API"; Ireland is close-only on the frontend only
   ("the API itself is not restricted"), and Davies is resident in both
-  (his word, 2026-09-24). So the order path — built INERT on 2026-10-01
-  on his word (`_shared/polymarket_orders.ts`, `agents/pm_live.ts`,
-  `0074`): nothing but a GET leaves while the code constant
-  `PM_ORDER_SENDS_ENABLED` is false, and no private key is loaded — runs
-  only in Supabase's `eu-west-1` (its cron row carries
+  (his word, 2026-09-24). So the order path (`_shared/polymarket_orders.ts`,
+  `agents/pm_live.ts`; built inert by `0074`, readied for its live
+  calibration by `0076` on 2026-10-01, `reviews/2026-10-01-polymarket-live-calibration.md`)
+  runs only in Supabase's `eu-west-1` (its cron row carries
   `forceFunctionRegion=eu-west-1`; every POST refuses unless `SB_REGION`
   is `eu-west-1`), and opens a position only while his attestation that
-  he is in Ireland is current.
+  he is in Ireland is current. **Since `0076` the code's switch
+  `PM_ORDER_SENDS_ENABLED` is true and the action loads
+  `POLYMARKET_PRIVATE_KEY`, kept only when its address IS the stored
+  signer (held in a private field, scrubbed from every message): what
+  keeps every order home is the config row, `dry_run` true and
+  `live_confirmed_at` null.** Setting the constant false again is the
+  code's own kill switch. The calibration (Davies: "同意你polymarket的方案";
+  about $400, "polymarket的策略我决定还是听你的转400美元进去追求最优效果") is
+  RW's rule as RW-E applies it on rewarded markets of $6 to under $10 a
+  day, outside RW's and RW-C's universe, measuring R = actual ÷ formula
+  rewards; caps $320 in all (the deposit less the $75 stop and $5) and
+  $60 a market, stops −$25 a day and −$75 in all. Going live is ONE
+  statement, in the conversation where he says go, which sets the cap
+  from the balance the path itself read (refused when unread, stale or
+  too small) and arms it — the design doc has it word for word. A cancel
+  is read again before its slot freezes (`PM_LIVE_CANCEL_REREAD_MS`, as
+  PR5's), and a refused quote waits for new information.
   **It is standing since 2026-10-01** ("我之后长期在爱尔兰，如果变动需要更改会和你说，
   不和你说关就一直没事 也不用问我"): current until he says it changed — then
   one statement revokes it (`update public.pm_live_config set
   ireland_until = now() where id = 1;`) — and nobody asks him. Not
   current, the path may only reduce or close, which the UK allows. Never a VPN,
-  a proxy or anyone else's account. `_shared/polymarket.ts` is read-only
-  today (GET only, a fixed list of URLs, the L2 headers to the CLOB host
-  only), and its key controls real funds.
+  a proxy or anyone else's account. `_shared/polymarket.ts` (the probe's
+  client) is read-only (GET only, a fixed list of URLs, the L2 headers to
+  the CLOB host only); the key controls real funds.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

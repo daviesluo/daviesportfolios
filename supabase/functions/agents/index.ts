@@ -28,13 +28,15 @@
 //                             the order it would send; with it, it sends
 //                             only when the executor is live and armed.
 //                             Operator only; never the minute loop's.
-//   POST ?action=pmlive     — Polymarket's order path (pm_live.ts, 0074), built
-//                             INERT: a dry-run every minute from eu-west-1
-//                             that records SB_REGION, every gate and the
-//                             orders it would send, on two markets a day
-//                             outside RW's universe. No POST or DELETE can
-//                             leave (`PM_ORDER_SENDS_ENABLED` is false) and
-//                             no private key is loaded. Cron bearer only.
+//   POST ?action=pmlive     — Polymarket's order path (pm_live.ts, 0074, 0076):
+//                             every minute from eu-west-1, RW's quotes (as
+//                             RW-E applies them) on the day's markets with a
+//                             reward pool of $6 to under $10 (outside RW's
+//                             universe), the formula reward of every minute,
+//                             and once a day what Polymarket actually paid.
+//                             A dry-run until `pm_live_config` says otherwise:
+//                             sends are enabled in code and the key is loaded.
+//                             Cron bearer only.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -90,8 +92,8 @@
 // KRAKEN_PRO_PRIVATE_KEY (the base64 secret as issued), OPENROUTER_API_KEY
 // / `openrouter_api_key`, TYPESAFE_API_KEY / `typesafe_API_KEY`, and the
 // POLYMARKET_* set (`_shared/polymarket.ts`, read by the probe; the order
-// path's dry-run reads the L2 credentials and the two addresses, never
-// POLYMARKET_PRIVATE_KEY: `_shared/polymarket_orders.ts`) and
+// path reads the L2 credentials, the two addresses and POLYMARKET_PRIVATE_KEY,
+// kept only when it is the stored signer's: `_shared/polymarket_orders.ts`) and
 // YOUTUBE_API_KEY (`youtube.ts`, public view counts; sent in a header). None is
 // ever echoed: the probe reports the FORM of a private key, not a byte of
 // it, and every upstream error is truncated. Market data needs no key on
@@ -344,10 +346,11 @@ async function quotesLiveDeps(): Promise<QuoteLiveDeps> {
 }
 
 /**
- * Polymarket's order path, one minute (`pm_live.ts`, 0074): a dry-run in this build. It reads the L2 credentials and the
- * two addresses (an order's hash needs the maker and the signer, and no key) and never POLYMARKET_PRIVATE_KEY, so no
- * signer is passed; `PM_ORDER_SENDS_ENABLED` is false, so its client could send nothing but a GET anyway. Every fetch
- * times out after 5 s. It never throws past here: a failure is a report, and the turn's errors go to `ops_errors`.
+ * Polymarket's order path, one minute (`pm_live.ts`, 0074 and 0076). It reads the L2 credentials, the two addresses and
+ * the signing key (`loadPmLiveEnv` keeps the key only when it is the stored signer's, in a field nothing prints, and
+ * scrubs every spelling of it from whatever is returned). `PM_ORDER_SENDS_ENABLED` is true: the config's `dry_run` and
+ * `live_confirmed_at` decide, behind every gate. Every fetch times out after 5 s. It never throws past here: a failure
+ * is a report, and the turn's faults go to `ops_errors` (a market's own condition is state, not a fault).
  */
 export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch; read?: (n: string) => string | undefined; now?: number } = {}) {
   try {
@@ -358,7 +361,8 @@ export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch;
       sbRegion: (deps.read ?? ((n: string) => Deno.env.get(n)))("SB_REGION") ?? null,
       sendsEnabled: PM_ORDER_SENDS_ENABLED,
       account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
-      signer: null,
+      signer: env.key,
+      signerProblem: env.keyProblem,
     });
     if (env.check.problems.length) report.errors.push(`secrets: ${env.check.problems.join("; ")}`);
     const clean = env.scrub(report);

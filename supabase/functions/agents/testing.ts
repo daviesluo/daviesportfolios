@@ -136,13 +136,26 @@ const VIEWS_TABLES: Record<string, { columns: string[]; key: string; defaults: R
 const PM_LIVE_SCHEMA: Record<string, { columns: string[]; key: string | null }> = {
   pm_live_config: {
     columns: ["id", "dry_run", "live_confirmed_at", "ireland_attested_at", "ireland_until", "cap_total_usd", "cap_market_usd", "loss_day_usd",
-      "loss_total_usd", "max_posts_day", "gtd_lifetime_s", "updated_at"],
+      "loss_total_usd", "max_posts_day", "gtd_lifetime_s", "updated_at", "max_markets", "select_budget_usd"],
     key: "id",
   },
+  // 0076 keyed the day's markets by market, and added RW's first-round reading.
   pm_live_markets: {
-    columns: ["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "reward_rate", "rank", "question", "detail", "selected_at"],
-    key: "day,kind",
+    columns: ["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "reward_rate", "rank", "question", "detail", "selected_at",
+      "max_spread", "n_size", "per_dollar_day", "capital", "formula_day", "end_date", "game_start"],
+    key: "day,cond",
   },
+  pm_live_minutes: {
+    columns: ["mode", "minute", "cond", "rate", "max_spread", "min_size", "tick", "bb", "ba", "ab", "aa", "q1", "q2", "bid_price", "bid_size", "ask_price", "ask_size",
+      "bid_scoring", "ask_scoring", "ours", "others", "formula_usd", "pct", "detail"],
+    key: "mode,minute,cond",
+  },
+  pm_live_reward_days: {
+    columns: ["mode", "day", "cond", "minutes", "minutes_two_sided", "minutes_scored", "formula_usd", "formula_scored_usd", "rate", "actual_usd",
+      "actual_sponsored_usd", "rebate_usd", "read_at", "detail"],
+    key: "mode,day,cond",
+  },
+  pm_live_settlements: { columns: ["cond", "yes_token", "no_token", "payout", "closed_time", "settled_at", "detail"], key: "cond" },
   pm_live_orders: {
     columns: ["id", "ts", "mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash",
       "state", "size_matched", "gate", "reason", "book_seen", "request", "response", "cancel_requested_at", "cancel_gate", "cancel_reason",
@@ -362,10 +375,27 @@ export function schemaRefusal(table: string, r: Row): string | null {
       const within = (c: string, lo: number, hi: number, loOpen = true) => ok(c, (v) => (loOpen ? Number(v) > lo : Number(v) >= lo) && Number(v) <= hi);
       return check("id", r.id === 1)
         ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", "loss_day_usd", "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
-        ?? check("cap_total_usd", within("cap_total_usd", 0, 300)) ?? check("cap_market_usd", within("cap_market_usd", 0, 60))
+        ?? check("cap_total_usd", within("cap_total_usd", 0, 320)) ?? check("cap_market_usd", within("cap_market_usd", 0, 60))
         ?? check("loss_day_usd", within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
         ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
+        ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
+    }
+    if (table === "pm_live_minutes") {
+      return notNull(["mode", "minute", "cond", "rate", "max_spread", "min_size", "tick", "ours", "others", "formula_usd", "detail"])
+        ?? check("mode", MODES.includes(String(r.mode))) ?? check("rate", Number(r.rate) >= 0 && Number(r.rate) < 10)
+        ?? check("max_spread", Number(r.max_spread) >= 0) ?? check("min_size", Number(r.min_size) >= 0) ?? check("tick", Number(r.tick) > 0)
+        ?? check("ours", Number(r.ours) >= 0) ?? check("others", Number(r.others) >= 0) ?? check("formula_usd", Number(r.formula_usd) >= 0);
+    }
+    if (table === "pm_live_settlements") {
+      return notNull(["cond", "yes_token", "no_token", "payout", "settled_at", "detail"]) ?? check("payout", Number(r.payout) >= 0 && Number(r.payout) <= 1);
+    }
+    if (table === "pm_live_reward_days") {
+      return notNull(["mode", "day", "cond", "minutes", "minutes_two_sided", "minutes_scored", "formula_usd", "formula_scored_usd", "read_at", "detail"])
+        ?? check("mode", MODES.includes(String(r.mode)))
+        ?? check("minutes", Number(r.minutes) >= 0) ?? check("minutes_two_sided", Number(r.minutes_two_sided) >= 0) ?? check("minutes_scored", Number(r.minutes_scored) >= 0)
+        ?? check("formula_usd", Number(r.formula_usd) >= 0) ?? check("formula_scored_usd", Number(r.formula_scored_usd) >= 0)
+        ?? (r.mode === "live" || (r.actual_usd == null && r.actual_sponsored_usd == null && r.rebate_usd == null) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (table === "pm_live_markets") {
       return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank"])
@@ -389,7 +419,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     if (table === "pm_live_events") {
       return notNull(["mode", "minute", "kind", "detail"]) ?? check("mode", MODES.includes(String(r.mode)))
-        ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert"].includes(String(r.kind)));
+        ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert", "condition", "readout"].includes(String(r.kind)));
     }
     return check("id", r.id === 1) ?? notNull(["state"]);
   }
@@ -676,18 +706,29 @@ export const PM_TEST_FUNDER = "0x1111111111111111111111111111111111111111";
 /** A made-up API key id: what the fake expects as a POST body's `owner`. */
 export const PM_TEST_OWNER = "00000000-1111-4222-8333-444444444444";
 
-/** A market as the fake lists it: its touch, its tick and minimum, and its daily reward rate in each listing (null: not listed there). */
+/**
+ * A market as the fake lists it: its touch, its tick and minimum, its daily reward rate in each listing (null: not listed
+ * there), and its reward programme. `depth` is the book behind each touch, as (ticks from the touch, size) on both sides.
+ */
 type FakePmMarket = {
   cond: string; yes: string; no: string; bid: number; ask: number; tick: string; minSize: number; negRisk: boolean; rate: number | null; sponsoredRate: number | null;
   accepting: boolean;
+  /** The reward programme's minimum size and maximum spread (cents), as `/rewards/markets/current` lists them. */
+  rewardsMinSize: number; maxSpread: number;
+  depth: Array<[number, number]>;
   /** Gamma's times, as Gamma writes them (`endDate` ISO, `gameStartTime` Postgres-style); absent when Gamma gives none. */
   endDate?: string | null; gameStartTime?: string | null;
   /** Closed or resolved: its book is gone (`/book` answers 404, as the CLOB does) and Gamma shows it closed. */
   resolved?: boolean;
+  /** Gamma's `outcomePrices[0]` once resolved: YES's payout; and its `closedTime`, as Gamma writes it. */
+  payout?: number;
+  closedTime?: string;
 };
 type FakePmOrder = {
   hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; matched: number; status: string; expiration: number;
-  orderType: string; trades: string[]; cond: string;
+  orderType: string; trades: string[]; cond: string; at: number;
+  /** A cancel taken and not yet carried out (`cancelLagReads`): when it was asked, and how many reads still show it resting. */
+  cancelAsked?: number; cancelReadsLeft?: number;
 };
 type FakePmTrade = { id: string; hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; status: string; at: number };
 type Answer = { status: number; body: unknown; retryAfter?: number };
@@ -699,17 +740,33 @@ type Answer = { status: number; body: unknown; retryAfter?: number };
  *     shares, a GTD expiration under three minutes ahead ("invalid expiration"), a signature that does not recover to
  *     the API key's address over the right exchange's domain, a signer other than the key's ("the order signer address
  *     has to be the address of the API KEY"), a maker other than its proxy wallet ("the order owner has to be the owner
- *     of the API KEY"), an owner other than the key, a post-only order that would take ("invalid post-only order: order
- *     crosses book"), an order the account cannot fund or hold ("not enough balance / allowance"), any buy while the
- *     account is in closed-only mode, an order from a country the geoblock blocks (a buy from a close-only one; the
- *     venue's wording is not documented, so this one is the double's), and a hash it has already seen ("Duplicated.").
+ *     of the API KEY"), an owner other than the key, a post-only order that would take — against everything resting,
+ *     our own orders included ("invalid post-only order: order crosses book") —, an order the account cannot fund or
+ *     hold ("not enough balance / allowance"), any buy while the account is in closed-only mode, an order from a country
+ *     the geoblock blocks (a buy from a close-only one; the venue's wording is not documented, so this one is the
+ *     double's), and a hash it has already seen ("Duplicated.").
+ *   * Its book is the market's ONE book, as the CLOB's is (2026-10-01: NO's book is YES's mirror): our resting orders
+ *     are in it, a BUY of NO at p as an ask at 1 − p. A rule that reads its own orders as the market's would chase them.
+ *   * Its reward listing pages as the CLOB's does: in condition-id order, `limit` rows a page, the cursor base64 of the
+ *     row offset ("LTE=" past the end, a 400 for one it cannot decode); `onRewardsPage` can move the listing between
+ *     two reads, as the real one moves.
  *   * It answers 425 while `restart` is set, and can take an order and lose the reply, or lose a cancel.
+ *   * A cancel it takes (one order, or all of them) is carried out a moment AFTER its reply: the order reads back LIVE,
+ *     sits in the book and can still fill for `cancelLagReads` reads of it (1 by default), or until a second has passed.
+ *     Polymarket's docs word a cancel's reply as its outcome, which suggests the CLOB carries a cancel out before it
+ *     answers; nothing says when GET /data/order shows it, and Revolut X was measured a read behind on PR5's first live
+ *     hour (2026-10-01). A double must not be looser than the venue, so this one is that read behind.
  *   * A taker fills a resting order only through `fill`, which writes a MATCHED trade; `settle` makes it final.
  *   * An order past its expiration less a minute reads back CANCELED (the docs do not say what an expired GTD order reads
  *     as: this is the double's assumption, and the path never relies on it, because it replaces an order before then).
+ *   * An order is scoring (`/order-scoring`) when it rests, its remaining size is at least the reward minimum, it is
+ *     inside the maximum spread of the market's midpoint, and it has rested `scoringDelayS` (the venue's "required
+ *     duration" is not documented: 0 here unless a test sets it).
  */
 export class FakePolymarket {
   calls: string[] = [];
+  /** Every request URL, with its query, as sent. */
+  urls: string[] = [];
   /** Every request body it received, as sent. */
   bodies: string[] = [];
   geo: { blocked: boolean; country: string; region: string; ip: string } = { blocked: true, country: "IE", region: "L", ip: "203.0.113.7" };
@@ -717,24 +774,39 @@ export class FakePolymarket {
   pusd = 1000;
   tokens = new Map<string, number>();
   markets: FakePmMarket[] = [];
-  /** Gamma's order (by 24-hour volume): conditions, busiest first. */
-  gammaOrder: string[] = [];
   orders = new Map<string, FakePmOrder>();
   trades = new Map<string, FakePmTrade>();
   restart = false;
   postMode: "ok" | "lose-reply" | "500-after-accept" | "500" | "429" | "503" = "ok";
   cancelMode: "ok" | "lost" | "throw" = "ok";
+  /** Reads of an order that still show it resting after its cancel was taken (0: carried out at once). */
+  cancelLagReads = 1;
   orderReadDown = false;
-  down: Partial<Record<"geoblock" | "closedOnly" | "balance" | "book" | "rewards" | "gamma", boolean>> = {};
+  down: Partial<Record<"geoblock" | "closedOnly" | "balance" | "collateral" | "book" | "rewards" | "gamma" | "scoring" | "earnings" | "rebates", boolean>> = {};
   /** The OpenAPI's spelling of a trade status (TRADE_STATUS_…) instead of the clients' (CONFIRMED …). */
   tradeStatusPrefix = "";
+  /** The reward listing's page size (the CLOB's is 500). */
+  rewardsPageSize = 4;
+  /** Called before a page of the listing is answered, with its offset: a test moves the listing here. */
+  onRewardsPage: ((offset: number, sponsored: boolean) => void) | null = null;
+  /** How long an order must rest before it scores. */
+  scoringDelayS = 0;
+  /** The account's live share of each pool, in percent (GET /rewards/user/percentages). */
+  percentages: Record<string, number> = {};
+  /** What the account earned, by UTC day: native, and sponsored only (GET /rewards/user). */
+  earnings: Record<string, { native: Array<{ cond: string; usd: number }>; sponsored: Array<{ cond: string; usd: number }> }> = {};
+  /** Maker rebates, by UTC day (GET /rebates/current answers `null` for a day with none, as the real one does). */
+  rebatesByDay: Record<string, Array<{ cond: string; usdc: string }>> = {};
   private seq = 1;
   constructor(public now: () => number) {}
 
   addMarket(m: Partial<FakePmMarket> & { cond: string; yes: string; no: string }): FakePmMarket {
-    const full: FakePmMarket = { bid: 0.45, ask: 0.47, tick: "0.01", minSize: 5, negRisk: false, rate: null, accepting: true, ...m, sponsoredRate: m.sponsoredRate === undefined ? (m.rate == null ? null : m.rate / 2) : m.sponsoredRate };
+    const minSize = m.minSize ?? 5;
+    const full: FakePmMarket = {
+      bid: 0.45, ask: 0.47, tick: "0.01", negRisk: false, rate: null, accepting: true, maxSpread: 4.5, depth: [[0, 50], [1, 100]], ...m, minSize,
+      rewardsMinSize: m.rewardsMinSize ?? minSize, sponsoredRate: m.sponsoredRate === undefined ? (m.rate == null ? null : m.rate / 2) : m.sponsoredRate,
+    };
     this.markets.push(full);
-    this.gammaOrder.push(full.cond);
     return full;
   }
   private marketOf(token: string): { m: FakePmMarket; outcome: "yes" | "no" } | null {
@@ -744,15 +816,63 @@ export class FakePolymarket {
     }
     return null;
   }
-  /** A token's touch: the NO book is the YES book's mirror. */
+  /**
+   * A market's one book in YES terms: its configured levels, and every order of ours resting in it (a YES bid or a NO
+   * sell is a bid; a YES sell or a NO bid an ask, at 1 − p for NO).
+   */
+  yesBook(m: FakePmMarket): { bids: Array<[number, number]>; asks: Array<[number, number]> } {
+    for (const o of this.orders.values()) this.landCancel(o);
+    const step = Number(m.tick), r = (x: number) => Number(x.toFixed(6));
+    const lv = new Map<string, number>(), la = new Map<string, number>();
+    for (const [k, s] of m.depth) {
+      const bp = r(m.bid - k * step), ap = r(m.ask + k * step);
+      if (bp > 0) lv.set(String(bp), (lv.get(String(bp)) ?? 0) + s);
+      if (ap < 1) la.set(String(ap), (la.get(String(ap)) ?? 0) + s);
+    }
+    for (const o of this.orders.values()) {
+      if (o.status !== "LIVE" || o.cond !== m.cond) continue;
+      const yes = o.token === m.yes, p = r(yes ? o.price : 1 - o.price), left = o.size - o.matched;
+      const bid = yes === (o.side === "BUY");
+      const map = bid ? lv : la;
+      map.set(String(p), (map.get(String(p)) ?? 0) + left);
+    }
+    return {
+      bids: [...lv].map(([p, s]): [number, number] => [Number(p), s]).sort((a, b) => b[0] - a[0]),
+      asks: [...la].map(([p, s]): [number, number] => [Number(p), s]).sort((a, b) => a[0] - b[0]),
+    };
+  }
+  /** A token's touch in the market's one book: the NO book is the YES book's mirror. */
   touch(token: string): { bid: number; ask: number } | null {
     const x = this.marketOf(token);
     if (!x) return null;
-    return x.outcome === "yes" ? { bid: x.m.bid, ask: x.m.ask } : { bid: Number((1 - x.m.ask).toFixed(6)), ask: Number((1 - x.m.bid).toFixed(6)) };
+    const b = this.yesBook(x.m);
+    const bid = b.bids[0]?.[0] ?? 0, ask = b.asks[0]?.[0] ?? 1;
+    return x.outcome === "yes" ? { bid, ask } : { bid: Number((1 - ask).toFixed(6)), ask: Number((1 - bid).toFixed(6)) };
   }
   private expireDue() {
     const nowS = Math.floor(this.now() / 1000);
-    for (const o of this.orders.values()) if (o.status === "LIVE" && o.orderType === "GTD" && nowS >= o.expiration - 60) o.status = "CANCELED";
+    for (const o of this.orders.values()) {
+      this.landCancel(o);
+      if (o.status === "LIVE" && o.orderType === "GTD" && nowS >= o.expiration - 60) o.status = "CANCELED";
+    }
+  }
+  /**
+   * A cancel taken lands once its reads are used up or a second has passed; until then the order rests as before. `read`
+   * is a read of this order (GET /data/order/{id}); any other look only checks the clock.
+   */
+  private landCancel(o: FakePmOrder, read = false): void {
+    if (o.cancelAsked == null) return;
+    if (o.status !== "LIVE") { o.cancelAsked = o.cancelReadsLeft = undefined; return; }
+    if (this.now() - o.cancelAsked >= 1_000 || (read && (o.cancelReadsLeft ?? 0) <= 0)) {
+      o.status = "CANCELED"; o.cancelAsked = o.cancelReadsLeft = undefined;
+      return;
+    }
+    if (read) o.cancelReadsLeft = (o.cancelReadsLeft ?? 0) - 1;
+  }
+  /** A cancel the venue has taken: carried out at once, or a moment later (`cancelLagReads`). */
+  private takeCancel(o: FakePmOrder): void {
+    if (this.cancelLagReads > 0) { o.cancelAsked ??= this.now(); o.cancelReadsLeft ??= this.cancelLagReads; }
+    else o.status = "CANCELED";
   }
   private reserved(kind: "pusd" | string): number {
     let n = 0;
@@ -767,67 +887,102 @@ export class FakePolymarket {
   private orderView(o: FakePmOrder) {
     return {
       id: o.hash, status: o.status, market: o.cond, asset_id: o.token, side: o.side, original_size: String(o.size), size_matched: String(o.matched),
-      price: String(o.price), expiration: String(o.expiration), order_type: o.orderType, associate_trades: [...o.trades], created_at: Math.floor(this.now() / 1000),
+      price: String(o.price), expiration: String(o.expiration), order_type: o.orderType, associate_trades: [...o.trades], created_at: Math.floor(o.at / 1000),
     };
+  }
+  /** The listing's rows, as `/rewards/markets/current` serves them, in condition-id order. */
+  private listing(sponsored: boolean) {
+    return this.markets.filter((m) => (sponsored ? m.sponsoredRate : m.rate) != null).slice().sort((a, b) => (a.cond < b.cond ? -1 : a.cond > b.cond ? 1 : 0))
+      .map((m) => ({ condition_id: m.cond, total_daily_rate: sponsored ? m.sponsoredRate : m.rate, rewards_max_spread: m.maxSpread, rewards_min_size: m.rewardsMinSize }));
+  }
+  /** Is this resting order scoring now? Resting long enough, big enough, and inside the spread of the market's midpoint. */
+  private scoring(o: FakePmOrder): boolean {
+    const x = this.marketOf(o.token);
+    if (!x || o.status !== "LIVE" || o.size - o.matched < x.m.rewardsMinSize) return false;
+    if (this.now() - o.at < this.scoringDelayS * 1000) return false;
+    const mid = (x.m.bid + x.m.ask) / 2, p = x.outcome === "yes" ? o.price : 1 - o.price;
+    const bid = (x.outcome === "yes") === (o.side === "BUY");
+    const d = (bid ? mid - p : p - mid) * 100;
+    return d >= 0 && d < x.m.maxSpread;
   }
 
   /** Every request, as the venue would see it. `body` is the exact string a POST or DELETE carries. */
   answer(method: string, url: URL, body: string | undefined): Answer {
     const path = `${url.host}${url.pathname}`;
     this.calls.push(`${method} ${path}`);
+    this.urls.push(`${method} ${url.href}`);
     if (body !== undefined) this.bodies.push(body);
     this.expireDue();
     const q = url.searchParams;
     const err = (status: number, error: string, retryAfter?: number): Answer => ({ status, body: { error }, retryAfter });
+    const DATE = /^\d{4}-\d{2}-\d{2}$/;
     if (method === "GET" && path === "polymarket.com/api/geoblock") return this.down.geoblock ? err(503, "down") : { status: 200, body: { ...this.geo } };
     if (method === "GET" && path === "clob.polymarket.com/book") {
       if (this.down.book) return err(503, "down");
-      const t = this.touch(q.get("token_id") ?? ""), x = this.marketOf(q.get("token_id") ?? "");
-      if (!t || !x || x.m.resolved) return err(404, "No orderbook exists for the requested token id");
-      // Bids low to high and asks high to low, as measured (reference §2d), with a deeper level behind each touch.
-      const step = Number(x.m.tick);
+      const x = this.marketOf(q.get("token_id") ?? "");
+      if (!x || x.m.resolved) return err(404, "No orderbook exists for the requested token id");
+      // Bids low to high and asks high to low, as measured (reference §2d).
+      const b = this.yesBook(x.m);
+      const side = x.outcome === "yes" ? b : { bids: b.asks.map(([p, s]): [number, number] => [Number((1 - p).toFixed(6)), s]), asks: b.bids.map(([p, s]): [number, number] => [Number((1 - p).toFixed(6)), s]) };
+      const out = (xs: Array<[number, number]>) => xs.map(([p, s]) => ({ price: String(p), size: String(s) }));
       return {
         status: 200,
         body: {
           market: x.m.cond, asset_id: q.get("token_id"), timestamp: String(this.now()), hash: `h${this.seq++}`, tick_size: x.m.tick, min_order_size: String(x.m.minSize), neg_risk: x.m.negRisk,
-          bids: [{ price: (t.bid - step).toFixed(4), size: "100" }, { price: String(t.bid), size: "50" }],
-          asks: [{ price: (t.ask + step).toFixed(4), size: "100" }, { price: String(t.ask), size: "50" }],
+          bids: out(side.bids.slice().sort((a, b2) => a[0] - b2[0])), asks: out(side.asks.slice().sort((a, b2) => b2[0] - a[0])),
         },
       };
     }
     if (method === "GET" && path === "clob.polymarket.com/rewards/markets/current") {
       if (this.down.rewards) return err(500, "Internal server error");
-      // Two markets a page, so a reader that stops at the first page misses some. Each listing (native, sponsored) has its
-      // own rate for a market, or none: a market can be listed in one only.
       const sponsored = q.get("sponsored") === "true";
-      const rows = this.markets.filter((m) => (sponsored ? m.sponsoredRate : m.rate) != null)
-        .map((m) => ({ condition_id: m.cond, total_daily_rate: sponsored ? m.sponsoredRate : m.rate, rewards_max_spread: 4.5, rewards_min_size: m.minSize }));
-      const at = Number(q.get("next_cursor") ? atob(q.get("next_cursor")!) : 0);
-      const page = rows.slice(at, at + 2);
-      return { status: 200, body: { limit: 2, count: page.length, data: page, next_cursor: at + 2 < rows.length ? btoa(String(at + 2)) : "LTE=" } };
+      const cur = q.get("next_cursor");
+      let at = 0;
+      if (cur) {
+        try { at = Number(atob(cur)); } catch { return err(400, "error decoding cursor: illegal base64 data at input byte 4"); }
+        if (!Number.isInteger(at)) return err(400, "error decoding cursor");
+      }
+      this.onRewardsPage?.(at, sponsored);
+      const rows = this.listing(sponsored), size = this.rewardsPageSize;
+      const page = at < 0 ? [] : rows.slice(at, at + size);
+      return { status: 200, body: { data: page, next_cursor: at >= 0 && at + size < rows.length ? btoa(String(at + size)) : "LTE=", limit: size, count: page.length } };
     }
     if (method === "GET" && path === "gamma-api.polymarket.com/markets/keyset") {
       if (this.down.gamma) return err(503, "down");
-      if (q.get("closed") !== "false" || q.get("order") !== "volume24hr" || q.get("ascending") !== "false") return err(422, "the order path asks for open markets by 24-hour volume");
-      const at = Number(q.get("after_cursor") ? atob(q.get("after_cursor")!) : 0);
-      const conds = this.gammaOrder.slice(at, at + 3);
-      const markets = conds.map((c) => this.markets.find((m) => m.cond === c)!).map((m) => ({
+      const ids = q.getAll("condition_ids").map((c) => c.toLowerCase());
+      if (!ids.length || ids.length > 50 || !["true", "false"].includes(q.get("closed") ?? "")) return err(422, "the order path asks for up to fifty markets by condition id, open or closed");
+      const closed = q.get("closed") === "true";
+      const markets = this.markets.filter((m) => ids.includes(m.cond.toLowerCase()) && !!m.resolved === closed).map((m) => ({
         conditionId: m.cond, question: `Q ${m.cond.slice(2, 8)}`, clobTokenIds: JSON.stringify([m.yes, m.no]), outcomes: '["Yes","No"]',
         enableOrderBook: true, acceptingOrders: m.accepting && !m.resolved, closed: !!m.resolved, negRisk: m.negRisk,
+        ...(m.resolved && m.payout !== undefined ? { outcomePrices: JSON.stringify([String(m.payout), String(1 - m.payout)]) } : {}),
+        ...(m.resolved && m.closedTime !== undefined ? { closedTime: m.closedTime } : {}),
         ...(m.endDate !== undefined ? { endDate: m.endDate } : {}), ...(m.gameStartTime !== undefined ? { gameStartTime: m.gameStartTime } : {}),
       }));
-      return { status: 200, body: { markets, next_cursor: at + 3 < this.gammaOrder.length ? btoa(String(at + 3)) : undefined } };
+      return { status: 200, body: { markets } };
+    }
+    if (method === "GET" && path === "clob.polymarket.com/rebates/current") {
+      if (this.down.rebates) return err(500, "Internal server error");
+      const date = q.get("date") ?? "";
+      if (!DATE.test(date)) return err(400, "Invalid date");
+      if (!/^0x[0-9a-fA-F]{40}$/.test(q.get("maker_address") ?? "")) return err(400, "Invalid maker_address");
+      const r = this.rebatesByDay[date];
+      return { status: 200, body: r ? r.map((x) => ({ date, condition_id: x.cond, asset_address: "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB", maker_address: q.get("maker_address"), rebated_fees_usdc: x.usdc })) : null };
     }
     if (method === "GET" && path === "clob.polymarket.com/auth/ban-status/closed-only") return this.down.closedOnly ? err(500, "Internal server error") : { status: 200, body: { closed_only: this.closedOnlyFlag } };
     if (method === "GET" && path === "clob.polymarket.com/balance-allowance") {
+      if (q.get("signature_type") !== "1") return err(400, "Invalid signature type");
+      // pUSD: the wallet's whole balance; what resting buys reserve is the CLOB's own book-keeping, not a transfer.
+      if (q.get("asset_type") === "COLLATERAL") return this.down.collateral ? err(500, "Internal server error") : { status: 200, body: { balance: String(Math.round(this.pusd * 1e6)), allowances: {} } };
       if (this.down.balance) return err(500, "Internal server error");
-      if (q.get("asset_type") !== "CONDITIONAL" || q.get("signature_type") !== "1") return err(400, "Invalid asset type");
+      if (q.get("asset_type") !== "CONDITIONAL" || !q.get("token_id")) return err(400, "Invalid asset type");
       const shares = this.tokens.get(q.get("token_id") ?? "") ?? 0;
       return { status: 200, body: { balance: String(Math.round(shares * 1e6)), allowances: {} } };
     }
     if (method === "GET" && path.startsWith("clob.polymarket.com/data/order/")) {
       if (this.orderReadDown) return err(500, "Internal server error");
       const o = this.orders.get(path.split("/").at(-1)!);
+      if (o) this.landCancel(o, true);
       return o ? { status: 200, body: this.orderView(o) } : err(404, "Order not found");
     }
     if (method === "GET" && path === "clob.polymarket.com/data/trades") {
@@ -840,17 +995,48 @@ export class FakePolymarket {
       }] : [];
       return { status: 200, body: { limit: 100, count: data.length, next_cursor: "LTE=", data } };
     }
+    if (method === "GET" && path === "clob.polymarket.com/order-scoring") {
+      if (this.down.scoring) return err(500, "Internal server error");
+      const id = q.get("order_id") ?? "";
+      if (!/^0x[0-9a-f]{64}$/.test(id)) return err(400, "Invalid order_id");
+      const o = this.orders.get(id);
+      return o ? { status: 200, body: { scoring: this.scoring(o) } } : err(404, "market not found");
+    }
+    if (method === "GET" && path === "clob.polymarket.com/rewards/user/percentages") {
+      if (q.get("signature_type") !== "1") return err(400, "Invalid signature_type");
+      return { status: 200, body: { ...this.percentages } };
+    }
+    if (method === "GET" && (path === "clob.polymarket.com/rewards/user" || path === "clob.polymarket.com/rewards/user/total")) {
+      if (this.down.earnings) return err(500, "Internal server error");
+      const date = q.get("date") ?? "";
+      if (!DATE.test(date)) return err(400, "Invalid date (format: YYYY-MM-DD)");
+      if (q.get("signature_type") !== "1") return err(400, "Invalid signature_type");
+      const sponsored = q.get("sponsored") === "true";
+      const day = this.earnings[date] ?? { native: [], sponsored: [] };
+      const row = (x: { cond: string; usd: number }) => ({ date: `${date}T00:00:00Z`, condition_id: x.cond, asset_address: "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB", maker_address: PM_TEST_FUNDER, earnings: x.usd, asset_rate: 1 });
+      if (path.endsWith("/total")) {
+        // sponsored=true aggregates both, as the OpenAPI says; without it, native only.
+        const all = [...day.native, ...(sponsored ? day.sponsored : [])];
+        return { status: 200, body: all.length ? [{ date: `${date}T00:00:00Z`, asset_address: "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB", maker_address: PM_TEST_FUNDER, earnings: all.reduce((s, x) => s + x.usd, 0), asset_rate: 1 }] : [] };
+      }
+      // Pages of two, from "MA==", as the clients page it.
+      const rows = (sponsored ? day.sponsored : day.native).map(row);
+      let at = 0;
+      try { at = Number(atob(q.get("next_cursor") ?? "MA==")); } catch { return err(400, "Invalid next_cursor"); }
+      const page = rows.slice(at, at + 2);
+      return { status: 200, body: { limit: 2, count: page.length, next_cursor: at + 2 < rows.length ? btoa(String(at + 2)) : "LTE=", data: page } };
+    }
     if (method === "POST" && path === "clob.polymarket.com/order") return this.post(body ?? "");
     if (method === "DELETE" && path === "clob.polymarket.com/order") {
       const id = String((JSON.parse(body ?? "{}") as { orderID?: string }).orderID ?? "");
       const o = this.orders.get(id);
       if (!o || o.status !== "LIVE") return { status: 200, body: { canceled: [], not_canceled: { [id]: o ? "order already matched" : "Order not found or already canceled" } } };
-      if (this.cancelMode !== "lost") o.status = "CANCELED";
+      if (this.cancelMode !== "lost") this.takeCancel(o);                       // "lost": said and not done
       return { status: 200, body: { canceled: [id], not_canceled: {} } };
     }
     if (method === "DELETE" && path === "clob.polymarket.com/cancel-all") {
       const canceled: string[] = [];
-      for (const o of this.orders.values()) if (o.status === "LIVE") { o.status = "CANCELED"; canceled.push(o.hash); }
+      for (const o of this.orders.values()) if (o.status === "LIVE") { if (this.cancelMode !== "lost") this.takeCancel(o); canceled.push(o.hash); }
       return { status: 200, body: { canceled, not_canceled: {} } };
     }
     return err(404, `fake polymarket: no route ${method} ${path}`);
@@ -899,7 +1085,7 @@ export class FakePolymarket {
     if (side === "BUY" ? this.pusd - this.reserved("pusd") + 1e-9 < price * size : (this.tokens.get(token) ?? 0) - this.reserved(token) + 1e-9 < size) {
       return bad("not enough balance / allowance");
     }
-    this.orders.set(hash, { hash, token, side, price, size, matched: 0, status: "LIVE", expiration: exp, orderType: String(b.orderType), trades: [], cond: x.m.cond });
+    this.orders.set(hash, { hash, token, side, price, size, matched: 0, status: "LIVE", expiration: exp, orderType: String(b.orderType), trades: [], cond: x.m.cond, at: this.now() });
     if (this.postMode === "lose-reply") return { status: -1, body: null };
     if (this.postMode === "500-after-accept") return { status: 500, body: { error: "Internal server error" } };
     return { status: 200, body: { success: true, errorMsg: "", orderID: hash, status: "live", makingAmount: String(o.makerAmount), takingAmount: String(o.takerAmount) } };
@@ -908,6 +1094,7 @@ export class FakePolymarket {
   /** A taker trades `size` against our resting order: a MATCHED trade, the account moved as the exchange will move it. */
   fill(hash: string, size: number): string {
     const o = this.orders.get(hash);
+    if (o) this.landCancel(o);
     if (!o || o.status !== "LIVE") throw new Error(`fake polymarket: ${hash} is not resting`);
     const q = Math.min(size, o.size - o.matched);
     const id = `trade-${this.seq++}`;
@@ -939,15 +1126,22 @@ export class FakePolymarket {
       const error = ok ? undefined : String((a.body as { error?: string } | null)?.error ?? a.status);
       return Promise.resolve({ ok, status: a.status, ms: 0, data: a.body as never, error, retryAfterS: a.retryAfter ?? null });
     };
+    const qs = (q: Record<string, string>) => new URLSearchParams(q).toString();
     return {
       geoblock: () => call("GET", "https://polymarket.com/api/geoblock"),
       book: (t) => call("GET", `${C}/book?token_id=${t}`),
       rewardsPage: (s, c) => call("GET", `${C}/rewards/markets/current?sponsored=${s}${c ? `&next_cursor=${encodeURIComponent(c)}` : ""}`),
-      gammaMarkets: (c) => call("GET", `https://gamma-api.polymarket.com/markets/keyset?closed=false&limit=100&order=volume24hr&ascending=false${c ? `&after_cursor=${encodeURIComponent(c)}` : ""}`),
+      gammaByConditions: (conds, closed) => call("GET", `https://gamma-api.polymarket.com/markets/keyset?limit=100&closed=${closed}${conds.map((c) => `&condition_ids=${c}`).join("")}`),
       closedOnly: () => call("GET", `${C}/auth/ban-status/closed-only`),
+      collateral: () => call("GET", `${C}/balance-allowance?asset_type=COLLATERAL&signature_type=1`),
       conditionalBalance: (t) => call("GET", `${C}/balance-allowance?asset_type=CONDITIONAL&token_id=${t}&signature_type=1`),
       order: (id) => call("GET", `${C}/data/order/${id}`),
       trade: (id) => call("GET", `${C}/data/trades?id=${id}`),
+      orderScoring: (id) => call("GET", `${C}/order-scoring?order_id=${id}`),
+      rewardPercentages: () => call("GET", `${C}/rewards/user/percentages?signature_type=1`),
+      userEarnings: (date, sponsored, cursor) => call("GET", `${C}/rewards/user?${qs({ date, signature_type: "1", ...(sponsored ? { sponsored: "true" } : {}), ...(cursor ? { next_cursor: cursor } : {}) })}`),
+      userEarningsTotal: (date, sponsored) => call("GET", `${C}/rewards/user/total?${qs({ date, signature_type: "1", ...(sponsored ? { sponsored: "true" } : {}) })}`),
+      rebates: (date, maker) => call("GET", `${C}/rebates/current?${qs({ date, maker_address: maker })}`),
       postOrder: (o, orderType, postOnly) => call("POST", `${C}/order`, postOrderBody(o, PM_TEST_OWNER, orderType, postOnly)),
       cancelOrder: (id) => {
         const p = call("DELETE", `${C}/order`, cancelOrderBody(id));
@@ -959,12 +1153,15 @@ export class FakePolymarket {
 
   /**
    * The same venue over HTTP, for the order path's REAL client (`pmVenue`): every request is answered by `answer`, and a
-   * private one (closed-only, balances, orders, trades, and every write) only with the five L2 headers of the test key's
-   * address and API key — the CLOB's 401 otherwise. A redirect it never sends; a client must not need one.
+   * private one (closed-only, balances, orders, trades, scoring, the account's rewards, and every write) only with the
+   * five L2 headers of the test key's address and API key — the CLOB's 401 otherwise. A redirect it never sends; a client
+   * must not need one.
    */
   fetch: typeof fetch = async (input, init) => {
     const u = new URL(String(input)), method = (init?.method ?? "GET").toUpperCase();
-    const l2 = u.host === "clob.polymarket.com" && (method !== "GET" || ["/auth/ban-status/closed-only", "/balance-allowance", "/data/trades"].includes(u.pathname) || u.pathname.startsWith("/data/order/"));
+    const l2 = u.host === "clob.polymarket.com" && (method !== "GET"
+      || ["/auth/ban-status/closed-only", "/balance-allowance", "/data/trades", "/order-scoring", "/rewards/user", "/rewards/user/total", "/rewards/user/percentages"].includes(u.pathname)
+      || u.pathname.startsWith("/data/order/"));
     const h = (init?.headers ?? {}) as Record<string, string>;
     if (l2 && (h.POLY_API_KEY !== PM_TEST_OWNER || String(h.POLY_ADDRESS).toLowerCase() !== PM_TEST_SIGNER.toLowerCase() || !h.POLY_SIGNATURE || !h.POLY_TIMESTAMP || !h.POLY_PASSPHRASE)) {
       this.calls.push(`${method} ${u.host}${u.pathname} (401)`);

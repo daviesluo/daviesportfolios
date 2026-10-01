@@ -1,13 +1,15 @@
 {
- "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes",
+ "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01)",
  "write_up": "docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md",
  "run": [
   "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
-  "python3 scripts/reward_agg.py  # live, keyless; aggregates only, no per-market row written or printed"
+  "python3 scripts/reward_agg.py  # live, keyless; aggregates only, no per-market row written or printed",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env selection_time.ts 3 6 120 > ../results/selection_time_out.txt  # live, keyless; scores only the [$6, $10) universe and names no market"
  ],
  "sources": {
   "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",
-  "results/bridge_quotes.txt": "bridge.polymarket.com /quote, keyless, 2026-10-01 ~02:00 UTC; nothing created"
+  "results/bridge_quotes.txt": "bridge.polymarket.com /quote, keyless, 2026-10-01 ~02:00 UTC; nothing created",
+  "results/selection_time_out.txt": "CLOB /rewards/markets/current, Gamma /markets/keyset and CLOB /book, keyless, through agents/pm_live.ts selectMarkets, 2026-10-01 16:53-16:54 UTC"
  },
  "committed": {
   "results/bridge_quotes.txt": {
@@ -22,6 +24,10 @@
    "bytes": 648,
    "sha256": "81e0b5d55c1c28965dd2780bed79340ad24943e6a5543e28d37d55c5a1ac406c"
   },
+  "results/selection_time_out.txt": {
+   "bytes": 2760,
+   "sha256": "f693cb28ffc7832b10b8fc6d6336dadeed07a35ad1fece09398867b67e6ee8b7"
+  },
   "scripts/ratio_power.py": {
    "bytes": 2061,
    "sha256": "67d11b44685f437235be8020c9a14972eb8ffb4e3a310c64e060684b1fa4f38a"
@@ -29,6 +35,11 @@
   "scripts/reward_agg.py": {
    "bytes": 2379,
    "sha256": "1b69e3c0f711a6918ee9ed7c62e66be09b46d4adb5d45e5ec4b8a664cd342094"
+  },
+  "scripts/selection_time.ts": {
+   "bytes": 2355,
+   "sha256": "8bf717277db8f181903fd7ae0b01cd512b0b5b884acfa975885bb740cb1902ba"
   }
- }
+ },
+ "calibration_write_up": "docs/agents/reviews/2026-10-01-polymarket-live-calibration.md"
 }

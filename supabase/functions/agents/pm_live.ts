@@ -1,58 +1,85 @@
-// Polymarket's order path: the executor, rule-independent, built INERT on 2026-10-01 during RW-C (Option 1 of
-// docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md, on Davies' word; the design is
-// docs/agents/reviews/2026-10-01-polymarket-order-path.md, migration 0074).
+// Polymarket's order path: the executor. Built inert on 2026-10-01 during RW-C (Option 1 of
+// docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md, on Davies' word; design
+// docs/agents/reviews/2026-10-01-polymarket-order-path.md, migration 0074), and made ready the same day for a LIVE
+// CALIBRATION of what Polymarket's liquidity rewards actually pay (docs/agents/reviews/2026-10-01-polymarket-live-
+// calibration.md, migration 0076): R = actual rewards / formula rewards for the same quotes, the one thing no paper test
+// can show.
 //
-// WHAT RUNS NOW: a dry-run, every minute, from Supabase's Ireland region (`agents?action=pmlive`). It records the
-// runtime's `SB_REGION`, runs every gate, and writes the orders it WOULD send or cancel, on two markets a UTC day that
-// are outside RW's universe. It never loads the private key: an order's id is its EIP-712 hash, which needs none. It
-// reads and writes only its own tables (`PM_LIVE_TABLES`), the global pause in `agent_risk` and its lease. Nothing of
-// RW's or RW-C's (`pm_rw_*`, `pm_rwc_*`) is read; its markets are chosen by its own rule, never RW's ranking.
+// WHAT RUNS: every minute, from Supabase's Ireland region (`agents?action=pmlive`). The strategy is RW's quoting rule as
+// RW-E applies it (`agents/pmrw.ts`, `agents/pmrw_e.ts`, both frozen and only imported here), on rewarded markets OUTSIDE
+// RW's universe: a total daily reward rate of at least $6 and under $10 (RW's universe is $10 and over, so these are
+// never RW's or RW-C's markets), ranked each UTC day by RW's own first-round reward per dollar. It is a DRY-RUN until
+// Davies says go: the code can send (`PM_ORDER_SENDS_ENABLED` is true and the action loads the signing key), and the
+// config row keeps it home (`dry_run` true, `live_confirmed_at` null). Going live is one statement, which also sets the
+// total cap from the pUSD balance this path read (`state.pusd`, within five minutes) less the total stop and $5, and
+// fails if that balance is unread, stale or too small (0076's header and the design's checklist hold it word for word).
+//
+// It reads and writes only its own tables (`PM_LIVE_TABLES`), the global pause in `agent_risk` and its lease. Nothing of
+// RW's or RW-C's (`pm_rw_*`, `pm_rwc_*`) is read.
 //
 // WHAT IT DOES, each turn, in order:
-//   1. The day's markets: one standard and one neg-risk market that Gamma shows accepting orders, with two tokens and a
-//      two-sided book, whose daily reward rate in `/rewards/markets/current` is under $10 or absent — taken in Gamma's
-//      order by 24-hour volume, the first of each kind. Chosen once a UTC day; a kind not found is tried again every
-//      five minutes. RW's universe is $10 and over, so these markets are never RW's or RW-C's.
-//   2. What the venue says: each market's book, the geoblock's answer for this runtime's address, the account's
-//      closed-only flag and what it holds of each token (L2 GETs); in live mode every open order read back by its hash
-//      and its trades until CONFIRMED or FAILED.
-//   3. The gates, in this order (`gates`): `agent_risk.global_pause` cancels everything and places nothing; the path's
-//      own `live_confirmed_at` (live only: cleared, nothing that opens); the runtime's region (eu-west-1); the geoblock
-//      (country IE); the account's closed-only flag; Davies' Ireland attestation; the inventory read; the loss stops.
-//      While any of them stops opening, the path is close-only exactly as RW-NEXT Part 4 words it (`closeOnly`).
-//   4. The quotes: the rule's intents (`placeholderQuotes` now: join the touch at the minimum size), close-only when it
-//      must be, then the caps and the governor; each slot (market, token, side) holds at most one order.
-//   5. The orders: a slot whose order is right is left alone; one that must change is cancelled and its replacement
-//      sent only once the cancel is READ BACK; a missing one is sent. In live mode every order is written `pending`,
-//      keyed by its hash, before the POST; a 4xx with an error is a refusal, a 5xx or a lost reply is unknown and the
-//      row stays pending until a read-back by hash settles it; one the venue shows nowhere stays pending for a person.
-//
-// THE THREE LOCKS on a live order, each enough alone: `PM_ORDER_SENDS_ENABLED` (false: `pmOrderCall` sends no POST or
-// DELETE), the key (this phase never loads it, so nothing can be signed), and `dry_run` (true, from 0074).
+//   1. The day's markets (`selectMarkets`), once a UTC day, retried every five minutes until one lands: the reward
+//      listing read whole (`rewardListing`: its pages concurrently, overlapping, proved complete), the markets in the
+//      universe, Gamma's word on each (accepting orders, two tokens, nothing ending or starting within 48 hours, RW-E's
+//      same-day rule), each one's book, RW's `firstScore` on it, a floor on the formula reward a day (so a payout can
+//      clear Polymarket's $1 minimum), and RW's `choose` within the config's budget and number of markets.
+//   2. What the venue says: each market's book (today's, and any held from an earlier day), the geoblock (a good answer
+//      kept for ten minutes), the account's closed-only flag and what it holds; in live mode every open order read back
+//      by its hash and its trades until CONFIRMED or FAILED.
+//   3. The gates (`gates`): the global pause, `live_confirmed_at` (live only), the region, the geoblock's country, the
+//      closed-only flag, Davies' Ireland attestation, the inventory read, the loss stops. While any of them stops
+//      opening, the path is close-only exactly as RW-NEXT Part 4 words it (`closeOnly`).
+//   4. The quotes (`rwQuotes`): RW's bid and ask on the book WITHOUT our own orders, at N = max(the reward minimum, 5),
+//      a side stopped at 3N of inventory its way; then close-only, the venue's rules, post-only, the caps, the governor.
+//   5. The orders: a slot whose order is right is left alone; one that must change is cancelled and its replacement sent
+//      only once the cancel is READ BACK. In live mode every order is written `pending`, keyed by its hash, before the POST.
+//      A quote the venue refused goes again only on new information (`refusalWait`), and an order that would take one of
+//      our own still in the book is withheld.
+//   6. The minute's formula (`minuteFormula`, `pm_live_minutes`): for each market, RW's reward formula on the quotes that
+//      rested when the turn read the book, against the book without them; in live mode beside whether the venue says each
+//      order is scoring, and its live share of the pool.
+//   7. Once a UTC day after 01:00, the readout (`pm_live_reward_days`): for the two days before, what the account was
+//      paid per market (`/rewards/user`, native and sponsored), its day's total, the maker rebates, and the formula sums
+//      of those days' minutes. R is a query: Σ actual / Σ formula over the live rows.
 //
 // A TURN'S TIME: it shares the one-minute cron job's batch, so it stays inside its call's 58 s and its 55 s lease. Every
-// venue request gives up after 5 s; no selection read starts later than 40 s into the turn and no order is sent later
-// than 40 s, and a live order is sent only while the turn still holds its lease, renewed once half of it is gone (PR5's
-// executor's rule, `quotes_live.ts`).
+// venue request gives up after 5 s; no selection or readout read starts later than 40 s into the turn and no order is
+// sent later than 40 s, and a live order is sent only while the turn still holds its lease, renewed once half of it is
+// gone (PR5's executor's rule, `quotes_live.ts`).
 
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmOpenOrder, type PmOrder, type PmReply,
-  type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmVenue,
+  type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmUserEarning, type PmVenue,
 } from "../_shared/polymarket_orders.ts";
+import type { PmLevel } from "../_shared/polymarket_public.ts";
+import { choose, firstScore, othersOf, quote, RW_INV_CAP, scoreS, sizeN, summarize, type BookRow } from "./pmrw.ts";
+import { excludedByDay } from "./pmrw_e.ts";
 import type { Db } from "./db.ts";
 
 const M = 60e3, DAY = 86400e3;
 
 /** The tables this path owns. It also reads `agent_risk` (the global pause) and holds its lease in `agent_locks`. */
-export const PM_LIVE_TABLES = ["pm_live_config", "pm_live_markets", "pm_live_orders", "pm_live_fills", "pm_live_events", "pm_live_state"] as const;
+export const PM_LIVE_TABLES = [
+  "pm_live_config", "pm_live_markets", "pm_live_orders", "pm_live_fills", "pm_live_events", "pm_live_state", "pm_live_minutes", "pm_live_reward_days",
+  "pm_live_settlements",
+] as const;
 export const PM_LIVE_DB_TABLES: readonly string[] = [...PM_LIVE_TABLES, "agent_risk", "agent_locks"];
 
-// The code's ceilings (RW-NEXT Part 3.1 and the pre-study): a config row may lower each, never raise it.
-export const PM_LIVE_CAP_TOTAL_USD = 300;
+// The code's ceilings: a config row may lower each, never raise it.
+/**
+ * The most the live test may commit, buys' collateral and holdings at cost together: Davies' deposit of about $400
+ * (2026-10-01, ~17:00 UTC: "polymarket的策略我决定还是听你的转400美元进去追求最优效果") less the −$75 total stop less a $5
+ * margin. The config's cap is set at go time from the balance that arrived (balance − 75 − 5) and only this clamps it:
+ * a balance above the $400 he named leaves the cap here, because committing more is a decision of his, not a side
+ * effect of loose change. 0074 had $300, the pre-study's figure.
+ */
+export const PM_LIVE_CAP_TOTAL_USD = 320;
 export const PM_LIVE_CAP_MARKET_USD = 60;
 export const PM_LIVE_LOSS_DAY_USD = 25;
 export const PM_LIVE_LOSS_TOTAL_USD = 75;
 export const PM_LIVE_MAX_POSTS_DAY = 6000;
+/** The most markets a day the config may ask for. */
+export const PM_LIVE_MAX_MARKETS = 12;
 /**
  * A GTD order's effective life, in seconds: it is sent with expiration now + 60 + this. The venue refuses an expiration
  * less than 3 minutes ahead, so the floor is 180, not the docs' "about two minutes": an order sent as late as
@@ -62,9 +89,9 @@ export const PM_LIVE_LIFETIME_S = { min: 180, max: 600 } as const;
 /** Each venue request gives up after this long (the action hands it to the client). */
 export const PM_LIVE_TIMEOUT_MS = 5e3;
 /**
- * No selection read starts later than this into a turn. The reward listing alone was 39 pages of up to 500 markets
- * (18,600 rows, 6.5 MB) on 2026-10-01, 36 s from a container behind Cloudflare's Atlanta edge; from eu-west-1, next to
- * Polymarket's eu-west-2, it should be quicker, and each selection's `ms` records what it took.
+ * No selection or readout read starts later than this into a turn. The reward listing is 39 pages of 500 (19,037 rows on
+ * 2026-10-01): one after another it took 30.6 s and 36.6 s from eu-west-1, and 39.7 s from this repository's container;
+ * read eight at a time it took 4.1–5.4 s from the container (`rewardListing`).
  */
 export const PM_LIVE_SELECT_UNTIL_MS = 40e3;
 /** No order is sent later than this into a turn: it reaches the venue with its 3 minutes, and the turn ends inside its lease. */
@@ -74,15 +101,59 @@ export const PM_LIVE_REFRESH_S = 90;
 /** RW's universe is a daily reward rate of $10 and over: this path quotes only below it. */
 export const PM_LIVE_REWARD_RATE_MAX = 10;
 /**
+ * The universe's floor: a total daily rate of at least $6. A pool pays a market's makers at most its rate between them,
+ * and the scan of 2026-10-01 (every book from $5 to $10, 4,466 of them) put RW's eight best markets by first-round reward
+ * per dollar at $6–$9: the same six chosen with a $5 floor as with this one, from 750 books instead of 4,466.
+ */
+export const PM_LIVE_REWARD_FLOOR = 6;
+/**
+ * A market is taken only if RW's first-round formula, on the book read at the selection, pays it at least this a day:
+ * Polymarket pays nothing below $1 ("The minimum reward payout is $1"), and at RW's break-even ratio of actual to formula
+ * (R ≈ 0.40, the pre-study) $2.50 of formula is that dollar. The docs do not say whether the minimum is per market or per
+ * address; this keeps it cleared either way, so a day's payout is never cut to nothing by the minimum.
+ */
+export const PM_LIVE_MIN_FORMULA_DAY_USD = 2.5;
+/**
+ * The largest order size a market may need, N = max(its reward minimum, 5): RW's rule stops a side at 3N of inventory,
+ * so a market at N = 20 commits at most 3N shares at $1 plus the other side's bid, $60 — the per-market ceiling. At N
+ * of 20 the cap is a backstop and never RW's rule; 2,375 of the 2,746 scorable markets from $5 to $10 had N ≤ 20.
+ */
+export const PM_LIVE_MAX_N = 20;
+/**
  * A market whose game starts, or which ends, within this of the selection is passed over: one that resolves while it is
  * selected leaves no book. The first day's standard pick, a China Open match chosen at 05:31 UTC on 2026-10-01, had an
- * `endDate` a week on but a `gameStartTime` of 03:05 that day, and closed at 06:27; for the rest of the day every turn
- * read a 404 and reported it.
+ * `endDate` a week on but a `gameStartTime` of 03:05 that day, and closed at 06:27. It also holds RW-E's rule (a market
+ * ending on the day it is quoted is not quoted that day) many times over.
  */
 export const PM_LIVE_MIN_HORIZON_MS = 2 * DAY;
-const GAMMA_PAGES = 5, BOOK_READS = 40, REWARD_PAGES = 200, SELECT_RETRY_MS = 5 * M;
+/**
+ * The reward listing's pages are read this many rows over each other (offsets 0, 480, 960, … for pages of 500): a page
+ * that begins inside the one before it proves no row fell between them. The listing moves while it is read: on
+ * 2026-10-01, of 38 boundaries per read, up to 16 were 1–4 rows from where they were expected.
+ */
+export const PM_LISTING_OVERLAP = 20;
+/** The listing's pages read at once (Cloudflare allows the CLOB 9,000 requests in 10 s). */
+export const PM_LISTING_CONCURRENCY = 8;
+const GAMMA_CHUNK = 50, GAMMA_CONCURRENCY = 6, BOOK_CONCURRENCY = 12, REWARD_PAGES = 200, EARNING_PAGES = 20;
+const SELECT_RETRY_MS = 5 * M;
+/** A good geoblock answer stands for this long when a read fails; past it the gate closes, reported once. */
+export const PM_LIVE_GEO_CACHE_MS = 10 * M;
+/** The day's readout runs from this far into the UTC day (Polymarket pays at midnight), for the two days before it. */
+export const PM_LIVE_READOUT_AFTER_MS = 3600e3;
+export const PM_LIVE_READOUT_DAYS = 2;
+const READOUT_RETRY_MS = 10 * M;
 /** The turn's lease on `agent_locks` (pm-live), as the other minute loops hold theirs. */
 export const PM_LIVE_LEASE_MS = 55e3;
+/**
+ * A cancel the venue took can be carried out a moment AFTER it is answered: on PR5's first live hour (Revolut X,
+ * 2026-10-01 16:37 and 16:41 UTC) the read-back straight after the DELETE still showed 3 of 11, then 7 of 11 re-priced
+ * orders resting, and every one read back cancelled on the next turn (reference §4 item 35). Polymarket's docs word a
+ * cancel's reply as its outcome ("it identifies the orders that were canceled", trading/manage-orders), which suggests
+ * the CLOB carries a cancel out before it answers; they say nothing of when `GET /data/order/{id}` shows it. So an order
+ * still open on its read-back is read again after each of these pauses, about a second in all, before its slot is
+ * frozen; and a freeze is an error only from the turn after the cancel was first asked.
+ */
+export const PM_LIVE_CANCEL_REREAD_MS = [300, 700] as const;
 const PENDING_GRACE_MS = 60e3;
 /** Blocked completely, on the frontend and the API (api-reference/geoblock): nothing may be placed from there, not even a sell. */
 const OFAC_COUNTRIES = new Set(["IR", "SY", "CU", "KP"]);
@@ -93,10 +164,15 @@ export type PmLiveConfig = {
   dry_run: boolean; live_confirmed_at: string | null; ireland_attested_at: string | null; ireland_until: string | null;
   cap_total_usd: number | string; cap_market_usd: number | string; loss_day_usd: number | string; loss_total_usd: number | string;
   max_posts_day: number | string; gtd_lifetime_s: number | string;
+  /** The day's markets at most, and the first-quote capital they may take (0076). */
+  max_markets?: number | string; select_budget_usd?: number | string;
 };
 export type PmMarketRow = {
   day: string; kind: "standard" | "neg_risk"; cond: string; yes_token: string; no_token: string; neg_risk: boolean;
   tick: number | string; min_size: number | string; reward_rate: number | string | null; rank: number; question: string | null;
+  /** The reward programme's maximum spread (cents), its N, and RW's first-round reading at the selection (0076). */
+  max_spread?: number | string | null; n_size?: number | string | null; per_dollar_day?: number | string | null; capital?: number | string | null;
+  formula_day?: number | string | null; end_date?: string | null; game_start?: string | null;
 };
 export type PmOrderRow = {
   id: number; ts: string; mode: PmLiveMode; cond: string; token: string; outcome: "yes" | "no"; side: "BUY" | "SELL";
@@ -106,24 +182,45 @@ export type PmOrderRow = {
   cancel_requested_at: string | null; cancel_gate: string | null; cancel_reason: string | null; filled_at: string | null; cancelled_at: string | null;
 };
 type FillRow = { trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; status: string; match_time: string | null };
+/** One market's minute as `pm_live_minutes` keeps it: the inputs of RW's formula and its answer. */
+export type PmMinuteRow = {
+  mode: PmLiveMode; minute: string; cond: string; rate: number; max_spread: number; min_size: number; tick: number;
+  bb: number | null; ba: number | null; ab: number | null; aa: number | null; q1: number | null; q2: number | null;
+  bid_price: number | null; bid_size: number | null; ask_price: number | null; ask_size: number | null;
+  bid_scoring: boolean | null; ask_scoring: boolean | null; ours: number; others: number; formula_usd: number; pct: number | null;
+  detail: Record<string, unknown>;
+};
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
 const enc = encodeURIComponent;
+const num = (x: unknown) => { const v = Number(x); return Number.isFinite(v) ? v : 0; };
+const dayOf = (ms: number) => iso(Math.floor(ms / DAY) * DAY).slice(0, 10);
+
+/** `f` over `items`, at most `n` at a time; it stops taking new items once `stop()` says so. */
+async function pool<T>(items: T[], n: number, f: (x: T, i: number) => Promise<void>, stop: () => boolean = () => false): Promise<void> {
+  let i = 0;
+  const worker = async () => { while (i < items.length && !stop()) { const k = i++; await f(items[k], k); } };
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, worker));
+}
 
 // ------------------------------------------------------------------ pure rules, each pinned in pm_live.test.ts
 
-/** The config's caps, each at most the code's ceiling; the GTD lifetime inside its bounds. */
+/** The config's caps, each at most the code's ceiling; the GTD lifetime inside its bounds; the day's markets and budget. */
 export function effectiveLimits(c: PmLiveConfig) {
-  const lower = (v: number | string, ceiling: number) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.min(n, ceiling) : ceiling; };
+  const lower = (v: number | string | undefined, ceiling: number) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? Math.min(n, ceiling) : ceiling; };
   const life = Number(c.gtd_lifetime_s);
+  const capTotal = lower(c.cap_total_usd, PM_LIVE_CAP_TOTAL_USD);
   return {
-    capTotal: lower(c.cap_total_usd, PM_LIVE_CAP_TOTAL_USD),
+    capTotal,
     capMarket: lower(c.cap_market_usd, PM_LIVE_CAP_MARKET_USD),
     lossDay: lower(c.loss_day_usd, PM_LIVE_LOSS_DAY_USD),
     lossTotal: lower(c.loss_total_usd, PM_LIVE_LOSS_TOTAL_USD),
     maxPosts: Math.floor(lower(c.max_posts_day, PM_LIVE_MAX_POSTS_DAY)),
     lifetimeS: Number.isFinite(life) ? Math.min(PM_LIVE_LIFETIME_S.max, Math.max(PM_LIVE_LIFETIME_S.min, Math.floor(life))) : PM_LIVE_LIFETIME_S.min,
+    // A missing or unreadable count or budget selects nothing: only a row that names them chooses markets.
+    maxMarkets: Math.floor(lower(c.max_markets ?? 0, PM_LIVE_MAX_MARKETS)),
+    budget: Math.min(lower(c.select_budget_usd ?? 0, PM_LIVE_CAP_TOTAL_USD), capTotal),
   };
 }
 
@@ -189,22 +286,30 @@ export function gates(i: GateInputs): Gates {
   return { open: !openBlockedBy, reduce: !reduceBlockedBy, cancelAll: i.globalPause, openBlockedBy, reduceBlockedBy, verdicts: v };
 }
 
-/** A book's touch and the market's trading constraints, as the order path reads them. */
-export type PmBookNow = { bestBid: number; bestAsk: number; tick: PmTickSize; minSize: number; negRisk: boolean; at: string | null; hash: string | null };
-/** GET /book as served, reduced to its touch; null unless it is two-sided with both prices inside [tick, 1 − tick]. */
+/** One market's book, best level first on each side, prices in (0, 1). */
+export type PmLevels = { bids: PmLevel[]; asks: PmLevel[] };
+/** A book's touch, its levels and the market's trading constraints, as the order path reads them. */
+export type PmBookNow = {
+  bestBid: number; bestAsk: number; tick: PmTickSize; minSize: number; negRisk: boolean; at: string | null; hash: string | null; levels: PmLevels;
+};
+/** GET /book as served, reduced to its touch and levels; null unless it is two-sided with both prices inside [tick, 1 − tick]. */
 export function bookNow(raw: unknown): PmBookNow | null {
   const b = raw && typeof raw === "object" ? raw as Record<string, unknown> : null;
   if (!b) return null;
-  const px = (xs: unknown) => (Array.isArray(xs) ? xs : [])
-    .map((l) => ({ p: Number((l as Record<string, unknown>)?.price), s: Number((l as Record<string, unknown>)?.size) }))
-    .filter((l) => Number.isFinite(l.p) && Number.isFinite(l.s) && l.s > 0 && l.p > 0 && l.p < 1).map((l) => l.p);
-  const bids = px(b.bids), asks = px(b.asks);
+  // The CLOB lists bids low to high and asks high to low (reference §2d): the best of each is found, not assumed.
+  const lv = (xs: unknown): PmLevel[] => (Array.isArray(xs) ? xs : [])
+    .map((l) => [Number((l as Record<string, unknown>)?.price), Number((l as Record<string, unknown>)?.size)] as PmLevel)
+    .filter(([p, s]) => Number.isFinite(p) && Number.isFinite(s) && s > 0 && p > 0 && p < 1);
+  const bids = lv(b.bids).sort((x, y) => y[0] - x[0]), asks = lv(b.asks).sort((x, y) => x[0] - y[0]);
   const tick = asTickSize(b.tick_size), minSize = Number(b.min_order_size);
   if (!tick || !(minSize > 0) || !bids.length || !asks.length) return null;
-  const bestBid = Math.max(...bids), bestAsk = Math.min(...asks), t = Number(tick);
+  const bestBid = bids[0][0], bestAsk = asks[0][0], t = Number(tick);
   if (!(bestBid < bestAsk) || bestBid < t - 1e-12 || bestAsk > 1 - t + 1e-12) return null;
   const ts = Number(b.timestamp);
-  return { bestBid, bestAsk, tick, minSize, negRisk: b.neg_risk === true, at: Number.isFinite(ts) && ts > 0 ? iso(ts) : null, hash: typeof b.hash === "string" ? b.hash : null };
+  return {
+    bestBid, bestAsk, tick, minSize, negRisk: b.neg_risk === true, at: Number.isFinite(ts) && ts > 0 ? iso(ts) : null, hash: typeof b.hash === "string" ? b.hash : null,
+    levels: { bids, asks },
+  };
 }
 
 /** `x` on the tick, as a clean decimal: 1 − 0.53 is 0.47, not 0.47000000000000003. */
@@ -215,19 +320,100 @@ export function onTick(x: number, tick: PmTickSize): number {
 
 /** One order the rule wants resting: on the market's YES or NO token. */
 export type PmIntent = { outcome: "yes" | "no"; side: "BUY" | "SELL"; price: number; size: number };
-export type PmQuoteInput = { market: PmMarketRow; book: PmBookNow; held: { yes: number; no: number } };
+/** One of our orders resting at the venue (or, in a dry-run, recorded as resting): its token, side, price and remaining size. */
+export type PmOwnOrder = PmIntent;
+export type PmQuoteInput = {
+  market: PmMarketRow; book: PmBookNow; held: { yes: number; no: number };
+  /** Our orders the book just read contains (live mode: those resting at the venue; a dry-run's are in no book). */
+  own?: PmOwnOrder[];
+};
 /** The pluggable quoting rule: a market's book and holdings in, the orders it wants resting out. */
 export type PmQuoteRule = (m: PmQuoteInput) => PmIntent[];
 
 /**
- * The PLACEHOLDER rule, for the plumbing only: join the touch at the market's minimum size, a bid as BUY YES at the best
- * bid and an ask as BUY NO at 1 − the best ask, re-priced when the touch moves. RW-NEXT's candidate plugs in here after
- * RW-C, under the live design; nothing about this rule is a strategy.
+ * Where an order rests in the market's one book, as the YES token's book shows it. A market has one book: its NO book is
+ * the YES book's mirror, NO's bids at 1 − YES's asks with the same sizes (verified keylessly on ten markets, 2026-10-01).
+ * So a BUY of YES and a SELL of NO are bids; a SELL of YES and a BUY of NO (at p, so 1 − p in YES) are asks.
+ */
+export function inYesBook(o: Pick<PmOwnOrder, "outcome" | "side" | "price">): { side: "bid" | "ask"; price: number } {
+  const price = o.outcome === "yes" ? o.price : Math.round((1 - o.price) * 1e9) / 1e9;
+  return { side: (o.outcome === "yes") === (o.side === "BUY") ? "bid" : "ask", price };
+}
+
+/** The book as the rest of the market made it: our own resting orders taken out of the levels they sit in. */
+export function othersLevels(l: PmLevels, own: PmOwnOrder[] = []): PmLevels {
+  const bids = l.bids.map(([p, s]) => [p, s] as PmLevel), asks = l.asks.map(([p, s]) => [p, s] as PmLevel);
+  for (const o of own) {
+    const at = inYesBook(o), side = at.side === "bid" ? bids : asks;
+    const lvl = side.find(([p]) => Math.abs(p - at.price) < 1e-9);
+    if (lvl) lvl[1] -= Math.max(0, o.size);
+  }
+  const keep = (xs: PmLevel[]) => xs.filter(([, s]) => s > 1e-9);
+  return { bids: keep(bids), asks: keep(asks) };
+}
+
+/**
+ * The PLACEHOLDER rule the path was built and first dry-run with: join the touch at the market's minimum size, a bid as
+ * BUY YES at the best bid and an ask as BUY NO at 1 − the best ask. It is no strategy; the tests of the plumbing use it.
  */
 export const placeholderQuotes: PmQuoteRule = ({ book }) => [
   { outcome: "yes", side: "BUY", price: book.bestBid, size: book.minSize },
   { outcome: "no", side: "BUY", price: onTick(1 - book.bestAsk, book.tick), size: book.minSize },
 ];
+
+/**
+ * RW's quoting rule, the path's rule since 2026-10-01: RW's own `summarize` and `quote` on the book WITHOUT our orders
+ * (the book RW's paper engine read never held any; with ours in it, a bid a tick above the best would chase itself up a
+ * tick a minute), N = RW's `sizeN` of the market's reward minimum, and RW's inventory rule: a side is not quoted while
+ * the inventory is RW_INV_CAP × N its way. The bid is a BUY of YES at b; the ask a BUY of NO at 1 − a, which is RW's ask
+ * in the one book. The inventory is YES held less NO held: a pair of one each is $1, no exposure, as RW's `net` counts.
+ */
+export const rwQuotes: PmQuoteRule = ({ market, book, held, own }) => {
+  const v = Number(market.max_spread), minSize = Number(market.min_size);
+  if (!(v > 0) || !(minSize >= 0)) return [];
+  const o = othersLevels(book.levels, own ?? []);
+  const row = summarize(o.bids, o.asks, v, minSize);
+  const q = row ? quote(row, Number(book.tick)) : null;
+  if (!q) return [];
+  const N = sizeN(minSize), net = held.yes - held.no, out: PmIntent[] = [];
+  if (net < RW_INV_CAP * N) out.push({ outcome: "yes", side: "BUY", price: onTick(q.b, book.tick), size: N });
+  if (net > -RW_INV_CAP * N) out.push({ outcome: "no", side: "BUY", price: onTick(1 - q.a, book.tick), size: N });
+  return out;
+};
+
+/** RW's formula on one minute: the reward a market's pool pays the quotes that rested, against everyone else's. */
+export type PmMinuteFormula = {
+  row: BookRow | null; m: number | null; ours: number; others: number; formula: number;
+  bid: { price: number; size: number } | null; ask: { price: number; size: number } | null; qBid: number; qAsk: number;
+};
+/**
+ * RW's reward line (`stepRw`: `rate / 1440 × Q / (Q + others)`) on the quotes as they rested, not as the rule would have
+ * placed them: the others' scores from the book less our own orders (`inBook`), RW's adjusted midpoint from them, our
+ * score the smaller side's (RW's `min`), each side's sum over our orders on it at least the reward minimum in size. In a
+ * dry-run nothing of ours is in the book and `quotes` are the orders it recorded as resting.
+ */
+export function minuteFormula(p: { rate: number; v: number; minSize: number; levels: PmLevels; inBook: PmOwnOrder[]; quotes: PmOwnOrder[] }): PmMinuteFormula {
+  const o = othersLevels(p.levels, p.inBook);
+  const row = summarize(o.bids, o.asks, p.v, p.minSize);
+  const best = { bid: null as { price: number; size: number } | null, ask: null as { price: number; size: number } | null };
+  for (const q of p.quotes) {
+    const at = inYesBook(q), cur = best[at.side];
+    if (!cur || (at.side === "bid" ? at.price > cur.price : at.price < cur.price)) best[at.side] = { price: at.price, size: q.size };
+  }
+  const none = { row, m: null, ours: 0, others: 0, formula: 0, bid: best.bid, ask: best.ask, qBid: 0, qAsk: 0 };
+  if (!row || row[2] === null || row[3] === null) return none;
+  const m = (row[2] + row[3]) / 2;
+  let qBid = 0, qAsk = 0;
+  for (const q of p.quotes) {
+    if (!(q.size >= p.minSize - 1e-9)) continue;                       // under the size cutoff an order scores nothing
+    const at = inYesBook(q);
+    const s = scoreS(p.v, (at.side === "bid" ? m - at.price : at.price - m) * 100) * q.size;
+    if (at.side === "bid") qBid += s; else qAsk += s;
+  }
+  const ours = Math.min(qBid, qAsk), others = othersOf(m, row[4], row[5]);
+  const formula = ours > 0 ? p.rate / 1440 * ours / (ours + others) : 0;
+  return { row, m, ours, others, formula, bid: best.bid, ask: best.ask, qBid, qAsk };
+}
 
 /** Down to the size's two decimals, through integers (a binary float like 19.99 × 100 is 1998.9999…). */
 const floorSize = (x: number) => Math.floor(Math.round(x * 1e6) / 1e4 + 1e-9) / 100;
@@ -286,6 +472,20 @@ export function tokenBooks(fills: PmFill[], dayStart: number): Record<string, { 
   return out;
 }
 
+/** A market Gamma shows resolved: YES pays `payout`, NO 1 − `payout` (`pm_live_settlements`). */
+export type PmSettlement = { cond: string; yes_token: string; no_token: string; payout: number | string; settled_at: string };
+/**
+ * A settlement as the fills it amounts to: each token sold at its payout, whatever is held, at the moment it settled. So
+ * `tokenBooks` realises a resolved market's holding at its payout and holds nothing more of it, as RW's paper settles a
+ * market (`accTotal` at `settled`); the tokens left on chain until they are redeemed are capital, not exposure.
+ */
+export function settlementFills(s: PmSettlement[]): PmFill[] {
+  return s.flatMap((x) => {
+    const p = Number(x.payout), ts = Date.parse(x.settled_at);
+    return [{ token: x.yes_token, side: "SELL" as const, price: p, size: 1e12, ts }, { token: x.no_token, side: "SELL" as const, price: 1 - p, size: 1e12, ts }];
+  });
+}
+
 /** The day's and the run's P&L: realised plus every holding marked against its cost (all of it counts today: stricter). */
 export function bookPnl(books: ReturnType<typeof tokenBooks>, marks: Record<string, number | null>): { day: number; total: number } {
   let day = 0, total = 0;
@@ -328,25 +528,52 @@ export function pmTime(v: unknown): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
+/** A market's reward programme as the listing gives it: its total daily rate, maximum spread (cents) and minimum size. */
+export type PmRewardRow = { rate: number; v: number; minSize: number };
+/** In the universe by its reward programme alone: a rate in [$6, $10), a spread to score in, and N small enough for its cap. */
+export function inUniverse(r: PmRewardRow): boolean {
+  return r.rate >= PM_LIVE_REWARD_FLOOR && r.rate < PM_LIVE_REWARD_RATE_MAX && r.v > 0 && sizeN(r.minSize) <= PM_LIVE_MAX_N;
+}
+
 /**
- * Gamma's market as a candidate, or null: accepting orders (`enableOrderBook`, `acceptingOrders`, not closed), two
- * tokens, a condition id, and a daily reward rate under $10 or none at all — outside RW's universe. Given the clock, a
- * market whose game starts or which ends within `PM_LIVE_MIN_HORIZON_MS` is passed over too; a time Gamma does not
- * give, or one it gives unreadably, passes nothing over.
+ * RW-E's rule, in RW-E's own code (`excludedByDay`): a market whose scheduled end is before the end of UTC day `day` is
+ * not quoted on `day`. The 48-hour horizon holds it already; it is kept, by the function the RW-E replay runs, so the
+ * rule is RW-E's whatever becomes of the horizon.
  */
-export function candidateOf(m: Record<string, unknown>, rates: Map<string, number>, nowMs?: number): { cond: string; yes: string; no: string; negRisk: boolean; question: string; rate: number | null } | null {
+export function rweSameDay(day: string, endDate: string | null): boolean {
+  if (!endDate) return false;
+  return excludedByDay([{ day, cond: "m", tick: 0, v: 0, min_size: 0, rate: 0, end_date: endDate }]).get(day)?.has("m") === true;
+}
+
+export type PmCandidate = {
+  cond: string; yes: string; no: string; negRisk: boolean; question: string; rate: number; v: number; minSize: number;
+  endDate: string | null; gameStart: string | null;
+};
+/**
+ * Gamma's market as a candidate, or null: in the universe by its listed reward programme (`inUniverse`; a market the
+ * listing does not show is not rewarded and is never taken), accepting orders (`enableOrderBook`, `acceptingOrders`, not
+ * closed), two tokens and a condition id. Given the clock, a market whose game starts or which ends within
+ * `PM_LIVE_MIN_HORIZON_MS` is passed over, and one RW-E would not quote that UTC day; a time Gamma does not give, or one
+ * it gives unreadably, passes nothing over.
+ */
+export function candidateOf(m: Record<string, unknown>, listing: Map<string, PmRewardRow>, nowMs?: number): PmCandidate | null {
   if (m.enableOrderBook !== true || m.acceptingOrders !== true || m.closed === true) return null;
+  const cond = String(m.conditionId ?? "").toLowerCase();
+  if (!/^0x[0-9a-f]{64}$/.test(cond)) return null;
+  const r = listing.get(cond);
+  if (!r || !inUniverse(r)) return null;
+  const endDate = typeof m.endDate === "string" ? m.endDate : null, gameStart = typeof m.gameStartTime === "string" ? m.gameStartTime : null;
   if (nowMs !== undefined) {
     const soon = (v: unknown) => { const t = pmTime(v); return t !== null && t < nowMs + PM_LIVE_MIN_HORIZON_MS; };
-    if (soon(m.gameStartTime) || soon(m.endDate)) return null;
+    if (soon(gameStart) || soon(endDate)) return null;
+    if (pmTime(endDate) !== null && rweSameDay(dayOf(nowMs), endDate)) return null;
   }
   const toks = jsonList(m.clobTokenIds);
   if (toks.length !== 2 || toks.some((t) => typeof t !== "string" || !/^\d+$/.test(t))) return null;
-  const cond = String(m.conditionId ?? "").toLowerCase();
-  if (!/^0x[0-9a-f]{64}$/.test(cond)) return null;
-  const rate = rates.get(cond) ?? null;
-  if (rate != null && !(rate < PM_LIVE_REWARD_RATE_MAX)) return null;
-  return { cond, yes: toks[0] as string, no: toks[1] as string, negRisk: m.negRisk === true, question: String(m.question ?? "").slice(0, 100), rate };
+  return {
+    cond, yes: toks[0] as string, no: toks[1] as string, negRisk: m.negRisk === true, question: String(m.question ?? "").slice(0, 100),
+    rate: r.rate, v: r.v, minSize: r.minSize, endDate, gameStart,
+  };
 }
 
 /** A clock in milliseconds and the instant on it after which no further read starts. */
@@ -354,75 +581,200 @@ export type PmDeadline = { clock: () => number; until: number };
 const NO_DEADLINE: PmDeadline = { clock: () => 0, until: Infinity };
 const pastDeadline = (dl: PmDeadline) => dl.clock() > dl.until;
 
-/**
- * Every rewarded market's daily rate, from both listings (native and sponsored), every page; a market listed twice keeps
- * its larger. A listing not read to its end by the deadline is a failure, like an unreadable page.
- */
-export async function rewardRates(venue: PmVenue, dl: PmDeadline = NO_DEADLINE): Promise<{ ok: boolean; rates: Map<string, number>; pages: number; error?: string }> {
-  const rates = new Map<string, number>();
-  let pages = 0;
-  for (const sponsored of [false, true]) {
-    let cursor = "";
-    for (let page = 0; page < REWARD_PAGES; page++) {
-      if (pastDeadline(dl)) return { ok: false, rates, pages, error: `time budget: the reward listing was not read to its end (${pages} pages) by the deadline` };
-      const r = await venue.rewardsPage(sponsored, cursor);
-      pages++;
-      if (!r.ok) return { ok: false, rates, pages, error: `rewards/markets/current (sponsored ${sponsored}): ${r.status} ${r.error}` };
-      const rows = Array.isArray(r.data?.data) ? r.data!.data! : [];
-      for (const row of rows) {
-        const cond = String(row.condition_id ?? "").toLowerCase();
-        if (!cond) continue;
-        const rate = rewardRate(row);
-        if (!rates.has(cond) || rate > rates.get(cond)!) rates.set(cond, rate);
-      }
-      cursor = typeof r.data?.next_cursor === "string" ? r.data.next_cursor : "";
-      if (!cursor || cursor === "LTE=" || !rows.length) break;
-    }
+/** The row offset a listing cursor carries ("NTAw" is base64 of "500"), or null for one that is not that. */
+export function cursorOffset(cursor: string): number | null {
+  try { const s = atob(cursor); return /^\d+$/.test(s) ? Number(s) : null; } catch { return null; }
+}
+const offsetCursor = (offset: number) => btoa(String(offset));
+const condOf = (r: Record<string, unknown>) => String(r.condition_id ?? "").toLowerCase();
+const sortedById = (rows: Array<Record<string, unknown>>) => rows.every((r, i) => i === 0 || condOf(rows[i - 1]) < condOf(r));
+
+type ListingPages = { ok: boolean; pages: Array<Array<Record<string, unknown>>>; reads: number; how: "concurrent" | "sequential" | "one page"; shifts: number[]; error?: string };
+
+/** One listing (native or sponsored), page after page by the venue's own cursors: the way it was read before 2026-10-01. */
+async function listingSequential(venue: PmVenue, sponsored: boolean, first: Array<Record<string, unknown>>, next: string, dl: PmDeadline, reads: number): Promise<ListingPages> {
+  const pages = [first];
+  let cursor = next;
+  for (let page = 1; page < REWARD_PAGES && cursor && cursor !== "LTE="; page++) {
+    if (pastDeadline(dl)) return { ok: false, pages, reads, how: "sequential", shifts: [], error: `time budget: the reward listing was not read to its end (${reads} pages) by the deadline` };
+    const r = await venue.rewardsPage(sponsored, cursor);
+    reads++;
+    if (!r.ok) return { ok: false, pages, reads, how: "sequential", shifts: [], error: `rewards/markets/current (sponsored ${sponsored}): ${r.status} ${r.error}` };
+    const rows = Array.isArray(r.data?.data) ? r.data!.data! : [];
+    pages.push(rows);
+    cursor = typeof r.data?.next_cursor === "string" ? r.data.next_cursor : "";
+    if (!rows.length) break;
   }
-  return { ok: true, rates, pages };
+  return { ok: true, pages, reads, how: "sequential", shifts: [] };
 }
 
 /**
- * The day's markets, deterministically: Gamma's open markets in its order by 24-hour volume (five pages of 100 at most),
- * each candidate's YES book read in turn (40 reads at most), and the first standard and the first neg-risk market whose
- * book is two-sided and agrees with Gamma about `neg_risk` are taken. `kinds` are the ones still wanted; `exclude` the
- * markets already taken today, and any that left the book today. A failed reward read takes nothing: without it, RW's
- * universe cannot be told apart. Past the deadline no read starts: what was taken stands, and the rest is looked for
- * again on the next try. `nowMs` is the selection's clock for `candidateOf`'s horizon (by default the day's start).
+ * One listing read whole. The CLOB's cursor is base64 of a row offset ("MA==" is 0, "NTAw" 500, "LTE=" −1: the end), so
+ * once the first page shows that, the rest are read `PM_LISTING_CONCURRENCY` at a time at offsets `stride` apart, each
+ * page `PM_LISTING_OVERLAP` rows over the one before. The listing is in condition-id order (every page read on
+ * 2026-10-01 was), so a page whose first row is not after the previous page's last proves no row fell between them,
+ * and the read is complete only when every boundary shows that, the last page is short or says END, and every page
+ * between is full. A read that fails the proof is made again once, its first page included (a proof is over one read's
+ * pages, never a stale first page against fresh ones); a listing whose cursor or order is not what was measured is read
+ * page after page by its own cursors instead.
  */
-export async function selectMarkets(venue: PmVenue, day: string, kinds: Array<PmMarketRow["kind"]>, exclude: Set<string>, dl: PmDeadline = NO_DEADLINE, nowMs: number = Date.parse(`${day}T00:00:00Z`)): Promise<{ picks: PmMarketRow[]; note: Record<string, unknown> }> {
-  const rr = await rewardRates(venue, dl);
-  if (!rr.ok) return { picks: [], note: { error: rr.error, rewardPages: rr.pages } };
-  const wanted = new Set(kinds), picks: PmMarketRow[] = [];
-  let rank = 0, booksRead = 0, cursor: string | null = null, gammaPages = 0, considered = 0;
-  const late = () => ({ picks, note: { error: "time budget: the deadline came before every kind was found", rewardPages: rr.pages, rewarded: rr.rates.size, gammaPages, considered, booksRead, notFound: [...wanted] } });
-  for (let page = 0; page < GAMMA_PAGES && wanted.size && booksRead < BOOK_READS; page++) {
-    if (pastDeadline(dl)) return late();
-    const g = await venue.gammaMarkets(cursor);
-    gammaPages++;
-    if (!g.ok) return { picks, note: { error: `gamma markets/keyset: ${g.status} ${g.error}`, rewardPages: rr.pages, gammaPages, booksRead } };
-    const markets = Array.isArray(g.data?.markets) ? g.data!.markets! : [];
-    for (const m of markets) {
-      rank++;
-      const c = candidateOf(m, rr.rates, nowMs);
-      if (!c) continue;
-      const kind = c.negRisk ? "neg_risk" : "standard";
-      if (!wanted.has(kind) || exclude.has(c.cond)) continue;
-      if (booksRead >= BOOK_READS) break;
-      if (pastDeadline(dl)) return late();
-      considered++;
-      booksRead++;
-      const r = await venue.book(c.yes);
-      const b = r.ok ? bookNow(r.data) : null;
-      if (!b || b.negRisk !== c.negRisk) continue;
-      picks.push({ day, kind, cond: c.cond, yes_token: c.yes, no_token: c.no, neg_risk: c.negRisk, tick: Number(b.tick), min_size: b.minSize, reward_rate: c.rate, rank, question: c.question });
-      wanted.delete(kind);
-      if (!wanted.size) break;
+async function listingPages(venue: PmVenue, sponsored: boolean, dl: PmDeadline): Promise<ListingPages> {
+  let reads = 0, lastError = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (pastDeadline(dl)) {
+      return { ok: false, pages: [], reads, how: attempt ? "concurrent" : "one page", shifts: [], error: `time budget: the reward listing was not read${attempt ? " to its end" : ""} by the deadline` };
     }
-    cursor = typeof g.data?.next_cursor === "string" && g.data.next_cursor && g.data.next_cursor !== "LTE=" ? g.data.next_cursor : null;
-    if (!cursor) break;
+    const r0 = await venue.rewardsPage(sponsored, "");
+    reads++;
+    if (!r0.ok) return { ok: false, pages: [], reads, how: "one page", shifts: [], error: `rewards/markets/current (sponsored ${sponsored}): ${r0.status} ${r0.error}` };
+    const first = Array.isArray(r0.data?.data) ? r0.data!.data! : [];
+    const next0 = typeof r0.data?.next_cursor === "string" ? r0.data.next_cursor : "";
+    const size = Number(r0.data?.limit) > 0 ? Number(r0.data!.limit) : first.length;
+    if (!next0 || next0 === "LTE=" || first.length < size || !first.length) return { ok: true, pages: [first], reads, how: "one page", shifts: [] };
+    const overlap = Math.min(PM_LISTING_OVERLAP, Math.floor(size / 2)), stride = size - overlap;
+    if (cursorOffset(next0) !== first.length || stride < 1 || !sortedById(first)) return await listingSequential(venue, sponsored, first, next0, dl, reads);
+    const pages: Array<Array<Record<string, unknown>> | undefined> = [first];
+    const nexts: string[] = [next0];
+    let end = Infinity, failed = "", late = false, nextIdx = 1;
+    const worker = async () => {
+      for (;;) {
+        const i = nextIdx++;
+        if (i > end || i >= REWARD_PAGES || failed) return;
+        if (pastDeadline(dl)) { late = true; return; }
+        const r = await venue.rewardsPage(sponsored, offsetCursor(i * stride));
+        reads++;
+        if (!r.ok) { failed ||= `rewards/markets/current (sponsored ${sponsored}): ${r.status} ${r.error}`; return; }
+        const rows = Array.isArray(r.data?.data) ? r.data!.data! : [];
+        const next = typeof r.data?.next_cursor === "string" ? r.data.next_cursor : "";
+        pages[i] = rows; nexts[i] = next;
+        if (rows.length < size || !next || next === "LTE=") end = Math.min(end, i);
+      }
+    };
+    await Promise.all(Array.from({ length: PM_LISTING_CONCURRENCY }, worker));
+    if (failed) return { ok: false, pages: [], reads, how: "concurrent", shifts: [], error: failed };
+    if (late || !Number.isFinite(end)) return { ok: false, pages: [], reads, how: "concurrent", shifts: [], error: `time budget: the reward listing was not read to its end (${reads} pages) by the deadline` };
+    // The proof: every page up to the end is there, sorted, full before the last, its cursor the next offset, and each
+    // begins inside the one before it.
+    const got = pages.slice(0, end + 1);
+    if (got.some((p) => !p)) { lastError = "a page of the reward listing is missing"; continue; }
+    const ps = got as Array<Array<Record<string, unknown>>>;
+    if (ps.some((p) => !sortedById(p))) return await listingSequential(venue, sponsored, first, next0, dl, reads);
+    const shifts: number[] = [];
+    let proof = "";
+    for (let i = 1; i <= end && !proof; i++) {
+      const prev = ps[i - 1], cur = ps[i];
+      if (prev.length < size) proof = `page ${i - 1} is short but the listing went on`;
+      else if (nexts[i - 1] !== "LTE=" && cursorOffset(nexts[i - 1]) !== (i - 1) * stride + prev.length) proof = `page ${i - 1}'s cursor is not the next offset`;
+      // A page after a full one starts inside it, so it cannot be empty unless rows left between the two reads.
+      else if (!cur.length) proof = `page ${i} is empty after a full page: the listing moved more than ${overlap} rows between their reads`;
+      else if (!(condOf(cur[0]) <= condOf(prev[prev.length - 1]))) proof = `a gap between pages ${i - 1} and ${i}: the listing moved more than ${overlap} rows between their reads`;
+      else { const at = prev.findIndex((x) => condOf(x) === condOf(cur[0])); shifts.push(at < 0 ? -1 : at - stride); }
+    }
+    if (!proof) return { ok: true, pages: ps, reads, how: "concurrent", shifts: shifts.filter((s) => s !== 0) };
+    lastError = proof;
   }
-  return { picks, note: { rewardPages: rr.pages, rewarded: rr.rates.size, gammaPages, considered, booksRead, notFound: [...wanted] } };
+  return { ok: false, pages: [], reads, how: "concurrent", shifts: [], error: `the reward listing could not be proved complete twice: ${lastError}` };
+}
+
+export type PmListing = { ok: boolean; rows: Map<string, PmRewardRow>; pages: number; how: string; shifts: number[]; error?: string };
+/**
+ * Every rewarded market's programme, from both listings (native and sponsored), each read whole (`listingPages`); a
+ * market listed twice keeps its larger rate, as RW's `pmRewardsCurrent` keeps it. (On 2026-10-01 each of the sponsored
+ * listing's 33 rows was in the native one with the same total.) A listing not read whole by the deadline is a failure.
+ */
+export async function rewardListing(venue: PmVenue, dl: PmDeadline = NO_DEADLINE): Promise<PmListing> {
+  const [nat, spo] = await Promise.all([listingPages(venue, false, dl), listingPages(venue, true, dl)]);
+  const rows = new Map<string, PmRewardRow>();
+  const pages = nat.reads + spo.reads, how = `${nat.how}+${spo.how}`;
+  if (!nat.ok || !spo.ok) return { ok: false, rows, pages, how, shifts: [], error: nat.error ?? spo.error };
+  for (const page of [...nat.pages, ...spo.pages]) {
+    for (const r of page) {
+      const cond = condOf(r);
+      if (!cond) continue;
+      const rate = rewardRate(r), cur = rows.get(cond);
+      if (!cur || rate > cur.rate) rows.set(cond, { rate, v: num(r.rewards_max_spread), minSize: num(r.rewards_min_size) });
+    }
+  }
+  return { ok: true, rows, pages, how, shifts: [...nat.shifts, ...spo.shifts] };
+}
+
+/** One market RW's first round scored at the selection. */
+type Scored = { cond: string; perDollar: number; cap: number; c: PmCandidate; book: PmBookNow; formulaDay: number };
+export type PmSelectOpts = {
+  maxMarkets: number; budget: number;
+  /** Our own orders resting at the venue as the selection reads the books (live only: yesterday's, until withdrawn), by market. */
+  own?: Map<string, PmOwnOrder[]>;
+};
+
+/**
+ * The day's markets, by RW's rule on this path's universe: every market in the reward listing with a total daily rate
+ * in [$6, $10), a maximum spread and N ≤ 20 (`inUniverse`); Gamma's word that it accepts orders with two tokens and
+ * neither ends nor starts within 48 hours (`candidateOf`); its YES book read now, two-sided and agreeing with Gamma about
+ * `neg_risk`; RW's `firstScore` on it, less our own orders resting there (`opts.own`), and a formula reward of at least
+ * $2.50 a day; then RW's `choose` within the budget, at most `maxMarkets` of them in its order. RW's ranking is never
+ * run on RW's universe: nothing at $10 or more is scored. Any read that fails, or a deadline that comes before every
+ * candidate's book is read, takes nothing: RW's ranking is over the whole universe or not at all, and the day is tried
+ * again five minutes later.
+ */
+export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectOpts, exclude: Set<string>, dl: PmDeadline = NO_DEADLINE, nowMs: number = Date.parse(`${day}T00:00:00Z`)): Promise<{ picks: PmMarketRow[]; note: Record<string, unknown> }> {
+  const note: Record<string, unknown> = {};
+  const fail = (error: string) => ({ picks: [] as PmMarketRow[], note: { ...note, error } });
+  const listing = await rewardListing(venue, dl);
+  note.listing = { pages: listing.pages, how: listing.how, rewarded: listing.rows.size, shifts: listing.shifts };
+  if (!listing.ok) return fail(listing.error ?? "the reward listing could not be read");
+  const universe = [...listing.rows].filter(([cond, r]) => inUniverse(r) && !exclude.has(cond)).map(([cond]) => cond).sort();
+  note.universe = universe.length;
+  // Gamma, fifty markets a read: accepting orders, the two tokens, the horizon.
+  const chunks: string[][] = [];
+  for (let i = 0; i < universe.length; i += GAMMA_CHUNK) chunks.push(universe.slice(i, i + GAMMA_CHUNK));
+  const gamma = new Map<string, Record<string, unknown>>();
+  let gammaError = "", late = false;
+  await pool(chunks, GAMMA_CONCURRENCY, async (chunk) => {
+    if (pastDeadline(dl)) { late = true; return; }
+    const g = await venue.gammaByConditions(chunk, false);
+    if (!g.ok) { gammaError ||= `gamma markets/keyset: ${g.status} ${g.error}`; return; }
+    for (const m of Array.isArray(g.data?.markets) ? g.data!.markets! : []) gamma.set(String(m.conditionId ?? "").toLowerCase(), m);
+  }, () => !!gammaError || late);
+  note.gammaReads = chunks.length;
+  if (gammaError) return fail(gammaError);
+  if (late) return fail("time budget: the deadline came before Gamma was read for every candidate");
+  const eligible = universe.map((cond) => gamma.get(cond)).map((m) => (m ? candidateOf(m, listing.rows, nowMs) : null)).filter((c): c is PmCandidate => !!c);
+  note.eligible = eligible.length;
+  // Each eligible market's book, and RW's first round on it.
+  const scored: Scored[] = [];
+  let bookError = "", booksRead = 0, gone = 0, mismatched = 0, oneSided = 0;
+  await pool(eligible, BOOK_CONCURRENCY, async (c) => {
+    if (pastDeadline(dl)) { late = true; return; }
+    let r = await venue.book(c.yes);
+    booksRead++;
+    if (!r.ok && r.status !== 404) { r = await venue.book(c.yes); booksRead++; }                      // once more, then it decides
+    if (!r.ok) { if (r.status === 404) gone++; else bookError ||= `book of ${c.cond.slice(0, 10)}…: ${r.status} ${r.error}`; return; }
+    const b = bookNow(r.data);
+    if (!b) { oneSided++; return; }
+    if (b.negRisk !== c.negRisk) { mismatched++; return; }
+    const tick = Number(b.tick);
+    // RW's first round on the book as the rest of the market made it: our own orders still resting from the day before
+    // are taken out, as the rule takes them out every minute (with them in, a market we quoted would rank against itself).
+    const lv = othersLevels(b.levels, opts.own?.get(c.cond) ?? []);
+    const fs = firstScore(summarize(lv.bids, lv.asks, c.v, c.minSize), tick, c.v, c.minSize, c.rate);
+    if (!fs) return;
+    const formulaDay = fs.perDollar * 1440 * fs.cap;
+    if (formulaDay >= PM_LIVE_MIN_FORMULA_DAY_USD - 1e-9) scored.push({ cond: c.cond, perDollar: fs.perDollar, cap: fs.cap, c, book: b, formulaDay });
+  }, () => !!bookError || late);
+  Object.assign(note, { booksRead, booksGone: gone, mismatched, oneSided, scored: scored.length });
+  if (bookError) return fail(bookError);
+  if (late) return fail("time budget: the deadline came before every candidate's book was read");
+  const chosen = choose(scored, opts.budget).slice(0, Math.max(0, opts.maxMarkets));
+  note.chosen = chosen.length;
+  note.capital = Math.round(chosen.reduce((s, x) => s + x.cap, 0) * 100) / 100;
+  note.formulaDay = Math.round(chosen.reduce((s, x) => s + x.formulaDay, 0) * 100) / 100;
+  const picks: PmMarketRow[] = chosen.map((x, i) => ({
+    day, kind: x.c.negRisk ? "neg_risk" : "standard", cond: x.cond, yes_token: x.c.yes, no_token: x.c.no, neg_risk: x.c.negRisk,
+    tick: Number(x.book.tick), min_size: x.c.minSize, reward_rate: x.c.rate, rank: i + 1, question: x.c.question,
+    max_spread: x.c.v, n_size: sizeN(x.c.minSize), per_dollar_day: x.perDollar * 1440, capital: x.cap, formula_day: x.formulaDay,
+    end_date: x.c.endDate, game_start: x.c.gameStart,
+  }));
+  return { picks, note };
 }
 
 /** What a read-back's status makes of our row: LIVE rests, MATCHED filled, CANCELED (the market resolving too) cancelled, INVALID refused. */
@@ -454,6 +806,54 @@ export function postOutcome(r: PmReply<PmSendReply>, hash: string): { state: "li
   return { state: "pending", why: `${r.status || "no reply"} ${r.error ?? ""}: outcome unknown` };
 }
 
+/** A slot's newest order today, as `refusalWait` reads it. */
+export type PmLastOrder = Pick<PmOrderRow, "state" | "price" | "size" | "response" | "book_seen">;
+/**
+ * Why a quote the venue refused is not sent again now, or null when it may go. A refusal that says to retry (a 425
+ * restart, a 429) holds nothing back; nor does one at another price or size (the rule moved: new information). The same
+ * quote refused as crossing the book ("invalid post-only order: order crosses book") goes again only once the level it
+ * faced has moved (its price or size, the rest of the market's, as read now against as read then): the book the venue
+ * matched against was not the one the turn read, and only a new reading of that level says it may have changed. Any
+ * other refusal of the same quote (its balance, its parameters) waits for the rule's price or size to change. So in a
+ * quiet book a refused quote is sent once, not every minute, and nothing here leans on the venue's rate limit.
+ */
+export function refusalWait(last: PmLastOrder | undefined, w: { price: number; size: number; facing: PmLevel | null }): string | null {
+  if (last?.state !== "rejected") return null;
+  const resp = (last.response ?? {}) as { retry?: boolean; why?: string };
+  if (resp.retry) return null;
+  if (Math.abs(Number(last.price) - w.price) >= 1e-9 || Math.abs(Number(last.size) - w.size) >= 1e-9) return null;
+  const why = String(resp.why ?? "rejected");
+  if (/crosses book/i.test(why)) {
+    const seen = ((last.book_seen ?? {}) as { facing?: PmLevel | null }).facing ?? null;
+    const same = seen === null ? w.facing === null
+      : w.facing !== null && Math.abs(seen[0] - w.facing[0]) < 1e-9 && Math.abs(seen[1] - w.facing[1]) < 1e-9;
+    return same ? `the venue refused this quote as crossing (${why}); it goes again once the level it faces moves (${JSON.stringify(seen)} as refused) or the rule's price or size changes` : null;
+  }
+  return `the venue refused this quote (${why}); it is not sent again until the rule's price or size changes`;
+}
+
+/**
+ * The geoblock's answer for this turn. A good read is used and kept; a failed one is answered by the last good read while
+ * it is at most `PM_LIVE_GEO_CACHE_MS` old, with no fault reported; past that the gate closes (an unread country is no
+ * permission) and the fault is reported once, on the turn it went stale, not every minute after.
+ */
+export function geoOf(r: PmReply<{ blocked?: boolean; country?: string; region?: string }>, now: number, prev: { geoGood?: { at: string; country: string | null; region: string | null; blocked: boolean | null } | null; geoStaleReported?: boolean }): {
+  geo: GateInputs["geo"] & { cachedFrom: string | null }; good: { at: string; country: string | null; region: string | null; blocked: boolean | null } | null; staleReported: boolean; fault: string | null;
+} {
+  if (r.ok) {
+    const good = { at: iso(now), country: r.data?.country ?? null, region: r.data?.region ?? null, blocked: r.data?.blocked ?? null };
+    return { geo: { ok: true, country: good.country, region: good.region, blocked: good.blocked, cachedFrom: null }, good, staleReported: false, fault: null };
+  }
+  const g = prev.geoGood ?? null;
+  const age = g ? now - Date.parse(g.at) : Infinity;
+  if (g && age >= 0 && age <= PM_LIVE_GEO_CACHE_MS) {
+    return { geo: { ok: true, country: g.country, region: g.region, blocked: g.blocked, cachedFrom: g.at }, good: g, staleReported: false, fault: null };
+  }
+  const fault = prev.geoStaleReported ? null
+    : `geoblock unreadable (${r.status} ${r.error ?? ""}) and no good answer from the last ${PM_LIVE_GEO_CACHE_MS / M} minutes: the gate is closed until it reads again`;
+  return { geo: { ok: false, country: null, region: null, blocked: null, cachedFrom: null }, good: g, staleReported: true, fault };
+}
+
 // ------------------------------------------------------------------ the executor
 
 export type PmLiveDeps = {
@@ -463,38 +863,56 @@ export type PmLiveDeps = {
   venue: PmVenue;
   /** The runtime's `SB_REGION`, as the action read it. */
   sbRegion: string | null;
-  /** `PM_ORDER_SENDS_ENABLED` in production: false, so the path is a dry-run whatever its config says. */
+  /** `PM_ORDER_SENDS_ENABLED` in production (true since 2026-10-01); false keeps the path a dry-run whatever its config says. */
   sendsEnabled: boolean;
   /** The account's addresses from the secrets: the proxy wallet (an order's maker) and the EOA (its signer). */
   account: { maker: string; signer: string } | null;
-  /** What signs an order; null in this phase, which never loads the key. */
+  /** What signs an order: the loaded key, only when it is the stored signer's; null otherwise. */
   signer: PmSigner | null;
+  /** Why no signer was loaded, as the env loader said it (never a byte of the key). */
+  signerProblem?: string | null;
   rule?: PmQuoteRule;
   salt?: () => string;
   /** Milliseconds, for the turn's deadlines and its lease's renewal only; nothing recorded is read from it. Date.now by default. */
   clock?: () => number;
+  /** Waits between a cancel's read-backs (`PM_LIVE_CANCEL_REREAD_MS`); a timer by default, a recorder in the tests. */
+  pause?: (ms: number) => Promise<void>;
 };
 
 export type PmLiveReport = {
   at: string; skipped?: string; mode: PmLiveMode | null; why: string; sbRegion: string | null; gates: Gates | null;
-  markets: Array<{ kind: string; cond: string; book: PmBookNow | null; held: { yes: number; no: number } | null }>;
+  markets: Array<{ kind: string; cond: string; quoting: boolean; book: Omit<PmBookNow, "levels"> | null; held: { yes: number; no: number } | null }>;
   placed: Array<{ mode: PmLiveMode; slot: string; side: string; price: number; size: number; hash: string; state: string }>;
   cancelled: Array<{ mode: PmLiveMode; slot: string; gate: string; outcome: string }>;
   withheld: Array<{ slot: string; gate: string; reason: string }>;
   settled: Array<{ hash: string; state: string }>;
+  /** Each market's minute under RW's formula, as `pm_live_minutes` records it. */
+  minutes: Array<{ cond: string; formula: number; ours: number; others: number; bid: number | null; ask: number | null }>;
+  /** What the markets are doing that is no fault of the path's: a one-sided book, a market that left the book. State only. */
+  conditions: Record<string, string>;
+  readout: Array<{ day: string; markets: number; actual: number; formula: number }>;
   posts: number; pnl: { day: number; total: number } | null; errors: string[];
 };
 
 type Slot = { cond: string; token: string; outcome: "yes" | "no"; side: "BUY" | "SELL"; negRisk: boolean; tick: PmTickSize; minSize: number; book: PmBookNow };
-type Want = Slot & { price: number; size: number; gate: "open" | "reduce" };
+/**
+ * `facing`: the best level of the REST of the market on the side the order would meet, in the one book (an ask level for
+ * a bid, a bid level for an ask; null when that side is empty): what a post-only refusal for crossing is about.
+ */
+type Want = Slot & { price: number; size: number; gate: "open" | "reduce"; facing: PmLevel | null };
+/** A market the turn reads: today's (quoted) or one held from an earlier day (marked, never quoted: RW holds it). */
+type TurnMarket = PmMarketRow & { quoting: boolean };
 const slotKey = (x: { cond: string; token: string; side: string }) => `${x.cond}|${x.token}|${x.side}`;
 const isOpenRow = (o: Pick<PmOrderRow, "state">) => o.state === "pending" || o.state === "live";
+const ownOf = (o: Pick<PmOrderRow, "outcome" | "side" | "price" | "size" | "size_matched">): PmOwnOrder => ({
+  outcome: o.outcome, side: o.side, price: Number(o.price), size: Math.max(0, Number(o.size) - Number(o.size_matched ?? 0)),
+});
 
 /** One turn of the path. It never throws: whatever fails ends in `errors`, and the lease is always given back. */
 export async function runPmLive(d: PmLiveDeps): Promise<PmLiveReport> {
   const report: PmLiveReport = {
     at: iso(d.now), mode: null, why: "", sbRegion: d.sbRegion, gates: null, markets: [], placed: [], cancelled: [], withheld: [], settled: [],
-    posts: 0, pnl: null, errors: [],
+    minutes: [], conditions: {}, readout: [], posts: 0, pnl: null, errors: [],
   };
   const clock = d.clock ?? (() => Date.now());
   const t0 = clock();
@@ -522,6 +940,8 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
   const nowIso = iso(d.now), nowS = Math.floor(d.now / 1000), minute = iso(Math.floor(d.now / M) * M);
   const dayStart = Math.floor(d.now / DAY) * DAY, day = nowIso.slice(0, 10);
   const elapsed = () => clock() - t0;
+  const pause = d.pause ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const deadline: PmDeadline = { clock, until: t0 + PM_LIVE_SELECT_UNTIL_MS };
   let renewedAt = t0, leaseLost = false;
   /**
    * Keep, and check, the lease before every live order: a turn that lost it sends nothing more (PR5's executor's rule).
@@ -547,6 +967,8 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     throw e;
   }
   if (!cfg) { report.skipped = "no pm_live_config row: migration 0074 has not run"; return; }
+  // The day's markets, the minutes and the readout are 0076's: until it has run, the turn does nothing (it was a dry-run).
+  if (cfg.max_markets === undefined) { report.skipped = "the pm_live_config row has no max_markets: migration 0076 has not run"; return; }
   const lim = effectiveLimits(cfg);
   const prev = ((await db.select<{ state: Record<string, unknown> }>("pm_live_state", "id=eq.1&select=state"))[0]?.state ?? {}) as Record<string, any>;
   let globalPause = false, riskReadable = true;
@@ -557,60 +979,124 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
   report.mode = mode;
   report.why = mode === "live" ? "live: sends enabled in code, dry_run off, the key loaded and matching the signer"
     : !d.sendsEnabled ? "dry-run: PM_ORDER_SENDS_ENABLED is false in code" : cfg.dry_run ? "dry-run: pm_live_config.dry_run is on"
-    : "dry-run: no signing key loaded for the stored signer";
+    : `dry-run: no signing key loaded for the stored signer${d.signerProblem ? ` (${d.signerProblem})` : ""}`;
 
   // ── 1. the day's markets ──────────────────────────────────────────────────────────────────────────────────────────
   // A market whose book answered 404 today left the book while it was selected (it closed or resolved): it is dropped
-  // for the rest of the day, read no more, and its kind is chosen again without it. Its row stays until a pick replaces
-  // it. (In this phase the path holds nothing; what a resolved market's inventory needs is the live design's.)
+  // for the rest of the day and read no more. As in RW's spec, a day is quoted on its own selection: nothing replaces it.
   const goneToday = new Set<string>(prev.goneDay === day && Array.isArray(prev.gone) ? (prev.gone as unknown[]).filter((x): x is string => typeof x === "string") : []);
-  let markets = (await db.select<PmMarketRow>("pm_live_markets", `day=eq.${day}&select=*&order=kind.asc`)).filter((m) => !goneToday.has(m.cond));
-  const missing = (["standard", "neg_risk"] as const).filter((k) => !markets.some((m) => m.kind === k));
+  const openAll = await db.selectAll<PmOrderRow>("pm_live_orders", "state=in.(pending,live)&select=*&order=id.asc");
+  // Our orders at the venue as the selection reads the books: the live rows recorded resting (a dry-run's are in no book).
+  const ownAtVenue = new Map<string, PmOwnOrder[]>();
+  for (const o of openAll) if (o.mode === "live" && o.state === "live") ownAtVenue.set(o.cond, [...(ownAtVenue.get(o.cond) ?? []), ownOf(o)]);
+  const todayRows = await db.select<PmMarketRow>("pm_live_markets", `day=eq.${day}&select=*&order=rank.asc`);
+  let selected = todayRows.filter((m) => !goneToday.has(m.cond));
   let selectionTriedAt = prev.selectionDay === day ? (prev.selectionTriedAt as string | undefined) ?? null : null;
   // Written once the books are read, so a market found gone this turn is recorded in the same minute's row.
   let selectionEvent: Record<string, unknown> | null = null;
-  if (missing.length && (!selectionTriedAt || d.now - Date.parse(selectionTriedAt) >= SELECT_RETRY_MS)) {
+  if (!todayRows.length && lim.maxMarkets > 0 && (!selectionTriedAt || d.now - Date.parse(selectionTriedAt) >= SELECT_RETRY_MS)) {
     selectionTriedAt = nowIso;
     try {
       const began = clock();
-      const sel = await selectMarkets(venue, day, [...missing], new Set([...markets.map((m) => m.cond), ...goneToday]), { clock, until: t0 + PM_LIVE_SELECT_UNTIL_MS }, d.now);
+      const sel = await selectMarkets(venue, day, { maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue }, goneToday, deadline, d.now);
       sel.note.ms = Math.round(clock() - began);
       if (sel.picks.length) {
-        await db.upsert("pm_live_markets", sel.picks.map((p) => ({ ...p, detail: { note: sel.note }, selected_at: nowIso })), "day,kind");
-        markets = [...markets, ...sel.picks].sort((a, b) => a.kind.localeCompare(b.kind));
+        await db.upsert("pm_live_markets", sel.picks.map((p) => ({ ...p, detail: { note: sel.note }, selected_at: nowIso })), "day,cond");
+        selected = sel.picks;
       }
-      selectionEvent = { day, picked: sel.picks.map((p) => ({ kind: p.kind, cond: p.cond, rate: p.reward_rate, rank: p.rank })), ...sel.note };
+      selectionEvent = { day, picked: sel.picks.map((p) => ({ cond: p.cond, rate: p.reward_rate, rank: p.rank, perDollarDay: p.per_dollar_day, capital: p.capital, formulaDay: p.formula_day })), ...sel.note };
       if (sel.note.error) report.errors.push(`selection: ${sel.note.error}`);
     } catch (e) { report.errors.push(`selection: ${msg(e)}`); }
   }
 
+  // ── what is held: the markets CONFIRMED fills (live only) left tokens in, from an earlier day too ──────────────────
+  // A market Gamma has shown resolved is settled at its payout (`pm_live_settlements`) and holds nothing more; its tokens
+  // left on chain until Davies redeems them are watched as capital (`unredeemed`), not marked as exposure.
+  const settlements = await db.selectAll<PmSettlement>("pm_live_settlements", "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
+  const fillsBook = async (extra: PmSettlement[] = []) => {
+    const rows = await db.selectAll<FillRow>("pm_live_fills", "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
+    const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
+    return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
+  };
+  const before = await fillsBook();
+  const settled = new Set(settlements.map((s) => s.cond));
+  const heldConds = [...new Set(before.rows.filter((f) => (before.tb[f.token]?.held ?? 0) > 0).map((f) => f.cond))].filter((c) => !selected.some((m) => m.cond === c) && !settled.has(c));
+  const heldMarkets: TurnMarket[] = [];
+  for (const c of heldConds) {
+    const row = (await db.select<PmMarketRow>("pm_live_markets", `cond=eq.${enc(c)}&select=*&order=day.desc&limit=1`))[0];
+    if (row) heldMarkets.push({ ...row, quoting: false });
+  }
+  const markets: TurnMarket[] = [...selected.map((m) => ({ ...m, quoting: true })), ...heldMarkets];
+  // Fail-safe: a settled market is watched until a turn reads both its balances at 0, and only then left out.
+  const redeemed = new Set<string>(Array.isArray(prev.redeemed) ? (prev.redeemed as unknown[]).filter((x): x is string => typeof x === "string") : []);
+  const unredeemed = settlements.filter((s) => !redeemed.has(s.cond));
+
   // ── 2. what the venue says ────────────────────────────────────────────────────────────────────────────────────────
-  const openAll = await db.selectAll<PmOrderRow>("pm_live_orders", "state=in.(pending,live)&select=*&order=id.asc");
-  const geoR = await venue.geoblock();
-  const geo = { ok: geoR.ok, country: geoR.ok ? (geoR.data?.country ?? null) : null, region: geoR.ok ? (geoR.data?.region ?? null) : null, blocked: geoR.ok ? (geoR.data?.blocked ?? null) : null };
-  if (!geoR.ok) report.errors.push(`geoblock unreadable: ${geoR.status} ${geoR.error}`);
+  const g0 = geoOf(await venue.geoblock(), d.now, prev);
+  const geo = { ok: g0.geo.ok, country: g0.geo.country, region: g0.geo.region, blocked: g0.geo.blocked };
+  if (g0.fault) report.errors.push(g0.fault);
   const coR = await venue.closedOnly();
   const closedOnly = coR.ok && typeof coR.data?.closed_only === "boolean" ? coR.data.closed_only : null;
   if (closedOnly === null) report.errors.push(`closed-only flag unreadable: ${coR.status} ${coR.error ?? "no closed_only in the reply"}`);
+  // The account's pUSD, read in either mode and recorded (`state.pusd`): the go-time statement sets the total cap from
+  // it. In live mode a buy is sent only while what the resting buys reserve leaves room for it, so the venue never
+  // refuses one for collateral (an unread balance is none); a dry-run is no claim on it and is held to nothing.
+  let pusd: number | null = null;
+  const cr = await venue.collateral();
+  const units = cr.ok ? Number(cr.data?.balance) : NaN;
+  if (Number.isFinite(units) && units >= 0) pusd = units / 1e6;
+  else report.errors.push(`pUSD balance unreadable (${cr.status} ${cr.error ?? "no balance"})${mode === "live" ? ": no new buy is sent this turn; the funded ones resting stay" : ""}`);
   const books = new Map<string, PmBookNow | null>();
   const heldOf = new Map<string, number>();
   let inventoryReadable = true;
-  const goneNow: Array<{ kind: string; cond: string; status: number; error: string }> = [];
+  const goneNow: Array<{ cond: string; status: number; error: string }> = [];
+  const conditions: Record<string, string> = {};
   for (const m of markets) {
     const r = await venue.book(m.yes_token);
     // A 404 is the CLOB saying the book no longer exists ("No orderbook exists for the requested token id"): the market
-    // left it. That is recorded once, below, not reported as a fault every minute.
+    // left it. That is a condition of the market, recorded once, never a fault.
     const gone = !r.ok && r.status === 404;
-    if (gone) goneNow.push({ kind: m.kind, cond: m.cond, status: r.status, error: String(r.error ?? "").slice(0, 120) });
+    if (gone && m.quoting) goneNow.push({ cond: m.cond, status: r.status, error: String(r.error ?? "").slice(0, 120) });
     const b = r.ok ? bookNow(r.data) : null;
     books.set(m.cond, b && b.negRisk === m.neg_risk ? b : null);
-    if (!b) { if (!gone) report.errors.push(`${m.kind} ${m.cond.slice(0, 10)}…: book ${r.ok ? "not two-sided" : `unreadable (${r.status} ${r.error})`}`); }
-    else if (b.negRisk !== m.neg_risk) report.errors.push(`${m.kind} ${m.cond.slice(0, 10)}…: the book's neg_risk is ${b.negRisk}, the selection's ${m.neg_risk}; nothing quoted`);
+    if (gone) conditions[m.cond] = "left the book (404)";
+    else if (!r.ok) report.errors.push(`${m.cond.slice(0, 10)}…: book unreadable (${r.status} ${r.error})`);
+    else if (!b) conditions[m.cond] = "one-sided book";
+    else if (b.negRisk !== m.neg_risk) conditions[m.cond] = `the book's neg_risk is ${b.negRisk}, the selection's ${m.neg_risk}`;
     for (const token of [m.yes_token, m.no_token]) {
       const br = await venue.conditionalBalance(token);
       const units = br.ok ? Number(br.data?.balance) : NaN;
       if (Number.isFinite(units) && units >= 0) heldOf.set(token, units / 1e6);
       else { inventoryReadable = false; report.errors.push(`balance of ${token.slice(0, 10)}… unreadable: ${br.status} ${br.error ?? "no balance"}`); }
+    }
+  }
+  // Settled markets' tokens still on chain: capital until Davies redeems them, read until both balances are 0.
+  for (const s of unredeemed) {
+    for (const token of [s.yes_token, s.no_token]) {
+      const br = await venue.conditionalBalance(token);
+      const units = br.ok ? Number(br.data?.balance) : NaN;
+      if (Number.isFinite(units) && units >= 0) heldOf.set(token, units / 1e6);
+      else { inventoryReadable = false; report.errors.push(`balance of ${token.slice(0, 10)}… unreadable: ${br.status} ${br.error ?? "no balance"}`); }
+    }
+  }
+  // A held market whose book is gone is settled at Gamma's payout once Gamma shows it closed with one and a closed time
+  // (RW's condition, `pmMarkets`); until then it is held at its cost.
+  const newSettlements: PmSettlement[] = [];
+  const goneHeld = heldMarkets.filter((m) => conditions[m.cond] === "left the book (404)");
+  if (goneHeld.length) {
+    const g = await venue.gammaByConditions(goneHeld.map((m) => m.cond), true);
+    if (!g.ok) report.errors.push(`gamma (closed markets): ${g.status} ${g.error}`);
+    const closedTime = new Map<string, string>();
+    for (const gm of g.ok && Array.isArray(g.data?.markets) ? g.data!.markets! : []) {
+      const m = goneHeld.find((x) => x.cond === String(gm.conditionId ?? "").toLowerCase());
+      const p0 = Number(jsonList(gm.outcomePrices)[0]);
+      if (!m || gm.closed !== true || typeof gm.closedTime !== "string" || !Number.isFinite(p0) || p0 < 0 || p0 > 1) continue;
+      newSettlements.push({ cond: m.cond, yes_token: m.yes_token, no_token: m.no_token, payout: p0, settled_at: nowIso });
+      closedTime.set(m.cond, gm.closedTime);
+    }
+    if (newSettlements.length) {
+      try { await db.upsert("pm_live_settlements", newSettlements.map((s) => ({ ...s, closed_time: closedTime.get(s.cond) ?? null, detail: {} })), "cond"); }
+      catch (e) { report.errors.push(`settlement not recorded (${msg(e)})`); newSettlements.length = 0; }
     }
   }
   if (goneNow.length) selectionEvent = { ...(selectionEvent ?? { day }), gone: goneNow };
@@ -652,8 +1138,22 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     if (Object.keys(p).length) { await patch(o, { ...p, response: { ...(o.response as object ?? {}), readBack: v } }); report.settled.push({ hash: o.hash, state: o.state }); }
     if (matched > 0 && Array.isArray(v.associate_trades) && v.associate_trades.length) await recordTrades(o, v.associate_trades.map(String));
   };
-  const readBack = async (o: PmOrderRow): Promise<boolean> => {
-    const r = await venue.order(o.hash);
+  /**
+   * An order read back after a cancel was asked: one the venue still shows resting is read again after each pause in
+   * `PM_LIVE_CANCEL_REREAD_MS` (the venue may carry a cancel out a moment after it answers), unless the turn is already
+   * past the moment after which it sends nothing, when nothing waits on the answer.
+   */
+  const readAfterCancel = async (o: PmOrderRow): Promise<PmReply<PmOpenOrder>> => {
+    let r = await venue.order(o.hash);
+    for (const ms of PM_LIVE_CANCEL_REREAD_MS) {
+      if (!r.ok || !r.data || stateOfStatus(r.data.status) !== "live" || elapsed() > PM_LIVE_SEND_UNTIL_MS) break;
+      await pause(ms);
+      r = await venue.order(o.hash);
+    }
+    return r;
+  };
+  const readBack = async (o: PmOrderRow, afterCancel = false): Promise<boolean> => {
+    const r = afterCancel ? await readAfterCancel(o) : await venue.order(o.hash);
     if (r.status === 404) {
       report.errors.push(o.state === "pending"
         ? `${o.hash.slice(0, 12)}… (pending ${Math.round((d.now - Date.parse(o.ts)) / M)} min) is shown nowhere by the venue: outcome unknown; it stays pending for a person to settle, and its slot places nothing`
@@ -686,10 +1186,49 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     try { await patch(o, { state: "expired", cancelled_at: nowIso }); } catch (e) { report.errors.push(`dry-run row ${o.id}: ${msg(e)}`); }
   }
 
-  // ── P&L from CONFIRMED live fills, and the loss stops ─────────────────────────────────────────────────────────────
-  const confirmed = (await db.selectAll<FillRow>("pm_live_fills", "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc"))
-    .map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
-  const tb = tokenBooks(confirmed, dayStart);
+  // ── the minute's formula: what rested when the book was read, scored by RW's formula ─────────────────────────────
+  // Our orders in the venue's book are the live ones the read-back left resting; a dry-run's are in no book. The quotes
+  // scored are this mode's resting orders in each market.
+  const resting = (cond: string, m: PmLiveMode) => openAll.filter((o) => o.mode === m && o.cond === cond && o.state === "live");
+  const scoring = new Map<string, boolean>();
+  let pct: Record<string, number> | null = null;
+  if (mode === "live") {
+    for (const o of openAll.filter((x) => x.mode === "live" && x.state === "live" && markets.some((m) => m.quoting && m.cond === x.cond))) {
+      if (pastDeadline(deadline)) break;
+      const r = await venue.orderScoring(o.hash);
+      if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
+    }
+  }
+  if (markets.some((m) => m.quoting) && !pastDeadline(deadline)) {
+    const r = await venue.rewardPercentages();
+    if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
+  }
+  const minuteRows: PmMinuteRow[] = [];
+  for (const m of markets.filter((x) => x.quoting)) {
+    const b = books.get(m.cond);
+    if (!b) continue;
+    const rows = resting(m.cond, mode);
+    const quotes = rows.map(ownOf), inBook = mode === "live" ? quotes : [];
+    const rate = num(m.reward_rate), v = num(m.max_spread), minSize = num(m.min_size);
+    const f = minuteFormula({ rate, v, minSize, levels: b.levels, inBook, quotes });
+    if (f.row && (f.row[2] === null || f.row[3] === null)) conditions[m.cond] ??= "no adjusted midpoint: a side has no level of the reward minimum";
+    const sideScoring = (side: "bid" | "ask") => {
+      const hs = rows.filter((o) => inYesBook(ownOf(o)).side === side).map((o) => scoring.get(o.hash));
+      return mode !== "live" || !hs.length || hs.some((x) => x === undefined) ? null : hs.some((x) => x === true);
+    };
+    const row = f.row;
+    minuteRows.push({
+      mode, minute, cond: m.cond, rate, max_spread: v, min_size: minSize, tick: Number(b.tick),
+      bb: row?.[0] ?? null, ba: row?.[1] ?? null, ab: row?.[2] ?? null, aa: row?.[3] ?? null, q1: row?.[4] ?? null, q2: row?.[5] ?? null,
+      bid_price: f.bid?.price ?? null, bid_size: f.bid?.size ?? null, ask_price: f.ask?.price ?? null, ask_size: f.ask?.size ?? null,
+      bid_scoring: sideScoring("bid"), ask_scoring: sideScoring("ask"), ours: f.ours, others: f.others, formula_usd: f.formula,
+      pct: pct ? (pct[m.cond] ?? 0) : null, detail: { qBid: f.qBid, qAsk: f.qAsk, m: f.m, orders: rows.length },
+    });
+    report.minutes.push({ cond: m.cond, formula: f.formula, ours: f.ours, others: f.others, bid: f.bid?.price ?? null, ask: f.ask?.price ?? null });
+  }
+
+  // ── P&L from CONFIRMED live fills (this turn's read-backs and settlements included), and the loss stops ─────────────
+  const { tb } = await fillsBook(newSettlements);
   const marks: Record<string, number | null> = {};
   for (const m of markets) {
     const b = books.get(m.cond);
@@ -723,7 +1262,7 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
   report.gates = g;
 
   // ── 4. what each slot should hold ─────────────────────────────────────────────────────────────────────────────────
-  const rule = d.rule ?? placeholderQuotes;
+  const rule = d.rule ?? rwQuotes;
   const wants = new Map<string, Want>();
   const withheld = new Map<string, string>();
   const withhold = (slot: string, gate: string, reason: string) => { withheld.set(slot, gate); report.withheld.push({ slot, gate, reason }); };
@@ -731,10 +1270,17 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
   for (const m of markets) {
     const b = books.get(m.cond);
     const held = { yes: heldOf.get(m.yes_token) ?? 0, no: heldOf.get(m.no_token) ?? 0 };
-    report.markets.push({ kind: m.kind, cond: m.cond, book: b ?? null, held: inventoryReadable ? held : null });
+    report.markets.push({ kind: m.kind, cond: m.cond, quoting: m.quoting, book: b ? (({ levels: _l, ...rest }) => rest)(b) : null, held: inventoryReadable ? held : null });
     if (!b || g.cancelAll) continue;
-    let intents: PmIntent[];
-    try { intents = rule({ market: m, book: b, held }); } catch (e) { report.errors.push(`${m.kind}: the rule threw (${msg(e)}); nothing quoted`); continue; }
+    // Our own orders in the book this turn read (live): the rule and the post-only check judge the rest of the book.
+    const own = mode === "live" ? openAll.filter((o) => o.mode === "live" && o.cond === m.cond && o.state === "live").map(ownOf) : [];
+    const others = othersLevels(b.levels, own);
+    const touch = { bestBid: others.bids[0]?.[0] ?? 0, bestAsk: others.asks[0]?.[0] ?? 1 };
+    let intents: PmIntent[] = [];
+    // A market held from an earlier day is not quoted: RW holds what a market it left still holds.
+    if (m.quoting) {
+      try { intents = rule({ market: m, book: b, held, own }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+    }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
     // Sells a rule wants are capped at what is held, whatever the mode; while opening is stopped, buys become close-only sells.
     const sellsCapped = closeOnly(intents.filter((x) => x.side === "SELL"), held, b);
@@ -750,9 +1296,13 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
       const expiration = nowS + PM_GTD_EARLY_S + lifetime;
       const problems = orderProblems({ price: x.price, size: x.size, expiration }, { tick: b.tick, minSize: b.minSize, nowS });
       if (problems.length) { withhold(slot, "venue_rules", problems.join("; ")); continue; }
-      if (crosses(x, b)) { withhold(slot, "post_only", `${x.side} ${x.outcome} at ${x.price} would take the book (${b.bestBid}/${b.bestAsk})`); continue; }
+      if (crosses(x, touch)) { withhold(slot, "post_only", `${x.side} ${x.outcome} at ${x.price} would take the book (${touch.bestBid}/${touch.bestAsk})`); continue; }
       if (wants.has(slot)) continue;
-      wants.set(slot, { cond: m.cond, token: tokenOf(x.outcome), outcome: x.outcome, side: x.side, negRisk: m.neg_risk, tick: b.tick, minSize: b.minSize, book: b, price: x.price, size: x.size, gate: x.side === "BUY" ? "open" : "reduce" });
+      const facing = (inYesBook(x).side === "bid" ? others.asks[0] : others.bids[0]) ?? null;
+      wants.set(slot, {
+        cond: m.cond, token: tokenOf(x.outcome), outcome: x.outcome, side: x.side, negRisk: m.neg_risk, tick: b.tick, minSize: b.minSize, book: b, price: x.price, size: x.size,
+        gate: x.side === "BUY" ? "open" : "reduce", facing: facing ? [facing[0], facing[1]] : null,
+      });
     }
   }
 
@@ -765,22 +1315,48 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
   const commit = (cond: string | null, usd: number) => { committed += usd; if (cond) byMarket.set(cond, (byMarket.get(cond) ?? 0) + usd); };
   const condOfToken = new Map<string, string>();
   for (const m of markets) { condOfToken.set(m.yes_token, m.cond); condOfToken.set(m.no_token, m.cond); }
-  // Every holding the fills explain, in any market, at its cost; and what today's markets hold beyond their fills (no
+  const settledHere = [...unredeemed, ...newSettlements], settledConds = new Set(settledHere.map((s) => s.cond));
+  // Every holding the fills explain, in any market, at its cost; and what the turn's markets hold beyond their fills (no
   // fill to price it, so counted at $1 a share, the most a share can be worth).
   for (const [token, t] of Object.entries(tb)) commit(condOfToken.get(token) ?? null, t.held * t.avgCost);
-  for (const [token, cond] of condOfToken) commit(cond, Math.max(0, (heldOf.get(token) ?? 0) - (tb[token]?.held ?? 0)));
-  for (const o of open) if (o.mode === mode && o.side === "BUY" && untouchable(o)) commit(o.cond, Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched)));
+  for (const [token, cond] of condOfToken) if (!settledConds.has(cond)) commit(cond, Math.max(0, (heldOf.get(token) ?? 0) - (tb[token]?.held ?? 0)));
+  // A settled market's tokens still on chain are its payout's worth of capital that has not come back as pUSD: counted
+  // until they are redeemed, so no buy is ever sent that the account's pUSD could not cover.
+  for (const s of settledHere) {
+    committed += (heldOf.get(s.yes_token) ?? 0) * Number(s.payout) + (heldOf.get(s.no_token) ?? 0) * (1 - Number(s.payout));
+  }
+  // The pUSD the buys after this turn may reserve: the balance less what the buys this turn cannot touch reserve already,
+  // and less what the buys it keeps as they are reserve. A want its slot's resting order already is (same price and size,
+  // life enough left) sends nothing: the venue took its collateral when it accepted it, so the pUSD check judges only what
+  // would be SENT, and a balance that cannot be read stops new buys without cancelling the funded ones that rest.
+  let pusdLeft = pusd ?? 0;
+  for (const o of open) {
+    if (o.mode === mode && o.side === "BUY" && untouchable(o)) {
+      const usd = Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched));
+      commit(o.cond, usd);
+      pusdLeft -= usd;
+    }
+  }
+  const keptAsIs = new Map<string, PmOrderRow>();
+  for (const o of open) {
+    const w = wants.get(slotKey(o));
+    if (o.mode !== mode || o.state !== "live" || untouchable(o) || !w) continue;
+    if (Math.abs(Number(o.price) - w.price) < 1e-9 && Math.abs(Number(o.size) - w.size) < 1e-9 && Number(o.expiration) - PM_GTD_EARLY_S - nowS > PM_LIVE_REFRESH_S) keptAsIs.set(slotKey(o), o);
+  }
+  for (const o of keptAsIs.values()) if (o.side === "BUY") pusdLeft -= Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched));
   for (const [slot, w] of [...wants.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
     if (w.side !== "BUY") continue;
     const usd = w.price * w.size;
     if (committed + usd > lim.capTotal + 1e-9) { wants.delete(slot); withhold(slot, "cap_total", `${(committed + usd).toFixed(2)} USD would pass the cap of ${lim.capTotal}`); continue; }
     if ((byMarket.get(w.cond) ?? 0) + usd > lim.capMarket + 1e-9) { wants.delete(slot); withhold(slot, "cap_market", `${((byMarket.get(w.cond) ?? 0) + usd).toFixed(2)} USD in one market would pass ${lim.capMarket}`); continue; }
+    if (mode === "live" && !keptAsIs.has(slot) && usd > pusdLeft + 1e-9) { wants.delete(slot); withhold(slot, "collateral", pusd === null ? "the pUSD balance could not be read" : `${usd.toFixed(2)} USD more than the ${Math.max(0, pusdLeft).toFixed(2)} of pUSD the resting buys leave`); continue; }
     commit(w.cond, usd);
+    if (!keptAsIs.has(slot)) pusdLeft -= usd;
   }
 
   // ── 5. the orders ─────────────────────────────────────────────────────────────────────────────────────────────────
-  const today = await db.selectAll<Pick<PmOrderRow, "id" | "mode" | "cond" | "token" | "side" | "price" | "size" | "state" | "response">>("pm_live_orders",
-    `ts=gte.${enc(iso(dayStart))}&select=id,mode,cond,token,side,price,size,state,response&order=id.asc`);
+  const today = await db.selectAll<Pick<PmOrderRow, "id" | "mode" | "cond" | "token" | "side" | "price" | "size" | "state" | "response" | "book_seen">>("pm_live_orders",
+    `ts=gte.${enc(iso(dayStart))}&select=id,mode,cond,token,side,price,size,state,response,book_seen&order=id.asc`);
   let posts = today.filter((o) => o.mode === mode).length;
   /** Each slot's newest order today: one the venue refused is not sent again at the same price and size. */
   const lastInSlot = new Map<string, (typeof today)[number]>();
@@ -794,18 +1370,24 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
       await patch(o, { state: "cancelled", cancel_requested_at: o.cancel_requested_at ?? nowIso, cancel_gate: gate, cancel_reason: reason, cancelled_at: nowIso });
       return done("cancelled");
     }
+    // A cancel first asked on an earlier turn and still not carried out is a fault; one asked this turn is the venue a
+    // moment behind, as far as anyone can tell (`PM_LIVE_CANCEL_REREAD_MS`).
+    const askedBefore = !!o.cancel_requested_at && Date.parse(o.cancel_requested_at) < Date.parse(nowIso);
     if (!o.cancel_requested_at) await patch(o, { cancel_requested_at: nowIso, cancel_gate: gate, cancel_reason: reason });
     // The DELETE's own word decides nothing, a lost reply included: only the read-back below does.
     try {
       const c = await venue.cancelOrder(o.hash);
       if (!c.ok) report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… ${c.refused ? `refused here (${c.error})` : `answered ${c.status} ${c.error}`}`);
     } catch (e) { report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… has no reply (${msg(e)}); read back`); }
-    const r = await venue.order(o.hash);
+    const r = await readAfterCancel(o);
     if (!r.ok || !r.data) { report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… could not be read back (${r.status} ${r.error}); the slot is FROZEN until it is`); return done("frozen"); }
     await applyReadBack(o, r.data);
     if (o.state === "cancelled" || o.state === "rejected") return done("cancelled");
     if (o.state === "filled") return done("filled");
-    report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… sent, and the venue still shows it ${r.data.status}; the slot is FROZEN: no replacement until the venue shows it cancelled`);
+    // Never replaced before the venue shows it gone: the slot is frozen, and every later turn asks again.
+    if (askedBefore) {
+      report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… first asked at ${o.cancel_requested_at} and sent again, and the venue still shows it ${r.data.status}; the slot is FROZEN: no replacement until the venue shows it cancelled`);
+    }
     return done("frozen");
   };
 
@@ -814,11 +1396,18 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     const label = slotLabel(w);
     if (elapsed() > PM_LIVE_SEND_UNTIL_MS) { withhold(slotKey(w), "time", `${Math.round(elapsed() / 1000)} s into the turn, past the ${PM_LIVE_SEND_UNTIL_MS / 1000} s after which nothing is sent; next minute`); return; }
     if (posts >= lim.maxPosts) { withhold(slotKey(w), "governor", `${posts} POSTs today, the limit is ${lim.maxPosts}`); return; }
-    const last = lastInSlot.get(slotKey(w));
-    if (last?.state === "rejected" && !(last.response as { retry?: boolean } | null)?.retry && Math.abs(Number(last.price) - w.price) < 1e-9 && Math.abs(Number(last.size) - w.size) < 1e-9) {
-      withhold(slotKey(w), "refused", `the venue refused this quote (${(last.response as { why?: string } | null)?.why ?? "rejected"}); it is not sent again until the rule's price or size changes`);
-      return;
-    }
+    // A quote the venue refused is not sent again without new information (PR5's live verification, 2026-10-01, found its
+    // refused post-only exits re-sent every turn: 872 of 1,150 exit POSTs in a calm market).
+    const wait = refusalWait(lastInSlot.get(slotKey(w)), w);
+    if (wait) { withhold(slotKey(w), "refused", wait); return; }
+    // Post-only, against the venue's whole book: our own orders still there (a cancel not confirmed, a POST not settled)
+    // are in it, and an order that would take one of them is refused as crossing. Withheld here instead of sent.
+    const at = inYesBook(w);
+    const ours = openAll.find((o) => o.mode === mode && isOpenRow(o) && o.cond === w.cond && slotKey(o) !== slotKey(w) && (() => {
+      const y = inYesBook(ownOf(o));
+      return y.side !== at.side && (at.side === "bid" ? y.price <= at.price + 1e-9 : y.price >= at.price - 1e-9);
+    })());
+    if (ours) { withhold(slotKey(w), "post_only", `${w.side} ${w.outcome} at ${w.price} would take our own ${ours.state} order ${ours.hash.slice(0, 12)}… (${ours.outcome} ${ours.side} at ${Number(ours.price)}), still in the book`); return; }
     const maker = d.account?.maker ?? null, signer = d.account?.signer ?? null;
     if (!maker || !signer) { withhold(slotKey(w), "account", "no stored funder and signer: an order's hash needs both"); return; }
     if (mode === "live" && !(await holdLease())) { withhold(slotKey(w), "lease", "this run no longer holds the pm-live lease: it sends nothing more"); return; }
@@ -828,7 +1417,7 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
       salt: (d.salt ?? newSalt)(), timestampMs: d.now, expiration,
     });
     const request: PmOrder & { exchange: string; orderType: "GTD"; postOnly: true } = { ...built.order, exchange: built.exchange, orderType: "GTD", postOnly: true };
-    const bookSeen = { bestBid: w.book.bestBid, bestAsk: w.book.bestAsk, tick: w.tick, minSize: w.minSize, negRisk: w.negRisk, at: w.book.at, hash: w.book.hash };
+    const bookSeen = { bestBid: w.book.bestBid, bestAsk: w.book.bestAsk, tick: w.tick, minSize: w.minSize, negRisk: w.negRisk, at: w.book.at, hash: w.book.hash, facing: w.facing };
     let row: PmOrderRow;
     try {
       [row] = await db.insert<PmOrderRow>("pm_live_orders", {
@@ -866,7 +1455,15 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
 
   // The global pause: everything open is cancelled (the kill switch, one request for the lot), nothing is placed.
   if (g.cancelAll) {
-    if (open.some((o) => o.mode === "live")) {
+    // Each live order is marked as asked to cancel, so the turn after can tell a cancel-all the venue is a moment behind
+    // on (no fault) from one it has not carried out (a fault), as for a single cancel.
+    const live = open.filter((o) => o.mode === "live");
+    const askedBefore = new Set(live.filter((o) => o.cancel_requested_at && Date.parse(o.cancel_requested_at) < Date.parse(nowIso)).map((o) => o.id));
+    if (live.length) {
+      for (const o of live) {
+        try { if (!o.cancel_requested_at) await patch(o, { cancel_requested_at: nowIso, cancel_gate: "global_pause", cancel_reason: "agent_risk.global_pause" }); }
+        catch (e) { report.errors.push(`${slotLabel(o)}: ${msg(e)}`); }
+      }
       try {
         const c = await venue.cancelAll();
         if (!c.ok) report.errors.push(`cancel-all ${c.refused ? `refused here (${c.error})` : `answered ${c.status} ${c.error}`}`);
@@ -875,7 +1472,9 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     for (const o of open) {
       try {
         if (o.mode === "dry_run") await cancel(o, "global_pause", "agent_risk.global_pause");
-        else if (await readBack(o) && isOpenRow(o)) report.errors.push(`${slotLabel(o)}: still ${o.state} after the global pause's cancel-all; it is asked again next minute`);
+        else if (await readBack(o, true) && isOpenRow(o) && askedBefore.has(o.id)) {
+          report.errors.push(`${slotLabel(o)}: still ${o.state} after the global pause's cancel-all, first asked at ${o.cancel_requested_at}; it is asked again next minute`);
+        }
       } catch (e) { report.errors.push(`${slotLabel(o)}: ${msg(e)}`); }
     }
   } else {
@@ -893,7 +1492,7 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
         const slot = slotKey(o);
         const w = wants.get(slot);
         if (!w) {
-          const managed = markets.some((m) => m.cond === o.cond);
+          const managed = markets.some((m) => m.cond === o.cond && m.quoting);
           await cancel(o, withheld.get(slot) ?? (!managed ? "selection" : books.get(o.cond) ? "rule" : "book"),
             !managed ? "the market is not in today's selection" : books.get(o.cond) ? "the rule wants nothing resting here" : "the book is unreadable or one-sided");
           continue;
@@ -915,11 +1514,48 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
     }
   }
 
-  // ── the record: the gates when they change, the governor, and this turn ───────────────────────────────────────────
+  // ── 6. the minute's record ────────────────────────────────────────────────────────────────────────────────────────
+  if (minuteRows.length) {
+    try { await db.upsert("pm_live_minutes", minuteRows, "mode,minute,cond"); } catch (e) { report.errors.push(`minutes not recorded (${msg(e)})`); }
+  }
+
+  // ── 7. the readout: once a UTC day, after Polymarket's midnight payout ───────────────────────────────────────────
+  const readouts: Record<string, { reads: number; at: string }> = { ...(prev.readouts ?? {}) };
+  let readoutTriedAt: string | null = prev.readoutTriedAt ?? null;
+  if (d.now - dayStart >= PM_LIVE_READOUT_AFTER_MS && (!readoutTriedAt || d.now - Date.parse(readoutTriedAt) >= READOUT_RETRY_MS)) {
+    // Yesterday once, the day before a second time (a late posting); never a day twice on one UTC day.
+    const due = Array.from({ length: PM_LIVE_READOUT_DAYS }, (_, k) => dayOf(dayStart - (k + 1) * DAY))
+      .filter((dd, k) => (readouts[dd]?.reads ?? 0) < k + 1 && readouts[dd]?.at?.slice(0, 10) !== day);
+    const done: Array<Record<string, unknown>> = [];
+    for (const dd of due) {
+      if (pastDeadline(deadline)) break;
+      readoutTriedAt = nowIso;
+      try {
+        const r = await readout(d, dd, nowIso, deadline);
+        if (r.error) { report.errors.push(`readout of ${dd}: ${r.error}`); break; }
+        readouts[dd] = { reads: (readouts[dd]?.reads ?? 0) + 1, at: nowIso };
+        report.readout.push({ day: dd, markets: r.markets, actual: r.actual, formula: r.formula });
+        done.push({ day: dd, read: readouts[dd].reads, ...r });
+      } catch (e) { report.errors.push(`readout of ${dd}: ${msg(e)}`); break; }
+    }
+    if (done.length) {
+      try { await db.upsert("pm_live_events", [{ mode, minute, kind: "readout", detail: { days: done } }], "mode,minute,kind"); }
+      catch (e) { report.errors.push(`readout not recorded as an event (${msg(e)})`); }
+    }
+  }
+  for (const k of Object.keys(readouts)) if (k < dayOf(dayStart - 7 * DAY)) delete readouts[k];
+
+  // ── the record: the gates and the market conditions when they change, the governor, and this turn ────────────────
+  for (const c of goneToday) conditions[c] ??= "left the book (404)";
+  report.conditions = conditions;
   const gateKey = JSON.stringify({ v: g.verdicts, region: d.sbRegion, country: geo.country, mode });
+  const conditionKey = JSON.stringify(Object.entries(conditions).sort());
   try {
     if (prev.gateKey !== gateKey) {
       await db.upsert("pm_live_events", [{ mode, minute, kind: "gates", detail: { verdicts: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, sbRegion: d.sbRegion, geo, closedOnly, attested, before: prev.gates ?? null } }], "mode,minute,kind");
+    }
+    if ((prev.conditionKey ?? "[]") !== conditionKey) {
+      await db.upsert("pm_live_events", [{ mode, minute, kind: "condition", detail: { now: conditions, before: prev.conditions ?? {} } }], "mode,minute,kind");
     }
     if (posts >= lim.maxPosts && prev.governorDay !== day) {
       await db.upsert("pm_live_events", [{ mode, minute, kind: "governor", detail: { posts, limit: lim.maxPosts } }], "mode,minute,kind");
@@ -928,12 +1564,95 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
       id: 1, updated_at: nowIso, last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
       state: {
         at: nowIso, minute, mode, why: report.why, sbRegion: d.sbRegion, sendsEnabled: d.sendsEnabled, dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at,
-        attested, gates: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, gateKey, geo, closedOnly,
+        attested, gates: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, gateKey, geo, geoCachedFrom: g0.geo.cachedFrom,
+        geoGood: g0.good, geoStaleReported: g0.staleReported, closedOnly, pusd,
         limits: lim, posts: { day, [mode]: posts }, governorDay: posts >= lim.maxPosts ? day : prev.governorDay ?? null, pnl,
-        selectionDay: day, selectionTriedAt, goneDay: day, gone: [...goneToday, ...goneNow.map((g) => g.cond)],
-        markets: report.markets, withheld: report.withheld,
+        selectionDay: day, selectionTriedAt, goneDay: day, gone: [...goneToday, ...goneNow.map((x) => x.cond)],
+        conditions, conditionKey, readouts, readoutTriedAt,
+        // Settled markets whose tokens a turn has read gone from the chain: redeemed, no longer watched.
+        redeemed: [...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)],
+        markets: report.markets, minutes: report.minutes, withheld: report.withheld,
         open: (await db.select<{ id: number }>("pm_live_orders", "state=in.(pending,live)&select=id&limit=50")).length,
       },
     }], "id");
   } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }
+}
+
+type ReadoutResult = { markets: number; actual: number; sponsored: number; formula: number; formulaScored: number; rebates: number; total: number | null; error?: string };
+
+/**
+ * One UTC day's readout, written whole or not at all: what Polymarket paid the account per market (`/rewards/user`,
+ * native, then sponsored only, every page from "MA==" as the official clients page it), the day's total over both
+ * (`/rewards/user/total?sponsored=true`), the maker rebates paid to the proxy wallet (`/rebates/current`), and the day's
+ * minutes from `pm_live_minutes`: per market and mode, the minutes with a quote, with both sides scored by RW's formula,
+ * with both sides the venue called scoring, and the formula's sums. A market paid but never quoted is a live row with
+ * no minutes.
+ */
+async function readout(d: PmLiveDeps, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
+  const { db, venue } = d;
+  const empty: ReadoutResult = { markets: 0, actual: 0, sponsored: 0, formula: 0, formulaScored: 0, rebates: 0, total: null };
+  const earnings = async (sponsored: boolean): Promise<{ rows: PmUserEarning[]; error?: string }> => {
+    const rows: PmUserEarning[] = [];
+    let cursor = "MA==";
+    for (let page = 0; page < EARNING_PAGES; page++) {
+      if (pastDeadline(dl)) return { rows, error: "time budget: the earnings were not read to their end" };
+      const r = await venue.userEarnings(dd, sponsored, cursor);
+      if (!r.ok) return { rows, error: `rewards/user (sponsored ${sponsored}): ${r.status} ${r.error}` };
+      rows.push(...(Array.isArray(r.data?.data) ? r.data!.data! : []));
+      cursor = typeof r.data?.next_cursor === "string" ? r.data.next_cursor : "LTE=";
+      if (!cursor || cursor === "LTE=") return { rows };
+    }
+    return { rows, error: `rewards/user (sponsored ${sponsored}): more than ${EARNING_PAGES} pages` };
+  };
+  const nat = await earnings(false);
+  if (nat.error) return { ...empty, error: nat.error };
+  const spo = await earnings(true);
+  if (spo.error) return { ...empty, error: spo.error };
+  const tot = await venue.userEarningsTotal(dd, true);
+  if (!tot.ok) return { ...empty, error: `rewards/user/total: ${tot.status} ${tot.error}` };
+  const maker = d.account?.maker ?? null;
+  const reb = maker ? await venue.rebates(dd, maker) : null;
+  if (reb && !reb.ok) return { ...empty, error: `rebates/current: ${reb.status} ${reb.error}` };
+  const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
+  const paid = (rows: PmUserEarning[]) => {
+    const out = new Map<string, number>();
+    for (const e of rows) { const c = String(e.condition_id ?? "").toLowerCase(); if (c) out.set(c, (out.get(c) ?? 0) + usd(e)); }
+    return out;
+  };
+  const native = paid(nat.rows), sponsored = paid(spo.rows);
+  const rebates = new Map<string, number>();
+  for (const x of Array.isArray(reb?.data) ? reb!.data! : []) { const c = String(x.condition_id ?? "").toLowerCase(); if (c) rebates.set(c, (rebates.get(c) ?? 0) + num(x.rebated_fees_usdc)); }
+  const start = `${dd}T00:00:00.000Z`, end = iso(Date.parse(start) + DAY);
+  const mins = await db.selectAll<PmMinuteRow>("pm_live_minutes", `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
+  type Agg = { mode: PmLiveMode; cond: string; minutes: number; two: number; scored: number; formula: number; formulaScored: number; rate: number };
+  const agg = new Map<string, Agg>();
+  for (const r of mins) {
+    const k = `${r.mode}|${r.cond}`;
+    const a = agg.get(k) ?? { mode: r.mode, cond: r.cond, minutes: 0, two: 0, scored: 0, formula: 0, formulaScored: 0, rate: num(r.rate) };
+    if (r.bid_size != null || r.ask_size != null) a.minutes++;
+    if (num(r.ours) > 0) a.two++;
+    const both = r.bid_scoring === true && r.ask_scoring === true;
+    if (both) { a.scored++; a.formulaScored += num(r.formula_usd); }
+    a.formula += num(r.formula_usd);
+    agg.set(k, a);
+  }
+  // Paid markets the minutes do not show are live rows of their own: only a live order can be paid.
+  for (const c of new Set([...native.keys(), ...sponsored.keys(), ...rebates.keys()])) {
+    if (!agg.has(`live|${c}`)) agg.set(`live|${c}`, { mode: "live", cond: c, minutes: 0, two: 0, scored: 0, formula: 0, formulaScored: 0, rate: 0 });
+  }
+  const rows = [...agg.values()].map((a) => ({
+    mode: a.mode, day: dd, cond: a.cond, minutes: a.minutes, minutes_two_sided: a.two, minutes_scored: a.scored,
+    formula_usd: Math.round(a.formula * 1e6) / 1e6, formula_scored_usd: Math.round(a.formulaScored * 1e6) / 1e6, rate: a.rate,
+    actual_usd: a.mode === "live" ? native.get(a.cond) ?? 0 : null, actual_sponsored_usd: a.mode === "live" ? sponsored.get(a.cond) ?? 0 : null,
+    rebate_usd: a.mode === "live" ? rebates.get(a.cond) ?? 0 : null, read_at: nowIso,
+    detail: { total: tot.data ?? null, rebatesRead: reb ? reb.status : null },
+  }));
+  if (rows.length) await db.upsert("pm_live_reward_days", rows, "mode,day,cond");
+  const live = rows.filter((r) => r.mode === "live");
+  const sum = (xs: number[]) => Math.round(xs.reduce((s, x) => s + x, 0) * 1e6) / 1e6;
+  return {
+    markets: rows.length, actual: sum(live.map((r) => (r.actual_usd ?? 0) + (r.actual_sponsored_usd ?? 0))), sponsored: sum(live.map((r) => r.actual_sponsored_usd ?? 0)),
+    formula: sum(live.map((r) => r.formula_usd)), formulaScored: sum(live.map((r) => r.formula_scored_usd)), rebates: sum(live.map((r) => r.rebate_usd ?? 0)),
+    total: Array.isArray(tot.data) ? sum(tot.data.map(usd)) : null,
+  };
 }

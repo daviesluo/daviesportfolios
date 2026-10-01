@@ -3,10 +3,12 @@
 // INERT on 2026-10-01 (Option 1 of docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md, on Davies' word); the
 // design is docs/agents/reviews/2026-10-01-polymarket-order-path.md, and reference §2d holds every verified fact.
 //
-// INERT means `PM_ORDER_SENDS_ENABLED` below is false, and while it is, no request other than a GET can leave this
-// module, whatever a config row, a secret or a caller says: `pmOrderCall` refuses every POST and DELETE before it
-// builds a header. Going live is a reviewed commit that flips that constant. The minute's dry-run
-// (`agents/pm_live.ts`) computes order hashes, which need no key, and never loads POLYMARKET_PRIVATE_KEY.
+// READY, LOCKED BY ITS CONFIG (2026-10-01, docs/agents/reviews/2026-10-01-polymarket-live-calibration.md): Davies asked
+// for the path to be made ready for a live test of what Polymarket's rewards really pay. `PM_ORDER_SENDS_ENABLED` is
+// now true and the action loads the signing key, so what keeps every order at home is the config row: `dry_run` on and
+// `live_confirmed_at` null (migration 0076 sets both), behind every gate `agents/pm_live.ts` runs. Going live is one
+// statement on his word. The wire's own rules stand whatever the config says: a request outside `PM_ORDER_ROUTES` is
+// refused, a POST from any region but eu-west-1 is refused, and L2 headers go to the CLOB only.
 //
 // The order, read 2026-10-01 from docs.polymarket.com (trading/place-orders) and from the official clients' source
 // (Polymarket/clob-client-v2 @ 8046a89, npm @polymarket/clob-client-v2 1.2.0; Polymarket/py-clob-client-v2 @ 292c110,
@@ -33,11 +35,13 @@ import {
 } from "./polymarket.ts";
 
 /**
- * THE switch. While it is false, `pmOrderCall` sends nothing but GETs: no order, no cancel, nothing that writes. A config
- * row cannot change it and no caller can pass around it. Turning the order path on is a reviewed commit that sets it to
- * true, after the conditions the design lists; the test that pins it false changes in the same commit.
+ * The code's switch. While it is false, `pmOrderCall` sends nothing but GETs: no order, no cancel, nothing that writes,
+ * whatever a config row or a caller says. It was false while the path was built (2026-10-01) and was set true the same
+ * day in the reviewed change that made the path ready for its live calibration: from then the locks are the config's
+ * `dry_run` and `live_confirmed_at`, the loaded key matching the stored signer, the region, and every gate. Setting it
+ * false again is the code's own kill switch: a deploy, and no order or cancel can leave.
  */
-export const PM_ORDER_SENDS_ENABLED: boolean = false;
+export const PM_ORDER_SENDS_ENABLED: boolean = true;
 /** Orders leave only from Supabase's Ireland region, and the POST path reads the runtime's own `SB_REGION` to know it. */
 export const PM_ORDER_REGION = "eu-west-1";
 export const PM_CHAIN_ID = 137;
@@ -408,16 +412,26 @@ export type PmLiveEnv = {
   /** The proxy wallet that holds the funds: an order's maker. */
   funder: string | null;
   sigType: number | null;
+  /**
+   * The signing key, held where nothing can print it, and only when the address it controls IS the stored signer: a
+   * key for any other address could sign nothing the venue would take, and the path stays a dry-run.
+   */
+  key: PmOrderKey | null;
+  /** Why no key was loaded, in words that quote none of it; null when one was. */
+  keyProblem: string | null;
   /** Which names were read and set, and every problem, in names only. */
   check: { read: string[]; problems: string[] };
-  /** `x` with every stored credential, in every spelling it could come back in, replaced by "[redacted]". */
+  /** `x` with every stored credential and the key, in every spelling it could come back in, replaced by "[redacted]". */
   scrub: <T>(x: T) => T;
 };
 
 /**
- * What the order path's dry-run needs from the secrets store: the L2 credentials (for its GET reads of the account), the
- * signer and funder addresses (for order hashes) and the signature type. It NEVER reads POLYMARKET_PRIVATE_KEY: in this
- * phase no key is loaded at all, and a test fails if this function ever asks for it. It never throws.
+ * What the order path needs from the secrets store: the L2 credentials (for its reads of the account and its writes),
+ * the signer and funder addresses (for order hashes), the signature type, and the signing key. The key is read once,
+ * into a `PmOrderKey` (a private field; it prints and serialises as "[redacted]"), its every spelling is added to what
+ * `scrub` removes BEFORE anything is derived from it, and it is kept only when the address it controls is the stored
+ * POLYMARKET_SIGNER_ADDRESS; otherwise `key` is null and `keyProblem` says why, and the path stays a dry-run. It never
+ * throws.
  */
 export function loadPmLiveEnv(read: (name: string) => string | undefined = (n) => Deno.env.get(n)): PmLiveEnv {
   const asked: string[] = [];
@@ -443,9 +457,27 @@ export function loadPmLiveEnv(read: (name: string) => string | undefined = (n) =
   const st = first(POLYMARKET_ENV_NAMES.sigType);
   const sigType = st !== null && /^[0-3]$/.test(st) ? Number(st) : null;
   if (sigType !== PM_POLY_PROXY) problems.push(`POLYMARKET_SIG_TYPE is ${st ?? "missing"}; this order path signs for type ${PM_POLY_PROXY} (POLY_PROXY) only`);
+  // The key: its spellings go into the scrub list first, then it is held in a private field, and kept only if it is
+  // the stored signer's. Every message below is a fixed string: none quotes a character of it.
+  let key: PmOrderKey | null = null, keyProblem: string | null = null;
+  const raw = get(POLYMARKET_ENV_NAMES.privateKey[0]);
+  if (!raw) keyProblem = "POLYMARKET_PRIVATE_KEY missing: no order can be signed";
+  else {
+    secrets.push(...secretForms(raw));
+    try {
+      const k = new PmOrderKey(raw);
+      const derived = k.address();
+      if (!signer) keyProblem = "no valid POLYMARKET_SIGNER_ADDRESS to check the key against: no order can be signed";
+      else if (derived.toLowerCase() !== signer.toLowerCase()) keyProblem = "the private key's address is not POLYMARKET_SIGNER_ADDRESS: no order can be signed";
+      else key = k;
+    } catch {
+      keyProblem = "POLYMARKET_PRIVATE_KEY is not a valid 32-byte secp256k1 key: no order can be signed";
+    }
+  }
+  if (keyProblem) problems.push(keyProblem);
   return {
     creds: apiKey && secret && passphrase && secretOk ? new PmL2Creds(apiKey, secret, passphrase) : null,
-    signer, funder, sigType,
+    signer, funder, sigType, key, keyProblem,
     check: { read: [...new Set(asked)], problems },
     scrub: <T>(x: T) => redact(x, secrets),
   };
@@ -456,17 +488,28 @@ export function loadPmLiveEnv(read: (name: string) => string | undefined = (n) =
 type Route = { method: "GET" | "POST" | "DELETE"; url: string; l2: boolean };
 /**
  * Every request the order path may make, and nothing else. `{id}` is an order id, 0x and 64 hex digits. The writes are
- * three: an order, the cancel of one order, and the kill switch that cancels them all.
+ * three: an order, the cancel of one order, and the kill switch that cancels them all. The reward reads (2026-10-01,
+ * the live calibration) are GETs, read from docs.polymarket.com's API reference and the CLOB OpenAPI and called the same
+ * way by both official clients (clob-client-v2 `getEarningsForUserForDay`, `getTotalEarningsForUserForDay`,
+ * `getRewardPercentages`, `isOrderScoring`; py-clob-client-v2 the same, snake-cased): what the account earned per market
+ * on a day (`/rewards/user`, paged), its day's total (`/rewards/user/total`), its live share of each market's pool
+ * (`/rewards/user/percentages`), whether one order is scoring (`/order-scoring`), all L2; and the maker rebates paid to
+ * an address on a day (`/rebates/current`, keyless, which neither client wraps).
  */
 export const PM_ORDER_ROUTES: readonly Route[] = [
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/book`, l2: false },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/markets/current`, l2: false },
   { method: "GET", url: `${POLYMARKET_GAMMA_HOST}/markets/keyset`, l2: false },
   { method: "GET", url: POLYMARKET_GEOBLOCK_URL, l2: false },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rebates/current`, l2: false },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/auth/ban-status/closed-only`, l2: true },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/balance-allowance`, l2: true },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/data/order/{id}`, l2: true },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/data/trades`, l2: true },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/order-scoring`, l2: true },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/user`, l2: true },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/user/total`, l2: true },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/user/percentages`, l2: true },
   { method: "POST", url: `${POLYMARKET_CLOB_HOST}/order`, l2: true },
   { method: "DELETE", url: `${POLYMARKET_CLOB_HOST}/order`, l2: true },
   { method: "DELETE", url: `${POLYMARKET_CLOB_HOST}/cancel-all`, l2: true },
@@ -502,6 +545,8 @@ export type PmWireOpts = {
   address?: string | null;
   /** Applied to an upstream error's text before it is cut, as `pmGet` does. */
   scrub?: (s: string) => string;
+  /** False keeps every POST and DELETE at home, as `PM_ORDER_SENDS_ENABLED` false would. It can only lower: never raise. */
+  sendsEnabled?: boolean;
 };
 
 function runtimeRegion(): string | null {
@@ -523,8 +568,8 @@ export async function pmOrderCall(method: "GET" | "POST" | "DELETE", url: string
   if (method === "POST" && runtimeRegion() !== PM_ORDER_REGION) {
     return { ok: false, status: 0, ms: 0, error: `SB_REGION is ${runtimeRegion() ?? "unset"}, not ${PM_ORDER_REGION}: no order leaves`, refused: "region" };
   }
-  if (method !== "GET" && !PM_ORDER_SENDS_ENABLED) {
-    return { ok: false, status: 0, ms: 0, error: "PM_ORDER_SENDS_ENABLED is false: nothing but a GET leaves", refused: "sends-disabled" };
+  if (method !== "GET" && !(PM_ORDER_SENDS_ENABLED && o.sendsEnabled !== false)) {
+    return { ok: false, status: 0, ms: 0, error: "sends are disabled: nothing but a GET leaves", refused: "sends-disabled" };
   }
   let headers: Record<string, string> = { Accept: "application/json" };
   if (route.l2) {
@@ -576,17 +621,35 @@ export type PmSendReply = {
   success?: boolean; errorMsg?: string; orderID?: string; status?: string; makingAmount?: string; takingAmount?: string;
   tradeIDs?: string[]; transactionsHashes?: string[];
 };
+/** One market's earnings on a day (GET /rewards/user's `UserEarning`): in the reward asset, `asset_rate` its rate to USD. */
+export type PmUserEarning = { date?: string; condition_id?: string; asset_address?: string; maker_address?: string; earnings?: number; asset_rate?: number };
+/** One day's maker rebate in one market (GET /rebates/current's `RebatedFees`): USDC as a decimal string. */
+export type PmRebate = { date?: string; condition_id?: string; asset_address?: string; maker_address?: string; rebated_fees_usdc?: string };
 
 /** Everything the executor asks of Polymarket. The production one is `pmVenue`; the tests' double implements the same. */
 export interface PmVenue {
   geoblock(): Promise<PmReply<{ blocked?: boolean; country?: string; region?: string; ip?: string }>>;
   book(tokenId: string): Promise<PmReply<PmBookReply>>;
-  rewardsPage(sponsored: boolean, cursor: string): Promise<PmReply<{ data?: Array<Record<string, unknown>>; next_cursor?: string }>>;
-  gammaMarkets(cursor: string | null): Promise<PmReply<{ markets?: Array<Record<string, unknown>>; next_cursor?: string }>>;
+  /** One page of `/rewards/markets/current`; `cursor` is the venue's: base64 of the row offset ("" for the first page). */
+  rewardsPage(sponsored: boolean, cursor: string): Promise<PmReply<{ data?: Array<Record<string, unknown>>; next_cursor?: string; limit?: number; count?: number }>>;
+  /** Gamma's records of up to fifty markets by condition id, open ones (`closed` false) or closed ones. */
+  gammaByConditions(conds: string[], closed: boolean): Promise<PmReply<{ markets?: Array<Record<string, unknown>>; next_cursor?: string }>>;
   closedOnly(): Promise<PmReply<{ closed_only?: boolean }>>;
+  /** The account's pUSD, in base units (GET /balance-allowance?asset_type=COLLATERAL, L2): the proxy wallet's for type 1. */
+  collateral(): Promise<PmReply<{ balance?: string }>>;
   conditionalBalance(tokenId: string): Promise<PmReply<{ balance?: string }>>;
   order(id: string): Promise<PmReply<PmOpenOrder>>;
   trade(id: string): Promise<PmReply<{ data?: PmTrade[] }>>;
+  /** Is this order of ours scoring for the liquidity rewards now (GET /order-scoring, L2)? */
+  orderScoring(id: string): Promise<PmReply<{ scoring?: boolean }>>;
+  /** The account's live share of each market's pool, in percent, by condition id (GET /rewards/user/percentages, L2). */
+  rewardPercentages(): Promise<PmReply<Record<string, number>>>;
+  /** One page of what the account earned per market on a UTC day (GET /rewards/user, L2); sponsored true: sponsored only. */
+  userEarnings(date: string, sponsored: boolean, cursor: string): Promise<PmReply<{ data?: PmUserEarning[]; next_cursor?: string }>>;
+  /** The account's total for a UTC day, by reward asset (GET /rewards/user/total, L2); sponsored true: native and sponsored. */
+  userEarningsTotal(date: string, sponsored: boolean): Promise<PmReply<PmUserEarning[]>>;
+  /** The maker rebates paid to `maker` for a UTC day, by market (GET /rebates/current, keyless; null when there are none). */
+  rebates(date: string, maker: string): Promise<PmReply<PmRebate[] | null>>;
   postOrder(o: PmSignedOrder, orderType: "GTD", postOnly: true): Promise<PmReply<PmSendReply>>;
   cancelOrder(id: string): Promise<PmReply<PmCancelReply>>;
   cancelAll(): Promise<PmReply<PmCancelReply>>;
@@ -595,18 +658,23 @@ export interface PmVenue {
 /** The venue over HTTP, every call through `pmOrderCall`. */
 export function pmVenue(o: PmWireOpts & { sigType: number }): PmVenue {
   const C = POLYMARKET_CLOB_HOST;
-  const get = (path: string, q: Record<string, string> = {}) => {
+  const get = (path: string, q: Record<string, string> | Array<[string, string]> = {}) => {
     const qs = new URLSearchParams(q).toString();
     return pmOrderCall("GET", `${path}${qs ? `?${qs}` : ""}`, undefined, o);
   };
+  const sig = String(o.sigType);
   return {
     geoblock: () => get(POLYMARKET_GEOBLOCK_URL),
     book: (tokenId) => get(`${C}/book`, { token_id: tokenId }),
     rewardsPage: (sponsored, cursor) => get(`${C}/rewards/markets/current`, cursor ? { sponsored: String(sponsored), next_cursor: cursor } : { sponsored: String(sponsored) }),
-    gammaMarkets: (cursor) => get(`${POLYMARKET_GAMMA_HOST}/markets/keyset`, {
-      closed: "false", limit: "100", order: "volume24hr", ascending: "false", ...(cursor ? { after_cursor: cursor } : {}),
-    }),
+    gammaByConditions: (conds, closed) => get(`${POLYMARKET_GAMMA_HOST}/markets/keyset`, [["limit", "100"], ["closed", String(closed)], ...conds.map((c): [string, string] => ["condition_ids", c])]),
     closedOnly: () => get(`${C}/auth/ban-status/closed-only`),
+    collateral: () => get(`${C}/balance-allowance`, { asset_type: "COLLATERAL", signature_type: sig }),
+    orderScoring: (id) => get(`${C}/order-scoring`, { order_id: id }),
+    rewardPercentages: () => get(`${C}/rewards/user/percentages`, { signature_type: sig }),
+    userEarnings: (date, sponsored, cursor) => get(`${C}/rewards/user`, { date, signature_type: sig, ...(sponsored ? { sponsored: "true" } : {}), ...(cursor ? { next_cursor: cursor } : {}) }),
+    userEarningsTotal: (date, sponsored) => get(`${C}/rewards/user/total`, { date, signature_type: sig, ...(sponsored ? { sponsored: "true" } : {}) }),
+    rebates: (date, maker) => get(`${C}/rebates/current`, { date, maker_address: maker }),
     conditionalBalance: (tokenId) => get(`${C}/balance-allowance`, { asset_type: "CONDITIONAL", token_id: tokenId, signature_type: String(o.sigType) }),
     order: (id) => get(`${C}/data/order/${id}`),
     trade: (id) => get(`${C}/data/trades`, { id }),

@@ -117,11 +117,19 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    - **Davies, 2026-10-01 afternoon: prepare a live test now** ("确保Polymarket可以上线测试（我准备把kraken的钱转到polymarket里去，密钥没有泄露，这些钱对我来说没多少，可以用来测试真实reward情况）…准备上线"). The session's choice: a
      calibration of R, RW's quoting as RW-E applies it, only on rewarded markets under $10 a day (outside RW's and
      RW-C's universe, so neither frozen test is touched and no post-09-28 RW figure is read); built in DRY-RUN with
-     sends ready in code, going live one statement on his word after his funding. Being built (2026-10-01); he says the
-     key was not leaked. **He agreed (~15:25 UTC): "同意你polymarket的方案".** Funding: about $300, not ~$400 ("没有400刀那么多闲钱，
-     我觉得既然300刀上限的话我转300就可以了吧？"), USDC on Polygon from Kraken to his polymarket.com Deposit address, $5 first and
-     checked by the probe; so `cap_total_usd` ≈ the deposit less the −$75 stop and a margin (≈ $220, 4–5 markets),
-     set from the balance the probe reads, so no order is ever refused for lack of collateral.
+     sends ready in code, going live one statement on his word after his funding; he says the key was not leaked.
+     **He agreed (~15:25 UTC): "同意你polymarket的方案".** Funding: about **$400** (~17:00 UTC: "polymarket的策略我决定还是听你的转400美元进去追求最优效果",
+     replacing the $300 he named first), USDC on Polygon from Kraken to his polymarket.com Deposit address, $5 first.
+     **Landed in DRY-RUN (`0076`, pushed 2026-10-01 ~17:55 UTC; `reviews/2026-10-01-polymarket-live-calibration.md`):**
+     `PM_ORDER_SENDS_ENABLED` true and the key loaded only for the stored signer; the config row keeps it home
+     (`dry_run` true, `live_confirmed_at` null). Phase 1: 2 markets, $40; caps $320 in all (deposit − $75 − $5, the code
+     ceiling) and $60 a market; stops −$25 a day, −$75 in all; GTD 600 s. The path reads its pUSD every minute
+     (`pm_live_state.state.pusd`). **Next:** watch a day of dry-run (`pm_live_state.last_error`, `pm_live_events`, the
+     day's two markets, no ops_errors); his $5 deposit, its balance read in `pm_live_state`; then ~$395; then the design
+     doc's ONE go-time statement, in the conversation where he says go (it sets `cap_total_usd = least(320,
+     floor(pusd − 75 − 5))` from the path's own read, refused when unread, older than 5 minutes or under $81, and arms);
+     phase 2 (`max_markets = 8, select_budget_usd = 160`, ~100 market-days in 14) after the first payout is read back.
+     The first live day reads how soon a cancel shows on the venue (the doc's "Not verified" query).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -522,6 +530,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket's order path is ready for its live calibration, landed in dry-run** (`0076`, item 2; design and checklist `reviews/2026-10-01-polymarket-live-calibration.md`). Davies, verbatim: "选市场速度的问题也直接优化下吧，并且确保Polymarket可以上线测试…准备上线"; "同意你polymarket的方案" (~15:25 UTC); about $400, "polymarket的策略我决定还是听你的转400美元进去追求最优效果" (~17:00 UTC), replacing $300. The rule is RW's as RW-E applies it, plus the 48-hour horizon, on rewarded markets of $6 to under $10 a day ranked by RW's first-round reward per dollar — outside RW's and RW-C's universe, and no variant (that would read their results); it measures R = Σ actual ÷ Σ formula (`pm_live_reward_days`; RW breaks even at 0.40, 0.58 at the stress fills). `PM_ORDER_SENDS_ENABLED` is true and the key is kept only when its address is the stored signer (held in a private field, scrubbed from every message); every send still needs dry_run off, the key, `eu-west-1`, and every gate (armed, geoblock, closed-only, attestation, inventory, both stops). Reviewed here: `mode` is live only when sends are enabled, dry_run is off and the key matches; a dry-run `post` only writes its row; `cancelAll` is called only with live rows open. Selection 13.1–14.1 s (the listing read eight pages at a time with a completeness check) where the sequential listing took 30.6–36.6 s. PR5's two lessons applied before it can matter: a refused quote waits for new information, and a cancel is read again after 300 and 700 ms before its slot freezes, an error only from the next turn (the fake Polymarket now lands a cancel a read later). Caps for $400: $320 total and code ceiling, phase 2 at 8 markets and $160 (~100 market-days in 14; power 0.90–1.00 to tell R = 1 from R ≤ 0.6). 90 Deno tests; 49 of 50 single-rule removals fail a pin (the one that does not, RW-E's same-day rule, is redundant under the horizon). `0076` checked against production before the push: no duplicate (day, cond) for the new key, event kinds only `gates` and `selection`, the row at cap $300. CLAUDE.md's Polymarket paragraph rewritten for it.
 
 ### [2026-10-01 17:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

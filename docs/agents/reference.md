@@ -339,7 +339,10 @@ nothing.
 | Order rules | A GTD order ends one minute before its stated expiration ("To set an effective lifetime of N seconds, use `now + 60 + N`"), and an expiration less than **3 minutes** ahead is refused. `min_order_size` is in shares. A post-only order that would take is refused (`invalid post-only order: order crosses book`). "Orders cannot be edited in place": a new price is a cancel and a new order. `500 order timed out`: "rejected before reaching the order book and can be safely resubmitted". Heartbeats (`POST /v1/heartbeats` every 5 s; every open order of the credentials cancelled 10 s after the last) are never started here: a minute loop cannot keep them, and the first one arms the cancel | trading/place-orders; SDK changelog (0.1.0-beta.12); resources/error-codes; trading/market-making; trading/manage-orders |
 | Order lifecycle and cancels | `GET /data/order/{id}` (L2): `LIVE`, `MATCHED`, `CANCELED`, `CANCELED_MARKET_RESOLVED`, `INVALID`, with `size_matched` and `associate_trades`. A trade goes `MATCHED` → `MINED` → `CONFIRMED`, or `RETRYING` → `FAILED` (the OpenAPI spells them `TRADE_STATUS_*`, the clients and the lifecycle page without the prefix); `GET /data/trades?id=` (L2). Cancels: `DELETE /order { orderID }`, `DELETE /orders` (1–3,000 ids), `DELETE /cancel-all`, `DELETE /cancel-market-orders`, each answering `{ canceled, not_canceled }`. A token held: `GET /balance-allowance?asset_type=CONDITIONAL&token_id=` (L2) | concepts/order-lifecycle; api-reference (get single order, get trades); trading/manage-orders; clob-openapi.yaml |
 | Region | Polymarket's primary servers are in eu-west-2; its geoblock page names eu-west-1 the "Closest Non-Georestricted Region". Supabase runs a call in a chosen region on `x-region: <region>`, or, "in case you cannot add the `x-region` header to the request (e.g.: CORS requests, Webhooks)", on `?forceFunctionRegion=<region>`; the runtime's region is the default secret `SB_REGION` and the reply's `x-sb-edge-region`. The one-minute job builds every call's headers from one expression, so the order path's row carries the parameter | api-reference/geoblock; supabase.com/docs/guides/functions/regional-invocation; …/functions/secrets (default secrets) |
-| Reward listing, measured | `/rewards/markets/current` pages by 500: 38 native pages and 1 sponsored, 18,600 rows, 6.5 MB, read one after another in 36 s from a container behind Cloudflare's Atlanta edge (2026-10-01 04:43 UTC; `/time` took 121 ms from there, a page 0.7–1.2 s). The order path's selection reads it once a UTC day, inside a 40 s deadline, and records what it took | clob-openapi.yaml; *measured*, keyless |
+| Reward listing, measured | `/rewards/markets/current` pages by 500: 38 native pages and 1 sponsored, 18,600 rows, 6.5 MB, read one after another in 36 s from a container behind Cloudflare's Atlanta edge (2026-10-01 04:43 UTC; `/time` took 121 ms from there, a page 0.7–1.2 s). The order path's selection reads it once a UTC day, inside a 40 s deadline, and records what it took. **Its cursor is base64 of a row offset** (`MA==` 0, `NTAw` 500, `LTE=` −1, the end), its rows are in condition-id order and any offset can be read directly; a bad cursor answers 400 (`error decoding cursor`), an offset past the end `{"data":[],"next_cursor":"LTE=","limit":500,"count":0}`. It moves while it is read: of 38 page boundaries, up to 16 were 1–4 rows from where they were expected. Read in overlapping pages it took 9.2–9.9 s six at a time and 5.1–5.4 s ten at a time, against 39.7 s one at a time and 52.9 s by the venue's own cursors (later on 2026-10-01; the day's two sequential selections from eu-west-1 took 30.6 s and 36.6 s). Each of the sponsored listing's 33 rows was in the native one with the same total; `/rewards/markets/multi`'s `rate_per_day` is the native rate alone | clob-openapi.yaml; *measured*, keyless |
+| One book per market | A market has one book: the NO token's book is the YES book's mirror (NO's bids at 1 − YES's asks, with the same sizes), checked keylessly on ten markets on 2026-10-01. So a BUY of NO at p rests as an ask at 1 − p in the YES book, and the venue's post-only check meets our own orders too (`invalid post-only order: order crosses book`) | *measured*, keyless; resources/error-codes |
+| Reward programme | Rewards are paid "daily at midnight UTC" to maker addresses; an epoch is a UTC day, and "the order book is sampled once per minute at a random offset, so an epoch contains up to 1,440 samples". "The minimum reward payout is $1; amounts below this will not be paid." An order scores only if, among the other criteria, it "has been live for the required duration", which is not documented | market-makers/liquidity-rewards; api-reference/trade/get-order-scoring-status |
+| Reward reads | `GET /rewards/user?date=&signature_type=&next_cursor=` (L2; paged from `MA==`; `sponsored=true` "returns sponsored-only earnings"), `GET /rewards/user/total?date=&signature_type=&sponsored=true` (L2; `sponsored=true` "aggregates both native and sponsored earnings"), `GET /rewards/user/percentages?signature_type=` (L2; the account's live share of each pool), `GET /order-scoring?order_id=` (L2; the clients also `POST /orders-scoring` with many ids), `GET /rebates/current?date=&maker_address=` (keyless; answered `null` for an address with none). Each L2 read answered `401 {"error":"Unauthorized/Invalid api key"}` to a keyless GET (2026-10-01 16:41 UTC) | the API reference's reward and rebate pages; clob-openapi.yaml; clob-client-v2 `getEarningsForUserForDay`, `getTotalEarningsForUserForDay`, `getRewardPercentages`, `isOrderScoring`; *measured* |
 | Reads the probe makes | All GET. `/time` → a bare integer of Unix seconds, no auth. `/auth/api-keys` (L2 in all three clients; the published OpenAPI marks it L1, and the clients are what work) → `{ apiKeys: [ids] }`. `/auth/ban-status/closed-only` (L2) → `{ closed_only }`. `/balance-allowance?asset_type=COLLATERAL&signature_type=<n>` (L2): "the address is determined from the API key authentication and signature type", i.e. the proxy wallet for type 1; `balance` in base units, `allowances` keyed by spender. `/data/orders` (L2) pages by `next_cursor`, from `MA==` until `LTE=`. `/book?token_id=` (public). Gamma `/markets/keyset` (public; `limit` ≤ 100, `after_cursor`/`next_cursor`, `closed` defaults to false; `clobTokenIds`, `outcomes`, `outcomePrices` are JSON-encoded strings) and `/public-profile?address=` (public; `proxyWallet` for "the proxy wallet or user address") | clob-openapi.yaml; gamma-openapi.yaml; clob-client-v2 `client.ts`, `constants.ts`; ts-sdk bindings |
 | The book, measured | `GET /book` answers `{ market, asset_id, timestamp (ms), hash, bids, asks, min_order_size, tick_size, neg_risk, last_trade_price }`, and on the one book read (2026-09-24 02:17 UTC) bids ran low to high and asks high to low, so the touch is the LAST entry of each. The client takes the best price of each side rather than trusting the order | *measured*, keyless |
 | Collateral | **pUSD**: ERC-20 on Polygon, 6 decimals, backed by USDC with the backing enforced on chain, token `0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`. polymarket.com wraps USDC.e into it automatically; an API-only trader calls `wrap()` on the CollateralOnramp `0x93070a847efEf7F70739046A929D47a521F5B8ee` | concepts/pusd; resources/contracts; v2-migration |
@@ -453,6 +456,16 @@ minutes), and it closed at 06:27 that day, after which `/book` answered
 404 "No orderbook exists for the requested token id". So the selection
 passes over a market whose game starts, or which ends, within two days,
 and a 404 book drops a selected market for the day.
+
+**Made ready for a live calibration the same day (2026-10-01).** Davies asked for the selection to be made fast and
+for the path to be ready to go live, to test what the rewards really pay with money he can spare, and agreed the plan
+(`reviews/2026-10-01-polymarket-live-calibration.md`, migration `0076`). `PM_ORDER_SENDS_ENABLED` is true and the
+action loads the signing key, kept only when it controls the stored signer (`loadPmLiveEnv`); the config row is the
+lock (`dry_run` on, `live_confirmed_at` null, both set by `0076`). The rule is RW's, as RW-E applies it, through RW's
+own exported functions, on rewarded markets from $6 to under $10 a day, never RW's universe; the listing is read eight
+pages at a time and proved complete by overlap; every minute's formula reward is recorded beside the venue's own
+scoring flags, and once a day what the account was paid, so R = Σ actual / Σ formula is a query. Every POST still
+refuses outside eu-west-1, and the attestation is unchanged.
 
 ## 3. What the numbers say (measured, real data)
 
@@ -3445,6 +3458,51 @@ every script re-run byte-identical by the coordinating session).
       live design. Three locks keep it from sending, each enough alone: `PM_ORDER_SENDS_ENABLED = false` in code, no
       private key loaded, and `dry_run` on. Going live is a code change (the constant, and loading the key) plus
       `dry_run = false` and `live_confirmed_at` set on Davies' word, under that design.
+    - **The order path is made ready for a live calibration of the rewards, left in dry-run (2026-10-01, migration
+      `0076`; `reviews/2026-10-01-polymarket-live-calibration.md`).** Davies asked the same day for it to be ready to
+      test what Polymarket's rewards really pay with money he can spare, and agreed the plan ("同意你polymarket的方案",
+      ~15:25 UTC); he deposits about $400 ("polymarket的策略我决定还是听你的转400美元进去追求最优效果", ~17:00 UTC, replacing
+      the $300 he had named earlier that afternoon): the pre-study's Option 2, a recorded deviation of RW-NEXT's
+      ordering and of nothing frozen. What it answers is
+      R = Σ actual / Σ formula over its live market-days, RW's break-even being R ≈ 0.40 (0.58 at the stress spec's
+      fills). It quotes RW's rule as RW-E applies it (RW's `summarize`, `quote`, `sizeN` and inventory cap, RW-E's
+      `excludedByDay`, both files only imported), with the order path's 48-hour horizon, on rewarded markets of $6 to
+      under $10 a day ranked by RW's own `firstScore` and `choose`: outside RW's universe, so RW's and RW-C's frozen
+      paper tests never meet our orders in their books or our fills in their prints; RW's rule because choosing a
+      variant now would read their running results; RW-E's exclusion because its evidence predates its freeze. Our
+      own orders are taken out of the book the rule reads (a market has one book), and every minute's formula is
+      recorded on the quotes as they rested (`pm_live_minutes`); once a day after 01:00 UTC the readout stores what was
+      paid per market (`/rewards/user`, native and sponsored; `/rebates/current`) beside the formula's sums
+      (`pm_live_reward_days`). Settings, each argued in the design: a $6 floor (the scan of every $5–$10 book put RW's
+      best per dollar at $6–$9), N ≤ 20, a formula floor of $2.50 a day (Polymarket's $1 minimum at R ≈ 0.40), two
+      markets and $40 until the first payout is read back, then eight and $160 (the most that leave half the cap for
+      inventory, as the $300 plan's six did: 100 market-days in fourteen against 76, the simulated power to tell R = 1
+      from R ≤ 0.6 0.90–1.00 against 0.81–1.00); a $320 total cap (the ~$400 deposit less the −$75 stop less $5, set by
+      the go-time statement from the balance the path read, clamped only at $320, the code's ceiling, 0074's $300
+      before), $60 a market, stops unchanged; GTD orders of 600 s.
+      The selection reads the listing eight pages at a time, overlapping and proved complete: the whole selection took
+      13.1–14.1 s through the path's own code (keyless, from this repository's container, six runs;
+      `backtests/pmlive/results/selection_time_out.txt`), where the listing alone had taken 30.6–36.6 s in sequence from
+      eu-west-1. Locks that remain, each pinned with a counterfactual: `dry_run`, `live_confirmed_at`,
+      the key matching the stored signer, the region (every POST refuses outside eu-west-1) and every gate; a refused
+      quote is sent again only on new information and an order that would take our own is withheld (PR5's live
+      verification found its refused exits re-sent every turn). A cancel, one order's or the global pause's cancel-all,
+      is read back and read again after 300 and 700 ms (`PM_LIVE_CANCEL_REREAD_MS`) while the venue still shows the
+      order resting; nothing is replaced before the venue shows it gone, and a freeze is a fault only from the turn
+      after the cancel was first asked, as PR5's executor after its first live hour (item 35). Polymarket's docs give a
+      cancel's reply as its outcome ("it identifies the orders that were canceled", `trading/manage-orders`) and say
+      nothing of when a read shows it, so the fake Polymarket carries a cancel out a read after its reply, as Revolut X
+      was measured. `0076` adds no cron call: pmlive's row of
+      `edge_calls` (0075) keeps `retry = true`, a second run in a minute changing nothing a first did. Going live is
+      one statement after the funding, in the conversation where Davies says go; it sets the total cap from the pUSD the
+      path read (every minute, dry-run included) and arms the path, and fails on a balance unread, stale or under $81:
+
+          update public.pm_live_config c
+             set cap_total_usd = case when s.pusd is null or s.at < now() - interval '5 minutes' then null
+                                      else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+                 dry_run = false, live_confirmed_at = now(), updated_at = now()
+            from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at from public.pm_live_state where id = 1) s
+           where c.id = 1;
 
 37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item). **Its first version read the four books at once at :00 and lost three to 429 every minute** (18:16–18:20 UTC: the public bucket is about a token a second, and the tick reads it from :00); from migration `0058` it reads 40 s into the minute, after the tick's reads and PR5's (from :25), one book every 1.25 s in an order that turns each minute, and stops at the first 429. A row's `ts` is the instant its reading arrived, `seen_until` the last reading that found the same book and `reads` how many did, so a book that stood still is told apart from one nobody read.
 
