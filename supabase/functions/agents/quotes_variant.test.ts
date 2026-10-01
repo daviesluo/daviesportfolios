@@ -35,11 +35,17 @@ type Window = {
 };
 
 const WINDOWS = (golden as unknown as { windows: Window[] }).windows;
+/**
+ * The governor the golden file was made at: the pre-registration's 600 / 700. The arms run at 900 / 950 since
+ * 2026-10-01 (Davies; PR5V's deviation 2), and `stepVariantMinute` reads its limits from the arm it is given, so the
+ * golden replay runs each arm at the golden's limits: it pins the function, and the arms' own limits are pinned below.
+ */
+const GOLDEN_GOV = (golden as unknown as { settings: { governor: { entry_at: number; stop_at: number } } }).settings.governor;
 const asPrint = ([ts, ticks, qty, side, id]: GoldenPrint): Print => ({ ts, ticks, qty, side: side === "buy" ? "buy" : "sell", id });
 
 /** The engine over one window, both books, one arm, flat at its first minute with every key at zero. */
 function replay(w: Window, armName: VariantArmName) {
-  const arm = VARIANT_ARMS[armName];
+  const arm = { ...VARIANT_ARMS[armName], entryAt: GOLDEN_GOV.entry_at, stopAt: GOLDEN_GOV.stop_at };
   const gov = newGovCounts();
   const out = {} as Record<QuoteBook, { state: ReturnType<typeof newVariantBook>; trips: VariantTrip[]; events: VariantEvent[]; prints: Print[] }>;
   for (const b of BOOKS) {
@@ -117,7 +123,7 @@ Deno.test("the golden windows cover what the variant adds: the governor binding 
         stops += gb.trips.filter((t) => t.how === "taker").length;
         for (const t of gb.trips) sides.add(t.side);
       }
-      for (const days of Object.values(w.arms[armName].posts_by_key_day)) bound += Object.values(days).filter((c) => c >= 600).length;
+      for (const days of Object.values(w.arms[armName].posts_by_key_day)) bound += Object.values(days).filter((c) => c >= GOLDEN_GOV.entry_at).length;
       const out = replay(w, armName);
       for (const b of BOOKS) {
         const fills = out[b].events.filter((e) => e.kind === "fill");
@@ -131,7 +137,7 @@ Deno.test("the golden windows cover what the variant adds: the governor binding 
       }
     }
   }
-  assert(bound >= 10, `key-days at 600: ${bound}`);
+  assert(bound >= 10, `key-days at the golden's ${GOLDEN_GOV.entry_at}: ${bound}`);
   assert(withdrawn >= 20, `quotes the governor withdrew: ${withdrawn}`);
   assert(shared >= 10, `prints that filled more than one rung: ${shared}`);
   assert(WINDOWS.every((w) => (sharedIn[w.name] ?? 0) >= 1), `in every window, a print that filled several of main's rungs: ${JSON.stringify(sharedIn)}`);
@@ -140,21 +146,23 @@ Deno.test("the golden windows cover what the variant adds: the governor binding 
   assertEquals([...sides].sort(), ["ask", "bid"]);
 });
 
-Deno.test("the arms are the pre-registration's: nine rungs a side and the top five, 0.03 % re-price, $100, 10 %, 600 / 700", () => {
+Deno.test("the arms are the pre-registration's: nine rungs a side and the top five, 0.03 % re-price, $100, 10 %, the live design's 900 / 950", () => {
   assertEquals(VARIANT_ARMS.main.rungs, [0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003]);
   assertEquals(VARIANT_ARMS.top5.rungs, [0.0005, 0.00075, 0.001, 0.00125, 0.0015]);
   for (const a of VARIANT_ARM_NAMES) {
     const arm = VARIANT_ARMS[a];
-    assertEquals([arm.name, arm.reprice, arm.sizeUsd, arm.volumeShare, arm.entryAt, arm.stopAt], [a, 0.0003, 100, 0.10, 600, 700]);
+    assertEquals([arm.name, arm.reprice, arm.sizeUsd, arm.volumeShare, arm.entryAt, arm.stopAt], [a, 0.0003, 100, 0.10, 900, 950]);
     assertEquals(arm.entryBand, undefined);
   }
   assertEquals([variantCapitalUsd(VARIANT_ARMS.main), variantCapitalUsd(VARIANT_ARMS.top5)], [3600, 2000]);
   // A turn visits the bids and then the asks, each in k order: the order the governor's count is read in.
   const s = newVariantBook("USDC-GBP", VARIANT_ARMS.main);
   assertEquals(s.rungs.map((r) => `${r.side}${r.k}`), [...VARIANT_ARMS.main.rungs.map((k) => `bid${k}`), ...VARIANT_ARMS.main.rungs.map((k) => `ask${k}`)]);
-  // And the golden file was made at these settings.
+  // And the golden file was made at these settings, with the pre-registration's governor before deviation 2: the replay
+  // above runs at those limits.
   const set = (golden as unknown as { settings: { arms: Record<string, number[]>; reprice: number; governor: { entry_at: number; stop_at: number } } }).settings;
   assertEquals([set.arms.main, set.arms.top5, set.reprice, set.governor], [VARIANT_ARMS.main.rungs, VARIANT_ARMS.top5.rungs, 0.0003, { entry_at: 600, stop_at: 700 }]);
+  assertEquals(VARIANT_CODE_VERSION, 3);                                             // the record is re-decided under them
 });
 
 // ------------------------------------------------------------------ the governor and the shared cap, by hand
@@ -164,18 +172,18 @@ const X = 1.25, FAIR_U = 0.74 * 1.25;                        // fair £0.7400
 const quiet = { x: X, fairU: FAIR_U, prints: [] as Print[] };
 const pr = (ts: number, ticks: number, qty: number, side: "buy" | "sell", id: string): Print => ({ ts, ticks, qty, side, id });
 
-Deno.test("the governor: from 600 a key's quotes are withdrawn and none is placed; its other rungs and keys go on; at 00:00 UTC it counts from zero", () => {
+Deno.test("the governor: from 900 a key's quotes are withdrawn and none is placed; its other rungs and keys go on; at 00:00 UTC it counts from zero", () => {
   const arm = VARIANT_ARMS.main, gov = newGovCounts();
   const s = newVariantBook("USDC-GBP", arm, pr(T0 - 5e3, 7400, 1, "buy", "seed"));
-  // The bid key has sent 596 today: four more placements reach 600, and the turn's fifth bid reads 600 and places nothing.
+  // The bid key has sent 896 today: four more placements reach 900, and the turn's fifth bid reads 900 and places nothing.
   stepVariantMinute(s, T0 - M, { x: null, fairU: null, prints: [] }, arm, gov);     // sets the day
-  gov.counts["USDC-GBP/bid"] = 596;
+  gov.counts["USDC-GBP/bid"] = 896;
   const a = stepVariantMinute(s, T0, quiet, arm, gov);
   const placed = (side: Side) => a.events.filter((e) => e.kind === "order" && e.side === side).map((e) => e.k);
   assertEquals(placed("bid"), arm.rungs.slice(0, 4));
   assertEquals(placed("ask"), arm.rungs);                                            // the ask key is its own
   assertEquals(a.posts, { "USDC-GBP/bid": 4, "USDC-GBP/ask": 9 });
-  assertEquals(gov.counts["USDC-GBP/bid"], 600);
+  assertEquals(gov.counts["USDC-GBP/bid"], 900);
   // The next turn withdraws the four the bid key still has out; the asks are untouched.
   const b = stepVariantMinute(s, T0 + M, quiet, arm, gov);
   assertEquals(b.events.filter((e) => e.kind === "withdraw").map((e) => [e.side, e.k, e.detail.why]), arm.rungs.slice(0, 4).map((k) => ["bid", k, "governor"]));
@@ -188,7 +196,7 @@ Deno.test("the governor: from 600 a key's quotes are withdrawn and none is place
   assertEquals(gov.counts["USDC-GBP/bid"], 9);
 });
 
-Deno.test("the governor: from 700 a key sends only stops — its exits are not placed or moved, the one already resting still fills, and the stop goes out", () => {
+Deno.test("the governor: from 950 a key sends only stops — its exits are not placed or moved, the one already resting still fills, and the stop goes out", () => {
   const arm = VARIANT_ARMS.main, gov = newGovCounts();
   const s = newVariantBook("USDT-GBP", arm, pr(T0 - 5e3, 7400, 1, "buy", "seed"));
   stepVariantMinute(s, T0 - M, { x: null, fairU: null, prints: [] }, arm, gov);
@@ -198,8 +206,8 @@ Deno.test("the governor: from 700 a key sends only stops — its exits are not p
     entry: 0.7398, tEntry: T0 - DAY + M, qty: 100, nq: 73.98, fillTs: T0 - DAY + M + 1, fillId: "f", entryOid: 1, xEntry: X, fairEntry: 0.74,
   });
   held(s.rungs[0], true); held(s.rungs[1], false);
-  gov.counts["USDT-GBP/bid"] = 700;
-  // Fair moves 0.1 %: under 700 the resting exit would be re-priced and the other placed. At 700 neither is.
+  gov.counts["USDT-GBP/bid"] = 950;
+  // Fair moves 0.1 %: under 950 the resting exit would be re-priced and the other placed. At 950 neither is.
   const moved = { x: X, fairU: FAIR_U * 1.001, prints: [pr(T0 + 5e3, 7401, 50, "buy", "lift")] };
   const a = stepVariantMinute(s, T0, moved, arm, gov);
   assertEquals(a.events.filter((e) => e.kind === "order" && e.side === "bid"), []);
@@ -209,7 +217,7 @@ Deno.test("the governor: from 700 a key sends only stops — its exits are not p
   const b = stepVariantMinute(s, T0 + M, quiet, arm, gov);
   assertEquals(b.trips.map((t) => [t.k, t.how]), [[arm.rungs[1], "taker"]]);
   assertEquals(b.posts["USDT-GBP/bid"], 1);
-  assertEquals(gov.counts["USDT-GBP/bid"], 701);
+  assertEquals(gov.counts["USDT-GBP/bid"], 951);
 });
 
 Deno.test("the shared cap: the bids a print goes through share the minute's 10 %, nearest first, and an exit takes none of it", () => {

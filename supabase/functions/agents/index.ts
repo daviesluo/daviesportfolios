@@ -646,7 +646,7 @@ type QuoteVariantStateRow = {
  * pre-registration judges, in exactly the shape of PR5's `quotes`, so its page can be PR5's: P&L on the $3,600 its
  * quotes lock, what it holds, its ladders, round trips and days, and its orders and fills today (from its days, as the
  * variant sends about 1,500 a day across four keys). Beside it, what PR5's page has no place for: each key's POSTs today
- * against the governor's 600 / 700, and arm `top5`'s totals on its $2,000. No live path (`live: null`). Null until the
+ * against the governor's 900 / 950 (600 / 700 until 2026-10-01), and arm `top5`'s totals on its $2,000. No live path (`live: null`). Null until the
  * engine has saved a state.
  */
 export function quotesVariantSummary(input: {

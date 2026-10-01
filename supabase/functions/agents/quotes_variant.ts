@@ -5,8 +5,9 @@
 //   main  nine rungs a side (0.03, 0.05, 0.075, 0.10, 0.125, 0.15, 0.20, 0.25, 0.30 %) on both books, $100 each;
 //         re-priced when fair moves more than 0.03 %; the orders resting on one side of one book share one cap a minute
 //         (10 % of the minute's printed volume) and each print's own quantity, nearest the market first; four keys (a
-//         book and a side each), governed per UTC day: from 600 POSTs a key's quotes are withdrawn and none is placed,
-//         from 700 it sends only stops. It is the arm the pre-registration judges.
+//         book and a side each), governed per UTC day: from 900 POSTs a key's quotes are withdrawn and none is placed,
+//         from 950 it sends only stops (600 / 700 until 2026-10-01: the live design's governor, which Davies raised that
+//         day, and these with it, deviation 2). It is the arm the pre-registration judges.
 //   top5  the same with k = 0.05, 0.075, 0.10, 0.125, 0.15 %. Reported beside it, never judged.
 //
 // Everything else is PR5's frozen rule, reused from quotes.ts by import: the turn at the start of minute t on data to
@@ -56,7 +57,12 @@ export type VariantArm = {
   stopAt: number;
 };
 
-const GOVERNED = { reprice: 0.0003, sizeUsd: QUOTE_SIZE_USD, volumeShare: QUOTE_VOLUME_SHARE, entryAt: 600, stopAt: 700 };
+/**
+ * The governor is the live design's, as the pre-registration's §2 has it: 900 / 950 since 2026-10-01, when Davies raised
+ * the live executor's and, the same evening, these ("把这几个paper testing的策略下单上限也都改成900/950，和live那个一样";
+ * deviation 2). 600 / 700 before, the settings the golden file was made at.
+ */
+const GOVERNED = { reprice: 0.0003, sizeUsd: QUOTE_SIZE_USD, volumeShare: QUOTE_VOLUME_SHARE, entryAt: 900, stopAt: 950 };
 /** The pre-registration's two arms (its §2), both run every minute. */
 export const VARIANT_ARMS: Record<VariantArmName, VariantArm> = {
   main: { name: "main", rungs: [0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003], ...GOVERNED },
@@ -77,8 +83,11 @@ export const VARIANT_START = Date.parse("2026-09-28T00:00:00Z");
  * without the re-decide the pre-registration's §3 asks of any code change. No arm of PR5V sets it, so no decision can
  * differ; the record is re-decided anyway, so that one version of the code, whose golden replay passed, wrote all of it
  * (PR5V's deviation 1, reference §4 item 45).
+ *
+ * 3 since 2026-10-01: the governor at 900 / 950 (PR5V's deviation 2). It changes decisions wherever a key reached 600
+ * POSTs in a day, so the record is re-decided from `VARIANT_START` under it.
  */
-export const VARIANT_CODE_VERSION = 2;
+export const VARIANT_CODE_VERSION = 3;
 export const VARIANT_LEASE_MS = QUOTE_LEASE_MS;
 /** Minutes decided in one call at most; a catch-up after a pause, or after a new version, is several calls. */
 export const VARIANT_MAX_MINUTES = QUOTE_MAX_MINUTES;

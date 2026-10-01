@@ -360,7 +360,7 @@ const AGENTS_QUOTESD = (at) => inPounds({
   realisedUsd: 0.12, realisedPct: 0.0033, todayUsd: 0.07, todayPct: 0.0019, trips: 1, won: 1, open: 0, openUsd: 0, unrealisedUsd: 0,
   ordersToday: 80, fillsToday: 1, arm: 'd', checkMaxUsd: 0.02, checkDays: 1,
   postsToday: { 'USDC-GBP/bid': 10, 'USDC-GBP/ask': 10, 'USDT-GBP/bid': 10, 'USDT-GBP/ask': 10 },
-  governor: { entryAt: 600, stopAt: 700 },
+  governor: { entryAt: 900, stopAt: 950 },
   books: [
     { book: 'USDC-GBP', lastX: 1.32, lastPrice: 0.7550, lastPrintAt: new Date(NOW_MS - 60e3).toISOString(), fair: 0.75505, quoting: 18, held: 0, openUsd: 0, unrealisedUsd: 0, trips: 1, won: 1, realisedUsd: 0.12, rungs: quotesvRungs(0.75505) },
     { book: 'USDT-GBP', lastX: 1.32, lastPrice: 0.7548, lastPrintAt: new Date(NOW_MS - 90e3).toISOString(), fair: 0.75482, quoting: 18, held: 0, openUsd: 0, unrealisedUsd: 0, trips: 0, won: 0, realisedUsd: 0, rungs: quotesvRungs(0.75482) },

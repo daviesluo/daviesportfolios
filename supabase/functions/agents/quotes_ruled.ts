@@ -6,7 +6,8 @@
 // `RULED_CODE_VERSION`, wipes only these tables, and re-decides from the start.
 //
 //   d   the arm that is judged. PR5V's arm `main` (nine rungs, 0.03 % exits,
-//       $100, the shared cap, four keys, 600 / 700) on the same stored X,
+//       $100, the shared cap, four keys, 900 / 950 since deviation 3, 600 /
+//       700 before) on the same stored X,
 //       except an entry re-prices when fair has moved more than
 //       max(0.03 %, k/3). It differs from variant-1 by rule D and nothing else.
 //   v1  the deviation, never judged. PR5V's arm `main` exactly, on PR5's stored
@@ -42,7 +43,8 @@ export function ruleDEntryBand(k: number): number {
 
 export type RuledArmName = "v1" | "d";
 const NINE = VARIANT_ARMS.main.rungs;
-const GOVERNED = { reprice: 0.0003, sizeUsd: QUOTE_SIZE_USD, volumeShare: QUOTE_VOLUME_SHARE, entryAt: 600, stopAt: 700 };
+/** PR5V's governor, 900 / 950 since 2026-10-01 (Davies; deviation 3 here, PR5V's deviation 2): `v1` must stay PR5V's `main`. */
+const GOVERNED = { reprice: 0.0003, sizeUsd: QUOTE_SIZE_USD, volumeShare: QUOTE_VOLUME_SHARE, entryAt: 900, stopAt: 950 };
 /** Arm `v1` is PR5V's `main` with the entry band unset. Arm `d` is the same plus rule D's band. */
 export const RULED_ARMS: Record<RuledArmName, VariantArm> = {
   v1: { name: "v1", rungs: NINE, ...GOVERNED },
@@ -50,10 +52,11 @@ export const RULED_ARMS: Record<RuledArmName, VariantArm> = {
 };
 export const RULED_ARM_NAMES: RuledArmName[] = ["v1", "d"];
 /**
- * 3 since 2026-09-30: arm `d` reads PR5's stored X, as `v1` does (deviation 2). 2 held a TrueFX snapshot read before the
- * turn; 1 read it about two minutes after (deviation 1).
+ * 4 since 2026-10-01: both arms governed at 900 / 950, as PR5V's (deviation 3, Davies). 3 since 2026-09-30: arm `d` reads
+ * PR5's stored X, as `v1` does (deviation 2). 2 held a TrueFX snapshot read before the turn; 1 read it about two minutes
+ * after (deviation 1).
  */
-export const RULED_CODE_VERSION = 3;
+export const RULED_CODE_VERSION = 4;
 export const RULED_START = VARIANT_START;
 
 export type RuledArmState = { books: Record<QuoteBook, BookState>; gov: GovCounts };

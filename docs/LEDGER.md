@@ -238,6 +238,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
        (the file's fallback; under 21 days it is reported, not judged).
      - Expect the governor to bind: on Yahoo's GBP/USD every key reached 600 POSTs on each fresh weekday, from 14:49
        UTC, and the paired gain there was +$0.28 a day against the 28 days' +$0.64.
+     - **Deviation 2 (2026-10-01, Davies: "把这几个paper testing的策略下单上限也都改成900/950，和live那个一样"):** the
+       governor is the live design's, 900 / 950 (§2 holds each key "to the live design's order governor", 600 / 700 when
+       frozen; the live executor's went to 900 / 950 the same day). At 21:22 UTC every key of both instances had reached
+       600 and all 36 of each arm's rungs were idle. `VARIANT_CODE_VERSION` 3 re-decides from 2026-09-28 00:00 under it;
+       condition 5 and the reading's `gov` read 900 / 950; the golden replay keeps its 600 / 700 (the function reads the
+       arm's limits). Check after it as after deviation 1.
 
    - Faster GBP/USD and more keys (answered 2026-09-28, reference §4 item 46, `reviews/2026-09-28-pr5-fast-fx-study.md`):
      neither earns much more; rule D became variant-2. A TrueFX feed would count only in a live executor that posts at
@@ -249,8 +255,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      or the test is not judged. Deviation 1 (2026-09-30): arm d had priced each turn with TrueFX read after it
      (`backtests/pr5v/lookahead.json`, worth +$0.054 a day; code version 2). Deviation 2 (2026-09-30, Davies: variant-2
      is the test of rule D): arm d reads PR5's stored X, as variant-1 does, so the two differ by rule D alone (code
-     version 3, re-decided from 09-28 00:00; the TrueFX code is kept in `954bd25`). Reference §4 items 45 and 47. Check
-     only `agent_quoted_state` code 3, caught up, no error, `checkMaxUsd` under $0.01, and no `x_source = 'truefx'` row.
+     version 3, re-decided from 09-28 00:00; the TrueFX code is kept in `954bd25`). Deviation 3 (2026-10-01, Davies):
+     both arms take the live design's governor, 900 / 950, as PR5V's do (code version 4, re-decided from 09-28 00:00;
+     `v1` stays PR5V's `main`). Reference §4 items 45 and 47. Check only `agent_quoted_state` code 4, caught up, no
+     error, `checkMaxUsd` under $0.01 once both have caught up, and no `x_source = 'truefx'` row.
    - **Disclosure (history 2026-09-30 22:14):** this session read PR5V's and variant-2's daily results for 09-28 → 09-30
      before their reading. Both reading scripts are written from the pre-registrations alone (by 10-27 00:00; the 10-24
      wake), and both result files repeat the disclosure. From here the check is `checkMaxUsd` and `checkDays` alone.
@@ -560,6 +568,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-1 and variant-2 take the live design's governor, 900 / 950, and re-decide from 2026-09-28** (PR5V's deviation 2, variant-2's deviation 3; reference §4 items 45 and 47). Davies asked why the two variants had not taken the new DEPLOYED: they had, but at 21:22 UTC every key of both had reached 600 POSTs (variant-1 600, 630, 600, 667; variant-2 600 each), so all 36 rungs of each judged arm were withdrawn until midnight and nothing was at work. He then asked for the paper tests' limits to be the live executor's ("把这几个paper testing的策略下单上限也都改成900/950，和live那个一样"); PR5V's §2 holds each key to the live design's governor, which went to 900 / 950 that day. Both engines' arms take 900 / 950, and the code versions (3 and 4) re-decide each record from its start on the stored inputs. The golden replay keeps the golden's 600 / 700, since the minute function reads its arm's limits; the arms' limits are pinned, and with 600 / 700 put back three tests fail. PR5's own paper engine has no POST governor at all (the page's 1,000 is the venue's limit, shown for reference), so it does not change; he asked, and was told so.
 
 ### [2026-10-01 20:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

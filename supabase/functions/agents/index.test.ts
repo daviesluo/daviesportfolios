@@ -709,7 +709,7 @@ Deno.test("quotesVariantSummary: arm main in exactly the shape of PR5's quotes, 
   assertEquals(q.recent.map((t) => t.book), ["USDC-GBP", "USDT-GBP"]);
   // Each key's POSTs today; a key that has sent none reads 0.
   assertEquals(q.postsToday, { "USDC-GBP/bid": 412, "USDC-GBP/ask": 0, "USDT-GBP/bid": 0, "USDT-GBP/ask": 601 });
-  assertEquals(q.governor, { entryAt: 600, stopAt: 700 });
+  assertEquals(q.governor, { entryAt: 900, stopAt: 950 });
   // top5 on its own $2,000, from its own trips and days.
   assertEquals([q.top5.capitalUsd, q.top5.trips, q.top5.won, q.top5.open, q.top5.ordersToday, q.top5.fillsToday], [2000, 1, 1, 0, 350, 4]);
   assertAlmostEquals(q.top5.realisedPct, 0.07 / 2000 * 100, 1e-12);

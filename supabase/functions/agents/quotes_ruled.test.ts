@@ -34,12 +34,14 @@ Deno.test("rule D re-prices the inner rung on a 0.05 % move and leaves the outer
 Deno.test("arm v1 decides a minute exactly as PR5V's main, and PR5V's own arms still have no entry band", () => {
   // Both moved on 2026-09-30. PR5V re-decides once, because `entryBand` was added to its engine after it had decided
   // minutes (its deviation 1). Variant-2 read TrueFX after its turn (its deviation 1), then before it, and from code
-  // version 3 reads PR5's stored X, as variant-1 does (its deviation 2).
-  assertEquals(VARIANT_CODE_VERSION, 2);
-  assertEquals(RULED_CODE_VERSION, 3);
+  // version 3 reads PR5's stored X, as variant-1 does (its deviation 2). On 2026-10-01 both took the live design's governor,
+  // 900 / 950 (Davies; PR5V's deviation 2, variant-2's deviation 3), and both re-decide from their start under it.
+  assertEquals(VARIANT_CODE_VERSION, 3);
+  assertEquals(RULED_CODE_VERSION, 4);
   assertEquals(RULED_ARMS.v1.entryBand, undefined);
   assertEquals(RULED_ARMS.v1.rungs, VARIANT_ARMS.main.rungs);
-  assertEquals([RULED_ARMS.d.reprice, RULED_ARMS.d.entryAt, RULED_ARMS.d.stopAt, RULED_ARMS.d.sizeUsd], [0.0003, 600, 700, 100]);
+  assertEquals([RULED_ARMS.d.reprice, RULED_ARMS.d.entryAt, RULED_ARMS.d.stopAt, RULED_ARMS.d.sizeUsd], [0.0003, 900, 950, 100]);   // deviation 3
+  assertEquals([RULED_ARMS.v1.entryAt, RULED_ARMS.v1.stopAt], [VARIANT_ARMS.main.entryAt, VARIANT_ARMS.main.stopAt]);
   const run = (arm: VariantArm) => {
     const s = newVariantBook("USDC-GBP", arm, null), gov = newGovCounts(), events: VariantEvent[] = [];
     for (let i = 0; i < 5; i++) events.push(...stepVariantMinute(s, i * M, { x: 1.3, fairU: 1 + i * 0.0002, prints: [] }, arm, gov).events);
