@@ -124,7 +124,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `PM_ORDER_SENDS_ENABLED` true and the key loaded only for the stored signer; the config row keeps it home
      (`dry_run` true, `live_confirmed_at` null). Phase 1: 2 markets, $40; caps $320 in all (deposit − $75 − $5, the code
      ceiling) and $60 a market; stops −$25 a day, −$75 in all; GTD 600 s. The path reads its pUSD every minute
-     (`pm_live_state.state.pusd`). **Next:** watch a day of dry-run (`pm_live_state.last_error`, `pm_live_events`, the
+     (`pm_live_state.state.pusd`) and whether its key is loaded for the stored signer (`state.keyed` true, `signerProblem` null). **Next:** watch a day of dry-run (`pm_live_state.last_error`, `pm_live_events`, the
      day's two markets, no ops_errors); his $5 deposit, its balance read in `pm_live_state`; then ~$395; then the design
      doc's ONE go-time statement, in the conversation where he says go (it sets `cap_total_usd = least(320,
      floor(pusd − 75 − 5))` from the path's own read, refused when unread, older than 5 minutes or under $81, and arms);
@@ -532,6 +532,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 18:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Both landings verified in production; the Polymarket path now records whether its key is loaded.** `0076` applied (the row dry-run, unarmed, cap $320, 2 markets, $40; `pm_live_minutes` exists). The new `agents` runs: `pm_live_state` 17:58 UTC reads mode `dry_run`, why "pm_live_config.dry_run is on", `sendsEnabled` true, pUSD 0.036673 (the L2 read works; nothing deposited yet), every gate open but armed (region eu-west-1, geoblock, closed-only, attestation, inventory, both stops), no ops_errors since the push; today's two markets are 0074's placeholders (no `max_spread`), quoting nothing until RW's ranking runs at 00:00 UTC, as designed. Nothing showed whether the key itself loaded — `why` names it only once dry_run is off — so the state now carries `keyed` and `signerProblem` (one of the loader's fixed sentences, never the key); a pin checks both ways and that the state never carries the key (its removal fails it); the design doc's step 7 and item 2 read it before the go-time statement. LIVE's Stablecoin quotes page landed (`ee67cff7`, full gates on the merged tree: desktop 237, phone 240, perf 60).
 
 ### [2026-10-01 17:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

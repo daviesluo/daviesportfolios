@@ -940,6 +940,17 @@ Deno.test("the locks that remain, each alone: dry_run on, no key, a key that is 
   assertEquals([r.mode, w.writes().length, w.open("live").length], ["live", 4, 4]);
 });
 
+Deno.test("the state says whether a key for the stored signer is loaded, in dry-run too, so it can be read before the go-time statement — never the key", async () => {
+  const w = makeWorld({});                                              // dry_run on, as 0076 leaves it; the stored signer's key loaded
+  await w.turn(T0);
+  assertEquals([w.state().mode, w.state().keyed, w.state().signerProblem], ["dry_run", true, null]);
+  const hex = PM_TEST_KEY.replace(/^0x/, "").toLowerCase();
+  assert(!JSON.stringify(w.state()).toLowerCase().includes(hex), "the state must never carry the key");
+  const n = makeWorld({ signer: false });
+  await n.turn(T0, { signerProblem: "POLYMARKET_PRIVATE_KEY missing: no order can be signed" });
+  assertEquals([n.state().mode, n.state().keyed, n.state().signerProblem], ["dry_run", false, "POLYMARKET_PRIVATE_KEY missing: no order can be signed"]);
+});
+
 // ------------------------------------------------------------------ every gate in the turn, both ways
 
 const sides = (w: ReturnType<typeof makeWorld>) => w.open().map((o) => `${String(o.cond).slice(-2)} ${o.outcome} ${o.side} ${Number(o.price)} ${Number(o.size)} ${o.gate}`).sort();

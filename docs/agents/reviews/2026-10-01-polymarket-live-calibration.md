@@ -351,7 +351,9 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
 5. Read it arrived: the dry-run reads the same balance every minute (`select state->>'pusd', state->>'at' from
    public.pm_live_state;`, in dollars), and the probe's collateral read (step 2's call) shows it in base units.
 6. Then the rest (about $395). Read the balance again.
-7. The total cap needs no statement of its own: the go-time statement below sets it from that balance.
+7. The total cap needs no statement of its own: the go-time statement below sets it from that balance. Before it, read
+   that the signing key is loaded for the stored signer: `select state->'keyed', state->>'signerProblem' from
+   public.pm_live_state;` must read `true` and null (recorded in dry-run too since 2026-10-01; never the key itself).
 
 **Going live (in the conversation where Davies says go; his confirmation of the first live order in it)**
 

@@ -1564,6 +1564,9 @@ async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0
       id: 1, updated_at: nowIso, last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
       state: {
         at: nowIso, minute, mode, why: report.why, sbRegion: d.sbRegion, sendsEnabled: d.sendsEnabled, dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at,
+        // Whether a signing key for the stored signer is loaded, read before the go-time statement: `why` names it only once
+        // dry_run is off. Never the key itself: `signerProblem` is one of the loader's fixed sentences.
+        keyed, signerProblem: keyed ? null : (d.signerProblem ?? null),
         attested, gates: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, gateKey, geo, geoCachedFrom: g0.geo.cachedFrom,
         geoGood: g0.good, geoStaleReported: g0.staleReported, closedOnly, pusd,
         limits: lim, posts: { day, [mode]: posts }, governorDay: posts >= lim.maxPosts ? day : prev.governorDay ?? null, pnl,
