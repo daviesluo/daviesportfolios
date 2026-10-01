@@ -744,13 +744,18 @@ async function shot(page, name) {
   const w = page.viewportSize()?.width ?? 0;
   await page.screenshot({ path: `${SHOTS_DIR}/${w}-${name}.png`, fullPage: true }).catch(() => {});
 }
-/** Opens the Agents page from the menu and waits for its tab bar. */
+/** Opens the Agents page from the menu and waits for its tab bar, and for the page to finish rising in. */
 async function openAgentsPage(page) {
   await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
   await page.waitForTimeout(200);
   await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
   await page.waitForSelector('.ag-modebar', { timeout: 10_000 }).catch(() => {});
   await page.waitForTimeout(150);
+  // A desktop modal rises in over 0.22 s (`modal-in`, a transform), and a position read before the rise ends is up to
+  // 12 px low. `tabs/none` compares the venue cards' positions read before and after a tab round trip: it failed once
+  // with a full gate run beside it (2026-10-01), and fails every time with the rise slowed to 2 s, its first read 9 px
+  // low. The rise is the only animation on a `.modal` itself (a phone's has none), so none running is the page at rest.
+  await page.waitForFunction(() => [...document.querySelectorAll('.modal')].every((m) => m.getAnimations().length === 0), null, { timeout: 5_000 }).catch(() => {});
 }
 /**
  * What the Agents page shows right now, read out of the DOM as text: the tab bar, and the open tab's scoreboard,
