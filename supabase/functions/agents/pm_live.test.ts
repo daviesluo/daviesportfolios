@@ -17,7 +17,7 @@ import {
 } from "../_shared/polymarket_orders.ts";
 import {
   attestationCurrent, bookNow, bookPnl, candidateOf, closeOnly, crosses, effectiveLimits, gates, onTick, placeholderQuotes, PM_LIVE_DB_TABLES,
-  PM_LIVE_LEASE_MS, PM_LIVE_LIFETIME_S, PM_LIVE_SELECT_UNTIL_MS, PM_LIVE_SEND_UNTIL_MS, PM_LIVE_TIMEOUT_MS, PM_OPEN_GATES, postOutcome, rewardRate,
+  PM_LIVE_LEASE_MS, PM_LIVE_LIFETIME_S, PM_LIVE_MIN_HORIZON_MS, PM_LIVE_SELECT_UNTIL_MS, PM_LIVE_SEND_UNTIL_MS, PM_LIVE_TIMEOUT_MS, PM_OPEN_GATES, pmTime, postOutcome, rewardRate,
   runPmLive, selectMarkets, stateOfStatus, tokenBooks, tradeStatus, type GateInputs, type PmLiveConfig, type PmMarketRow, type PmQuoteRule,
 } from "./pm_live.ts";
 import { runPmLiveAction } from "./index.ts";
@@ -272,6 +272,26 @@ Deno.test("candidateOf and rewardRate: outside RW's universe is a rate under $10
   assertEquals([rewardRate({ total_daily_rate: 12 }), rewardRate({ native_daily_rate: 2.5, sponsored_daily_rate: 0.5 }), rewardRate({})], [12, 3, 0]);
 });
 
+Deno.test("candidateOf passes over a market whose game starts, or which ends, within two days: one that resolves while selected leaves no book", () => {
+  const now = Date.parse("2026-10-01T05:31:00Z");
+  const m = { conditionId: cond(9), clobTokenIds: '["11","12"]', enableOrderBook: true, acceptingOrders: true, closed: false, negRisk: false, question: "Q" };
+  const none = new Map<string, number>();
+  // The first day's standard pick, as Gamma shows it: an endDate a week on, and a game that had started at 03:05.
+  assertEquals(candidateOf({ ...m, endDate: "2026-10-08T02:00:00Z", gameStartTime: "2026-10-01 03:05:00+00" }, none, now), null);
+  assertEquals(candidateOf({ ...m, endDate: "2026-10-03T05:30:59Z" }, none, now), null);                         // ends inside two days
+  assertEquals(candidateOf({ ...m, gameStartTime: "2026-10-03 05:30:00+00" }, none, now), null);                   // starts inside them
+  assertEquals(candidateOf({ ...m, endDate: "2026-10-03T05:31:00Z", gameStartTime: "2026-10-03 05:31:00+00" }, none, now)?.cond, cond(9));
+  assertEquals(candidateOf({ ...m, endDate: "2026-10-29T03:59:00Z", gameStartTime: null }, none, now)?.cond, cond(9)); // a Fed market
+  assertEquals(candidateOf(m, none, now)?.cond, cond(9));                                                          // no times: nothing to go on
+  assertEquals(candidateOf({ ...m, endDate: "soon" }, none, now)?.cond, cond(9));                                  // nor an unreadable one
+  assertEquals(candidateOf({ ...m, endDate: "2026-10-01T06:00:00Z" }, none)?.cond, cond(9));                       // no clock, no horizon
+  assertEquals(PM_LIVE_MIN_HORIZON_MS, 2 * DAY);
+  assertEquals(
+    [pmTime("2026-10-01 03:05:00+00"), pmTime("2026-10-08T02:00:00Z"), pmTime("2026-10-01 03:05:00+05:30"), pmTime("2026-10-29"), pmTime(null), pmTime("")],
+    [Date.parse("2026-10-01T03:05:00Z"), Date.parse("2026-10-08T02:00:00Z"), Date.parse("2026-09-30T21:35:00Z"), Date.parse("2026-10-29T00:00:00Z"), null, null],
+  );
+});
+
 // ------------------------------------------------------------------ the dry-run, as it runs from the push
 
 const nowS = (ms: number) => Math.floor(ms / 1000);
@@ -393,6 +413,39 @@ Deno.test("the day's selection is made once, retried every five minutes while a 
   assertEquals(w.pm.calls.filter((c) => c.includes("/rewards/")).length, n);            // chosen: not read again today
   await w.turn(T0 + DAY);
   assertEquals((w.mem.tables.pm_live_markets as Row[]).filter((m) => m.day === "2026-10-03").length, 2);
+});
+
+Deno.test("selectMarkets applies the horizon: a standard market whose game starts within two days of the selection is passed over for the next", async () => {
+  const w = makeWorld();
+  w.A.gameStartTime = "2026-10-02 18:00:00+00";                                          // A plays today
+  assertEquals((await selectMarkets(w.pm.venue(), "2026-10-02", ["standard"], new Set(), undefined, T0)).picks.map((p) => p.cond), [cond(7)]);
+  w.A.gameStartTime = "2026-10-05 18:00:00+00";                                          // three days on: A again
+  assertEquals((await selectMarkets(w.pm.venue(), "2026-10-02", ["standard"], new Set(), undefined, T0)).picks.map((p) => p.cond), [cond(5)]);
+});
+
+Deno.test("a selected market that leaves the book: recorded once, no fault each minute, its orders closed, its book not read again, its kind chosen again without it", async () => {
+  const w = makeWorld();
+  const std = () => (w.mem.tables.pm_live_markets as Row[]).find((m) => m.day === "2026-10-02" && m.kind === "standard")?.cond;
+  const goneEvents = () => w.events("selection").flatMap((e) => ((e.detail as { gone?: Array<{ cond: string }> }).gone ?? []).map((g) => g.cond));
+  const bookReads = () => w.pm.calls.filter((c) => c === "GET clob.polymarket.com/book").length;
+  await w.turn(T0);
+  assertEquals(std(), cond(5));
+  assertEquals(w.open().filter((o) => o.cond === cond(5)).length, 2);
+  w.A.resolved = true;                                                                    // its book goes: /book answers 404
+  const r1 = await w.turn(T0 + M);
+  assertEquals(r1.errors, []);
+  assertEquals(w.open().filter((o) => o.cond === cond(5)).length, 0);
+  assertEquals(goneEvents(), [cond(5)]);
+  const before = bookReads();
+  const r2 = await w.turn(T0 + 2 * M);                                                    // inside the five minutes: no pick yet, no fault
+  assertEquals(r2.errors, []);
+  assertEquals(bookReads() - before, 1);                                                  // B's book alone
+  await w.turn(T0 + 5 * M);                                                               // chosen again, without A
+  assertEquals(std(), cond(7));
+  assertEquals(w.open().filter((o) => o.cond === cond(7)).length, 2);
+  assertEquals(goneEvents(), [cond(5)]);                                                  // recorded once
+  await w.turn(T0 + DAY);                                                                 // a new UTC day starts afresh
+  assertEquals(w.state().gone, []);
 });
 
 Deno.test("the selection's deadline: no read starts 40 s into the turn; a listing not read to its end takes nothing, a market already found stands, the rest is tried again in five minutes", async () => {

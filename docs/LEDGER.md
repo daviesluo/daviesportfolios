@@ -108,7 +108,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      eu-west-1 (so `forceFunctionRegion` works through pg_net), every gate true, the geoblock `blocked: true`, IE;
      the selection took 30.6 s (39 reward pages, 18,780 rewarded rows) and picked two unrewarded markets; four dry-run
      rows, none since (nothing changed); no `last_error`, no `ops_errors`; the job's other calls all 200 (05:30's one
-     404 was this call reaching the function before its deploy finished at 05:30:41).
+     404 was this call reaching the function before its deploy finished at 05:30:41). **Fixed the same morning:** the
+     standard pick (a China Open match, its game started 03:05) closed at 06:27 and every turn reported its 404 book —
+     211 `ops_errors` by 09:26. The selection now passes over a market whose game starts or which ends within two days,
+     and a 404 book drops a selected market for the day (recorded once, its kind chosen again without it).
 
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
@@ -498,6 +501,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-01 09:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The order path's dry-run stopped reporting a market that had left the book** (item 2). The 09:23 EX-GAP wake (item 5a.7: 2 pairs, recorded in `56ee56e`) also read `pm_live_state`: `last_error` named the standard pick's book, 404, and `ops_errors` held 211 of its rows since about 06:28. The pick was a China Open match whose `endDate` was a week on but whose game had started at 03:05; it closed at 06:27 and the selection is made once a day. `agents/pm_live.ts` now passes over a market whose `gameStartTime` or `endDate` falls within two days (`PM_LIVE_MIN_HORIZON_MS`; `pmTime` reads Gamma's `+00` offsets), and treats a 404 book as the market leaving: recorded once in the minute's selection event, its orders closed, not read again that day, its kind chosen again without it. Three pins in `pm_live.test.ts` (49 pass), each failing under its counterfactual: no horizon, a 404 as a fault, the gone market read again, no offset fix. Nothing about sending changed. The 211 rows stay in `ops_errors`; new ones stop with the deploy.
 
 ### [2026-10-01 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

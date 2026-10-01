@@ -445,7 +445,14 @@ he says otherwise ("不和你说关就一直没事" — unless he says to switch
 off, it stays on), so `ireland_until` is null and one statement revokes
 it. The geoblock gate is the country, not `blocked`: from eu-west-1 the
 geoblock answers `blocked: true` with country IE (§6), because it answers
-for the frontend, where Ireland is close-only.
+for the frontend, where Ireland is close-only. A sports market's `endDate`
+can be days after its game: the China Open match the dry-run took on
+2026-10-01 had `endDate` 2026-10-08T02:00:00Z and `gameStartTime`
+"2026-10-01 03:05:00+00" (Postgres-style, its offset an hour without
+minutes), and it closed at 06:27 that day, after which `/book` answered
+404 "No orderbook exists for the requested token id". So the selection
+passes over a market whose game starts, or which ends, within two days,
+and a 404 book drops a selected market for the day.
 
 ## 3. What the numbers say (measured, real data)
 

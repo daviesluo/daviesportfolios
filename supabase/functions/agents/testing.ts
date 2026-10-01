@@ -680,6 +680,10 @@ export const PM_TEST_OWNER = "00000000-1111-4222-8333-444444444444";
 type FakePmMarket = {
   cond: string; yes: string; no: string; bid: number; ask: number; tick: string; minSize: number; negRisk: boolean; rate: number | null; sponsoredRate: number | null;
   accepting: boolean;
+  /** Gamma's times, as Gamma writes them (`endDate` ISO, `gameStartTime` Postgres-style); absent when Gamma gives none. */
+  endDate?: string | null; gameStartTime?: string | null;
+  /** Closed or resolved: its book is gone (`/book` answers 404, as the CLOB does) and Gamma shows it closed. */
+  resolved?: boolean;
 };
 type FakePmOrder = {
   hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; matched: number; status: string; expiration: number;
@@ -779,7 +783,7 @@ export class FakePolymarket {
     if (method === "GET" && path === "clob.polymarket.com/book") {
       if (this.down.book) return err(503, "down");
       const t = this.touch(q.get("token_id") ?? ""), x = this.marketOf(q.get("token_id") ?? "");
-      if (!t || !x) return err(404, "No orderbook exists for the requested token id");
+      if (!t || !x || x.m.resolved) return err(404, "No orderbook exists for the requested token id");
       // Bids low to high and asks high to low, as measured (reference §2d), with a deeper level behind each touch.
       const step = Number(x.m.tick);
       return {
@@ -809,7 +813,8 @@ export class FakePolymarket {
       const conds = this.gammaOrder.slice(at, at + 3);
       const markets = conds.map((c) => this.markets.find((m) => m.cond === c)!).map((m) => ({
         conditionId: m.cond, question: `Q ${m.cond.slice(2, 8)}`, clobTokenIds: JSON.stringify([m.yes, m.no]), outcomes: '["Yes","No"]',
-        enableOrderBook: true, acceptingOrders: m.accepting, closed: false, negRisk: m.negRisk,
+        enableOrderBook: true, acceptingOrders: m.accepting && !m.resolved, closed: !!m.resolved, negRisk: m.negRisk,
+        ...(m.endDate !== undefined ? { endDate: m.endDate } : {}), ...(m.gameStartTime !== undefined ? { gameStartTime: m.gameStartTime } : {}),
       }));
       return { status: 200, body: { markets, next_cursor: at + 3 < this.gammaOrder.length ? btoa(String(at + 3)) : undefined } };
     }

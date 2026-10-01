@@ -95,7 +95,12 @@ The turn claims the `pm-live` lease (55 s), then:
    neg-risk market that accepts orders, has two tokens, a two-sided book agreeing with Gamma about `neg_risk`, and a
    daily reward rate under $10 or none, are taken. RW's universe is $10 and over, so these are never RW's or RW-C's.
    A reward listing not read to its end takes nothing: without it RW's universe cannot be told apart. RW's ranking
-   code is not used.
+   code is not used. **A market whose game starts, or which ends, within two days is passed over** (Gamma's
+   `gameStartTime` and `endDate`; added the same day, after the first standard pick, a China Open match chosen at
+   05:31 UTC, closed at 06:27: its `endDate` was a week on, its game had started at 03:05). **A selected market whose
+   book answers 404 has left the book**: the turn records it once in the minute's selection event, its orders are
+   closed as for any unreadable book, it is not read again that day, and its kind is chosen again without it on the
+   next try; before this, every turn reported the 404, 211 rows of `ops_errors` in four hours.
 2. **What the venue says.** The geoblock for this runtime's address, the account's closed-only flag, each market's
    book, what the account holds of each token (`/balance-allowance?asset_type=CONDITIONAL&token_id=`); in live mode
    every open order read back by its hash, and its trades until `CONFIRMED` or `FAILED`.
@@ -293,7 +298,9 @@ Three locks keep this build from sending, each enough alone, each pinned: `PM_OR
 `POLYMARKET_PRIVATE_KEY`); and `dry_run` on (0074 sets it, and sets it again if re-run). Going live is all of: a
 reviewed commit that sets the constant and loads the key, and in the conversation where Davies says go, after RW-C's
 verdict and the live design, `dry_run = false` and `live_confirmed_at` set. The placeholder rule is replaced by the
-candidate's (`PmQuoteRule`).
+candidate's (`PmQuoteRule`). The live design also settles what a market that resolves while held leaves: its tokens
+are read no more once its book is gone, so its inventory must be redeemed (the Relayer, or by hand) and counted until
+it is; in this phase the path holds nothing.
 
 ## Not verified
 
