@@ -104,16 +104,16 @@
    "sha256": "1c377696ddecd2c78b5b8e4d6ad0e62dbbde769baeb2a3b18f2fcf6e143978a6"
   },
   "results/mnav_screen.csv": {
-   "bytes": 123865,
-   "sha256": "831e44376032ac37638c3c46a62de60d7737046b9f47ad0fbd5ae5ec13e384d1"
+   "bytes": 122759,
+   "sha256": "67ce409a3d81996c728df295c1c21986cb3288be3dc679c30771fbdaab819eec"
   },
   "results/mnav_screen_events.json": {
    "bytes": 22916,
    "sha256": "85c92d58eb44a917ff9c37d95934fb9f960796f9c0ebcd38964442640240f1b9"
   },
   "results/mnav_screen_presslag.csv": {
-   "bytes": 123865,
-   "sha256": "174aa1541a20fdbccb784f93a5094aa2f8da1056f809ed6d9b550219b112e6a8"
+   "bytes": 122759,
+   "sha256": "7b9baf25eb485613dc038dbf0100d877146d9271f443aa146c3b724b2d312d38"
   },
   "results/power.json": {
    "bytes": 17064,
@@ -136,8 +136,8 @@
    "sha256": "8094e85a085d2e73cc85b13ccd78ca27bed65f73ce1f2b6c9070127c0c3ec114"
   },
   "scripts/build_mnav.py": {
-   "bytes": 14336,
-   "sha256": "bd913cbcf73871791e6b392d2cd4c024d1f75ea027073730e939df6922781144"
+   "bytes": 14418,
+   "sha256": "f9cdcf179fa566b54b3464776fc3ea71ede6aadc3fcaccce44ed53ac0d626f1f"
   },
   "scripts/common.py": {
    "bytes": 4603,
@@ -1778,5 +1778,6 @@
    "bytes": 80013,
    "sha256": "d3efc7220eca0a1ac2aa15716aff65b39981fb5402a14ace65693a78275597af"
   }
- }
+ },
+ "eol_note": "Landed 2026-10-01: build_mnav.py now writes its two CSVs with LF line endings, as the repository stores text (.gitattributes eol=lf); before, Python's csv default wrote CRLF, git normalised the committed copies to LF, and the hashes here no longer matched a checkout. The values are unchanged and every JSON result re-ran byte-identical. The CRLF hashes the study recorded (notes/results_sha256_final.txt): results/mnav_screen.csv 831e44376032ac37638c3c46a62de60d7737046b9f47ad0fbd5ae5ec13e384d1; results/mnav_screen_presslag.csv 174aa1541a20fdbccb784f93a5094aa2f8da1056f809ed6d9b550219b112e6a8; scripts/build_mnav.py bd913cbcf73871791e6b392d2cd4c024d1f75ea027073730e939df6922781144"
 }

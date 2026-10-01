@@ -197,7 +197,7 @@ def main():
     os.makedirs(RES, exist_ok=True)
     name = "mnav_screen_presslag.csv" if press_lag else "mnav_screen.csv"
     with open(os.path.join(RES, name), "w", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")  # LF, as the repository stores text (.gitattributes eol=lf)
         w.writerow(["date", "mstr_open", "mstr_close", "btc_0930et", "btc_close_et", "btc_held", "shares_basic",
                     "debt_principal", "cash", "mnav_simple", "mnav_ev"])
         for r in rows:
