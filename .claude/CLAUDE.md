@@ -758,7 +758,9 @@ action) and PR5's dead-man switch; a check failing two minutes running
 alerts, and again on recovery, as an `ops_errors` row (`monitor.*`, the
 site's errors box) and through `monitor-alert.yml` as the issue labelled
 `monitor`. `monitor-deploy.yml` deploys it on a change to
-`workers/monitor/`. `MONITOR_SECRET` (the Worker and the `monitor`
+`workers/monitor/`; its `CLOUDFLARE_API_TOKEN` needs Account → Workers
+Scripts → Edit as well as Pages, and without it the run deploys nothing
+and says so in a warning. `MONITOR_SECRET` (the Worker and the `monitor`
 function share it) is set only by that workflow, which generates it:
 never by hand, never printed; run it with `rotate_secret` to change it.
 GitHub needs the repository secret `MONITOR_GITHUB_PAT` (fine-grained,

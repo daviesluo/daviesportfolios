@@ -528,12 +528,20 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
      Cloudflare's clock: the site, Supabase's minute loop (`monitor?action=health`) and PR5's dead-man
      (`monitor?action=deadman`, item 4); a check failing two minutes running alerts, and again on recovery, to the errors
-     box (`monitor.*`) and the GitHub issue labelled `monitor` (`monitor-alert.yml`). **Davies' to do:** create a
-     fine-grained PAT (resource owner daviesluo, only the repository daviesportfolios, permission Actions: Read and
-     write), store it as the repository secret `MONITOR_GITHUB_PAT`, then run `monitor-deploy` by hand; until then the
-     Worker skips GitHub and its address says so. **Check that it runs** (read-only): `select minute from
-     public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;` gains a row each minute.
-     `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
+     box (`monitor.*`) and the GitHub issue labelled `monitor` (`monitor-alert.yml`). **Not running yet: the Worker is
+     not deployed.** The `monitor` function is deployed (v1, JWT verified) and `0086` applied, but the repository's
+     `CLOUDFLARE_API_TOKEN` has no Workers permission: monitor-deploy's first run (37047789327, 18:29 UTC) found the
+     account's Workers list empty and the Worker's secrets endpoint answered "No access to the specified resource".
+     So `MONITOR_SECRET` is set nowhere yet and the function refuses every call. **Davies' to do, in order:** (1) add
+     Account → Workers Scripts → Edit to `CLOUDFLARE_API_TOKEN` (Cloudflare dashboard → API Tokens → that token → Edit →
+     Permissions → + Add more → Account | Workers Scripts | Edit → Update token; the value does not change), on the
+     account that holds the KV namespace "daviesportfolios-monitor"; (2) optionally, a fine-grained PAT (resource owner
+     daviesluo, only the repository daviesportfolios, Repository permissions → Actions: Read and write) stored as the
+     repository secret `MONITOR_GITHUB_PAT` — without it the Worker skips GitHub and its address says so; (3) run
+     `monitor-deploy` by hand (Actions → monitor-deploy → Run workflow): it generates `MONITOR_SECRET`, sets it in
+     Supabase and on the Worker, deploys, and checks the function takes it. **Check that it runs** (read-only): `select
+     minute from public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;` gains a row
+     each minute. `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
 
 ## Machine and platform setup
 
@@ -645,6 +653,18 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 18:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The monitor's first deploy (`ee3fda3a`): the function and `0086` are in production, the Worker is not, for want of a
+Cloudflare permission.** edge-functions run 37047789319 deployed `monitor` (v1, `verify_jwt` true; `agents` not
+redeployed), migrations run 37047789456 applied `0086` (the kind check now ends `'deadman'`), check run 37047789478
+passed. monitor-deploy run 37047789327 passed its tests (20 of 20) and stopped at the Worker's secrets: "No access to the
+specified resource", with the token's list of the account's Workers empty: a token made for Pages. Its notify job opened
+issue #232. Read back by hand: the function answers 401 "unauthorised" without the secret, the gateway 401 without the
+anon key, 405 to a GET; `MONITOR_SECRET` is set nowhere, so nothing calls it and nothing at the venue was touched. The
+deploy now reads that refusal and stays green with a warning naming the permission, as pages-deploy does without its
+secrets, instead of going red on every push. Davies' three steps are item 9; close #232 once the deploy has run green.
 
 ### [2026-10-02 18:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
