@@ -1045,25 +1045,25 @@ Deno.test("planTopUps: each short book's shortfall first, at least the venue's m
   const at = (over: Partial<Parameters<typeof planTopUps>[0][number]> = {}) => ({ book: "USDT-GBP" as const, fair, pair: PAIR, bestBid: 0.7547, bestAsk: 0.7552, beyond: 39.5, spentTodayGbp: 0, ...over });
   assertAlmostEquals(asksNeedOf(fair, 120, PAIR), 39.65286, 1e-9);
   assertEquals([makerBuyTicks(0.7547, 0.7552, fair), makerBuyTicks(0.7547, 0.7548, fair), makerBuyTicks(0.7600, 0.7605, fair)], [7548, 7547, 7587]);   // a tick over; at it; never over fair + 50 bps
-  // Plenty of GBP: the whole buffer, resting at 0.7548.
-  assertEquals(planTopUps([at()], 120, 10), [{ book: "USDT-GBP", ticks: 7548, base: "0.94591", gbp: 0.94591 * 0.7548, fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 39.5 }]);
-  // Two books short and £0.31 free (PR5's account on 2026-10-02): each its shortfall (£0.11538), then the £0.07924 left
-  // shared, 0.05249 coins each: 0.20535 apiece, £0.31 between them, and not a penny more.
+  // Plenty of GBP: the whole buffer, resting at 0.7548; the venue holds its £0.71397 as £0.72.
+  assertEquals(planTopUps([at()], 120, 10), [{ book: "USDT-GBP", ticks: 7548, base: "0.94591", gbp: 0.72, fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 39.5 }]);
+  // Two books short and £0.31 free (PR5's account on 2026-10-02): each its shortfall, £0.11538 held as £0.12; then the
+  // £0.07 left shared in whole pennies, £0.03 each: £0.15 buys 0.19872 at 0.7548 (£0.149994, held as £0.15). £0.30 held.
   const two = planTopUps([at({ book: "USDC-GBP" }), at()], 120, 0.31) as { book: string; base: string; gbp: number }[];
-  assertEquals(two.map((p) => [p.book, p.base]), [["USDC-GBP", "0.20535"], ["USDT-GBP", "0.20535"]]);
-  assert(two.reduce((a, p) => a + p.gbp, 0) <= 0.31 + 1e-12);
-  // £0.20 free: the first book's shortfall, and the second is told the account needs more GBP.
-  assertEquals(planTopUps([at({ book: "USDC-GBP" }), at()], 120, 0.2).map((p) => "skip" in p ? [p.book, p.skip] : [p.book, p.base]), [
-    ["USDC-GBP", "0.15286"],
+  assertEquals(two.map((p) => [p.book, p.base, p.gbp]), [["USDC-GBP", "0.19872", 0.15], ["USDT-GBP", "0.19872", 0.15]]);
+  // £0.20 free: the first book's shortfall, as much as its £0.12 buys (0.15898), and the second is told the account
+  // needs more GBP; no buffer while it goes short.
+  assertEquals(planTopUps([at({ book: "USDC-GBP" }), at()], 120, 0.2).map((p) => "skip" in p ? [p.book, p.skip] : [p.book, p.base, p.gbp]), [
+    ["USDC-GBP", "0.15898", 0.12],
     ["USDT-GBP", "its shortfall needs £0.12 and £0.08 of GBP is free: the account needs more GBP"],
   ]);
   // The day's £5: £4.95 spent leaves no room for the shortfall; £4.80 leaves £0.20, which caps the buffer.
   assertEquals(planTopUps([at({ spentTodayGbp: 4.95 })], 120, 10), [{ book: "USDT-GBP", skip: "today's top-ups would pass £5: £4.95 so far, £0.12 short" }]);
   const capped = planTopUps([at({ spentTodayGbp: 4.8 })], 120, 10)[0] as { base: string; gbp: number };
-  assertEquals(capped.base, "0.26497");
-  assert(4.8 + capped.gbp <= 5 + 1e-9, String(capped.gbp));
-  // A shortfall under the venue's minimum buys the minimum (£0.10 at 0.7548: 0.13249); nothing short, nothing bought.
-  assertEquals((planTopUps([at({ beyond: 39.6, spentTodayGbp: 5 - 0.4 })], 120, 0.10001)[0] as { base: string }).base, "0.13249");
+  assertEquals([capped.base, capped.gbp], ["0.26497", 0.2]);                     // £0.1999994, held as £0.20: £5.00 for the day
+  // A shortfall under the venue's minimum buys at least the minimum (£0.10 at 0.7548 is 0.13249, held as £0.11), and as
+  // much as that hold buys: 0.14573. Nothing short, nothing bought.
+  assertEquals((planTopUps([at({ beyond: 39.6, spentTodayGbp: 5 - 0.4 })], 120, 0.11)[0] as { base: string }).base, "0.14573");
   assertEquals(planTopUps([at({ beyond: 39.7 })], 120, 10), [{ book: "USDT-GBP", skip: "it holds its three asks' worth" }]);
   assertEquals(planTopUps([at({ bestBid: null })], 120, 10), [{ book: "USDT-GBP", skip: "the order book is unreadable" }]);
 });
@@ -1092,6 +1092,28 @@ Deno.test("inventory: an ask short of coin tops its book up itself — a maker c
   w.rx.fillResting(String(t.venue_order_id), Number(t.base_size));
   await w.run(T0 + 2 * M, T0 + 3 * M);
   assertEquals([tops()[0].state, sells().length, tops().length], ["filled", 3, 1]);
+});
+
+// Production, 2026-10-02 17:56 UTC (orders 1634 and 1635): both books a hair short of their third ask, six £10 bids
+// resting and £0.31 of GBP beyond them. The two top-ups were sized from exact pounds, £0.1503 each; Revolut X holds a
+// buy's pounds rounded UP to the penny, £0.16 each, so the second was refused: "Not enough funds! Wanted £0.16 but has
+// only £0.15". The double now holds them as the venue does.
+Deno.test("inventory: two top-ups in one turn fit the pounds the venue holds for them, each rounded up to the penny — 17:56's refusal", async () => {
+  const need = asksNeedOf(1 / X, 120, PAIR);
+  const w = makeWorld({ live: true, armed: true, capital: 120, balances: { GBP: 60.31, USDC: need - 0.06, USDT: need - 0.06 } });
+  w.pauses.advance = true;                                                   // twelve POSTs in the turn, paced as in production
+  for (const book of ["USDC-GBP", "USDT-GBP"]) {
+    await w.seed({ mode: "live", book, leg: "convert", side: "buy", price: 0.756, base_size: need - 0.06, filled_base: need - 0.06, avg_fill_price: 0.756, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  }
+  const r = await w.step(T0);
+  const tops = w.orders().filter((o) => isAutoConvert(o as { leg: string; request: unknown }));
+  assertEquals(tops.map((o) => [o.book, o.state]), [["USDC-GBP", "new"], ["USDT-GBP", "new"]]);
+  assertEquals(w.orders().filter((o) => o.state === "rejected").map((o) => [o.id, o.leg, (o.response as { error?: string } | null)?.error]), []);
+  // Had one been refused, the turn would say so in its errors, which reach the site's error box: none here.
+  assertEquals(r.errors, []);
+  // The bids and the top-ups hold no more than the account's pounds, each rounded up to the penny as the venue holds it.
+  const held = w.rx.resting().filter((o) => o.side === "buy").reduce((a, o) => a + Math.ceil(Number(o.quantity) * Number(o.price) * 100 - 1e-9) / 100, 0);
+  assert(held <= 60.31 + 1e-9, String(held));
 });
 
 Deno.test("inventory: a top-up unfilled for 30 minutes is cancelled and sent again at the book as it stands; a dry-run tops nothing up", async () => {

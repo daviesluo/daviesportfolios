@@ -1456,13 +1456,21 @@ export class FakeRevx {
     if (read) o.cancelReadsLeft = (o.cancelReadsLeft ?? 0) - 1;
   }
   /** What resting orders hold back of an asset: a resting buy its quote currency, a resting sell its coin. */
+  /**
+   * The pounds a resting buy holds: its notional rounded UP to the penny, as Revolut X holds it. PR5's first automatic
+   * top-up, 2026-10-02 17:56 UTC: two buys of £0.1503 each against £0.31 free, the second refused "Not enough funds!
+   * Wanted £0.16 but has only £0.15". Other quote currencies are held as the notional (not measured).
+   */
+  static holdFor(quote: string, notional: number): number {
+    return quote === "GBP" ? Math.ceil(notional * 100 - 1e-9) / 100 : notional;
+  }
   reserved(asset: string): number {
     let n = 0;
     for (const o of this.orders.values()) {
       this.landCancel(o);
       if (o.status !== "new" && o.status !== "partially_filled") continue;
       const [base, quote] = o.symbol.split("/"), left = Number(o.quantity) - o.filled;
-      if (o.side === "buy" && quote === asset) n += left * Number(o.price);
+      if (o.side === "buy" && quote === asset) n += FakeRevx.holdFor(quote, left * Number(o.price));
       if (o.side === "sell" && base === asset) n += left;
     }
     return n;
@@ -1591,7 +1599,7 @@ export class FakeRevx {
         // A resting order holds back what it could spend, and one the account cannot cover is refused at placement — the
         // stricter reading of an exchange that locks funds for its book (a double looser than that would let a quote
         // engine promise the same pound to two bids).
-        const need = req.side === "buy" ? size * price : size, from = req.side === "buy" ? quoteAsset : asset;
+        const need = req.side === "buy" ? FakeRevx.holdFor(quoteAsset, size * price) : size, from = req.side === "buy" ? quoteAsset : asset;
         if ((this.balances[from] ?? 0) - this.reserved(from) + 1e-9 < need) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
       }
       this.orders.set(o.id, o);

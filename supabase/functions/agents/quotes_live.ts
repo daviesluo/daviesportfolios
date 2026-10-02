@@ -195,6 +195,13 @@ export function dustBase(pair: PairConfig, price: number): number {
   return Math.max(Number(pair.min_order_size), price > 0 ? Number(pair.min_order_size_quote) / price : 0);
 }
 
+/**
+ * The pounds Revolut X holds for a buy: its notional rounded UP to the penny. PR5's first automatic top-ups, 2026-10-02
+ * 17:56 UTC: two buys of £0.1503 against £0.31 free, sized from exact pounds, and the second refused "Not enough funds!
+ * Wanted £0.16 but has only £0.15". Every pound the executor counts as promised to a buy is counted this way.
+ */
+export const pennyUp = (gbp: number): number => Math.ceil(gbp * 100 - 1e-9) / 100;
+
 /** What a book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): the coin the design holds for them. */
 export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig): number {
   return QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
@@ -219,35 +226,35 @@ export type TopUpPlan =
  */
 export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number): TopUpPlan[] {
   const out: TopUpPlan[] = [];
-  const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; full: number; room: number }[] = [];
+  const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; minCost: number; full: number; room: number }[] = [];
   for (const b of books) {
     if (b.bestBid == null || b.bestAsk == null) { out.push({ book: b.book, skip: "the order book is unreadable" }); continue; }
     const ticks = makerBuyTicks(b.bestBid, b.bestAsk, b.fair), price = ticks * QUOTE_TICK;
     const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair);
     const short = asksNeed - b.beyond;
     if (!(short > 1e-9)) { out.push({ book: b.book, skip: "it holds its three asks' worth" }); continue; }
-    const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step));
+    const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step)), minCost = pennyUp(min * price);
     const full = Math.max(min, Number(floorToStep(asksNeed * (1 + QUOTE_LIVE_TOPUP_BUFFER) - b.beyond, b.pair.base_step)));
     const room = Math.max(0, QUOTE_LIVE_TOPUP_MAX_GBP_DAY - b.spentTodayGbp);
-    if (min * price > room + 1e-9) { out.push({ book: b.book, skip: `today's top-ups would pass £${QUOTE_LIVE_TOPUP_MAX_GBP_DAY}: £${b.spentTodayGbp.toFixed(2)} so far, £${(min * price).toFixed(2)} short` }); continue; }
-    due.push({ b, ticks, price, asksNeed, min, full, room });
+    if (minCost > room + 1e-9) { out.push({ book: b.book, skip: `today's top-ups would pass £${QUOTE_LIVE_TOPUP_MAX_GBP_DAY}: £${b.spentTodayGbp.toFixed(2)} so far, £${minCost.toFixed(2)} short` }); continue; }
+    due.push({ b, ticks, price, asksNeed, min, minCost, full, room });
   }
-  // Every shortfall first, in the books' order, while the free GBP covers it.
+  // Every shortfall first, in the books' order, while the free GBP covers the pounds the venue will hold for it.
   let spare = freeGbp;
   const funded: typeof due = [];
   for (const x of due) {
-    if (x.min * x.price > spare + 1e-9) { out.push({ book: x.b.book, skip: `its shortfall needs £${(x.min * x.price).toFixed(2)} and £${Math.max(0, spare).toFixed(2)} of GBP is free: the account needs more GBP` }); continue; }
-    spare -= x.min * x.price;
+    if (x.minCost > spare + 1e-9) { out.push({ book: x.b.book, skip: `its shortfall needs £${x.minCost.toFixed(2)} and £${Math.max(0, spare).toFixed(2)} of GBP is free: the account needs more GBP` }); continue; }
+    spare -= x.minCost;
     funded.push(x);
   }
-  // Then the buffers, an equal share of what is left each, within the day's room; none while a book's shortfall went
-  // unfunded, so the GBP left stays for it.
-  const share = funded.length && funded.length === due.length ? Math.max(0, spare) / funded.length : 0;
+  // Then the buffers, an equal share in whole pennies of what is left, within the day's room; none while a book's
+  // shortfall went unfunded, so the GBP left stays for it. A book buys what its pennies buy, so the venue's hold, the
+  // notional rounded up, never passes them.
+  const share = funded.length && funded.length === due.length ? Math.floor(Math.max(0, spare) * 100 / funded.length + 1e-9) / 100 : 0;
   for (const x of funded) {
-    const extra = Math.max(0, Math.min(x.full - x.min, share / x.price, x.room / x.price - x.min));
-    const base = Math.max(x.min, Number(floorToStep(x.min + extra, x.b.pair.base_step)));
-    const baseText = ceilToStep(base, x.b.pair.base_step);
-    out.push({ book: x.b.book, ticks: x.ticks, base: baseText, gbp: Number(baseText) * x.price, fair: x.b.fair, asksNeed: x.asksNeed, beyond: x.b.beyond });
+    const budget = Math.min(x.minCost + share, Math.floor(x.room * 100 + 1e-9) / 100);
+    const base = ceilToStep(Math.max(x.min, Math.min(x.full, Number(floorToStep(budget / x.price, x.b.pair.base_step)))), x.b.pair.base_step);
+    out.push({ book: x.b.book, ticks: x.ticks, base, gbp: pennyUp(Number(base) * x.price), fair: x.b.fair, asksNeed: x.asksNeed, beyond: x.b.beyond });
   }
   // In the books' order.
   return books.map((b) => out.find((p) => p.book === b.book)!).filter(Boolean);
@@ -967,7 +974,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     for (const o of standing) {
       if (o.mode !== "live" && o.mode !== entry.book) continue;
       const left = Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0));
-      const p = o.side === "buy" ? { asset: "GBP", amount: left * Number(o.price) } : { asset: coinOf(o.book), amount: left };
+      const p = o.side === "buy" ? { asset: "GBP", amount: pennyUp(left * Number(o.price)) } : { asset: coinOf(o.book), amount: left };
       free[p.asset] -= p.amount;
       promised.set(o.id, p);
     }
@@ -997,8 +1004,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       return null;
     }
     if (bal && r.side === "ask") {
-      const otherBuys = [...open, ...sentNow].filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0)) * Number(o.price), 0);
-      if ((bal.GBP ?? 0) - otherBuys + 1e-9 < Number(base) * price) {
+      const otherBuys = [...open, ...sentNow].filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "buy").reduce((a, o) => a + pennyUp(Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0)) * Number(o.price)), 0);
+      if ((bal.GBP ?? 0) - otherBuys + 1e-9 < pennyUp(Number(base) * price)) {
         report.errors.push(`${r.label}: buying back ${base} at ${price.toFixed(4)} needs more GBP than the account has free; not placed`);
         return null;
       }
@@ -1105,7 +1112,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         const base = rungBase(gbpPerRung, price, pair, side);
         if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpPerRung, price }); continue; }
         if (side === "buy") {
-          const need = Number(base) * price;
+          const need = pennyUp(Number(base) * price);
           if (!((free.GBP ?? 0) + 1e-9 >= need)) { await skipEvent(mode, r, target, "not enough free GBP", { needGbp: need, freeGbp: free.GBP ?? 0 }); continue; }
           free.GBP -= need;
         } else {
@@ -1150,9 +1157,14 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       }
       for (const p of planTopUps(cases, capital, free.GBP ?? 0)) {
         if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
-        sent(await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
-          marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } }));
+        const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
+          marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
+        sent(row);
         free.GBP = (free.GBP ?? 0) - p.gbp;
+        // The page's order tables leave conversions out, so a top-up the venue refuses goes to the error box.
+        if (row?.state === "rejected" && wasSent(row) && !wasRateLimited(row)) {
+          report.errors.push(`${p.book}|convert: the venue refused a top-up of ${p.base} at ${(p.ticks * QUOTE_TICK).toFixed(4)}: ${(row.response as { error?: string } | null)?.error ?? "no reason given"}`);
+        }
       }
     } catch (e) { report.errors.push(`top-up: ${msg(e)}`); }
   }
@@ -1257,8 +1269,8 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
   const asksNeed = asksNeedOf(fair, capital, pair);
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, three asks' worth (${asksNeed}) or more: nothing to convert` };
-  const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
-  const needGbp = Number(base) * price * (taker ? 1.0009 : 1);
+  const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + pennyUp(Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price)), 0);
+  const needGbp = pennyUp(Number(base) * price * (taker ? 1.0009 : 1));
   if ((bal.GBP ?? 0) - openBuys < needGbp) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${needGbp} needed at the limit${taker ? " with the fee" : ""}` };
   const today = (await d.db.selectAll<{ id: number; response: unknown }>("agent_quote_live_orders",
     `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response&order=id.asc`)).filter(wasSent);
