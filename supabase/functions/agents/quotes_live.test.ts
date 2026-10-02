@@ -959,25 +959,25 @@ Deno.test("inventory: a re-price on tight inventory gives the cancelled order's 
 
 // ------------------------------------------------------------------ the one-off conversion
 
-Deno.test("the conversion is an operator's call: without send it only says what it would send; it never sends in dry-run, over three rungs, or past fair + 50 bps", async () => {
+Deno.test("the conversion is an operator's call: without send it only says what it would send; it never sends in dry-run, over three rungs, or past fair + 50 bps (taker: an IOC)", async () => {
   const w = makeWorld();
   await w.paperStep(T0);
   const deps = () => ({ db: w.mem.db, now: T0 + M + 30e3, holder: "op", uuid: () => crypto.randomUUID(), account: w.account, fetch: w.rx.fetch, pause: () => Promise.resolve(), clock: () => T0 + M + 30e3 });
-  const preview = await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5 });
+  const preview = await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, taker: true });
   assertEquals((preview.wouldSend as { limit: string; timeInForce: string }).limit, "0.7591");        // fair + 50 bps, rounded down
   assertEquals([w.orders().length, w.posts()], [0, 0]);
-  assertEquals((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true })).error, "dry_run is on: nothing is sent while it is");
+  assertEquals((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true, taker: true })).error, "dry_run is on: nothing is sent while it is");
   assert(String((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.6 })).error).startsWith("gbp: more than 0 and at most 12.5"));
   (w.mem.tables.agent_quote_live_config as Row[])[0].dry_run = false;
-  assertEquals((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true })).error, "live_confirmed_at is null: nothing is sent until it is set");
+  assertEquals((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true, taker: true })).error, "live_confirmed_at is null: nothing is sent until it is set");
   (w.mem.tables.agent_quote_live_config as Row[])[0].live_confirmed_at = ARMED;
   w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7590, ask: 0.7600 };
-  assert(String((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true })).error).includes("more than 50 bps over fair"));
+  assert(String((await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true, taker: true })).error).includes("more than 50 bps over fair"));
   assertEquals(w.posts(), 0);
   // Live and armed, the ask within bounds: one IOC buy, written pending first, sized at the ask (12.5 / 0.7551) and
   // bounded at 0.7591.
   w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7546, ask: 0.7551 };
-  const sent = await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true });
+  const sent = await runQuotesConvert(deps(), { book: "USDT-GBP", gbp: 12.5, send: true, taker: true });
   assertEquals([w.posts(), w.orders().map((o) => [o.leg, o.side, o.rung_side, Number(o.price), Number(o.base_size), (o.request as { timeInForce: string }).timeInForce])],
     [1, [["convert", "buy", null, 0.7591, Math.floor(12.5 / 0.7551 * 1e5) / 1e5, "ioc"]]], JSON.stringify(sent));
   // The minute loop settles it from the venue, and the three USDT asks now have their coin.
@@ -988,6 +988,59 @@ Deno.test("the conversion is an operator's call: without send it only says what 
   const again = await runQuotesConvert({ ...deps(), now: T0 + 2 * M + 40e3 }, { book: "USDT-GBP", gbp: 12.5, send: true });
   assert(String(again.error).includes("three asks' worth"), JSON.stringify(again));
   assertEquals(w.posts(), 1 + w.open("live").length);
+});
+
+Deno.test("by default the conversion rests at the bid, post-only at a maker's 0 %: booked as the venue fills it; one a book; cancelled after 24 hours, on a global pause or disarmed", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 50 });
+  await w.paperStep(T0);
+  const at = (now: number) => ({ db: w.mem.db, now, holder: "op", uuid: () => crypto.randomUUID(), account: w.account, fetch: w.rx.fetch, pause: () => Promise.resolve(), clock: () => now });
+  const open = () => w.open("live").filter((o) => o.leg === "convert");
+  // The spread 0.7546 / 0.7551 leaves room: one tick over the best bid, 0.7547, sized at that price (12.5 / 0.7547),
+  // good till cancelled and post-only. The preview says so and sends nothing.
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7546, ask: 0.7551 };
+  const preview = (await runQuotesConvert(at(T0 + M + 30e3), { book: "USDT-GBP", gbp: 12.5 })).wouldSend as Record<string, unknown>;
+  assertEquals([preview.limit, preview.timeInForce, preview.postOnly, preview.base], ["0.7547", "gtc", true, String(Math.floor(12.5 / 0.7547 * 1e5) / 1e5)]);
+  assertEquals(w.posts(), 0);
+  await runQuotesConvert(at(T0 + M + 30e3), { book: "USDT-GBP", gbp: 12.5, send: true });
+  const conv = open()[0];
+  assert(conv, JSON.stringify(w.orders()));
+  const req = conv.request as { postOnly: boolean; timeInForce: string };
+  assertEquals([Number(conv.price), Number(conv.base_size), req.postOnly, req.timeInForce, conv.state], [0.7547, Math.floor(12.5 / 0.7547 * 1e5) / 1e5, true, "gtc", "new"]);
+  // One a book: a second while it rests is refused, and sends nothing.
+  const posts = w.posts();
+  assert(String((await runQuotesConvert(at(T0 + M + 40e3), { book: "USDT-GBP", gbp: 12.5, send: true })).error).includes("already rests"));
+  assertEquals(w.posts(), posts);
+  // The venue fills it at its price, a maker's fill: the minute loop books it, fee nothing, and leaves it alone meanwhile.
+  await w.step(T0 + M);
+  assertEquals(open().length, 1);
+  w.rx.fillResting(String(conv.venue_order_id), Number(conv.base_size));
+  await w.step(T0 + 2 * M);
+  const done = w.orders().find((o) => o.id === conv.id)!;
+  assertEquals([done.state, Number(done.filled_base), Number(done.avg_fill_price), Number(done.fee_gbp)], ["filled", Math.floor(12.5 / 0.7547 * 1e5) / 1e5, 0.7547, 0]);
+  // A tight book (one tick wide) rests AT the best bid; after 24 hours unfilled the minute loop cancels it.
+  const w2 = makeWorld({ live: true, armed: true, capital: 50 });
+  await w2.paperStep(T0);
+  w2.rx.gbpBooks["USDC/GBP"] = { bid: 0.7548, ask: 0.7549 };
+  await runQuotesConvert({ ...at(T0 + M + 30e3), db: w2.mem.db, account: w2.account, fetch: w2.rx.fetch }, { book: "USDC-GBP", gbp: 12.5, send: true });
+  const c2 = w2.open("live").find((o) => o.leg === "convert")!;
+  assertEquals(Number(c2.price), 0.7548);
+  await w2.step(T0 + M);
+  assertEquals(w2.open("live").filter((o) => o.leg === "convert").length, 1);                 // a minute old: it rests
+  await w2.step(T0 + 25 * H);
+  const gone = w2.orders().find((o) => o.id === c2.id)!;
+  assertEquals([gone.state, String(gone.cancel_reason).startsWith("unfilled after 24 hours")], ["cancelled", true]);
+  // Disarmed (live_confirmed_at cleared), a resting conversion is cancelled at once; and on a global pause.
+  for (const [what, set] of [["disarmed", (x: Row[]) => { (x[0] as Row).live_confirmed_at = null; }], ["global pause", null]] as const) {
+    const w3 = makeWorld({ live: true, armed: true, capital: 50 });
+    await w3.paperStep(T0);
+    await runQuotesConvert({ ...at(T0 + M + 30e3), db: w3.mem.db, account: w3.account, fetch: w3.rx.fetch }, { book: "USDT-GBP", gbp: 12.5, send: true });
+    const c3 = w3.open("live").find((o) => o.leg === "convert")!;
+    if (set) set(w3.mem.tables.agent_quote_live_config as Row[]);
+    else (w3.mem.tables.agent_risk as Row[])[0].global_pause = true;
+    await w3.step(T0 + M);
+    const c3After = w3.orders().find((o) => o.id === c3.id)!;
+    assertEquals(c3After.state, "cancelled", what);
+  }
 });
 
 // ------------------------------------------------------------------ the paper test does not change

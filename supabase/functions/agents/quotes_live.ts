@@ -84,6 +84,8 @@ export const QUOTE_LIVE_STOP_RETRY_MS = H;          // an unfilled stop is tried
 export const QUOTE_LIVE_LEASE_MS = 55e3;
 export const QUOTE_LIVE_PENDING_GRACE_MS = 60e3;    // a `pending` row younger than this is the current turn's own
 export const QUOTE_LIVE_CONVERT_MAX_FRACTION = 0.25; // one conversion buys at most three rungs' worth: the design's inventory for one coin
+/** A conversion resting at the bid (maker, 0 %) that has not filled in this long is cancelled; the operator sends another. */
+export const QUOTE_LIVE_CONVERT_REST_MS = 24 * H;
 /**
  * Revolut X takes at most 10 order POSTs a second on a key (reference §2), and a turn that places or re-prices every rung
  * sends twelve (the PR5v study, 2026-09-28): the executor's own POSTs go out at least this far apart, 8 a second.
@@ -784,6 +786,15 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     }
   }
   const open = openAll.filter(isOpen);
+  // A conversion resting at the bid (`quotes-convert`, maker by default) buys coin, as an entry does: it goes with the global
+  // pause, whenever the executor is not live and armed, and once it has rested unfilled for QUOTE_LIVE_CONVERT_REST_MS. Its
+  // fills are booked above, as every live order's are; a cancel already asked is asked again there.
+  for (const o of open.filter((x) => x.mode === "live" && x.leg === "convert" && x.state !== "pending" && !x.cancel_requested_at && !unreadable.has(x.id))) {
+    const why = globalPause ? "global pause" : entry.book !== "live" ? `not live and armed (${entry.why})`
+      : d.now - Date.parse(o.ts) >= QUOTE_LIVE_CONVERT_REST_MS ? "unfilled after 24 hours: send another conversion if it is still wanted" : null;
+    if (!why) continue;
+    try { await cancelConfirmed(o, why); } catch (e) { report.errors.push(`${o.book}|convert: cancel ${msg(e)}`); }
+  }
   const openOf = (mode: LiveMode, r: { book: QuoteBook; side: Side; k: number }) =>
     open.find((o) => isOpen(o) && o.mode === mode && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k) ?? null;
 
@@ -1031,20 +1042,24 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
 // ------------------------------------------------------------------ the one-off conversion
 
 /**
- * `POST ?action=quotes-convert` `{ book, gbp, send }`: buy one book's coin with GBP, so the ask rungs have something to
- * sell. The account starts with GBP only, and the design's inventory is three asks' worth of each coin. It is an
- * operator's call and never the minute loop's. Without `send: true` it returns the order it WOULD send and writes nothing.
- * With it, the order goes out only when the executor is live and armed (`dry_run` off, `live_confirmed_at` set, no global
- * pause), and only within bounds:
+ * `POST ?action=quotes-convert` `{ book, gbp, send, taker }`: buy one book's coin with GBP, so the ask rungs have
+ * something to sell. The account starts with GBP only, and the design's inventory is three asks' worth of each coin. It
+ * is an operator's call and never the minute loop's. Without `send: true` it returns the order it WOULD send and writes
+ * nothing. With it, the order goes out only when the executor is live and armed (`dry_run` off, `live_confirmed_at` set,
+ * no global pause), and only within bounds:
  *   * at most a quarter of the capital (three rungs' worth);
- *   * none when the account already holds that much of the coin beyond its own longs;
- *   * an IOC buy limited to fair + 50 bps, the 24-hour stop's bound;
- *   * refused when the ask is past that bound, or the governor has closed entries.
- * The row is written `pending` first. The minute loop reads it back and settles it (D8/D11/D12), and the coins it bought
- * count in the book the account is checked against.
+ *   * none when the account already holds that much of the coin beyond its own longs, or a conversion of the book rests;
+ *   * refused when the ask is more than 50 bps over fair (the 24-hour stop's bound), or the governor has closed entries.
+ * By default it RESTS at the top of the bids, post-only, a maker's 0 % (Davies, 2026-10-02: the go-live's two IOC
+ * conversions paid the 0.09 % taker fee, £0.027 each, which the first ask trips then carried): one tick over the best
+ * bid when the spread leaves room, else at it. The minute loop books its fills as every live order's, and cancels it on a
+ * global pause, whenever the executor is not live and armed, and after QUOTE_LIVE_CONVERT_REST_MS unfilled. `taker: true`
+ * sends the IOC buy limited to fair + 50 bps instead, for coin wanted at once. The row is written `pending` first, and
+ * the coins it bought count in the book the account is checked against (D8/D11/D12).
  */
 export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise<Record<string, unknown>> {
-  const b = (body && typeof body === "object" ? body : {}) as { book?: unknown; gbp?: unknown; send?: unknown };
+  const b = (body && typeof body === "object" ? body : {}) as { book?: unknown; gbp?: unknown; send?: unknown; taker?: unknown };
+  const taker = b.taker === true;
   const book = b.book === "USDC-GBP" || b.book === "USDT-GBP" ? b.book : null;
   if (!book) return { error: "book: USDC-GBP or USDT-GBP" };
   const cfg = (await d.db.select<LiveConfig>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0];
@@ -1071,13 +1086,20 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const pairs = await h.pairs();
   const pair = pairs[LIVE_SYMBOL[book]];
   if (!pair) return { error: "no pair config" };
-  const price = limitTicks * QUOTE_TICK;
-  // Sized at the ask it will meet, so £12.50 buys three asks' worth; the limit only bounds how far up the book it may go.
-  const base = rungBase(gbp, seen.bestAsk, pair);
+  // A maker's price: the top of the bids, one tick over the best bid when that still leaves the ask a tick above it.
+  if (!taker && seen.bestBid == null) return { error: "the order book is unreadable: no bid to rest at" };
+  const bidTicks = seen.bestBid == null ? null : Math.round(seen.bestBid / QUOTE_TICK), askTicks = Math.round(seen.bestAsk / QUOTE_TICK);
+  const ticks = taker ? limitTicks : Math.min(askTicks - 1 >= bidTicks! + 1 ? bidTicks! + 1 : bidTicks!, limitTicks);
+  const price = ticks * QUOTE_TICK;
+  // A taker is sized at the ask it will meet, so £12.50 buys three asks' worth (the limit only bounds how far up the book
+  // it may go); a maker at its own price.
+  const base = rungBase(gbp, taker ? seen.bestAsk : price, pair);
   if (!base) return { error: "under the venue's minimum" };
   const coin = coinOf(book);
   const bal = await d.account.balances();
   const open = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "state=in.(pending,new,partially_filled)&select=*&order=id.asc");
+  const resting = open.find((o) => o.mode === "live" && o.leg === "convert" && o.book === book);
+  if (resting) return { error: `a conversion of ${book} already rests (order ${resting.id}, ${resting.state}): it fills, or the minute loop cancels it after 24 hours` };
   const fills = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
   // The asks' inventory as it stands: the coin held, less what the book's longs will sell back, plus what its shorts will
   // buy back. A resting ask's coins are still the asks' own.
@@ -1087,17 +1109,24 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const asksNeed = QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capital), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, three asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
-  if ((bal.GBP ?? 0) - openBuys < Number(base) * price * 1.0009) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${Number(base) * price} needed at the limit with the fee` };
+  const needGbp = Number(base) * price * (taker ? 1.0009 : 1);
+  if ((bal.GBP ?? 0) - openBuys < needGbp) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${needGbp} needed at the limit${taker ? " with the fee" : ""}` };
   const today = await d.db.selectAll<{ id: number }>("agent_quote_live_orders", `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id&order=id.asc`);
   if (governorLevel(today.length) !== "all") return { error: `the governor has closed entries: ${today.length} POSTs today` };
-  const order = { book, side: "buy", base, limit: price.toFixed(4), timeInForce: "ioc", fair, bestAsk: seen.bestAsk, coinBeyondLongs: beyond, asksNeed };
+  const order = {
+    book, side: "buy", base, limit: price.toFixed(4), timeInForce: taker ? "ioc" : "gtc", postOnly: !taker, fair, bestBid: seen.bestBid, bestAsk: seen.bestAsk,
+    coinBeyondLongs: beyond, asksNeed,
+  };
   if (!send) return { wouldSend: order, note: "nothing sent: pass send: true, with the executor live and armed, to send it" };
   const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.quotes-live&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
   if (!held.length) return { error: "the minute loop holds the quotes-live lease: try again in a few seconds" };
   try {
     const ctx: Ctx = { d, report, nowIso: iso(d.now), holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, pacePost: h.pacePost, pause: h.pause };
-    const row = await placeOrder(ctx, { mode: "live", book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: limitTicks, base, marketable: true, fair });
-    return { sent: order, row: row ? { id: row.id, state: row.state, client_order_id: row.client_order_id, venue_order_id: row.venue_order_id } : null, errors: report.errors };
+    const row = await placeOrder(ctx, { mode: "live", book, rungSide: null, k: null, leg: "convert", side: "buy", ticks, base, marketable: taker, fair });
+    return {
+      sent: order, row: row ? { id: row.id, state: row.state, client_order_id: row.client_order_id, venue_order_id: row.venue_order_id } : null, errors: report.errors,
+      ...(taker ? {} : { note: "it rests at the bid, post-only (a maker's 0 %): the minute loop books its fills, and cancels it after 24 hours unfilled" }),
+    };
   } finally {
     try { await d.db.update("agent_locks", `name=eq.quotes-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
   }
