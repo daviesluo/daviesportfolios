@@ -1541,8 +1541,8 @@ export function rwBarTileKeys(_phase) {
  * The UTC day still in progress, in the same columns as a closed day. Closed days are each the change since the
  * previous close of the same phase; this row is the snapshot minus those changes, so it does not repeat them.
  * Its total is the scoreboard's today (`todayUsd`). Costs are the capital at work now, a level, as on a closed day.
- * A closed day whose worst case was not recorded (null: the live-prep layer keeps none) leaves today's unknown too,
- * and a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (the live-prep's).
+ * A closed day whose worst case was not recorded (null: the order path's paper layers keep none) leaves today's unknown
+ * too, and a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (theirs).
  * @param {any} r  the dashboard's `rw`
  * @param {string | number | null | undefined} [at]  when the page was read; the day's label
  */
@@ -1567,8 +1567,8 @@ export function rwTodayRow(r, at) {
 
 /**
  * What a Reward quotes market holds, as a holder reads it. RW's paper nets its fills into YES shares (`net`; a short YES
- * is long NO). The live-prep layer books the order path's tokens, which buys NO where RW sells YES and nets nothing, so
- * it can hold both: "5 Yes · 4 No".
+ * is long NO). The order path's paper layers (small-pool's and mid-pool's) book the path's tokens, which buys NO where
+ * RW sells YES and nets nothing, so they can hold both: "5 Yes · 4 No".
  * @param {{ net?: number | null, yes?: number | null, no?: number | null }} x  one of the page's markets
  */
 export function rwHeldOf(x) {
@@ -1580,8 +1580,8 @@ export function rwHeldOf(x) {
 
 /**
  * A fill as the Reward quotes pages list it: what was done, and at what price. RW's are in its one YES book (a bid bought
- * YES, an ask sold it); the live-prep layer's are the order path's own token trades, "bought No" at the NO price, as the
- * venue would list them.
+ * YES, an ask sold it); the order path's paper layers' are the path's own token trades, "bought No" at the NO price, as
+ * the venue would list them.
  * @param {{ side?: string, price?: number, tokenSide?: string, outcome?: string, tokenPrice?: number }} f
  * @returns {{ buy: boolean, text: string, price: number }}
  */
@@ -1748,21 +1748,30 @@ export function rwcRow(r) {
   return row && { ...row, id: RWC_ROW_ID, name: 'Reward quotes confirmation' };
 }
 
-/** RW-E's paper test's id among the table's rows. */
-/** "Reward quotes live-prep"'s id among the table's rows. */
+/** "Reward quotes small-pool"'s id among the table's rows (it was "Reward quotes live-prep" until 2026-10-02). */
 export const PREP_ROW_ID = '__prep';
+/** "Reward quotes mid-pool"'s id among the table's rows. */
+export const MID_ROW_ID = '__mid';
+/**
+ * Whether a row is one of the order path's paper layers, small-pool's or mid-pool's: its page says when a loss stop
+ * holds it close-only.
+ * @param {string} id
+ */
+export const isPrepRowId = (id) => id === PREP_ROW_ID || id === MID_ROW_ID;
 
 /**
- * A live-prep loss stop that holds it close-only, in words, or '' (the dashboard sends a day stop only on its own UTC day).
- * @param {any} r  the dashboard's `prep`
+ * A paper layer's loss stop that holds it close-only, in words, or '' (the dashboard sends a day stop only on its own
+ * UTC day).
+ * @param {any} r  the dashboard's `prep` or `prepMid`
  */
 export function prepStopText(r) {
   return r?.stopTotal ? 'its total loss stop has tripped: close-only' : r?.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
 }
 
 /**
- * "Reward quotes live-prep" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
- * for a day before it goes live) as a row of TESTING STRATEGIES on the Polymarket card, in the cells a strategy's row has.
+ * "Reward quotes small-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
+ * before it goes live; named live-prep until 2026-10-02, when he renamed it beside mid-pool) as a row of TESTING
+ * STRATEGIES on the Polymarket card, in the cells a strategy's row has.
  * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
  * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
  * what it cost; realised is the rewards at the formula and what closing trades made, split on the row for the page and
@@ -1778,7 +1787,7 @@ export function prepRow(r) {
   const stopped = prepStopText(r);
   return {
     id: PREP_ROW_ID,
-    name: 'Reward quotes live-prep',
+    name: 'Reward quotes small-pool',
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'paper',
@@ -1802,6 +1811,19 @@ export function prepRow(r) {
   };
 }
 
+/**
+ * "Reward quotes mid-pool" (`0081`; Davies, 2026-10-02: "再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
+ * quotes，也是400美元funded测试"): the order path again on pools of $10 to under $50 a day, a dry-run filled on paper by
+ * the same layer, right after small-pool's row. The dashboard's `prepMid` is made by the same `prepSummary` from its own
+ * tables, so its row and its page are small-pool's, on its own $320 cap. null keeps it off the table.
+ * @param {any} r  the dashboard's `prepMid`
+ */
+export function midRow(r) {
+  const row = prepRow(r);
+  return row && { ...row, id: MID_ROW_ID, name: 'Reward quotes mid-pool' };
+}
+
+/** RW-E's paper test's id among the table's rows. */
 export const RWE_ROW_ID = '__rwe';
 
 /**

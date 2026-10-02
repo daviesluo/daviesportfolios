@@ -715,7 +715,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (RW-C in its warm-up, saying when it
  * starts), `rwc-running` (RW-C inside its fourteen days) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -870,13 +870,21 @@ function readAgentsPanel(page) {
  */
 const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fixture.json', import.meta.url), 'utf8'));
 /**
- * "Reward quotes live-prep" (`0077`): the dashboard's own answer (`prepSummary`) for a record worked out by hand at this
+ * "Reward quotes small-pool" (`0077`): the dashboard's own answer (`prepSummary`) for a record worked out by hand at this
  * sweep's clock (`prep_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its
  * `input`): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
  * unrealised +$0.42, realised +$1.95 = rewards +$1.70 + orders +$0.25; the fills' P&L +$0.67; RW's worst case +$1.00.
  * Served only in the `prep` mode.
  */
 const PREP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./prep_fixture.json', import.meta.url), 'utf8'));
+/**
+ * "Reward quotes mid-pool" (`0081`): the same summary's answer for a record of its band worked out by hand at this sweep's
+ * clock (`mid_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its `input`):
+ * capital $320, held $11.20 at the mids against $10.80, quotes tying up $29.20, so deployed $40.40; today +$4.60 (the
+ * total +$9.40 less 16 Sep's +$4.80), unrealised +$0.40, realised +$9.00 of rewards; RW's worst case +$4.20. Served,
+ * with small-pool's, only in the `mid` mode.
+ */
+const MID_FIXTURE = JSON.parse(fs.readFileSync(new URL('./mid_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
   return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
@@ -1092,6 +1100,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000) });
       if (agentsMode === 'quotesv') return json({ ...AGENTS_DASHBOARD, quotesVariant: AGENTS_QUOTESV(AGENTS_DASHBOARD.at), quotesRuled: AGENTS_QUOTESD(AGENTS_DASHBOARD.at) });
       if (agentsMode === 'prep') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output });
+      if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -4009,7 +4018,8 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
-      // "Reward quotes live-prep" (0077; Davies, 2026-10-01): the order path's own dry-run filled on paper, the last row of
+      // "Reward quotes small-pool" (0077; Davies, 2026-10-01, renamed from live-prep 2026-10-02): the order path's own
+      // dry-run filled on paper, the last row of
       // TESTING, on the Polymarket card, with a page of its own (PREP_FIXTURE: its figures worked out by hand). TESTING's
       // scoreboard and the Polymarket card add exactly its figures to what they read without it.
       agentsMode = 'ok';
@@ -4021,7 +4031,7 @@ async function run() {
       await page.waitForTimeout(300);
       agentsMode = 'prep';
       await openAgentsPage(page);
-      const prRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') });
+      const prRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes small-pool') });
       await waitFor(async () => (await prRow.count()) === 1);
       await page.waitForTimeout(150);
       const prText = (await prRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
@@ -4029,10 +4039,10 @@ async function run() {
       const prNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const prAfter = await readAgentsPanel(page);
       // Today is the change since 16 Sep's close, as RW's: the total 2.37 less that day's 0.90, +$1.47, 0.46 % of $320.
-      if (prNames.at(-1) === 'Reward quotes live-prep' && /Polymarket/.test(prText) && /2 open · \$320 cap/.test(prText) && /\+\$1\.47 \(\+0\.46%\)/.test(prText)
+      if (prNames.at(-1) === 'Reward quotes small-pool' && !prNames.some((n) => /live-prep/.test(n)) && /Polymarket/.test(prText) && /2 open · \$320 cap/.test(prText) && /\+\$1\.47 \(\+0\.46%\)/.test(prText)
         && /\+\$0\.42 \(\+5\.03%\)/.test(prText) && /\+\$1\.95 \(\+0\.61%\)/.test(prText) && /every minute/.test(prText) && prGreen === 1) {
-        ok(T('prep'), 'the last testing row is "Reward quotes live-prep" on Polymarket: 2 open of its $320 cap, today +$1.47 (+0.46%), unrealised +$0.42 (+5.03%), realised +$1.95 (+0.61%), every minute, green');
-      } else fail(T('prep'), `live-prep row "${prText}" (last of ${prNames.join(' | ')}), green dots ${prGreen}`);
+        ok(T('prep'), 'the last testing row is "Reward quotes small-pool" (no row named live-prep) on Polymarket: 2 open of its $320 cap, today +$1.47 (+0.46%), unrealised +$0.42 (+5.03%), realised +$1.95 (+0.61%), every minute, green');
+      } else fail(T('prep'), `small-pool row "${prText}" (last of ${prNames.join(' | ')}), green dots ${prGreen}`);
       // What it adds, read off the page with and without it: exactly its own figures, on the scoreboard and on the card.
       const prAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
       const prCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
@@ -4080,13 +4090,13 @@ async function run() {
       const prFillOk = prp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will A happen?|sold Yes|5|50¢ / Will B happen?|bought Yes|20|20.1¢ / Will A happen?|bought No|4|52¢ / Will A happen?|bought Yes|10|45¢';
       // DEPLOYED: $8.77 held and $24.34 its quotes tie up, $33.11, 10.35 % of its $320 (Davies, 2026-10-01). STATUS: RW's
       // worst case on the two accounts, +$1.00; the best market's share of the total, 1.39 / 2.37 = 59 %.
-      if (prp.title === 'Reward quotes live-prep' && prp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(prp.funded)
+      if (prp.title === 'Reward quotes small-pool' && prp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(prp.funded)
         && prp.deployed === '$33.11(10.35%)'
         && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && prp.tiles.join('|') === 'WORST CASE=+$1|TOP SHARE=59 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
         && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {
         ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, a dash where no worst case is kept; each market's share, holdings by token and parts adding up; the four fills newest first");
-      } else fail(T('prep'), `live-prep page: ${JSON.stringify(prp)}`);
+      } else fail(T('prep'), `small-pool page: ${JSON.stringify(prp)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
       // Under hide-values every amount, price and holding on its page is masked; counts, shares, days and times are not.
@@ -4095,7 +4105,7 @@ async function run() {
       await page.locator('.hide-eye').first().click();
       await page.waitForTimeout(200);
       await openAgentsPage(page);
-      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click().catch(() => {});
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes small-pool') }).first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
       const prh = await prRead();
@@ -4113,6 +4123,88 @@ async function run() {
       await page.waitForTimeout(200);
       await page.locator('.hide-eye').first().click();                       // values shown again for everything after this
       await page.waitForTimeout(200);
+      agentsMode = 'ok';
+
+      // "Reward quotes mid-pool" (0081; Davies, 2026-10-02): the order path again on $10–$50 pools, filled on paper by the
+      // same layer, the last row of TESTING right after small-pool's, on the Polymarket card, with RW's page (MID_FIXTURE:
+      // its figures worked out by hand). What it adds to TESTING's scoreboard and the card is read against the page with
+      // small-pool alone.
+      agentsMode = 'prep';
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes small-pool') }).count()) === 1);
+      await page.waitForTimeout(150);
+      const midBefore = await readAgentsPanel(page);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      agentsMode = 'mid';
+      await openAgentsPage(page);
+      const mdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') });
+      await waitFor(async () => (await mdRow.count()) === 1);
+      await page.waitForTimeout(150);
+      const mdText = (await mdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const mdGreen = await mdRow.first().locator('.ag-dot-running').count();
+      const mdNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const mdAfter = await readAgentsPanel(page);
+      // Today is the change since 16 Sep's close: 9.40 less 4.80, +$4.60, 1.44 % of $320; unrealised +$0.40 on its $10.80
+      // of cost, 3.70 %; realised its rewards, $9.00, 2.81 % of $320, shown as whole dollars are, +$9.
+      if (mdNames.slice(-2).join(' | ') === 'Reward quotes small-pool | Reward quotes mid-pool' && /Polymarket/.test(mdText) && /2 open · \$320 cap/.test(mdText)
+        && /\+\$4\.60 \(\+1\.44%\)/.test(mdText) && /\+\$0\.40 \(\+3\.70%\)/.test(mdText) && /\+\$9 \(\+2\.81%\)/.test(mdText) && /every minute/.test(mdText) && mdGreen === 1) {
+        ok(T('mid'), 'the last two testing rows are "Reward quotes small-pool" then "Reward quotes mid-pool", on Polymarket: 2 open of its $320 cap, today +$4.60 (+1.44%), unrealised +$0.40 (+3.70%), realised +$9 (+2.81%), every minute, green');
+      } else fail(T('mid'), `mid-pool row "${mdText}" (rows ${mdNames.join(' | ')}), green dots ${mdGreen}`);
+      const mdCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
+      const mdAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
+      const mdSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((mdAmount(mdCell(mdAfter, k)) - mdAmount(mdCell(midBefore, k))) * 100) / 100);
+      const mdPmB = midBefore.venues.find((v) => v.id === 'polymarket'), mdPmA = mdAfter.venues.find((v) => v.id === 'polymarket');
+      const mdCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((mdAmount(mdPmA?.pairs[k]) - mdAmount(mdPmB?.pairs[k])) * 100) / 100);
+      // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000:
+      // $1,461.96 with small-pool reads $1,462, and $1,502.36 with mid-pool $1,502, 40 more; the card adds $40.40.
+      if (mdSbDiff.join(',') === '320,40,4.6,0.4,9' && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '6 strategies') {
+        ok(T('mid'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; $1,462 to $1,502 on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 6");
+      } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
+      await mdRow.first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const mdp = await page.evaluate(() => {
+        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+        const d = document.querySelector('.ag-rw-detail');
+        const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
+        return {
+          title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
+          labels: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-name') ?? [])].map(txt),
+          funded: txt(d?.querySelector('.ag-scoreboard-sm .sb-value')),
+          deployed: txt(d?.querySelector('.ag-scoreboard-sm .ag-sb-cell-deployed .sb-value')),
+          split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
+          sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
+          tiles: [...(d?.querySelectorAll('.ag-rw-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`),
+          days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
+          warn: d?.querySelectorAll('.ag-warn-line').length ?? -1,
+          overflow: d ? d.scrollWidth - d.clientWidth : -1,
+          docOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      });
+      await shot(page, 'agents-mid');
+      // Days: today $29.20 of quotes, one fill, +$4 of rewards and +$4.60 in all; 16 Sep $29.20, one fill, +$5 and +$4.80
+      // (its fills −$0.20). No worst case kept for a day: a dash.
+      const mdDayOk = mdp.days.length === 2 && /· today$/.test(mdp.days[0][0]) && mdp.days[0].slice(1).join('|') === '$29.20|1|—|+$4|+$4.60'
+        && /^16 Sep/.test(mdp.days[1][0]) && mdp.days[1].slice(1).join('|') === '$29.20|1|—|+$5|+$4.80';
+      // Quotes: C $20 a day at 40¢ / 43¢, 18 % of its pool, 20 Yes, +$3.50 + $0.30 = +$3.80; D $36 at 70¢ / 72¢, 24 %,
+      // 10 No, +$5.50 + $0.10 = +$5.60.
+      const mdMktOk = mdp.markets.map((r) => r.join('|')).join(' / ')
+        === 'Will C happen?|$20|40¢ / 43¢|18 %|20 Yes|+$3.50|+$0.30|+$3.80 / Will D happen?|$36|70¢ / 72¢|24 %|10 No|+$5.50|+$0.10|+$5.60';
+      const mdFillOk = mdp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will D happen?|bought No|10|28¢ / Will C happen?|bought Yes|20|40¢';
+      // DEPLOYED $40.40, 12.63 % of $320. STATUS: RW's worst case on its two accounts, 1.55 + 2.65 = $4.20; the best
+      // market's share of the total, 5.60 / 9.40 = 60 %.
+      if (mdp.title === 'Reward quotes mid-pool' && mdp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(mdp.funded)
+        && mdp.deployed === '$40.40(12.63%)' && mdp.split.join('|') === 'rewards +$9|orders $0'
+        && mdp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
+        && mdp.tiles.join('|') === 'WORST CASE=+$4.20|TOP SHARE=60 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
+        && mdDayOk && mdMktOk && mdFillOk && mdp.warn === 0 && mdp.overflow >= 0 && mdp.overflow <= 1 && mdp.docOverflow <= 0) {
+        ok(T('mid'), "its page is RW's, as small-pool's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
+      } else fail(T('mid'), `mid-pool page: ${JSON.stringify(mdp)}`);
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
       agentsMode = 'ok';
 
       // Variant-1 and variant-2 (Davies, 2026-09-28): two testing rows right after the quote test. Each name is two

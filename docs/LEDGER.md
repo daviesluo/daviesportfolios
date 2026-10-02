@@ -132,7 +132,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `0080` (2026-10-02, Davies: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了"): it goes live at that size, and
      only in the conversation where he says go.
      The first live day reads how soon a cancel shows on the venue (the doc's "Not verified" query).
-   - **Reward quotes live-prep: paper first; the check is reported to Davies and he alone decides the go-live** (Davies, ~18:15 UTC: "要不要先上线Reward
+   - **Reward quotes small-pool (live-prep until 2026-10-02): paper first; the check is reported to Davies and he alone decides the go-live** (Davies, ~18:15 UTC: "要不要先上线Reward
      quotes live-prep测试一下？有问题也及时修复，然后我们操作账户和转账问题，纸面测试24小时之后再验证一遍没问题自动上线？"). `0077`,
      `agents/pm_prep.ts`, `agents?action=pmprep` every minute (a row of `edge_calls`, retry true): the path's OWN dry-run
      orders filled on paper by RW's `stepRw` on the row the path decided on, two minutes behind; the path's P&L, stops and
@@ -175,7 +175,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      00:05 `mid_audit.sql` (all three in `backtests/pmlive/`, sha256 pinned by `src/pm_mid_prereg.test.js`). Until each,
      read only the prereg's health readings (the two `last_error`s and clocks, `ops_errors` of `agents.pm_mid` and
      `agents.pm_midprep` and their crash rows, whether a day's selection landed), never mid-pool's page or the
-     dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows.
+     dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
+     is the last row of TESTING STRATEGIES, right after small-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -654,6 +655,22 @@ at R = 0.40 and at the formula) and `mid_audit.sql` (against RW's and RW-C's act
 before that its scans never execute), each run on PGlite against synthetic days (a passing day passes, fourteen planted
 faults each fail their own row) and frozen by sha256 in `src/pm_mid_prereg.test.js`. Not edited here: `.claude/CLAUDE.md`
 (a sub-agent does not change it; the sentence for its Polymarket paragraph is in the report to the main session).
+
+**Step 3 of 3: the page, and the rename.** Davies' "把目前Reward quotes live-prep改名为Reward quotes small-pool": the row,
+its page's title and every doc that names the row now say "Reward quotes small-pool" (the map, the guide, reference §4
+item 36, this ledger's item 2, code comments outside the frozen files); its tables, files, actions, ids
+(`PREP_ROW_ID`), the pre-registration and the history keep their names, and `pm_live.ts` and `pm_prep.ts` are not
+touched (their hashes are the ones both pre-registrations name). The dashboard reads both layers through one function,
+`readPrepSummary(d, inst, …)` (small-pool's as `prep`, mid-pool's as `prepMid`), and `midRow` is small-pool's row under
+its own id and name, the last row of TESTING STRATEGIES, counted in TESTING's scoreboard and the Polymarket card, with
+`RwDetail` as its page (a loss stop shown on either's page, `isPrepRowId`). Pinned: `src/e2e/mid_fixture.json`, a record
+of the band worked out by hand (C $20 and D $36 a day; held $11.20 against $10.80, quotes tying up $29.20, rewards
+$9.00, today +$4.60, RW's worst case $4.20, the top share 60 %), proved in Deno to be `prepSummary`'s own answer; Deno
+also runs `readPrepSummary` on both fixtures side by side in one database and finds each read only its own instance's
+eight tables; vitest (`midRow`, `isPrepRowId`); the sweep's `mid` mode at both widths (the last two rows small-pool then
+mid-pool, no row named live-prep; what mid-pool adds to the scoreboard and the card, $320, $40.40, +$4.60, +$0.40, +$9,
+the card counting 6; its page's figures, days, quotes and fills; nothing wider than the screen). The guide says what the
+two rows are in plain words. `dist/` rebuilt.
 
 ### [2026-10-02 02:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

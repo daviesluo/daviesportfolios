@@ -1,5 +1,6 @@
-// "Reward quotes live-prep" as the Agents page shows it (`pm_prep.ts`, 0077): a row of TESTING STRATEGIES on the
-// Polymarket card and a page of its own, which is RW's page (Davies, 2026-10-01: "the same as the other Reward quotes
+// "Reward quotes small-pool" (`pm_prep.ts`, 0077; live-prep until 2026-10-02) and "Reward quotes mid-pool" (the same
+// layer on 0081's tables) as the Agents page shows them: each a row of TESTING STRATEGIES on the Polymarket card and a
+// page of its own, which is RW's page (Davies, 2026-10-01: "the same as the other Reward quotes
 // pages"). Every figure comes from the layer's own records through the functions that made them: the P&L is `paperPnl`
 // (the order path's `tokenBooks` and `bookPnl`) on the fills the state has decided, and a market's part of it is
 // `bookPnl` on that market's two tokens; the rewards and the worst case are RW's own on the layer's account per market,

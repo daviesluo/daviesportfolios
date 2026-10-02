@@ -174,7 +174,7 @@ const PM_LIVE_SCHEMA: Record<string, { columns: string[]; key: string | null }> 
 };
 const PM_LIVE_OPEN = ["pending", "live"];
 /**
- * "Reward quotes live-prep"'s tables as 0077 creates them: their columns, the unique key each upsert names, the NOT NULL
+ * "Reward quotes small-pool"'s tables as 0077 creates them: their columns, the unique key each upsert names, the NOT NULL
  * columns a proposed row must carry, and their CHECKs. Exported for its tests.
  */
 export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; notNull: string[]; check?: (r: Row) => string | null }> = {

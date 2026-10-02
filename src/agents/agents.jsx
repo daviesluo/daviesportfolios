@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -694,12 +694,13 @@ function RwBar({ v, r, usd }) {
  * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
  * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
  * bid and ask, our share of the pool), and the fills with the prints that proved them. Every Reward quotes row opens
- * this page, the live-prep layer's included (Davies, 2026-10-01: "the same as the other Reward quotes pages").
+ * this page, the order path's paper layers' included (Davies, 2026-10-01: "the same as the other Reward quotes pages").
  * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number, row?: any }} props
  */
 function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
   // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`),
-  // RW-C's from its own engine run (`rwcRow`), and the live-prep's from its own layer (`prepRow`); RW's own is `rwRow`.
+  // RW-C's from its own engine run (`rwcRow`), and small-pool's and mid-pool's from their own layers (`prepRow`,
+  // `midRow`); RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
@@ -734,7 +735,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
       {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
       {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
       {row.id.startsWith(RWX_ROW_PREFIX) && rwxCheckWarn(r) && <div className="ag-warn-line">{rwxCheckWarn(r)}</div>}
-      {row.id === PREP_ROW_ID && prepStopText(r) && <div className="ag-warn-line">{prepStopText(r)}</div>}
+      {isPrepRowId(row.id) && prepStopText(r) && <div className="ag-warn-line">{prepStopText(r)}</div>}
       <RwBar v={v} r={r} usd={usd} />
 
       <section className="ag-section ag-rw-days">
@@ -751,7 +752,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                   <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}{d.stop ? ' · stopped' : ''}</td>
                   <td>{d.capitalUsd == null ? '—' : m(fmtUsd(d.capitalUsd))}</td>
                   <td className="ag-ph">{d.fills}</td>
-                  {/* A worst case that was not recorded (the live-prep's closed days) is a dash, never $0.00. */}
+                  {/* A worst case that was not recorded (a paper layer's closed days) is a dash, never $0.00. */}
                   <td className="ag-ph ag-gl" style={d.stressUsd == null ? undefined : { color: pctColor(d.stressUsd) }}>{d.stressUsd == null ? '—' : usd(d.stressUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
@@ -778,7 +779,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                   <tr key={x.cond}>
                     <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
                     <td className="ag-ph">{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
-                    {/* The live-prep's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
+                    {/* A paper layer's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
                     <td className="ag-ph">{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
                     <td className="ag-ph">{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
                     <td>{m(rwHeldOf(x))}</td>
@@ -1520,13 +1521,16 @@ function AgentsModal({ hideValues, onClose }) {
   const rwe = React.useMemo(() => rweRow(dash?.rwe), [dash]);
   // RW-E's variants, each a row of its own after it (Davies, 2026-09-27).
   const rwx = React.useMemo(() => rwxRows(dash?.rwx), [dash]);
-  // RW-C, RW's rule again on 2026-10-09 → 10-23 (0069), the last row: until then it says when it starts.
+  // RW-C, RW's rule again on 2026-10-09 → 10-23 (0069), after the variants: until then it says when it starts.
   const rwc = React.useMemo(() => rwcRow(dash?.rwc), [dash]);
-  // "Reward quotes live-prep" (0077): the order path's own dry-run filled on paper, the last row (Davies, 2026-10-01).
+  // "Reward quotes small-pool" (0077): the order path's own dry-run filled on paper (Davies, 2026-10-01).
   const prep = React.useMemo(() => prepRow(dash?.prep), [dash]);
+  // "Reward quotes mid-pool" (0081): the path again on $10–$50 pools, filled on paper the same way, the last row
+  // (Davies, 2026-10-02).
+  const mid = React.useMemo(() => midRow(dash?.prepMid), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(quotesD ? [quotesD] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : [])], [quotes, quotesV, quotesD, rw, rwe, rwx, rwc, prep]);
+  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(quotesD ? [quotesD] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : []), ...(mid ? [mid] : [])], [quotes, quotesV, quotesD, rw, rwe, rwx, rwc, prep, mid]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its paper test stays on TESTING.
@@ -1553,6 +1557,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;
   const rwcOpen = selected === RWC_ROW_ID && !!dash?.rwc && !!rwc;
   const prepOpen = selected === PREP_ROW_ID && !!dash?.prep && !!prep;
+  const midOpen = selected === MID_ROW_ID && !!dash?.prepMid && !!mid;
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1723,6 +1728,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><RwDetail r={dash.prep} m={m} at={dash.at} nowMs={now} row={prep} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {midOpen && mid && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{mid.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><RwDetail r={dash.prepMid} m={m} at={dash.at} nowMs={now} row={mid} /></PageGuard>
         </div>
       </Modal>
     )}

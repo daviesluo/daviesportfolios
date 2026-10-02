@@ -1,4 +1,4 @@
-// "Reward quotes live-prep" as the Agents page shows it (pm_prep_view.ts), against a record worked out by hand at the
+// "Reward quotes small-pool" as the Agents page shows it (pm_prep_view.ts), against a record worked out by hand at the
 // browser sweep's clock (`src/e2e/prep_fixture.json`, which the sweep serves as the dashboard's `prep`: its `output`
 // must be the function's own answer for its `input`).
 //
@@ -19,7 +19,12 @@
 
 import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/prep_fixture.json" with { type: "json" };
+import midFixture from "../../../src/e2e/mid_fixture.json" with { type: "json" };
 import { PREP_STALE_MINUTES, prepSummary } from "./pm_prep_view.ts";
+import { readPrepSummary } from "./index.ts";
+import { PREP_INSTANCE, type PrepInstance } from "./pm_prep.ts";
+import { PREP_MID_INSTANCE } from "./pm_mid.ts";
+import { memDb, onlyTables } from "./testing.ts";
 
 // deno-lint-ignore no-explicit-any
 const F = fixture as any;
@@ -81,4 +86,62 @@ Deno.test("no state is no row; a last decided minute older than five minutes is 
   assertEquals([stop("2026-09-17").stopDay, stop(null, "2026-09-16T10:00:00.000Z").stopTotal], ["2026-09-17", "2026-09-16T10:00:00.000Z"]);
   // A day stop holds for its own UTC day: the path quotes again the next, so the page no longer says it has tripped.
   assertEquals(stop("2026-09-16").stopDay, null);
+});
+
+// "Reward quotes mid-pool" (0081), the same view of its own layer's records (`src/e2e/mid_fixture.json`, which the sweep
+// serves as the dashboard's `prepMid`: its `output` must be the function's own answer for its `input`).
+//
+// By hand: two markets of its band, C (20 a day, its quote 0.40 / 0.43, mid 0.415, N 20) and D (36 a day, 0.70 / 0.72,
+// mid 0.71, N 10). Fills: on 16 Sep C's bid 20 at 0.40 (YES); on 17 Sep D's ask 10 at 0.72, a BUY of NO at 0.28. A third,
+// of 22:59, a minute the state has not decided, is not counted. Held: 20 YES at 0.40 and 10 NO at 0.28, cost 10.80; at
+// the mids 20 × 0.415 + 10 × 0.29 = 8.30 + 2.90 = 11.20, so +0.40 open, nothing realised by a fill. Rewards: 5.00 on 16
+// Sep and 4.00 so far today, 9.00 (C 3.50, D 5.50), all realised. Total 9.40: C 3.50 + 0.30 = 3.80, D 5.50 + 0.10 = 5.60,
+// the top share 5.60 / 9.40 = 60 %. 16 Sep closed with the fills at −0.20: −0.20 + 5.00 = 4.80, so today 9.40 − 4.80 =
+// 4.60. RW's worst case: C 1.75 − 8.00 − 0.20 + 20 × 0.40 = 1.55, D 2.75 + 7.20 − 0.10 − 10 × 0.72 = 2.65, so 4.20. Costs
+// N × (b + 1 − a): C 20 × 0.97 = 19.40, D 10 × 0.98 = 9.80, 29.20 each day, which are also what its quotes tie up. The
+// shares at the last minute: C 0.0025 × 1440 / 20 = 18 %, D 0.006 × 1440 / 36 = 24 %.
+
+// deno-lint-ignore no-explicit-any
+const MF = midFixture as any;
+
+Deno.test("mid-pool's page figures for its hand-worked record: the fixture the sweep serves is the function's own answer", () => {
+  const out = prepSummary(MF.input)!;
+  assertEquals(JSON.parse(JSON.stringify(out)), MF.output);
+  near(out.heldUsd, 11.2, "held at the mids"); near(out.costUsd, 10.8, "cost"); near(out.unrealisedUsd, 0.4, "unrealised");
+  near(out.rewardUsd, 9, "rewards"); near(out.realisedUsd, 9, "realised: the rewards alone"); near(out.realisedFillsUsd, 0, "no closing fill");
+  near(out.totalUsd, 9.4, "total"); near(out.todayUsd, 4.6, "today: 9.40 − 4.80"); near(out.days[0].totalUsd, 4.8, "16 Sep: −0.20 + 5.00");
+  near(out.stressUsd, 4.2, "RW's worst case: 1.55 + 2.65"); near(out.bestMarketUsd!, 5.6, "D");
+  near(out.quotedUsd, 29.2, "what its quotes tie up: 20 × 0.40 + 20 × 0.57 + 10 × 0.70 + 10 × 0.28"); near(out.capitalUsd!, 29.2, "today's costs");
+  assertEquals(out.markets.map((m) => [m.q, m.ratePerDay, m.yes, m.no, m.share, m.totalUsd]), [["Will C happen?", 20, 20, 0, 0.18, 3.8], ["Will D happen?", 36, 0, 10, 0.24, 5.6]]);
+  assertEquals(out.recent.map((f) => [f.q, f.tokenSide, f.outcome, f.size, f.tokenPrice]), [["Will D happen?", "BUY", "no", 10, 0.28], ["Will C happen?", "BUY", "yes", 20, 0.4]]);
+  assertEquals([out.open, out.quoting, out.running, out.lagMinutes, out.fills, out.capUsd], [2, 2, true, 2, 2, 320]);
+  // Every rate of its record is in mid-pool's band, [$10, $50).
+  for (const r of [...MF.input.rates, ...MF.input.markets.map((m: { reward_rate: number }) => ({ rate: m.reward_rate }))]) assertEquals(r.rate >= 10 && r.rate < 50, true);
+});
+
+Deno.test("the dashboard reads each paper layer from its own instance's tables: small-pool's from 0077's and its path's, mid-pool's from 0081's", async () => {
+  // Each fixture's record as the rows its tables hold, side by side in one database.
+  // deno-lint-ignore no-explicit-any
+  const rowsOf = (input: any, inst: PrepInstance, cap: number) => ({
+    [inst.tables.state]: [{ id: 1, ...input.state }],
+    [inst.tables.days]: input.days,
+    [inst.tables.minutes]: input.latest,
+    [inst.reads.minutes]: input.rates.map((r: { cond: string; rate: number }) => ({ mode: "dry_run", minute: input.state.last_minute, ...r })),
+    [inst.tables.fills]: input.fills,
+    [inst.tables.settlements]: input.settlements,
+    [inst.reads.markets]: input.markets,
+    [inst.reads.config]: [{ id: 1, cap_total_usd: cap }],
+  });
+  const mem = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320) }, { now: () => F.input.nowMs });
+  const dayStart = Date.parse("2026-09-17T00:00:00Z");
+  for (const [inst, fixture] of [[PREP_INSTANCE, F], [PREP_MID_INSTANCE, MF]] as const) {
+    const reads = [inst.tables.state, inst.tables.days, inst.tables.minutes, inst.tables.fills, inst.tables.settlements, inst.reads.minutes, inst.reads.markets, inst.reads.config];
+    const db = onlyTables(mem.db, reads, { readOnly: reads });
+    const out = await readPrepSummary(db, inst, fixture.input.nowMs, dayStart);
+    assertEquals(JSON.parse(JSON.stringify(out)), fixture.output, inst.name);
+    assertEquals([...db.touched].sort(), [...reads].sort(), inst.name);
+  }
+  // A layer that has decided nothing yet is no row.
+  const empty = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), pm_midprep_state: [] }, { now: () => F.input.nowMs });
+  assertEquals(await readPrepSummary(empty.db, PREP_MID_INSTANCE, F.input.nowMs, dayStart), null);
 });

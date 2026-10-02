@@ -1,4 +1,4 @@
-// "Reward quotes live-prep" (pm_prep.ts) against the in-memory database held to 0074's, 0076's and 0077's schemas, the
+// "Reward quotes small-pool" (pm_prep.ts; live-prep until 2026-10-02) against the in-memory database held to 0074's, 0076's and 0077's schemas, the
 // order path's tables read-only (`onlyTables`), and a fake of Polymarket's public reads (prints, books, Gamma).
 //
 // What is pinned: which of the path's orders rest after each of its turns (placed by the turn's own clock, ended by the

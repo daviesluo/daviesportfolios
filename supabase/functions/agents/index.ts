@@ -128,7 +128,7 @@ import { b64ToBytes } from "../_shared/bytes.ts";
 import { loadPolymarketEnv, POLYMARKET_ENV_NAMES, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
 import { PM_LIVE_TIMEOUT_MS, runPmLive, type PmSettlement } from "./pm_live.ts";
-import { runPmPrep } from "./pm_prep.ts";
+import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -1340,6 +1340,35 @@ export function dayOpensFrom(rows: { venue: string; symbol: string; open: number
   return out;
 }
 
+/**
+ * A paper layer's summary for the Agents page (`prepSummary`, RW's shape), read from its instance's tables: its state
+ * first (it is saved after the fills it counts), its days, its minutes at the last decided minute, every fill and
+ * settlement, and from the path it shadows (`inst.reads`) the selection of every day since the layer started (a day's
+ * markets and what their quotes need), the rates at that minute and the total cap. Small-pool's instance reads 0077's
+ * tables and its path's; mid-pool's 0081's. A layer that has decided nothing yet, or a read that fails, is no row.
+ */
+export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, dayStartMs: number) {
+  const T = inst.tables, R = inst.reads;
+  try {
+    const st = await d.select<PrepStateRow>(T.state, "id=eq.1&select=state,last_minute,last_error,updated_at");
+    const last = st[0]?.last_minute;
+    if (!last) return null;
+    const startedAt = String((st[0].state as { startedAt?: unknown } | null)?.startedAt ?? "").slice(0, 10);
+    const firstDay = /^\d{4}-\d{2}-\d{2}$/.test(startedAt) ? startedAt : new Date(dayStartMs).toISOString().slice(0, 10);
+    const at = encodeURIComponent(last);
+    const [days, latest, rates, fills, settlements, markets, cfg] = await Promise.all([
+      d.select<PrepDayRow>(T.days, "select=day,reward,fills_pnl_total,fills,stop_day,stop_total&order=day.asc&limit=400"),
+      d.select<PrepMinuteRow>(T.minutes, `minute=eq.${at}&select=minute,cond,class,b,a,n,qb,qa,close_only,reward&order=cond.asc`),
+      d.select<PrepRateRow>(R.minutes, `mode=eq.dry_run&minute=eq.${at}&select=cond,rate&order=cond.asc`),
+      d.selectAll<PrepFillRow>(T.fills, "select=cond,minute,print_id,ts,side,price,size,token,token_side,token_price,close_only&order=cond.asc,minute.asc,print_id.asc"),
+      d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
+      d.select<PrepMarketRow>(R.markets, `day=gte.${firstDay}&select=day,cond,question,reward_rate,rank,n_size,capital&order=day.asc,rank.asc&limit=400`),
+      d.select<{ cap_total_usd: number | string }>(R.config, "id=eq.1&select=cap_total_usd"),
+    ]);
+    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
+  } catch { return null; }
+}
+
 export async function runDashboard(now = Date.now()) {
   try {
     return await dashboard(now);
@@ -1609,29 +1638,10 @@ async function dashboard(now: number) {
       return { rw: out && { ...out, e }, rwe: arm && { ...arm, e }, rwx };
     } catch { return { rw: null, rwe: null, rwx: [] }; }
   })();
-  // "Reward quotes live-prep" (`0077`): the order path's dry-run filled on paper, a row of TESTING with RW's page, read
-  // from its own tables (the state first: it is saved after the fills it counts), the path's selection of every day since
-  // the layer started (a day's markets and what their quotes need), its rates at the last decided minute, and its cap.
-  const prep = await (async () => {
-    try {
-      const st = await d.select<PrepStateRow>("pm_prep_state", "id=eq.1&select=state,last_minute,last_error,updated_at");
-      const last = st[0]?.last_minute;
-      if (!last) return null;
-      const startedAt = String((st[0].state as { startedAt?: unknown } | null)?.startedAt ?? "").slice(0, 10);
-      const firstDay = /^\d{4}-\d{2}-\d{2}$/.test(startedAt) ? startedAt : new Date(dayStartMs).toISOString().slice(0, 10);
-      const at = encodeURIComponent(last);
-      const [days, latest, rates, fills, settlements, markets, cfg] = await Promise.all([
-        d.select<PrepDayRow>("pm_prep_days", "select=day,reward,fills_pnl_total,fills,stop_day,stop_total&order=day.asc&limit=400"),
-        d.select<PrepMinuteRow>("pm_prep_minutes", `minute=eq.${at}&select=minute,cond,class,b,a,n,qb,qa,close_only,reward&order=cond.asc`),
-        d.select<PrepRateRow>("pm_live_minutes", `mode=eq.dry_run&minute=eq.${at}&select=cond,rate&order=cond.asc`),
-        d.selectAll<PrepFillRow>("pm_prep_fills", "select=cond,minute,print_id,ts,side,price,size,token,token_side,token_price,close_only&order=cond.asc,minute.asc,print_id.asc"),
-        d.selectAll<PmSettlement>("pm_prep_settlements", "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
-        d.select<PrepMarketRow>("pm_live_markets", `day=gte.${firstDay}&select=day,cond,question,reward_rate,rank,n_size,capital&order=day.asc,rank.asc&limit=400`),
-        d.select<{ cap_total_usd: number | string }>("pm_live_config", "id=eq.1&select=cap_total_usd"),
-      ]);
-      return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
-    } catch { return null; }
-  })();
+  // "Reward quotes small-pool" (`0077`) and "Reward quotes mid-pool" (`0081`): an order path's dry-run filled on paper,
+  // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
+  const prep = await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs);
+  const prepMid = await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs);
   const rwc = await rwcRead;
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
@@ -1663,8 +1673,10 @@ async function dashboard(now: number) {
     rwx,
     /** RW-C, the same quotes forward on 2026-10-09 → 10-23 (`0069`); null until its tables exist. */
     rwc,
-    /** "Reward quotes live-prep", the order path's dry-run filled on paper (`0077`); null until it has a state. */
+    /** "Reward quotes small-pool", the order path's dry-run filled on paper (`0077`); null until it has a state. */
     prep,
+    /** "Reward quotes mid-pool", the path again on $10–$50 pools, filled on paper the same way (`0081`); likewise. */
+    prepMid,
   };
 }
 

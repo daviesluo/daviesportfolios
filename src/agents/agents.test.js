@@ -4,13 +4,15 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, prepRow, prepStopText,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
+// Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
+import midFixture from '../e2e/mid_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -1515,12 +1517,12 @@ describe('how long a strategy has been under test (Davies, 2026-09-28)', () => {
   });
 });
 
-describe('prepRow ("Reward quotes live-prep", 0077)', () => {
+describe('prepRow ("Reward quotes small-pool", 0077; "live-prep" until 2026-10-02)', () => {
   it("reads the dashboard's own figures for the hand-worked record into a strategy row's cells, on the Polymarket card", () => {
     const row = prepRow(prepFixture.output);
     if (!row) throw new Error('no row for the fixture');
     expect(row).toMatchObject({
-      id: PREP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
+      id: PREP_ROW_ID, name: 'Reward quotes small-pool', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
       capitalUsd: 320, heldUsd: 8.77, costUsd: 8.35, todayUsd: 1.47, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
       rewards: { realisedUsd: 1.7, unrealisedUsd: 0 }, orders: { realisedUsd: 0.25, unrealisedUsd: 0.42 },
       status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
@@ -1548,7 +1550,7 @@ describe('prepRow ("Reward quotes live-prep", 0077)', () => {
   });
 });
 
-describe("the live-prep's page is RW's (Davies, 2026-10-01)", () => {
+describe("small-pool's page is RW's (Davies, 2026-10-01)", () => {
   const r = prepFixture.output;
   it("reads its STATUS and its scoreboard's split from RW's own functions on the dashboard's figures", () => {
     const v = rwView(r);
@@ -1580,5 +1582,42 @@ describe("the live-prep's page is RW's (Davies, 2026-10-01)", () => {
     // RW's fills are in its one YES book.
     expect([rwFillView({ side: 'bid', price: 0.45 }), rwFillView({ side: 'ask', price: 0.48 })]).toEqual([
       { buy: true, text: 'bought Yes', price: 0.45 }, { buy: false, text: 'sold Yes', price: 0.48 }]);
+  });
+});
+
+describe('midRow ("Reward quotes mid-pool", 0081)', () => {
+  it("is small-pool's row under its own id and name, read from its own layer's figures", () => {
+    const row = midRow(midFixture.output);
+    if (!row) throw new Error('no row for the fixture');
+    expect(row).toMatchObject({
+      id: MID_ROW_ID, name: 'Reward quotes mid-pool', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
+      capitalUsd: 320, heldUsd: 11.2, costUsd: 10.8, todayUsd: 4.6, unrealisedUsd: 0.4, realisedUsd: 9, openPositions: 2, nextText: 'every minute',
+      rewards: { realisedUsd: 9, unrealisedUsd: 0 }, orders: { realisedUsd: 0, unrealisedUsd: 0.4 },
+      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
+    });
+    // Deployed: what it holds, $11.20, and what its two quotes tie up, C 20 × 0.40 + 20 × 0.57 and D 10 × 0.70 + 10 × 0.28,
+    // $29.20: $40.40, 12.63 % of its $320.
+    expect(row.valueUsd).toBeCloseTo(11.2 + 19.4 + 9.8, 9);
+    expect(row.todayPct).toBeCloseTo((4.6 / 320) * 100, 9);
+    expect(row.realisedPct).toBeCloseTo((9 / 320) * 100, 9);
+    expect(row.unrealisedPct).toBeCloseTo((0.4 / 10.8) * 100, 9);
+    // Everything but its id and name is small-pool's row of the same figures.
+    const { id: _a, name: _b, ...same } = row;
+    const { id: _c, name: _d, ...small } = /** @type {NonNullable<ReturnType<typeof prepRow>>} */ (prepRow(midFixture.output));
+    expect(same).toEqual(small);
+    expect(midRow(null)).toBe(null);
+  });
+  it('shows a loss stop on its page as small-pool does, and on no other row', () => {
+    expect([isPrepRowId(PREP_ROW_ID), isPrepRowId(MID_ROW_ID), isPrepRowId(RW_ROW_ID), isPrepRowId(RWE_ROW_ID)]).toEqual([true, true, false, false]);
+    expect(midRow({ ...midFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
+  });
+  it("reads its page from RW's functions: worst case 4.20, the best market D's 5.60 of 9.40, holdings by token", () => {
+    const r = midFixture.output, v = rwView(r);
+    expect(v).toMatchObject({ phase: 'run', bestShareText: '60 %', stoppedText: '', mismatch: false });
+    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['20 Yes', '10 No']);
+    const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
+    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 1, capitalUsd: 29.2, stressUsd: null, stop: false });
+    expect(today?.totalUsd).toBeCloseTo(4.6, 12);
+    expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
   });
 });

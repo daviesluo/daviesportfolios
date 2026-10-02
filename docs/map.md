@@ -594,8 +594,8 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
 | `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function on variant-1's rate with rule D on entries, in tables of its own. |
 | `agents/quotes_ruled.test.ts` | Pins rule D's band, that both arms decide on PR5's stored rate with no feed read, and that the driver writes none of variant-1's tables. |
-| `agents/pm_prep.ts` | "Reward quotes live-prep": the order path's own dry-run orders filled on paper from Polymarket's public prints by RW's rule, two minutes behind, with the path's own P&L, stops and settlement, into its own tables; nothing of the path's written. One instance beside each instance of the path. |
-| `agents/pm_prep_view.ts` | "Reward quotes live-prep" as the Agents page shows it, in RW's shape: its row and Reward quotes' page, every figure from the layer's own records by the functions that made them. |
+| `agents/pm_prep.ts` | "Reward quotes small-pool" (live-prep until 2026-10-02): the order path's own dry-run orders filled on paper from Polymarket's public prints by RW's rule, two minutes behind, with the path's own P&L, stops and settlement, into its own tables; nothing of the path's written. One instance beside each instance of the path. |
+| `agents/pm_prep_view.ts` | "Reward quotes small-pool" and "Reward quotes mid-pool" as the Agents page shows them, in RW's shape: each row and its Reward quotes page, every figure from its layer's own records by the functions that made them. |
 | `agents/pm_live_frozen.ts`, `agents/pm_prep_frozen.ts` | The order path and its paper layer as the live-prep pre-registration froze them, byte for byte, run only by `pm_instance.test.ts` beside today's default instances. |
 | `agents/pm_instance.test.ts` | Runs the default instances of the path and the layer beside the frozen code over the same simulated days, minute by minute, and finds every table, request and report the same. |
 | `agents/pm_mid.ts` | "Reward quotes mid-pool": the order path and its paper layer as a second instance, on rewarded markets of $10 to under $50, in a dry-run its tables enforce; its selection first recomputes RW's frozen selection from public data and leaves out what that takes or nearly takes, keeping only a count. |
@@ -711,7 +711,7 @@ before touching migration state.
 | `0074_pm_live.sql` | Adds Polymarket's order path in dry-run: its config (dry-run, unarmed, Davies' standing Ireland attestation, the capped limits), the day's markets, its orders, fills, events and state, its lease, and its call in the one-minute job from eu-west-1. |
 | `0075_edge_call_watchdog.sql` | Moves the one-minute job's list into a table (`edge_calls`: 0074's rows unchanged, which calls may run again, and the watchdog's row), adds each call's beat (`edge_call_beats`, kept two days) and the watchdog's record of its retries (`edge_call_retries`), and points the job at the table. |
 | `0076_pm_live_calibration.sql` | Readies Polymarket's order path for its live calibration, left in dry-run and unarmed: the day's market count and budget, the live test's caps, the markets keyed by market, each minute's formula reward, the daily reward readout and settled markets. |
-| `0077_pm_live_prep.sql` | "Reward quotes live-prep"'s tables (state, prints, market-minutes, fills, days, settlements, events), its lease and its row of the one-minute job. |
+| `0077_pm_live_prep.sql` | "Reward quotes small-pool"'s tables (named live-prep then) (state, prints, market-minutes, fills, days, settlements, events), its lease and its row of the one-minute job. |
 | `0078_quote_tickers.sql` | Revolut X's USDC/GBP and USDT/GBP tickers (`agent_quote_tickers`, a row a book), whose index price the stablecoin quote pages value coins at, as the account does. |
 | `0079_live_fill_prices.sql` | Re-prices the live fills booked before 2026-10-02 at what each one's stored venue reply says the account moved, as fills are priced since. |
 | `0080_pm_live_full_size.sql` | Polymarket's order path at the $400 deposit's full size in its dry-run (eight markets a day, $160 of first quotes, under the $320 cap), today's markets chosen again at that size; it goes live only on Davies' word. |
@@ -727,7 +727,8 @@ before touching migration state.
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
 | `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 300 checks. |
-| `src/e2e/prep_fixture.json` | "Reward quotes live-prep"'s page as the dashboard serves it for a record worked out by hand: the browser test shows it, and the view's test proves it is that function's own answer. |
+| `src/e2e/prep_fixture.json` | "Reward quotes small-pool"'s page as the dashboard serves it for a record worked out by hand: the browser test shows it, and the view's test proves it is that function's own answer. |
+| `src/e2e/mid_fixture.json` | "Reward quotes mid-pool"'s page the same way, for a record of its $10–$50 band worked out by hand. |
 | `src/e2e/quotes_live_fixture.json` | The live stablecoin quotes' page as the dashboard serves it for a synthetic book worked out by hand: the browser test shows it, and the `agents` function's test proves it is that function's own answer. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |

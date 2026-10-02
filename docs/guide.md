@@ -248,7 +248,7 @@ places stay when the number is not whole.
   from stops matching them. A fourth, variant-4, is both of the others'
   rules at once; it is still worked out, but it is not a row, because
   market by market it does exactly what variant-2 or variant-3 does.
-- **Reward quotes confirmation.** From 8 October, the last row: Reward
+- **Reward quotes confirmation.** From 8 October, the row after the variants: Reward
   quotes' own rule run again, forward, for fourteen more days, 9 to 23
   October, to see whether what it did in its first fourteen holds on days
   nobody has seen. It is not on the page before then. It keeps its own
@@ -256,9 +256,9 @@ places stay when the number is not whole.
   quotes' page. 8 October is a warm-up that counts nowhere; until
   9 October 01:00 UK time its row and its page say when it starts and show
   nothing else, and after 23 October it is finished.
-- **Reward quotes live-prep.** The last row, on Polymarket: a paper test,
-  for a day before real money, of exactly what the account that will quote
-  on Polymarket would do. That account is built and runs every minute
+- **Reward quotes small-pool.** On Polymarket, before the last row: a paper
+  test, before real money, of exactly what the account that will quote
+  on Polymarket would do (until 2 October it was called live-prep). That account is built and runs every minute
   without sending anything: it picks the day's markets (rewards of $6 to
   under $10 a day), works out its bid and ask in each, and writes down
   every order it would send. It quotes up to eight markets a day, the
@@ -278,6 +278,14 @@ places stay when the number is not whole.
   column shows a dash; the running one is in its status. If the account's
   own loss limit would have been hit, its dot turns amber and says so:
   from then on, as the real account would, it only sells what it holds.
+- **Reward quotes mid-pool.** The last row, on Polymarket: the same test
+  on bigger pools, markets paying $10 to under $50 a day in rewards, for
+  fourteen days. It is the same code as small-pool, at the same size
+  (up to eight markets a day, a $320 cap), and it can never send an
+  order: it only writes down what it would send, and this row fills
+  those orders on paper the same way. It never picks a market that the
+  other Reward quotes tests quote, and leaves out the ones close to
+  them too. Its row and its page read exactly like small-pool's.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as
