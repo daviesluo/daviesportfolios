@@ -1017,6 +1017,49 @@ Deno.test("inventory: a re-price on tight inventory gives the cancelled order's 
   assertEquals(w.rx.resting("USDT/GBP").filter((o) => o.side === "sell").map((o) => o.price).sort(), ["0.7595", "0.7603", "0.7611"]);
 });
 
+Deno.test("inventory: an exit sent this turn holds its coin from this turn's entries — the venue's \"Not enough funds\" of 2026-10-02 14:13 UTC is a skip, never a refusal", async () => {
+  // A USDT long on the 0.1 % bid rung, and beside it exactly enough USDT for the three asks at 0.7562 / 0.7570 / 0.7577.
+  const asks = handBase(0.7562) + handBase(0.757) + handBase(0.7577);
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 - asks * 0.756 - 5 * 0.7546, USDT: asks + 5 } });
+  await w.seed({ mode: "live", book: "USDT-GBP", leg: "convert", side: "buy", price: 0.756, base_size: asks, filled_base: asks, avg_fill_price: 0.756, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", price: 0.7546, base_size: 5, filled_base: 5, avg_fill_price: 0.7546, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  const sells = () => w.rx.resting("USDT/GBP").filter((o) => o.side === "sell");
+  // The first turn sends the long's first exit and all three asks: the exit holds the coin the long already held, once.
+  const r0 = await w.step(T0);
+  assertEquals(sells().map((o) => o.price).sort(), ["0.7555", "0.7562", "0.7570", "0.7577"]);
+  assertEquals(r0.skippedEntries.filter((s) => s.rung.startsWith("USDT-GBP|ask")), []);
+  // GBP/USD up to 1.3300: fair falls 0.47 %. Step 5 re-prices the exit (a confirmed cancel, then a place); then the
+  // asks, re-priced lower, need more coin than the account holds beside it, so one of them cannot be covered. Before
+  // the fix the cancelled exit's coin was counted free a second time and that ask went out to be refused.
+  w.setFx(T0, T0 + 30 * H, 1.3300);
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7512, ask: 0.7517 };                   // the book moves with it: nothing crosses
+  const r = await w.step(T0 + M);
+  assertEquals(w.orders().filter((o) => o.state === "rejected").map((o) => [o.leg, o.rung_side, Number(o.k), Number(o.base_size)]), []);
+  const skipped = r.skippedEntries.filter((s) => s.rung.startsWith("USDT-GBP|ask"));
+  assertEquals(skipped.length, 1);
+  assert(skipped[0].reason.startsWith("no USDT to sell"), skipped[0].reason);
+  const exits = w.open("live").filter((o) => o.leg === "exit");
+  assertEquals(exits.length, 1);
+  assert(Number(exits[0].price) < 0.7555, String(exits[0].price));
+  // What rests is the exit and two asks, within the USDT the account holds.
+  assertEquals(sells().length, 3);
+  assert(sells().reduce((a, o) => a + Number(o.quantity), 0) <= w.rx.balances.USDT + 1e-9);
+  assertEquals(r.errors, []);
+});
+
+Deno.test("inventory: two exits sent in one turn are capped together at what the account holds — the second is never sized as if the first had not gone", async () => {
+  // Two USDT longs of 5, and 9 USDT in the account (a coin fee the venue took and never reported, say).
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 - 10 * 0.7542, USDT: 9 } });
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", price: 0.7546, base_size: 5, filled_base: 5, avg_fill_price: 0.7546, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  await w.step(T0);
+  // Both exits rest, the second on the coin the first left: none goes out to be refused.
+  assertEquals(w.orders().filter((o) => o.state === "rejected").map((o) => [o.leg, Number(o.k), Number(o.base_size)]), []);
+  const exits = w.rx.resting("USDT/GBP").filter((o) => o.side === "sell");
+  assertEquals(exits.length, 2);
+  assert(exits.reduce((a, o) => a + Number(o.quantity), 0) <= 9 + 1e-9);
+});
+
 // ------------------------------------------------------------------ the one-off conversion
 
 Deno.test("the conversion is an operator's call: without send it only says what it would send; it never sends in dry-run, over three rungs, or past fair + 50 bps (taker: an IOC)", async () => {

@@ -851,24 +851,38 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     try { bal = { ...(await balancesOnce()) }; }
     catch (e) { report.errors.push(`balances unreadable (${msg(e)}): no entries this turn; exits are not capped by the account`); }
   } else if (entry.book === "dry_run") bal = { GBP: capital };
-  if (bal) {
+  /** The orders step 5 sends this turn, as `placeOrder` returns them: they hold the account as any open order does. */
+  const sentNow: LiveOrderRow[] = [];
+  const sent = (row: LiveOrderRow | null) => { if (row) sentNow.push(row); };
+  /**
+   * What the account can still promise to the entries step 6 sizes: its balances, less every order still open (step 5's
+   * own exits and stops included), and less a holding no exit holds yet. It is taken after step 5, from the orders as
+   * they then stand. Taken before it, as until 2026-10-02, a re-priced exit gave its coin back when its cancel was read
+   * back and its replacement never took it again, so the entries counted that coin twice: at 14:13 UTC that day the venue
+   * refused a USDC ask, "Not enough funds! Wanted 13.20307 USDC but has only 13.11631 USDC".
+   */
+  const takeStock = () => {
+    promised.clear();
+    for (const a of Object.keys(free)) delete free[a];
+    if (!bal) return;
     free.GBP = bal.GBP ?? 0;
     for (const b of QUOTE_BOOKS) free[coinOf(b)] = bal[coinOf(b)] ?? 0;
+    const standing = [...open, ...sentNow].filter(isOpen);
     // The live book's open orders, and the book entries go to (a dry-run's rows promise the same pounds a live bid would).
-    for (const o of open) {
+    for (const o of standing) {
       if (o.mode !== "live" && o.mode !== entry.book) continue;
-      const left = Math.max(0, Number(o.base_size) - Number(o.filled_base));
+      const left = Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0));
       const p = o.side === "buy" ? { asset: "GBP", amount: left * Number(o.price) } : { asset: coinOf(o.book), amount: left };
       free[p.asset] -= p.amount;
       promised.set(o.id, p);
     }
-    // A holding with no exit resting yet has its coins (a long) or its pounds (a short) spoken for all the same.
+    // A holding with no exit resting has its coins (a long) or its pounds (a short) spoken for all the same.
     for (const r of rungs) {
-      if (!(r.live.held > 0) || open.some((o) => o.mode === "live" && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k && o.leg !== "entry")) continue;
+      if (!(r.live.held > 0) || standing.some((o) => o.mode === "live" && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k && o.leg !== "entry")) continue;
       if (r.side === "bid") free[coinOf(r.book)] -= r.live.held;
       else free.GBP -= r.live.held * (inputs[r.book]?.f ?? r.live.avgEntry);
     }
-  }
+  };
 
   // ── 5. the live book's positions: the entry's remainder, the 24-hour stop, the exit ─────────────────────────────────
   const lastLeg = (r: RungNow, leg: LiveLeg) => [...recent].reverse().find((o) => o.mode === "live" && o.leg === leg && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k && !wasRateLimited(o)) ?? null;
@@ -879,7 +893,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     let q = r.live.held;
     if (bal && r.side === "bid") {
       const coin = coinOf(r.book);
-      const otherSells = open.filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "sell" && coinOf(o.book) === coin).reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)), 0);
+      const otherSells = [...open, ...sentNow].filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "sell" && coinOf(o.book) === coin).reduce((a, o) => a + Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0)), 0);
       q = Math.min(q, Math.max(0, (bal[coin] ?? 0) - otherSells));
     }
     const base = floorToStep(q, pair.base_step);
@@ -888,7 +902,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       return null;
     }
     if (bal && r.side === "ask") {
-      const otherBuys = open.filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
+      const otherBuys = [...open, ...sentNow].filter((o) => o !== own && isOpen(o) && o.mode === "live" && o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - (Number(o.filled_base) || 0)) * Number(o.price), 0);
       if ((bal.GBP ?? 0) - otherBuys + 1e-9 < Number(base) * price) {
         report.errors.push(`${r.label}: buying back ${base} at ${price.toFixed(4)} needs more GBP than the account has free; not placed`);
         return null;
@@ -920,7 +934,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         const f0 = fair ?? (o?.fair != null ? Number(o.fair) : null) ?? r.live.avgEntry;
         const ticks = stopLimitTicks(f0, r.side);
         const base = exitBase(r, ticks * QUOTE_TICK, null);
-        if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "stop", side: venueSideOf(r.side, "stop"), ticks, base, marketable: true, fair: f0 });
+        if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "stop", side: venueSideOf(r.side, "stop"), ticks, base, marketable: true, fair: f0 }));
         continue;
       }
       if (governorLevel(report.posts.live) === "stops-only") continue;
@@ -935,7 +949,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
           if (!exitMayGo({ ...prev, request }, r.live.openedAt, r.side === "bid" ? "ask" : "bid", ticks, lastPrint)) continue;
         }
         const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
-        if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
+        if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) }));
         continue;
       }
       // A resting exit follows fair by the rule's own step, on inputs that still stand; stale, it keeps its price.
@@ -944,13 +958,14 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
       if (c !== "cancelled") continue;
       const ticks = exitTicks(fair, r.side);
       const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
-      if (base) await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) });
+      if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) }));
     } catch (e) {
       report.errors.push(`${r.label}: ${msg(e)}`);
     }
   }
 
   // ── 6. entries: the paper rung's order, in the book entries go to; withdrawn everywhere else ─────────────────────────
+  takeStock();
   const gbpPerRung = rungGbp(capital);
   const skipEvent = async (mode: LiveMode, r: RungNow, t: PaperTarget, reason: string, detail: Record<string, unknown>) => {
     report.skippedEntries.push({ mode, rung: r.label, reason });
