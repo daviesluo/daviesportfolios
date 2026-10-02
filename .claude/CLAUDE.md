@@ -577,7 +577,9 @@ that follow from that evidence, in short:
   $60 a market, stops −$25 a day and −$75 in all. Going live is ONE
   statement, in the conversation where he says go, which sets the cap
   from the balance the path itself read (refused when unread, stale or
-  too small) and arms it — the design doc has it word for word. A cancel
+  too small, and since `0084` without the key loaded, outside eu-west-1,
+  without a current attestation, or while mid-pool is armed) and arms
+  it — the design doc has it word for word. A cancel
   is read again before its slot freezes (`PM_LIVE_CANCEL_REREAD_MS`, as
   PR5's), and a refused quote waits for new information.
   **It is standing since 2026-10-01** ("我之后长期在爱尔兰，如果变动需要更改会和你说，
@@ -594,9 +596,16 @@ that follow from that evidence, in short:
   conversation arms it: no routine runs the go-time statement ("什么时候
   上线我说了算不自动转了"). **"Reward quotes mid-pool"** (`0081`,
   `agents/pm_mid.ts`, 2026-10-02) runs the same path and paper layer again
-  as a second instance on $10–$50 pools, a dry-run its tables enforce
-  (`check (dry_run)`; no key read; its wire refuses POST and DELETE),
-  and leaves out every market RW's frozen selection, recomputed from
+  as a second instance on $10–$50 pools, at mini-pool's go-live size, and
+  since `0084` (Davies: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，
+  按上线规模跑 dry-run") on the same footing: the key loaded for the stored
+  signer, the same keyed wire, its config row the lock (`dry_run` true,
+  `live_confirmed_at` null). **The two trade one account and are never
+  both armed**: a trigger on both configs refuses arming one while the
+  other is, and each go-time statement refuses it too (the design doc's
+  steps 8 and 8m); a funded mid-pool first needs its own
+  pre-registration, its margin measured again and payouts told apart per
+  path. It leaves out every market RW's frozen selection, recomputed from
   public data, takes or scores at ≥ 0.33 of its last pick, never reading
   `pm_rw_*` or `pm_rwc_*`. Its config holds a copy of the attestation, so
   a revocation also runs `update public.pm_mid_config set ireland_until =

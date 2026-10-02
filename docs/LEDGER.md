@@ -654,6 +654,26 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-02 18:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Why PR5's live trips win less often than its paper's; the monitor checked; CLAUDE.md's mid-pool paragraph brought up
+to `0084`.** Davies: "为什么Stablecoin quotes live的策略won的概率那么低？比paper testing的低很多，可以优化吗？或者paper testing的机制是不是不符合现实情况需要改动？".
+Live had closed nine trips and won four, the paper 59 of 61. Recomputed with the page's own functions (reference §4 item
+35): three losses are bids that rested through the stall at their 12:05 prices (the executor's last whole turn 12:16,
+the next 14:12) while the paper's replay re-priced them in time, which the dead-man switch fixes; one is the first
+trip's penny rounding, fixed on 10-01; one made +0.13p and carried 0.90p of the first conversion's fee (USDC's next
+three asks carry the same, once). The paper's fill rule is the more conservative and stays frozen to 10-21. Asked which
+Polymarket pool to fund, within both no-peek rules (nothing of either's results read): the two now run the same code at
+the same size on the same days, mid-pool without the top of its band (RW's picks) and both on an assumed R = 0.40;
+mini-pool first, after its 10-04 00:10 check, his funding and his word, since mid-pool needs its own pre-registration,
+its margin measured again and its payouts told apart, and its band is RW-C's to 10-23. The monitor, checked by the main
+session: check runs 37046852683, 37047789478 and 37048828795 green, monitor-deploy 37048828891 green with its warning;
+`monitor` v1 ACTIVE with `verify_jwt`; `0084`–`0086` in `schema_migrations`, the kind check ending `'deadman'`; no
+`deadman` event or `monitor.*` row; twelve live orders open, eleven entries and top-up 1657 (USDC 0.2118 at 0.7554), sent
+at 18:27:29 after 1634 rested 30 minutes unfilled. The Worker still waits on Davies' token (item 9). `.claude/CLAUDE.md`
+said mid-pool was "a dry-run its tables enforce", false since `0084`: it now gives the same footing as mini-pool, the
+one-armed trigger and what a funded mid-pool needs, and the go-time sentence names `0084`'s extra refusals.
+
 ### [2026-10-02 18:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **`3fa527f4` landed and runs: x4 and x5 are in RW's variant replay as copies of x1; the sweep shows three variant rows.** migrations run 37046852783 applied `0085` (both arm checks read back from the catalog with `x4` and `x5`); edge-functions run 37046852686 deployed `agents` at 18:22:13 UTC; check run 37046852683 green. Read back, read-only: the replay's first run on the new code, 18:23:01 UTC, wrote `pm_rw_x_state` with arms `e`, `rw`, `x1`–`x5`, x4's and x5's accounts, markets run through the rule and active markets each equal to x1's (compared as booleans; no figure read), no `base` yet (it is taken at 10-03 00:00), `last_minute` 18:20 against RW's 18:21, no `last_error`, version 2, `checkMaxUsd` 0 and `checkEMaxUsd` 0 over 7 days. The call's wall time (function_edge_logs, database reads and writes included, so not its CPU): 631–804 ms a run over 18:13–22 UTC before the deploy, 1,395 ms on the first run after it (a new isolate, and the copies), then 770 and 716 ms, every one 200. This commit: the sweep's fixture sends what the dashboard now sends, three variant rows (x1, x4, x5, each RW-E's figures, so every count and sum gains one RW-E row): twelve rows; TESTING $6,560 funded, $1,473.65 deployed (22.46 %), today +$43.04, unrealised −$4.16 on $156.55, realised +$149.16; Polymarket's card five strategies, $252.40 deployed, −$5.80 on $42.60; the share bar 83 % / 17 %; variant-3 and -4 starting "3 Oct 01:00 BST" in the waiting mode. Each figure was worked by hand before the run (the arithmetic is in the comments beside them), and the sweep read exactly those at both widths; the one check the edit missed counted the rows that decide every minute (five, now six) and failed until it was changed. `agents.js`'s comment names x1, x4 and x5 (bundle rebuilt). **Erratum, not edited into the frozen file:** the pre-registration's "Why" says RW's quote "fills on the flow at the touch"; where the spread is two ticks or less RW's quote is at the touch, and it fills only on prints strictly through it. Its rules and bar are unaffected. **Left for the main session:** the interview showcase (`showcase/daviesportfolios/README.md` in `daviesluo/personal`, the working-with-davies rule: the same week) does not yet describe x4 and x5 or x2 leaving the page.
