@@ -656,6 +656,16 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-02 19:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**One count for each test suite, read from today's runs.** The front page said 242 browser checks and about 450 Edge
+tests, `.claude/CLAUDE.md` 489 checks and over 900 Vitest cases, and the interview showcase 591 (CI's four shards
+summed, which counts the sweep's two whole-run invariants four times). Measured: the sweep run once in one process,
+"ALL GREEN — 585 checks passed"; Vitest 1,158 tests in 62 files; the Edge suite 952 (the gates' run of 19:08 UTC); the
+perf matrix 60. README and CLAUDE.md now say 585, over 1,150 and about 950; the showcase follows in the personal
+repository. The showcase itself was brought up to today in `bcb3873` and `b1c8f86` there (the monitor, the dead-man,
+PR5's protections, x4/x5 from 20:00, mini-pool and mid-pool as one real path).
+
 ### [2026-10-02 19:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The monitor runs, and x4/x5's earlier start is deployed before its hour.** Davies: "CLOUDFLARE_API_TOKEN 已更新，

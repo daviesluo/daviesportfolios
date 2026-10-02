@@ -122,11 +122,11 @@ recorded when nobody has the page open.
 - **Every push runs the same gates**: type-check, lint, unit tests, a
   production build, two browser tests, a bundle-size budget, a dead-code
   scan and a dependency audit. `bin/gates.sh` runs them all locally.
-- **Three levels of tests**: over 900 unit tests (Vitest), about 450 Edge
-  Function tests (Deno), and two browser runs against the real production
-  bundle in Chromium: 242 checks across the whole page at desktop and
-  phone widths, and 60 cases of the performance panel checked against
-  answers worked out by hand.
+- **Three levels of tests**: over 1,150 unit tests (Vitest), about 950
+  Edge Function tests (Deno), and two browser runs against the real
+  production bundle in Chromium: 585 checks across the whole page at
+  desktop and phone widths, and 60 cases of the performance panel checked
+  against answers worked out by hand.
 - **Every bug fix comes with a test that fails on the old code.** When it
   matters I revert the fix and watch the test fail again.
 - **Numbers are checked against arithmetic, not against the app.** Test
