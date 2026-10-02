@@ -600,6 +600,10 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-02 04:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Reward quotes mid-pool lands, and small-pool's pre-registration records the instance change before its window** (Davies: "做完并验证好就直接上线，不管几点"; "small-pool没有定时上线任务…之后我想什么时候决定哪个策略上线再说": no routine arms anything, and which strategy goes live, and when, is his later call). Reviewed before landing: the branch's three commits fast-forward `4fd9cedc`; the four hashes read again from the files (`pm_live.ts` 8ba7b915…9653, `pm_prep.ts` 8d7861ab…4dea, the frozen copies fbdaca34…9b89 and 83fe596f…7061); `0081` only creates `pm_mid_*` / `pm_midprep_*`, two locks and two `edge_calls` rows (`on conflict do nothing`), every earlier row untouched; the mid wire refuses POST and DELETE, and its one public POST is the CLOB's keyless `/books` batch read. **Addendum 3** of `reviews/2026-10-01-polymarket-live-prep-prereg.md` (written before 2026-10-03 00:00 UTC, the window unmoved): the row renamed small-pool, the new hashes, and why it is the same test (`pm_instance.test.ts`: the default instances beside the frozen files over 56 turns, identical after every turn; six counterfactuals fail it). CLAUDE.md's Polymarket paragraph names small-pool, `0080`'s size, the end of the automatic go-live and mid-pool, with the revocation statement mid's copied attestation needs. To watch after the deploy: mid's first selection lands (a count and `selected_at` only, per its no-peek), no 546 or 5xx on `action=pmmid` (its selection's CPU was measured only in this container, ~1.16 s), both states moving, no `ops_errors`; and the interview showcase gains mid-pool this week.
+
 ### [2026-10-02 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Polymarket's order path and its paper layer run as instances, the default being the pre-registered code** (item 2;

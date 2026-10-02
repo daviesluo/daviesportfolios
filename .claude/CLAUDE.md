@@ -568,6 +568,19 @@ that follow from that evidence, in short:
   a proxy or anyone else's account. `_shared/polymarket.ts` (the probe's
   client) is read-only (GET only, a fixed list of URLs, the L2 headers to
   the CLOB host only); the key controls real funds.
+  Its paper row is "Reward quotes small-pool" ("live-prep" until
+  2026-10-02); since `0080` its dry-run runs at the go-live size, eight
+  markets and $160 of first quotes, and only Davies' word in the
+  conversation arms it: no routine runs the go-time statement ("什么时候
+  上线我说了算不自动转了"). **"Reward quotes mid-pool"** (`0081`,
+  `agents/pm_mid.ts`, 2026-10-02) runs the same path and paper layer again
+  as a second instance on $10–$50 pools, a dry-run its tables enforce
+  (`check (dry_run)`; no key read; its wire refuses POST and DELETE),
+  and leaves out every market RW's frozen selection, recomputed from
+  public data, takes or scores at ≥ 0.33 of its last pick, never reading
+  `pm_rw_*` or `pm_rwc_*`. Its config holds a copy of the attestation, so
+  a revocation also runs `update public.pm_mid_config set ireland_until =
+  now() where id = 1;`.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

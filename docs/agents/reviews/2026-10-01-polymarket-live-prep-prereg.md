@@ -187,3 +187,30 @@ changes, and nothing else:
   reported as before.
 - **A fix inside this window** ends it as FAIL, as above, and the check moves to the first full UTC day after the fix,
   by a next addendum.
+
+## Addendum 3 (2026-10-02, about 05:00 UTC): the path and the layer run as instances; the row is renamed small-pool
+
+Written before the window it concerns. Davies, 2026-10-02, verbatim: "把目前Reward quotes live-prep改名为Reward quotes
+small-pool，再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试", and, on
+landing it: "我的意思是做完并验证好就直接上线，不管几点". What changes, and nothing else:
+
+- **The name.** The row reads "Reward quotes small-pool" on the Agents page. Its tables, files, actions, this document
+  and its checks keep their names.
+- **The code.** `pm_live.ts` and `pm_prep.ts` take an instance, so that "Reward quotes mid-pool" (`0081`,
+  `agents/pm_mid.ts`, its own pre-registration `2026-10-02-polymarket-mid-pool-prereg.md`) can run the same path and
+  layer on its own tables. A turn given none runs `PM_LIVE_INSTANCE` / `PREP_INSTANCE`, which carry this test's names
+  and behaviour. Their hashes move:
+  - `pm_live.ts` sha256 `8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653` (frozen:
+    `fbdaca34bd7f0037fb88ea7f9782ecc31311f283b6b0fe7c7c1cd45b3c519b89`);
+  - `pm_prep.ts` sha256 `8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea` (frozen:
+    `83fe596fe7cb9b0dfd4e0a88c4259bc6484e37d9a755d6d0bbc46c56525d7061`).
+- **Why it is the same test.** `supabase/functions/agents/pm_instance.test.ts` runs the default instances, once left
+  out and once named, beside the frozen files kept byte for byte as `pm_live_frozen.ts` and `pm_prep_frozen.ts` (their
+  sha256 the frozen ones above, held to this document by `src/pm_prep_prereg.test.js`). Over 56 turns on three
+  simulated UTC days, dry-run and live, every table, request and report is identical after every turn; every export
+  but the five the build changed is identical in text and value; six counterfactuals each fail it.
+- **The window does not move:** this lands before 2026-10-03 00:00 UTC. A deploy of `pm_live.ts`, `pm_prep.ts` or
+  their tables inside 2026-10-03 00:00 → 10-04 00:00 UTC still ends the window as FAIL. `0081` creates only
+  `pm_mid_*` and `pm_midprep_*`, two lease rows and two `edge_calls` rows, and reads `pm_live_config` once.
+  `prep_check_addendum2.sql` is unchanged, and so is what happens: the check's rows are reported to Davies, and nothing
+  arms the path.
