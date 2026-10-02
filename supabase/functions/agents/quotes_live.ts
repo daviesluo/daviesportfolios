@@ -1139,10 +1139,17 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
     try {
       const resting = new Set([...open, ...sentNow].filter((o) => isOpen(o) && o.mode === "live" && o.leg === "convert").map((o) => o.book));
       const books = [...shortOf].filter((b) => !resting.has(b) && !report.guards[b].length);
-      const today = books.length ? await d.db.selectAll<Pick<LiveOrderRow, "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request">>("agent_quote_live_orders",
-        `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=book,leg,price,base_size,filled_base,state,request&order=id.asc`) : [];
+      const today = books.length ? await d.db.selectAll<Pick<LiveOrderRow, "ts" | "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request" | "response">>("agent_quote_live_orders",
+        `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=ts,book,leg,price,base_size,filled_base,state,request,response&order=id.asc`) : [];
       const cases: TopUpBook[] = [];
       for (const book of books) {
+        // A top-up the venue refused is not sent again for QUOTE_LIVE_TOPUP_REST_MS: refused every minute, it would spend
+        // the day's POSTs (2026-10-02 17:57–18:04 UTC: eight refusals of USDT's in a row, before the penny holds).
+        const refused = today.filter((o) => o.book === book && isAutoConvert(o) && o.state === "rejected" && wasSent(o) && !wasRateLimited(o)).at(-1);
+        if (refused && d.now - Date.parse(refused.ts) < QUOTE_LIVE_TOPUP_REST_MS) {
+          report.skippedEntries.push({ mode: "live", rung: `${book}|convert`, reason: `top-up: the venue refused the last one at ${refused.ts}; the next waits 30 minutes from it` });
+          continue;
+        }
         const fair = inputs[book]?.f ?? null, pair = pairs[LIVE_SYMBOL[book]];
         if (fair == null || !pair) continue;
         const seen = await ctx.bookSeen(book);

@@ -1428,7 +1428,8 @@ export class FakeRevx {
   /** The venue takes the order and the reply never arrives (a timeout after the fact): the caller sees a thrown fetch. */
   loseReply = false;
   calls: string[] = [];
-  onPost?: () => void;
+  /** Called as an order POST arrives, before the venue reads it, with the request it carries. */
+  onPost?: (req?: { side?: string; symbol?: string; client_order_id?: string; order_configuration?: { limit?: { base_size?: string; price?: string } } }) => void;
   /**
    * The venue's per-second bucket on order POSTs: 10 a second on a key (reference §2). Over it a POST is answered 429 and
    * not taken, as the venue does; `null` switches the bucket off for a test that must.
@@ -1573,7 +1574,7 @@ export class FakeRevx {
       return json(200, { data: out });
     }
     if (p === "/api/1.0/orders" && m === "POST") {
-      this.onPost?.();
+      if (this.onPost) { try { this.onPost(JSON.parse(String(init!.body))); } catch { this.onPost(); } }
       const at = this.now();
       const tooMany = { error_id: "e", message: "Too many requests", timestamp: at };
       if (this.rateLimitNext > 0) { this.rateLimitNext--; this.rateLimited++; return json(429, tooMany); }

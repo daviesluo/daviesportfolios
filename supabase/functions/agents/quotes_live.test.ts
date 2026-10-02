@@ -1116,6 +1116,28 @@ Deno.test("inventory: two top-ups in one turn fit the pounds the venue holds for
   assert(held <= 60.31 + 1e-9, String(held));
 });
 
+// Production, 2026-10-02 17:57–18:04 UTC (orders 1636–1643): with nothing resting to hold it back, USDT's refused top-up
+// went out again every minute, eight refusals in a row. Refused every minute, a top-up would spend the day's POSTs.
+Deno.test("inventory: a top-up the venue refused waits 30 minutes before the next is sent", async () => {
+  const need = asksNeedOf(1 / X, 120, PAIR);
+  const w = makeWorld({ live: true, armed: true, capital: 120, balances: { GBP: 60.31, USDT: need - 0.06 } });
+  w.pauses.advance = true;
+  await w.seed({ mode: "live", book: "USDT-GBP", leg: "convert", side: "buy", price: 0.756, base_size: need - 0.06, filled_base: need - 0.06, avg_fill_price: 0.756, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  // £0.25 of the £0.31 leaves the account between the executor's read and its top-up's arrival, so the venue refuses it.
+  const tops = () => w.orders().filter((o) => isAutoConvert(o as { leg: string; request: unknown }));
+  w.rx.onPost = (req) => { if (req?.side === "buy" && Number(req.order_configuration?.limit?.base_size) < 1) w.rx.balances.GBP = 60.06; };
+  const r0 = await w.step(T0);
+  w.rx.onPost = undefined;
+  w.rx.balances.GBP = 60.31;                                                 // the pounds come back
+  assertEquals(tops().map((o) => o.state), ["rejected"]);
+  assert(r0.errors.some((e) => e.startsWith("USDT-GBP|convert: the venue refused a top-up")), JSON.stringify(r0.errors));
+  // Nothing more for 30 minutes from the refusal, whatever the turns find; then the next.
+  await w.run(T0 + M, T0 + 29 * M);
+  assertEquals(tops().length, 1);
+  await w.run(T0 + 30 * M, T0 + 31 * M);
+  assertEquals(tops().map((o) => o.state), ["rejected", "new"]);
+});
+
 Deno.test("inventory: a top-up unfilled for 30 minutes is cancelled and sent again at the book as it stands; a dry-run tops nothing up", async () => {
   const asks = handBase(0.7562) + handBase(0.757) + handBase(0.7577);
   const world = (live: boolean) => makeWorld({ live, armed: live, balances: { GBP: 50 - asks * 0.756, USDT: asks - 0.05 } });
