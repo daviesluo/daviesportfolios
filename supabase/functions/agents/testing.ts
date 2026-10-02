@@ -564,6 +564,29 @@ export type MemDbHooks = {
   beforeOrderInsert?: (tables: Record<string, Row[]>, row: Row) => void;
 };
 
+/** One item of a PostgREST select list: the name it answers under, its column, and the JSON path into it, if any. */
+export type SelectItem = { name: string; base: string; keys: string[]; text: boolean };
+/**
+ * PostgREST's select list: a column, `alias:column`, or a JSON path, `column->key` (JSON) or `column->>key` (text), named
+ * by its alias or else by its last key. The double and the tests that read as the dashboard reads both parse it here.
+ */
+export function selectItems(select: string[]): SelectItem[] {
+  return select.map((item) => {
+    const colon = item.indexOf(":");
+    const alias = colon > 0 ? item.slice(0, colon) : null, expr = colon > 0 ? item.slice(colon + 1) : item;
+    const parts = expr.split(/->>?/), base = parts[0], keys = parts.slice(1), text = /->>[^>]*$/.test(expr);
+    return { name: alias ?? (keys.length ? keys[keys.length - 1] : base), base, keys, text };
+  });
+}
+/** A row as PostgREST answers a select list: each item under its name; a path that leads nowhere is null. */
+export function pickRow(items: SelectItem[], r: Row): Row {
+  return Object.fromEntries(items.map(({ name, base, keys, text }) => {
+    let v: unknown = r[base];
+    for (const k of keys) v = v != null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>)[k] ?? null : null;
+    return [name, keys.length && text && v != null ? (typeof v === "object" ? JSON.stringify(v) : String(v)) : v];
+  }));
+}
+
 /**
  * Enough of PostgREST for what the loop asks, with the schema's rules: CHECK and NOT NULL on every write
  * (`schemaRefusal`), the unique indexes the loop relies on (one decision per bar, one order per decision attempt, one
@@ -608,7 +631,14 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (order.length) rows = rows.slice().sort((a, b) => { for (const o of order) { const c = cmp(a[o.col], b[o.col]) * o.dir; if (c) return c; } return 0; });
       rows = rows.slice(offset, offset + limit);
       // deno-lint-ignore no-explicit-any
-      return Promise.resolve((select ? rows.map((r) => Object.fromEntries(select!.map((c) => [c, r[c]]))) : rows.map((r) => ({ ...r }))) as any);
+      if (!select) return Promise.resolve(rows.map((r) => ({ ...r })) as any);
+      const items = selectItems(select);
+      // A path's base column must exist, as PostgREST refuses one that does not.
+      const known = LIVE_QUOTE_TABLES[table]?.columns;
+      const missing = known && items.find((i) => i.keys.length && !known.includes(i.base));
+      if (missing) return refuse("select", table, `column ${missing.base} does not exist`);
+      // deno-lint-ignore no-explicit-any
+      return Promise.resolve(rows.map((r) => pickRow(items, r)) as any);
     },
     insert: (table, rows, returning = true) => {
       // A POST to `rpc/<name>` runs a function, as PostgREST does; one no migration created is PostgREST's 404.

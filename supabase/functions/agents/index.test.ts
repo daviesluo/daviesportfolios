@@ -10,8 +10,9 @@ import {
   serveRequest, type ServeDeps, type Who,
   liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
-  QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
+  QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
 } from "./index.ts";
+import { memDb, pickRow, selectItems } from "./testing.ts";
 import type { OrderRow } from "./tick.ts";
 import type { RungFill } from "./quotes_live.ts";
 // The live quotes page's fixture: a book worked out by hand, its rows and what the dashboard serves for them. The browser
@@ -817,10 +818,11 @@ Deno.test("quotesLiveSummary: PR5's real-money book from its live fills, in USD 
  */
 function liveReads(f: typeof liveFixture) {
   type Row = Record<string, unknown>;
-  const pick = (cols: string) => (r: Row) => Object.fromEntries(cols.split(",").map((c) => {
-    if (!(c in r)) throw new Error(`fixture row ${r.id} has no ${c}`);
-    return [c, r[c]];
-  }));
+  const pick = (cols: string) => (r: Row) => {
+    const items = selectItems(cols.split(","));
+    for (const i of items) if (!(i.base in r)) throw new Error(`fixture row ${r.id} has no ${i.base}`);
+    return pickRow(items, r);
+  };
   const live = (f.orders as Row[]).filter((r) => r.mode === "live");
   const asc = (a: Row, b: Row) => Number(a.id) - Number(b.id);
   return {
@@ -907,8 +909,8 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertEquals([d.tripCount, d.tripsWon], [3, 2]);
   // The order tables leave out the orders of the three closed trips, all in ROUND TRIPS (Davies, 2026-10-02): D's #103 and
   // #104, A's #107 and #108, C's #105 and its stop #110. B's and E's filled entries (#109, #112) and the exits they have
-  // resting (#111, #113) stay, and so does every other order the page reads but the venue's refusal, #114.
-  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 113, 112, 111, 109, 102, 101]);   // 114, the refusal, left out
+  // resting (#111, #113) stay, and so does every other order the page reads.
+  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 109, 102, 101]);
 
   // DAYS, newest first: 18 orders sent today and 6 yesterday (the conversions among them), the entry fills of each day,
   // the trips that closed, and what was realised, which adds up to REALIZED.
@@ -930,12 +932,9 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertEquals([inv[0].unrealisedGbp, inv[0].costGbp], [null, null]);
 
   // ORDERS: what the page reads is the 24 newest less the six cancels that filled nothing, newest first, and what it lists
-  // is that less the closed trips' six (above) and less the venue's one refusal, 114 (Davies, 2026-10-02: the executor
-  // keeps it, and the page leaves it out).
+  // is that less the closed trips' six (above); the one refusal says why.
   assertEquals(reads.recent.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 105, 104, 103, 102, 101]);
-  assertEquals(reads.recent.find((o) => o.id === 114)?.state, "rejected");
-  assertEquals(d.orders.filter((o) => o.id === 114 || o.state === "rejected"), []);
-  assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), []);
+  assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), [[114, "refused by the venue: post-only order would cross the book"]]);
   assertEquals(QUOTES_LIVE_ORDERS_FILTER, "or=(state.neq.cancelled,filled_base.gt.0)");
 
   // What the browser test serves the page is exactly this function's answer for these rows.
@@ -1130,6 +1129,52 @@ Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny 
   assertEquals(withConversionFees("ask", fills, new Map([[1309, 0.0091]]), day).map((f) => f.feeGbp), [0, 0, 0, 0]);
 });
 
+// Davies, 2026-10-02: "只是让你把已知问题的订单删掉，不是以后再出现问题的订单也不显示". The fixture's day gains two
+// refusals: 1517, one of the five known (the venue refused it), and 1600, refused at the book it met and never sent.
+Deno.test("quotesLiveDetail lists every refusal but the five known of 2026-10-02, and DAYS counts only the orders that went to the venue", () => {
+  const f = liveFixture;
+  type Row = Record<string, unknown>;
+  const r114 = (f.orders as Row[]).find((r) => r.id === 114)!;
+  const ts = new Date(f.nowMs - 5 * 60e3).toISOString();
+  const known = { ...r114, id: 1517, ts, response: { status: 400, error: "post-only order would cross the book" } };
+  const unsent = { ...r114, id: 1600, ts, response: { wouldBeRefused: true } };
+  const reads = liveReads({ ...f, orders: [...(f.orders as Row[]), known, unsent] } as typeof liveFixture);
+  const plain = liveReads(f);
+  // deno-lint-ignore no-explicit-any
+  const base = (r: typeof reads): any => ({ config: f.config, state: f.state, orders: r.orders, paper: f.paper, nowMs: f.nowMs, dayStartMs: f.dayStartMs, tickers: f.tickers, open: r.open, recent: r.recent });
+  const d = quotesLiveDetail(base(reads))!, d0 = quotesLiveDetail(base(plain))!;
+  assertEquals([...QUOTES_LIVE_KNOWN_REFUSALS].sort(), [1517, 1518, 1521, 1536, 1537]);
+  // 1517 is read and not listed; 1600 and 114 are, newest first, each saying why.
+  assert(reads.recent.some((o) => o.id === 1517 && o.state === "rejected"));
+  assertEquals(d.orders.filter((o) => o.state === "rejected").map((o) => [o.id, o.reason]), [
+    [1600, "not sent: its price crossed the book, which the venue refuses for a post-only order"],
+    [114, "refused by the venue: post-only order would cross the book"],
+  ]);
+  assertEquals(d.orders.map((o) => o.id), [1600, ...d0.orders.map((o) => o.id)]);
+  // DAYS: today gains 1517, a POST the venue saw, and not 1600, which never left; the summary reads which is which from
+  // `response` alone (`not_sent`), without carrying every answer to the page.
+  assertEquals(reads.orders.filter((o) => o.not_sent === true).map((o) => o.id), [1600]);
+  assertEquals([d.days[0].day, d.days[0].orders], [d0.days[0].day, d0.days[0].orders + 1]);
+  assertEquals(d.days.slice(1), d0.days.slice(1));
+});
+
+Deno.test("the double answers a PostgREST select list as PostgREST does: aliases and JSON paths, and an unknown column refused", async () => {
+  assertEquals(selectItems(["id", "not_sent:response->wouldBeRefused", "response->>status", "a:response->x->y"]), [
+    { name: "id", base: "id", keys: [], text: false },
+    { name: "not_sent", base: "response", keys: ["wouldBeRefused"], text: false },
+    { name: "status", base: "response", keys: ["status"], text: true },
+    { name: "a", base: "response", keys: ["x", "y"], text: false },
+  ]);
+  const items = selectItems(["id", "not_sent:response->wouldBeRefused", "response->>status"]);
+  assertEquals(pickRow(items, { id: 1, response: { wouldBeRefused: true, status: 400 } }), { id: 1, not_sent: true, status: "400" });
+  assertEquals(pickRow(items, { id: 2, response: null }), { id: 2, not_sent: null, status: null });
+  const { db } = memDb({ agent_quote_live_orders: [{ id: 7, response: { wouldBeRefused: true } }, { id: 8, response: { status: 400 } }] }, { now: () => 0 });
+  assertEquals(await db.select("agent_quote_live_orders", "select=id,not_sent:response->wouldBeRefused&order=id.asc"), [{ id: 7, not_sent: true }, { id: 8, not_sent: null }]);
+  let refused = "";
+  await db.select("agent_quote_live_orders", "select=id,x:nope->a").catch((e) => { refused = String(e); });
+  assert(refused.includes("column nope does not exist"), refused);
+});
+
 Deno.test("liveOrderReason: each says why, in the executor's own words where it wrote them", () => {
   const now = Date.UTC(2026, 9, 1, 12);
   const o = (over: Partial<QuoteLiveRecentRow>): QuoteLiveRecentRow => ({
@@ -1147,6 +1192,8 @@ Deno.test("liveOrderReason: each says why, in the executor's own words where it 
   assertEquals(liveOrderReason(o({ state: "cancelled" }), now), "cancelled by the venue");
   assertEquals(liveOrderReason(o({ state: "rejected", response: { status: 429, error: "Too Many Requests" } }), now), "turned away by the venue's rate limit; sent again next turn");
   assertEquals(liveOrderReason(o({ state: "rejected", response: { status: 400 } }), now), "refused by the venue");
+  // Refused at the book it met and never sent (`wouldBeRefused`, 2026-10-02): the page says so, not that the venue refused it.
+  assertEquals(liveOrderReason(o({ state: "rejected", response: { wouldBeRefused: true } }), now), "not sent: its price crossed the book, which the venue refuses for a post-only order");
   assertEquals(liveOrderReason(o({ state: "filled", filled_base: 4, cancelled_at: new Date(now).toISOString() }), now), "filled in part; the rest was cancelled");
   assertEquals(liveOrderReason(o({ state: "filled", filled_base: 10, filled_at: new Date(now).toISOString() }), now), null);
 });

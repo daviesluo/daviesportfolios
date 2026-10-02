@@ -784,6 +784,8 @@ export type QuoteLiveOrderView = {
   filled_base: number | string; avg_fill_price: number | string | null; price: number | string; fee_gbp: number | string; filled_at: string | null;
   /** The venue side, the size and a cancel sent and not yet confirmed: what the live page shows of an order. The LIVE row reads none of them. */
   side?: string; base_size?: number | string; cancel_requested_at?: string | null;
+  /** True for an order the executor refused at the book it met and never sent (`response.wouldBeRefused`): no POST. */
+  not_sent?: boolean | null;
 };
 /** One of the newest live orders, with what says why it ended as it did: the cancel's reason, the venue's refusal. */
 export type QuoteLiveRecentRow = QuoteLiveOrderView & {
@@ -816,7 +818,8 @@ export const QUOTES_LIVE_PAGE_ROWS = 50;
  */
 export const QUOTES_LIVE_ORDERS_FILTER = "or=(state.neq.cancelled,filled_base.gt.0)";
 /** The columns of a live order the LIVE row's figures read: every live order, paged. */
-export const QUOTE_LIVE_SUMMARY_COLUMNS = "id,ts,mode,book,rung_side,k,leg,side,state,base_size,filled_base,avg_fill_price,price,fee_gbp,filled_at";
+export const QUOTE_LIVE_SUMMARY_COLUMNS =
+  "id,ts,mode,book,rung_side,k,leg,side,state,base_size,filled_base,avg_fill_price,price,fee_gbp,filled_at,not_sent:response->wouldBeRefused";
 /** A GBP ticker as the books recorder keeps it (`agent_quote_tickers`, 0078): the price Revolut X values the coins at. */
 export type QuoteTickerRow = { book: string; index_price: number | string; ts: string };
 /** How old a ticker may be and still price the coins: a few of the recorder's minutes, which can each miss a read. */
@@ -1115,6 +1118,15 @@ export function liveRungTrips(r: Pick<LiveRung, "book" | "side" | "k" | "fills">
 }
 
 /**
+ * Refusals the page no longer lists (Davies, 2026-10-02: "只是让你把已知问题的订单删掉，不是以后再出现问题的订单也不显示"):
+ * the five of 2026-10-02 14:13–14:26 UTC, after the database stall, each from a cause since fixed. 1521 was refused for
+ * coin the executor had counted twice (`94ae4f0e`); 1517, 1518, 1536 and 1537 were post-only exits sent although the book
+ * read 30 ms before already crossed them (`81fbde0a`). Every other refusal is listed with its reason, so a new one shows.
+ * The executor still reads all five (a refused decision is not sent again).
+ */
+export const QUOTES_LIVE_KNOWN_REFUSALS: ReadonlySet<number> = new Set([1517, 1518, 1521, 1536, 1537]);
+
+/**
  * Why a live order is where it is, in the page's words: the cancel's reason as the executor wrote it, the venue's
  * refusal, an IOC that met nothing at its limit, an answer still to come. Null for an order resting, or filled, as sent.
  */
@@ -1128,6 +1140,7 @@ export function liveOrderReason(o: QuoteLiveRecentRow, nowMs: number): string | 
   if (o.state === "cancelled") return o.cancel_reason ?? (o.request?.marketable ? "nothing filled at its limit" : "cancelled by the venue");
   if (o.state === "rejected") {
     const r = o.response && typeof o.response === "object" && !Array.isArray(o.response) ? o.response as Record<string, unknown> : null;
+    if (r?.wouldBeRefused === true) return "not sent: its price crossed the book, which the venue refuses for a post-only order";
     if (Number(r?.status) === 429) return "turned away by the venue's rate limit; sent again next turn";
     const err = typeof r?.error === "string" && r.error.trim() ? r.error.trim().slice(0, 160) : null;
     return err ? `refused by the venue: ${err}` : "refused by the venue";
@@ -1139,7 +1152,7 @@ export function liveOrderReason(o: QuoteLiveRecentRow, nowMs: number): string | 
 /**
  * The live book's DAYS (Davies, 2026-10-01: the paper test's table on the live page, under INVENTORY), newest first, from
  * its first live order to today, `QUOTES_LIVE_PAGE_DAYS` at most: each UTC day's live orders (every POST the venue's
- * 1,000 a day counts, conversions included), its entry fills, the round trips that closed that day, and what the rungs
+ * 1,000 a day counts, conversions included; not an order refused at its book and never sent), its entry fills, the round trips that closed that day, and what the rungs
  * realised that day, conversion fees included (`liveRungs`). A day's realised is what the rungs realised from its start
  * less what they realised from the next day's, by the executor's own `rungBook`, so the days add up to REALIZED.
  */
@@ -1155,7 +1168,7 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
     const closed = trips.filter((t) => inDay(Date.parse(t.tExit), d));
     out.push({
       day: isoOf(d).slice(0, 10), today: d === dayStartMs,
-      orders: live.filter((o) => inDay(Date.parse(o.ts), d)).length,
+      orders: live.filter((o) => inDay(Date.parse(o.ts), d) && o.not_sent !== true).length,
       fills: live.filter((o) => o.leg === "entry" && Number(o.filled_base) > 0 && inDay(Date.parse(o.filled_at ?? o.ts), d)).length,
       trips: closed.length, won: closed.filter((t) => t.pnlGbp > 0).length,
       realisedGbp: from(d) - from(d + D),
@@ -1172,8 +1185,8 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
  * (`liveRungs`, `liveBookGbp`: a book's realised, the days and the trips add up to the row's) or the executor's own
  * record (its last turn, its orders); the paper engine gives only what it gives the row, the last print and the rate,
  * and its book's fair. Two reads of its own: what rests on each rung (`open`) and the newest `QUOTES_LIVE_PAGE_ROWS`
- * orders bar the cancels that filled nothing (`recent`), of which the page lists all but the venue's refusals; the round
- * trips are the newest `QUOTES_RECENT_TRIPS`.
+ * orders bar the cancels that filled nothing (`recent`), of which the page lists all but the refusals already known; the
+ * round trips are the newest `QUOTES_RECENT_TRIPS`.
  */
 export function quotesLiveDetail(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; open: QuoteLiveOrderView[];
@@ -1240,10 +1253,9 @@ export function quotesLiveDetail(input: {
     trips: trips.slice(0, QUOTES_RECENT_TRIPS).map(({ ids: _ids, ...t }) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
     tripCount: trips.length, tripsWon: trips.filter((t) => t.pnlGbp > 0).length,
     // The newest orders, less those of a round trip already closed (Davies, 2026-10-02: its entry and its exit are both in
-    // ROUND TRIPS) and less the venue's refusals (Davies, 2026-10-02: "ORDERS列表中的rejected行删了"; the executor keeps
-    // them, since a refused decision is not sent again); a rung holding still shows the entry that filled and the exit it
-    // has resting.
-    orders: input.recent.filter((o) => !inTrips.has(o.id) && o.state !== "rejected").map((o) => ({
+    // ROUND TRIPS) and less the refusals already known (`QUOTES_LIVE_KNOWN_REFUSALS`); a rung holding still shows the
+    // entry that filled and the exit it has resting, and any other refusal shows with its reason.
+    orders: input.recent.filter((o) => !inTrips.has(o.id) && !QUOTES_LIVE_KNOWN_REFUSALS.has(o.id)).map((o) => ({
       id: o.id, ts: o.ts, book: o.book, side: o.rung_side, k: o.k == null ? null : Number(o.k), leg: o.leg, venueSide: o.side ?? null,
       price: Number(o.price), base: Number(o.base_size ?? 0), state: o.state, filledBase: Number(o.filled_base),
       avgPrice: o.avg_fill_price == null ? null : Number(o.avg_fill_price), reason: liveOrderReason(o, input.nowMs),
