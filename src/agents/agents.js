@@ -1331,14 +1331,6 @@ export const fmtFeeGbp4 = (n) => {
 };
 
 /**
- * An order's side on the live page's ORDERS (Davies, 2026-10-01: the word "entry" on almost every row said nothing):
- * "buy" or "sell" for an entry, and the leg after it for anything else: "sell · exit", "sell · stop", "buy · conversion".
- * @param {string | null | undefined} venueSide @param {string} leg
- */
-export const liveOrderSideText = (venueSide, leg) =>
-  (leg === 'entry' ? `${venueSide ?? '—'}` : `${venueSide ?? '—'} · ${leg === 'convert' ? 'conversion' : leg}`);
-
-/**
  * The live page's BOOKS (Davies, 2026-10-01: the paper test's BOOKS, clearer than its RUNGS): each book's card in the
  * paper page's shape, so `quoteLadderRows` lays out its six rungs as the paper's: a rung holding coins is held at its
  * average entry, with what it has made at the book's last trade; one with an order resting quotes that order's price

@@ -689,7 +689,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (RW-C in its warm-up, saying when it
  * starts), `rwc-running` (RW-C inside its fourteen days) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -817,6 +817,11 @@ const PREP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./prep_fixture.json', i
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
   return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
+};
+/** The same book's newest orders with none of its exits among them: its page then has no EXIT ORDERS at all. */
+const AGENTS_PR5_LIVE_NO_EXIT = () => {
+  const d = AGENTS_PR5_LIVE(), live = d.quotes.live;
+  return { ...d, quotes: { ...d.quotes, live: { ...live, detail: { ...live.detail, orders: live.detail.orders.filter((/** @type {any} */ o) => o.leg !== 'exit' && o.leg !== 'stop') } } } };
 };
 
 const AGENTS_RW_CENTS = () => {
@@ -1002,6 +1007,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'live' || agentsMode === 'live-unarmed') return json(AGENTS_LIVE(agentsMode === 'live'));
       if (agentsMode === 'rw-cents') return json(AGENTS_RW_CENTS());
       if (agentsMode === 'pr5-live') return json(AGENTS_PR5_LIVE());
+      if (agentsMode === 'pr5-live-noexit') return json(AGENTS_PR5_LIVE_NO_EXIT());
       if (agentsMode === 'rwx-waiting') return json(AGENTS_RWX_WAITING());
       if (agentsMode === 'rwc-warmup') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_WAITING() });
       if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000) });
@@ -3179,7 +3185,21 @@ async function run() {
           oldRungs: root.querySelectorAll('.ag-ql-rungs, tr.ag-ql-rung').length,
           balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
           days: rows('.ag-quote-days'),
-          conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), orders: rows('.ag-ql-orders'), events: rows('.ag-ql-events'),
+          conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), events: rows('.ag-ql-events'),
+          exits: rows('.ag-ql-exits'), entries: rows('.ag-ql-entries'), oldOrders: root.querySelectorAll('.ag-ql-orders').length,
+          // Size is shown at every width, in the round trips and in both order tables (Davies, 2026-10-01).
+          sizeShown: ['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
+            const th = [...root.querySelectorAll(`${sel} thead th`)].find((x) => txt(x) === 'Size');
+            return !!th && getComputedStyle(th).display !== 'none';
+          }),
+          // How far the round trips' and the two order tables run past their boxes: inside the screen at every width.
+          liveTablesOverflow: Math.max(0, ...['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
+            const el = root.querySelector(`${sel} .hl-scroll`);
+            return el ? el.scrollWidth - el.clientWidth : 0;
+          })),
+          // Each order table's column widths as drawn, Side's beside the rest (Davies: no wider than the others).
+          colWidths: ['.ag-ql-exits', '.ag-ql-entries'].map((sel) => [...root.querySelectorAll(`${sel} thead th`)]
+            .filter((x) => getComputedStyle(x).display !== 'none').map((x) => [txt(x), Math.round(x.getBoundingClientRect().width)])),
           notes: root.querySelectorAll('.ag-ql-note').length,
           foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
           // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
@@ -3195,6 +3215,11 @@ async function run() {
       await page.waitForTimeout(300);
       const lp = await readLivePage();
       await shot(page, 'agents-quotes-live');
+      // Its round trips and exits, then its entries, scrolled into view (a modal scrolls inside itself).
+      for (const [sel, name] of [['.ag-ql-trips', 'agents-quotes-live-trips'], ['.ag-ql-entries', 'agents-quotes-live-entries']]) {
+        await page.locator(`.ag-quotes-live-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
+        await shot(page, name);
+      }
       const phoneView = vpWidth <= 760;
       // Opened from LIVE, the page is the live executor's, and the paper test's is not open anywhere.
       if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
@@ -3213,10 +3238,10 @@ async function run() {
       } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
       // Davies, 2026-10-01: no STATUS tiles, guard lines, inventory note, conversions, FILLS or EVENTS; the paper page's
       // BOOKS in place of RUNGS, and DAYS under INVENTORY.
-      if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
-        && lp.events.length === 0 && lp.notes === 0 && lp.conversions.length === 0 && lp.fills.length === 0 && lp.oldRungs === 0) {
-        ok(T('pr5-page'), 'its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS and ORDERS: no STATUS, RUNGS, conversions, FILLS or EVENTS');
-      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${lp?.tiles.length}, guards ${lp?.guards.length}, events ${lp?.events.length}, notes ${lp?.notes}, conversions ${lp?.conversions.length}, fills ${lp?.fills.length}, rungs ${lp?.oldRungs}`);
+      if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
+        && lp.events.length === 0 && lp.notes === 0 && lp.conversions.length === 0 && lp.fills.length === 0 && lp.oldRungs === 0 && lp.oldOrders === 0) {
+        ok(T('pr5-page'), 'its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS: no STATUS, RUNGS, conversions, FILLS or EVENTS');
+      } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${lp?.tiles.length}, guards ${lp?.guards.length}, events ${lp?.events.length}, notes ${lp?.notes}, conversions ${lp?.conversions.length}, fills ${lp?.fills.length}, rungs ${lp?.oldRungs}, one ORDERS table ${lp?.oldOrders}`);
       // BOOKS: each rung's live order, or what it holds at its entry with what that has made in pounds at the index, as the
       // account marks it: B sold 132 USDC at £0.7591 (+£0.2112 at £0.7575), E bought 132 USDT at £0.7565 (+£0.0660 at
       // £0.7570); USDT/GBP's guard withdrew its entries. Each book's realised: A's +£0.1056; C's -£0.1689 and D's +£0.0288.
@@ -3248,23 +3273,50 @@ async function run() {
       if (lp && JSON.stringify(lp.trips) === JSON.stringify(TRIPS) && Math.abs(tripsSum - -0.0345) < 1e-9) {
         ok(T('pr5-page'), `ROUND TRIPS in pounds, D's conversion fee in its fees and its P&L; they add up to REALIZED's -£0.03 (${tripsSum.toFixed(4)})`);
       } else fail(T('pr5-page'), `round trips ${JSON.stringify(lp?.trips)}, sum ${tripsSum}`);
-      // ORDERS: the side alone for an entry (Davies, 2026-10-01: "entry" said nothing on almost every row), the leg after it
-      // for anything else; 18 of the fixture's 24, its six cancels that filled nothing left out where they are read.
+      // EXIT ORDERS above ENTRY ORDERS (Davies, 2026-10-01): the fixture's five exits, the 24-hour stop's marked under its
+      // time as its trip is, and its eleven entries, newest first; the two conversions in neither; each side buy or sell
+      // alone; its six cancels that filled nothing left out where they are read. Times are UK (BST).
+      const EXITS = ['17 Sep 23:01 | USDT/GBP | bid 0.1 % | sell | £0.7573 | 132.00 USDT | new',
+        '17 Sep 21:01 | USDC/GBP | ask 0.2 % | buy | £0.7576 | 132.00 USDC | new',
+        '17 Sep 21:00 24-hour stop | USDT/GBP | bid 0.3 % | sell | £0.7519 | 132.00 USDT | filled',
+        '17 Sep 11:01 | USDC/GBP | bid 0.1 % | sell | £0.7576 | 132.00 USDC | filled',
+        '16 Sep 13:01 | USDT/GBP | ask 0.1 % | buy | £0.7571 | 132.00 USDT | filled'];
       const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
       const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell | £0.7600 | 131.58 USDC | new';
-      const orderSides = (lp?.orders ?? []).map((r) => r.split(" | ")[3]);
-      if (lp && lp.orders.length === 18 && lp.orders[0] === order119 && lp.orders.includes(order114) && !orderSides.some((x) => /entry/.test(x))
-        && orderSides.includes('sell · exit') && orderSides.includes('sell · stop') && orderSides.includes('buy · conversion')
-        && !lp.orders.some((r) => / \| cancelled( \||$)/.test(r))
+      const orderSides = [...(lp?.exits ?? []), ...(lp?.entries ?? [])].map((r) => r.split(' | ')[3]);
+      // Side is no wider than the widest of the table's other columns.
+      const sideFits = (lp?.colWidths ?? []).every((cols) => {
+        const side = cols.find((c) => c[0] === 'Side')?.[1] ?? Infinity;
+        return side <= Math.max(...cols.filter((c) => c[0] !== 'Side').map((c) => c[1]));
+      });
+      if (lp && JSON.stringify(lp.exits) === JSON.stringify(EXITS) && lp.entries.length === 11 && lp.entries[0] === order119 && lp.entries.includes(order114)
+        && orderSides.every((x) => x === 'buy' || x === 'sell') && ![...lp.exits, ...lp.entries].some((r) => /conversion|convert/.test(r))
+        && !lp.entries.some((r) => / \| cancelled( \||$)/.test(r)) && lp.sizeShown.join(',') === 'true,true,true' && sideFits && lp.liveTablesOverflow <= 1
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lp.foot) && lp.overflow <= 1
         // The refusal's reason, a line of its own inside the screen; on a desk no table runs past its box.
         && lp.subs === 1 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
-        ok(T('pr5-page'), `ORDERS (18, no empty cancel; an entry by its side alone, "sell · exit", "sell · stop", "buy · conversion"; the refusal's reason under it), nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
-      } else fail(T('pr5-page'), `orders ${lp?.orders.length} first "${lp?.orders[0]}" has 114 ${lp?.orders.includes(order114)}, sides ${JSON.stringify([...new Set(orderSides)])}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
+        ok(T('pr5-page'), `EXIT ORDERS (5, the stop marked) above ENTRY ORDERS (11, no empty cancel, no conversion), each side buy or sell alone and no wider than the other columns (${JSON.stringify(lp.colWidths[1])}); Size shown in both and in ROUND TRIPS, all three inside the screen; the refusal's reason under it; nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
+      } else fail(T('pr5-page'), `exits ${JSON.stringify(lp?.exits)}, entries ${lp?.entries.length} first "${lp?.entries[0]}" has 114 ${lp?.entries.includes(order114)}, sides ${JSON.stringify([...new Set(orderSides)])}, size shown ${lp?.sizeShown}, trips and orders past their boxes by ${lp?.liveTablesOverflow}px, widths ${JSON.stringify(lp?.colWidths)}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-quotes-live-detail').count() === 0 && await page.locator('.ag-strategies-live .ag-row').count() === 1) ok(T('pr5-page'), 'closing it returns to LIVE');
       else fail(T('pr5-page'), 'the live page did not close back to LIVE');
+      // With no exit order among its newest, the page has no EXIT ORDERS at all: ENTRY ORDERS follows ROUND TRIPS.
+      agentsMode = 'pr5-live-noexit';
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
+      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
+      await waitFor(async () => (await page.locator('.ag-quotes-live-detail .ag-ql-exits').count()) === 0);
+      const ln = await readLivePage();
+      if (ln && ln.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ENTRY ORDERS' && ln.exits.length === 0 && ln.entries.length === 11) {
+        ok(T('pr5-page'), 'with no exit order, no EXIT ORDERS: its entries alone, under ROUND TRIPS');
+      } else fail(T('pr5-page'), `no exits: sections ${ln?.sections.join(',')}, exits ${ln?.exits.length}, entries ${ln?.entries.length}`);
+      agentsMode = 'pr5-live';
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
 
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
@@ -3304,7 +3356,7 @@ async function run() {
         && hp.scoreboard.includes('TODAY [(loss stop -£••)]') && hp.tiles.length === 0 && hp.events.length === 0
         && !cellsAt(hp.cards.flatMap((c) => c.ladder), [1, 2]).some(digits) && !hp.cards.flatMap((c) => c.grid.slice(3)).some(digits)
         && !hp.balances.filter((_, i) => i % 2).some(digits) && !cellsAt(hp.days, [4]).some(digits)
-        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt(hp.orders, [4, 5]).some(digits)
+        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt([...hp.exits, ...hp.entries], [4, 5]).some(digits) && hp.exits.length === 5
         && hp.days.length === 2 && cellsAt(hp.days, [1]).join(',') === '18,6';
       if (hiddenOk) ok(T('pr5-page'), "hide-values masks the live page's money, prices and sizes, the loss stop in its scoreboard included, and keeps its counts and times");
       else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", ladder ${JSON.stringify(hp?.cards?.[0]?.ladder)}, balances ${JSON.stringify(hp?.balances)}, days ${JSON.stringify(hp?.days)}, trip ${JSON.stringify(hp?.trips?.[0])}`);

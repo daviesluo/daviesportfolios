@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, liveOrderSideText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -502,6 +502,67 @@ function RungSide({ side, children = null }) {
   return <span className={`ag-side ag-side-${cls}`}><span className="ag-side-mark" aria-hidden="true" />{children ?? side}</span>;
 }
 
+/*
+ * The live page's round trips and orders keep every column on a phone, Size included (Davies, 2026-10-01): there a time
+ * stacks its date over its time, a book is its coin, and a size its number (`.ag-ql-tables` in styles.css). The text is
+ * the same at every width; only what a phone shows of it differs.
+ */
+/** A time, its date and its clock in two parts a phone stacks. @param {{ iso: string }} props */
+function Stamp({ iso }) {
+  const s = when(iso), i = s.lastIndexOf(' ');
+  return i < 0 ? <>{s}</> : <><span className="ag-stamp-d">{s.slice(0, i)}</span> <span className="ag-stamp-t">{s.slice(i + 1)}</span></>;
+}
+/** A book, "USDT/GBP": a phone shows its coin. @param {{ book: string }} props */
+function BookName({ book }) {
+  const [coin, quote] = quoteBookLabel(book).split('/');
+  return <>{coin}{quote ? <span className="ag-book-quote">/{quote}</span> : null}</>;
+}
+/** A size in coins, "132.00 USDT": a phone shows the number, its book's coin beside it. @param {{ qty: any, book: string, m: (s: string) => string }} props */
+function Qty({ qty, book, m }) {
+  const s = fmtQuoteQty(qty, book), i = s.indexOf(' ');
+  return i < 0 ? <>{m(s)}</> : <>{m(s.slice(0, i))}<span className="ag-qty-unit"> {s.slice(i + 1)}</span></>;
+}
+
+/**
+ * One of the live page's two order tables, its exits or its entries (Davies, 2026-10-01): each order's rung, its side on
+ * the venue, buy or sell and nothing more, its price and size, and its state, with its reason on a line of its own under
+ * its row — a sentence, which in a column of its own wrapped five deep and ran out of the table. A 24-hour stop says so
+ * under its time, as its round trip does.
+ * @param {{ title: string, cls: string, orders: any[], m: (s: string) => string, empty: string | null }} props
+ */
+function LiveOrdersTable({ title, cls, orders, m, empty }) {
+  return (
+    <section className={`ag-section ${cls} ag-ql-tables`}>
+      <div className="ag-section-title mono">{title}</div>
+      <div className="hl-scroll">
+        <table className="hl-table ag-table ag-log mono">
+          <thead><tr>
+            <th className="hl-th">Sent ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
+            <th className="hl-th">Price</th><th className="hl-th">Size</th><th className="hl-th">State</th>
+          </tr></thead>
+          <tbody>
+            {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No order yet.'}</td></tr>}
+            {orders.map((o) => (
+              <React.Fragment key={o.id}>
+                <tr className={`txn-row txn-row-${o.venueSide ?? 'buy'}${o.reason ? ' ag-ql-has-sub' : ''}`}>
+                  <td className="dim"><Stamp iso={o.ts} />{o.leg === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
+                  <td className="hl-strong"><BookName book={o.book} /></td>
+                  <td className="ag-ph dim">{`${o.side} ${quoteRungLabel(o.k)}`}</td>
+                  <td><RungSide side={o.venueSide}>{o.venueSide ?? '—'}</RungSide></td>
+                  <td>{m(fmtQuotePrice(o.price))}</td>
+                  <td><Qty qty={o.base} book={o.book} m={m} /></td>
+                  <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
+                </tr>
+                {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 /**
  * PR5's live executor, opened from its row in LIVE STRATEGIES (Davies, 2026-10-01: "改成它单独的" — it opened the paper
  * test's page): the real-money book on its own Revolut X sub-account and nothing of the paper engine's record, in
@@ -520,6 +581,8 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
   const d = q.detail ?? null;
   const inv = quotesLiveInventory(q, m);
   const trips = d?.trips ?? [], orders = d?.orders ?? [];
+  const exitOrders = orders.filter((/** @type {any} */ o) => o.leg === 'exit' || o.leg === 'stop');
+  const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
     <div className="ag-detail ag-quotes-live-detail">
@@ -561,25 +624,25 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
       </section>
       <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} />
-      <section className="ag-section ag-ql-trips">
+      <section className="ag-section ag-ql-trips ag-ql-tables">
         <div className="ag-section-title mono">ROUND TRIPS</div>
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
               <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
-              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th ag-ph">Size</th><th className="hl-th ag-ph">Fees</th><th className="hl-th">P&amp;L</th>
+              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th">Size</th><th className="hl-th ag-ph">Fees</th><th className="hl-th">P&amp;L</th>
             </tr></thead>
             <tbody>
               {trips.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>{empty ?? 'No round trip yet.'}</td></tr>}
               {trips.map((t) => (
                 <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
-                  <td className="dim">{when(t.tExit)}{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
-                  <td className="hl-strong">{quoteBookLabel(t.book)}</td>
+                  <td className="dim"><Stamp iso={t.tExit} />{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
+                  <td className="hl-strong"><BookName book={t.book} /></td>
                   <td><RungSide side={t.side}>{t.side === 'bid' ? 'bought' : 'sold'}</RungSide></td>
                   <td className="ag-ph dim">{quoteRungLabel(t.k)}</td>
                   <td>{m(fmtQuotePrice(t.entry))}</td>
                   <td>{m(fmtQuotePrice(t.exit))}</td>
-                  <td className="ag-ph dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
+                  <td className="dim"><Qty qty={t.qty} book={t.book} m={m} /></td>
                   <td className="ag-ph dim">{m(fmtFeeGbp4(t.feesGbp))}</td>
                   <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
                 </tr>
@@ -588,36 +651,10 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
           </table>
         </div>
       </section>
-      {/* An order's reason is a sentence: it goes on a line of its own under its row, as a holding sits under its rung. In
-          a column of its own it wrapped five deep and ran out of the table. */}
-      <section className="ag-section ag-ql-orders">
-        <div className="ag-section-title mono">ORDERS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Sent ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
-              <th className="hl-th">Price</th><th className="hl-th ag-ph">Size</th><th className="hl-th">State</th>
-            </tr></thead>
-            <tbody>
-              {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No order yet.'}</td></tr>}
-              {orders.map((o) => (
-                <React.Fragment key={o.id}>
-                  <tr className={`txn-row txn-row-${o.venueSide ?? 'buy'}${o.reason ? ' ag-ql-has-sub' : ''}`}>
-                    <td className="dim">{when(o.ts)}</td>
-                    <td className="hl-strong">{quoteBookLabel(o.book)}</td>
-                    <td className="ag-ph dim">{o.side ? `${o.side} ${quoteRungLabel(o.k)}` : 'conversion'}</td>
-                    <td><RungSide side={o.venueSide}>{liveOrderSideText(o.venueSide, o.leg)}</RungSide></td>
-                    <td>{m(fmtQuotePrice(o.price))}</td>
-                    <td className="ag-ph">{m(fmtQuoteQty(o.base, o.book))}</td>
-                    <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
-                  </tr>
-                  {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {/* Exits first, and only when there are any; then the entries (Davies, 2026-10-01). The conversions that bought the
+          asks' coins are neither, and are not listed. */}
+      {exitOrders.length > 0 && <LiveOrdersTable title="EXIT ORDERS" cls="ag-ql-exits" orders={exitOrders} m={m} empty={empty} />}
+      <LiveOrdersTable title="ENTRY ORDERS" cls="ag-ql-entries" orders={entryOrders} m={m} empty={empty} />
       <div className="ag-updated dim mono ag-ql-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
     </div>
   );

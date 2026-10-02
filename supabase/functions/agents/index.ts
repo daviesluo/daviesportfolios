@@ -733,6 +733,8 @@ type QuoteLiveStateRow = {
     entryBook?: string | null; why?: string; posts?: { dry_run?: number; live?: number }; lossStopped?: boolean;
     at?: string; minute?: string | null; account?: boolean; guards?: Record<string, string[]>; governor?: { dry_run?: string; live?: string };
     balances?: Record<string, number> | null;
+    /** Each book's dust as the executor's last turn judged its rungs by it (`dustBase`): at or under it a rung is flat. */
+    dust?: Partial<Record<QuoteBook, number>>;
   };
   updated_at: string; last_error: string | null;
 };
@@ -807,7 +809,8 @@ function liveRateOf(paper: QuoteStateRow | null): number | null {
  */
 export type LiveRung = {
   book: QuoteBook; side: Side; k: number; mark: number | null; fills: RungFill[]; rb: RungBook; marked: number;
-  held: boolean; costGbp: number; valueGbp: number;
+  /** Over its book's dust, as the executor calls a rung holding; at or under it the hair is carried into the next trip. */
+  held: boolean; dust: number; costGbp: number; valueGbp: number;
   /** The conversion fees its closed trips carry (`withConversionFees`), in its fills' fees and its realised. */
   convFeesGbp: number;
 };
@@ -845,26 +848,33 @@ export function liveConversionShares(orders: QuoteLiveOrderView[]): Map<number, 
 }
 
 /**
+ * Where a rung's round trips end: the fills (indices into `sorted`, in time order) after which its book over every fill
+ * so far holds `dust` or less — flat, as the executor calls it (a rung holds when it has more than its book's dust). An
+ * exit trimmed to the penny the venue rounds to (`pennyExit`) leaves a hair the executor carries into the rung's next
+ * trip (Davies, 2026-10-01: 0.00102 USDT after the second live trip, which the page then held open); so does the page.
+ */
+export function tripEnds(side: Side, sorted: RungFill[], dayStartMs: number, dust = 0): number[] {
+  const out: number[] = [];
+  for (let j = 0; j < sorted.length; j++) if (rungBook(side, sorted.slice(0, j + 1), dayStartMs).held <= dust) out.push(j);
+  return out;
+}
+
+/**
  * A rung's fills in time order, with the conversion fees of a trip's entries (`liveConversionShares`) added to the fee of
- * the fill that brings the rung back to flat, as `liveRungTrips` cuts its trips. A trip's fees and P&L carry the
- * conversion fee of the coins it sold, and so does the rung's realised on the day the trip closed; a trip still open
+ * the fill that brings the rung back to flat (`tripEnds`), as `liveRungTrips` cuts its trips. A trip's fees and P&L carry
+ * the conversion fee of the coins it sold, and so does the rung's realised on the day the trip closed; a trip still open
  * carries none yet, so while no rung has exited in part the round trips add up to REALIZED.
  */
-export function withConversionFees(side: Side, fills: RungFill[], shares: Map<number, number>, dayStartMs: number): RungFill[] {
+export function withConversionFees(side: Side, fills: RungFill[], shares: Map<number, number>, dayStartMs: number, dust = 0): RungFill[] {
   const sorted = [...fills].sort((a, b) => a.ts - b.ts || a.id - b.id);
-  const out: RungFill[] = [];
-  let from = 0, owed = 0;
-  for (let j = 0; j < sorted.length; j++) {
-    owed += shares.get(sorted[j].id) ?? 0;
-    const f = { ...sorted[j] };
-    if (rungBook(side, sorted.slice(from, j + 1), dayStartMs).held <= 0) {
-      from = j + 1;
-      f.feeGbp += owed;
-      owed = 0;
-    }
-    out.push(f);
-  }
-  return out;
+  const ends = new Set(tripEnds(side, sorted, dayStartMs, dust));
+  let owed = 0;
+  return sorted.map((x, j) => {
+    owed += shares.get(x.id) ?? 0;
+    const f = { ...x };
+    if (ends.has(j)) { f.feeGbp += owed; owed = 0; }
+    return f;
+  });
 }
 
 /**
@@ -873,22 +883,24 @@ export function withConversionFees(side: Side, fills: RungFill[], shares: Map<nu
  * does not add up to. A trip that sold converted coins carries their conversion fee on its closing fill
  * (`withConversionFees`), so that fee is in the trip, its rung's realised and every total above them.
  */
-export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | null, dayStartMs: number): LiveRung[] {
+export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | null, dayStartMs: number, dust: Partial<Record<QuoteBook, number>> = {}): LiveRung[] {
   const live = orders.filter((o) => o.mode === "live");
   const shares = liveConversionShares(live);
   const books = paper?.state.books ?? {};
   const out: LiveRung[] = [];
   for (const b of QUOTE_BOOKS) {
     const mark = books[b]?.lastPrint?.ticks != null ? books[b].lastPrint!.ticks! * QUOTE_TICK : null;
+    // The executor's own dust for the book (its state); before it kept one, none: a rung holds while anything is left.
+    const d = Number(dust[b]) > 0 ? Number(dust[b]) : 0;
     for (const side of ["bid", "ask"] as const) for (const k of QUOTE_RUNGS) {
       const own = live.filter((o) => o.book === b && o.rung_side === side && Number(o.k) === k && Number(o.filled_base) > 0).map((o): RungFill => ({
         id: o.id, ts: Date.parse(o.filled_at ?? o.ts), leg: o.leg as LiveLeg, base: Number(o.filled_base), price: Number(o.avg_fill_price ?? o.price), feeGbp: Number(o.fee_gbp || 0),
       }));
-      const fills = withConversionFees(side, own, shares, dayStartMs);
-      const rb = rungBook(side, fills, dayStartMs);
-      const held = rb.held > 0;
+      const fills = withConversionFees(side, own, shares, dayStartMs, d);
+      const rb = rungBook(side, fills, dayStartMs, d);
+      const held = rb.held > d;
       out.push({
-        book: b, side, k, mark, fills, rb, marked: markedGbp(side, rb, mark), held,
+        book: b, side, k, mark, fills, rb, marked: markedGbp(side, rb, mark), held, dust: d,
         costGbp: held ? rb.held * rb.avgEntry : 0, valueGbp: held ? rb.held * (mark ?? rb.avgEntry) : 0,
         convFeesGbp: fills.reduce((a, f) => a + f.feeGbp, 0) - own.reduce((a, f) => a + f.feeGbp, 0),
       });
@@ -971,7 +983,7 @@ export function quotesLiveSummary(input: {
   if (!cfg) return null;
   const live = input.orders.filter((o) => o.mode === "live");
   const x = liveRateOf(input.paper);
-  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs);
+  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust);
   const { realised, today, unrealised, cost, value: coinsGbp, fees, heldRungs, unmarked } = liveBookGbp(rungs,
     liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state), liveIndexPrices(input.tickers ?? [], input.nowMs)));
   // Deployed: what its quotes have at work, the coins and the pounds resting in buys.
@@ -1007,29 +1019,31 @@ export type LiveTrip = {
 };
 
 /**
- * A rung's completed round trips, each in the executor's own terms: `rungBook` over the trip's fills alone. The book is
- * flat between two trips and `rungBook` starts flat, so a trip's P&L is exactly what it adds to the rung's realised, its
- * fees taken off as `rungBook` takes them, and while a rung is flat its trips add up to its realised. A trip's entry is
- * the book's average entry before its closing fill, its exit its exits' average price. A rung still holding is in no
- * trip yet: the page shows what it holds.
+ * A rung's completed round trips, each in the executor's own terms. A trip runs from the fill that took the rung off flat
+ * to the one that brought it back to its book's `dust` or under (`tripEnds`), the hair a penny-trimmed exit keeps carried
+ * into the next trip as the executor carries it. A trip's P&L is what it added to the rung's realised: `rungBook` over
+ * every fill to its close, less the same to the close before, its fees taken off as `rungBook` takes them; so while a
+ * rung holds no more than dust its trips add up to its realised. A trip's entry is the book's average entry before its
+ * closing fill, its exit its exits' average price, its size what its entries traded. A rung still holding is in no trip
+ * yet: the page shows what it holds.
  */
-export function liveRungTrips(r: Pick<LiveRung, "book" | "side" | "k" | "fills">, dayStartMs: number): LiveTrip[] {
+export function liveRungTrips(r: Pick<LiveRung, "book" | "side" | "k" | "fills"> & { dust?: number }, dayStartMs: number): LiveTrip[] {
   const fills = [...r.fills].filter((f) => f.base > 0).sort((a, b) => a.ts - b.ts || a.id - b.id);
   const out: LiveTrip[] = [];
-  let from = 0;
-  for (let j = 0; j < fills.length; j++) {
+  let from = 0, before = 0;
+  for (const j of tripEnds(r.side, fills, dayStartMs, r.dust ?? 0)) {
     const trip = fills.slice(from, j + 1);
-    const rb = rungBook(r.side, trip, dayStartMs);
-    if (rb.held > 0) continue;                                         // still holding: the trip goes on
+    const realised = rungBook(r.side, fills.slice(0, j + 1), dayStartMs).realisedGbp, pnl = realised - before;
     from = j + 1;
+    before = realised;
     const entries = trip.filter((f) => f.leg === "entry"), exits = trip.filter((f) => f.leg === "exit" || f.leg === "stop");
     if (!entries.length || !exits.length) continue;                    // nothing was held between them: no trip
     out.push({
       book: r.book, side: r.side, k: r.k, tEntry: isoOf(entries[0].ts), tExit: isoOf(trip[trip.length - 1].ts),
-      entry: rungBook(r.side, trip.slice(0, -1), dayStartMs).avgEntry,
+      entry: rungBook(r.side, fills.slice(0, j), dayStartMs).avgEntry,
       exit: exits.reduce((a, f) => a + f.price * f.base, 0) / exits.reduce((a, f) => a + f.base, 0),
       qty: entries.reduce((a, f) => a + f.base, 0), how: exits.some((f) => f.leg === "stop") ? "stop" : "exit",
-      feesGbp: trip.reduce((a, f) => a + f.feeGbp, 0), pnlGbp: rb.realisedGbp,
+      feesGbp: trip.reduce((a, f) => a + f.feeGbp, 0), pnlGbp: pnl,
     });
   }
   return out;
@@ -1103,7 +1117,7 @@ export function quotesLiveDetail(input: {
   if (!cfg) return null;
   const x = liveRateOf(input.paper);
   const usd = (gbp: number | null) => (x == null || gbp == null ? null : gbp * x);
-  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs);
+  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust);
   const st = input.state?.state ?? {};
   const paperBooks = input.paper?.state.books ?? {};
   const open = input.open.filter((o) => o.mode === "live" && LIVE_OPEN_STATES.includes(o.state));

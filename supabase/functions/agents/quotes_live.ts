@@ -1019,6 +1019,10 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         guards: report.guards, posts: report.posts, governor: { dry_run: governorLevel(report.posts.dry_run), live: governorLevel(report.posts.live) },
         dayPnlGbp: report.dayPnlGbp, lossStopped, balances: bal, capitalGbp: capital,
         held: rungs.filter((r) => r.live.held > 0).map((r) => ({ rung: r.label, held: r.live.held, avgEntry: r.live.avgEntry, openedAt: r.live.openedAt != null ? iso(r.live.openedAt) : null })),
+        // Each book's dust this turn (`dustBase` at its price): at or under it a rung is flat here, so the page closes a
+        // round trip, and calls a rung empty, where this executor does (Davies, 2026-10-01: an exit trimmed to the penny
+        // left 0.00102 USDT on its rung, and the page held its trip open).
+        dust: Object.fromEntries(QUOTE_BOOKS.map((b) => [b, rungs.find((r) => r.book === b)?.dust ?? 0])),
       },
     }], "id");
   } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }

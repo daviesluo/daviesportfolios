@@ -181,13 +181,19 @@ places stay when the number is not whole.
   fills, round trips and what it realised, which add up to realised. Then
   its round trips (entry, exit, size, fees and what each made: a round
   trip that sold coins a conversion bought carries that conversion's fee
-  on those coins, in its fees and its P&L), and its latest orders, with
-  why any was refused: an entry by its side alone, anything else with its
-  leg ("sell · exit"); a cancel that filled nothing is left out, since
-  every re-price makes one. A warning line shows under the scoreboard only
+  on those coins, in its fees and its P&L). A round trip ends when the
+  rung is back to less than the exchange's smallest order: the exchange
+  rounds each order's pounds to the penny, so an exit buys back a hair
+  less than the entry sold rather than pay the penny over, and that hair
+  goes into the rung's next trip. Then its latest orders, with why any
+  was refused: EXIT ORDERS first, shown only while there are any, then
+  ENTRY ORDERS, each with its side, buy or sell, its price and its size;
+  a 24-hour stop says so under its time. A cancel that filled nothing is
+  left out, since every re-price makes one, and so are the conversions
+  that bought the coins. A warning line shows under the scoreboard only
   when its last turn is late or failed. On a phone the tables keep their
-  main columns. With values hidden, every amount, price and size is hidden
-  too.
+  main columns, sizes included. With values hidden, every amount, price
+  and size is hidden too.
 - **Stablecoin quotes variant-1.** Right after it: the same rule with nine
   rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
   fair, on the $3,600 its quotes would tie up (in pounds, as its row and page

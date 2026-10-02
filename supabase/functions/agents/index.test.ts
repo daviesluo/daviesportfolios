@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, QUOTE_LIVE_ORDER_COLUMNS,
+  liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
 } from "./index.ts";
@@ -1076,6 +1076,47 @@ Deno.test("liveRungTrips: a trip runs from flat to flat, exits averaged, partial
   const ask = liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.002, fills: [fill(1, "entry", 10, 0.76, 1), fill(2, "stop", 10, 0.761, 25, 0.0068), fill(3, "exit", 5, 0.76, 26)] }, day);
   assertEquals(ask.map((x) => x.how), ["stop"]);
   assertAlmostEquals(ask[0].pnlGbp, 10 * (0.76 - 0.761) - 0.0068, 1e-12);
+});
+
+Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny closes its trip, its hair carried into the next (PR5 live, 2026-10-01)", () => {
+  const day = Date.UTC(2026, 9, 1), h = 3600e3;
+  const fill = (id: number, leg: RungFill["leg"], base: number, price: number, at: number): RungFill => ({ id, ts: day + at * h, leg, base, price, feeGbp: 0 });
+  // The USDT/GBP 0.1 % ask rung's live fills, as the venue reported them: sold 13.18565 (credited £9.99, 0.7576) and bought
+  // them back (debited £10.00, 0.7584); sold 13.19262 at 0.7580 and bought back 13.1916 at 0.7573, the exit trimmed so it
+  // paid £9.99 rather than £10.00, which leaves 0.00102 USDT owed. The book's dust at 0.7573 is the venue's £0.10 minimum.
+  const fills = [fill(1184, "entry", 13.18565, 0.7576, 16.9), fill(1186, "exit", 13.18565, 0.7584, 17.4), fill(1309, "entry", 13.19262, 0.758, 21.2),
+    fill(1314, "exit", 13.1916, 0.7573, 23.1)];
+  const dust = 0.1 / 0.7573;
+  assertEquals(tripEnds("ask", fills, day, dust), [1, 3]);
+  const trips = liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.001, fills, dust }, day);
+  assertEquals(trips.map((t) => [t.tEntry, t.tExit, t.qty, t.how]), [
+    [new Date(day + 16.9 * h).toISOString(), new Date(day + 17.4 * h).toISOString(), 13.18565, "exit"],
+    [new Date(day + 21.2 * h).toISOString(), new Date(day + 23.1 * h).toISOString(), 13.19262, "exit"],
+  ]);
+  assertAlmostEquals(trips[0].pnlGbp, 13.18565 * (0.7576 - 0.7584), 1e-12);            // −£0.0105: the pennies the venue rounded
+  assertAlmostEquals(trips[1].pnlGbp, 13.1916 * (0.758 - 0.7573), 1e-12);              // +£0.0092 on what it bought back
+  assertAlmostEquals([trips[1].entry, trips[1].exit].reduce((a, b) => a - b), 0.758 - 0.7573, 1e-12);
+  // The trips add up to the rung's realised; what it still owes, 0.00102 USDT, is dust: it holds nothing.
+  const rungs = liveRungs(fills.map((f) => ({
+    id: f.id, ts: new Date(f.ts).toISOString(), mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: f.leg, side: f.leg === "entry" ? "sell" : "buy",
+    state: "filled", base_size: f.base, filled_base: f.base, avg_fill_price: f.price, price: f.price, fee_gbp: 0, filled_at: new Date(f.ts).toISOString(),
+  })), null, day, { "USDT-GBP": dust });
+  const r = rungs.find((x) => x.book === "USDT-GBP" && x.side === "ask" && x.k === 0.001)!;
+  assertAlmostEquals(r.rb.held, 13.19262 - 13.1916, 1e-12);
+  assertEquals([r.held, r.dust, r.costGbp], [false, dust, 0]);
+  assertAlmostEquals(trips[0].pnlGbp + trips[1].pnlGbp, r.rb.realisedGbp, 1e-12);
+  // Without the executor's dust (a state from before it kept one) the hair holds the second trip open, as the page did.
+  assertEquals(liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.001, fills }, day).length, 1);
+  assertEquals(liveRungs([], null, day).every((x) => x.dust === 0), true);
+  // The next trip sells again and its exit buys back the hair too: it closes there, and the hair's cost is in it.
+  const next = [...fills, fill(1400, "entry", 13.2, 0.759, 30), fill(1401, "exit", 13.20102, 0.7582, 31)];
+  const t3 = liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.001, fills: next, dust }, day);
+  assertEquals(t3.length, 3);
+  assertAlmostEquals(t3[2].pnlGbp, 0.00102 * (0.758 - 0.7582) + 13.2 * (0.759 - 0.7582), 1e-9);
+  // A conversion fee rides on the fill that closes the trip at dust, not on a later exact zero that never comes.
+  const withFee = withConversionFees("ask", fills, new Map([[1309, 0.0091]]), day, dust);
+  assertEquals(withFee.map((f) => f.feeGbp), [0, 0, 0, 0.0091]);
+  assertEquals(withConversionFees("ask", fills, new Map([[1309, 0.0091]]), day).map((f) => f.feeGbp), [0, 0, 0, 0]);
 });
 
 Deno.test("liveOrderReason: each says why, in the executor's own words where it wrote them", () => {

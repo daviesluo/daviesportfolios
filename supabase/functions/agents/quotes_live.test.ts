@@ -751,6 +751,10 @@ Deno.test("live: an ask rung's exit buy-back is trimmed to the penny below, and 
   await w.step(T0 + 2 * M);
   const asks = w.open("live").filter((o) => o.book === "USDT-GBP" && o.rung_side === "ask" && Number(o.k) === 0.001);
   assert(asks.every((o) => o.leg === "entry"), JSON.stringify(asks));
+  // The dust it judged that by is in its state, for the page to judge the rung, and close its round trip, the same way:
+  // the venue's £0.10 minimum at the book's price, far over the hair.
+  const dust = Number(((w.mem.tables.agent_quote_live_state as Row[])[0].state as { dust?: Record<string, number> }).dust?.["USDT-GBP"]);
+  assert(dust > full - base && 0.1 / dust > 0.7 && 0.1 / dust < 0.8, String(dust));
 });
 
 Deno.test("the daily loss stop: at −1 % of capital realised today plus marked, no entries for the rest of the UTC day; exits stay armed; the next day quotes again", async () => {

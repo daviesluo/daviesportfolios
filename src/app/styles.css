@@ -2376,6 +2376,15 @@ body {
 .ag-ql-balances { margin-bottom: 10px; }
 .ag-quotes-live-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
+/* The live page's round trips and orders on a phone: every column inside the screen, Size included (Davies,
+   2026-10-01). A time stacks its date over its clock, a book is its coin, a size its number, and the cells sit closer. */
+@media (max-width: 760px) {
+  .ag-ql-tables .ag-table th, .ag-ql-tables .ag-table td { padding-left: 3px; padding-right: 3px; }
+  .ag-ql-tables .ag-side { gap: 4px; }
+  .ag-ql-tables .ag-table th, .ag-ql-tables .ag-table td:first-child { white-space: normal; }
+  .ag-ql-tables .ag-stamp-d, .ag-ql-tables .ag-stamp-t { display: block; }
+  .ag-ql-tables .ag-book-quote, .ag-ql-tables .ag-qty-unit { display: none; }
+}
 .ag-table tr.ag-ql-sub-row td { text-align: left; white-space: normal; padding-top: 0; font-size: 11px; line-height: 1.4; color: var(--chalk-dim); }
 /* Kept in view when a phone scrolls a wide table sideways, and as wide as the screen at most. */
 .ag-ql-sub { display: block; position: sticky; left: 10px; max-width: calc(100vw - 64px); }
