@@ -8,6 +8,8 @@ import { freezeDepositFxRates } from '../charts/deposit_series.js';
 import { createPortfolioEditHandlers } from '../portfolio/portfolio_edits.js';
 import { computeMetrics, detectFormation } from '../portfolio/metrics.js';
 import { refreshPrices, fetchTickers } from '../prices/yahoo_fetch.js';
+import { createQuoteGuard, holdMessage } from '../prices/quote_band.js';
+import { loadRangeCache } from '../prices/cache.js';
 import { fetchTodayRegularClose, fetchHistoricalBatch } from '../prices/historical.js';
 import { usMarketPhase, usMarketHoursUtc, isWeekendDeadZone } from '../prices/market_hours.js';
 import { Storage } from './storage.js';
@@ -373,6 +375,12 @@ function Board({ isReadOnly }) {
   // sees the overlay that was on screen before that tick.
   const lastShownRef = useRef(lastShown);
   useEffect(() => { lastShownRef.current = lastShown; }, [lastShown]);
+  // The plausibility band on live quotes (prices/quote_band.js): each
+  // holding's last good quote, starting from what this browser last showed,
+  // and the quote held for each, if any. A quote that cannot be the same
+  // instrument in the same units is held — the board keeps its last good
+  // price — reported, and asked again, of the other source too.
+  const [quoteGuard] = useState(() => createQuoteGuard({ seed: Storage.loadLastPrices(), seedAt: Storage.loadLastPricesAt() }));
   // Set once a tick has priced anything: from then on the page's own
   // prices are worth keeping for the next reload.
   const pricesLandedRef = useRef(false);
@@ -807,8 +815,8 @@ function Board({ isReadOnly }) {
     // 5d/5m pull for 15 symbols off every tick.
     const wantTodayCloses = refreshPhase !== "regular"
       && (Date.now() - todayClosesRef.current.ts > 30 * 60 * 1000);
-    const [{ updates, source: src }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212OrderRead] = await Promise.all([
-      refreshPrices(portfolio),
+    const [{ updates: fetched, source: src, sources, alt }, mcResult, todayClosesFresh, extSeries, t212Holdings, t212OrderRead] = await Promise.all([
+      refreshPrices(portfolio, { confirm: quoteGuard.pending() }),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
       extHoldingTickers.length > 0
@@ -852,6 +860,30 @@ function Board({ isReadOnly }) {
     const extMh = usMarketHoursUtc(new Date());
     const extOpenMins  = extMh.openHh  * 60 + extMh.openMm;
     const extCloseMins = extMh.closeHh * 60 + extMh.closeMm;
+    // The plausibility band (prices/quote_band.js), at the write: only the
+    // quotes it believes reach the board. Its width follows each name's own
+    // five-minute bars where they are at hand: this tick's extended-hours
+    // series, else the 24H window's bars the performance panel keeps.
+    const dayBars = loadRangeCache(new Date().getFullYear(), '1D:std');
+    const screened = quoteGuard.screen({
+      quotes: fetched, sources, alt, now: Date.now(),
+      barsOf: (t) => (Array.isArray(extSeries[t]) && extSeries[t].length > 1 ? extSeries[t] : dayBars[t]?.data),
+    });
+    const updates = screened.accepted;
+    for (const h of screened.holds) {
+      reportError('quote.held', {
+        symbol: h.ticker,
+        message: holdMessage(h),
+        context: {
+          source: h.source, shape: h.shape, lastPrice: h.quote.lastPrice, prevClose: h.quote.prevClose,
+          goodPrice: h.good.lastPrice, goodClose: h.good.prevClose, goodAgeMin: Math.round((Date.now() - h.good.at) / 60e3),
+          band: Number(h.width.toFixed(4)),
+        },
+      });
+    }
+    for (const b of screened.bad) {
+      reportError('quote.bad', { symbol: b.ticker, message: `${b.ticker} ${String(b.quote?.lastPrice)} from ${b.source === 'proxy' ? 'a proxy' : 'the price function'} is not a price; not shown` });
+    }
     // Every ticker this tick priced shows its live quote from here on, not
     // the last-shown one standing in for it (see `lastShown`).
     const pricedNow = Object.keys(updates || {});
@@ -1045,7 +1077,7 @@ function Board({ isReadOnly }) {
       // Always clear the spinner, success or throw.
       setIsRefreshing(false);
     }
-  }, [portfolio, extendedHours]);
+  }, [portfolio, extendedHours, quoteGuard]);
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);

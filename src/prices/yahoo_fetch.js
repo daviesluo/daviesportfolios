@@ -457,9 +457,52 @@ function normalizeEdgeResult(result) {
   return result;
 }
 
-async function fetchYahoo(tickers) {
+/**
+ * @typedef {'edge' | 'proxy'} QuoteSource
+ * @typedef {{ out: any, sources: Record<string, QuoteSource>, alt: Record<string, any> }} Sourced
+ *   `out`: the quotes by ticker, or null when none came (typed loosely, as the quote map always was)
+ */
+
+/**
+ * A second opinion for each held quote (quote_band.js): a ticker whose held quote came from the prices function, and
+ * which the function answered for again, is asked of the public proxies too. A CN fund's proxy answer is its background
+ * fetch's, so it is the kept one, and that fetch is started for next time. A ticker held from a proxy needs nothing
+ * extra: the function is asked for every ticker anyway.
+ * @param {Record<string, any>} out @param {Record<string, QuoteSource>} sources
+ * @param {Record<string, QuoteSource>} confirm
+ * @returns {Promise<Record<string, any>>}
+ */
+async function secondOpinions(out, sources, confirm) {
+  const ask = Object.keys(confirm || {}).filter((t) => confirm[t] === 'edge' && out[t] && sources[t] === 'edge');
+  if (ask.length === 0) return {};
+  const pairs = await mapWithConcurrency(ask, 6, async (t) => {
+    if (/^\d{6}$/.test(t)) {
+      const cached = cnFundQuoteCache.get(t);
+      refreshCNFundInBackground(t);
+      return [t, cached && Date.now() - cached.ts < CN_FUND_QUOTE_TTL_MS ? cached.quote : null];
+    }
+    return [t, await fetchOneYahooChart(t, { skipIfAllDead: ask.length > 1 })];
+  });
+  /** @type {Record<string, any>} */
+  const alt = {};
+  for (const [t, q] of pairs) if (q) alt[t] = q;
+  return alt;
+}
+
+/**
+ * The quotes for `tickers`, with where each came from (`sources`: the prices function or a proxy) and, for the tickers
+ * in `confirm` (each held quote's source), the other source's answer (`alt`).
+ * @param {string[]} tickers @param {Record<string, QuoteSource>} [confirm]
+ * @returns {Promise<Sourced>}
+ */
+async function fetchYahooSourced(tickers, confirm = {}) {
+  /** @type {Record<string, QuoteSource>} */
+  const sources = {};
+  const done = async (/** @type {Record<string, any>} */ out) => ({
+    out: Object.keys(out).length > 0 ? out : null, sources, alt: await secondOpinions(out, sources, confirm),
+  });
   const liveTickers = tickers.filter(t => !t.endsWith(".PVT") && t !== "CASH");
-  if (!liveTickers.length) return {};
+  if (!liveTickers.length) return { out: {}, sources, alt: {} };
 
   // 6-digit numeric tickers are Chinese mutual funds.
   const cnFunds = liveTickers.filter(t => /^\d{6}$/.test(t));
@@ -477,15 +520,14 @@ async function fetchYahoo(tickers) {
     // open (the in-memory proxy backoff resets per page load, so only
     // in-page refreshes were fast).
     const edgeResult = normalizeEdgeResult(await fetchViaEdge(liveTickers));
-    if (edgeResult && cnFunds.every(t => edgeResult[t])) return edgeResult;
-    const missingCn = cnFunds.filter(t => !edgeResult?.[t]);
     const out = { ...(edgeResult || {}) };
-    for (const t of missingCn) {
+    for (const t of Object.keys(out)) sources[t] = 'edge';
+    for (const t of cnFunds.filter(t => !edgeResult?.[t])) {
       const cached = cnFundQuoteCache.get(t);
-      if (cached && Date.now() - cached.ts < CN_FUND_QUOTE_TTL_MS) out[t] = cached.quote;
+      if (cached && Date.now() - cached.ts < CN_FUND_QUOTE_TTL_MS) { out[t] = cached.quote; sources[t] = 'proxy'; }
       refreshCNFundInBackground(t);
     }
-    return Object.keys(out).length > 0 ? out : null;
+    return done(out);
   }
 
   // Edge Function first — it batches all tickers in one server-side
@@ -495,8 +537,10 @@ async function fetchYahoo(tickers) {
   // (the previous Promise.any approach) burned through their daily
   // quota even when the Edge Function was working fine.
   const edgeResult = await fetchViaEdge(liveTickers).then(normalizeEdgeResult).catch(() => null);
+  const out = { ...(edgeResult || {}) };
+  for (const t of Object.keys(out)) sources[t] = 'edge';
   const haveEverything = edgeResult && liveTickers.every(t => edgeResult[t]);
-  if (haveEverything) return edgeResult;
+  if (haveEverything) return done(out);
   // Partial Edge response — narrow the proxy retry to JUST the tickers
   // Edge omitted, instead of either trusting the omissions (the old
   // policy, which produced the recurring "FX MISSING" pill the user
@@ -510,12 +554,11 @@ async function fetchYahoo(tickers) {
   const missing = edgeResult
     ? liveTickers.filter(t => !edgeResult[t])
     : liveTickers;
-  if (missing.length === 0 && edgeResult) return edgeResult;
+  if (missing.length === 0 && edgeResult) return done(out);
   const proxyPairs = await mapWithConcurrency(missing, 6, async (t) =>
     [t, await fetchOneYahooChart(t, { skipIfAllDead: missing.length > 1 })]);
-  const out = { ...(edgeResult || {}) };
-  for (const [t, r] of proxyPairs) if (r) out[t] = r;
-  return Object.keys(out).length > 0 ? out : null;
+  for (const [t, r] of proxyPairs) if (r) { out[t] = r; sources[t] = 'proxy'; }
+  return done(out);
 }
 
 // A tick that came back with only a fraction of the requested quotes is
@@ -524,11 +567,18 @@ async function fetchYahoo(tickers) {
 // the caller's 3 s retry kicks in.
 const LIVE_COVERAGE_MIN = 0.5;
 
-export async function refreshPrices(portfolio) {
+/**
+ * One refresh's quotes for the book. Besides the quotes (`updates`), says where each came from (`sources`) and carries
+ * the other source's answer for each ticker named in `confirm` (`alt`): the plausibility band (quote_band.js) holds a
+ * quote it cannot believe, and believes it once a second source agrees.
+ * @param {{ holdings: Record<string, any> }} portfolio
+ * @param {{ confirm?: Record<string, QuoteSource> }} [opts]
+ */
+export async function refreshPrices(portfolio, { confirm = {} } = {}) {
   const tickers = Object.keys(portfolio.holdings);
-  const result = await fetchYahoo(tickers);
+  const { out: result, sources, alt } = await fetchYahooSourced(tickers, confirm);
   if (!result || Object.keys(result).length === 0) {
-    return { updates: {}, source: "error", coverage: { got: 0, wanted: 0 } };
+    return { updates: {}, source: "error", coverage: { got: 0, wanted: 0 }, sources, alt };
   }
   // Tickers fetchYahoo actually tries — the same filter it applies
   // internally, so cash / `.PVT` placeholders don't count as misses.
@@ -548,13 +598,14 @@ export async function refreshPrices(portfolio) {
   // 2 s" while all 25 other holdings silently kept their previous
   // values. The prices looked frozen but nothing surfaced the outage.
   if (wanted.length > 0 && got / wanted.length < LIVE_COVERAGE_MIN) {
-    return { updates: result, source: "error", coverage };
+    return { updates: result, source: "error", coverage, sources, alt };
   }
-  return { updates: result, source: "live", coverage };
+  return { updates: result, source: "live", coverage, sources, alt };
 }
 
+/** Quotes for other tickers (the market cards and FX): the same fetch, without the band. @param {string[]} tickers */
 export async function fetchTickers(tickers) {
-  return fetchYahoo(tickers.filter(Boolean));
+  return (await fetchYahooSourced(tickers.filter(Boolean))).out;
 }
 
 // Fetch current TTM P/E + EPS for the given tickers via the

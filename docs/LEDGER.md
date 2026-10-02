@@ -442,11 +442,15 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      makes prices fall, which only a short can use, and a +2 % mean needs about 1,200 events).
 
 7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
-   2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30, and items 9 and 20 (error boundaries per surface) on
-   2026-10-02, so 17 of 28 done, 1 partly, 1 not doing (the committed bundle, his call), 9 open (its summary line said
-   two more done until 10-02; the table never did). Worth doing, in order: the app icon; a plausibility band on quotes;
-   and item 3 measured before it is touched. Seven questions there wait on Davies, the first whether `APP_AUTH_SECRET`
-   was rotated with the two passwords.
+   2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30, and items 9, 20 (error boundaries per surface) and 6 (a
+   plausibility band on quotes) on 2026-10-02, so 18 of 28 done, 1 partly, 1 not doing (the committed bundle, his
+   call), 8 open (its summary line said two more done until 10-02; the table never did). Worth doing, in order: the
+   app icon; and item 3 measured before it is touched. Seven questions there wait on Davies, the first whether
+   `APP_AUTH_SECRET` was rotated with the two passwords.
+   - **What the band does not cover yet** (2026-10-02): the market cards and FX rates (`fetchTickers`; an FX rate
+     values every GBP and CNY holding) and Trading 212's own prices (VUAA.L / SAEM.L's `lastPrice`, the overnight
+     price); and with a CN fund in the book the public proxies are asked about the fund alone, so a stock the price
+     function leaves out goes unpriced that tick (`fetchYahoo`'s CN branch, as before).
    - **10-01: the recorders' first audits of each other pass** (read 10:22 UTC). The night of 10-01, 00:00–08:00 UTC:
      `overnight_intraday_points` 96 of 96 buckets, `price_snapshots` 96 of 96, both 96 (65/30/15 and 71/54/29 on the
      two nights before the Trading 212 retry); `price_snapshots` 288 of 288 in the 24 hours to 09:20; no `recorder.watch`
@@ -577,6 +581,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 02:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A plausibility band on every holding's live quote (improvement plan item 6).** The quotes are the board's prices for each holding as `refreshPrices` hands them over — the `prices` function, the public proxies for what it leaves out, a CN fund's own proxy path — and nothing checked one between the fetch and the board. The history was read first: no recorded price was ever ×100 or ≤ 0 (production, read-only: `price_snapshots` 44,911 consecutive pairs over 26 tickers since 08-19 moved at most +23.1 % / −18.5 %, real moves; `overnight_intraday_points` 34,501 pairs at most ±15 %); the shapes met were each fixed at their own parse (pence normalised twice, in the function and the proxy parse; a proxy's own body in a 200, benched since 06-10; SFTBY's open as an after-hours price, `700d7b78`; non-prices). `src/prices/quote_band.js` now screens at the write in `app.jsx`: a quote whose last price is not a price is not shown (`quote.bad`); one passes when any of its last price and previous close sits within the band of any of the last good quote's two, the band being the after-hours guard's (`ahQuoteTolerance`, 3–15 % from the name's own five-minute bars: this tick's extended-hours series, else the 24H window's cached bars) widened by √(bars since the last good quote), never past ×5; otherwise it is held — the board keeps the last good price — reported as `quote.held` under its ticker, and the next refresh asks the other source too (`refreshPrices` now tags each quote `edge`/`proxy` and fetches the proxies for a ticker held from the function). A held quote is believed when the other source agrees, the same refresh or a later one (two paths to Yahoo), or after five minutes of one source, except a 100× quote on a London listing against this page's own last price, which only a second source can confirm. The last good quote starts from what the browser last showed (`dp.lastPrices`, ≤ 7 days, `Storage.loadLastPricesAt`); a holding with none passes. Real moves pass because they come with the close the board knows: an earnings gap or a halving, a thin listing's −18.5 % bar, a CN fund's estimate turning into its NAV, crypto past its 16:00 anchor, a +60 % week since the last visit; a split or an IPO's first minutes is held until the proxies agree or five minutes pass. The after-hours half keeps its own guard (`extPriceIsRealAh`, `extPriceLooksReal`); the band only drops an `extPrice` that is not a price or is 100× its own last price. Pinned: 25 closed-form cases (`quote_band.test.js`; removing any one rule — the closes, the strict pence rule, either second-source path, the five minutes, the non-price check — fails 1–5 of them), two fetch cases (sources and the second opinion; both fail on the old fetch), a storage case, and the sweep's `quote-band` part, 8 checks on a desktop and 6 on a phone: a proxy's 250 in a GBP body for BRIT.L is held at 2.50 (its card $312.50, the total $2,972.50 with NOVA's real −30 % from a proxy shown; unbanded $33,910), reported, listed by the errors badge, still held a minute on; ACME at 24 on a 23.80 close is held at 240 ($2,978.75) and shown when the proxies, asked, agree ($1,682.75); a CN fund's proxy relaying another fund's NAV is held at 1.50 ($3,182.50; unbanded $3,209.50). On the bundle before the band 12 of the 14 fail (only the two starting totals pass). Not banded: the market cards and FX rates, and Trading 212's own prices (what-remains item 7). Main bundle 115.02 → 116.51 kB gzipped of 122.
 
 ### [2026-10-02 02:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

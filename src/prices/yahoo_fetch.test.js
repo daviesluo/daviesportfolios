@@ -367,6 +367,51 @@ describe('refreshPrices — a tick covering almost nothing is an outage, not LIV
   });
 });
 
+// The plausibility band (quote_band.js) needs to know where each quote came from, and believes a held quote once the
+// other source agrees: so refreshPrices tags every quote with its source and, for each ticker held from the price
+// function, asks the public proxies too.
+describe('refreshPrices — each quote\'s source, and a second opinion for a held one', () => {
+  const origFetch = globalThis.fetch;
+  afterEach(async () => {
+    globalThis.fetch = origFetch;
+    const { clearProxyBackoff } = await import('./proxy_chain.js');
+    clearProxyBackoff();
+  });
+  const quote = (p) => ({ lastPrice: p, extPrice: null, prevClose: p, currency: 'USD', dayPct: 0, extDayPct: null });
+  /** A Yahoo chart body for `symbol` at `price`, as a proxy relays it. */
+  const chart = (symbol, price, prev) => ({ chart: { result: [{ meta: { symbol, currency: 'USD', regularMarketPrice: price, previousClose: prev, gmtoffset: -14400 }, timestamp: [], indicators: { quote: [{ close: [] }] } }] } });
+  const holdings = { ACME: { shares: 1, cost: 1, lastPrice: 240, prevClose: 238 }, NOVA: { shares: 1, cost: 1, lastPrice: 120, prevClose: 120 } };
+
+  it('tags the price function\'s quotes edge and a proxy\'s proxy', async () => {
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) return { ok: true, json: async () => ({ ACME: quote(240) }) };
+      if (decodeURIComponent(String(url)).includes('/chart/NOVA')) return { ok: true, json: async () => chart('NOVA', 84, 120) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const out = await refreshPrices({ holdings });
+    expect(out.sources).toEqual({ ACME: 'edge', NOVA: 'proxy' });
+    expect(out.updates.NOVA.lastPrice).toBe(84);
+    expect(out.alt).toEqual({});
+  });
+
+  it('asks the proxies about a ticker held from the price function, though the function answered it', async () => {
+    const asked = [];
+    globalThis.fetch = /** @type {any} */ (vi.fn(async (url) => {
+      if (String(url).includes('supabase.co')) return { ok: true, json: async () => ({ ACME: quote(24), NOVA: quote(120) }) };
+      const u = decodeURIComponent(String(url));
+      asked.push(u);
+      if (u.includes('/chart/ACME')) return { ok: true, json: async () => chart('ACME', 24.1, 23.8) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    }));
+    const out = await refreshPrices({ holdings }, { confirm: { ACME: 'edge', NOVA: 'proxy' } });
+    expect(out.sources).toEqual({ ACME: 'edge', NOVA: 'edge' });
+    expect(out.alt.ACME.lastPrice).toBe(24.1);
+    // Only ACME was asked of the proxies: NOVA's hold came from a proxy, and the function is the other source.
+    expect(asked.every((u) => u.includes('/chart/ACME'))).toBe(true);
+    expect(asked.length).toBeGreaterThan(0);
+  });
+});
+
 // The anon JWT ships inside the public bundle, so it gated nothing —
 // anyone could read it out and run prices / chart / fundamentals as a
 // free market-data proxy on this project's quota. Those endpoints now

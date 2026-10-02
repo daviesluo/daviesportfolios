@@ -241,8 +241,10 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
     // portfolio — refreshPrices fired with the CACHED ticker, well before
     // the still-pending loadPortfolioRemote() promise ever settles.
     await waitFor(() => expect(refreshPrices).toHaveBeenCalled());
+    // The second argument is the band's second-opinion list (prices/quote_band.js).
     expect(refreshPrices).toHaveBeenCalledWith(
       expect.objectContaining({ holdings: expect.objectContaining({ ZZZZ: expect.anything() }) }),
+      expect.objectContaining({ confirm: expect.any(Object) }),
     );
     // The debounced auto-save effect must NOT have fired yet — it's
     // gated on hasRealLoadRef, which only flips once the real load
@@ -255,6 +257,7 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
     resolveLoad(/** @type {any} */ (SERVER_PORTFOLIO));
     await waitFor(() => expect(refreshPrices).toHaveBeenCalledWith(
       expect.objectContaining({ holdings: expect.objectContaining({ NVDA: expect.anything() }) }),
+      expect.objectContaining({ confirm: expect.any(Object) }),
     ));
     // Still no save — nothing about the reconcile itself constitutes a
     // user edit (portfolioUserFingerprint is mocked constant here, so a
@@ -295,6 +298,7 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
     // doRefresh fires off the cached (ZZZZ) portfolio immediately.
     await waitFor(() => expect(refreshPrices).toHaveBeenCalledWith(
       expect.objectContaining({ holdings: expect.objectContaining({ ZZZZ: expect.anything() }) }),
+      expect.objectContaining({ confirm: expect.any(Object) }),
     ));
 
     // Give the real (demo-resolving) load a tick to land and the effects
@@ -303,6 +307,11 @@ describe('App — cache-primed first paint (Storage.loadPortfolioCache)', () => 
 
     // The cached portfolio must have been kept — refreshPrices is never
     // called against the demo holdings.
+    // Matched with or without the band's second argument, so the "never" cannot pass on a call shape alone.
+    expect(refreshPrices).not.toHaveBeenCalledWith(
+      expect.objectContaining({ holdings: expect.objectContaining({ DEMO: expect.anything() }) }),
+      expect.anything(),
+    );
     expect(refreshPrices).not.toHaveBeenCalledWith(
       expect.objectContaining({ holdings: expect.objectContaining({ DEMO: expect.anything() }) }),
     );

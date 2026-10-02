@@ -13,9 +13,9 @@ crypto loop and the testing strategies are planned in `docs/LEDGER.md` and
 
 ## Where it stands (2026-09-28)
 
-Of 28 items: 17 done, 1 partly, 1 not doing by decision, 9 open (2 of
+Of 28 items: 18 done, 1 partly, 1 not doing by decision, 8 open (2 of
 them wait on an answer only Davies can give). Items 4, 5, 10 and 14 closed
-on 2026-09-30, after the re-check, and items 9 and 20 on 2026-10-02.
+on 2026-09-30, after the re-check, and items 9, 20 and 6 on 2026-10-02.
 (Counted from the table on 2026-10-02: this line had said two more done and
 two fewer open since the re-check, whose own table counted 11 done, not 13.)
 
@@ -26,7 +26,7 @@ two fewer open since the re-check, whose own table counted 11 done, not 13.)
 | 3 | One holding, two ledgers | Open | `ledgerFor` (`src/charts/ytd.js`) still dates the whole position at the window start when the lots do not net to the board count |
 | 4 | A failed save is deferred silently | **Done** 2026-09-30 | `portfolio_saver.js`: the marker moves only when the server takes a change; a failed save shows NOT SAVED and retries (5 s … 5 min, then by hand); pinned in its tests and the sweep's `save-retry` checks, which fail on the old bundle |
 | 5 | A failed load can substitute the demo book | **Done** 2026-09-30 | The cross-tab reload refuses a demo result (a failed load's fallback); the sweep's `cross-tab/no-demo` check fails on the old bundle. A failed first load with nothing cached still shows the demo banner, as designed |
-| 6 | No plausibility band on an incoming price | Open | Nothing bands a quote at the write |
+| 6 | No plausibility band on an incoming price | **Done** 2026-10-02 | `src/prices/quote_band.js` screens every holding's quote at the write, whichever path brought it (the price function, a public proxy, a CN fund's own proxy): one that is not a price, or whose last price and previous close both sit outside the after-hours guard's band (widened with the time since) of the last good quote's, is held — the board keeps the last good price — reported as `quote.held` and believed once the other source agrees, or after five minutes of one source (never for 100× on a London listing). Real moves pass: their previous close is the one the board knows. Pinned by 25 closed-form cases (each rule removed fails one), the fetch's source tags, and the sweep's `quote-band` part, which fails 12 of its 14 checks on the bundle before it |
 | 7 | The FX shim reaches the performance line | Open, needs Davies | The header pill and the per-holding badge exist; the value line does not read the `missing` flag |
 | 8 | Make the browser sweeps a real gate | **Done** | `npm run verify:browser` is a hard CI gate (222 desktop / 225 phone checks on 2026-09-28), with `verify:perf` (60 cases) beside it |
 | 9 | Collapse the duplicated market logic | **Done** 2026-10-02 | The Trading 212 → Yahoo ticker map is one module, `_shared/t212_tickers.ts`, which `trading212`, `snapshot-record` and `overnight-record` import; each pins that it reads that map, and the pins fail on the old copies. The recorders' two copies had drifted (three aliases, the share-class rule and digits in an LSE symbol missing). `snapshot-record` takes Trading 212's price only where the board shows it, US listings and VUAA.L / SAEM.L, and Yahoo's for the rest, so no ticker held that day changed source. All 69 codes production has stored a fill under map to their stored ticker |
@@ -73,7 +73,7 @@ Each is small, fixes a way the app can be confidently wrong, or has a date.
    `supabase/functions/_shared/t212_tickers.ts`, imported by the three
    functions and pinned. An unmapped ticker is not an error; it just
    disappears from recorded prices.
-6. **A plausibility band on quotes (6).** M. Reuse the after-hours guard's
+6. ~~**A plausibility band on quotes (6).**~~ Done 2026-10-02. M. Reuse the after-hours guard's
    volatility-scaled band at the write; a quote outside it is dropped and
    reported, never shown. It matters most when the price function is down
    and the public proxies answer.

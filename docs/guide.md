@@ -421,6 +421,17 @@ button, and the rest of the page keeps working. **Refresh** retries every
 failed panel as well. Each failure is sent to the errors badge (desktop,
 edit password), named by the part that failed.
 
+Every live price is checked before the board takes it. One that cannot
+be the holding's — a hundred times off (pence read as pounds), another
+stock's or fund's price relayed by a public proxy, or not a number at all
+— is held: the board keeps the last good price, the errors badge lists it
+as `quote.held` (or `quote.bad`) under its ticker, and the next refresh
+asks again, of the other source too. A real move passes however large it
+is, since it comes with the previous close the board already knows. One
+that does not (a split, an IPO's first minutes) is shown as soon as the
+price function and a public proxy agree on it, or after five minutes of
+the same answer.
+
 ## On a phone
 
 Below 1020 px wide the page becomes one column: the header, the board or

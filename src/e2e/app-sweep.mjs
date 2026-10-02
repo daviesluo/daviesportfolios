@@ -84,7 +84,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the same thing
  * whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'surfaces', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -727,6 +727,38 @@ let loadOverride = /** @type {any} */ (null);
 // with a 503, as a failed load does, so the cross-tab reload is seen taking what a failed load returns.
 let saveFailures = 0, saveCalls = 0, loadCalls = 0, loadFails = false;
 let holdMs = 0;
+/**
+ * The band's part (0f): tickers the price function leaves out of its answer, quotes it answers in place of `QUOTES`, what
+ * the public proxies answer (a Yahoo chart body per symbol; a fund's JSONP for any fund while `PROXY_FUND` is set), and
+ * whether the ops-error summary the errors badge polls is served from what the page reported.
+ */
+let EDGE_OMIT = new Set(), EDGE_QUOTES = /** @type {Record<string, any>} */ ({}), PROXY_CHART = /** @type {Record<string, { price: number, prev: number, currency: string }>} */ ({});
+let PROXY_FUND = /** @type {Record<string, string> | null} */ (null), OPS_SUMMARY = false;
+/** The five public proxies (src/prices/proxy_chain.js), which every other part's catch-all aborts. */
+const PROXY_HOSTS = /^https:\/\/(api\.cors\.lol|corsproxy\.io|api\.allorigins\.win|api\.codetabs\.com|cors\.eu\.org)\//;
+/**
+ * Answers the proxies for the band's part: the chart body `PROXY_CHART` names, the fund's JSONP, or a 404 — not a 503,
+ * which the app reads as a proxy that is down and benches for ten minutes, on a clock this sweep has stopped.
+ * @param {import('playwright').Page} page
+ */
+async function routeProxies(page) {
+  await page.route(PROXY_HOSTS, (route) => {
+    const u = decodeURIComponent(route.request().url());
+    const m = u.match(/\/v8\/finance\/chart\/([^?&]+)/);
+    const sym = m ? decodeURIComponent(m[1]) : null;
+    const headers = { 'Access-Control-Allow-Origin': '*' };
+    if (sym && PROXY_CHART[sym]) {
+      const { price, prev, currency } = PROXY_CHART[sym];
+      const meta = { symbol: sym, currency, regularMarketPrice: price, previousClose: prev, gmtoffset: -14400 };
+      return route.fulfill({ status: 200, contentType: 'application/json', headers, body: JSON.stringify({ chart: { result: [{ meta, timestamp: [], indicators: { quote: [{ close: [] }] } }], error: null } }) });
+    }
+    if (PROXY_FUND && u.includes('fundgz.1234567.com.cn')) {
+      const body = { name: 'another fund', jzrq: '2026-09-16', gszzl: '1.79', gztime: '2026-09-17 15:00', ...PROXY_FUND };
+      return route.fulfill({ status: 200, contentType: 'application/javascript', headers, body: `jsonpgz(${JSON.stringify(body)});` });
+    }
+    return route.fulfill({ status: 404, contentType: 'text/plain', headers, body: 'not found' });
+  });
+}
 /** @type {string[]} */
 const heldAnswers = [];
 /** The fixture's book as a row saved when every price stood at `k` times today's. */
@@ -1121,13 +1153,28 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       const u = new URL(url);
       const out = {};
       for (const t of (u.searchParams.get('tickers') || '').split(',').filter(Boolean)) {
-        if (QUOTES[t]) out[t] = QUOTES[t];
+        if (EDGE_OMIT.has(t)) continue;
+        const q = EDGE_QUOTES[t] ?? QUOTES[t];
+        if (q) out[t] = q;
       }
       return json(out);
     }
     if (url.includes('/trading212')) return json({ source: 'orders', orders: T212_ORDERS, complete: true });
     if (url.includes('/fundamentals')) return json({});
     if (url.includes('/overnight-fetch')) return json({});
+    if (url.includes('/ops-error') && url.includes('action=summary') && OPS_SUMMARY) {
+      // The errors badge's poll, answered as the ops-error function would from what this page has reported.
+      /** @type {{ kind: string, symbol: string, message: string }[]} */
+      const reps = /** @type {any} */ (page).__reports;
+      const at = new Date(NOW_MS).toISOString();
+      /** @type {Record<string, any>} */
+      const byKind = {}, bySymbol = {};
+      for (const r of reps) {
+        (byKind[r.kind] ||= { kind: r.kind, count: 0, latestMessage: r.message }).count += 1;
+        (bySymbol[`${r.symbol}|${r.kind}`] ||= { symbol: r.symbol || null, kind: r.kind, count: 0, latestMessage: r.message, latestAt: at }).count += 1;
+      }
+      return json({ hours: 24, total: reps.length, latestAt: at, byKind: Object.values(byKind), bySymbol: Object.values(bySymbol) });
+    }
     if (url.includes('/ops-error')) {
       // What the app reports is part of what the sweep checks: a healed chunk must arrive as `chunk.load`, never `render.crash`.
       try {
@@ -1953,6 +2000,137 @@ async function run() {
     const other = own.filter((e) => !expected.includes(e));
     if (expected.length > 0 && other.length === 0) ok(S('console'), `${expected.length} console errors, every one a throw this part asked for`);
     else { fail(S('console'), `${other.length} other console errors`); errors.push(...other); }
+  }
+
+  // ---- 0f. a quote the band cannot believe is held; a real move is shown ----
+  // Improvement plan item 6 (2026-10-02). Nothing checked a quote between the fetch and the board: a quote in pence
+  // where pounds were, or a proxy's body for something else, was shown and added into every total. The band
+  // (src/prices/quote_band.js) holds such a quote — the board keeps its last good price — reports it, and believes it
+  // once the other source agrees. Each phase is one press of Refresh, read back from the scoreboard (compared as a
+  // number) and the board's position cards against totals worked by hand.
+  //
+  // The book is the fixture's without its CN fund: with a fund in the book the app asks the proxies for the fund alone
+  // (yahoo_fetch.js), so a stock the price function leaves out would not reach them. ACME 1,440 + NOVA 600 + BRIT.L
+  // 312.50 + VUAA.L 300 + CASH 500 = $3,152.50.
+  //   A  the price function leaves BRIT.L and NOVA out; the proxies answer BRIT.L 250 in a GBP body (pence for pounds)
+  //      and NOVA 84 on its 120 close (-30 %): BRIT.L is held at 2.50 and NOVA shown, $2,972.50 (unbanded: $33,910)
+  //   B  the function answers BRIT.L 2.55 (taken; the hold goes), NOVA 84, and ACME 24 on a 23.80 close, a 10:1 split's
+  //      shape: ACME is held at 240, $2,978.75 (unbanded: $1,682.75)
+  //   C  the function says ACME 24 again and the proxies, asked for a second opinion, say 24 too: ACME shown, $1,682.75
+  // Then the fund, on the whole book: the function leaves 017731 out and its own proxy path answers another fund's NAV
+  // (2.85 on 2.80): held at 1.50, so the total stays $3,182.50 (unbanded: 200 × 2.85 × 0.10 = $57, $3,209.50).
+  for (const vp of viewports('quote-band')) {
+    const S = (n) => `${vp.name}/quote-band/${n}`;
+    const noFund = JSON.parse(JSON.stringify(PORTFOLIO));
+    delete noFund.holdings['017731'];
+    for (const p of Object.values(noFund.positions)) p.tickers = p.tickers.filter((t) => t !== '017731');
+    loadOverride = noFund;
+    EDGE_OMIT = new Set(); EDGE_QUOTES = {}; PROXY_CHART = {}; PROXY_FUND = null; OPS_SUMMARY = true;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true, beforeGoto: routeProxies });
+    const totalNow = () => page.locator('.scoreboard-cell-portfolio .sb-value-lg').first().textContent().then((s) => money(s)).catch(() => NaN);
+    const cards = () => page.evaluate(() => [...document.querySelectorAll('.pos-chip')].map((c) => ({
+      tickers: [...c.querySelectorAll('.chip-ticker')].map((x) => (x.textContent || '').trim()),
+      mv: (c.querySelector('.chip-mv')?.textContent || '').trim(),
+    })).filter((c) => c.tickers.length > 0));
+    const cardOf = async (ticker) => (await cards()).find((c) => c.tickers.includes(ticker))?.mv ?? null;
+    /** Presses Refresh and waits until the total reads `want` (or 8 s); returns what it read. */
+    const refreshTo = async (want) => {
+      await page.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
+      const by = Date.now() + 8000;
+      let got = await totalNow();
+      while (!near(got, want) && Date.now() < by) { await page.waitForTimeout(100); got = await totalNow(); }
+      await page.waitForTimeout(300);
+      return totalNow();
+    };
+    const reports = () => /** @type {any} */ (page).__reports.filter((r) => r.kind === 'quote.held');
+    await page.waitForFunction((w) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - w) < 1, 3152.5, { timeout: 15_000 }).catch(() => {});
+    const start = await totalNow();
+    if (near(start, 3152.5)) ok(S('start'), `the book without its fund totals $3,152.50 (reads ${start})`);
+    else fail(S('start'), `the book reads ${start}, wanted 3152.50`);
+
+    // A: a pence-for-pounds body and a real -30 % move, both from the proxies.
+    EDGE_OMIT = new Set(['BRIT.L', 'NOVA']);
+    PROXY_CHART = {
+      'BRIT.L': { price: 250, prev: 240, currency: 'GBP' },
+      NOVA: { price: 84, prev: 120, currency: 'USD' },
+    };
+    const a = await refreshTo(2972.5);
+    const [britA, novaA] = [await cardOf('BRIT'), await cardOf('NOVA')];
+    // BRIT.L's card: 100 × 2.50 × 1.25 = $312.50, with VUAA.L's $300 when the two share a position.
+    const britWith = (await cards()).find((x) => x.tickers.includes('BRIT'))?.tickers ?? [];
+    const britWant = 312.5 + (britWith.includes('VUAA') ? 300 : 0);
+    const heldA = reports().find((r) => r.symbol === 'BRIT.L');
+    if (near(a, 2972.5) && near(money(britA), britWant, 0.006) && near(money(novaA), 420, 0.006)) {
+      ok(S('held'), `BRIT.L at 250 from a proxy (pence for pounds) is held: its card (${britWith.join(', ')}) still reads ${britA}, BRIT.L at 2.50; NOVA's real -30 % is shown, ${novaA}; total ${a}`);
+    } else fail(S('held'), `total ${a} (wanted 2972.50; unbanded 33910), BRIT.L's card (${britWith.join(', ')}) ${britA} (wanted ${britWant}), NOVA's ${novaA} (wanted $420.00)`);
+    if (heldA && /250 from a proxy against 2\.5 \(×100, 100× off: pence for pounds\)/.test(heldA.message) && !reports().some((r) => r.symbol === 'NOVA')) {
+      ok(S('report'), `reported as quote.held under BRIT.L: "${heldA.message}"; nothing for NOVA`);
+    } else fail(S('report'), `reports ${JSON.stringify(/** @type {any} */ (page).__reports)}`);
+    if (vp.name === 'desktop') {
+      // The errors badge polls the summary every minute: the report is on the page a minute on.
+      await page.clock.fastForward(61_000);
+      const badge = await page.locator('.live-pill.err:has-text("ERRORS")').first().waitFor({ timeout: 8_000 }).then(() => true).catch(() => false);
+      let rows = [];
+      if (badge) {
+        await page.locator('.live-pill.err:has-text("ERRORS")').first().click().catch(() => {});
+        rows = await page.locator('.modal tr').allTextContents().catch(() => []);
+        await page.keyboard.press('Escape');
+      }
+      if (badge && rows.some((r) => r.includes('BRIT.L') && r.includes('quote.held'))) ok(S('badge'), 'the errors badge lists it: BRIT.L · quote.held');
+      else fail(S('badge'), `badge ${badge}, rows ${JSON.stringify(rows)}`);
+      const still = await totalNow();
+      if (near(still, 2972.5)) ok(S('still-held'), `two more refreshes from the same proxy a minute on: still held, total ${still}`);
+      else fail(S('still-held'), `a minute on the total reads ${still}, wanted 2972.50`);
+    }
+
+    // B: the function comes back with BRIT.L in pounds, and ACME in a split's shape.
+    EDGE_OMIT = new Set();
+    EDGE_QUOTES = {
+      'BRIT.L': { lastPrice: 2.55, prevClose: 2.4, currency: 'GBP', dayPct: 6.25 },
+      NOVA: { lastPrice: 84, prevClose: 120, currency: 'USD', dayPct: -30 },
+      ACME: { lastPrice: 24, prevClose: 23.8, currency: 'USD', dayPct: 0.84 },
+    };
+    PROXY_CHART = {};
+    const b = await refreshTo(2978.75);
+    const acmeB = await cardOf('ACME');
+    if (near(b, 2978.75) && near(money(acmeB), 1440, 0.006) && reports().some((r) => r.symbol === 'ACME')) {
+      ok(S('split-held'), `BRIT.L's pounds are taken and ACME at 24 on a 23.80 close is held at 240 (${acmeB}); total ${b}`);
+    } else fail(S('split-held'), `total ${b} (wanted 2978.75; unbanded 1682.75), ACME's card ${acmeB}, reports ${JSON.stringify(reports().map((r) => r.symbol))}`);
+
+    // C: the proxies, asked for a second opinion on ACME, agree with the function.
+    PROXY_CHART = { ACME: { price: 24, prev: 23.8, currency: 'USD' } };
+    const c = await refreshTo(1682.75);
+    const acmeC = await cardOf('ACME');
+    const asked = /** @type {any} */ (page).__requested.some((u) => /chart%2FACME|chart\/ACME/.test(u) && !u.includes('/functions/v1/'));
+    if (near(c, 1682.75) && near(money(acmeC), 144, 0.006) && asked) ok(S('second-source'), `the proxies were asked about ACME and agree: 24 is shown (${acmeC}); total ${c}`);
+    else fail(S('second-source'), `total ${c} (wanted 1682.75), ACME's card ${acmeC}, proxies asked ${asked}`);
+    await ctx.close();
+
+    // The fund: its own proxy path answers another fund's body.
+    loadOverride = null;
+    EDGE_OMIT = new Set(); EDGE_QUOTES = {}; PROXY_CHART = {}; PROXY_FUND = null;
+    const { ctx: c2, page: p2 } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true, beforeGoto: routeProxies });
+    await p2.waitForFunction((w) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - w) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
+    EDGE_OMIT = new Set(['017731']);
+    PROXY_FUND = { fundcode: '110011', dwjz: '2.8000', gsz: '2.8500' };
+    const fundReports = () => /** @type {any} */ (p2).__reports.filter((r) => r.kind === 'quote.held' && r.symbol === '017731');
+    // The first refresh starts the fund's background fetch; the second takes what it brought.
+    for (let i = 0; i < 2; i++) {
+      const n = /** @type {any} */ (p2).__requested.filter((u) => u.includes('/functions/v1/prices')).length;
+      await p2.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
+      const by = Date.now() + 8000;
+      while (Date.now() < by && /** @type {any} */ (p2).__requested.filter((u) => u.includes('/functions/v1/prices')).length <= n) await p2.waitForTimeout(50);
+      await p2.waitForTimeout(1200);
+    }
+    const by = Date.now() + 5000;
+    while (Date.now() < by && fundReports().length === 0) await p2.waitForTimeout(100);
+    const fundTotal = money(await p2.locator('.scoreboard-cell-portfolio .sb-value-lg').first().textContent().catch(() => ''));
+    const fundAsked = /** @type {any} */ (p2).__requested.some((u) => u.includes('fundgz.1234567.com.cn') && !u.includes('/functions/v1/'));
+    if (fundAsked && fundReports().length === 1 && near(fundTotal, TOTAL_USD)) {
+      ok(S('fund'), `017731 from its proxy at another fund's 2.85 is held at 1.50; the total stays ${fundTotal}; reported "${fundReports()[0].message}"`);
+    } else fail(S('fund'), `proxy asked ${fundAsked}, reports ${JSON.stringify(fundReports())}, total ${fundTotal} (wanted ${TOTAL_USD}; unbanded 3209.50)`);
+    await c2.close();
+    EDGE_OMIT = new Set(); EDGE_QUOTES = {}; PROXY_CHART = {}; PROXY_FUND = null; OPS_SUMMARY = false;
   }
 
   for (const vp of viewports('main')) {

@@ -112,6 +112,17 @@ describe('Storage last-shown prices (dp.lastPrices)', () => {
     localStorage.setItem('dp.lastPrices', 'not json');
     expect(Storage.loadLastPrices()).toEqual({});
   });
+
+  it('says when the prices were kept, for the band on live quotes, and 0 when they are not worth reading', () => {
+    expect(Storage.loadLastPricesAt()).toBe(0);
+    const ts = Date.now() - 6 * DAY;
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts, data: { ACME: row } }));
+    expect(Storage.loadLastPricesAt()).toBe(ts);
+    localStorage.setItem('dp.lastPrices', JSON.stringify({ ts: Date.now() - 8 * DAY, data: { ACME: row } }));
+    expect(Storage.loadLastPricesAt()).toBe(0);
+    localStorage.setItem('dp.lastPrices', 'not json');
+    expect(Storage.loadLastPricesAt()).toBe(0);
+  });
 });
 
 describe('Storage 24H chart seed (dp.perfSeed)', () => {

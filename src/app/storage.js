@@ -312,6 +312,14 @@ export const Storage = {
     }
     return out;
   },
+  // When those prices were kept (ms since the epoch), or 0 when there are none
+  // worth reading: the band on live quotes (prices/quote_band.js) counts each
+  // as the holding's last good price from that moment.
+  loadLastPricesAt: () => {
+    const row = readJSON(STORAGE_KEYS.lastPrices, null);
+    const ts = Number(row?.ts);
+    return isFinite(ts) && ts > 0 && Date.now() - ts <= LAST_SHOWN_MAX_AGE_MS ? ts : 0;
+  },
   /** @param {Record<string, Record<string, any>>} prices */
   saveLastPrices: (prices) => {
     if (!prices || typeof prices !== 'object' || Object.keys(prices).length === 0) return false;

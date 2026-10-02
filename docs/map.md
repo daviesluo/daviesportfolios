@@ -504,7 +504,8 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 
 | File | What it does |
 |---|---|
-| `prices/yahoo_fetch.js` | Live prices: the `prices` function first, a public CORS proxy only for a ticker the function dropped. |
+| `prices/yahoo_fetch.js` | Live prices: the `prices` function first, a public CORS proxy only for a ticker the function dropped; each quote tagged with its source, and a held one asked of the other. |
+| `prices/quote_band.js` | The plausibility band at the write: a holding's quote that cannot be the same instrument in the same units as its last good one is held (the last good price stays), reported, and believed once a second source agrees. |
 | `prices/proxy_chain.js` | The public CORS proxies, each backed off for a while after it fails. |
 | `prices/historical.js` | Chart bars: the `chart` function first, proxies only when it fails outright; Chinese fund history; today's regular close. |
 | `prices/market_hours.js` | Time helpers that know about daylight saving: US, London and euro-zone market hours, US holidays, and the 3M chart's four-hour grid. |
