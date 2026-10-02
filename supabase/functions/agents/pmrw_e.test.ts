@@ -254,7 +254,7 @@ Deno.test("RW-E's own row: the replay's e arm, summarised as RW's row is, equals
   assert(!e.markets.some((m) => m.cond === B.cond));
 });
 
-Deno.test("RW-E's variants' rows: x1 is the engine run without its weather markets, x2 with no jump to pause on is RW-E, x3 is x1 and off the page", async () => {
+Deno.test("RW-E's variants' rows: x1 is the engine run without its weather markets, x2 with no jump to pause on is RW-E, x3 is x1, x2 and x3 off the page", async () => {
   // RW as it ran: A (culture) throughout, B (weather) on 09-30 and ending that day, C (weather) on 09-30 and 10-01, and
   // D (weather, ending weeks away) on both days.
   const all = await runEngine(portfolio({ b: true, c: "both", aCat: "culture_fees", d: true }));
@@ -281,18 +281,26 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
   const nowMs = rwLast + 180_000;
   const on = (t: Row[], day: string) => t.filter((x) => String(x.day).slice(0, 10) === day) as unknown as RwSelRow[];
   const latestOf = (t: Record<string, Row[]>) => t.pm_rw_minutes.filter((r) => Date.parse(String(r.minute)) === rwLast) as unknown as RwMinuteRow[];
-  const rows = rwxArmSummaries({
+  const pageInput = {
     rwState: all.tables.pm_rw_state[0] as never, xState: all.tables.pm_rw_x_state[0] as never, selectionAll: all.tables.pm_rw_selection as never,
     today: on(all.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(all.tables), days: all.tables.pm_rw_x_days as never,
     fills: all.tables.pm_rw_fills as never, nowMs,
-  });
-  // x3 is not a row of the page (Davies, 2026-09-28: it repeats x1 and x2 market by market); the replay still runs it.
-  assertEquals(rows.map((r) => [r.id, r.name]), [["x1", "Reward quotes variant-2"], ["x2", "Reward quotes variant-3"]]);
-  // With no jump to pause on, x3's two rules are x1's one: its accounts and its days are x1's to the bit.
+  };
+  // x3 is not a row of the page (Davies, 2026-09-28: it repeats x1 and x2 market by market), nor x2 since 2026-10-02 (the
+  // pause did worst); the replay still runs both. Variant-3 and -4 are x4 and x5, not started before 10-03 00:00 UTC.
+  assertEquals(rwxArmSummaries(pageInput).map((r) => [r.id, r.name, r.notStarted]),
+    [["x1", "Reward quotes variant-2", false], ["x4", "Reward quotes variant-3", true], ["x5", "Reward quotes variant-4", true]]);
+  // x2's row as it read while it was on the page, to pin that it is RW-E when there is no jump to pause on.
+  const rows = rwxArmSummaries({ ...pageInput, offPage: new Set(["x3", "x4", "x5"]) });
+  assertEquals(rows.map((r) => r.id), ["x1", "x2"]);
+  // With no jump to pause on, x3's two rules are x1's one: its accounts and its days are x1's to the bit. Before their
+  // own minute, 10-03, x4 and x5 are x1 too.
   assertEquals(stored.arms.x3.acc, stored.arms.x1.acc);
+  assertEquals([stored.arms.x4.acc, stored.arms.x5.acc], [stored.arms.x1.acc, stored.arms.x1.acc]);
   const armDays = (arm: string) => all.tables.pm_rw_x_days.filter((d) => d.arm === arm).map((d) => [d.day, d.total, d.stress_total, d.reward, d.fills, d.capital, d.markets]);
   assert(armDays("x3").length > 0);
   assertEquals(armDays("x3"), armDays("x1"));
+  assertEquals([armDays("x4"), armDays("x5")], [armDays("x1"), armDays("x1")]);
   assert(rows.every((r) => r.checks.ok && r.checks.eDays === 1));
   const t = rwSummary({
     state: truth.tables.pm_rw_state[0] as never, selection: on(truth.tables.pm_rw_selection, "2026-10-01"), latest: latestOf(truth.tables),

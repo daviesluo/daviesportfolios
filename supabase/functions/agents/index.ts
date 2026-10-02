@@ -1708,7 +1708,7 @@ async function readRwRun(d: Db, inst: RwInstance, dayStartMs: number) {
     d.select<{ minute: string }>(T.minutes, "select=minute&order=minute.asc&limit=1"),
   ]);
   const last = st[0]?.last_minute;
-  const latest = last ? await d.select<RwMinuteRow>(T.minutes, `minute=eq.${encodeURIComponent(last)}&select=cond,minute,b,a,m,ours,others,qb,qa`) : [];
+  const latest = last ? await d.select<RwMinuteRow>(T.minutes, `minute=eq.${encodeURIComponent(last)}&select=cond,minute,tick,b,a,m,ours,others,qb,qa`) : [];
   return { st, selection, days, fills, first, latest };
 }
 

@@ -4,11 +4,12 @@
 // stored record, is pinned beside RW-E's own test (pmrw_e.test.ts).
 
 import { assert, assertAlmostEquals, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { RW_RUN_START } from "./pmrw.ts";
+import { quote, RW_RUN_START, type BookRow } from "./pmrw.ts";
+import { printOrder, type PmPrint } from "../_shared/polymarket_public.ts";
 import { newRweState, replayMinutes, RWE_START, type RweInputs } from "./pmrw_e.ts";
 import {
-  newRwxState, parseRwxSpecs, replayArms, researchRwx, runPmrwX, RWX_NAMES, RWX_SPECS, RWX_START, RWX_STATE_VERSION,
-  type RwxSpec, type RwxStored,
+  leanTicks, minutePrints, newRwxState, parseRwxSpecs, replayArms, researchRwx, restRow, runPmrwX, RWX_NAMES, RWX_REST_START, RWX_SPECS, RWX_START, RWX_STATE_VERSION,
+  rwxArmStart, wideTicks, type RwxSpec, type RwxStored,
 } from "./pmrw_x.ts";
 import { rwxArmSummaries } from "./pmrw_view.ts";
 import { memDb, type Row } from "./testing.ts";
@@ -154,17 +155,30 @@ Deno.test("the research stops at RW-E's first minute: nothing of its twelve days
 
 const DAY_MS = 86400e3;
 
-Deno.test("the tracked arms are the pre-registration's, frozen: RW-E, then each rule from 2026-09-28 00:00 UTC", () => {
+Deno.test("the tracked arms are the pre-registrations', frozen: RW-E, each rule from 2026-09-28 00:00 UTC, then x1 with its quotes moved from 10-03", () => {
   assertEquals(RWX_START, Date.parse("2026-09-28T00:00:00Z"));
   assertEquals(RWE_START, Date.parse("2026-09-27T00:00:00Z"));
-  assertEquals(RWX_SPECS, [
+  assertEquals(RWX_REST_START, Date.parse("2026-10-03T00:00:00Z"));
+  // The first four exactly as `reviews/2026-09-27-polymarket-rw-variants-prereg.md` froze them.
+  assertEquals(RWX_SPECS.slice(0, 4), [
     { id: "e", noSameDayFrom: RWE_START, from: RWE_START },
     { id: "x1", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"] },
     { id: "x2", noSameDayFrom: RWE_START, from: RWX_START, pause: { cents: 15, minutes: 60 } },
     { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
   ]);
-  // The page's names are Davies' (2026-09-27), numbered after RW-E's "variant-1"; the pre-registration's are its own.
-  assertEquals(RWX_NAMES, { x1: "Reward quotes variant-2", x2: "Reward quotes variant-3", x3: "Reward quotes variant-4" });
+  // x4 and x5 exactly as `reviews/2026-10-02-polymarket-rw-rest-prereg.md` froze them: x1, plus where the quotes rest.
+  assertEquals(RWX_SPECS.slice(4), [
+    { id: "x4", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "wide", from: RWX_REST_START, keep: 0.9 }, seed: "x1" },
+    { id: "x5", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "lean", from: RWX_REST_START }, seed: "x1" },
+  ]);
+  // Their rules before their own minute are x1's, rule for rule, which is what lets a running replay start them as x1.
+  for (const s of RWX_SPECS.slice(4)) {
+    const { rest: _rest, seed: _seed, ...rules } = s;
+    assertEquals({ ...rules, id: "x1" }, RWX_SPECS[1], s.id);
+    assertEquals([s.seed, rwxArmStart(s)], ["x1", RWX_REST_START], s.id);
+  }
+  // The page's names are Davies': numbered after RW-E's "variant-1"; variant-3 and -4 are x4 and x5 since 2026-10-02.
+  assertEquals(RWX_NAMES, { x1: "Reward quotes variant-2", x4: "Reward quotes variant-3", x5: "Reward quotes variant-4" });
 });
 
 /**
@@ -207,10 +221,10 @@ Deno.test("the forward replay: every arm's day rows, RW-E's own days checked on 
   // Run 1, to 00:05: 09-27 closes for every arm; RW-E has not written its day yet, so there is nothing to check it by.
   const r1 = await runPmrwX({ db, now: K(6) + 5e3, holder: "a" });
   assertEquals(r1.errors, []);
-  assertEquals([r1.from, r1.to, r1.minutes, r1.days], [K(-10), K(5), 16, 5]);
-  assertEquals(tables.pm_rw_x_days.map((d) => d.arm).sort(), ["e", "rw", "x1", "x2", "x3"]);
+  assertEquals([r1.from, r1.to, r1.minutes, r1.days], [K(-10), K(5), 16, 7]);
+  assertEquals(tables.pm_rw_x_days.map((d) => d.arm).sort(), ["e", "rw", "x1", "x2", "x3", "x4", "x5"]);
   for (const d of tables.pm_rw_x_days) {
-    // Before its midnight every variant is RW-E, and RW-E is RW: one day row, five times.
+    // Before its midnight every variant is RW-E, and RW-E is RW: one day row, seven times.
     assertEquals([d.day, d.fills], ["2026-09-27", 0]);
     assertAlmostEquals(Number(d.reward), 2.0, 1e-12);
     assertAlmostEquals(Number(d.total), ownRw.total, 1e-12);
@@ -230,9 +244,9 @@ Deno.test("the forward replay: every arm's day rows, RW-E's own days checked on 
   assertAlmostEquals(st.checkEMaxUsd, 0.05, 1e-9);
 
   // The rules, each from its minute: x1 stopped quoting W at midnight; x2 paused X at 00:03 (not at the jump before
-  // midnight) until 01:03; x3 both; RW-E is RW here.
+  // midnight) until 01:03; x3 both; RW-E is RW here; x4 and x5 are x1 until their own minute, 10-03.
   const reward = (arm: string, c: string) => st.arms[arm].acc[c].reward;
-  for (const [arm, x, w] of [["rw", 2.0, 2.0], ["e", 2.0, 2.0], ["x1", 2.0, 1.0], ["x2", 1.3, 2.0], ["x3", 1.3, 1.0]] as const) {
+  for (const [arm, x, w] of [["rw", 2.0, 2.0], ["e", 2.0, 2.0], ["x1", 2.0, 1.0], ["x2", 1.3, 2.0], ["x3", 1.3, 1.0], ["x4", 2.0, 1.0], ["x5", 2.0, 1.0]] as const) {
     assertAlmostEquals(reward(arm, X), x, 1e-12, `${arm} X`);
     assertAlmostEquals(reward(arm, W), w, 1e-12, `${arm} W`);
     assertEquals(st.arms[arm].diverged, []);
@@ -289,13 +303,21 @@ Deno.test("a variant's page leaves out the fills RW made while it was paused: a 
   assertAlmostEquals(st.arms.x2.acc[C].reward, 0.3, 1e-12);
   assertEquals(st.arms.x2.diverged, []);
 
-  const page = rwxArmSummaries({
+  const input = {
     rwState: { state: { acc: {}, meta: {} }, last_minute: iso(K(9)), last_error: null },
     xState: { state: { ...st, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(K(9)), last_error: null },
     selectionAll: selection, today: [{ day: "2026-09-28", cond: C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: "C", cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
     latest: [{ cond: C, minute: iso(K(9)), b: 0.69, a: 0.71, m: 0.70, ours: 5, others: 5, qb: true, qa: true }],
     days: out.days, fills, nowMs: K(10),
-  });
+  };
+  // x2 is off the page since 2026-10-02 (Davies), as x3 since 09-28; variant-3 and -4 are x4 and x5, which say when they
+  // start until 10-03 00:00 UTC. The page's handling of a paused arm is pinned below with x2 put back on it.
+  const shown = rwxArmSummaries(input);
+  assertEquals(shown.map((r) => [r.id, r.name, r.notStarted, r.startsAt]), [
+    ["x1", "Reward quotes variant-2", false, iso(RWX_START)],
+    ["x4", "Reward quotes variant-3", true, iso(RWX_REST_START)], ["x5", "Reward quotes variant-4", true, iso(RWX_REST_START)],
+  ]);
+  const page = rwxArmSummaries({ ...input, offPage: new Set(["x3"]) });
   const x1 = page.find((r) => r.id === "x1")!, x2 = page.find((r) => r.id === "x2")!;
   // Each counts from its own first minute, 00:00 (Davies, 2026-09-27): 23:59's reward was RW-E's, and is in the base.
   assertAlmostEquals(st.arms.x2.base![C].reward, 0.1, 1e-12);
@@ -356,4 +378,215 @@ Deno.test("variant-4 (x3) is x1 on every weather market and x2 on every other, m
   assertAlmostEquals(total(a("x3", C)) + total(a("x3", W)), total(a("x2", C)) + total(a("x1", W)), 1e-12);
   // And it is still in the replay: RWX_SPECS runs it, as the frozen pre-registration has it.
   assert(RWX_SPECS.some((s) => s.id === "x3" && s.noCats?.includes("weather_fees") && s.pause?.cents === 15));
+});
+
+// ---------------------------------------------------------------------------------------- x4 and x5: where quotes rest
+// Pre-registration `reviews/2026-10-02-polymarket-rw-rest-prereg.md`: x1 plus, from 2026-10-03 00:00 UTC, x4 rests both
+// quotes the most whole ticks further from the mid that keep nine tenths of the minute's reward at RW's quotes, and x5
+// moves the quote that would add to what it holds a tick out for every whole N it holds. RW's own `quote` places them
+// (through `restRow`) and RW's own `stepRw` scores, fills and books them.
+
+/** A small seeded generator (mulberry32), so a property test draws the same books every run. */
+function rng(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+Deno.test("restRow: RW's own quote rests the moved quotes exactly where the rule put them, and with no move exactly where RW's were", () => {
+  const r = rng(20261002);
+  let checked = 0, unmoved = 0;
+  for (let i = 0; i < 20000; i++) {
+    const tick = r() < 0.5 ? 0.01 : 0.001, top = Math.round(1 / tick);
+    const ib = 1 + Math.floor(r() * (top - 3)), spread = 1 + Math.floor(r() * 6), ia = Math.min(top - 1, ib + spread);
+    if (ia <= ib) continue;
+    const iab = Math.max(1, ib - Math.floor(r() * 4)), iaa = Math.min(top - 1, ia + Math.floor(r() * 4));
+    const row: BookRow = [ib * tick, ia * tick, iab * tick, iaa * tick, Math.round(r() * 5000) / 100, Math.round(r() * 5000) / 100];
+    const q = quote(row, tick);
+    if (!q) continue;
+    const kb = Math.round(q.b / tick), ka = Math.round(q.a / tick);
+    const out = { bid: Math.min(kb - 1, Math.floor(r() * 6)), ask: Math.min(top - 1 - ka, Math.floor(r() * 6)) };
+    const moved = quote(restRow(row, q, tick, out), tick)!;
+    // The mid, the others' scores and so the pool's split are RW's own; the quotes are RW's moved whole ticks out.
+    assertEquals(moved, { m: q.m, b: (kb - out.bid) * tick, a: (ka + out.ask) * tick, q1: q.q1, q2: q.q2 }, JSON.stringify({ row, tick, out }));
+    if (out.bid === 0 && out.ask === 0) { assertEquals(moved, q); unmoved++; }
+    // RW's quote of the book is on the grid the rule counts in.
+    assertEquals([q.b, q.a], [kb * tick, ka * tick]);
+    checked++;
+  }
+  assert(checked > 15000 && unmoved > 100, `${checked} books, ${unmoved} unmoved`);
+});
+
+Deno.test("minutePrints: a minute's prints are every print stepRw keeps for it, in the market's order, on its edges too", () => {
+  const r = rng(61);
+  const T0 = Date.UTC(2026, 9, 3) / 1000;
+  const printsOf = new Map<string, PmPrint[]>();
+  for (const c of ["0xa", "0xb"]) {
+    const list: PmPrint[] = Array.from({ length: 4000 }, (_, i) => {
+      // Whole seconds, a quarter of them on a minute's edge, some in milliseconds; several in one second.
+      const sec = T0 + Math.floor(r() * 600), ts = r() < 0.25 ? Math.floor(sec / 60) * 60 : r() < 0.5 ? sec : sec + Math.floor(r() * 1000) / 1000;
+      return { id: `${c}${i}`, ts, side: r() < 0.5 ? "BUY" : "SELL", oi: r() < 0.2 ? 1 : 0, price: Math.round(r() * 98 + 1) / 100, size: 1 + Math.floor(r() * 50) };
+    });
+    list.sort(printOrder);
+    printsOf.set(c, list);
+  }
+  const at = minutePrints(printsOf);
+  const keep = (list: PmPrint[], tSec: number) => list.filter((p) => p.ts > tSec && p.ts <= tSec + 60).map((p) => p.id);
+  let edges = 0;
+  for (const c of ["0xa", "0xb", "0xnone"]) {
+    for (let k = -2; k <= 11; k++) {
+      const t = (T0 + 60 * k) * 1000;
+      assertEquals(keep(at(c, t), t / 1000), keep(printsOf.get(c) ?? [], t / 1000), `${c} ${k}`);
+      edges += (printsOf.get(c) ?? []).filter((p) => p.ts === t / 1000 + 60).length;
+    }
+  }
+  assert(edges > 100, `${edges} prints on a minute's last second`);
+});
+
+Deno.test("wideTicks: the most whole ticks out that keep nine tenths of the minute's reward, inside the band and (0, 1)", () => {
+  // A 0.48 / 0.52 book: mid 0.50, RW quotes 0.49 / 0.51, 1 ¢ out; v = 3 ¢ and N = 20, so S(1 ¢) = 4/9, S(2 ¢) = 1/9 and
+  // S(3 ¢) = 0. Our score at RW's quotes is 20 × 4/9 = 80/9, a tick out 20/9; against others' O the shares are
+  // 80/(80 + 9 O) and 20/(20 + 9 O), and a tick out keeps nine tenths while O ≤ 0.1 · (80/9)(20/9) / (0.9 · 80/9 − 20/9),
+  // which is 0.34188….
+  const w = (others: number, v = 3, keep = 0.9) => wideTicks(0.50, 0.49, 0.51, others, 0.01, v, 20, keep);
+  assertEquals([w(0), w(0.3), w(0.341), w(0.342), w(0.4), w(10)], [1, 1, 1, 0, 0, 0]);
+  // Two ticks out is 3 ¢, the edge of a 3 ¢ band, whose score is zero: never taken, even with the pool to itself.
+  // A 4.5 ¢ band with nobody else in it: out to 4 ¢ (three ticks), not 5 ¢ (outside it).
+  assertEquals(w(0, 4.5), 3);
+  // Keeping all of it never moves a quote that others share; RW's quotes earning nothing never move.
+  assertEquals([w(0.3, 3, 1), wideTicks(0.50, 0.49, 0.51, 0.3, 0.01, 0.5, 20, 0.9)], [0, 0]);
+  // Never to 0 or 1: a bid at one tick has nowhere lower to go.
+  assertEquals(wideTicks(0.015, 0.01, 0.03, 0, 0.01, 4.5, 20, 0.9), 0);
+  // In a pool of $144 a day the minute pays 0.1 × the share: 0.0967… at RW's quotes, 0.0881… a tick out (91 %).
+  const rwShare = (80 / 9) / (80 / 9 + 0.3), outShare = (20 / 9) / (20 / 9 + 0.3);
+  assertAlmostEquals(outShare / rwShare, 0.910793, 1e-6);
+});
+
+Deno.test("leanTicks: the quote that adds to what is held moves a tick out per whole N held, inside the band, the other stays", () => {
+  const l = (net: number, v = 4.5) => leanTicks(0.50, 0.49, 0.51, 0.01, v, 20, net);
+  assertEquals([l(0), l(19.99), l(20), l(39.9999999999), l(40), l(59.9)], [
+    { bid: 0, ask: 0 }, { bid: 0, ask: 0 }, { bid: 1, ask: 0 }, { bid: 2, ask: 0 }, { bid: 2, ask: 0 }, { bid: 2, ask: 0 },
+  ]);
+  assertEquals([l(-20), l(-45)], [{ bid: 0, ask: 1 }, { bid: 0, ask: 2 }]);
+  // In a 3 ¢ band the second tick out is its edge: one tick, however much is held.
+  assertEquals([l(40, 3), l(-40, 3)], [{ bid: 1, ask: 0 }, { bid: 0, ask: 1 }]);
+  // A bid at one tick cannot move lower; an ask a tick under 1 cannot move higher.
+  assertEquals([leanTicks(0.015, 0.01, 0.03, 0.01, 4.5, 20, 40), leanTicks(0.985, 0.97, 0.99, 0.01, 4.5, 20, -40)], [{ bid: 0, ask: 0 }, { bid: 0, ask: 0 }]);
+});
+
+/**
+ * One culture market across the arms' first minute, 2026-10-03 00:00 UTC (K(0)), on a 0.48 / 0.52 book every minute
+ * (others' score 0.3): RW quotes 0.49 / 0.51 and earns 0.1 × 80/82.7 a minute. A sale at 0.47 in K(0), one at 0.48 in
+ * K(1), a purchase at 0.53 in K(2): RW buys 20 at 0.49 twice and sells 20 at 0.51. A weather market beside it, which
+ * x1's rule has left out since 09-28.
+ */
+function restWorld() {
+  const K = (k: number) => RWX_REST_START + k * M;
+  const C = "0xc5", W = "0xw5";
+  const rwReward = 0.1 * (80 / 9) / (80 / 9 + 0.3);
+  const rows = [];
+  for (let k = -3; k <= 3; k++) {
+    for (const c of [C, W]) {
+      rows.push({ cond: c, minute: iso(K(k)), quoting: true, tick: 0.01, bb: 0.48, ba: 0.52, ab: 0.48, aa: 0.52, q1: 0.3, q2: 0.3, m: 0.50, b: 0.49, a: 0.51, reward: rwReward });
+    }
+  }
+  const prints = [
+    { id: "s0", cond: C, ts: iso(K(0) + 20e3), side: "SELL" as const, oi: 0, price: 0.47, size: 20 },
+    { id: "s1", cond: C, ts: iso(K(1) + 20e3), side: "SELL" as const, oi: 0, price: 0.48, size: 20 },
+    { id: "b2", cond: C, ts: iso(K(2) + 20e3), side: "BUY" as const, oi: 0, price: 0.53, size: 20 },
+  ];
+  const fills = [
+    { cond: C, minute: iso(K(0)), ts: iso(K(0) + 20e3), side: "bid" as const, price: 0.49, size: 20, print_id: "s0" },
+    { cond: C, minute: iso(K(1)), ts: iso(K(1) + 20e3), side: "bid" as const, price: 0.49, size: 20, print_id: "s1" },
+    { cond: C, minute: iso(K(2)), ts: iso(K(2) + 20e3), side: "ask" as const, price: 0.51, size: 20, print_id: "b2" },
+  ];
+  const s = (day: string, cond: string, cat: string) => ({ day, cond, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: cond, cat });
+  const selection = ["2026-10-02", "2026-10-03"].flatMap((day) => [s(day, C, "culture_fees"), s(day, W, "weather_fees")]);
+  return { K, C, W, rwReward, inputs: { rows, fills, prints, selection, settlements: [], rwDays: [] } as RweInputs };
+}
+
+Deno.test("x4 rests a tick wider from 10-03 and x5 leans against what it holds: their fills and rewards by hand, x1 untouched", () => {
+  const { K, C, W, rwReward, inputs } = restWorld();
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS };
+  replayArms(st, K(3), inputs, RWX_SPECS);
+  const out = 0.1 * (20 / 9) / (20 / 9 + 0.3);   // the minute's reward with one quote, or both, a tick out (1 ¢ → 2 ¢)
+  const acc = (arm: string) => st.arms[arm].acc[C];
+  // x1 is RW in a culture market: seven minutes of RW's reward, its three fills, long 20.
+  assertEquals([acc("x1").fills, acc("x1").net], [3, 20]);
+  assertAlmostEquals(acc("x1").reward, 7 * rwReward, 1e-12);
+  assertAlmostEquals(acc("x1").cash, -0.49 * 20 * 2 + 0.51 * 20, 1e-12);
+  assertEquals(st.arms.x1.diverged, []);
+  // x4: RW's until K(0), then 0.48 / 0.52 (a tick out keeps 91 % of the reward; two is the band's edge). The sale at
+  // 0.47 fills its bid at 0.48; the sale at 0.48 is not through it; the purchase at 0.53 fills its ask at 0.52.
+  assertEquals([acc("x4").fills, acc("x4").net, st.arms.x4.diverged], [2, 0, [C]]);
+  assertAlmostEquals(acc("x4").reward, 3 * rwReward + 4 * out, 1e-12);
+  assertAlmostEquals(acc("x4").cash, -0.48 * 20 + 0.52 * 20, 1e-12);
+  // x5: flat in K(0), so RW's quotes and RW's fill at 0.49; long 20 in K(1) and K(2), so its bid rests at 0.48 (the sale
+  // at 0.48 is not through it) and its ask stays RW's 0.51, which the purchase fills; flat again in K(3).
+  assertEquals([acc("x5").fills, acc("x5").net, st.arms.x5.diverged], [2, 0, [C]]);
+  assertAlmostEquals(acc("x5").reward, 5 * rwReward + 2 * out, 1e-12);
+  assertAlmostEquals(acc("x5").cash, -0.49 * 20 + 0.51 * 20, 1e-12);
+  // The weather market is x1's rule in all three: never quoted since 09-28, so never held.
+  assertEquals([st.arms.x1.acc[W], st.arms.x4.acc[W], st.arms.x5.acc[W]], [undefined, undefined, undefined]);
+  // Each page counts from its own first minute: x4's and x5's base is their accounts as 10-03 began, x1's three minutes.
+  assertEquals(st.arms.x4.base, st.arms.x5.base);
+  assertEquals([st.arms.x4.base![C].net, st.arms.x4.base![C].fills, st.arms.x4.base![C].quotedMinutes], [0, 0, 3]);
+  assertAlmostEquals(st.arms.x4.base![C].reward, 3 * rwReward, 1e-12);
+});
+
+Deno.test("an arm added to a running replay starts as a copy of x1 and ends where a replay that always had it ends; once its minute is past, it is left out", () => {
+  const { K, inputs } = restWorld();
+  const fresh = (specs: RwxSpec[]) => ({ ...newRwxState(specs), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS });
+  // Always had it.
+  const always = fresh(RWX_SPECS);
+  const daysAlways = [...replayArms(always, K(-2), inputs, RWX_SPECS).days, ...replayArms(always, K(3), inputs, RWX_SPECS).days];
+  // Production's state before 2026-10-02's deploy: the five arms 0064 started; x4 and x5 join on the next pass.
+  const added = fresh(RWX_SPECS.slice(0, 4));
+  replayArms(added, K(-2), inputs, RWX_SPECS.slice(0, 4));
+  assertEquals(Object.keys(added.arms).sort(), ["e", "rw", "x1", "x2", "x3"]);
+  const daysAdded = replayArms(added, K(3), inputs, RWX_SPECS).days;
+  assertEquals(added, always);
+  // The day it closed on the way (10-02) has a row for every arm, x4's and x5's equal to x1's.
+  const day = (days: typeof daysAdded, arm: string) => days.find((d) => d.day === "2026-10-02" && d.arm === arm);
+  for (const arm of ["rw", "e", "x1", "x2", "x3", "x4", "x5"]) assertEquals(day(daysAdded, arm), day(daysAlways, arm), arm);
+  assertEquals({ ...day(daysAdded, "x4")!, arm: "x1" }, day(daysAdded, "x1"));
+  // Adding them changed nothing of the five arms 0064 started: the same world without x4 and x5, minute for minute.
+  const without = fresh(RWX_SPECS.slice(0, 4));
+  replayArms(without, K(3), inputs, RWX_SPECS.slice(0, 4));
+  for (const arm of ["rw", "e", "x1", "x2", "x3"]) assertEquals(added.arms[arm], without.arms[arm], arm);
+  // A state already past 10-03 00:00 without them cannot start them: they are left out, and nothing else changes.
+  const late = fresh(RWX_SPECS.slice(0, 4));
+  replayArms(late, K(0), inputs, RWX_SPECS.slice(0, 4));
+  const daysLate = replayArms(late, K(3), inputs, RWX_SPECS).days;
+  assertEquals(Object.keys(late.arms).sort(), ["e", "rw", "x1", "x2", "x3"]);
+  assertEquals(daysLate.filter((d) => d.arm === "x4" || d.arm === "x5"), []);
+  for (const arm of ["rw", "e", "x1", "x2", "x3"]) assertEquals(late.arms[arm], without.arms[arm], arm);
+});
+
+Deno.test("a rest arm's page shows where its own quotes rest: x4 a tick out on both sides, x5 RW's while flat", () => {
+  const { K, C, inputs } = restWorld();
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS };
+  // The world starts after x1's first minute (09-28), when it held nothing.
+  st.arms.x1.base = {};
+  const out = replayArms(st, K(3), inputs, RWX_SPECS);
+  const page = rwxArmSummaries({
+    rwState: { state: { acc: {}, meta: {} }, last_minute: iso(K(3)), last_error: null },
+    xState: { state: { ...st, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(K(3)), last_error: null },
+    selectionAll: inputs.selection, today: [{ day: "2026-10-03", cond: C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: C, cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
+    latest: [{ cond: C, minute: iso(K(3)), tick: 0.01, b: 0.49, a: 0.51, m: 0.50, ours: 80 / 9, others: 0.3, qb: true, qa: true }],
+    days: out.days, fills: inputs.fills, nowMs: K(4),
+  });
+  const quoteOf = (id: string) => page.find((r) => r.id === id)!.markets.map((m) => [m.bid, m.ask, Number(Number(m.share).toFixed(6))]);
+  assertEquals(quoteOf("x1"), [[0.49, 0.51, Number(((80 / 9) / (80 / 9 + 0.3)).toFixed(6))]]);
+  assertEquals(quoteOf("x4"), [[0.48, 0.52, Number(((20 / 9) / (20 / 9 + 0.3)).toFixed(6))]]);
+  assertEquals(quoteOf("x5"), [[0.49, 0.51, Number(((80 / 9) / (80 / 9 + 0.3)).toFixed(6))]]);
+  // Every figure of theirs is their own since 10-03 00:00: x4 made 0.80 on two fills and four minutes' reward.
+  const x4 = page.find((r) => r.id === "x4")!;
+  assertEquals([x4.notStarted, x4.startedAt, x4.fills], [false, iso(RWX_REST_START), 2]);
+  assertAlmostEquals(x4.totalUsd, 4 * 0.1 * (20 / 9) / (20 / 9 + 0.3) + 0.8, 1e-9);
 });

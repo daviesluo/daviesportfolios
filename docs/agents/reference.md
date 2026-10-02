@@ -3413,6 +3413,31 @@ every script re-run byte-identical by the coordinating session).
       stay in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdict; only the dashboard leaves it out (`RWX_OFF_PAGE`).
       The stored day rows keep only each market's total and stress, so the verdict reads x3's own rows rather than
       summing x1's and x2's.
+    - **Two more arms on x1, x4 and x5, from 2026-10-03 00:00 UTC; x2 off the page (2026-10-02, migration `0085`,
+      `reviews/2026-10-02-polymarket-rw-rest-prereg.md`).** Davies: add one or two variants on the best one so far (x1,
+      no same-day and no weather market), hide the pause if it is doing badly, number the new ones from variant-3. Over
+      09-28 → 10-01 (the change of each arm's day rows from the 09-27 row, aggregates only) x2 was the weakest variant on
+      the total (+$579.13, stress +$211.72, against x1's +$641.38 / +$300.68), so it left the page, and x3 (+$611.66 /
+      +$279.35, below x1 on both) stays off; both are still replayed. The two new rules act on every market, from RW's
+      formula and not from any result: **x4 ("wide", "Reward quotes variant-3")** rests both quotes the most whole ticks
+      further from the adjusted mid that keep the minute's reward at least nine tenths of RW's quotes' (both sides
+      counted, the others' score as RW reads it), inside the band and (0, 1); **x5 ("lean", "variant-4")** moves the
+      quote that would add to what it holds one tick further out for every whole N held, inside the band, the other
+      quote RW's. Neither re-implements the rule: RW's own `quote` places the moved quotes from the book with its raw
+      touch put a tick outside them (`restRow`), and RW's own `stepRw` scores, fills and books them; the arms read each
+      minute's prints alone (`minutePrints`), the same fills as the whole list. "Inside the band" is by more than 1e-9 ¢:
+      a grid price reaches the band's edge a hair inside it, where `scoreS` gives 1e-30 that would take an empty pool
+      whole. They joined the running replay as copies of x1 (`seed`; until 10-03 their rules are x1's), which is what a
+      replay from RW's start would hold (pinned). Judged on 10-03 → 10-08 (RW's minutes, against their 10-02 rows, equal
+      to x1's) and again on RW-C's fourteen days (`pmrwc-x` runs every arm of `RWX_SPECS`, all from 10-09 00:00), each
+      by RW-X's seven conditions with the seventh against x1; not among RW-NEXT's five, which neither reads nor names
+      them. Adding them is a recorded deviation of RW-X's "bookkeeping only" and an addendum to RW-NEXT Part 2 (both in
+      the new pre-registration): on 60 random worlds of 532,800 minutes the replay before (`829632cf`) and after the change
+      gave rw, e and x1–x3 the same state and day rows byte for byte. CPU in this container: a minute's run 2 ms before
+      and after; a 720-minute catch-up of 40 markets 116 → 204 ms, of 80 markets and 108,352 prints 392 → 676 ms (1,046
+      ms had the new arms read the whole print list); RW's last 720 minutes held 44 markets and 302 prints. On the page
+      the names are now x1 "variant-2", x4 "variant-3", x5 "variant-4" (variant-3 and -4 were x2 and x3 until 10-02),
+      and a moved arm's QUOTES show its own resting prices and share.
     - **RW-NEXT is frozen (2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`) and amends what follows the three
       verdicts above, nothing else in their files:** the five arms are read together by its Part 1, which fixes before
       10-09 which one is the candidate (RW-E if it passes; a variant only under its 1.3; RW only if RW-E does not pass),

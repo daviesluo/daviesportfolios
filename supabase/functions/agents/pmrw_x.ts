@@ -13,8 +13,18 @@
 //
 // The forward replay runs on RW-C's stored minutes too (`RWCX_REPLAY`, `0069`): the RW-NEXT pre-registration replays
 // the same arms on RW-C's fourteen days with every "from" at RW-C's first minute (`RWCX_SPECS`).
+//
+// Two arms added on 2026-10-02 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, Davies: two more variants on the
+// best one so far, x1) move where the quotes rest (`RwxRest`): x4 rests both a whole number of ticks further from the
+// mid while the minute keeps nine tenths of RW's reward, x5 moves the quote that would add to what it holds a tick out
+// for every whole N it holds. Neither re-implements the rule: RW's own `quote` places the moved quotes, from a book whose
+// raw touch is put a tick outside them (`restRow`), and RW's own `stepRw` scores, fills and books them. Until their rule
+// starts they are x1, so a state that does not hold them yet starts them as a copy of x1 (`seed`).
 
-import { newAcc, RW_DECIDE_LAG_MS, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, RWC_RUN_START, sizeN, snapshot, stepRw, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
+import {
+  newAcc, othersOf, quote, RW_DECIDE_LAG_MS, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, RWC_RUN_START, scoreS, sizeN, snapshot, stepRw,
+  type Acc, type BookRow, type Quote, type RwInstance, type RwState,
+} from "./pmrw.ts";
 import { printOrder, type PmPrint } from "../_shared/polymarket_public.ts";
 import {
   applyFill, bookRow, excludedByDay, metaFor, RWE_START,
@@ -32,7 +42,23 @@ export type RwxSpec = {
   noCats?: string[];                          // categories (the selection's `cat`) not quoted
   invCap?: number;                            // a side stops quoting at invCap × N of inventory its way (RW's is 3)
   pause?: { cents: number; minutes: number }; // after the adjusted mid moves `cents` or more between minutes, not quoted for `minutes`
+  rest?: RwxRest;                             // where its quotes rest, from `rest.from`: RW's moved whole ticks out
+  /**
+   * An arm added to a running replay: until its own first minute (`rwxArmStart`) it is the arm named here, rule for
+   * rule, so a stored state that does not hold it yet starts it as a copy of that arm, or not at all once that minute
+   * has been replayed without it.
+   */
+  seed?: string;
 };
+/**
+ * Where an arm's quotes rest (pre-registration `reviews/2026-10-02-polymarket-rw-rest-prereg.md`), from `from`. `wide`:
+ * both of RW's quotes move away from the adjusted mid by the most whole ticks that keep the minute's reward at least
+ * `keep` of the reward at RW's own quotes (`wideTicks`). `lean`: the quote that would add to what the arm holds moves
+ * one whole tick out for every whole N it holds (`leanTicks`). Before `from` the arm quotes where RW does.
+ */
+export type RwxRest = { rule: "wide"; from: number; keep: number } | { rule: "lean"; from: number };
+/** The minute an arm's own record starts: its quotes' rule's when it has one, its other rules' otherwise. */
+export const rwxArmStart = (spec: RwxSpec): number => spec.rest?.from ?? spec.from;
 export type RwxArmState = {
   acc: Record<string, Acc>; dayActive: string[]; diverged: string[]; pausedUntil: Record<string, number>; lastMid: Record<string, number>;
   pauses?: Record<string, Array<[number, number]>>;   // bookkeeping for the page: each market's paused spans, [from, until) in ms
@@ -74,6 +100,98 @@ function armQuotes(spec: RwxSpec, a: RwxArmState, c: string, t: number, recorded
   return q;
 }
 
+/** A price's index on the minute's tick grid: RW's quotes are whole ticks (`floorTick`, `ceilTick`). */
+const onGrid = (price: number, tick: number) => Math.round(price / tick);
+/**
+ * Whether a quote `s` cents from the adjusted mid is inside a reward band of `v` cents. The band's edge scores zero
+ * (`scoreS`), but a price on the tick grid reaches it through floating point a hair either side — 0.50 − 0.47 is
+ * 0.02999…97 — and RW's `scoreS` then gives it a score of 1e-30 that would take the whole of an empty pool. A moved quote
+ * must be inside by more than that rounding, never at the edge.
+ */
+const inBand = (v: number, s: number) => s >= 0 && s < v - 1e-9;
+
+/**
+ * The `wide` rule's move in one minute: the most whole ticks j by which both of RW's quotes (`b`, `a`) can move away from
+ * the adjusted mid `m` while both stay inside (0, 1) and inside the reward band, and the minute's reward at them stays
+ * at least `keep` of the reward at RW's own, both sides quoted and the others' score as RW reads it from the book
+ * (`othersOf`; the pool's rate cancels). 0 when RW's quotes earn nothing.
+ */
+export function wideTicks(m: number, b: number, a: number, others: number, tick: number, v: number, N: number, keep: number): number {
+  const kb = onGrid(b, tick), ka = onGrid(a, tick), top = onGrid(1, tick);
+  const sb = (j: number) => (m - (kb - j) * tick) * 100, sa = (j: number) => ((ka + j) * tick - m) * 100;
+  const share = (j: number) => {
+    const ours = Math.min(scoreS(v, sb(j)) * N, scoreS(v, sa(j)) * N);
+    return ours > 0 ? ours / (ours + others) : 0;
+  };
+  const r0 = share(0);
+  if (!(r0 > 0)) return 0;
+  let j = 0;
+  while (kb - j - 1 >= 1 && ka + j + 1 <= top - 1 && inBand(v, sb(j + 1)) && inBand(v, sa(j + 1)) && share(j + 1) >= keep * r0) j++;
+  return j;
+}
+
+/**
+ * The `lean` rule's move in one minute: while the arm holds at least N, the quote that would add to it — the bid while
+ * long, the ask while short — moves away from the adjusted mid one whole tick for every whole N held, as far as it stays
+ * inside (0, 1) and inside the reward band. The other quote is RW's. `net` is what the arm holds as the minute begins.
+ */
+export function leanTicks(m: number, b: number, a: number, tick: number, v: number, N: number, net: number): { bid: number; ask: number } {
+  const k = Math.floor(Math.abs(net) / N + 1e-9);
+  const kb = onGrid(b, tick), ka = onGrid(a, tick), top = onGrid(1, tick);
+  let j = 0;
+  if (net > 0) {
+    while (j < k && kb - j - 1 >= 1 && inBand(v, (m - (kb - j - 1) * tick) * 100)) j++;
+    return { bid: j, ask: 0 };
+  }
+  if (net < 0) {
+    while (j < k && ka + j + 1 <= top - 1 && inBand(v, ((ka + j + 1) * tick - m) * 100)) j++;
+    return { bid: 0, ask: j };
+  }
+  return { bid: 0, ask: 0 };
+}
+
+/**
+ * A minute's book with its raw touch one tick outside the quotes an arm's rule moved, so that RW's own `quote` rests
+ * them there: RW's bid `out.bid` whole ticks lower and its ask `out.ask` higher, with the adjusted touch and the
+ * others' scores as recorded, so the mid, the scores and the pool's split are RW's own. `q` is RW's `quote` of `row`.
+ */
+export function restRow(row: BookRow, q: Quote, tick: number, out: { bid: number; ask: number }): BookRow {
+  return [(onGrid(q.b, tick) - out.bid - 1) * tick, (onGrid(q.a, tick) + out.ask + 1) * tick, row[2], row[3], row[4], row[5]];
+}
+
+/**
+ * Each market's prints by the minute their second falls in, read back a minute at a time: the minute's bucket and the
+ * next, which hold every print in (t, t + 60 s] — the ones `stepRw` keeps — in the order of the market's list. An arm that
+ * runs the rule on every minute (x4, x5) then reads a minute's prints rather than the whole run's, which `stepRw` would
+ * scan minute after minute. Measured 2026-10-02 in this repository's container on a 720-minute catch-up of 80 markets
+ * with 108,352 prints (RW's last 720 minutes held 44 markets and 302): the replay took 1,046 ms with x4 and x5 reading
+ * the whole run's prints, 676 ms reading the minute's, 392 ms before they existed — of the 2 s of CPU an Edge request has.
+ */
+export function minutePrints(printsOf: Map<string, PmPrint[]>): (cond: string, t: number) => PmPrint[] {
+  const byMinute = new Map<string, PmPrint[]>();
+  for (const [c, list] of printsOf) {
+    for (const p of list) {
+      const k = `${c}|${Math.floor(p.ts / 60)}`;
+      (byMinute.get(k) ?? byMinute.set(k, []).get(k)!).push(p);
+    }
+  }
+  return (cond, t) => {
+    const k = Math.floor(t / M);
+    return [...(byMinute.get(`${cond}|${k}`) ?? []), ...(byMinute.get(`${cond}|${k + 1}`) ?? [])];
+  };
+}
+
+/** How far an arm's rule moves RW's quotes in a minute, in whole ticks out on each side; null when RW's book quotes nothing. */
+export function restTicks(rest: RwxRest, row: BookRow, tick: number, v: number, N: number, net: number): { q: Quote; out: { bid: number; ask: number } } | null {
+  const q = quote(row, tick);
+  if (!q) return null;
+  if (rest.rule === "wide") {
+    const j = wideTicks(q.m, q.b, q.a, othersOf(q.m, q.q1, q.q2), tick, v, N, rest.keep);
+    return { q, out: { bid: j, ask: j } };
+  }
+  return { q, out: leanTicks(q.m, q.b, q.a, tick, v, N, net) };
+}
+
 /**
  * Replay the minutes (st.lastDecided, to] of RW's stored record in every arm. Pure: every read is in `inputs`, and the
  * day rows it closes are returned. RW-E's order: minute by minute, a day closed before its first minute past midnight,
@@ -111,14 +229,27 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
   const printsOf = new Map<string, PmPrint[]>();
   for (const p of inputs.prints) (printsOf.get(p.cond) ?? printsOf.set(p.cond, []).get(p.cond)!).push(toPrint(p));
   for (const list of printsOf.values()) list.sort(printOrder);
+  const printsAt = minutePrints(printsOf);
   const settleAfter = new Map<number, RweSettlement[]>();
   for (const s of inputs.settlements) {
     const t = Math.floor(Date.parse(s.settled_at) / M) * M - 2 * M;
     (settleAfter.get(t) ?? settleAfter.set(t, []).get(t)!).push(s);
   }
   const rwDay = new Map(inputs.rwDays.map((d) => [String(d.day).slice(0, 10), d]));
-  const ids = ["rw", ...specs.map((s) => s.id)];
-  const specOf = new Map(specs.map((s) => [s.id, s]));
+  // An arm added to a running replay is its seed until its own first minute, so a state that does not hold it yet starts
+  // it as a copy of the seed, the page's base left to that minute. Once that minute is replayed without it, it cannot be
+  // started, and it is left out of every minute after (its pre-registration's slip rule).
+  for (const s of specs) {
+    const seed = s.seed && !st.arms[s.id] ? st.arms[s.seed] : undefined;
+    if (seed && st.lastDecided < rwxArmStart(s)) {
+      const copy = structuredClone(seed);
+      delete copy.base;
+      st.arms[s.id] = copy;
+    }
+  }
+  const live = specs.filter((s) => !s.seed || st.arms[s.id]);
+  const ids = ["rw", ...live.map((s) => s.id)];
+  const specOf = new Map(live.map((s) => [s.id, s]));
   for (const id of ids) st.arms[id] ??= newArm();
 
   const closeDay = () => {
@@ -148,7 +279,7 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
   for (let t = from; t <= to; t += M) {
     if (t >= st.dayOf + DAY) closeDay();
     // The page shows an arm only from its own first minute (Davies, 2026-09-27), against what it held as that began.
-    for (const spec of specs) if (t === spec.from) st.arms[spec.id].base = structuredClone(st.arms[spec.id].acc);
+    for (const spec of live) if (t === rwxArmStart(spec)) st.arms[spec.id].base = structuredClone(st.arms[spec.id].acc);
     const dayExcluded = excluded.get(dayStr(t));
     for (const r of byMinute.get(t) ?? []) {
       const c = r.cond;
@@ -172,13 +303,19 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
         if (row && row[2] !== null && row[3] !== null) { acc.lastAb = row[2]; acc.lastAa = row[3]; }
         if (quoting) {
           const cap = spec && t >= spec.from ? (spec.invCap ?? RW_INV_CAP) : RW_INV_CAP;
-          // RW's recorded decision is this arm's while it holds what RW held and its cap quotes the sides RW's did.
-          const same = acc.net === rwNetBefore &&
+          // Where the arm's own rule rests its quotes from its minute, in whole ticks out from RW's (on what it holds now).
+          const rest = spec?.rest && t >= spec.rest.from && meta && row ? restTicks(spec.rest, row, tick, Number(meta.v), N, acc.net) : null;
+          const moved = rest !== null && (rest.out.bid > 0 || rest.out.ask > 0);
+          // RW's recorded decision is this arm's while it holds what RW held, its cap quotes the sides RW's did, and its
+          // quotes rest where RW's did.
+          const same = !moved && acc.net === rwNetBefore &&
             (acc.net < cap * N) === (acc.net < RW_INV_CAP * N) && (acc.net > -cap * N) === (acc.net > -RW_INV_CAP * N);
           if (spec && !same) {
             if (meta && row) {
               if (!a.diverged.includes(c)) a.diverged.push(c);
-              stepRw(acc, t / 1000, row, tick, Number(meta.v), Number(meta.rate), N, printsOf.get(c) ?? [], 0, cap);
+              // An arm with a rule of where it rests reads the minute's prints alone (`minutePrints`: the same fills).
+              const prints = spec.rest ? printsAt(c, t) : printsOf.get(c) ?? [];
+              stepRw(acc, t / 1000, moved ? restRow(row, rest!.q, tick, rest!.out) : row, tick, Number(meta.v), Number(meta.rate), N, prints, 0, cap);
             }
           } else if (recorded) {
             acc.lastM = Number(r.m);
@@ -280,23 +417,32 @@ export async function researchRwx(db: Db, specs: RwxSpec[], untilMs?: number): P
 
 /** RW-X's first minute: 2026-09-28 00:00 UTC, the first its pre-registration judges. */
 export const RWX_START = Date.UTC(2026, 8, 28);
+/** The first minute of x4's and x5's own rules: 2026-10-03 00:00 UTC, the first their pre-registration judges. */
+export const RWX_REST_START = Date.UTC(2026, 9, 3);
+/** The `wide` rule keeps at least nine tenths of the reward RW's own quotes earn in each minute (x4). */
+export const RWX_WIDE_KEEP = 0.9;
 /**
- * The arms the forward replay runs, frozen by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`: `e` is RW-E (its
- * rule from RW-E's first minute), the second check; `x1`–`x3` are RW-E plus each rule from RW-X's first minute.
+ * The arms the forward replay runs. The first four are frozen by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`:
+ * `e` is RW-E (its rule from RW-E's first minute), the second check; `x1`–`x3` are RW-E plus each rule from RW-X's first
+ * minute. `x4` and `x5`, frozen by `reviews/2026-10-02-polymarket-rw-rest-prereg.md`, are x1 exactly plus where their
+ * quotes rest from 2026-10-03 00:00 UTC, and were added to the running replay as copies of x1 (`seed`).
  */
 export const RWX_SPECS: RwxSpec[] = [
   { id: "e", noSameDayFrom: RWE_START, from: RWE_START },
   { id: "x1", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"] },
   { id: "x2", noSameDayFrom: RWE_START, from: RWX_START, pause: { cents: 15, minutes: 60 } },
   { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
+  { id: "x4", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "wide", from: RWX_REST_START, keep: RWX_WIDE_KEEP }, seed: "x1" },
+  { id: "x5", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "lean", from: RWX_REST_START }, seed: "x1" },
 ];
 /**
- * The page's names (Davies, 2026-09-27): numbered after RW-E's "Reward quotes variant-1", one line each, the rule not
- * shown on the site. Which rule is which is here and in the pre-registration: x1 no weather, x2 a pause after a jump,
- * x3 both.
+ * The page's names (Davies), numbered after RW-E's "Reward quotes variant-1", one line each, the rule not shown on the
+ * site. x1 (no weather) is variant-2 since 2026-09-27. variant-3 and variant-4 were x2 (a pause after a jump) and x3
+ * (both) until 2026-10-02, when Davies took the pause off the page and asked for two more variants on x1, numbered from
+ * variant-3: x4 (wider) and x5 (leaning against what it holds). x2 and x3 have no page name: the replay still runs them.
  */
 export const RWX_NAMES: Record<string, string> = {
-  x1: "Reward quotes variant-2", x2: "Reward quotes variant-3", x3: "Reward quotes variant-4",
+  x1: "Reward quotes variant-2", x4: "Reward quotes variant-3", x5: "Reward quotes variant-4",
 };
 /**
  * The replay's rule version: a stored state of another is replayed again from RW's start. 2 (2026-09-27, the same
@@ -322,9 +468,12 @@ export const RWX_REPLAY: RwxReplay = {
 };
 /**
  * The same arms on RW-C's fourteen days (the RW-NEXT pre-registration, part 2): each frozen rule unchanged, with every
- * "from" — RW-E's and the variant's own — at RW-C's first minute.
+ * "from" — RW-E's, the variant's own and, for x4 and x5, their quotes' (their pre-registration's forward window) — at
+ * RW-C's first minute.
  */
-export const RWCX_SPECS: RwxSpec[] = RWX_SPECS.map((s) => ({ ...s, noSameDayFrom: RWC_RUN_START, from: RWC_RUN_START }));
+export const RWCX_SPECS: RwxSpec[] = RWX_SPECS.map((s) => ({
+  ...s, noSameDayFrom: RWC_RUN_START, from: RWC_RUN_START, ...(s.rest ? { rest: { ...s.rest, from: RWC_RUN_START } } : {}),
+}));
 /** RW-C's (0069): its minutes, its own tables and lease; checked against RW-E's replay of RW-C (`pm_rwc_e_days`). */
 export const RWCX_REPLAY: RwxReplay = {
   source: RWC_INSTANCE, tables: { state: "pm_rwc_x_state", days: "pm_rwc_x_days" }, lock: "pmrwc-x", specs: RWCX_SPECS, eDays: "pm_rwc_e_days",

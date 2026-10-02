@@ -605,7 +605,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model; and the two GBP books' index prices, for the quote pages. |
 | `agents/pmrw_e.ts` | RW-E beside RW, and beside RW-C: the run's stored minutes replayed in two arms, the run itself (checked against its own days) and it without the markets that end on the day they are quoted. |
-| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out — the research that picked them on RW's days before RW-E's twelve, and the forward replay of the three it tracks, on RW's minutes and on RW-C's. |
+| `agents/pmrw_x.ts` | Variants of RW-E replayed from RW's stored record — an inventory cap, a pause after the mid jumps, categories left out, and where the quotes rest — the research that picked the first three on RW's days before RW-E's twelve, and the forward replay of the five it tracks, on RW's minutes and on RW-C's. |
 | `agents/pmrw_view.ts` | RW's paper test as the Agents page shows it, RW-E's and its variants' rows read the same way from their replays' arms, and RW-C's from its own engine run: from the engine's own state and records by the engine's own functions. |
 | `agents/jev_rows.ts` | Each rulebook's own wording of the model's entry question, asked only when the row's params name it. |
 | `agents/jev_bands.ts` | The measured range of the model's answers for every entry state, which JEV-DRIFT checks each entry's answer against; a flagged answer vetoes its entry on a gated row. |
@@ -721,6 +721,7 @@ before touching migration state.
 | `0082_anon_key_opens_nothing.sql` | Takes every privilege in `public` from `anon` and `authenticated` (tables, views, sequences, functions, and the defaults for what is created later), drops `board_data`'s three dashboard-made anon policies, and leaves the service role as it was: the page's anon key opens nothing in the database. |
 | `0083_cron_run_details_prune.sql` | A daily job keeping seven days of pg_cron's run history (`cron.job_run_details`), which nothing pruned before. |
 | `0084_pm_mid_order_path.sql` | Lets mid-pool's config leave dry-run and its orders be live, as mini-pool's always could, and adds a trigger on both Polymarket configs that refuses arming either while the other is armed: the two paths trade one account. |
+| `0085_pm_rw_x_rest_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take the two arms on x1 that move where the quotes rest (x4, x5). |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -828,7 +829,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
  ├─ agents ?action=pmrw-select  every 5 min   the day's portfolio for RW, once a UTC day → pm_rw_selection
  ├─ agents ?action=pmrw-e  every minute   RW's stored minutes replayed, RW and RW-E → pm_rw_e_*
- ├─ agents ?action=pmrw-x  every minute   RW's stored minutes replayed, RW-E's three variants → pm_rw_x_*
+ ├─ agents ?action=pmrw-x  every minute   RW's stored minutes replayed, RW-E's variants → pm_rw_x_*
  ├─ agents ?action=pmrwc  every minute, from 2026-10-08   RW-C, RW's paper quotes again on 10-09 → 10-23 (public reads) → pm_rwc_*
  ├─ agents ?action=pmrwc-select  every 5 min, from 2026-10-08   the day's portfolio for RW-C, once a UTC day → pm_rwc_selection
  ├─ agents ?action=pmrwc-e / pmrwc-x  every minute, from 10-09 00:02   RW-C's stored minutes replayed, RW-E and its variants → pm_rwc_e_* / pm_rwc_x_*

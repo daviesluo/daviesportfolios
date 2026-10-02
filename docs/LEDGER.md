@@ -47,6 +47,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      d2. RW-X1–X3 by their pre-registration's bar (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`: 09-28 →
         10-08, the change over the eleven days from the 09-27 row), from `pm_rw_x_days` (arms `x1`–`x3`), after its
         two checks: arm `rw` equals `pm_rw_days` and arm `e` equals `pm_rw_e_days`' `e` on every day, to under a cent.
+     d3. RW-X4 and RW-X5's Test 1 by `reviews/2026-10-02-polymarket-rw-rest-prereg.md` (10-03 → 10-08 from their 10-02
+        rows, the seventh condition against x1), after the same two checks and its own (their 10-02 rows equal x1's).
      e. A migration takes `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x` out of the one-minute job — since `0075` that is
         `update public.edge_calls set enabled = false where path in (…)` on those four paths (RW-C's four `pmrwc*` rows
         and every other row unchanged; the tables stay); the page rows stay as a record until Davies says otherwise.
@@ -57,16 +59,27 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
 
    - **RW-X1 (no weather), X2 (pause on jumps: 15 ¢, 60 minutes) and X3 (both)**: frozen 2026-09-27 18:25 UTC
      (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`), judged on 09-28 → 10-08; `agents?action=pmrw-x` (`0064`)
-     replays RW's stored minutes into `pm_rw_x_state` / `pm_rw_x_days`. X3 is off the page (`RWX_OFF_PAGE`) and still
-     replayed. **Daily health:** `pm_rw_x_state.last_error` empty, `last_minute` within ~3 min of RW's, `checkMaxUsd` and
-     `checkEMaxUsd` (over `checkEDays`) under $0.01, each arm's `diverged` read. Every row's page shows its own record
-     only. No market-level figure of 09-28 or later is read before 10-09.
+     replays RW's stored minutes into `pm_rw_x_state` / `pm_rw_x_days`. X2 and X3 are off the page (`RWX_OFF_PAGE`; X2
+     since 2026-10-02, Davies: the pause did worst) and still replayed. **Daily health:** `pm_rw_x_state.last_error`
+     empty, `last_minute` within ~3 min of RW's, `checkMaxUsd` and `checkEMaxUsd` (over `checkEDays`) under $0.01, its arms
+     `rw`, `e`, `x1`–`x5`, each arm's `diverged` read. Every row's page shows its own record only. No market-level figure
+     of 09-28 or later is read before 10-09.
+   - **RW-X4 ("wide", page "Reward quotes variant-3") and RW-X5 ("lean", "variant-4"), x1 plus where the quotes rest,
+     from 2026-10-03 00:00 UTC**: frozen 2026-10-02 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, `0085`). x4 rests
+     both quotes the most whole ticks out that keep 0.9 of the minute's reward at RW's quotes; x5 moves the quote that adds
+     to the position a tick out per whole N held. In the same replay, joined as copies of x1; if they are not among
+     `pm_rw_x_state`'s arms when it replays 10-03 00:00, Test 1 is void. **Test 1** on or after 10-09 00:05 UTC from
+     `pm_rw_x_days`: each arm's change over 10-03 → 10-08 from its 10-02 row, RW-X's seven conditions over six days (seed
+     20261009, × 365 / 6, per market the 10-08 `perMarket` less the 10-02), the seventh against x1; first RW-X's two checks
+     and that x4's and x5's 10-02 rows equal x1's. **Test 2** on RW-C's minutes (`pmrwc-x`, every rule from 10-09 00:00),
+     after RW-NEXT's RW-C verdict (≥ 10-23 00:05, seed 20261023, against x1 there). Not among RW-NEXT's five; an arm that
+     passes both goes to Davies.
 
    - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): ON
      `main` since 2026-09-28 04:39 UTC** (`3682b557` engine + `0069`, `17728e3c` page; history 00:38 and 05:12).
      `pmrw.ts` as a second instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`,
      warm-up 10-08 00:00 by constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00
-     (`pmrwc-e`, `pmrwc-x`). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Its page row
+     (`pmrwc-e`, `pmrwc-x`), and x4 and x5 since `0085` (an addendum to RW-NEXT Part 2, in their pre-registration). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Its page row
      "Reward quotes confirmation" appears by itself at its warm-up, 10-08 00:00 UTC** (Davies, 2026-09-28: off the page
      until then; the dashboard reads nothing of it before), "starts 9 Oct 01:00 BST" until its first minute. RW-NEXT
      is frozen (item 5a.3). The four calls return "before its warm-up" / "before RW-C's first minute is decided" (no
@@ -620,6 +633,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 18:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-X4 and RW-X5, two more variants on x1 from 2026-10-03 00:00 UTC; x2 off the page.** Davies (~17:15 UTC): "这个根据你的推荐再加1-2个variant对比（加在目前表现最好的无当天结束+无天气市场的基础上），暂停规则（variant-3）如果表现不好的话可以隐藏掉…". Over 09-28 → 10-01 (aggregates, each arm's day rows less its 09-27 row) x2 was the weakest variant (+$579.13, stress +$211.72) and x3 below x1 on both (+$611.66 / +$279.35 against +$641.38 / +$300.68): x2 leaves the page (`RWX_OFF_PAGE`), x3 stays off, both still replayed. Pre-registered and frozen in this commit (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`): **x4 "wide" (page "Reward quotes variant-3")** rests both quotes the most whole ticks further from the adjusted mid that keep at least 0.9 of the minute's reward at RW's quotes; **x5 "lean" ("variant-4")** moves the quote that would add to what it holds a tick out per whole N held. Both stay inside the band by more than 1e-9 ¢: a grid price reaches the band's edge a hair inside it, where RW's `scoreS` gives 1e-30 that would take an empty pool (the lean pin's first run caught it). RW's own `quote` places the moved quotes (`restRow`: the book's raw touch a tick outside them) and RW's own `stepRw` scores, fills and books them; `pmrw.ts` is untouched. They join the running replay as copies of x1 (`seed`, only before 10-03 00:00) and RW-C's replay runs them from 10-09 (`RWCX_SPECS`). `0085` widens the arm checks of `pm_rw_x_days` and `pm_rwc_x_days` (the test double with it); the dashboard reads the latest minute's `tick` so x4's and x5's QUOTES show their own prices and share. Pins (`pmrw_x.test.ts`, eight new): `restRow` over 20,000 random books; `wideTicks` and `leanTicks` in closed form; a world by hand (x4 fills at 0.48 / 0.52, x5 leans its bid to 0.48); added mid-way equals always there, and changes none of the five arms; a seed after 10-03 refused; the page's quotes; a minute's prints. Eight mutations, each caught (`restRow` at the touch, `scoreS` for the band, `keep` ignored, ceil for floor, a shared seed, a late seed, RW's quotes on the page, x1's start on the page). Once, in the scratchpad: on 60 random worlds, 532,800 minutes replayed in random chunks, the replay at `829632cf` and now gave rw, e and x1–x3 the same state and day rows byte for byte (67 RW-E divergences, 868 pauses and 84,659 fills of RW exercised); a leak of the wide rule into every arm was caught at the first chunk past 10-03 00:00; x4 and x5 on a minute's prints equal them on the whole list. CPU in this container: a minute's run 2 ms before and after; a 720-minute catch-up of 40 markets 116 → 204 ms, of 80 markets and 108,352 prints 392 → 676 ms (1,046 ms on the whole print list); RW's last 720 minutes held 44 markets and 302 prints. Recorded in the new file: a deviation of RW-X's "bookkeeping only", and an addendum to RW-NEXT Part 2. The sweep's fixture follows in the next commit.
 
 ### [2026-10-02 18:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

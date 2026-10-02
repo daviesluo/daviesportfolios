@@ -1085,14 +1085,17 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
   });
   it("RW-E's variants are rows of their own after it (Davies, 2026-09-27): RW's row read from each variant's summary, under its id and name", () => {
+    // The dashboard's three since 2026-10-02: x1 (variant-2), and x4 and x5 (variant-3 and -4, Davies: two more on x1).
     const list = [
       { ...r, id: 'x1', name: 'Reward quotes variant-2', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'x2', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'x4', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'x5', name: 'Reward quotes variant-4', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
     ];
     const rows = rwxRows(list);
     expect(rows.map((x) => [x.id, x.name, x.venueId, x.mode, x.nextText])).toEqual([
       [`${RWX_ROW_PREFIX}x1`, 'Reward quotes variant-2', 'polymarket', 'paper', 'every minute'],
-      [`${RWX_ROW_PREFIX}x2`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
+      [`${RWX_ROW_PREFIX}x4`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
+      [`${RWX_ROW_PREFIX}x5`, 'Reward quotes variant-4', 'polymarket', 'paper', 'every minute'],
     ]);
     // Every cell is RW's function of the same summary, as RW-E's row is.
     expect({ ...rows[0], id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(list[0]));
@@ -1101,21 +1104,22 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect([rwxRows(undefined), rwxRows(null), rwxRows([]), rwxRows([null, { ...r, name: 'x' }, { ...r, id: 'x3' }])]).toEqual([[], [], [], []]);
     // Five tests on Polymarket are one card, every one summed.
     const pm = venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r), rweRow(r), ...rows]).find((c) => c.id === 'polymarket');
-    expect([pm?.tests, pm?.capitalUsd]).toEqual([4, 4000]);
-    expect(pm?.realisedUsd).toBeCloseTo(4 * Number(rwRow(r)?.realisedUsd), 9);
+    expect([pm?.tests, pm?.capitalUsd]).toEqual([5, 5000]);
+    expect(pm?.realisedUsd).toBeCloseTo(5 * Number(rwRow(r)?.realisedUsd), 9);
   });
   it("a variant before its first minute shows only when it starts (Davies, 2026-09-27: only what it did under its own rules)", () => {
     // The dashboard's summary of a variant whose replay has not reached its first minute: nothing in it yet.
+    // variant-4 (x5) until 2026-10-03 00:00 UTC, its own rule's first minute.
     const waiting = {
-      ...r, id: 'x3', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-09-28T00:00:00.000Z', running: true,
+      ...r, id: 'x5', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-10-03T00:00:00.000Z', running: true,
       totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
       markets: [], days: [], recent: [], checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true },
     };
     const [row] = rwxRows([waiting]);
-    // 2026-09-28 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
-    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['28 Sep 01:00 BST', 'starts 28 Sep 01:00 BST']);
+    // 2026-10-03 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
+    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['3 Oct 01:00 BST', 'starts 3 Oct 01:00 BST']);
     // NEXT is the start alone; the status says it in words.
-    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['28 Sep 01:00 BST', 'paused', false, 'starts 28 Sep 01:00 BST']);
+    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['3 Oct 01:00 BST', 'paused', false, 'starts 3 Oct 01:00 BST']);
     expect([row.capitalUsd, row.valueUsd, row.todayUsd, row.unrealisedUsd, row.realisedUsd]).toEqual([1000, 0, 0, 0, 0]);
     // No today row in its days table, as there is no day of its own yet.
     expect(rwTodayRow(waiting, '2026-09-27T21:00:00.000Z')).toBe(null);

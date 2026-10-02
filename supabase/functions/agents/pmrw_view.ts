@@ -7,9 +7,9 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
-import { accCapital, accTotal, RW_INSTANCE, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
+import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
-import { RWX_NAMES, RWX_SPECS, type RwxStored } from "./pmrw_x.ts";
+import { leanTicks, RWX_NAMES, RWX_SPECS, rwxArmStart, wideTicks, type RwxStored } from "./pmrw_x.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -32,7 +32,7 @@ export const RW_FUNDED_USD = 1000;
 
 export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };
 export type RwSelRow = { day: string; cond: string; rank: number; rate: number | string; v: number | string; min_size: number | string; capital: number | string; q: string | null; cat: string | null; end_date: string | null };
-export type RwMinuteRow = { cond: string; minute: string; b: number | string | null; a: number | string | null; m: number | string | null; ours: number | string | null; others: number | string | null; qb: boolean | null; qa: boolean | null };
+export type RwMinuteRow = { cond: string; minute: string; tick?: number | string | null; b: number | string | null; a: number | string | null; m: number | string | null; ours: number | string | null; others: number | string | null; qb: boolean | null; qa: boolean | null };
 export type RwDayRow = { day: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets: number | string; detail: { phase?: string } | null };
 export type RwFillRow = { cond: string; minute: string; ts: string; side: "bid" | "ask"; price: number | string; size: number | string; print_id: string };
 
@@ -339,12 +339,14 @@ export function rweArmSummary(input: {
 }
 
 /**
- * The replay's arms that are not rows of the page. `x3` ("Reward quotes variant-4", no weather AND a pause on jumps) left
- * it on Davies' word (2026-09-28): every market's account in it is `x1`'s where the market is weather and `x2`'s
- * elsewhere, because each rule acts on one market at a time, so its row repeated two others. The replay still runs it,
- * unchanged, as the frozen pre-registration has it, so its days are in `pm_rw_x_days` for the verdict.
+ * The replay's arms that are not rows of the page. `x3` (no weather AND a pause on jumps, then "variant-4") left it on
+ * Davies' word (2026-09-28): every market's account in it is `x1`'s where the market is weather and `x2`'s elsewhere,
+ * because each rule acts on one market at a time, so its row repeated two others. `x2` (the pause, then "variant-3")
+ * left it on 2026-10-02 (Davies: hide the pause if it does badly; over 09-28 → 10-01 it trailed x1, RW-E and x3 on the
+ * total), and variant-3 and variant-4 are x4 and x5 from then. The replays still run both, unchanged, as the frozen
+ * pre-registration has them, so their days are in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdicts.
  */
-export const RWX_OFF_PAGE = new Set(["x3"]);
+export const RWX_OFF_PAGE = new Set(["x2", "x3"]);
 
 /** A replayed variant's closed days, as `pm_rw_x_days` holds them. */
 export type RwxDaysRow ={ day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
@@ -359,6 +361,8 @@ export type RwxDaysRow ={ day: string; arm: string; total: number | string; stre
 export function rwxArmSummaries(input: {
   rwState: RwStateRow | null; xState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
   days: RwxDaysRow[]; fills: RwFillRow[]; nowMs: number;
+  /** The arms left off the page: `RWX_OFF_PAGE` unless a test puts one back to pin how its row reads. */
+  offPage?: ReadonlySet<string>;
 }) {
   const st = input.xState?.state as RwxStored | undefined;
   if (!st || typeof st !== "object" || !("arms" in st) || !input.xState?.last_minute) return [];
@@ -374,7 +378,7 @@ export function rwxArmSummaries(input: {
   };
   const out = [];
   for (const spec of RWX_SPECS) {
-    if (spec.id === "e" || RWX_OFF_PAGE.has(spec.id) || !st.arms[spec.id]) continue;
+    if (spec.id === "e" || (input.offPage ?? RWX_OFF_PAGE).has(spec.id) || !st.arms[spec.id]) continue;
     const a = st.arms[spec.id];
     const diverged = new Set(a.diverged);
     // Left out for a whole day: RW-E's rule from its first day, the arm's categories from its own.
@@ -385,13 +389,28 @@ export function rwxArmSummaries(input: {
       return !!cat && spec.noCats!.includes(String(cat));
     };
     const paused = (cond: string, ms: number) => (a.pauses?.[cond] ?? []).some(([f, u]) => ms >= f && ms < u);
+    // An arm that moves its quotes (x4, x5) shows where they rest now: RW's latest quotes moved by its own rule, on what
+    // it holds now, with its own caps and its own score against the others' (bookkeeping for the page).
+    const rest = spec.rest;
+    const restLatest = (r: RwMinuteRow): RwMinuteRow => {
+      const t = Date.parse(r.minute), meta = rest ? metaFor(input.selectionAll, r.cond, t) : null;
+      if (!rest || !meta || t < rest.from || r.b == null || r.a == null || r.m == null) return r;
+      const tick = Number(r.tick ?? meta.tick) || 0.01, v = Number(meta.v), N = sizeN(Number(meta.min_size));
+      const m = Number(r.m), b = Number(r.b), ask = Number(r.a), others = Number(r.others ?? 0), net = a.acc[r.cond]?.net ?? 0;
+      const j = rest.rule === "wide" ? wideTicks(m, b, ask, others, tick, v, N, rest.keep) : null;
+      const out = j !== null ? { bid: j, ask: j } : leanTicks(m, b, ask, tick, v, N, net);
+      const nb = (Math.round(b / tick) - out.bid) * tick, na = (Math.round(ask / tick) + out.ask) * tick;
+      const qb = net < RW_INV_CAP * N, qa = net > -RW_INV_CAP * N;
+      const ours = Math.min(qb ? scoreS(v, (m - nb) * 100) * N : 0, qa ? scoreS(v, (na - m) * 100) * N : 0);
+      return { ...r, b: nb, a: na, ours, qb, qa };
+    };
     const summary = rwSummary({
       state: {
         state: { acc: a.acc, dayActive: a.dayActive, lastDecided: st.lastDecided, dayOf: st.dayOf, meta: rw?.meta ?? {} },
         last_minute: xState.last_minute, last_error: xState.last_error, updated_at: xState.updated_at,
       },
       selection: input.today.filter((x) => !leftOut(x.cond, String(x.day).slice(0, 10))),
-      latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute))),
+      latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute))).map(restLatest),
       days: input.days.filter((d) => d.arm === spec.id).map((d) => ({
         day: String(d.day).slice(0, 10), total: d.total, stress_total: d.stress_total, reward: d.reward, fills: d.fills, capital: d.capital,
         markets: d.markets ?? 0, detail: null,
@@ -400,7 +419,7 @@ export function rwxArmSummaries(input: {
         && !paused(f.cond, Date.parse(f.minute))),
       firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
       // Only what the variant did under its own rules: from its first minute, against what it held as that began.
-      since: { ms: spec.from, base: a.base },
+      since: { ms: rwxArmStart(spec), base: a.base },
     });
     if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks });
   }
