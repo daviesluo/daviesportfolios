@@ -656,6 +656,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-02 19:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Disclosure: PR5V's and variant-2's totals read before their readings, on Davies' question.** Davies: "Stablecoin
+quotes variant-1和2哪个更好？如果一个不行的话就下线" (correcting a slip that named Reward quotes). Read at 19:34 UTC, aggregates
+only, 2026-09-28 → 10-02 (10-02 partial), realised only: PR5's paper test 52 trips, 50 won, $6.95 on $1,200, 2,621
+orders; PR5V arm main 189, 162, $15.60 on $3,600, 15,922 orders; variant-2 arm d 198, 170, $15.51, 10,419 orders (its
+control arm v1 equal to PR5V's main). Per dollar of capital PR5 earned 0.58 % and each variant 0.43 %. Variant-1 is
+dominated (the same money for 53 % more orders, about 3,200 a day against one account's 1,000), so on his word it
+leaves the page; its engine keeps running and its 10-28 reading is unchanged. This adds to the 2026-09-30 disclosure:
+both reading scripts are still to be written strictly from their pre-registrations, with no discretionary choice, and
+each result file repeats both disclosures.
+
 ### [2026-10-02 19:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **One count for each test suite, read from today's runs.** The front page said 242 browser checks and about 450 Edge
