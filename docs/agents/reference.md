@@ -3415,7 +3415,7 @@ every script re-run byte-identical by the coordinating session).
       stay in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdict; only the dashboard leaves it out (`RWX_OFF_PAGE`).
       The stored day rows keep only each market's total and stress, so the verdict reads x3's own rows rather than
       summing x1's and x2's.
-    - **Two more arms on x1, x4 and x5, from 2026-10-03 00:00 UTC; x2 off the page (2026-10-02, migration `0085`,
+    - **Two more arms on x1, x4 and x5, from 2026-10-02 20:00 UTC (moved from 10-03 00:00 by the pre-registration's Addendum 1, Davies: "现在就开始测试 不要等"; Test 1 still judges 10-03 → 10-08); x2 off the page (2026-10-02, migration `0085`,
       `reviews/2026-10-02-polymarket-rw-rest-prereg.md`).** Davies: add one or two variants on the best one so far (x1,
       no same-day and no weather market), hide the pause if it is doing badly, number the new ones from variant-3. Over
       09-28 → 10-01 (the change of each arm's day rows from the 09-27 row, aggregates only) x2 was the weakest variant on

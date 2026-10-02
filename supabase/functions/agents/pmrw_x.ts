@@ -417,15 +417,19 @@ export async function researchRwx(db: Db, specs: RwxSpec[], untilMs?: number): P
 
 /** RW-X's first minute: 2026-09-28 00:00 UTC, the first its pre-registration judges. */
 export const RWX_START = Date.UTC(2026, 8, 28);
-/** The first minute of x4's and x5's own rules: 2026-10-03 00:00 UTC, the first their pre-registration judges. */
-export const RWX_REST_START = Date.UTC(2026, 9, 3);
+/**
+ * The first minute of x4's and x5's own rules: 2026-10-02 20:00 UTC, moved forward from 2026-10-03 00:00 by the
+ * pre-registration's Addendum 1 on Davies' word ("Reward quotes variant-3和4现在就开始测试 不要等"), written before it.
+ * Test 1 still judges 10-03 → 10-08 from the 10-02 rows; the four hours before are a run-in the page shows.
+ */
+export const RWX_REST_START = Date.UTC(2026, 9, 2, 20);
 /** The `wide` rule keeps at least nine tenths of the reward RW's own quotes earn in each minute (x4). */
 export const RWX_WIDE_KEEP = 0.9;
 /**
  * The arms the forward replay runs. The first four are frozen by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`:
  * `e` is RW-E (its rule from RW-E's first minute), the second check; `x1`–`x3` are RW-E plus each rule from RW-X's first
  * minute. `x4` and `x5`, frozen by `reviews/2026-10-02-polymarket-rw-rest-prereg.md`, are x1 exactly plus where their
- * quotes rest from 2026-10-03 00:00 UTC, and were added to the running replay as copies of x1 (`seed`).
+ * quotes rest from `RWX_REST_START` (its Addendum 1), and were added to the running replay as copies of x1 (`seed`).
  */
 export const RWX_SPECS: RwxSpec[] = [
   { id: "e", noSameDayFrom: RWE_START, from: RWE_START },

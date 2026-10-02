@@ -86,7 +86,8 @@ Deno.test("RW-C's replays run the frozen arms with every 'from' at RW-C's first 
   assertEquals(RWCX_SPECS.map((s) => s.id), ["e", "x1", "x2", "x3", "x4", "x5"]);
   // RW's own arms are untouched by the mapping.
   assertEquals(RWX_SPECS[1], { id: "x1", noSameDayFrom: RWE_START, from: Date.UTC(2026, 8, 28), noCats: ["weather_fees"] });
-  assertEquals(RWX_SPECS[4].rest, { rule: "wide", from: Date.UTC(2026, 9, 3), keep: 0.9 });
+  // x4's own rule from 2026-10-02 20:00 UTC on RW's minutes (the rest pre-registration's Addendum 1; 10-03 00:00 as frozen).
+  assertEquals(RWX_SPECS[4].rest, { rule: "wide", from: Date.UTC(2026, 9, 2, 20), keep: 0.9 });
 });
 
 Deno.test("RW-C's tables are held to RW's rules in the double, and its paged reads are total orders", () => {

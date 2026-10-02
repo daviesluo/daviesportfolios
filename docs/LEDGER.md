@@ -48,7 +48,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
         10-08, the change over the eleven days from the 09-27 row), from `pm_rw_x_days` (arms `x1`–`x3`), after its
         two checks: arm `rw` equals `pm_rw_days` and arm `e` equals `pm_rw_e_days`' `e` on every day, to under a cent.
      d3. RW-X4 and RW-X5's Test 1 by `reviews/2026-10-02-polymarket-rw-rest-prereg.md` (10-03 → 10-08 from their 10-02
-        rows, the seventh condition against x1), after the same two checks and its own (their 10-02 rows equal x1's).
+        rows, the seventh condition against x1), after the same two checks and its own (their 10-01 rows equal x1's, by
+        its Addendum 1: their rules run from 2026-10-02 20:00 UTC, so their 10-02 rows are their own).
      e. A migration takes `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x` out of the one-minute job — since `0075` that is
         `update public.edge_calls set enabled = false where path in (…)` on those four paths (RW-C's four `pmrwc*` rows
         and every other row unchanged; the tables stay); the page rows stay as a record until Davies says otherwise.
@@ -65,13 +66,14 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `rw`, `e`, `x1`–`x5`, each arm's `diverged` read. Every row's page shows its own record only. No market-level figure
      of 09-28 or later is read before 10-09.
    - **RW-X4 ("wide", page "Reward quotes variant-3") and RW-X5 ("lean", "variant-4"), x1 plus where the quotes rest,
-     from 2026-10-03 00:00 UTC**: frozen 2026-10-02 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, `0085`). x4 rests
+     from 2026-10-02 20:00 UTC** (moved from 10-03 00:00 by its Addendum 1 on Davies' word, "现在就开始测试 不要等"; the 20:00 →
+     24:00 run-in is shown on the page and not judged): frozen 2026-10-02 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, `0085`). x4 rests
      both quotes the most whole ticks out that keep 0.9 of the minute's reward at RW's quotes; x5 moves the quote that adds
      to the position a tick out per whole N held. In the same replay, joined as copies of x1; if they are not among
-     `pm_rw_x_state`'s arms when it replays 10-03 00:00, Test 1 is void. **Test 1** on or after 10-09 00:05 UTC from
+     `pm_rw_x_state`'s arms when it replays 10-02 20:00 (Addendum 1), Test 1 is void. **Test 1** on or after 10-09 00:05 UTC from
      `pm_rw_x_days`: each arm's change over 10-03 → 10-08 from its 10-02 row, RW-X's seven conditions over six days (seed
      20261009, × 365 / 6, per market the 10-08 `perMarket` less the 10-02), the seventh against x1; first RW-X's two checks
-     and that x4's and x5's 10-02 rows equal x1's. **Test 2** on RW-C's minutes (`pmrwc-x`, every rule from 10-09 00:00),
+     and that x4's and x5's 10-01 rows equal x1's (Addendum 1). **Test 2** on RW-C's minutes (`pmrwc-x`, every rule from 10-09 00:00),
      after RW-NEXT's RW-C verdict (≥ 10-23 00:05, seed 20261023, against x1 there). Not among RW-NEXT's five; an arm that
      passes both goes to Davies.
 
@@ -657,6 +659,20 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**RW-X4 and RW-X5 run their own rules from 2026-10-02 20:00 UTC, not 10-03 00:00; Test 1 does not move.** Davies
+(~19:05 UTC): "Reward quotes variant-3和4现在就开始测试 不要等". The rest pre-registration's Addendum 1, written before
+20:00: `RWX_REST_START` is `Date.UTC(2026, 9, 2, 20)` (the first whole hour this could deploy before with room, since
+the replay decides minutes in order about three minutes behind the clock); Test 1 still judges 10-03 → 10-08 from the
+10-02 rows, so the four hours are a run-in the page shows and the bar does not see; its copy check reads the 10-01 rows;
+the slip rule reads 20:00; Test 2 is unchanged. Tests: the frozen-spec pins in `pmrw_x.test.ts` and `pmrwc.test.ts` read
+20:00 (either fails with the old constant); the hand-worked world and the page's quotes run on the new start; the
+seeding's mechanics run on a midnight world (`MIDNIGHT_SPECS`) so a day still closes on the way. Gates green
+(edge-check, edge-test 951 + 1, unit). Read of these arms since the freeze: health readings and that both are in the
+replay's state, nothing of their accounts. To check after the deploy: the replay's `last_minute` was before 20:00 when
+the new code first ran (else Test 1 is void by the slip rule), and from 20:00 x4's and x5's page rows count.
 
 ### [2026-10-02 18:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

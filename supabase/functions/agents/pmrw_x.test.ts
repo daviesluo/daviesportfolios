@@ -155,10 +155,11 @@ Deno.test("the research stops at RW-E's first minute: nothing of its twelve days
 
 const DAY_MS = 86400e3;
 
-Deno.test("the tracked arms are the pre-registrations', frozen: RW-E, each rule from 2026-09-28 00:00 UTC, then x1 with its quotes moved from 10-03", () => {
+Deno.test("the tracked arms are the pre-registrations', frozen: RW-E, each rule from 2026-09-28 00:00 UTC, then x1 with its quotes moved from 10-02 20:00", () => {
   assertEquals(RWX_START, Date.parse("2026-09-28T00:00:00Z"));
   assertEquals(RWE_START, Date.parse("2026-09-27T00:00:00Z"));
-  assertEquals(RWX_REST_START, Date.parse("2026-10-03T00:00:00Z"));
+  // 2026-10-03 00:00 UTC as frozen, moved to 2026-10-02 20:00 by the pre-registration's Addendum 1 (Davies: "现在就开始测试").
+  assertEquals(RWX_REST_START, Date.parse("2026-10-02T20:00:00Z"));
   // The first four exactly as `reviews/2026-09-27-polymarket-rw-variants-prereg.md` froze them.
   assertEquals(RWX_SPECS.slice(0, 4), [
     { id: "e", noSameDayFrom: RWE_START, from: RWE_START },
@@ -244,7 +245,7 @@ Deno.test("the forward replay: every arm's day rows, RW-E's own days checked on 
   assertAlmostEquals(st.checkEMaxUsd, 0.05, 1e-9);
 
   // The rules, each from its minute: x1 stopped quoting W at midnight; x2 paused X at 00:03 (not at the jump before
-  // midnight) until 01:03; x3 both; RW-E is RW here; x4 and x5 are x1 until their own minute, 10-03.
+  // midnight) until 01:03; x3 both; RW-E is RW here; x4 and x5 are x1 until their own minute (`RWX_REST_START`).
   const reward = (arm: string, c: string) => st.arms[arm].acc[c].reward;
   for (const [arm, x, w] of [["rw", 2.0, 2.0], ["e", 2.0, 2.0], ["x1", 2.0, 1.0], ["x2", 1.3, 2.0], ["x3", 1.3, 1.0], ["x4", 2.0, 1.0], ["x5", 2.0, 1.0]] as const) {
     assertAlmostEquals(reward(arm, X), x, 1e-12, `${arm} X`);
@@ -311,7 +312,7 @@ Deno.test("a variant's page leaves out the fills RW made while it was paused: a 
     days: out.days, fills, nowMs: K(10),
   };
   // x2 is off the page since 2026-10-02 (Davies), as x3 since 09-28; variant-3 and -4 are x4 and x5, which say when they
-  // start until 10-03 00:00 UTC. The page's handling of a paused arm is pinned below with x2 put back on it.
+  // start until their own minute (`RWX_REST_START`). The page's handling of a paused arm is pinned below with x2 put back on it.
   const shown = rwxArmSummaries(input);
   assertEquals(shown.map((r) => [r.id, r.name, r.notStarted, r.startsAt]), [
     ["x1", "Reward quotes variant-2", false, iso(RWX_START)],
@@ -381,7 +382,7 @@ Deno.test("variant-4 (x3) is x1 on every weather market and x2 on every other, m
 });
 
 // ---------------------------------------------------------------------------------------- x4 and x5: where quotes rest
-// Pre-registration `reviews/2026-10-02-polymarket-rw-rest-prereg.md`: x1 plus, from 2026-10-03 00:00 UTC, x4 rests both
+// Pre-registration `reviews/2026-10-02-polymarket-rw-rest-prereg.md`: x1 plus, from `RWX_REST_START` (Addendum 1), x4 rests both
 // quotes the most whole ticks further from the mid that keep nine tenths of the minute's reward at RW's quotes, and x5
 // moves the quote that would add to what it holds a tick out for every whole N it holds. RW's own `quote` places them
 // (through `restRow`) and RW's own `stepRw` scores, fills and books them.
@@ -479,14 +480,20 @@ Deno.test("leanTicks: the quote that adds to what is held moves a tick out per w
   assertEquals([leanTicks(0.015, 0.01, 0.03, 0.01, 4.5, 20, 40), leanTicks(0.985, 0.97, 0.99, 0.01, 4.5, 20, -40)], [{ bid: 0, ask: 0 }, { bid: 0, ask: 0 }]);
 });
 
+/** A midnight first minute, 2026-10-03 00:00 UTC as frozen, for the one world that must close a day on the way. */
+const MIDNIGHT = Date.UTC(2026, 9, 3);
+/** The production specs with x4's and x5's rules from `MIDNIGHT`: the seeding's mechanics, which no start time changes. */
+const MIDNIGHT_SPECS: RwxSpec[] = RWX_SPECS.map((s) => (s.rest ? { ...s, rest: { ...s.rest, from: MIDNIGHT } } : s));
+const dayOfMs = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
 /**
- * One culture market across the arms' first minute, 2026-10-03 00:00 UTC (K(0)), on a 0.48 / 0.52 book every minute
+ * One culture market across the arms' first minute `T0` (K(0); production's `RWX_REST_START` unless given), on a 0.48 / 0.52 book every minute
  * (others' score 0.3): RW quotes 0.49 / 0.51 and earns 0.1 × 80/82.7 a minute. A sale at 0.47 in K(0), one at 0.48 in
  * K(1), a purchase at 0.53 in K(2): RW buys 20 at 0.49 twice and sells 20 at 0.51. A weather market beside it, which
  * x1's rule has left out since 09-28.
  */
-function restWorld() {
-  const K = (k: number) => RWX_REST_START + k * M;
+function restWorld(T0 = RWX_REST_START) {
+  const K = (k: number) => T0 + k * M;
   const C = "0xc5", W = "0xw5";
   const rwReward = 0.1 * (80 / 9) / (80 / 9 + 0.3);
   const rows = [];
@@ -506,13 +513,15 @@ function restWorld() {
     { cond: C, minute: iso(K(2)), ts: iso(K(2) + 20e3), side: "ask" as const, price: 0.51, size: 20, print_id: "b2" },
   ];
   const s = (day: string, cond: string, cat: string) => ({ day, cond, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: cond, cat });
-  const selection = ["2026-10-02", "2026-10-03"].flatMap((day) => [s(day, C, "culture_fees"), s(day, W, "weather_fees")]);
-  return { K, C, W, rwReward, inputs: { rows, fills, prints, selection, settlements: [], rwDays: [] } as RweInputs };
+  const selection = [...new Set([dayOfMs(K(-3)), dayOfMs(K(3))])].flatMap((day) => [s(day, C, "culture_fees"), s(day, W, "weather_fees")]);
+  // The replay's day as of the minute before the world: the UTC day that holds it.
+  const dayOf = Math.floor(K(-4) / DAY_MS) * DAY_MS;
+  return { K, C, W, rwReward, dayOf, inputs: { rows, fills, prints, selection, settlements: [], rwDays: [] } as RweInputs };
 }
 
-Deno.test("x4 rests a tick wider from 10-03 and x5 leans against what it holds: their fills and rewards by hand, x1 untouched", () => {
-  const { K, C, W, rwReward, inputs } = restWorld();
-  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS };
+Deno.test("x4 rests a tick wider from its first minute and x5 leans against what it holds: their fills and rewards by hand, x1 untouched", () => {
+  const { K, C, W, rwReward, inputs, dayOf } = restWorld();
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf };
   replayArms(st, K(3), inputs, RWX_SPECS);
   const out = 0.1 * (20 / 9) / (20 / 9 + 0.3);   // the minute's reward with one quote, or both, a tick out (1 ¢ → 2 ¢)
   const acc = (arm: string) => st.arms[arm].acc[C];
@@ -533,51 +542,54 @@ Deno.test("x4 rests a tick wider from 10-03 and x5 leans against what it holds: 
   assertAlmostEquals(acc("x5").cash, -0.49 * 20 + 0.51 * 20, 1e-12);
   // The weather market is x1's rule in all three: never quoted since 09-28, so never held.
   assertEquals([st.arms.x1.acc[W], st.arms.x4.acc[W], st.arms.x5.acc[W]], [undefined, undefined, undefined]);
-  // Each page counts from its own first minute: x4's and x5's base is their accounts as 10-03 began, x1's three minutes.
+  // Each page counts from its own first minute: x4's and x5's base is their accounts as that minute began, x1's three.
   assertEquals(st.arms.x4.base, st.arms.x5.base);
   assertEquals([st.arms.x4.base![C].net, st.arms.x4.base![C].fills, st.arms.x4.base![C].quotedMinutes], [0, 0, 3]);
   assertAlmostEquals(st.arms.x4.base![C].reward, 3 * rwReward, 1e-12);
 });
 
 Deno.test("an arm added to a running replay starts as a copy of x1 and ends where a replay that always had it ends; once its minute is past, it is left out", () => {
-  const { K, inputs } = restWorld();
-  const fresh = (specs: RwxSpec[]) => ({ ...newRwxState(specs), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS });
+  // On a world whose first minute is a midnight (`MIDNIGHT_SPECS`), so a day closes on the way; the mechanics are the
+  // production specs' whatever their start.
+  const { K, inputs, dayOf } = restWorld(MIDNIGHT);
+  const SPECS = MIDNIGHT_SPECS;
+  const fresh = (specs: RwxSpec[]) => ({ ...newRwxState(specs), lastDecided: K(-4), dayOf });
   // Always had it.
-  const always = fresh(RWX_SPECS);
-  const daysAlways = [...replayArms(always, K(-2), inputs, RWX_SPECS).days, ...replayArms(always, K(3), inputs, RWX_SPECS).days];
+  const always = fresh(SPECS);
+  const daysAlways = [...replayArms(always, K(-2), inputs, SPECS).days, ...replayArms(always, K(3), inputs, SPECS).days];
   // Production's state before 2026-10-02's deploy: the five arms 0064 started; x4 and x5 join on the next pass.
-  const added = fresh(RWX_SPECS.slice(0, 4));
-  replayArms(added, K(-2), inputs, RWX_SPECS.slice(0, 4));
+  const added = fresh(SPECS.slice(0, 4));
+  replayArms(added, K(-2), inputs, SPECS.slice(0, 4));
   assertEquals(Object.keys(added.arms).sort(), ["e", "rw", "x1", "x2", "x3"]);
-  const daysAdded = replayArms(added, K(3), inputs, RWX_SPECS).days;
+  const daysAdded = replayArms(added, K(3), inputs, SPECS).days;
   assertEquals(added, always);
   // The day it closed on the way (10-02) has a row for every arm, x4's and x5's equal to x1's.
   const day = (days: typeof daysAdded, arm: string) => days.find((d) => d.day === "2026-10-02" && d.arm === arm);
   for (const arm of ["rw", "e", "x1", "x2", "x3", "x4", "x5"]) assertEquals(day(daysAdded, arm), day(daysAlways, arm), arm);
   assertEquals({ ...day(daysAdded, "x4")!, arm: "x1" }, day(daysAdded, "x1"));
   // Adding them changed nothing of the five arms 0064 started: the same world without x4 and x5, minute for minute.
-  const without = fresh(RWX_SPECS.slice(0, 4));
-  replayArms(without, K(3), inputs, RWX_SPECS.slice(0, 4));
+  const without = fresh(SPECS.slice(0, 4));
+  replayArms(without, K(3), inputs, SPECS.slice(0, 4));
   for (const arm of ["rw", "e", "x1", "x2", "x3"]) assertEquals(added.arms[arm], without.arms[arm], arm);
-  // A state already past 10-03 00:00 without them cannot start them: they are left out, and nothing else changes.
-  const late = fresh(RWX_SPECS.slice(0, 4));
-  replayArms(late, K(0), inputs, RWX_SPECS.slice(0, 4));
-  const daysLate = replayArms(late, K(3), inputs, RWX_SPECS).days;
+  // A state already past their first minute without them cannot start them: they are left out, nothing else changes.
+  const late = fresh(SPECS.slice(0, 4));
+  replayArms(late, K(0), inputs, SPECS.slice(0, 4));
+  const daysLate = replayArms(late, K(3), inputs, SPECS).days;
   assertEquals(Object.keys(late.arms).sort(), ["e", "rw", "x1", "x2", "x3"]);
   assertEquals(daysLate.filter((d) => d.arm === "x4" || d.arm === "x5"), []);
   for (const arm of ["rw", "e", "x1", "x2", "x3"]) assertEquals(late.arms[arm], without.arms[arm], arm);
 });
 
 Deno.test("a rest arm's page shows where its own quotes rest: x4 a tick out on both sides, x5 RW's while flat", () => {
-  const { K, C, inputs } = restWorld();
-  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf: RWX_REST_START - DAY_MS };
+  const { K, C, inputs, dayOf } = restWorld();
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-4), dayOf };
   // The world starts after x1's first minute (09-28), when it held nothing.
   st.arms.x1.base = {};
   const out = replayArms(st, K(3), inputs, RWX_SPECS);
   const page = rwxArmSummaries({
     rwState: { state: { acc: {}, meta: {} }, last_minute: iso(K(3)), last_error: null },
     xState: { state: { ...st, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(K(3)), last_error: null },
-    selectionAll: inputs.selection, today: [{ day: "2026-10-03", cond: C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: C, cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
+    selectionAll: inputs.selection, today: [{ day: dayOfMs(K(0)), cond: C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: C, cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
     latest: [{ cond: C, minute: iso(K(3)), tick: 0.01, b: 0.49, a: 0.51, m: 0.50, ours: 80 / 9, others: 0.3, qb: true, qa: true }],
     days: out.days, fills: inputs.fills, nowMs: K(4),
   });
@@ -585,7 +597,7 @@ Deno.test("a rest arm's page shows where its own quotes rest: x4 a tick out on b
   assertEquals(quoteOf("x1"), [[0.49, 0.51, Number(((80 / 9) / (80 / 9 + 0.3)).toFixed(6))]]);
   assertEquals(quoteOf("x4"), [[0.48, 0.52, Number(((20 / 9) / (20 / 9 + 0.3)).toFixed(6))]]);
   assertEquals(quoteOf("x5"), [[0.49, 0.51, Number(((80 / 9) / (80 / 9 + 0.3)).toFixed(6))]]);
-  // Every figure of theirs is their own since 10-03 00:00: x4 made 0.80 on two fills and four minutes' reward.
+  // Every figure of theirs is their own since their first minute: x4 made 0.80 on two fills and four minutes' reward.
   const x4 = page.find((r) => r.id === "x4")!;
   assertEquals([x4.notStarted, x4.startedAt, x4.fills], [false, iso(RWX_REST_START), 2]);
   assertAlmostEquals(x4.totalUsd, 4 * 0.1 * (20 / 9) / (20 / 9 + 0.3) + 0.8, 1e-9);

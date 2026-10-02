@@ -213,3 +213,34 @@ last 720 minutes held 44 markets and 302 prints) took 116 ms before and 204 ms a
 prints, 392 ms before and 676 ms after. The new arms read each minute's prints alone (`minutePrints`), the same fills as
 the run's whole list (shown on the same 60 worlds); reading the whole list, the larger catch-up took 1,046 ms (404 ms
 before the change, in that measurement).
+
+## Addendum 1 (2026-10-02, about 19:20 UTC): the rules start at 2026-10-02 20:00 UTC; Test 1 does not move
+
+Written before its first minute, and landed and deployed before the replay reaches it. Davies, 2026-10-02 about 19:05
+UTC, verbatim:
+
+> Reward quotes variant-3和4现在就开始测试 不要等
+
+In English: start testing Reward quotes variant-3 and variant-4 now; don't wait. What changes, and nothing else:
+
+- **x4's and x5's rules start at 2026-10-02 20:00:00 UTC** (`RWX_REST_START` in `agents/pmrw_x.ts`), not 2026-10-03
+  00:00. 20:00 is the first whole hour this could land and deploy before with room to spare: the replay runs about three
+  minutes behind the clock and decides minutes in order, so the rule must be deployed before it replays 20:00. Until
+  20:00 their rules are x1's, as before; they are already among the replay's arms, copies of x1 since `3fa527f4`.
+- **Test 1 does not move.** It judges 2026-10-03 → 10-08 from the 10-02 rows, every condition and its arithmetic as
+  frozen above. The four hours 20:00 → 24:00 on 10-02 are a run-in: the arms enter 10-03 holding what their own rules
+  held at midnight, and the page counts them from 20:00. Judging the run-in too would change the bar's arithmetic (a
+  partial day among the bootstrap's days, the annualisation), which this addendum does not do.
+- **The copy check moves a day.** The arms differ from x1 from 20:00 on 10-02, so their 10-02 rows are no longer x1's.
+  The check reads the 10-01 rows instead: x4's and x5's 10-01 rows in `pm_rw_x_days` equal x1's in `total`,
+  `stress_total`, `reward`, `fills`, `capital` and `markets`. That they equal x1 on every minute decided before 20:00 on
+  10-02 is the replay's mechanics, pinned in `pmrw_x.test.ts` (an arm added mid-way ends where an arm always there ends).
+- **The slip rule** reads "when the replay first replays 2026-10-02 20:00": if x4 and x5 are not among
+  `pm_rw_x_state`'s arms then, or if the replay had decided 20:00 before this code ran, Test 1 is void and reported so.
+- **Test 2 does not move:** RW-C's replay starts every arm, x4 and x5 among them, at its own first minute.
+- **The code.** `RWX_REST_START` is `Date.UTC(2026, 9, 2, 20)`; nothing else in `pmrw_x.ts` changes but its comments.
+  In `pmrw_x.test.ts` the frozen-spec pin reads 20:00, the hand-worked world and the page's quotes run on the new start,
+  and the seeding's mechanics run on a world whose first minute is a midnight (`MIDNIGHT_SPECS`: the production specs
+  with x4's and x5's `rest.from` at 2026-10-03 00:00), so a day still closes on the way.
+- **What was read since the freeze:** of these arms, only the replay's health readings and that both are in its state
+  (copies of x1, `checkMaxUsd` and `checkEMaxUsd` 0, 2026-10-02 18:51 UTC). Nothing of their accounts or rows.
