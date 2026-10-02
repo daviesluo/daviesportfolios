@@ -194,6 +194,19 @@ export function mergePriceMaps(
 type Quote = { lastPrice?: number; extPrice?: number };
 
 type Holding = { isCash?: boolean; shares?: number; lastPrice?: number };
+
+/**
+ * Whether two prices of one holding are in different units: one about 100 times the other (70 to 140, either way).
+ * The prices function hands the board pounds for a London listing (it divides Yahoo's pence by 100); the broker quotes
+ * an instrument in its own currency, which for a London stock is pence. A recorded price is permanent and the chart
+ * values the book with it in the board's units, so a price whose units the board's own price contradicts is not
+ * recorded (improvement plan item 6, 2026-10-02). No real move is 100-fold between two prices of the same moment.
+ */
+export function unitsDiffer(a: number, b: number): boolean {
+  if (!(a > 0) || !(b > 0)) return false;
+  const r = a / b;
+  return (r >= 70 && r <= 140) || (r >= 1 / 140 && r <= 1 / 70);
+}
 type Portfolio = {
   holdings?: Record<string, Holding>;
   positions?: Record<string, { tickers?: string[] }>;
@@ -234,13 +247,26 @@ export function tickersToRecord(portfolio: Portfolio | null | undefined): string
  * with a fresh timestamp and make a flat stretch look like real data.
  * A ticker with no live quote is simply absent from the row, and the
  * chart falls back to Yahoo's bars for it exactly as it does today.
+ *
+ * Every price is checked for its units first (`unitsDiffer`) against the
+ * board's own price for the holding (`boardPrice`, the last one the
+ * browser saved: stale perhaps, but in the board's units), or, without one,
+ * against the prices function's: a broker quote in pence for a holding the
+ * board keeps in pounds is skipped, and so is a Yahoo price the board's own
+ * contradicts. The next candidate is tried, and with none left nothing is
+ * recorded.
  */
 export function recordablePrice(
   quote: Quote | null | undefined,
   t212Price: number | undefined,
   at: Date,
+  boardPrice?: number,
 ): number | null {
-  if (typeof t212Price === "number" && t212Price > 0) return t212Price;
+  const unitRef = typeof boardPrice === "number" && boardPrice > 0
+    ? boardPrice
+    : (typeof quote?.lastPrice === "number" && quote.lastPrice > 0 ? quote.lastPrice : null);
+  const inUnits = (p: number) => unitRef === null || !unitsDiffer(p, unitRef);
+  if (typeof t212Price === "number" && t212Price > 0 && inUnits(t212Price)) return t212Price;
   // Overnight, T212 is the ONLY live tape. Yahoo's quote here is the
   // last regular / after-hours print, frozen until 04:00 ET, so falling
   // through to it does exactly what the note above forbids: stamps a
@@ -259,22 +285,57 @@ export function recordablePrice(
   // is the authoritative overnight source anyway.
   if (isUsOvernightSession(at)) return null;
   const rth = isUsRegularSession(at);
-  if (!rth && typeof quote?.extPrice === "number" && quote.extPrice > 0) return quote.extPrice;
-  if (typeof quote?.lastPrice === "number" && quote.lastPrice > 0) return quote.lastPrice;
+  if (!rth && typeof quote?.extPrice === "number" && quote.extPrice > 0 && inUnits(quote.extPrice)) return quote.extPrice;
+  if (typeof quote?.lastPrice === "number" && quote.lastPrice > 0 && inUnits(quote.lastPrice)) return quote.lastPrice;
   return null;
 }
 
-/** The row body: every ticker we could price, and nothing else. */
+/**
+ * The tickers whose broker or Yahoo price was skipped for its units (`recordablePrice`), with the prices, so a call
+ * can say so.
+ */
+export function unitSkips(
+  tickers: string[],
+  quotes: Record<string, Quote>,
+  t212Prices: Record<string, number>,
+  boardPrices: Record<string, number>,
+): { ticker: string; t212?: number; yahoo?: number; board?: number }[] {
+  const out: { ticker: string; t212?: number; yahoo?: number; board?: number }[] = [];
+  for (const t of tickers) {
+    const board = boardPrices[t] > 0 ? boardPrices[t] : undefined;
+    const yahoo = (quotes[t]?.lastPrice ?? 0) > 0 ? quotes[t].lastPrice : undefined;
+    const ref = board ?? yahoo;
+    const t212 = t212Prices[t] > 0 ? t212Prices[t] : undefined;
+    if (ref === undefined) continue;
+    if ((t212 !== undefined && unitsDiffer(t212, ref)) || (yahoo !== undefined && unitsDiffer(yahoo, ref))) {
+      out.push({ ticker: t, t212, yahoo, board });
+    }
+  }
+  return out;
+}
+
+/** The row body: every ticker we could price, in the board's units, and nothing else. */
 export function buildPriceRow(
   tickers: string[],
   quotes: Record<string, Quote>,
   t212Prices: Record<string, number>,
   at: Date,
+  boardPrices: Record<string, number> = {},
 ): Record<string, number> {
   const out: Record<string, number> = {};
   for (const t of tickers) {
-    const px = recordablePrice(quotes[t], t212Prices[t], at);
+    const px = recordablePrice(quotes[t], t212Prices[t], at, boardPrices[t]);
     if (px != null) out[t] = px;
+  }
+  return out;
+}
+
+/** Each ticker's price as the board last saved it, for `recordablePrice`'s units. */
+export function boardPricesOf(portfolio: Portfolio | null | undefined, tickers: string[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const t of tickers) {
+    const p = Number(portfolio?.holdings?.[t]?.lastPrice);
+    if (Number.isFinite(p) && p > 0) out[t] = p;
   }
   return out;
 }
@@ -377,7 +438,16 @@ async function record(now: Date): Promise<Response> {
     fetchAllT212Prices(),
   ]);
 
-  const prices = buildPriceRow(tickers, quotes, t212Prices, now);
+  const boardPrices = boardPricesOf(portfolio, tickers);
+  const prices = buildPriceRow(tickers, quotes, t212Prices, now, boardPrices);
+  // A price skipped for its units is said once an hour (the hour's first bucket) while it lasts, not every 5 minutes.
+  const skipped = unitSkips(tickers, quotes, t212Prices, boardPrices);
+  if (skipped.length > 0 && now.getUTCMinutes() < 5) {
+    await reportServerError("snapshot-record.units", {
+      symbol: skipped[0].ticker,
+      message: `prices in other units than the board's, not recorded: ${skipped.map((s) => `${s.ticker} (broker ${s.t212 ?? "-"}, Yahoo ${s.yahoo ?? "-"}, board ${s.board ?? "-"})`).join("; ")}`,
+    });
+  }
   // Nothing priced at all means the upstream is down, not that the
   // book is worthless. Write nothing; the next tick is 5 min away.
   if (Object.keys(prices).length === 0) return json(200, { ok: true, skipped: "no-prices" });

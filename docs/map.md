@@ -570,7 +570,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `chart` | Price bars for the charts, from Yahoo or Eastmoney. |
 | `fundamentals` | P/E, P/S, EPS history and market cap from Yahoo, Finnhub and Alpha Vantage, cached; one file per source (`_yahoo.ts`, `_finnhub.ts`, `_alphavantage.ts`) plus `_caches.ts`, `_math.ts` and `_shared.ts`. |
 | `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit, and its fill history. |
-| `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker. |
+| `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker, in the board's units (a price 100 times the board's own is never written). |
 | `overnight-record` | Run by pg_cron through the US overnight session: records Trading 212's overnight quotes. |
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |
 | `ops-error` | Stores error reports and serves the admin summary. |

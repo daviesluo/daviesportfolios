@@ -5,6 +5,7 @@
 import { assert, assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import * as sharedTickers from "../_shared/t212_tickers.ts";
 import {
+  boardPricesOf,
   bucketTimeIso,
   buildPriceRow,
   extractT212Prices,
@@ -16,6 +17,8 @@ import {
   recordsT212Price,
   t212TickerToYahoo,
   tickersToRecord,
+  unitSkips,
+  unitsDiffer,
 } from "./index.ts";
 
 Deno.test("bucketTimeIso floors to the 5-minute bucket", () => {
@@ -240,4 +243,63 @@ Deno.test("handle: the bearer, then the call's beat, then the recording; a wrong
   // A beat that cannot be written stops nothing.
   const r = await handle(new Request(url, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), { ...deps, beat: () => Promise.reject(new Error("db down")) });
   assertEquals([r.status, order], [200, ["run"]]);
+});
+
+// ---- a price in other units than the board's is not recorded (improvement plan item 6) ----
+//
+// The prices function hands the board pounds for a London listing (Yahoo's pence divided by 100); the broker quotes a
+// London stock in pence. The recorder prefers the broker, so a London stock held at Trading 212 would have gone into
+// price_snapshots 100 times its board price, for good. None has yet: on 2026-10-02 the table's 44,911 consecutive pairs
+// over 26 tickers moved at most +23.1 % / -18.5 %, and both London holdings are USD lines whose broker and Yahoo prices
+// agree. Each case is worked by hand.
+
+Deno.test("unitsDiffer: one price about 100 times the other, either way, and nothing else", () => {
+  assert(unitsDiffer(250, 2.5));
+  assert(unitsDiffer(2.5, 250));
+  assert(unitsDiffer(175, 2.5));                     // 70 times
+  assert(unitsDiffer(2.5, 350));                     // 1/140
+  assert(!unitsDiffer(112.25, 112.1));               // a USD line, broker and Yahoo
+  assert(!unitsDiffer(1.3, 1));                      // dollars against pounds is not a unit slip
+  assert(!unitsDiffer(121, 1210));                   // a 10:1 split is 10 times, not 100
+  assert(!unitsDiffer(0, 2.5));
+  assert(!unitsDiffer(-250, 2.5));
+});
+
+Deno.test("recordablePrice: a broker quote in pence for a holding the board keeps in pounds is skipped for Yahoo's", () => {
+  // In session: the broker's 252.4p, Yahoo's £2.52, the board's last saved £2.50.
+  assertEquals(recordablePrice({ lastPrice: 2.52 }, 252.4, REGULAR, 2.5), 2.52);
+  // After hours, Yahoo's own late print in pounds.
+  assertEquals(recordablePrice({ lastPrice: 2.52, extPrice: 2.53 }, 252.4, AFTER_HOURS, 2.5), 2.53);
+  // Overnight the broker is the only tape: in the wrong units, nothing is recorded.
+  assertEquals(recordablePrice({ lastPrice: 2.52 }, 252.4, OVERNIGHT, 2.5), null);
+  // With no board price the prices function's own price sets the units.
+  assertEquals(recordablePrice({ lastPrice: 2.52 }, 252.4, REGULAR), 2.52);
+});
+
+Deno.test("recordablePrice: a Yahoo price 100 times the board's is not recorded; the broker's in the board's units is", () => {
+  assertEquals(recordablePrice({ lastPrice: 252 }, undefined, REGULAR, 2.5), null);
+  assertEquals(recordablePrice({ lastPrice: 252 }, 2.51, REGULAR, 2.5), 2.51);
+  assertEquals(recordablePrice({ lastPrice: 2.52, extPrice: 253 }, undefined, AFTER_HOURS, 2.5), 2.52);
+});
+
+Deno.test("recordablePrice: every real price still goes in — a USD line, a big move, a split, a new holding", () => {
+  // VUAA.L as the book holds it: the broker's dollars beside Yahoo's.
+  assertEquals(recordablePrice({ lastPrice: 112.1 }, 112.25, REGULAR, 112), 112.25);
+  // A 40 % day and a 10:1 split against a stale board price.
+  assertEquals(recordablePrice({ lastPrice: 60 }, undefined, REGULAR, 100), 60);
+  assertEquals(recordablePrice({ lastPrice: 121 }, undefined, REGULAR, 1200), 121);
+  // A holding the board has no price for yet, and one Yahoo does not quote.
+  assertEquals(recordablePrice({ lastPrice: 40 }, undefined, REGULAR), 40);
+  assertEquals(recordablePrice(null, 7.5, OVERNIGHT), 7.5);
+});
+
+Deno.test("buildPriceRow and unitSkips: the row keeps the board's units, and the skip is named", () => {
+  const quotes = { "BARC.L": { lastPrice: 2.52 }, "VUAA.L": { lastPrice: 112.1 }, AAPL: { lastPrice: 231.5 } };
+  const t212 = { "BARC.L": 252.4, "VUAA.L": 112.25 };
+  const board = boardPricesOf({ holdings: { "BARC.L": { lastPrice: 2.5 }, "VUAA.L": { lastPrice: 112 }, AAPL: { lastPrice: 0 } } }, ["BARC.L", "VUAA.L", "AAPL"]);
+  assertEquals(board, { "BARC.L": 2.5, "VUAA.L": 112 });
+  assertEquals(buildPriceRow(["BARC.L", "VUAA.L", "AAPL"], quotes, t212, REGULAR, board), { "BARC.L": 2.52, "VUAA.L": 112.25, AAPL: 231.5 });
+  assertEquals(unitSkips(["BARC.L", "VUAA.L", "AAPL"], quotes, t212, board), [{ ticker: "BARC.L", t212: 252.4, yahoo: 2.52, board: 2.5 }]);
+  // Overnight the same book records nothing for BARC.L and the broker's dollars for VUAA.L.
+  assertEquals(buildPriceRow(["BARC.L", "VUAA.L"], quotes, t212, OVERNIGHT, board), { "VUAA.L": 112.25 });
 });
