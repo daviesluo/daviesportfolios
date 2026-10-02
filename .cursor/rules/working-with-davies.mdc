@@ -141,6 +141,13 @@ What works:
 4. **A matrix, not one case.** Ranges × scenarios × data states. Two
    panels × five ranges × (no samples / two samples / a full day) is
    the shape of check he wants, not "I opened 1D and it drew a line".
+5. **Money is checked against the account.** A claim that live fills
+   are booked right is proven by the venue's balance, never by the
+   ledger agreeing with itself. On 2026-10-02 PR5's six fills, booked
+   at the venue's rounded average price, summed to £60.00053 where the
+   account had moved exactly £60.00 (Revolut X moves whole pennies and
+   reports them as `filled_amount`), while the reference said the
+   books were right.
 
 Harnesses from past sessions worth rebuilding: a flat-book test (a
 portfolio that doesn't move must draw a flat line and read 0.00% on
