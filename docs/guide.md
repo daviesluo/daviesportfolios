@@ -289,11 +289,13 @@ places stay when the number is not whole.
 - **Reward quotes mid-pool.** The last row, on Polymarket: the same test
   on bigger pools, markets paying $10 to under $50 a day in rewards, for
   fourteen days. It is the same code as mini-pool, at the same size
-  (up to eight markets a day, a $320 cap), and it can never send an
-  order: it only writes down what it would send, and this row fills
-  those orders on paper the same way. It never picks a market that the
-  other Reward quotes tests quote, and leaves out the ones close to
-  them too. Its row and its page read exactly like mini-pool's.
+  (up to eight markets a day, a $320 cap), and the same real order
+  path: like mini-pool it only writes down what it would send, and this
+  row fills those orders on paper the same way, until Davies says go.
+  Both use the same Polymarket account, so only one of the two can ever
+  be live. It never picks a market that the other Reward quotes tests
+  quote, and leaves out the ones close to them too. Its row and its
+  page read exactly like mini-pool's.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

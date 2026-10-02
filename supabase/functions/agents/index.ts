@@ -42,11 +42,13 @@
 //                             paper from Polymarket's public prints by RW's
 //                             rule, two minutes behind; its own tables only,
 //                             the path's read only. Keyless. Every minute.
-//   POST ?action=pmmid      — "Reward quotes mid-pool" (pm_mid.ts, 0081): the
-//                             same order path on rewarded markets of $10 to
-//                             under $50 a day, every minute from eu-west-1,
-//                             a dry-run its own table holds there: no key
-//                             loaded, no POST or DELETE on its wire. Its
+//   POST ?action=pmmid      — "Reward quotes mid-pool" (pm_mid.ts, 0081, 0084):
+//                             the same order path on rewarded markets of $10
+//                             to under $50 a day, every minute from eu-west-1,
+//                             wired as pmlive is (the key loaded for the
+//                             stored signer, the same keyed wire): a dry-run
+//                             until `pm_mid_config` says otherwise, and never
+//                             armed while `pm_live_config` is (0084). Its
 //                             selection leaves out the markets near the top
 //                             of RW's rule, recomputed from public data.
 //                             Cron bearer only.
@@ -125,7 +127,7 @@ import {
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
-import { loadPolymarketEnv, POLYMARKET_ENV_NAMES, polymarketProbe } from "../_shared/polymarket.ts";
+import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
 import { PM_LIVE_TIMEOUT_MS, runPmLive, type PmSettlement } from "./pm_live.ts";
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
@@ -407,38 +409,33 @@ export async function runPmPrepAction(deps: { db?: Db; now?: number } = {}) {
   return report;
 }
 
-/** Why mid-pool's turn has no signing key: it never reads one (0081 holds it in dry-run). */
-export const PM_MID_NO_KEY = "the mid-pool instance reads no signing key: its config table holds it in dry-run (0081)";
-
-/** Mid-pool's wire: small-pool's, with every POST and DELETE kept at home whatever the code's switch says. */
-export const pmMidWire = (env: ReturnType<typeof loadPmLiveEnv>, fetchImpl?: typeof fetch) =>
-  pmVenue({ fetchImpl, creds: env.creds, address: env.signer, sigType: env.sigType ?? 1, scrub: (s) => env.scrub(s), timeoutMs: PM_LIVE_TIMEOUT_MS, sendsEnabled: false });
-
 /**
- * "Reward quotes mid-pool", one minute (`pm_mid.ts`, 0081): the order path on mid-pool's instance. It reads the L2
- * credentials and the two addresses (its gates read the account's closed-only flag and holdings, as small-pool's do) and
- * never the signing key: the env loader is not even asked for it, so none is ever in memory. Its wire refuses every
- * POST and DELETE (`sendsEnabled: false`), its table every config but a dry-run. Faults go to `ops_errors` as
- * `agents.pm_mid`.
+ * "Reward quotes mid-pool", one minute (`pm_mid.ts`, 0081, 0084): the order path on mid-pool's instance, wired as
+ * `runPmLiveAction` wires mini-pool's (Davies, 2026-10-02: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模跑
+ * dry-run，之后更好对比，现在就做不要等"). The same reads of the secrets (`loadPmLiveEnv`: the L2 credentials, the two
+ * addresses and the signing key, kept only when it is the stored signer's and scrubbed from whatever is returned), the
+ * same keyed wire (`pmVenue`, its POST and DELETE under the code's switch alone), the same account, signer and switch.
+ * What keeps its every order home is its config row, `pm_mid_config`: `dry_run` true and `live_confirmed_at` null, as
+ * `pm_live_config` keeps mini-pool's; a trigger (0084) refuses arming either row while the other is armed, since the two
+ * paths trade one account. Every fetch times out after 5 s. It never throws past here: its faults go to `ops_errors` as
+ * `agents.pm_mid`. What differs from mini-pool's is only the instance (`PM_MID_INSTANCE`: its tables, its lease, its
+ * band, RW's exclusion, the batched book read) and the options of the keyless public reads its exclusion makes.
  */
 export async function runPmMidAction(deps: { db?: Db; fetchImpl?: typeof fetch; read?: (n: string) => string | undefined; now?: number } = {}) {
   try {
-    const read = deps.read ?? ((n: string) => Deno.env.get(n));
-    const env = loadPmLiveEnv((n) => ((POLYMARKET_ENV_NAMES.privateKey as readonly string[]).includes(n) ? undefined : read(n)));
+    const env = loadPmLiveEnv(deps.read);
     const report = await runPmLive({
       db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(),
-      venue: pmMidWire(env, deps.fetchImpl),
-      sbRegion: read("SB_REGION") ?? null,
+      venue: pmVenue({ fetchImpl: deps.fetchImpl, creds: env.creds, address: env.signer, sigType: env.sigType ?? 1, scrub: (s) => env.scrub(s), timeoutMs: PM_LIVE_TIMEOUT_MS }),
+      sbRegion: (deps.read ?? ((n: string) => Deno.env.get(n)))("SB_REGION") ?? null,
       sendsEnabled: PM_ORDER_SENDS_ENABLED,
       account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
-      signer: null,
-      signerProblem: PM_MID_NO_KEY,
+      signer: env.key,
+      signerProblem: env.keyProblem,
       inst: PM_MID_INSTANCE,
       pm: { fetchImpl: deps.fetchImpl, timeoutMs: PM_LIVE_TIMEOUT_MS },
     });
-    // The key it does not read is no problem of its secrets.
-    const problems = env.check.problems.filter((p) => p !== env.keyProblem);
-    if (problems.length) report.errors.push(`secrets: ${problems.join("; ")}`);
+    if (env.check.problems.length) report.errors.push(`secrets: ${env.check.problems.join("; ")}`);
     const clean = env.scrub(report);
     if (clean.errors.length) await reportServerError(PM_MID_INSTANCE.errorKind, tickErrorReport(clean));
     return clean;

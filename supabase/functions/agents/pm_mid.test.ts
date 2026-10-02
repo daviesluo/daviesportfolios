@@ -1,6 +1,7 @@
-// "Reward quotes mid-pool" (pm_mid.ts, 0081): the order path and its paper layer on mid-pool's instance, against the
-// in-memory database held to 0081's rules (a band of [$10, $50), a config that is a dry-run and nothing else, orders of
-// no mode but dry_run) and the fake Polymarket that answers the path, RW's public reads and the paper layer alike.
+// "Reward quotes mid-pool" (pm_mid.ts, 0081, 0084): the order path and its paper layer on mid-pool's instance, against
+// the in-memory database held to 0081's and 0084's rules (a band of [$10, $50); since 0084 a config that may be live and
+// armed, orders of either mode, and never both configs armed) and the fake Polymarket that answers the path, RW's public
+// reads and the paper layer alike.
 //
 // What is pinned: the instance's names, band and switches; RW's selection recomputed from public data is RW's own
 // selection (`runPmrwSelect`, run on the same fake) on 60 random worlds and on the hand-worked one; the exclusion's margin
@@ -8,16 +9,18 @@
 // mid-pool's tables); mid-pool's picks inside its band and outside RW's top, in every random world; a selection without
 // the exclusion is never made (a failed public read fails the day's try); its candidates' books read in one batch; its
 // readout reads nothing of the account's payouts; it touches only its own tables (never small-pool's, RW's or RW-C's);
-// and its action reads no signing key and lets no POST or DELETE leave, whatever its config row were to say.
+// and, since 0084, its action is mini-pool's: the key loaded only for the stored signer, the pUSD read every minute, the
+// same keyed wire, its config row the lock (as deployed, a day sends nothing but GETs; armed, it sends; its kill switches
+// reach the venue), and the double refuses arming it while mini-pool is armed, and the other way round.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { leftOut, PM_MID_BAND, PM_MID_EXCLUSION_MARGIN, PM_MID_INSTANCE, PREP_MID_INSTANCE, rwSelectionNow, type RwScored } from "./pm_mid.ts";
 import { pmLiveDbTables, PM_LIVE_SELECT_UNTIL_MS, rewardListing, runPmLive } from "./pm_live.ts";
 import { prepDbTables, prepReads, runPmPrep } from "./pm_prep.ts";
 import { runPmrwSelect, RW_BUDGET_USD, RW_MIN_RATE } from "./pmrw.ts";
-import { PM_MID_NO_KEY, pmMidWire, runPmMidAction } from "./index.ts";
-import { loadPmLiveEnv } from "../_shared/polymarket_orders.ts";
-import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_OWNER, PM_TEST_SIGNER, type Row } from "./testing.ts";
+import { runPmMidAction } from "./index.ts";
+import { PM_ORDER_SENDS_ENABLED, PmOrderKey } from "../_shared/polymarket_orders.ts";
+import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_OWNER, PM_TEST_SIGNER, type Row } from "./testing.ts";
 
 const M = 60e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -29,6 +32,8 @@ const MID_CONFIG = {
   cap_total_usd: 320, cap_market_usd: 60, loss_day_usd: 25, loss_total_usd: 75, max_posts_day: 6000, gtd_lifetime_s: 600, max_markets: 8, select_budget_usd: 160,
   created_at: "2026-10-02T03:00:00.000Z", updated_at: "2026-10-02T03:00:00.000Z",
 };
+/** Mini-pool's row beside it, as `0080` leaves it: the same sizes, no `created_at`. */
+const MINI_CONFIG = (({ created_at: _c, ...rest }) => rest)(MID_CONFIG);
 const MID_TABLES = Object.values(PM_MID_INSTANCE.tables), PREP_TABLES = Object.values(PREP_MID_INSTANCE.tables);
 
 /**
@@ -41,7 +46,7 @@ const MID_TABLES = Object.values(PM_MID_INSTANCE.tables), PREP_TABLES = Object.v
  * ($10, its floor). Out of its band: $9.99, $50; out of its universe: M6 at $30 with a minimum of 25 (N over 20) and M7
  * at $30 with no spread to score.
  */
-function world(o: { gammaRefuses?: number } = {}) {
+function world(o: { gammaRefuses?: number; config?: Record<string, unknown>; key?: boolean; liveConfig?: Record<string, unknown> } = {}) {
   const clock = { now: T0 };
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
@@ -52,25 +57,32 @@ function world(o: { gammaRefuses?: number } = {}) {
   const mem = memDb({
     agent_locks: [{ name: "pm-mid", lease_until: iso(0), holder: null }, { name: "pm-midprep", lease_until: iso(0), holder: null }, { name: "pmrw-select", lease_until: iso(0), holder: null }],
     agent_risk: [{ id: 1, global_pause: false }],
-    pm_mid_config: [{ ...MID_CONFIG }],
+    pm_mid_config: [{ ...MID_CONFIG, ...o.config }],
     ...Object.fromEntries([...MID_TABLES.filter((t) => t !== "pm_mid_config"), ...PREP_TABLES].map((t) => [t, []])),
     // Small-pool's, RW's and RW-C's tables beside them, as in production, each with a row: mid-pool must never touch them.
-    pm_live_config: [{ id: 1, dry_run: true }], pm_live_markets: [{ day: "2026-10-02", cond: cond(1) }], pm_prep_state: [{ id: 1 }],
+    pm_live_config: [{ ...MINI_CONFIG, ...o.liveConfig }], pm_live_markets: [{ day: "2026-10-02", cond: cond(1) }], pm_prep_state: [{ id: 1 }],
     pm_rw_selection: [], pm_rwc_selection: [{ day: "2026-10-02", cond: cond(201) }], pm_rw_minutes: [{ cond: cond(201), minute: iso(T0) }],
   }, { now: () => clock.now });
   const db = onlyTables(mem.db, pmLiveDbTables(PM_MID_INSTANCE), { lease: "pm-mid", readOnly: ["agent_risk"] });
   const prepDb = onlyTables(mem.db, prepDbTables(PREP_MID_INSTANCE), { lease: "pm-midprep", readOnly: prepReads(PREP_MID_INSTANCE) });
   let salt = 1;
+  // The stored signer's key, as the action loads it since 0084 (`o.key` false: none, as before 0084).
+  const key = o.key === false ? null : new PmOrderKey(PM_TEST_KEY);
   const w = {
     clock, pm, mem, db, R50, M1, M2, M20, M3, M4, M5, S9, M6, M7,
     async turn(at = clock.now, inst = PM_MID_INSTANCE) {
       clock.now = at;
       return await runPmLive({
         db, now: at, holder: `h${at}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true, account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER },
-        signer: null, signerProblem: PM_MID_NO_KEY, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst,
-        pm: { fetchImpl: pm.publicFetch },
+        signer: key, signerProblem: key ? null : "POLYMARKET_PRIVATE_KEY missing: no order can be signed", salt: () => String(salt++), pause: () => Promise.resolve(),
+        clock: () => clock.now, inst, pm: { fetchImpl: pm.publicFetch },
       });
     },
+    state: () => (mem.tables.pm_mid_state as Row[])[0]?.state as Record<string, any>,
+    setConfig(p: Record<string, unknown>) { Object.assign((mem.tables.pm_mid_config as Row[])[0], p); },
+    open: (mode?: string) => (mem.tables.pm_mid_orders as Row[]).filter((r) => (r.state === "pending" || r.state === "live") && (!mode || r.mode === mode)),
+    /** Everything sent to the venue but its GETs and the exclusion's keyless batch read of the books. */
+    writes: () => pm.calls.filter((c) => !c.startsWith("GET ") && c !== "POST clob.polymarket.com/books"),
     markets: () => mem.tables.pm_mid_markets as Row[],
     picks: (day = "2026-10-02") => (mem.tables.pm_mid_markets as Row[]).filter((m) => m.day === day).map((m) => String(m.cond)),
     /** RW's own selection, by RW's own code, on the same fake: into its table here, read back. */
@@ -288,16 +300,40 @@ Deno.test("mid-pool's paper layer decides its dry-run's minutes on its own table
   assertEquals([...prepDb.touched].filter((t) => !PREP_TABLES.includes(t) && !prepReads(PREP_MID_INSTANCE).includes(t) && t !== "agent_locks"), []);
 });
 
-// ------------------------------------------------------------------ never live
+// ------------------------------------------------------------------ the same real order path (0084), one account
 
-Deno.test("0081's rules hold in the double: a config that is not a dry-run, a live order, a rate outside [$10, $50) are refused", async () => {
-  const w = world();
+/** The secrets as the action reads them: the stored signer's key and the account's L2 credentials, from eu-west-1. */
+const ENV: Record<string, string> = {
+  POLYMARKET_CLOB_API_KEY: PM_TEST_OWNER, POLYMARKET_CLOB_SECRET: btoa("TEST-L2-SECRET-32-BYTES-LONG-001"), POLYMARKET_CLOB_PASSPHRASE: "test-passphrase",
+  POLYMARKET_SIGNER_ADDRESS: PM_TEST_SIGNER, POLYMARKET_FUNDER_ADDRESS: PM_TEST_FUNDER, POLYMARKET_SIG_TYPE: "1", SB_REGION: "eu-west-1",
+  POLYMARKET_PRIVATE_KEY: PM_TEST_KEY,
+};
+/** One fetch for the action: the order path's client to the venue (L2 checked), the exclusion's keyless reads to the public routes. */
+const actionFetch = (w: ReturnType<typeof world>): typeof fetch => (input, init) => {
+  const u = new URL(String(input)), method = (init?.method ?? "GET").toUpperCase();
+  return method === "POST" && u.pathname === "/books" || u.host !== "clob.polymarket.com" && u.host !== "polymarket.com" || u.pathname === "/sampling-simplified-markets"
+    ? w.pm.publicFetch(input, init) : w.pm.fetch(input, init);
+};
+/** The runtime's region, for the wire's own check (it reads SB_REGION from the runtime, not from the action's reader). */
+async function inRegion<T>(region: string, f: () => Promise<T>): Promise<T> {
+  const prev = Deno.env.get("SB_REGION");
+  Deno.env.set("SB_REGION", region);
+  try { return await f(); } finally { if (prev === undefined) Deno.env.delete("SB_REGION"); else Deno.env.set("SB_REGION", prev); }
+}
+/** The go-time statement's effect on the row, as the double holds it. */
+const ARMED = { dry_run: false, live_confirmed_at: iso(T0 - M) };
+type Report = Awaited<ReturnType<typeof runPmLive>>;
+
+Deno.test("0084's rules hold in the double: a config may leave dry-run and be armed, an order may be live; the band still holds; and never both configs armed", async () => {
   const refused = async (f: () => Promise<unknown>) => { try { await f(); return ""; } catch (e) { return String(e); } };
-  assert((await refused(() => w.mem.db.upsert("pm_mid_config", [{ ...MID_CONFIG, dry_run: false }], "id"))).includes("pm_mid_config_dry_run_check"));
-  assert((await refused(() => w.mem.db.upsert("pm_mid_config", [{ ...MID_CONFIG, live_confirmed_at: iso(T0) }], "id"))).includes("pm_mid_config_live_confirmed_at_check"));
+  const w = world();
+  // 0081 refused these; 0084 dropped those checks (mini-pool's config never had them).
+  assertEquals(await refused(() => w.mem.db.upsert("pm_mid_config", [{ ...MID_CONFIG, ...ARMED }], "id")), "");
+  assertEquals(await refused(() => w.mem.db.update("pm_mid_config", "id=eq.1", { dry_run: true, live_confirmed_at: null })), "");
   await w.turn();
   const o = (w.mem.tables.pm_mid_orders as Row[])[0];
-  assert((await refused(() => w.mem.db.update("pm_mid_orders", `id=eq.${o.id}`, { mode: "live" }))).includes("pm_mid_orders_mode_check"));
+  assertEquals(await refused(() => w.mem.db.update("pm_mid_orders", `id=eq.${o.id}`, { mode: "live" })), "");
+  assert((await refused(() => w.mem.db.update("pm_mid_orders", `id=eq.${o.id}`, { mode: "paper" }))).includes("pm_mid_orders_mode_check"));
   const row = { ...(w.mem.tables.pm_mid_markets as Row[])[0] };
   assert((await refused(() => w.mem.db.upsert("pm_mid_markets", [{ ...row, reward_rate: 9.99 }], "day,cond"))).includes("pm_mid_markets_reward_rate_check"));
   assert((await refused(() => w.mem.db.upsert("pm_mid_markets", [{ ...row, reward_rate: 50 }], "day,cond"))).includes("pm_mid_markets_reward_rate_check"));
@@ -308,50 +344,103 @@ Deno.test("0081's rules hold in the double: a config that is not a dry-run, a li
   assertEquals(await refused(() => w.mem.db.upsert("pm_mid_markets", [{ ...row, reward_rate: 49.99 }], "day,cond")), "");
   const minute = { ...(w.mem.tables.pm_mid_minutes as Row[])[0] };
   assert((await refused(() => w.mem.db.upsert("pm_mid_minutes", [{ ...minute, rate: 50 }], "mode,minute,cond"))).includes("pm_mid_minutes_rate_check"));
-  // Small-pool's tables keep their own band: a $10 minute is refused there, a $9.99 one taken.
+  // Small-pool's tables keep their own band: a $10 minute is refused there.
   assert((await refused(() => w.mem.db.upsert("pm_live_minutes", [{ ...minute, rate: 10 }], "mode,minute,cond"))).includes("pm_live_minutes_rate_check"));
+  // One account (0084's trigger, in Postgres's words as PGlite 16 gave them): with mini-pool armed, no write arms mid-pool,
+  // and the other way round; unarmed writes pass, mid-pool out of dry-run but unarmed among them.
+  const m = world({ liveConfig: { dry_run: false, live_confirmed_at: iso(T0 - 2 * M) } });
+  const toMid = "pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account";
+  assert((await refused(() => m.mem.db.update("pm_mid_config", "id=eq.1", ARMED))).includes(toMid));
+  assert((await refused(() => m.mem.db.upsert("pm_mid_config", [{ ...MID_CONFIG, ...ARMED }], "id"))).includes(toMid));
+  assert((await refused(() => m.mem.db.insert("pm_mid_config", { ...MID_CONFIG, id: 1, ...ARMED }))).includes(toMid));
+  assertEquals((m.mem.tables.pm_mid_config as Row[]).map((x) => x.live_confirmed_at), [null]);
+  assertEquals(await refused(() => m.mem.db.update("pm_mid_config", "id=eq.1", { dry_run: false })), "");
+  assertEquals(await refused(() => m.mem.db.update("pm_live_config", "id=eq.1", { max_markets: 8 })), "");
+  // Mini-pool's kill switch clears its arm; then mid-pool may be armed, and mini-pool may not be armed again.
+  assertEquals(await refused(() => m.mem.db.update("pm_live_config", "id=eq.1", { live_confirmed_at: null })), "");
+  assertEquals(await refused(() => m.mem.db.update("pm_mid_config", "id=eq.1", ARMED)), "");
+  assert((await refused(() => m.mem.db.update("pm_live_config", "id=eq.1", { live_confirmed_at: iso(T0) })))
+    .includes("pm_live_config cannot be armed while pm_mid_config is armed: mini-pool and mid-pool trade one Polymarket account"));
+  assertEquals((m.mem.tables.pm_live_config as Row[])[0].live_confirmed_at, null);
 });
 
-Deno.test("agents?action=pmmid reads no signing key and lets no POST or DELETE leave, whatever its config row were to say", async () => {
+Deno.test("agents?action=pmmid is wired as pmlive is: the key loaded only for the stored signer, the pUSD read every minute, the same keyed wire; armed, it sends", async () => {
+  assertEquals(PM_ORDER_SENDS_ENABLED, true);
+  // As deployed: dry_run on, unarmed.
   const w = world();
-  // A config row that says live and armed (0081's CHECKs refuse it; seeded here past them): still a dry-run.
-  Object.assign((w.mem.tables.pm_mid_config as Row[])[0], { dry_run: false, live_confirmed_at: iso(T0 - M) });
   const asked: string[] = [];
-  const env: Record<string, string> = {
-    POLYMARKET_CLOB_API_KEY: PM_TEST_OWNER, POLYMARKET_CLOB_SECRET: btoa("TEST-L2-SECRET-32-BYTES-LONG-001"), POLYMARKET_CLOB_PASSPHRASE: "test-passphrase",
-    POLYMARKET_SIGNER_ADDRESS: PM_TEST_SIGNER, POLYMARKET_FUNDER_ADDRESS: PM_TEST_FUNDER, POLYMARKET_SIG_TYPE: "1", SB_REGION: "eu-west-1",
-    POLYMARKET_PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-  };
-  const fetchAll: typeof fetch = (input, init) => {
-    const u = new URL(String(input)), method = (init?.method ?? "GET").toUpperCase();
-    return method === "POST" && u.pathname === "/books" || u.host !== "clob.polymarket.com" && u.host !== "polymarket.com" || u.pathname === "/sampling-simplified-markets"
-      ? w.pm.publicFetch(input, init) : w.pm.fetch(input, init);
-  };
-  const r = await runPmMidAction({ db: w.db, fetchImpl: fetchAll, read: (n) => { asked.push(n); return env[n]; }, now: T0 }) as Awaited<ReturnType<typeof runPmLive>>;
-  assert(!asked.includes("POLYMARKET_PRIVATE_KEY"), asked.join());
-  assertEquals(r.mode, "dry_run");
-  assert(r.why.includes(PM_MID_NO_KEY), r.why);
-  assertEquals(r.errors.filter((e) => e.startsWith("secrets:")), []);
-  assertEquals(w.pm.calls.filter((c) => !c.startsWith("GET ") && c !== "POST clob.polymarket.com/books"), []);
-  assert((w.mem.tables.pm_mid_orders as Row[]).every((o) => o.mode === "dry_run") && (w.mem.tables.pm_mid_orders as Row[]).length > 0);
-  // Its state says why: no key loaded, and the reason is the instance's, not a missing secret.
-  const st = (w.mem.tables.pm_mid_state as Row[])[0].state as Record<string, unknown>;
-  assertEquals([st.keyed, st.signerProblem, st.sbRegion], [false, PM_MID_NO_KEY, "eu-west-1"]);
-  // And its wire keeps every POST and DELETE at home on its own, even from eu-west-1 with the code's switch on: a cancel,
-  // the cancel-all and a post are refused before any request is built.
-  const wireCalls: string[] = [];
-  const wire = pmMidWire(loadPmLiveEnv((n) => (n === "POLYMARKET_PRIVATE_KEY" ? undefined : env[n])), (input, init) => {
-    wireCalls.push(`${init?.method ?? "GET"} ${String(input)}`);
-    return w.pm.fetch(input, init);
+  const read = (n: string) => { asked.push(n); return ENV[n]; };
+  const r = await runPmMidAction({ db: w.db, fetchImpl: actionFetch(w), read, now: T0 }) as Report;
+  assert(asked.includes("POLYMARKET_PRIVATE_KEY"), asked.join());
+  assertEquals([r.mode, r.sbRegion, r.errors], ["dry_run", "eu-west-1", []]);
+  assert(r.why.includes("pm_mid_config.dry_run is on"), r.why);
+  assertEquals(w.writes(), []);
+  assert((w.mem.tables.pm_mid_orders as Row[]).length === 6 && (w.mem.tables.pm_mid_orders as Row[]).every((o) => o.mode === "dry_run"));
+  assert(!w.pm.calls.some((c) => c.endsWith("(401)")), "every account read carried the key's L2 headers");
+  // Its state carries what the go-time statement reads: the key loaded for the stored signer, the pUSD, where and when.
+  const st = w.state();
+  assertEquals([st.keyed, st.signerProblem, st.pusd, st.sbRegion, st.dryRun, st.armed, st.at], [true, null, 1000, "eu-west-1", true, false, iso(T0)]);
+  const out = JSON.stringify(r) + JSON.stringify(w.mem.tables);
+  for (const s of ["test-passphrase", ENV.POLYMARKET_CLOB_SECRET, PM_TEST_KEY.slice(2, 22), PM_TEST_KEY.slice(30, 50).toUpperCase()]) assert(!out.includes(s), s);
+  // Armed (the go-time statement's effect): the same action, through the same client, sends its orders from eu-west-1.
+  const L = world({ config: ARMED });
+  const rl = await inRegion("eu-west-1", () => runPmMidAction({ db: L.db, fetchImpl: actionFetch(L), read, now: T0 })) as Report;
+  assertEquals([rl.mode, rl.errors], ["live", []]);
+  assertEquals(L.writes(), Array(6).fill("POST clob.polymarket.com/order"));
+  assertEquals(L.open("live").map((o) => o.state), Array(6).fill("live"));
+  // From any other region the wire sends nothing, whatever the config: a POST leaves only from eu-west-1.
+  const G = world({ config: ARMED });
+  const rg = await inRegion("eu-west-2", () => runPmMidAction({ db: G.db, fetchImpl: actionFetch(G), read: (n) => (n === "SB_REGION" ? "eu-west-2" : ENV[n]), now: T0 })) as Report;
+  assertEquals([rg.mode, rg.gates?.openBlockedBy, G.writes()], ["live", "region", []]);
+  // A key that is not the stored signer's loads none: a dry-run whatever the config, and it says why.
+  const K = world({ config: ARMED });
+  const rk = await inRegion("eu-west-1", () => runPmMidAction({ db: K.db, fetchImpl: actionFetch(K), read: (n) => (n === "POLYMARKET_PRIVATE_KEY" ? `0x${"11".repeat(32)}` : ENV[n]), now: T0 })) as Report;
+  assertEquals([rk.mode, K.writes()], ["dry_run", []]);
+  assert(rk.why.includes("the private key's address is not POLYMARKET_SIGNER_ADDRESS"), rk.why);
+  assert(rk.errors.some((e) => e.startsWith("secrets:")), rk.errors.join(" | "));
+  assertEquals([K.state().keyed, K.state().signerProblem], [false, "the private key's address is not POLYMARKET_SIGNER_ADDRESS: no order can be signed"]);
+  // A database that refuses everything: a report, not a throw.
+  const broken = { ...w.db, claim: () => Promise.reject(new Error("db PATCH agent_locks → 503")) };
+  const r2 = await runPmMidAction({ db: broken as typeof w.db, fetchImpl: actionFetch(w), read, now: T0 + M }) as Report;
+  assert(r2.errors[0].startsWith("LEASE CLAIM FAILED"), JSON.stringify(r2));
+});
+
+Deno.test("the config is the lock: as deployed (dry_run on, unarmed, the key loaded) a day of mid-pool's action sends nothing but GETs and its keyless batch read; nor does dry_run off but unarmed", async () => {
+  await inRegion("eu-west-1", async () => {
+    for (const variant of ["as deployed: dry_run on", "dry_run off but unarmed, nothing held"] as const) {
+      const w = world({ config: variant === "as deployed: dry_run on" ? {} : { dry_run: false, live_confirmed_at: null } });
+      for (let t = T0; t < T0 + 24 * 60 * M; t += M) {
+        if ((t - T0) % (7 * M) === 0) w.M3.bid = w.M3.bid === 0.45 ? 0.44 : 0.45;
+        const r = await runPmMidAction({ db: w.db, fetchImpl: actionFetch(w), read: (n) => ENV[n], now: t }) as Report;
+        if (t === T0) assertEquals([r.mode, r.gates?.openBlockedBy ?? null], variant === "as deployed: dry_run on" ? ["dry_run", null] : ["live", "armed"]);
+      }
+      assertEquals(w.writes(), [], variant);
+      const orders = w.mem.tables.pm_mid_orders as Row[];
+      if (variant === "as deployed: dry_run on") assert(orders.length > 100 && orders.every((o) => o.mode === "dry_run"), `${orders.length} orders`);
+      else assertEquals(orders.filter((o) => o.mode === "live"), []);
+    }
   });
-  const region = Deno.env.get("SB_REGION");
-  Deno.env.set("SB_REGION", "eu-west-1");
-  try {
-    const refusals = [await wire.cancelOrder(`0x${"ab".repeat(32)}`), await wire.cancelAll(),
-      await wire.postOrder({ salt: "1" } as unknown as Parameters<typeof wire.postOrder>[0], "GTD", true)];
-    assertEquals(refusals.map((x) => [x.ok, x.refused]), [[false, "sends-disabled"], [false, "sends-disabled"], [false, "sends-disabled"]]);
-  } finally {
-    if (region === undefined) Deno.env.delete("SB_REGION"); else Deno.env.set("SB_REGION", region);
-  }
-  assertEquals(wireCalls, []);
+});
+
+Deno.test("mid-pool's kill switches reach the venue through its wire: unarmed, its buys are withdrawn and a holding sold; back in dry-run, its live orders cancelled", async () => {
+  await inRegion("eu-west-1", async () => {
+    const w = world({ config: ARMED });
+    const act = (t: number) => runPmMidAction({ db: w.db, fetchImpl: actionFetch(w), read: (n) => ENV[n], now: t }) as Promise<Report>;
+    await act(T0);
+    assertEquals(w.open("live").length, 6);
+    // `live_confirmed_at = null`: nothing that opens; every buy withdrawn at the venue; the YES held in M3 sold at its ask.
+    w.setConfig({ live_confirmed_at: null });
+    w.pm.tokens.set(w.M3.yes, 20);
+    const r1 = await act(T0 + M);
+    assertEquals([r1.mode, r1.gates?.openBlockedBy], ["live", "armed"]);
+    assertEquals(w.pm.calls.filter((c) => c === "DELETE clob.polymarket.com/order").length, 6);
+    assertEquals(w.open("live").map((o) => `${o.cond === w.M3.cond ? "M3" : o.cond} ${o.outcome} ${o.side} ${o.gate}`), ["M3 yes SELL reduce"]);
+    // `dry_run = true`: back to dry-run; the live order left is cancelled at the venue, and the dry-run quotes again.
+    w.setConfig({ dry_run: true });
+    const r2 = await act(T0 + 2 * M);
+    assertEquals(r2.mode, "dry_run");
+    assertEquals(w.pm.calls.filter((c) => c === "DELETE clob.polymarket.com/order").length, 7);
+    assertEquals(w.open("live"), []);
+    assert(w.open("dry_run").length > 0);
+  });
 });

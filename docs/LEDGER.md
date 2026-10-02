@@ -159,12 +159,17 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      go-live is withdrawn; the path goes live only in the conversation where he says go (design step 8, word for word).
      A fix inside the window ends it as FAIL and moves the check a day, by a next addendum. (f) needs his funding
      (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC).
-   - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools, in a dry-run its tables enforce**
+   - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
-     and `agents?action=pmmidprep` every minute (rows of `edge_calls`, retry true); mini-pool's $400 sizes; never live
-     (its config refuses `dry_run` false and any `live_confirmed_at`, its orders any mode but `dry_run`, no key is read, its
-     wire refuses POST and DELETE). Its selection leaves out what RW's frozen selection, recomputed from public data with
+     and `agents?action=pmmidprep` every minute (rows of `edge_calls`, retry true); mini-pool's $400 sizes. **Since `0084`**
+     (2026-10-02, Davies: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模跑 dry-run，之后更好对比，现在就做不要等")
+     its action is mini-pool's: the key loaded for the stored signer, the pUSD read every minute, the same keyed wire; its
+     config row is the lock (`dry_run` true, `live_confirmed_at` null), and a trigger on both configs refuses arming either
+     while the other is armed (one account). Its go-time statement is the design doc's step 8m, run only in the
+     conversation where Davies says go; a funded mid-pool needs first its own pre-registration, its margin measured again
+     and the readout told apart per path (mini-pool's books every paid market of the account: a `pm_live.ts` change, after
+     mini-pool's window is checked). Its selection leaves out what RW's frozen selection, recomputed from public data with
      RW's code, takes or scores at ≥ 0.33 of its last pick (margin 0.67, measured), keeping only a count. Pre-registered:
      `reviews/2026-10-02-polymarket-mid-pool-prereg.md`, frozen by the commit that adds it; d1 is the first full UTC day
      after `pm_mid_config.created_at`, and the window fourteen days. **Running since 2026-10-02 05:01 UTC** (its first
@@ -174,7 +179,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      read-only, and report every row to Davies; at or after d15 00:10 `mid_readout.sql`; no earlier than 2026-10-23
      00:05 `mid_audit.sql` (all three in `backtests/pmlive/`, sha256 pinned by `src/pm_mid_prereg.test.js`). Until each,
      read only the prereg's health readings (the two `last_error`s and clocks, `ops_errors` of `agents.pm_mid` and
-     `agents.pm_midprep` and their crash rows, whether a day's selection landed), never mid-pool's page or the
+     `agents.pm_midprep` and their crash rows, whether a day's selection landed, and since its Addendum 1
+     `pm_mid_state.state`'s `keyed`, `signerProblem`, `pusd`, `at` and `sbRegion`), never mid-pool's page or the
      dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
      is the last row of TESTING STRATEGIES, right after mini-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
@@ -614,6 +620,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 18:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mid-pool is the same real order path as mini-pool, in dry-run and unarmed, and the two configs can never both be armed (`0084`).** Davies (~17:15 UTC): "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模跑 dry-run，之后更好对比，现在就做不要等". `runPmMidAction` (`agents/index.ts`) is wired as `runPmLiveAction`: `loadPmLiveEnv` with the signing key (kept only when its address is the stored signer), the same keyed wire (`pmVenue` under `PM_ORDER_SENDS_ENABLED`), the same account and switch; `pm_mid_state.state` records `keyed`, `signerProblem` and `pusd` every minute. Its config row is the lock, as mini-pool's: `dry_run` true, `live_confirmed_at` null. `0084` drops `pm_mid_config`'s two CHECKs, lets `pm_mid_orders` be `live`, and adds `pm_one_account_one_armed()`, an AFTER trigger on both configs that refuses a row armed while the other row is (a transaction-scoped advisory lock makes two arming transactions take turns); it writes no row. The design doc's step 8 (mini-pool's go-time statement) now also refuses without `keyed`, outside eu-west-1, without a current attestation, or while mid-pool is armed; step 8m is mid-pool's, the same checks on its own state and mini-pool's arm, with what a funded mid-pool still needs first (its own pre-registration, its margin measured again, the readout told apart per path: mid-pool reads no payout and mini-pool's readout books every market the account is paid for, a `pm_live.ts` change after mini-pool's window). Sizes unchanged and verified on PGlite after `0084`: eight markets, $160, $320, $60, −$25, −$75, GTD 600 s. **Evidence:** PGlite 16 with `0074` → `0084` (`backtests/pmlive/scripts/one_armed_check.mjs`, `results/one_armed_check_out.txt`): 60 checks pass, both statements read word for word from the doc, each refused on eleven conditions and arming at $401.37 → $320, $398.20 → $318, $300 → $220, $81 → $1; the trigger refuses a plain update, an insert, both rows armed in one statement and in one transaction. Deno: `pm_mid.test.ts` 15 cases (as deployed a simulated day of the action sends nothing but GETs and the exclusion's batch read; armed, six POSTs; the kill switches cancel at the venue and sell a holding; a wrong key loads none; the double's one-armed rule); the whole Edge suite 917 pass; `deno check supabase/functions/` clean. Counterfactuals: the old wiring fails 3 of the 15, the double without its rule 1, with 0081's checks 3; on PGlite, without the triggers 6 checks fail (the statements still refuse on their own), without `0084` 13. `pm_live.ts` (`8ba7b915…`) and `pm_prep.ts` (`8d7861ab…`) unchanged, so mini-pool's window (10-03) is untouched; `pm_mid.ts` changed in comments only (`b7854ab5…` → `9fd37436…`). Loading the key costs a turn 32 ms of CPU cold and 0.45 ms warm. Mini-pool's pre-registration gains Addendum 5 (the trigger on its config, the longer statement), mid-pool's Addendum 1 (why d1 and its fourteen days are the same test: with `dry_run` on a turn decides as before; five scalars of its state join the health readings). Not changed: either pool's selection rule (the main session measured no same-day market among the 18 picks so far and one monthly weather market). **Not edited here:** `.claude/CLAUDE.md`'s Polymarket paragraph still says mid-pool is "a dry-run its tables enforce"; a sub-agent does not change that file, so its new sentence is in the report to the main session.
 
 ### [2026-10-02 18:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

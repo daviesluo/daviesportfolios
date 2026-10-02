@@ -228,3 +228,33 @@ quotes mini-pool". What changes, and nothing else:
   nothing reads it, and changing it would move those hashes.
 - **The window does not move:** `prep_check_addendum2.sql` is unchanged, its rows are reported to Davies, and nothing
   arms the path.
+
+## Addendum 5 (2026-10-02, about 18:00 UTC): a trigger on the config, and the design's go-time statement checks more
+
+Written before the window it concerns (2026-10-03 00:00 → 10-04 00:00 UTC), and landed and deployed before it. Davies,
+2026-10-02 about 17:15 UTC, verbatim: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模跑 dry-run，之后更好对比，
+现在就做不要等" (make mid-pool the same real order-placing path as mini-pool, in a dry-run at the go-live size, so the
+two compare better later; now). What changes for this test, and nothing else:
+
+- **Its config gains a trigger** (`0084_pm_mid_order_path.sql`): `pm_live_config_one_armed`, fired after an insert or
+  update that leaves the row armed (`live_confirmed_at` not null), refuses it while mid-pool's row (`pm_mid_config`) is
+  armed, because from `0084` mid-pool is the same real order path on the same account, in its own dry-run. The path
+  never writes its config; the trigger writes nothing; no column, value or other constraint of `pm_live_config`, and no
+  other table of this test, changes. "A fix inside the window" names their tables: this lands before the window, which
+  does not move.
+- **The code does not change.** `pm_live.ts` and `pm_prep.ts` keep the hashes Addendum 3 names
+  (`8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653`,
+  `8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea`). The `agents` function redeploys before the
+  window with mid-pool's action rewired (`runPmMidAction` in `agents/index.ts`); this path's action (`runPmLiveAction`)
+  is unchanged.
+- **The design's go-time statement** (step 8 of `2026-10-01-polymarket-live-calibration.md`), by which Addendum 2 says
+  the path goes live, word for word, now also refuses, leaving the dry-run as an unread or stale balance always did, when
+  the path's last turn did not load the key for the stored signer (`keyed`) or did not run from eu-west-1 (`sbRegion`),
+  when Davies' Ireland attestation is not current, and while mid-pool is armed. The statement quoted under "What
+  happens" is the one frozen on 2026-10-01; Addendum 2 replaced that automatic go-live with the design's statement, and
+  the design's statement is now the longer one. Run against PGlite 16 with `0074` → `0084` applied, it refuses on each
+  of those and arms on four balances as before (`backtests/pmlive/scripts/one_armed_check.mjs`, its output in
+  `results/one_armed_check_out.txt`).
+- **The check is unchanged.** `prep_check_addendum2.sql` reads `pm_live_config`'s values, not its triggers, and its
+  (f) reads the facts the statement now checks (the region, the attestation, `keyed`, the balance). Its rows are
+  reported to Davies, and nothing arms the path.

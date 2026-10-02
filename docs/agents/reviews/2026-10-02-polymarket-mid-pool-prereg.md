@@ -207,3 +207,56 @@ a deviation.
   candidates' books read in batches, and about 2.1 s read one GET each as small-pool reads them, in this repository's
   container (`backtests/pmlive/results/mid_selection_time_out.txt`: the process's CPU, every thread), never on
   Supabase. If production stops it, (b1) fails on d1.
+
+## Addendum 1 (2026-10-02, about 18:00 UTC): the same real order path as mini-pool, still a dry-run
+
+Written before d1 (2026-10-03 00:00 UTC), and landed and deployed before it. Davies, 2026-10-02 about 17:15 UTC,
+verbatim:
+
+> 把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模跑 dry-run，之后更好对比，现在就做不要等
+
+In English: make mid-pool's structure and path the same real order-placing path as mini-pool's, run its dry-run at the
+go-live size, so the two compare better later; do it now, don't wait. What changes, and nothing else:
+
+- **The action** (`agents/index.ts`, `runPmMidAction`) is wired as mini-pool's (`runPmLiveAction`): it loads the
+  signing key, kept only when its address is the stored signer; the same keyed wire, whose POST and DELETE leave only
+  when the turn is live; the account's pUSD read every minute, as it already was. "What runs" above said the action
+  reads no signing key and its wire refuses every POST and DELETE: neither holds from this addendum.
+- **The database** (`0084_pm_mid_order_path.sql`): `pm_mid_config` no longer refuses `dry_run` false or a
+  `live_confirmed_at`, and `pm_mid_orders` may hold `live` orders, as mini-pool's tables always could. What keeps
+  mid-pool home is its config row, `dry_run` true and `live_confirmed_at` null, as `0081` set them; `0084` writes
+  neither, and no session or routine arms it. A trigger on both configs refuses arming either while the other is armed
+  (the two paths trade one account), and each path's go-time statement refuses it too (the design doc,
+  `2026-10-01-polymarket-live-calibration.md`, steps 8 and 8m). The sizes do not move: eight markets and $160 of first
+  quotes, $320 in all, $60 a market, −$25 a day and −$75 in all, GTD 600 s.
+- **The code.** `pm_live.ts` (`8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653`) and `pm_prep.ts`
+  (`8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea`) do not change. `pm_mid.ts` changes in its
+  comments only: sha256 `9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd` (frozen above:
+  `b7854ab5a3c93d4e420654c7c21567aae8db27f08a9fc961aefc703ac90471b6`); `PM_MID_INSTANCE` is unchanged, `readsPayouts`
+  false among it, so mid-pool still reads no reward, payout or rebate.
+- **Why it is the same test.** The path decides its mode from the config before it asks about a key: a turn is live
+  only when sends are enabled in code, `dry_run` is off and the key is loaded (`pm_live.ts`). With `dry_run` on, every
+  turn's mode, reason, gates, selection, quotes, would-be orders and minutes are what they were; a dry-run order is
+  recorded, never sent, and the key signs nothing. The paper layer reads `pm_mid_config`, `pm_mid_markets`,
+  `pm_mid_minutes` and `pm_mid_orders`, whose rows this does not change, so its decisions are unchanged. What does
+  change in the record: `pm_mid_state.state`'s `keyed` reads true and `signerProblem` null (until now false and the
+  instance's own sentence), and a key that failed to load would now be reported among the action's faults, as
+  mini-pool's is. Pinned (`agents/pm_mid.test.ts`): as deployed, a simulated day of the action sends nothing but GETs
+  and the exclusion's keyless batch read, and neither does a config out of dry-run but unarmed; armed, the same action
+  and client send; the kill switches reach the venue; a key that is not the stored signer's loads none. On the old
+  wiring three of those fail.
+- **What the frozen statements read that this touches.** All three read `pm_mid_config` (`created_at`, for d1; the
+  check also `max_markets`, `select_budget_usd`, `cap_market_usd`, `cap_total_usd`, `dry_run` and
+  `live_confirmed_at`): `0084` changes its constraints and adds a trigger, and writes none of those values. The check
+  reads `pm_mid_orders`, `pm_mid_minutes` and `pm_mid_events` of mode `dry_run` only; `pm_mid_orders` may now hold
+  `live` rows, which it does not read. (f) stays N/A as frozen; its row prints `dry_run` and `live_confirmed_at`, which
+  read `true` and `null` unless Davies arms mid-pool. Nothing else they read is touched.
+- **Arming mid-pool inside the window** would end the dry-run its paper layer fills: from that turn the path records
+  live orders, which the layer does not read. The readout names it as a deviation with its day. Before any go-time
+  statement it needs what the design's step 8m lists, a pre-registration of its own among them, as "The fourteen-day
+  readout" above already says.
+- **The health readings gain five scalars of `pm_mid_state.state`**: `keyed`, `signerProblem`, `pusd`, `at` and
+  `sbRegion`, each read by name, never the rest of `state`. They are what the go-time statement reads (the key loaded,
+  the account's balance and when, the region the turn ran from), and they describe the account and the key, which
+  mini-pool's state shows the same, not mid-pool's markets, orders or P&L.
+- **The window does not move:** d1 is 2026-10-03, checked by `mid_check.sql` as frozen.

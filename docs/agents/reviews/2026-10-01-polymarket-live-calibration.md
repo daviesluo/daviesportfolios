@@ -25,6 +25,8 @@ changes, none of their tables is read, and none of their markets is quoted.
 **Status:** built and in dry-run. `PM_ORDER_SENDS_ENABLED` is true and the action loads the signing key; migration
 `0076` keeps the config row at `dry_run = true`, `live_confirmed_at = null`. Going live is one statement, after the
 funding below, in the conversation where Davies says go; it also sets the total cap from the balance that arrived.
+Since `0084` (2026-10-02) mid-pool is the same order path on the same account, in dry-run and unarmed, with its own
+statement (step 8m); the database refuses arming either while the other is armed.
 
 ## The strategy, and why this one
 
@@ -359,16 +361,63 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
 
 8. The one statement. It sets the total cap from the balance the path read within the last five minutes, less the total
    stop and $5, clamped only at $320, and arms the path; it fails, and the path stays in dry-run, if that balance is
-   unread, stale or under $81:
+   unread, stale or under $81, if the path's last turn did not load the key for the stored signer or did not run from
+   eu-west-1, if Davies' Ireland attestation is not current, or while mid-pool is armed (the two paths trade one
+   account; since `0084` a trigger on each config refuses the second arm as well):
 
         update public.pm_live_config c
-           set cap_total_usd = case when s.pusd is null or s.at < now() - interval '5 minutes' then null
+           set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+                                         or s.keyed is not true or s.region is distinct from 'eu-west-1'
+                                         or c.ireland_attested_at is null or c.ireland_attested_at > now()
+                                         or (c.ireland_until is not null and c.ireland_until <= now())
+                                         or exists (select 1 from public.pm_mid_config o where o.live_confirmed_at is not null)
+                                    then null
                                     else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
                dry_run = false, live_confirmed_at = now(), updated_at = now()
-          from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at from public.pm_live_state where id = 1) s
+          from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+                       state->>'sbRegion' as region from public.pm_live_state where id = 1) s
          where c.id = 1;
 
-   Read back: `select dry_run, live_confirmed_at, cap_total_usd from public.pm_live_config;`.
+   Read back: `select dry_run, live_confirmed_at, cap_total_usd from public.pm_live_config;`. A refusal reads as a
+   `cap_total_usd` that may not be null (a check failed) or may not be under $1 (the balance), or as the trigger's
+   "pm_live_config cannot be armed while pm_mid_config is armed". Until 2026-10-02 the statement checked the balance
+   alone (as `0076`'s header and the live-prep pre-registration quote it); the key, the region, the attestation and the
+   other path's arm were added with mid-pool's own statement below (`0084`; the pre-registration's Addendum 5).
+
+8m. **Mid-pool's statement, instead of step 8** (`0084`; Davies, 2026-10-02: "把mid-pool 的结构和路径也做成和mini-pool一样的
+   真实下单路径，按上线规模跑 dry-run，之后更好对比，现在就做不要等"). Mid-pool ("Reward quotes mid-pool", `agents/pm_mid.ts`,
+   pools of $10 to under $50 a day) is the same order path on the same account: its action loads the key for the stored
+   signer and reads the pUSD every minute (`pm_mid_state.state`: `keyed`, `signerProblem`, `pusd`), its wire is the same
+   keyed wire, and its config row keeps it home, `dry_run` true and `live_confirmed_at` null. Only ONE of the two is ever
+   armed: mini-pool's `live_confirmed_at` is cleared first (step "Kill switches"; its sells of what it holds stay armed),
+   and then, in the conversation where Davies says go for mid-pool, this, with the same checks as step 8 against its
+   own state and mini-pool's arm:
+
+        update public.pm_mid_config c
+           set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+                                         or s.keyed is not true or s.region is distinct from 'eu-west-1'
+                                         or c.ireland_attested_at is null or c.ireland_attested_at > now()
+                                         or (c.ireland_until is not null and c.ireland_until <= now())
+                                         or exists (select 1 from public.pm_live_config o where o.live_confirmed_at is not null)
+                                    then null
+                                    else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+               dry_run = false, live_confirmed_at = now(), updated_at = now()
+          from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+                       state->>'sbRegion' as region from public.pm_mid_state where id = 1) s
+         where c.id = 1;
+
+   Read back: `select dry_run, live_confirmed_at, cap_total_usd from public.pm_mid_config;`, then steps 9–14 on the
+   `pm_mid_*` tables and `agents.pm_mid`. Before it, read `select state->'keyed', state->>'signerProblem', state->>'pusd',
+   state->>'at' from public.pm_mid_state;` (`true`, null, the balance, within five minutes). **What a funded mid-pool
+   still needs before this statement**, each named by its own document: its own pre-registration (mid-pool's says
+   "Whether mid-pool is ever funded is Davies' decision, and would need a pre-registration of its own"); its exclusion's
+   margin measured again ("A margin for a funded mid-pool would be measured again before one"), since a live mid-pool's
+   orders would sit in the books RW and RW-C read; and what Polymarket pays read per path: mid-pool reads no payout
+   (`readsPayouts` false, `pm_mid.ts`), and mini-pool's readout records every market the account was paid for, so a
+   live mid-pool's payouts would land in `pm_live_reward_days` as mini-pool's, with no minutes. That needs a change to
+   the readout (`pm_live.ts`), which waits until mini-pool's window has been checked (2026-10-04 00:10 UTC). The two
+   paths' bands are disjoint at each selection, but a market whose rate crosses $10 between two days can be chosen by
+   both, one after the other: then the account's balance of its tokens reads as held by whichever path asks.
 
 **The first day**
 
@@ -400,8 +449,11 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
 - `update public.agent_risk set global_pause = true where id = 1;` — every open order cancelled (one cancel-all) and
   nothing placed. It is the global pause: the crypto loop and PR5 stop too.
 - `update public.pm_live_config set dry_run = true where id = 1;` — back to dry-run; the live orders are cancelled.
+- Mid-pool's, the same on its own row (`0084`): `update public.pm_mid_config set live_confirmed_at = null where id = 1;`
+  and `update public.pm_mid_config set dry_run = true where id = 1;`. The global pause stops both paths; its cancel-all
+  is the account's, so it takes both paths' orders.
 - In code, `PM_ORDER_SENDS_ENABLED = false` and a deploy: no order and no cancel can leave, so cancel first; what
-  rests then expires within ten minutes (GTD).
+  rests then expires within ten minutes (GTD). It holds both paths.
 
 **While it runs, and after**
 

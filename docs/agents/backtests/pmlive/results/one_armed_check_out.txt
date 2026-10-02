@@ -1,0 +1,113 @@
+PASS  applied 0074_pm_live.sql
+PASS  applied 0076_pm_live_calibration.sql
+PASS  applied 0077_pm_live_prep.sql
+PASS  applied 0080_pm_live_full_size.sql
+PASS  applied 0081_pm_mid.sql
+PASS  before 0084: pm_mid_config refuses dry_run false (0081)
+PASS  before 0084: pm_mid_config refuses live_confirmed_at (0081)
+PASS  applied 0084
+PASS  0084 applied a second time: no error (every statement guarded)
+PASS  pm_mid_config after 0084: [{"dry_run":true,"live_confirmed_at":null,"cap":320,"cm":60,"ld":25,"lt":75,"max_markets":8,"b":160,"gtd_lifetime_s":600}]
+PASS  pm_live_config after 0084: [{"dry_run":true,"live_confirmed_at":null,"max_markets":8,"b":160,"cap":320}]
+PASS  pm_mid_orders takes a live order
+PASS  pm_mid_orders takes a dry-run order
+PASS  pm_mid_orders refuses any other mode (pm_mid_orders_mode_check)
+mini-pool's statement, as the doc words it:
+update public.pm_live_config c
+set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+or s.keyed is not true or s.region is distinct from 'eu-west-1'
+or c.ireland_attested_at is null or c.ireland_attested_at > now()
+or (c.ireland_until is not null and c.ireland_until <= now())
+or exists (select 1 from public.pm_mid_config o where o.live_confirmed_at is not null)
+then null
+else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+dry_run = false, live_confirmed_at = now(), updated_at = now()
+from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+state->>'sbRegion' as region from public.pm_live_state where id = 1) s
+where c.id = 1;
+mid-pool's:
+update public.pm_mid_config c
+set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+or s.keyed is not true or s.region is distinct from 'eu-west-1'
+or c.ireland_attested_at is null or c.ireland_attested_at > now()
+or (c.ireland_until is not null and c.ireland_until <= now())
+or exists (select 1 from public.pm_live_config o where o.live_confirmed_at is not null)
+then null
+else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+dry_run = false, live_confirmed_at = now(), updated_at = now()
+from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+state->>'sbRegion' as region from public.pm_mid_state where id = 1) s
+where c.id = 1;
+PASS  mini-pool's statement refused (unread): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (six minutes old): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused ($60): new row for relation "pm_live_config" violates check constraint "pm_live_config_cap_total_usd_check"
+PASS  mini-pool's statement refused ($80.99): new row for relation "pm_live_config" violates check constraint "pm_live_config_cap_total_usd_check"
+PASS  mini-pool's statement refused (from eu-west-2): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (no region recorded): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (the key not loaded): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (keyed unrecorded): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (the attestation revoked): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (no attestation): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement refused (an attestation dated ahead): null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  mini-pool's statement on $401.37: armed, cap 320 (want 320)
+PASS  mini-pool's statement on $398.2: armed, cap 318 (want 318)
+PASS  mini-pool's statement on $300: armed, cap 220 (want 220)
+PASS  mini-pool's statement on $81: armed, cap 1 (want 1)
+PASS  mid-pool's statement refused (unread): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (six minutes old): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused ($60): new row for relation "pm_mid_config" violates check constraint "pm_mid_config_cap_total_usd_check"
+PASS  mid-pool's statement refused ($80.99): new row for relation "pm_mid_config" violates check constraint "pm_mid_config_cap_total_usd_check"
+PASS  mid-pool's statement refused (from eu-west-2): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (no region recorded): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (the key not loaded): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (keyed unrecorded): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (the attestation revoked): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (no attestation): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement refused (an attestation dated ahead): null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  mid-pool's statement on $401.37: armed, cap 320 (want 320)
+PASS  mid-pool's statement on $398.2: armed, cap 318 (want 318)
+PASS  mid-pool's statement on $300: armed, cap 220 (want 220)
+PASS  mid-pool's statement on $81: armed, cap 1 (want 1)
+PASS  mini-pool armed by its statement
+PASS  mid-pool's statement refused while mini-pool is armed: null value in column "cap_total_usd" of relation "pm_mid_config" violates not-null constraint
+PASS  a plain update arming mid-pool while mini-pool is armed: pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account
+PASS  mid-pool out of dry-run but unarmed while mini-pool is armed: allowed (it opens nothing)
+PASS  mini-pool's kill switch (live_confirmed_at = null) runs
+PASS  mid-pool armed by its statement once mini-pool is not
+PASS  mini-pool's statement refused while mid-pool is armed: null value in column "cap_total_usd" of relation "pm_live_config" violates not-null constraint
+PASS  a plain update arming mini-pool while mid-pool is armed: pm_live_config cannot be armed while pm_mid_config is armed: mini-pool and mid-pool trade one Polymarket account
+PASS  the armed row's attestation revoked: allowed
+PASS  mid-pool's kill switch (live_confirmed_at = null) runs
+PASS  mid-pool's back-to-dry-run switch runs
+PASS  both armed in one statement: refused whole (pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account)
+PASS  both armed in one transaction: refused whole (pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account)
+PASS  an armed mid-pool row inserted while mini-pool is armed: pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account
+PASS  the function: security invoker, search_path '' ([{"prosecdef":false,"proconfig":["search_path=\"\""]}])
+PASS  the triggers: [{"tgname":"pm_live_config_one_armed","rel":"pm_live_config"},{"tgname":"pm_mid_config_one_armed","rel":"pm_mid_config"}]
+
+every check passed (PGlite PostgreSQL 16.4 on x86_64-pc-linux-gnu)
+
+=== counterfactual `trigger` (node docs/agents/backtests/pmlive/scripts/one_armed_check.mjs trigger): its FAIL lines
+FAIL  a plain update arming mid-pool while mini-pool is armed: null
+FAIL  a plain update arming mini-pool while mid-pool is armed: null
+FAIL  both armed in one statement: refused whole (null)
+FAIL  both armed in one transaction: refused whole (null)
+FAIL  an armed mid-pool row inserted while mini-pool is armed: null
+FAIL  the triggers: []
+6 FAILED (PGlite PostgreSQL 16.4 on x86_64-pc-linux-gnu)
+
+=== counterfactual `migration` (node docs/agents/backtests/pmlive/scripts/one_armed_check.mjs migration): its FAIL lines
+FAIL  pm_mid_orders takes a live order
+FAIL  mid-pool's statement on $401.37: armed, cap 320 (want 320) — new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  mid-pool's statement on $398.2: armed, cap 320 (want 318) — new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  mid-pool's statement on $300: armed, cap 320 (want 220) — new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  mid-pool's statement on $81: armed, cap 320 (want 1) — new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  a plain update arming mid-pool while mini-pool is armed: new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  mid-pool out of dry-run but unarmed while mini-pool is armed: allowed (it opens nothing)
+FAIL  mid-pool armed by its statement once mini-pool is not
+FAIL  mini-pool's statement refused while mid-pool is armed: null
+FAIL  a plain update arming mini-pool while mid-pool is armed: null
+FAIL  an armed mid-pool row inserted while mini-pool is armed: new row for relation "pm_mid_config" violates check constraint "pm_mid_config_dry_run_check"
+FAIL  the function: security invoker, search_path '' ([])
+FAIL  the triggers: []
+13 FAILED (PGlite PostgreSQL 16.4 on x86_64-pc-linux-gnu)

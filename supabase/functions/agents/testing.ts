@@ -210,10 +210,11 @@ export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; no
   },
 };
 /**
- * Mid-pool's tables (0081): the order path's nine as `pm_mid_*` and the layer's seven as `pm_midprep_*`, each the shape
- * of its small-pool namesake, held to the same rules but these: a reward rate in [$10, $50) on the markets and the
- * minutes, a config that refuses `dry_run` false and any `live_confirmed_at`, and orders that refuse every mode but
- * `dry_run`. Postgres names a constraint by its own table, so the double's refusals name the mid table.
+ * Mid-pool's tables (0081, 0084): the order path's nine as `pm_mid_*` and the layer's seven as `pm_midprep_*`, each the
+ * shape of its small-pool namesake, held to the same rules but one: a reward rate in [$10, $50) on the markets and the
+ * minutes. Until 0084 its config also refused `dry_run` false and any `live_confirmed_at`, and its orders every mode but
+ * `dry_run`; 0084 dropped those, as mid-pool became the same order path as mini-pool, and added a rule across the two
+ * configs (`oneArmedRefusal`). Postgres names a constraint by its own table, so the double's refusals name the mid table.
  */
 const pmLiveShape = (table: string) => table.replace(/^pm_mid_/, "pm_live_");
 const pmPrepShape = (table: string) => table.replace(/^pm_midprep_/, "pm_prep_");
@@ -447,9 +448,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("loss_day_usd", within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
         ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
-        ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
-        // Mid-pool's config is a dry-run its table holds there: no `dry_run` false, no `live_confirmed_at` (0081).
-        ?? (mid ? check("dry_run", r.dry_run === true) ?? check("live_confirmed_at", r.live_confirmed_at == null) : null);
+        ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (shape === "pm_live_minutes") {
       return notNull(["mode", "minute", "cond", "rate", "max_spread", "min_size", "tick", "ours", "others", "formula_usd", "detail"])
@@ -475,7 +474,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     if (shape === "pm_live_orders") {
       return notNull(["mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash", "state", "size_matched", "gate"])
-        ?? check("mode", mid ? r.mode === "dry_run" : MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
+        ?? check("mode", MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
         ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
         ?? check("size", Number(r.size) > 0) ?? check("order_type", r.order_type === "GTD") ?? check("post_only", r.post_only === true)
         ?? check("expiration", Number(r.expiration) > 0) ?? check("hash", /^0x[0-9a-f]{64}$/.test(String(r.hash)))
@@ -494,6 +493,20 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return check("id", r.id === 1) ?? notNull(["state"]);
   }
   return null;
+}
+
+/** The two configs of the one Polymarket account the order path's instances trade (0084's trigger reads both). */
+const PM_ONE_ACCOUNT_CONFIGS = ["pm_live_config", "pm_mid_config"];
+/**
+ * 0084's trigger `pm_one_account_one_armed`, on both configs: a row written armed (`live_confirmed_at` not null) is refused
+ * while the other config's row is armed, in Postgres's words (the exception it raises, as a check violation). Applied to
+ * the row as stored, on INSERT, UPDATE and an upsert's merge, after the row's own checks, as an AFTER trigger fires.
+ */
+function oneArmedRefusal(tables: Record<string, Row[]>, table: string, r: Row): string | null {
+  if (!PM_ONE_ACCOUNT_CONFIGS.includes(table) || r.live_confirmed_at == null) return null;
+  const other = table === "pm_live_config" ? "pm_mid_config" : "pm_live_config";
+  return (tables[other] ?? []).some((x) => x.live_confirmed_at != null)
+    ? `${table} cannot be armed while ${other} is armed: mini-pool and mid-pool trade one Polymarket account` : null;
 }
 
 /**
@@ -650,7 +663,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       }
       const list = (overTheWire(Array.isArray(rows) ? rows : [rows]) as Row[]).map((r) => withDefaults(table, r));
       for (const r of list) {
-        const why = schemaRefusal(table, r);
+        const why = schemaRefusal(table, r) ?? oneArmedRefusal(tables, table, r);
         if (why) return refuse("POST", table, why);
       }
       if (table === "agent_decisions") {
@@ -721,6 +734,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // (0074) too: every upsert it makes proposes whole rows.
         const why = schemaRefusal(table, table in PMRW_TABLES || isPmLiveTable(table) || isPmPrepTable(table) ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
+        const armed = oneArmedRefusal(tables, table, cur ? { ...cur, ...r } : r);
+        if (armed) return refuse("POST", table, armed);
         if (pmLiveShape(table) === "pm_live_fills" && !(tables[ordersOfFills(table)] ?? []).some((o) => o.hash === r.hash)) {
           return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "${table}" violates foreign key constraint "${table}_hash_fkey"`));
         }
@@ -738,7 +753,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       const wire = overTheWire(patch) as Row;
       const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
       for (const r of hit) {
-        const why = schemaRefusal(table, { ...r, ...wire });
+        const why = schemaRefusal(table, { ...r, ...wire }) ?? oneArmedRefusal(tables, table, { ...r, ...wire });
         if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
         if (table === "agent_quote_live_orders") {
           const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r);

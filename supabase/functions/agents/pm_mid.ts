@@ -11,10 +11,16 @@
 // (`PM_MID_INSTANCE`, `PREP_MID_INSTANCE`) that names its own tables (`pm_mid_*`, `pm_midprep_*`, migration 0081), its own
 // leases (`pm-mid`, `pm-midprep`) and its band. Every other filter of the selection, RW's ranking, RW's quoting rule as
 // RW-E applies it, the gates, the caps and the stops are the path's, at small-pool's $400 sizes (0081's config row: eight
-// markets, $160, $320, $60 a market, −$25 a day, −$75 in all, GTD 600 s). It can never place an order: its config table
-// refuses `dry_run` false and any `live_confirmed_at` (0081), its action loads no signing key, and its wire refuses every
-// POST and DELETE (`agents?action=pmmid`, index.ts). One Polymarket account cannot carry two live paths; going live
-// would be a later migration and Davies' own decision.
+// markets, $160, $320, $60 a market, −$25 a day, −$75 in all, GTD 600 s).
+//
+// THE SAME REAL ORDER PATH, IN DRY-RUN (0084; Davies, 2026-10-02: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，按上线规模
+// 跑 dry-run，之后更好对比，现在就做不要等"). Until 0084 it could never place an order: its config refused `dry_run` false and
+// any `live_confirmed_at`, its action loaded no signing key, and its wire refused every POST and DELETE. Now its action
+// is mini-pool's (`agents?action=pmmid`, index.ts): the key loaded for the stored signer, the account's pUSD read every
+// minute, the same keyed wire; and its config row is the lock, `dry_run` true and `live_confirmed_at` null, as
+// mini-pool's is. One Polymarket account cannot carry two armed paths: a trigger on both configs refuses arming either
+// while the other is armed (0084), and each go-time statement refuses it too (the design doc's steps 8 and 8m). Going
+// live is that one statement, only in the conversation where Davies says go, and needs first what that step lists.
 //
 // NOT DISTURBING THE OTHER REWARD QUOTES. RW (to 10-09), RW-E and RW-X (replays on RW's minutes) and RW-C (10-09 → 10-23,
 // warm-up 10-08) quote, on paper, the markets RW's frozen selection takes from the universe of $10 and over, which holds
@@ -185,7 +191,13 @@ export async function bookReplies(tokens: string[], pm: PmPublicOpts = {}): Prom
   return out;
 }
 
-/** The path's mid-pool instance (0081): its tables, its lease, its band and its exclusion; a dry-run its table holds there. */
+/**
+ * The path's mid-pool instance (0081): its tables, its lease, its band and its exclusion. Its config row keeps it a
+ * dry-run (0084). It reads no payout, share or rebate (`readsPayouts` false), so its records stay what its
+ * pre-registration names: the account is mini-pool's too, and Polymarket pays the account, not a path. Mini-pool's
+ * readout books every market the account is paid for; a funded mid-pool needs that readout to tell the two paths'
+ * markets apart first (a change to `pm_live.ts`, after mini-pool's window), the design doc's step 8m.
+ */
 export const PM_MID_INSTANCE: PmLiveInstance = {
   name: "Reward quotes mid-pool",
   tables: {
