@@ -13,8 +13,9 @@
 //     the rule's own `exitTicks` on the paper engine's own fair for the minute, re-priced by the rule's own 0.05 % step.
 //     After 24 hours the rung is stopped as the rule stops it, as a taker. Here the stop is an IOC bounded at fair ± 50 bps.
 // So every entry order is a paper order: `paper_oid` and `paper_live` join it to `agent_quote_events`. The two books
-// differ only where the VENUE decided differently from the paper engine: a post-only order it refused, a fill the paper's
-// prints did not prove, or one they did prove that the venue did not give.
+// differ only where the VENUE decided differently from the paper engine: a post-only order it refused (or that crossed the
+// book the executor met, which it refuses), a fill the paper's prints did not prove, or one they did prove that the venue
+// did not give.
 //
 // WHAT IT NEVER DOES:
 //   * It never prices an order the rule did not price.
@@ -26,10 +27,12 @@
 //     D11/D12 rule: whole base steps, and the account's balance when the fee was not reported.
 //   * It never marks an order the venue shows nowhere as rejected. That order stays `pending`, reported, for a person.
 //   * It never sends an entry while `dry_run` is on. A dry-run order is a row: its price, size, client id and the book it
-//     met. When that book shows a post-only order would have crossed, the row is recorded refused, as the venue would have
-//     refused it. `dry_run` does not make it abandon a live book it already holds. After a live period it winds that book
+//     met. `dry_run` does not make it abandon a live book it already holds. After a live period it winds that book
 //     down: live entries are cancelled, and exits and stops stay armed. Reading the sub-account's balances is a signed
 //     GET, which the dry-run does when the key loads ("the dry-run on the real account").
+//   * It never sends a post-only order the book it met shows crossing, in either mode. The row is recorded refused, as
+//     the venue refuses it, and counts as no POST. Until 2026-10-02 a live one was sent all the same: the venue refused
+//     all four the executor had read as crossing, 30 ms before, and none of the 465 it had not.
 //
 // ITS HARD LIMITS, each enforced here and pinned in quotes_live.test.ts:
 //   * The order governor, on its own POSTs in a UTC day. At 900 the entry quotes are withdrawn, which costs DELETEs only,
@@ -281,6 +284,14 @@ export function wasRateLimited(o: { state?: unknown; response?: unknown }): bool
   return o.state === "rejected" && Number((o.response as { status?: unknown } | null | undefined)?.status) === 429;
 }
 
+/**
+ * Did this order go to the venue (in dry-run: would it have)? Every row did but one refused at the book it met, which is
+ * recorded refused without a POST (`wouldBeRefused`). The governor counts these rows, not the others.
+ */
+export function wasSent(o: { response?: unknown }): boolean {
+  return (o.response as { wouldBeRefused?: unknown } | null | undefined)?.wouldBeRefused !== true;
+}
+
 /** The paper engine's last print as an exit row records it (`request.paperLastPrint`): what a refused exit waits on. */
 export type SeenPrint = { id: string; ticks: number; side: Print["side"] };
 export const seenPrint = (p: Print | null | undefined): SeenPrint | null => (p ? { id: p.id, ticks: p.ticks, side: p.side } : null);
@@ -404,9 +415,10 @@ async function patchRow(ctx: Ctx, o: LiveOrderRow, p: Partial<LiveOrderRow>): Pr
 /**
  * Place one order. The row is written `pending` BEFORE the venue is called, so a lost reply is reconciled by client id on
  * the next turn. The insert is also the rung's claim: the partial unique index refuses a second open row on a rung.
- * A dry-run row is not sent. It is recorded `new`, or `rejected` when the book it met shows a post-only order would have
- * crossed. A 4xx is a refusal (`rejected`, the rule's refused state). A 5xx, or a reply that never came, says nothing
- * about the order, so the row stays `pending`.
+ * A post-only order the book it met shows crossing is not sent, in either mode: it is recorded `rejected` (the rule's
+ * refused state, which the venue would give it) with `wouldBeRefused`, and is no POST. A dry-run row is not sent either;
+ * it is recorded `new`. A 4xx is a refusal (`rejected`). A 5xx, or a reply that never came, says nothing about the
+ * order, so the row stays `pending`.
  */
 async function placeOrder(ctx: Ctx, o: {
   mode: LiveMode; book: QuoteBook; rungSide: Side | null; k: number | null; leg: LiveLeg; side: "buy" | "sell"; ticks: number; base: string;
@@ -436,13 +448,17 @@ async function placeOrder(ctx: Ctx, o: {
     if (isUniqueViolation(e)) { report.errors.push(`${label}: another ${o.mode} order is open on this rung; nothing placed`); return null; }
     throw e;
   }
-  ctx.posts[o.mode]++;
   const done = (state: string) => report.placed.push({ mode: o.mode, rung: label, leg: o.leg, side: o.side, price: Number(price), base: Number(o.base), state });
+  if (crosses) {
+    // Refused at the book it met, as the venue refuses it, and never sent: the venue's matching engine is not asked.
+    await patchRow(ctx, row, { state: "rejected", cancelled_at: ctx.nowIso, response: { ...(o.mode === "dry_run" ? { dryRun: true } : {}), wouldBeRefused: true } });
+    done(row.state);
+    return row;
+  }
+  ctx.posts[o.mode]++;
   if (o.mode === "dry_run") {
-    // Nothing is sent. What the venue would have said is read off the book the order met.
-    await patchRow(ctx, row, crosses
-      ? { state: "rejected", cancelled_at: ctx.nowIso, response: { dryRun: true, wouldBeRefused: true } }
-      : { state: "new", response: { dryRun: true, wouldBeRefused: crosses == null ? null : false } });
+    // Nothing is sent, and the book it met says the venue would have taken it.
+    await patchRow(ctx, row, { state: "new", response: { dryRun: true, wouldBeRefused: crosses == null ? null : false } });
     done(row.state);
     return row;
   }
@@ -802,7 +818,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   const fills = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
   const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live" | "response">>(
     "agent_quote_live_orders", `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
-  for (const r of recent) if (Date.parse(r.ts) >= dayStart) report.posts[r.mode]++;
+  for (const r of recent) if (Date.parse(r.ts) >= dayStart && wasSent(r)) report.posts[r.mode]++;
   const lastPrintPx = (b: QuoteBook) => paper?.books?.[b]?.lastPrint?.ticks != null ? paper.books[b].lastPrint!.ticks * QUOTE_TICK : null;
   const rungs: RungNow[] = [];
   for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as Side[]) for (const k of QUOTE_RUNGS) {
@@ -1126,7 +1142,8 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
   const needGbp = Number(base) * price * (taker ? 1.0009 : 1);
   if ((bal.GBP ?? 0) - openBuys < needGbp) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${needGbp} needed at the limit${taker ? " with the fee" : ""}` };
-  const today = await d.db.selectAll<{ id: number }>("agent_quote_live_orders", `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id&order=id.asc`);
+  const today = (await d.db.selectAll<{ id: number; response: unknown }>("agent_quote_live_orders",
+    `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response&order=id.asc`)).filter(wasSent);
   if (governorLevel(today.length) !== "all") return { error: `the governor has closed entries: ${today.length} POSTs today` };
   const order = {
     book, side: "buy", base, limit: price.toFixed(4), timeInForce: taker ? "ioc" : "gtc", postOnly: !taker, fair, bestBid: seen.bestBid, bestAsk: seen.bestAsk,

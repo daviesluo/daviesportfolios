@@ -16,7 +16,7 @@ import {
 import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
-  venueSideOf, wasRateLimited,
+  venueSideOf, wasRateLimited, wasSent,
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
@@ -329,10 +329,12 @@ Deno.test("dry-run without the key assumes the capital, all GBP, and still sends
 Deno.test("dry-run records a post-only order the book it met would have refused as refused, and does not record that decision again", async () => {
   const w = makeWorld();
   w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7530, ask: 0.7540 };           // the 0.1 % bid at 0.7546 would cross the 0.7540 ask
-  await w.step(T0);
+  const r = await w.step(T0);
   const refused = w.orders().filter((o) => o.state === "rejected");
   assertEquals(refused.map((o) => [o.book, Number(o.k), Number(o.price)]), [["USDC-GBP", 0.001, 0.7546]]);
   assertEquals((refused[0].response as { wouldBeRefused: boolean }).wouldBeRefused, true);
+  // Live would not send it either, so the governor's dry-run count leaves it out: five of the six bids.
+  assertEquals([entryRows(w.orders(), "dry_run").length, r.posts.dry_run], [6, 5]);
   await w.step(T0 + M);
   await w.step(T0 + 2 * M);
   assertEquals(w.orders().filter((o) => o.book === "USDC-GBP" && Number(o.k) === 0.001).length, 1);
@@ -375,11 +377,14 @@ Deno.test("live: a post-only order the venue refuses is the refused state — th
   for (const how of ["status", "http-400"] as const) {
     const w = makeWorld({ live: true, armed: true });
     w.rx.postOnlyRefusal = how;
-    w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7530, ask: 0.7540 };        // the 0.1 % bid at 0.7546 crosses the ask
+    // The book the executor reads does not cross. The venue's moves as the first order arrives, a race the executor
+    // cannot see: its ask comes down to 0.7540, under the 0.1 % bid at 0.7546, which then crosses it.
+    w.rx.onPost = () => { w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7530, ask: 0.7540 }; w.rx.onPost = undefined; };
     await w.step(T0);
     await w.step(T0 + M);                                             // read back (or refused at once): rejected
     const rung = () => w.orders().filter((o) => o.book === "USDC-GBP" && Number(o.k) === 0.001);
     assertEquals(rung().map((o) => o.state), ["rejected"], how);
+    assertEquals([wasSent(rung()[0]), (rung()[0].request as { crossesBook: boolean | null }).crossesBook], [true, false], `${how}: the venue refused it`);
     await w.run(T0 + 2 * M, T0 + 4 * M);
     assertEquals(rung().length, 1, `${how}: the same decision is never sent twice`);
     // The paper engine re-prices (GBP/USD up): a new decision, sent once; this one rests below the 0.7540 ask.
@@ -755,13 +760,17 @@ for (const refusal of ["http-400", "status"] as const) {
     // A long of 5 USDC on the 0.2 % bid rung, filled an hour ago: its exit is a sell at fair rounded up, 0.7555.
     await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
     w.rx.postOnlyRefusal = refusal;
-    w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 };          // the book is through the exit: a post-only sell at 0.7555 crosses
+    // The book the executor reads is under the exit. The venue's moves through it as the exit arrives, a race the executor
+    // cannot see: a post-only sell at 0.7555 then crosses the 0.7556 bid.
+    w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7549, ask: 0.7553 };
+    w.rx.onPost = () => { w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 }; w.rx.onPost = undefined; };
     const exitPosts = () => w.orders().filter((o) => o.leg === "exit").length;
     const print = (id: string, ticks: number, side: "buy" | "sell", at: number) => ({ "USDC-GBP": [{ ts: at, ticks, qty: 100, side, id }] });
     await w.step(T0, print("a", 7557, "buy", T0 + 5e3));
     assertEquals(exitPosts(), 1);
     const first = w.orders().find((o) => o.leg === "exit")!;
     assertEquals((first.request as { paperLastPrint?: { id: string } }).paperLastPrint?.id, "a");
+    assertEquals([wasSent(first), (first.request as { crossesBook: boolean | null }).crossesBook], [true, false], "the venue refused it");
     await w.step(T0 + M);                                               // nothing printed: it waits (the old executor sent it again)
     assertEquals(exitPosts(), 1);
     assertEquals(w.orders().find((o) => o.leg === "exit")!.state, "rejected");
@@ -778,9 +787,11 @@ for (const refusal of ["http-400", "status"] as const) {
 Deno.test("live: an exit refused while the tape shows nothing through it (the book moved without a trade) is not sent every minute — once per newer print", async () => {
   const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
   await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
-  w.rx.postOnlyRefusal = "http-400";
+  // Through the exit at every read: the executor refuses it itself. (The double keeps an order it refuses by status, so
+  // one that reached it would be counted below.)
   w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 };
   const exitPosts = () => w.orders().filter((o) => o.leg === "exit").length;
+  const venueSells = () => [...w.rx.orders.values()].filter((o) => o.side === "sell").length;
   await w.step(T0, { "USDC-GBP": [{ ts: T0 + 5e3, ticks: 7552, qty: 100, side: "buy", id: "q" }] });   // the last print is under the exit
   assertEquals(exitPosts(), 1);
   for (let i = 1; i <= 5; i++) await w.step(T0 + i * M);             // five quiet minutes: the book still through, no print
@@ -788,7 +799,29 @@ Deno.test("live: an exit refused while the tape shows nothing through it (the bo
   await w.step(T0 + 6 * M, { "USDC-GBP": [{ ts: T0 + 6 * M + 5e3, ticks: 7553, qty: 100, side: "buy", id: "r" }] });
   assertEquals(exitPosts(), 2);                                       // a newer print, not through it: one more try (refused again)
   await w.step(T0 + 7 * M);
-  assertEquals(exitPosts(), 2);
+  assertEquals([exitPosts(), venueSells()], [2, 0]);                  // and neither try reached the venue
+});
+
+// Production, 2026-10-02 14:13 and 14:26 UTC (orders 1517, 1518, 1536 and 1537): post-only USDT-GBP exits at 0.7549 and
+// 0.7548, under best bids of 0.7550 and 0.7549 the executor had read 30 ms before. It sent all four, and the venue refused
+// all four; of the 465 live post-only orders whose book did not cross, it refused none for crossing.
+Deno.test("live: a post-only exit the book it met shows crossing is refused there, never sent, and is no POST to the governor", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  // A long of 5 USDC on the 0.2 % bid rung, filled an hour ago (one of today's POSTs): its exit is a sell at 0.7555.
+  await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7538, base_size: 5, filled_base: 5, avg_fill_price: 0.7538, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  w.rx.gbpBooks["USDC/GBP"] = { bid: 0.7556, ask: 0.7558 };          // the book is through the exit: a post-only sell at 0.7555 crosses
+  const r = await w.step(T0, { "USDC-GBP": [{ ts: T0 + 5e3, ticks: 7557, qty: 100, side: "buy", id: "a" }] });
+  const exit = w.orders().find((o) => o.leg === "exit")!;
+  assertEquals([exit.state, Number(exit.price), (exit.request as { crossesBook: boolean | null }).crossesBook, (exit.response as { wouldBeRefused?: boolean }).wouldBeRefused, wasSent(exit)],
+    ["rejected", 0.7555, true, true, false]);
+  assertEquals([...w.rx.orders.values()].filter((o) => o.side === "sell").length, 0);   // the venue never saw it
+  // The governor counts the POSTs made: the bids this turn sent, and the seeded fill. Not the exit.
+  assert(w.posts() > 0);
+  assertEquals(r.posts.live, w.posts() + 1);
+  // It waits as a venue refusal waits (`exitMayGo`): nothing has printed, so nothing is sent; and the next turn's count of
+  // the day's rows leaves it out too.
+  const r2 = await w.step(T0 + M);
+  assertEquals([w.orders().filter((o) => o.leg === "exit").length, r2.posts.live], [1, w.posts() + 1]);
 });
 
 Deno.test("live: an ask rung's exit buy-back is trimmed to the penny below, and once it fills the rung is flat, its hair carried as dust", async () => {

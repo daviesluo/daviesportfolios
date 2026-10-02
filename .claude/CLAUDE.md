@@ -486,7 +486,8 @@ that follow from that evidence, in short:
   limits (a POST governor at 900/950, raised from 600/700 on Davies' word
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a
   bounded 24-hour stop; a refused exit sent again only after a newer print
-  that is not through it). Its asks hold coin bought by `quotes-convert`
+  that is not through it; a post-only order the book it met shows crossing
+  recorded refused and never sent, 2026-10-02). Its asks hold coin bought by `quotes-convert`
   (£30 of each, 16:31–16:32 UTC). It went live with `update
   public.agent_quote_live_config set dry_run = false, live_confirmed_at =
   now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
