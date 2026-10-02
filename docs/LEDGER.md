@@ -443,6 +443,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      10-02. Deleting them (one migration, kind `agents.pm_live`, 05:50–09:35, naming the China Open market) was refused
      by the session's permission classifier; his to approve, or click Acknowledge in the badge, or let them age out.
    - **PR5 live now** (item 4): approve the preparation the classifier refused, and decide the paper-test interaction.
+   - **Cloudflare Pages' deploy token (2026-10-02 23:25):** `CLOUDFLARE_API_TOKEN` lost Account → Cloudflare Pages →
+     Edit when it was edited for the monitor (`pages-deploy` failed, code 10000; the site serves the bundle before the
+     twins). His click: add it back beside Workers Scripts → Edit; a session then re-runs the failed run.
    - **Cloudflare Pages:** the watch paths (Include `dist/*`) and the Direct Upload Action (`pages-deploy.yml`, both
      secrets) are set (2026-09-27). Left, his click: turn off Pages' own Git build's automatic deployments (Settings →
      Build → Branch control), which grokbot is doing (2026-09-30); then check the next `dist/` push: its `pages-deploy`
@@ -675,6 +678,23 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 23:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The twins landed and run forward; the site still serves the bundle before them.** Read 23:24 UTC: both twins'
+`_sim` rows in mode `forward`, no `last_error`, `paperCheck` mismatches 46 (`pr5`, all before 2026-09-24 18:13) and 0
+(`d`), every twin table turned 23:23:25; 60 beats of `agents?action=quotestwins` in 60 minutes, no `ops_errors`
+`agents.quotes_twin%` in two hours; the live executor's state turned 23:24:26 with no error. Rule D's twin's fills
+and P&L were not read. The site serves `app-729a873e.js`, not this commit's `app-1ac85573.js`: `pages-deploy` failed
+on Cloudflare's code 10000 (authentication) after the token was edited for the monitor, so `CLOUDFLARE_API_TOKEN`
+needs Account → Cloudflare Pages → Edit back beside Workers Scripts → Edit (item 6); then re-run the failed run and
+check the site's `app-<hash>.js`. The old bundle still renders: the server only added `quotesTwins`.
+
+**The README's two stale facts** (the 22:02 entry left its paper-test sentence for later): two strategies trade a small
+account, not one (the stablecoin quotes since 2026-10-01), and the page shows the stablecoin tests as twins of the live
+executor. Its Edge count says "over 950" (968 today; Vitest 1,162, both read from this tree's runs), so it stays
+true as tests are added. The interview showcase and both preparation PDFs in `daviesluo/personal` are corrected in
+that repository's own commit.
 
 ### [2026-10-02 22:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -122,7 +122,7 @@ recorded when nobody has the page open.
 - **Every push runs the same gates**: type-check, lint, unit tests, a
   production build, two browser tests, a bundle-size budget, a dead-code
   scan and a dependency audit. `bin/gates.sh` runs them all locally.
-- **Three levels of tests**: over 1,150 unit tests (Vitest), about 950
+- **Three levels of tests**: over 1,150 unit tests (Vitest), over 950
   Edge Function tests (Deno), and two browser runs against the real
   production bundle in Chromium: 585 checks across the whole page at
   desktop and phone widths, and 60 cases of the performance panel checked
@@ -159,16 +159,19 @@ closed bar it asks its rulebook what to do.
   than 1-hour bars (fees eat it), arbitrage between the two exchanges
   (the gap never covers the fee), and real money on Kraken (its fees).
 - **Paper first, then small.** Every rule runs on paper before it
-  touches money. One has so far: trend following on 4-hour bars over
-  BTC, ETH, SOL and AVAX, live since 24 September 2026 on a small
-  account, with its paper twin beside it as the control. A live order
-  needs the row switched to live, a confirmation in the database, the
-  risk gate's approval and my go-ahead.
+  touches money. Two have so far, each on a small account of its own:
+  trend following on 4-hour bars over BTC, ETH, SOL and AVAX since
+  24 September 2026, with its paper twin beside it as the control, and
+  the stablecoin quotes below since 1 October. A live order needs the
+  row switched to live, a confirmation in the database, the risk gate's
+  approval and my go-ahead.
 - **Tests with a bar written first.** Beside the loop, four ideas run
   on paper, each judged against a pre-registration frozen before its
   first day: resting quotes either side of interbank on Revolut X's GBP
   stablecoin books, two variants of the same, and quotes for
-  Polymarket's liquidity rewards.
+  Polymarket's liquidity rewards. The page shows the stablecoin ones as
+  twins of the live executor: its own code, on a simulated account that
+  fills only on real trades through a quote.
 
 The evidence is in [`docs/agents/reference.md`](agents/reference.md),
 the case for the first live strategy in
