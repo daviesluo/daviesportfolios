@@ -13,11 +13,11 @@ crypto loop and the testing strategies are planned in `docs/LEDGER.md` and
 
 ## Where it stands (2026-09-28)
 
-Of 28 items: 16 done, 1 partly, 1 not doing by decision, 10 open (2 of
+Of 28 items: 17 done, 1 partly, 1 not doing by decision, 9 open (2 of
 them wait on an answer only Davies can give). Items 4, 5, 10 and 14 closed
-on 2026-09-30, after the re-check, and item 9 on 2026-10-02. (Counted from
-the table on 2026-10-02: this line had said two more done and two fewer
-open since the re-check, whose own table counted 11 done, not 13.)
+on 2026-09-30, after the re-check, and items 9 and 20 on 2026-10-02.
+(Counted from the table on 2026-10-02: this line had said two more done and
+two fewer open since the re-check, whose own table counted 11 done, not 13.)
 
 | # | Item | Status | Evidence |
 |---|---|---|---|
@@ -40,7 +40,7 @@ open since the re-check, whose own table counted 11 done, not 13.)
 | 17 | Lot dates are UTC while the picker is local | Open, needs Davies | The add-holding modal still takes today from `toISOString()` |
 | 18 | The chart recomputes on every render | **Done** | `perf_chart.jsx` memoises, pinned by `perf_chart.memo.test.jsx` |
 | 19 | Modals have no dialog semantics | Open | No `role="dialog"` or `aria-modal` anywhere; each modal still handles Escape itself |
-| 20 | One error boundary for the whole app | Open | Still one, at the root of `app.jsx` |
+| 20 | One error boundary for the whole app | **Done** 2026-10-02 | Every surface has its own (`src/app/surface_boundary.jsx`): the header, both copies of the performance panel, the market cards, upcoming earnings, the board, the sidebar and its Top Movers, every modal, and the Agents page's list and its pages. A throw shows "failed to load" with a Retry in that place and is reported under the surface's name; the root boundary stays. Pinned by its unit test and the sweep's `surfaces` part (38 checks a viewport), which fails on the old bundle (56 of its 76 checks) and on one built without the per-surface boundaries |
 | 21 | The overnight cache in localStorage | Open, low | `src/prices/overnight_intraday.js` still writes there |
 | 22 | The open chart modal polls forever | **Done** | It polls only while the page is visible and the tape can move (`use_ticker_chart_data.js`) |
 | 23 | Give the app an icon | Open | `manifest.webmanifest` still ships `"icons": []` |
@@ -77,7 +77,7 @@ Each is small, fixes a way the app can be confidently wrong, or has a date.
    volatility-scaled band at the write; a quote outside it is dropped and
    reported, never shown. It matters most when the price function is down
    and the public proxies answer.
-7. **Error boundaries per surface (20).** M. Wrap the performance panel, the
+7. ~~**Error boundaries per surface (20).**~~ Done 2026-10-02. M. Wrap the performance panel, the
    heat map, the sidebar, the Agents page and each modal, so one throw
    degrades a panel instead of blanking the board. The Agents page is now
    the largest surface in the app.

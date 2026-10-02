@@ -430,7 +430,8 @@ How the less obvious parts work, and why they are built the way they are.
   load refreshes the browser's copy, drops every service worker and cache,
   reloads once and reports `chunk.load`, and each page has its own
   boundary that shows the page's frame with the words instead of a
-  whole-app RENDER ERROR; (3) the sweep answers a chunk with the poisoned
+  whole-app RENDER ERROR (since 2026-10-02 every panel and modal has one,
+  `src/app/surface_boundary.jsx`); (3) the sweep answers a chunk with the poisoned
   response and asserts the heal, and the scheduled health check fetches
   the live shell, verifies every chunk it references is JavaScript and
   that a chunk that does not exist is a 404 without an immutable header.
@@ -474,6 +475,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices and 24H chart a reload paints first. |
 | `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
 | `app/chunk_recovery.js` | Loads each page's code: a page already fetched opens at once; one whose code fails to load after a deploy is fetched fresh, the service worker and caches dropped, the app reloaded once and the failure reported. |
+| `app/surface_boundary.jsx` | One error boundary per surface (each panel, the header, the board, the sidebar, every modal and Agents page): a throw shows "failed to load" with a Retry in that surface's place and is reported under its name. |
 | `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
 | `app/version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
 | `app/types.d.ts`, `app/ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |

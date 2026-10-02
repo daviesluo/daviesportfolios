@@ -25,6 +25,7 @@ import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveO
 import { loadRangeCache, CHARTS_UPDATED_EVENT } from '../prices/cache.js';
 import { buildTickerSeries, anchorDateFor } from '../charts/ytd.js';
 import { OpsErrorBadge, useIsDesktop } from '../app/ops_error_badge.jsx';
+import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 
 // Eye icons for the "hide values" toggle in the scoreboard. Inline SVG so
 // they inherit currentColor and don't need an extra HTTP request.
@@ -353,7 +354,11 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
             </div>
           </div>
         )}
-        <OpsErrorBadge isReadOnly={isReadOnly} />
+        {/* The errors badge is the report's own channel: a badge that fails shows nothing rather than taking the
+            header with it. */}
+        <SurfaceBoundary name="ops-badge" silent>
+          <OpsErrorBadge isReadOnly={isReadOnly} />
+        </SurfaceBoundary>
         <button className="btn-ghost" onClick={onRefresh} disabled={isRefreshing} title="Refresh prices">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"
                className={isRefreshing ? "spin" : ""}>
@@ -681,7 +686,11 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
 
   return (
     <aside className="sidebar">
-      <TopMovers metrics={metrics} hideValues={hideValues} />
+      {/* Top Movers and the phone's copy of the performance panel each have a boundary of their own, inside the
+          sidebar's (app.jsx), so one of them failing leaves the rest of the sidebar drawn. */}
+      <SurfaceBoundary name="movers" title="TOP MOVERS" resetKey={forceRefreshKey}>
+        <TopMovers metrics={metrics} hideValues={hideValues} />
+      </SurfaceBoundary>
 
       <section className="panel">
         <h3 className="panel-title">FORMATION VALUE</h3>
@@ -709,16 +718,18 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         </div>
       </section>
 
-      <PerfPanel
-        portfolio={portfolio}
-        marketData={marketData}
-        extendedHours={extendedHours}
-        phase={phase}
-        className="perf-in-sidebar"
-        isReadOnly={isReadOnly}
-        refreshedAt={refreshedAt}
-        forceRefreshKey={forceRefreshKey}
-      />
+      <SurfaceBoundary name="perf" title="PERFORMANCE" className="perf-in-sidebar" resetKey={forceRefreshKey}>
+        <PerfPanel
+          portfolio={portfolio}
+          marketData={marketData}
+          extendedHours={extendedHours}
+          phase={phase}
+          className="perf-in-sidebar"
+          isReadOnly={isReadOnly}
+          refreshedAt={refreshedAt}
+          forceRefreshKey={forceRefreshKey}
+        />
+      </SurfaceBoundary>
 
       <div className="sidebar-foot sidebar-foot-desktop">
         <div className="foot-kv"><span>Source</span><span className="mono">{sourceLabel(source)}</span></div>

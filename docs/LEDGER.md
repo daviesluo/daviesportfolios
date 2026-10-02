@@ -442,11 +442,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      makes prices fall, which only a short can use, and a +2 % mean needs about 1,200 events).
 
 7. **The app's own list is [`docs/improvement-plan.md`](improvement-plan.md)**, re-checked item by item on
-   2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30 and item 9 on 2026-10-02, so 16 of 28 done, 1 partly, 1 not
-   doing (the committed bundle, his call), 10 open (its summary line said two more done until 10-02; the table never
-   did). Worth doing, in order: the app icon; a plausibility band on quotes; error boundaries per surface; and item 3
-   measured before it is touched. Seven questions there wait on Davies, the first whether `APP_AUTH_SECRET` was
-   rotated with the two passwords.
+   2026-09-28; items 4, 5, 10 and 14 closed on 2026-09-30, and items 9 and 20 (error boundaries per surface) on
+   2026-10-02, so 17 of 28 done, 1 partly, 1 not doing (the committed bundle, his call), 9 open (its summary line said
+   two more done until 10-02; the table never did). Worth doing, in order: the app icon; a plausibility band on quotes;
+   and item 3 measured before it is touched. Seven questions there wait on Davies, the first whether `APP_AUTH_SECRET`
+   was rotated with the two passwords.
    - **10-01: the recorders' first audits of each other pass** (read 10:22 UTC). The night of 10-01, 00:00–08:00 UTC:
      `overnight_intraday_points` 96 of 96 buckets, `price_snapshots` 96 of 96, both 96 (65/30/15 and 71/54/29 on the
      two nights before the Trading 212 retry); `price_snapshots` 288 of 288 in the 24 hours to 09:20; no `recorder.watch`
@@ -577,6 +577,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 02:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Every surface of the page has an error boundary of its own (improvement plan item 20; Davies approved items 20 and 6 on 2026-10-02).** There was one boundary, at the root of `app.jsx`, besides one per lazily loaded page for its code, so a throw in any panel replaced the whole board with RENDER ERROR. `src/app/surface_boundary.jsx` now sits around each surface: the header, both copies of the performance panel, Market Conditions and Upcoming Earnings at either width, the board (tactics or heat map), the sidebar and inside it Top Movers, the errors badge and the update banner (these two fail to nothing), every modal (position, edit, add, cash, the confirm dialog, the two lists, the transaction history, the chart, the Agents page), and inside the Agents page its list and each page opened over it. A throw shows "This panel failed to load." (a page: "This page failed to load.") with a Retry in that surface's own place, a modal keeping its frame and close; Refresh retries a failed board panel, a dashboard answer a failed Agents part; a failed confirm dialog closes as Cancel (`useConfirm`'s new `cancel`). Each failure is reported as `render.crash` (`chunk.load` for code that did not load) with the surface's name as its symbol, the stacks cut to stay inside ops-error's 2 KB context. The root boundary stays for a throw in the board's own frame; a throw in an event handler or a promise still goes to the unhandled-rejection report, as before. The sweep's hook: each boundary fails when `window.__dpSweepFail` names it, which only the sweep's init script sets. Pinned: 8 unit cases (`surface_boundary.test.jsx`) and the sweep's new `surfaces` part, 38 checks a viewport: each of 7 board surfaces made to fail shows its fallback in place while every other panel is drawn and the scoreboard reads $3,183 ($3,182.50), is reported under its name, and Retry draws it again; 14 modals and pages likewise, the failed confirm dialog removing nothing; a page whose code never loads says so in its frame and reports `chunk.load`; and the part's console errors are exactly its 21 throws. Counterfactuals on the same checks: the old bundle (origin/main's `dist/`) fails 56 of the 76 (76 failure lines), passing only the 20 Retry and Cancel follow-ons, which nothing failing makes trivial; a bundle built with the boundaries made pass-through (no `getDerivedStateFromError`, no `componentDidCatch`) blanks the page at each throw: on desktop all 21 of the 7 board surfaces' checks fail with RENDER ERROR on screen and no scoreboard, each throw reported only by the root boundary and under no name, and once the first modal fails every later check runs on a blank page. Main bundle 113.96 → 115.02 kB gzipped of 122. A data-driven throw was not used: the surfaces have no known crash to feed, and one found would be a bug to fix.
 
 ### [2026-10-02 02:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

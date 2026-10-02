@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from '../portfolio/fx.js';
-import { isChunkLoadError, lazyPage } from './chunk_recovery.js';
+import { lazyPage } from './chunk_recovery.js';
+import { SurfaceBoundary, FailedPanel } from './surface_boundary.jsx';
 import { freezeDepositFxRates } from '../charts/deposit_series.js';
 import { createPortfolioEditHandlers } from '../portfolio/portfolio_edits.js';
 import { computeMetrics, detectFormation } from '../portfolio/metrics.js';
@@ -58,9 +59,13 @@ const AgentsModal = lazyPage(() => import('../agents/agents.jsx'), (m) => ({ def
  * ONE boundary with a null fallback, so any page's first render (or a
  * re-suspension) blanked every open modal and the home page showed through
  * for a frame or two — the "flash" the owner saw on the Agents page.
- * @param {{ title: string, onClose: () => void, bodyClass?: string, failed?: boolean }} props
+ *
+ * The same frame says why a page could not be drawn: `failed` is 'chunk' when
+ * its code did not load (healed once already, so only a reload can help) and
+ * 'render' when the page threw while it drew (Retry draws it again).
+ * @param {{ title: string, onClose: () => void, bodyClass?: string, failed?: 'chunk' | 'render' | null, onRetry?: () => void }} props
  */
-function ModalFrame({ title, onClose, bodyClass = '', failed = false }) {
+function ModalFrame({ title, onClose, bodyClass = '', failed = null, onRetry }) {
   return (
     <Modal onClose={onClose} size="lg">
       <header className="modal-head">
@@ -70,10 +75,15 @@ function ModalFrame({ title, onClose, bodyClass = '', failed = false }) {
         </div>
       </header>
       <div className={`modal-body ${bodyClass}`.trim()}>
-        {failed ? (
-          <div className="ag-empty dim modal-failed">
+        {failed === 'chunk' ? (
+          <div className="ag-empty dim modal-failed" role="alert">
             This page's code did not load. The app has already cleared its caches once; reload to try again.
             <div><button type="button" className="btn-ghost modal-failed-reload" onClick={() => window.location.reload()}>Reload</button></div>
+          </div>
+        ) : failed === 'render' ? (
+          <div className="ag-empty dim modal-failed" role="alert">
+            This page failed to load.
+            <div><button type="button" className="btn-ghost modal-failed-retry" onClick={onRetry}>Retry</button></div>
           </div>
         ) : <div className="ag-empty dim">Loading…</div>}
       </div>
@@ -82,23 +92,28 @@ function ModalFrame({ title, onClose, bodyClass = '', failed = false }) {
 }
 
 /**
- * One boundary per lazily loaded page, so a page whose code fails to load
- * shows its own frame with the words and the rest of the app stays up — a
- * shared boundary turned every such failure into a whole-app RENDER ERROR.
+ * A position's page title as its own modal writes it: the label, then the sector's name.
+ * @param {{ label?: string, subtitle?: string } | null | undefined} pos @param {string} fallback
  */
-class LazyBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { err: null }; }
-  static getDerivedStateFromError(e) { return { err: e }; }
-  componentDidCatch(error, info) {
-    reportError(isChunkLoadError(error) ? 'chunk.load' : 'render.crash', {
-      message: String(error?.message || error),
-      context: { page: this.props.title, healed: false, stack: String(error?.stack || '').slice(0, 1500), componentStack: String(info?.componentStack || '').slice(0, 800) },
-    });
-  }
-  render() {
-    if (this.state.err) return <ModalFrame title={this.props.title} onClose={this.props.onClose} bodyClass={this.props.bodyClass} failed />;
-    return this.props.children;
-  }
+function positionTitle(pos, fallback) {
+  return [pos?.label, pos?.subtitle].filter(Boolean).join(' · ') || fallback;
+}
+
+/**
+ * The boundary of one modal or menu page: when the page throws, or its code
+ * does not load, its own frame says so and the rest of the app stays up. A
+ * shared boundary turned every such failure into a whole-app RENDER ERROR.
+ * @param {{ name: string, title: string, onClose: () => void, bodyClass?: string, children?: React.ReactNode }} props
+ */
+function ModalBoundary({ name, title, onClose, bodyClass, children }) {
+  return (
+    <SurfaceBoundary
+      name={name}
+      fallback={({ retry, chunk }) => <ModalFrame title={title} onClose={onClose} bodyClass={bodyClass} failed={chunk ? 'chunk' : 'render'} onRetry={retry} />}
+    >
+      {children}
+    </SurfaceBoundary>
+  );
 }
 
 /** Warm every split chunk. Idempotent — the module cache dedupes. */
@@ -118,7 +133,8 @@ import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, 
 import { applyFillLedgers } from '../portfolio/t212_fills.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 
-// Catches any render-time crash and shows a readable error instead of a blank page.
+// The last resort: a render-time crash no surface's own boundary caught (one in the board's own frame) shows a readable
+// error instead of a blank page. Every panel and modal has a boundary of its own (surface_boundary.jsx).
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(e) { return { err: e }; }
@@ -314,7 +330,9 @@ function App() {
   }
   return (
     <ErrorBoundary>
-      <ServiceWorkerBanner />
+      <SurfaceBoundary name="update-banner" silent>
+        <ServiceWorkerBanner />
+      </SurfaceBoundary>
       <Board isReadOnly={auth.isReadOnly} />
     </ErrorBoundary>
   );
@@ -324,7 +342,7 @@ function Board({ isReadOnly }) {
   // Themed confirm dialog (replaces window.confirm for destructive actions
   // — reset board / remove holding). confirmEl is rendered near the other
   // modals below; it portals to <body>.
-  const { confirm: askConfirm, element: confirmEl } = useConfirm();
+  const { confirm: askConfirm, cancel: cancelConfirm, element: confirmEl } = useConfirm();
   // Seed with the last-known full portfolio (Storage.loadPortfolioCache —
   // written after every successful load/save) so first paint shows the
   // user's real board instantly instead of a blank "Fetching board from
@@ -1410,6 +1428,14 @@ function Board({ isReadOnly }) {
           <button className="demo-banner-btn" onClick={() => setSaveConflict(false)}>Keep editing</button>
         </div>
       )}
+      {/* Every surface below sits inside a boundary of its own (surface_boundary.jsx): a throw in one turns that
+          surface into a short message in its place, and the rest of the board keeps working. `resetKey` is the
+          refresh button's count, so Refresh retries a failed panel with the prices. */}
+      <SurfaceBoundary
+        name="header"
+        resetKey={chartForceKey}
+        fallback={({ retry }) => <header className="header"><FailedPanel name="header" title="DAVIES' PORTFOLIOS" className="surface-failed-header" onRetry={retry} /></header>}
+      >
       <Header
         metrics={metrics}
         marketData={marketData}
@@ -1432,9 +1458,11 @@ function Board({ isReadOnly }) {
         onOpenTransactionHistory={() => { if (!isReadOnly) setShowTransactionHistory(true); }}
         onOpenAgents={() => setShowAgents(true)}
       />
+      </SurfaceBoundary>
 
       <main className="main">
         <div className="left-col">
+          <SurfaceBoundary name="perf" title="PERFORMANCE" className="perf-in-left" resetKey={chartForceKey}>
           <PerfPanel
             portfolio={shownPortfolio}
             marketData={marketData}
@@ -1447,16 +1475,29 @@ function Board({ isReadOnly }) {
             refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
             forceRefreshKey={chartForceKey}
           />
+          </SurfaceBoundary>
           {isDesktop && (
+            <SurfaceBoundary name="market" title="MARKET CONDITIONS" resetKey={chartForceKey}>
             <MarketConditions
               marketData={marketData}
               extendedHours={extendedHours}
               phase={currentPhase}
               onCardClick={setViewingTicker}
             />
+            </SurfaceBoundary>
           )}
-          {isDesktop && <UpcomingEarnings portfolio={portfolio} />}
+          {isDesktop && (
+            <SurfaceBoundary name="earnings" title="UPCOMING EARNINGS" className="earnings-panel" resetKey={chartForceKey}>
+              <UpcomingEarnings portfolio={portfolio} />
+            </SurfaceBoundary>
+          )}
         </div>
+        {/* The heat map and the tactics board are one surface: the centre of the page, whichever view is on. */}
+        <SurfaceBoundary
+          name="board"
+          resetKey={chartForceKey}
+          fallback={({ retry }) => <div className="pitch-wrap"><FailedPanel name="board" title={viewMode === 'heatmap' ? 'HEAT MAP' : 'TACTICS BOARD'} className="surface-failed-board" onRetry={retry} /></div>}
+        >
         {viewMode === 'heatmap' ? (
           <Heatmap
             metrics={metrics}
@@ -1485,6 +1526,12 @@ function Board({ isReadOnly }) {
             hideValues={hideValues}
           />
         )}
+        </SurfaceBoundary>
+        <SurfaceBoundary
+          name="sidebar"
+          resetKey={chartForceKey}
+          fallback={({ retry }) => <aside className="sidebar"><FailedPanel name="sidebar" title="TOP MOVERS · FORMATION VALUE" onRetry={retry} /></aside>}
+        >
         <Sidebar
           metrics={metrics}
           source={source}
@@ -1497,11 +1544,17 @@ function Board({ isReadOnly }) {
           refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
           forceRefreshKey={chartForceKey}
         />
+        </SurfaceBoundary>
         {/* Mobile-only Market Conditions strip — rendered as a separate
             sibling because the desktop instance lives inside .left-col,
             which is display:none on mobile. matchMedia-gated so it
             doesn't mount/render at all on desktop. */}
         {!isDesktop && (
+          <SurfaceBoundary
+            name="market"
+            resetKey={chartForceKey}
+            fallback={({ retry }) => <aside className="market-conditions market-conditions-mobile"><FailedPanel name="market" title="MARKET CONDITIONS" onRetry={retry} /></aside>}
+          >
           <MarketConditions
             marketData={marketData}
             extendedHours={extendedHours}
@@ -1509,12 +1562,20 @@ function Board({ isReadOnly }) {
             className="market-conditions-mobile"
             onCardClick={setViewingTicker}
           />
+          </SurfaceBoundary>
         )}
-        {!isDesktop && <UpcomingEarnings portfolio={portfolio} className="earnings-panel-mobile" />}
+        {!isDesktop && (
+          <SurfaceBoundary name="earnings" title="UPCOMING EARNINGS" className="earnings-panel earnings-panel-mobile" resetKey={chartForceKey}>
+            <UpcomingEarnings portfolio={portfolio} className="earnings-panel-mobile" />
+          </SurfaceBoundary>
+        )}
         <SidebarFoot source={source} />
       </main>
 
+      {/* Each modal and menu page has a boundary of its own (ModalBoundary): when one throws, or its code does not
+          load, its own frame says so and the board behind it keeps working. */}
       {drillPos && (
+        <ModalBoundary name="position" title={positionTitle(metrics.positions[drillPos], 'Position')} onClose={() => setDrillPos(null)}>
         <PositionDrillModal
           posKey={drillPos}
           position={metrics.positions[drillPos]}
@@ -1531,6 +1592,7 @@ function Board({ isReadOnly }) {
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
           hideValues={hideValues}
         />
+        </ModalBoundary>
       )}
 
       {/* One Suspense boundary PER lazy page, never one for all of them: a
@@ -1545,7 +1607,7 @@ function Board({ isReadOnly }) {
           stays mounted behind it — closing the ticker modal returns
           to the list, not all the way home. */}
       {showHoldingsList && (
-        <LazyBoundary title="Holding list" onClose={() => setShowHoldingsList(false)}>
+        <ModalBoundary name="holdings-list" title="Holding list" onClose={() => setShowHoldingsList(false)}>
           <React.Suspense fallback={<ModalFrame title="Holding list" onClose={() => setShowHoldingsList(false)} />}>
             <HoldingsListModal
               metrics={metrics}
@@ -1554,11 +1616,11 @@ function Board({ isReadOnly }) {
               onClose={() => setShowHoldingsList(false)}
             />
           </React.Suspense>
-        </LazyBoundary>
+        </ModalBoundary>
       )}
 
       {showSectorsList && (
-        <LazyBoundary title="Sectors list" onClose={() => setShowSectorsList(false)}>
+        <ModalBoundary name="sectors-list" title="Sectors list" onClose={() => setShowSectorsList(false)}>
           <React.Suspense fallback={<ModalFrame title="Sectors list" onClose={() => setShowSectorsList(false)} />}>
             <SectorsListModal
               metrics={metrics}
@@ -1567,11 +1629,11 @@ function Board({ isReadOnly }) {
               onClose={() => setShowSectorsList(false)}
             />
           </React.Suspense>
-        </LazyBoundary>
+        </ModalBoundary>
       )}
 
       {showTransactionHistory && !isReadOnly && (
-        <LazyBoundary title="Transaction history" onClose={() => setShowTransactionHistory(false)}>
+        <ModalBoundary name="transaction-history" title="Transaction history" onClose={() => setShowTransactionHistory(false)}>
           <React.Suspense fallback={<ModalFrame title="Transaction history" onClose={() => setShowTransactionHistory(false)} />}>
             <TransactionHistoryModal
               holdings={shownPortfolio.holdings}
@@ -1582,22 +1644,22 @@ function Board({ isReadOnly }) {
               onClose={() => setShowTransactionHistory(false)}
             />
           </React.Suspense>
-        </LazyBoundary>
+        </ModalBoundary>
       )}
 
       {showAgents && (
-        <LazyBoundary title="Agents (beta)" bodyClass="ag-body" onClose={() => setShowAgents(false)}>
+        <ModalBoundary name="agents" title="Agents (beta)" bodyClass="ag-body" onClose={() => setShowAgents(false)}>
           <React.Suspense fallback={<ModalFrame title="Agents (beta)" bodyClass="ag-body" onClose={() => setShowAgents(false)} />}>
             <AgentsModal
               hideValues={hideValues}
               onClose={() => setShowAgents(false)}
             />
           </React.Suspense>
-        </LazyBoundary>
+        </ModalBoundary>
       )}
 
       {viewingTicker && (
-        <LazyBoundary title={viewingTicker} onClose={() => setViewingTicker(null)}>
+        <ModalBoundary name="ticker-chart" title={viewingTicker} onClose={() => setViewingTicker(null)}>
           <React.Suspense fallback={null}>
             <TickerChartModal
               ticker={viewingTicker}
@@ -1610,10 +1672,11 @@ function Board({ isReadOnly }) {
               onClose={() => setViewingTicker(null)}
             />
           </React.Suspense>
-        </LazyBoundary>
+        </ModalBoundary>
       )}
 
       {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (
+        <ModalBoundary name="edit-holding" title={editingTicker} onClose={() => setEditingTicker(null)}>
         <EditTickerModal
           ticker={editingTicker}
           holding={portfolio.holdings[editingTicker]}
@@ -1625,9 +1688,11 @@ function Board({ isReadOnly }) {
           onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}
           onMove={(toPosKey) => { moveHolding(editingTicker, toPosKey); setEditingTicker(null); }}
         />
+        </ModalBoundary>
       )}
 
       {addingToPos && !isReadOnly && (
+        <ModalBoundary name="add-holding" title={positionTitle(portfolio.positions[addingToPos], 'Add a holding')} onClose={() => setAddingToPos(null)}>
         <AddTickerModal
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
@@ -1667,9 +1732,11 @@ function Board({ isReadOnly }) {
             setAddingToPos(null);
           }}
         />
+        </ModalBoundary>
       )}
 
       {editingCash && !isReadOnly && (
+        <ModalBoundary name="cash" title="Cash on hand" onClose={() => setEditingCash(false)}>
         <CashModal
           amount={portfolio.holdings.CASH ? portfolio.holdings.CASH.lastPrice : 0}
           onClose={() => setEditingCash(false)}
@@ -1691,11 +1758,17 @@ function Board({ isReadOnly }) {
             setEditingCash(false);
           }}
         />
+        </ModalBoundary>
       )}
 
       {/* Themed confirm dialog for reset-board / remove-holding — portals
-          to <body> so it stacks above whatever modal triggered it. */}
-      {confirmEl}
+          to <body> so it stacks above whatever modal triggered it. A failed
+          one closes as Cancel does: nothing is written. */}
+      {confirmEl && (
+        <ModalBoundary name="confirm" title="Confirm" onClose={cancelConfirm}>
+          {confirmEl}
+        </ModalBoundary>
+      )}
     </div>
   );
 }

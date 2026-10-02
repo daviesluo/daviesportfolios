@@ -918,6 +918,16 @@ body {
   letter-spacing: 0.2em; color: var(--chalk-dim);
   font-family: var(--font-mono);
 }
+/* A surface that failed to draw (surface_boundary.jsx): its title, the words and a Retry, in its own place. No rule
+   here sets `display` on the panel itself: it wears the surface's placement classes (`perf-in-sidebar` is hidden on a
+   desktop, `perf-in-left` on a phone), and those keep deciding where it shows. */
+.surface-failed { grid-column: 1 / -1; }
+.surface-failed-msg { font-size: 12px; color: var(--chalk-dim); margin: 4px 0 12px; }
+.surface-failed-retry { align-self: flex-start; }
+.surface-failed-board { width: min(100%, 560px); min-height: 200px; }
+.surface-failed-header { display: flex; align-items: center; gap: 16px; padding: 8px 14px; flex-wrap: wrap; }
+.surface-failed-header .panel-title, .surface-failed-header .surface-failed-msg { margin: 0; }
+.ag-failed { margin: 12px 0; }
 
 .panel-grid { display: flex; flex-direction: column; gap: 10px; }
 .stat-row { display: flex; justify-content: space-between; align-items: baseline; }

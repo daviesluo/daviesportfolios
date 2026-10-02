@@ -411,6 +411,16 @@ four decimals, and indices and futures no currency sign.
   holdings, with the fiscal quarter and the time where Yahoo gives one:
   before the open, after the close, or a clock time.
 
+## When a part of the page fails
+
+Each part of the page stands on its own. If one fails while it draws — a
+panel, the header, the board, the sidebar, a list, a chart or an Agents
+page — that part alone says **This panel failed to load** (in a page
+opened from the menu, **This page failed to load**) with a **Retry**
+button, and the rest of the page keeps working. **Refresh** retries every
+failed panel as well. Each failure is sent to the errors badge (desktop,
+edit password), named by the part that failed.
+
 ## On a phone
 
 Below 1020 px wide the page becomes one column: the header, the board or

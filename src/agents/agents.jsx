@@ -12,6 +12,7 @@
 // its realised G/L, the way the transaction history leads with the book's.
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
+import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
@@ -1415,6 +1416,16 @@ function Detail({ s, dash, m, nowMs, gen }) {
 }
 
 /**
+ * A page opened over the list (a strategy, a quote test, Reward quotes), inside a boundary of its own: a throw there
+ * says so in the page's body with a Retry, and the list under it, the Agents page and the board stay up. Each
+ * dashboard answer (`gen`) draws a failed page again.
+ * @param {{ gen: number, children?: React.ReactNode }} props
+ */
+function PageGuard({ gen, children }) {
+  return <SurfaceBoundary name="agents-page" what="page" className="ag-failed" resetKey={gen}>{children}</SurfaceBoundary>;
+}
+
+/**
  * @param {{ hideValues: boolean, onClose: () => void }} props
  */
 function AgentsModal({ hideValues, onClose }) {
@@ -1562,6 +1573,7 @@ function AgentsModal({ hideValues, onClose }) {
         {notReady && <NotReady dash={dash} />}
         {dash && !notReady && (
           <div className={`ag-modepanel ag-modepanel-${tab}`} role="tabpanel" id="ag-modepanel" aria-labelledby={`ag-modetab-${tab}`}>
+            <SurfaceBoundary name="agents-list" what="page" className="ag-failed" resetKey={`${gen}|${tab}`}>
             {tab === 'live' && liveRows.length === 0 ? (
               <>
                 <Alerts dash={dash} tab={tab} />
@@ -1578,6 +1590,7 @@ function AgentsModal({ hideValues, onClose }) {
                 </section>
               </>
             )}
+            </SurfaceBoundary>
             <div className="ag-updated dim mono">as of {when(dash.at)} {UK_TZ} · refreshes every minute</div>
           </div>
         )}
@@ -1592,7 +1605,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <Detail s={current} dash={dash} m={m} nowMs={now} gen={gen} />
+          <PageGuard gen={gen}><Detail s={current} dash={dash} m={m} nowMs={now} gen={gen} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1605,7 +1618,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} />
+          <PageGuard gen={gen}><QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1618,7 +1631,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} />
+          <PageGuard gen={gen}><QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1631,7 +1644,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-1" rowOf={quotesVariantRow} />
+          <PageGuard gen={gen}><QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-1" rowOf={quotesVariantRow} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1644,7 +1657,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <QuotesDetail q={dash.quotesRuled} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-2" rowOf={quotesRuledRow} />
+          <PageGuard gen={gen}><QuotesDetail q={dash.quotesRuled} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-2" rowOf={quotesRuledRow} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1657,7 +1670,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.rw} m={m} at={dash.at} nowMs={now} />
+          <PageGuard gen={gen}><RwDetail r={dash.rw} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1670,7 +1683,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.rwe} m={m} at={dash.at} nowMs={now} row={rwe} />
+          <PageGuard gen={gen}><RwDetail r={dash.rwe} m={m} at={dash.at} nowMs={now} row={rwe} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1683,7 +1696,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={rwxOpen} m={m} at={dash.at} nowMs={now} row={rwxRow} />
+          <PageGuard gen={gen}><RwDetail r={rwxOpen} m={m} at={dash.at} nowMs={now} row={rwxRow} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1696,7 +1709,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.rwc} m={m} at={dash.at} nowMs={now} row={rwc} />
+          <PageGuard gen={gen}><RwDetail r={dash.rwc} m={m} at={dash.at} nowMs={now} row={rwc} /></PageGuard>
         </div>
       </Modal>
     )}
@@ -1709,7 +1722,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <RwDetail r={dash.prep} m={m} at={dash.at} nowMs={now} row={prep} />
+          <PageGuard gen={gen}><RwDetail r={dash.prep} m={m} at={dash.at} nowMs={now} row={prep} /></PageGuard>
         </div>
       </Modal>
     )}

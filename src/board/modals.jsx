@@ -249,12 +249,18 @@ function ConfirmModal({ title, message, detail, confirmLabel, cancelLabel, altLa
  * message string or `{ title, message, detail, confirmLabel, cancelLabel,
  * danger }`. An object (not a tuple) so the destructured types survive the
  * import into app.jsx. Self-contained per component — no provider to wire.
+ * `cancel()` closes an open dialog as its Cancel does (resolving false); the
+ * app's boundary around the dialog calls it when the dialog itself fails.
  */
 export function useConfirm() {
   const [state, setState] = React.useState(/** @type {any} */ (null));
   const confirm = React.useCallback((/** @type {string | object} */ opts) => {
     const o = typeof opts === 'string' ? { message: opts } : opts;
     return new Promise((resolve) => setState({ ...o, resolve }));
+  }, []);
+  // A promise resolves once, so an updater run twice resolves it once.
+  const cancel = React.useCallback(() => {
+    setState((/** @type {any} */ s) => { s?.resolve(false); return null; });
   }, []);
   const element = state ? (
     <ConfirmModal
@@ -270,7 +276,7 @@ export function useConfirm() {
       onCancel={() => { state.resolve(false); setState(null); }}
     />
   ) : null;
-  return { confirm, element };
+  return { confirm, cancel, element };
 }
 
 // Shared options for the "Discard unsaved changes?" confirm reused by the

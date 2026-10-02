@@ -84,7 +84,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the same thing
  * whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'surfaces', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -948,6 +948,17 @@ const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
  * @param {import('playwright').Page} page @param {string} name
  */
 const nameBtn = (page, name) => page.locator('.ag-name-btn', { hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
+/**
+ * The reports the page has sent that `match`, waiting up to 3 s for one: a report is a fetch the page sends after it
+ * draws, so on a loaded machine it can land a moment after what it reports is on the screen.
+ * @param {import('playwright').Page} page @param {(r: { kind: string, symbol: string, message: string }) => boolean} match
+ */
+async function reportsOf(page, match) {
+  const by = Date.now() + 3000;
+  let got = /** @type {any} */ (page).__reports.filter(match);
+  while (got.length === 0 && Date.now() < by) { await page.waitForTimeout(50); got = /** @type {any} */ (page).__reports.filter(match); }
+  return got;
+}
 /** A strategy name's text lines, and whether its last line ends inside the cell (a row or a phone card) that holds it. */
 const nameGeometry = (el) => el.locator('.ag-name-btn').first().evaluate((b) => {
   const range = document.createRange();
@@ -966,6 +977,9 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   // the worker's.
   const ctx = await browser.newContext({ viewport: { width, height }, ...(opts.blockServiceWorkers ? { serviceWorkers: 'block' } : {}) });
   await ctx.addInitScript(([token]) => { sessionStorage.setItem('dp.token', token); }, [opts.token || TOKEN]);
+  // The surfaces this page is to fail from its first render (section 0e): the bundle reads `window.__dpSweepFail` in
+  // each surface's boundary (src/app/surface_boundary.jsx). Nothing else sets it.
+  if (opts.failSurfaces) await ctx.addInitScript((names) => { /** @type {any} */ (window).__dpSweepFail = names; }, opts.failSurfaces);
   // A tab that died mid-edit: its unsaved board, which the app replays on mount and saves.
   if (opts.draft) await ctx.addInitScript((d) => { sessionStorage.setItem('dp.pendingSave', d); }, JSON.stringify(opts.draft));
   const page = await ctx.newPage();
@@ -983,6 +997,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   page.on('request', (r) => requested.push(r.url()));
   /** @type {any} */ (page).__requested = requested;
   /** @type {any} */ (page).__reported = [];
+  /** Every report's kind and symbol, as the ops-error function would store it. @type {{ kind: string, symbol: string, message: string }[]} */
+  /** @type {any} */ (page).__reports = [];
 
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('console', (m) => {
@@ -1114,7 +1130,13 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     if (url.includes('/overnight-fetch')) return json({});
     if (url.includes('/ops-error')) {
       // What the app reports is part of what the sweep checks: a healed chunk must arrive as `chunk.load`, never `render.crash`.
-      try { const body = req.postDataJSON(); if (body?.kind) /** @type {any} */ (page).__reported.push(String(body.kind)); } catch { /* not JSON */ }
+      try {
+        const body = req.postDataJSON();
+        if (body?.kind) {
+          /** @type {any} */ (page).__reported.push(String(body.kind));
+          /** @type {any} */ (page).__reports.push({ kind: String(body.kind), symbol: String(body.symbol ?? ''), message: String(body.message ?? '') });
+        }
+      } catch { /* not JSON */ }
       return json({ ok: true });
     }
     return json({});
@@ -1133,7 +1155,10 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   // every localhost asset, and a route registered before it would never be reached.
   if (opts.beforeGoto) await opts.beforeGoto(page);
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 });
+  // A page whose header is made to fail has no scoreboard to wait for: it names what it waits for instead, and the
+  // checks after it say what is missing when that never comes (a bundle without the header's boundary).
+  if (opts.readySelector) await page.waitForSelector(opts.readySelector, { timeout: 10_000 }).catch(() => {});
+  else await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 });
   return { ctx, page };
 }
 
@@ -1709,6 +1734,225 @@ async function run() {
     }
     await page.locator('.hide-eye').first().click().catch(() => {});
     await ctx.close();
+  }
+
+  // ---- 0e. one surface that throws becomes its own message; the rest of the board keeps working ----
+  // Improvement plan item 20 (2026-10-02). The app had one error boundary, at its root, so a throw in any panel replaced
+  // the whole board with RENDER ERROR. Every surface now has one of its own (src/app/surface_boundary.jsx). Here each is
+  // made to throw in turn — the bundle fails the surfaces named in `window.__dpSweepFail`, which only this sweep sets —
+  // and the page is read back: that surface shows "failed to load" with a Retry in its own place, the scoreboard still
+  // totals the book, every other panel is still drawn, the throw is reported under the surface's name, and Retry draws
+  // the surface again once nothing makes it throw. Modals and the Agents page's own pages are opened with their name
+  // set, the same way. The part's console errors are the throws it asked for, each React's report of a caught error,
+  // and nothing else (checked here; anything else goes to the whole-run invariant).
+  for (const vp of viewports('surfaces')) {
+    const S = (n) => `${vp.name}/surfaces/${n}`;
+    const MARK = 'made to fail by the browser sweep';
+    /** @type {string[]} */
+    const own = [];
+    // The scoreboard shows the book in whole dollars on the page ($3,183); compared as a number, as section 1 does.
+    const totalOk = (/** @type {string | null | undefined} */ s) => !!s && near(money(s), TOTAL_USD);
+    /** What the board shows right now, surface by surface, and which surfaces show they failed. */
+    const readBoard = (page) => page.evaluate(() => {
+      const shown = (/** @type {Element | null} */ el) => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+      const any = (/** @type {string} */ sel) => [...document.querySelectorAll(sel)].some(shown);
+      const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+      return {
+        portfolio: txt(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')) || null,
+        perf: any('.perf-range-btn'),
+        board: any('.pitch') || any('.heatmap-canvas'),
+        movers: any('.movers-heading'),
+        formation: any('.formation-list'),
+        market: [...document.querySelectorAll('.mc-card')].filter(shown).length,
+        earnings: [...document.querySelectorAll('.earnings-panel')].some((el) => shown(el) && !el.classList.contains('surface-failed')),
+        renderError: (document.body.textContent || '').includes('RENDER ERROR'),
+        failed: [...document.querySelectorAll('.surface-failed')].filter(shown).map((el) => ({
+          name: el.getAttribute('data-surface'), text: txt(el), retry: !!el.querySelector('button.surface-failed-retry'),
+        })),
+      };
+    });
+    // Each surface of the board: what it is called, what else it takes with it (its own panels inside it), and how to
+    // tell it is drawn again after Retry.
+    const phone = vp.name === 'phone';
+    const SURFACES = [
+      { name: 'header', gone: ['portfolio'], back: (b) => totalOk(b.portfolio) },
+      { name: 'perf', gone: ['perf'], back: (b) => b.perf },
+      { name: 'market', gone: ['market'], back: (b) => b.market > 0 },
+      { name: 'earnings', gone: ['earnings'], back: (b) => b.earnings },
+      { name: 'board', gone: ['board'], back: (b) => b.board },
+      // The sidebar holds Top Movers and FORMATION VALUE, and on a phone the performance panel too.
+      { name: 'sidebar', gone: ['movers', 'formation', ...(phone ? ['perf'] : [])], back: (b) => b.movers && b.formation },
+      { name: 'movers', gone: ['movers'], back: (b) => b.movers },
+    ];
+    const ALL = ['portfolio', 'perf', 'board', 'movers', 'formation', 'market', 'earnings'];
+    const present = (b, k) => (k === 'portfolio' ? totalOk(b.portfolio) : k === 'market' ? b.market > 0 : !!b[k]);
+    const waitBoard = async (page, ok, ms = 8000) => {
+      const by = Date.now() + ms;
+      let b = await readBoard(page);
+      while (!ok(b) && Date.now() < by) { await page.waitForTimeout(100); b = await readBoard(page); }
+      return b;
+    };
+    for (const sf of SURFACES) {
+      const { ctx, page } = await newPage(browser, vp, own, tokenMisses, { failSurfaces: [sf.name], readySelector: `.surface-failed[data-surface="${sf.name}"]`, blockServiceWorkers: true });
+      // Everything this page can draw is drawn once the panels that wait on data have it.
+      const others = ALL.filter((k) => !sf.gone.includes(k));
+      const b = await waitBoard(page, (x) => others.every((k) => present(x, k)));
+      await shot(page, `surface-${sf.name}`);
+      const mine = b.failed.filter((f) => f.name === sf.name);
+      const missing = others.filter((k) => !present(b, k));
+      const stillShown = sf.gone.filter((k) => present(b, k));
+      if (mine.length === 1 && /failed to load/.test(mine[0].text) && mine[0].retry && b.failed.length === 1 && missing.length === 0 && stillShown.length === 0 && !b.renderError) {
+        ok(S(sf.name), `"${mine[0].text}" in its own place; the rest is drawn (${others.join(', ')}${others.includes('portfolio') ? ` ${b.portfolio}` : ''})`);
+      } else fail(S(sf.name), `failed ${JSON.stringify(b.failed)}, missing ${JSON.stringify(missing)}, still shown ${JSON.stringify(stillShown)}, RENDER ERROR ${b.renderError}, scoreboard ${b.portfolio}`);
+      const reports = await reportsOf(page, (r) => r.symbol === sf.name);
+      if (reports.length >= 1 && reports.every((r) => r.kind === 'render.crash' && r.message.includes(MARK))) ok(S(`${sf.name}/report`), `reported as render.crash under "${sf.name}"`);
+      else fail(S(`${sf.name}/report`), `reports ${JSON.stringify(/** @type {any} */ (page).__reports)}`);
+      // Nothing makes it throw any more: Retry draws it again.
+      await page.evaluate(() => { /** @type {any} */ (window).__dpSweepFail = []; });
+      await page.locator(`.surface-failed[data-surface="${sf.name}"] button.surface-failed-retry:visible`).first().click({ timeout: 5_000 }).catch(() => {});
+      const after = await waitBoard(page, (x) => sf.back(x) && x.failed.length === 0);
+      if (sf.back(after) && after.failed.length === 0) ok(S(`${sf.name}/retry`), 'Retry draws it again');
+      else fail(S(`${sf.name}/retry`), `after Retry: failed ${JSON.stringify(after.failed)}, ${JSON.stringify(after)}`);
+      await ctx.close();
+    }
+
+    // The modals and pages, one page for all of them: each is opened with its name set, read, and closed.
+    const { ctx, page } = await newPage(browser, vp, own, tokenMisses, { blockServiceWorkers: true });
+    await waitBoard(page, (x) => ALL.every((k) => present(x, k)));
+    const setFail = (names) => page.evaluate((n) => { /** @type {any} */ (window).__dpSweepFail = n; }, names);
+    const menu = async (item) => {
+      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+      await page.waitForTimeout(150);
+      await page.locator(`.header-menu-item:text-is("${item}")`).first().click({ timeout: 5_000 }).catch(() => {});
+    };
+    /** The top modal's title and whether it says its page failed, and the board behind it. */
+    const readTop = () => page.evaluate(() => {
+      const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+      const modals = [...document.querySelectorAll('.modal')];
+      const top = modals[modals.length - 1];
+      return {
+        modals: modals.length, title: txt(top?.querySelector('.modal-title')),
+        failed: txt(top?.querySelector('.modal-failed, .surface-failed')),
+        retry: !!top?.querySelector('.modal-failed-retry, .surface-failed-retry'),
+        portfolio: txt(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')),
+      };
+    });
+    const waitTop = async (ok, ms = 8000) => {
+      const by = Date.now() + ms;
+      let t = await readTop();
+      while (!ok(t) && Date.now() < by) { await page.waitForTimeout(80); t = await readTop(); }
+      return t;
+    };
+    const closeTop = async () => {
+      const before = (await readTop()).modals;
+      await page.locator('.modal').last().locator('button[aria-label="Close"]').first().click({ timeout: 5_000 }).catch(() => {});
+      await waitTop((t) => t.modals < before, 5000);
+    };
+    /** Opens one modal with its name set, reads its frame, and leaves it open. */
+    const failedModal = async (name, title, open) => {
+      await setFail([name]);
+      await open().catch(() => {});
+      const t = await waitTop((x) => x.failed !== '' && x.title === title);
+      await shot(page, `surface-modal-${name}`);
+      await setFail([]);
+      if (t.title === title && /This page failed to load\./.test(t.failed) && t.retry && totalOk(t.portfolio)) {
+        ok(S(`modal/${name}`), `"${title}" opens on its own frame: "${t.failed}"; the scoreboard behind it reads ${t.portfolio}`);
+      } else fail(S(`modal/${name}`), `top modal ${JSON.stringify(t)}, wanted "${title}" saying it failed, scoreboard $${TOTAL_USD}`);
+      const reported = (await reportsOf(page, (r) => r.symbol === name && r.kind === 'render.crash')).length > 0;
+      if (!reported) fail(S(`modal/${name}`), `no render.crash reported under "${name}": ${JSON.stringify(/** @type {any} */ (page).__reports)}`);
+      return t;
+    };
+    // The menu's pages. The holding list also proves Retry: with nothing making it throw, it draws its table.
+    await failedModal('holdings-list', 'Holding list', () => menu('Holding list'));
+    await page.locator('.modal').last().locator('.modal-failed-retry').click({ timeout: 5_000 }).catch(() => {});
+    const rows = await page.locator('.modal .hl-table tbody tr').first().waitFor({ timeout: 8_000 }).then(() => page.locator('.modal .hl-table tbody tr').count()).catch(() => 0);
+    if (rows > 0) ok(S('modal/retry'), `Retry draws the holding list again (${rows} rows)`);
+    else fail(S('modal/retry'), 'the holding list did not draw after Retry');
+    await closeTop();
+    await failedModal('sectors-list', 'Sectors list', () => menu('Sectors list'));
+    await closeTop();
+    await failedModal('transaction-history', 'Transaction history', () => menu('Transaction history'));
+    await closeTop();
+    await failedModal('agents', 'Agents (beta)', () => menu('Agents (beta)'));
+    await closeTop();
+    // The Agents page's own two layers: the list inside its tabs, and a page opened over it.
+    await setFail(['agents-list']);
+    await menu('Agents (beta)');
+    const list = await waitTop((x) => x.failed !== '' && x.title === 'Agents (beta)');
+    const tabsShown = await page.locator('.ag-modebar .ag-modetab').count();
+    await setFail([]);
+    if (/This page failed to load\./.test(list.failed) && tabsShown > 0 && totalOk(list.portfolio)) ok(S('agents-list'), `the Agents page keeps its title and ${tabsShown} tabs; its list says "${list.failed}"`);
+    else fail(S('agents-list'), `${JSON.stringify(list)}, tabs ${tabsShown}`);
+    await page.locator('.modal').last().locator('.surface-failed-retry').click({ timeout: 5_000 }).catch(() => {});
+    const listBack = await page.locator('.ag-strategies .ag-name-btn').first().waitFor({ timeout: 8_000 }).then(() => true).catch(() => false);
+    if (listBack) ok(S('agents-list/retry'), 'Retry draws the list again');
+    else fail(S('agents-list/retry'), 'the list did not draw after Retry');
+    await setFail(['agents-page']);
+    const rowName = ((await page.locator('.ag-strategies .ag-name-btn').first().textContent().catch(() => '')) || '').trim();
+    await page.locator('.ag-strategies .ag-name-btn').first().click().catch(() => {});
+    const detail = await waitTop((x) => x.modals >= 2 && x.failed !== '');
+    await setFail([]);
+    const listUnder = await page.locator('.ag-strategies .ag-name-btn').count();
+    if (detail.modals >= 2 && /This page failed to load\./.test(detail.failed) && listUnder > 0 && totalOk(detail.portfolio)) ok(S('agents-page'), `"${rowName}" opens over the list with "${detail.failed}"; the list (${listUnder} rows) stays under it`);
+    else fail(S('agents-page'), `${JSON.stringify(detail)}, list rows ${listUnder}`);
+    await page.locator('.modal').last().locator('.ag-detail-close, button[aria-label="Close"]').first().click().catch(() => {});
+    await waitTop((x) => x.modals === 1, 5000);
+    await closeTop();
+    // The chart modal, from a market card.
+    await failedModal('ticker-chart', '^GSPC', () => page.locator('.mc-card-clickable:visible').first().click());
+    await closeTop();
+    // The tactics board's modals: a position, cash, and in edit mode a holding, a new holding and the confirm dialog.
+    // A position's frame is titled as its own page is: the title is read off the page drawn whole first.
+    await page.locator('.pos-chip[data-poskey="CM"]').first().click().catch(() => {});
+    const cm = (await waitTop((x) => x.modals === 1 && x.title !== '')).title;
+    await closeTop();
+    await failedModal('position', cm, () => page.locator('.pos-chip[data-poskey="CM"]').first().click());
+    await closeTop();
+    await failedModal('cash', 'Cash on hand', () => page.locator('.pos-chip[data-poskey="GK"]').first().click());
+    await closeTop();
+    await page.locator('.btn-toggle').first().click().catch(() => {});
+    await page.locator('.pos-chip[data-poskey="CM"]').first().click().catch(() => {});
+    await waitTop((x) => x.modals === 1 && x.title.startsWith(cm));
+    await failedModal('edit-holding', 'ACME', () => page.locator('.modal .player-card').first().click());
+    await closeTop();
+    await failedModal('add-holding', cm, () => page.locator('.modal button.btn-primary:text-is("+ Add Player")').first().click());
+    await closeTop();
+    await failedModal('confirm', 'Confirm', () => page.locator('.modal .player-card .pc-remove').first().click());
+    await closeTop();
+    // Closing the failed dialog was its Cancel: nothing was removed.
+    const still = await page.locator('.modal .player-card').count();
+    if (still === 1) ok(S('modal/confirm-cancel'), 'closing the failed confirm dialog removes nothing: ACME is still in Midfield');
+    else fail(S('modal/confirm-cancel'), `Midfield has ${still} players after the failed dialog closed`);
+    await closeTop();
+    await page.locator('.btn-toggle').first().click().catch(() => {});
+    // A page whose code does not load at all — healed once already, inside the window — still says so in its own
+    // frame (the lazy pages' path through the same boundary), and the board stays up.
+    await ctx.close();
+    const { ctx: c2, page: p2 } = await newPage(browser, vp, own, tokenMisses, {
+      blockServiceWorkers: true, allowModuleErrors: true,
+      beforeGoto: async (pg) => {
+        // A heal already ran a moment ago, so this failure is shown, not healed again (chunk_recovery.js, shouldHeal).
+        await pg.addInitScript((t) => { sessionStorage.setItem('dp.chunkRecovery', String(t)); }, NOW_MS);
+        await pg.route('**/assets/sectors_list-*.js', (route) => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!DOCTYPE html><html><body>the app shell</body></html>' }));
+      },
+    });
+    await p2.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
+    await p2.waitForTimeout(150);
+    await p2.locator('.header-menu-item:text-is("Sectors list")').first().click({ timeout: 5_000 }).catch(() => {});
+    const chunkFrame = await p2.locator('.modal .modal-failed').first().waitFor({ timeout: 8_000 }).then(() => p2.locator('.modal .modal-failed').first().textContent()).catch(() => '');
+    const chunkTitle = ((await p2.locator('.modal .modal-title').first().textContent().catch(() => '')) || '').trim();
+    const chunkBoard = ((await p2.locator('.scoreboard-cell-portfolio .sb-value-lg').first().textContent().catch(() => '')) || '').trim();
+    const chunkReports = (await reportsOf(p2, (r) => r.symbol === 'sectors-list')).map((r) => r.kind);
+    if (chunkTitle === 'Sectors list' && /code did not load/.test(chunkFrame || '') && totalOk(chunkBoard) && chunkReports.includes('chunk.load') && !chunkReports.includes('render.crash')) {
+      ok(S('chunk'), `a page whose code does not load says so in its own frame ("${(chunkFrame || '').replace(/\s+/g, ' ').trim().slice(0, 40)}…"), reported as chunk.load; the scoreboard reads ${chunkBoard}`);
+    } else fail(S('chunk'), `title "${chunkTitle}", frame "${chunkFrame}", scoreboard ${chunkBoard}, reports ${JSON.stringify(chunkReports)}`);
+    await c2.close();
+
+    // This part's console errors are the throws it asked for, and the failed chunk's own; anything else is the app's.
+    const expected = own.filter((e) => e.includes(MARK) || /sectors_list-[^ ]*\.js|Failed to fetch dynamically imported module|not a valid JavaScript MIME type/.test(e));
+    const other = own.filter((e) => !expected.includes(e));
+    if (expected.length > 0 && other.length === 0) ok(S('console'), `${expected.length} console errors, every one a throw this part asked for`);
+    else { fail(S('console'), `${other.length} other console errors`); errors.push(...other); }
   }
 
   for (const vp of viewports('main')) {
