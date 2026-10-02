@@ -1240,21 +1240,6 @@
           "reason": null
         },
         {
-          "id": 114,
-          "ts": "2026-09-17T22:30:00.000Z",
-          "book": "USDC-GBP",
-          "side": "bid",
-          "k": 0.001,
-          "leg": "entry",
-          "venueSide": "buy",
-          "price": 0.757,
-          "base": 132.10039,
-          "state": "rejected",
-          "filledBase": 0,
-          "avgPrice": null,
-          "reason": "refused by the venue: post-only order would cross the book"
-        },
-        {
           "id": 113,
           "ts": "2026-09-17T22:01:00.000Z",
           "book": "USDT-GBP",

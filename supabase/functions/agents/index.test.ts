@@ -907,8 +907,8 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertEquals([d.tripCount, d.tripsWon], [3, 2]);
   // The order tables leave out the orders of the three closed trips, all in ROUND TRIPS (Davies, 2026-10-02): D's #103 and
   // #104, A's #107 and #108, C's #105 and its stop #110. B's and E's filled entries (#109, #112) and the exits they have
-  // resting (#111, #113) stay, and so does every other order the page reads.
-  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 109, 102, 101]);
+  // resting (#111, #113) stay, and so does every other order the page reads but the venue's refusal, #114.
+  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 113, 112, 111, 109, 102, 101]);   // 114, the refusal, left out
 
   // DAYS, newest first: 18 orders sent today and 6 yesterday (the conversions among them), the entry fills of each day,
   // the trips that closed, and what was realised, which adds up to REALIZED.
@@ -930,9 +930,12 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertEquals([inv[0].unrealisedGbp, inv[0].costGbp], [null, null]);
 
   // ORDERS: what the page reads is the 24 newest less the six cancels that filled nothing, newest first, and what it lists
-  // is that less the closed trips' six (above); the one refusal says why.
+  // is that less the closed trips' six (above) and less the venue's one refusal, 114 (Davies, 2026-10-02: the executor
+  // keeps it, and the page leaves it out).
   assertEquals(reads.recent.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 105, 104, 103, 102, 101]);
-  assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), [[114, "refused by the venue: post-only order would cross the book"]]);
+  assertEquals(reads.recent.find((o) => o.id === 114)?.state, "rejected");
+  assertEquals(d.orders.filter((o) => o.id === 114 || o.state === "rejected"), []);
+  assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), []);
   assertEquals(QUOTES_LIVE_ORDERS_FILTER, "or=(state.neq.cancelled,filled_base.gt.0)");
 
   // What the browser test serves the page is exactly this function's answer for these rows.

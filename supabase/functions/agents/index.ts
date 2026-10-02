@@ -1172,7 +1172,8 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
  * (`liveRungs`, `liveBookGbp`: a book's realised, the days and the trips add up to the row's) or the executor's own
  * record (its last turn, its orders); the paper engine gives only what it gives the row, the last print and the rate,
  * and its book's fair. Two reads of its own: what rests on each rung (`open`) and the newest `QUOTES_LIVE_PAGE_ROWS`
- * orders bar the cancels that filled nothing (`recent`); the round trips are the newest `QUOTES_RECENT_TRIPS`.
+ * orders bar the cancels that filled nothing (`recent`), of which the page lists all but the venue's refusals; the round
+ * trips are the newest `QUOTES_RECENT_TRIPS`.
  */
 export function quotesLiveDetail(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; open: QuoteLiveOrderView[];
@@ -1239,8 +1240,10 @@ export function quotesLiveDetail(input: {
     trips: trips.slice(0, QUOTES_RECENT_TRIPS).map(({ ids: _ids, ...t }) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
     tripCount: trips.length, tripsWon: trips.filter((t) => t.pnlGbp > 0).length,
     // The newest orders, less those of a round trip already closed (Davies, 2026-10-02: its entry and its exit are both in
-    // ROUND TRIPS); a rung holding still shows the entry that filled and the exit it has resting.
-    orders: input.recent.filter((o) => !inTrips.has(o.id)).map((o) => ({
+    // ROUND TRIPS) and less the venue's refusals (Davies, 2026-10-02: "ORDERS列表中的rejected行删了"; the executor keeps
+    // them, since a refused decision is not sent again); a rung holding still shows the entry that filled and the exit it
+    // has resting.
+    orders: input.recent.filter((o) => !inTrips.has(o.id) && o.state !== "rejected").map((o) => ({
       id: o.id, ts: o.ts, book: o.book, side: o.rung_side, k: o.k == null ? null : Number(o.k), leg: o.leg, venueSide: o.side ?? null,
       price: Number(o.price), base: Number(o.base_size ?? 0), state: o.state, filledBase: Number(o.filled_base),
       avgPrice: o.avg_fill_price == null ? null : Number(o.avg_fill_price), reason: liveOrderReason(o, input.nowMs),
