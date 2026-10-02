@@ -699,7 +699,7 @@ function RwBar({ v, r, usd }) {
  */
 function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
   // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`),
-  // RW-C's from its own engine run (`rwcRow`), and small-pool's and mid-pool's from their own layers (`prepRow`,
+  // RW-C's from its own engine run (`rwcRow`), and mini-pool's and mid-pool's from their own layers (`prepRow`,
   // `midRow`); RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
@@ -1523,7 +1523,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwx = React.useMemo(() => rwxRows(dash?.rwx), [dash]);
   // RW-C, RW's rule again on 2026-10-09 → 10-23 (0069), after the variants: until then it says when it starts.
   const rwc = React.useMemo(() => rwcRow(dash?.rwc), [dash]);
-  // "Reward quotes small-pool" (0077): the order path's own dry-run filled on paper (Davies, 2026-10-01).
+  // "Reward quotes mini-pool" (0077): the order path's own dry-run filled on paper (Davies, 2026-10-01).
   const prep = React.useMemo(() => prepRow(dash?.prep), [dash]);
   // "Reward quotes mid-pool" (0081): the path again on $10–$50 pools, filled on paper the same way, the last row
   // (Davies, 2026-10-02).

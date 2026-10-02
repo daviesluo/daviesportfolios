@@ -342,7 +342,7 @@ describe('pg_cron jobs', () => {
     const after = replayList(sqlsOf(FILES.filter((f) => f <= MID)));
     expect(after.slice(0, before.length)).toEqual(before);
     const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
-    // Every minute, as small-pool's two; the path's from Ireland, as small-pool's; both run again by the watchdog when
+    // Every minute, as mini-pool's two; the path's from Ireland, as mini-pool's; both run again by the watchdog when
     // the platform failed to boot them (the migration gives the reason: a second run in a minute changes nothing).
     expect(after.slice(before.length).map(shape)).toEqual([
       { path: 'agents?action=pmmid&forceFunctionRegion=eu-west-1', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },

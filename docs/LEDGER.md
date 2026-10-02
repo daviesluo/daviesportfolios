@@ -132,7 +132,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `0080` (2026-10-02, Davies: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了"): it goes live at that size, and
      only in the conversation where he says go.
      The first live day reads how soon a cancel shows on the venue (the doc's "Not verified" query).
-   - **Reward quotes small-pool (live-prep until 2026-10-02): paper first; the check is reported to Davies and he alone decides the go-live** (Davies, ~18:15 UTC: "要不要先上线Reward
+   - **Reward quotes mini-pool (live-prep, then small-pool, until 2026-10-02): paper first; the check is reported to Davies and he alone decides the go-live** (Davies, ~18:15 UTC: "要不要先上线Reward
      quotes live-prep测试一下？有问题也及时修复，然后我们操作账户和转账问题，纸面测试24小时之后再验证一遍没问题自动上线？"). `0077`,
      `agents/pm_prep.ts`, `agents?action=pmprep` every minute (a row of `edge_calls`, retry true): the path's OWN dry-run
      orders filled on paper by RW's `stepRw` on the row the path decided on, two minutes behind; the path's P&L, stops and
@@ -162,21 +162,21 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools, in a dry-run its tables enforce**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
-     and `agents?action=pmmidprep` every minute (rows of `edge_calls`, retry true); small-pool's $400 sizes; never live
+     and `agents?action=pmmidprep` every minute (rows of `edge_calls`, retry true); mini-pool's $400 sizes; never live
      (its config refuses `dry_run` false and any `live_confirmed_at`, its orders any mode but `dry_run`, no key is read, its
      wire refuses POST and DELETE). Its selection leaves out what RW's frozen selection, recomputed from public data with
      RW's code, takes or scores at ≥ 0.33 of its last pick (margin 0.67, measured), keeping only a count. Pre-registered:
      `reviews/2026-10-02-polymarket-mid-pool-prereg.md`, frozen by the commit that adds it; d1 is the first full UTC day
-     after `pm_mid_config.created_at`, and the window fourteen days. **Built on a worktree branch and not pushed; the main
-     session lands it**: never inside small-pool's window (10-03 00:00 → 10-04 00:00 UTC; a deploy of `pm_live.ts` or
-     `pm_prep.ts` inside it ends that window as FAIL), with small-pool's Addendum 3 naming the instance build's hashes if
-     before it, and at least an hour before a UTC midnight. **Next:** at or after d2 00:10 UTC run `mid_check.sql` once,
+     after `pm_mid_config.created_at`, and the window fourteen days. **Running since 2026-10-02 05:01 UTC** (its first
+     eight markets chosen at 05:01:01); mini-pool's Addendum 3 names the instance build's hashes, and a deploy of
+     `pm_live.ts` or `pm_prep.ts` inside mini-pool's window (10-03 00:00 → 10-04 00:00 UTC) ends that window as FAIL.
+     **Next:** at or after d2 00:10 UTC run `mid_check.sql` once,
      read-only, and report every row to Davies; at or after d15 00:10 `mid_readout.sql`; no earlier than 2026-10-23
      00:05 `mid_audit.sql` (all three in `backtests/pmlive/`, sha256 pinned by `src/pm_mid_prereg.test.js`). Until each,
      read only the prereg's health readings (the two `last_error`s and clocks, `ops_errors` of `agents.pm_mid` and
      `agents.pm_midprep` and their crash rows, whether a day's selection landed), never mid-pool's page or the
      dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
-     is the last row of TESTING STRATEGIES, right after small-pool's, with Reward quotes' page (`prepMid`).
+     is the last row of TESTING STRATEGIES, right after mini-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -599,6 +599,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**"Reward quotes small-pool" is "Reward quotes mini-pool" on the page and in the docs; no code it runs changes.** Davies: "Reward quotes small-pool“ - 另外把这个改成Reward quotes mini-pool". The row's name is the page's own (`prepRow` in `src/agents/agents.js`, which its page's title reads); the sweep checks the new name and that no testing row carries "live-prep" or "small-pool"; the guide, the map, reference §4, CLAUDE.md and the what-remains list say mini-pool, each once naming the earlier names. `pm_live.ts` and `pm_prep.ts` are untouched, so their default instances still carry the name "Reward quotes small-pool", which nothing reads: changing it would move the hashes mini-pool's window (10-03) tests. The live-prep pre-registration's Addendum 4, written before that window, records exactly that; mid-pool's pre-registration is left as frozen, its "small-pool" naming the same row. Tables, files, actions and checks keep their names. Also corrected in the what-remains list: mid-pool runs since 05:01 UTC (it still read "not pushed").
 
 ### [2026-10-02 14:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

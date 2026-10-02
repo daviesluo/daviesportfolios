@@ -3527,8 +3527,8 @@ every script re-run byte-identical by the coordinating session).
       `backtests/pmlive/prep_check_addendum2.sql` (the frozen check, its window moved to 2026-10-03 00:00 → 10-04 00:00
       UTC), run at or after 10-04 00:10 and reported to him. No session or routine runs the go-time statement any more:
       the path goes live at the full size only in the conversation where he says go. On the
-      Agents page it is a row of TESTING STRATEGIES, "Reward quotes small-pool" on Polymarket ("live-prep" until 2026-10-02,
-      when Davies renamed it beside mid-pool, item 49), on the path's
+      Agents page it is a row of TESTING STRATEGIES, "Reward quotes mini-pool" on Polymarket ("live-prep" until 2026-10-02,
+      when Davies renamed it small-pool beside mid-pool, item 49, and then mini-pool), on the path's
       total cap, counted in TESTING's scoreboard and the Polymarket card, with Reward quotes' page (`agents/pm_prep_view.ts`;
       Davies, 2026-10-01): its days are each the change since the close before, as RW's, and a closed day's worst case,
       which the layer does not keep, reads a dash. The path's own day figure stays with its stop and the check.

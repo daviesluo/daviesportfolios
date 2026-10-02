@@ -1567,7 +1567,7 @@ export function rwTodayRow(r, at) {
 
 /**
  * What a Reward quotes market holds, as a holder reads it. RW's paper nets its fills into YES shares (`net`; a short YES
- * is long NO). The order path's paper layers (small-pool's and mid-pool's) book the path's tokens, which buys NO where
+ * is long NO). The order path's paper layers (mini-pool's and mid-pool's) book the path's tokens, which buys NO where
  * RW sells YES and nets nothing, so they can hold both: "5 Yes · 4 No".
  * @param {{ net?: number | null, yes?: number | null, no?: number | null }} x  one of the page's markets
  */
@@ -1748,12 +1748,12 @@ export function rwcRow(r) {
   return row && { ...row, id: RWC_ROW_ID, name: 'Reward quotes confirmation' };
 }
 
-/** "Reward quotes small-pool"'s id among the table's rows (it was "Reward quotes live-prep" until 2026-10-02). */
+/** "Reward quotes mini-pool"'s id among the table's rows ("Reward quotes live-prep", then "small-pool", until 2026-10-02). */
 export const PREP_ROW_ID = '__prep';
 /** "Reward quotes mid-pool"'s id among the table's rows. */
 export const MID_ROW_ID = '__mid';
 /**
- * Whether a row is one of the order path's paper layers, small-pool's or mid-pool's: its page says when a loss stop
+ * Whether a row is one of the order path's paper layers, mini-pool's or mid-pool's: its page says when a loss stop
  * holds it close-only.
  * @param {string} id
  */
@@ -1769,8 +1769,8 @@ export function prepStopText(r) {
 }
 
 /**
- * "Reward quotes small-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
- * before it goes live; named live-prep until 2026-10-02, when he renamed it beside mid-pool) as a row of TESTING
+ * "Reward quotes mini-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
+ * before it goes live; named live-prep until 2026-10-02, when he renamed it small-pool beside mid-pool and then mini-pool) as a row of TESTING
  * STRATEGIES on the Polymarket card, in the cells a strategy's row has.
  * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
  * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
@@ -1787,7 +1787,7 @@ export function prepRow(r) {
   const stopped = prepStopText(r);
   return {
     id: PREP_ROW_ID,
-    name: 'Reward quotes small-pool',
+    name: 'Reward quotes mini-pool',
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'paper',
@@ -1814,8 +1814,8 @@ export function prepRow(r) {
 /**
  * "Reward quotes mid-pool" (`0081`; Davies, 2026-10-02: "再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
  * quotes，也是400美元funded测试"): the order path again on pools of $10 to under $50 a day, a dry-run filled on paper by
- * the same layer, right after small-pool's row. The dashboard's `prepMid` is made by the same `prepSummary` from its own
- * tables, so its row and its page are small-pool's, on its own $320 cap. null keeps it off the table.
+ * the same layer, right after mini-pool's row. The dashboard's `prepMid` is made by the same `prepSummary` from its own
+ * tables, so its row and its page are mini-pool's, on its own $320 cap. null keeps it off the table.
  * @param {any} r  the dashboard's `prepMid`
  */
 export function midRow(r) {

@@ -214,3 +214,17 @@ landing it: "我的意思是做完并验证好就直接上线，不管几点". W
   `pm_mid_*` and `pm_midprep_*`, two lease rows and two `edge_calls` rows, and reads `pm_live_config` once.
   `prep_check_addendum2.sql` is unchanged, and so is what happens: the check's rows are reported to Davies, and nothing
   arms the path.
+
+## Addendum 4 (2026-10-02, about 15:00 UTC): the row is renamed mini-pool
+
+Written before the window it concerns. Davies, 2026-10-02, verbatim: "Reward quotes small-pool“ - 另外把这个改成Reward
+quotes mini-pool". What changes, and nothing else:
+
+- **The name.** The row reads "Reward quotes mini-pool" on the Agents page. Its tables, files, actions, this document
+  and its checks keep their names, as under Addendum 3; "small-pool" here and in mid-pool's pre-registration names the
+  same row.
+- **The code does not change.** The rename is the page's (`src/agents/agents.js`). `pm_live.ts` and `pm_prep.ts` keep
+  the hashes Addendum 3 names, and with them the name their default instances carry ("Reward quotes small-pool"):
+  nothing reads it, and changing it would move those hashes.
+- **The window does not move:** `prep_check_addendum2.sql` is unchanged, its rows are reported to Davies, and nothing
+  arms the path.

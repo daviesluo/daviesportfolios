@@ -568,8 +568,8 @@ that follow from that evidence, in short:
   a proxy or anyone else's account. `_shared/polymarket.ts` (the probe's
   client) is read-only (GET only, a fixed list of URLs, the L2 headers to
   the CLOB host only); the key controls real funds.
-  Its paper row is "Reward quotes small-pool" ("live-prep" until
-  2026-10-02); since `0080` its dry-run runs at the go-live size, eight
+  Its paper row is "Reward quotes mini-pool" ("live-prep", then
+  "small-pool", until 2026-10-02); since `0080` its dry-run runs at the go-live size, eight
   markets and $160 of first quotes, and only Davies' word in the
   conversation arms it: no routine runs the go-time statement ("什么时候
   上线我说了算不自动转了"). **"Reward quotes mid-pool"** (`0081`,
