@@ -403,7 +403,9 @@ How the less obvious parts work, and why they are built the way they are.
   type-checking; ESLint; knip; size-limit; Playwright for the browser
   sweep. Five GitHub Actions workflows: `check.yml` (every push: bundle
   freshness, type-check, lint, unit tests, build, browser sweep,
-  bundle-size budget, dead-code scan, dependency audit),
+  bundle-size budget, dead-code scan, dependency audit; the source checks,
+  the sweep's four shards and the perf matrix with the size budget run as
+  jobs at once),
   `edge-functions.yml` (`deno check` + `deno test`, then on push to main
   an auto-deploy of every function whose folder changed, or of all of them
   when `supabase/functions/_shared/` changed),
@@ -739,7 +741,7 @@ before touching migration state.
 | `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
-| `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit. |
+| `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit, as parallel jobs. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Every 10 minutes: pings the functions and checks the live site's code; opens an issue when something is down. |

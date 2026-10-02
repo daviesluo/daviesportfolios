@@ -787,7 +787,9 @@ from anywhere in the repository (`--full`: every one).
   ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` instead.
   `sh bin/gates.sh` runs it in shards at once, each a viewport
   (`SWEEP_VIEWPORT`) and some of its parts (`SWEEP_PART`) on a free port
-  (`SWEEP_PORT=0`); unset, one process runs it whole, as CI does.
+  (`SWEEP_PORT=0`), and CI the same four shards as jobs of their own
+  (2026-10-02: 6 min 08 s on one job before); unset, one process runs it
+  whole.
   Every bug it has caught was live while `npm test` and the Edge suite
   were green, because each was an integration failure.
 - `npm run verify:perf` — the performance-panel matrix in

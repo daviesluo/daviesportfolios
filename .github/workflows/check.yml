@@ -3,6 +3,16 @@
 # pages-deploy.yml Direct-Uploads the same committed dist/ via Wrangler
 # so a Pages builder does not have to clone the repository.
 # Runs on every PR and every push to main.
+#
+# Its gates run as several jobs at once (Davies, 2026-10-02: "ci为什么跑的这么
+# 慢 有可以优化和并行跑的吗"). Until then one job ran every gate in turn: 6 min
+# 08 s on 13cfa152, of which the browser sweep was 235 s in one process and
+# the perf matrix and the size budget 49 s more, though no gate reads
+# another's result. Now the source checks, the sweep's four shards and the
+# bundle's two other checks each take a runner. A job that reads the bundle
+# builds its own (3 s) and installs its own Chromium (9 s): cheaper than
+# handing one build between jobs, which would make them wait for it. The
+# repository is public, so the runners' minutes cost nothing.
 
 name: check
 
@@ -104,47 +114,6 @@ jobs:
       - name: Build (Vite production bundle)
         run: npm run build
 
-      - name: Install Chromium for the browser sweep
-        # Browsers only, no system deps: ubuntu-latest already carries
-        # what headless Chromium needs, and `--with-deps` costs a sudo
-        # apt install on every run.
-        run: npx --no-install playwright install chromium
-
-      - name: Browser sweep (the built bundle, driven in a real browser)
-        # Promoted from a by-hand script in `scraps/` to a gate. Every
-        # bug it has caught — the scoreboard/heat-map mismatch, the
-        # missing preflight header, the overnight sawtooth, the heat-map
-        # em dash — was live while the unit and Edge suites were green,
-        # because each was an integration failure. It serves the
-        # COMMITTED bundle over http and drives it at both breakpoints.
-        #
-        # It can only gate because its clock is pinned: the app reads
-        # the real clock to decide whether an after-hours print can
-        # exist, so before pinning this suite passed only between 20:00
-        # and 24:00 UTC and was red the rest of the day. See the CLOCK
-        # constant in the sweep.
-        run: npm run verify:browser
-
-      - name: Performance panel matrix (the built bundle, 60 cases)
-        # Both performance views x five ranges x three recorded-data states
-        # x two books (buys only; sold down), each read back from the page
-        # and compared with an answer worked out by hand. It caught the
-        # 24H reading +14.81 % where the book moved +16.00 % while the unit
-        # tests agreed with themselves. By hand for months because it read
-        # the real clock and failed 18 cases between 14:00 and 20:00 UTC:
-        # its fixture's first bar falls out of the 24H window then, and the
-        # app was right. Its clock is pinned now, and it refuses an instant
-        # its fixture cannot serve.
-        run: npm run verify:perf
-
-      - name: Bundle size budget (gzipped main bundle)
-        # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `src/package.json`
-        # for the current limit. A PR that doubles the bundle (lazy chunks
-        # added back to the main chunk, a heavy dep imported eagerly,
-        # etc.) goes red instead of silently shipping. Bump the limit in
-        # the same PR if the growth is intentional.
-        run: npx --no-install size-limit
-
       - name: Dead-code / unused-export scan
         # knip surfaces exports that no one imports, unused files +
         # unused devDependencies. Now a HARD gate (was informational):
@@ -183,11 +152,113 @@ jobs:
         continue-on-error: true
         run: npm audit --audit-level=critical
 
+  # The browser sweep in four shards, each on a runner of its own: one
+  # viewport, and either `main` (sections 1–8, which share one page) or every
+  # other part (`SWEEP_PART=-main`, so a part added later runs without a
+  # change here), as bin/gates.sh splits it. No check compares two shards,
+  # and together they are the whole sweep. fail-fast is off, so one failing
+  # shard does not cancel what the others would have found.
+  sweep:
+    name: sweep (${{ matrix.viewport }}, ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    strategy:
+      fail-fast: false
+      matrix:
+        viewport: [desktop, phone]
+        shard: [main, rest]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+
+      - run: npm ci
+
+      - name: Build (Vite production bundle)
+        run: npm run build
+
+      - name: Install Chromium for the browser sweep
+        # Browsers only, no system deps: ubuntu-latest already carries
+        # what headless Chromium needs, and `--with-deps` costs a sudo
+        # apt install on every run.
+        run: npx --no-install playwright install chromium
+
+      - name: Browser sweep (the built bundle, driven in a real browser)
+        # Promoted from a by-hand script in `scraps/` to a gate. Every
+        # bug it has caught — the scoreboard/heat-map mismatch, the
+        # missing preflight header, the overnight sawtooth, the heat-map
+        # em dash — was live while the unit and Edge suites were green,
+        # because each was an integration failure. It serves the
+        # COMMITTED bundle over http and drives it at its shard's breakpoint.
+        #
+        # It can only gate because its clock is pinned: the app reads
+        # the real clock to decide whether an after-hours print can
+        # exist, so before pinning this suite passed only between 20:00
+        # and 24:00 UTC and was red the rest of the day. See the CLOCK
+        # constant in the sweep.
+        env:
+          SWEEP_VIEWPORT: ${{ matrix.viewport }}
+          SWEEP_PART: ${{ matrix.shard == 'main' && 'main' || '-main' }}
+        run: npm run verify:browser
+
+  # The bundle's two other checks: the perf matrix, and the size budget,
+  # whose time plugin runs the bundle in a headless Chrome (16 s of it).
+  perf-and-size:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+
+      - run: npm ci
+
+      - name: Build (Vite production bundle)
+        run: npm run build
+
+      - name: Install Chromium for the perf matrix
+        # Browsers only, no system deps: ubuntu-latest already carries
+        # what headless Chromium needs, and `--with-deps` costs a sudo
+        # apt install on every run.
+        run: npx --no-install playwright install chromium
+
+      - name: Performance panel matrix (the built bundle, 60 cases)
+        # Both performance views x five ranges x three recorded-data states
+        # x two books (buys only; sold down), each read back from the page
+        # and compared with an answer worked out by hand. It caught the
+        # 24H reading +14.81 % where the book moved +16.00 % while the unit
+        # tests agreed with themselves. By hand for months because it read
+        # the real clock and failed 18 cases between 14:00 and 20:00 UTC:
+        # its fixture's first bar falls out of the 24H window then, and the
+        # app was right. Its clock is pinned now, and it refuses an instant
+        # its fixture cannot serve.
+        run: npm run verify:perf
+
+      - name: Bundle size budget (gzipped main bundle)
+        # Hard cap on `dist/assets/app-*.js` gzipped size — see the `size-limit` block in `src/package.json`
+        # for the current limit. A PR that doubles the bundle (lazy chunks
+        # added back to the main chunk, a heavy dep imported eagerly,
+        # etc.) goes red instead of silently shipping. Bump the limit in
+        # the same PR if the growth is intentional.
+        run: npx --no-install size-limit
+
   # Separate job purely so it can carry `issues: write` without
   # widening the build job's permission scope. Runs only on push-to-
   # main failures — PR failures already have visible inline status.
   notify-failure:
-    needs: typecheck-and-build
+    needs: [typecheck-and-build, sweep, perf-and-size]
     if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

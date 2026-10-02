@@ -51,7 +51,8 @@
 // `bin/gates.sh` runs it in shards at once instead: each process takes one
 // viewport (`SWEEP_VIEWPORT`) and some of the sweep's parts (`SWEEP_PART`,
 // named in PARTS below), on a port the system has free (`SWEEP_PORT=0`).
-// Unset, one process runs every part at both widths, as CI does.
+// CI runs it the same way, a runner a shard (check.yml's sweep job).
+// Unset, one process runs every part at both widths.
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -67,8 +68,8 @@ const ROOT = path.resolve(
   process.argv[2] || path.join(path.dirname(new URL(import.meta.url).pathname), '..', '..', 'dist'));
 /**
  * `SWEEP_VIEWPORT=desktop` or `=phone` runs that breakpoint's checks alone, and `SWEEP_PORT` serves the bundle on a port
- * of its own, so `bin/gates.sh` runs the two at once (Davies, 2026-09-27: the gates were still slow). Unset, both run, one
- * after the other, as CI runs them. A check at one fixed width runs with that breakpoint.
+ * of its own, so `bin/gates.sh` runs the two at once (Davies, 2026-09-27: the gates were still slow), and CI on
+ * runners of their own. Unset, both run, one after the other. A check at one fixed width runs with that breakpoint.
  */
 const ONLY = process.env.SWEEP_VIEWPORT || '';
 if (ONLY && ONLY !== 'desktop' && ONLY !== 'phone') throw new Error(`SWEEP_VIEWPORT is desktop or phone, not ${ONLY}`);
@@ -80,9 +81,9 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * CPU, so processes side by side finish in the time of the longest. The parts are the sections that open pages of their
  * own, named below in the order they run; `main` is sections 1–8, which share one page per viewport. A comma-separated
  * list runs the parts named; `-name` leaves one out, so a list of `-` names alone runs every part but those (the shard
- * that takes what the others do not, a part added later included). Unset, every part runs, as CI runs them. A part
- * leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the same thing
- * whatever ran before it.
+ * that takes what the others do not, a part added later included). Unset, every part runs; CI splits it as gates.sh
+ * does. A part leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the
+ * same thing whatever ran before it.
  */
 const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
