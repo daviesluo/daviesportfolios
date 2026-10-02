@@ -187,10 +187,13 @@ places stay when the number is not whole.
   less than the entry sold rather than pay the penny over, and that hair
   goes into the rung's next trip. Then its latest orders, with why any
   was refused: EXIT ORDERS first, shown only while there are any, then
-  ENTRY ORDERS, each with its side, buy or sell, its price and its size;
-  a 24-hour stop says so under its time. A cancel that filled nothing is
-  left out, since every re-price makes one, and so are the conversions
-  that bought the coins. A warning line shows under the scoreboard only
+  ENTRY ORDERS, each with its side, buy or sell, its price, its size and
+  its state (one resting on the book is "open"); a 24-hour stop says so
+  under its time. The orders of a round trip that has closed are left
+  out, since ROUND TRIPS shows it, so the tables hold what is still
+  working: orders resting, and the entries a rung still holds. A cancel
+  that filled nothing is left out too, since every re-price makes one,
+  and so are the conversions that bought the coins. A warning line shows under the scoreboard only
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.

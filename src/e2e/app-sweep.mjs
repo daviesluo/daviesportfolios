@@ -2789,7 +2789,8 @@ async function run() {
         ok(S('agents'), `the ORDERS table, moved under the chart: Cost for Notional, the chart's arrow for the side badge, UK local time ("${heads[0]}")`);
       } else fail(S('agents'), `order table headers: ${heads.join(' | ')}; arrows ${arrows}, old badges ${oldSideBadges}, mode beside venue ${modeBeside}`);
       const restingState = await page.locator('.ag-fills tbody tr').first().locator('.ag-state-pill').textContent().catch(() => '');
-      if ((restingState || '').trim() === 'new') ok(S('agents'), 'the resting order is on the table with its state');
+      // The venue's "new" reads "open" (Davies, 2026-10-02).
+      if ((restingState || '').trim() === 'open') ok(S('agents'), 'the resting order is on the table with its state, "open"');
       else fail(S('agents'), `first row state "${restingState}"`);
       // Every cell centred, header and body: these tables are read down a column.
       const offCentre = await page.locator('.ag-detail .ag-table th, .ag-detail .ag-table td')
@@ -3308,29 +3309,29 @@ async function run() {
       if (lp && JSON.stringify(lp.trips) === JSON.stringify(TRIPS) && Math.abs(tripsSum - -0.0345) < 1e-9) {
         ok(T('pr5-page'), `ROUND TRIPS in pounds, D's conversion fee in its fees and its P&L; they add up to REALIZED's -£0.03 (${tripsSum.toFixed(4)})`);
       } else fail(T('pr5-page'), `round trips ${JSON.stringify(lp?.trips)}, sum ${tripsSum}`);
-      // EXIT ORDERS above ENTRY ORDERS (Davies, 2026-10-01): the fixture's five exits, the 24-hour stop's marked under its
-      // time as its trip is, and its eleven entries, newest first; the two conversions in neither; each side buy or sell
-      // alone; its six cancels that filled nothing left out where they are read. Times are UK (BST).
-      const EXITS = ['17 Sep 23:01 | USDT/GBP | bid 0.1 % | sell | £0.7573 | 132.00 USDT | new',
-        '17 Sep 21:01 | USDC/GBP | ask 0.2 % | buy | £0.7576 | 132.00 USDC | new',
-        '17 Sep 21:00 24-hour stop | USDT/GBP | bid 0.3 % | sell | £0.7519 | 132.00 USDT | filled',
-        '17 Sep 11:01 | USDC/GBP | bid 0.1 % | sell | £0.7576 | 132.00 USDC | filled',
-        '16 Sep 13:01 | USDT/GBP | ask 0.1 % | buy | £0.7571 | 132.00 USDT | filled'];
+      // EXIT ORDERS above ENTRY ORDERS (Davies, 2026-10-01), less the orders of the three round trips already closed
+      // (2026-10-02: they are in ROUND TRIPS): the exits B and E have resting, then the eight entries left, B's and E's
+      // filled ones among them, newest first; the two conversions in neither; each side buy or sell alone; a resting order
+      // "open"; its six cancels that filled nothing left out where they are read. Times are UK (BST).
+      const EXITS = ['17 Sep 23:01 | USDT/GBP | bid 0.1 % | sell | £0.7573 | 132.00 USDT | open',
+        '17 Sep 21:01 | USDC/GBP | ask 0.2 % | buy | £0.7576 | 132.00 USDC | open'];
       const order114 = '17 Sep 23:30 | USDC/GBP | bid 0.1 % | buy | £0.7570 | 132.10 USDC | rejected | refused by the venue: post-only order would cross the book';
-      const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell | £0.7600 | 131.58 USDC | new';
+      const order119 = '17 Sep 23:31 | USDC/GBP | ask 0.3 % | sell | £0.7600 | 131.58 USDC | open';
+      const ENTRY_HELD = ['17 Sep 22:30 | USDT/GBP | bid 0.1 % | buy | £0.7565 | 132.00 USDT | filled', '17 Sep 20:30 | USDC/GBP | ask 0.2 % | sell | £0.7591 | 132.00 USDC | filled'];
       const orderSides = [...(lp?.exits ?? []), ...(lp?.entries ?? [])].map((r) => r.split(' | ')[3]);
       // Side is no wider than the widest of the table's other columns.
       const sideFits = (lp?.colWidths ?? []).every((cols) => {
         const side = cols.find((c) => c[0] === 'Side')?.[1] ?? Infinity;
         return side <= Math.max(...cols.filter((c) => c[0] !== 'Side').map((c) => c[1]));
       });
-      if (lp && JSON.stringify(lp.exits) === JSON.stringify(EXITS) && lp.entries.length === 11 && lp.entries[0] === order119 && lp.entries.includes(order114)
+      if (lp && JSON.stringify(lp.exits) === JSON.stringify(EXITS) && lp.entries.length === 8 && lp.entries[0] === order119 && lp.entries.includes(order114)
+        && JSON.stringify(lp.entries.slice(-2)) === JSON.stringify(ENTRY_HELD) && !lp.entries.some((r) => / \| new$/.test(r))
         && orderSides.every((x) => x === 'buy' || x === 'sell') && ![...lp.exits, ...lp.entries].some((r) => /conversion|convert/.test(r))
         && !lp.entries.some((r) => / \| cancelled( \||$)/.test(r)) && lp.sizeShown.join(',') === 'true,true,true' && sideFits && lp.liveTablesOverflow <= 1
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lp.foot) && lp.overflow <= 1
         // The refusal's reason, a line of its own inside the screen; on a desk no table runs past its box.
         && lp.subs === 1 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
-        ok(T('pr5-page'), `EXIT ORDERS (5, the stop marked) above ENTRY ORDERS (11, no empty cancel, no conversion), each side buy or sell alone and no wider than the other columns (${JSON.stringify(lp.colWidths[1])}); Size shown in both and in ROUND TRIPS, all three inside the screen; the refusal's reason under it; nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
+        ok(T('pr5-page'), `EXIT ORDERS (B's and E's resting exits) above ENTRY ORDERS (8: no closed trip's order, no empty cancel, no conversion), a resting order "open", each side buy or sell alone and no wider than the other columns (${JSON.stringify(lp.colWidths[1])}); Size shown in both and in ROUND TRIPS, all three inside the screen; the refusal's reason under it; nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
       } else fail(T('pr5-page'), `exits ${JSON.stringify(lp?.exits)}, entries ${lp?.entries.length} first "${lp?.entries[0]}" has 114 ${lp?.entries.includes(order114)}, sides ${JSON.stringify([...new Set(orderSides)])}, size shown ${lp?.sizeShown}, trips and orders past their boxes by ${lp?.liveTablesOverflow}px, widths ${JSON.stringify(lp?.colWidths)}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
@@ -3346,7 +3347,7 @@ async function run() {
       await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
       await waitFor(async () => (await page.locator('.ag-quotes-live-detail .ag-ql-exits').count()) === 0);
       const ln = await readLivePage();
-      if (ln && ln.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ENTRY ORDERS' && ln.exits.length === 0 && ln.entries.length === 11) {
+      if (ln && ln.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ENTRY ORDERS' && ln.exits.length === 0 && ln.entries.length === 8) {
         ok(T('pr5-page'), 'with no exit order, no EXIT ORDERS: its entries alone, under ROUND TRIPS');
       } else fail(T('pr5-page'), `no exits: sections ${ln?.sections.join(',')}, exits ${ln?.exits.length}, entries ${ln?.entries.length}`);
       agentsMode = 'pr5-live';
@@ -3391,7 +3392,7 @@ async function run() {
         && hp.scoreboard.includes('TODAY [(loss stop -£••)]') && hp.tiles.length === 0 && hp.events.length === 0
         && !cellsAt(hp.cards.flatMap((c) => c.ladder), [1, 2]).some(digits) && !hp.cards.flatMap((c) => c.grid.slice(3)).some(digits)
         && !hp.balances.filter((_, i) => i % 2).some(digits) && !cellsAt(hp.days, [4]).some(digits)
-        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt([...hp.exits, ...hp.entries], [4, 5]).some(digits) && hp.exits.length === 5
+        && !cellsAt(hp.trips, [4, 5, 6, 7, 8]).some(digits) && !cellsAt([...hp.exits, ...hp.entries], [4, 5]).some(digits) && hp.exits.length === 2
         && hp.days.length === 2 && cellsAt(hp.days, [1]).join(',') === '18,6';
       if (hiddenOk) ok(T('pr5-page'), "hide-values masks the live page's money, prices and sizes, the loss stop in its scoreboard included, and keeps its counts and times");
       else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", ladder ${JSON.stringify(hp?.cards?.[0]?.ladder)}, balances ${JSON.stringify(hp?.balances)}, days ${JSON.stringify(hp?.days)}, trip ${JSON.stringify(hp?.trips?.[0])}`);

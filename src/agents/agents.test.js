@@ -6,7 +6,7 @@ import {
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, prepRow, prepStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
-  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
+  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
@@ -1434,6 +1434,10 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
     expect(quotesPageFor(QUOTES_LIVE_ROW_ID, { quotes: { live: { ...q, tradedLive: false, entryBook: 'dry_run' } } })).toBe(null);
     expect(quotesPageFor(QUOTES_ROW_ID, {})).toBe(null);
     for (const id of ['trend-4h', RW_ROW_ID, null]) expect(quotesPageFor(id, dash)).toBe(null);
+  });
+  it('writes a resting order "open", not the venue\'s "new" (Davies, 2026-10-02)', () => {
+    expect(['new', 'partially_filled', 'filled', 'rejected', 'cancelled', 'pending', null].map(orderStateText))
+      .toEqual(['open', 'partially filled', 'filled', 'rejected', 'cancelled', 'pending', '—']);
   });
   it('writes pounds as the dollars are written, and fees unsigned to four places', () => {
     expect([fmtGbp(1200), fmtGbp(-12), fmtGbp(0.227106, true), fmtGbp(600.696306), fmtGbp(0)]).toEqual(['£1,200', '-£12', '+£0.23', '£600.70', '£0']);

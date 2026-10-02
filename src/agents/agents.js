@@ -1331,6 +1331,13 @@ export const fmtFeeGbp4 = (n) => {
 };
 
 /**
+ * An order's state as the pages write it. The venue's "new" is an order it accepted that rests on the book, and the
+ * pages call it "open" (Davies, 2026-10-02); "partially_filled" reads "partially filled"; the others as they are.
+ * @param {string | null | undefined} state
+ */
+export const orderStateText = (state) => (state === 'new' ? 'open' : String(state ?? '—').replace('_', ' '));
+
+/**
  * The live page's BOOKS (Davies, 2026-10-01: the paper test's BOOKS, clearer than its RUNGS): each book's card in the
  * paper page's shape, so `quoteLadderRows` lays out its six rungs as the paper's: a rung holding coins is held at its
  * average entry, with what it has made at the book's last trade; one with an order resting quotes that order's price

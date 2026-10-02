@@ -1016,6 +1016,8 @@ export function quotesLiveSummary(input: {
 export type LiveTrip = {
   book: QuoteBook; side: Side; k: number; tEntry: string; tExit: string; entry: number; exit: number; qty: number;
   how: "exit" | "stop"; feesGbp: number; pnlGbp: number;
+  /** The orders whose fills make the trip: the page's order tables leave them out, ROUND TRIPS shows them. */
+  ids: number[];
 };
 
 /**
@@ -1043,7 +1045,7 @@ export function liveRungTrips(r: Pick<LiveRung, "book" | "side" | "k" | "fills">
       entry: rungBook(r.side, fills.slice(0, j), dayStartMs).avgEntry,
       exit: exits.reduce((a, f) => a + f.price * f.base, 0) / exits.reduce((a, f) => a + f.base, 0),
       qty: entries.reduce((a, f) => a + f.base, 0), how: exits.some((f) => f.leg === "stop") ? "stop" : "exit",
-      feesGbp: trip.reduce((a, f) => a + f.feeGbp, 0), pnlGbp: pnl,
+      feesGbp: trip.reduce((a, f) => a + f.feeGbp, 0), pnlGbp: pnl, ids: trip.map((f) => f.id),
     });
   }
   return out;
@@ -1123,6 +1125,7 @@ export function quotesLiveDetail(input: {
   const open = input.open.filter((o) => o.mode === "live" && LIVE_OPEN_STATES.includes(o.state));
   const trips = rungs.flatMap((r) => liveRungTrips(r, input.dayStartMs))
     .sort((a, b) => Date.parse(b.tExit) - Date.parse(a.tExit) || Date.parse(b.tEntry) - Date.parse(a.tEntry));
+  const inTrips = new Set(trips.flatMap((t) => t.ids));
   const balances = liveBalancesOf(input.state);
   const index = liveIndexPrices(input.tickers ?? [], input.nowMs);
   const coinBooks = liveCoinBooks(input.orders, rungs, balances, index);
@@ -1170,9 +1173,11 @@ export function quotesLiveDetail(input: {
       ],
     },
     days: liveDays(input.orders, rungs, trips, input.dayStartMs).map(({ realisedGbp, ...d }) => ({ ...d, realisedGbp, realisedUsd: usd(realisedGbp) })),
-    trips: trips.slice(0, QUOTES_RECENT_TRIPS).map((t) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
+    trips: trips.slice(0, QUOTES_RECENT_TRIPS).map(({ ids: _ids, ...t }) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
     tripCount: trips.length, tripsWon: trips.filter((t) => t.pnlGbp > 0).length,
-    orders: input.recent.map((o) => ({
+    // The newest orders, less those of a round trip already closed (Davies, 2026-10-02: its entry and its exit are both in
+    // ROUND TRIPS); a rung holding still shows the entry that filled and the exit it has resting.
+    orders: input.recent.filter((o) => !inTrips.has(o.id)).map((o) => ({
       id: o.id, ts: o.ts, book: o.book, side: o.rung_side, k: o.k == null ? null : Number(o.k), leg: o.leg, venueSide: o.side ?? null,
       price: Number(o.price), base: Number(o.base_size ?? 0), state: o.state, filledBase: Number(o.filled_base),
       avgPrice: o.avg_fill_price == null ? null : Number(o.avg_fill_price), reason: liveOrderReason(o, input.nowMs),

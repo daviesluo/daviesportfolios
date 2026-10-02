@@ -15,7 +15,7 @@ import { Modal } from '../board/modals.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -551,7 +551,7 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
                   <td><RungSide side={o.venueSide}>{o.venueSide ?? '—'}</RungSide></td>
                   <td>{m(fmtQuotePrice(o.price))}</td>
                   <td><Qty qty={o.base} book={o.book} m={m} /></td>
-                  <td><span className={`ag-state-pill ag-state-${o.state}`}>{String(o.state).replace('_', ' ')}</span></td>
+                  <td><span className={`ag-state-pill ag-state-${o.state}`}>{orderStateText(o.state)}</span></td>
                 </tr>
                 {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
               </React.Fragment>
@@ -1154,7 +1154,7 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
                 <td>{m(fmtUsd(o.price))}</td>
                 <td className="ag-ph">{sizeText(o.base, m)}</td>
                 <td className="ag-ph">{m(fmtUsd(o.costUsd))}</td>
-                <td><span className={`ag-state-pill ag-state-${o.state}`}>{o.state.replace('_', ' ')}</span></td>
+                <td><span className={`ag-state-pill ag-state-${o.state}`}>{orderStateText(o.state)}</span></td>
                 <td className="ag-ph">{o.fillPrice != null ? m(fmtUsd(o.fillPrice)) : <span className="dim">—</span>}</td>
                 <td className="dim ag-ph">{m(fmtUsd(o.feeUsd))}</td>
               </tr>

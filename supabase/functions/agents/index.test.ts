@@ -905,6 +905,10 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertAlmostEquals(d.trips[2].pnlGbp, D, 1e-12);
   assertAlmostEquals(d.trips.reduce((a, t) => a + t.pnlUsd!, 0), row.realisedUsd!, 1e-12);
   assertEquals([d.tripCount, d.tripsWon], [3, 2]);
+  // The order tables leave out the orders of the three closed trips, all in ROUND TRIPS (Davies, 2026-10-02): D's #103 and
+  // #104, A's #107 and #108, C's #105 and its stop #110. B's and E's filled entries (#109, #112) and the exits they have
+  // resting (#111, #113) stay, and so does every other order the page reads.
+  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 109, 102, 101]);
 
   // DAYS, newest first: 18 orders sent today and 6 yesterday (the conversions among them), the entry fills of each day,
   // the trips that closed, and what was realised, which adds up to REALIZED.
@@ -925,8 +929,9 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   assertAlmostEquals(inv[1].unrealisedUsd! + inv[2].unrealisedUsd!, row.unrealisedUsd!, 1e-12);
   assertEquals([inv[0].unrealisedGbp, inv[0].costGbp], [null, null]);
 
-  // ORDERS: the 24 newest less the six cancels that filled nothing, newest first; the one refusal says why.
-  assertEquals(d.orders.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 105, 104, 103, 102, 101]);
+  // ORDERS: what the page reads is the 24 newest less the six cancels that filled nothing, newest first, and what it lists
+  // is that less the closed trips' six (above); the one refusal says why.
+  assertEquals(reads.recent.map((o) => o.id), [119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 105, 104, 103, 102, 101]);
   assertEquals(d.orders.filter((o) => o.reason).map((o) => [o.id, o.reason]), [[114, "refused by the venue: post-only order would cross the book"]]);
   assertEquals(QUOTES_LIVE_ORDERS_FILTER, "or=(state.neq.cancelled,filled_base.gt.0)");
 
