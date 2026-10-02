@@ -7,10 +7,11 @@
 // UPDATE, because Postgres checks both — a settle whose fee is NaN goes over the wire as null and is refused by
 // `fee_usd NOT NULL` exactly as a bad insert is.
 import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
-import { ceilToStep, stepDecimals } from "../_shared/agents_strategy.ts";
+import { stepDecimals } from "../_shared/agents_strategy.ts";
 import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
 import { cancelOrderBody, exchangeFor, orderHash, postOrderBody, recoverSigner, type PmReply, type PmVenue } from "../_shared/polymarket_orders.ts";
 import { jevBandCheck } from "./jev_bands.ts";
+import { crossesTouch, revxAveragePrice, revxHoldFor, revxHundredths, revxTakerFee, venueNumber } from "./revx_sim.ts";
 
 export type Row = Record<string, unknown>;
 
@@ -73,6 +74,56 @@ const RPC: Record<string, (tables: Record<string, Row[]>) => void> = {
   agent_quoted_reset: (tables) => { for (const t of Object.keys(RULED_TABLES)) (tables[t] ??= []).length = 0; },
 };
 /**
+ * The live quotes fixture's rows (src/e2e/quotes_live_fixture.json) as a realistic twin's tables, at the twin's capital
+ * (£1,200, or £1,800 for rule D's), beside the twin's own driver state: the rows the twins' fixture
+ * (src/e2e/quotes_twin_fixture.json) is the dashboard's answer for.
+ */
+// deno-lint-ignore no-explicit-any
+export function twinFixtureTables(live: any, id: "pr5" | "d", sim: Row): Record<string, Row[]> {
+  const t = (x: string) => `agent_quote_twin_${id}_${x}`;
+  return {
+    [t("config")]: [{ id: 1, ...live.config, capital_gbp: id === "pr5" ? 1200 : 1800 }],
+    [t("state")]: [{ id: 1, ...live.state }],
+    [t("orders")]: JSON.parse(JSON.stringify(live.orders)),
+    [t("events")]: [],
+    [t("paper")]: [{ id: 1, state: live.paper.state, last_minute: live.paper.last_minute, updated_at: live.paper.updated_at }],
+    [t("sim")]: [sim],
+  };
+}
+
+/** A value compared as PostgREST compares a column: as numbers when both are numbers, else as text. */
+const cmpValue = (a: unknown, b: string) => {
+  const x = Number(a), y = Number(b);
+  return a != null && a !== "" && b !== "" && Number.isFinite(x) && Number.isFinite(y) ? x - y : String(a) < b ? -1 : String(a) > b ? 1 : 0;
+};
+/** The conditions of PostgREST's `or=(…)`, each `column.op.value` (eq, neq, gt, gte, lt, lte, in, is); anything else throws. */
+export function orConditions(v: string): ((r: Row) => boolean)[] {
+  const inner = decodeURIComponent(v);
+  if (!inner.startsWith("(") || !inner.endsWith(")")) throw new Error(`stub db: unsupported or ${v}`);
+  const parts: string[] = [];
+  let depth = 0, cur = "";
+  for (const ch of inner.slice(1, -1)) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) { parts.push(cur); cur = ""; } else cur += ch;
+  }
+  parts.push(cur);
+  return parts.map((part) => {
+    const m = part.match(/^([a-z_][a-z0-9_]*)\.(eq|neq|gt|gte|lt|lte|in|is)\.(.*)$/);
+    if (!m) throw new Error(`stub db: unsupported or condition ${part}`);
+    const [, col, op, val] = m;
+    if (op === "in") { if (!val.startsWith("(") || !val.endsWith(")")) throw new Error(`stub db: unsupported or condition ${part}`); const set = val.slice(1, -1).split(","); return (r: Row) => set.includes(String(r[col])); }
+    if (op === "is") { if (val !== "null") throw new Error(`stub db: unsupported or condition ${part}`); return (r: Row) => r[col] == null; }
+    // A null compares to nothing, as SQL's: it fails every comparison.
+    return (r: Row) => {
+      if (r[col] == null) return false;
+      const c = cmpValue(r[col], val);
+      return op === "eq" ? c === 0 : op === "neq" ? c !== 0 : op === "gt" ? c > 0 : op === "gte" ? c >= 0 : op === "lt" ? c < 0 : c <= 0;
+    };
+  });
+}
+
+/**
  * The live quote executor's tables as 0052 creates them: their columns, and the unique key each upsert names (the orders
  * table is only ever inserted and updated). The orders table's own unique indexes are enforced in `memDb` below.
  */
@@ -87,6 +138,19 @@ const LIVE_QUOTE_TABLES: Record<string, { columns: string[]; key: string | null 
   agent_quote_live_events: { columns: ["mode", "minute", "book", "rung_side", "k", "kind", "detail"], key: "mode,minute,book,rung_side,k,kind" },
   agent_quote_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
 };
+/**
+ * The realistic twins' tables (0087, quotes_twin.ts): each twin's config, orders, events and state in 0052's shapes under
+ * its own name, held to the live tables' rules; its orders upserted by their client id when a backfill is loaded.
+ */
+const TWIN_SHAPE = /^agent_quote_twin_(pr5|d)_(config|orders|events|state)$/;
+const liveQuoteShape = (table: string) => { const m = TWIN_SHAPE.exec(table); return m ? `agent_quote_live_${m[2]}` : table; };
+const isLiveQuoteTable = (table: string) => liveQuoteShape(table) in LIVE_QUOTE_TABLES;
+const liveQuoteKey = (table: string) => (TWIN_SHAPE.test(table) && liveQuoteShape(table) === "agent_quote_live_orders" ? "client_order_id" : LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.key ?? null);
+/** Each twin's replica of its paper engine and its simulated account: one row each (0087). */
+const TWIN_SIDE_TABLES: Record<string, { columns: string[]; key: string }> = Object.fromEntries(["pr5", "d"].flatMap((id) => [
+  [`agent_quote_twin_${id}_paper`, { columns: ["id", "state", "last_minute", "updated_at"], key: "id" }],
+  [`agent_quote_twin_${id}_sim`, { columns: ["id", "state", "updated_at", "last_error"], key: "id" }],
+]));
 const LIVE_OPEN_STATES = ["pending", "new", "partially_filled"];
 /** RW's paper test's tables as 0053 creates them: their columns, and the unique key each upsert names. */
 const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
@@ -395,19 +459,26 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
       ?? check("venue", VENUES.includes(String(r.venue)));
   }
-  if (table in LIVE_QUOTE_TABLES) {
-    const unknown = Object.keys(r).find((c) => !LIVE_QUOTE_TABLES[table].columns.includes(c));
+  if (table in TWIN_SIDE_TABLES) {
+    const unknown = Object.keys(r).find((c) => !TWIN_SIDE_TABLES[table].columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
-    if (table === "agent_quote_live_config") {
+    return check("id", r.id === 1) ?? notNull(["state"]);
+  }
+  if (isLiveQuoteTable(table)) {
+    const shape = liveQuoteShape(table);
+    const unknown = Object.keys(r).find((c) => !LIVE_QUOTE_TABLES[shape].columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    if (shape === "agent_quote_live_config") {
       return check("id", r.id === 1) ?? notNull(["dry_run", "capital_gbp"]) ?? check("capital_gbp", Number(r.capital_gbp) > 0);
     }
-    if (table === "agent_quote_live_state") return check("id", r.id === 1) ?? notNull(["state"]);
-    if (table === "agent_quote_live_events") {
+    if (shape === "agent_quote_live_state") return check("id", r.id === 1) ?? notNull(["state"]);
+    if (shape === "agent_quote_live_events") {
+      // `deadman` since 0086 (the live table) and 0087 (the twins'): the dead-man's cancel of every resting order.
       return notNull(["mode", "minute", "book", "rung_side", "k", "kind", "detail"])
         ?? check("mode", ["dry_run", "live"].includes(String(r.mode)))
         ?? check("book", [...QUOTE_BOOKS_OK, "-"].includes(String(r.book)))
         ?? check("rung_side", ["bid", "ask", "-"].includes(String(r.rung_side)))
-        ?? check("kind", ["skip", "guard", "stop_unfilled", "loss_stop"].includes(String(r.kind)));
+        ?? check("kind", ["skip", "guard", "stop_unfilled", "loss_stop", "deadman"].includes(String(r.kind)));
     }
     // agent_quote_live_orders. Its two table-level checks are unnamed in 0052, so Postgres calls them `…_check` and `…_check1`.
     return notNull(["mode", "book", "leg", "side", "price", "base_size", "client_order_id", "state", "filled_base", "fee_gbp"])
@@ -530,15 +601,15 @@ function pmLiveOrderConflict(rows: Row[], r: Row, self: Row | null, table = "pm_
  * UPDATE): `client_order_id uuid unique`, and never two OPEN rows on one rung of one mode — the partial index
  * `agent_quote_live_orders_one_open_per_rung`. A conversion (no rung) is outside the second.
  */
-function liveQuoteOrderConflict(rows: Row[], r: Row, self: Row | null): string | null {
+function liveQuoteOrderConflict(rows: Row[], r: Row, self: Row | null, table = "agent_quote_live_orders"): string | null {
   if (!UUID.test(String(r.client_order_id))) return `400: invalid input syntax for type uuid: "${r.client_order_id}"`;
   const others = rows.filter((x) => x !== self);
   if (others.some((x) => x.client_order_id === r.client_order_id)) {
-    return "409: duplicate key value violates unique constraint \"agent_quote_live_orders_client_order_id_key\"";
+    return `409: duplicate key value violates unique constraint "${table}_client_order_id_key"`;
   }
   const open = (x: Row) => LIVE_OPEN_STATES.includes(String(x.state)) && x.rung_side != null;
   if (open(r) && others.some((x) => open(x) && x.mode === r.mode && x.book === r.book && x.rung_side === r.rung_side && Number(x.k) === Number(r.k))) {
-    return "409: duplicate key value violates unique constraint \"agent_quote_live_orders_one_open_per_rung\"";
+    return `409: duplicate key value violates unique constraint "${table}_one_open_per_rung"`;
   }
   return null;
 }
@@ -555,7 +626,7 @@ function withDefaults(table: string, r: Row): Row {
     };
   }
   if (table === "agent_maker_probes") return { state: "resting", follow_up: {}, watching: true, fill_minute: null, ...r };
-  if (table === "agent_quote_live_orders") {
+  if (liveQuoteShape(table) === "agent_quote_live_orders") {
     return {
       rung_side: null, k: null, venue_order_id: null, state: "pending", filled_base: 0, avg_fill_price: null, fee_gbp: 0, paper_oid: null, paper_live: null,
       fair: null, request: null, response: null, book_seen: null, cancel_requested_at: null, cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
@@ -625,6 +696,9 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (k === "order") { order = v.split(",").map((t) => { const [col, dir] = t.split("."); return { col, dir: dir === "desc" ? -1 : 1 }; }); continue; }
       if (k === "limit") { limit = Math.min(Number(v), PAGE_ROWS); continue; }
       if (k === "offset") { offset = Number(v); continue; }
+      // PostgREST's `or=(a.op.v,b.op.v)`: a row passes when any of its conditions does (a realistic twin's page reads its
+      // orders that filled or rest this way).
+      if (k === "or") { const any = orConditions(v); filters.push((r) => any.some((f) => f(r))); continue; }
       const m = v.match(/^(eq|in|gte|lte|lt|is)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
@@ -648,7 +722,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (!select) return Promise.resolve(rows.map((r) => ({ ...r })) as any);
       const items = selectItems(select);
       // A path's base column must exist, as PostgREST refuses one that does not.
-      const known = LIVE_QUOTE_TABLES[table]?.columns;
+      const known = LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? TWIN_SIDE_TABLES[table]?.columns;
       const missing = known && items.find((i) => i.keys.length && !known.includes(i.base));
       if (missing) return refuse("select", table, `column ${missing.base} does not exist`);
       // deno-lint-ignore no-explicit-any
@@ -688,10 +762,10 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
           if (dup) return Promise.reject(new Error("db POST agent_orders → 409: duplicate key value violates unique constraint \"agent_orders_one_per_decision_attempt\""));
         }
       }
-      if (table === "agent_quote_live_orders") {
+      if (liveQuoteShape(table) === "agent_quote_live_orders") {
         const seen: Row[] = [...(tables[table] ?? [])];
         for (const r of list) {
-          const why = liveQuoteOrderConflict(seen, r, null);
+          const why = liveQuoteOrderConflict(seen, r, null, table);
           if (why) return Promise.reject(new Error(`db POST ${table} → ${why}`));
           seen.push(r);
         }
@@ -716,7 +790,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // PostgREST's `resolution=merge-duplicates`: a row whose conflict key exists is merged, not appended. Postgres
       // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
-      if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (table in LIVE_QUOTE_TABLES && onConflict !== LIVE_QUOTE_TABLES[table].key)
+      if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (isLiveQuoteTable(table) && onConflict !== liveQuoteKey(table))
+        || (table in TWIN_SIDE_TABLES && onConflict !== TWIN_SIDE_TABLES[table].key)
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
         || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)
@@ -733,8 +808,15 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // to that (their decisions are written as upserts onto rows recorded a minute earlier).
         // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in. The order path's
         // (0074) too: every upsert it makes proposes whole rows.
-        const why = schemaRefusal(table, table in PMRW_TABLES || isPmLiveTable(table) || isPmPrepTable(table) ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
+        const twinOrders = TWIN_SHAPE.test(table) && liveQuoteShape(table) === "agent_quote_live_orders";
+        const why = schemaRefusal(table, table in PMRW_TABLES || isPmLiveTable(table) || isPmPrepTable(table) ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r }
+          : cur ? { ...cur, ...r } : twinOrders ? withDefaults(table, r) : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
+        // A twin's orders, upserted by their client id when a backfill is loaded: the row as stored keeps 0052's indexes.
+        if (twinOrders) {
+          const clash = liveQuoteOrderConflict(t, cur ? { ...cur, ...r } : withDefaults(table, r), cur ?? null, table);
+          if (clash) return Promise.reject(new Error(`db POST ${table} → ${clash}`));
+        }
         const armed = oneArmedRefusal(tables, table, cur ? { ...cur, ...r } : r);
         if (armed) return refuse("POST", table, armed);
         if (pmLiveShape(table) === "pm_live_fills" && !(tables[ordersOfFills(table)] ?? []).some((o) => o.hash === r.hash)) {
@@ -745,7 +827,10 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         const i = t.findIndex((x) => keys.every((k) => String(x[k]) === String(r[k])));
         // A new row of a table with an identity column takes its next value, as Postgres fills it; a merged row keeps its own.
         const identity = VARIANT_TABLES[table]?.identity ?? RULED_TABLES[table]?.identity;
-        if (i >= 0) t[i] = { ...t[i], ...r }; else t.push(identity ? { [identity]: nextId++, ...r } : { ...r });
+        const twinOrders = TWIN_SHAPE.test(table) && liveQuoteShape(table) === "agent_quote_live_orders";
+        if (i >= 0) t[i] = { ...t[i], ...r };
+        else if (twinOrders) t.push({ id: nextId++, ts: new Date(opts.now()).toISOString(), ...withDefaults(table, r) });
+        else t.push(identity ? { [identity]: nextId++, ...r } : { ...r });
       }
       return Promise.resolve();
     },
@@ -756,8 +841,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       for (const r of hit) {
         const why = schemaRefusal(table, { ...r, ...wire }) ?? oneArmedRefusal(tables, table, { ...r, ...wire });
         if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
-        if (table === "agent_quote_live_orders") {
-          const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r);
+        if (liveQuoteShape(table) === "agent_quote_live_orders") {
+          const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r, table);
           if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
         }
         if (pmLiveShape(table) === "pm_live_orders") {
@@ -1369,8 +1454,6 @@ type FakeOrder = {
 export const GBP_BOOK_PAIR = { base_step: "0.00001", quote_step: "0.0001", min_order_size: "0.00001", max_order_size: "4000000", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
 /** The double's BTC/USD, as its pairs route serves it. */
 const BTC_USD_PAIR = { base: "BTC", quote: "USD", base_step: "0.00000001", quote_step: "0.01", min_order_size: "0.00000001", max_order_size: "200", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
-/** A number as the venue writes one: to `decimals` places, without the trailing zeros ("30", "9.99", "0.758"). */
-const venueNumber = (x: number, decimals: number) => String(Number(x.toFixed(decimals)));
 
 /**
  * Revolut X as its own reference documents it (revolut-x-api-for-llm.md; developer.revolut.com): the placement reply's
@@ -1450,7 +1533,7 @@ export class FakeRevx {
   }
   /** `settlement: "venue"`: what the account moves for a notional — a buy's debit rounded up to the hundredth, a sell's credit floored. */
   private hundredths(side: "buy" | "sell", notional: number): number {
-    return side === "buy" ? Math.ceil(notional * 100 - 1e-9) / 100 : Math.floor(notional * 100 + 1e-9) / 100;
+    return revxHundredths(side, notional);          // the venue's rule, one function with the simulated account's (revx_sim.ts)
   }
   quote(sym: string) {
     if (this.gbpBooks[sym]) return { ...this.gbpBooks[sym] };
@@ -1479,7 +1562,7 @@ export class FakeRevx {
    * Wanted £0.16 but has only £0.15". Other quote currencies are held as the notional (not measured).
    */
   static holdFor(quote: string, notional: number): number {
-    return quote === "GBP" ? Math.ceil(notional * 100 - 1e-9) / 100 : notional;
+    return revxHoldFor(quote, notional);            // the venue's rule, one function with the simulated account's (revx_sim.ts)
   }
   reserved(asset: string): number {
     let n = 0;
@@ -1533,9 +1616,9 @@ export class FakeRevx {
     if (this.settlement === "venue") {
       // What the account moved, and the venue's average derived from it at the pair's price step (1184: "9.99", "0.7576").
       const [base, quote] = o.symbol.split("/"), { base: baseStep, price: priceStep } = this.stepsOf(o.symbol);
-      const moved = o.moved ?? 0, priceDecimals = stepDecimals(priceStep);
+      const moved = o.moved ?? 0;
       body.filled_amount = venueNumber(moved, 2);
-      body.average_fill_price = o.filled > 0 && moved > 0 ? venueNumber(Math.round(moved / o.filled / Number(priceStep)) * Number(priceStep), priceDecimals) : "0";
+      body.average_fill_price = revxAveragePrice(moved, o.filled, priceStep);
       body.total_fee = venueNumber(o.fee, (o.feeCurrency ?? (o.side === "buy" ? base : quote)) === base ? stepDecimals(baseStep) : 2);
       body.fee_currency = o.feeCurrency ?? (o.side === "buy" ? base : quote);
     }
@@ -1590,7 +1673,7 @@ export class FakeRevx {
       if (tif !== "gtc" && tif !== "ioc") return json(400, { error_id: "e", message: `time_in_force ${tif} is not accepted on placement`, timestamp: this.now() });
       if (tif === "ioc" && (lim.execution_instructions ?? []).includes("post_only")) return json(400, { error_id: "e", message: "post_only cannot be combined with ioc", timestamp: this.now() });
       const o: FakeOrder = { id: `rx-${this.seq++}`, client_order_id: req.client_order_id, symbol: sym, side: req.side, status: "new", price: lim.price, quantity: lim.base_size, filled: 0, avg: null, fee: 0, tif, postOnly: (lim.execution_instructions ?? []).includes("post_only"), created: this.now() };
-      const crosses = req.side === "buy" ? price >= q.ask : price <= q.bid;
+      const crosses = crossesTouch(req.side, price, q.bid, q.ask);
       if (crosses && !o.postOnly) {
         const px = req.side === "buy" ? q.ask : q.bid;
         if (req.side === "sell" && (this.balances[asset] ?? 0) - this.reserved(asset) + 1e-12 < size) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
@@ -1602,7 +1685,7 @@ export class FakeRevx {
           // The venue's way (`settlement`): whole hundredths of the quote currency; a buy's fee in the coin, a sell's in the quote.
           o.notional = size * px;
           o.moved = this.hundredths(req.side, o.notional);
-          o.fee = req.side === "buy" ? Number(ceilToStep(size * 0.0009, this.stepsOf(sym).base)) : Math.ceil(o.moved * 0.0009 * 100 - 1e-9) / 100;
+          o.fee = revxTakerFee(req.side, size, o.moved, this.stepsOf(sym).base);
           o.feeCurrency = req.side === "buy" ? asset : quoteAsset;
           if (req.side === "buy") { this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) - o.moved; this.balances[asset] = (this.balances[asset] ?? 0) + size - o.fee; }
           else { this.balances[asset] -= size; this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) + o.moved - o.fee; }

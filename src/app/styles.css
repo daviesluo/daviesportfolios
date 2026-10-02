@@ -2310,7 +2310,8 @@ body {
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
 .ag-rw-meter { height: 4px; margin-top: 3px; border-radius: 2px; background: rgba(244,239,227,0.08); overflow: hidden; }
 .ag-rw-warmup-day td { opacity: 0.6; }
-.ag-quotes-live-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
+/* A realistic twin's lines under its scoreboard: what it is, and each book whose asks wait for their coin. */
+.ag-twin-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
 /* Shares and price are the same width; the question takes the rest. */
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
@@ -2384,7 +2385,7 @@ body {
 /* The live quotes' own page (Davies, 2026-10-01): the paper page's BOOKS and DAYS as they are, its inventory in a card
    of the quote cards' rules, and an order's reason on a line under its row, read from the left. */
 .ag-ql-balances { margin-bottom: 10px; }
-.ag-quotes-live-detail .hl-sub { display: block; }
+.ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
 /* The live page's round trips and orders on a phone: every column inside the screen, Size included (Davies,
    2026-10-01). A time stacks its date over its clock, a book is its coin, a size its number, and the cells sit closer. */

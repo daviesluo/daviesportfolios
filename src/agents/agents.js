@@ -898,7 +898,7 @@ const VENUE_CARD_IDS = ['revx', 'binance'];
  * to the scoreboard.
  * @param {any} dash
  * @param {AgentsTab | null} [tab]  null: every row, which is the server's `byVenue`
- * @param {any[]} [tests]  the paper tests' rows the tab lists (`quotesRow`, `rwRow`)
+ * @param {any[]} [tests]  the paper tests' rows the tab lists (`quotesTwinRow`, `rwRow`)
  */
 export function venueRows(dash, tab = null, tests = []) {
   const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
@@ -1126,80 +1126,6 @@ export function positionLines(s) {
 }
 
 /**
- * The paper quote test's card (reference §4 item 31): PR5's 0 % quotes around interbank on Revolut X's USDC/GBP and
- * USDT/GBP books, run on paper from their own cron job. `q` is the dashboard's `quotes`; null keeps the card off the
- * page (its tables are not there yet, or it has never run).
- * @param {any} q
- */
-export function quotesView(q) {
-  if (!q) return null;
-  const trips = Number(q.trips) || 0;
-  return {
-    running: !!q.running,
-    stoppedText: q.running ? '' : `not running: its last decided minute is ${q.lagMinutes} min old`,
-    since: q.startedAt ?? null,
-    capitalUsd: q.capitalUsd, realisedUsd: q.realisedUsd, realisedPct: q.realisedPct, todayUsd: q.todayUsd, todayPct: q.todayPct,
-    tripsText: trips ? `${trips} · ${Math.round((100 * (Number(q.won) || 0)) / trips)} % won` : '0',
-    open: Number(q.open) || 0, openUsd: q.openUsd,
-    ordersText: `${q.ordersToday} of 1,000 · ${q.fillsToday} filled`,
-  };
-}
-
-/** The quote test's id among the table's rows. No strategy id starts with "__", so it cannot collide with one. */
-export const QUOTES_ROW_ID = '__quotes';
-
-/**
- * The quote test as a row of TESTING STRATEGIES (Davies, 2026-09-23), in the cells a strategy's row has. Its capital
- * is the $1,200 its quotes would lock; unrealised is its held rungs marked at each book's last print, as a percent of
- * what they hold (the strategies' base: the cost of what is held). null keeps it off the table.
- * @param {any} q  the dashboard's `quotes`
- */
-export function quotesRow(q) {
-  if (!q) return null;
-  const openUsd = Number(q.openUsd) || 0;
-  const unrealised = q.unrealisedUsd == null ? null : Number(q.unrealisedUsd);
-  const v = /** @type {NonNullable<ReturnType<typeof quotesView>>} */ (quotesView(q));
-  // In pounds, the books' own currency: its capital, set in dollars, at the books' last rate (`capitalGbp`).
-  const capG = q.capitalGbp == null ? null : Number(q.capitalGbp), openG = Number(q.openGbp) || 0;
-  const unrealG = q.unrealisedGbp == null ? null : Number(q.unrealisedGbp);
-  /** @param {unknown} n @param {number | null} base */
-  const pctOf = (n, base) => (base != null && base > 0 && n != null ? (Number(n) / base) * 100 : null);
-  return {
-    id: QUOTES_ROW_ID,
-    name: 'Stablecoin quotes',
-    venue: venueLabel('revx'),
-    venueId: 'revx',
-    mode: 'paper',
-    // The scoreboard still folds what this test has deployed. The row does not
-    // say "% of deployed": the other strategies' unrealised cells don't, and
-    // the heading no longer carries a base either (Davies, 2026-09-25).
-    scoreDeployed: true,
-    capitalUsd: Number(q.capitalUsd) || 0,
-    // Deployed is what its quotes have at work: each quoting rung's share of the capital and what the held rungs hold
-    // (Davies, 2026-10-01, as on the live page); unrealised stays a percent of what is held, here and in the scoreboard.
-    valueUsd: q.deployedUsd != null ? Number(q.deployedUsd) : openUsd, heldUsd: openUsd,
-    todayUsd: q.todayUsd ?? 0, todayPct: q.todayPct ?? null,
-    unrealisedUsd: unrealised ?? 0, unrealisedPct: unrealised != null && openUsd > 0 ? (unrealised / openUsd) * 100 : null,
-    realisedUsd: q.realisedUsd ?? 0, realisedPct: q.realisedPct ?? null,
-    // Without the books' rate (no print yet) it stays in dollars.
-    ccy: capG != null ? 'GBP' : 'USD',
-    gbp: capG != null ? {
-      capital: capG, value: q.deployedGbp != null ? Number(q.deployedGbp) : openG, today: Number(q.todayGbp) || 0, todayPct: pctOf(q.todayGbp, capG),
-      unrealised: unrealG ?? 0, unrealisedPct: unrealG != null && openG > 0 ? (unrealG / openG) * 100 : null,
-      realised: Number(q.realisedGbp) || 0, realisedPct: pctOf(q.realisedGbp, capG), fees: null,
-    } : null,
-    nextText: 'every minute',
-    openPositions: v.open,
-    status: q.running
-      ? { label: 'paper', running: true, tone: 'running', detail: `quoting · last minute decided ${Number(q.lagMinutes) || 0} min ago` }
-      : { label: 'paper', running: false, tone: 'stale', detail: v.stoppedText },
-  };
-}
-
-/** The quote test's variant's id among the table's rows (Davies, 2026-09-28: variant-1). */
-export const QUOTESV_ROW_ID = '__quotesv';
-
-/**
  * A strategy name split for the table. "Stablecoin quotes variant-N" is two lines, the first the whole of
  * "Stablecoin quotes". A trailing parenthetical, "Reward quotes (no same-day)", stays on its own second line.
  * Anything else, including "Reward quotes variant-1", is one line.
@@ -1215,27 +1141,85 @@ export function strategyNameParts(name) {
 }
 
 /**
- * PR5's rule with nine rungs a side, a 0.03 % re-price and four keys, replayed on paper from PR5's own stored minutes
- * (`reviews/2026-09-28-pr5-variant-prereg.md`): the same row as the quote test's, under its own id and name. null
- * keeps it off the table.
- * @param {any} q  the dashboard's `quotesVariant`
+ * The cells a book of the live executor's code has on a strategy row: the live account's (`quotesLiveRow`) and each
+ * realistic twin's (`quotesTwinRow`), the one reading of `quotesLiveSummary`. Its fills per rung, in USD at the paper
+ * books' last GBP/USD for the scoreboard; unrealised on the cost of what it holds, realised and today on its capital
+ * (today is the figure its own daily loss stop reads); and the same in pounds, the book's own, which its row and page show.
+ * @param {any} q  `quotes.live`, or one of `quotesTwins`
  */
-export function quotesVariantRow(q) {
-  const r = quotesRow(q);
-  return r && { ...r, id: QUOTESV_ROW_ID, name: 'Stablecoin quotes variant-1' };
+function quoteBookCells(q) {
+  const capital = Number(q.capitalUsd) || 0, cost = Number(q.costUsd) || 0;
+  /** @param {unknown} usd @param {number} base */
+  const pct = (usd, base) => (base > 0 && usd != null ? (Number(usd) / base) * 100 : null);
+  return {
+    capitalUsd: capital, costUsd: cost, valueUsd: Number(q.valueUsd) || 0, feesUsd: Number(q.feesUsd) || 0,
+    todayUsd: Number(q.todayUsd) || 0, todayPct: pct(q.todayUsd, capital),
+    unrealisedUsd: Number(q.unrealisedUsd) || 0, unrealisedPct: pct(q.unrealisedUsd, cost),
+    realisedUsd: Number(q.realisedUsd) || 0, realisedPct: pct(q.realisedUsd, capital),
+    ccy: 'GBP',
+    gbp: {
+      capital: Number(q.capitalGbp) || 0, value: Number(q.valueGbp) || 0,
+      today: Number(q.todayGbp) || 0, todayPct: pct(q.todayGbp, Number(q.capitalGbp) || 0),
+      unrealised: Number(q.unrealisedGbp) || 0, unrealisedPct: pct(q.unrealisedGbp, Number(q.costGbp) || 0),
+      realised: Number(q.realisedGbp) || 0, realisedPct: pct(q.realisedGbp, Number(q.capitalGbp) || 0),
+      fees: Number(q.feesGbp) || 0,
+    },
+    nextText: 'every minute',
+    openPositions: Number(q.heldRungs) || 0, openOrders: Number(q.openOrders) || 0,
+  };
 }
 
-/** Rule D's id among the table's rows (Davies, 2026-09-28: variant-2). */
-export const QUOTESD_ROW_ID = '__quotesd';
+/** A realistic twin's id among TESTING's rows: this, and its own id (`pr5`, `d`). */
+export const QUOTES_TWIN_ROW_PREFIX = '__quotes_twin_';
 
 /**
- * Rule D on paper (`reviews/2026-09-28-pr5-rule-d-prereg.md`): the same row as variant-1's, under its own id and name.
- * The page shows arm `d`. null keeps it off the table.
- * @param {any} q  the dashboard's `quotesRuled`
+ * A realistic twin of the live executor as a row of TESTING (`quotes_twin.ts`, 0087; Davies, 2026-10-02: "确保一致，确保
+ * 真实"): the live executor's own code on a simulated Revolut X account, carrying out the decisions of one paper engine
+ * at the twin's size, read and summed exactly as the live account is. "Stablecoin quotes" follows PR5's rule;
+ * "Stablecoin quotes variant-1" rule D's arm d (Davies, 2026-10-02: "这个variant-2上线testing后改名为variant-1"). Paper
+ * money, so on TESTING. null keeps it off the table (its record not loaded yet).
+ * @param {any} t  one of the dashboard's `quotesTwins`
  */
-export function quotesRuledRow(q) {
-  const r = quotesRow(q);
-  return r && { ...r, id: QUOTESD_ROW_ID, name: 'Stablecoin quotes variant-2' };
+export function quotesTwinRow(t) {
+  if (!t?.twin) return null;
+  const tw = t.twin;
+  return {
+    id: `${QUOTES_TWIN_ROW_PREFIX}${tw.id}`,
+    name: String(tw.name),
+    venue: venueLabel('revx'),
+    venueId: 'revx',
+    mode: 'paper',
+    ...quoteBookCells(t),
+    status: t.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `the live code on a simulated account · last turn ${Number(t.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: tw.mode === 'catch-up' && tw.lastTurn ? `catching up: its record stands at ${fmtChartStamp(tw.lastTurn)}` : `its last turn was ${t.lagMinutes ?? '?'} min ago` },
+  };
+}
+
+/** The twins' rows, in the payload's order. @param {any} dash */
+export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwinRow).filter(Boolean);
+
+/** The twin a row opens, or null. @param {string | null} selected @param {any} dash */
+export function quotesTwinOf(selected, dash) {
+  if (!selected || !selected.startsWith(QUOTES_TWIN_ROW_PREFIX)) return null;
+  return (dash?.quotesTwins ?? []).find((/** @type {any} */ t) => t?.twin && `${QUOTES_TWIN_ROW_PREFIX}${t.twin.id}` === selected) ?? null;
+}
+
+/**
+ * What a twin's page says of the twin, under its scoreboard: one line for what it is (its rungs, their size, the
+ * simulated account and its fill rule), and one for each book whose asks wait for the coin a resting conversion is
+ * buying (Davies, 2026-10-02: the conversions are makers, and an ask has no coin until its conversion fills).
+ * @param {any} t  one of the dashboard's `quotesTwins`
+ * @param {(s: string) => string} [m]
+ * @returns {{ what: string, waiting: string[], warn: string | null }}
+ */
+export function quotesTwinLines(t, m = (s) => s) {
+  const tw = t?.twin ?? {};
+  const what = `${Number(tw.rungsASide) || 0} rungs a side at ${m(fmtGbp(tw.rungGbp))} · the live code on a simulated Revolut X account: an order fills only by trades through its price`;
+  const waiting = (tw.converting ?? []).map((/** @type {any} */ c) =>
+    `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
+  const warn = Number(tw.paperCheck?.mismatches) > 0 ? `its replica differs from its engine's record in ${tw.paperCheck.mismatches} events` : null;
+  return { what, waiting, warn };
 }
 
 /** PR5's live executor's id among LIVE's rows. */
@@ -1250,31 +1234,13 @@ export const QUOTES_LIVE_ROW_ID = '__quotes_live';
  */
 export function quotesLiveRow(q) {
   if (!q || !(q.tradedLive || q.entryBook === 'live')) return null;
-  const capital = Number(q.capitalUsd) || 0, cost = Number(q.costUsd) || 0;
-  /** @param {unknown} usd @param {number} base */
-  const pct = (usd, base) => (base > 0 && usd != null ? (Number(usd) / base) * 100 : null);
   return {
     id: QUOTES_LIVE_ROW_ID,
     name: 'Stablecoin quotes',
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'live',
-    capitalUsd: capital, costUsd: cost, valueUsd: Number(q.valueUsd) || 0, feesUsd: Number(q.feesUsd) || 0,
-    todayUsd: Number(q.todayUsd) || 0, todayPct: pct(q.todayUsd, capital),
-    unrealisedUsd: Number(q.unrealisedUsd) || 0, unrealisedPct: pct(q.unrealisedUsd, cost),
-    realisedUsd: Number(q.realisedUsd) || 0, realisedPct: pct(q.realisedUsd, capital),
-    // In pounds, the book's own (Davies, 2026-10-01): what its row and its page show. The dollars above are what LIVE's
-    // scoreboard adds up.
-    ccy: 'GBP',
-    gbp: {
-      capital: Number(q.capitalGbp) || 0, value: Number(q.valueGbp) || 0,
-      today: Number(q.todayGbp) || 0, todayPct: pct(q.todayGbp, Number(q.capitalGbp) || 0),
-      unrealised: Number(q.unrealisedGbp) || 0, unrealisedPct: pct(q.unrealisedGbp, Number(q.costGbp) || 0),
-      realised: Number(q.realisedGbp) || 0, realisedPct: pct(q.realisedGbp, Number(q.capitalGbp) || 0),
-      fees: Number(q.feesGbp) || 0,
-    },
-    nextText: 'every minute',
-    openPositions: Number(q.heldRungs) || 0, openOrders: Number(q.openOrders) || 0,
+    ...quoteBookCells(q),
     holdsLive: (Number(q.heldRungs) || 0) > 0, armed: !!q.armed,
     status: q.running
       ? { label: 'live', running: true, tone: 'running', detail: q.armed ? 'quoting real money' : 'buying off · its exits still run' }
@@ -1283,29 +1249,16 @@ export function quotesLiveRow(q) {
 }
 
 /**
- * The live executor's line on PR5's page, once it has traded: whether it is armed, or back in dry run. A dry run that has
- * never traded says nothing (Davies, 2026-09-28: the count of orders it would have sent is not the page's business).
- * @param {any} q  the dashboard's `quotes.live`
- */
-export function quotesLiveText(q) {
-  if (!q) return null;
-  if (q.dryRun && !q.tradedLive) return null;
-  if (q.dryRun) return 'Live path: back in dry run · what it traded is on LIVE';
-  return q.armed ? 'Live path: live and armed · on LIVE' : 'Live path: live, buying off · its exits still run · on LIVE';
-}
-
-/**
- * Which quotes page a row opens (Davies, 2026-10-01: LIVE's "Stablecoin quotes" opened the paper test's page): TESTING's
- * row opens the paper test's page, LIVE's row the live executor's own. Null for any other row, or a page with nothing to
- * show: the live page needs its LIVE row (`quotesLiveRow`), the paper page its test.
+ * Which quotes page a row opens (Davies, 2026-10-01: LIVE's "Stablecoin quotes" opened the paper test's page): LIVE's row
+ * the live executor's own, a TESTING twin's row its twin's (`quotesTwinOf`). Null for any other row, or a page with
+ * nothing to show: the live page needs its LIVE row (`quotesLiveRow`), a twin's page its twin.
  * @param {string | null} selected  the row opened
  * @param {any} dash
- * @returns {'paper' | 'live' | null}
+ * @returns {'live' | 'twin' | null}
  */
 export function quotesPageFor(selected, dash) {
-  if (selected === QUOTES_ROW_ID) return dash?.quotes ? 'paper' : null;
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
-  return null;
+  return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
 /**

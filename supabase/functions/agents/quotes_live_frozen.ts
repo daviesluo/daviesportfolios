@@ -70,42 +70,8 @@ const M = 60e3, H = 3600e3, DAY = 86400e3;
 
 /** The venue's name for each paper book (requests use the dash, the venue client takes the slash). */
 export const LIVE_SYMBOL: Record<QuoteBook, "USDC/GBP" | "USDT/GBP"> = { "USDC-GBP": "USDC/GBP", "USDT-GBP": "USDT/GBP" };
-/**
- * Where one instance of this executor keeps its record, which paper engine's decisions it carries out, and how its POSTs
- * are governed (2026-10-02, Davies: the TESTING rows are to be realistic, "确保真实"). The live account is
- * `QUOTE_LIVE_INSTANCE`, the code as it ran before instances existed (`quotes_live_instance.test.ts` runs it beside
- * `quotes_live_frozen.ts`, that file byte for byte, and finds every table, account and report the same); the realistic
- * twins (`quotes_twin.ts`) are two more, each on tables of its own against a SIMULATED Revolut X account, so every rule
- * of the live executor applies to them by construction.
- */
-export type QuoteLiveInstance = {
-  /** Its four tables, in 0052's shapes: the config row, the orders, the events and the turn's state. */
-  config: string; orders: string; events: string; state: string;
-  /** The migration that creates them, named when they are missing. */
-  migration: string;
-  /** The paper engine whose decisions it carries out: a table with `id` 1, `state` (a `QuoteState`) and `last_minute`. */
-  paper: string;
-  /** Its lease in `agent_locks`. */
-  lease: string;
-  /** Each rung's distance from fair, the same on both sides of both books, in the order the paper engine keeps them. */
-  rungs: readonly number[];
-  /** How far fair moves before a resting exit is re-priced: the rule's own step. */
-  exitReprice: number;
-  /**
-   * The key a rung's POSTs count against, governed at QUOTE_LIVE_ENTRY_POSTS / QUOTE_LIVE_STOPS_ONLY_POSTS each: one for
-   * the live account, whatever the rung; a conversion (no rung side) counts against its book's ask key.
-   */
-  govKey: (book: QuoteBook, rungSide: Side | null) => string;
-};
-/** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
-export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
-  config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
-  migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
-};
-/** Does this instance govern more than one key? The live account's one key is every POST it sends. */
-const isMultiKey = (inst: QuoteLiveInstance) => new Set(QUOTE_BOOKS.flatMap((b) => [inst.govKey(b, "bid"), inst.govKey(b, "ask"), inst.govKey(b, null)])).size > 1;
-/** "three" for PR5's three rungs a side, as the messages always said; the count for any other. */
-const rungsWord = (rungs: readonly number[]) => (rungs.length === 3 ? "three" : rungs.length === 9 ? "nine" : String(rungs.length));
+/** Twelve rungs: two books, two sides, three distances. The capital is split evenly over them, as the frozen shape splits its $1,200. */
+export const QUOTE_LIVE_RUNG_COUNT = QUOTE_BOOKS.length * 2 * QUOTE_RUNGS.length;
 /**
  * The order governor (design, "What it would send"): its own POSTs in a UTC day. Davies, 2026-10-01: entries go on to 900
  * (600 before), because `trend-4h-live` never sends 100 a day. Stops-only at 950 leaves 50 under the venue's 1,000 for the
@@ -178,8 +144,8 @@ const ticksOf = (price: number | string) => Math.round(Number(price) / QUOTE_TIC
 // ------------------------------------------------------------------ pure rules, each pinned in quotes_live.test.ts
 
 /** One rung's share of the capital, in GBP: £50 over twelve rungs is £4.17, as the frozen shape at $50 is twelve $4.17. */
-export function rungGbp(capitalGbp: number, rungs: readonly number[] = QUOTE_RUNGS): number {
-  return capitalGbp / (QUOTE_BOOKS.length * 2 * rungs.length);
+export function rungGbp(capitalGbp: number): number {
+  return capitalGbp / QUOTE_LIVE_RUNG_COUNT;
 }
 
 /** The venue side of a rung's order: a bid rung buys to enter and sells to get out; an ask rung the reverse. */
@@ -237,8 +203,8 @@ export function dustBase(pair: PairConfig, price: number): number {
 export const pennyUp = (gbp: number): number => Math.ceil(gbp * 100 - 1e-9) / 100;
 
 /** What a book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): the coin the design holds for them. */
-export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig, rungs: readonly number[] = QUOTE_RUNGS): number {
-  return rungs.reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp, rungs), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
+export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig): number {
+  return QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
 }
 
 /** A maker's price for a conversion: the top of the bids, one tick over the best bid when the ask stays a tick above it; never over fair + 50 bps. */
@@ -258,15 +224,15 @@ export type TopUpPlan =
  * shared out of what is left, so one book's buffer never starves another's shortfall. A book whose shortfall the free
  * GBP cannot cover, or that would pass the day's QUOTE_LIVE_TOPUP_MAX_GBP_DAY, is skipped with the reason.
  */
-export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number, rungs: readonly number[] = QUOTE_RUNGS): TopUpPlan[] {
+export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number): TopUpPlan[] {
   const out: TopUpPlan[] = [];
   const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; minCost: number; full: number; room: number }[] = [];
   for (const b of books) {
     if (b.bestBid == null || b.bestAsk == null) { out.push({ book: b.book, skip: "the order book is unreadable" }); continue; }
     const ticks = makerBuyTicks(b.bestBid, b.bestAsk, b.fair), price = ticks * QUOTE_TICK;
-    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair, rungs);
+    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair);
     const short = asksNeed - b.beyond;
-    if (!(short > 1e-9)) { out.push({ book: b.book, skip: `it holds its ${rungsWord(rungs)} asks' worth` }); continue; }
+    if (!(short > 1e-9)) { out.push({ book: b.book, skip: "it holds its three asks' worth" }); continue; }
     const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step)), minCost = pennyUp(min * price);
     const full = Math.max(min, Number(floorToStep(asksNeed * (1 + QUOTE_LIVE_TOPUP_BUFFER) - b.beyond, b.pair.base_step)));
     const room = Math.max(0, QUOTE_LIVE_TOPUP_MAX_GBP_DAY - b.spentTodayGbp);
@@ -497,8 +463,6 @@ export type QuoteLiveDeps = {
   fetch?: typeof fetch;
   pause?: (ms: number) => Promise<void>;
   clock?: () => number;
-  /** Which executor this is: the live account when left out (`QUOTE_LIVE_INSTANCE`), or a realistic twin's. */
-  instance?: QuoteLiveInstance;
 };
 
 export type QuoteLiveReport = {
@@ -518,25 +482,15 @@ export type QuoteLiveReport = {
 /** One place where an order row is written, sent (live) or not (dry-run), and brought up to date: the turn's and the conversion's. */
 type Ctx = {
   d: QuoteLiveDeps; report: QuoteLiveReport; nowIso: string;
-  inst: QuoteLiveInstance;
   holdLease: () => Promise<boolean>;
   pacePost: () => Promise<void>;
   pause: (ms: number) => Promise<void>;
   bookSeen: (b: QuoteBook) => Promise<BookSeen | null>;
   posts: Record<LiveMode, number>;
-  /** Each governed key's POSTs today, by mode (`QuoteLiveInstance.govKey`): the live account's one key is every POST. */
-  keyPosts: Record<LiveMode, Record<string, number>>;
-};
-
-/** The POSTs a rung's key has sent today: the governor's count for that rung. */
-const keyCount = (ctx: Pick<Ctx, "inst" | "keyPosts">, mode: LiveMode, book: QuoteBook, rungSide: Side | null) => ctx.keyPosts[mode][ctx.inst.govKey(book, rungSide)] ?? 0;
-const countKey = (ctx: Pick<Ctx, "inst" | "keyPosts">, mode: LiveMode, book: QuoteBook, rungSide: Side | null) => {
-  const k = ctx.inst.govKey(book, rungSide);
-  ctx.keyPosts[mode][k] = (ctx.keyPosts[mode][k] ?? 0) + 1;
 };
 
 async function patchRow(ctx: Ctx, o: LiveOrderRow, p: Partial<LiveOrderRow>): Promise<void> {
-  await ctx.d.db.update(ctx.inst.orders, `id=eq.${o.id}`, { ...p, updated_at: ctx.nowIso });
+  await ctx.d.db.update("agent_quote_live_orders", `id=eq.${o.id}`, { ...p, updated_at: ctx.nowIso });
   Object.assign(o, p);
 }
 
@@ -570,7 +524,7 @@ async function placeOrder(ctx: Ctx, o: {
   };
   let row: LiveOrderRow;
   try {
-    [row] = await d.db.insert<LiveOrderRow>(ctx.inst.orders, {
+    [row] = await d.db.insert<LiveOrderRow>("agent_quote_live_orders", {
       mode: o.mode, book: o.book, rung_side: o.rungSide, k: o.k, leg: o.leg, side: o.side, price: Number(price), base_size: Number(o.base),
       client_order_id: clientOrderId, state: "pending", paper_oid: o.paper?.oid ?? null, paper_live: o.paper ? iso(o.paper.live) : null,
       fair: o.fair, request, book_seen: seen,
@@ -587,7 +541,6 @@ async function placeOrder(ctx: Ctx, o: {
     return row;
   }
   ctx.posts[o.mode]++;
-  countKey(ctx, o.mode, o.book, o.rungSide);
   if (o.mode === "dry_run") {
     // Nothing is sent, and the book it met says the venue would have taken it.
     await patchRow(ctx, row, { state: "new", response: { dryRun: true, wouldBeRefused: crosses == null ? null : false } });
@@ -627,7 +580,7 @@ async function placeOrder(ctx: Ctx, o: {
   return row;
 }
 
-function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveInstance) {
+function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport) {
   const clock = d.clock ?? (() => Date.now());
   const pause = d.pause ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const f = d.fetch ?? fetch;
@@ -653,8 +606,8 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLi
     const now = clock();
     if (now - renewedAt < QUOTE_LIVE_LEASE_MS / 2) return true;
     try {
-      const rows = await d.db.claim<{ name: string }>("agent_locks", `name=eq.${inst.lease}&holder=eq.${enc(d.holder)}`, { lease_until: iso(now + QUOTE_LIVE_LEASE_MS) });
-      if (!rows.length) { leaseLost = true; report.errors.push(`lease lost: another run holds ${inst.lease} now; this one stops sending`); return false; }
+      const rows = await d.db.claim<{ name: string }>("agent_locks", `name=eq.quotes-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(now + QUOTE_LIVE_LEASE_MS) });
+      if (!rows.length) { leaseLost = true; report.errors.push("lease lost: another run holds quotes-live now; this one stops sending"); return false; }
       renewedAt = now;
       return true;
     } catch (e) { report.errors.push(`lease renewal: ${msg(e)}`); return true; }
@@ -692,8 +645,8 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLi
 }
 
 /** The paper engine's decided minute and the inputs it priced each book from, read the way it reads them. */
-async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>> }> {
-  const row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.paper, "id=eq.1&select=state,last_minute"))[0];
+async function paperView(d: QuoteLiveDeps): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>> }> {
+  const row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>("agent_quote_state", "id=eq.1&select=state,last_minute"))[0];
   const paper = row && row.state && "books" in row.state ? row.state as QuoteState : null;
   const T = row?.last_minute ? Date.parse(row.last_minute) : null;
   const inputs: Partial<Record<QuoteBook, BookInputs>> = {};
@@ -710,25 +663,24 @@ async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance): Promise<{ p
  * It never throws: a failed read ends the turn with its reason in `errors`.
  */
 export async function runQuotesLive(d: QuoteLiveDeps): Promise<QuoteLiveReport> {
-  const inst = d.instance ?? QUOTE_LIVE_INSTANCE;
   const report: QuoteLiveReport = {
     at: iso(d.now), entryBook: null, why: "", minute: null, placed: [], cancelled: [], settled: [], skippedEntries: [], guards: {},
     posts: { dry_run: 0, live: 0 }, dayPnlGbp: null, errors: [],
   };
   let held: { name: string }[];
   try {
-    held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.${inst.lease}&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
+    held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.quotes-live&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
   } catch (e) {
     report.errors.push(`LEASE CLAIM FAILED — agent_locks: ${msg(e)}; nothing done this minute`);
     return report;
   }
-  if (!held.length) return { ...report, skipped: `another run holds the ${inst.lease} lease` };
+  if (!held.length) return { ...report, skipped: "another run holds the quotes-live lease" };
   try {
-    await turn(d, report, inst);
+    await turn(d, report);
   } catch (e) {
     report.errors.push(`turn: ${msg(e)}`);
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.${inst.lease}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
+    try { await d.db.update("agent_locks", `name=eq.quotes-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
   }
   return report;
 }
@@ -739,22 +691,19 @@ type RungNow = {
   live: RungBook; holding: boolean; dust: number;
 };
 
-async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveInstance): Promise<void> {
+async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   const nowIso = iso(d.now), nowMinute = minuteOf(d.now), dayStart = Math.floor(d.now / DAY) * DAY;
-  const h = makeCtxHelpers(d, report, inst);
-  const ctx: Ctx = { d, report, nowIso, inst, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, keyPosts: { dry_run: {}, live: {} }, pacePost: h.pacePost, pause: h.pause };
-  /** The governor's level for a rung's key (`QuoteLiveInstance.govKey`): the live account's is every POST of the mode. */
-  const levelOf = (mode: LiveMode, book: QuoteBook, rungSide: Side | null) => governorLevel(keyCount(ctx, mode, book, rungSide));
-  const multiKey = isMultiKey(inst);
+  const h = makeCtxHelpers(d, report);
+  const ctx: Ctx = { d, report, nowIso, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, pacePost: h.pacePost, pause: h.pause };
 
   let cfg: LiveConfig | undefined;
-  try { cfg = (await d.db.select<LiveConfig>(inst.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0]; }
+  try { cfg = (await d.db.select<LiveConfig>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0]; }
   catch (e) {
     // The function can deploy a minute before its migration is applied: that is "not yet", not an error every minute.
-    if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) { report.skipped = `the live tables are not in this database yet: migration ${inst.migration} has not run`; return; }
+    if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) { report.skipped = "the live tables are not in this database yet: migration 0052 has not run"; return; }
     throw e;
   }
-  if (!cfg) { report.skipped = `no ${inst.config} row: migration ${inst.migration} has not run`; return; }
+  if (!cfg) { report.skipped = "no agent_quote_live_config row: migration 0052 has not run"; return; }
   const capital = Number(cfg.capital_gbp);
   let globalPause = false, riskReadable = true;
   try { globalPause = !!(await d.db.select<{ global_pause: boolean }>("agent_risk", "id=eq.1&select=global_pause"))[0]?.global_pause; }
@@ -763,12 +712,12 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   const entry = entryBookOf(cfg, { globalPause, riskReadable, canTrade: !!acct });
   report.entryBook = entry.book; report.why = entry.why;
 
-  const { paper, T, inputs } = await paperView(d, inst);
+  const { paper, T, inputs } = await paperView(d);
   report.minute = T != null ? iso(T) : null;
   const caughtUp = T != null && T === nowMinute - M;
 
   // Essential: what is open (the rungs' claims) — without it nothing may be placed or cancelled.
-  const openAll = await d.db.selectAll<LiveOrderRow>(inst.orders, "state=in.(pending,new,partially_filled)&select=*&order=id.asc");
+  const openAll = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "state=in.(pending,new,partially_filled)&select=*&order=id.asc");
   let pairs: Record<string, PairConfig> = {};
   try { pairs = await h.pairs(); } catch (e) { report.errors.push(`pair config unreadable (${msg(e)}): nothing is placed and no buy settles this turn`); }
 
@@ -793,7 +742,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     let held: number;
     try { held = (await balancesOnce())[asset] ?? 0; }
     catch (e) { report.errors.push(`${label}: buy ${o.client_order_id} came back with no fee, so it is booked from the account, and the balances are unreadable (${msg(e)}); it settles next turn`); return null; }
-    const settled = await d.db.selectAll<Pick<LiveOrderRow, "id" | "book" | "side" | "filled_base">>(inst.orders,
+    const settled = await d.db.selectAll<Pick<LiveOrderRow, "id" | "book" | "side" | "filled_base">>("agent_quote_live_orders",
       "mode=eq.live&state=in.(filled,partially_filled)&select=id,book,side,filled_base&order=id.asc");
     const rest = settled.filter((r) => r.id !== o.id && coinOf(r.book) === asset).reduce((a, r) => a + (r.side === "buy" ? 1 : -1) * Number(r.filled_base), 0);
     const b = bookLiveBuy(gross, step, { asset, held, rest, feeBps: view.feeDerived.bps });
@@ -952,13 +901,13 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     open.find((o) => isOpen(o) && o.mode === mode && o.book === r.book && o.rung_side === r.side && Number(o.k) === r.k) ?? null;
 
   // ── 2. the live book, from its fills ─────────────────────────────────────────────────────────────────────────────
-  const fills = await d.db.selectAll<LiveOrderRow>(inst.orders, "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
+  const fills = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
   const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live" | "response">>(
-    inst.orders, `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
-  for (const r of recent) if (Date.parse(r.ts) >= dayStart && wasSent(r)) { report.posts[r.mode]++; countKey(ctx, r.mode, r.book, r.rung_side); }
+    "agent_quote_live_orders", `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
+  for (const r of recent) if (Date.parse(r.ts) >= dayStart && wasSent(r)) report.posts[r.mode]++;
   const lastPrintPx = (b: QuoteBook) => paper?.books?.[b]?.lastPrint?.ticks != null ? paper.books[b].lastPrint!.ticks * QUOTE_TICK : null;
   const rungs: RungNow[] = [];
-  for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as Side[]) for (const k of inst.rungs) {
+  for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as Side[]) for (const k of QUOTE_RUNGS) {
     const mine = fills.filter((o) => o.book === b && o.rung_side === side && Number(o.k) === k && Number(o.filled_base) > 0).map((o): RungFill => ({
       id: o.id, ts: Date.parse(o.filled_at ?? o.ts), leg: o.leg, base: Number(o.filled_base), price: Number(o.avg_fill_price ?? o.price), feeGbp: Number(o.fee_gbp || 0),
     }));
@@ -976,11 +925,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // The loss stop: tripped once, it holds for the rest of the UTC day.
   let lossStopped = false;
   try {
-    lossStopped = (await d.db.select(inst.events, `mode=eq.live&kind=eq.loss_stop&minute=gte.${enc(iso(dayStart))}&select=minute&limit=1`)).length > 0;
+    lossStopped = (await d.db.select("agent_quote_live_events", `mode=eq.live&kind=eq.loss_stop&minute=gte.${enc(iso(dayStart))}&select=minute&limit=1`)).length > 0;
   } catch (e) { lossStopped = true; report.errors.push(`loss stop unreadable (${msg(e)}): no live entries this turn`); }
   if (!lossStopped && lossStopHit(dayPnl, capital)) {
     lossStopped = true;
-    await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: "-", rung_side: "-", k: 0, kind: "loss_stop", detail: { dayPnlGbp: report.dayPnlGbp, limitGbp: -QUOTE_LIVE_LOSS_FRACTION * capital } }], "mode,minute,book,rung_side,k,kind");
+    await d.db.upsert("agent_quote_live_events", [{ mode: "live", minute: iso(nowMinute), book: "-", rung_side: "-", k: 0, kind: "loss_stop", detail: { dayPnlGbp: report.dayPnlGbp, limitGbp: -QUOTE_LIVE_LOSS_FRACTION * capital } }], "mode,minute,book,rung_side,k,kind");
     report.errors.push(`LOSS STOP: today's P&L ${report.dayPnlGbp} GBP is past −${QUOTE_LIVE_LOSS_FRACTION * capital}; no live entries until the next UTC day; exits and stops stay armed`);
   }
 
@@ -1090,7 +1039,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "stop", side: venueSideOf(r.side, "stop"), ticks, base, marketable: true, fair: f0 }));
         continue;
       }
-      if (levelOf("live", r.book, r.side) === "stops-only") continue;
+      if (governorLevel(report.posts.live) === "stops-only") continue;
       const lastPrint = paper?.books?.[r.book]?.lastPrint ?? null;
       if (!o) {
         if (fair == null) continue;                                                                   // the rule places an exit only at a fair
@@ -1098,7 +1047,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         // An exit the venue refused waits as the rule's refused order waits: for a newer print, and one not through it.
         const prev = lastLeg(r, "exit");
         if (prev && prev.state === "rejected") {
-          const request = (await d.db.select<{ request: { paperLastPrint?: SeenPrint | null } | null }>(inst.orders, `id=eq.${prev.id}&select=request`))[0]?.request ?? null;
+          const request = (await d.db.select<{ request: { paperLastPrint?: SeenPrint | null } | null }>("agent_quote_live_orders", `id=eq.${prev.id}&select=request`))[0]?.request ?? null;
           if (!exitMayGo({ ...prev, request }, r.live.openedAt, r.side === "bid" ? "ask" : "bid", ticks, lastPrint)) continue;
         }
         const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
@@ -1106,7 +1055,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         continue;
       }
       // A resting exit follows fair by the rule's own step, on inputs that still stand; stale, it keeps its price.
-      if (fair == null || staleBook(r.book) || o.fair == null || Math.abs(fair / Number(o.fair) - 1) <= inst.exitReprice) continue;
+      if (fair == null || staleBook(r.book) || o.fair == null || Math.abs(fair / Number(o.fair) - 1) <= QUOTE_REPRICE) continue;
       const c = await cancelConfirmed(o, "the rule re-prices the exit");
       if (c !== "cancelled") continue;
       const ticks = exitTicks(fair, r.side);
@@ -1119,11 +1068,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
 
   // ── 6. entries: the paper rung's order, in the book entries go to; withdrawn everywhere else ─────────────────────────
   takeStock();
-  const gbpPerRung = rungGbp(capital, inst.rungs);
+  const gbpPerRung = rungGbp(capital);
   const skipEvent = async (mode: LiveMode, r: RungNow, t: PaperTarget, reason: string, detail: Record<string, unknown>) => {
     report.skippedEntries.push({ mode, rung: r.label, reason });
     try {
-      await d.db.upsert(inst.events, [{ mode, minute: iso(t.live - M), book: r.book, rung_side: r.side, k: r.k, kind: "skip",
+      await d.db.upsert("agent_quote_live_events", [{ mode, minute: iso(t.live - M), book: r.book, rung_side: r.side, k: r.k, kind: "skip",
         detail: { reason, paperOid: t.oid, paperLive: iso(t.live), ticks: t.ticks, ...detail } }], "mode,minute,book,rung_side,k,kind");
     } catch (e) { report.errors.push(`${r.label}: skip not recorded (${msg(e)})`); }
   };
@@ -1136,13 +1085,13 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (mode === "live" && r.holding) continue;                                                  // step 5's
         if (o && o.leg !== "entry") continue;
         if (o && (o.state === "pending" || o.cancel_requested_at || unreadable.has(o.id))) continue;  // in flight or frozen: never a second order
-        const allowed = entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
+        const allowed = entry.book === mode && !report.guards[r.book].length && governorLevel(report.posts[mode]) === "all" && !(mode === "live" && lossStopped) && !!bal;
         const target = allowed ? r.paper : null;
         if (!target) {
           if (o) {
             const why = entry.book !== mode ? `entries go ${entry.book ?? "nowhere"}: ${entry.why}`
               : report.guards[r.book].length ? `guard: ${report.guards[r.book].join("; ")}`
-              : levelOf(mode, r.book, r.side) !== "all" ? `governor: ${keyCount(ctx, mode, r.book, r.side)} POSTs today${multiKey ? ` on ${inst.govKey(r.book, r.side)}` : ""}`
+              : governorLevel(report.posts[mode]) !== "all" ? `governor: ${report.posts[mode]} POSTs today`
               : mode === "live" && lossStopped ? "the day's loss stop" : !bal ? "balances unreadable"
               : r.paperRefused ? "the paper engine refused its order: the rung quotes nothing until the rule places it again" : "the paper rung quotes nothing";
             await cancelConfirmed(o, why);
@@ -1186,11 +1135,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // An ask skipped for want of coin means the book holds less than its three asks sell: GBP has risen since its coin was
   // bought, so each £10 ask needs more of it. A maker conversion at the top of the bids buys it back (`planTopUps`), one
   // at a time a book, under the entries' own conditions; step 1 cancels it after QUOTE_LIVE_TOPUP_REST_MS unfilled.
-  if (shortOf.size && entry.book === "live" && !globalPause && !lossStopped && bal && [...shortOf].some((b) => levelOf("live", b, null) === "all")) {
+  if (shortOf.size && entry.book === "live" && !globalPause && !lossStopped && bal && governorLevel(report.posts.live) === "all") {
     try {
       const resting = new Set([...open, ...sentNow].filter((o) => isOpen(o) && o.mode === "live" && o.leg === "convert").map((o) => o.book));
-      const books = [...shortOf].filter((b) => !resting.has(b) && !report.guards[b].length && levelOf("live", b, null) === "all");
-      const today = books.length ? await d.db.selectAll<Pick<LiveOrderRow, "ts" | "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request" | "response">>(inst.orders,
+      const books = [...shortOf].filter((b) => !resting.has(b) && !report.guards[b].length);
+      const today = books.length ? await d.db.selectAll<Pick<LiveOrderRow, "ts" | "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request" | "response">>("agent_quote_live_orders",
         `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=ts,book,leg,price,base_size,filled_base,state,request,response&order=id.asc`) : [];
       const cases: TopUpBook[] = [];
       for (const book of books) {
@@ -1213,7 +1162,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
             .reduce((a, o) => a + Number(isOpen(o as LiveOrderRow) ? o.base_size : o.filled_base) * Number(o.price), 0),
         });
       }
-      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs)) {
+      for (const p of planTopUps(cases, capital, free.GBP ?? 0)) {
         if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
         const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
           marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
@@ -1231,24 +1180,22 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   for (const s of stopsUnfilled) {
     report.errors.push(`${rungLabel(s.book, s.rung_side!, s.k!)}: the 24-hour stop came back ${Number(s.filled_base) > 0 ? `with ${s.filled_base} of ${s.base_size} filled` : "unfilled"} at its limit ${s.price}; the book quotes no entries while the position is past its stop, and the stop is tried again in an hour`);
     try {
-      await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: s.book, rung_side: s.rung_side, k: Number(s.k), kind: "stop_unfilled",
+      await d.db.upsert("agent_quote_live_events", [{ mode: "live", minute: iso(nowMinute), book: s.book, rung_side: s.rung_side, k: Number(s.k), kind: "stop_unfilled",
         detail: { orderId: s.id, limit: Number(s.price), base: Number(s.base_size), filled: Number(s.filled_base) } }], "mode,minute,book,rung_side,k,kind");
     } catch (e) { report.errors.push(`stop alert not recorded (${msg(e)})`); }
   }
   try {
-    const prev = (await d.db.select<{ state: { guards?: Record<string, string[]> } }>(inst.state, "id=eq.1&select=state"))[0]?.state ?? {};
+    const prev = (await d.db.select<{ state: { guards?: Record<string, string[]> } }>("agent_quote_live_state", "id=eq.1&select=state"))[0]?.state ?? {};
     for (const b of QUOTE_BOOKS) {
       if (JSON.stringify(prev.guards?.[b] ?? []) === JSON.stringify(report.guards[b])) continue;
-      await d.db.upsert(inst.events, [{ mode: entry.book ?? (cfg.dry_run ? "dry_run" : "live"), minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "guard",
+      await d.db.upsert("agent_quote_live_events", [{ mode: entry.book ?? (cfg.dry_run ? "dry_run" : "live"), minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "guard",
         detail: { reasons: report.guards[b], before: prev.guards?.[b] ?? [] } }], "mode,minute,book,rung_side,k,kind");
     }
-    await d.db.upsert(inst.state, [{
+    await d.db.upsert("agent_quote_live_state", [{
       id: 1, updated_at: nowIso, last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
       state: {
         at: nowIso, minute: report.minute, entryBook: entry.book, why: entry.why, dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at, account: !!acct,
         guards: report.guards, posts: report.posts, governor: { dry_run: governorLevel(report.posts.dry_run), live: governorLevel(report.posts.live) },
-        // An instance with several keys (rule D's four, a book and a side each) also keeps each key's count and level.
-        ...(multiKey ? { keyPosts: ctx.keyPosts, keyGovernor: Object.fromEntries(Object.entries(ctx.keyPosts.live).map(([k, n]) => [k, governorLevel(n)])) } : {}),
         dayPnlGbp: report.dayPnlGbp, lossStopped, balances: bal, capitalGbp: capital,
         held: rungs.filter((r) => r.live.held > 0).map((r) => ({ rung: r.label, held: r.live.held, avgEntry: r.live.avgEntry, openedAt: r.live.openedAt != null ? iso(r.live.openedAt) : null })),
         // Each book's dust this turn (`dustBase` at its price): at or under it a rung is flat here, so the page closes a
@@ -1283,12 +1230,11 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const taker = b.taker === true;
   const book = b.book === "USDC-GBP" || b.book === "USDT-GBP" ? b.book : null;
   if (!book) return { error: "book: USDC-GBP or USDT-GBP" };
-  const inst = d.instance ?? QUOTE_LIVE_INSTANCE;
-  const cfg = (await d.db.select<LiveConfig>(inst.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0];
-  if (!cfg) return { error: `no ${inst.config} row: migration ${inst.migration} has not run` };
+  const cfg = (await d.db.select<LiveConfig>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0];
+  if (!cfg) return { error: "no agent_quote_live_config row: migration 0052 has not run" };
   const capital = Number(cfg.capital_gbp), cap = capital * QUOTE_LIVE_CONVERT_MAX_FRACTION;
   const gbp = Number(b.gbp);
-  if (!(gbp > 0) || gbp > cap + 1e-9) return { error: `gbp: more than 0 and at most ${cap} (${rungsWord(inst.rungs)} rungs' worth of ${capital})` };
+  if (!(gbp > 0) || gbp > cap + 1e-9) return { error: `gbp: more than 0 and at most ${cap} (three rungs' worth of ${capital})` };
   const send = b.send === true;
   const risk = (await d.db.select<{ global_pause: boolean }>("agent_risk", "id=eq.1&select=global_pause"))[0];
   if (risk?.global_pause) return { error: "agent_risk.global_pause is set: nothing is sent" };
@@ -1296,8 +1242,8 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   if (send && !cfg.live_confirmed_at) return { error: "live_confirmed_at is null: nothing is sent until it is set" };
   if (!d.account?.canTrade) return { error: `PR5's Revolut X key is not loaded (${d.accountNote ?? "no key"})` };
   const report: QuoteLiveReport = { at: iso(d.now), entryBook: null, why: "", minute: null, placed: [], cancelled: [], settled: [], skippedEntries: [], guards: {}, posts: { dry_run: 0, live: 0 }, dayPnlGbp: null, errors: [] };
-  const h = makeCtxHelpers(d, report, inst);
-  const { T, inputs } = await paperView(d, inst);
+  const h = makeCtxHelpers(d, report);
+  const { T, inputs } = await paperView(d);
   const fair = inputs[book]?.f ?? null;
   if (T == null || fair == null) return { error: "no fair value for the book (GBP/USD dark, or no USD-book hours): nothing to bound the price by" };
   if (d.now - T > 3 * M) return { error: `the paper engine's last minute is ${iso(T)}: its fair is stale` };
@@ -1319,41 +1265,38 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   if (!base) return { error: "under the venue's minimum" };
   const coin = coinOf(book);
   const bal = await d.account.balances();
-  const open = await d.db.selectAll<LiveOrderRow>(inst.orders, "state=in.(pending,new,partially_filled)&select=*&order=id.asc");
+  const open = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "state=in.(pending,new,partially_filled)&select=*&order=id.asc");
   const resting = open.find((o) => o.mode === "live" && o.leg === "convert" && o.book === book);
   if (resting) return { error: `a conversion of ${book} already rests (order ${resting.id}, ${resting.state}): it fills, or the minute loop cancels it after 24 hours` };
-  const fills = await d.db.selectAll<LiveOrderRow>(inst.orders, "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
+  const fills = await d.db.selectAll<LiveOrderRow>("agent_quote_live_orders", "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
   // The asks' inventory as it stands: the coin held, less what the book's longs will sell back, plus what its shorts will
   // buy back. A resting ask's coins are still the asks' own.
   const heldBy = (side: Side) => Math.max(0, fills.filter((o) => o.book === book && o.rung_side === side).reduce((a, o) => a + (o.leg === "entry" ? 1 : -1) * Number(o.filled_base), 0));
   const beyond = (bal[coin] ?? 0) - heldBy("bid") + heldBy("ask");
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
-  const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs);
-  if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, ${rungsWord(inst.rungs)} asks' worth (${asksNeed}) or more: nothing to convert` };
+  const asksNeed = asksNeedOf(fair, capital, pair);
+  if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, three asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + pennyUp(Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price)), 0);
   const needGbp = pennyUp(Number(base) * price * (taker ? 1.0009 : 1));
   if ((bal.GBP ?? 0) - openBuys < needGbp) return { error: `not enough free GBP: ${(bal.GBP ?? 0) - openBuys} free, ${needGbp} needed at the limit${taker ? " with the fee" : ""}` };
-  // The governor's count for the conversion's key (`QuoteLiveInstance.govKey`; the live account's one key is every POST).
-  const convKey = inst.govKey(book, null), multiKey = isMultiKey(inst);
-  const today = (await d.db.selectAll<{ id: number; response: unknown; book?: QuoteBook; rung_side?: Side | null }>(inst.orders,
-    `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response${multiKey ? ",book,rung_side" : ""}&order=id.asc`))
-    .filter(wasSent).filter((r) => !multiKey || inst.govKey(r.book!, r.rung_side ?? null) === convKey);
+  const today = (await d.db.selectAll<{ id: number; response: unknown }>("agent_quote_live_orders",
+    `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response&order=id.asc`)).filter(wasSent);
   if (governorLevel(today.length) !== "all") return { error: `the governor has closed entries: ${today.length} POSTs today` };
   const order = {
     book, side: "buy", base, limit: price.toFixed(4), timeInForce: taker ? "ioc" : "gtc", postOnly: !taker, fair, bestBid: seen.bestBid, bestAsk: seen.bestAsk,
     coinBeyondLongs: beyond, asksNeed,
   };
   if (!send) return { wouldSend: order, note: "nothing sent: pass send: true, with the executor live and armed, to send it" };
-  const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.${inst.lease}&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
-  if (!held.length) return { error: `the minute loop holds the ${inst.lease} lease: try again in a few seconds` };
+  const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.quotes-live&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LIVE_LEASE_MS), holder: d.holder });
+  if (!held.length) return { error: "the minute loop holds the quotes-live lease: try again in a few seconds" };
   try {
-    const ctx: Ctx = { d, report, nowIso: iso(d.now), inst, holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, keyPosts: { dry_run: {}, live: {} }, pacePost: h.pacePost, pause: h.pause };
+    const ctx: Ctx = { d, report, nowIso: iso(d.now), holdLease: h.holdLease, bookSeen: h.bookSeen, posts: report.posts, pacePost: h.pacePost, pause: h.pause };
     const row = await placeOrder(ctx, { mode: "live", book, rungSide: null, k: null, leg: "convert", side: "buy", ticks, base, marketable: taker, fair });
     return {
       sent: order, row: row ? { id: row.id, state: row.state, client_order_id: row.client_order_id, venue_order_id: row.venue_order_id } : null, errors: report.errors,
       ...(taker ? {} : { note: "it rests at the bid, post-only (a maker's 0 %): the minute loop books its fills, and cancels it after 24 hours unfilled" }),
     };
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.${inst.lease}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
+    try { await d.db.update("agent_locks", `name=eq.quotes-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
   }
 }

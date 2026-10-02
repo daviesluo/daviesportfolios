@@ -44,6 +44,8 @@ const PAGED_KEYS: Record<string, string> = {
   // "Reward quotes mid-pool" (0081): the path's and the layer's shapes under their own names, read by the same code.
   pm_mid_fills: "trade_id,hash", pm_mid_minutes: "mode,minute,cond", pm_mid_settlements: "cond",
   pm_midprep_minutes: "minute,cond", pm_midprep_fills: "cond,minute,print_id", pm_midprep_settlements: "cond",
+  // Rule D's events (0072), by their primary key: the realistic twin checks its replica of arm d against them (quotes_twin.ts).
+  agent_quoted_events: "arm,book,minute,side,k,kind",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

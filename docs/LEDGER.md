@@ -257,7 +257,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    - **Its page (2026-10-01, Davies: "改成它单独的"; reshaped on his word 18:30–19:00 UTC):** LIVE's "Stablecoin quotes"
      opens a page of its own, in pounds — the scoreboard (the LIVE row's own figures), the paper page's BOOKS, INVENTORY
      (each coin with its unrealised), DAYS, ROUND TRIPS and ORDERS (no empty cancels, read so server-side; an entry by its
-     side alone); TESTING's row opens the paper page. A round trip carries the conversion fee of the coins it sold (FIFO
+     side alone); TESTING's row opened the paper page until 2026-10-02 and opens its twin's since. A round trip carries the conversion fee of the coins it sold (FIFO
      per book, booked at its close). Coins are valued at Revolut X's ticker `index_price`, as the account values them
      (`agent_quote_tickers`, `0078`, written by `books`; the last print when the index is over 10 minutes old): UNREALIZED
      is the coins at the index against their cost, DEPLOYED the coins at the index plus the pounds its resting buys tie
@@ -265,6 +265,26 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      plus what is held); their unrealised stays on what is held. Every stablecoin quotes row and page is in pounds; tab
      scoreboards and VENUES add them up in dollars.
    - Never trade by hand in PR5's sub-account (key `_2`): its executor books fills and inventory from that account.
+   - **Its realistic twins are TESTING's stablecoin rows since 2026-10-02** (`0087`, `agents/quotes_twin.ts`,
+     `agents/revx_sim.ts`, reference §4 item 51, frozen `reviews/2026-10-02-pr5-realistic-twins-prereg.md`; Davies:
+     "确保一致，确保真实", "原版每档100磅，variant-2 每档50磅", "都按我们昨天新设立的maker费来换币", "这个variant-2上线testing后改名为
+     variant-1"). The live executor's own code on a simulated Revolut X account: "Stablecoin quotes" carries out PR5's
+     paper decisions at £1,200 (£100 a rung), "Stablecoin quotes variant-1" rule D's arm `d` at £1,800 (£50 a rung, nine
+     a side, four keys). PR5's, PR5V's and rule D's paper rows left the page and keep running with their frozen readings.
+     Their records to 2026-10-02 21:05 UTC load from `docs/agents/backtests/twins/` (sha256 in `TWIN_BACKFILLS`) on the
+     call's first runs (one file a call), then catch up minute by minute and turn forward with PR5's call.
+     - **Daily health:** `agent_quote_twin_{pr5,d}_sim.last_error` empty and its `state->'paperCheck'->'mismatches'` at
+       46 for `pr5` (all before 2026-09-24 18:13) and 0 for `d`; `_state.updated_at` within ~3 min once caught up;
+       `edge_call_beats` has `agents?action=quotestwins` every minute; no `ops_errors` `agents.quotes_twins`; no twin
+       row in `agent_quote_live_orders`. Do not read rule D's twin's fills or P&L before rule D's reading (10-28).
+     - **Readouts:** PR5's twin beside PR5's verdict (10-21), rule D's after its reading (10-28), per rung as the
+       pre-registration's §8; no pass or fail bar.
+     - **To do (Davies: "这个到时候你再研究下，不要忘了"):** once the twins' history exists, study each rung's realistic
+       result at their sizes (£100 and £50 a rung, after penny settlement, the through-volume fill rule and maker
+       conversions); if it points to one change worth testing, propose it to Davies as the next "Stablecoin quotes
+       variant-N" (the next free number on the page). First input: the pre-registration's §8 table, and its finding
+       that 5 of the 16 paper trips PR5's twin missed were bids short of free GBP (twelve rungs of exactly a twelfth of
+       the capital, after top-ups).
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
      Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
@@ -655,6 +675,53 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 22:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**TESTING's stablecoin rows are realistic twins of PR5's live executor** (Davies: "…确保一致，确保真实"; "原版每档100磅，
+variant-2 每档50磅"; "都按我们昨天新设立的maker费来换币"; "这个variant-2上线testing后改名为variant-1"; frozen
+`reviews/2026-10-02-pr5-realistic-twins-prereg.md`, reference §4 item 51, item 4 above). `quotes_live.ts` runs as an
+instance; its default is the live account, equal turn by turn to the file as it was (`quotes_live_frozen.ts`,
+`quotes_live_instance.test.ts`: six simulated hours, every table, account and report; two perturbations fail it). A
+twin is that executor against `revx_sim.ts`, a simulated Revolut X account (a resting order fills only by prints
+strictly through it, by their size; pennies as the venue moves them; holds, refusals, the IOC's book walk, cancel lag,
+the dead-man; no network, no key), carrying out a replica of its engine's decisions at PR5's timing: "Stablecoin quotes"
+PR5's at £1,200 (£100 a rung), "Stablecoin quotes variant-1" rule D's arm `d` at £1,800 (£50 a rung, nine a side, four
+keys). Its asks' coin is the operator's maker conversion (a quarter of the capital a book; sent again after a 24-hour
+cancel for what the asks lack), so an ask waits for its coin, and the page says so. `0087` adds their tables and the
+call `agents?action=quotestwins` (retry true; one file a call while loading, then at most 12 s of catch-up turns).
+Their records to 2026-10-02 21:05 UTC were computed by this code (`docs/agents/backtests/twins/`, rebuilt byte for
+byte on the final code, loaded into Postgres 17 twice with every CHECK) and load from `main`, sha256-checked. The page:
+TESTING shows the two twins (funded £1,200 and £1,800, the live page's layout, PAPER, a line saying what each is);
+PR5's, PR5V's and rule D's paper rows are off it and keep running with their frozen readings; the scoreboard and the
+Revolut X card add the twins. The dashboard reads a twin's orders that filled or rest, and its DAYS from the twin's own
+tally (a twin sends thousands a week).
+
+Evidence: the account's rules by hand (132 coins with 20 and 30 through fills 50, at its price 0; penny both ways; the
+422; crossing; the IOC with its fee in the coin; cancel lag; dead-man; no fetch), each of nine counterfactuals failing
+2–6 of 12 pins; the driver in a hand-built world (maker conversions, asks waiting, the dead-man's cutoff, the
+operator's re-send, replica = engine, day tally, backfill load and the record after it); the validation against the
+live record 10-01 16:29 → 10-02 21:05 at £120: 23 fills each, 14 matched, 9 and 9 apart, every difference the fill rule
+(six live fills at their own price with nothing through) or code the live account did not yet run; realised −£0.0358
+live, −£0.0118 simulated. PR5's twin to 21:05: 47 trips, 44 won, +£6.0476 (PR5's paper 61, 59, +$8.0348 on $100
+rungs); of the 16 paper trips it missed, 5 were bids short of free GBP, 6 a rung still holding, 4 an entry no print
+went through, 1 an ask without coin. Rule D's twin structurally only: 7,505 entries all arm-`d` decisions, at most 716
+POSTs a key a day, replica 11,094 events with no difference. Gates: `sh bin/gates.sh` green on this tree (web, Edge, unit), run again by the main session before the push.
+
+**Disclosures:** while building, one figure of rule D's twin's P&L (the day's P&L in an earlier run's last-turn
+report, in a log tail) and a count of that run's filled orders were seen; nothing else of its results. The twins'
+call no longer returns that report. The loader reads `raw.githubusercontent.com` (the repository is public on GitHub,
+whatever older notes say); a private repository would leave an unloaded twin unloaded. The interview showcase
+(`daviesluo/personal`) and the README's paper-test sentence were not touched. **Next:** after the deploy, read
+`schema_migrations` 0087, the call's beats, each twin's sim row loaded then catching up, no `ops_errors`
+`agents.quotes_twins`, the live executor's turns unchanged and no twin row in `agent_quote_live_orders`.
+
+**How it landed.** The sub-agent that built it was stopped (the session stalled) after its last gates run passed
+and before it committed; Davies asked for it to be resumed in place, and a stopped agent cannot be. The main session
+reviewed the migration (tables of their own with RLS on and no grant, no live table touched), the twins' venue (the
+live's own Revolut X client over `revx_sim.ts`'s fetch, a throwaway key, no network but the backfill's sha256-checked
+download) and the live instance's diff (defaults equal to the file before, pinned by `quotes_live_instance.test.ts`),
+and committed the tree as the sub-agent left it with this entry.
 
 ### [2026-10-02 19:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

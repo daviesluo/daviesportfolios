@@ -3,13 +3,15 @@ import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, quotesView, quotesRow, quotesVariantRow, quotesRuledRow, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, QUOTES_ROW_ID, QUOTESV_ROW_ID, QUOTESD_ROW_ID, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, quotesLiveText, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText,
+  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
+// The realistic twins' fixture: the live fixture's rows run as each twin's, and the dashboard's answer for them.
+import twinFixture from '../e2e/quotes_twin_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
 import midFixture from '../e2e/mid_fixture.json';
@@ -790,41 +792,36 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(pctOf(360, 'capital')).toBe('% of $360 capital');
     expect(pctOf(99.75, 'held', (s) => s.replace(/\d/g, '•'))).toBe('% of $••.•• held');   // a base is money: the mask covers it
     // The paper tests are rows of TESTING that no total adds up, and each says what its unrealised percent is of.
-    const q = quotesRow({ capitalUsd: 1200, openUsd: 99.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
+    // A realistic twin (Davies, 2026-10-02) has a book of its own, so its unrealised is on what that book cost, as a
+    // strategy's; RW's is on what it has deployed.
+    const q = quotesTwinRow(twinFixture.twins[0]);
     const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, rewardUsd: 41.6, realisedUsd: 42, unrealisedUsd: -1, todayUsd: 12.5, running: true, lagMinutes: 2 });
     if (!q || !w) throw new Error('a test row was missing');
-    expect([q?.scoreDeployed, q?.unrealisedOf, w?.scoreDeployed]).toEqual([true, undefined, true]);
+    expect([/** @type {any} */ (q).scoreDeployed, /** @type {any} */ (q).unrealisedOf, w?.scoreDeployed]).toEqual([undefined, undefined, true]);
     expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
-    // Davies, 2026-09-24: both paper tests count in TESTING's scoreboard. Stablecoin quotes counts on the Revolut X
-    // card; Reward quotes is Polymarket's card. Leaving either out fails this. LIVE does not take them.
+    // Davies, 2026-09-24: the paper tests count in TESTING's scoreboard. Stablecoin quotes counts on the Revolut X card;
+    // Reward quotes is Polymarket's card. Leaving either out fails this. LIVE does not take them.
     const testing = scoreboardView(dash, 'testing', [q, w]);
     const paper = scoreboardView(dash, 'testing');
-    expect(testing.capitalUsd).toBe(paper.capitalUsd + 1200 + 296);
-    expect(testing.valueUsd).toBeCloseTo(paper.valueUsd + 99.75 + 14.4, 10);
-    expect(testing.todayUsd).toBeCloseTo(paper.todayUsd + 0.12 + 12.5, 10);
-    expect(testing.realisedUsd).toBeCloseTo(paper.realisedUsd + 0.42 + w.realisedUsd, 10);
-    expect(testing.unrealisedUsd).toBeCloseTo(paper.unrealisedUsd + 0.14 + w.unrealisedUsd, 10);
+    expect(testing.capitalUsd).toBe(paper.capitalUsd + 1584 + 296);           // the twin's £1,200 at 1.32
+    expect(testing.valueUsd).toBeCloseTo(paper.valueUsd + q.valueUsd + 14.4, 10);
+    expect(testing.todayUsd).toBeCloseTo(paper.todayUsd + q.todayUsd + 12.5, 10);
+    expect(testing.realisedUsd).toBeCloseTo(paper.realisedUsd + q.realisedUsd + w.realisedUsd, 10);
+    expect(testing.unrealisedUsd).toBeCloseTo(paper.unrealisedUsd + q.unrealisedUsd + w.unrealisedUsd, 10);
+    expect(testing.feesUsd).toBeCloseTo(paper.feesUsd + q.feesUsd, 10);
     expect(testing.tests).toBe(2);
     expect(testing.unrealisedOf).toBe('cost and deployed');
-    expect(testing.unrealisedBase).toBeCloseTo(29.9 + 99.75 + 14.4, 10);   // the three paper rows' cost, plus what the tests hold
+    expect(testing.unrealisedBase).toBeCloseTo(29.9 + q.costUsd + 14.4, 10);   // the paper rows' and the twin's cost, and what RW holds
     expect(testing.unrealisedPct).toBeCloseTo(testing.unrealisedUsd / testing.unrealisedBase * 100, 9);
-    // Davies, 2026-10-01: the quotes' DEPLOYED is every rung at work, eleven quoting at $100 and the held one, $1,199.75. The
-    // scoreboard and the Revolut X card add that, and their unrealised stays on what is held: the base does not move.
-    const qd = quotesRow({ capitalUsd: 1200, openUsd: 99.75, deployedUsd: 1199.75, unrealisedUsd: 0.14, realisedUsd: 0.42, todayUsd: 0.12, running: true, lagMinutes: 1 });
-    const testingD = scoreboardView(dash, 'testing', [qd, w]);
-    expect(testingD.valueUsd).toBeCloseTo(paper.valueUsd + 1199.75 + 14.4, 10);
-    expect(testingD.unrealisedBase).toBeCloseTo(testing.unrealisedBase, 10);
-    const revxD = venueRows(dash, 'testing', [qd, w]).find((c) => c.id === 'revx');
-    expect(revxD?.valueUsd).toBeCloseTo((venueRows(dash, 'testing', [q, w]).find((c) => c.id === 'revx')?.valueUsd ?? NaN) + 1100, 10);
-    expect(revxD?.unrealisedPct).toBeCloseTo(venueRows(dash, 'testing', [q, w]).find((c) => c.id === 'revx')?.unrealisedPct ?? NaN, 10);
     // Each tab adds the rows its caller hands it: the page hands TESTING the paper tests and LIVE only PR5's live executor.
     expect(scoreboardView(dash, 'live').capitalUsd).toBe(50);
     const cards = venueRows(dash, 'testing', [q, w]);
     const revx = cards.find((c) => c.id === 'revx');
     const pm = cards.find((c) => c.id === 'polymarket');
     if (!revx || !pm) throw new Error('a venue card was missing');
-    expect(revx.capitalUsd).toBe(140 + 1200);                               // the two paper Revolut X rows, plus the quote test
-    expect(revx.valueUsd).toBeCloseTo(21.5 + 99.75, 10);
+    expect(revx.capitalUsd).toBe(140 + 1584);                               // the two paper Revolut X rows, plus the twin
+    expect(revx.valueUsd).toBeCloseTo(21.5 + q.valueUsd, 10);
+    expect(revx.unrealisedPct).toBeCloseTo((revx.unrealisedUsd / (20 + q.costUsd)) * 100, 9);
     expect(revx.tests).toBe(1);
     expect(revx.apart).toEqual([]);
     expect(pm.capitalUsd).toBe(296);
@@ -931,76 +928,51 @@ describe('strategyRows G/L columns and the next column', () => {
   });
 });
 
-describe('quotesView', () => {
-  // PR5's quotes on paper (reference §4 item 31): the card shows what the notebook concluded, and says so when it stops.
-  const q = { startedAt: '2026-09-23T15:09:00Z', lastMinute: '2026-09-24T12:00:00Z', lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
-    realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, ordersToday: 205, fillsToday: 8 };
-  it("reads the round trips, the orders against the venue's 1,000 a day, and what is held", () => {
-    const v = quotesView(q);
-    expect(v?.tripsText).toBe('7 · 86 % won');
-    expect(v?.ordersText).toBe('205 of 1,000 · 8 filled');
-    expect([v?.open, v?.openUsd, v?.capitalUsd, v?.running, v?.stoppedText]).toEqual([1, 99.75, 1200, true, '']);
-  });
-  it('says when it has stopped, and stays off the page until it exists', () => {
-    expect(quotesView({ ...q, running: false, lagMinutes: 12 })?.stoppedText).toBe('not running: its last decided minute is 12 min old');
-    expect(quotesView({ ...q, trips: 0, won: 0 })?.tripsText).toBe('0');
-    expect(quotesView(null)).toBe(null);
-    expect(quotesView(undefined)).toBe(null);
-  });
-});
-
-describe('quotesRow — the quote test as a row of TESTING STRATEGIES', () => {
-  // Davies, 2026-09-23: the stablecoin quotes sit in the testing table with the strategies, in the same cells.
-  const q = { startedAt: '2026-09-23T15:09:00Z', lastMinute: '2026-09-24T12:00:00Z', lagMinutes: 1, running: true, lastError: null, capitalUsd: 1200,
-    realisedUsd: 0.42, realisedPct: 0.035, todayUsd: 0.12, todayPct: 0.01, trips: 7, won: 6, open: 1, openUsd: 99.75, unrealisedUsd: 0.14, ordersToday: 205, fillsToday: 8 };
-  it('fills the cells a strategy row has, on paper, at Revolut X', () => {
-    const r = quotesRow(q);
-    expect([r?.id, r?.name, r?.venueId, r?.mode, r?.nextText]).toEqual([QUOTES_ROW_ID, 'Stablecoin quotes', 'revx', 'paper', 'every minute']);
-    expect([r?.capitalUsd, r?.valueUsd, r?.openPositions]).toEqual([1200, 99.75, 1]);
-    expect([r?.todayUsd, r?.todayPct, r?.realisedUsd, r?.realisedPct]).toEqual([0.12, 0.01, 0.42, 0.035]);
-    // Unrealised on what is held, the strategies' base (the cost of the position), not on the $1,200.
-    expect(r?.unrealisedUsd).toBe(0.14);
-    expect(r?.unrealisedPct).toBeCloseTo((0.14 / 99.75) * 100, 12);
-    expect(r?.status.tone).toBe('running');
-  });
-  it('shows pounds, the books\' own, and keeps its dollars for the tab\'s scoreboard (Davies, 2026-10-01)', () => {
-    // The capital, set in dollars, at the books' last rate 1.3333; the rest as the server worked them out in pounds.
-    const g = { ...q, x: 1.3333, capitalGbp: 900, realisedGbp: 0.36, todayGbp: 0.09, openGbp: 74.8, unrealisedGbp: 0.105 };
-    const r = quotesRow(g);
-    expect([r?.ccy, r?.capitalUsd, r?.realisedUsd]).toEqual(['GBP', 1200, 0.42]);
+describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live executor's code on a simulated account)", () => {
+  const [pr5, d] = /** @type {any[]} */ (twinFixture.twins);
+  it("fills a strategy row's cells as the live executor's LIVE row does, on paper", () => {
+    const r = /** @type {any} */ (quotesTwinRow(pr5));
+    expect([r.id, r.name, r.venueId, r.mode, r.nextText]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}pr5`, 'Stablecoin quotes', 'revx', 'paper', 'every minute']);
+    // The same figures as the LIVE row for the same book: the fixture's twin is the live fixture's rows at £1,200.
+    const live = /** @type {any} */ (quotesLiveRow(liveFixture.live));
+    for (const k of ['capitalUsd', 'costUsd', 'valueUsd', 'feesUsd', 'todayUsd', 'todayPct', 'unrealisedUsd', 'unrealisedPct', 'realisedUsd', 'realisedPct', 'ccy', 'gbp', 'openPositions', 'openOrders']) {
+      expect(r[k]).toEqual(live[k]);
+    }
+    expect([r.holdsLive, r.armed]).toEqual([undefined, undefined]);         // paper money: never a LIVE row's
+    expect(r.status).toEqual({ label: 'paper', running: true, tone: 'running', detail: 'the live code on a simulated account · last turn 1 min ago' });
     const x = rowMoney(r);
-    expect([x.ccy, x.capital, x.value, x.today, x.realised, x.unrealised]).toEqual(['GBP', 900, 74.8, 0.09, 0.36, 0.105]);
-    expect(x.realisedPct).toBeCloseTo((0.36 / 900) * 100, 12);
-    expect(x.todayPct).toBeCloseTo((0.09 / 900) * 100, 12);
-    expect(x.unrealisedPct).toBeCloseTo((0.105 / 74.8) * 100, 12);
-    expect(glTextIn(x.realised, x.realisedPct, x.ccy)).toBe('+£0.36 (+0.04%)');
-    // Deployed is what its quotes have at work, when the server says (Davies, 2026-10-01): every pound quoted out.
-    const dep = rowMoney(quotesRow({ ...g, deployedUsd: 1199.75, deployedGbp: 899.81 }));
-    expect([dep.value, quotesRow({ ...g, deployedUsd: 1199.75 })?.valueUsd]).toEqual([899.81, 1199.75]);
-    expect(dep.unrealisedPct).toBeCloseTo((0.105 / 74.8) * 100, 12);                  // unrealised stays on what is held
-    // Before the books have a rate it stays in dollars, as every other row is.
-    expect(rowMoney(quotesRow(q))).toMatchObject({ ccy: 'USD', capital: 1200, value: 99.75, realised: 0.42 });
-    expect([fmtIn(1200, 'GBP'), fmtIn(1200, 'USD'), fmtIn(-0.5, 'GBP', true), fmtIn(0.5, undefined, true)]).toEqual(['£1,200', '$1,200', '-£0.50', '+$0.50']);
+    expect([x.ccy, x.capital, x.fees]).toEqual(['GBP', 1200, pr5.feesGbp]);
   });
-  it('is amber with the reason when it has stopped, flat when it holds nothing, and absent before it exists', () => {
-    expect(quotesRow({ ...q, running: false, lagMinutes: 12 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 12 min old' });
-    expect(quotesRow({ ...q, open: 0, openUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
-    expect(quotesRow({ ...q, unrealisedUsd: null })?.unrealisedUsd).toBe(0);    // a book with no print yet: nothing to show, not NaN
-    expect(quotesRow(null)).toBe(null);
-  });
-  it('the variant is variant-1, and rule D is variant-2, each on two lines (Davies, 2026-09-28)', () => {
-    const v = quotesVariantRow({ ...q, capitalUsd: 3600 });
-    expect([v?.id, v?.name, v?.venueId, v?.mode, v?.capitalUsd, v?.nextText]).toEqual([QUOTESV_ROW_ID, 'Stablecoin quotes variant-1', 'revx', 'paper', 3600, 'every minute']);
-    const d = quotesRuledRow({ ...q, capitalUsd: 3600 });
-    expect([d?.id, d?.name, d?.capitalUsd]).toEqual([QUOTESD_ROW_ID, 'Stablecoin quotes variant-2', 3600]);
-    expect(QUOTESV_ROW_ID).not.toBe(QUOTES_ROW_ID);
-    expect(QUOTESD_ROW_ID).not.toBe(QUOTESV_ROW_ID);
-    expect(quotesVariantRow(null)).toBe(null);
-    expect(quotesRuledRow(null)).toBe(null);
-    expect(strategyNameParts('Stablecoin quotes variant-1')).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
-    expect(strategyNameParts('Stablecoin quotes variant-2')).toEqual({ head: 'Stablecoin quotes', qual: 'variant-2', twoLines: true });
+  it('is "Stablecoin quotes variant-1" for rule D, on two lines, at its £1,800', () => {
+    const r = /** @type {any} */ (quotesTwinRow(d));
+    expect([r.id, r.name, rowMoney(r).capital, r.capitalUsd]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}d`, 'Stablecoin quotes variant-1', 1800, 2376]);
+    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
     expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
+  });
+  it('lists the twins in the payload\'s order, opens each on its page, and is absent before its record is loaded', () => {
+    const dash = { quotesTwins: [pr5, null, d], quotes: { live: liveFixture.live } };
+    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-1']);
+    expect(quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}d`, dash)).toBe(d);
+    expect(quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}pr5`, dash)).toBe('twin');
+    expect(quotesPageFor(QUOTES_LIVE_ROW_ID, dash)).toBe('live');
+    expect([quotesTwinOf('__quotes', dash), quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}x`, dash), quotesTwinOf(null, dash)]).toEqual([null, null, null]);
+    expect([quotesPageFor('__quotes', dash), quotesPageFor('__quotesv', dash), quotesPageFor('__quotesd', dash)]).toEqual([null, null, null]);
+    expect([quotesTwinRow(null), quotesTwinRow({ ...pr5, twin: undefined }), quotesTwinRows({})]).toEqual([null, null, []]);
+  });
+  it('says when it has stopped, or is still catching up to the present', () => {
+    expect(quotesTwinRow({ ...pr5, running: false, lagMinutes: 12 })?.status).toMatchObject({ tone: 'stale', detail: 'its last turn was 12 min ago' });
+    const catching = quotesTwinRow({ ...pr5, running: false, lagMinutes: 300, twin: { ...pr5.twin, mode: 'catch-up', lastTurn: '2026-09-17T18:00:25.000Z' } });
+    expect(catching?.status.detail).toMatch(/^catching up: its record stands at \d{1,2} \w{3} \d{2}:\d{2}$/);
+  });
+  it('says on its page what it is, and which asks wait for the coin a maker conversion is buying', () => {
+    const mask = (/** @type {string} */ s) => s.replace(/\d/g, '•');
+    expect(quotesTwinLines(pr5)).toEqual({ what: '3 rungs a side at £100 · the live code on a simulated Revolut X account: an order fills only by trades through its price', waiting: [], warn: null });
+    expect(quotesTwinLines(d).what).toBe('9 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price');
+    const waiting = { ...d, twin: { ...d.twin, converting: [{ book: 'USDT-GBP', ts: '2026-09-17T22:40:00Z', price: 0.7566, base: 594.79, filledBase: 120.5 }] } };
+    expect(quotesTwinLines(waiting).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £0.7566, 120.50 of 594.79 filled']);
+    expect(quotesTwinLines(waiting, mask).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £•.••••, •••.•• of •••.•• filled']);
+    expect(quotesTwinLines({ ...pr5, twin: { ...pr5.twin, paperCheck: { mismatches: 3 } } }).warn).toBe("its replica differs from its engine's record in 3 events");
   });
 });
 
@@ -1414,12 +1386,7 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
     const cards = venueRows(dash, 'live', [r]);
     expect(cards.map((c) => [c.id, c.capitalUsd])).toEqual([['revx', 67.5]]);
   });
-  it('says on its page what the live path is doing, and raises a live order that needs a person on both tabs', () => {
-    // A dry run that has never traded says nothing on the page (Davies, 2026-09-28).
-    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: false, postsToday: { dryRun: 12, live: 0 } })).toBe(null);
-    expect(quotesLiveText({ ...ql, dryRun: true, tradedLive: true })).toBe('Live path: back in dry run · what it traded is on LIVE');
-    expect(quotesLiveText(ql)).toBe('Live path: live and armed · on LIVE');
-    expect(quotesLiveText({ ...ql, armed: false })).toBe('Live path: live, buying off · its exits still run · on LIVE');
+  it('raises a live order that needs a person on both tabs, and its loss stop on LIVE', () => {
     const dash = { risk: {}, venues: [], strategies: [], quotes: { live: { ...ql, pending: [{ id: 9, ts: '2026-10-22T11:50:00Z' }], lossStopped: true } } };
     const ids = (tab) => alertsFor(dash, tab).map((a) => a.id);
     expect(ids('live')).toEqual(['pending-quotes-live', 'loss-stop-quotes-live']);
@@ -1432,13 +1399,12 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
   // 23:00 UTC (00:00 BST): B holds a short of 132 USDC from £0.7591, E a long of 132 USDT from £0.7565.
   const q = /** @type {any} */ (liveFixture.live);
   const mask = (/** @type {string} */ s) => s.replace(/\d/g, '•');
-  it("opens from LIVE's row on its own page, and from TESTING's on the paper test's", () => {
+  it("opens from LIVE's row on its own page; the paper test's row is gone from TESTING (Davies, 2026-10-02)", () => {
     const dash = { quotes: { ...liveFixture.live, live: q } };
     expect(quotesPageFor(QUOTES_LIVE_ROW_ID, dash)).toBe('live');
-    expect(quotesPageFor(QUOTES_ROW_ID, dash)).toBe('paper');
-    // A dry run that has never traded is no LIVE row, so it has no page; without the paper test, TESTING's row has none.
+    expect(quotesPageFor('__quotes', dash)).toBe(null);
+    // A dry run that has never traded is no LIVE row, so it has no page.
     expect(quotesPageFor(QUOTES_LIVE_ROW_ID, { quotes: { live: { ...q, tradedLive: false, entryBook: 'dry_run' } } })).toBe(null);
-    expect(quotesPageFor(QUOTES_ROW_ID, {})).toBe(null);
     for (const id of ['trend-4h', RW_ROW_ID, null]) expect(quotesPageFor(id, dash)).toBe(null);
   });
   it('writes a resting order "open", not the venue\'s "new" (Davies, 2026-10-02)', () => {

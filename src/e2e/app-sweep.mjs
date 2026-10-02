@@ -547,6 +547,15 @@ const AGENTS_RWC_RUNNING = (dayStartMs) => {
  * migrations up to `0048` and the shape `dashboard()` builds in
  * `supabase/functions/agents/index.ts`.
  */
+/**
+ * The realistic twins (`quotes_twin.ts`, 0087; Davies, 2026-10-02): the dashboard's own answer (`readQuotesTwin`) for the
+ * live fixture's book run as each twin's tables (`quotes_twin_fixture.json`, which the agents function's test proves is
+ * that function's answer): "Stablecoin quotes" at its £1,200, every figure the live fixture's (below, at
+ * QUOTES_LIVE_FIXTURE); "Stablecoin quotes variant-1" at its £1,800 ($2,376 at 1.32), the same fills on three of its
+ * nine rungs a side, so the same money and its own capital. Their starts are moved before this sweep's clock: tested
+ * 1d 7h and 20h.
+ */
+const QUOTES_TWIN_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_twin_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
   const dayStartMs = Math.floor(NOW_MS / 86400_000) * 86400_000;
@@ -647,6 +656,8 @@ const AGENTS_DASHBOARD = (() => {
       live: { dryRun: true, armed: false, armedAt: null, entryBook: 'dry_run', why: '', running: true, lagMinutes: 0, lastError: null,
         postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } }),
+    // The twins: the stablecoin rows of TESTING since 2026-10-02, in place of the paper test above, its variants and rule D.
+    quotesTwins: QUOTES_TWIN_FIXTURE.twins,
     rw: AGENTS_RW(dayStartMs),
     rwe: AGENTS_RWE(dayStartMs),
     rwx: AGENTS_RWX(dayStartMs),
@@ -989,6 +1000,76 @@ const money = (s) => Number(String(s || '').replace(/[^0-9.-]/g, ''));
  * (measured 2026-09-26), so a name is matched on the button's whole text instead.
  * @param {import('playwright').Page} page @param {string} name
  */
+/**
+ * A quotes book's page as the page shows it, the live executor's (`.ag-quotes-live-detail`) or a realistic twin's
+ * (`.ag-quotes-twin-detail`): its head, scoreboard, sections, BOOKS, INVENTORY, DAYS, round trips and orders as text.
+ * @param {import('playwright').Page} page @param {string} rootSel
+ */
+const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
+    const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+    const root = document.querySelector(rootSel);
+    if (!root) return null;
+    const tds = (/** @type {Element} */ tr) => [...tr.querySelectorAll('td')];
+    // A row and, joined to it, the line of its own under it (an order's reason, an event's words).
+    const rows = (/** @type {string} */ sel) => {
+      /** @type {string[]} */
+      const out = [];
+      for (const tr of root.querySelectorAll(`${sel} tbody tr`)) {
+        const t = tds(tr).map(txt).join(' | ');
+        if (tr.classList.contains('ag-ql-sub-row') && out.length) out[out.length - 1] += ` | ${t}`;
+        else out.push(t);
+      }
+      return out;
+    };
+    const subs = [...root.querySelectorAll('.ag-ql-sub')].map((el) => el.getBoundingClientRect());
+    const titles = document.querySelectorAll('.modal .modal-title');
+    return {
+      title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
+      head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
+      status: txt(root.querySelector('.ag-detail-head .ag-status-text')), tested: txt(root.querySelector('.ag-detail-head .ag-tested')),
+      scoreboard: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => {
+        const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
+        return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
+      }).join(' | '),
+      sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
+      tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
+      guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
+      // BOOKS, as the paper page draws them (Davies, 2026-10-01): a card per book, its ladder, its trips and realised.
+      cards: [...root.querySelectorAll('.ag-quote-books .ag-quotes-card')].map((c) => ({
+        head: txt(c.querySelector('.ag-quotes-head .hl-strong')), meta: txt(c.querySelector('.ag-quotes-head .ag-venue-meta')),
+        ladder: [...c.querySelectorAll('.ag-ladder tbody tr')].map((tr) => tds(tr).map(txt).join(' | ')),
+        grid: [...c.querySelectorAll('.ag-quotes-grid > span')].map(txt),
+      })),
+      oldRungs: root.querySelectorAll('.ag-ql-rungs, tr.ag-ql-rung').length,
+      balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
+      days: rows('.ag-quote-days'),
+      conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), events: rows('.ag-ql-events'),
+      exits: rows('.ag-ql-exits'), entries: rows('.ag-ql-entries'), oldOrders: root.querySelectorAll('.ag-ql-orders').length,
+      // Size is shown at every width, in the round trips and in both order tables (Davies, 2026-10-01).
+      sizeShown: ['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
+        const th = [...root.querySelectorAll(`${sel} thead th`)].find((x) => txt(x) === 'Size');
+        return !!th && getComputedStyle(th).display !== 'none';
+      }),
+      // How far the round trips' and the two order tables run past their boxes: inside the screen at every width.
+      liveTablesOverflow: Math.max(0, ...['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
+        const el = root.querySelector(`${sel} .hl-scroll`);
+        return el ? el.scrollWidth - el.clientWidth : 0;
+      })),
+      // Each order table's column widths as drawn, Side's beside the rest (Davies: no wider than the others).
+      colWidths: ['.ag-ql-exits', '.ag-ql-entries'].map((sel) => [...root.querySelectorAll(`${sel} thead th`)]
+        .filter((x) => getComputedStyle(x).display !== 'none').map((x) => [txt(x), Math.round(x.getBoundingClientRect().width)])),
+      notes: root.querySelectorAll('.ag-ql-note').length,
+      foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
+      // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
+      tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
+      subs: subs.length, subsOff: subs.filter((r) => r.left < 0 || r.right > document.documentElement.clientWidth + 1).length,
+      paperPage: document.querySelectorAll('.ag-quotes-detail').length,
+      // The live executor's page and the twins' are each its own container: which are open.
+      livePages: document.querySelectorAll('.ag-quotes-live-detail').length, twinPages: document.querySelectorAll('.ag-quotes-twin-detail').length,
+      twinLines: [...root.querySelectorAll('.ag-twin-line')].map(txt), warns: [...root.querySelectorAll(':scope > .ag-warn-line')].map(txt),
+    };
+}, rootSel);
+
 const nameBtn = (page, name) => page.locator('.ag-name-btn', { hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
 /**
  * The reports the page has sent that `match`, waiting up to 3 s for one: a report is a fetch the page sends after it
@@ -1778,7 +1859,7 @@ async function run() {
       const bad = reads.find((r) => !r.drawn || r.loading);
       const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
       if (!hidden) {
-        if (first && !bad && first.realised === '+$149.16' && asks === 1) {
+        if (first && !bad && first.realised === '+$148.65' && asks === 1) {
           ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
         } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
       } else {
@@ -2599,20 +2680,21 @@ async function run() {
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
-      // 78.36 before RW-E's variants, the three on the page each realising RW-E's 23.60 (Davies, 2026-09-27; since
-      // 2026-10-02 x1, x4 and x5): 78.36 + 3 × 23.60 = 149.16. RW-C is not a row before its warm-up.
-      if (money(head) === 149.16 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the six tests (${(head || '').trim()})`);
-      else fail(S('agents'), `headline read "${head}", wanted +$149.16`);
+      // The strategies' 12.34, RW's 42, RW-E's 23.60 and the three variants on the page each realising RW-E's 23.60 (Davies,
+      // 2026-09-27; since 2026-10-02 x1, x4 and x5), and the two realistic twins (2026-10-02) each the live fixture's
+      // -£0.0345066 at 1.32, -$0.0455487: 12.34 + 42 + 4 × 23.60 - 2 × 0.0455487 = 148.6489. RW-C is not a row before its warm-up.
+      if (money(head) === 148.65 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the seven tests (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted +$148.65`);
       const rows = await page.locator('.ag-row').count();
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      // Plus the quote test, a row of TESTING STRATEGIES since 2026-09-23 (Davies), RW's paper test on Polymarket
-      // since 2026-09-24, RW-E since 2026-09-26, and three of its variants (variant-2 since 2026-09-27; variant-3 and -4,
-      // x1 with its quotes moved, since 2026-10-02, Davies). RW-C (0069) is not a row before its warm-up begins,
-      // 2026-10-08 (Davies, 2026-09-28).
-      if (rows === 12) ok(S('agents'), 'twelve rows — the three 0046 leaves, their Binance twins (0049), the quote test, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent');
-      else fail(S('agents'), `expected 12 rows (six strategies, the quote test, RW, RW-E and three variants), got ${rows}`);
+      // Plus the two realistic twins of the live executor (Davies, 2026-10-02: in place of the quote test, its variant and
+      // rule D), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three of its variants
+      // (variant-2 since 2026-09-27; variant-3 and -4, x1 with its quotes moved, since 2026-10-02, Davies). RW-C (0069) is
+      // not a row before its warm-up begins, 2026-10-08 (Davies, 2026-09-28).
+      if (rows === 13) ok(S('agents'), 'thirteen rows — the three 0046 leaves, their Binance twins (0049), the two realistic twins, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent');
+      else fail(S('agents'), `expected 13 rows (six strategies, two twins, RW, RW-E and three variants), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -2645,10 +2727,12 @@ async function run() {
       const pctOfLines = await page.locator('.ag-strategies .ag-row').evaluateAll((els) => els.filter((el) => /% of /.test(el.textContent || '')).length);
       if (pctOfLines === 0) ok(S('agents'), 'no strategy card or row carries a "% of …" line');
       else fail(S('agents'), `${pctOfLines} strategy rows still say "% of …"`);
-      // The stablecoin quotes' row is in pounds, its books' own (Davies, 2026-10-01): its three cells, and only those.
+      // The stablecoin twins' rows are in pounds, their books' own (Davies, 2026-10-01): their three cells, and only those.
+      // Each is the live fixture's book: today £0.227106 (0.02 % of £1,200, 0.01 % of £1,800), unrealised -£0.1330 (-0.02 %
+      // of the £599.27 its coins cost), realised -£0.0345 (-0.003 % of £1,200, -0.002 % of £1,800: 0 % to two places).
       const poundCells = glCells.filter((g) => /£/.test(g)).map((g) => g.trim());
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?[$£][\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))
-        && poundCells.join(' | ') === '+£0.09 (+0.01%) | +£0.11 (+0.14%) | +£0.32 (+0.04%)') {
+        && poundCells.join(' | ') === '+£0.23 (+0.02%) | -£0.13 (-0.02%) | -£0.03 (0%) | +£0.23 (+0.01%) | -£0.13 (-0.02%) | -£0.03 (0%)') {
         ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}"), the stablecoin quotes' in pounds (${poundCells.join(', ')})`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
       // NEXT reads whole on every row. The quote test's "every minute" needs 93 px where the table gives the column
@@ -2670,9 +2754,11 @@ async function run() {
       const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.ag-sb-name:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
-      // A row in pounds (the stablecoin quotes') counts at its dollars, the $0.12 the scoreboard adds: its £0.09 is rounded.
+      // A row in pounds (a stablecoin twin's) counts at its dollars, the $0.29978 the scoreboard adds (£0.227106 at 1.32):
+      // its £0.23 is rounded. 0.42 + 2 × 0.29978 + 12.50 + 4 × 7.50 = 43.52.
+      const poundToday = rowToday.filter((t) => /£/.test(t));
       const rowTodaySum = Math.round((rowToday.filter((t) => !/£/.test(t)).reduce((a, t) => a + money(String(t).split('(')[0]), 0)
-        + (rowToday.some((t) => t === '+£0.09 (+0.01%)') ? 0.12 : NaN)) * 100);
+        + (poundToday.join(' | ') === '+£0.23 (+0.02%) | +£0.23 (+0.01%)' ? 2 * 0.227106 * 1.32 : NaN)) * 100);
       if (rowTodaySum === Math.round(money(sbToday) * 100) && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
         ok(S('agents'), `today on the scoreboard (${(sbToday || '').trim()}) is the rows' today added up, and the row with a book still reads +$0.42`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
@@ -2732,7 +2818,8 @@ async function run() {
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
       const sbFit = await boardFits('.ag-modepanel > .ag-scoreboard');
-      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.08)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller && sbFit.sameLine) {
+      // The fees: the strategy's $0.08 and each twin's £0.1797 at 1.32 ($0.2372), $0.55.
+      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.55)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller && sbFit.sameLine) {
         ok(S('agents'), 'five cells, FUNDED first, no total; REALIZED\'s title matches the others and the fees sit beside it on one line, smaller, in parentheses, inside the frame');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}; fit ${JSON.stringify(sbFit)}`);
       const meters = await page.locator('.ag-sb-meter').count();
@@ -2760,84 +2847,73 @@ async function run() {
       }));
       if (fundedLines.length >= 2 && fundedLines.every((x) => x.lines === 1 && x.text === 'funded (Paper)' && !x.outside)) ok(S('agents'), `funded (Paper) is one line on every venue card (${fundedLines.length})`);
       else fail(S('agents'), `funded labels: ${JSON.stringify(fundedLines)}`);
-      // PR5's quotes on paper are a row of TESTING STRATEGIES (Davies, 2026-09-23), last, in a strategy's cells; the card
-      // they had below the table is gone.
-      const quoteRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
-      const quoteRowText = (await quoteRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      // The realistic twins of the live executor are the stablecoin rows of TESTING STRATEGIES (Davies, 2026-10-02), after
+      // the strategies, in a strategy's cells and in pounds: "Stablecoin quotes" (PR5's rule) at £1,200 and "Stablecoin
+      // quotes variant-1" (rule D) at £1,800, each the live fixture's book (QUOTES_TWIN_FIXTURE): 2 open (B's short and
+      // E's long), deployed £999.14 (the coins at the index and the pounds in four resting buys), today +£0.23, unrealised
+      // -£0.13, realised -£0.03. The paper test, PR5V and rule D, which the payload still carries, are no rows.
+      const twinRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
+      const twinDRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-1') });
+      const twinText = (await twinRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const twinDText = (await twinDRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const testingNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
-      // In pounds (Davies, 2026-10-01): the $1,200 at the books' 1.32 is £909.09; deployed is what its quotes have at
-      // work, eleven quoting rungs at $100 and the held one's $99.75, $1,199.75 or £908.90; today £0.09, unrealised £0.11
-      // (0.14 % of what it holds), realised £0.32; the scoreboard adds its dollars.
-      if (await quoteRow.count() === 1 && /Revolut X/.test(quoteRowText) && !/not in the scoreboard/.test(quoteRowText) && /1 open · £909\.09 cap/.test(quoteRowText)
-        && / £908\.90 /.test(quoteRowText) && /\+£0\.09 \(\+0\.01%\)/.test(quoteRowText) && /\+£0\.11 \(\+0\.14%\)/.test(quoteRowText) && /\+£0\.32 \(\+0\.04%\)/.test(quoteRowText)
-        && !/\$/.test(quoteRowText) && !/% of deployed/.test(quoteRowText) && oldCard === 0) {
-        ok(S('agents'), 'the quote test is a testing row, in pounds: Revolut X, 1 open of £909.09, deployed £908.90, today +£0.09, unrealised +£0.11 with no "% of deployed", realised +£0.32; no card below');
-      } else fail(S('agents'), `quote row "${quoteRowText}", old card sections ${oldCard}`);
+      const twinAt = testingNames.indexOf('Stablecoin quotes');
+      const dHead = ((await twinDRow.first().locator('.ag-name-head').textContent().catch(() => '')) || '').trim();
+      const dQual = ((await twinDRow.first().locator('.ag-name-qual').textContent().catch(() => '')) || '').trim();
+      if (await twinRow.count() === 1 && await twinDRow.count() === 1 && twinAt === 6 && testingNames[7] === 'Stablecoin quotes variant-1' && testingNames.filter((n) => /^Stablecoin quotes/.test(n)).length === 2
+        && /Revolut X/.test(twinText) && /2 open · £1,200 cap/.test(twinText) && / £999\.14 /.test(twinText) && /\+£0\.23 \(\+0\.02%\)/.test(twinText) && /-£0\.13 \(-0\.02%\)/.test(twinText) && /-£0\.03 \(0%\)/.test(twinText) && /every minute/.test(twinText)
+        && /Revolut X/.test(twinDText) && /2 open · £1,800 cap/.test(twinDText) && / £999\.14 /.test(twinDText) && /\+£0\.23 \(\+0\.01%\)/.test(twinDText) && /-£0\.13 \(-0\.02%\)/.test(twinDText) && /-£0\.03 \(0%\)/.test(twinDText)
+        && dHead === 'Stablecoin quotes' && dQual === 'variant-1' && !/\$/.test(twinText + twinDText) && oldCard === 0) {
+        ok(S('agents'), 'the two twins are the testing rows after the strategies, in pounds: "Stablecoin quotes" at £1,200 and "Stablecoin quotes variant-1" (on two lines) at £1,800, each 2 open, deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03; no paper test row, no card below');
+      } else fail(S('agents'), `twin rows "${twinText}" / "${twinDText}" at ${twinAt} of ${testingNames.join(' | ')}, variant name "${dHead}" + "${dQual}", old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
       else fail(S('agents'), `${quotesInVenues} quotes/venue cards cross-classed`);
-      // Its page: the strategy page's header and scoreboard, then two books of six rungs and the round trips.
-      await quoteRow.first().click();
-      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
-      const qTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
-      // Its scoreboard's names; its head keeps the mode and the status, and lost its line of detail (Davies, 2026-09-24).
-      const qLabels = (await page.locator('.ag-quotes-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
-      const qHeadMeta = await page.locator('.ag-quotes-detail .ag-detail-head .ag-venue-meta').count();
-      const qAside = ((await page.locator('.ag-quotes-detail .ag-quotes-foot').textContent().catch(() => '')) || '').trim();
-      const qBooks = (await page.locator('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong').allTextContents()).map((t) => t.trim());
-      const qRungs = await page.locator('.ag-quotes-detail .ag-ladder tbody tr').count();
-      const qHeld = (await page.locator('.ag-quotes-detail .ag-ladder .ag-qheld').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
-      const qTrips = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').count();
-      const qFirst = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ');
-      // Read without waiting: `textContent()` waits up to 30 s for its element, and this line is the one that must be absent.
-      const qLive = (await page.locator('.ag-quotes-detail .ag-quotes-live-line').allTextContents()).join(' ').trim();
-      await shot(page, 'agents-quotes');
-      const qStacked = await page.locator('.modal').count();
-      // A dry run that has never traded says nothing (Davies, 2026-09-28).
-      if (qLive === '' && await page.locator('.ag-quotes-detail .ag-quotes-live-line').count() === 0) ok(S('agents'), 'its page no longer says what the dry run would have sent');
-      else fail(S('agents'), `quote page live line "${qLive}"`);
-      // "Exit as" read "maker" on every trip; the column is each trip's size, in coins of its book (Davies, 2026-09-28).
-      const qTripHeads = (await page.locator('.ag-quotes-detail .ag-quote-trips thead th').allTextContents()).map((t) => t.trim());
-      const qTripSize = ((await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().locator('td').nth(6).textContent().catch(() => '')) || '').trim();
-      const qTripSizeShown = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').first().locator('td').nth(6).isVisible().catch(() => false);
-      if (qTripHeads[6] === 'Size' && !qTripHeads.includes('Exit as') && qTripSize === `${QUOTE_TRIPS[0].qty.toFixed(2)} USDT` && qTripSizeShown) {
-        ok(S('agents'), `the round trips give each trip's size where "exit as" was, on a phone too: ${qTripSize}`);
-      } else fail(S('agents'), `round trips: heads ${qTripHeads.join(',')}, first size "${qTripSize}" (shown ${qTripSizeShown})`);
-      if (qTitle === 'Stablecoin quotes' && qLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && qHeadMeta === 0 && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(qAside) && qBooks.join(',') === 'USDC/GBP,USDT/GBP'
-        && qRungs === 6 && qHeld.length === 1 && /held £0\.7542 \+£0\.1061$/.test(qHeld[0]) && qTrips === 7 && /USDT\/GBP sold £0\.7564 £0\.7550/.test(qFirst.replace(/0\.2 % /, '').replace(/ maker/, ''))
-        && /\+£0\.0758$/.test(qFirst.trim()) && qStacked === 2) {
-        ok(S('agents'), 'its page opens over the list: FUNDED first on its scoreboard, no line of detail in its head, USDC/GBP and USDT/GBP with three rungs a side, the held bid at £0.7542 (+£0.1061), and all 7 round trips, newest first, each P&L in pounds to four places like its prices');
-      } else fail(S('agents'), `quote page: title "${qTitle}", labels ${qLabels.join(',')} (${qAside}), head meta ${qHeadMeta}, books ${qBooks.join(',')}, rungs ${qRungs}, held ${qHeld.join(' | ')}, trips ${qTrips}, first "${qFirst}", modals ${qStacked}`);
-      // DAYS, right below BOOKS (Davies, 2026-09-28: Reward quotes' days table, here too): newest first, today's row is
-      // the scoreboard's TODAY, the rows add up to its REALIZED G/L, and a phone keeps the day, the trips and the P&L.
-      const qOrder = await page.locator('.ag-quotes-detail .ag-section').evaluateAll((els) => els.map((el) =>
-        el.classList.contains('ag-quote-books') ? 'books' : el.classList.contains('ag-quote-days') ? 'days' : el.classList.contains('ag-quote-trips') ? 'trips' : 'other'));
-      const qDays = await page.locator('.ag-quotes-detail .ag-quote-days tbody tr').evaluateAll((trs) => trs.map((tr) =>
-        [...tr.querySelectorAll('td')].map((td) => ({ t: (td.textContent || '').trim(), shown: td.getClientRects().length > 0 }))));
-      const qDayHeads = (await page.locator('.ag-quotes-detail .ag-quote-days thead th').allTextContents()).map((t) => t.trim());
-      const qCell = async (name) => page.locator('.ag-quotes-detail .ag-scoreboard-sm .ag-sb-cell').evaluateAll((cells, n) => {
-        const c = cells.find((el) => (el.querySelector('.ag-sb-name')?.textContent || '').trim() === n);
-        return c ? (c.textContent || '').replace(/\s+/g, ' ') : '';
-      }, name);
-      const dollars = (t) => { const x = /([+-]?)[$£]([\d,]+(?:\.\d+)?)/.exec(t || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
-      const qTodayCell = dollars(await qCell('TODAY')), qRealCell = dollars(await qCell('REALIZED G/L'));
-      const dayCells = qDays.map((r) => r.map((c) => c.t));
-      const phoneCols = qDays.every((r) => r[1] && r[2] && r[1].shown === (vp.name !== 'phone') && r[2].shown === (vp.name !== 'phone') && r[0].shown && r[3].shown && r[4].shown);
-      const daySum = qDays.reduce((a, r) => a + dollars(r[4]?.t), 0);
-      if (qOrder.join(',') === 'books,days,trips' && qDayHeads.join(',') === 'Day (UTC),Orders,Fills,Round trips,Realised'
-        && dayCells.map((r) => r.join('|')).join(' / ') === '17 Sep · today|205|8|3 · 67 % won|+£0.0909 / 16 Sep|120|5|4 · 100 % won|+£0.2273'
-        // In pounds, to four places beside the scoreboard's two: today's is TODAY and the days add up to REALIZED, each to
-        // the scoreboard's penny.
-        && Math.abs(dollars(qDays[0][4].t) - qTodayCell) < 0.005 && Math.abs(daySum - qRealCell) < 0.005 && phoneCols) {
-        ok(S('agents'), `DAYS sits right below BOOKS, newest first, in pounds: today's +£0.0909 is TODAY (£${qTodayCell}), the days add up to REALIZED (£${qRealCell}), and ${vp.name === 'phone' ? 'a phone keeps the day, the trips and the P&L' : 'orders and fills show beside them'}`);
-      } else fail(S('agents'), `quote DAYS: sections ${qOrder.join(',')}, heads ${qDayHeads.join(',')}, rows ${JSON.stringify(qDays)}, TODAY ${qTodayCell}, REALIZED ${qRealCell}, sum ${daySum}`);
+      // Its page is the live executor's page (Davies, 2026-10-02), PAPER, on its simulated account: the same figures as the
+      // live fixture's page (the pr5-page checks work them by hand), and a line saying what it is.
+      await twinRow.first().click();
+      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const tp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
+      await shot(page, 'agents-quotes-twin');
+      const TWIN_DAYS = ['17 Sep · today | 18 | 3 | 2 · 50 % won | -£0.0633', '16 Sep | 6 | 2 | 1 · 100 % won | +£0.0288'];
+      const TWIN_TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | £0.0897 | -£0.1689',
+        '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | £0 | +£0.1056',
+        '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | £0.0900 | +£0.0288'];
+      if (tp && tp.title === 'Stablecoin quotes' && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
+        && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
+        && tp.twinLines.join(' / ') === '3 rungs a side at £100 · the live code on a simulated Revolut X account: an order fills only by trades through its price' && tp.warns.length === 0
+        && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
+        && tp.cards[0].ladder.join(' / ') === '0.1 % | £0.7569 | £0.7585 / 0.2 % | £0.7561 | held £0.7591 +£0.2112 / 0.3 % | £0.7553 | £0.7600'
+        && tp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192|USDT|527.64 USDT · £399.43 at £0.7570 -£0.1138'
+        && JSON.stringify(tp.days) === JSON.stringify(TWIN_DAYS) && JSON.stringify(tp.trips) === JSON.stringify(TWIN_TRIPS) && tp.exits.length === 2 && tp.entries.length === 8
+        && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(tp.foot) && tp.overflow <= 1) {
+        ok(S('agents'), "the twin's page is the live executor's, PAPER: running · tested 1d 7h, FUNDED £1,200 … REALIZED -£0.03 (incl. fees £0.18), its line (3 rungs a side at £100, the live code on a simulated account), BOOKS of three rungs, INVENTORY, DAYS 18 and 6 orders, 3 round trips, 2 exits and 8 entries");
+      } else fail(S('agents'), `twin page ${JSON.stringify(tp && { ...tp, cards: tp.cards.map((c) => c.ladder.join(' / ')) })}`);
       const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
-      if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the quote page has the same refresh button beside close');
-      else fail(S('agents'), `quote page actions ${qHeads.join(',')}`);
+      if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the twin page has the same refresh button beside close');
+      else fail(S('agents'), `twin page actions ${qHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-quotes-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the quote page returns to the list');
-      else fail(S('agents'), 'the quote page did not close back to the list');
+      // Rule D's twin: its own title on two lines, nine rungs a side, £1,800 and its loss stop of 1 % of it, £18.
+      await twinDRow.first().click();
+      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const tdp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
+      await shot(page, 'agents-quotes-twin-d');
+      const RULED_LADDER = ['0.03 % | idle | idle', '0.05 % | idle | idle', '0.075 % | idle | idle', '0.1 % | £0.7569 | £0.7585', '0.125 % | idle | idle', '0.15 % | idle | idle',
+        '0.2 % | £0.7561 | held £0.7591 +£0.2112', '0.25 % | idle | idle', '0.3 % | £0.7553 | £0.7600'];
+      if (tdp && tdp.title === 'Stablecoin quotes variant-1' && tdp.head === 'PAPER Revolut X' && tdp.tested === 'tested 20h'
+        && tdp.scoreboard === 'FUNDED=£1,800 | DEPLOYED=£999.14(55.51%) | TODAY [(loss stop -£18)]=+£0.23(+0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
+        && tdp.twinLines.join(' / ') === '9 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price'
+        && tdp.cards.length === 2 && tdp.cards.every((c) => c.ladder.length === 9) && tdp.cards[0].ladder.join(' / ') === RULED_LADDER.join(' / ') && tdp.overflow <= 1) {
+        ok(S('agents'), "rule D's twin's page: \"Stablecoin quotes variant-1\", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs");
+      } else fail(S('agents'), `rule D twin page ${JSON.stringify(tdp && { ...tdp, cards: tdp.cards.map((c) => c.ladder.join(' / ')) })}`);
+      await page.locator('.ag-detail-close').click().catch(() => {});
+      await page.waitForTimeout(300);
+      if (await page.locator('.ag-quotes-twin-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing a twin page returns to the list');
+      else fail(S('agents'), 'the twin page did not close back to the list');
       // RW's paper test on Polymarket (Davies, 2026-09-24): a row of TESTING STRATEGIES, in a strategy's cells, with its
       // own badge, before RW-E and three of its variants; the fixture's figures are rwSummary's own (AGENTS_RW).
       const rwRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') });
@@ -2936,7 +3012,7 @@ async function run() {
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the RW page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing the RW page returns to the list');
       else fail(S('agents'), 'the RW page did not close back to the list');
       // RW-E's page is RW's page read from the replay's arm: its title, the same scoreboard and sections, today and its two
       // closed days (the replay starts with the fourteen days: no warm-up row), the three markets it has, and its fills.
@@ -2960,7 +3036,7 @@ async function run() {
       } else fail(S('agents'), `RW-E page: title "${eTitle}", labels ${eLabels.join(',')}, split ${eSplit.join('|')}, sections ${eSections.join(',')}, days ${eDays.join(' | ')} (first "${eFirstDay}"), markets ${eMarkets}, fills ${eFills}, warnings ${eWarn}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), 'closing the RW-E page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
       // RW-E's variants (Davies, 2026-09-27), the last rows (x1, x4 and x5 since 2026-10-02): RW's cells read from each
       // variant's arm, here RW-E's figures to the cent (AGENTS_RWX), each name "Reward quotes variant-N" on one line.
@@ -2994,7 +3070,7 @@ async function run() {
       } else fail(S('agents'), `variant page: title "${xTitle}", split ${xSplit.join('|')}, sections ${xSections.join(',')}, markets ${xMarkets}, fills ${xFills}, warnings ${xWarn}, overflow ${xOverflow}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 12) ok(S('agents'), "closing a variant's page returns to the list");
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), "closing a variant's page returns to the list");
       else fail(S('agents'), "a variant's page did not close back to the list");
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
@@ -3010,12 +3086,12 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Four Revolut X: the three strategies and the quote test; then RW, RW-E and its three variants on the page on Polymarket, last.
-      if (revxRows === 4 && binanceRows === 3 && badges[badges.length - 6].startsWith('Revolut X') && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the quote test on Revolut X, and RW, RW-E and its three variants on Polymarket');
+      // Five Revolut X: the three strategies and the two realistic twins; then RW, RW-E and its three variants on the page on Polymarket, last.
+      if (revxRows === 5 && binanceRows === 3 && badges.slice(-7, -5).join('|') === 'Revolut X|Revolut X' && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the two realistic twins on Revolut X, and RW, RW-E and its three variants on Polymarket');
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      // Deployed value, by card: Revolut X $1,221.25 (its strategy, $21.50, plus the quote test's every rung at work,
-      // $1,199.75: Davies, 2026-10-01) and RW, RW-E and its three variants on Polymarket $252.40 (what each holds and its
-      // quotes tie up: 73.20 + 4 × 44.80) — 83 % and 17 % of $1,473.65 (82.9 % and 17.1 %, each to the nearest whole).
+      // Deployed value, by card: Revolut X $2,659.23 (its strategy, $21.50, plus each twin's every pound at work, £999.14
+      // at 1.32, $1,318.86: Davies, 2026-10-01) and RW, RW-E and its three variants on Polymarket $252.40 (what each holds
+      // and its quotes tie up: 73.20 + 4 × 44.80) — 91 % and 9 % of $2,911.63 (91.3 % and 8.7 %, each to the nearest whole).
       // The bar shows the venue and its percent when that line fits the slice, the percent alone when only that fits, and
       // nothing when not even the percent does (the title still says it). A fixed cutoff left the middle of "Polymarket"
       // on a slice that was still a bit wider than the cutoff, and a 2 % slice on a phone the middle of "2%".
@@ -3031,13 +3107,13 @@ async function run() {
         };
       }));
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && /Revolut X: 83%/.test(shareGeom[0].title) && /Polymarket: 17%/.test(shareGeom[2].title)
+        && shareGeom[1].text === '' && /Revolut X: 91%/.test(shareGeom[0].title) && /Polymarket: 9%/.test(shareGeom[2].title)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '83%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '91%', { timeout: 2000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -3045,14 +3121,14 @@ async function run() {
         return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
       }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
       await squeeze.evaluate((el) => el.remove());
-      if (squeezed && squeezedFit.text === '83%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      if (squeezed && squeezedFit.text === '91%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       // A slice too narrow even for its percent paints nothing, and its title still gives it.
       const pinch = await page.addStyleTag({ content: '.ag-share-polymarket{width:6px!important;max-width:6px!important;flex:0 0 6px!important;}' });
       const pinched = await page.waitForFunction(() => (document.querySelector('.ag-share-polymarket')?.textContent || '').trim() === '', { timeout: 2000 }).then(() => true).catch(() => false);
       const pinchedTitle = await page.locator('.ag-share-polymarket').getAttribute('title').catch(() => '');
       await pinch.evaluate((el) => el.remove());
-      if (pinched && pinchedTitle === 'Polymarket: 17% of deployed value') ok(S('agents'), 'a slice too narrow for its percent paints nothing, and its title still says Polymarket: 17%');
+      if (pinched && pinchedTitle === 'Polymarket: 9% of deployed value') ok(S('agents'), 'a slice too narrow for its percent paints nothing, and its title still says Polymarket: 9%');
       else fail(S('agents'), `pinched share: blank ${pinched}, title "${pinchedTitle}"`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
@@ -3074,11 +3150,11 @@ async function run() {
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
       else fail(S('agents'), `Revolut X card still has an apart note (${revxApart})`);
-      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus the quote
-      // test's $1,200 — and the accounts' real balances are NOT shown.
+      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus the twins' £1,200
+      // and £1,800 at 1.32, $1,584 and $2,376 — and the accounts' real balances are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
-      if (money(fundedCell) === 1380 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its strategies plus the quote test ($1,380), not the account balance');
+      if (money(fundedCell) === 4140 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its strategies plus the two twins ($4,140), not the account balance');
       else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
       const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
       const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
@@ -3101,7 +3177,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 6 && nexts.slice(rows - 6).every((t) => t === 'every minute')) ok(S('agents'), 'every rule counts down to its next bar close; the quote test, RW, RW-E and its three variants decide every minute');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 7 && nexts.slice(rows - 7).every((t) => t === 'every minute')) ok(S('agents'), 'every rule counts down to its next bar close; the two twins, RW, RW-E and its three variants decide every minute');
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -3120,9 +3196,9 @@ async function run() {
       const depSel = vpWidth > 760 ? 'td.ag-col-deployed .ag-deployed' : '.ag-card-strategy .ag-deployed';
       const depHeads = vpWidth > 760 ? (await page.locator('.ag-strategies thead th').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()) : [];
       const depCells = (await page.locator(depSel).allTextContents()).map((t) => t.trim());
-      // A row in pounds (the stablecoin quotes', £908.90) adds its dollars, $1,199.75: its pounds are its dollars over 1.32.
+      // A row in pounds (a stablecoin twin's, £999.14) adds its dollars, $1,318.86: its pounds are its dollars over 1.32.
       // The reward rows' cells are what each holds and its quotes tie up: RW $73.20, RW-E and its two variants $44.80.
-      const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£908.90' ? 1199.75 : NaN) : money(t)), 0) * 100);
+      const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£999.14' ? 999.139417255 * 1.32 : NaN) : money(t)), 0) * 100);
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);
       // From $1,000 the scoreboard writes whole dollars, so there the sum is compared to the dollar.
@@ -3427,14 +3503,17 @@ async function run() {
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
       // realised; and each Reward quotes row is funded $1,000 (the same day). The three variants on the page (x1 since
-      // 2026-09-27, x4 and x5 since 2026-10-02) add RW-E's figures three times more; RW-C is not a row before its warm-up:
-      // 1,380 + 180 + 5,000 = $6,560 funded, so deployed is 1,473.65 (22.46 % of it): every dollar at work (Davies,
-      // 2026-10-01), the strategy's 21.50, the quote test's every rung, 1,199.75, and the reward rows' holdings and quotes,
-      // 252.40. Today 20.54 + 22.50 = 43.04 is 0.66 %, realised 78.36 + 70.80 = 149.16 is 2.27 %; unrealised −0.56 − 3.60 =
-      // −4.16 is on the strategies' cost and what the tests hold, 139.75 + 16.80 = 156.55 (−2.66 %).
-      const PAPER_SB = 'FUNDED=$6,560 | DEPLOYED=$1,474(22.46%) | TODAY=+$43.04(+0.66%) | UNREALIZED G/L=-$4.16(-2.66%) | REALIZED G/L [(incl. fees $0.08)]=+$149.16(+2.27%)';
+      // 2026-09-27, x4 and x5 since 2026-10-02) add RW-E's figures three times more; RW-C is not a row before its warm-up.
+      // The two realistic twins (2026-10-02) are the live fixture's book at 1.32 each: funded $1,584 and $2,376, deployed
+      // $1,318.86, today +$0.29978, unrealised -$0.17550 on a cost of $791.04, realised -$0.04555, fees $0.23721.
+      // Funded 360 + 1,584 + 2,376 + 5,000 = $9,320; deployed every dollar at work (Davies, 2026-10-01), the strategy's
+      // 21.50, the twins' 2 × 1,318.86 and the reward rows' holdings and quotes, 252.40: 2,911.63 (31.24 %). Today 0.42 +
+      // 0.60 + 12.50 + 4 × 7.50 = 43.52 is 0.47 %; realised 12.34 - 0.09 + 42 + 4 × 23.60 = 148.65 is 1.59 %; unrealised
+      // 1.50 - 0.35 - 1 - 4 × 1.20 = -4.65 is on the strategies' and twins' cost and what the reward tests hold, 20 +
+      // 1,582.07 + 14.40 + 4 × 5.60 = 1,638.87 (-0.28 %); fees 0.08 + 2 × 0.23721 = 0.55.
+      const PAPER_SB = 'FUNDED=$9,320 | DEPLOYED=$2,912(31.24%) | TODAY=+$43.52(+0.47%) | UNREALIZED G/L=-$4.65(-0.28%) | REALIZED G/L [(incl. fees $0.55)]=+$148.65(+1.59%)';
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 12 Paper paper';
+      const TESTING_BAR = 'TESTING 13 Paper paper';
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
@@ -3453,17 +3532,17 @@ async function run() {
       const winH = vpWidth > 760 ? Math.round(0.85 * (page.viewportSize()?.height ?? 0)) : (page.viewportSize()?.height ?? 0);
       await clickTab('testing');
       const n2 = await readAgentsPanel(page);
-      if (n2.rows.length === 12 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 12 rows, scoreboard and venue cards as they were');
+      if (n2.rows.length === 13 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 13 rows, scoreboard and venue cards as they were');
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
       // How long each has been under test, to the hour, on the pinned clock: the fixture's own starts (a row's creation, the
       // quotes' first minute, RW's first day, a variant's first minute). RW-C's, in its warm-up, is its own mode's check.
-      const TESTED = { 'Trend 4h': 'tested 3d 5h', 'Stablecoin quotes': 'tested 1d 7h', 'Reward quotes': 'tested 2d 23h', 'Reward quotes variant-1': 'tested 2d 23h', 'Reward quotes variant-3': 'tested 20h' };
+      const TESTED = { 'Trend 4h': 'tested 3d 5h', 'Stablecoin quotes': 'tested 1d 7h', 'Stablecoin quotes variant-1': 'tested 20h', 'Reward quotes': 'tested 2d 23h', 'Reward quotes variant-1': 'tested 2d 23h', 'Reward quotes variant-3': 'tested 20h' };
       const listTags = await page.evaluate(() => [...document.querySelectorAll('.ag-modepanel .ag-badge, .ag-modepanel .ag-venue')].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => Math.round(r.height * 10) / 10));
       if (listTags.length >= 1 && Math.max(...listTags) - Math.min(...listTags) <= 0.5) ok(T('tags'), `the list's ${listTags.length} tags are all ${listTags[0]}px tall`);
       else fail(T('tags'), `the list's tag heights ${listTags.join(',')}`);
-      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-3', 'polymarket', '.ag-rw-detail']]) {
+      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-twin-detail'], ['Stablecoin quotes variant-1', 'revx', '.ag-quotes-twin-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-3', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
         await page.waitForTimeout(350);
@@ -3531,19 +3610,22 @@ async function run() {
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
-      if (a1.rows.length === 12 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
-        ok(T('armed'), `TESTING is the paper rows alone (12, none live), and its scoreboard is theirs (${sbText(a1)})`);
+      if (a1.rows.length === 13 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+        ok(T('armed'), `TESTING is the paper rows alone (13, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
-      if (a1.venues.length === 3 && rv && bn && rv.meta === '4 strategies · maker 0% / taker 0.09%' && rv.pairs['funded (Paper)'] === '$1,380' && rv.pairs.deployed === '$1,221 (88.50%)'
-        && rv.pairs.realised === '+$12.76 (+0.92%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
-        ok(T('armed'), 'TESTING\'s Revolut X card includes Stablecoin quotes (funded (Paper) $1,380.00, deployed $1,221.25, 88.50%), beside Binance\'s and Polymarket\'s');
+      // Revolut X on TESTING: its three strategies and the two twins, funded 180 + 1,584 + 2,376 = $4,140, deployed 21.50 +
+      // 2 × 1,318.86 = 2,659.23 (64.23 %), realised 12.34 - 2 × 0.04555 = 12.25 (0.30 %).
+      if (a1.venues.length === 3 && rv && bn && rv.meta === '5 strategies · maker 0% / taker 0.09%' && rv.pairs['funded (Paper)'] === '$4,140' && rv.pairs.deployed === '$2,659 (64.23%)'
+        && rv.pairs.realised === '+$12.25 (+0.30%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
+        ok(T('armed'), 'TESTING\'s Revolut X card includes the two twins (funded (Paper) $4,140, deployed $2,659.23, 64.23%), beside Binance\'s and Polymarket\'s');
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      // TESTING's deployed, $1,473.65 since every dollar at work counts (Davies, 2026-10-01), is shown to the dollar from
-      // $1,000: LIVE's $12.50 and the $1,474 shown make 1,486.50.
-      if (both.join(',') === '661000,148650,4324,-366,14946') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the six tests: $6,610.00 funded, $1,486.50 deployed as shown ($12.50 + $1,474, $1,473.65 to the cent), +$43.24 today, -$3.66 unrealised, +$149.46 realised');
+      // TESTING's deployed, $2,911.63 since every dollar at work counts (Davies, 2026-10-01), is shown to the dollar from
+      // $1,000: LIVE's $12.50 and the $2,912 shown make 2,924.50; funded 50 + 9,320, today 0.20 + 43.52, unrealised 0.50 -
+      // 4.65, realised 0.30 + 148.65.
+      if (both.join(',') === '937000,292450,4372,-415,14895') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the seven tests: $9,370.00 funded, $2,924.50 deployed as shown ($12.50 + $2,912, $2,911.63 to the cent), +$43.72 today, -$4.15 unrealised, +$148.95 realised');
       else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
@@ -3590,7 +3672,7 @@ async function run() {
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
-      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 12) ok(T('unarmed'), 'TESTING carries no banner either');
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 13) ok(T('unarmed'), 'TESTING carries no banner either');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
@@ -3617,67 +3699,7 @@ async function run() {
       // ---- LIVE's "Stablecoin quotes" opens a page of its own (Davies, 2026-10-01: it opened the paper test's) -------
       // The live executor's real-money book and nothing of the paper engine's record, every figure the fixture's, worked by
       // hand (AGENTS_PR5_LIVE); its scoreboard is its LIVE row's own. A phone keeps each table's story columns.
-      const readLivePage = () => page.evaluate(() => {
-        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-        const root = document.querySelector('.ag-quotes-live-detail');
-        if (!root) return null;
-        const tds = (/** @type {Element} */ tr) => [...tr.querySelectorAll('td')];
-        // A row and, joined to it, the line of its own under it (an order's reason, an event's words).
-        const rows = (/** @type {string} */ sel) => {
-          /** @type {string[]} */
-          const out = [];
-          for (const tr of root.querySelectorAll(`${sel} tbody tr`)) {
-            const t = tds(tr).map(txt).join(' | ');
-            if (tr.classList.contains('ag-ql-sub-row') && out.length) out[out.length - 1] += ` | ${t}`;
-            else out.push(t);
-          }
-          return out;
-        };
-        const subs = [...root.querySelectorAll('.ag-ql-sub')].map((el) => el.getBoundingClientRect());
-        const titles = document.querySelectorAll('.modal .modal-title');
-        return {
-          title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
-          head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
-          status: txt(root.querySelector('.ag-detail-head .ag-status-text')), tested: txt(root.querySelector('.ag-detail-head .ag-tested')),
-          scoreboard: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => {
-            const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
-            return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
-          }).join(' | '),
-          sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
-          tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
-          guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
-          // BOOKS, as the paper page draws them (Davies, 2026-10-01): a card per book, its ladder, its trips and realised.
-          cards: [...root.querySelectorAll('.ag-quote-books .ag-quotes-card')].map((c) => ({
-            head: txt(c.querySelector('.ag-quotes-head .hl-strong')), meta: txt(c.querySelector('.ag-quotes-head .ag-venue-meta')),
-            ladder: [...c.querySelectorAll('.ag-ladder tbody tr')].map((tr) => tds(tr).map(txt).join(' | ')),
-            grid: [...c.querySelectorAll('.ag-quotes-grid > span')].map(txt),
-          })),
-          oldRungs: root.querySelectorAll('.ag-ql-rungs, tr.ag-ql-rung').length,
-          balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
-          days: rows('.ag-quote-days'),
-          conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), events: rows('.ag-ql-events'),
-          exits: rows('.ag-ql-exits'), entries: rows('.ag-ql-entries'), oldOrders: root.querySelectorAll('.ag-ql-orders').length,
-          // Size is shown at every width, in the round trips and in both order tables (Davies, 2026-10-01).
-          sizeShown: ['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
-            const th = [...root.querySelectorAll(`${sel} thead th`)].find((x) => txt(x) === 'Size');
-            return !!th && getComputedStyle(th).display !== 'none';
-          }),
-          // How far the round trips' and the two order tables run past their boxes: inside the screen at every width.
-          liveTablesOverflow: Math.max(0, ...['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => {
-            const el = root.querySelector(`${sel} .hl-scroll`);
-            return el ? el.scrollWidth - el.clientWidth : 0;
-          })),
-          // Each order table's column widths as drawn, Side's beside the rest (Davies: no wider than the others).
-          colWidths: ['.ag-ql-exits', '.ag-ql-entries'].map((sel) => [...root.querySelectorAll(`${sel} thead th`)]
-            .filter((x) => getComputedStyle(x).display !== 'none').map((x) => [txt(x), Math.round(x.getBoundingClientRect().width)])),
-          notes: root.querySelectorAll('.ag-ql-note').length,
-          foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
-          // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
-          tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
-          subs: subs.length, subsOff: subs.filter((r) => r.left < 0 || r.right > document.documentElement.clientWidth + 1).length,
-          paperPage: document.querySelectorAll('.ag-quotes-detail').length,
-        };
-      });
+      const readLivePage = () => readQuotesBookPage(page, '.ag-quotes-live-detail');
       const liveRowEl = page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
       const liveRowGl = p0.rows[0]?.gl ?? [];
       await liveRowEl.first().click();
@@ -3790,22 +3812,18 @@ async function run() {
 
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
-      if (p1.rows.length === 12 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its paper test stays on TESTING, whose totals do not take the live book");
+      if (p1.rows.length === 13 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its twin stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
-      // TESTING's Stablecoin quotes still opens the paper test's page, as it was, with its line about the live path.
+      // TESTING's "Stablecoin quotes" opens its twin's page (Davies, 2026-10-02), never the live executor's: PAPER, its
+      // own container, its line, its two books of three rungs and the fixture's three round trips.
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
-      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
-      const pp = await page.evaluate(() => ({
-        live: document.querySelectorAll('.ag-quotes-live-detail').length,
-        books: [...document.querySelectorAll('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong')].map((el) => (el.textContent || '').trim()),
-        ladder: document.querySelectorAll('.ag-quotes-detail .ag-ladder tbody tr').length,
-        trips: document.querySelectorAll('.ag-quotes-detail .ag-quote-trips tbody tr').length,
-        line: (document.querySelector('.ag-quotes-detail .ag-quotes-live-line')?.textContent || '').trim(),
-      }));
-      if (pp.live === 0 && pp.books.join(',') === 'USDC/GBP,USDT/GBP' && pp.ladder === 6 && pp.trips === 7 && pp.line === 'Live path: live and armed · on LIVE') {
-        ok(T('pr5-page'), "TESTING's Stablecoin quotes still opens the paper test's page: its two books, 6 ladder rows, 7 round trips, and \"Live path: live and armed · on LIVE\"");
-      } else fail(T('pr5-page'), `TESTING's Stablecoin quotes: live page ${pp.live}, books ${pp.books.join(',')}, ladder ${pp.ladder}, trips ${pp.trips}, line "${pp.line}"`);
+      const pp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
+      if (pp && pp.livePages === 0 && pp.twinPages === 1 && pp.head === 'PAPER Revolut X' && pp.cards.map((c) => c.head).join(',') === 'USDC/GBP,USDT/GBP' && pp.cards.every((c) => c.ladder.length === 3)
+        && pp.trips.length === 3 && /^3 rungs a side at £100 · the live code on a simulated Revolut X account/.test(pp.twinLines[0] ?? '')) {
+        ok(T('pr5-page'), "TESTING's Stablecoin quotes opens its twin's page, not the live executor's: PAPER, its two books of three rungs, 3 round trips, and its line");
+      } else fail(T('pr5-page'), `TESTING's Stablecoin quotes: ${JSON.stringify(pp && { live: pp.livePages, twin: pp.twinPages, head: pp.head, books: pp.cards.map((c) => c.head), trips: pp.trips.length, lines: pp.twinLines })}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
@@ -3980,7 +3998,7 @@ async function run() {
       } else fail(T('rwc-warmup'), `RW-C page: title "${cTitle}" ${JSON.stringify(cTitleFit)}, labels ${cLabels.join(',')}, funded "${cFunded}", sections ${cSections.join(',')}, empty ${JSON.stringify(cEmpty)}, warnings ${cWarn}, overflow ${cOverflow}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(T('rwc-warmup'), "closing RW-C's page returns to the list");
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 14) ok(T('rwc-warmup'), "closing RW-C's page returns to the list");
       else fail(T('rwc-warmup'), "RW-C's page did not close back to the list");
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
@@ -4054,10 +4072,10 @@ async function run() {
       const pmB = prepBefore.venues.find((v) => v.id === 'polymarket'), pmA = prAfter.venues.find((v) => v.id === 'polymarket');
       const prCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((prAmount(pmA?.pairs[k]) - prAmount(pmB?.pairs[k])) * 100) / 100);
       // Its deployed is what it holds, $8.77, and what its quotes tie up, $24.34 (Davies, 2026-10-01): $33.11. The
-      // scoreboard's DEPLOYED is shown to the dollar from $1,000: $1,473.65 + $33.11 = $1,506.76 reads $1,474 then $1,507,
+      // scoreboard's DEPLOYED is shown to the dollar from $1,000: $2,911.63 + $33.11 = $2,944.74 reads $2,912 then $2,945,
       // 33 more. The card, under $1,000, adds $33.11.
       if (prSbDiff.join(',') === '320,33,1.47,0.42,1.95' && prCardDiff.join(',') === '320,33.11,1.47,0.42,1.95,1.7,0.25' && pmA?.meta === '6 strategies') {
-        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $1,474 to $1,507 on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6");
+        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $2,912 to $2,945 on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6");
       } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
       await prRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4161,9 +4179,9 @@ async function run() {
       const mdPmB = midBefore.venues.find((v) => v.id === 'polymarket'), mdPmA = mdAfter.venues.find((v) => v.id === 'polymarket');
       const mdCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((mdAmount(mdPmA?.pairs[k]) - mdAmount(mdPmB?.pairs[k])) * 100) / 100);
       // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000:
-      // $1,461.96 with mini-pool reads $1,462, and $1,502.36 with mid-pool $1,502, 40 more; the card adds $40.40.
+      // $2,944.74 with mini-pool reads $2,945, and $2,985.14 with mid-pool $2,985, 40 more; the card adds $40.40.
       if (mdSbDiff.join(',') === '320,40,4.6,0.4,9' && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '7 strategies') {
-        ok(T('mid'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; $1,507 to $1,547 on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7");
+        ok(T('mid'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; $2,945 to $2,985 on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7");
       } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
       await mdRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4211,78 +4229,23 @@ async function run() {
       await page.waitForTimeout(300);
       agentsMode = 'ok';
 
-      // Variant-1 and variant-2 (Davies, 2026-09-28): two testing rows right after the quote test. Each name is two
-      // lines, the first the whole of "Stablecoin quotes". Both count in TESTING's Revolut X card ($1,380 + $3,600 + $3,600).
+      // The paper tests the twins replaced keep running and the payload still carries them (`quotes`, `quotesVariant`,
+      // `quotesRuled`), but they are no rows (Davies, 2026-10-02: "这个variant-2上线testing后改名为variant-1"): TESTING's
+      // stablecoin rows are the two twins alone, "Stablecoin quotes" and "Stablecoin quotes variant-1" (rule D's twin), and
+      // its Revolut X card counts the twins' capital and nothing of the paper tests'.
       agentsMode = 'quotesv';
       await openAgentsPage(page);
-      const qvRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-1') });
-      const qdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-2') });
-      await waitFor(async () => (await qvRow.count()) === 1 && (await qdRow.count()) === 1);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === 13);
       await page.waitForTimeout(150);
-      if (SHOTS_DIR) await qdRow.first().scrollIntoViewIfNeeded().catch(() => {});
-      await shot(page, 'agents-testing-variants');
-      const qvText = (await qvRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const qdText = (await qdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
-      const qvAt = qvNames.indexOf('Stablecoin quotes variant-1');
-      const nameLine = async (row, sel) => ((await row.locator(sel).textContent().catch(() => '')) || '').trim();
-      const lineClip = async (row) => row.locator('.ag-name-head').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       const qvPanel = await readAgentsPanel(page);
       const qvRevx = qvPanel.venues.find((v) => v.id === 'revx');
-      const qvHead = await nameLine(qvRow, '.ag-name-head'), qvQual = await nameLine(qvRow, '.ag-name-qual');
-      const qdHead = await nameLine(qdRow, '.ag-name-head'), qdQual = await nameLine(qdRow, '.ag-name-qual');
-      const qvClip = await lineClip(qvRow), qdClip = await lineClip(qdRow);
-      if (await qvRow.count() === 1 && await qdRow.count() === 1 && qvAt > 0 && qvNames[qvAt - 1] === 'Stablecoin quotes' && qvNames[qvAt + 1] === 'Stablecoin quotes variant-2'
-        && qvHead === 'Stablecoin quotes' && qvQual === 'variant-1' && qdHead === 'Stablecoin quotes' && qdQual === 'variant-2'
-        && qvClip >= 0 && qvClip <= 1 && qdClip >= 0 && qdClip <= 1
-        // In pounds at the books' 1.32 (Davies, 2026-10-01): $3,600 is £2,727; variant-1's realised $0.09 is £0.07, its
-        // today $0.05 £0.04; variant-2's realised $0.12 is £0.09, its today $0.07 £0.05. Deployed is every rung at work:
-        // variant-1's 35 quoting at $100 and the held one's $99.90, $3,599.90; variant-2's 36 quoting, $3,600; each £2,727,
-        // so each row shows £2,727 twice (its cap and its deployed). The Revolut X card: $21.50 + $1,199.75 + $3,599.90 +
-        // $3,600 = $8,421.15 of $8,580.
-        && /Revolut X/.test(qvText) && /1 open · £2,727 cap/.test(qvText) && /\+£0\.07 \(0%\)/.test(qvText) && /\+£0\.04 \(0%\)/.test(qvText) && /every minute/.test(qvText)
-        && /0 open · £2,727 cap/.test(qdText) && /\+£0\.09 \(0%\)/.test(qdText) && /\+£0\.05 \(0%\)/.test(qdText) && !/\$/.test(qvText + qdText)
-        && (qvText.match(/£2,727/g) || []).length === 2 && (qdText.match(/£2,727/g) || []).length === 2
-        && qvRevx?.pairs['funded (Paper)'] === '$8,580' && qvRevx?.pairs.deployed === '$8,421 (98.15%)') {
-        ok(T('quotesv'), 'variant-1 and variant-2 sit after the quote test, each name on two lines with "Stablecoin quotes" whole, each deploys its £2,727, and TESTING\'s Revolut X card counts both ($8,580 funded, $8,421 deployed)');
-      } else fail(T('quotesv'), `variant rows "${qvText}" / "${qdText}" at ${qvAt} of ${qvNames.join(' | ')}; heads ${qvHead}/${qdHead} quals ${qvQual}/${qdQual} clip ${qvClip}/${qdClip}; Revolut X ${JSON.stringify(qvRevx?.pairs)}`);
-      await qvRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
-      const qvTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
-      const qvHidden = ((await page.locator('.ag-quotes-detail .ag-detail-title').textContent().catch(() => '')) || '').trim();
-      const qvWarn = await page.locator('.ag-quotes-detail .ag-warn-line').count();
-      const qvBooks = (await page.locator('.ag-quotes-detail .ag-quotes-card .ag-quotes-head .hl-strong').allTextContents()).map((t) => t.trim());
-      const qvLadder = (await page.locator('.ag-quotes-detail .ag-quotes-card').first().locator('.ag-ladder tbody tr td:first-child').allTextContents()).map((t) => t.trim());
-      const qvRungs = await page.locator('.ag-quotes-detail .ag-ladder tbody tr').count();
-      const qvHeld = (await page.locator('.ag-quotes-detail .ag-ladder .ag-qheld').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
-      const qvTripRungs = await page.locator('.ag-quotes-detail .ag-quote-trips tbody tr').evaluateAll((trs) => trs.map((tr) => (tr.querySelectorAll('td')[3]?.textContent || '').trim()));
-      const qvDays = (await page.locator('.ag-quotes-detail .ag-quote-days tbody tr td:first-child').allTextContents()).map((t) => t.trim());
-      const qvLive = await page.locator('.ag-quotes-detail .ag-quotes-live-line').count();
-      const qvOverflow = await page.locator('.ag-quotes-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
-      await shot(page, 'agents-quotes-variant');
-      if (qvTitle === 'Stablecoin quotes variant-1' && qvHidden === 'Stablecoin quotes variant-1' && qvBooks.join(',') === 'USDC/GBP,USDT/GBP'
-        && qvLadder.join(',') === '0.03 %,0.05 %,0.075 %,0.1 %,0.125 %,0.15 %,0.2 %,0.25 %,0.3 %' && qvRungs === 18
-        && qvHeld.length === 1 && /held £0\.7545 \+£0\.0379$/.test(qvHeld[0]) && qvTripRungs.join(',') === '0.075 %,0.03 %'
-        && qvDays.length === 2 && /· today$/.test(qvDays[0]) && qvLive === 0 && qvWarn === 0 && qvOverflow >= 0 && qvOverflow <= 1) {
-        ok(T('quotesv'), 'variant-1\'s page: its own title, both books with nine rungs a side (0.03 % … 0.3 %, 0.075 % and 0.125 % in full), the held 0.075 % bid, two round trips, two days, no deviation warning, nothing wider than the page');
-      } else fail(T('quotesv'), `variant-1 page: title "${qvTitle}" / "${qvHidden}", books ${qvBooks.join(',')}, ladder ${qvLadder.join(',')} (${qvRungs} rows), held ${qvHeld.join(' | ')}, trip rungs ${qvTripRungs.join(',')}, days ${qvDays.join(' | ')}, live lines ${qvLive}, warnings ${qvWarn}, overflow ${qvOverflow}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await qdRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-quotes-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
-      const qdTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
-      const qdHidden = ((await page.locator('.ag-quotes-detail .ag-detail-title').textContent().catch(() => '')) || '').trim();
-      const qdWarn = ((await page.locator('.ag-quotes-detail .ag-warn-line').allTextContents()).join(' ')).replace(/\s+/g, ' ').trim();
-      const qdOverflow = await page.locator('.ag-quotes-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
-      await shot(page, 'agents-quotes-variant-2');
-      if (qdTitle === 'Stablecoin quotes variant-2' && qdHidden === 'Stablecoin quotes variant-2' && qdWarn === 'deviation from variant-1 is $0.0200' && qdOverflow >= 0 && qdOverflow <= 1) {
-        ok(T('quotesv'), 'variant-2\'s page: its own title, and the deviation warning when the check is at least $0.01');
-      } else fail(T('quotesv'), `variant-2 page: title "${qdTitle}" / "${qdHidden}", warning "${qdWarn}", overflow ${qdOverflow}`);
+      await shot(page, 'agents-testing-twins');
+      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === 'Stablecoin quotes | Stablecoin quotes variant-1' && !qvNames.includes('Stablecoin quotes variant-2')
+        && qvRevx?.pairs['funded (Paper)'] === '$4,140' && qvRevx?.pairs.deployed === '$2,659 (64.23%)') {
+        ok(T('quotesv'), 'with the paper tests in the payload, TESTING still has the two twins alone ("Stablecoin quotes", "Stablecoin quotes variant-1"), and its Revolut X card counts the twins ($4,140 funded, $2,659 deployed)');
+      } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}`);
       agentsMode = 'ok';
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
     } else fail(S('agents'), 'Agents menu item not found');

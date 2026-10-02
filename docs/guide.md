@@ -119,8 +119,8 @@ places stay when the number is not whole.
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
-  Stablecoin quotes, its variant and every Reward quotes row with the other strategies. Then a card per exchange —
-  Revolut X in blue, which on TESTING includes Stablecoin quotes and its variant, and on
+  the two Stablecoin quotes rows and every Reward quotes row with the other strategies. Then a card per exchange —
+  Revolut X in blue, which on TESTING includes the two Stablecoin quotes rows, and on
   TESTING Polymarket in its blue, whose card is its Reward quotes rows
   added together — showing the same figures for
   that exchange in two groups: what it holds (funded, deployed, today)
@@ -143,28 +143,27 @@ places stay when the number is not whole.
   is of. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
-- **Stablecoin quotes.** The first of the tests, after the testing strategies: a
-  four-week paper test of resting quotes 0.1–0.3 % either side of the
-  interbank rate on Revolut X's USDC/GBP and USDT/GBP books, decided every
-  minute. Its row reads like a strategy's, in pounds, on the $1,200 the
-  quotes would tie up (in pounds at the day's rate). Deployed is every pound
-  at work: each quoting rung's share of the $1,200 and what the rungs holding
-  coins hold; unrealised is a percent of what is held. Its dot turns amber if
-  it stops. Tap it for its page, in pounds: the same scoreboard, then BOOKS,
-  each book's six rungs (the price each quotes, or what it holds and has
-  made at Revolut X's index price, the price the account values coins at;
-  each book's head shows its last trade, fair and index), then DAYS — each UTC day,
-  newest first: the orders it placed (of the 1,000 a day the exchange
-  allows), its fills, the round trips that closed and what they made;
-  today's row is TODAY above, and the days add up to REALIZED — and the
-  latest round trips, each with its size in coins (every exit so far
-  rested as a maker; only its 24-hour stop would take the book). On a
-  phone, DAYS keeps the day, the round trips and what they made. From its live path's first real
-  order, the page also says what that path is doing, and it is also a
-  row of LIVE — its real-money book, in pounds on its row and its page, and
-  in LIVE's totals and its Revolut X card in dollars at the day's pound
-  rate — and a live order of its that needs a person shows on both tabs.
-  The foot is when the page was read, and that it refreshes every minute.
+- **Stablecoin quotes.** The first of the tests, after the testing strategies:
+  the live stablecoin quotes' own code, every rule the real-money account
+  runs by, trading a simulated Revolut X account of £1,200, £100 a rung:
+  resting quotes 0.1–0.3 % either side of the interbank rate on the USDC/GBP
+  and USDT/GBP books, placed where the quote test decides each minute. The
+  simulated account fills a resting order only when a real trade on the
+  exchange went through its price, and only by that trade's size (a trade at
+  its price fills nothing, since where it stood in the queue is not known);
+  it moves pounds as Revolut X does, rounded to the penny against the
+  account; it buys each coin for its asks with a conversion resting at the
+  top of the bids, for no fee, so an ask has nothing to sell until that
+  conversion fills (the page says so meanwhile); and if its turns stop for
+  more than three minutes, its resting orders are cancelled, as the live
+  account's are. Its row reads as the live row does, in pounds: funded
+  £1,200, deployed every pound at work, today, unrealised on what its coins
+  cost, realised with its fees. Tap it for its page, laid out as the live
+  page below and marked PAPER, with a line saying what it is. Its record
+  starts with the quote test's first minute, 23 Sep. The quote test it
+  follows keeps running behind the page until its verdict; its own row and
+  page are gone. The foot is when the page was read, and that it refreshes
+  every minute.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper
@@ -176,9 +175,10 @@ places stay when the number is not whole.
   against what they cost: the pounds the conversions paid for them, fee
   included, and what the rungs holding paid or sold for. The fees beside
   realised include the conversion fee of the coins each round trip sold.
-  Then BOOKS, as on the paper test's page: each book's six rungs, each with
-  the price of the order resting on it, or what it holds and has made at
-  the index. INVENTORY: the pounds and coins in the account, each coin also
+  Then BOOKS: a card per book, its last trade, fair and index price, and a
+  ladder of its rungs, each with the price of the order resting on it, or
+  what it holds and has made at the index; under it the book's round trips
+  and what they realised. INVENTORY: the pounds and coins in the account, each coin also
   in pounds at the index price shown beside it, and with its unrealised;
   their unrealised add up to the scoreboard's. DAYS: each UTC day's orders, entry
   fills, round trips and what it realised, which add up to realised. Then
@@ -204,19 +204,13 @@ places stay when the number is not whole.
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.
-- **Stablecoin quotes variant-1.** Right after it: the same rule with nine
-  rungs a side, from 0.03 % to 0.3 %, re-priced at every 0.03 % move of
-  fair, on the $3,600 its quotes would tie up (in pounds, as its row and page
-  are), played minute by minute on
-  exactly the trades and rates the quote test recorded, so the two can be
-  compared day by day. Its page is the quote test's, with nine rungs a side
-  in each book. The name in the table is two lines, and the first is the
-  whole of "Stablecoin quotes".
-- **Stablecoin quotes variant-2.** Right after that: the same quotes on the
-  same pound rate, except that an entry moves only when fair has moved
-  further (at least a third of the rung's distance), so the two rows differ
-  by that one rule. Its page is variant-1's, and it says so when the two have
-  drifted.
+- **Stablecoin quotes variant-1.** Right after it: the same, for the rule
+  with nine rungs a side, from 0.03 % to 0.3 %, whose quotes move at every
+  0.03 % move of fair, an entry only once fair has moved at least a third of
+  its rung's distance: on £1,800, £50 a rung, from 28 Sep. Its page is the
+  same, with nine rungs a side in each book. The name in the table is two
+  lines, and the first is the whole of "Stablecoin quotes". The paper test of
+  that rule keeps running behind the page until its reading.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, QUOTESV_ROW_ID, QUOTESD_ROW_ID, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText, quotesRow, quotesVariantRow, quotesRuledRow, quotesView, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesLiveText, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -424,76 +424,6 @@ function QuoteDaysTable({ days, m, empty = null }) {
   );
 }
 
-/**
- * PR5's quotes on paper (reference §4 item 31), opened from their row in TESTING STRATEGIES: the strategy page's
- * header and scoreboard, then what differs — two books of six rungs instead of coins and a chart, and the round trips
- * instead of the orders. Its money is in pounds, the books' own (Davies, 2026-10-01); TESTING's scoreboard adds it up in
- * dollars. Its cards use the quote classes, which share the venue cards' rules without being venue cards: the sweep
- * finds a venue card by its class. Its variant (`quotesVariant`) is the same page under its own title and row: nine
- * rungs a side, so nine ladder rows a book.
- */
-function QuotesDetail({ q, m, at, nowMs, title = 'Stablecoin quotes', rowOf = quotesRow }) {
-  const v = quotesView(q);
-  const row = rowOf(q);
-  if (!v || !row) return null;
-  const x = rowMoney(row);
-  const recent = q.recent ?? [];
-  // Each UTC day, newest first, below the books (Davies, 2026-09-28: Reward quotes' days table, here too). Today's row
-  // is TODAY above, and the rows add up to REALIZED G/L: both are the same round trips (`quoteDays`).
-  const days = q.days ?? [];
-  return (
-    <div className="ag-detail ag-quotes-detail">
-      <div className="ag-detail-head">
-        <ModeBadge mode="paper" />
-        <VenueBadge id="revx" />
-        <StatusDot status={row.status} since={q.startedAt} nowMs={nowMs} />
-      </div>
-      <h3 className="ag-detail-title mono sr-only">{title}</h3>
-      <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={x.capital} deployedUsd={x.value} m={m} ccy={x.ccy} />
-        <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={x.today} pct={x.todayPct} m={m} ccy={x.ccy} />
-        <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={x.unrealised} pct={x.unrealisedPct} m={m} ccy={x.ccy} />
-        <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} />
-      </div>
-      {!v.running && <div className="ag-warn-line">{v.stoppedText}</div>}
-      {q.checkMaxUsd != null && Number(q.checkMaxUsd) >= 0.01 && <div className="ag-warn-line">deviation from variant-1 is ${Number(q.checkMaxUsd).toFixed(4)}</div>}
-      {quotesLiveText(q.live) && <div className="ag-quotes-live-line dim">{quotesLiveText(q.live)}</div>}
-      <QuoteBooks books={q.books ?? []} m={m} />
-      <QuoteDaysTable days={days} m={m} />
-      <section className="ag-section ag-quote-trips">
-        <div className="ag-section-title mono">ROUND TRIPS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
-              <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th">Size</th><th className="hl-th">P&amp;L</th>
-            </tr></thead>
-            <tbody>
-              {recent.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>No round trip yet.</td></tr>}
-              {recent.map((t) => (
-                <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
-                  <td className="dim">{when(t.tExit)}</td>
-                  <td className="hl-strong">{quoteBookLabel(t.book)}</td>
-                  <td><span className={`ag-side ag-side-${t.side === 'bid' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{t.side === 'bid' ? 'bought' : 'sold'}</span></td>
-                  <td className="ag-ph dim">{t.k != null ? quoteRungLabel(t.k) : '—'}</td>
-                  <td>{m(fmtQuotePrice(t.entry))}</td>
-                  <td>{m(fmtQuotePrice(t.exit))}</td>
-                  <td className="dim">{m(fmtQuoteQty(t.qty, t.book))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <div className="ag-updated dim mono ag-quotes-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
-    </div>
-  );
-}
-
 /** A closed UTC day as the page names it: "25 Sep", in the site's own month table (en-GB alone writes "Sept"). @param {string} day */
 const dayLabel = (day) => fmtDayMonth(new Date(`${day}T00:00:00Z`), { locale: 'en-GB', timeZone: 'UTC' });
 
@@ -571,13 +501,18 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
  * figures; then the paper page's BOOKS (each rung's live order or holding), the account's coins with their unrealised,
  * its DAYS, its round trips (each carrying the conversion fee of the coins it sold) and its newest orders, all from the
  * dashboard's `quotes.live.detail` (`quotesLiveDetail`). Davies took its STATUS tiles, the inventory's note, its
- * conversions, fills and events off the page, and a cancel that filled nothing out of ORDERS (2026-10-01). The paper
- * page's parts are reused under a container of its own: the sweep tells the two quotes pages apart by it.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number }} props
+ * conversions, fills and events off the page, and a cancel that filled nothing out of ORDERS (2026-10-01).
+ *
+ * A realistic twin's page is the same page (`twin`; Davies, 2026-10-02: the twins are laid out as the live executor's),
+ * on its simulated account and its TESTING row (`quotesTwinRow`), PAPER, its name for a title, and a line under its
+ * scoreboard for what it is and for each book whose asks wait for their coin. Each page has a container of its own: the
+ * sweep tells them apart by it.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean }} props
  */
-function QuotesLiveDetail({ q, m, at, nowMs }) {
-  const row = quotesLiveRow(q);
+function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
+  const row = twin ? quotesTwinRow(q) : quotesLiveRow(q);
   if (!row) return null;
+  const lines = twin ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
   const d = q.detail ?? null;
   const inv = quotesLiveInventory(q, m);
@@ -586,13 +521,13 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className="ag-detail ag-quotes-live-detail">
+    <div className={`ag-detail ${twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
-        <ModeBadge mode="live" />
+        <ModeBadge mode={twin ? 'paper' : 'live'} />
         <VenueBadge id="revx" />
-        <StatusDot status={row.status} since={q.armed ? q.armedAt : null} nowMs={nowMs} live />
+        <StatusDot status={row.status} since={twin ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin} />
       </div>
-      <h3 className="ag-detail-title mono sr-only">Stablecoin quotes</h3>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
         <FundedCells fundedUsd={x.capital} deployedUsd={x.value} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
@@ -602,7 +537,10 @@ function QuotesLiveDetail({ q, m, at, nowMs }) {
         <div className="ag-sb-divider" />
         <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(x.fees, x.ccy))})`} />
       </div>
+      {lines && <div className="ag-twin-line dim">{lines.what}</div>}
+      {lines?.waiting.map((w) => <div key={w} className="ag-twin-line ag-twin-waiting dim">{w}</div>)}
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {lines?.warn && <div className="ag-warn-line">{lines.warn}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
       <QuoteBooks books={quotesLiveBooks(q)} m={m} empty={empty} />
       <section className="ag-section ag-ql-inventory">
@@ -1508,13 +1446,10 @@ function AgentsModal({ hideValues, onClose }) {
 
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
-  // The quote test is a row of TESTING STRATEGIES (Davies, 2026-09-23), after the strategies; it runs on paper only.
-  const quotes = React.useMemo(() => quotesRow(dash?.quotes), [dash]);
-  // Its variant, nine rungs a side on four keys, replayed from the quote test's own minutes, right after it (Davies,
-  // 2026-09-28: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing").
-  const quotesV = React.useMemo(() => quotesVariantRow(dash?.quotesVariant), [dash]);
-  // Rule D, the same rule with a wider entry re-price, right after variant-1 (Davies, 2026-09-28).
-  const quotesD = React.useMemo(() => quotesRuledRow(dash?.quotesRuled), [dash]);
+  // The realistic twins of the live executor are the stablecoin rows of TESTING STRATEGIES (Davies, 2026-10-02), after the
+  // strategies: "Stablecoin quotes" (PR5's rule) and "Stablecoin quotes variant-1" (rule D). The paper tests they replaced
+  // (PR5's, PR5V's, rule D's) keep running off the page until their readings.
+  const twins = React.useMemo(() => quotesTwinRows(dash), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);
   // RW-E, RW without the markets that end on the day they are chosen, is a row of its own after it (Davies, 2026-09-26).
@@ -1530,10 +1465,10 @@ function AgentsModal({ hideValues, onClose }) {
   const mid = React.useMemo(() => midRow(dash?.prepMid), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...(quotes ? [quotes] : []), ...(quotesV ? [quotesV] : []), ...(quotesD ? [quotesD] : []), ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : []), ...(mid ? [mid] : [])], [quotes, quotesV, quotesD, rw, rwe, rwx, rwc, prep, mid]);
+  const tests = React.useMemo(() => [...twins, ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : []), ...(mid ? [mid] : [])], [twins, rw, rwe, rwx, rwc, prep, mid]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
-  // Revolut X card; its paper test stays on TESTING.
+  // Revolut X card; its twin is on TESTING.
   const quotesLive = React.useMemo(() => quotesLiveRow(dash?.quotes?.live), [dash]);
   const liveExtras = React.useMemo(() => (quotesLive ? [quotesLive] : []), [quotesLive]);
   const liveRows = React.useMemo(() => [...split.live, ...liveExtras], [split, liveExtras]);
@@ -1544,13 +1479,11 @@ function AgentsModal({ hideValues, onClose }) {
   const tab = tabChoice ?? defaultAgentsTab(dash);
   const phone = useMediaQuery('(max-width: 760px)');
   const current = selected ? (dash?.strategies ?? []).find((s) => s.id === selected) ?? null : null;
-  // TESTING's "Stablecoin quotes" opens the paper test's page, LIVE's the live executor's own (Davies, 2026-10-01: LIVE's
-  // opened the paper page).
+  // LIVE's "Stablecoin quotes" opens the live executor's own page (Davies, 2026-10-01: it opened the paper test's), a
+  // twin's row its twin's, laid out as the live executor's (Davies, 2026-10-02).
   const quotesPage = quotesPageFor(selected, dash);
-  const quotesOpen = quotesPage === 'paper';
   const quotesLiveOpen = quotesPage === 'live';
-  const quotesVOpen = selected === QUOTESV_ROW_ID && !!dash?.quotesVariant && !!quotesV;
-  const quotesDOpen = selected === QUOTESD_ROW_ID && !!dash?.quotesRuled && !!quotesD;
+  const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
@@ -1614,19 +1547,6 @@ function AgentsModal({ hideValues, onClose }) {
         </div>
       </Modal>
     )}
-    {quotesOpen && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono">Stablecoin quotes</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesDetail q={dash.quotes} m={m} at={dash.at} nowMs={now} /></PageGuard>
-        </div>
-      </Modal>
-    )}
     {quotesLiveOpen && (
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
@@ -1640,29 +1560,16 @@ function AgentsModal({ hideValues, onClose }) {
         </div>
       </Modal>
     )}
-    {quotesVOpen && (
+    {twinOpen && (
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <h2 className="modal-title mono"><NameText name="Stablecoin quotes variant-1" /></h2>
+            <h2 className="modal-title mono"><NameText name={String(twinOpen.twin.name)} /></h2>
           </div>
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesDetail q={dash.quotesVariant} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-1" rowOf={quotesVariantRow} /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {quotesDOpen && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono"><NameText name="Stablecoin quotes variant-2" /></h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesDetail q={dash.quotesRuled} m={m} at={dash.at} nowMs={now} title="Stablecoin quotes variant-2" rowOf={quotesRuledRow} /></PageGuard>
+          <PageGuard gen={gen}><QuotesLiveDetail q={twinOpen} m={m} at={dash.at} nowMs={now} twin /></PageGuard>
         </div>
       </Modal>
     )}

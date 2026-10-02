@@ -471,9 +471,16 @@ that follow from that evidence, in short:
   `quotes.test.ts`), public reads only, into its own `agent_quote_*`
   tables; nothing of the strategy rows reads them. Four weeks, then the
   spec's six conditions decide (`reviews/2026-09-23-pr5-paper-test-spec.md`).
-  On the Agents page it is a row of TESTING STRATEGIES, with a page of its
-  own (Davies, 2026-09-23). TESTING's scoreboard and the Revolut X card
-  include it (Davies, 2026-09-24).
+  **Since 2026-10-02 the page shows realistic twins in its place** (`0087`,
+  `agents/quotes_twin.ts`, reference §4 item 51, Davies: "确保一致，确保真实"):
+  the live executor's own code on a simulated Revolut X account
+  (`revx_sim.ts`: filled only by prints through a resting order, by their
+  size; pennies as the venue moves them; maker conversions), "Stablecoin
+  quotes" carrying out PR5's decisions at £100 a rung and "Stablecoin quotes
+  variant-1" rule D's arm `d` at £50 (rule D's file calls it variant-2;
+  PR5V is off the page); TESTING's scoreboard and the Revolut X card include
+  them. PR5's, PR5V's and rule D's paper tests keep running behind the page
+  with their frozen readings (`reviews/2026-10-02-pr5-realistic-twins-prereg.md`).
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID
   when a minute did not trade — read fills from prints. **Its live path is

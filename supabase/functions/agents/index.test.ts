@@ -11,8 +11,13 @@ import {
   liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
+  liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
 } from "./index.ts";
-import { memDb, pickRow, selectItems } from "./testing.ts";
+import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
+import { TWINS } from "./quotes_twin.ts";
+import { RULED_ARMS } from "./quotes_ruled.ts";
+// The realistic twins' fixture: the live fixture's rows run as each twin's tables, and what the dashboard serves for them.
+import twinFixture from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
 import type { OrderRow } from "./tick.ts";
 import type { RungFill } from "./quotes_live.ts";
 // The live quotes page's fixture: a book worked out by hand, its rows and what the dashboard serves for them. The browser
@@ -1239,4 +1244,56 @@ Deno.test("serveRequest — an action that throws is an agents.crash row naming 
   });
   assertEquals(r.status, 500);
   assertEquals(reports.map((x) => [x.kind, (x.context as { action: string }).action]), [["agents.crash", "tick"]]);
+});
+
+Deno.test("readQuotesTwin: each twin is read as the live account is, at its own capital and rungs, and is the browser test's fixture", async () => {
+  const live = liveFixture, f = twinFixture;
+  const answers = [];
+  for (const id of ["pr5", "d"] as const) {
+    const spec = { ...TWINS[id], start: Date.parse(f.starts[id]) };
+    // deno-lint-ignore no-explicit-any
+    const mem = memDb(twinFixtureTables(live, id, f.sims[id] as any), { now: () => f.nowMs });
+    answers.push(await readQuotesTwin(mem.db, spec, f.nowMs, f.dayStartMs, live.tickers));
+  }
+  // The function's own answer for its rows is what the browser test serves.
+  assertEquals(JSON.parse(JSON.stringify(answers)), f.twins);
+  const [pr5, d] = answers as NonNullable<(typeof answers)[number]>[];
+  // PR5's twin on the live account's rows reads exactly as the live account does: every figure of the LIVE row's.
+  for (const k of ["capitalGbp", "realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp", "realisedUsd", "todayUsd", "unrealisedUsd", "costUsd", "valueUsd", "feesUsd", "heldRungs", "openOrders", "fills"] as const) {
+    assertEquals(pr5[k], live.live[k], k);
+  }
+  assertEquals(JSON.parse(JSON.stringify(pr5.detail!.trips)), live.live.detail.trips);
+  assertEquals(JSON.parse(JSON.stringify(pr5.detail!.books)), live.live.detail.books);
+  // Rule D's twin: the same fills on its 0.1, 0.2 and 0.3 % rungs, so the same money; its capital £1,800 ($2,376 at 1.32),
+  // its loss stop £18, and nine rungs a side of each book on its page.
+  for (const k of ["realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp"] as const) assertEquals(d[k], pr5[k], k);
+  assertEquals([d.capitalGbp, d.capitalUsd, d.lossStopGbp, d.detail!.rungs.length], [1800, 1800 * 1.32, -18, 36]);
+  assertEquals([...new Set(d.detail!.rungs.map((r) => r.k))], [...RULED_ARMS.d.rungs]);
+  // What it says of itself: what it follows, its size and keys, where its record began, its replica's check.
+  assertEquals([pr5.twin.name, pr5.twin.rungsASide, pr5.twin.rungGbp, pr5.twin.keys], ["Stablecoin quotes", 3, 100, 1]);
+  assertEquals([d.twin.name, d.twin.rungsASide, d.twin.rungGbp, d.twin.keys], ["Stablecoin quotes variant-1", 9, 50, 4]);
+  assertEquals([pr5.twin.origin, pr5.twin.paperCheck?.mismatches, pr5.twin.converting], ["backfill", 0, []]);
+  // Its DAYS' orders are its driver's count of what it sent each day: the page reads only the orders that filled or rest.
+  assertEquals(pr5.detail!.days.map((x) => [x.day, x.orders]), [["2026-09-17", 18], ["2026-09-16", 6]]);
+  // Before its record is loaded (no driver state), there is no row.
+  // deno-lint-ignore no-explicit-any
+  const bare = memDb(twinFixtureTables(live, "pr5", { id: 1, state: {}, updated_at: new Date(f.nowMs).toISOString(), last_error: null } as any), { now: () => f.nowMs });
+  assertEquals(await readQuotesTwin(bare.db, TWINS.pr5, f.nowMs, f.dayStartMs, live.tickers), null);
+});
+
+Deno.test("liveDays: a twin's orders a day are its driver's count, the live account's its rows'", () => {
+  const D = 86400e3, day = Date.parse("2026-09-17T00:00:00Z");
+  // deno-lint-ignore no-explicit-any
+  const o = (id: number, ts: string, extra: Record<string, unknown> = {}): any => ({ id, ts, mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", state: "cancelled", filled_base: 0, ...extra });
+  const orders = [o(1, "2026-09-16T10:00:00Z"), o(2, "2026-09-17T10:00:00Z"), o(3, "2026-09-17T11:00:00Z", { not_sent: true })];
+  assertEquals(liveDays(orders, [], [], day).map((x) => [x.day, x.orders]), [["2026-09-17", 1], ["2026-09-16", 1]]);
+  // With the driver's count, its days are its count's, from its first: an order neither filled nor resting is not read.
+  assertEquals(liveDays([], [], [], day, { "2026-09-15": 40, "2026-09-17": 7 }).map((x) => [x.day, x.orders]), [["2026-09-17", 7], ["2026-09-16", 0], ["2026-09-15", 40]]);
+  assertEquals(liveDays([], [], [], day), []);
+  assertEquals(day % D, 0);
+});
+
+Deno.test("the twins' call waits until 38 s into its minute: PR5's call has decided the minute just closed by then", () => {
+  const m = Date.parse("2026-10-02T21:00:00Z");
+  assertEquals([twinsDelayMs(m), twinsDelayMs(m + 10e3), twinsDelayMs(m + TWINS_START_MS), twinsDelayMs(m + 50e3)], [38e3, 28e3, 0, 0]);
 });

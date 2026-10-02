@@ -36,8 +36,9 @@ How the less obvious parts work, and why they are built the way they are.
   each leading with its own scoreboard (funded, deployed, today since
   00:00 UTC, unrealised and realised G/L; fees on realised),
   venue cards and table. LIVE is that tab's strategy rows. TESTING adds
-  the two paper tests: Stablecoin quotes on the Revolut X card, Reward
-  quotes as the Polymarket card, both in the scoreboard, so the cards
+  the paper tests: the stablecoin quotes' realistic twins (the live
+  executor's code on a simulated account) on the Revolut X card, Reward
+  quotes as the Polymarket card, all in the scoreboard, so the cards
   still add up to it;
   it opens each strategy in a
   stacked modal with its own scoreboard, a price chart with its fills
@@ -607,17 +608,22 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | File | What it does |
 |---|---|
-| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, variant-1's replay and variant-2's, RW's paper minute and daily selection, Polymarket's order path and its mid-pool instance with their paper layers, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
+| `agents/index.ts` | The entry point: the minute's tick, the paper quote test's minute and its live executor's, PR5V's replay and rule D's, the realistic twins' minute, RW's paper minute and daily selection, Polymarket's order path and its mid-pool instance with their paper layers, the one-off stablecoin conversion, the page's dashboard, log and chart reads, and the read-only `probe` (`?only=` picks its parts) and `jev` checks. |
 | `agents/binance.ts`, `agents/deribit.ts` | Read-only clients for the Binance and Deribit keys (the probe's checks, Deribit's volatility index), and Binance's paper venue, which reads public market data for its paper rows. Nothing in them can trade. |
 | `agents/youtube.ts` | A read-only YouTube Data API client for the public view counts behind Polymarket's view-count markets, with the probe's `youtube` part. The key goes in a header, never a URL. |
 | `agents/views.ts` | Records Polymarket's view-count markets and the YouTube counters they resolve on: every minute, and every second around each market's deadline, stored when they change. Reads only. |
 | `agents/tick.ts` | One turn of the loop: quotes, open orders, stops, then a decision on each newly closed bar. |
-| `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. |
+| `agents/quotes.ts` | The paper test of PR5's quotes on Revolut X's GBP stablecoin books: the frozen rule one minute at a time, run every minute, storing every input beside every outcome, and since `0055` the X and fair each decided minute read. Off the page since 2026-10-02: its realistic twin is TESTING's "Stablecoin quotes". |
 | `agents/pm_live.ts` | Polymarket's order path for the live calibration of liquidity rewards: every minute from eu-west-1, RW's quotes on the day's rewarded markets from $6 to under $10, each minute's formula reward and, once a day, what Polymarket paid; a dry-run until its config row is unlocked. It runs as an instance (its tables, lease, band and its selection's exclusion), mini-pool by default. |
-| `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. |
-| `agents/quotes_variant.ts` | "Stablecoin quotes variant-1" on paper: PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
+| `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. It runs as an instance (its tables, lease, rungs, exit re-price and governed keys), the live account by default. |
+| `agents/quotes_live_frozen.ts` | The live executor as it was before it became an instance, byte for byte, run only by `quotes_live_instance.test.ts` beside today's default instance. |
+| `agents/quotes_live_instance.test.ts` | Runs the executor's default instance beside the frozen one over six simulated hours, turn by turn, and finds every table, the account and every report the same. |
+| `agents/quotes_twin.ts` | The realistic twins, TESTING's "Stablecoin quotes" and "Stablecoin quotes variant-1": the live executor's code on a simulated Revolut X account, carrying out PR5's and rule D's paper decisions at £100 and £50 a rung, minute by minute, with its replica of each engine checked against that engine's record, and the loader of their backfills. |
+| `agents/revx_sim.ts` | A simulated Revolut X account for the twins: it answers the live client's calls from memory, fills a resting order only by the public prints strictly through it, and moves money as the venue moves it. |
+| `agents/quotes_twin.test.ts`, `agents/revx_sim.test.ts` | Pin the simulated account's rules with figures worked out by hand, and the twins' start, dead-man, operator's conversions, replica, day tally and backfill load in a world built by hand. |
+| `agents/quotes_variant.ts` | PR5V on paper ("Stablecoin quotes variant-1" until 2026-10-02, off the page since): PR5's stored minutes replayed through PR5V's rule (nine rungs a side, one volume cap a side, four governed keys) in two arms, into tables of its own. |
 | `agents/quotes_variant.test.ts` | Replays PR5V's golden windows trip for trip and POST for POST, and pins the variant's driver on the in-memory database. |
-| `agents/quotes_ruled.ts` | "Stablecoin quotes variant-2" on paper: the same decision function on variant-1's rate with rule D on entries, in tables of its own. |
+| `agents/quotes_ruled.ts` | Rule D on paper ("Stablecoin quotes variant-2" until 2026-10-02, off the page since; its arm `d`'s realistic twin is TESTING's "Stablecoin quotes variant-1"): the same decision function on PR5V's rate with rule D on entries, in tables of its own. |
 | `agents/quotes_ruled.test.ts` | Pins rule D's band, that both arms decide on PR5's stored rate with no feed read, and that the driver writes none of variant-1's tables. |
 | `agents/pm_prep.ts` | "Reward quotes mini-pool" (live-prep, then small-pool, until 2026-10-02): the order path's own dry-run orders filled on paper from Polymarket's public prints by RW's rule, two minutes behind, with the path's own P&L, stops and settlement, into its own tables; nothing of the path's written. One instance beside each instance of the path. |
 | `agents/pm_prep_view.ts` | "Reward quotes mini-pool" and "Reward quotes mid-pool" as the Agents page shows them, in RW's shape: each row and its Reward quotes page, every figure from its layer's own records by the functions that made them. |
@@ -746,6 +752,7 @@ before touching migration state.
 | `0084_pm_mid_order_path.sql` | Lets mid-pool's config leave dry-run and its orders be live, as mini-pool's always could, and adds a trigger on both Polymarket configs that refuses arming either while the other is armed: the two paths trade one account. |
 | `0085_pm_rw_x_rest_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take the two arms on x1 that move where the quotes rest (x4, x5). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
+| `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs both. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -760,6 +767,7 @@ before touching migration state.
 | `src/e2e/prep_fixture.json` | "Reward quotes mini-pool"'s page as the dashboard serves it for a record worked out by hand: the browser test shows it, and the view's test proves it is that function's own answer. |
 | `src/e2e/mid_fixture.json` | "Reward quotes mid-pool"'s page the same way, for a record of its $10–$50 band worked out by hand. |
 | `src/e2e/quotes_live_fixture.json` | The live stablecoin quotes' page as the dashboard serves it for a synthetic book worked out by hand: the browser test shows it, and the `agents` function's test proves it is that function's own answer. |
+| `src/e2e/quotes_twin_fixture.json` | The realistic twins' rows as the dashboard serves them for that book run as each twin's: the browser test shows them, and the `agents` function's test proves they are that function's own answer. |
 | `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |
@@ -795,6 +803,7 @@ before touching migration state.
 | `docs/agents/backtests/views/` | VIEWS phase 1, on Polymarket's YouTube view-count markets: the keyless pull scripts, the committed universe, split and exploration inputs, and the results (`scripts/run_all.py` re-runs them), listed in `MANIFEST.json`. |
 | `docs/agents/backtests/wxsrc/` | WXSRC, the fastest source of each temperature city's deciding observation and the weather models against the price: the per-city source table, the live latency poll, the Hong Kong archive study, the keyless and keyed candidates' exploration, and the HRRR intraday scoring, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/cap/` | CAP, the live row's exposure cap priced with the house rule functions, and Revolut X's UK books on 30 days of daily candles: the pulls, the scripts, and `results/queries.sql` with every read and its output, listed in `MANIFEST.json`. |
+| `docs/agents/backtests/twins/` | The realistic twins' backfills: the inputs read from production, the builder that runs the production code on them, and the two files the `agents` function loads, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/pmlive/` | Polymarket's first live step, a read-only pre-study: the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, the bridge's quotes and the live calibration's selection timed through the order path's own code, listed in `MANIFEST.json`; `vectors/` regenerates the order path's signing vectors from Polymarket's official clients; `prep_check*.sql` are mini-pool's pre-registration's checks, and `mid_*.sql` mid-pool's check, readout and overlap audit, beside its margin's and its selection's measurements and `scripts/one_armed_check.mjs`, both go-time statements and the one-armed trigger run on PGlite. |
 | `docs/agents/backtests/fp7/` | fp7, the seventh search: Revolut X's UK book census, the coin/USDC books as maker quotes, and Polymarket's reward-pool aggregates; its scripts run from the folder, listed in `MANIFEST.json`. |
 | `docs/agents/backtests/equity2/` | EQ2, US strategies at Trading 212 (USD Invest and GBP ISA): screens cut at 2015-12-31 as they are parsed (month-end windows, settlement eras, industry seasonality, the Treasury auction cycle, the S&P 500 survivorship hole) and the power checks, listed in `MANIFEST.json`. |

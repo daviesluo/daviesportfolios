@@ -22,6 +22,10 @@
 //                             0072): the same decision function with rule D on
 //                             variant-1's own rate, its own tables. Reads the
 //                             database only. Every minute.
+//   POST ?action=quotestwins — the realistic twins of PR5's live executor
+//                             (quotes_twin.ts, 0087): its own code on simulated
+//                             accounts, "Stablecoin quotes" and "…variant-2" on
+//                             TESTING. Reads the database only. Every minute.
 //   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
 //                             that gives the ask rungs inventory: `{ book,
 //                             gbp, send }`. Without `send: true` it returns
@@ -148,6 +152,7 @@ import {
 } from "./quotes_live.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
+import { runQuotesTwins, TWIN_IDS, TWINS, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
 import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
@@ -357,6 +362,35 @@ async function runQuotesAction(wait: boolean) {
 async function runBooksAction(wait: boolean) {
   if (wait) await new Promise((r) => setTimeout(r, booksDelayMs(Date.now())));
   return await runBooks({ db: db() });
+}
+
+/**
+ * The realistic twins of PR5's live executor (quotes_twin.ts, 0087): its own call a minute, both twins in turn. It waits
+ * until `TWINS_START_MS` into the minute, when PR5's call has decided the minute just closed and read the prints its
+ * turns stand at. The simulated accounts read no key and call no venue: the live client signs their requests with a key
+ * generated here, which nothing reads. Only the twins' own faults go to `ops_errors`; what their executors report is
+ * their record's (each state row's `last_error`).
+ */
+export const TWINS_START_MS = 38e3;
+export function twinsDelayMs(nowMs: number): number {
+  const into = nowMs % 60e3;
+  return into < TWINS_START_MS ? TWINS_START_MS - into : 0;
+}
+async function runQuotesTwinsAction(wait: boolean) {
+  if (wait) await new Promise((r) => setTimeout(r, twinsDelayMs(Date.now())));
+  try {
+    const key = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair).privateKey;
+    const r = await runQuotesTwins({ db: db(), now: Date.now(), holder: crypto.randomUUID(), signingKey: key, fetch });
+    const faults = r.twins.flatMap((t) => t.errors.map((e) => `${t.twin}: ${e}`));
+    if (faults.length) await reportServerError("agents.quotes_twins", tickErrorReport({ errors: faults, at: new Date().toISOString() }));
+    // What the call did, without the executor's report of its last turn: that carries the day's P&L, and rule D's twin's
+    // is not to be read before rule D's reading (its pre-registration); the twins' own tables keep everything.
+    return { ...r, twins: r.twins.map(({ lastTurnReport: _last, ...t }) => t) };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.quotes_twins", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
 }
 
 /** The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise. */
@@ -946,7 +980,7 @@ export function withConversionFees(side: Side, fills: RungFill[], shares: Map<nu
  * does not add up to. A trip that sold converted coins carries their conversion fee on its closing fill
  * (`withConversionFees`), so that fee is in the trip, its rung's realised and every total above them.
  */
-export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | null, dayStartMs: number, dust: Partial<Record<QuoteBook, number>> = {}): LiveRung[] {
+export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | null, dayStartMs: number, dust: Partial<Record<QuoteBook, number>> = {}, rungs: readonly number[] = QUOTE_RUNGS): LiveRung[] {
   const live = orders.filter((o) => o.mode === "live");
   const shares = liveConversionShares(live);
   const books = paper?.state.books ?? {};
@@ -955,7 +989,7 @@ export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | n
     const mark = books[b]?.lastPrint?.ticks != null ? books[b].lastPrint!.ticks! * QUOTE_TICK : null;
     // The executor's own dust for the book (its state); before it kept one, none: a rung holds while anything is left.
     const d = Number(dust[b]) > 0 ? Number(dust[b]) : 0;
-    for (const side of ["bid", "ask"] as const) for (const k of QUOTE_RUNGS) {
+    for (const side of ["bid", "ask"] as const) for (const k of rungs) {
       const own = live.filter((o) => o.book === b && o.rung_side === side && Number(o.k) === k && Number(o.filled_base) > 0).map((o): RungFill => ({
         id: o.id, ts: Date.parse(o.filled_at ?? o.ts), leg: o.leg as LiveLeg, base: Number(o.filled_base), price: Number(o.avg_fill_price ?? o.price), feeGbp: Number(o.fee_gbp || 0),
       }));
@@ -1041,12 +1075,14 @@ export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
 export function quotesLiveSummary(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number;
   tickers?: QuoteTickerRow[];
+  /** A realistic twin's rungs (quotes_twin.ts): rule D's nine a side; PR5's three when left out. */
+  rungs?: readonly number[];
 }) {
   const cfg = input.config;
   if (!cfg) return null;
   const live = input.orders.filter((o) => o.mode === "live");
   const x = liveRateOf(input.paper);
-  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust);
+  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust, input.rungs);
   const { realised, today, unrealised, cost, value: coinsGbp, fees, heldRungs, unmarked } = liveBookGbp(rungs,
     liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state), liveIndexPrices(input.tickers ?? [], input.nowMs)));
   // Deployed: what its quotes have at work, the coins and the pounds resting in buys.
@@ -1152,12 +1188,15 @@ export function liveOrderReason(o: QuoteLiveRecentRow, nowMs: number): string | 
  * 1,000 a day counts, conversions included; not an order refused at its book and never sent), its entry fills, the round trips that closed that day, and what the rungs
  * realised that day, conversion fees included (`liveRungs`). A day's realised is what the rungs realised from its start
  * less what they realised from the next day's, by the executor's own `rungBook`, so the days add up to REALIZED.
+ * `ordersByDay` gives each day's orders where `orders` holds only those that filled or rest (a realistic twin's: its
+ * driver counts what it sends, `TwinDriverState.days`, and the page reads no order that neither filled nor rests).
  */
-export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips: LiveTrip[], dayStartMs: number) {
+export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips: LiveTrip[], dayStartMs: number, ordersByDay?: Record<string, number>) {
   const live = orders.filter((o) => o.mode === "live");
-  if (!live.length) return [];
   const D = 86400e3;
-  const first = Math.floor(Math.min(...live.map((o) => Date.parse(o.ts))) / D) * D;
+  const counted = Object.keys(ordersByDay ?? {}).map((d) => Date.parse(`${d}T00:00:00Z`)).filter(Number.isFinite);
+  if (!live.length && !counted.length) return [];
+  const first = Math.floor(Math.min(...live.map((o) => Date.parse(o.ts)), ...counted) / D) * D;
   const from = (t: number) => rungs.reduce((a, r) => a + (r.fills.length ? rungBook(r.side, r.fills, t).realisedTodayGbp : 0), 0);
   const inDay = (ms: number, d: number) => ms >= d && ms < d + D;
   const out = [];
@@ -1165,7 +1204,7 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
     const closed = trips.filter((t) => inDay(Date.parse(t.tExit), d));
     out.push({
       day: isoOf(d).slice(0, 10), today: d === dayStartMs,
-      orders: live.filter((o) => inDay(Date.parse(o.ts), d) && o.not_sent !== true).length,
+      orders: ordersByDay ? ordersByDay[isoOf(d).slice(0, 10)] ?? 0 : live.filter((o) => inDay(Date.parse(o.ts), d) && o.not_sent !== true).length,
       fills: live.filter((o) => o.leg === "entry" && Number(o.filled_base) > 0 && inDay(Date.parse(o.filled_at ?? o.ts), d)).length,
       trips: closed.length, won: closed.filter((t) => t.pnlGbp > 0).length,
       realisedGbp: from(d) - from(d + D),
@@ -1188,12 +1227,16 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
 export function quotesLiveDetail(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; open: QuoteLiveOrderView[];
   recent: QuoteLiveRecentRow[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number; tickers?: QuoteTickerRow[];
+  /** A realistic twin's rungs, and the refusals its page leaves out (none: those known are the live account's own). */
+  rungs?: readonly number[]; knownRefusals?: ReadonlySet<number>;
+  /** A realistic twin's orders sent each UTC day, its `orders` being only those that filled or rest (`liveDays`). */
+  ordersByDay?: Record<string, number>;
 }) {
   const cfg = input.config;
   if (!cfg) return null;
   const x = liveRateOf(input.paper);
   const usd = (gbp: number | null) => (x == null || gbp == null ? null : gbp * x);
-  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust);
+  const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust, input.rungs);
   const st = input.state?.state ?? {};
   const paperBooks = input.paper?.state.books ?? {};
   const open = input.open.filter((o) => o.mode === "live" && LIVE_OPEN_STATES.includes(o.state));
@@ -1246,18 +1289,77 @@ export function quotesLiveDetail(input: {
         })),
       ],
     },
-    days: liveDays(input.orders, rungs, trips, input.dayStartMs).map(({ realisedGbp, ...d }) => ({ ...d, realisedGbp, realisedUsd: usd(realisedGbp) })),
+    days: liveDays(input.orders, rungs, trips, input.dayStartMs, input.ordersByDay).map(({ realisedGbp, ...d }) => ({ ...d, realisedGbp, realisedUsd: usd(realisedGbp) })),
     trips: trips.slice(0, QUOTES_RECENT_TRIPS).map(({ ids: _ids, ...t }) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
     tripCount: trips.length, tripsWon: trips.filter((t) => t.pnlGbp > 0).length,
     // The newest orders, less those of a round trip already closed (Davies, 2026-10-02: its entry and its exit are both in
     // ROUND TRIPS) and less the refusals already known (`QUOTES_LIVE_KNOWN_REFUSALS`); a rung holding still shows the
     // entry that filled and the exit it has resting, and any other refusal shows with its reason.
-    orders: input.recent.filter((o) => !inTrips.has(o.id) && !QUOTES_LIVE_KNOWN_REFUSALS.has(o.id)).map((o) => ({
+    orders: input.recent.filter((o) => !inTrips.has(o.id) && !(input.knownRefusals ?? QUOTES_LIVE_KNOWN_REFUSALS).has(o.id)).map((o) => ({
       id: o.id, ts: o.ts, book: o.book, side: o.rung_side, k: o.k == null ? null : Number(o.k), leg: o.leg, venueSide: o.side ?? null,
       price: Number(o.price), base: Number(o.base_size ?? 0), state: o.state, filledBase: Number(o.filled_base),
       avgPrice: o.avg_fill_price == null ? null : Number(o.avg_fill_price), reason: liveOrderReason(o, input.nowMs),
     })),
   };
+}
+
+/** The orders of a realistic twin its page reads: those that filled or still rest (`readQuotesTwin`). */
+export const QUOTE_TWIN_SUMMARY_FILTER = "or=(filled_base.gt.0,state.in.(pending,new,partially_filled))";
+/** A realistic twin's own state as its call saved it (`quotes_twin.ts`): how it runs and what it has checked. */
+type TwinSimRow = { state: TwinDriverState | Record<string, never>; updated_at: string; last_error: string | null };
+
+/**
+ * What a twin's page says of the twin itself, beside the live executor's figures: what it follows, how it is sized and
+ * governed, where its record began, how it runs, and the checks of its replica against its engine's own record.
+ */
+export function twinMeta(spec: TwinSpec, s: TwinDriverState, row: Pick<TwinSimRow, "updated_at" | "last_error">) {
+  const keys = new Set(QUOTE_BOOKS.flatMap((b) => [spec.instance.govKey(b, "bid"), spec.instance.govKey(b, "ask"), spec.instance.govKey(b, null)])).size;
+  return {
+    id: spec.id, name: spec.name, engine: spec.engine, rungsASide: spec.instance.rungs.length,
+    rungGbp: spec.capitalGbp / (QUOTE_BOOKS.length * 2 * spec.instance.rungs.length), keys,
+    startedAt: isoOf(spec.start), mode: s.mode, origin: s.origin?.kind ?? "fresh",
+    backfillUntil: s.origin?.kind === "backfill" ? isoOf(s.origin.until) : null,
+    lastTurn: s.venue?.lastTurnAt != null ? isoOf(s.venue.lastTurnAt) : null, turns: s.turns ?? 0,
+    deadmen: s.venue?.deadmen?.length ?? 0,
+    paperCheck: s.paperCheck ? { through: s.paperCheck.through != null ? isoOf(s.paperCheck.through) : null, events: s.paperCheck.events, mismatches: s.paperCheck.mismatches } : null,
+    lastError: row.last_error ?? null,
+  };
+}
+
+/**
+ * A realistic twin for the page (`quotes_twin.ts`, `0087`): the live executor's own record on its simulated account, read
+ * and summed exactly as the live account's is (`quotesLiveSummary`, `quotesLiveDetail`, on the twin's rungs), with what
+ * the twin says of itself (`twinMeta`). Null before its record is loaded, or when a read fails.
+ */
+export async function readQuotesTwin(d: Db, spec: TwinSpec, now: number, dayStartMs: number, tickers: QuoteTickerRow[]) {
+  const I = spec.instance;
+  try {
+    const [cfg, lst, orders, paper, sim] = await Promise.all([
+      d.select<QuoteLiveConfigRow>(I.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"),
+      d.select<QuoteLiveStateRow>(I.state, "id=eq.1&select=state,updated_at,last_error"),
+      // Only the orders that filled or rest: every figure is theirs (a twin sends thousands a week, and a cancel that
+      // filled nothing moves no money); its DAYS' order counts are its driver's (`TwinDriverState.days`).
+      d.selectAll<QuoteLiveOrderView>(I.orders, `mode=eq.live&${QUOTE_TWIN_SUMMARY_FILTER}&select=${QUOTE_LIVE_SUMMARY_COLUMNS}&order=id.asc`),
+      d.select<QuoteStateRow>(I.paper, "id=eq.1&select=state,last_minute,updated_at"),
+      d.select<TwinSimRow>(spec.sim, "id=eq.1&select=state,updated_at,last_error"),
+    ]);
+    const s = sim[0]?.state;
+    if (!s || !("venue" in s)) return null;
+    const base = { config: cfg[0] ?? null, state: lst[0] ?? null, orders, paper: paper[0] ?? null, nowMs: now, dayStartMs, tickers, rungs: I.rungs };
+    const summary = quotesLiveSummary(base);
+    if (!summary) return null;
+    const [open, recent] = await Promise.all([
+      d.select<QuoteLiveOrderView>(I.orders, `mode=eq.live&state=in.(pending,new,partially_filled)&select=${QUOTE_LIVE_ORDER_COLUMNS}&order=id.asc`),
+      d.select<QuoteLiveRecentRow>(I.orders, `mode=eq.live&${QUOTES_LIVE_ORDERS_FILTER}&select=${QUOTE_LIVE_REASON_COLUMNS}&order=id.desc&limit=${QUOTES_LIVE_PAGE_ROWS}`),
+    ]);
+    const ds = s as TwinDriverState;
+    const detail = quotesLiveDetail({ ...base, open, recent, knownRefusals: new Set(), ordersByDay: ds.days ?? {} });
+    // The operator's conversions still resting: the asks of their book wait for their coin (the page says so).
+    const converting = open.filter((o) => o.mode === "live" && o.leg === "convert").map((o) => ({
+      book: o.book, ts: o.ts, price: Number(o.price), base: Number(o.base_size), filledBase: Number(o.filled_base),
+    }));
+    return { ...summary, detail, twin: { ...twinMeta(spec, ds, sim[0]), converting } };
+  } catch { return null; }
 }
 
 /**
@@ -1532,6 +1634,9 @@ async function dashboard(now: number) {
   // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
   const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
   const quoteIndexRead = quoteTickersRead.then((rows) => liveIndexPrices(rows, now));
+  // The realistic twins (`0087`): TESTING's "Stablecoin quotes" and "…variant-2", each the live executor's record on a
+  // simulated account, read beside the rest; a twin not loaded yet, or a read that fails, is no row.
+  const quotesTwinsRead = quoteTickersRead.then((tickers) => Promise.all(TWIN_IDS.map((id) => readQuotesTwin(d, TWINS[id], now, dayStartMs, tickers))));
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
@@ -1679,6 +1784,12 @@ async function dashboard(now: number) {
     quotesVariant,
     /** "Stablecoin quotes variant-2" on paper (`0072`, reference §4 item 47): arm d in `quotes`' shape; null until it has run. */
     quotesRuled,
+    /**
+     * The realistic twins of PR5's live executor (`0087`, quotes_twin.ts): TESTING's "Stablecoin quotes" (PR5's rule) and
+     * "Stablecoin quotes variant-2" (rule D), each in the live executor's shape (`quotesLiveSummary`, its `detail`) with
+     * `twin`; a twin not yet loaded is null.
+     */
+    quotesTwins: await quotesTwinsRead,
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
     rw,
     rwe,
@@ -2148,6 +2259,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "quotesv" && req.method === "POST" && operator) return json(200, await runQuotesVariant({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
   // "Stablecoin quotes variant-2" (quotes_ruled.ts, 0072): rule D on variant-1's rate, its own tables. Database only.
   if (action === "quotesd" && req.method === "POST" && operator) return json(200, await runQuotesRuled({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  // The realistic twins of PR5's live executor (quotes_twin.ts, 0087): the live code on simulated accounts. Database only.
+  if (action === "quotestwins" && req.method === "POST" && operator) return json(200, await runQuotesTwinsAction(url.searchParams.get("wait") !== "0"));
   // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
   if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
   if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));

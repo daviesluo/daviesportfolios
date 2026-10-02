@@ -1,0 +1,30 @@
+{
+ "study": "The realistic twins of PR5's live executor: each twin's record from its engine's first minute to 2026-10-02 21:05 UTC, computed by the production code on PR5's stored record (not a test with a verdict; docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md)",
+ "write_up": "docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md; reference §4 item 51",
+ "run": [
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts pr5  # -> ../pr5.json.gz (the bytes TWIN_BACKFILLS pins)",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts d  # -> ../d.json.gz; prints no figure of its results (rule D's no-peek)"
+ ],
+ "sources": {
+  "inputs/twins_inputs.json.gz": "production, SELECT only, 2026-10-02 21:08:45 UTC, every row before 21:08:00: agent_quote_prints (id|book|ms|price|qty|side), agent_quote_inputs (kind|ms|value), agent_quote_minutes (book|ms|x|x_t|fair_u|hours_n|prints_n, and book|ms|recorded_at), agent_quote_events (book, ms, side, k, kind, ticks, detail; tab-separated), agent_quoted_events of arm d, kinds order/refused/withdraw only (book|ms|side|k|kind|what|ticks|oid|leg|why), and the minutes of edge_call_beats for agents?action=quotes; each read with its md5, which matched",
+  "pr5.json.gz, d.json.gz": "scripts/backfill.ts on the inputs: each twin's tables as the code left them (orders without their ids), loaded by the agents function's quotestwins call"
+ },
+ "committed": {
+  "inputs/twins_inputs.json.gz": {
+   "bytes": 663522,
+   "sha256": "f9ff04901d1b787d55401dac49d7d9be2e6d6b30d997a1ce856cea165e8dffa3"
+  },
+  "pr5.json.gz": {
+   "bytes": 269090,
+   "sha256": "f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98"
+  },
+  "d.json.gz": {
+   "bytes": 696874,
+   "sha256": "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392"
+  },
+  "scripts/backfill.ts": {
+   "bytes": 6012,
+   "sha256": "f60d42da751c6beaaa1f932a3da6bd2b12c63bacf716eb183c6e7f481afa661c"
+  }
+ }
+}
