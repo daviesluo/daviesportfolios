@@ -530,20 +530,16 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
      Cloudflare's clock: the site, Supabase's minute loop (`monitor?action=health`) and PR5's dead-man
      (`monitor?action=deadman`, item 4); a check failing two minutes running alerts, and again on recovery, to the errors
-     box (`monitor.*`) and the GitHub issue labelled `monitor` (`monitor-alert.yml`). **Not running yet: the Worker is
-     not deployed.** The `monitor` function is deployed (v1, JWT verified) and `0086` applied, but the repository's
-     `CLOUDFLARE_API_TOKEN` has no Workers permission: monitor-deploy's first run (37047789327, 18:29 UTC) found the
-     account's Workers list empty and the Worker's secrets endpoint answered "No access to the specified resource".
-     So `MONITOR_SECRET` is set nowhere yet and the function refuses every call. **Davies' to do, in order:** (1) add
-     Account → Workers Scripts → Edit to `CLOUDFLARE_API_TOKEN` (Cloudflare dashboard → API Tokens → that token → Edit →
-     Permissions → + Add more → Account | Workers Scripts | Edit → Update token; the value does not change), on the
-     account that holds the KV namespace "daviesportfolios-monitor"; (2) optionally, a fine-grained PAT (resource owner
-     daviesluo, only the repository daviesportfolios, Repository permissions → Actions: Read and write) stored as the
-     repository secret `MONITOR_GITHUB_PAT` — without it the Worker skips GitHub and its address says so; (3) run
-     `monitor-deploy` by hand (Actions → monitor-deploy → Run workflow): it generates `MONITOR_SECRET`, sets it in
-     Supabase and on the Worker, deploys, and checks the function takes it. **Check that it runs** (read-only): `select
-     minute from public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;` gains a row
-     each minute. `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
+     box (`monitor.*`) and the GitHub issue labelled `monitor` (`monitor-alert.yml`). **Running since 2026-10-02
+     19:04 UTC**: Davies gave `CLOUDFLARE_API_TOKEN` Workers Scripts: Edit and made `MONITOR_GITHUB_PAT`; monitor-deploy
+     runs 37051226413 (19:00, `MONITOR_SECRET` generated and set on both sides) and 37051581187 (19:03) deployed it, at
+     https://daviesportfolios-monitor.daviesluo.workers.dev, its health reading github "configured", monitorSecret
+     "configured", site, loop and pr5 "ok". Both secrets reach the Worker through `--secrets-file`. GitHub's path is
+     proven by the first real alert: a dispatch GitHub refuses writes its own alert to the errors box naming the PAT.
+     Issue #232 (the first run's failure) closed. **Check that it runs** (read-only): `select minute from
+     public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;` gains a row each minute
+     (every minute from 19:06); its GET address shows each check's state. `healthcheck.yml` stays for its warm pings and
+     its not-found chunk probe.
 
 ## Machine and platform setup
 
@@ -659,6 +655,17 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 19:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The monitor runs, and x4/x5's earlier start is deployed before its hour.** Davies: "CLOUDFLARE_API_TOKEN 已更新，
+MONITOR_GITHUB_PAT也已经建好". monitor-deploy run 37051581187 (dispatched 19:03 UTC, after his own run 37051226413 at
+19:00 that generated `MONITOR_SECRET`) deployed `daviesportfolios-monitor`, cron every minute; its health output reads
+github configured, monitorSecret configured, site, loop and pr5 ok. `monitor?action=deadman` beat every minute from
+19:06; no `deadman` event, no `monitor.*` row, twelve live orders open and none cancelled unasked. Issue #232 closed with
+a comment. The x4/x5 change (`6184f7ed`) deployed with edge-functions run 37052356962 at 19:11:35 UTC, while the replay
+stood at 19:09: its arms e, rw, x1–x5, checks 0, no error, x4's and x5's accounts still equal to x1's (compared as
+booleans; nothing of them read) and no base yet, as they should be until 20:00.
 
 ### [2026-10-02 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
