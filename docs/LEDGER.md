@@ -159,6 +159,23 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      go-live is withdrawn; the path goes live only in the conversation where he says go (design step 8, word for word).
      A fix inside the window ends it as FAIL and moves the check a day, by a next addendum. (f) needs his funding
      (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC).
+   - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools, in a dry-run its tables enforce**
+     (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
+     `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
+     and `agents?action=pmmidprep` every minute (rows of `edge_calls`, retry true); small-pool's $400 sizes; never live
+     (its config refuses `dry_run` false and any `live_confirmed_at`, its orders any mode but `dry_run`, no key is read, its
+     wire refuses POST and DELETE). Its selection leaves out what RW's frozen selection, recomputed from public data with
+     RW's code, takes or scores at ≥ 0.33 of its last pick (margin 0.67, measured), keeping only a count. Pre-registered:
+     `reviews/2026-10-02-polymarket-mid-pool-prereg.md`, frozen by the commit that adds it; d1 is the first full UTC day
+     after `pm_mid_config.created_at`, and the window fourteen days. **Built on a worktree branch and not pushed; the main
+     session lands it**: never inside small-pool's window (10-03 00:00 → 10-04 00:00 UTC; a deploy of `pm_live.ts` or
+     `pm_prep.ts` inside it ends that window as FAIL), with small-pool's Addendum 3 naming the instance build's hashes if
+     before it, and at least an hour before a UTC midnight. **Next:** at or after d2 00:10 UTC run `mid_check.sql` once,
+     read-only, and report every row to Davies; at or after d15 00:10 `mid_readout.sql`; no earlier than 2026-10-23
+     00:05 `mid_audit.sql` (all three in `backtests/pmlive/`, sha256 pinned by `src/pm_mid_prereg.test.js`). Until each,
+     read only the prereg's health readings (the two `last_error`s and clocks, `ops_errors` of `agents.pm_mid` and
+     `agents.pm_midprep` and their crash rows, whether a day's selection landed), never mid-pool's page or the
+     dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows.
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -609,6 +626,34 @@ the data API's prints). `pm_live.ts` sha256 `8ba7b915…9653`, `pm_prep.ts` `8d7
 branch, not pushed: a deploy of these two files inside the live-prep window (10-03 00:00 → 10-04 00:00 UTC) ends it as
 FAIL, so the main session lands them before 10-03 00:00 with an Addendum 3 naming the new hashes, or after the 10-04
 00:10 check.
+
+**Step 2 of 3: "Reward quotes mid-pool", the path and the layer again as a second instance, in dry-run, pre-registered.**
+`agents/pm_mid.ts` and `0081_pm_mid.sql` (tables `pm_mid_*` and `pm_midprep_*`, small-pool's final shapes; a reward
+rate in [$10, $50) on its markets and minutes; its config refuses `dry_run` false and any `live_confirmed_at`, its orders
+any mode but `dry_run`; the $400 sizes; the attestation copied from small-pool's row, never made; leases `pm-mid` and
+`pm-midprep`; two rows of `edge_calls`, retry true). Its action reads no signing key and builds its wire with sends
+off. **Not disturbing RW, RW-E, RW-X and RW-C:** its selection recomputes RW's frozen selection from public data
+(`rwSelectionNow`: RW's own `summarize`, `firstScore`, `choose`, budget and floor, imported; the same picks as
+`runPmrwSelect` on 60 random worlds and a hand-worked one) and leaves out every market scoring at least 0.33 of its last
+pick, recording only how many. **The margin, 0.67, measured** (`backtests/pmlive/results/mid_margin_out.txt`: fourteen
+recomputations 03:58–04:14 UTC, 91 pairs 1–16 minutes apart, counts and ratios only): at 0.5 one of mid-pool's picks was
+RW's in 40 pairs (3 of 25 within two minutes); at 0.67 and 0.8, in none; at 0.67 about 17 of the band's markets are left
+out at each. An earlier run that morning, kept in the scratchpad only, saw no overlap at any margin, so 0.5 was the first
+choice; the committed run moved it. **CPU:** its candidates' books (~1,010; small-pool's ~490) are read a hundred a
+keyless POST to `/books`: one GET each the selection took ~2.1 s of CPU, past an Edge request's 2 s; batched ~1.2 s
+(`mid_selection_time_out.txt`, this container; never measured on Supabase). It reads no payout, share or rebate
+(`readsPayouts` false). Pinned: `pm_mid.test.ts` (13: the boundary at 0.33, RW's Gamma loop carried into the margin,
+no RW pick among mid-pool's on 25 random worlds, no excluded id in any mid table, a failed public read failing the day's
+try, its own tables only, no key read and no POST but `/books`); `src/cron_jobs.test.js` (0081 adds exactly its two rows,
+every other row and job unchanged); the double's 0081 rules against PGlite 16 with 0074 → 0081 applied (each CHECK
+refusal with Postgres's own name; every mid table identical to its small-pool namesake but the band, the dry-run checks,
+the config's `created_at` and defaults, and the foreign key's table). **Pre-registration**
+(`reviews/2026-10-02-polymarket-mid-pool-prereg.md`): d1 the first full UTC day after `pm_mid_config.created_at`, fourteen
+days; `mid_check.sql` (small-pool's (a)–(g) on its tables, (f) N/A), `mid_readout.sql` (descriptive, beside small-pool's,
+at R = 0.40 and at the formula) and `mid_audit.sql` (against RW's and RW-C's actual selections from 2026-10-23 00:05 UTC;
+before that its scans never execute), each run on PGlite against synthetic days (a passing day passes, fourteen planted
+faults each fail their own row) and frozen by sha256 in `src/pm_mid_prereg.test.js`. Not edited here: `.claude/CLAUDE.md`
+(a sub-agent does not change it; the sentence for its Polymarket paragraph is in the report to the main session).
 
 ### [2026-10-02 02:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

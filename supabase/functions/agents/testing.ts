@@ -209,6 +209,19 @@ export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; no
     check: (r) => (["loss_stop_day", "loss_stop_total", "settlement"].includes(String(r.kind)) ? null : "kind"),
   },
 };
+/**
+ * Mid-pool's tables (0081): the order path's nine as `pm_mid_*` and the layer's seven as `pm_midprep_*`, each the shape
+ * of its small-pool namesake, held to the same rules but these: a reward rate in [$10, $50) on the markets and the
+ * minutes, a config that refuses `dry_run` false and any `live_confirmed_at`, and orders that refuse every mode but
+ * `dry_run`. Postgres names a constraint by its own table, so the double's refusals name the mid table.
+ */
+const pmLiveShape = (table: string) => table.replace(/^pm_mid_/, "pm_live_");
+const pmPrepShape = (table: string) => table.replace(/^pm_midprep_/, "pm_prep_");
+const isMidTable = (table: string) => table.startsWith("pm_mid_");
+const isPmLiveTable = (table: string) => pmLiveShape(table) in PM_LIVE_SCHEMA;
+const isPmPrepTable = (table: string) => pmPrepShape(table) in PM_PREP_SCHEMA;
+/** The orders table a fills table's foreign key references: `pm_live_orders`, or mid-pool's `pm_mid_orders`. */
+const ordersOfFills = (table: string) => table.replace(/_fills$/, "_orders");
 /** `agent_maker_probes`' columns as 0042 and 0050 leave them: PostgREST refuses a write naming any other. */
 const PROBE_COLUMNS = ["id", "ts", "strategy_id", "order_id", "venue", "symbol", "side", "mode", "taker_price", "maker_price", "base_size",
   "state", "resolved_at", "minutes_to_fill", "mark_at_resolve", "follow_up", "expires_at", "watching", "fill_minute"];
@@ -408,8 +421,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? (((r.leg === "convert") === (r.rung_side == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
       ?? (((r.rung_side == null) === (r.k == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
   }
-  if (table in PM_PREP_SCHEMA) {
-    const sc = PM_PREP_SCHEMA[table];
+  if (isPmPrepTable(table)) {
+    const sc = PM_PREP_SCHEMA[pmPrepShape(table)];
     const unknown = Object.keys(r).find((c) => !sc.columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     const nn = notNull(sc.notNull);
@@ -417,13 +430,16 @@ export function schemaRefusal(table: string, r: Row): string | null {
     const bad = sc.check?.(r) ?? null;
     return bad ? `new row for relation "${table}" violates check constraint "${table}_${bad}_check"` : null;
   }
-  if (table in PM_LIVE_SCHEMA) {
-    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[table].columns.includes(c));
+  if (isPmLiveTable(table)) {
+    const shape = pmLiveShape(table), mid = isMidTable(table);
+    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !(mid && shape === "pm_live_config" && c === "created_at"));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
     const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
     const MODES = ["dry_run", "live"];
-    if (table === "pm_live_config") {
+    // Mid-pool's band (0081): [$10, $50), where small-pool's is [$0, $10) (RW's universe is $10 and over).
+    const inBand = (v: unknown) => (mid ? Number(v) >= 10 && Number(v) < 50 : Number(v) >= 0 && Number(v) < 10);
+    if (shape === "pm_live_config") {
       const within = (c: string, lo: number, hi: number, loOpen = true) => ok(c, (v) => (loOpen ? Number(v) > lo : Number(v) >= lo) && Number(v) <= hi);
       return check("id", r.id === 1)
         ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", "loss_day_usd", "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
@@ -431,45 +447,47 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("loss_day_usd", within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
         ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
-        ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
+        ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
+        // Mid-pool's config is a dry-run its table holds there: no `dry_run` false, no `live_confirmed_at` (0081).
+        ?? (mid ? check("dry_run", r.dry_run === true) ?? check("live_confirmed_at", r.live_confirmed_at == null) : null);
     }
-    if (table === "pm_live_minutes") {
+    if (shape === "pm_live_minutes") {
       return notNull(["mode", "minute", "cond", "rate", "max_spread", "min_size", "tick", "ours", "others", "formula_usd", "detail"])
-        ?? check("mode", MODES.includes(String(r.mode))) ?? check("rate", Number(r.rate) >= 0 && Number(r.rate) < 10)
+        ?? check("mode", MODES.includes(String(r.mode))) ?? check("rate", inBand(r.rate))
         ?? check("max_spread", Number(r.max_spread) >= 0) ?? check("min_size", Number(r.min_size) >= 0) ?? check("tick", Number(r.tick) > 0)
         ?? check("ours", Number(r.ours) >= 0) ?? check("others", Number(r.others) >= 0) ?? check("formula_usd", Number(r.formula_usd) >= 0);
     }
-    if (table === "pm_live_settlements") {
+    if (shape === "pm_live_settlements") {
       return notNull(["cond", "yes_token", "no_token", "payout", "settled_at", "detail"]) ?? check("payout", Number(r.payout) >= 0 && Number(r.payout) <= 1);
     }
-    if (table === "pm_live_reward_days") {
+    if (shape === "pm_live_reward_days") {
       return notNull(["mode", "day", "cond", "minutes", "minutes_two_sided", "minutes_scored", "formula_usd", "formula_scored_usd", "read_at", "detail"])
         ?? check("mode", MODES.includes(String(r.mode)))
         ?? check("minutes", Number(r.minutes) >= 0) ?? check("minutes_two_sided", Number(r.minutes_two_sided) >= 0) ?? check("minutes_scored", Number(r.minutes_scored) >= 0)
         ?? check("formula_usd", Number(r.formula_usd) >= 0) ?? check("formula_scored_usd", Number(r.formula_scored_usd) >= 0)
         ?? (r.mode === "live" || (r.actual_usd == null && r.actual_sponsored_usd == null && r.rebate_usd == null) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
-    if (table === "pm_live_markets") {
-      return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank"])
+    if (shape === "pm_live_markets") {
+      return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank", ...(mid ? ["reward_rate"] : [])])
         ?? check("kind", ["standard", "neg_risk"].includes(String(r.kind))) ?? check("tick", Number(r.tick) > 0) ?? check("min_size", Number(r.min_size) > 0)
-        ?? check("reward_rate", ok("reward_rate", (v) => Number(v) >= 0 && Number(v) < 10)) ?? check("rank", Number(r.rank) > 0)
+        ?? check("reward_rate", ok("reward_rate", inBand)) ?? check("rank", Number(r.rank) > 0)
         ?? ((r.kind === "neg_risk") === (r.neg_risk === true) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
-    if (table === "pm_live_orders") {
+    if (shape === "pm_live_orders") {
       return notNull(["mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash", "state", "size_matched", "gate"])
-        ?? check("mode", MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
+        ?? check("mode", mid ? r.mode === "dry_run" : MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
         ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
         ?? check("size", Number(r.size) > 0) ?? check("order_type", r.order_type === "GTD") ?? check("post_only", r.post_only === true)
         ?? check("expiration", Number(r.expiration) > 0) ?? check("hash", /^0x[0-9a-f]{64}$/.test(String(r.hash)))
         ?? check("state", ["pending", "live", "filled", "cancelled", "expired", "rejected"].includes(String(r.state)))
         ?? check("size_matched", Number(r.size_matched) >= 0) ?? check("gate", ["open", "reduce"].includes(String(r.gate)));
     }
-    if (table === "pm_live_fills") {
+    if (shape === "pm_live_fills") {
       return notNull(["trade_id", "hash", "cond", "token", "side", "price", "size", "status"])
         ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
         ?? check("size", Number(r.size) > 0) ?? check("status", ["MATCHED", "MINED", "CONFIRMED", "RETRYING", "FAILED"].includes(String(r.status)));
     }
-    if (table === "pm_live_events") {
+    if (shape === "pm_live_events") {
       return notNull(["mode", "minute", "kind", "detail"]) ?? check("mode", MODES.includes(String(r.mode)))
         ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert", "condition", "readout"].includes(String(r.kind)));
     }
@@ -483,12 +501,12 @@ export function schemaRefusal(table: string, r: Row): string | null {
  * `hash text not null unique`, and never two OPEN rows (pending or live) on one market, token and side of one mode —
  * the partial index `pm_live_orders_one_open_per_slot`.
  */
-function pmLiveOrderConflict(rows: Row[], r: Row, self: Row | null): string | null {
+function pmLiveOrderConflict(rows: Row[], r: Row, self: Row | null, table = "pm_live_orders"): string | null {
   const others = rows.filter((x) => x !== self);
-  if (others.some((x) => x.hash === r.hash)) return "409: duplicate key value violates unique constraint \"pm_live_orders_hash_key\"";
+  if (others.some((x) => x.hash === r.hash)) return `409: duplicate key value violates unique constraint "${table}_hash_key"`;
   const open = (x: Row) => PM_LIVE_OPEN.includes(String(x.state));
   if (open(r) && others.some((x) => open(x) && x.mode === r.mode && x.cond === r.cond && x.token === r.token && x.side === r.side)) {
-    return "409: duplicate key value violates unique constraint \"pm_live_orders_one_open_per_slot\"";
+    return `409: duplicate key value violates unique constraint "${table}_one_open_per_slot"`;
   }
   return null;
 }
@@ -529,7 +547,7 @@ function withDefaults(table: string, r: Row): Row {
       fair: null, request: null, response: null, book_seen: null, cancel_requested_at: null, cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
     };
   }
-  if (table === "pm_live_orders") {
+  if (pmLiveShape(table) === "pm_live_orders") {
     return {
       state: "pending", size_matched: 0, reason: null, book_seen: null, request: null, response: null, cancel_requested_at: null, cancel_gate: null,
       cancel_reason: null, filled_at: null, cancelled_at: null, ...r,
@@ -634,16 +652,16 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
           seen.push(r);
         }
       }
-      if (table === "pm_live_orders") {
+      if (pmLiveShape(table) === "pm_live_orders") {
         const seen: Row[] = [...(tables[table] ?? [])];
         for (const r of list) {
-          const why = pmLiveOrderConflict(seen, r, null);
+          const why = pmLiveOrderConflict(seen, r, null, table);
           if (why) return Promise.reject(new Error(`db POST ${table} → ${why}`));
           seen.push(r);
         }
       }
-      if (table === "pm_live_fills") {
-        for (const r of list) if (!(tables.pm_live_orders ?? []).some((o) => o.hash === r.hash)) return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "pm_live_fills" violates foreign key constraint "pm_live_fills_hash_fkey"`));
+      if (pmLiveShape(table) === "pm_live_fills") {
+        for (const r of list) if (!(tables[ordersOfFills(table)] ?? []).some((o) => o.hash === r.hash)) return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "${table}" violates foreign key constraint "${table}_hash_fkey"`));
       }
       const out = list.map((r) => ({ id: nextId++, ts: new Date(opts.now()).toISOString(), ...r }));
       (tables[table] ??= []).push(...out);
@@ -658,8 +676,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
         || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)
-        || (table in PM_LIVE_SCHEMA && onConflict !== PM_LIVE_SCHEMA[table].key)
-        || (table in PM_PREP_SCHEMA && onConflict !== PM_PREP_SCHEMA[table].key)) {
+        || (isPmLiveTable(table) && onConflict !== PM_LIVE_SCHEMA[pmLiveShape(table)].key)
+        || (isPmPrepTable(table) && onConflict !== PM_PREP_SCHEMA[pmPrepShape(table)].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
@@ -671,10 +689,10 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         // to that (their decisions are written as upserts onto rows recorded a minute earlier).
         // The recorder's tables (0062) likewise: the proposed row, with the defaults Postgres fills in. The order path's
         // (0074) too: every upsert it makes proposes whole rows.
-        const why = schemaRefusal(table, table in PMRW_TABLES || table in PM_LIVE_SCHEMA || table in PM_PREP_SCHEMA ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
+        const why = schemaRefusal(table, table in PMRW_TABLES || isPmLiveTable(table) || isPmPrepTable(table) ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r } : cur ? { ...cur, ...r } : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
-        if (table === "pm_live_fills" && !(tables.pm_live_orders ?? []).some((o) => o.hash === r.hash)) {
-          return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "pm_live_fills" violates foreign key constraint "pm_live_fills_hash_fkey"`));
+        if (pmLiveShape(table) === "pm_live_fills" && !(tables[ordersOfFills(table)] ?? []).some((o) => o.hash === r.hash)) {
+          return Promise.reject(new Error(`db POST ${table} → 409: insert or update on table "${table}" violates foreign key constraint "${table}_hash_fkey"`));
         }
       }
       for (const r of list) {
@@ -696,8 +714,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
           const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r);
           if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
         }
-        if (table === "pm_live_orders") {
-          const clash = pmLiveOrderConflict(tables[table], { ...r, ...wire }, r);
+        if (pmLiveShape(table) === "pm_live_orders") {
+          const clash = pmLiveOrderConflict(tables[table], { ...r, ...wire }, r, table);
           if (clash) return Promise.reject(new Error(`db PATCH ${table} → ${clash}`));
         }
       }

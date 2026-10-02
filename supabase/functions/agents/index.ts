@@ -37,11 +37,21 @@
 //                             A dry-run until `pm_live_config` says otherwise:
 //                             sends are enabled in code and the key is loaded.
 //                             Cron bearer only.
-//   POST ?action=pmprep     — "Reward quotes live-prep" (pm_prep.ts, 0077): the
+//   POST ?action=pmprep     — "Reward quotes small-pool" (pm_prep.ts, 0077): the
 //                             order path's own dry-run decisions filled on
 //                             paper from Polymarket's public prints by RW's
 //                             rule, two minutes behind; its own tables only,
 //                             the path's read only. Keyless. Every minute.
+//   POST ?action=pmmid      — "Reward quotes mid-pool" (pm_mid.ts, 0081): the
+//                             same order path on rewarded markets of $10 to
+//                             under $50 a day, every minute from eu-west-1,
+//                             a dry-run its own table holds there: no key
+//                             loaded, no POST or DELETE on its wire. Its
+//                             selection leaves out the markets near the top
+//                             of RW's rule, recomputed from public data.
+//                             Cron bearer only.
+//   POST ?action=pmmidprep  — mid-pool's paper layer (pm_prep.ts on 0081's
+//                             tables), as pmprep is small-pool's. Every minute.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -115,10 +125,11 @@ import {
   krakenSupports, ticker as krakenTicker, tradeVolume, type KrakenEnv,
 } from "../_shared/kraken.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
-import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
+import { loadPolymarketEnv, POLYMARKET_ENV_NAMES, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
 import { PM_LIVE_TIMEOUT_MS, runPmLive, type PmSettlement } from "./pm_live.ts";
 import { runPmPrep } from "./pm_prep.ts";
+import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
@@ -386,13 +397,65 @@ export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch;
 }
 
 /**
- * "Reward quotes live-prep", one run (`pm_prep.ts`, 0077): the order path's dry-run decisions filled on paper. Keyless;
+ * "Reward quotes small-pool", one run (`pm_prep.ts`, 0077): the order path's dry-run decisions filled on paper. Keyless;
  * it reads the path's tables and writes only its own. Its faults go to `ops_errors` as `agents.pm_prep`, which the
  * pre-registration's check reads.
  */
 export async function runPmPrepAction(deps: { db?: Db; now?: number } = {}) {
   const report = await runPmPrep({ db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID() });
   if (report.errors.length) await reportServerError("agents.pm_prep", tickErrorReport(report));
+  return report;
+}
+
+/** Why mid-pool's turn has no signing key: it never reads one (0081 holds it in dry-run). */
+export const PM_MID_NO_KEY = "the mid-pool instance reads no signing key: its config table holds it in dry-run (0081)";
+
+/** Mid-pool's wire: small-pool's, with every POST and DELETE kept at home whatever the code's switch says. */
+export const pmMidWire = (env: ReturnType<typeof loadPmLiveEnv>, fetchImpl?: typeof fetch) =>
+  pmVenue({ fetchImpl, creds: env.creds, address: env.signer, sigType: env.sigType ?? 1, scrub: (s) => env.scrub(s), timeoutMs: PM_LIVE_TIMEOUT_MS, sendsEnabled: false });
+
+/**
+ * "Reward quotes mid-pool", one minute (`pm_mid.ts`, 0081): the order path on mid-pool's instance. It reads the L2
+ * credentials and the two addresses (its gates read the account's closed-only flag and holdings, as small-pool's do) and
+ * never the signing key: the env loader is not even asked for it, so none is ever in memory. Its wire refuses every
+ * POST and DELETE (`sendsEnabled: false`), its table every config but a dry-run. Faults go to `ops_errors` as
+ * `agents.pm_mid`.
+ */
+export async function runPmMidAction(deps: { db?: Db; fetchImpl?: typeof fetch; read?: (n: string) => string | undefined; now?: number } = {}) {
+  try {
+    const read = deps.read ?? ((n: string) => Deno.env.get(n));
+    const env = loadPmLiveEnv((n) => ((POLYMARKET_ENV_NAMES.privateKey as readonly string[]).includes(n) ? undefined : read(n)));
+    const report = await runPmLive({
+      db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(),
+      venue: pmMidWire(env, deps.fetchImpl),
+      sbRegion: read("SB_REGION") ?? null,
+      sendsEnabled: PM_ORDER_SENDS_ENABLED,
+      account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
+      signer: null,
+      signerProblem: PM_MID_NO_KEY,
+      inst: PM_MID_INSTANCE,
+      pm: { fetchImpl: deps.fetchImpl, timeoutMs: PM_LIVE_TIMEOUT_MS },
+    });
+    // The key it does not read is no problem of its secrets.
+    const problems = env.check.problems.filter((p) => p !== env.keyProblem);
+    if (problems.length) report.errors.push(`secrets: ${problems.join("; ")}`);
+    const clean = env.scrub(report);
+    if (clean.errors.length) await reportServerError(PM_MID_INSTANCE.errorKind, tickErrorReport(clean));
+    return clean;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError(PM_MID_INSTANCE.errorKind, { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/** Mid-pool's paper layer, one run (`pm_prep.ts` on 0081's tables). Keyless. Faults go to `ops_errors` as `agents.pm_midprep`. */
+export async function runPmMidPrepAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  const report = await runPmPrep({
+    db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_MID_INSTANCE,
+    ...(deps.fetchImpl ? { pm: { fetchImpl: deps.fetchImpl } } : {}),
+  });
+  if (report.errors.length) await reportServerError("agents.pm_midprep", tickErrorReport(report));
   return report;
 }
 
@@ -2080,8 +2143,13 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
-  // "Reward quotes live-prep" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
+  // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
   if (action === "pmprep" && req.method === "POST" && operator) return json(200, await runPmPrepAction());
+  // "Reward quotes mid-pool" (pm_mid.ts, 0081): the same path on $10 to under $50, from eu-west-1, a dry-run its table
+  // holds there (no key read, no POST or DELETE on its wire). Cron bearer only, as the path's own call.
+  if (action === "pmmid" && req.method === "POST" && who === "cron") return json(200, await runPmMidAction());
+  // Its paper layer (pm_prep.ts on 0081's tables). Keyless public reads only.
+  if (action === "pmmidprep" && req.method === "POST" && operator) return json(200, await runPmMidPrepAction());
   // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
   if (action === "views" && req.method === "POST" && operator) {
     const key = youtubeKey();

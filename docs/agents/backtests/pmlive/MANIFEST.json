@@ -1,22 +1,35 @@
 {
- "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01)",
+ "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01); and mid-pool's exclusion margin and its selection's CPU, measured through its own code (2026-10-02)",
  "write_up": "docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md",
  "run": [
   "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
   "python3 scripts/reward_agg.py  # live, keyless; aggregates only, no per-market row written or printed",
   "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env selection_time.ts 3 6 120 > ../results/selection_time_out.txt  # live, keyless; scores only the [$6, $10) universe and names no market",
   "prep_check.sql  # the live-prep pre-registration's check (reviews/2026-10-01-polymarket-live-prep-prereg.md): read-only, one statement, run once at or after 2026-10-03 00:10 UTC; its sha256 is pinned by src/pm_prep_prereg.test.js",
-  "prep_check_addendum1.sql  # the check of the pre-registration's Addendum 1 (Davies, 2026-10-01: the test starts now; the window opens on the first full UTC hour after 2026-10-01's selection and closes 2026-10-03 00:00 UTC): read-only, one statement, run once at or after 2026-10-03 00:10 UTC; its sha256 is pinned by src/pm_prep_prereg.test.js"
+  "prep_check_addendum1.sql  # the check of the pre-registration's Addendum 1 (Davies, 2026-10-01: the test starts now; the window opens on the first full UTC hour after 2026-10-01's selection and closes 2026-10-03 00:00 UTC): read-only, one statement, run once at or after 2026-10-03 00:10 UTC; its sha256 is pinned by src/pm_prep_prereg.test.js",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_out.txt  # live, keyless, about 17 minutes; RW's selection recomputed by agents/pm_mid.ts rwSelectionNow, counts and ratios only, no market named",
+  "cd scripts && python3 cpu_time.py deno run --allow-net --allow-env mid_selection_time.ts 0 batch, then 3 batch and 3 single, each appended to ../results/mid_selection_time_out.txt  # live, keyless; Deno 1.46.3; mid-pool's selection through agents/pm_live.ts selectMarkets with its instance, its CPU read around each process",
+  "mid_check.sql, mid_readout.sql, mid_audit.sql  # the mid-pool pre-registration's day-1 check, fourteen-day readout and overlap audit (reviews/2026-10-02-polymarket-mid-pool-prereg.md): read-only, one statement each, run once at their dates; their sha256 are pinned by src/pm_mid_prereg.test.js"
  ],
  "sources": {
   "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",
   "results/bridge_quotes.txt": "bridge.polymarket.com /quote, keyless, 2026-10-01 ~02:00 UTC; nothing created",
-  "results/selection_time_out.txt": "CLOB /rewards/markets/current, Gamma /markets/keyset and CLOB /book, keyless, through agents/pm_live.ts selectMarkets, 2026-10-01 16:53-16:54 UTC"
+  "results/selection_time_out.txt": "CLOB /rewards/markets/current, Gamma /markets/keyset and CLOB /book, keyless, through agents/pm_live.ts selectMarkets, 2026-10-01 16:53-16:54 UTC",
+  "results/mid_margin_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets and /books (POST), Gamma /markets, keyless, through agents/pm_live.ts rewardListing and agents/pm_mid.ts rwSelectionNow, 2026-10-02 03:58-04:14 UTC",
+  "results/mid_selection_time_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets, /books (POST) and /book, Gamma /markets, keyless, through agents/pm_live.ts selectMarkets with PM_MID_INSTANCE's band, exclusion and batch read, 2026-10-02 04:17-04:20 UTC"
  },
  "committed": {
   "results/bridge_quotes.txt": {
    "bytes": 1251,
    "sha256": "64f79ef85cb7d21afac78ab0b8250d2400eb0c866b74f5901e104039eb0bcc0b"
+  },
+  "results/mid_margin_out.txt": {
+   "bytes": 5851,
+   "sha256": "6064839470513256b46b30b6cd20e3b90116299ab0007ca74c186ac8cc8bed23"
+  },
+  "results/mid_selection_time_out.txt": {
+   "bytes": 3110,
+   "sha256": "4fd78f03c787de10f87344e3a952ee53e36392e1751c67b2861d8e6c9f2d8385"
   },
   "results/ratio_power_out.txt": {
    "bytes": 593,
@@ -29,6 +42,18 @@
   "results/selection_time_out.txt": {
    "bytes": 2760,
    "sha256": "f693cb28ffc7832b10b8fc6d6336dadeed07a35ad1fece09398867b67e6ee8b7"
+  },
+  "scripts/cpu_time.py": {
+   "bytes": 876,
+   "sha256": "c993055d470daee9cce426195139eaa99d4317123ad15a3b2e1464d2288392d9"
+  },
+  "scripts/mid_margin.ts": {
+   "bytes": 5137,
+   "sha256": "0cb278339d4af7973038b725cb00322efa5863446e7d8b5aee2d51a195d15131"
+  },
+  "scripts/mid_selection_time.ts": {
+   "bytes": 2812,
+   "sha256": "ada6a9d6c03b9dd42bd1a26e37c39a890d0eb985547d9dc425cd16dd52b81708"
   },
   "scripts/ratio_power.py": {
    "bytes": 2061,
@@ -43,5 +68,6 @@
    "sha256": "8bf717277db8f181903fd7ae0b01cd512b0b5b884acfa975885bb740cb1902ba"
   }
  },
- "calibration_write_up": "docs/agents/reviews/2026-10-01-polymarket-live-calibration.md"
+ "calibration_write_up": "docs/agents/reviews/2026-10-01-polymarket-live-calibration.md",
+ "mid_pool_prereg": "docs/agents/reviews/2026-10-02-polymarket-mid-pool-prereg.md"
 }

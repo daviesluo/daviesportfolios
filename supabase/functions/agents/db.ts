@@ -41,6 +41,9 @@ const PAGED_KEYS: Record<string, string> = {
   pm_live_fills: "trade_id,hash", pm_live_minutes: "mode,minute,cond", pm_live_settlements: "cond",
   // "Reward quotes live-prep" (0077): its market-minutes, its fills and its settlements, each by its primary key.
   pm_prep_minutes: "minute,cond", pm_prep_fills: "cond,minute,print_id", pm_prep_settlements: "cond",
+  // "Reward quotes mid-pool" (0081): the path's and the layer's shapes under their own names, read by the same code.
+  pm_mid_fills: "trade_id,hash", pm_mid_minutes: "mode,minute,cond", pm_mid_settlements: "cond",
+  pm_midprep_minutes: "minute,cond", pm_midprep_fills: "cond,minute,print_id", pm_midprep_settlements: "cond",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

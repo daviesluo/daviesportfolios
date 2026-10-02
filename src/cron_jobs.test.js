@@ -333,6 +333,28 @@ describe('pg_cron jobs', () => {
     expect(norm(jobs[0][1].command)).toContain('from public.edge_calls as call where call.enabled and ');
   });
 
+  // 0081: "Reward quotes mid-pool", the order path and its paper layer run again under their own tables.
+  const MID = FILES.find((f) => /^\d{4}_pm_mid\.sql$/.test(f)) ?? '';
+
+  it("adds mid-pool's two calls to the list (0081): the list before it plus two rows, every other row as it was, the jobs unchanged", () => {
+    expect(MID).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < MID)));
+    const after = replayList(sqlsOf(FILES.filter((f) => f <= MID)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // Every minute, as small-pool's two; the path's from Ireland, as small-pool's; both run again by the watchdog when
+    // the platform failed to boot them (the migration gives the reason: a second run in a minute changes nothing).
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=pmmid&forceFunctionRegion=eu-west-1', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+      { path: 'agents?action=pmmidprep', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.slice(before.length).map((r) => beatKeyOfPath(r.path))).toEqual(['agents?action=pmmid', 'agents?action=pmmidprep']);
+    expect(shape(before.find((r) => r.path === 'agents?action=pmlive&forceFunctionRegion=eu-west-1'))).toEqual({ ...shape(after.at(-2)), path: 'agents?action=pmlive&forceFunctionRegion=eu-west-1' });
+    expect(shape(before.find((r) => r.path === 'agents?action=pmprep'))).toEqual({ ...shape(after.at(-1)), path: 'agents?action=pmprep' });
+    // No job is added, dropped or changed: the one-minute job reads the table.
+    expect([...cronJobs(FILES.filter((f) => f <= MID))]).toEqual([...cronJobs(FILES.filter((f) => f < MID))]);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))

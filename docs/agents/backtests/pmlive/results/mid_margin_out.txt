@@ -1,0 +1,42 @@
+{"k":0,"at":"2026-10-02T03:58:52.259Z","ms":12101,"universe":3313,"scored":2344,"taken":15}
+{"k":1,"at":"2026-10-02T04:00:04.073Z","ms":11811,"universe":3309,"scored":2318,"taken":15}
+{"k":2,"at":"2026-10-02T04:01:15.949Z","ms":11874,"universe":3320,"scored":2320,"taken":15}
+{"k":3,"at":"2026-10-02T04:02:27.978Z","ms":12027,"universe":3317,"scored":2307,"taken":15}
+{"k":4,"at":"2026-10-02T04:03:40.413Z","ms":12433,"universe":3315,"scored":2319,"taken":15}
+{"k":5,"at":"2026-10-02T04:04:51.989Z","ms":11574,"universe":3319,"scored":2309,"taken":15}
+{"k":6,"at":"2026-10-02T04:06:03.952Z","ms":11961,"universe":3316,"scored":2302,"taken":15}
+{"k":7,"at":"2026-10-02T04:07:15.835Z","ms":11882,"universe":3316,"scored":2316,"taken":15}
+{"k":8,"at":"2026-10-02T04:08:27.822Z","ms":11985,"universe":3316,"scored":2329,"taken":15}
+{"k":9,"at":"2026-10-02T04:09:39.317Z","ms":11487,"universe":3316,"scored":2339,"taken":15}
+{"k":10,"at":"2026-10-02T04:10:51.213Z","ms":11895,"universe":3318,"scored":2340,"taken":15}
+{"k":11,"at":"2026-10-02T04:12:02.780Z","ms":11566,"universe":3321,"scored":2355,"taken":15}
+{"k":12,"at":"2026-10-02T04:13:14.292Z","ms":11509,"universe":3321,"scored":2363,"taken":15}
+{"k":13,"at":"2026-10-02T04:14:25.643Z","ms":11350,"universe":3322,"scored":2367,"taken":15}
+{"minuteToNext":1,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":31,"shareOfLastPickBefore":0.719},{"rankBefore":16,"shareOfLastPickBefore":0.909},{"rankBefore":17,"shareOfLastPickBefore":0.893}]}
+{"minuteToNext":2,"joinedRwPicks":1,"leftRwPicks":1,"entered":[{"rankBefore":16,"shareOfLastPickBefore":0.976}]}
+{"minuteToNext":3,"joinedRwPicks":5,"leftRwPicks":5,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":311,"shareOfLastPickBefore":0.158},{"rankBefore":16,"shareOfLastPickBefore":0.995},{"rankBefore":17,"shareOfLastPickBefore":0.995}]}
+{"minuteToNext":4,"joinedRwPicks":5,"leftRwPicks":5,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":28,"shareOfLastPickBefore":0.895},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":16,"shareOfLastPickBefore":0.979}]}
+{"minuteToNext":5,"joinedRwPicks":4,"leftRwPicks":4,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":16,"shareOfLastPickBefore":1}]}
+{"minuteToNext":6,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":88,"shareOfLastPickBefore":0.431},{"rankBefore":35,"shareOfLastPickBefore":0.801}]}
+{"minuteToNext":7,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null}]}
+{"minuteToNext":8,"joinedRwPicks":1,"leftRwPicks":1,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null}]}
+{"minuteToNext":9,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null}]}
+{"minuteToNext":10,"joinedRwPicks":1,"leftRwPicks":1,"entered":[{"rankBefore":16,"shareOfLastPickBefore":0.965}]}
+{"minuteToNext":11,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":16,"shareOfLastPickBefore":0.935},{"rankBefore":56,"shareOfLastPickBefore":0.473},{"rankBefore":17,"shareOfLastPickBefore":0.802}]}
+{"minuteToNext":12,"joinedRwPicks":3,"leftRwPicks":3,"entered":[{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":null,"shareOfLastPickBefore":null},{"rankBefore":39,"shareOfLastPickBefore":0.724}]}
+{"minuteToNext":13,"joinedRwPicks":2,"leftRwPicks":2,"entered":[{"rankBefore":19,"shareOfLastPickBefore":0.882},{"rankBefore":16,"shareOfLastPickBefore":0.968}]}
+{"k":"<=2 min tau=0","pairs":25,"picks":200,"overlaps":2,"pairsWithOverlap":2,"leftOutOfBand":2,"leftOutOfBandPerPair":0.1}
+{"k":"<=2 min tau=0.25","pairs":25,"picks":200,"overlaps":3,"pairsWithOverlap":3,"leftOutOfBand":47,"leftOutOfBandPerPair":1.9}
+{"k":"<=2 min tau=0.5","pairs":25,"picks":200,"overlaps":3,"pairsWithOverlap":3,"leftOutOfBand":160,"leftOutOfBandPerPair":6.4}
+{"k":"<=2 min tau=0.67","pairs":25,"picks":200,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":411,"leftOutOfBandPerPair":16.4}
+{"k":"<=2 min tau=0.8","pairs":25,"picks":200,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":1487,"leftOutOfBandPerPair":59.5}
+{"k":"3-6 min tau=0","pairs":30,"picks":240,"overlaps":3,"pairsWithOverlap":3,"leftOutOfBand":3,"leftOutOfBandPerPair":0.1}
+{"k":"3-6 min tau=0.25","pairs":30,"picks":240,"overlaps":7,"pairsWithOverlap":7,"leftOutOfBand":68,"leftOutOfBandPerPair":2.3}
+{"k":"3-6 min tau=0.5","pairs":30,"picks":240,"overlaps":12,"pairsWithOverlap":12,"leftOutOfBand":203,"leftOutOfBandPerPair":6.8}
+{"k":"3-6 min tau=0.67","pairs":30,"picks":240,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":494,"leftOutOfBandPerPair":16.5}
+{"k":"3-6 min tau=0.8","pairs":30,"picks":240,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":1774,"leftOutOfBandPerPair":59.1}
+{"k":"7+ min tau=0","pairs":36,"picks":288,"overlaps":1,"pairsWithOverlap":1,"leftOutOfBand":2,"leftOutOfBandPerPair":0.1}
+{"k":"7+ min tau=0.25","pairs":36,"picks":288,"overlaps":8,"pairsWithOverlap":8,"leftOutOfBand":84,"leftOutOfBandPerPair":2.3}
+{"k":"7+ min tau=0.5","pairs":36,"picks":288,"overlaps":25,"pairsWithOverlap":25,"leftOutOfBand":264,"leftOutOfBandPerPair":7.3}
+{"k":"7+ min tau=0.67","pairs":36,"picks":288,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":627,"leftOutOfBandPerPair":17.4}
+{"k":"7+ min tau=0.8","pairs":36,"picks":288,"overlaps":0,"pairsWithOverlap":0,"leftOutOfBand":2175,"leftOutOfBandPerPair":60.4}
