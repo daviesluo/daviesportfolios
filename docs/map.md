@@ -717,6 +717,7 @@ before touching migration state.
 | `0080_pm_live_full_size.sql` | Polymarket's order path at the $400 deposit's full size in its dry-run (eight markets a day, $160 of first quotes, under the $320 cap), today's markets chosen again at that size; it goes live only on Davies' word. |
 | `0081_pm_mid.sql` | "Reward quotes mid-pool"'s tables, the path's and the layer's shapes as `pm_mid_*` and `pm_midprep_*` with a $10–$50 band and a config and orders that refuse anything but a dry-run, its config at the $400 sizes, its two leases and its two rows of the one-minute job. |
 | `0082_anon_key_opens_nothing.sql` | Takes every privilege in `public` from `anon` and `authenticated` (tables, views, sequences, functions, and the defaults for what is created later), drops `board_data`'s three dashboard-made anon policies, and leaves the service role as it was: the page's anon key opens nothing in the database. |
+| `0083_cron_run_details_prune.sql` | A daily job keeping seven days of pg_cron's run history (`cron.job_run_details`), which nothing pruned before. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

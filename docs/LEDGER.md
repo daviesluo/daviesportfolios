@@ -489,6 +489,17 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      held-out test has 0.09 power. MSTR's 2025 onward stays unread. Reopens only on a binding closing event at NAV or
      a coin hedge open to UK retail.
 
+9. **Supabase, after the tests** (measured 2026-10-02 from pg_stat_statements and the table statistics; the database is
+   315 MB after the clean-up):
+   - After PR5's verdict (10-21): its paper engine re-upserts its inputs every minute, and `agent_quote_inputs` had
+     11.0M updates on 11.4k rows. `quotes.ts` is frozen until then; then write only new rows.
+   - After RW's verdict (10-09): RW's tables hold 134 MB, 83 MB of it indexes, and its state upserts take 12–38 ms each;
+     the verdict's migration can drop or archive them.
+   - `pm_view_books`, the view-count study's raw books, grows about 12 MB a day; nothing prunes it before its study
+     reads it (about 500 MB at six weeks).
+   - On 10-03, read `net._http_response`'s size: six hours of responses is about 10 MB. Past 50 MB the dead space is
+     back, and it needs a job of its own.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -599,6 +610,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Supabase housekeeping: the two bloated tables emptied, seven days of pg_cron's history kept from now (`0083`), and what is left for after the tests (item 9).** Davies: "没用的话就清理掉吧". He ran `truncate cron.job_run_details` and `truncate net._http_response` himself at about 15:39 UTC; the connector's confirmation for a destructive statement had timed out twice, unanswered, changing nothing. That removed 115 MB of run history back to 05-13 and 206 MB of pg_net responses holding about 4.7k live rows; the rest was dead space no vacuum could hand back, because the table is supabase_admin's and pg_net holds a lock on it through each minute's batch. The database fell from 634 MB to 315 MB, and the job, the calls and pg_net ran on (checked at 15:40). Nothing reads either table: the Jev replies once read from the responses are in `backtests/jev*.json`. `0083` schedules `cron-run-details-prune` daily at 10:45 UTC, deleting runs started over seven days ago; pg_net prunes its own responses after six hours.
 
 ### [2026-10-02 15:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
