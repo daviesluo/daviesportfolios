@@ -707,6 +707,7 @@ before touching migration state.
 | `0077_pm_live_prep.sql` | "Reward quotes live-prep"'s tables (state, prints, market-minutes, fills, days, settlements, events), its lease and its row of the one-minute job. |
 | `0078_quote_tickers.sql` | Revolut X's USDC/GBP and USDT/GBP tickers (`agent_quote_tickers`, a row a book), whose index price the stablecoin quote pages value coins at, as the account does. |
 | `0079_live_fill_prices.sql` | Re-prices the live fills booked before 2026-10-02 at what each one's stored venue reply says the account moved, as fills are priced since. |
+| `0080_pm_live_full_size.sql` | Polymarket's order path at the $400 deposit's full size in its dry-run (eight markets a day, $160 of first quotes, under the $320 cap), today's markets chosen again at that size; it goes live only on Davies' word. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

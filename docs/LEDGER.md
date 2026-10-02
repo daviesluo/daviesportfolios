@@ -128,9 +128,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      day's two markets, no ops_errors); his $5 deposit, its balance read in `pm_live_state`; then ~$395; then the design
      doc's ONE go-time statement, in the conversation where he says go (it sets `cap_total_usd = least(320,
      floor(pusd − 75 − 5))` from the path's own read, refused when unread, older than 5 minutes or under $81, and arms);
-     phase 2 (`max_markets = 8, select_budget_usd = 160`, ~100 market-days in 14) after the first payout is read back.
+     phase 2 (`max_markets = 8, select_budget_usd = 160`, ~100 market-days in 14) is set ALREADY, in the dry-run, since
+     `0080` (2026-10-02, Davies: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了"): it goes live at that size, and
+     only in the conversation where he says go.
      The first live day reads how soon a cancel shows on the venue (the doc's "Not verified" query).
-   - **Reward quotes live-prep: 24 hours of paper first, then go live on the check** (Davies, ~18:15 UTC: "要不要先上线Reward
+   - **Reward quotes live-prep: paper first; the check is reported to Davies and he alone decides the go-live** (Davies, ~18:15 UTC: "要不要先上线Reward
      quotes live-prep测试一下？有问题也及时修复，然后我们操作账户和转账问题，纸面测试24小时之后再验证一遍没问题自动上线？"). `0077`,
      `agents/pm_prep.ts`, `agents?action=pmprep` every minute (a row of `edge_calls`, retry true): the path's OWN dry-run
      orders filled on paper by RW's `stepRw` on the row the path decided on, two minutes behind; the path's P&L, stops and
@@ -148,11 +150,15 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      window is 2026-10-01 21:00 → 10-03 00:00 UTC** (1,620 minutes: a1 ≥ 1,604, a2 ≤ 16). 10-02's selection landed at
      00:00:01 UTC (two markets); at 00:14 both states were moving with no error and `ops_errors` empty since 23:50.
      Until the check, read only what the prereg allows (the two `last_error`s and the states' clocks, `ops_errors`,
-     whether a day's selection landed). **Next:** at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
-     deployed before 10-02 00:00 makes it `prep_check.sql`, as frozen); every row PASS → the go-time statement, word for
-     word, on his word above; any FAIL → no go-live, fix and report. A fix deployed inside the window ends it as FAIL; the
-     next full UTC day after the fix is the new window (the prereg's addendum first). (f) needs his funding (pUSD ≥ $81,
-     read within 5 minutes); if only (f) fails it is read again once he has funded.
+     whether a day's selection landed). **Addendum 2** (2026-10-02 ~02:20 UTC; Davies chose option B: "现在就切
+     全功率320刀，并且什么时候上线我说了算不自动转了"): `0080` set eight markets and $160 on the dry-run row and took 10-02's
+     rows out so the path chose that day again at the full size; Addendum 1's window ends as FAIL by the rule; **the
+     window is 2026-10-03 00:00 → 10-04 00:00 UTC**, read by `prep_check_addendum2.sql` (sha256 pinned; the frozen check
+     with its dates moved a day). **Next:** at or after **2026-10-04 00:10 UTC** run it once, read-only, and report every
+     row to Davies in Chinese. **Never run the go-time statement on a check**: his standing word for an automatic
+     go-live is withdrawn; the path goes live only in the conversation where he says go (design step 8, word for word).
+     A fix inside the window ends it as FAIL and moves the check a day, by a next addendum. (f) needs his funding
+     (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
      since 2026-10-01**, his words: "我之后长期在爱尔兰，如果变动需要更改会和你说，不和你说关就一直没事 也不用问我" — current until
@@ -571,6 +577,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 02:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket's order path runs its dry-run at the $400 deposit's full size from now, and goes live only on Davies' word** (item 2, live-prep). Asked when phase 2 and the $320 start (neither was today: $320 is the total cap, set at go-time from the balance; phase 2 waited for the first live payout, 10-05 at the earliest), and given A (finish Addendum 1's window at two markets, switch after its check) or B (switch now; the window ends FAIL and the check moves to 10-03), he chose B, verbatim: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了". `0080_pm_live_full_size.sql`: `max_markets = 8, select_budget_usd = 160` on the row while it is dry-run (the cap stays $320; code ceilings 12 and $320), and 10-02's `pm_live_markets` rows out (guarded to run only on 10-02 UTC) so the path's next turn chooses the day again at that size, as Addendum 1 did on 10-01. Read first: the path chooses a day on the first turn that finds no row of it (its last try was 00:00, past the 5-minute retry); no foreign key reads `pm_live_markets`; a dry-run order of a market not chosen again expires within its 600 s; the paper layer keeps each market's tokens in its state and uses the day's list only to count missing minutes. The pre-registration's **Addendum 2** (written before its window): Addendum 1's window ends as FAIL by the rule; the window is **2026-10-03 00:00 → 10-04 00:00 UTC**, read by `prep_check_addendum2.sql` (the frozen check with its three date lines moved a day; sha256 `8b72a9d2…65f0` pinned in `src/pm_prep_prereg.test.js`, which also holds it line for line to `prep_check.sql`); its CTEs run read-only before the window parse and read FAIL where they should (no window yet; b3 still 2 / $40). **No session or routine runs the go-time statement any more**: the check's rows are reported to him, and the path goes live, at eight markets, only in the conversation where he says go. The routine at 10-03 00:15 (`trig_014N6zxm3dqcQLMqUut3NKND`) is moved to 10-04 00:15 and rewritten to run the check and report, never to arm; the 09:00 health check names Addendum 2. Reference §4's live-prep paragraph, the design doc's step 15, the guide (eight markets; live only on his word) and `docs/map.md` say so.
 
 ### [2026-10-02 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

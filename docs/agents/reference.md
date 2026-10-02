@@ -3519,8 +3519,13 @@ every script re-run byte-identical by the coordinating session).
       by `backtests/pmlive/prep_check.sql`); its Addendum 1 (Davies, 2026-10-01: "改为现在就开始测试，可以测试今天剩余时间+明天
       一整天") opens the window on the first full UTC hour after 2026-10-01's own selection, made at once by taking
       0074's two placeholder rows out of `pm_live_markets`, and reads it to 10-03 00:00 with
-      `backtests/pmlive/prep_check_addendum1.sql` (the same conditions, per day where they read a day); all PASS and the
-      go-time statement above runs on that word. On the
+      `backtests/pmlive/prep_check_addendum1.sql` (the same conditions, per day where they read a day). **Addendum 2**
+      (Davies, 2026-10-02: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了"): `0080` sets the design's phase 2 on the
+      dry-run row at once, eight markets a day and $160 of first quotes under the $320 cap, and chooses that day's
+      markets again at that size. Changed inside Addendum 1's window, it ends that window as FAIL; the check is
+      `backtests/pmlive/prep_check_addendum2.sql` (the frozen check, its window moved to 2026-10-03 00:00 → 10-04 00:00
+      UTC), run at or after 10-04 00:10 and reported to him. No session or routine runs the go-time statement any more:
+      the path goes live at the full size only in the conversation where he says go. On the
       Agents page it is the last row of TESTING STRATEGIES, "Reward quotes live-prep" on Polymarket, on the path's
       total cap, counted in TESTING's scoreboard and the Polymarket card, with Reward quotes' page (`agents/pm_prep_view.ts`;
       Davies, 2026-10-01): its days are each the change since the close before, as RW's, and a closed day's worst case,

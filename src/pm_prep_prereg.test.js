@@ -11,6 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DOC = fs.readFileSync(path.join(ROOT, 'docs/agents/reviews/2026-10-01-polymarket-live-prep-prereg.md'), 'utf8');
 const SQL = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check.sql'));
 const ADD1 = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check_addendum1.sql'));
+const ADD2 = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check_addendum2.sql'));
 
 describe('the live-prep pre-registration', () => {
   it('names the sha256 of the check it froze, and the check is that file', () => {
@@ -41,5 +42,28 @@ describe('the live-prep pre-registration', () => {
     expect(sql).toContain("w as (select date_trunc('hour', s.at at time zone 'utc') at time zone 'utc' + interval '1 hour' as w0, timestamptz '2026-10-03 00:00:00+00' as w1");
     expect(sql).toContain("where m.day = date '2026-10-01' and m.reward_rate is not null) s)");
     expect(sql.replace(/--[^\n]*/g, '')).not.toMatch(/\b(insert|update|delete|alter|drop|create|truncate|grant)\b/i);
+  });
+
+  // Addendum 2 (Davies, 2026-10-02: "现在就切 全功率320刀，并且什么时候上线我说了算不自动转了"): 0080 resized the path
+  // inside Addendum 1's window, which ends it as FAIL, so the check moves to the next full UTC day. Its check is the
+  // frozen one with the window's dates moved by a day and nothing else, and it arms nothing.
+  it("names the sha256 of Addendum 2's check, and the check is that file", () => {
+    const named = /`prep_check_addendum2\.sql`\*\*, sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    expect(named).toMatch(/^[0-9a-f]{64}$/);
+    expect(crypto.createHash('sha256').update(ADD2).digest('hex')).toBe(named);
+  });
+
+  it("reads Addendum 2's window, 2026-10-03 00:00 to 2026-10-04 00:00 UTC, with every bar of the frozen check", () => {
+    expect(DOC).toContain('**The window: 2026-10-03 00:00:00 → 2026-10-04 00:00:00 UTC**');
+    const sql = ADD2.toString('utf8');
+    expect(sql).toContain("w as (select timestamptz '2026-10-03 00:00:00+00' as w0, timestamptz '2026-10-04 00:00:00+00' as w1, date '2026-10-03' as d),");
+    expect(sql.replace(/--[^\n]*/g, '')).not.toMatch(/\b(insert|update|delete|alter|drop|create|truncate|grant)\b/i);
+    // Line for line the frozen check, but for its header comment and the two lines that name the window's dates.
+    const body = (b) => b.toString('utf8').split('\n').filter((l) => !l.startsWith('--'));
+    const frozen = body(SQL), moved = body(ADD2);
+    expect(moved.length).toBe(frozen.length);
+    const differ = frozen.map((l, i) => (l === moved[i] ? null : i)).filter((i) => i !== null);
+    expect(differ.length).toBe(2);
+    for (const i of differ) expect(moved[i]).toBe(frozen[i].replaceAll('2026-10-03', '2026-10-04').replaceAll('2026-10-02', '2026-10-03'));
   });
 });

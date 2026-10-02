@@ -153,3 +153,37 @@ else:
   and the go-live does not move. A fix deployed on 2026-10-02 moves the check to 2026-10-03, by a next addendum.
 - **What happens** is unchanged: at or after 2026-10-03 00:10 UTC the check runs once; every row PASS → the go-time
   statement above, word for word; any FAIL → no go-live, found, fixed and reported.
+
+## Addendum 2 (2026-10-02, about 02:20 UTC): full size now, the window moved to 2026-10-03, and no automatic go-live
+
+Written before the window it opens. Two options were put to Davies at about 01:40 UTC: A, finish this window at two
+markets and switch to the full size after its check; B, switch now, which by the rule above ends this window as FAIL
+and moves the check to 2026-10-03. He chose B, verbatim (about 02:15 UTC):
+
+> 现在就切 全功率320刀，并且什么时候上线我说了算不自动转了
+
+In English: switch now, at full power, $320; and when it goes live is my call, it no longer goes live by itself. What
+changes, and nothing else:
+
+- **The size.** Migration `0080_pm_live_full_size.sql` sets the design's phase 2 on the dry-run row, eight markets a UTC
+  day and $160 of first-quote capital (`max_markets = 8, select_budget_usd = 160`), under the total cap the row
+  already holds, $320, and takes 2026-10-02's rows out of `pm_live_markets`, so the path's next turn chooses today's
+  markets again at that size. Its code and the layer's are unchanged, at the hashes above.
+- **Addendum 1's window ends as FAIL** by the rule "a fix inside the window": `0080` changes the path's tables inside
+  it. Nothing of that window is checked, and nothing of it is read for a verdict.
+- **The window: 2026-10-03 00:00:00 → 2026-10-04 00:00:00 UTC**, the first full UTC day after `0080`. The minutes
+  between `0080`'s selection and the window are a run-in, read only through 2026-10-02's day row. As before, nothing
+  of the window or the run-in is read before the check except the health scalars named above and whether each day's
+  selection landed.
+- **The check is `prep_check_addendum2.sql`**, sha256 `8b72a9d299c39a7b49a0d41c3b0c827afa72d92a2717dac380468d20ec3365f0`
+  (`src/pm_prep_prereg.test.js` fails if the file changes): `prep_check.sql` as frozen, with its window's three date
+  lines moved by one day and every bar the same. (b3) reads the row's own `max_markets` and `select_budget_usd`, eight
+  and $160 from `0080`. Run read-only before `0080` and the window, it parses and reads FAIL where it should (no window
+  yet; the row still at two markets and $40). `prep_check.sql` and `prep_check_addendum1.sql` stay as frozen.
+- **What happens, on his word above:** at or after 2026-10-04 00:10 UTC the check runs once and its output, every row,
+  is reported to Davies. No session and no routine runs the go-time statement: the path goes live only in the
+  conversation where he says go, and then by the design's statement, word for word. His standing word for an
+  automatic go-live ("纸面测试24小时之后再验证一遍没问题自动上线") is withdrawn by this one. Any FAIL is found, fixed and
+  reported as before.
+- **A fix inside this window** ends it as FAIL, as above, and the check moves to the first full UTC day after the fix,
+  by a next addendum.

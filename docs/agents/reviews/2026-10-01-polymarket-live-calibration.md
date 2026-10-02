@@ -389,6 +389,9 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
 
 15. `update public.pm_live_config set max_markets = 8, select_budget_usd = 160 where id = 1;` (takes effect at the next UTC
     day's selection). Nine and $175 is the next step if the first days' inventory stays well under the cap.
+    **Done already, in the dry-run, on 2026-10-02** (migration `0080`; Davies: "现在就切 全功率320刀，并且什么时候上线我说了算不
+    自动转了"): that day's markets were chosen again at eight and $160, and the path goes live at this size, not at
+    phase 1's two. Step 8 runs only in the conversation where he says go; no routine runs it.
 
 **Kill switches**
 

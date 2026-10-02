@@ -261,7 +261,9 @@ places stay when the number is not whole.
   on Polymarket would do. That account is built and runs every minute
   without sending anything: it picks the day's markets (rewards of $6 to
   under $10 a day), works out its bid and ask in each, and writes down
-  every order it would send. This row fills those very orders on paper
+  every order it would send. It quotes up to eight markets a day, the
+  size the account will go live at, and it goes live only when Davies
+  says so. This row fills those very orders on paper
   from the trades the public sees, two minutes behind the clock, and keeps
   what they would hold, at the mid, and what they would have made. Its cap
   is the account's own limit; deployed is what its resting quotes tie up
