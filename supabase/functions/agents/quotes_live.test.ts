@@ -16,7 +16,7 @@ import {
 import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
-  venueSideOf, wasRateLimited, wasSent,
+  venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
@@ -1034,6 +1034,85 @@ Deno.test("inventory: an ask needs coin beyond what the book's own longs will se
   const r2 = await w2.step(T0);
   assertEquals([w2.open("live").length, r2.skippedEntries.filter((s) => s.reason === "not enough free GBP").length], [3, 3]);
   assertEquals(w2.orders().filter((o) => o.state === "rejected").length, 0);
+});
+
+// Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币". Worked by hand at fair 0.7550 and £120 (£10 a rung):
+// the three asks at 0.7558 / 0.7566 / 0.7573 sell 13.23102 + 13.21703 + 13.20481 = 39.65286 coins (a sell takes the step
+// that carries it to the penny). Holding 39.5 beyond its longs, a book is 0.15286 short (£0.11538 at 0.7548, over the
+// venue's £0.10 minimum); with the 2 % buffer it wants 39.65286 × 1.02 − 39.5 = 0.94591 (floored to the step).
+Deno.test("planTopUps: each short book's shortfall first, at least the venue's minimum; the 2 % buffer from the GBP left; the day's £5 kept", () => {
+  const fair = 0.755;
+  const at = (over: Partial<Parameters<typeof planTopUps>[0][number]> = {}) => ({ book: "USDT-GBP" as const, fair, pair: PAIR, bestBid: 0.7547, bestAsk: 0.7552, beyond: 39.5, spentTodayGbp: 0, ...over });
+  assertAlmostEquals(asksNeedOf(fair, 120, PAIR), 39.65286, 1e-9);
+  assertEquals([makerBuyTicks(0.7547, 0.7552, fair), makerBuyTicks(0.7547, 0.7548, fair), makerBuyTicks(0.7600, 0.7605, fair)], [7548, 7547, 7587]);   // a tick over; at it; never over fair + 50 bps
+  // Plenty of GBP: the whole buffer, resting at 0.7548.
+  assertEquals(planTopUps([at()], 120, 10), [{ book: "USDT-GBP", ticks: 7548, base: "0.94591", gbp: 0.94591 * 0.7548, fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 39.5 }]);
+  // Two books short and £0.31 free (PR5's account on 2026-10-02): each its shortfall (£0.11538), then the £0.07924 left
+  // shared, 0.05249 coins each: 0.20535 apiece, £0.31 between them, and not a penny more.
+  const two = planTopUps([at({ book: "USDC-GBP" }), at()], 120, 0.31) as { book: string; base: string; gbp: number }[];
+  assertEquals(two.map((p) => [p.book, p.base]), [["USDC-GBP", "0.20535"], ["USDT-GBP", "0.20535"]]);
+  assert(two.reduce((a, p) => a + p.gbp, 0) <= 0.31 + 1e-12);
+  // £0.20 free: the first book's shortfall, and the second is told the account needs more GBP.
+  assertEquals(planTopUps([at({ book: "USDC-GBP" }), at()], 120, 0.2).map((p) => "skip" in p ? [p.book, p.skip] : [p.book, p.base]), [
+    ["USDC-GBP", "0.15286"],
+    ["USDT-GBP", "its shortfall needs £0.12 and £0.08 of GBP is free: the account needs more GBP"],
+  ]);
+  // The day's £5: £4.95 spent leaves no room for the shortfall; £4.80 leaves £0.20, which caps the buffer.
+  assertEquals(planTopUps([at({ spentTodayGbp: 4.95 })], 120, 10), [{ book: "USDT-GBP", skip: "today's top-ups would pass £5: £4.95 so far, £0.12 short" }]);
+  const capped = planTopUps([at({ spentTodayGbp: 4.8 })], 120, 10)[0] as { base: string; gbp: number };
+  assertEquals(capped.base, "0.26497");
+  assert(4.8 + capped.gbp <= 5 + 1e-9, String(capped.gbp));
+  // A shortfall under the venue's minimum buys the minimum (£0.10 at 0.7548: 0.13249); nothing short, nothing bought.
+  assertEquals((planTopUps([at({ beyond: 39.6, spentTodayGbp: 5 - 0.4 })], 120, 0.10001)[0] as { base: string }).base, "0.13249");
+  assertEquals(planTopUps([at({ beyond: 39.7 })], 120, 10), [{ book: "USDT-GBP", skip: "it holds its three asks' worth" }]);
+  assertEquals(planTopUps([at({ bestBid: null })], 120, 10), [{ book: "USDT-GBP", skip: "the order book is unreadable" }]);
+});
+
+Deno.test("inventory: an ask short of coin tops its book up itself — a maker conversion at the top of the bids, one at a time, and the ask goes out once it fills", async () => {
+  // The three asks at 0.7562 / 0.7570 / 0.7577 need `asks` USDT; the account holds 0.05 less, so one of them is skipped.
+  const asks = handBase(0.7562) + handBase(0.757) + handBase(0.7577);
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 - asks * 0.756, USDT: asks - 0.05 } });
+  await w.seed({ mode: "live", book: "USDT-GBP", leg: "convert", side: "buy", price: 0.756, base_size: asks - 0.05, filled_base: asks - 0.05, avg_fill_price: 0.756, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  const sells = () => w.rx.resting("USDT/GBP").filter((o) => o.side === "sell");
+  const tops = () => w.orders().filter((o) => isAutoConvert(o as { leg: string; request: unknown }));
+  const r0 = await w.step(T0);
+  assertEquals(sells().length, 2);
+  assert(r0.skippedEntries.some((x) => x.rung.startsWith("USDT-GBP|ask") && x.reason.startsWith("no USDT to sell")));
+  // One top-up: a post-only buy at the top of the bids (0.7546 / 0.7551: a tick over, 0.7547), sized to the asks' coin
+  // and 2 % over, less what the account holds.
+  assertEquals(tops().length, 1);
+  const t = tops()[0];
+  const fair = 1 / X;
+  assertEquals([t.state, t.side, Number(t.price), (t.request as { postOnly: boolean }).postOnly], ["new", "buy", 0.7547, true]);
+  assertAlmostEquals(Number(t.base_size), asksNeedOf(fair, 50, PAIR) * 1.02 - (asks - 0.05), 1e-5);
+  // While it rests, no second.
+  await w.step(T0 + M);
+  assertEquals(tops().length, 1);
+  // It fills; the next turns settle it and send the ask that was short.
+  w.rx.fillResting(String(t.venue_order_id), Number(t.base_size));
+  await w.run(T0 + 2 * M, T0 + 3 * M);
+  assertEquals([tops()[0].state, sells().length, tops().length], ["filled", 3, 1]);
+});
+
+Deno.test("inventory: a top-up unfilled for 30 minutes is cancelled and sent again at the book as it stands; a dry-run tops nothing up", async () => {
+  const asks = handBase(0.7562) + handBase(0.757) + handBase(0.7577);
+  const world = (live: boolean) => makeWorld({ live, armed: live, balances: { GBP: 50 - asks * 0.756, USDT: asks - 0.05 } });
+  const w = world(true);
+  await w.seed({ mode: "live", book: "USDT-GBP", leg: "convert", side: "buy", price: 0.756, base_size: asks - 0.05, filled_base: asks - 0.05, avg_fill_price: 0.756, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  const tops = () => w.orders().filter((o) => isAutoConvert(o as { leg: string; request: unknown }));
+  await w.step(T0);
+  const first = tops()[0];
+  // The book moves up a tick meanwhile: the next top-up rests at the new top.
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7547, ask: 0.7552 };
+  await w.run(T0 + M, T0 + QUOTE_LIVE_TOPUP_REST_MS + 2 * M);
+  const cancelled = tops().find((o) => o.id === first.id)!;
+  assertEquals([cancelled.state, cancelled.cancel_reason], ["cancelled", "a top-up unfilled after 30 minutes: the next turn that finds an ask short sends another at the book as it stands"]);
+  const again = tops().filter((o) => o.id !== first.id);
+  assertEquals(again.map((o) => [o.state, Number(o.price)]), [["new", 0.7548]]);
+  // The dry-run quotes on paper and converts nothing.
+  const dry = world(false);
+  await dry.run(T0, T0 + 2 * M);
+  assertEquals(dry.orders().filter((o) => o.leg === "convert" && o.mode !== "live" || isAutoConvert(o as { leg: string; request: unknown })).length, 0);
 });
 
 Deno.test("inventory: a re-price on tight inventory gives the cancelled order's coin back before the replacement is sized, so it is replaced, not skipped", async () => {

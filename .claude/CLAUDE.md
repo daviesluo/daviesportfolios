@@ -488,7 +488,9 @@ that follow from that evidence, in short:
   bounded 24-hour stop; a refused exit sent again only after a newer print
   that is not through it; a post-only order the book it met shows crossing
   recorded refused and never sent, 2026-10-02). Its asks hold coin bought by `quotes-convert`
-  (£30 of each, 16:31–16:32 UTC). It went live with `update
+  (£30 of each, 16:31–16:32 UTC), topped up by the executor itself since
+  2026-10-02 when an ask runs short (a maker conversion at the bid, at most £5
+  a book a day, `planTopUps`). It went live with `update
   public.agent_quote_live_config set dry_run = false, live_confirmed_at =
   now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
   stay armed); `global_pause` cancels everything. From its first real
@@ -527,6 +529,11 @@ that follow from that evidence, in short:
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that
   account, and tell Davies so whenever the subject comes up. The same holds for PR5's sub-account (key `_2`):
   its executor books fills and inventory from that account's balance as its own.
+- **The Revolut X connector** (claude.ai's, connected 2026-10-02) is
+  read-only and sees Davies' own account, not the loop's and not PR5's
+  sub-account: a session reads public market data through it (pairs and
+  their minimums, books, tickers, trades) and the strategy accounts through
+  the database and the `probe`, as before.
 - Verify a key read-only before anything depends on it: the `probe`
   action (balances, pair config for every symbol on an active row, a
   signed call with a query, Revolut X active orders and Kraken closed

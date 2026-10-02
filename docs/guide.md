@@ -196,7 +196,11 @@ places stay when the number is not whole.
   out, since ROUND TRIPS shows it, so the tables hold what is still
   working: orders resting, and the entries a rung still holds. A cancel
   that filled nothing is left out too, since every re-price makes one,
-  and so are the conversions that bought the coins. A warning line shows under the scoreboard only
+  and so are the conversions that bought the coins. When an ask cannot go
+  out for want of coin (the pound has risen since the coins were bought,
+  so each £10 ask needs more of them), the executor buys the shortfall
+  itself, resting at the top of the bids for no fee, a few pounds a day
+  at most. A warning line shows under the scoreboard only
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.

@@ -50,8 +50,11 @@
 //   * The kill switch. `live_confirmed_at` cleared cancels every live entry and places none, and exits and stops stay
 //     armed. `agent_risk.global_pause` cancels every open order, exits included, and places nothing.
 //   * Inventory. A quote the account cannot cover is not placed. A bid needs free GBP. An ask needs free coin beyond what
-//     the book's own longs will sell. With none, the ask is SKIPPED: an event, not an error. The one-off GBP to coin
-//     conversion is `runQuotesConvert`, an operator's call, never the minute loop's.
+//     the book's own longs will sell. With none, the ask is SKIPPED: an event, not an error, and the same turn tops the
+//     book's coin up itself (Davies, 2026-10-02): a maker conversion at the top of the bids, back to three asks' worth
+//     and 2 % over, out of the GBP the entries leave free, one at a time a book, at most £5 a book in a UTC day,
+//     cancelled after 30 minutes unfilled (`planTopUps`). The operator's conversion, `runQuotesConvert`, stays for
+//     capital added.
 
 import { ceilToStep, floorToStep, type PairConfig } from "../_shared/agents_strategy.ts";
 import { revxPublic } from "../_shared/revx.ts";
@@ -89,6 +92,16 @@ export const QUOTE_LIVE_PENDING_GRACE_MS = 60e3;    // a `pending` row younger t
 export const QUOTE_LIVE_CONVERT_MAX_FRACTION = 0.25; // one conversion buys at most three rungs' worth: the design's inventory for one coin
 /** A conversion resting at the bid (maker, 0 %) that has not filled in this long is cancelled; the operator sends another. */
 export const QUOTE_LIVE_CONVERT_REST_MS = 24 * H;
+/**
+ * The asks' coin, topped up by the minute loop itself (Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币").
+ * When an ask is skipped for want of coin, a maker conversion at the top of the bids buys the book back up to its three
+ * asks' worth at the rule's prices and this much over, so the next few days of GBP rising leave every ask covered.
+ */
+export const QUOTE_LIVE_TOPUP_BUFFER = 0.02;
+/** An automatic top-up resting unfilled this long is cancelled; a turn that still finds an ask short sends another at the book as it then stands. */
+export const QUOTE_LIVE_TOPUP_REST_MS = 30 * M;
+/** At most this many pounds of automatic top-ups a book in a UTC day: a shortfall past it is reported, never chased. */
+export const QUOTE_LIVE_TOPUP_MAX_GBP_DAY = 5;
 /**
  * Revolut X takes at most 10 order POSTs a second on a key (reference §2), and a turn that places or re-prices every rung
  * sends twelve (the PR5v study, 2026-09-28): the executor's own POSTs go out at least this far apart, 8 a second.
@@ -181,6 +194,68 @@ export function rungBase(gbp: number, price: number, pair: PairConfig, side: "bu
 export function dustBase(pair: PairConfig, price: number): number {
   return Math.max(Number(pair.min_order_size), price > 0 ? Number(pair.min_order_size_quote) / price : 0);
 }
+
+/** What a book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): the coin the design holds for them. */
+export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig): number {
+  return QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
+}
+
+/** A maker's price for a conversion: the top of the bids, one tick over the best bid when the ask stays a tick above it; never over fair + 50 bps. */
+export function makerBuyTicks(bestBid: number, bestAsk: number, fair: number): number {
+  const bid = Math.round(bestBid / QUOTE_TICK), ask = Math.round(bestAsk / QUOTE_TICK);
+  return Math.min(ask - 1 >= bid + 1 ? bid + 1 : bid, Math.floor(fair * (1 + QUOTE_LIVE_STOP_BOUND) / QUOTE_TICK + 1e-9));
+}
+
+/** One book's case for an automatic top-up: its fair, its pair, the book the turn met, its coin beyond its longs and its top-ups today. */
+export type TopUpBook = { book: QuoteBook; fair: number; pair: PairConfig; bestBid: number | null; bestAsk: number | null; beyond: number; spentTodayGbp: number };
+export type TopUpPlan =
+  | { book: QuoteBook; ticks: number; base: string; gbp: number; fair: number; asksNeed: number; beyond: number }
+  | { book: QuoteBook; skip: string };
+/**
+ * The automatic top-ups of one turn, from the GBP the entries left free. Each book short of its asks' coin is owed its
+ * shortfall first (at least the venue's minimum order), and the buffer (QUOTE_LIVE_TOPUP_BUFFER of its asks' worth) is
+ * shared out of what is left, so one book's buffer never starves another's shortfall. A book whose shortfall the free
+ * GBP cannot cover, or that would pass the day's QUOTE_LIVE_TOPUP_MAX_GBP_DAY, is skipped with the reason.
+ */
+export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number): TopUpPlan[] {
+  const out: TopUpPlan[] = [];
+  const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; full: number; room: number }[] = [];
+  for (const b of books) {
+    if (b.bestBid == null || b.bestAsk == null) { out.push({ book: b.book, skip: "the order book is unreadable" }); continue; }
+    const ticks = makerBuyTicks(b.bestBid, b.bestAsk, b.fair), price = ticks * QUOTE_TICK;
+    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair);
+    const short = asksNeed - b.beyond;
+    if (!(short > 1e-9)) { out.push({ book: b.book, skip: "it holds its three asks' worth" }); continue; }
+    const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step));
+    const full = Math.max(min, Number(floorToStep(asksNeed * (1 + QUOTE_LIVE_TOPUP_BUFFER) - b.beyond, b.pair.base_step)));
+    const room = Math.max(0, QUOTE_LIVE_TOPUP_MAX_GBP_DAY - b.spentTodayGbp);
+    if (min * price > room + 1e-9) { out.push({ book: b.book, skip: `today's top-ups would pass £${QUOTE_LIVE_TOPUP_MAX_GBP_DAY}: £${b.spentTodayGbp.toFixed(2)} so far, £${(min * price).toFixed(2)} short` }); continue; }
+    due.push({ b, ticks, price, asksNeed, min, full, room });
+  }
+  // Every shortfall first, in the books' order, while the free GBP covers it.
+  let spare = freeGbp;
+  const funded: typeof due = [];
+  for (const x of due) {
+    if (x.min * x.price > spare + 1e-9) { out.push({ book: x.b.book, skip: `its shortfall needs £${(x.min * x.price).toFixed(2)} and £${Math.max(0, spare).toFixed(2)} of GBP is free: the account needs more GBP` }); continue; }
+    spare -= x.min * x.price;
+    funded.push(x);
+  }
+  // Then the buffers, an equal share of what is left each, within the day's room; none while a book's shortfall went
+  // unfunded, so the GBP left stays for it.
+  const share = funded.length && funded.length === due.length ? Math.max(0, spare) / funded.length : 0;
+  for (const x of funded) {
+    const extra = Math.max(0, Math.min(x.full - x.min, share / x.price, x.room / x.price - x.min));
+    const base = Math.max(x.min, Number(floorToStep(x.min + extra, x.b.pair.base_step)));
+    const baseText = ceilToStep(base, x.b.pair.base_step);
+    out.push({ book: x.b.book, ticks: x.ticks, base: baseText, gbp: Number(baseText) * x.price, fair: x.b.fair, asksNeed: x.asksNeed, beyond: x.b.beyond });
+  }
+  // In the books' order.
+  return books.map((b) => out.find((p) => p.book === b.book)!).filter(Boolean);
+}
+
+/** An automatic top-up (`request.auto`), as against an operator's `quotes-convert`. */
+export const isAutoConvert = (o: { leg?: string; request?: unknown }) =>
+  o.leg === "convert" && (o.request as { auto?: unknown } | null | undefined)?.auto === true;
 /**
  * A resting exit sized to the penny the venue rounds to, the hair it rounds off kept on the rung as dust. Revolut X credits
  * a sell's GBP floored to the penny and debits a buy's rounded UP (PR5's first round trip, 2026-10-01: the ask sold
@@ -425,6 +500,8 @@ async function placeOrder(ctx: Ctx, o: {
   marketable: boolean; fair: number | null; paper?: PaperTarget | null;
   /** An exit's: the paper engine's last print as the order goes out, which a refusal waits past (`exitMayGo`). */
   lastPrint?: SeenPrint | null;
+  /** Kept in the request beside the order: an automatic top-up's `auto` and the figures it was sized from. */
+  extra?: Record<string, unknown>;
 }): Promise<LiveOrderRow | null> {
   const { d, report } = ctx;
   const label = o.rungSide ? rungLabel(o.book, o.rungSide, o.k!) : `${o.book}|convert`;
@@ -436,6 +513,7 @@ async function placeOrder(ctx: Ctx, o: {
   const request = {
     clientOrderId, symbol: LIVE_SYMBOL[o.book], side: o.side, base: o.base, price, postOnly: !o.marketable, marketable: o.marketable,
     timeInForce: o.marketable ? "ioc" : "gtc", crossesBook: crosses, ...(o.lastPrint !== undefined ? { paperLastPrint: o.lastPrint } : {}),
+    ...(o.extra ?? {}),
   };
   let row: LiveOrderRow;
   try {
@@ -807,6 +885,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
   // fills are booked above, as every live order's are; a cancel already asked is asked again there.
   for (const o of open.filter((x) => x.mode === "live" && x.leg === "convert" && x.state !== "pending" && !x.cancel_requested_at && !unreadable.has(x.id))) {
     const why = globalPause ? "global pause" : entry.book !== "live" ? `not live and armed (${entry.why})`
+      : isAutoConvert(o) ? (d.now - Date.parse(o.ts) >= QUOTE_LIVE_TOPUP_REST_MS ? "a top-up unfilled after 30 minutes: the next turn that finds an ask short sends another at the book as it stands" : null)
       : d.now - Date.parse(o.ts) >= QUOTE_LIVE_CONVERT_REST_MS ? "unfilled after 24 hours: send another conversion if it is still wanted" : null;
     if (!why) continue;
     try { await cancelConfirmed(o, why); } catch (e) { report.errors.push(`${o.book}|convert: cancel ${msg(e)}`); }
@@ -990,6 +1069,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         detail: { reason, paperOid: t.oid, paperLive: iso(t.live), ticks: t.ticks, ...detail } }], "mode,minute,book,rung_side,k,kind");
     } catch (e) { report.errors.push(`${r.label}: skip not recorded (${msg(e)})`); }
   };
+  /** The books an ask of the live book was skipped on this turn for want of coin: step 6b tops their coin up. */
+  const shortOf = new Set<QuoteBook>();
   for (const r of rungs) {
     for (const mode of ["dry_run", "live"] as LiveMode[]) {
       const o = openOf(mode, r);
@@ -1029,7 +1110,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
           free.GBP -= need;
         } else {
           const coin = coinOf(r.book);
-          if (!((free[coin] ?? 0) + 1e-9 >= Number(base))) { await skipEvent(mode, r, target, `no ${coin} to sell: the account holds none beyond what its own longs will sell`, { need: Number(base), free: free[coin] ?? 0, coin }); continue; }
+          if (!((free[coin] ?? 0) + 1e-9 >= Number(base))) {
+            if (mode === "live") shortOf.add(r.book);
+            await skipEvent(mode, r, target, `no ${coin} to sell: the account holds none beyond what its own longs will sell`, { need: Number(base), free: free[coin] ?? 0, coin });
+            continue;
+          }
           free[coin] -= Number(base);
         }
         await placeOrder(ctx, { mode, book: r.book, rungSide: r.side, k: r.k, leg: "entry", side, ticks: target.ticks, base, marketable: false, fair: target.fairAt, paper: target });
@@ -1037,6 +1122,39 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport): Promise<void> {
         report.errors.push(`${r.label} ${mode}: ${msg(e)}`);
       }
     }
+  }
+
+  // ── 6b. the asks' coin, topped up when an ask ran short (Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币")
+  // An ask skipped for want of coin means the book holds less than its three asks sell: GBP has risen since its coin was
+  // bought, so each £10 ask needs more of it. A maker conversion at the top of the bids buys it back (`planTopUps`), one
+  // at a time a book, under the entries' own conditions; step 1 cancels it after QUOTE_LIVE_TOPUP_REST_MS unfilled.
+  if (shortOf.size && entry.book === "live" && !globalPause && !lossStopped && bal && governorLevel(report.posts.live) === "all") {
+    try {
+      const resting = new Set([...open, ...sentNow].filter((o) => isOpen(o) && o.mode === "live" && o.leg === "convert").map((o) => o.book));
+      const books = [...shortOf].filter((b) => !resting.has(b) && !report.guards[b].length);
+      const today = books.length ? await d.db.selectAll<Pick<LiveOrderRow, "book" | "leg" | "price" | "base_size" | "filled_base" | "state" | "request">>("agent_quote_live_orders",
+        `mode=eq.live&leg=eq.convert&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=book,leg,price,base_size,filled_base,state,request&order=id.asc`) : [];
+      const cases: TopUpBook[] = [];
+      for (const book of books) {
+        const fair = inputs[book]?.f ?? null, pair = pairs[LIVE_SYMBOL[book]];
+        if (fair == null || !pair) continue;
+        const seen = await ctx.bookSeen(book);
+        const held = (side: Side) => rungs.filter((r) => r.book === book && r.side === side).reduce((a, r) => a + Math.max(0, r.live.held), 0);
+        cases.push({
+          book, fair, pair, bestBid: seen?.bestBid ?? null, bestAsk: seen?.bestAsk ?? null,
+          beyond: (bal[coinOf(book)] ?? 0) - held("bid") + held("ask"),
+          // What today's top-ups of the book bought or still hold the pounds for: a cancel that filled nothing spent none.
+          spentTodayGbp: today.filter((o) => o.book === book && isAutoConvert(o))
+            .reduce((a, o) => a + Number(isOpen(o as LiveOrderRow) ? o.base_size : o.filled_base) * Number(o.price), 0),
+        });
+      }
+      for (const p of planTopUps(cases, capital, free.GBP ?? 0)) {
+        if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
+        sent(await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
+          marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } }));
+        free.GBP = (free.GBP ?? 0) - p.gbp;
+      }
+    } catch (e) { report.errors.push(`top-up: ${msg(e)}`); }
   }
 
   // ── 7. the record: an unfilled stop's alert, the guards when they change, and this turn's summary ──────────────────
@@ -1137,7 +1255,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const heldBy = (side: Side) => Math.max(0, fills.filter((o) => o.book === book && o.rung_side === side).reduce((a, o) => a + (o.leg === "entry" ? 1 : -1) * Number(o.filled_base), 0));
   const beyond = (bal[coin] ?? 0) - heldBy("bid") + heldBy("ask");
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
-  const asksNeed = QUOTE_RUNGS.reduce((a, k) => a + Number(rungBase(rungGbp(capital), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
+  const asksNeed = asksNeedOf(fair, capital, pair);
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, three asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price), 0);
   const needGbp = Number(base) * price * (taker ? 1.0009 : 1);
