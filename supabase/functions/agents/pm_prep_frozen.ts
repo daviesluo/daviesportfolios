@@ -44,13 +44,6 @@
 //
 // ITS END: it decides the dry-run's minutes only. Once the path is live its minutes carry mode `live` and the real fills
 // are the record; from then on every minute here is `missing`, and the test has ended.
-//
-// INSTANCES (2026-10-02, with the order path's: pm_live.ts's header). The layer runs beside one instance of the path, and
-// reads that instance's tables (`PrepInstance`): `PREP_INSTANCE` is the layer as it ran before instances, "Reward quotes
-// small-pool" (the name the row took that day; "live-prep" before it), reading `pm_live_*` and writing `pm_prep_*`, name
-// for name, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_prep_frozen.ts`) and finds every table
-// and report the same. Mid-pool's (`PREP_MID_INSTANCE`, `pm_mid.ts`) reads `pm_mid_*` and writes `pm_midprep_*`. The rule,
-// the fills, the book-keeping and the stops do not differ by instance.
 
 import { newAcc, quote, RW_DECIDE_LAG_MS, RW_INV_CAP, RW_STATUS_EVERY_MS, sizeN, stepRw, type Acc, type BookRow } from "./pmrw.ts";
 import { applyFill } from "./pmrw_e.ts";
@@ -70,29 +63,6 @@ export const PREP_TABLES = ["pm_prep_state", "pm_prep_minutes", "pm_prep_prints"
 export const PREP_READS = ["pm_live_config", "pm_live_markets", "pm_live_minutes", "pm_live_orders"] as const;
 export const PREP_DB_TABLES: readonly string[] = [...PREP_TABLES, ...PREP_READS, "agent_locks"];
 export const PREP_LOCK = "pm-prep";
-/** One instance of the layer: the tables it writes, the order path's it reads, its lease and the migration that made it. */
-export type PrepInstance = {
-  name: string;
-  tables: { state: string; minutes: string; prints: string; fills: string; days: string; settlements: string; events: string };
-  reads: { config: string; markets: string; minutes: string; orders: string };
-  lock: string;
-  migration: string;
-};
-/** The layer as it ran before instances, name for name (0077): beside the small-pool path. */
-export const PREP_INSTANCE: PrepInstance = {
-  name: "Reward quotes small-pool",
-  tables: {
-    state: "pm_prep_state", minutes: "pm_prep_minutes", prints: "pm_prep_prints", fills: "pm_prep_fills", days: "pm_prep_days", settlements: "pm_prep_settlements",
-    events: "pm_prep_events",
-  },
-  reads: { config: "pm_live_config", markets: "pm_live_markets", minutes: "pm_live_minutes", orders: "pm_live_orders" },
-  lock: PREP_LOCK,
-  migration: "0077",
-};
-/** What an instance of the layer may touch: its own tables, the path's four it reads, and `agent_locks` (its lease). */
-export const prepDbTables = (inst: PrepInstance): readonly string[] => [...Object.values(inst.tables), ...Object.values(inst.reads), "agent_locks"];
-/** The path's tables an instance reads, and never writes. */
-export const prepReads = (inst: PrepInstance): readonly string[] => Object.values(inst.reads);
 export const PREP_LEASE_MS = 55e3;
 /** Minutes decided in one run at most (a catch-up after an outage goes 240 at a time, as RW's engine does). */
 export const PREP_MAX_MINUTES = 240;
@@ -133,8 +103,7 @@ export type PrepReport = {
   skipped?: string; at: string; minutes: number; from: string | null; to: string | null; prints: number; fills: number; reward: number;
   matched: number; dark: number; diverged: number; missing: number; settled: number; days: number; stops: string[]; held: number; errors: string[];
 };
-/** `inst` is the layer this run is: `PREP_INSTANCE` (beside small-pool) when absent. */
-export type PrepDeps = { db: Db; now: number; holder: string; pm?: PmPublicOpts; inst?: PrepInstance };
+export type PrepDeps = { db: Db; now: number; holder: string; pm?: PmPublicOpts };
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
@@ -322,53 +291,51 @@ const rowOfFill = (f: PrepFill) => ({
  * whatever fails ends in `errors`, and the lease is always given back.
  */
 export async function runPmPrep(d: PrepDeps): Promise<PrepReport> {
-  const inst = d.inst ?? PREP_INSTANCE;
   const report: PrepReport = {
     at: iso(d.now), minutes: 0, from: null, to: null, prints: 0, fills: 0, reward: 0, matched: 0, dark: 0, diverged: 0, missing: 0, settled: 0, days: 0, stops: [], held: 0, errors: [],
   };
   let leased: unknown[];
   try {
-    leased = await d.db.claim("agent_locks", `name=eq.${inst.lock}&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + PREP_LEASE_MS), holder: d.holder });
+    leased = await d.db.claim("agent_locks", `name=eq.${PREP_LOCK}&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + PREP_LEASE_MS), holder: d.holder });
   } catch (e) {
     report.errors.push(`lease: ${msg(e)}`);
     return report;
   }
-  if (!leased.length) return { ...report, skipped: `another run holds the ${inst.lock} lease (or migration ${inst.migration} has not run)` };
+  if (!leased.length) return { ...report, skipped: `another run holds the ${PREP_LOCK} lease (or migration 0077 has not run)` };
   try {
-    await prepRun(d, inst, report);
+    await prepRun(d, report);
   } catch (e) {
     report.errors.push(`run: ${msg(e)}`);
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.${inst.lock}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
+    try { await d.db.update("agent_locks", `name=eq.${PREP_LOCK}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
   }
   return report;
 }
 
-async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Promise<void> {
+async function prepRun(d: PrepDeps, report: PrepReport): Promise<void> {
   const { db } = d;
-  const T = inst.tables, R = inst.reads;
   const nowMinute = minuteOf(d.now);
-  const cfg = (await db.select<PmLiveConfig>(R.config, "id=eq.1&select=*"))[0];
-  if (!cfg) { report.skipped = `no ${R.config} row`; return; }
+  const cfg = (await db.select<PmLiveConfig>("pm_live_config", "id=eq.1&select=*"))[0];
+  if (!cfg) { report.skipped = "no pm_live_config row"; return; }
   const lim = effectiveLimits(cfg);
-  const stored = (await db.select<{ state: PrepState | Record<string, never> }>(T.state, "id=eq.1&select=state"))[0]?.state;
+  const stored = (await db.select<{ state: PrepState | Record<string, never> }>("pm_prep_state", "id=eq.1&select=state"))[0]?.state;
   const st: PrepState = stored && (stored as PrepState).version === 1 ? stored as PrepState : newState(d.now);
-  const settlements = await db.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
-  const fills = (await db.selectAll<FillRow>(T.fills, "select=*&order=cond.asc,minute.asc,print_id.asc")).map(fillOfRow);
+  const settlements = await db.selectAll<PmSettlement>("pm_prep_settlements", "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
+  const fills = (await db.selectAll<FillRow>("pm_prep_fills", "select=*&order=cond.asc,minute.asc,print_id.asc")).map(fillOfRow);
   const settled = new Set(settlements.map((s) => s.cond));
 
   // ── 1. decide every minute at least two minutes old ─────────────────────────────────────────────────────────────
   const from = st.lastDecided + M, to = Math.min(nowMinute - RW_DECIDE_LAG_MS, from + (PREP_MAX_MINUTES - 1) * M);
   if (to >= from) {
-    const live = await db.selectAll<PrepLiveMinute>(R.minutes,
+    const live = await db.selectAll<PrepLiveMinute>("pm_live_minutes",
       `mode=eq.dry_run&minute=gte.${enc(iso(from))}&minute=lte.${enc(iso(to))}&select=minute,cond,rate,max_spread,min_size,tick,bb,ba,ab,aa,q1,q2&order=mode.asc,minute.asc,cond.asc`);
-    const markets = await db.select<{ day: string; cond: string; yes_token: string; no_token: string }>(R.markets,
+    const markets = await db.select<{ day: string; cond: string; yes_token: string; no_token: string }>("pm_live_markets",
       `day=gte.${dayStr(from)}&day=lte.${dayStr(to)}&select=day,cond,yes_token,no_token&order=day.asc,cond.asc`);
     // The dry-run's orders that could rest in the range: those resting now, and those ended since its first minute.
     const cols = "select=id,ts,cond,token,outcome,side,price,size,state,cancelled_at,request,book_seen";
     const byId = new Map<number, PrepOrder>();
-    for (const o of await db.selectAll<PrepOrder>(R.orders, `mode=eq.dry_run&state=in.(pending,live)&${cols}&order=id.asc`)) byId.set(o.id, o);
-    for (const o of await db.selectAll<PrepOrder>(R.orders, `mode=eq.dry_run&cancelled_at=gte.${enc(iso(from))}&${cols}&order=id.asc`)) byId.set(o.id, o);
+    for (const o of await db.selectAll<PrepOrder>("pm_live_orders", `mode=eq.dry_run&state=in.(pending,live)&${cols}&order=id.asc`)) byId.set(o.id, o);
+    for (const o of await db.selectAll<PrepOrder>("pm_live_orders", `mode=eq.dry_run&cancelled_at=gte.${enc(iso(from))}&${cols}&order=id.asc`)) byId.set(o.id, o);
     const orders = [...byId.values()];
     // Each market's minimum order as the venue told the path (its latest order's `book_seen.minSize`).
     const venueMin = new Map<string, number>();
@@ -380,7 +347,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
     const dayMarkets = new Map<string, string[]>();
     for (const m of markets) (dayMarkets.get(m.day) ?? dayMarkets.set(m.day, []).get(m.day)!).push(m.cond);
     // The marks of held markets the path no longer quotes: this layer's own reads (`held` rows).
-    const heldRows = await db.selectAll<{ minute: string; cond: string; mark: number | string | null }>(T.minutes,
+    const heldRows = await db.selectAll<{ minute: string; cond: string; mark: number | string | null }>("pm_prep_minutes",
       `class=eq.held&minute=gte.${enc(iso(from))}&minute=lte.${enc(iso(to))}&select=minute,cond,mark&order=minute.asc,cond.asc`);
 
     // The prints of every market the path quoted in the range, from its first minute: all of them, or nothing is decided.
@@ -397,11 +364,11 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
         prints.set(c, got.prints);
         report.prints += got.prints.length;
         if (got.prints.length) {
-          await db.upsert(T.prints, got.prints.map((p) => ({ id: p.id, cond: c, ts: iso(p.ts * 1000), side: p.side, oi: p.oi, price: p.price, size: p.size })), "id");
+          await db.upsert("pm_prep_prints", got.prints.map((p) => ({ id: p.id, cond: c, ts: iso(p.ts * 1000), side: p.side, oi: p.oi, price: p.price, size: p.size })), "id");
         }
       } catch (e) { ok = false; report.errors.push(`prints ${c.slice(0, 10)}…: ${msg(e)}`); }
     }
-    if (!ok) { await saveState(d, T, st, report); return; }
+    if (!ok) { await saveState(d, st, report); return; }
 
     const liveAt = new Map<number, PrepLiveMinute[]>();
     for (const r of live) { const t = Date.parse(r.minute); (liveAt.get(t) ?? liveAt.set(t, []).get(t)!).push(r); }
@@ -410,7 +377,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
     const minuteRows: Record<string, unknown>[] = [];
     const newFills: PrepFill[] = [];
     for (let t = from; t <= to; t += M) {
-      if (t >= st.dayOf + DAY) await closeDays(d, T, st, t, fills.concat(newFills), settlements, report);
+      if (t >= st.dayOf + DAY) await closeDays(d, st, t, fills.concat(newFills), settlements, report);
       const day = dayStr(t), dayStart = Math.floor(t / DAY) * DAY;
       const rows = liveAt.get(t) ?? [];
       // A minute of a day with markets in which the path recorded nothing at all: its turn did not run, or read no book.
@@ -461,16 +428,16 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
       if (st.stopTotal === null && pnl.total <= -lim.lossTotal) {
         st.stopTotal = iso(t);
         report.stops.push(`loss_stop_total at ${iso(t)}: ${r6(pnl.total)}`);
-        await db.upsert(T.events, [{ minute: iso(t), kind: "loss_stop_total", detail: { totalPnl: r6(pnl.total), limit: -lim.lossTotal } }], "minute,kind");
+        await db.upsert("pm_prep_events", [{ minute: iso(t), kind: "loss_stop_total", detail: { totalPnl: r6(pnl.total), limit: -lim.lossTotal } }], "minute,kind");
       }
       if (st.stopDay !== day && pnl.day <= -lim.lossDay) {
         st.stopDay = day;
         report.stops.push(`loss_stop_day at ${iso(t)}: ${r6(pnl.day)}`);
-        await db.upsert(T.events, [{ minute: iso(t), kind: "loss_stop_day", detail: { dayPnl: r6(pnl.day), limit: -lim.lossDay } }], "minute,kind");
+        await db.upsert("pm_prep_events", [{ minute: iso(t), kind: "loss_stop_day", detail: { dayPnl: r6(pnl.day), limit: -lim.lossDay } }], "minute,kind");
       }
     }
-    if (minuteRows.length) await db.upsert(T.minutes, minuteRows, "minute,cond");
-    if (newFills.length) await db.upsert(T.fills, newFills.map(rowOfFill), "cond,minute,print_id");
+    if (minuteRows.length) await db.upsert("pm_prep_minutes", minuteRows, "minute,cond");
+    if (newFills.length) await db.upsert("pm_prep_fills", newFills.map(rowOfFill), "cond,minute,print_id");
     fills.push(...newFills);
     st.lastDecided = to;
     report.minutes = (to - from) / M + 1; report.from = iso(from); report.to = iso(to);
@@ -481,9 +448,9 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
   const heldConds = Object.entries(st.tokens).filter(([c, tk]) => !settled.has(c) && (pnlNow.held[tk.yes] ?? 0) + (pnlNow.held[tk.no] ?? 0) > 0).map(([c]) => c);
   report.held = heldConds.length;
   if (heldConds.length) {
-    const today = new Set((await db.select<{ cond: string }>(R.markets, `day=eq.${dayStr(d.now)}&select=cond&order=cond.asc`)).map((m) => m.cond));
+    const today = new Set((await db.select<{ cond: string }>("pm_live_markets", `day=eq.${dayStr(d.now)}&select=cond&order=cond.asc`)).map((m) => m.cond));
     const watch = heldConds.filter((c) => !today.has(c));
-    const have = watch.length ? await db.select(T.minutes, `minute=eq.${enc(iso(nowMinute))}&class=eq.held&select=cond&limit=1`) : [];
+    const have = watch.length ? await db.select("pm_prep_minutes", `minute=eq.${enc(iso(nowMinute))}&class=eq.held&select=cond&limit=1`) : [];
     if (watch.length && !have.length) {
       try {
         const books = await twice(() => pmBooks(watch.map((c) => st.tokens[c].yes), d.pm));
@@ -493,7 +460,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
           if (!b || !b.bids.length || !b.asks.length) continue;
           out.push({ minute: iso(nowMinute), cond: c, class: "held", bb: b.bids[0][0], ba: b.asks[0][0], mark: (b.bids[0][0] + b.asks[0][0]) / 2, reward: 0, fills: 0, close_only: false, detail: {} });
         }
-        if (out.length) await db.upsert(T.minutes, out, "minute,cond");
+        if (out.length) await db.upsert("pm_prep_minutes", out, "minute,cond");
       } catch (e) { report.errors.push(`held books: ${msg(e)}`); }
     }
   }
@@ -505,27 +472,27 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
         const tk = st.tokens[m.cond];
         if (!tk || settled.has(m.cond) || m.payout === null) continue;
         const s = { cond: m.cond, yes_token: tk.yes, no_token: tk.no, payout: m.payout, closed_time: m.closedTime, settled_at: iso(d.now), detail: { heldYes: pnlNow.held[tk.yes] ?? 0, heldNo: pnlNow.held[tk.no] ?? 0 } };
-        await db.upsert(T.settlements, [s], "cond");
-        await db.upsert(T.events, [{ minute: iso(nowMinute), kind: "settlement", detail: { cond: m.cond, payout: m.payout } }], "minute,kind");
+        await db.upsert("pm_prep_settlements", [s], "cond");
+        await db.upsert("pm_prep_events", [{ minute: iso(nowMinute), kind: "settlement", detail: { cond: m.cond, payout: m.payout } }], "minute,kind");
         if (st.acc[m.cond]) st.acc[m.cond].settled = m.payout;
         report.settled++;
       }
       st.statusAt = d.now;
     } catch (e) { report.errors.push(`settlements: ${msg(e)}`); }
   }
-  await saveState(d, T, st, report);
+  await saveState(d, st, report);
 }
 
 /**
  * Close every UTC day that ended before minute `t`: its formula rewards (and at R = 0.40), its fills' P&L by the path's
  * book-keeping at the day's end (the day's and the run's), its holdings at the mid, its minutes by class, and its stops.
  */
-async function closeDays(d: PrepDeps, T: PrepInstance["tables"], st: PrepState, t: number, fills: PrepFill[], settlements: PmSettlement[], report: PrepReport) {
+async function closeDays(d: PrepDeps, st: PrepState, t: number, fills: PrepFill[], settlements: PmSettlement[], report: PrepReport) {
   while (t >= st.dayOf + DAY) {
     const day = dayStr(st.dayOf), end = st.dayOf + DAY;
     const pnl = paperPnl(fills, settlements, st.tokens, st.marks, st.dayOf, end);
     const reward = r6(st.day.reward), r40 = r6(st.day.reward * PREP_R_BREAK_EVEN);
-    await d.db.upsert(T.days, [{
+    await d.db.upsert("pm_prep_days", [{
       day, reward, reward_r40: r40, fills_pnl_day: r6(pnl.day), fills_pnl_total: r6(pnl.total), pnl_day_r40: r6(pnl.day + r40), held_value: pnl.heldValue,
       fills: st.day.fills, minutes_matched: st.day.matched, minutes_dark: st.day.dark, minutes_diverged: st.day.diverged, minutes_missing: st.day.missing,
       stop_day: st.stopDay === day, stop_total: st.stopTotal !== null && st.stopTotal.slice(0, 10) <= day, markets: st.day.markets.length,
@@ -537,8 +504,8 @@ async function closeDays(d: PrepDeps, T: PrepInstance["tables"], st: PrepState, 
   }
 }
 
-async function saveState(d: PrepDeps, T: PrepInstance["tables"], st: PrepState, report: PrepReport) {
-  await d.db.upsert(T.state, [{
+async function saveState(d: PrepDeps, st: PrepState, report: PrepReport) {
+  await d.db.upsert("pm_prep_state", [{
     id: 1, state: st, last_minute: iso(st.lastDecided), updated_at: iso(d.now), last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
   }], "id");
 }

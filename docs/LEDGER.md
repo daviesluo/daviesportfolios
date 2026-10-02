@@ -582,6 +582,34 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-02 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket's order path and its paper layer run as instances, the default being the pre-registered code** (item 2;
+Davies, 2026-10-02: "把目前Reward quotes live-prep改名为Reward quotes small-pool，再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
+quotes，也是400美元funded测试"). Step 1 of 3, the way `pmrw.ts` took `RwInstance` for RW-C: `pm_live.ts` takes a
+`PmLiveInstance` (its nine tables, its lease, its band of daily rates, its migrations' names, an optional exclusion its
+selection applies to the listing it has just read, an optional batch read of its candidates' books, and whether it
+reads what the account earns: its share of each pool every minute and its daily payouts) and `pm_prep.ts` a `PrepInstance` (its seven tables, the path's four it reads, its
+lease); `PM_LIVE_INSTANCE` and `PREP_INSTANCE` are the names and behaviour the code had, and a turn given none runs them.
+**Equivalence:** `pm_live_frozen.ts` and `pm_prep_frozen.ts` are the files the live-prep pre-registration froze, byte for
+byte (sha256 `fbdaca34…b89`, `83fe596f…061`, held to the document's words by a new case in `src/pm_prep_prereg.test.js`);
+`pm_instance.test.ts` runs them beside today's default instances (once left out, once named) over 56 turns spread on three
+simulated UTC days, each in its own database and fake Polymarket, and after every turn finds every table, every request
+(method, URL with its query, body) and every report identical: selection, re-price, refresh, expiry, a one-sided book, a
+market leaving the book, the geoblock failing then stale, the pause, an unreadable balance, the readout; then live posts, a
+fill and its CONFIRMED trade, a lost reply, a 425, a cancel late and one never carried out, the cancel-all, the day's loss
+stop, earnings and rebates read, a settlement; the paper layer beside every turn (its fills, dark and matched minutes,
+its days). It also pins that every export of the frozen files is today's, text for text and value for value, except the
+five the build took (`inUniverse`, `candidateOf`, `selectMarkets`, `runPmLive`, `runPmPrep`), and that the frozen layer's
+one import of `pm_live.ts` reaches functions identical to the frozen path's. Counterfactuals, each alone and restored by
+hash: the default band to $11, the default reading no payouts, its state written elsewhere, the selection's band
+[6, 10.5), the layer's days written elsewhere, its markets read from another table — each fails the equivalence pin
+(four the export pin too). The fake gains the keyless public reads (`publicFetch`: the CLOB's short list, `POST /books`,
+the data API's prints). `pm_live.ts` sha256 `8ba7b915…9653`, `pm_prep.ts` `8d7861ab…4dea`. Committed on the worktree's
+branch, not pushed: a deploy of these two files inside the live-prep window (10-03 00:00 → 10-04 00:00 UTC) ends it as
+FAIL, so the main session lands them before 10-03 00:00 with an Addendum 3 naming the new hashes, or after the 10-04
+00:10 check.
+
 ### [2026-10-02 02:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The snapshot recorder writes no price in other units than the board's (improvement plan item 6, the recorders' half).** A recorded price is permanent, and neither recorder banded what it wrote. `snapshot-record` prefers Trading 212's `currentPrice`, which the broker gives in the instrument's own currency — pence for a London stock — while the board keeps London listings in pounds (the prices function divides Yahoo's pence by 100); a London stock held at Trading 212 would have gone into `price_snapshots` 100 times its board price, for good. None has: both London holdings are USD lines (Yahoo's close over the broker's price reads 1.0038 and 1.0003 on the board row, read-only), and the table's largest move between consecutive buckets is +23.1 %. `recordablePrice` now checks each candidate's units (`unitsDiffer`: 70–140 times, either way) against the board's own last saved price (`boardPricesOf`), or without one against the prices function's: a broker quote in pence falls through to Yahoo's pounds in session and after hours, and to nothing overnight; a Yahoo price 100 times the board's is not written. Any skip is reported as `snapshot-record.units` once an hour (the hour's first bucket) while it lasts (`unitSkips`). A fuller band there (a price's move against the row before it, scaled by the name's own moves) would need the previous row read on every call and its own pins; the unit guard is the part a single call can decide. `overnight-record` needs nothing: it writes only US equities, which have no subunit, and nothing ≤ 0. Pinned: 5 Deno cases (`snapshot-record/index.test.ts`, 21 pass); the same four behaviours through the old recorder's exports fail on it (it writes 252.4 for a £2.52 stock, 252 against a board at 2.50) and pass on the new. Deploys with `snapshot-record` on push.

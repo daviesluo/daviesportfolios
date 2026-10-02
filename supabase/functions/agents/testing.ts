@@ -850,6 +850,12 @@ export class FakePolymarket {
   earnings: Record<string, { native: Array<{ cond: string; usd: number }>; sponsored: Array<{ cond: string; usd: number }> }> = {};
   /** Maker rebates, by UTC day (GET /rebates/current answers `null` for a day with none, as the real one does). */
   rebatesByDay: Record<string, Array<{ cond: string; usdc: string }>> = {};
+  /** Each market's taker prints, as the data API's /v2/trades lists them: [ts (s), side, outcome index, price, size]. */
+  prints = new Map<string, Array<[number, "BUY" | "SELL", number, number, number]>>();
+  /** The CLOB's short list's page size (`/sampling-simplified-markets`; the CLOB's is 1,000). */
+  simplifiedPageSize = 3;
+  /** The keyless public reads that can be made to fail, as the venue's own (`down`). */
+  publicDown: Partial<Record<"simplified" | "books" | "trades", boolean>> = {};
   private seq = 1;
   constructor(public now: () => number) {}
 
@@ -1092,6 +1098,43 @@ export class FakePolymarket {
       for (const o of this.orders.values()) if (o.status === "LIVE") { if (this.cancelMode !== "lost") this.takeCancel(o); canceled.push(o.hash); }
       return { status: 200, body: { canceled, not_canceled: {} } };
     }
+    // The keyless public reads (`publicFetch`, through `_shared/polymarket_public.ts`): the CLOB's short list of rewarded
+    // markets, paged as its listing is; its books for many tokens in one POST, each as GET /book serves it, a token with
+    // no book left out; and the data API's prints of one market, newest first, in one page.
+    if (method === "GET" && path === "clob.polymarket.com/sampling-simplified-markets") {
+      if (this.publicDown.simplified) return err(500, "Internal server error");
+      const rows = this.markets.filter((m) => m.rate != null || m.sponsoredRate != null).slice().sort((a, b) => (a.cond < b.cond ? -1 : a.cond > b.cond ? 1 : 0))
+        .map((m) => ({ condition_id: m.cond, tokens: [{ token_id: m.yes, outcome: "Yes", price: m.bid }, { token_id: m.no, outcome: "No", price: 1 - m.ask }], active: true, closed: !!m.resolved }));
+      let at = 0;
+      const cur = q.get("next_cursor");
+      if (cur) {
+        try { at = Number(atob(cur)); } catch { return err(400, "error decoding cursor"); }
+        if (!Number.isInteger(at)) return err(400, "error decoding cursor");
+      }
+      const size = this.simplifiedPageSize, page = at < 0 ? [] : rows.slice(at, at + size);
+      return { status: 200, body: { data: page, next_cursor: at >= 0 && at + size < rows.length ? btoa(String(at + size)) : "LTE=", limit: size, count: page.length } };
+    }
+    if (method === "POST" && path === "clob.polymarket.com/books") {
+      if (this.publicDown.books) return err(500, "Internal server error");
+      let want: unknown;
+      try { want = JSON.parse(body ?? ""); } catch { return err(400, "Invalid payload"); }
+      if (!Array.isArray(want) || want.length > 500) return err(400, "Invalid payload");
+      const out: unknown[] = [];
+      for (const w of want as Array<{ token_id?: unknown }>) {
+        const one = this.answer("GET", new URL(`https://clob.polymarket.com/book?token_id=${encodeURIComponent(String(w?.token_id ?? ""))}`), undefined);
+        this.calls.pop(); this.urls.pop();                                     // one POST, not a GET per token
+        if (one.status === 200) out.push(one.body);
+      }
+      return { status: 200, body: out };
+    }
+    if (method === "GET" && path === "data-api.polymarket.com/v2/trades") {
+      if (this.publicDown.trades) return err(503, "down");
+      const c = q.get("condition") ?? "", m = this.markets.find((x) => x.cond === c);
+      const rows = (this.prints.get(c) ?? []).slice().sort((a, b) => b[0] - a[0]).map(([ts, side, oi, price, size], i) => ({
+        timestamp: ts, side, outcome_index: oi, price, size, token_id: m ? (oi === 0 ? m.yes : m.no) : "", transaction_hash: `0x${c.slice(-8)}${ts}${i}`, proxy_wallet: "0xabc",
+      }));
+      return { status: 200, body: { data: rows, pagination: { next_cursor: "" } } };
+    }
     return err(404, `fake polymarket: no route ${method} ${path}`);
   }
 
@@ -1224,6 +1267,22 @@ export class FakePolymarket {
     const a = this.answer(method, u, typeof init?.body === "string" ? init.body : undefined);
     if (a.status === -1) throw new DOMException("The signal has been aborted", "TimeoutError");
     return new Response(a.body === null ? null : JSON.stringify(a.body), { status: a.status, headers: a.retryAfter != null ? { "retry-after": String(a.retryAfter) } : {} });
+  };
+
+  /**
+   * The same venue's keyless public reads, as `_shared/polymarket_public.ts` makes them (RW's client, which the paper
+   * layers and mid-pool's exclusion read through): only its routes, never with an L2 header, every answer through
+   * `answer` so it is in `calls` and `urls` beside the order path's.
+   */
+  publicFetch: typeof fetch = (input, init) => {
+    const u = new URL(String(input)), method = (init?.method ?? "GET").toUpperCase(), path = `${u.host}${u.pathname}`;
+    const h = (init?.headers ?? {}) as Record<string, string>;
+    if (Object.keys(h).some((k) => k.startsWith("POLY_"))) return Promise.reject(new Error(`fake polymarket: L2 headers on a public read of ${path}`));
+    const isPublic = method === "POST" ? path === "clob.polymarket.com/books"
+      : ["clob.polymarket.com/sampling-simplified-markets", "clob.polymarket.com/rewards/markets/current", "gamma-api.polymarket.com/markets/keyset", "data-api.polymarket.com/v2/trades"].includes(path);
+    if (!isPublic) return Promise.reject(new Error(`fake polymarket: ${method} ${path} is not one of the public reads`));
+    const a = this.answer(method, u, typeof init?.body === "string" ? init.body : undefined);
+    return Promise.resolve(new Response(JSON.stringify(a.body), { status: a.status }));
   };
 }
 

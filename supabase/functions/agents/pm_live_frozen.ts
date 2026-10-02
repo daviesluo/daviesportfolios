@@ -14,8 +14,8 @@
 // total cap from the pUSD balance this path read (`state.pusd`, within five minutes) less the total stop and $5, and
 // fails if that balance is unread, stale or too small (0076's header and the design's checklist hold it word for word).
 //
-// It reads and writes only its own tables (its instance's: `PM_LIVE_TABLES` for the default), the global pause in
-// `agent_risk` and its lease. Nothing of RW's or RW-C's (`pm_rw_*`, `pm_rwc_*`) is read.
+// It reads and writes only its own tables (`PM_LIVE_TABLES`), the global pause in `agent_risk` and its lease. Nothing of
+// RW's or RW-C's (`pm_rw_*`, `pm_rwc_*`) is read.
 //
 // WHAT IT DOES, each turn, in order:
 //   1. The day's markets (`selectMarkets`), once a UTC day, retried every five minutes until one lands: the reward
@@ -46,21 +46,12 @@
 // venue request gives up after 5 s; no selection or readout read starts later than 40 s into the turn and no order is
 // sent later than 40 s, and a live order is sent only while the turn still holds its lease, renewed once half of it is
 // gone (PR5's executor's rule, `quotes_live.ts`).
-//
-// INSTANCES (2026-10-02, Davies: "把目前Reward quotes live-prep改名为Reward quotes small-pool，再做一个Reward quotes mid-pool只做
-// 10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试"). One path, run as one of two instances (`PmLiveInstance`), the
-// way RW's engine runs as RW and RW-C (`RwInstance`, pmrw.ts): an instance is its tables, its lease, its band of daily
-// reward rates, the migrations that made it, and an optional exclusion its selection applies. `PM_LIVE_INSTANCE` is the
-// path as it ran before instances, name for name ("Reward quotes small-pool": $6 to under $10); a turn given no instance
-// runs it, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_live_frozen.ts`) minute by minute and
-// finds every table, request and report the same. The second, mid-pool ($10 to under $50, a dry-run its own table holds
-// there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Nothing of the rule, the gates, the caps or the stops differs by instance.
 
 import {
-  asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
-  type PmRebate, type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmUserEarning, type PmVenue,
+  asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmOpenOrder, type PmOrder, type PmReply,
+  type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmUserEarning, type PmVenue,
 } from "../_shared/polymarket_orders.ts";
-import type { PmLevel, PmPublicOpts } from "../_shared/polymarket_public.ts";
+import type { PmLevel } from "../_shared/polymarket_public.ts";
 import { choose, firstScore, othersOf, quote, RW_INV_CAP, scoreS, sizeN, summarize, type BookRow } from "./pmrw.ts";
 import { excludedByDay } from "./pmrw_e.ts";
 import type { Db } from "./db.ts";
@@ -151,7 +142,7 @@ export const PM_LIVE_GEO_CACHE_MS = 10 * M;
 export const PM_LIVE_READOUT_AFTER_MS = 3600e3;
 export const PM_LIVE_READOUT_DAYS = 2;
 const READOUT_RETRY_MS = 10 * M;
-/** The turn's lease on `agent_locks` (its instance's row: pm-live for the default), as the other minute loops hold theirs. */
+/** The turn's lease on `agent_locks` (pm-live), as the other minute loops hold theirs. */
 export const PM_LIVE_LEASE_MS = 55e3;
 /**
  * A cancel the venue took can be carried out a moment AFTER it is answered: on PR5's first live hour (Revolut X,
@@ -167,66 +158,6 @@ const PENDING_GRACE_MS = 60e3;
 /** Blocked completely, on the frontend and the API (api-reference/geoblock): nothing may be placed from there, not even a sell. */
 const OFAC_COUNTRIES = new Set(["IR", "SY", "CU", "KP"]);
 const OFAC_REGIONS = new Set(["UA-43", "UA-14", "UA-09"]);
-
-/**
- * An instance's exclusion: given the reward listing its selection has just read whole, the markets its universe must
- * leave out that day, with a note of counts for the selection's record (never a market's id); or why it could not say,
- * which fails the selection like any read that fails (tried again five minutes later): a day is never chosen without it.
- */
-export type PmExclusion = (listing: Map<string, PmRewardRow>, ctx: { dl: PmDeadline; nowMs: number; pm?: PmPublicOpts }) =>
-  Promise<{ excluded: Set<string>; note: Record<string, unknown> } | { error: string }>;
-/** One instance of the path: everything that differs between the two (the header's INSTANCES), and nothing else. */
-export type PmLiveInstance = {
-  /** The row's name on the Agents page. */
-  name: string;
-  /** Its nine tables, in 0074's and 0076's shapes. */
-  tables: {
-    config: string; markets: string; orders: string; fills: string; events: string; state: string; minutes: string; rewardDays: string;
-    settlements: string;
-  };
-  /** Its row of `agent_locks`. */
-  lock: string;
-  /** The daily reward rates its universe takes: at least `floor`, under `ceiling`. */
-  band: { floor: number; ceiling: number };
-  /** The migrations that create its tables and its config's selection columns, named in the turn's skip messages. */
-  migrations: { tables: string; selection: string };
-  /** Applied by its selection once the listing is read; the default has none. */
-  exclusion?: PmExclusion;
-  /**
-   * How its selection reads its candidates' books: all of them at once, each as GET /book serves it (a token with no book
-   * absent); the default has none and reads them one GET at a time, twelve at once. For about a thousand candidates a day
-   * one GET each cost about a second of CPU in all, half of what an Edge request may use (mid-pool's, pm_mid.ts).
-   */
-  bookBatch?: (tokens: string[], pm?: PmPublicOpts) => Promise<Map<string, PmBookReply>>;
-  /**
-   * Whether it reads what the account earns: its live share of each pool every minute, and once a day what it was paid.
-   * The account is one: an instance that can never be live (mid-pool's table holds it in dry-run) reads neither, so what
-   * the venue pays for another instance's quotes never lands in its tables; its minutes keep no share and its readout the
-   * formula's sums of its own minutes.
-   */
-  readsPayouts: boolean;
-  /** Its action, its row of `public.edge_calls`, and the kind its faults are reported to `ops_errors` as. */
-  action: string;
-  path: string;
-  errorKind: string;
-};
-/** The path as it ran before instances, name for name: "Reward quotes small-pool", $6 to under $10 a day (0074, 0076). */
-export const PM_LIVE_INSTANCE: PmLiveInstance = {
-  name: "Reward quotes small-pool",
-  tables: {
-    config: "pm_live_config", markets: "pm_live_markets", orders: "pm_live_orders", fills: "pm_live_fills", events: "pm_live_events", state: "pm_live_state",
-    minutes: "pm_live_minutes", rewardDays: "pm_live_reward_days", settlements: "pm_live_settlements",
-  },
-  lock: "pm-live",
-  band: { floor: PM_LIVE_REWARD_FLOOR, ceiling: PM_LIVE_REWARD_RATE_MAX },
-  migrations: { tables: "0074", selection: "0076" },
-  readsPayouts: true,
-  action: "pmlive",
-  path: "agents?action=pmlive&forceFunctionRegion=eu-west-1",
-  errorKind: "agents.pm_live",
-};
-/** The tables an instance's turn may touch: its own nine, `agent_risk` (read) and `agent_locks` (its lease). */
-export const pmLiveDbTables = (inst: PmLiveInstance): readonly string[] => [...Object.values(inst.tables), "agent_risk", "agent_locks"];
 
 export type PmLiveMode = "dry_run" | "live";
 export type PmLiveConfig = {
@@ -599,12 +530,9 @@ export function pmTime(v: unknown): number | null {
 
 /** A market's reward programme as the listing gives it: its total daily rate, maximum spread (cents) and minimum size. */
 export type PmRewardRow = { rate: number; v: number; minSize: number };
-/**
- * In the universe by its reward programme alone: a rate in the instance's band ([$6, $10) for the default), a spread to
- * score in, and N small enough for its cap.
- */
-export function inUniverse(r: PmRewardRow, band: PmLiveInstance["band"] = PM_LIVE_INSTANCE.band): boolean {
-  return r.rate >= band.floor && r.rate < band.ceiling && r.v > 0 && sizeN(r.minSize) <= PM_LIVE_MAX_N;
+/** In the universe by its reward programme alone: a rate in [$6, $10), a spread to score in, and N small enough for its cap. */
+export function inUniverse(r: PmRewardRow): boolean {
+  return r.rate >= PM_LIVE_REWARD_FLOOR && r.rate < PM_LIVE_REWARD_RATE_MAX && r.v > 0 && sizeN(r.minSize) <= PM_LIVE_MAX_N;
 }
 
 /**
@@ -626,14 +554,14 @@ export type PmCandidate = {
  * listing does not show is not rewarded and is never taken), accepting orders (`enableOrderBook`, `acceptingOrders`, not
  * closed), two tokens and a condition id. Given the clock, a market whose game starts or which ends within
  * `PM_LIVE_MIN_HORIZON_MS` is passed over, and one RW-E would not quote that UTC day; a time Gamma does not give, or one
- * it gives unreadably, passes nothing over. `band` is the instance's (the default's unless given).
+ * it gives unreadably, passes nothing over.
  */
-export function candidateOf(m: Record<string, unknown>, listing: Map<string, PmRewardRow>, nowMs?: number, band: PmLiveInstance["band"] = PM_LIVE_INSTANCE.band): PmCandidate | null {
+export function candidateOf(m: Record<string, unknown>, listing: Map<string, PmRewardRow>, nowMs?: number): PmCandidate | null {
   if (m.enableOrderBook !== true || m.acceptingOrders !== true || m.closed === true) return null;
   const cond = String(m.conditionId ?? "").toLowerCase();
   if (!/^0x[0-9a-f]{64}$/.test(cond)) return null;
   const r = listing.get(cond);
-  if (!r || !inUniverse(r, band)) return null;
+  if (!r || !inUniverse(r)) return null;
   const endDate = typeof m.endDate === "string" ? m.endDate : null, gameStart = typeof m.gameStartTime === "string" ? m.gameStartTime : null;
   if (nowMs !== undefined) {
     const soon = (v: unknown) => { const t = pmTime(v); return t !== null && t < nowMs + PM_LIVE_MIN_HORIZON_MS; };
@@ -776,13 +704,6 @@ export type PmSelectOpts = {
   maxMarkets: number; budget: number;
   /** Our own orders resting at the venue as the selection reads the books (live only: yesterday's, until withdrawn), by market. */
   own?: Map<string, PmOwnOrder[]>;
-  /** The instance's band of daily reward rates; the default's when absent. */
-  band?: PmLiveInstance["band"];
-  /** The instance's exclusion, applied once the listing is read, and the options of the public reads it makes. */
-  exclusion?: PmExclusion;
-  pm?: PmPublicOpts;
-  /** The instance's batch read of its candidates' books (`PmLiveInstance.bookBatch`); one GET each when absent. */
-  bookBatch?: (tokens: string[]) => Promise<Map<string, PmBookReply>>;
 };
 
 /**
@@ -793,9 +714,7 @@ export type PmSelectOpts = {
  * $2.50 a day; then RW's `choose` within the budget, at most `maxMarkets` of them in its order. RW's ranking is never
  * run on RW's universe: nothing at $10 or more is scored. Any read that fails, or a deadline that comes before every
  * candidate's book is read, takes nothing: RW's ranking is over the whole universe or not at all, and the day is tried
- * again five minutes later. An instance's band replaces [$6, $10), and its exclusion, given the listing just read, takes
- * its markets out of the universe before anything else is read; one that cannot say fails the selection too, and only
- * how many markets of the universe it took out is recorded (`note.exclusion.excluded`), never which.
+ * again five minutes later.
  */
 export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectOpts, exclude: Set<string>, dl: PmDeadline = NO_DEADLINE, nowMs: number = Date.parse(`${day}T00:00:00Z`)): Promise<{ picks: PmMarketRow[]; note: Record<string, unknown> }> {
   const note: Record<string, unknown> = {};
@@ -803,15 +722,7 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   const listing = await rewardListing(venue, dl);
   note.listing = { pages: listing.pages, how: listing.how, rewarded: listing.rows.size, shifts: listing.shifts };
   if (!listing.ok) return fail(listing.error ?? "the reward listing could not be read");
-  const band = opts.band ?? PM_LIVE_INSTANCE.band;
-  let out: Set<string> | null = null;
-  if (opts.exclusion) {
-    const ex = await opts.exclusion(listing.rows, { dl, nowMs, pm: opts.pm });
-    if ("error" in ex) return fail(`exclusion: ${ex.error}`);
-    out = ex.excluded;
-    note.exclusion = { ...ex.note, excluded: [...listing.rows].filter(([cond, r]) => inUniverse(r, band) && !exclude.has(cond) && out!.has(cond)).length };
-  }
-  const universe = [...listing.rows].filter(([cond, r]) => inUniverse(r, band) && !exclude.has(cond) && !out?.has(cond)).map(([cond]) => cond).sort();
+  const universe = [...listing.rows].filter(([cond, r]) => inUniverse(r) && !exclude.has(cond)).map(([cond]) => cond).sort();
   note.universe = universe.length;
   // Gamma, fifty markets a read: accepting orders, the two tokens, the horizon.
   const chunks: string[][] = [];
@@ -827,30 +738,16 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   note.gammaReads = chunks.length;
   if (gammaError) return fail(gammaError);
   if (late) return fail("time budget: the deadline came before Gamma was read for every candidate");
-  const eligible = universe.map((cond) => gamma.get(cond)).map((m) => (m ? candidateOf(m, listing.rows, nowMs, band) : null)).filter((c): c is PmCandidate => !!c);
+  const eligible = universe.map((cond) => gamma.get(cond)).map((m) => (m ? candidateOf(m, listing.rows, nowMs) : null)).filter((c): c is PmCandidate => !!c);
   note.eligible = eligible.length;
   // Each eligible market's book, and RW's first round on it.
   const scored: Scored[] = [];
   let bookError = "", booksRead = 0, gone = 0, mismatched = 0, oneSided = 0;
-  // An instance that reads its candidates' books at once has them all before the first is scored; a token the batch has
-  // no book for is one the CLOB has none for, as a GET's 404 says. A batch that fails takes nothing, as any read here.
-  let batch: Map<string, PmBookReply> | null = null;
-  if (opts.bookBatch && eligible.length) {
-    if (pastDeadline(dl)) return fail("time budget: the deadline came before every candidate's book was read");
-    try { batch = await opts.bookBatch(eligible.map((c) => c.yes)); } catch (e) { return fail(`books (batch): ${msg(e)}`); }
-  }
   await pool(eligible, BOOK_CONCURRENCY, async (c) => {
     if (pastDeadline(dl)) { late = true; return; }
-    let r: PmReply<PmBookReply>;
-    if (batch) {
-      const got = batch.get(c.yes);
-      r = got ? { ok: true, status: 200, ms: 0, data: got } : { ok: false, status: 404, ms: 0, error: "not in the batch's answer: no book" };
-      booksRead++;
-    } else {
-      r = await venue.book(c.yes);
-      booksRead++;
-      if (!r.ok && r.status !== 404) { r = await venue.book(c.yes); booksRead++; }                    // once more, then it decides
-    }
+    let r = await venue.book(c.yes);
+    booksRead++;
+    if (!r.ok && r.status !== 404) { r = await venue.book(c.yes); booksRead++; }                      // once more, then it decides
     if (!r.ok) { if (r.status === 404) gone++; else bookError ||= `book of ${c.cond.slice(0, 10)}…: ${r.status} ${r.error}`; return; }
     const b = bookNow(r.data);
     if (!b) { oneSided++; return; }
@@ -980,10 +877,6 @@ export type PmLiveDeps = {
   clock?: () => number;
   /** Waits between a cancel's read-backs (`PM_LIVE_CANCEL_REREAD_MS`); a timer by default, a recorder in the tests. */
   pause?: (ms: number) => Promise<void>;
-  /** The instance this turn runs: `PM_LIVE_INSTANCE` (small-pool) when absent. */
-  inst?: PmLiveInstance;
-  /** The options of the keyless public reads an instance's exclusion makes (`_shared/polymarket_public.ts`). */
-  pm?: PmPublicOpts;
 };
 
 export type PmLiveReport = {
@@ -1023,29 +916,27 @@ export async function runPmLive(d: PmLiveDeps): Promise<PmLiveReport> {
   };
   const clock = d.clock ?? (() => Date.now());
   const t0 = clock();
-  const inst = d.inst ?? PM_LIVE_INSTANCE;
   let held: unknown[];
   try {
-    held = await d.db.claim("agent_locks", `name=eq.${inst.lock}&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + PM_LIVE_LEASE_MS), holder: d.holder });
+    held = await d.db.claim("agent_locks", `name=eq.pm-live&lease_until=lt.${enc(iso(d.now))}`, { lease_until: iso(d.now + PM_LIVE_LEASE_MS), holder: d.holder });
   } catch (e) {
     if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) return { ...report, skipped: "agent_locks is not there" };
     report.errors.push(`LEASE CLAIM FAILED — agent_locks: ${msg(e)}; nothing done this minute`);
     return report;
   }
-  if (!held.length) return { ...report, skipped: `another run holds the ${inst.lock} lease (or migration ${inst.migrations.tables} has not run)` };
+  if (!held.length) return { ...report, skipped: "another run holds the pm-live lease (or migration 0074 has not run)" };
   try {
-    await turn(d, inst, report, clock, t0);
+    await turn(d, report, clock, t0);
   } catch (e) {
     report.errors.push(`turn: ${msg(e)}`);
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.${inst.lock}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
+    try { await d.db.update("agent_locks", `name=eq.pm-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires on its own */ }
   }
   return report;
 }
 
-async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, clock: () => number, t0: number): Promise<void> {
+async function turn(d: PmLiveDeps, report: PmLiveReport, clock: () => number, t0: number): Promise<void> {
   const { db, venue } = d;
-  const T = inst.tables;
   const nowIso = iso(d.now), nowS = Math.floor(d.now / 1000), minute = iso(Math.floor(d.now / M) * M);
   const dayStart = Math.floor(d.now / DAY) * DAY, day = nowIso.slice(0, 10);
   const elapsed = () => clock() - t0;
@@ -1061,8 +952,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const at = clock();
     if (at - renewedAt < PM_LIVE_LEASE_MS / 2) return true;
     try {
-      const rows = await db.claim("agent_locks", `name=eq.${inst.lock}&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now + (at - t0) + PM_LIVE_LEASE_MS) });
-      if (!rows.length) { leaseLost = true; report.errors.push(`lease lost: another run holds ${inst.lock} now; this one sends nothing more`); return false; }
+      const rows = await db.claim("agent_locks", `name=eq.pm-live&holder=eq.${enc(d.holder)}`, { lease_until: iso(d.now + (at - t0) + PM_LIVE_LEASE_MS) });
+      if (!rows.length) { leaseLost = true; report.errors.push("lease lost: another run holds pm-live now; this one sends nothing more"); return false; }
       renewedAt = at;
       return true;
     } catch (e) { leaseLost = true; report.errors.push(`lease renewal failed (${msg(e)}): this run sends nothing more`); return false; }
@@ -1070,19 +961,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   // ── the config, the last turn, the global pause, the mode ─────────────────────────────────────────────────────────
   let cfg: PmLiveConfig | undefined;
-  try { cfg = (await db.select<PmLiveConfig>(T.config, "id=eq.1&select=*"))[0]; }
+  try { cfg = (await db.select<PmLiveConfig>("pm_live_config", "id=eq.1&select=*"))[0]; }
   catch (e) {
-    if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) {
-      report.skipped = `the ${T.config.replace(/_config$/, "")} tables are not in this database yet: migration ${inst.migrations.tables} has not run`;
-      return;
-    }
+    if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) { report.skipped = "the pm_live tables are not in this database yet: migration 0074 has not run"; return; }
     throw e;
   }
-  if (!cfg) { report.skipped = `no ${T.config} row: migration ${inst.migrations.tables} has not run`; return; }
+  if (!cfg) { report.skipped = "no pm_live_config row: migration 0074 has not run"; return; }
   // The day's markets, the minutes and the readout are 0076's: until it has run, the turn does nothing (it was a dry-run).
-  if (cfg.max_markets === undefined) { report.skipped = `the ${T.config} row has no max_markets: migration ${inst.migrations.selection} has not run`; return; }
+  if (cfg.max_markets === undefined) { report.skipped = "the pm_live_config row has no max_markets: migration 0076 has not run"; return; }
   const lim = effectiveLimits(cfg);
-  const prev = ((await db.select<{ state: Record<string, unknown> }>(T.state, "id=eq.1&select=state"))[0]?.state ?? {}) as Record<string, any>;
+  const prev = ((await db.select<{ state: Record<string, unknown> }>("pm_live_state", "id=eq.1&select=state"))[0]?.state ?? {}) as Record<string, any>;
   let globalPause = false, riskReadable = true;
   try { globalPause = !!(await db.select<{ global_pause: boolean }>("agent_risk", "id=eq.1&select=global_pause"))[0]?.global_pause; }
   catch (e) { riskReadable = false; report.errors.push(`agent_risk unreadable (${msg(e)}): nothing that opens this turn`); }
@@ -1090,18 +978,18 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const mode: PmLiveMode = d.sendsEnabled && !cfg.dry_run && keyed ? "live" : "dry_run";
   report.mode = mode;
   report.why = mode === "live" ? "live: sends enabled in code, dry_run off, the key loaded and matching the signer"
-    : !d.sendsEnabled ? "dry-run: PM_ORDER_SENDS_ENABLED is false in code" : cfg.dry_run ? `dry-run: ${T.config}.dry_run is on`
+    : !d.sendsEnabled ? "dry-run: PM_ORDER_SENDS_ENABLED is false in code" : cfg.dry_run ? "dry-run: pm_live_config.dry_run is on"
     : `dry-run: no signing key loaded for the stored signer${d.signerProblem ? ` (${d.signerProblem})` : ""}`;
 
   // ── 1. the day's markets ──────────────────────────────────────────────────────────────────────────────────────────
   // A market whose book answered 404 today left the book while it was selected (it closed or resolved): it is dropped
   // for the rest of the day and read no more. As in RW's spec, a day is quoted on its own selection: nothing replaces it.
   const goneToday = new Set<string>(prev.goneDay === day && Array.isArray(prev.gone) ? (prev.gone as unknown[]).filter((x): x is string => typeof x === "string") : []);
-  const openAll = await db.selectAll<PmOrderRow>(T.orders, "state=in.(pending,live)&select=*&order=id.asc");
+  const openAll = await db.selectAll<PmOrderRow>("pm_live_orders", "state=in.(pending,live)&select=*&order=id.asc");
   // Our orders at the venue as the selection reads the books: the live rows recorded resting (a dry-run's are in no book).
   const ownAtVenue = new Map<string, PmOwnOrder[]>();
   for (const o of openAll) if (o.mode === "live" && o.state === "live") ownAtVenue.set(o.cond, [...(ownAtVenue.get(o.cond) ?? []), ownOf(o)]);
-  const todayRows = await db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=*&order=rank.asc`);
+  const todayRows = await db.select<PmMarketRow>("pm_live_markets", `day=eq.${day}&select=*&order=rank.asc`);
   let selected = todayRows.filter((m) => !goneToday.has(m.cond));
   let selectionTriedAt = prev.selectionDay === day ? (prev.selectionTriedAt as string | undefined) ?? null : null;
   // Written once the books are read, so a market found gone this turn is recorded in the same minute's row.
@@ -1110,13 +998,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     selectionTriedAt = nowIso;
     try {
       const began = clock();
-      const sel = await selectMarkets(venue, day, {
-        maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue, band: inst.band, exclusion: inst.exclusion, pm: d.pm,
-        bookBatch: inst.bookBatch ? (tokens: string[]) => inst.bookBatch!(tokens, d.pm) : undefined,
-      }, goneToday, deadline, d.now);
+      const sel = await selectMarkets(venue, day, { maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue }, goneToday, deadline, d.now);
       sel.note.ms = Math.round(clock() - began);
       if (sel.picks.length) {
-        await db.upsert(T.markets, sel.picks.map((p) => ({ ...p, detail: { note: sel.note }, selected_at: nowIso })), "day,cond");
+        await db.upsert("pm_live_markets", sel.picks.map((p) => ({ ...p, detail: { note: sel.note }, selected_at: nowIso })), "day,cond");
         selected = sel.picks;
       }
       selectionEvent = { day, picked: sel.picks.map((p) => ({ cond: p.cond, rate: p.reward_rate, rank: p.rank, perDollarDay: p.per_dollar_day, capital: p.capital, formulaDay: p.formula_day })), ...sel.note };
@@ -1127,9 +1012,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // ── what is held: the markets CONFIRMED fills (live only) left tokens in, from an earlier day too ──────────────────
   // A market Gamma has shown resolved is settled at its payout (`pm_live_settlements`) and holds nothing more; its tokens
   // left on chain until Davies redeems them are watched as capital (`unredeemed`), not marked as exposure.
-  const settlements = await db.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
+  const settlements = await db.selectAll<PmSettlement>("pm_live_settlements", "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
   const fillsBook = async (extra: PmSettlement[] = []) => {
-    const rows = await db.selectAll<FillRow>(T.fills, "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
+    const rows = await db.selectAll<FillRow>("pm_live_fills", "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
     const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
     return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
   };
@@ -1138,7 +1023,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const heldConds = [...new Set(before.rows.filter((f) => (before.tb[f.token]?.held ?? 0) > 0).map((f) => f.cond))].filter((c) => !selected.some((m) => m.cond === c) && !settled.has(c));
   const heldMarkets: TurnMarket[] = [];
   for (const c of heldConds) {
-    const row = (await db.select<PmMarketRow>(T.markets, `cond=eq.${enc(c)}&select=*&order=day.desc&limit=1`))[0];
+    const row = (await db.select<PmMarketRow>("pm_live_markets", `cond=eq.${enc(c)}&select=*&order=day.desc&limit=1`))[0];
     if (row) heldMarkets.push({ ...row, quoting: false });
   }
   const markets: TurnMarket[] = [...selected.map((m) => ({ ...m, quoting: true })), ...heldMarkets];
@@ -1210,20 +1095,20 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       closedTime.set(m.cond, gm.closedTime);
     }
     if (newSettlements.length) {
-      try { await db.upsert(T.settlements, newSettlements.map((s) => ({ ...s, closed_time: closedTime.get(s.cond) ?? null, detail: {} })), "cond"); }
+      try { await db.upsert("pm_live_settlements", newSettlements.map((s) => ({ ...s, closed_time: closedTime.get(s.cond) ?? null, detail: {} })), "cond"); }
       catch (e) { report.errors.push(`settlement not recorded (${msg(e)})`); newSettlements.length = 0; }
     }
   }
   if (goneNow.length) selectionEvent = { ...(selectionEvent ?? { day }), gone: goneNow };
   if (selectionEvent) {
-    try { await db.upsert(T.events, [{ mode, minute, kind: "selection", detail: selectionEvent }], "mode,minute,kind"); }
+    try { await db.upsert("pm_live_events", [{ mode, minute, kind: "selection", detail: selectionEvent }], "mode,minute,kind"); }
     catch (e) { report.errors.push(`selection not recorded (${msg(e)})`); }
   }
 
   // ── live orders read back by hash, and their trades ───────────────────────────────────────────────────────────────
   const unreadable = new Set<number>();
   const patch = async (o: PmOrderRow, p: Partial<PmOrderRow>) => {
-    await db.update(T.orders, `id=eq.${o.id}`, { ...p, updated_at: nowIso });
+    await db.update("pm_live_orders", `id=eq.${o.id}`, { ...p, updated_at: nowIso });
     Object.assign(o, p);
   };
   const recordTrades = async (o: PmOrderRow, ids: string[]) => {
@@ -1234,7 +1119,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const mine = (t.maker_orders ?? []).find((x) => String(x.order_id ?? "").toLowerCase() === o.hash);
       const size = Number(mine?.matched_amount), price = Number(mine?.price ?? o.price), status = tradeStatus(t.status);
       if (!mine || !(size > 0) || !status) { report.errors.push(`trade ${id}: no fill of ${o.hash.slice(0, 12)}… in it, or an unknown status ${t.status}; left for a person`); continue; }
-      await db.upsert(T.fills, [{
+      await db.upsert("pm_live_fills", [{
         trade_id: id, hash: o.hash, cond: o.cond, token: o.token, side: o.side, price, size, status,
         match_time: Number(t.match_time) > 0 ? iso(Number(t.match_time) * 1000) : null, tx_hash: t.transaction_hash ?? null, detail: { trade: t }, updated_at: nowIso,
       }], "trade_id,hash");
@@ -1287,9 +1172,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     } catch (e) { unreadable.add(o.id); report.errors.push(`${o.hash.slice(0, 12)}…: ${msg(e)}`); }
   }
   // Trades not yet final are read again until CONFIRMED or FAILED.
-  const fillRows = await db.selectAll<FillRow>(T.fills, "select=*&order=trade_id.asc,hash.asc");
+  const fillRows = await db.selectAll<FillRow>("pm_live_fills", "select=*&order=trade_id.asc,hash.asc");
   for (const f of fillRows.filter((x) => x.status !== "CONFIRMED" && x.status !== "FAILED")) {
-    const o = openAll.find((x) => x.hash === f.hash) ?? (await db.select<PmOrderRow>(T.orders, `hash=eq.${f.hash}&select=*`))[0];
+    const o = openAll.find((x) => x.hash === f.hash) ?? (await db.select<PmOrderRow>("pm_live_orders", `hash=eq.${f.hash}&select=*`))[0];
     if (o) { try { await recordTrades(o, [f.trade_id]); } catch (e) { report.errors.push(`trade ${f.trade_id}: ${msg(e)}`); } }
   }
   // A dry-run row left pending (its second write failed) was never sent anywhere: closed, so it cannot hold its slot.
@@ -1314,8 +1199,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
     }
   }
-  // The account's live share of each pool is what the account earns: read only by an instance that reads its payouts.
-  if (inst.readsPayouts && markets.some((m) => m.quoting) && !pastDeadline(deadline)) {
+  if (markets.some((m) => m.quoting) && !pastDeadline(deadline)) {
     const r = await venue.rewardPercentages();
     if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
   }
@@ -1353,7 +1237,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   const pnl = bookPnl(tb, marks);
   report.pnl = pnl;
-  const hasEvent = async (kind: string, since: string | null) => (await db.select(T.events, `mode=eq.live&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`)).length > 0;
+  const hasEvent = async (kind: string, since: string | null) => (await db.select("pm_live_events", `mode=eq.live&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`)).length > 0;
   let lossDay = false, lossTotal = false;
   try {
     lossDay = await hasEvent("loss_stop_day", iso(dayStart));
@@ -1361,12 +1245,12 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   } catch (e) { lossDay = lossTotal = true; report.errors.push(`loss stops unreadable (${msg(e)}): nothing that opens this turn`); }
   if (!lossDay && pnl.day <= -lim.lossDay) {
     lossDay = true;
-    await db.upsert(T.events, [{ mode: "live", minute, kind: "loss_stop_day", detail: { dayPnl: pnl.day, limit: -lim.lossDay } }], "mode,minute,kind");
+    await db.upsert("pm_live_events", [{ mode: "live", minute, kind: "loss_stop_day", detail: { dayPnl: pnl.day, limit: -lim.lossDay } }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (day): ${pnl.day} USD is past −${lim.lossDay}; nothing opens until the next UTC day; sells of what is held stay armed`);
   }
   if (!lossTotal && pnl.total <= -lim.lossTotal) {
     lossTotal = true;
-    await db.upsert(T.events, [{ mode: "live", minute, kind: "loss_stop_total", detail: { totalPnl: pnl.total, limit: -lim.lossTotal } }], "mode,minute,kind");
+    await db.upsert("pm_live_events", [{ mode: "live", minute, kind: "loss_stop_total", detail: { totalPnl: pnl.total, limit: -lim.lossTotal } }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (all): ${pnl.total} USD is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`);
   }
 
@@ -1471,7 +1355,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
 
   // ── 5. the orders ─────────────────────────────────────────────────────────────────────────────────────────────────
-  const today = await db.selectAll<Pick<PmOrderRow, "id" | "mode" | "cond" | "token" | "side" | "price" | "size" | "state" | "response" | "book_seen">>(T.orders,
+  const today = await db.selectAll<Pick<PmOrderRow, "id" | "mode" | "cond" | "token" | "side" | "price" | "size" | "state" | "response" | "book_seen">>("pm_live_orders",
     `ts=gte.${enc(iso(dayStart))}&select=id,mode,cond,token,side,price,size,state,response,book_seen&order=id.asc`);
   let posts = today.filter((o) => o.mode === mode).length;
   /** Each slot's newest order today: one the venue refused is not sent again at the same price and size. */
@@ -1526,7 +1410,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     if (ours) { withhold(slotKey(w), "post_only", `${w.side} ${w.outcome} at ${w.price} would take our own ${ours.state} order ${ours.hash.slice(0, 12)}… (${ours.outcome} ${ours.side} at ${Number(ours.price)}), still in the book`); return; }
     const maker = d.account?.maker ?? null, signer = d.account?.signer ?? null;
     if (!maker || !signer) { withhold(slotKey(w), "account", "no stored funder and signer: an order's hash needs both"); return; }
-    if (mode === "live" && !(await holdLease())) { withhold(slotKey(w), "lease", `this run no longer holds the ${inst.lock} lease: it sends nothing more`); return; }
+    if (mode === "live" && !(await holdLease())) { withhold(slotKey(w), "lease", "this run no longer holds the pm-live lease: it sends nothing more"); return; }
     const expiration = nowS + PM_GTD_EARLY_S + lifetime;
     const built = buildOrder({
       tokenId: w.token, side: w.side, price: w.price, size: w.size, tick: w.tick, negRisk: w.negRisk, maker, signer,
@@ -1536,7 +1420,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const bookSeen = { bestBid: w.book.bestBid, bestAsk: w.book.bestAsk, tick: w.tick, minSize: w.minSize, negRisk: w.negRisk, at: w.book.at, hash: w.book.hash, facing: w.facing };
     let row: PmOrderRow;
     try {
-      [row] = await db.insert<PmOrderRow>(T.orders, {
+      [row] = await db.insert<PmOrderRow>("pm_live_orders", {
         mode, cond: w.cond, token: w.token, outcome: w.outcome, side: w.side, price: w.price, size: w.size, order_type: "GTD", post_only: true,
         expiration, neg_risk: w.negRisk, hash: built.hash, state: "pending", gate: w.gate, reason, book_seen: bookSeen, request,
       }, true);
@@ -1632,7 +1516,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   // ── 6. the minute's record ────────────────────────────────────────────────────────────────────────────────────────
   if (minuteRows.length) {
-    try { await db.upsert(T.minutes, minuteRows, "mode,minute,cond"); } catch (e) { report.errors.push(`minutes not recorded (${msg(e)})`); }
+    try { await db.upsert("pm_live_minutes", minuteRows, "mode,minute,cond"); } catch (e) { report.errors.push(`minutes not recorded (${msg(e)})`); }
   }
 
   // ── 7. the readout: once a UTC day, after Polymarket's midnight payout ───────────────────────────────────────────
@@ -1647,7 +1531,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (pastDeadline(deadline)) break;
       readoutTriedAt = nowIso;
       try {
-        const r = await readout(d, inst, dd, nowIso, deadline);
+        const r = await readout(d, dd, nowIso, deadline);
         if (r.error) { report.errors.push(`readout of ${dd}: ${r.error}`); break; }
         readouts[dd] = { reads: (readouts[dd]?.reads ?? 0) + 1, at: nowIso };
         report.readout.push({ day: dd, markets: r.markets, actual: r.actual, formula: r.formula });
@@ -1655,7 +1539,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       } catch (e) { report.errors.push(`readout of ${dd}: ${msg(e)}`); break; }
     }
     if (done.length) {
-      try { await db.upsert(T.events, [{ mode, minute, kind: "readout", detail: { days: done } }], "mode,minute,kind"); }
+      try { await db.upsert("pm_live_events", [{ mode, minute, kind: "readout", detail: { days: done } }], "mode,minute,kind"); }
       catch (e) { report.errors.push(`readout not recorded as an event (${msg(e)})`); }
     }
   }
@@ -1668,15 +1552,15 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const conditionKey = JSON.stringify(Object.entries(conditions).sort());
   try {
     if (prev.gateKey !== gateKey) {
-      await db.upsert(T.events, [{ mode, minute, kind: "gates", detail: { verdicts: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, sbRegion: d.sbRegion, geo, closedOnly, attested, before: prev.gates ?? null } }], "mode,minute,kind");
+      await db.upsert("pm_live_events", [{ mode, minute, kind: "gates", detail: { verdicts: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, sbRegion: d.sbRegion, geo, closedOnly, attested, before: prev.gates ?? null } }], "mode,minute,kind");
     }
     if ((prev.conditionKey ?? "[]") !== conditionKey) {
-      await db.upsert(T.events, [{ mode, minute, kind: "condition", detail: { now: conditions, before: prev.conditions ?? {} } }], "mode,minute,kind");
+      await db.upsert("pm_live_events", [{ mode, minute, kind: "condition", detail: { now: conditions, before: prev.conditions ?? {} } }], "mode,minute,kind");
     }
     if (posts >= lim.maxPosts && prev.governorDay !== day) {
-      await db.upsert(T.events, [{ mode, minute, kind: "governor", detail: { posts, limit: lim.maxPosts } }], "mode,minute,kind");
+      await db.upsert("pm_live_events", [{ mode, minute, kind: "governor", detail: { posts, limit: lim.maxPosts } }], "mode,minute,kind");
     }
-    await db.upsert(T.state, [{
+    await db.upsert("pm_live_state", [{
       id: 1, updated_at: nowIso, last_error: report.errors.length ? report.errors.join(" | ").slice(0, 500) : null,
       state: {
         at: nowIso, minute, mode, why: report.why, sbRegion: d.sbRegion, sendsEnabled: d.sendsEnabled, dryRun: cfg.dry_run, armed: !!cfg.live_confirmed_at,
@@ -1691,7 +1575,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         // Settled markets whose tokens a turn has read gone from the chain: redeemed, no longer watched.
         redeemed: [...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)],
         markets: report.markets, minutes: report.minutes, withheld: report.withheld,
-        open: (await db.select<{ id: number }>(T.orders, "state=in.(pending,live)&select=id&limit=50")).length,
+        open: (await db.select<{ id: number }>("pm_live_orders", "state=in.(pending,live)&select=id&limit=50")).length,
       },
     }], "id");
   } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }
@@ -1705,12 +1589,10 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
  * (`/rewards/user/total?sponsored=true`), the maker rebates paid to the proxy wallet (`/rebates/current`), and the day's
  * minutes from `pm_live_minutes`: per market and mode, the minutes with a quote, with both sides scored by RW's formula,
  * with both sides the venue called scoring, and the formula's sums. A market paid but never quoted is a live row with
- * no minutes. An instance that reads no payouts (`readsPayouts` false) reads nothing of the account here: its rows are
- * its own minutes' formula sums.
+ * no minutes.
  */
-async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
+async function readout(d: PmLiveDeps, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
   const { db, venue } = d;
-  const T = inst.tables;
   const empty: ReadoutResult = { markets: 0, actual: 0, sponsored: 0, formula: 0, formulaScored: 0, rebates: 0, total: null };
   const earnings = async (sponsored: boolean): Promise<{ rows: PmUserEarning[]; error?: string }> => {
     const rows: PmUserEarning[] = [];
@@ -1725,19 +1607,15 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     }
     return { rows, error: `rewards/user (sponsored ${sponsored}): more than ${EARNING_PAGES} pages` };
   };
-  let nat: { rows: PmUserEarning[]; error?: string } = { rows: [] }, spo: { rows: PmUserEarning[]; error?: string } = { rows: [] };
-  let tot: PmReply<PmUserEarning[]> | null = null, reb: PmReply<PmRebate[] | null> | null = null;
-  if (inst.readsPayouts) {
-    nat = await earnings(false);
-    if (nat.error) return { ...empty, error: nat.error };
-    spo = await earnings(true);
-    if (spo.error) return { ...empty, error: spo.error };
-    tot = await venue.userEarningsTotal(dd, true);
-    if (!tot.ok) return { ...empty, error: `rewards/user/total: ${tot.status} ${tot.error}` };
-    const maker = d.account?.maker ?? null;
-    reb = maker ? await venue.rebates(dd, maker) : null;
-    if (reb && !reb.ok) return { ...empty, error: `rebates/current: ${reb.status} ${reb.error}` };
-  }
+  const nat = await earnings(false);
+  if (nat.error) return { ...empty, error: nat.error };
+  const spo = await earnings(true);
+  if (spo.error) return { ...empty, error: spo.error };
+  const tot = await venue.userEarningsTotal(dd, true);
+  if (!tot.ok) return { ...empty, error: `rewards/user/total: ${tot.status} ${tot.error}` };
+  const maker = d.account?.maker ?? null;
+  const reb = maker ? await venue.rebates(dd, maker) : null;
+  if (reb && !reb.ok) return { ...empty, error: `rebates/current: ${reb.status} ${reb.error}` };
   const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
   const paid = (rows: PmUserEarning[]) => {
     const out = new Map<string, number>();
@@ -1748,7 +1626,7 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
   const rebates = new Map<string, number>();
   for (const x of Array.isArray(reb?.data) ? reb!.data! : []) { const c = String(x.condition_id ?? "").toLowerCase(); if (c) rebates.set(c, (rebates.get(c) ?? 0) + num(x.rebated_fees_usdc)); }
   const start = `${dd}T00:00:00.000Z`, end = iso(Date.parse(start) + DAY);
-  const mins = await db.selectAll<PmMinuteRow>(T.minutes, `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
+  const mins = await db.selectAll<PmMinuteRow>("pm_live_minutes", `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
   type Agg = { mode: PmLiveMode; cond: string; minutes: number; two: number; scored: number; formula: number; formulaScored: number; rate: number };
   const agg = new Map<string, Agg>();
   for (const r of mins) {
@@ -1770,14 +1648,14 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     formula_usd: Math.round(a.formula * 1e6) / 1e6, formula_scored_usd: Math.round(a.formulaScored * 1e6) / 1e6, rate: a.rate,
     actual_usd: a.mode === "live" ? native.get(a.cond) ?? 0 : null, actual_sponsored_usd: a.mode === "live" ? sponsored.get(a.cond) ?? 0 : null,
     rebate_usd: a.mode === "live" ? rebates.get(a.cond) ?? 0 : null, read_at: nowIso,
-    detail: { total: tot?.data ?? null, rebatesRead: reb ? reb.status : null },
+    detail: { total: tot.data ?? null, rebatesRead: reb ? reb.status : null },
   }));
-  if (rows.length) await db.upsert(T.rewardDays, rows, "mode,day,cond");
+  if (rows.length) await db.upsert("pm_live_reward_days", rows, "mode,day,cond");
   const live = rows.filter((r) => r.mode === "live");
   const sum = (xs: number[]) => Math.round(xs.reduce((s, x) => s + x, 0) * 1e6) / 1e6;
   return {
     markets: rows.length, actual: sum(live.map((r) => (r.actual_usd ?? 0) + (r.actual_sponsored_usd ?? 0))), sponsored: sum(live.map((r) => r.actual_sponsored_usd ?? 0)),
     formula: sum(live.map((r) => r.formula_usd)), formulaScored: sum(live.map((r) => r.formula_scored_usd)), rebates: sum(live.map((r) => r.rebate_usd ?? 0)),
-    total: Array.isArray(tot?.data) ? sum(tot!.data.map(usd)) : null,
+    total: Array.isArray(tot.data) ? sum(tot.data.map(usd)) : null,
   };
 }

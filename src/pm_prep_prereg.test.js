@@ -53,6 +53,18 @@ describe('the live-prep pre-registration', () => {
     expect(crypto.createHash('sha256').update(ADD2).digest('hex')).toBe(named);
   });
 
+  // The instance build (2026-10-02) runs the code this document froze beside today's default instances, minute by
+  // minute (supabase/functions/agents/pm_instance.test.ts): the copies it runs are the frozen files, byte for byte.
+  it('keeps the path and the layer it froze, byte for byte, as the copies the instance build is checked against', () => {
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    const live = /`pm_live\.ts` sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    const prep = /`pm_prep\.ts` sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    expect(live).toMatch(/^[0-9a-f]{64}$/);
+    expect(prep).toMatch(/^[0-9a-f]{64}$/);
+    expect(sha('supabase/functions/agents/pm_live_frozen.ts')).toBe(live);
+    expect(sha('supabase/functions/agents/pm_prep_frozen.ts')).toBe(prep);
+  });
+
   it("reads Addendum 2's window, 2026-10-03 00:00 to 2026-10-04 00:00 UTC, with every bar of the frozen check", () => {
     expect(DOC).toContain('**The window: 2026-10-03 00:00:00 → 2026-10-04 00:00:00 UTC**');
     const sql = ADD2.toString('utf8');
