@@ -16,6 +16,9 @@ update doesn't ask again. It ends 24 hours after signing in, or when the
 tab or app is closed; when it ends, the page goes back to the password
 prompt by itself, with any unsaved edit kept and saved after the next
 sign-in.
+If the server does not answer the check, the page says SERVER UNAVAILABLE
+and the password was not judged: try again in a minute. Only a password
+the server refuses reads "Incorrect password".
 
 An edit is saved a moment after it is made. If the server does not take
 it, a **NOT SAVED** bar says so and the page tries again by itself, after

@@ -319,6 +319,21 @@ function App() {
     );
   }
 
+  // The server never judged the password (a 5xx, a timeout, no network): say so,
+  // never "Incorrect password", or a right password reads as a wrong one.
+  if (auth && auth.unavailable) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>
+        <div style={{ textAlign: 'center', padding: '40px', border: '1px solid #2a2a2a', borderRadius: '4px' }}>
+          <div style={{ color: '#fa3', fontFamily: 'monospace', letterSpacing: '0.2em', fontSize: '14px', marginBottom: '8px' }}>SERVER UNAVAILABLE</div>
+          <div style={{ color: '#888', fontFamily: 'monospace', fontSize: '12px' }}>The server did not answer{auth.status ? ` (${auth.status})` : ''}, so the password was not checked.</div>
+          <div style={{ color: '#555', fontFamily: 'monospace', fontSize: '12px', marginTop: '6px', marginBottom: '20px' }}>Try again in a minute.</div>
+          <button style={{ background: '#1e2d28', color: '#ccc', border: '1px solid #3a3a3a', padding: '8px 20px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '12px', borderRadius: '2px' }} onClick={() => { setAuth(undefined); setPwInput(null); }}>Try again</button>
+        </div>
+      </div>
+    );
+  }
+
   if (!auth) {
     return (
       <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#0c1310' }}>

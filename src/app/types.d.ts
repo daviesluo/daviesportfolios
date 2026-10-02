@@ -100,6 +100,10 @@ export type AppAuth = {
   isReadOnly?: boolean;
   locked?: boolean;
   lockUntil?: number;
+  /** The server did not answer the check (a 5xx, a timeout, no network): the password was never judged. */
+  unavailable?: boolean;
+  /** The HTTP status it answered with, 0 when nothing came back. */
+  status?: number;
 } | null;
 
 export interface PortfolioSnapshot {

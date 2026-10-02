@@ -97,7 +97,12 @@ export function decodeAppToken(token) {
 // Async: hit the auth Edge Function. Resolves to:
 //   { isReadOnly }                — successful login, token already stored
 //   { locked: true, lockUntil }   — too many failed attempts
-//   null                          — wrong password / network failure / cancelled prompt
+//   { unavailable: true, status } — the server never judged the password: a 5xx, a
+//                                   timeout or no network (status 0). Shown as such,
+//                                   never as a wrong password (2026-10-02: the database
+//                                   stalled for two hours and every right password read
+//                                   "Incorrect password").
+//   null                          — wrong password (401) / cancelled prompt
 export async function authenticate(pw) {
   if (pw == null || pw === "") return null;
 
@@ -133,13 +138,14 @@ export async function authenticate(pw) {
 
     if (res.status === 401) return null;
 
-    // 5xx, network blip — treat as transient, don't pretend to lock out.
-    // reportError surfaces it in the badge / ops_errors; no console
-    // noise needed alongside (DevTools is the wrong channel for this).
+    // 5xx, network blip — transient: neither a lockout nor a wrong password,
+    // and the page says which. reportError surfaces it in the badge /
+    // ops_errors; no console noise needed alongside (DevTools is the wrong
+    // channel for this).
     reportError('auth.unexpected', { context: { status: res.status } });
-    return null;
+    return { unavailable: true, status: res.status };
   } catch (e) {
     reportError('auth.network', { message: String(e?.message || e) });
-    return null;
+    return { unavailable: true, status: 0 };
   }
 }

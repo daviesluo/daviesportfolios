@@ -111,3 +111,44 @@ describe('signOut / noteAuthStatus', () => {
     off();
   });
 });
+
+// The login's answer, by what the server said. A right password during an outage must never read as a wrong one:
+// on 2026-10-02 the database stalled for two hours, the auth function answered 500 to every attempt, and the page
+// said "Incorrect password" each time.
+describe('authenticate', () => {
+  /** @param {number} status @param {unknown} body */
+  const answer = (status, body) => vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(body), { status })));
+
+  it('a 200 with a token signs in and keeps the token', async () => {
+    const { authenticate } = await import('./auth.js');
+    answer(200, { token: 'abc', role: 'ro' });
+    expect(await authenticate('pw')).toEqual({ isReadOnly: true });
+    expect(getAppToken()).toBe('abc');
+  });
+
+  it('a 401 is a wrong password (null), and a 429 is a lockout with its end', async () => {
+    const { authenticate } = await import('./auth.js');
+    answer(401, { error: 'invalid', attemptsLeft: 2 });
+    expect(await authenticate('pw')).toBeNull();
+    answer(429, { error: 'locked', lockoutUntil: 1234 });
+    expect(await authenticate('pw')).toEqual({ locked: true, lockUntil: 1234 });
+  });
+
+  it('a 5xx or no answer at all is the server unavailable, never a wrong password', async () => {
+    const { authenticate } = await import('./auth.js');
+    answer(500, { error: 'boom' });
+    expect(await authenticate('pw')).toEqual({ unavailable: true, status: 500 });
+    answer(503, {});
+    expect(await authenticate('pw')).toEqual({ unavailable: true, status: 503 });
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('Failed to fetch'); }));
+    expect(await authenticate('pw')).toEqual({ unavailable: true, status: 0 });
+  });
+
+  it('nothing typed is no attempt at all', async () => {
+    const { authenticate } = await import('./auth.js');
+    const f = vi.fn();
+    vi.stubGlobal('fetch', f);
+    expect(await authenticate('')).toBeNull();
+    expect(f).not.toHaveBeenCalled();
+  });
+});

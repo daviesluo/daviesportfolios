@@ -128,6 +128,15 @@ describe('App — smoke render', () => {
     expect(() => render(<App />)).not.toThrow();
   });
 
+  it('says the server is unavailable, never that the password is wrong, when the check got no answer', async () => {
+    const auth = await import('./auth.js');
+    vi.mocked(auth.consumeUrlPassword).mockReturnValueOnce('pw');
+    vi.mocked(auth.authenticate).mockResolvedValueOnce({ unavailable: true, status: 500 });
+    const { findByText, queryByText } = render(<App />);
+    expect(await findByText('SERVER UNAVAILABLE')).toBeTruthy();
+    expect(queryByText('Incorrect password.')).toBeNull();
+  });
+
   it('renders the password gate copy in the unauthed state', () => {
     const { container } = render(<App />);
     // Unauthed body should at least render *something* (not be the
