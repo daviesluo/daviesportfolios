@@ -388,12 +388,14 @@ How the less obvious parts work, and why they are built the way they are.
   `html2canvas-pro`); the heavy one, `html2canvas-pro` (chart-modal
   screenshots), is `import()`-ed lazily so it never lands in the main
   bundle.
-- **Backend** — Supabase (Postgres + Edge Functions on Deno). Eleven
+- **Backend** — Supabase (Postgres + Edge Functions on Deno). Fourteen
   functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`, `trading212`, `overnight-fetch` and `agents`, plus two
-  recorders that `pg_cron` calls, `snapshot-record` (every board price,
+  `ops-error`, `trading212`, `overnight-fetch`, `agents` and `weather`;
+  two recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
-  quotes). Shared Deno modules live in `supabase/functions/_shared/`.
+  quotes); `edge-watchdog`, which runs a call of the minute job again when
+  its worker never started; and `monitor`, which the Cloudflare Worker below
+  calls. Shared Deno modules live in `supabase/functions/_shared/`.
   Migrations `0001`–`0053`, plus four timestamped records of changes that
   were first applied out of band (`supabase/migrations/README.md`);
   `0005`/`0006` are a historical create/drop pair for the retired
@@ -401,7 +403,7 @@ How the less obvious parts work, and why they are built the way they are.
 - **Build / CI** — Vite production bundle; Vitest for unit and component
   tests (`jsdom` + `@testing-library/react`); `tsc --noEmit` for
   type-checking; ESLint; knip; size-limit; Playwright for the browser
-  sweep. Five GitHub Actions workflows: `check.yml` (every push: bundle
+  sweep. Seven GitHub Actions workflows: `check.yml` (every push: bundle
   freshness, type-check, lint, unit tests, build, browser sweep,
   bundle-size budget, dead-code scan, dependency audit; the source checks,
   the sweep's four shards and the perf matrix with the size budget run as
@@ -412,10 +414,30 @@ How the less obvious parts work, and why they are built the way they are.
   `migrations.yml` (PR-time SQL lint; on main, `supabase db push` applies
   any new migration against production's `schema_migrations`),
   `pages-deploy.yml` (on a `dist/` change to `main`, or by hand: Wrangler
-  Direct Upload of the committed `dist/`, no Pages Git clone) and
-  `healthcheck.yml` (every 10 minutes: pings the production functions and
-  checks the live site's shell and chunks). Each opens or bumps a GitHub
-  issue when it fails.
+  Direct Upload of the committed `dist/`, no Pages Git clone),
+  `healthcheck.yml` (asks for every 10 minutes, which GitHub's scheduler
+  treats as best effort: pings the production functions and checks the live
+  site's shell and chunks), `monitor-deploy.yml` (on a change to
+  `workers/monitor/`, or by hand: deploys the monitor Worker, and sets
+  `MONITOR_SECRET` on both sides when asked or missing) and
+  `monitor-alert.yml` (started by the monitor Worker: opens or comments on
+  the issue labelled `monitor`). Each opens or bumps a GitHub issue when it
+  fails.
+- **Monitoring** — a Cloudflare Worker, `daviesportfolios-monitor`
+  (`workers/monitor/`), runs every minute on Cloudflare's clock, outside
+  both GitHub's scheduler and Supabase's `pg_cron` (on 2026-10-02 the
+  database stalled for 80 minutes and nothing alerted: GitHub had run the
+  10-minute health check 9 times in 48 hours). It checks the live site's
+  shell and app chunk, Supabase's minute loop (the `monitor` function's
+  read-only health action: the tick's beat and finished turn, PR5's
+  executor, the newest decision) and PR5's dead-man switch, which cancels
+  every resting order on PR5's Revolut X sub-account when its executor has
+  missed three turns. A check that fails two minutes running alerts, and
+  again when it recovers, two ways: a row in the site's errors box
+  (`ops_errors`, kinds `monitor.*`) and a GitHub issue labelled `monitor`
+  (`monitor-alert.yml`, opened by github-actions, so its owner is notified).
+  Its state is one Workers KV key, written only when it changes; a report
+  Supabase cannot take waits there until it can.
 - **Hosting** — Cloudflare Pages publishes `dist/` from `main`. `_headers`
   pins cache rules so iOS PWA can't get stuck on a stale `index.html`
   pointing at deleted hashed bundles. **A chunk that fails to load never
@@ -579,6 +601,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents` | The crypto loop and its page (below). |
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
+| `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
 
 #### `agents/` and `_shared/`
 
@@ -722,6 +745,7 @@ before touching migration state.
 | `0083_cron_run_details_prune.sql` | A daily job keeping seven days of pg_cron's run history (`cron.job_run_details`), which nothing pruned before. |
 | `0084_pm_mid_order_path.sql` | Lets mid-pool's config leave dry-run and its orders be live, as mini-pool's always could, and adds a trigger on both Polymarket configs that refuses arming either while the other is armed: the two paths trade one account. |
 | `0085_pm_rw_x_rest_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take the two arms on x1 that move where the quotes rest (x4, x5). |
+| `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
@@ -746,8 +770,13 @@ before touching migration state.
 | `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit, as parallel jobs. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
-| `.github/workflows/healthcheck.yml` | Every 10 minutes: pings the functions and checks the live site's code; opens an issue when something is down. |
+| `.github/workflows/healthcheck.yml` | Asks for every 10 minutes (GitHub runs it when it can): pings the functions to keep them warm and checks the live site's code; opens an issue when something is down. |
 | `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
+| `.github/workflows/monitor-deploy.yml` | On a change to `workers/monitor/`, or by hand: tests and deploys the monitor Worker with a pinned wrangler, and sets `MONITOR_SECRET` on the Worker and in Supabase when asked or missing. |
+| `.github/workflows/monitor-alert.yml` | Started by the monitor Worker: opens the one issue labelled `monitor`, or comments on it. |
+| `workers/monitor/wrangler.jsonc` | The monitor Worker's configuration: its one-minute cron, its KV namespace, the public addresses it checks. |
+| `workers/monitor/src/index.js` | The monitor Worker's entry: the cron's minute, and a GET answering its health output. |
+| `workers/monitor/src/monitor.js` | What a minute of the monitor does: the three checks, the alert after two failing minutes and the recovery, the queue in KV, and the GitHub dispatch. |
 | `.github/SECURITY.md`, `CODEOWNERS`, `dependabot.yml`, `pull_request_template.md` | How to report a vulnerability, who reviews what, dependency updates, the PR layout. |
 | `docs/README.md` | The front page GitHub shows on the repository's home page: what the project is, screenshots, how it is built. |
 | `docs/guide.md` | How to use each part of the site. |
@@ -840,6 +869,13 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmmidprep  every minute   mid-pool's paper layer → pm_midprep_*
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache, call beats
+
+Cloudflare Worker daviesportfolios-monitor (its own cron, every minute: outside GitHub and pg_cron)
+ ├─ daviesluo.com                    the shell 200, and the app-*.js it names 200 JavaScript
+ ├─ monitor ?action=health           the minute loop's readings (tick beat and turn, PR5's executor, newest decision), read-only
+ ├─ monitor ?action=deadman          PR5's executor quiet > 3 min → every resting order on its sub-account cancelled → agent_quote_live_events, ops_errors
+ ├─ monitor ?action=report           its alerts and recoveries → ops_errors (the errors box); queued in KV while Supabase is down
+ └─ GitHub workflow_dispatch         monitor-alert.yml → the issue labelled monitor (opened, or commented on)
 ```
 
 The Edge Functions hold:
@@ -963,9 +999,10 @@ A copy-pasteable shape of the app-level vars lives at
 | `T212_API_SECRET` | `trading212`, `overnight-record`, `snapshot-record` | Optional, for T212's two-key accounts. When set, the functions go straight to `Basic base64(key:secret)` and keep the raw key only as a 401 fallback; leave unset for a single-key account. |
 | `T212_ISA_API_KEY` | `trading212` | Optional. API key for a SECOND T212 account (the ISA). T212 scopes its public API per account, so ISA holdings + their live overnight prices are only reachable with this key. When set, the function fetches the ISA portfolio in parallel and merges it with the invest account (prices union'd; allow-list shares/cost summed if held in both). Without it, only the invest account (`T212_API_KEY`) is synced. |
 | `T212_ISA_API_SECRET` | `trading212` | Optional two-key Basic-Auth fallback for the ISA account, same role as `T212_API_SECRET` but for `T212_ISA_API_KEY`. |
+| `MONITOR_SECRET` | `monitor` | The shared secret the monitor Worker sends in `x-monitor-secret`; without it every call is refused. Generated and set on both sides (this and the Worker's secret of the same name) by `monitor-deploy.yml`, never by hand: run it with `rotate_secret` to change it. |
 | `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents`, `weather`, `edge-watchdog` | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate; `edge-watchdog` also sends it when it runs a call again). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
 | `REVOLUT_X_API_KEY`, `REVOLUT_X_PRIVATE_KEY` | `agents` | Optional. Revolut X key id and its Ed25519 private key; without them Revolut X shows as not configured and nothing trades live there. |
-| `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. |
+| `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents`, `monitor` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. `monitor`'s dead-man switch reads it by the same names, only to cancel that account's resting orders. |
 | `KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY` | `agents` | Optional. Kraken key and its base64 secret (fee tier, balances, the probe; candles need no key). |
 | `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` | `agents` | Optional. The Jev decision model through OpenRouter, with TypeSafe's own endpoint as the fallback; without either the model is not asked and entries hold. |
 | `POLYMARKET_PRIVATE_KEY`, `POLYMARKET_CLOB_API_KEY`, `POLYMARKET_CLOB_SECRET`, `POLYMARKET_CLOB_PASSPHRASE` (each also read as `POLYMARKET_API_*`), `POLYMARKET_FUNDER_ADDRESS`, `POLYMARKET_SIGNER_ADDRESS`, `POLYMARKET_SIG_TYPE`, `POLYMARKET_HOST`, `POLYMARKET_CHAIN_ID` | `agents` | Optional. A Polymarket account, read by the probe (`?action=probe&only=polymarket`): the signing key, the CLOB's API credentials, and the account's addresses and settings. The order path (`?action=pmlive`) reads the API credentials, the two addresses and the signing key, kept only when it is the stored signer's; it places nothing until its config row is unlocked. Its mid-pool instance (`?action=pmmid`) reads the same but the signing key. |

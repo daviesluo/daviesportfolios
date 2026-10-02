@@ -487,7 +487,12 @@ that follow from that evidence, in short:
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a
   bounded 24-hour stop; a refused exit sent again only after a newer print
   that is not through it; a post-only order the book it met shows crossing
-  recorded refused and never sent, 2026-10-02). Its asks hold coin bought by `quotes-convert`
+  recorded refused and never sent, 2026-10-02; and a **dead-man switch**
+  outside Supabase, 2026-10-02 on Davies' word: when the executor has not
+  finished a turn for three minutes, or its state cannot be read, the
+  `monitor` function, called every minute by the monitor Worker, cancels
+  every resting order on the `_2` account and reads each back; the next
+  turn quotes the paper's decisions again; reference §4 item 35). Its asks hold coin bought by `quotes-convert`
   (£30 of each, 16:31–16:32 UTC), topped up by the executor itself since
   2026-10-02 when an ask runs short (a maker conversion at the bid, at most £5
   a book a day, `planTopUps`). It went live with `update
@@ -658,7 +663,10 @@ that follow from that evidence, in short:
   at a minute and no Worker is deployed until a source faster than every
   keyless one is found.
 - **Every recurring Edge call is a row of ONE cron job,
-  `edge-calls-every-minute`** (`0063`, 2026-09-27), which queues every call
+  `edge-calls-every-minute`** (`0063`, 2026-09-27) — all but the
+  `monitor` function's, which the Cloudflare Worker calls on its own clock
+  precisely so that it runs while pg_cron does not (see "The production
+  monitor") — and that job queues every call
   due in its minute in one statement. pg_net 0.20 runs a batch until every
   request of it has answered and only then reads its queue again, so a call
   queued by a job of its own waits behind the slowest call already running
@@ -738,6 +746,27 @@ that follow from that evidence, in short:
   (containers clone fresh, so this resets every session — set it each
   time). Do NOT author/commit as `Claude <noreply@anthropic.com>`, and
   do NOT add a `Co-Authored-By: Claude …` trailer.
+
+## The production monitor
+
+A Cloudflare Worker, `daviesportfolios-monitor` (`workers/monitor/`),
+runs every minute on Cloudflare's clock (Davies, 2026-10-02: GitHub had
+run the 10-minute `healthcheck.yml` 9 times in 48 hours, and nothing
+alerted on that day's 80-minute database stall). It checks the live
+site, Supabase's minute loop (the `monitor` function's read-only health
+action) and PR5's dead-man switch; a check failing two minutes running
+alerts, and again on recovery, as an `ops_errors` row (`monitor.*`, the
+site's errors box) and through `monitor-alert.yml` as the issue labelled
+`monitor`. `monitor-deploy.yml` deploys it on a change to
+`workers/monitor/`. `MONITOR_SECRET` (the Worker and the `monitor`
+function share it) is set only by that workflow, which generates it:
+never by hand, never printed; run it with `rotate_secret` to change it.
+GitHub needs the repository secret `MONITOR_GITHUB_PAT` (fine-grained,
+Actions: Read and write on this repository); without it the Worker skips
+GitHub and says so at its address. The `monitor` function imports nothing
+of `agents` and deploys with JWT verification on (the Worker sends the
+anon key). When a critical recurring job is added, ask whether its
+freshness belongs among the health readings (`monitor/health.ts`).
 
 ## Edge Function deploys
 

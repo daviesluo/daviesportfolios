@@ -20,6 +20,7 @@ import {
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
+import { revxDeadmanVenue, runDeadman } from "../monitor/deadman.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const T0 = Date.parse("2026-09-24T10:00:00Z");          // a Thursday: FX is open
@@ -538,6 +539,49 @@ Deno.test("live: a cancel slower than the re-reads freezes its rung for a turn w
   assertEquals(r2.errors, []);
   assertEquals([w.posts(), w.rx.resting().length], [12, 6]);
   assertEquals(w.rx.resting().map((o) => o.price).sort(), ["0.7496", "0.7496", "0.7503", "0.7503", "0.7511", "0.7511"]);
+});
+
+// The dead-man switch (`monitor/deadman.ts`, Davies 2026-10-02: "执行器连续几轮没跑时撤掉所有挂单") cancels every resting order
+// on this account while the executor is not turning. Its own code does it here, through the venue's own DELETE, on the
+// executor's own fake venue: the executor never asked, so nothing on its rows says a cancel was sent.
+Deno.test("live: orders the dead-man cancelled are read back cancelled on the next turn, and every rung quotes the paper's decision again — the exit too", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  await w.step(T0);                                                    // six bids rest
+  const bid = w.rx.resting("USDC/GBP").find((o) => o.price === "0.7546")!;
+  w.rx.fillResting(bid.id, Number(bid.quantity));                      // the venue fills the USDC 0.1 % bid
+  await w.step(T0 + M);                                                // booked, and its exit goes out
+  const before = w.open("live").map((o) => ({ ...o }));
+  assertEquals([entryRows(before).length, before.filter((o) => o.leg === "exit").length, w.rx.resting().length], [5, 1, 6]);
+  // The executor stops turning; four minutes on, the dead-man takes every order off the venue and reads each back.
+  const dm = await runDeadman({
+    now: () => w.clock.now, pause: () => Promise.resolve(),
+    readState: () => Promise.resolve({ ok: true, updatedAt: iso(w.clock.now - 4 * M) }),
+    venue: () => Promise.resolve({ venue: revxDeadmanVenue({ apiKey: "k".repeat(64), privateKey: KEY.privateKey }, w.rx.fetch), note: null }),
+    record: () => Promise.resolve({ events: false, ops: false }),
+  });
+  assertEquals([dm.verdict, dm.orders.map((o) => o.outcome)], ["stale", Array(6).fill("cancelled")]);
+  assertEquals(w.rx.resting(), []);
+  const posts = w.posts();
+  // The paper engine has decided nothing new (GBP/USD has not moved): each rung's decision is the one the cancel took off.
+  const r = await w.step(T0 + 2 * M);
+  assertEquals(r.errors, []);
+  // Each order is read back cancelled from the venue and marked so; the executor never asked for any of them.
+  for (const b of before) {
+    const row = w.orders().find((o) => o.id === b.id)!;
+    assertEquals([row.state, row.cancel_requested_at, row.cancelled_at != null], ["cancelled", null, true], String(b.id));
+  }
+  assertEquals(r.settled.filter((s) => s.state === "cancelled").map((s) => s.id).sort(), before.map((b) => Number(b.id)).sort());
+  // Every entry rung quotes the SAME paper decision again, at its ticks: one POST each.
+  const again = entryRows(w.open("live"));
+  assertEquals(again.length, 5);
+  for (const b of entryRows(before)) {
+    const n = again.find((o) => o.book === b.book && o.rung_side === b.rung_side && Number(o.k) === Number(b.k))!;
+    assertEquals([n.paper_oid, Date.parse(String(n.paper_live)), Number(n.price), n.state], [b.paper_oid, Date.parse(String(b.paper_live)), Number(b.price), "new"]);
+  }
+  // The filled rung exits again, for what it holds, at the same price.
+  const exitBefore = before.find((o) => o.leg === "exit")!, exitNow = w.open("live").filter((o) => o.leg === "exit");
+  assertEquals(exitNow.map((o) => [o.book, Number(o.k), Number(o.price), Number(o.base_size)]), [[exitBefore.book, Number(exitBefore.k), Number(exitBefore.price), Number(exitBefore.base_size)]]);
+  assertEquals([w.posts() - posts, w.rx.resting().length], [6, 6]);
 });
 
 Deno.test("live: a fill is booked only from the venue's read-back — the paper's print fills nothing live, the venue's fill is the position", async () => {

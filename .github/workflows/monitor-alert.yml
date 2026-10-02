@@ -1,0 +1,67 @@
+# The production monitor's GitHub half. The Cloudflare Worker `daviesportfolios-monitor` (workers/monitor) dispatches
+# this workflow when a check has failed two minutes in a row, when it recovers, and for a notice; this opens ONE issue
+# labelled `monitor`, or comments on the one already open (Davies, 2026-10-02: "有问题开github issue吧").
+#
+# Why a workflow and not the Worker itself: the issue and its comments are written with this run's own GITHUB_TOKEN,
+# so their author is github-actions[bot] and Davies is notified. Written with his own token they would be his own
+# words, and GitHub notifies no one of those. The Worker's token (the repository secret MONITOR_GITHUB_PAT, a
+# fine-grained token with Actions: Read and write on this repository alone) can only start this workflow.
+#
+# The three inputs are untrusted text: they reach the script through its environment only, never spliced into it
+# (src/monitor_worker.test.js holds that).
+
+name: monitor-alert
+
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: 'alert, recovered or notice'
+        required: true
+        type: string
+      title:
+        description: "The issue's title, when one is opened"
+        required: true
+        type: string
+      body:
+        description: 'What happened, in Markdown'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# One at a time, so two alerts a minute apart cannot both find no open issue and open two. A third queued behind them
+# replaces the second, which loses nothing: every dispatch carries where each check stands now.
+concurrency:
+  group: monitor-alert
+  cancel-in-progress: false
+
+jobs:
+  issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open the monitor issue, or comment on the one open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ inputs.event }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+        run: |
+          set -euo pipefail
+          # --repo on every call: this job checks nothing out, so gh cannot find the repository from a remote.
+          gh label create monitor --repo "$REPO" --color B60205 \
+            --description "The production monitor (workers/monitor) found something wrong" 2>/dev/null || true
+          existing=$(gh issue list --repo "$REPO" --label monitor --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" --body "$BODY"
+          elif [ "$EVENT" = "recovered" ]; then
+            # Nothing open to say it on: someone already closed the issue it recovers from.
+            echo "A recovery with no open monitor issue: nothing to comment on."
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body "$BODY" --label monitor
+          fi

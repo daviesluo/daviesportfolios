@@ -114,7 +114,8 @@ recorded when nobody has the page open.
 | Data | Postgres. CI applies the migrations. |
 | Scheduling | `pg_cron` calls the recorders through `pg_net`. |
 | Hosting | Cloudflare Pages serves the built bundle. |
-| CI/CD | GitHub Actions: gates on every push, Edge Functions deployed when they change, migrations applied when they reach `main`, a health check every 10 minutes. |
+| Monitoring | A Cloudflare Worker checks the site, the database's minute loop and the live quotes every minute. A problem opens a GitHub issue and shows in the site's errors box. |
+| CI/CD | GitHub Actions: gates on every push, Edge Functions deployed when they change, migrations applied when they reach `main`, the monitor deployed when it changes. |
 
 ## How I work on it
 
@@ -179,8 +180,9 @@ the case for the first live strategy in
 |---|---|
 | `src/` | The web app, an npm project of its own, in folders by what each part does: `app/` (startup, sign-in, shared styles), `portfolio/`, `prices/`, `charts/`, `board/` (the home page), `tables/` and `agents/`, with each file's tests beside it and the browser tests in `e2e/`. |
 | `src/public/` | Static files copied into the build: Cloudflare's `_headers` and `robots.txt`. |
-| `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error`, `agents` and `weather`, plus `_shared/`. Each has its tests beside it. |
+| `supabase/functions/` | The Edge Functions: `auth`, `data`, `prices`, `chart`, `fundamentals`, `trading212`, `overnight-fetch`, `overnight-record`, `snapshot-record`, `ops-error`, `agents`, `weather`, `edge-watchdog` and `monitor`, plus `_shared/`. Each has its tests beside it. |
 | `supabase/migrations/` | The database schema, applied by CI in order. |
+| `workers/monitor/` | The monitor: a Cloudflare Worker that checks production every minute and raises the alarm. |
 | `dist/` | The built site. Committed, and served as it is by Cloudflare Pages. |
 | `bin/` | `setup.sh` for a new clone, `gates.sh` for every check CI runs, `knip-edge.sh` for the Edge Functions' dead-code check, and the ledger's commit hook. |
 | `docs/` | The user guide, the full system map, the agents research, screenshots and the diagram. |

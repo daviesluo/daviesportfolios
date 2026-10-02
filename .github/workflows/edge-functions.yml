@@ -192,6 +192,8 @@ jobs:
           # using them as a free upstream proxy (burning rate quotas).
           # weather (2026-09-27) is cron-only like agents: its own bearer check, so the flag too.
           # edge-watchdog (0075) is a row of the one-minute job, with its own bearer check: the flag too.
+          # monitor (2026-10-02) is NOT here: the gateway checks the anon key the monitor Worker sends as its
+          # bearer, and the function then checks MONITOR_SECRET itself. A new folder deploys like any changed one.
           PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"

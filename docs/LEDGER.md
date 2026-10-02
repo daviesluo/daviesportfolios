@@ -244,7 +244,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      executor resting at the paper's prices; in the tightened market it would take 7 of PR5's 102 paper trips, the
      smallest (+0.49 % on the study's P&L; QUEUE's Q3 provides for live orders).
    - Watch with §4 item 35's L1–L5 on `mode = 'live'`: a filled entry gets its exit next turn; nothing rests
-     `pending` past 2 minutes; the state row is under 3 minutes old. Kill switch: `update
+     `pending` past 2 minutes; the state row is under 3 minutes old.
+   - **Its dead-man switch (2026-10-02, Davies: "加一个“掉线保护”…这个加上"):** the monitor Worker calls
+     `monitor?action=deadman` every minute; when `agent_quote_live_state.updated_at` is more than 3 minutes old, or cannot
+     be read, every resting order on the `_2` account is cancelled and read back (reference §4 item 35), recorded as an
+     `agent_quote_live_events` row of kind `deadman` (`0086`) and an `ops_errors` row `monitor.deadman`; the executor's
+     next turn reads them back cancelled and quotes the paper's decisions again. Fresh, it touches nothing at the venue. Kill switch: `update
      public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (cancels entries; exits and stops stay
      armed); `global_pause` cancels everything.
    - **Its page (2026-10-01, Davies: "改成它单独的"; reshaped on his word 18:30–19:00 UTC):** LIVE's "Stablecoin quotes"
@@ -518,10 +523,17 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      reads it (about 500 MB at six weeks).
    - On 10-03, read `net._http_response`'s size: six hours of responses is about 10 MB. Past 50 MB the dead space is
      back, and it needs a job of its own.
-   - **Nothing alerted on the 10-02 stall: `healthcheck.yml` asks for every 10 minutes and GitHub ran it 9 times in the
-     48 hours to 17:00 UTC** of the 288 asked, none between 13:11 and 17:00 (scheduled runs are best effort). A reliable alert needs a
-     clock outside GitHub's scheduler, such as a Cloudflare Worker cron or an uptime service; deploying either is
-     Davies' call, put to him on 10-02. Until then, after a database change watch Memory and Swap in the dashboard.
+   - **The health-check gap: closed by the monitor Worker, built 2026-10-02 on Davies' word** ("可以的，有问题开github
+     issue吧并且也可以在网站中的error框发给我，我看到后可以叫你来处理"). `healthcheck.yml` ran 9 times in the 48 hours to 17:00 UTC
+     of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
+     Cloudflare's clock: the site, Supabase's minute loop (`monitor?action=health`) and PR5's dead-man
+     (`monitor?action=deadman`, item 4); a check failing two minutes running alerts, and again on recovery, to the errors
+     box (`monitor.*`) and the GitHub issue labelled `monitor` (`monitor-alert.yml`). **Davies' to do:** create a
+     fine-grained PAT (resource owner daviesluo, only the repository daviesportfolios, permission Actions: Read and
+     write), store it as the repository secret `MONITOR_GITHUB_PAT`, then run `monitor-deploy` by hand; until then the
+     Worker skips GitHub and its address says so. **Check that it runs** (read-only): `select minute from
+     public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;` gains a row each minute.
+     `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
 
 ## Machine and platform setup
 
@@ -633,6 +645,26 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 18:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A monitor outside both schedulers, and PR5's dead-man switch.** Davies, 2026-10-02: "可以的，有问题开github issue吧并且也可以在网站中
+的error框发给我，我看到后可以叫你来处理，这个会话里cloudflare连接器已打开请搭建好", and for PR5: "加一个“掉线保护”：执行器连续几轮没跑时撤掉所有挂单，
+免得像今天卡死时那样旧挂单被成交。这个加上". Measured first (read-only, `edge_call_beats`): between 12:51 and 14:12 UTC the tick's
+and PR5's calls each started in 2 minutes of 81, and the hourly decisions came 1 h 29 min apart (1 h 00 min at most in
+the three days around). Built: the Cloudflare Worker `daviesportfolios-monitor` (`workers/monitor/`, a one-minute cron,
+KV namespace `98f4596d95c8454e901cae2ae1b97da5` made through the connector); the Edge Function `monitor` (dead-man,
+health, report; nothing of `agents` imported); `0086` (kind `deadman`); `monitor-deploy.yml` and `monitor-alert.yml`.
+Thresholds: a minute reading stale past 180 s (tick beat, tick lease, PR5's state), the newest decision past 75 min; an
+alert after 2 failing runs in a row, and on recovery; KV written only on a change, under a 900-a-day budget. The
+executor needed no change: a pin in `quotes_live.test.ts` runs the dead-man's own code on its fake venue and shows the
+next turn reading the orders back cancelled and re-quoting the same paper decisions, the exit too. 20 Deno pins in
+`monitor/index.test.ts`, 20 vitest pins in `src/monitor_worker.test.js`; 25 counterfactuals, one rule removed each
+(staleness, unreadable, the venue before the verdict, the read-back, the re-reads, the 429 retry, the deadline, the
+empty secret, a limit, the kind filter, the record's kind, the key names, the executor's read-back of an order missing
+from the active list and its count of a cancelled decision, two failing runs, the capped count, writes only on change,
+the queue, GitHub without a token, a permanent 401, the recovery, the budget, KV's cache TTL, the chunk's type and the
+unrecorded cancel), every one failed at least one pin. Davies' to do and the check are item 9.
 
 ### [2026-10-02 18:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -1,0 +1,236 @@
+# Deploys the production monitor, the Cloudflare Worker `daviesportfolios-monitor` (workers/monitor), with a pinned
+# wrangler: on a push to main that touches it, and by hand (Actions → monitor-deploy → Run workflow).
+#
+# Its two secrets, never printed and never in the repository:
+#   MONITOR_SECRET      shared with the `monitor` Edge Function, which refuses every call without it. Generated here
+#                       and set on BOTH sides — the Worker (`wrangler deploy --secrets-file`, with the code, in one
+#                       step) and Supabase (`supabase secrets set`) — only when asked (`rotate_secret`) or when either
+#                       side is missing it, so a routine deploy never rotates it. After a rotation the run calls the
+#                       function with the new value and fails unless it is taken. A run that fails half-way leaves the
+#                       two sides apart, and the Worker alerts "the dead-man call failed (401)": run this again with
+#                       rotate_secret, which sets both.
+#   MONITOR_GITHUB_PAT  the repository secret of that name, when it exists, passed to the Worker on every deploy: a
+#                       fine-grained token with Actions: Read and write on this repository alone, with which the Worker
+#                       starts monitor-alert.yml. Without it the Worker skips GitHub and says so.
+#
+# Repository and environment secrets it reads: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (as pages-deploy.yml;
+# the token needs Workers permission as well as Pages — the first step checks and names what is missing), and
+# SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF (as edge-functions.yml, from the `production` environment).
+
+name: monitor-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workers/monitor/**'
+      - '.github/workflows/monitor-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      rotate_secret:
+        description: 'Generate a new MONITOR_SECRET and set it on the Worker and in Supabase'
+        type: boolean
+        default: false
+
+# Never two at once, and never one cut off half-way through a rotation.
+concurrency:
+  group: monitor-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_VERSION: '4.146.0'
+  WORKER: daviesportfolios-monitor
+  WRANGLER_SEND_METRICS: 'false'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # The Supabase secrets live in the `production` environment (edge-functions.yml, migrations.yml).
+    environment: production
+    steps:
+      # Actions pinned by full commit SHA, as in every other workflow here.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/package-lock.json
+
+      - name: The Worker's tests
+        working-directory: src
+        run: |
+          npm ci
+          npx vitest run monitor_worker.test.js
+
+      - name: Check the deploy secrets
+        id: creds
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID missing: nothing is deployed."
+            echo "ready=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ] || [ -z "${SUPABASE_PROJECT_REF:-}" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN or SUPABASE_PROJECT_REF missing: MONITOR_SECRET cannot be checked or set in Supabase."
+            exit 1
+          fi
+          echo "ready=1" >> "$GITHUB_OUTPUT"
+
+      - name: May the Cloudflare token deploy Workers?
+        if: steps.creds.outputs.ready == '1'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          resp=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts")
+          if [ "$(echo "$resp" | jq -r '.success')" != "true" ]; then
+            echo "Cloudflare answered: $(echo "$resp" | jq -c '.errors')"
+            echo "::error::The CLOUDFLARE_API_TOKEN cannot read this account's Workers. Give it Account → Workers Scripts → Edit (Cloudflare dashboard → API Tokens → this token → Edit → Permissions → add Account / Workers Scripts / Edit → Update token), beside its Cloudflare Pages → Edit; the token's value does not change."
+            exit 1
+          fi
+          echo "The token reads this account's Workers: $(echo "$resp" | jq -r '[.result[].id] | join(", ")')"
+
+      - name: Install the Supabase CLI
+        if: steps.creds.outputs.ready == '1'
+        uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
+        with:
+          # An exact version, as edge-functions.yml pins it.
+          version: 2.117.0
+
+      - name: Does each side hold MONITOR_SECRET?
+        if: steps.creds.outputs.ready == '1'
+        id: secret
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          ASKED: ${{ github.event_name == 'workflow_dispatch' && inputs.rotate_secret }}
+        run: |
+          set -euo pipefail
+          # The Worker's secrets by name (values are never returned); 10007 is a Worker that does not exist yet.
+          resp=$(curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$WORKER/secrets")
+          if [ "$(echo "$resp" | jq -r '.success')" = "true" ]; then
+            worker=$(echo "$resp" | jq -r '[.result[]?.name] | index("MONITOR_SECRET") != null')
+          elif echo "$resp" | jq -e '[.errors[]?.code] | index(10007) != null' > /dev/null; then
+            worker=false
+          else
+            echo "::error::The Worker's secrets could not be listed: $(echo "$resp" | jq -c '.errors')"; exit 1
+          fi
+          # Supabase's by name (the CLI prints names and digests, never values; nothing of it is printed here).
+          names=$(supabase secrets list --project-ref "$SUPABASE_PROJECT_REF")
+          if printf '%s\n' "$names" | grep -qw MONITOR_SECRET; then supabase=true; else supabase=false; fi
+          rotate=false
+          if [ "$ASKED" = "true" ]; then rotate=true; fi
+          if [ "$worker" != "true" ] || [ "$supabase" != "true" ]; then rotate=true; fi
+          echo "MONITOR_SECRET on the Worker: $worker; in Supabase: $supabase; asked to rotate: ${ASKED:-false} → rotate: $rotate"
+          echo "rotate=$rotate" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the monitor Edge Function
+        if: steps.creds.outputs.ready == '1'
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          # edge-functions.yml deploys it from the same push; the Worker should not call a function that is not there.
+          # Its own refusal of a call without the secret (401 "unauthorised") says it is deployed and checking.
+          anon=$(sed -n 's/^export const SB_ANON = "\(.*\)";$/\1/p' src/app/supabase_config.js)
+          for i in $(seq 1 60); do
+            out=$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "apikey: $anon" -H "Authorization: Bearer $anon" \
+              "https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/monitor?action=health" || echo 000)
+            if [ "$out" = "401" ]; then echo "The monitor function answers (401 without the secret)."; exit 0; fi
+            echo "monitor function: $out; waiting ($i/60)"
+            sleep 10
+          done
+          echo "::error::The monitor Edge Function never answered: check the edge-functions run for this push."
+          exit 1
+
+      - name: Deploy the Worker, with its secrets
+        if: steps.creds.outputs.ready == '1'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          MONITOR_GITHUB_PAT: ${{ secrets.MONITOR_GITHUB_PAT }}
+          ROTATE: ${{ steps.secret.outputs.rotate }}
+        run: |
+          set -euo pipefail
+          umask 077
+          secrets="$RUNNER_TEMP/worker-secrets.json"; sbenv="$RUNNER_TEMP/monitor-secret.env"; hdr="$RUNNER_TEMP/monitor-secret.hdr"
+          trap 'rm -f "$secrets" "$sbenv" "$hdr"' EXIT
+          NEW_SECRET=""
+          if [ "$ROTATE" = "true" ]; then
+            NEW_SECRET=$(openssl rand -hex 32)
+            echo "::add-mask::$NEW_SECRET"
+            # Supabase first: a Worker deployed for the first time then never meets a function without its secret, and a
+            # Worker that already runs meets the old value refused for the half-minute its new version takes.
+            printf 'MONITOR_SECRET=%s\n' "$NEW_SECRET" > "$sbenv"
+            supabase secrets set --env-file "$sbenv" --project-ref "$SUPABASE_PROJECT_REF"
+          fi
+          # The secrets file, read from the environment by jq (never on a command line): what is set goes, nothing else.
+          NEW_SECRET="$NEW_SECRET" jq -n '[["MONITOR_SECRET", env.NEW_SECRET], ["MONITOR_GITHUB_PAT", env.MONITOR_GITHUB_PAT]]
+            | map(select(.[1] != null and .[1] != "")) | map({ (.[0]): .[1] }) | add // {}' > "$secrets"
+          echo "Secrets uploaded with this deploy: $(jq -r 'keys | join(", ") | if . == "" then "none" else . end' "$secrets")"
+          if [ "$(jq 'length' "$secrets")" = "0" ]; then
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --config workers/monitor/wrangler.jsonc 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          else
+            npx --yes "wrangler@$WRANGLER_VERSION" deploy --config workers/monitor/wrangler.jsonc --secrets-file "$secrets" 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          fi
+          if [ "$ROTATE" = "true" ]; then
+            # The new value end to end: the function must take it (a new secret reaches new workers within moments). The
+            # header comes from a file, so the value is on no command line.
+            anon=$(sed -n 's/^export const SB_ANON = "\(.*\)";$/\1/p' src/app/supabase_config.js)
+            printf 'x-monitor-secret: %s\n' "$NEW_SECRET" > "$hdr"
+            for i in $(seq 1 18); do
+              code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H "apikey: $anon" -H "Authorization: Bearer $anon" \
+                -H @"$hdr" "https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/monitor?action=health" || echo 000)
+              if [ "$code" = "200" ]; then echo "The monitor function takes the new MONITOR_SECRET."; break; fi
+              echo "with the new secret the function answers $code; waiting ($i/18)"
+              if [ "$i" = "18" ]; then echo "::error::The function never took the new MONITOR_SECRET: run this again with rotate_secret."; exit 1; fi
+              sleep 10
+            done
+          fi
+          # The Worker's own health output, from its public address (configuration and states, no secret in it).
+          url=$(grep -o "https://$WORKER\.[a-z0-9-]*\.workers\.dev" "$RUNNER_TEMP/deploy.log" | head -1 || true)
+          if [ -n "$url" ]; then sleep 5; echo "Health output of $url:"; curl -sS --max-time 20 "$url/" || true; echo; fi
+
+  # Separate, so `issues: write` does not widen the deploy job; on a push to main only.
+  notify-failure:
+    needs: deploy
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open / bump CI-failure issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          gh label create ci-failure --repo "${{ github.repository }}" \
+            --color B60205 --description "A push to main broke CI" \
+            2>/dev/null || true
+          existing=$(gh issue list --repo "${{ github.repository }}" \
+            --label ci-failure --state open --limit 1 --json number \
+            --jq '.[0].number // empty')
+          body="❌ \`${{ github.workflow }}\` failed on \`main\` at commit \`${{ github.sha }}\`
+          [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "${{ github.repository }}" --body "$body"
+          else
+            gh issue create --repo "${{ github.repository }}" \
+              --title "❌ ${{ github.workflow }} failed on main" \
+              --body "$body" \
+              --label ci-failure
+          fi

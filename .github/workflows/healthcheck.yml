@@ -1,4 +1,12 @@
 # Lightweight external uptime monitor AND Edge Function keep-warm ping.
+#
+# NOT the alarm to rely on: GitHub runs scheduled workflows when it can, and
+# ran this one 9 times in the 48 hours to 2026-10-02 17:00 UTC (288 asked),
+# none during that day's 80-minute database stall. The minute-by-minute
+# monitor is the Cloudflare Worker in workers/monitor (alerts to the issue
+# labelled `monitor` and to the site's errors box). This stays for the warm
+# pings, and for the not-found chunk probe the Worker does not make.
+#
 # The repo had no runtime alerting — the only alarm was "a GitHub Action
 # failed". A dead Cloudflare deploy, a broken bundle, or an Edge Function
 # 500ing in a loop would go unnoticed until the owner happened to open the

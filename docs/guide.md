@@ -443,6 +443,16 @@ button, and the rest of the page keeps working. **Refresh** retries every
 failed panel as well. Each failure is sent to the errors badge (desktop,
 edit password), named by the part that failed.
 
+The errors badge also carries the production monitor's alerts. Every
+minute it checks the live site, the database's minute loop and the live
+stablecoin quotes. A check that has failed for two minutes running shows
+as `monitor.alert`, named by the check (`site`, `loop` or `pr5`), and
+`monitor.recovered` follows when it passes again. `monitor.deadman` means
+the stablecoin quotes' executor stopped turning and every order it had
+resting on the exchange was cancelled; it quotes again by itself when it
+comes back. The same alerts open, or add to, a GitHub issue labelled
+`monitor`.
+
 Every live price is checked before the board takes it. One that cannot
 be the holding's — a hundred times off (pence read as pounds), another
 stock's or fund's price relayed by a public proxy, or not a number at all

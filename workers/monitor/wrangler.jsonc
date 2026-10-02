@@ -1,0 +1,26 @@
+// The production monitor, a Cloudflare Worker with a one-minute cron (src/monitor.js says what each run does).
+// Deployed by .github/workflows/monitor-deploy.yml with a pinned wrangler; nothing here is secret. Its two secrets,
+// MONITOR_SECRET and MONITOR_GITHUB_PAT, are set by that workflow and never written here.
+{
+  "name": "daviesportfolios-monitor",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-25",
+  // Every minute: a Worker cron fires on Cloudflare's clock, outside both GitHub's scheduler and Supabase's pg_cron.
+  "triggers": { "crons": ["* * * * *"] },
+  // The state: one key, written only when it changes (Workers Free allows 1,000 KV writes a day). The namespace was
+  // created on 2026-10-02 as "daviesportfolios-monitor".
+  "kv_namespaces": [{ "binding": "MONITOR_KV", "id": "98f4596d95c8454e901cae2ae1b97da5" }],
+  // The health output at <name>.<account>.workers.dev; no preview URLs.
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "SITE_URL": "https://daviesluo.com",
+    "SB_URL": "https://flmvxigozjuizpckllvk.supabase.co",
+    // The public anon key Supabase's gateway asks for (src/app/supabase_config.js; a test holds the two equal). It opens
+    // nothing in the database (migration 0082); the monitor function checks MONITOR_SECRET itself.
+    "SB_ANON": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbXZ4aWdvemp1aXpwY2tsbHZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODM3MjgsImV4cCI6MjA5MjM1OTcyOH0.vFqe6PNsPbVkg7NJmQJBsVECX1S58vAvv5MOjf63Xck",
+    "GITHUB_REPO": "daviesluo/daviesportfolios",
+    "GITHUB_WORKFLOW": "monitor-alert.yml"
+  },
+  "observability": { "enabled": true }
+}
