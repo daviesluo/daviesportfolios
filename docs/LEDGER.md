@@ -145,8 +145,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      connector's execute_sql timed out three times waiting for a confirmation that never reached him). The path chose
      today's two markets at **20:23:00 UTC** in one run, inside the rules (rate $8 each, max spread 8.5 and 5.5, N 20,
      formula $8 a day each, $35 of $40), with dry-run orders from 20:23, the layer two minutes behind and no fault. **The
-     window is 2026-10-01 21:00 → 10-03 00:00 UTC** (1,620 minutes: a1 ≥ 1,604, a2 ≤ 16). **Next:** 10-02's selection
-     at 00:00 UTC (by 00:10); at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
+     window is 2026-10-01 21:00 → 10-03 00:00 UTC** (1,620 minutes: a1 ≥ 1,604, a2 ≤ 16). 10-02's selection landed at
+     00:00:01 UTC (two markets); at 00:14 both states were moving with no error and `ops_errors` empty since 23:50.
+     Until the check, read only what the prereg allows (the two `last_error`s and the states' clocks, `ops_errors`,
+     whether a day's selection landed). **Next:** at or after **2026-10-03 00:10 UTC** run `prep_check_addendum1.sql` once (a fix
      deployed before 10-02 00:00 makes it `prep_check.sql`, as frozen); every row PASS → the go-time statement, word for
      word, on his word above; any FAIL → no go-live, fix and report. A fix deployed inside the window ends it as FAIL; the
      next full UTC day after the fix is the new window (the prereg's addendum first). (f) needs his funding (pUSD ≥ $81,
@@ -568,6 +570,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 00:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Live-prep at 00:14 UTC: Addendum 1 in effect, 10-02's selection landed, nothing faulted; and a disclosure of reads made before the check.** The routine's check, read-only and limited to what the pre-registration allows before its check: 0074's placeholders are gone and 2026-10-01 has its two selected rows (the addendum took effect); 2026-10-02's two rows landed at 00:00:01 UTC; `pm_live_state` and `pm_prep_state` were moving (00:14:01; last decided minute 00:12) with `last_error` null; `ops_errors` had nothing since 23:50; PR5's executor was fresh with no error. The routine's prompt also asked for the window's class counts, and the 09:00 routine's for minute coverage and the shares of diverged and formula-positive market-minutes: those are the check's own inputs, which the prereg keeps unread until the check ("nothing of the window is read before the check, except the health scalars a fault needs" and, by the addendum, whether each day's selection landed), so they were not read and the 09:00 routine's prompt was narrowed to the allowed reads. **Disclosure:** while building and verifying the live-prep page on 2026-10-01 22:16–00:04 UTC, this session read figures of the window beyond those scalars: `pm_prep_state`'s per-market accounts (rewards to then, nets, fill counts: no fill), the last decided minute's class, quote, reward and rate per market, and 2026-10-01's day row (its rewards, no fill, its matched, dark, diverged and missing minute counts). Nothing was decided on them: the check is frozen SQL at its pinned hash, `pm_live.ts` and `pm_prep.ts` are unchanged, and the only deploys inside the window (22:41 and 00:02 UTC) changed the dashboard's view and PR5's executor. The page itself shows the row's figures to whoever opens it, as it has since it landed.
 
 ### [2026-10-02 00:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
