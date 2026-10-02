@@ -15,8 +15,8 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { krakenVenue } from "../_shared/kraken.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import { FakeKraken, FakeRevx, jevFetch, memDb, type Row } from "./testing.ts";
-import { floorToStep } from "../_shared/agents_strategy.ts";
-import { CANCEL_REREAD_MS, MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, type TickReport } from "./tick.ts";
+import { floorToStep, positionFromFills } from "../_shared/agents_strategy.ts";
+import { CANCEL_REREAD_MS, MARKETABLE_EXIT_SLIP_BPS, MAX_ORDER_AGE_MS, REENTRY_BARS, tick, toFill, type OrderRow, type TickReport } from "./tick.ts";
 
 const ONE_M = 60e3, FOUR_H = 4 * 3600e3;
 const BAR0 = Date.parse("2026-09-23T04:00:00Z");
@@ -338,6 +338,47 @@ Deno.test("lifecycle: one live row from flat through an entry, the floor, the co
     assertEquals(after.map((o) => [o.side, o.state]), [["sell", "new"]]);
     assertEquals(w.venueBtc(), 0);
   });
+});
+
+Deno.test("lifecycle: settled the venue's way — whole cents, a buy's fee in the coin — the live row books what the account moved, and its round trip's P&L is the account's dollars", async () => {
+  // Revolut X debits a buy's dollars rounded UP to the cent and credits a sell's FLOORED, and its average_fill_price is that
+  // amount over the coins at the price step (the live row's SOL round trip, 2026-09-25 and 09-28: $25.01 for $25.0018, $24.38
+  // for $24.380216). Booked at that average, the book and the account parted by a fraction of a cent on every fill.
+  const w = await world(B(0) + 5 * ONE_M);
+  w.rx.settlement = "venue";
+  const usd0 = w.rx.balances.USD;
+  const r0 = await w.at(B(0) + 5 * ONE_M);                                       // the entry: an IOC at the touch
+  assertEquals(r0.errors, [], why(r0));
+  const r1 = await w.at(B(0) + 6 * ONE_M);                                       // settled from the venue's read-back
+  assertEquals(r1.errors, [], why(r1));
+  const [buy] = w.live();
+  const bought = buy.response as Row;
+  const debit = Number(bought.filled_amount), gross = Number(bought.filled_quantity), coinFee = Number(bought.total_fee);
+  assertEquals([buy.state, bought.fee_currency], ["filled", "BTC"]);
+  assertEquals(Math.round((usd0 - w.rx.balances.USD) * 100) / 100, debit);     // the double debited what its reply says
+  // The venue's own average books a different amount, so this test means something.
+  assert(Math.abs(gross * Number(bought.average_fill_price) - debit) > 1e-7, JSON.stringify(bought));
+  // Net of the coin fee, in whole steps (D4, D11): the book holds what the venue holds …
+  assertEquals(Number(buy.filled_base), Number(floorToStep(gross - coinFee, "0.00000001")));
+  assertEquals(w.book(), w.venueBtc());
+  // … and the coins held and the coins taken as the fee cost exactly the dollars debited.
+  const cost = Number(buy.filled_base) * Number(buy.avg_fill_price) + Number(buy.fee_usd);
+  assert(Math.abs(cost - debit) < 1e-10, `booked ${cost}, debited ${debit}`);
+  // The floor sells it on the bid; the venue credits the cent below and takes its fee in dollars.
+  w.rx.shock["BTC/USD"] = 0.9;
+  await w.at(B(0) + 10 * ONE_M);
+  const r2 = await w.at(B(0) + 11 * ONE_M);
+  assertEquals(r2.errors, [], why(r2));
+  w.rx.shock["BTC/USD"] = 1;
+  const sell = w.live().find((o) => o.side === "sell")!;
+  const sold = sell.response as Row;
+  assertEquals([sell.state, sold.fee_currency, w.book(), w.venueBtc()], ["filled", "USD", 0, 0]);
+  const proceeds = Number(sell.filled_base) * Number(sell.avg_fill_price) - Number(sell.fee_usd);
+  assert(Math.abs(proceeds - (Number(sold.filled_amount) - Number(sold.total_fee))) < 1e-10, `booked ${proceeds}, credited ${Number(sold.filled_amount) - Number(sold.total_fee)}`);
+  // The one P&L computation reads the account: the round trip realised what the account's dollars moved.
+  const trip = positionFromFills(w.live().filter((o) => o.state === "filled").map((o) => toFill(o as unknown as OrderRow)));
+  assertEquals(trip.base, 0);
+  assert(Math.abs(trip.realisedUsd - (w.rx.balances.USD - usd0)) < 1e-10, `realised ${trip.realisedUsd}, the account moved ${w.rx.balances.USD - usd0}`);
 });
 
 Deno.test("lifecycle: a venue that names a filled order's status in a word the client does not know — and answers a finished order's DELETE with 204 — never has its coins settled as cancelled, nor bought twice", async () => {

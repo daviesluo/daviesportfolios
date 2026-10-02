@@ -7,6 +7,7 @@
 // UPDATE, because Postgres checks both — a settle whose fee is NaN goes over the wire as null and is refused by
 // `fee_usd NOT NULL` exactly as a bad insert is.
 import { assertPagedOrder, PAGE_ROWS, type Db } from "./db.ts";
+import { ceilToStep, stepDecimals } from "../_shared/agents_strategy.ts";
 import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
 import { cancelOrderBody, exchangeFor, orderHash, postOrderBody, recoverSigner, type PmReply, type PmVenue } from "../_shared/polymarket_orders.ts";
 import { jevBandCheck } from "./jev_bands.ts";
@@ -1237,10 +1238,16 @@ type FakeOrder = {
   filled: number; avg: number | null; fee: number; tif: string; postOnly: boolean; created: number;
   /** A DELETE taken and not yet carried out (`cancelLagReads`): when it was asked, and how many reads still show it open. */
   cancelAsked?: number; cancelReadsLeft?: number;
+  /** `settlement: "venue"` only: the fills' notional at their prices, what the account moved for it, and the fee's currency. */
+  notional?: number; moved?: number; feeCurrency?: string;
 };
 
 /** Revolut X's own configuration of PR5's two GBP books (public pair list, 2026-09-24 00:12 UTC; `backtests/pr5_live/inputs`). */
 export const GBP_BOOK_PAIR = { base_step: "0.00001", quote_step: "0.0001", min_order_size: "0.00001", max_order_size: "4000000", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
+/** The double's BTC/USD, as its pairs route serves it. */
+const BTC_USD_PAIR = { base: "BTC", quote: "USD", base_step: "0.00000001", quote_step: "0.01", min_order_size: "0.00000001", max_order_size: "200", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
+/** A number as the venue writes one: to `decimals` places, without the trailing zeros ("30", "9.99", "0.758"). */
+const venueNumber = (x: number, decimals: number) => String(Number(x.toFixed(decimals)));
 
 /**
  * Revolut X as its own reference documents it (revolut-x-api-for-llm.md; developer.revolut.com): the placement reply's
@@ -1278,6 +1285,18 @@ export class FakeRevx {
    * other field names, so a reader that did not refuse what it cannot read would see "new, nothing filled".
    */
   dialect: "documented" | "no-fee" | "no-price" | "foreign" = "documented";
+  /**
+   * How a fill moves the account, and what its reply says of it. "exact" (the default): the quote currency moves by
+   * quantity × price, a taker pays its 9 bps in the quote currency, and the reply carries no `filled_amount`. "venue":
+   * Revolut X as every live fill to 2026-10-02 showed it (PR5's orders 1154–1314, the live row's 37 and 44): the quote
+   * currency moves in whole hundredths — a sell's credit FLOORED, a buy's debit rounded UP — and the reply's
+   * `filled_amount` is that amount; its `average_fill_price` is `filled_amount` ÷ `filled_quantity` rounded to the pair's
+   * price step; a taker buy pays its 9 bps in the COIN, rounded up to the base step (the account receives the rest), a
+   * taker sell in the quote currency, rounded up to the hundredth; a maker pays nothing; `fee_currency` names the coin on a
+   * buy and the quote currency on a sell. A part-filled order is rounded on its whole amount so far (the venue's partial
+   * fills are not measured yet).
+   */
+  settlement: "exact" | "venue" = "exact";
   /** What DELETE answers for an order that already finished: the reference documents only 204 for a cancel. */
   deleteFinished: 204 | 404 = 404;
   /** Endpoints answering 503, as a venue does for a minute now and then: a decision can then be allowed with no order behind it. */
@@ -1301,6 +1320,14 @@ export class FakeRevx {
   rateLimited = 0;
   private seq = 1;
   constructor(public now: () => number) {}
+  /** A pair's steps, as the pairs route serves them. */
+  private stepsOf(sym: string): { base: string; price: string } {
+    return this.gbpBooks[sym] ? { base: GBP_BOOK_PAIR.base_step, price: GBP_BOOK_PAIR.quote_step } : { base: BTC_USD_PAIR.base_step, price: BTC_USD_PAIR.quote_step };
+  }
+  /** `settlement: "venue"`: what the account moves for a notional — a buy's debit rounded up to the hundredth, a sell's credit floored. */
+  private hundredths(side: "buy" | "sell", notional: number): number {
+    return side === "buy" ? Math.ceil(notional * 100 - 1e-9) / 100 : Math.floor(notional * 100 + 1e-9) / 100;
+  }
   quote(sym: string) {
     if (this.gbpBooks[sym]) return { ...this.gbpBooks[sym] };
     const mid = fakePrice(this.now()) * (this.shock[sym] ?? 1);
@@ -1346,8 +1373,18 @@ export class FakeRevx {
     o.avg = o.filled > 0 && o.avg != null ? (o.avg * o.filled + px * q) / (o.filled + q) : px;
     o.filled = Math.round((o.filled + q) * 1e9) / 1e9;
     o.status = o.filled >= Number(o.quantity) - 1e-12 ? "filled" : "partially_filled";
-    if (o.side === "buy") { this.balances[quote] = (this.balances[quote] ?? 0) - q * px; this.balances[base] = (this.balances[base] ?? 0) + q; }
-    else { this.balances[base] = (this.balances[base] ?? 0) - q; this.balances[quote] = (this.balances[quote] ?? 0) + q * px; }
+    // The quote currency this fill moves: its notional, or (as the venue moves it) the order's whole hundredths so far less
+    // what earlier fills of it already moved. A maker pays nothing either way.
+    let cash = q * px;
+    if (this.settlement === "venue") {
+      const before = o.moved ?? 0;
+      o.notional = (o.notional ?? 0) + q * px;
+      o.moved = this.hundredths(o.side, o.notional);
+      o.feeCurrency = o.side === "buy" ? base : quote;
+      cash = o.moved - before;
+    }
+    if (o.side === "buy") { this.balances[quote] = (this.balances[quote] ?? 0) - cash; this.balances[base] = (this.balances[base] ?? 0) + q; }
+    else { this.balances[base] = (this.balances[base] ?? 0) - q; this.balances[quote] = (this.balances[quote] ?? 0) + cash; }
   }
   /** Every order still resting on `symbol` (slash form). */
   resting(symbol?: string): FakeOrder[] {
@@ -1361,6 +1398,15 @@ export class FakeRevx {
       average_fill_price: o.avg == null ? "0" : String(o.avg), total_fee: String(o.fee), fee_currency: o.symbol.split("/")[1],
       status: o.status, time_in_force: o.tif, execution_instructions: [o.postOnly ? "post_only" : "allow_taker"], created_date: o.created, updated_date: o.created,
     };
+    if (this.settlement === "venue") {
+      // What the account moved, and the venue's average derived from it at the pair's price step (1184: "9.99", "0.7576").
+      const [base, quote] = o.symbol.split("/"), { base: baseStep, price: priceStep } = this.stepsOf(o.symbol);
+      const moved = o.moved ?? 0, priceDecimals = stepDecimals(priceStep);
+      body.filled_amount = venueNumber(moved, 2);
+      body.average_fill_price = o.filled > 0 && moved > 0 ? venueNumber(Math.round(moved / o.filled / Number(priceStep)) * Number(priceStep), priceDecimals) : "0";
+      body.total_fee = venueNumber(o.fee, (o.feeCurrency ?? (o.side === "buy" ? base : quote)) === base ? stepDecimals(baseStep) : 2);
+      body.fee_currency = o.feeCurrency ?? (o.side === "buy" ? base : quote);
+    }
     if (this.dialect === "no-fee") { delete body.total_fee; delete body.fee_currency; }
     if (this.dialect === "no-price") delete body.average_fill_price;
     if (this.dialect === "foreign") {
@@ -1382,8 +1428,7 @@ export class FakeRevx {
     }
     if (p === "/api/1.0/public/configuration/pairs") {
       if (this.down.pairs) return unavailable();
-      const cfg = { base: "BTC", quote: "USD", base_step: "0.00000001", quote_step: "0.01", min_order_size: "0.00000001", max_order_size: "200", min_order_size_quote: "0.1", max_order_size_quote: "1000000", status: "active" };
-      return json(200, { "BTC/USD": cfg, "USDC/GBP": { base: "USDC", quote: "GBP", ...GBP_BOOK_PAIR }, "USDT/GBP": { base: "USDT", quote: "GBP", ...GBP_BOOK_PAIR } });
+      return json(200, { "BTC/USD": BTC_USD_PAIR, "USDC/GBP": { base: "USDC", quote: "GBP", ...GBP_BOOK_PAIR }, "USDT/GBP": { base: "USDT", quote: "GBP", ...GBP_BOOK_PAIR } });
     }
     if (p.startsWith("/api/2.0/public/order-book/")) {
       // The public book as the venue serves it (`backtests/pr5_live/inputs/revx_books.json.gz`): levels of price, quantity, count.
@@ -1417,9 +1462,19 @@ export class FakeRevx {
       if (crosses && !o.postOnly) {
         const px = req.side === "buy" ? q.ask : q.bid;
         if (req.side === "sell" && (this.balances[asset] ?? 0) - this.reserved(asset) + 1e-12 < size) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
-        if (req.side === "buy" && (this.balances[quoteAsset] ?? 0) - this.reserved(quoteAsset) + 1e-9 < size * px * 1.0009) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
+        const venue = this.settlement === "venue";
+        const need = venue ? this.hundredths("buy", size * px) : size * px * 1.0009;
+        if (req.side === "buy" && (this.balances[quoteAsset] ?? 0) - this.reserved(quoteAsset) + 1e-9 < need) return json(400, { error_id: "e", message: "Insufficient balance", timestamp: this.now() });
         o.filled = size; o.avg = px; o.fee = Math.round(size * px * 0.0009 * 1e8) / 1e8; o.status = "filled";
-        if (req.side === "buy") { this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) - (size * px + o.fee); this.balances[asset] = (this.balances[asset] ?? 0) + size; }
+        if (venue) {
+          // The venue's way (`settlement`): whole hundredths of the quote currency; a buy's fee in the coin, a sell's in the quote.
+          o.notional = size * px;
+          o.moved = this.hundredths(req.side, o.notional);
+          o.fee = req.side === "buy" ? Number(ceilToStep(size * 0.0009, this.stepsOf(sym).base)) : Math.ceil(o.moved * 0.0009 * 100 - 1e-9) / 100;
+          o.feeCurrency = req.side === "buy" ? asset : quoteAsset;
+          if (req.side === "buy") { this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) - o.moved; this.balances[asset] = (this.balances[asset] ?? 0) + size - o.fee; }
+          else { this.balances[asset] -= size; this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) + o.moved - o.fee; }
+        } else if (req.side === "buy") { this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) - (size * px + o.fee); this.balances[asset] = (this.balances[asset] ?? 0) + size; }
         else { this.balances[asset] -= size; this.balances[quoteAsset] = (this.balances[quoteAsset] ?? 0) + size * px - o.fee; }
       } else if (crosses) {
         if (this.postOnlyRefusal === "http-400") return json(400, { error_id: "e", message: "Post only order would be executed immediately", timestamp: this.now() });
@@ -1448,7 +1503,9 @@ export class FakeRevx {
       const syms = (url.searchParams.get("symbols") ?? "").split(",").filter(Boolean).map((s) => s.replace("-", "/"));
       const start = Number(url.searchParams.get("start_date") ?? 0), end = Number(url.searchParams.get("end_date") ?? Number.MAX_SAFE_INTEGER);
       const done = [...this.orders.values()].filter((o) => o.status !== "new" && o.status !== "partially_filled" && (!syms.length || syms.includes(o.symbol)) && o.created >= start && o.created <= end);
-      const listView = (o: FakeOrder) => { const v = this.view(o); delete v.total_fee; delete v.fee_currency; delete v.average_fill_price; return v; };
+      // `filled_amount` (the "venue" settlement) is left out with them: a client that priced a fill from the list would find
+      // nothing to price it with here, rather than a figure the order itself might not repeat.
+      const listView = (o: FakeOrder) => { const v = this.view(o); delete v.total_fee; delete v.fee_currency; delete v.average_fill_price; delete v.filled_amount; return v; };
       return json(200, { data: done.map(listView), metadata: { timestamp: this.now() } });
     }
     if (p.startsWith("/api/1.0/orders/")) {

@@ -1086,11 +1086,14 @@ Deno.test("liveRungTrips: a trip runs from flat to flat, exits averaged, partial
 Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny closes its trip, its hair carried into the next (PR5 live, 2026-10-01)", () => {
   const day = Date.UTC(2026, 9, 1), h = 3600e3;
   const fill = (id: number, leg: RungFill["leg"], base: number, price: number, at: number): RungFill => ({ id, ts: day + at * h, leg, base, price, feeGbp: 0 });
-  // The USDT/GBP 0.1 % ask rung's live fills, as the venue reported them: sold 13.18565 (credited £9.99, 0.7576) and bought
-  // them back (debited £10.00, 0.7584); sold 13.19262 at 0.7580 and bought back 13.1916 at 0.7573, the exit trimmed so it
-  // paid £9.99 rather than £10.00, which leaves 0.00102 USDT owed. The book's dust at 0.7573 is the venue's £0.10 minimum.
-  const fills = [fill(1184, "entry", 13.18565, 0.7576, 16.9), fill(1186, "exit", 13.18565, 0.7584, 17.4), fill(1309, "entry", 13.19262, 0.758, 21.2),
-    fill(1314, "exit", 13.1916, 0.7573, 23.1)];
+  // The USDT/GBP 0.1 % ask rung's live fills, each at the pounds the account moved over its coins (`filled_amount` ÷
+  // quantity, as the executor books a fill since 2026-10-02; the venue's own averages were 0.7576, 0.7584, 0.7580 and
+  // 0.7573): sold 13.18565 for £9.99 (£9.99999696 at its 0.7584 limit) and bought them back for £10.00 (£9.9920856 at
+  // 0.7578); sold 13.19262 for £10.00 and bought back 13.1916 for £9.99, the exit trimmed so it paid £9.99 rather than
+  // £10.00, which leaves 0.00102 USDT owed. The book's dust at 0.7573 is the venue's £0.10 minimum.
+  const p1184 = 9.99 / 13.18565, p1186 = 10 / 13.18565, p1309 = 10 / 13.19262, p1314 = 9.99 / 13.1916;
+  const fills = [fill(1184, "entry", 13.18565, p1184, 16.9), fill(1186, "exit", 13.18565, p1186, 17.4), fill(1309, "entry", 13.19262, p1309, 21.2),
+    fill(1314, "exit", 13.1916, p1314, 23.1)];
   const dust = 0.1 / 0.7573;
   assertEquals(tripEnds("ask", fills, day, dust), [1, 3]);
   const trips = liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.001, fills, dust }, day);
@@ -1098,9 +1101,9 @@ Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny 
     [new Date(day + 16.9 * h).toISOString(), new Date(day + 17.4 * h).toISOString(), 13.18565, "exit"],
     [new Date(day + 21.2 * h).toISOString(), new Date(day + 23.1 * h).toISOString(), 13.19262, "exit"],
   ]);
-  assertAlmostEquals(trips[0].pnlGbp, 13.18565 * (0.7576 - 0.7584), 1e-12);            // −£0.0105: the pennies the venue rounded
-  assertAlmostEquals(trips[1].pnlGbp, 13.1916 * (0.758 - 0.7573), 1e-12);              // +£0.0092 on what it bought back
-  assertAlmostEquals([trips[1].entry, trips[1].exit].reduce((a, b) => a - b), 0.758 - 0.7573, 1e-12);
+  assertAlmostEquals(trips[0].pnlGbp, 9.99 - 10, 1e-12);                               // −£0.0100: the pennies the venue rounded (the averages made it −£0.0105)
+  assertAlmostEquals(trips[1].pnlGbp, 13.1916 * p1309 - 9.99, 1e-12);                  // +£0.0092 on what it bought back
+  assertAlmostEquals([trips[1].entry, trips[1].exit].reduce((a, b) => a - b), p1309 - p1314, 1e-12);
   // The trips add up to the rung's realised; what it still owes, 0.00102 USDT, is dust: it holds nothing.
   const rungs = liveRungs(fills.map((f) => ({
     id: f.id, ts: new Date(f.ts).toISOString(), mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: f.leg, side: f.leg === "entry" ? "sell" : "buy",
@@ -1117,7 +1120,7 @@ Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny 
   const next = [...fills, fill(1400, "entry", 13.2, 0.759, 30), fill(1401, "exit", 13.20102, 0.7582, 31)];
   const t3 = liveRungTrips({ book: "USDT-GBP", side: "ask", k: 0.001, fills: next, dust }, day);
   assertEquals(t3.length, 3);
-  assertAlmostEquals(t3[2].pnlGbp, 0.00102 * (0.758 - 0.7582) + 13.2 * (0.759 - 0.7582), 1e-9);
+  assertAlmostEquals(t3[2].pnlGbp, 0.00102 * (p1309 - 0.7582) + 13.2 * (0.759 - 0.7582), 1e-9);
   // A conversion fee rides on the fill that closes the trip at dust, not on a later exact zero that never comes.
   const withFee = withConversionFees("ask", fills, new Map([[1309, 0.0091]]), day, dust);
   assertEquals(withFee.map((f) => f.feeGbp), [0, 0, 0, 0.0091]);

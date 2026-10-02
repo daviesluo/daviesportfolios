@@ -415,6 +415,24 @@ export function derivedFee(vo: VenueOrder, gross: number, avgPrice: number | nul
   return { feeUsd: Math.round(notional * (bps / 1e4) * 1e8) / 1e8, derivation: { bps, notional: Math.round(notional * 1e8) / 1e8, basis } };
 }
 
+/**
+ * A fill's price, in the quote currency a coin: what the ACCOUNT moved over the coins it moved them for. Revolut X moves
+ * the quote currency in whole hundredths — a sell's credit floored, a buy's debit rounded up — and reports that amount as
+ * `filled_amount`; its `average_fill_price` is the same amount over the coins, rounded to the pair's price step. So the
+ * price booked is `filled_amount` ÷ the GROSS filled quantity (a buy's `filled_quantity` is gross, D4), unrounded,
+ * whenever both are positive numbers: fill 1184 (PR5, 2026-10-01) sold 13.18565 USDT and was credited £9.99, and its
+ * average 0.7576 × 13.18565 booked £9.98945. The eight live fills to 2026-10-02 all carry `filled_amount`, and both
+ * accounts hold what those amounts say, PR5's GBP to the penny and the live row's USD to the cent, not what the averages
+ * say (reference §4 item 35). With no usable `filled_amount` the venue's average is the price, as before;
+ * `orderViewProblem` still requires it on every fill.
+ */
+function fillPrice(vo: VenueOrder, gross: number): number | null {
+  if (!(gross > 0)) return null;
+  const amount = Number(vo.filled_amount);
+  if (Number.isFinite(amount) && amount > 0) return amount / gross;
+  return Number(readOrder(vo).avg ?? NaN) || null;
+}
+
 /** A venue order → the settlement view the tick acts on. A cancelled order with fills counts as filled for that volume. */
 export function toOrderView(vo: VenueOrder): OrderView {
   const o = readOrder(vo);
@@ -423,7 +441,9 @@ export function toOrderView(vo: VenueOrder): OrderView {
     : o.state === "cancelled" ? (gross > 0 ? "filled" : "cancelled")
     : o.state === "rejected" ? "rejected"
     : gross > 0 ? "partially_filled" : "new";
-  const avgPrice = gross > 0 ? Number(o.avg ?? NaN) || null : null;
+  // What the account moved a coin (`fillPrice`); a coin fee below is valued at it, so a buy's booked base (net of the fee)
+  // and its fee together cost exactly what the venue debited.
+  const avgPrice = fillPrice(vo, gross);
   // A fill with no fee on its reply is charged the schedule's fee, in the quote currency, and says so (D8).
   const derived = gross > 0 && feeToDerive(vo) ? derivedFee(vo, gross, avgPrice) : null;
   // A fee taken in the coin is a fee in dollars at the fill price; `orderViewProblem` refuses any other currency.

@@ -6,7 +6,7 @@
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   loadPrivateKey, orderViewProblem, privateKeyDer, publicCandles, publicTickers, quotesForRegion, REVX_BASE, REVX_REGION, revxFetch, revxVenue, signingMessage, signMessage, splitPath,
-  toCandle, toOrderView, toPathSymbol, toSlashSymbol,
+  toCandle, toOrderView, toPathSymbol, toSlashSymbol, type VenueOrder,
 } from "../_shared/revx.ts";
 
 Deno.test("signingMessage — the reference's literal example, byte for byte", () => {
@@ -237,7 +237,9 @@ Deno.test("order() settles the DOCUMENTED reply — id, status, filled_quantity,
   const { venue } = await fakeVenue({ [`GET /api/1.0/orders/${documentedFilled.id}`]: json({ data: documentedFilled }) });
   const r = await venue.order(documentedFilled.id);
   assert(r.ok, JSON.stringify(r));
-  if (r.ok) assertEquals([r.view.state, r.view.filledBase, r.view.avgPrice, r.view.feeUsd], ["filled", 0.002, 119990, 0.22]);
+  // The price is the reply's own filled_amount over its quantity (239.98 / 0.002, which floating point puts a hair under
+  // the documented 119990.00): what the account moved, as every live fill showed (see below).
+  if (r.ok) assertEquals([r.view.state, r.view.filledBase, r.view.avgPrice, r.view.feeUsd, r.view.filledBase * r.view.avgPrice!], ["filled", 0.002, 239.98 / 0.002, 0.22, 239.98]);
   // The assumed vocabulary still settles, so whichever the venue sends on the first live order is read.
   const { venue: v2 } = await fakeVenue({ "GET /api/1.0/orders/V1": json({ data: { venue_order_id: "V1", symbol: "BTC/USD", side: "buy", state: "filled", filled_size: "0.002", average_fill_price: "119990", fees: "0.22" } }) });
   const r2 = await v2.order("V1");
@@ -266,6 +268,79 @@ Deno.test("a fee the venue takes in the COIN is settled in dollars at the fill p
   const r = await venue.order("X");
   assert(r.ok, JSON.stringify(r));
   if (r.ok) assertEquals(Math.round(r.view.feeUsd * 1e6) / 1e6, Math.round(0.0000018 * 119990 * 1e6) / 1e6);
+});
+
+// ── a fill is booked at what the account moved (2026-10-02) ──────────────────────────────────────────────────────────
+// Revolut X moves the quote currency in whole hundredths, a sell's credit floored and a buy's debit rounded up, reports that
+// as `filled_amount`, and derives `average_fill_price` from it at the pair's price step. Booked at that average, fill 1184
+// was £0.00055 short of the £9.99 credited. These are every live fill to 2026-10-02, each the venue's read-back exactly
+// as its row stores it (`agent_quote_live_orders.response`, `agent_orders.response`).
+const LIVE_REPLIES: Record<string, VenueOrder> = {
+  "PR5 1154, USDT conversion (taker)": { "id": "b061f38e-eb6d-e207-0040-3e38f501a293", "side": "buy", "type": "limit", "price": "0.7607", "status": "filled", "symbol": "USDT/GBP", "quantity": "39.61965", "total_fee": "0.03566", "created_date": 1790872308961, "fee_currency": "USDT", "updated_date": 1790872308961, "filled_amount": "30", "time_in_force": "ioc", "client_order_id": "684e2b8f-ec02-420c-95e4-bf03ef7d12cd", "filled_quantity": "39.61965", "leaves_quantity": "0", "average_fill_price": "0.7572", "execution_instructions": ["allow_taker"] },
+  "PR5 1158, USDC conversion (taker)": { "id": "cf4e0596-6e72-e29a-0040-3e77b817cd16", "side": "buy", "type": "limit", "price": "0.7614", "status": "filled", "symbol": "USDC/GBP", "quantity": "39.58305", "total_fee": "0.03563", "created_date": 1790872369792, "fee_currency": "USDC", "updated_date": 1790872369792, "filled_amount": "30", "time_in_force": "ioc", "client_order_id": "31bb6ae6-c3b4-4712-850b-4d32afd52371", "filled_quantity": "39.58305", "leaves_quantity": "0", "average_fill_price": "0.7579", "execution_instructions": ["allow_taker"] },
+  "PR5 1184, ask entry (maker sell)": { "id": "b6b72f25-f4fb-e2ef-0040-3e4e4208b70f", "side": "sell", "type": "limit", "price": "0.7584", "status": "filled", "symbol": "USDT/GBP", "quantity": "13.18565", "total_fee": "0", "created_date": 1790872952325, "fee_currency": "GBP", "updated_date": 1790873717883, "filled_amount": "9.99", "time_in_force": "gtc", "client_order_id": "02dcf199-2040-4c9f-ad32-223f3be8bf68", "filled_quantity": "13.18565", "leaves_quantity": "0", "average_fill_price": "0.7576", "execution_instructions": ["post_only"] },
+  "PR5 1186, its exit (maker buy)": { "id": "03ce10a8-f996-e210-0040-3ef91290fa5f", "side": "buy", "type": "limit", "price": "0.7578", "status": "filled", "symbol": "USDT/GBP", "quantity": "13.18565", "total_fee": "0", "created_date": 1790873729871, "fee_currency": "USDT", "updated_date": 1790875437202, "filled_amount": "10", "time_in_force": "gtc", "client_order_id": "b01a4cc4-8e04-462f-8576-5fb9284970b7", "filled_quantity": "13.18565", "leaves_quantity": "0", "average_fill_price": "0.7584", "execution_instructions": ["post_only"] },
+  "PR5 1309, ask entry (maker sell)": { "id": "e66461e7-8dfc-e2e7-0040-3e08053368d8", "side": "sell", "type": "limit", "price": "0.758", "status": "filled", "symbol": "USDT/GBP", "quantity": "13.19262", "total_fee": "0", "created_date": 1790883096008, "fee_currency": "GBP", "updated_date": 1790889033461, "filled_amount": "10", "time_in_force": "gtc", "client_order_id": "f9b7ebbc-b8dd-4360-90ae-fddab5ecface", "filled_quantity": "13.19262", "leaves_quantity": "0", "average_fill_price": "0.758", "execution_instructions": ["post_only"] },
+  "PR5 1314, its exit (maker buy)": { "id": "f842ed10-94ee-e23d-0040-3ea39bbc6db1", "side": "buy", "type": "limit", "price": "0.7573", "status": "filled", "symbol": "USDT/GBP", "quantity": "13.1916", "total_fee": "0", "created_date": 1790891670111, "fee_currency": "USDT", "updated_date": 1790896009553, "filled_amount": "9.99", "time_in_force": "gtc", "client_order_id": "2f73517b-5902-4f1e-961a-fbf64d768500", "filled_quantity": "13.1916", "leaves_quantity": "0", "average_fill_price": "0.7573", "execution_instructions": ["post_only"] },
+  "trend-4h-live 37, SOL buy (taker)": { "id": "092b2034-85fb-46a5-80f5-c9f0843ef62d", "side": "buy", "type": "limit", "price": "121.02", "status": "filled", "symbol": "SOL/USD", "quantity": "0.206799", "total_fee": "0.000187", "created_date": 1790337607898, "fee_currency": "SOL", "updated_date": 1790337607898, "filled_amount": "25.01", "time_in_force": "ioc", "client_order_id": "5884d8a3-a496-4412-9146-a3de6bdd3420", "filled_quantity": "0.206799", "leaves_quantity": "0", "average_fill_price": "120.94", "execution_instructions": ["allow_taker"] },
+  "trend-4h-live 44, SOL sell (taker)": { "id": "a0fb8a56-0a2e-48c1-8047-40f1e0f35ebc", "side": "sell", "type": "limit", "price": "117.41", "status": "filled", "symbol": "SOL/USD", "quantity": "0.206612", "total_fee": "0.03", "created_date": 1790582404733, "fee_currency": "USD", "updated_date": 1790582404733, "filled_amount": "24.38", "time_in_force": "ioc", "client_order_id": "aa1db6de-ddab-41fd-9b99-30227f41edba", "filled_quantity": "0.206612", "leaves_quantity": "0", "average_fill_price": "118", "execution_instructions": ["allow_taker"] },
+};
+/** What a settled view books in the quote currency: a buy's cost (coins held and the coin fee's value, or a quote fee), a sell's proceeds net of its fee. */
+const bookedQuote = (side: "buy" | "sell", v: { filledBase: number; avgPrice: number | null; feeUsd: number }) =>
+  side === "buy" ? v.filledBase * v.avgPrice! + v.feeUsd : v.filledBase * v.avgPrice! - v.feeUsd;
+
+Deno.test("a fill is booked at what the account moved — filled_amount over the gross quantity: fill 1184 at the £9.99 credited, where its 0.7576 average booked £9.98945", () => {
+  const sold = toOrderView(LIVE_REPLIES["PR5 1184, ask entry (maker sell)"]);
+  assertEquals([sold.state, sold.filledBase, sold.feeUsd], ["filled", 13.18565, 0]);
+  assertEquals(sold.filledBase * sold.avgPrice!, 9.99);                    // 0.7576 × 13.18565 = 9.98944844
+  // Its buy-back was debited the penny above, £10.00 for 13.18565 at 0.7578 (£9.9920856): the book pays £10.00.
+  const bought = toOrderView(LIVE_REPLIES["PR5 1186, its exit (maker buy)"]);
+  assertEquals([bought.filledBase, bought.filledBase * bought.avgPrice!], [13.18565, 10]);   // 0.7584 × 13.18565 = 9.99999696
+  // So the first round trip is the −£0.01 the account lost, not the −£0.0105 the averages made of it.
+  assertEquals(Math.round((sold.filledBase * sold.avgPrice! - bought.filledBase * bought.avgPrice!) * 1e8) / 1e8, -0.01);
+});
+
+Deno.test("every live fill to 2026-10-02 books exactly the quote currency its reply says the account moved, a fee included", () => {
+  for (const [name, reply] of Object.entries(LIVE_REPLIES)) {
+    assertEquals(orderViewProblem(reply), null, name);
+    const v = toOrderView(reply);
+    const amount = Number(reply.filled_amount), quote = reply.symbol.split("/")[1];
+    // A buy pays `filled_amount` (its fee in the coin, never on top in pounds or dollars); a sell receives it less a fee
+    // the venue took in the quote currency.
+    const moved = reply.side === "buy" ? amount : amount - (reply.fee_currency === quote ? Number(reply.total_fee) : 0);
+    const off = Math.abs(bookedQuote(reply.side, v) - moved);
+    assert(off < 1e-12, `${name}: booked ${bookedQuote(reply.side, v)}, the account moved ${moved}`);
+    // The reply's own average is not what moved: each of the eight is off by a fraction of a penny or a cent.
+    const atAverage = bookedQuote(reply.side, { ...v, avgPrice: Number(reply.average_fill_price), feeUsd: reply.fee_currency === quote ? v.feeUsd : Number(reply.total_fee) * Number(reply.average_fill_price) });
+    assert(Math.abs(atAverage - moved) > 1e-7, `${name}: the venue's average books ${atAverage} against ${moved}`);
+  }
+});
+
+Deno.test("a buy's coin fee is still booked net (D4), and valued at what the account paid a coin: the coins held and the fee cost the debit", () => {
+  // The live row's SOL buy: 0.206799 bought, 0.000187 of it taken as the fee, $25.01 debited for 0.206799 × 120.899 ($25.0018).
+  const sol = toOrderView(LIVE_REPLIES["trend-4h-live 37, SOL buy (taker)"]);
+  assertEquals(sol.filledBase, 0.206612);                                   // 0.206799 − 0.000187: what reached the account
+  assertEquals(sol.avgPrice, 25.01 / 0.206799);                             // per GROSS coin
+  assertEquals(sol.feeUsd, 0.000187 * (25.01 / 0.206799));
+  assert(Math.abs(sol.filledBase * sol.avgPrice! + sol.feeUsd - 25.01) < 1e-12, String(sol.filledBase * sol.avgPrice! + sol.feeUsd));
+  // PR5's USDT conversion: 39.61965 bought, 0.03566 taken, £30.00 debited for £29.99999898 at 0.7572.
+  const usdt = toOrderView(LIVE_REPLIES["PR5 1154, USDT conversion (taker)"]);
+  assertEquals(usdt.filledBase, 39.58399);
+  assert(Math.abs(usdt.filledBase * usdt.avgPrice! + usdt.feeUsd - 30) < 1e-12, String(usdt.filledBase * usdt.avgPrice! + usdt.feeUsd));
+});
+
+Deno.test("no usable filled_amount: the price is the venue's average_fill_price, exactly as before", () => {
+  const base = LIVE_REPLIES["PR5 1184, ask entry (maker sell)"];
+  // Absent, as in the documented post-only example and the assumed vocabulary; zero; not a number; negative.
+  for (const filled_amount of [undefined, "0", "9.99 GBP", "-9.99"]) {
+    const v = toOrderView({ ...base, filled_amount });
+    assertEquals([v.state, v.filledBase, v.avgPrice], ["filled", 13.18565, 0.7576], String(filled_amount));
+  }
+  assertEquals(toOrderView({ venue_order_id: "V1", symbol: "BTC-USD", side: "buy", state: "filled", filled_size: "0.002", average_fill_price: "119990", fees: "0.22" }).avgPrice, 119990);
+  // Nothing filled: no price at all, whatever the reply carries.
+  assertEquals(toOrderView({ ...base, status: "new", filled_quantity: "0", leaves_quantity: "13.18565", filled_amount: "0", average_fill_price: "0" }).avgPrice, null);
+  // And a fill whose reply lacks average_fill_price is still refused, filled_amount or not: the guard is unchanged.
+  assert(orderViewProblem({ ...base, average_fill_price: undefined })?.includes("no average_fill_price ("));
 });
 
 Deno.test("placeLimit: a marketable order is an IOC limit that may take; a resting one is post-only GTC; the reply's data is read as an object OR an array", async () => {

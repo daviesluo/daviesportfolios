@@ -565,6 +565,66 @@ Deno.test("live: a fill is booked only from the venue's read-back — the paper'
   assertEquals(w.open("live").filter((o) => o.book === "USDT-GBP" && Number(o.k) === 0.002).map((o) => [o.leg, Number(o.price)]), [["entry", 0.7538]]);
 });
 
+Deno.test("live: a fill is booked at the pounds the venue moved — fill 1184's shape books the £9.99 credited (its 0.7576 average booked £9.98945), its buy-back the debit, and the rung's book is the account's", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 120, balances: { GBP: 120, USDT: 13.18565 } });
+  w.rx.settlement = "venue";                                            // whole pennies, as every live fill showed
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7552, ask: 0.7558 };            // the ask rests over the bid, its buy-back under the ask
+  // Order 1184 as it was placed (2026-10-01 16:42 UTC), before `rungBase` sized a sell one step up: 13.18565 USDT at 0.7584.
+  const cid = crypto.randomUUID();
+  const placed = await w.account!.placeLimit({ clientOrderId: cid, symbol: "USDT/GBP", side: "sell", base: "13.18565", price: "0.7584" });
+  assert(placed.ok && placed.state === "new", JSON.stringify(placed));
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7584, base_size: 13.18565,
+    client_order_id: cid, venue_order_id: placed.venueOrderId, state: "new", filled_base: 0, request: { postOnly: true }, ts: iso(T0 - 10 * M) });
+  const gbp = () => w.rx.balances.GBP;
+  let before = gbp();
+  w.rx.fillResting(placed.venueOrderId, 13.18565);
+  const credited = Math.round((gbp() - before) * 100) / 100;
+  assertEquals(credited, 9.99);                                         // £9.99999696 credited £9.99, as on 2026-10-01
+  await w.step(T0);
+  const sold = w.orders().find((o) => o.client_order_id === cid)!;
+  const reply = sold.response as Row;
+  assertEquals([sold.state, Number(sold.filled_base), reply.filled_amount, reply.average_fill_price], ["filled", 13.18565, "9.99", "0.7576"]);   // 1184's own reply
+  assertEquals(Number(sold.filled_base) * Number(sold.avg_fill_price), 9.99);
+  // The rung holds the short and buys it back, trimmed to the penny below (`pennyExit`); the venue debits the penny above.
+  const exit = w.orders().find((o) => o.leg === "exit" && o.book === "USDT-GBP" && o.rung_side === "ask")!;
+  assert(exit && exit.state === "new", JSON.stringify(w.orders().filter((o) => o.leg !== "entry")));
+  before = gbp();
+  w.rx.fillResting(String(exit.venue_order_id), Number(exit.base_size));
+  const debited = Math.round((before - gbp()) * 100) / 100;
+  await w.step(T0 + M);
+  const bought = w.orders().find((o) => o.id === exit.id)!;
+  assertEquals(bought.state, "filled");
+  assert(Math.abs(Number(bought.filled_base) * Number(bought.avg_fill_price) - debited) < 1e-12, `${Number(bought.filled_base) * Number(bought.avg_fill_price)} against ${debited}`);
+  // The rung's book by the executor's own arithmetic: what it realised, and the hair it still owes at the price it sold that
+  // hair for, together are the pounds the two fills moved — the £0.00055 the average lost is not in it.
+  const fills = [sold, bought].map((o) => ({ id: Number(o.id), ts: Date.parse(String(o.filled_at ?? o.ts)), leg: o.leg as "entry" | "exit", base: Number(o.filled_base), price: Number(o.avg_fill_price), feeGbp: Number(o.fee_gbp) }));
+  const book = rungBook("ask", fills, 0);
+  const owed = Math.round((13.18565 - Number(bought.filled_base)) * 1e5) / 1e5;
+  assertAlmostEquals(book.held, owed, 1e-12);
+  assert(Math.abs(book.realisedGbp + owed * book.avgEntry - (credited - debited)) < 1e-12, `${book.realisedGbp} + ${owed} × ${book.avgEntry} against ${credited - debited}`);
+});
+
+Deno.test("live: a taker conversion books the £30.00 the venue debited, its coin fee booked net (D4) — the double answers as order 1154 was answered, field for field", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 120, balances: { GBP: 120 } });
+  w.rx.settlement = "venue";
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7568, ask: 0.7572 };            // 1154 took the ask at 0.7572 (2026-10-01 16:31 UTC)
+  await w.paperStep(T0);
+  const now = T0 + M + 30e3;
+  const sent = await runQuotesConvert({ db: w.mem.db, now, holder: "op", uuid: () => crypto.randomUUID(), account: w.account, fetch: w.rx.fetch, pause: () => Promise.resolve(), clock: () => now },
+    { book: "USDT-GBP", gbp: 30, send: true, taker: true });
+  assert(!sent.error, JSON.stringify(sent));
+  await w.step(T0 + M);                                                 // the minute loop settles it from the venue
+  const conv = w.orders().find((o) => o.leg === "convert")!;
+  const reply = conv.response as Row;
+  assertEquals([conv.state, reply.filled_quantity, reply.filled_amount, reply.average_fill_price, reply.total_fee, reply.fee_currency],
+    ["filled", "39.61965", "30", "0.7572", "0.03566", "USDT"]);         // 1154's reply: £29.99999898 debited £30, the fee in the coin
+  assertEquals(Number(conv.filled_base), 39.58399);                     // net of the coin fee, as the account received it
+  assertAlmostEquals(Number(conv.filled_base), w.rx.balances.USDT, 1e-9);
+  // Booked at the pounds debited: the coins held and the coins taken as the fee cost £30.00 (the 0.7572 average booked £29.99999898).
+  const cost = Number(conv.filled_base) * Number(conv.avg_fill_price) + Number(conv.fee_gbp);
+  assert(Math.abs(cost - 30) < 1e-12, String(cost));
+});
+
 Deno.test("live: a partial entry fill — the rest is withdrawn (confirmed) and the exit sells what filled; a dust fill keeps the entry resting", async () => {
   const w = makeWorld({ live: true, armed: true });
   await w.step(T0);
