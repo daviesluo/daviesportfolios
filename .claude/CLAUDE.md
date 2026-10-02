@@ -61,6 +61,13 @@ Non-obvious caveats:
   need one of these passwords; there is no dev bypass and pointing at a
   local Supabase would require editing `src/app/supabase_config.js` + running
   the full local stack.
+- **The anon key opens nothing in the database** (`0082`, 2026-10-02).
+  The page carries it for the Edge Functions' gateway alone; every read
+  and write goes through an Edge Function with the service role, or
+  pg_cron as postgres. `anon` and `authenticated` hold no privilege in
+  `public`, and its default privileges keep them out of what is created
+  later: never add a policy or a grant for either. Until then three
+  dashboard-made policies let the anon key read and write `board_data`.
 - **Do not brute-force the password.** The `auth` Edge Function has an
   IP-keyed lockout (3 wrong attempts → escalating 24 h lockout), so a
   handful of bad guesses will lock the whole VM's egress IP out of

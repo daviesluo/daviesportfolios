@@ -107,6 +107,21 @@ select count(*) from pg_policies
     and policyname = 'anon_select_overnight_points';          -- expect: 0
 ```
 
+That first check read **true** until `0082` (2026-10-02): 0017 revoked
+PUBLIC, but Supabase's default privileges grant `anon` and
+`authenticated` by name, so their grants stood, on 0017's function and
+on seven more. `0082` takes every privilege in `public` from both roles,
+and the defaults with it. To check the whole schema:
+
+```sql
+select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and has_function_privilege('anon', p.oid, 'execute');      -- expect: 0
+select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public' and c.relkind in ('r', 'v', 'm')
+    and has_table_privilege('anon', c.oid, 'select');          -- expect: 0
+```
+
 ## Going forward — pick ONE application path
 
 To stop the two mechanisms diverging again:
