@@ -1,6 +1,7 @@
 // Pin the pure helpers of overnight-record. The Deno.serve handler is
 // behind `if (import.meta.main)` so importing here binds no port.
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import * as sharedTickers from "../_shared/t212_tickers.ts";
 import {
   bucketTimeIso,
   isOvernightWindow,
@@ -70,12 +71,28 @@ Deno.test("isHolidaySession / shouldRecord: US HOLIDAY overnight is not recorded
   assertEquals(shouldRecord(normal), true);
 });
 
-Deno.test("t212TickerToYahoo: US suffix, LSE suffix, aliases", () => {
-  assertEquals(t212TickerToYahoo("AAPL_US_EQ"), "AAPL");
-  assertEquals(t212TickerToYahoo("VUAAl_EQ"), "VUAA.L");
-  assertEquals(t212TickerToYahoo("FB_US_EQ"), "META");
-  assertEquals(t212TickerToYahoo("GOOGL_US_EQ"), "GOOG");
-  assertEquals(t212TickerToYahoo("WEIRD_SHAPE"), null);
+// The map's own pins are `_shared/t212_tickers.test.ts`. Pinned here: this recorder reads that one map. The identity
+// fails if a copy of the function comes back, and the table-driven case the moment a copy of the tables drifts.
+Deno.test("t212TickerToYahoo: is the shared map's function, not a copy of it", () => {
+  assertStrictEquals(t212TickerToYahoo, sharedTickers.t212TickerToYahoo);
+});
+
+Deno.test("extractOvernightPrices: every code in the shared tables goes through the shared map, then the session filter", () => {
+  const codes = Object.keys({ ...sharedTickers.T212_DCA_ETFS, ...sharedTickers.T212_ALIASES });
+  const positions = codes.map((ticker, i) => ({ instrument: { ticker }, currentPrice: 10 + i }));
+  const want: Record<string, number> = {};
+  codes.forEach((code, i) => {
+    const yahoo = sharedTickers.t212TickerToYahoo(code);
+    if (yahoo && hasOvernightSession(yahoo)) want[yahoo] = 10 + i;
+  });
+  assertEquals(extractOvernightPrices(positions), want);
+  assertEquals(Object.keys(want).sort(), ["COHR", "GOOG", "META", "NBIS", "NVTS", "RKLB"]);
+});
+
+Deno.test("extractOvernightPrices: a share class is a US equity with an overnight tape (this recorder's old copy dropped it)", () => {
+  assertEquals(extractOvernightPrices([{ instrument: { ticker: "BRK_B_US_EQ" }, currentPrice: 10 }]), { "BRK-B": 10 });
+  // 2DG.SG maps now as well, and stays out: a German listing has no US overnight session.
+  assertEquals(extractOvernightPrices([{ instrument: { ticker: "2DGd_EQ" }, currentPrice: 10 }]), {});
 });
 
 Deno.test("hasOvernightSession: US equities only, SFTBY excluded", () => {

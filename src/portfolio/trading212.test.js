@@ -4,6 +4,9 @@
 // the Edge Function's deno tests, not retested here.
 
 import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   applyTrading212,
   applyTrading212NightPrice,
@@ -578,5 +581,23 @@ describe('applyTrading212 — whose price is lastPrice', () => {
     applyTrading212NightPrice(holdings, { NVDA: 219.05 }, true);
     expect(holdings.NVDA.extDayPct).toBeCloseTo(-0.31401, 4);   // (219.05 - 219.74) / 219.74
     expect(holdings.NVDA.extDayPct).not.toBe(0);
+  });
+});
+
+// The board takes the broker's quote at every hour for two listings outside the US, and the snapshot recorder records
+// the broker's price for the same two, so the 24H chart's recorded points and the board's live price come from one
+// source. The two lists live in two runtimes; this holds them to each other.
+describe('the broker-priced listings', () => {
+  const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+  const setIn = (file, name) => {
+    const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    const m = src.match(new RegExp(`const ${name} = new Set\\(\\[([^\\]]*)\\]\\)`));
+    if (!m) throw new Error(`${name} not found in ${file}`);
+    return [...m[1].matchAll(/['"]([^'"]+)['"]/g)].map((x) => x[1]).sort();
+  };
+  it('are the same on the board and in the snapshot recorder', () => {
+    const board = setIn('src/portfolio/trading212.js', 'T212_LIVE_PRICE_TICKERS');
+    expect(board).toEqual(['SAEM.L', 'VUAA.L']);
+    expect(setIn('supabase/functions/snapshot-record/index.ts', 'BOARD_T212_PRICED')).toEqual(board);
   });
 });

@@ -11,7 +11,8 @@
 //     pinned here so a refactor of `data/index.ts`'s copy doesn't
 //     silently desync this one.
 
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertStrictEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import * as sharedTickers from "../_shared/t212_tickers.ts";
 import {
   shapeT212Portfolio,
   shapeT212Order,
@@ -109,39 +110,25 @@ Deno.test("attachPreviousHoldingSlices — carries authority through a zero snap
   assertEquals(second["VUAA.L"].previousCost, 80);
 });
 
-Deno.test("t212TickerToYahoo — allow-list, generic US, generic LSE, unknown", () => {
-  assertEquals(t212TickerToYahoo("VUAAl_EQ"), "VUAA.L");   // allow-list
-  assertEquals(t212TickerToYahoo("SAEMl_EQ"), "SAEM.L");   // allow-list
-  assertEquals(t212TickerToYahoo("AAPL_US_EQ"), "AAPL");   // generic US
-  assertEquals(t212TickerToYahoo("HOOD_US_EQ"), "HOOD");   // generic US
-  assertEquals(t212TickerToYahoo("TSCOl_EQ"), "TSCO.L");   // generic LSE
-  assertEquals(t212TickerToYahoo("SOMEd_DE_EQ"), null);    // other exchange → null
-  assertEquals(t212TickerToYahoo(""), null);
-  // A share class: T212 separates it with an underscore, Yahoo with a
-  // hyphen. Five Berkshire fills were unmapped for want of this.
-  assertEquals(t212TickerToYahoo("BRK_B_US_EQ"), "BRK-B");
-  // No rule can derive this one; 29 fills netting to the board's exact
-  // share count had no ticker until the alias table learned it.
-  assertEquals(t212TickerToYahoo("2DGd_EQ"), "2DG.SG");
-  // Two more the suffix rules can't reach: a Paris listing, and an LSE
-  // ETF with no exchange letter at all.
-  assertEquals(t212TickerToYahoo("XFABp_EQ"), "XFAB.PA");
-  assertEquals(t212TickerToYahoo("CSPX_EQ"), "CSPX.L");
-  // A ticker with a digit in it is still a ticker.
-  assertEquals(t212TickerToYahoo("QQQ3l_EQ"), "QQQ3.L");
+// The map's own pins (both tables, every code production has stored, the
+// rules' edges) are `_shared/t212_tickers.test.ts`. What is pinned here is
+// that this function reads that one map: the identity fails if a copy of
+// the function comes back, and the table-driven case fails the moment a
+// copy of the tables drifts from the shared ones.
+Deno.test("t212TickerToYahoo — is the shared map's function, not a copy of it", () => {
+  assertStrictEquals(t212TickerToYahoo, sharedTickers.t212TickerToYahoo);
 });
 
-Deno.test("t212TickerToYahoo — renamed / merged US tickers map to the CURRENT symbol", () => {
-  // T212 keeps the pre-rename internal code forever, so the generic
-  // `_US_EQ` rule would resolve these to the stale symbol (FB, YNDX, …)
-  // which never matches the board → overnight price silently lost. The
-  // alias table fixes the six the user actually holds.
-  assertEquals(t212TickerToYahoo("FB_US_EQ"), "META");    // Facebook → Meta
-  assertEquals(t212TickerToYahoo("YNDX_US_EQ"), "NBIS");  // Yandex → Nebius
-  assertEquals(t212TickerToYahoo("IIVI_US_EQ"), "COHR");  // II-VI → Coherent
-  assertEquals(t212TickerToYahoo("VACQ_US_EQ"), "RKLB");  // Vector Acq SPAC → Rocket Lab
-  assertEquals(t212TickerToYahoo("LOKB_US_EQ"), "NVTS");  // Live Oak II SPAC → Navitas
-  assertEquals(t212TickerToYahoo("GOOGL_US_EQ"), "GOOG"); // Alphabet class-A line → board's GOOG
+Deno.test("shapeT212Portfolio — every code in the shared tables lands under the shared map's ticker, and the shared DCA ETFs are the seed", () => {
+  const codes = Object.keys({ ...sharedTickers.T212_DCA_ETFS, ...sharedTickers.T212_ALIASES });
+  const raw = codes.map((ticker, i) => ({ instrument: { ticker }, quantity: 1 + i, averagePricePaid: 10 + i, currentPrice: 20 + i }));
+  const { holdings, prices } = shapeT212Portfolio(raw);
+  assertEquals(prices, Object.fromEntries(codes.map((c, i) => [sharedTickers.t212TickerToYahoo(c), 20 + i])));
+  assertEquals(holdings, Object.fromEntries(codes.map((c, i) => [sharedTickers.t212TickerToYahoo(c), { shares: 1 + i, cost: 10 + i }])));
+  assertEquals(
+    Object.keys(shapeT212Portfolio([]).holdings).sort(),
+    Object.values(sharedTickers.T212_DCA_ETFS).sort(),
+  );
 });
 
 Deno.test("shapeT212Portfolio — a renamed ticker surfaces its price under the CURRENT symbol", () => {

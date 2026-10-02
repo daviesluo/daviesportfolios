@@ -617,6 +617,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/us_overnight_session.ts` | The US overnight session the overnight recorder records: 20:00-04:00 ET, less the weekend and holiday sessions. |
 | `_shared/recorder_watch.ts` | The price recorders' daily audit of each other: buckets owed by the calendar against buckets written, reported to `ops_errors` when short. |
 | `_shared/t212_positions.ts` | Trading 212's positions read for the two price recorders, tried once more when its one-call-a-second limit refused it. |
+| `_shared/t212_tickers.ts` | Trading 212's instrument codes mapped to the board's Yahoo tickers: the one map `trading212` and both price recorders read. |
 | `_shared/bytes.ts` | Byte and base64 helpers for request signing. |
 | `.env.example` | Every secret the functions read, by name. The values live only in Supabase. |
 

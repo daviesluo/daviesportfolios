@@ -77,94 +77,20 @@
 // and average cost to anyone with the function URL. Requires the
 // `APP_AUTH_SECRET` env var (same value as the `auth` function).
 
-// Yahoo ticker → T212 internal ticker. The T212 convention for LSE is
-// `<TICKER>l_EQ` (lowercase 'l' exchange suffix + `_EQ`). This explicit
-// map is the **holdings auto-sync allow-list** — only these tickers get
-// their shares/cost mirrored into the portfolio (the user's DCA ETFs).
-// Both entries are USD-denominated UCITS ETFs on LSE — see fx.js
-// TICKER_CURRENCY_OVERRIDES for the client-side currency override that
-// stops the suffix-based `detectCurrency` mis-detecting them as GBP.
 import { reportServerError } from "../_shared/ops.ts";
 import { verifyToken } from "../_shared/token.ts";
+import { T212_DCA_ETFS, t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 
 // Re-exported so this function's index.test.ts keeps pinning the exact
 // implementation the token gate below trusts.
 export { b64url, constantTimeEqual, sign, verifyToken } from "../_shared/token.ts";
 
-const T212_TO_YAHOO: Record<string, string> = {
-  "VUAAl_EQ": "VUAA.L",
-  "SAEMl_EQ": "SAEM.L",
-};
-
-// Renamed / merged US tickers. T212 assigns an instrument's internal
-// ticker at first listing and DOESN'T rewrite it through a corporate
-// rename, ticker swap, or SPAC merger — so the API keeps returning the
-// ORIGINAL symbol long after the stock trades under a new one. The
-// generic `_US_EQ` rule below would map these to the stale symbol
-// (`FB_US_EQ → FB`), which never matches the board's current ticker, so
-// the overnight price silently never lands. This explicit alias table
-// maps the stale T212 code → the current Yahoo ticker.
-//
-// IMPORTANT: this is the PRICE-map alias only — distinct from
-// `T212_TO_YAHOO` above, which doubles as the shares/cost auto-sync
-// allow-list. Entries here feed `prices` (overnight quotes) ONLY; they
-// never sync shares/cost (the user manages those holdings manually).
-//   FB   → META   (Facebook renamed to Meta, 2022)
-//   YNDX → NBIS   (Yandex N.V. → Nebius Group, relisted 2024)
-//   IIVI → COHR   (II-VI Incorporated → Coherent Corp, 2022)
-//   VACQ → RKLB   (Vector Acquisition SPAC → Rocket Lab, 2021)
-//   LOKB → NVTS   (Live Oak Acq. II SPAC → Navitas, 2021)
-//   GOOGL→ GOOG   (T212 lists Alphabet's class-A line; the board tracks
-//                  the class-C GOOG ticker — the two track within a
-//                  fraction of a % so it's a faithful overnight proxy)
-//
-// It also carries codes the generic suffix rules simply can't derive.
-//   2DGd_EQ → 2DG.SG  (a German listing: the `d` suffix has no rule, and
-//                      29 fills netting to exactly the board's 580 shares
-//                      had no ticker at all, so the whole position's
-//                      history was invisible)
-//   XFABp_EQ → XFAB.PA (X-FAB on Euronext Paris; the `p` suffix has no
-//                      rule either, and its 8 fills are a closed round
-//                      trip the transaction history was missing)
-//   CSPX_EQ  → CSPX.L  (an LSE UCITS ETF with no exchange suffix at all,
-//                      so the generic `_EQ` rules don't reach it)
-const T212_US_ALIASES: Record<string, string> = {
-  "FB_US_EQ": "META",
-  "YNDX_US_EQ": "NBIS",
-  "IIVI_US_EQ": "COHR",
-  "VACQ_US_EQ": "RKLB",
-  "LOKB_US_EQ": "NVTS",
-  "GOOGL_US_EQ": "GOOG",
-  "2DGd_EQ": "2DG.SG",
-  "XFABp_EQ": "XFAB.PA",
-  "CSPX_EQ": "CSPX.L",
-};
-
-// Generic T212-internal → Yahoo ticker mapping, used to build the
-// `prices` map for EVERY T212 holding (not just the allow-list above).
-// The client uses these as overnight ("night market") quotes for any
-// US equity it also holds — so a US stock the user buys in T212 picks
-// up the broker's overnight price automatically, no allow-list edit.
-//   AAPL_US_EQ → AAPL   (US: strip the _US_EQ suffix)
-//   VUAAl_EQ   → VUAA.L (LSE: lowercase-l suffix → .L)
-//   FB_US_EQ   → META   (renamed/merged: via T212_US_ALIASES)
-// Returns null for shapes we don't recognise (other exchanges) so they
-// simply don't get a price entry.
-export function t212TickerToYahoo(t212Ticker: string): string | null {
-  if (typeof t212Ticker !== "string" || !t212Ticker) return null;
-  if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
-  if (T212_US_ALIASES[t212Ticker]) return T212_US_ALIASES[t212Ticker];
-  // `BRK_B_US_EQ` is Berkshire's class-B line, and Yahoo spells a share
-  // class with a hyphen. Without the inner group the whole code failed to
-  // match and five fills went unmapped.
-  const us = t212Ticker.match(/^([A-Za-z]+(?:_[A-Za-z])?)_US_EQ$/);
-  if (us) return us[1].toUpperCase().replace("_", "-");
-  // Digits belong in a ticker: `QQQ3l_EQ` is WisdomTree's 3x NASDAQ 100
-  // on the LSE, and a letters-only pattern skipped it entirely.
-  const lse = t212Ticker.match(/^([A-Za-z0-9]+)l_EQ$/);
-  if (lse) return lse[1].toUpperCase() + ".L";
-  return null;
-}
+// Trading 212's codes map to the board's Yahoo tickers through
+// `_shared/t212_tickers.ts`, the one map the two price recorders read too
+// (`AAPL_US_EQ → AAPL`, `VUAAl_EQ → VUAA.L`, a renamed `FB_US_EQ → META`;
+// null for a code nothing reads, which then gets no entry). Re-exported
+// so index.test.ts pins that this function uses that map, not a copy.
+export { t212TickerToYahoo };
 
 // Executed-fill history. Unlike `/equity/positions` (a snapshot of what
 // is held) this carries the DATES — which is the one thing the position
@@ -666,13 +592,13 @@ export function shapeT212Portfolio(
       && isFinite(currentPrice) && currentPrice > 0;
   });
   if (!structurallyValid) return { holdings, prices, valid: false };
-  // Seed every allow-list ETF at zero so a position that has been sold
-  // out entirely still arrives as an explicit 0 rather than silently
-  // vanishing from the map (which the client would read as "no data").
-  // Tickers outside the allow-list are only emitted when the broker
+  // Seed every allow-list ETF (`T212_DCA_ETFS`) at zero so a position that
+  // has been sold out entirely still arrives as an explicit 0 rather than
+  // silently vanishing from the map (which the client would read as "no
+  // data"). Tickers outside the allow-list are only emitted when the broker
   // actually reports them — seeding those would need a list of every
   // ticker the account has ever held.
-  for (const ticker of new Set(Object.values(T212_TO_YAHOO))) {
+  for (const ticker of new Set(Object.values(T212_DCA_ETFS))) {
     holdings[ticker] = { shares: 0, cost: 0 };
   }
   for (const p of positions) {

@@ -13,9 +13,11 @@ crypto loop and the testing strategies are planned in `docs/LEDGER.md` and
 
 ## Where it stands (2026-09-28)
 
-Of 28 items: 17 done, 1 partly, 1 not doing by decision, 9 open (2 of
+Of 28 items: 16 done, 1 partly, 1 not doing by decision, 10 open (2 of
 them wait on an answer only Davies can give). Items 4, 5, 10 and 14 closed
-on 2026-09-30, after the re-check.
+on 2026-09-30, after the re-check, and item 9 on 2026-10-02. (Counted from
+the table on 2026-10-02: this line had said two more done and two fewer
+open since the re-check, whose own table counted 11 done, not 13.)
 
 | # | Item | Status | Evidence |
 |---|---|---|---|
@@ -27,7 +29,7 @@ on 2026-09-30, after the re-check.
 | 6 | No plausibility band on an incoming price | Open | Nothing bands a quote at the write |
 | 7 | The FX shim reaches the performance line | Open, needs Davies | The header pill and the per-holding badge exist; the value line does not read the `missing` flag |
 | 8 | Make the browser sweeps a real gate | **Done** | `npm run verify:browser` is a hard CI gate (222 desktop / 225 phone checks on 2026-09-28), with `verify:perf` (60 cases) beside it |
-| 9 | Collapse the duplicated market logic | Open | The Trading 212 → Yahoo ticker map is still three copies: `trading212`, `overnight-record`, `snapshot-record` |
+| 9 | Collapse the duplicated market logic | **Done** 2026-10-02 | The Trading 212 → Yahoo ticker map is one module, `_shared/t212_tickers.ts`, which `trading212`, `snapshot-record` and `overnight-record` import; each pins that it reads that map, and the pins fail on the old copies. The recorders' two copies had drifted (three aliases, the share-class rule and digits in an LSE symbol missing). `snapshot-record` takes Trading 212's price only where the board shows it, US listings and VUAA.L / SAEM.L, and Yahoo's for the rest, so no ticker held that day changed source. All 69 codes production has stored a fill under map to their stored ticker |
 | 10 | Watch what the cron jobs actually did | **Done** 2026-09-30 | The two price recorders audit each other's last 24 hours once a day against the calendar and report a shortfall to `ops_errors` (`_shared/recorder_watch.ts`). Run on that morning's data it reports both, 71 of 96 and 246 of 288: they had been refusing each other at Trading 212, fixed the same day (`_shared/t212_positions.ts`) |
 | 11 | Let Cloudflare build the site | **Not doing** | Davies keeps the committed bundle; `pages-deploy.yml` uploads `dist/` as committed |
 | 12 | The recorder's deploy flag; pin the CLI | **Done** | `snapshot-record` is in the no-JWT list; the Supabase CLI is pinned to 2.117.0 and its action by SHA |
@@ -67,10 +69,10 @@ Each is small, fixes a way the app can be confidently wrong, or has a date.
 4. ~~**A freshness watch for the recorders (10).**~~ Done 2026-09-30, as a
    daily audit each recorder runs on the other: buckets owed by the
    calendar against buckets written, so a weekend is never "missing".
-5. **One ticker map (9).** S–M. Move the Trading 212 → Yahoo map into
-   `supabase/functions/_shared/`, import it in the three functions, pin it.
-   An unmapped ticker is not an error; it just disappears from recorded
-   prices.
+5. ~~**One ticker map (9).**~~ Done 2026-10-02, as
+   `supabase/functions/_shared/t212_tickers.ts`, imported by the three
+   functions and pinned. An unmapped ticker is not an error; it just
+   disappears from recorded prices.
 6. **A plausibility band on quotes (6).** M. Reuse the after-hours guard's
    volatility-scaled band at the write; a quote outside it is dropped and
    reported, never shown. It matters most when the price function is down

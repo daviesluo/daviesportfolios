@@ -52,6 +52,7 @@ import { isUsMarketHolidayAt, usRegularCloseMinAt } from "../_shared/us_market_c
 import { b64url, sign } from "../_shared/token.ts";
 import { reportServerError } from "../_shared/ops.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
+import { t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
 import { shouldRecord } from "../_shared/us_overnight_session.ts";
 import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
@@ -73,20 +74,11 @@ const T212_ISA_API_SECRET = Deno.env.get("T212_ISA_API_SECRET") ?? "";
 
 const BUCKET_MS = 5 * 60 * 1000;
 
-const T212_TO_YAHOO: Record<string, string> = {
-  "VUAAl_EQ": "VUAA.L",
-  "SAEMl_EQ": "SAEM.L",
-};
-const T212_US_ALIASES: Record<string, string> = {
-  "FB_US_EQ": "META",
-  "YNDX_US_EQ": "NBIS",
-  "IIVI_US_EQ": "COHR",
-  "VACQ_US_EQ": "RKLB",
-  "LOKB_US_EQ": "NVTS",
-  "GOOGL_US_EQ": "GOOG",
-};
-
 // ---------------- Pure helpers (test-pinned) ----------------
+
+// Trading 212's codes map to Yahoo tickers through `_shared/t212_tickers.ts`, the one map `trading212` and the
+// overnight recorder read too; re-exported for this function's pins.
+export { t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 
 /** UTC ISO of the 5-min bucket the given epoch-ms falls into. */
 export function bucketTimeIso(now: number): string {
@@ -150,21 +142,27 @@ export function isUsOvernightSession(at: Date): boolean {
   return minutes >= 20 * 60 || minutes < 4 * 60;
 }
 
-export function t212TickerToYahoo(t212Ticker: string): string | null {
-  if (typeof t212Ticker !== "string" || !t212Ticker) return null;
-  if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
-  if (T212_US_ALIASES[t212Ticker]) return T212_US_ALIASES[t212Ticker];
-  const us = t212Ticker.match(/^([A-Za-z]+)_US_EQ$/);
-  if (us) return us[1].toUpperCase();
-  const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
-  if (lse) return lse[1].toUpperCase() + ".L";
-  return null;
+// The two listings outside the US whose price the board takes from Trading 212 at every hour: its own list is
+// `T212_LIVE_PRICE_TICKERS` in `src/portfolio/trading212.js`, and the two must name the same tickers
+// (`src/portfolio/trading212.test.js` holds them to each other).
+const BOARD_T212_PRICED = new Set(["VUAA.L", "SAEM.L"]);
+
+/**
+ * Whether a holding is recorded at Trading 212's price: only where the board shows the broker's quote, so the 24H
+ * chart's recorded points come from the same source as the board's live price and the chart's live right edge. That is
+ * a US listing (no "." in its Yahoo ticker; a share class such as BRK-B counts), whose overnight quote on the board is
+ * the broker's (`applyTrading212NightPrice` in `src/portfolio/trading212.js`), and the two ETFs above, whose Yahoo
+ * feed lags. Every other holding is recorded from Yahoo, as the board shows it: a broker print there would stand apart
+ * from the board's number, and a sample whose Trading 212 call failed would flip between the two sources.
+ */
+export function recordsT212Price(yahooTicker: string): boolean {
+  return !yahooTicker.includes(".") || BOARD_T212_PRICED.has(yahooTicker);
 }
 
 /**
- * `{ yahooTicker → currentPrice }` for every recognised T212 position.
- * The broker's own print is both fresher and correctly-currencied for
- * the LSE ETFs, where Yahoo's free feed lags 15-20 min at the open.
+ * `{ yahooTicker → currentPrice }` for every Trading 212 position whose price is recorded (`recordsT212Price`). The
+ * broker's own print is both fresher and correctly-currencied for the LSE ETFs, where Yahoo's free feed lags 15-20 min
+ * at the open, and overnight it is the only live quote for a US listing.
  */
 export function extractT212Prices(positions: unknown): Record<string, number> {
   const out: Record<string, number> = {};
@@ -179,7 +177,7 @@ export function extractT212Prices(positions: unknown): Record<string, number> {
     }
     if (!t212) continue;
     const yahoo = t212TickerToYahoo(t212);
-    if (!yahoo) continue;
+    if (!yahoo || !recordsT212Price(yahoo)) continue;
     const cp = Number(p.currentPrice);
     if (Number.isFinite(cp) && cp > 0) out[yahoo] = cp;
   }

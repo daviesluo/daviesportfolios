@@ -42,6 +42,7 @@
 
 import { shouldRecord } from "../_shared/us_overnight_session.ts";
 import { fetchT212Positions } from "../_shared/t212_positions.ts";
+import { t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 import { auditRecorder, isAuditCall } from "../_shared/recorder_watch.ts";
 import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 
@@ -79,35 +80,9 @@ export function bucketTimeIso(now: number): string {
   return new Date(Math.floor(now / BUCKET_MS) * BUCKET_MS).toISOString();
 }
 
-/**
- * Map a T212-internal instrument code to its Yahoo ticker. Replicates
- * `t212TickerToYahoo` from supabase/functions/trading212/index.ts
- * (Edge Functions can't import across function dirs). Kept in lockstep
- * with that table — if a new rename/merge alias is added there, add it
- * here too.
- */
-const T212_TO_YAHOO: Record<string, string> = {
-  "VUAAl_EQ": "VUAA.L",
-  "SAEMl_EQ": "SAEM.L",
-};
-const T212_US_ALIASES: Record<string, string> = {
-  "FB_US_EQ": "META",
-  "YNDX_US_EQ": "NBIS",
-  "IIVI_US_EQ": "COHR",
-  "VACQ_US_EQ": "RKLB",
-  "LOKB_US_EQ": "NVTS",
-  "GOOGL_US_EQ": "GOOG",
-};
-export function t212TickerToYahoo(t212Ticker: string): string | null {
-  if (typeof t212Ticker !== "string" || !t212Ticker) return null;
-  if (T212_TO_YAHOO[t212Ticker]) return T212_TO_YAHOO[t212Ticker];
-  if (T212_US_ALIASES[t212Ticker]) return T212_US_ALIASES[t212Ticker];
-  const us = t212Ticker.match(/^([A-Za-z]+)_US_EQ$/);
-  if (us) return us[1].toUpperCase();
-  const lse = t212Ticker.match(/^([A-Za-z]+)l_EQ$/);
-  if (lse) return lse[1].toUpperCase() + ".L";
-  return null;
-}
+// Trading 212's codes map to Yahoo tickers through `_shared/t212_tickers.ts`, the one map `trading212` and the
+// snapshot recorder read too; re-exported for this function's pins.
+export { t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 
 /** Is this Yahoo ticker a US equity with a real overnight session? */
 export function hasOvernightSession(yahooTicker: string): boolean {
