@@ -1839,10 +1839,11 @@ export function rweRow(r) {
 }
 
 /**
- * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md`): RW-E with no weather
- * markets, with a pause after a jump, and with both, each from 2026-09-28. Each is a row of its own after RW-E's, read the
- * same way: the dashboard's `rwx` is a list in `rw`'s shape, one entry per variant, each with its `id` (x1–x3), its
- * `name` and the replay's `checks`. A row's id is `__rwx-` and the variant's. An empty or absent list adds no row.
+ * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md` and, for x4 and x5,
+ * `reviews/2026-10-02-polymarket-rw-rest-prereg.md`). Each is a row of its own after RW-E's, read the same way: the
+ * dashboard's `rwx` is a list in `rw`'s shape, one entry per variant on the page, each with its `id` (x1, x4 and x5 since
+ * 2026-10-02), its `name` and the replay's `checks`; the server names them and leaves the others off. A row's id is
+ * `__rwx-` and the variant's. An empty or absent list adds no row.
  * @param {any} list  the dashboard's `rwx`
  */
 export function rwxRows(list) {
