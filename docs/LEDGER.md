@@ -499,6 +499,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      reads it (about 500 MB at six weeks).
    - On 10-03, read `net._http_response`'s size: six hours of responses is about 10 MB. Past 50 MB the dead space is
      back, and it needs a job of its own.
+   - **Nothing alerted on the 10-02 stall: `healthcheck.yml` asks for every 10 minutes and GitHub ran it 7 times in the
+     48 hours to 17:00 UTC**, none between 13:11 and 17:00 (scheduled runs are best effort). A reliable alert needs a
+     clock outside GitHub's scheduler, such as a Cloudflare Worker cron or an uptime service; deploying either is
+     Davies' call, put to him on 10-02. Until then, after a database change watch Memory and Swap in the dashboard.
 
 ## Machine and platform setup
 
@@ -610,6 +614,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-02 17:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**`81fbde0a` deployed and running; the health check's real cadence found.** edge-functions run 37037424979 deployed `agents` at 16:58:26 UTC and check run 37037424936 passed in 1 min 47 s. PR5 live's turns at 16:59 and 17:00 ran with no error and no `ops_errors`, ten orders open, the governor at "all" and its count unchanged at 314 (every live row so far went to the venue, the four refusals included); no live row has been refused since 14:26. Mini-pool's and mid-pool's paths and paper layers: no `last_error`, updated at 17:00. While answering Davies' "做了这些修复后以后还会发生吗": the 10-02 stall raised no issue because `healthcheck.yml`'s `*/10` schedule ran only 7 times in 48 hours (what-remains item 9).
 
 ### [2026-10-02 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
