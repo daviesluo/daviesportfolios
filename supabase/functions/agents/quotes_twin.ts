@@ -1,6 +1,7 @@
-// The realistic twins of PR5's live executor: the TESTING rows "Stablecoin quotes" (PR5's rule) and "Stablecoin quotes
-// variant-1" (rule D's arm d, "variant-2" in its own pre-registration; Davies, 2026-10-02: "这个variant-2上线testing后改名为
-// variant-1"). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
+// The realistic twins of PR5's live executor: the TESTING rows "Stablecoin quotes" (PR5's rule), "Stablecoin quotes
+// variant-1" (PR5's rule at £50 a rung, since 2026-10-03) and "Stablecoin quotes variant-3" (rule D's arm d, "variant-2" in
+// its own pre-registration; "variant-1" on the page from 2026-10-02, Davies: "这个variant-2上线testing后改名为variant-1", until
+// 2026-10-03). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
 // sizes the same evening, "改成原版每档100磅，variant-2 每档50磅，一定要确保新架构真实"; on the conversions, "都按我们昨天新设立的maker
 // 费来换币". The design is frozen in docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md.
 //
@@ -16,11 +17,16 @@
 // ask has no coin until its conversion fills; one the executor cancels after 24 hours, or the venue refuses, the operator
 // sends again for what the asks still lack. After that the executor's own automatic top-ups keep the asks' coin.
 //
-// Each twin carries out the decisions of one paper engine, minute for minute:
+// Each twin is a row of `agent_quote_twin_specs` (0088, the twins' pre-registration's deviation 1: a variant that differs
+// in its parameters is a row and its tables, not code) and carries out the decisions of one paper engine, minute for minute:
 //   pr5  PR5's rule (`stepMinute`, quotes.ts), £1,200: twelve rungs of £100, one governed key, as the live account.
+//   p50  PR5's rule again, £600: twelve rungs of £50, "Stablecoin quotes variant-1" on the page (2026-10-03, the size
+//        study's proposal: what size does, measured forward beside pr5; docs/agents/reviews/2026-10-03-pr5-size-twin-prereg.md).
 //   d    rule D (`stepVariantMinute` with `RULED_ARMS.d`, quotes_ruled.ts's judged arm), £1,800: thirty-six rungs of £50,
 //        nine a side of each book, four governed keys (a book and a side each: the frozen design's four sub-accounts).
-//        On the page it is "Stablecoin quotes variant-1"; PR5V, which was, keeps running off the page.
+//        "Stablecoin quotes variant-3" on the page since 2026-10-03 (variant-1 before); PR5V keeps running off the page.
+// An id names a twin's tables and lease and never a variant number, so a page name changes in its row alone. pr5's and
+// d's specs are what they were (quotes_twin.test.ts pins them; their backfills rebuild to the same bytes).
 // It steps a REPLICA of its engine itself, from the inputs that engine decides on (PR5's stored minutes and prints), at
 // PR5's own timing: rule D's own call decides each minute a minute after PR5's (it waits for PR5's record), so following
 // its stored state would put every decision a minute late and the executor's stale-input guard would refuse every entry.
@@ -28,7 +34,7 @@
 // (`paperCheck`): for PR5 every event, for rule D its order, refusal and withdrawal events only (its pre-registration
 // allows no read of its results before 2026-10-28).
 //
-// One call a minute (`agents?action=quotestwins`, 0087), both twins in turn. A twin acts once a call, as the live executor
+// One call a minute (`agents?action=quotestwins`, 0087), every enabled twin in turn. A twin acts once a call, as the live executor
 // acts once a minute: its turn stands at the instant PR5's call last read the prints (`fetchedTo`, about :25 into the
 // minute), after every print up to that instant has been applied to the account in time order. A call that runs before
 // PR5's (no new instant) does nothing; a twin that missed turns does not act in them, and a gap of more than three
@@ -42,7 +48,7 @@ import {
   type BookState, type MinuteInputs, type Print, type QuoteBook, type Side,
 } from "./quotes.ts";
 import { newGovCounts, newVariantBook, printOrder, stepVariantMinute, variantKey, type GovCounts } from "./quotes_variant.ts";
-import { RULED_ARMS, RULED_START } from "./quotes_ruled.ts";
+import { RULED_ARMS } from "./quotes_ruled.ts";
 import { pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, type QuoteLiveInstance, type QuoteLiveReport } from "./quotes_live.ts";
 import { newSimState, SimRevx, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
@@ -54,8 +60,6 @@ const msOf = (v: unknown) => (typeof v === "number" ? v : Date.parse(String(v)))
 const enc = (ms: number) => encodeURIComponent(iso(ms));
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
 
-/** PR5's paper engine decided its first minute here (2026-09-23 15:09 UTC; `agent_quote_events`' first row). */
-export const PR5_START = Date.parse("2026-09-23T15:09:00Z");
 /** A catch-up turn stands this far into its minute: where PR5's call reads the prints (`QUOTES_START_MS`), as the live turn does. */
 export const TWIN_TURN_OFFSET_MS = 25e3;
 /** The dead-man's three minutes (monitor/deadman.ts): a twin whose last turn is older than this has its resting orders cancelled. */
@@ -82,11 +86,12 @@ export const TWIN_CALL_BUDGET_MS = 12e3;
 export const TWIN_PAPER_MAX_MINUTES = 120;
 /** A read of the replica's inputs covers at most this many minutes: their records, two a minute, stay inside one page. */
 export const TWIN_PAPER_CHUNK_MINUTES = 480;
-/** The lease of one call (both twins in turn). */
+/** The lease of one call (every twin in turn). */
 export const TWINS_LEASE = "quotes-twins";
 export const TWINS_LEASE_MS = 55e3;
 
-export type TwinId = "pr5" | "d";
+/** A twin's id: its spec row's, which names its tables and lease and never a variant number (a page name can change). */
+export type TwinId = string;
 export type TwinSpec = {
   id: TwinId;
   /** The page's name. */
@@ -99,6 +104,8 @@ export type TwinSpec = {
   capitalGbp: number;
   /** Its engine's first decided minute: the replica starts flat the minute before, as the engine did. */
   start: number;
+  /** Its committed record to a minute, which the call loads before its first turn (`loadTwinBackfill`); none: it starts. */
+  backfill?: TwinBackfill;
   /**
    * The validation's replay of the live account only (the twins leave these out): its first turn's minute (the replica
    * steps from `start` without turns until then), its starting balances, the live account's own conversions at their
@@ -107,30 +114,94 @@ export type TwinSpec = {
    */
   replay?: { firstTurn: number; balances: Record<string, number>; conversions: Array<{ at: number; book: QuoteBook; gbp: number }>; deadmanFrom: number };
 };
-const tablesOf = (id: TwinId) => ({
-  config: `agent_quote_twin_${id}_config`, orders: `agent_quote_twin_${id}_orders`, events: `agent_quote_twin_${id}_events`, state: `agent_quote_twin_${id}_state`,
-  paper: `agent_quote_twin_${id}_paper`,
-});
-export const TWINS: Record<TwinId, TwinSpec> = {
-  pr5: {
-    id: "pr5", name: "Stablecoin quotes", engine: "pr5", sim: "agent_quote_twin_pr5_sim", capitalGbp: 1200, start: PR5_START,
-    instance: { ...tablesOf("pr5"), migration: "0087", lease: "quotes-twin-pr5", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account" },
-  },
-  d: {
-    id: "d", name: "Stablecoin quotes variant-1", engine: "ruled-d", sim: "agent_quote_twin_d_sim", capitalGbp: 1800, start: RULED_START,
-    instance: {
-      ...tablesOf("d"), migration: "0087", lease: "quotes-twin-d", rungs: RULED_ARMS.d.rungs, exitReprice: RULED_ARMS.d.reprice,
-      // The four keys the frozen design governs, a book and a side each; a conversion buys coin for the asks, on the ask key.
-      govKey: (b, s) => variantKey(b, s ?? "ask"),
-    },
-  },
+/**
+ * A twin as a row of `agent_quote_twin_specs` (0088; Davies, 2026-10-03, "你说的这四点建议全做": a small variant is a row,
+ * not a hand-wired twin). Its tables are `<table_prefix>_*`, made by `create_quote_twin_tables` from 0087's template. Its
+ * rungs and exit re-price are its engine's own: the executor carries out the engine's rung decisions, so a twin with others
+ * would quote rungs no engine decides; a different rule is an engine of its own, or a rule extension (`rules`).
+ */
+export type TwinSpecRow = {
+  id: string; display_name: string; display_order: number; engine: "pr5" | "ruled-d"; capital_gbp: number | string;
+  gov: "account" | "variant-keys"; start: string; table_prefix: string; lease: string;
+  /** Rule extensions by key, each the code of `TWIN_RULES[key]`: none yet (the coming TAKE twin adds the first). */
+  rules: Record<string, unknown> | null;
+  backfill: TwinBackfill | null; prereg: string;
+  /** The migration that made its tables, which the executor names when they are missing. */
+  migration: string; enabled: boolean;
 };
-export const TWIN_IDS: TwinId[] = ["pr5", "d"];
+/** Each engine's own rungs and exit re-price (`QuoteLiveInstance`). */
+const ENGINES: Record<TwinSpecRow["engine"], { rungs: readonly number[]; exitReprice: number }> = {
+  pr5: { rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE },
+  "ruled-d": { rungs: RULED_ARMS.d.rungs, exitReprice: RULED_ARMS.d.reprice },
+};
+/** The governed keys: the live account's one; or rule D's frozen design's four, a book and a side each (a conversion on its book's ask key). */
+const GOV_KEYS: Record<TwinSpecRow["gov"], QuoteLiveInstance["govKey"]> = {
+  account: () => "account",
+  "variant-keys": (b, s) => variantKey(b, s ?? "ask"),
+};
+/** The rule extensions a spec row may name in `rules`, by key: none yet. A key with no code here is refused. */
+export const TWIN_RULES: Record<string, true> = {};
+
+/** A spec row as the call and the page use it; a row this code cannot carry out is refused with why. */
+export function specFromRow(r: TwinSpecRow): TwinSpec {
+  const eng = ENGINES[r.engine], govKey = GOV_KEYS[r.gov];
+  if (!eng) throw new Error(`twin ${r.id}: no engine ${r.engine}`);
+  if (!govKey) throw new Error(`twin ${r.id}: no governed keys ${r.gov}`);
+  const noCode = Object.keys(r.rules ?? {}).filter((k) => !TWIN_RULES[k]);
+  if (noCode.length) throw new Error(`twin ${r.id}: no code for its rule ${noCode.join(", ")}`);
+  const p = r.table_prefix;
+  return {
+    id: r.id, name: r.display_name, engine: r.engine, sim: `${p}_sim`, capitalGbp: Number(r.capital_gbp), start: Date.parse(r.start),
+    ...(r.backfill ? { backfill: r.backfill } : {}),
+    instance: {
+      config: `${p}_config`, orders: `${p}_orders`, events: `${p}_events`, state: `${p}_state`, paper: `${p}_paper`,
+      migration: r.migration, lease: r.lease, rungs: eng.rungs, exitReprice: eng.exitReprice, govKey,
+    },
+  };
+}
+
+/**
+ * The rows 0088 inserts into `agent_quote_twin_specs`, in the page's order (Davies, 2026-10-03: "你目前正在做的variant改名为
+ * variant-1排上面，这个新的是variant-2，原来的variant-1改名为variant-3"; variant-2 waits for its twin). At run time the call and
+ * the page read the table (`twinSpecs`); these are what the tests pin. A later variant is a row of its own migration, not a
+ * line here; src/twin_specs.test.js holds these equal to 0088's rows. A row's `start` is its engine's first decided minute:
+ * PR5's 2026-09-23 15:09 UTC (`agent_quote_events`' first row), rule D's 2026-09-28 00:00 (`RULED_START`).
+ */
+export const TWIN_SPEC_ROWS: TwinSpecRow[] = /* spec rows */ [
+  { "id": "pr5", "display_name": "Stablecoin quotes", "display_order": 10, "engine": "pr5", "capital_gbp": 1200, "gov": "account", "start": "2026-09-23T15:09:00Z", "table_prefix": "agent_quote_twin_pr5", "lease": "quotes-twin-pr5", "rules": null, "backfill": { "file": "docs/agents/backtests/twins/pr5.json.gz", "sha256": "f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98", "until": "2026-10-02T21:05:00.000Z" }, "prereg": "docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md", "migration": "0087", "enabled": true },
+  { "id": "p50", "display_name": "Stablecoin quotes variant-1", "display_order": 20, "engine": "pr5", "capital_gbp": 600, "gov": "account", "start": "2026-09-23T15:09:00Z", "table_prefix": "agent_quote_twin_p50", "lease": "quotes-twin-p50", "rules": null, "backfill": { "file": "docs/agents/backtests/twins/p50.json.gz", "sha256": "f94c9ebecb6a757498fa39f25a2e9907c4e0e4a00f008a16dda17f25335a7bc8", "until": "2026-10-02T21:05:00.000Z" }, "prereg": "docs/agents/reviews/2026-10-03-pr5-size-twin-prereg.md", "migration": "0088", "enabled": true },
+  { "id": "d", "display_name": "Stablecoin quotes variant-3", "display_order": 40, "engine": "ruled-d", "capital_gbp": 1800, "gov": "variant-keys", "start": "2026-09-28T00:00:00Z", "table_prefix": "agent_quote_twin_d", "lease": "quotes-twin-d", "rules": null, "backfill": { "file": "docs/agents/backtests/twins/d.json.gz", "sha256": "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392", "until": "2026-10-02T21:05:00.000Z" }, "prereg": "docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md", "migration": "0087", "enabled": true }
+] /* end spec rows */;
+/** Each of those rows as a spec, by id. */
+export const TWINS: Record<TwinId, TwinSpec> = Object.fromEntries(TWIN_SPEC_ROWS.map((r) => [r.id, specFromRow(r)]));
+/** Their ids in the page's order, which the call also runs them in. */
+export const TWIN_IDS: TwinId[] = TWIN_SPEC_ROWS.filter((r) => r.enabled).map((r) => r.id);
+/** The spec table is missing: the function deployed before 0088 applied. */
+const NO_TABLE = /PGRST205|42P01|Could not find the table|relation .* does not exist/i;
+
+/**
+ * The enabled twins in the page's order, from their rows; each row this code cannot carry out is left out, with why.
+ * Before 0088 has applied, the twins 0087 made, as they ran before it (p50's tables are 0088's too).
+ */
+export async function twinSpecs(db: Db): Promise<{ specs: TwinSpec[]; refused: Array<{ id: string; why: string }> }> {
+  let rows: TwinSpecRow[];
+  try {
+    rows = await db.select<TwinSpecRow>("agent_quote_twin_specs", "enabled=eq.true&select=*&order=display_order.asc");
+  } catch (e) {
+    if (!NO_TABLE.test(msg(e))) throw e;
+    rows = TWIN_SPEC_ROWS.filter((r) => r.enabled && r.migration === "0087");
+  }
+  const specs: TwinSpec[] = [], refused: Array<{ id: string; why: string }> = [];
+  for (const r of rows) {
+    try { specs.push(specFromRow(r)); } catch (e) { refused.push({ id: r.id, why: msg(e) }); }
+  }
+  return { specs, refused };
+}
 /** Every table a twin writes, and every table it reads: what `onlyTables` holds it to in the tests. */
 export const twinWrites = (s: TwinSpec) => [s.instance.config, s.instance.orders, s.instance.events, s.instance.state, s.instance.paper, s.sim];
 export const TWIN_READS = [
   "agent_quote_state", "agent_quote_minutes", "agent_quote_prints", "agent_quote_inputs", "agent_quote_events", "agent_quoted_state", "agent_quoted_events",
-  "edge_call_beats", "agent_risk",
+  "edge_call_beats", "agent_risk", "agent_quote_twin_specs",
 ];
 
 // ------------------------------------------------------------------ the replica of the paper engine
@@ -334,14 +405,11 @@ export async function applyPrintsTo(db: Db, sim: SimRevx, at: number, setClock: 
 /**
  * A twin's record from its engine's first minute up to `until`, computed by THIS code in memory on PR5's stored inputs
  * (docs/agents/scripts/twins/backfill.ts) and committed beside them (docs/agents/backtests/twins/). A twin with no record
- * yet loads its backfill on its first call, checked against the sha256 pinned here, and then catches up from `until`,
- * turn by turn, as the catch-up has run from the start; the record is the one the code would have written in production.
+ * yet loads its backfill on its first call, checked against the sha256 its spec row pins (`backfill`), and then catches
+ * up from `until`, turn by turn, as the catch-up has run from the start; the record is the one the code would have written
+ * in production.
  */
 export type TwinBackfill = { file: string; sha256: string; until: string };
-export const TWIN_BACKFILLS: Partial<Record<TwinId, TwinBackfill>> = {
-  pr5: { file: "docs/agents/backtests/twins/pr5.json.gz", sha256: "f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98", until: "2026-10-02T21:05:00.000Z" },
-  d: { file: "docs/agents/backtests/twins/d.json.gz", sha256: "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392", until: "2026-10-02T21:05:00.000Z" },
-};
 /** Where the committed backfills are read from: the repository's own files on `main`, which is public. */
 export const TWIN_BACKFILL_BASE = "https://raw.githubusercontent.com/daviesluo/daviesportfolios/main/";
 /** The rows a backfill carries: each of the twin's tables as the code left them, the orders without their ids. */
@@ -433,8 +501,9 @@ export type TwinDeps = {
   catchUpUntil?: number;
   /** The call's budget for catch-up turns (TWIN_CALL_BUDGET_MS); the harness passes Infinity. */
   budgetMs?: number;
-  /** How a twin with no record yet gets its committed backfill (`TWIN_BACKFILLS`); without it, the twin starts itself. */
+  /** How a twin with no record yet gets its committed backfill (its spec's `backfill`); without it, the twin starts itself. */
   fetch?: typeof fetch;
+  /** The tests' backfills by twin id, in place of each spec's own. */
   backfills?: Partial<Record<TwinId, TwinBackfill>>;
   /** Its orders' client ids: random, as the live executor's; the backfill's builder numbers them, so its file is the same each run. */
   uuid?: () => string;
@@ -679,32 +748,56 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
 }
 
 /**
- * One call: both twins in turn, under one lease. It never throws; a twin's failure is its report's and its row's.
+ * One call: every enabled twin in turn, in the page's order, under one lease: the spec table's rows (`twinSpecs`), unless
+ * `specs` names the twins (the tests, the backfill builder). A twin's failure is its report's and its row's, and does not
+ * stop the twins after it.
  */
-export async function runQuotesTwins(d: TwinDeps, specs: TwinSpec[] = TWIN_IDS.map((id) => TWINS[id])): Promise<{ skipped?: string; twins: TwinReport[] }> {
+export async function runQuotesTwins(d: TwinDeps, specs?: TwinSpec[]): Promise<{ skipped?: string; twins: TwinReport[] }> {
   const clock = d.clock ?? Date.now, began = clock();
   const held = await d.db.claim<{ name: string }>("agent_locks", `name=eq.${TWINS_LEASE}&lease_until=lt.${enc(d.now)}`, { lease_until: iso(d.now + TWINS_LEASE_MS), holder: d.holder });
   if (!held.length) return { skipped: `another run holds the ${TWINS_LEASE} lease`, twins: [] };
   const twins: TwinReport[] = [];
+  let loaded = false;
   try {
-    // A twin with no record yet loads its committed backfill first, and that is all the call does: one file a call
-    // (each is megabytes), and no turn of any twin beside it, so the call ends inside its minute.
+    if (!specs) {
+      const read = await twinSpecs(d.db);
+      specs = read.specs;
+      for (const r of read.refused) twins.push({ twin: r.id, turns: 0, lastTurn: null, errors: [r.why], skipped: "its spec row is not one this code carries out" });
+    }
+    // A twin with no record yet loads its committed backfill first: one file a call (each is megabytes), and no turn of
+    // that twin in the call that loads it, so the call ends inside its minute. The twins whose records are whole still
+    // take their turns in that call (deviation 1, 2026-10-03: a twin added later must not cost the running ones a turn).
+    // A twin whose own record cannot be read (its migration not yet applied) neither loads nor turns this call, and says
+    // why; the other twins run.
+    const apart = new Set<TwinId>();
     if (d.fetch) {
       for (const spec of specs) {
-        const bf = (d.backfills ?? TWIN_BACKFILLS)[spec.id];
+        const bf = d.backfills ? d.backfills[spec.id] : spec.backfill;
         if (!bf) continue;
-        const row = (await d.db.select<{ state: TwinDriverState | Record<string, never> }>(spec.sim, "id=eq.1&select=state"))[0];
+        let row: { state: TwinDriverState | Record<string, never> } | undefined;
+        try {
+          row = (await d.db.select<{ state: TwinDriverState | Record<string, never> }>(spec.sim, "id=eq.1&select=state"))[0];
+        } catch (e) {
+          apart.add(spec.id);
+          twins.push({ twin: spec.id, turns: 0, lastTurn: null, errors: [`its record cannot be read: ${msg(e)}`], skipped: "its record cannot be read" });
+          continue;
+        }
         if (row?.state && "venue" in row.state) continue;
+        apart.add(spec.id);
+        if (loaded) { twins.push({ twin: spec.id, turns: 0, lastTurn: null, errors: [], skipped: "its backfill loads on a later call: one file a call" }); continue; }
+        loaded = true;
         const report: TwinReport = { twin: spec.id, turns: 0, lastTurn: null, errors: [] };
         const why = await loadTwinBackfill(d.db, spec, bf, d.fetch, d.now).catch((e) => `backfill ${bf.file}: ${msg(e)}`);
         if (why) report.errors.push(why);
         twins.push({ ...report, skipped: why ? "its backfill is not loaded yet" : `its backfill to ${bf.until} is loaded; it catches up from there` });
-        return { skipped: "a backfill was loaded this call", twins };
       }
     }
-    for (const spec of specs) twins.push(await runOneTwin(d, spec, began));
+    for (const spec of specs) {
+      if (apart.has(spec.id)) continue;
+      twins.push(await runOneTwin(d, spec, began).catch((e): TwinReport => ({ twin: spec.id, turns: 0, lastTurn: null, errors: [msg(e)] })));
+    }
   } finally {
     try { await d.db.update("agent_locks", `name=eq.${TWINS_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
   }
-  return { twins };
+  return loaded ? { skipped: "a backfill was loaded this call", twins } : { twins };
 }

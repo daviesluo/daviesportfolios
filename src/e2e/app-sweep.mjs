@@ -548,14 +548,76 @@ const AGENTS_RWC_RUNNING = (dayStartMs) => {
  * `supabase/functions/agents/index.ts`.
  */
 /**
- * The realistic twins (`quotes_twin.ts`, 0087; Davies, 2026-10-02): the dashboard's own answer (`readQuotesTwin`) for the
- * live fixture's book run as each twin's tables (`quotes_twin_fixture.json`, which the agents function's test proves is
- * that function's answer): "Stablecoin quotes" at its £1,200, every figure the live fixture's (below, at
- * QUOTES_LIVE_FIXTURE); "Stablecoin quotes variant-1" at its £1,800 ($2,376 at 1.32), the same fills on three of its
- * nine rungs a side, so the same money and its own capital. Their starts are moved before this sweep's clock: tested
- * 1d 7h and 20h.
+ * The realistic twins (`quotes_twin.ts`, 0087; Davies, 2026-10-02; rows of `agent_quote_twin_specs` since 0088): the
+ * dashboard's own answer (`readQuotesTwin`) for the live fixture's book run as each twin's tables
+ * (`quotes_twin_fixture.json`, made from the spec rows by docs/agents/backtests/twins/scripts/fixture.ts, which the agents
+ * function's test proves is that function's answer), in the page's order: "Stablecoin quotes" at its £1,200, every figure
+ * the live fixture's (below, at QUOTES_LIVE_FIXTURE); "Stablecoin quotes variant-1" (p50, 2026-10-03), PR5's rule at
+ * £600; "Stablecoin quotes variant-3" (rule D, variant-1 until 2026-10-03) at £1,800, the same fills on three of its nine
+ * rungs a side. Each has the same money on its own capital. Their starts are moved before this sweep's clock.
  */
 const QUOTES_TWIN_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_twin_fixture.json', import.meta.url), 'utf8'));
+/**
+ * What the page must show of the twins, worked out here from the fixture's own figures with the page's rules written out
+ * apart from its code (money in whole units with grouping from 1,000, else to two places; percents signed to two places;
+ * ".00" dropped and a zero unsigned): every check of a twin's row or page, and every total a twin enters, holds for
+ * whichever twins the spec rows give, a row each, in their order. Nothing below is written for one variant.
+ */
+const TWINS = QUOTES_TWIN_FIXTURE.twins;
+const TW = (() => {
+  const drop00 = (s) => s.replace(/(\d)\.00(?!\d)/g, '$1').replace(/[+-]([$£])?0(?![\d.,])/g, (_, sym) => `${sym || ''}0`);
+  const money = (n, sym = '$', signed = false) => {
+    const a = Math.abs(n);
+    return drop00(`${n < 0 ? '-' : signed && n > 0 ? '+' : ''}${sym}${a >= 1e3 ? a.toLocaleString('en-US', { maximumFractionDigits: 0 }) : a.toFixed(2)}`);
+  };
+  const pct = (x, signed = true) => drop00(`${signed && x > 0 ? '+' : ''}${x.toFixed(2)}%`);
+  const gl = (n, base, sym = '$') => `${money(n, sym, true)} (${pct((n / base) * 100)})`;
+  const sum = (k) => TWINS.reduce((a, t) => a + Number(t[k]), 0);
+  const ms = Date.parse(CLOCK.toISOString());
+  const tested = (t) => { const h = Math.floor((ms - Date.parse(t.twin.startedAt)) / 3600e3); return `tested ${h >= 24 ? `${Math.floor(h / 24)}d ` : ''}${h % 24}h`; };
+  const variant = (name) => /^(.*) (variant-\d+)$/.exec(name);
+  return {
+    money, pct, gl, sum, tested, n: TWINS.length, names: TWINS.map((t) => t.twin.name),
+    /** Each twin's row as the page writes it, in pounds. */
+    rows: TWINS.map((t) => ({
+      name: t.twin.name, head: variant(t.twin.name)?.[1] ?? t.twin.name, qual: variant(t.twin.name)?.[2] ?? '',
+      open: `${t.heldRungs} open · ${money(t.capitalGbp, '£')} cap`, deployed: money(t.valueGbp, '£'),
+      today: gl(t.todayGbp, t.capitalGbp, '£'), unrealised: gl(t.unrealisedGbp, t.costGbp, '£'), realised: gl(t.realisedGbp, t.capitalGbp, '£'),
+      tested: tested(t),
+    })),
+    /** Each twin's page: its title, scoreboard and line, and its rungs a side. */
+    pages: TWINS.map((t) => ({
+      title: t.twin.name, tested: tested(t), rungs: t.twin.rungsASide,
+      scoreboard: `FUNDED=${money(t.capitalGbp, '£')} | DEPLOYED=${money(t.valueGbp, '£')}(${pct((t.valueGbp / t.capitalGbp) * 100, false)}) | TODAY [(loss stop ${money(t.lossStopGbp, '£')})]=`
+        + `${money(t.todayGbp, '£', true)}(${pct((t.todayGbp / t.capitalGbp) * 100)}) | UNREALIZED G/L=${money(t.unrealisedGbp, '£', true)}(${pct((t.unrealisedGbp / t.costGbp) * 100)}) | `
+        + `REALIZED G/L [(incl. fees ${money(t.feesGbp, '£')})]=${money(t.realisedGbp, '£', true)}(${pct((t.realisedGbp / t.capitalGbp) * 100)})`,
+      line: `${t.twin.rungsASide} rungs a side at ${money(t.twin.rungGbp, '£')} · the live code on a simulated Revolut X account: an order fills only by trades through its price`,
+    })),
+  };
+})();
+/**
+ * TESTING's totals in dollars, as its scoreboard adds them: the trend strategy's (funded 100 + 40 + 40 on Revolut X and
+ * 180 on Binance, deployed 21.50, today +0.42, unrealised +1.50 on a cost of 20, realised +12.34, fees 0.08), RW's and
+ * RW-E's and its three variants' on the page (funded $1,000 each; deployed 73.20 + 4 × 44.80; today 12.50 + 4 × 7.50;
+ * unrealised -1 - 4 × 1.20 on 14.40 + 4 × 5.60; realised 42 + 4 × 23.60), and every twin's (its capital, every pound at
+ * work, today, unrealised on its coins' cost, realised and fees, at 1.32; Davies, 2026-10-01). Eleven rows and the twins.
+ */
+const TESTING = {
+  rows: 11 + TW.n,
+  funded: 360 + 5 * 1000 + TW.sum('capitalUsd'),
+  deployed: 21.5 + 73.2 + 4 * 44.8 + TW.sum('valueUsd'),
+  today: 0.42 + 12.5 + 4 * 7.5 + TW.sum('todayUsd'),
+  unrealised: 1.5 - 1 - 4 * 1.2 + TW.sum('unrealisedUsd'),
+  cost: 20 + 14.4 + 4 * 5.6 + TW.sum('costUsd'),
+  realised: 12.34 + 42 + 4 * 23.6 + TW.sum('realisedUsd'),
+  fees: 0.08 + TW.sum('feesUsd'),
+  /** The Revolut X card: the trend strategies' three rows and the twins. */
+  revx: { rows: 3 + TW.n, funded: 180 + TW.sum('capitalUsd'), deployed: 21.5 + TW.sum('valueUsd'), realised: 12.34 + TW.sum('realisedUsd') },
+};
+TESTING.scoreboard = `FUNDED=${TW.money(TESTING.funded)} | DEPLOYED=${TW.money(TESTING.deployed)}(${TW.pct((TESTING.deployed / TESTING.funded) * 100, false)}) | `
+  + `TODAY=${TW.money(TESTING.today, '$', true)}(${TW.pct((TESTING.today / TESTING.funded) * 100)}) | UNREALIZED G/L=${TW.money(TESTING.unrealised, '$', true)}`
+  + `(${TW.pct((TESTING.unrealised / TESTING.cost) * 100)}) | REALIZED G/L [(incl. fees ${TW.money(TESTING.fees)})]=${TW.money(TESTING.realised, '$', true)}`
+  + `(${TW.pct((TESTING.realised / TESTING.funded) * 100)})`;
 const AGENTS_DASHBOARD = (() => {
   const at = new Date(CLOCK).toISOString();
   const dayStartMs = Math.floor(NOW_MS / 86400_000) * 86400_000;
@@ -1859,7 +1921,7 @@ async function run() {
       const bad = reads.find((r) => !r.drawn || r.loading);
       const asks = heldAnswers.filter((a) => a.includes('action=dashboard')).length;
       if (!hidden) {
-        if (first && !bad && first.realised === '+$148.65' && asks === 1) {
+        if (first && !bad && first.realised === TW.money(TESTING.realised, '$', true) && asks === 1) {
           ok(S('open'), `opened as soon as its code arrived: drawn from the first read (realised ${first.realised}), never "Loading…" through the held answer, one dashboard request`);
         } else fail(S('open'), `first read ${JSON.stringify(first)}; first undrawn/loading read ${JSON.stringify(bad)}; dashboard requests ${asks}`);
       } else {
@@ -2681,20 +2743,21 @@ async function run() {
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
       // The strategies' 12.34, RW's 42, RW-E's 23.60 and the three variants on the page each realising RW-E's 23.60 (Davies,
-      // 2026-09-27; since 2026-10-02 x1, x4 and x5), and the two realistic twins (2026-10-02) each the live fixture's
-      // -£0.0345066 at 1.32, -$0.0455487: 12.34 + 42 + 4 × 23.60 - 2 × 0.0455487 = 148.6489. RW-C is not a row before its warm-up.
-      if (money(head) === 148.65 && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the seven tests (${(head || '').trim()})`);
-      else fail(S('agents'), `headline read "${head}", wanted +$148.65`);
+      // 2026-09-27; since 2026-10-02 x1, x4 and x5), and each realistic twin's (2026-10-02) at 1.32 (TESTING.realised; the
+      // live fixture's -£0.0345066 each, -$0.0455487). RW-C is not a row before its warm-up.
+      const wantHead = TW.money(TESTING.realised, '$', true);
+      if (money(head) === money(wantHead) && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the ${5 + TW.n} tests (${(head || '').trim()})`);
+      else fail(S('agents'), `headline read "${head}", wanted ${wantHead}`);
       const rows = await page.locator('.ag-row').count();
       // Three since `0046` deleted the Kraken twin (§4.22): `0043` retired the two rotations and the
       // Kraken momentum twin, `0044` deleted them, and the twin made no decision of its own. The rows
       // those migrations removed are off the page because none of them still holds anything here.
-      // Plus the two realistic twins of the live executor (Davies, 2026-10-02: in place of the quote test, its variant and
-      // rule D), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three of its variants
-      // (variant-2 since 2026-09-27; variant-3 and -4, x1 with its quotes moved, since 2026-10-02, Davies). RW-C (0069) is
-      // not a row before its warm-up begins, 2026-10-08 (Davies, 2026-09-28).
-      if (rows === 13) ok(S('agents'), 'thirteen rows — the three 0046 leaves, their Binance twins (0049), the two realistic twins, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent');
-      else fail(S('agents'), `expected 13 rows (six strategies, two twins, RW, RW-E and three variants), got ${rows}`);
+      // Plus the realistic twins of the live executor (Davies, 2026-10-02: in place of the quote test, its variant and
+      // rule D; one a spec row since 0088), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three
+      // of its variants (variant-2 since 2026-09-27; variant-3 and -4, x1 with its quotes moved, since 2026-10-02, Davies).
+      // RW-C (0069) is not a row before its warm-up begins, 2026-10-08 (Davies, 2026-09-28).
+      if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent`);
+      else fail(S('agents'), `expected ${TESTING.rows} rows (six strategies, ${TW.n} twins, RW, RW-E and three variants), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -2728,11 +2791,11 @@ async function run() {
       if (pctOfLines === 0) ok(S('agents'), 'no strategy card or row carries a "% of …" line');
       else fail(S('agents'), `${pctOfLines} strategy rows still say "% of …"`);
       // The stablecoin twins' rows are in pounds, their books' own (Davies, 2026-10-01): their three cells, and only those.
-      // Each is the live fixture's book: today £0.227106 (0.02 % of £1,200, 0.01 % of £1,800), unrealised -£0.1330 (-0.02 %
-      // of the £599.27 its coins cost), realised -£0.0345 (-0.003 % of £1,200, -0.002 % of £1,800: 0 % to two places).
+      // Each is the live fixture's book, in the page's order: today £0.227106 and realised -£0.0345 on its own capital
+      // (+0.02 % and 0 % of £1,200), unrealised -£0.1330 on the £599.27 its coins cost (-0.02 %).
       const poundCells = glCells.filter((g) => /£/.test(g)).map((g) => g.trim());
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?[$£][\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))
-        && poundCells.join(' | ') === '+£0.23 (+0.02%) | -£0.13 (-0.02%) | -£0.03 (0%) | +£0.23 (+0.01%) | -£0.13 (-0.02%) | -£0.03 (0%)') {
+        && poundCells.join(' | ') === TW.rows.map((r) => [r.today, r.unrealised, r.realised].join(' | ')).join(' | ')) {
         ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}"), the stablecoin quotes' in pounds (${poundCells.join(', ')})`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
       // NEXT reads whole on every row. The quote test's "every minute" needs 93 px where the table gives the column
@@ -2755,10 +2818,10 @@ async function run() {
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
       // A row in pounds (a stablecoin twin's) counts at its dollars, the $0.29978 the scoreboard adds (£0.227106 at 1.32):
-      // its £0.23 is rounded. 0.42 + 2 × 0.29978 + 12.50 + 4 × 7.50 = 43.52.
+      // its £0.23 is rounded. 0.42 + 12.50 + 4 × 7.50 and each twin's 0.29978 (TESTING.today).
       const poundToday = rowToday.filter((t) => /£/.test(t));
       const rowTodaySum = Math.round((rowToday.filter((t) => !/£/.test(t)).reduce((a, t) => a + money(String(t).split('(')[0]), 0)
-        + (poundToday.join(' | ') === '+£0.23 (+0.02%) | +£0.23 (+0.01%)' ? 2 * 0.227106 * 1.32 : NaN)) * 100);
+        + (poundToday.join(' | ') === TW.rows.map((r) => r.today).join(' | ') ? TW.sum('todayUsd') : NaN)) * 100);
       if (rowTodaySum === Math.round(money(sbToday) * 100) && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
         ok(S('agents'), `today on the scoreboard (${(sbToday || '').trim()}) is the rows' today added up, and the row with a book still reads +$0.42`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
@@ -2818,8 +2881,8 @@ async function run() {
       const sbCells = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell').evaluateAll((els) => els.map((c) =>
         [c.querySelector('.ag-sb-name')?.textContent, ...[...c.querySelectorAll('.ag-sb-aside')].map((a) => a.textContent)].map((t) => (t || '').trim()).join(' / ')));
       const sbFit = await boardFits('.ag-modepanel > .ag-scoreboard');
-      // The fees: the strategy's $0.08 and each twin's £0.1797 at 1.32 ($0.2372), $0.55.
-      if (sbCells.join(' | ') === 'FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees $0.55)' && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller && sbFit.sameLine) {
+      // The fees: the strategy's $0.08 and each twin's £0.1797 at 1.32 ($0.2372; TESTING.fees).
+      if (sbCells.join(' | ') === `FUNDED | DEPLOYED | TODAY | UNREALIZED G/L | REALIZED G/L / (incl. fees ${TW.money(TESTING.fees)})` && sbFit.overflow <= 1 && sbFit.outside.length === 0 && sbFit.labelH > 0 && sbFit.titlesMatch && sbFit.feesSmaller && sbFit.sameLine) {
         ok(S('agents'), 'five cells, FUNDED first, no total; REALIZED\'s title matches the others and the fees sit beside it on one line, smaller, in parentheses, inside the frame');
       } else fail(S('agents'), `scoreboard cells: ${sbCells.join(' | ')}; fit ${JSON.stringify(sbFit)}`);
       const meters = await page.locator('.ag-sb-meter').count();
@@ -2848,25 +2911,30 @@ async function run() {
       if (fundedLines.length >= 2 && fundedLines.every((x) => x.lines === 1 && x.text === 'funded (Paper)' && !x.outside)) ok(S('agents'), `funded (Paper) is one line on every venue card (${fundedLines.length})`);
       else fail(S('agents'), `funded labels: ${JSON.stringify(fundedLines)}`);
       // The realistic twins of the live executor are the stablecoin rows of TESTING STRATEGIES (Davies, 2026-10-02), after
-      // the strategies, in a strategy's cells and in pounds: "Stablecoin quotes" (PR5's rule) at £1,200 and "Stablecoin
-      // quotes variant-1" (rule D) at £1,800, each the live fixture's book (QUOTES_TWIN_FIXTURE): 2 open (B's short and
-      // E's long), deployed £999.14 (the coins at the index and the pounds in four resting buys), today +£0.23, unrealised
-      // -£0.13, realised -£0.03. The paper test, PR5V and rule D, which the payload still carries, are no rows.
-      const twinRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
-      const twinDRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes variant-1') });
-      const twinText = (await twinRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const twinDText = (await twinDRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      // the strategies, a row each in their spec rows' order (TW.rows): "Stablecoin quotes" (PR5's rule) at £1,200,
+      // "Stablecoin quotes variant-1" (PR5's rule, p50, since 2026-10-03) at £600 and "Stablecoin quotes variant-3" (rule D;
+      // variant-1 until 2026-10-03) at £1,800, in a strategy's cells and in pounds, each the live fixture's book
+      // (QUOTES_TWIN_FIXTURE): 2 open (B's short and E's long), deployed £999.14 (the coins at the index and the pounds in
+      // four resting buys), today +£0.23, unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
+      // name on two lines. The paper test, PR5V and rule D, which the payload still carries, are no rows.
+      const twinRowOf = (/** @type {string} */ name) => page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
+      const twinRow = twinRowOf('Stablecoin quotes');
       const testingNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
       const twinAt = testingNames.indexOf('Stablecoin quotes');
-      const dHead = ((await twinDRow.first().locator('.ag-name-head').textContent().catch(() => '')) || '').trim();
-      const dQual = ((await twinDRow.first().locator('.ag-name-qual').textContent().catch(() => '')) || '').trim();
-      if (await twinRow.count() === 1 && await twinDRow.count() === 1 && twinAt === 6 && testingNames[7] === 'Stablecoin quotes variant-1' && testingNames.filter((n) => /^Stablecoin quotes/.test(n)).length === 2
-        && /Revolut X/.test(twinText) && /2 open · £1,200 cap/.test(twinText) && / £999\.14 /.test(twinText) && /\+£0\.23 \(\+0\.02%\)/.test(twinText) && /-£0\.13 \(-0\.02%\)/.test(twinText) && /-£0\.03 \(0%\)/.test(twinText) && /every minute/.test(twinText)
-        && /Revolut X/.test(twinDText) && /2 open · £1,800 cap/.test(twinDText) && / £999\.14 /.test(twinDText) && /\+£0\.23 \(\+0\.01%\)/.test(twinDText) && /-£0\.13 \(-0\.02%\)/.test(twinDText) && /-£0\.03 \(0%\)/.test(twinDText)
-        && dHead === 'Stablecoin quotes' && dQual === 'variant-1' && !/\$/.test(twinText + twinDText) && oldCard === 0) {
-        ok(S('agents'), 'the two twins are the testing rows after the strategies, in pounds: "Stablecoin quotes" at £1,200 and "Stablecoin quotes variant-1" (on two lines) at £1,800, each 2 open, deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03; no paper test row, no card below');
-      } else fail(S('agents'), `twin rows "${twinText}" / "${twinDText}" at ${twinAt} of ${testingNames.join(' | ')}, variant name "${dHead}" + "${dQual}", old card sections ${oldCard}`);
+      const nameParts = (/** @type {import('playwright').Locator} */ row) => Promise.all(['.ag-name-head', '.ag-name-qual'].map(async (sel) => ((await row.first().locator(sel).textContent().catch(() => '')) || '').trim()));
+      const twinBad = [];
+      for (const [i, r] of TW.rows.entries()) {
+        const row = twinRowOf(r.name), n = await row.count();
+        const text = ` ${(await row.first().innerText().catch(() => '')).replace(/\s+/g, ' ')} `;
+        const [head, qual] = r.qual ? await nameParts(row) : ['', ''];
+        const rowOk = n === 1 && testingNames[twinAt + i] === r.name && /Revolut X/.test(text) && text.includes(r.open) && text.includes(` ${r.deployed} `)
+          && text.includes(r.today) && text.includes(r.unrealised) && text.includes(r.realised) && /every minute/.test(text) && !/\$/.test(text) && (!r.qual || (head === r.head && qual === r.qual));
+        if (!rowOk) twinBad.push(`${r.name}: ${n} rows, "${text.trim()}", name "${head}" + "${qual}"`);
+      }
+      if (twinAt === 6 && twinBad.length === 0 && testingNames.filter((n) => /^Stablecoin quotes/.test(n)).length === TW.n && oldCard === 0) {
+        ok(S('agents'), `the ${TW.n} twins are the testing rows after the strategies, in pounds, in their rows' order (${TW.rows.map((r) => `"${r.name}" ${r.open}`).join(', ')}), each deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03 on its own capital, a variant's name on two lines; no paper test row, no card below`);
+      } else fail(S('agents'), `twin rows at ${twinAt} of ${testingNames.join(' | ')}: ${twinBad.join(' / ')}; old card sections ${oldCard}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
       else fail(S('agents'), `${quotesInVenues} quotes/venue cards cross-classed`);
@@ -2896,23 +2964,47 @@ async function run() {
       else fail(S('agents'), `twin page actions ${qHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      // Rule D's twin: its own title on two lines, nine rungs a side, £1,800 and its loss stop of 1 % of it, £18.
-      await twinDRow.first().click();
+      // Rule D's twin ("variant-3" since 2026-10-03; its name is its spec row's): its own title on two lines, nine rungs a
+      // side, £1,800 and its loss stop of 1 % of it, £18.
+      const dName = TWINS.find((t) => t.twin.engine === 'ruled-d')?.twin.name ?? 'rule D';
+      await twinRowOf(dName).first().click();
       await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
       const tdp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       await shot(page, 'agents-quotes-twin-d');
       const RULED_LADDER = ['0.03 % | idle | idle', '0.05 % | idle | idle', '0.075 % | idle | idle', '0.1 % | £0.7569 | £0.7585', '0.125 % | idle | idle', '0.15 % | idle | idle',
         '0.2 % | £0.7561 | held £0.7591 +£0.2112', '0.25 % | idle | idle', '0.3 % | £0.7553 | £0.7600'];
-      if (tdp && tdp.title === 'Stablecoin quotes variant-1' && tdp.head === 'PAPER Revolut X' && tdp.tested === 'tested 20h'
+      if (tdp && tdp.title === dName && tdp.head === 'PAPER Revolut X' && tdp.tested === 'tested 20h'
         && tdp.scoreboard === 'FUNDED=£1,800 | DEPLOYED=£999.14(55.51%) | TODAY [(loss stop -£18)]=+£0.23(+0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
         && tdp.twinLines.join(' / ') === '9 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price'
         && tdp.cards.length === 2 && tdp.cards.every((c) => c.ladder.length === 9) && tdp.cards[0].ladder.join(' / ') === RULED_LADDER.join(' / ') && tdp.overflow <= 1) {
-        ok(S('agents'), "rule D's twin's page: \"Stablecoin quotes variant-1\", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs");
+        ok(S('agents'), `rule D's twin's page: "${dName}", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs`);
       } else fail(S('agents'), `rule D twin page ${JSON.stringify(tdp && { ...tdp, cards: tdp.cards.map((c) => c.ladder.join(' / ')) })}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-quotes-twin-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing a twin page returns to the list');
+      // Every twin's page, from its row: the same page (the live executor's, PAPER, running), its own title, how long it
+      // has been tested, its scoreboard on its own capital with its loss stop of 1 % of it, its line (its rungs a side and
+      // their size), two books of its rungs, and the sections of PR5's twin's page; each closes back to the list. The
+      // figures are the fixture's, written as the page writes them (TW.pages): nothing here is per variant.
+      const twinPageBad = [];
+      for (const [i, p] of TW.pages.entries()) {
+        await twinRowOf(p.title).first().click();
+        await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
+        await page.waitForTimeout(300);
+        const x = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
+        await shot(page, `agents-quotes-twin-${TWINS[i].twin.id}`);
+        const pageOk = !!x && x.title === p.title && x.modals === 2 && x.head === 'PAPER Revolut X' && x.status === 'running' && x.tested === p.tested && x.livePages === 0
+          && x.scoreboard === p.scoreboard && x.twinLines.join(' / ') === p.line && x.warns.length === 0
+          && x.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && x.cards.length === 2 && x.cards.every((c) => c.ladder.length === p.rungs) && x.overflow <= 1;
+        if (!pageOk) twinPageBad.push(`${p.title}: ${JSON.stringify(x && { ...x, cards: x.cards.map((c) => c.ladder.join(' / ')) })}`);
+        await page.locator('.ag-detail-close').click().catch(() => {});
+        await page.waitForTimeout(300);
+        if (await page.locator('.ag-quotes-twin-detail').count() !== 0 || await page.locator('.ag-strategies .ag-row').count() !== TESTING.rows) twinPageBad.push(`${p.title}: did not close back to the list`);
+      }
+      if (twinPageBad.length === 0) {
+        ok(S('agents'), `each twin's page from its row (${TW.pages.map((p) => `"${p.title}" ${p.tested}, ${p.scoreboard.split(' | ')[0]}, ${p.rungs} rungs a side`).join('; ')}): the live executor's, PAPER, running, its scoreboard on its own capital, its line, its books; each closes back to the list`);
+      } else fail(S('agents'), `twin pages: ${twinPageBad.join(' / ')}`);
+      if (await page.locator('.ag-quotes-twin-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing a twin page returns to the list');
       else fail(S('agents'), 'the twin page did not close back to the list');
       // RW's paper test on Polymarket (Davies, 2026-09-24): a row of TESTING STRATEGIES, in a strategy's cells, with its
       // own badge, before RW-E and three of its variants; the fixture's figures are rwSummary's own (AGENTS_RW).
@@ -3012,7 +3104,7 @@ async function run() {
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing the RW page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW page returns to the list');
       else fail(S('agents'), 'the RW page did not close back to the list');
       // RW-E's page is RW's page read from the replay's arm: its title, the same scoreboard and sections, today and its two
       // closed days (the replay starts with the fourteen days: no warm-up row), the three markets it has, and its fills.
@@ -3036,7 +3128,7 @@ async function run() {
       } else fail(S('agents'), `RW-E page: title "${eTitle}", labels ${eLabels.join(',')}, split ${eSplit.join('|')}, sections ${eSections.join(',')}, days ${eDays.join(' | ')} (first "${eFirstDay}"), markets ${eMarkets}, fills ${eFills}, warnings ${eWarn}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), 'closing the RW-E page returns to the list');
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
       // RW-E's variants (Davies, 2026-09-27), the last rows (x1, x4 and x5 since 2026-10-02): RW's cells read from each
       // variant's arm, here RW-E's figures to the cent (AGENTS_RWX), each name "Reward quotes variant-N" on one line.
@@ -3070,7 +3162,7 @@ async function run() {
       } else fail(S('agents'), `variant page: title "${xTitle}", split ${xSplit.join('|')}, sections ${xSections.join(',')}, markets ${xMarkets}, fills ${xFills}, warnings ${xWarn}, overflow ${xOverflow}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 13) ok(S('agents'), "closing a variant's page returns to the list");
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), "closing a variant's page returns to the list");
       else fail(S('agents'), "a variant's page did not close back to the list");
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
       const pageTitle = await page.locator('.modal .modal-title').first().textContent().catch(() => '');
@@ -3086,12 +3178,14 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Five Revolut X: the three strategies and the two realistic twins; then RW, RW-E and its three variants on the page on Polymarket, last.
-      if (revxRows === 5 && binanceRows === 3 && badges.slice(-7, -5).join('|') === 'Revolut X|Revolut X' && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), 'venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the two realistic twins on Revolut X, and RW, RW-E and its three variants on Polymarket');
+      // Revolut X: the three strategies and the realistic twins; then RW, RW-E and its three variants on the page on Polymarket, last.
+      if (revxRows === TESTING.revx.rows && binanceRows === 3 && badges.slice(-5 - TW.n, -5).join('|') === Array(TW.n).fill('Revolut X').join('|') && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), `venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the ${TW.n} realistic twins on Revolut X, and RW, RW-E and its three variants on Polymarket`);
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
-      // Deployed value, by card: Revolut X $2,659.23 (its strategy, $21.50, plus each twin's every pound at work, £999.14
-      // at 1.32, $1,318.86: Davies, 2026-10-01) and RW, RW-E and its three variants on Polymarket $252.40 (what each holds
-      // and its quotes tie up: 73.20 + 4 × 44.80) — 91 % and 9 % of $2,911.63 (91.3 % and 8.7 %, each to the nearest whole).
+      // Deployed value, by card: Revolut X (its strategy, $21.50, plus each twin's every pound at work, £999.14 at 1.32,
+      // $1,318.86: Davies, 2026-10-01; TESTING.revx.deployed) and RW, RW-E and its three variants on Polymarket $252.40 (what
+      // each holds and its quotes tie up: 73.20 + 4 × 44.80), each to the nearest whole percent of the two (with three twins
+      // 94 % and 6 % of $4,230.49).
+      const revxShare = Math.round((TESTING.revx.deployed / (TESTING.revx.deployed + 252.4)) * 100), pmShare = 100 - revxShare;
       // The bar shows the venue and its percent when that line fits the slice, the percent alone when only that fits, and
       // nothing when not even the percent does (the title still says it). A fixed cutoff left the middle of "Polymarket"
       // on a slice that was still a bit wider than the cutoff, and a 2 % slice on a phone the middle of "2%".
@@ -3107,13 +3201,13 @@ async function run() {
         };
       }));
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && /Revolut X: 91%/.test(shareGeom[0].title) && /Polymarket: 9%/.test(shareGeom[2].title)
+        && shareGeom[1].text === '' && String(shareGeom[0].title).includes(`Revolut X: ${revxShare}%`) && String(shareGeom[2].title).includes(`Polymarket: ${pmShare}%`)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction(() => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === '91%', { timeout: 2000 }).then(() => true).catch(() => false);
+      const squeezed = await page.waitForFunction((want) => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === want, `${revxShare}%`, { timeout: 2000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -3121,14 +3215,14 @@ async function run() {
         return { text: (el.textContent || '').trim(), w: rects.reduce((m, r) => Math.max(m, r.width), 0), box: el.clientWidth, lines: rects.length };
       }).catch(() => ({ text: '', w: 0, box: 0, lines: 0 }));
       await squeeze.evaluate((el) => el.remove());
-      if (squeezed && squeezedFit.text === '91%' && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
+      if (squeezed && squeezedFit.text === `${revxShare}%` && squeezedFit.lines === 1 && squeezedFit.w <= squeezedFit.box + 1) ok(S('agents'), 'a slice too narrow for its name shows the percent alone, and that percent fits');
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       // A slice too narrow even for its percent paints nothing, and its title still gives it.
       const pinch = await page.addStyleTag({ content: '.ag-share-polymarket{width:6px!important;max-width:6px!important;flex:0 0 6px!important;}' });
       const pinched = await page.waitForFunction(() => (document.querySelector('.ag-share-polymarket')?.textContent || '').trim() === '', { timeout: 2000 }).then(() => true).catch(() => false);
       const pinchedTitle = await page.locator('.ag-share-polymarket').getAttribute('title').catch(() => '');
       await pinch.evaluate((el) => el.remove());
-      if (pinched && pinchedTitle === 'Polymarket: 9% of deployed value') ok(S('agents'), 'a slice too narrow for its percent paints nothing, and its title still says Polymarket: 9%');
+      if (pinched && pinchedTitle === `Polymarket: ${pmShare}% of deployed value`) ok(S('agents'), `a slice too narrow for its percent paints nothing, and its title still says Polymarket: ${pmShare}%`);
       else fail(S('agents'), `pinched share: blank ${pinched}, title "${pinchedTitle}"`);
       const cards = await page.locator('.ag-venue-card').count();
       if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
@@ -3150,11 +3244,11 @@ async function run() {
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
       else fail(S('agents'), `Revolut X card still has an apart note (${revxApart})`);
-      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus the twins' £1,200
-      // and £1,800 at 1.32, $1,584 and $2,376 — and the accounts' real balances are NOT shown.
+      // Funded (Paper) is the capital the venue's rows are allotted — 100 + 40 + 40 of strategies, plus each twin's capital
+      // at 1.32 (£1,200, £600 and £1,800: $1,584, $792 and $2,376) — and the accounts' real balances are NOT shown.
       const funded = await page.locator('.ag-venue-card-revx .ag-venue-grid').textContent().catch(() => '');
       const fundedCell = await page.locator('.ag-venue-card-revx .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
-      if (money(fundedCell) === 4140 && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), 'the Revolut X card is funded with its strategies plus the two twins ($4,140), not the account balance');
+      if (money(fundedCell) === Math.round(TESTING.revx.funded) && !/\$100\.00 USD/.test(funded || '')) ok(S('agents'), `the Revolut X card is funded with its strategies plus the ${TW.n} twins (${TW.money(TESTING.revx.funded)}), not the account balance`);
       else fail(S('agents'), `revx funded cell "${fundedCell}", card reads "${funded}"`);
       const bnCard = await page.locator('.ag-venue-card-binance .ag-venue-grid').textContent().catch(() => '');
       const bnFundedCell = await page.locator('.ag-venue-card-binance .ag-venue-col > span:has-text("funded (Paper)") + span').textContent().catch(() => '');
@@ -3177,7 +3271,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - 7 && nexts.slice(rows - 7).every((t) => t === 'every minute')) ok(S('agents'), 'every rule counts down to its next bar close; the two twins, RW, RW-E and its three variants decide every minute');
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - TW.n - 5 && nexts.slice(rows - TW.n - 5).every((t) => t === 'every minute')) ok(S('agents'), `every rule counts down to its next bar close; the ${TW.n} twins, RW, RW-E and its three variants decide every minute`);
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -3504,16 +3598,16 @@ async function run() {
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
       // realised; and each Reward quotes row is funded $1,000 (the same day). The three variants on the page (x1 since
       // 2026-09-27, x4 and x5 since 2026-10-02) add RW-E's figures three times more; RW-C is not a row before its warm-up.
-      // The two realistic twins (2026-10-02) are the live fixture's book at 1.32 each: funded $1,584 and $2,376, deployed
-      // $1,318.86, today +$0.29978, unrealised -$0.17550 on a cost of $791.04, realised -$0.04555, fees $0.23721.
-      // Funded 360 + 1,584 + 2,376 + 5,000 = $9,320; deployed every dollar at work (Davies, 2026-10-01), the strategy's
-      // 21.50, the twins' 2 × 1,318.86 and the reward rows' holdings and quotes, 252.40: 2,911.63 (31.24 %). Today 0.42 +
-      // 0.60 + 12.50 + 4 × 7.50 = 43.52 is 0.47 %; realised 12.34 - 0.09 + 42 + 4 × 23.60 = 148.65 is 1.59 %; unrealised
-      // 1.50 - 0.35 - 1 - 4 × 1.20 = -4.65 is on the strategies' and twins' cost and what the reward tests hold, 20 +
-      // 1,582.07 + 14.40 + 4 × 5.60 = 1,638.87 (-0.28 %); fees 0.08 + 2 × 0.23721 = 0.55.
-      const PAPER_SB = 'FUNDED=$9,320 | DEPLOYED=$2,912(31.24%) | TODAY=+$43.52(+0.47%) | UNREALIZED G/L=-$4.65(-0.28%) | REALIZED G/L [(incl. fees $0.55)]=+$148.65(+1.59%)';
+      // The realistic twins (2026-10-02) are the live fixture's book at 1.32 each: funded their capital ($1,584, $792 and
+      // $2,376), deployed $1,318.86, today +$0.29978, unrealised -$0.17550 on a cost of $791.04, realised -$0.04555, fees
+      // $0.23721. TESTING's scoreboard adds them to the rest (TESTING): deployed is every dollar at work (Davies,
+      // 2026-10-01), the strategy's 21.50, the twins' and the reward rows' holdings and quotes, 252.40; funded, today and
+      // realised are on the funded total, unrealised on the strategies' and twins' cost and what the reward tests hold. With
+      // the three twins of 2026-10-03: FUNDED=$10,112 | DEPLOYED=$4,230(41.84%) | TODAY=+$43.82(+0.43%) | UNREALIZED
+      // G/L=-$4.83(-0.20%) | REALIZED G/L [(incl. fees $0.79)]=+$148.60(+1.47%).
+      const PAPER_SB = TESTING.scoreboard;
       const LIVE_SB = 'FUNDED=$50 | DEPLOYED=$12.50(25%) | TODAY=+$0.20(+0.40%) | UNREALIZED G/L=+$0.50(+4.17%) | REALIZED G/L [(incl. fees $0.03)]=+$0.30(+0.60%)';
-      const TESTING_BAR = 'TESTING 13 Paper paper';
+      const TESTING_BAR = `TESTING ${TESTING.rows} Paper paper`;
       const topModalHeight = () => page.evaluate(() => { const ms = document.querySelectorAll('.modal'); return Math.round(ms[ms.length - 1]?.getBoundingClientRect().height ?? 0); });
 
       agentsMode = 'ok';
@@ -3532,17 +3626,17 @@ async function run() {
       const winH = vpWidth > 760 ? Math.round(0.85 * (page.viewportSize()?.height ?? 0)) : (page.viewportSize()?.height ?? 0);
       await clickTab('testing');
       const n2 = await readAgentsPanel(page);
-      if (n2.rows.length === 13 && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), 'a click back: TESTING\'s 13 rows, scoreboard and venue cards as they were');
+      if (n2.rows.length === TESTING.rows && sbText(n2) === sbText(n0) && JSON.stringify(n2.venues) === JSON.stringify(n0.venues)) ok(T('none'), `a click back: TESTING's ${TESTING.rows} rows, scoreboard and venue cards as they were`);
       else fail(T('none'), `TESTING after the round trip: ${n2.rows.length} rows, ${sbText(n2)}`);
       if (n1.modalHeight === winH && n2.modalHeight === winH) ok(T('size'), `LIVE and TESTING keep one window, ${winH}px tall, empty or full`);
       else fail(T('size'), `window ${n1.modalHeight}px on LIVE, ${n2.modalHeight}px on TESTING, wanted ${winH}px`);
       // How long each has been under test, to the hour, on the pinned clock: the fixture's own starts (a row's creation, the
       // quotes' first minute, RW's first day, a variant's first minute). RW-C's, in its warm-up, is its own mode's check.
-      const TESTED = { 'Trend 4h': 'tested 3d 5h', 'Stablecoin quotes': 'tested 1d 7h', 'Stablecoin quotes variant-1': 'tested 20h', 'Reward quotes': 'tested 2d 23h', 'Reward quotes variant-1': 'tested 2d 23h', 'Reward quotes variant-3': 'tested 20h' };
+      const TESTED = { 'Trend 4h': 'tested 3d 5h', ...Object.fromEntries(TW.rows.map((r) => [r.name, r.tested])), 'Reward quotes': 'tested 2d 23h', 'Reward quotes variant-1': 'tested 2d 23h', 'Reward quotes variant-3': 'tested 20h' };
       const listTags = await page.evaluate(() => [...document.querySelectorAll('.ag-modepanel .ag-badge, .ag-modepanel .ag-venue')].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => Math.round(r.height * 10) / 10));
       if (listTags.length >= 1 && Math.max(...listTags) - Math.min(...listTags) <= 0.5) ok(T('tags'), `the list's ${listTags.length} tags are all ${listTags[0]}px tall`);
       else fail(T('tags'), `the list's tag heights ${listTags.join(',')}`);
-      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ['Stablecoin quotes', 'revx', '.ag-quotes-twin-detail'], ['Stablecoin quotes variant-1', 'revx', '.ag-quotes-twin-detail'], ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-3', 'polymarket', '.ag-rw-detail']]) {
+      for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ...TW.names.map((n) => [n, 'revx', '.ag-quotes-twin-detail']), ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-3', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
         await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
         await page.waitForTimeout(350);
@@ -3610,23 +3704,30 @@ async function run() {
       await clickTab('testing');
       const a1 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-testing');
-      if (a1.rows.length === 13 && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
-        ok(T('armed'), `TESTING is the paper rows alone (13, none live), and its scoreboard is theirs (${sbText(a1)})`);
+      if (a1.rows.length === TESTING.rows && !a1.rows.some((r) => / · live$/.test(r.name) || r.badges > 0) && sbText(a1) === PAPER_SB && a1.sections.join('|') === 'TESTING STRATEGIES' && !a1.arming && a1.alerts.length === 0) {
+        ok(T('armed'), `TESTING is the paper rows alone (${TESTING.rows}, none live), and its scoreboard is theirs (${sbText(a1)})`);
       } else fail(T('armed'), `TESTING: ${a1.rows.length} rows (${a1.rows.map((r) => `${r.name} ${r.badges}`).join(', ')}), scoreboard ${sbText(a1)}, armed "${a1.arming}", banners ${a1.alerts.length}`);
       const rv = a1.venues.find((v) => v.id === 'revx'), bn = a1.venues.find((v) => v.id === 'binance');
-      // Revolut X on TESTING: its three strategies and the two twins, funded 180 + 1,584 + 2,376 = $4,140, deployed 21.50 +
-      // 2 × 1,318.86 = 2,659.23 (64.23 %), realised 12.34 - 2 × 0.04555 = 12.25 (0.30 %).
-      if (a1.venues.length === 3 && rv && bn && rv.meta === '5 strategies · maker 0% / taker 0.09%' && rv.pairs['funded (Paper)'] === '$4,140' && rv.pairs.deployed === '$2,659 (64.23%)'
-        && rv.pairs.realised === '+$12.25 (+0.30%)' && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
-        ok(T('armed'), 'TESTING\'s Revolut X card includes the two twins (funded (Paper) $4,140, deployed $2,659.23, 64.23%), beside Binance\'s and Polymarket\'s');
-      } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}`);
+      // Revolut X on TESTING: its three strategies and the twins (TESTING.revx), funded 180 and each twin's capital, deployed
+      // 21.50 and each twin's 1,318.86, realised 12.34 and each twin's -0.04555 (with three twins $4,932, $3,978 (80.66 %),
+      // +$12.20 (+0.25 %)).
+      const rvWant = {
+        meta: `${TESTING.revx.rows} strategies · maker 0% / taker 0.09%`, funded: TW.money(TESTING.revx.funded),
+        deployed: `${TW.money(TESTING.revx.deployed)} (${TW.pct((TESTING.revx.deployed / TESTING.revx.funded) * 100, false)})`, realised: TW.gl(TESTING.revx.realised, TESTING.revx.funded),
+      };
+      if (a1.venues.length === 3 && rv && bn && rv.meta === rvWant.meta && rv.pairs['funded (Paper)'] === rvWant.funded && rv.pairs.deployed === rvWant.deployed
+        && rv.pairs.realised === rvWant.realised && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
+        ok(T('armed'), `TESTING's Revolut X card includes the ${TW.n} twins (funded (Paper) ${rvWant.funded}, deployed ${rvWant.deployed}, realised ${rvWant.realised}), beside Binance's and Polymarket's`);
+      } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}; wanted Revolut X ${JSON.stringify(rvWant)}`);
       const cents = (s) => Math.round(money(String(s).split('(')[0]) * 100);
       const both = a0.scoreboard.map((c, i) => cents(c.value) + cents(a1.scoreboard[i]?.value));
-      // TESTING's deployed, $2,911.63 since every dollar at work counts (Davies, 2026-10-01), is shown to the dollar from
-      // $1,000: LIVE's $12.50 and the $2,912 shown make 2,924.50; funded 50 + 9,320, today 0.20 + 43.52, unrealised 0.50 -
-      // 4.65, realised 0.30 + 148.65.
-      if (both.join(',') === '937000,292450,4372,-415,14895') ok(T('armed'), 'LIVE and TESTING add up to every strategy plus the seven tests: $9,370.00 funded, $2,924.50 deployed as shown ($12.50 + $2,912, $2,911.63 to the cent), +$43.72 today, -$4.15 unrealised, +$148.95 realised');
-      else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}`);
+      // LIVE's and TESTING's as each is shown: TESTING's deployed counts every dollar at work (Davies, 2026-10-01) and is
+      // shown to the dollar from $1,000; LIVE's funded $50, deployed $12.50, today +0.20, unrealised +0.50, realised +0.30.
+      // (With the three twins: $4,230.49 shown $4,230, and 1016200,424250,4402,-433,14890.)
+      const bothWant = [[5000, TESTING.funded], [1250, TESTING.deployed], [20, TESTING.today], [50, TESTING.unrealised], [30, TESTING.realised]]
+        .map(([live, t]) => live + cents(TW.money(t, '$', true))).join(',');
+      if (both.join(',') === bothWant) ok(T('armed'), `LIVE and TESTING add up to every strategy plus the ${5 + TW.n} tests, each as shown, in cents: ${bothWant}`);
+      else fail(T('armed'), `LIVE + TESTING in cents: ${both.join(', ')}, wanted ${bothWant}`);
       if (barText(a1) === barText(a0) && a1.updated === a0.updated && /^as of /.test(a0.updated) && a1.modalHeight === a0.modalHeight) ok(T('armed'), 'the tab bar, the as-of line and the window read the same on both tabs');
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
       await page.locator('#ag-modetab-testing').focus();
@@ -3672,7 +3773,7 @@ async function run() {
       } else fail(T('unarmed'), `bar ${barText(u0)}, armed "${u0.arming}", banners ${JSON.stringify(u0.alerts)}, scoreboard ${sbText(u0)}`);
       await clickTab('testing');
       const u1 = await readAgentsPanel(page);
-      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === 13) ok(T('unarmed'), 'TESTING carries no banner either');
+      if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === TESTING.rows) ok(T('unarmed'), 'TESTING carries no banner either');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
@@ -3812,7 +3913,7 @@ async function run() {
 
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
-      if (p1.rows.length === 13 && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its twin stays on TESTING, whose totals do not take the live book");
+      if (p1.rows.length === TESTING.rows && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its twin stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
       // TESTING's "Stablecoin quotes" opens its twin's page (Davies, 2026-10-02), never the live executor's: PAPER, its
       // own container, its line, its two books of three rungs and the fixture's three round trips.
@@ -3998,7 +4099,7 @@ async function run() {
       } else fail(T('rwc-warmup'), `RW-C page: title "${cTitle}" ${JSON.stringify(cTitleFit)}, labels ${cLabels.join(',')}, funded "${cFunded}", sections ${cSections.join(',')}, empty ${JSON.stringify(cEmpty)}, warnings ${cWarn}, overflow ${cOverflow}`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === 14) ok(T('rwc-warmup'), "closing RW-C's page returns to the list");
+      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows + 1) ok(T('rwc-warmup'), "closing RW-C's page returns to the list");
       else fail(T('rwc-warmup'), "RW-C's page did not close back to the list");
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
@@ -4072,10 +4173,12 @@ async function run() {
       const pmB = prepBefore.venues.find((v) => v.id === 'polymarket'), pmA = prAfter.venues.find((v) => v.id === 'polymarket');
       const prCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((prAmount(pmA?.pairs[k]) - prAmount(pmB?.pairs[k])) * 100) / 100);
       // Its deployed is what it holds, $8.77, and what its quotes tie up, $24.34 (Davies, 2026-10-01): $33.11. The
-      // scoreboard's DEPLOYED is shown to the dollar from $1,000: $2,911.63 + $33.11 = $2,944.74 reads $2,912 then $2,945,
-      // 33 more. The card, under $1,000, adds $33.11.
-      if (prSbDiff.join(',') === '320,33,1.47,0.42,1.95' && prCardDiff.join(',') === '320,33.11,1.47,0.42,1.95,1.7,0.25' && pmA?.meta === '6 strategies') {
-        ok(T('prep'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; $2,912 to $2,945 on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6");
+      // scoreboard's DEPLOYED is shown to the dollar from $1,000, so it moves by the whole dollars TESTING's deployed crosses
+      // (with the three twins $4,230.49 + $33.11 = $4,263.60 reads $4,230 then $4,264, 34 more). The card, under $1,000,
+      // adds $33.11.
+      const prSbDeployed = Math.round(TESTING.deployed + 33.11) - Math.round(TESTING.deployed);
+      if (prSbDiff.join(',') === `320,${prSbDeployed},1.47,0.42,1.95` && prCardDiff.join(',') === '320,33.11,1.47,0.42,1.95,1.7,0.25' && pmA?.meta === '6 strategies') {
+        ok(T('prep'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; ${prSbDeployed} more on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6`);
       } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
       await prRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4178,10 +4281,12 @@ async function run() {
       const mdSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((mdAmount(mdCell(mdAfter, k)) - mdAmount(mdCell(midBefore, k))) * 100) / 100);
       const mdPmB = midBefore.venues.find((v) => v.id === 'polymarket'), mdPmA = mdAfter.venues.find((v) => v.id === 'polymarket');
       const mdCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((mdAmount(mdPmA?.pairs[k]) - mdAmount(mdPmB?.pairs[k])) * 100) / 100);
-      // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000:
-      // $2,944.74 with mini-pool reads $2,945, and $2,985.14 with mid-pool $2,985, 40 more; the card adds $40.40.
-      if (mdSbDiff.join(',') === '320,40,4.6,0.4,9' && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '7 strategies') {
-        ok(T('mid'), "TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; $2,945 to $2,985 on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7");
+      // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000 (with
+      // the three twins $4,263.60 with mini-pool reads $4,264, and $4,304.00 with mid-pool $4,304, 40 more); the card adds
+      // $40.40.
+      const mdSbDeployed = Math.round(TESTING.deployed + 33.11 + 40.4) - Math.round(TESTING.deployed + 33.11);
+      if (mdSbDiff.join(',') === `320,${mdSbDeployed},4.6,0.4,9` && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '7 strategies') {
+        ok(T('mid'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; ${mdSbDeployed} more on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7`);
       } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
       await mdRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4230,21 +4335,24 @@ async function run() {
       agentsMode = 'ok';
 
       // The paper tests the twins replaced keep running and the payload still carries them (`quotes`, `quotesVariant`,
-      // `quotesRuled`), but they are no rows (Davies, 2026-10-02: "这个variant-2上线testing后改名为variant-1"): TESTING's
-      // stablecoin rows are the two twins alone, "Stablecoin quotes" and "Stablecoin quotes variant-1" (rule D's twin), and
-      // its Revolut X card counts the twins' capital and nothing of the paper tests'.
+      // `quotesRuled`), but they are no rows: TESTING's stablecoin rows are the twins alone, in their rows' order ("Stablecoin
+      // quotes", "Stablecoin quotes variant-1", PR5's rule at £600, and "Stablecoin quotes variant-3", rule D's twin; Davies,
+      // 2026-10-03: "你目前正在做的variant改名为variant-1排上面…原来的variant-1改名为variant-3"), no "variant-2" (rule D's paper
+      // test's own name; on the page it waits for a twin to come), and its Revolut X card counts the twins' capital and
+      // nothing of the paper tests'.
       agentsMode = 'quotesv';
       await openAgentsPage(page);
-      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === 13);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === TESTING.rows);
       await page.waitForTimeout(150);
       const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const qvPanel = await readAgentsPanel(page);
       const qvRevx = qvPanel.venues.find((v) => v.id === 'revx');
       await shot(page, 'agents-testing-twins');
-      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === 'Stablecoin quotes | Stablecoin quotes variant-1' && !qvNames.includes('Stablecoin quotes variant-2')
-        && qvRevx?.pairs['funded (Paper)'] === '$4,140' && qvRevx?.pairs.deployed === '$2,659 (64.23%)') {
-        ok(T('quotesv'), 'with the paper tests in the payload, TESTING still has the two twins alone ("Stablecoin quotes", "Stablecoin quotes variant-1"), and its Revolut X card counts the twins ($4,140 funded, $2,659 deployed)');
-      } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}`);
+      const qvWant = [TW.money(TESTING.revx.funded), `${TW.money(TESTING.revx.deployed)} (${TW.pct((TESTING.revx.deployed / TESTING.revx.funded) * 100, false)})`];
+      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === TW.names.join(' | ') && !qvNames.includes('Stablecoin quotes variant-2')
+        && qvRevx?.pairs['funded (Paper)'] === qvWant[0] && qvRevx?.pairs.deployed === qvWant[1]) {
+        ok(T('quotesv'), `with the paper tests in the payload, TESTING still has the twins alone (${TW.names.map((n) => `"${n}"`).join(', ')}), no variant-2, and its Revolut X card counts the twins (${qvWant[0]} funded, ${qvWant[1]} deployed)`);
+      } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}, wanted ${qvWant.join(', ')}`);
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);

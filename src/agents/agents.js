@@ -1169,15 +1169,16 @@ function quoteBookCells(q) {
   };
 }
 
-/** A realistic twin's id among TESTING's rows: this, and its own id (`pr5`, `d`). */
+/** A realistic twin's id among TESTING's rows: this, and its own id (`pr5`, `p50`, `d`). */
 export const QUOTES_TWIN_ROW_PREFIX = '__quotes_twin_';
 
 /**
  * A realistic twin of the live executor as a row of TESTING (`quotes_twin.ts`, 0087; Davies, 2026-10-02: "确保一致，确保
  * 真实"): the live executor's own code on a simulated Revolut X account, carrying out the decisions of one paper engine
  * at the twin's size, read and summed exactly as the live account is. "Stablecoin quotes" follows PR5's rule;
- * "Stablecoin quotes variant-1" rule D's arm d (Davies, 2026-10-02: "这个variant-2上线testing后改名为variant-1"). Paper
- * money, so on TESTING. null keeps it off the table (its record not loaded yet).
+ * "Stablecoin quotes variant-1" PR5's rule at £50 a rung (`p50`, 0088, 2026-10-03); "Stablecoin quotes variant-3" rule
+ * D's arm d (Davies, 2026-10-03: "…原来的variant-1改名为variant-3"). Paper money, so on TESTING. null keeps it off the
+ * table (its record not loaded yet).
  * @param {any} t  one of the dashboard's `quotesTwins`
  */
 export function quotesTwinRow(t) {

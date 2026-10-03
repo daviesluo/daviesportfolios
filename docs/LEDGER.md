@@ -268,30 +268,38 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    - **Its realistic twins are TESTING's stablecoin rows since 2026-10-02** (`0087`, `agents/quotes_twin.ts`,
      `agents/revx_sim.ts`, reference §4 item 51, frozen `reviews/2026-10-02-pr5-realistic-twins-prereg.md`; Davies:
      "确保一致，确保真实", "原版每档100磅，variant-2 每档50磅", "都按我们昨天新设立的maker费来换币", "这个variant-2上线testing后改名为
-     variant-1"). The live executor's own code on a simulated Revolut X account: "Stablecoin quotes" carries out PR5's
-     paper decisions at £1,200 (£100 a rung), "Stablecoin quotes variant-1" rule D's arm `d` at £1,800 (£50 a rung, nine
-     a side, four keys). PR5's, PR5V's and rule D's paper rows left the page and keep running with their frozen readings.
-     Their records to 2026-10-02 21:05 UTC load from `docs/agents/backtests/twins/` (sha256 in `TWIN_BACKFILLS`) on the
-     call's first runs (one file a call), then catch up minute by minute and turn forward with PR5's call.
-     - **Daily health:** `agent_quote_twin_{pr5,d}_sim.last_error` empty and its `state->'paperCheck'->'mismatches'` at
-       46 for `pr5` (all before 2026-09-24 18:13) and 0 for `d`; `_state.updated_at` within ~3 min once caught up;
-       `edge_call_beats` has `agents?action=quotestwins` every minute; no `ops_errors` `agents.quotes_twins`; no twin
-       row in `agent_quote_live_orders`. Do not read rule D's twin's fills or P&L before rule D's reading (10-28).
-     - **Readouts:** PR5's twin beside PR5's verdict (10-21), rule D's after its reading (10-28), per rung as the
-       pre-registration's §8; no pass or fail bar.
+     variant-1"). The live executor's own code on a simulated Revolut X account. **Since 0088 (2026-10-03, not yet
+     deployed when written; Davies: "你说的这四点建议全做") each twin is a row of `agent_quote_twin_specs`**, which the call and
+     the page read; the rows are reference §4 item 51's "Twin variants" table: "Stablecoin quotes" (`pr5`) carries out
+     PR5's paper decisions at £1,200 (£100 a rung); "Stablecoin quotes variant-1" (`p50`, 0088) the same decisions at
+     £600 (£50 a rung), frozen `reviews/2026-10-03-pr5-size-twin-prereg.md`; "Stablecoin quotes variant-3" (`d`;
+     variant-1 until 2026-10-03, Davies: "你目前正在做的variant改名为variant-1排上面，这个新的是variant-2，原来的variant-1改名为
+     variant-3") rule D's arm `d` at £1,800 (£50 a rung, nine a side, four keys). "variant-2" is TAKE (below). A
+     variant that differs only in its row is a migration of two statements (`reviews/TEMPLATE-variant-prereg.md`).
+     PR5's, PR5V's and rule D's paper rows left the page and keep running with their frozen readings. Their records to
+     2026-10-02 21:05 UTC load from `docs/agents/backtests/twins/` (sha256 in each row's `backfill`) on the call's first
+     runs (one file a call; the other twins still turn in it), then catch up minute by minute and turn forward with
+     PR5's call; p50 catches up about twenty turns a call (a day behind takes about an hour and a quarter).
+     - **Daily health:** `agent_quote_twin_{pr5,p50,d}_sim.last_error` empty and its `state->'paperCheck'->'mismatches'`
+       at 46 for `pr5` and `p50` (all before 2026-09-24 18:13) and 0 for `d`; `_state.updated_at` within ~3 min once
+       caught up; `edge_call_beats` has `agents?action=quotestwins` every minute; no `ops_errors` `agents.quotes_twins`;
+       no twin row in `agent_quote_live_orders`. Do not read rule D's twin's fills or P&L before rule D's reading (10-28).
+     - **Readouts:** PR5's twin beside PR5's verdict (10-21), with p50 beside it per rung (the size effect); rule D's
+       after its reading (10-28), with p50 beside it at the three rungs both quote; per rung as the pre-registrations
+       say; no pass or fail bar.
      - **The size study is done (2026-10-03; Davies: "这个到时候你再研究下，不要忘了", asked again "之前说的这事你忘了？"):**
        reference §4 item 51's addendum, `docs/agents/backtests/twins/size/`. PR5's rule on its twin at £10/£25/£50/£100
        a rung: 60/58/57/47 trips, 14–15 bps each, 28.9/27.6/25.7/19.9 % a year realised; pennies under 0.2 bps a trip;
        a 5 % pound reserve recovers 5 trips at £100 and none at £50 or less.
      - **The variants, as Davies named them on 2026-10-03** ("你目前正在做的variant改名为variant-1排上面，这个新的是
        variant-2，原来的variant-1改名为variant-3"): "Stablecoin quotes" (PR5's rule, £100 a rung); **variant-1**, id
-       `p50`, PR5's rule at £50 a rung (£600), being built; **variant-2**, TAKE (variant-1 plus lifting the touch when
+       `p50`, PR5's rule at £50 a rung (£600), built (0088, not deployed when written); **variant-2**, TAKE (variant-1 plus lifting the touch when
        the book rests through a rung by more than the 9 bps fee), studied and frozen (next bullet), approved to go live if it holds
        ("可以 批准研究后上线测试…你决定吧": built on variant-1, so the comparison isolates the one change); **variant-3**,
        rule D's twin (id `d`, formerly variant-1). Internal ids carry no variant number.
      - **Variants become rows** (Davies, 2026-10-03: "你说的这四点建议全做", after asking why small variants cost so
        much time and tokens): a spec table and a table-making function, so a parameter-only variant is two SQL
-       statements and a one-page pre-registration from a template; `p50` is its first row (one opus-max sub-agent, in
+       statements and a one-page pre-registration from a template; `p50` is its first row (built by one opus-max sub-agent in
        a worktree, not pushed; the main session reviews and pushes it when it reports: Davies, 2026-10-03, "mini-pool
        我不打算今天上线，之后上线等我再决定，你东西该部署就部署", so no deploy waits for 10-04, and the 00:25 wake was
        deleted; mini-pool's own rule, no changed `pm_live.ts` or `pm_prep.ts` inside its window, still holds). The page must not change but for the names and the new rows
@@ -701,6 +709,22 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The stablecoin twins are rows, and the size study's twin is "Stablecoin quotes variant-1"** (item 4; reference §4
+item 51's later addendum and its "Twin variants" table; the twins' pre-registration's deviation 1, its §12;
+`reviews/2026-10-03-pr5-size-twin-prereg.md`). Davies: "你说的这四点建议全做"; the names, "你目前正在做的variant改名为
+variant-1排上面，这个新的是variant-2，原来的variant-1改名为variant-3"; the page, "把变体改成数据只是针对后台吧？我前端看到的不影响吧？".
+Migration `0088` adds `agent_quote_twin_specs` (a row a twin: id, page name and order, engine, capital, keys, start,
+tables, lease, rule extensions, backfill, pre-registration) and `create_quote_twin_tables` (0087's statement for one
+id), and makes `p50`: PR5's rule at £600 from PR5's first minute, its record to 2026-10-02 21:05 the size study's `s50`
+run figure for figure (57 trips, 53 won, +£3.9040). The call and the page read the rows; rule D's twin is "variant-3";
+"variant-2" waits for TAKE. pr5's backfill built again on the new code: the same bytes; rule D's twin not run. The page's
+code is unchanged (two comments; the bundle rebuilt for them is main's in every chunk but its build stamp); the browser
+test's twin checks run over the fixture's rows, made by `backtests/twins/scripts/fixture.ts`. The next parameter-only
+variant is two statements (`reviews/TEMPLATE-variant-prereg.md`). No rule D figure was seen. Not pushed: the main
+session reviews and pushes. Gates: `sh bin/gates.sh --full`.
 
 ### [2026-10-03 03:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

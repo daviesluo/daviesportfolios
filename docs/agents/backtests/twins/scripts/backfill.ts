@@ -2,19 +2,22 @@
 // its engine's first decided minute to `until`, computed by the production code itself (`runQuotesTwins` in
 // supabase/functions/agents/quotes_twin.ts, the live executor's `quotes_live.ts` under it, the simulated account of
 // `revx_sim.ts`) on PR5's stored record, in the in-memory database that holds the schema's own checks (testing.ts). The
-// production call loads the file it writes, checked by the sha256 `TWIN_BACKFILLS` pins, and catches up from `until`.
+// production call loads the file it writes, checked by the sha256 its spec row pins (`backfill`), and catches up from `until`.
 //
 //   cd docs/agents/backtests/twins/scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts pr5
 //   … backfill.ts d
+//   … backfill.ts p50  (any id of the spec rows the migrations insert, spec_rows.ts; a later variant's too)
 //
 // Its input is ../inputs/twins_inputs.json.gz (MANIFEST.json says what it holds and how it was read). The order ids are
 // numbered, not random, so a run writes the same bytes each time.
 
 import { memDb, type Row } from "../../../../../supabase/functions/agents/testing.ts";
-import { runQuotesTwins, twinBackfillOf, TWINS, type TwinId } from "../../../../../supabase/functions/agents/quotes_twin.ts";
+import { runQuotesTwins, specFromRow, twinBackfillOf } from "../../../../../supabase/functions/agents/quotes_twin.ts";
+import { specRowsOfMigrations } from "./spec_rows.ts";
 
-const id = Deno.args[0] as TwinId;
-if (!(id in TWINS)) throw new Error("usage: backfill.ts pr5|d");
+const id = Deno.args[0];
+const row = (await specRowsOfMigrations()).find((r) => r.id === id);
+if (!row) throw new Error("usage: backfill.ts <the id of a twin's spec row>");
 /** The record's end: the last minute both engines had decided when the inputs were read (MANIFEST.json). */
 const UNTIL = Date.parse("2026-10-02T21:05:00Z");
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -42,7 +45,7 @@ const beats: Row[] = (JSON.parse(bundle.files["quotes_beats.json"]) as number[])
 const pr5Last = Math.max(...minutes.map((r) => Date.parse(String(r.minute))));
 const dLast = Math.max(...ruled.map((r) => Date.parse(String(r.minute))));
 
-const spec = TWINS[id];
+const spec = specFromRow(row);
 const mem = memDb({
   agent_locks: [{ name: "quotes-twins", lease_until: iso(0), holder: null }, { name: spec.instance.lease, lease_until: iso(0), holder: null }],
   agent_risk: [{ id: 1, global_pause: false }],

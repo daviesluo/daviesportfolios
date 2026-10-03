@@ -1447,8 +1447,9 @@ function AgentsModal({ hideValues, onClose }) {
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
   // The realistic twins of the live executor are the stablecoin rows of TESTING STRATEGIES (Davies, 2026-10-02), after the
-  // strategies: "Stablecoin quotes" (PR5's rule) and "Stablecoin quotes variant-1" (rule D). The paper tests they replaced
-  // (PR5's, PR5V's, rule D's) keep running off the page until their readings.
+  // strategies, in the payload's order: "Stablecoin quotes" (PR5's rule), "Stablecoin quotes variant-1" (PR5's rule at £50
+  // a rung, since 2026-10-03) and "Stablecoin quotes variant-3" (rule D). The paper tests the twins replaced (PR5's, PR5V's,
+  // rule D's) keep running off the page until their readings.
   const twins = React.useMemo(() => quotesTwinRows(dash), [dash]);
   // RW's paper test on Polymarket joins it (Davies, 2026-09-24), after the quote test; paper only too.
   const rw = React.useMemo(() => rwRow(dash?.rw), [dash]);

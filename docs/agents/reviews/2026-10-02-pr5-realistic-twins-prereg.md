@@ -256,3 +256,56 @@ measurement that decides nothing; a bar set later would be a new pre-registratio
 
 `quotes_live.ts` is not frozen: it is the live executor, and a change to it is a change to both. A change to a frozen
 file is a deviation (its tests pin these hashes, `src/twins_prereg.test.js`). The backfills and their inputs are §6's.
+
+## 12. Deviation 1 (2026-10-03): the twins become rows, a third twin, and rule D's twin renamed "variant-3"
+
+**Why.** Three things the same day. (1) The size study (reference §4 item 51, its addendum of 2026-10-03;
+`docs/agents/backtests/twins/size/`) proposed PR5's rule on its twin at £50 a rung, £600: the size effect measured forward,
+and PR5's rule at rule D's rung size. Davies has given standing approval to launch the variants a study recommends; it
+is frozen in a pre-registration of its own, `2026-10-03-pr5-size-twin-prereg.md`. (2) Its name, and rule D's twin's,
+Davies: "你目前正在做的variant改名为variant-1排上面，这个新的是variant-2，原来的variant-1改名为variant-3". So the new twin is
+"Stablecoin quotes variant-1", listed first among the variants; rule D's twin, "Stablecoin quotes variant-1" since §0, is
+"Stablecoin quotes variant-3", listed last; "variant-2" is kept for a later twin, not made here. (3) How a variant is
+made, Davies: "你说的这四点建议全做": a variant that differs only in its parameters is a row of a table and its tables, not
+code. And on the page, "把变体改成数据只是针对后台吧？我前端看到的不影响吧？": the change is the back end's, and the page reads
+as before but for the new row and page and rule D's twin's name. All of it changed this document's frozen `quotes_twin.ts`.
+
+**What changed in `quotes_twin.ts`, exactly.**
+
+1. The twins are rows of `agent_quote_twin_specs` (migration 0088): id, page name and order, engine, capital, governed
+   keys, start, tables and lease (each named by the id, the table's checks hold them to it), rule extensions, backfill,
+   pre-registration, migration, enabled. `specFromRow` builds a twin's spec from its row; a row's rungs and exit re-price
+   are its engine's (the executor carries out that engine's rung decisions), and a row naming an engine, keys or a rule
+   extension the code does not have is refused and runs nowhere. `TWIN_SPEC_ROWS` holds 0088's three rows (pr5, p50, d);
+   `TWINS` and `TWIN_IDS` are built from them, and `TWIN_BACKFILLS` became each row's `backfill`. 0088's
+   `create_quote_twin_tables` makes a twin's six tables with 0087's own statement, word for word.
+2. The call reads the table's enabled rows in their order each time (`twinSpecs`); before 0088 has applied it runs the
+   two twins 0087 made, as before. The page reads the same rows.
+3. p50 is the second row: PR5's twin's spec but for its id, its page name, its tables and lease, its migration and its
+   capital, £600; its record to 2026-10-02 21:05 UTC is `p50.json.gz`. d's row names it "Stablecoin quotes variant-3".
+4. The call, as the first draft of this deviation already had it. A twin with no record yet still loads its backfill
+   alone, one file a call and no turn of its own in that call; the twins whose records are whole now take their turns in
+   that call too. As frozen, the call ended after the load, so adding a twin would have cost the pr5 and d twins the turn
+   of that minute. A twin whose own record cannot be read (before its migration has applied) is set apart for the call
+   with its error reported, where before the whole call failed and no twin turned; and one twin's part that throws no
+   longer stops the twins after it.
+5. Comments.
+
+**What did not change.** pr5's and d's specs, field by field but d's page name (`quotes_twin.test.ts` pins them to their
+values as frozen, the key function by its answer for every book and side); their backfills (each its row's now, the
+same file, sha256 and minute as §6; `pr5.json.gz` was built again on the final code, its spec read from 0088's row, and is
+the same bytes, f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98; `d.json.gz` was not rebuilt, rule D's
+twin not being run, §9); their tables, leases, rows and records; every rule of a turn; `revx_sim.ts`; `0087`. A call in
+which no twin loads and every twin's record reads does exactly what it did. The test "a twin added later costs the
+running ones nothing" runs PR5's twin alone, and beside a twin added at its sixth minute (its tables there; and missing
+until its eighth), and finds PR5's twin's orders and turns equal minute by minute; on the code as frozen it fails at that
+sixth minute (the turn of the loading call missed, then the missing table throwing the call). The page: its code is
+unchanged, and the bundle rebuilt for two comments is main's in every statement of every chunk but its build stamp; the
+browser test's twin checks run over the fixture's rows, which `docs/agents/backtests/twins/scripts/fixture.ts` makes from
+the spec rows (pr5's row in it is main's to the byte, d's differs by its name alone).
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8 |
+
+§11 keeps the hash the file was frozen at; this is the file from this deviation on. `src/twins_prereg.test.js` pins both.

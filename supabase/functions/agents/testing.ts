@@ -75,14 +75,14 @@ const RPC: Record<string, (tables: Record<string, Row[]>) => void> = {
 };
 /**
  * The live quotes fixture's rows (src/e2e/quotes_live_fixture.json) as a realistic twin's tables, at the twin's capital
- * (£1,200, or £1,800 for rule D's), beside the twin's own driver state: the rows the twins' fixture
- * (src/e2e/quotes_twin_fixture.json) is the dashboard's answer for.
+ * (its spec row's), beside the twin's own driver state: the rows the twins' fixture (src/e2e/quotes_twin_fixture.json,
+ * made by docs/agents/backtests/twins/scripts/fixture.ts) is the dashboard's answer for.
  */
 // deno-lint-ignore no-explicit-any
-export function twinFixtureTables(live: any, id: "pr5" | "d", sim: Row): Record<string, Row[]> {
-  const t = (x: string) => `agent_quote_twin_${id}_${x}`;
+export function twinFixtureTables(live: any, spec: { id: string; capitalGbp: number }, sim: Row): Record<string, Row[]> {
+  const t = (x: string) => `agent_quote_twin_${spec.id}_${x}`;
   return {
-    [t("config")]: [{ id: 1, ...live.config, capital_gbp: id === "pr5" ? 1200 : 1800 }],
+    [t("config")]: [{ id: 1, ...live.config, capital_gbp: spec.capitalGbp }],
     [t("state")]: [{ id: 1, ...live.state }],
     [t("orders")]: JSON.parse(JSON.stringify(live.orders)),
     [t("events")]: [],
@@ -139,18 +139,23 @@ const LIVE_QUOTE_TABLES: Record<string, { columns: string[]; key: string | null 
   agent_quote_live_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
 };
 /**
- * The realistic twins' tables (0087, quotes_twin.ts): each twin's config, orders, events and state in 0052's shapes under
- * its own name, held to the live tables' rules; its orders upserted by their client id when a backfill is loaded.
+ * The realistic twins' tables (0087's template, which 0088's `create_quote_twin_tables` makes for every twin of
+ * `agent_quote_twin_specs`, whose id check is the pattern here): each twin's config, orders, events and state in 0052's
+ * shapes under its own name, held to the live tables' rules; its orders upserted by their client id when a backfill is
+ * loaded.
  */
-const TWIN_SHAPE = /^agent_quote_twin_(pr5|d)_(config|orders|events|state)$/;
+const TWIN_SHAPE = /^agent_quote_twin_([a-z][a-z0-9]{0,15})_(config|orders|events|state)$/;
 const liveQuoteShape = (table: string) => { const m = TWIN_SHAPE.exec(table); return m ? `agent_quote_live_${m[2]}` : table; };
 const isLiveQuoteTable = (table: string) => liveQuoteShape(table) in LIVE_QUOTE_TABLES;
 const liveQuoteKey = (table: string) => (TWIN_SHAPE.test(table) && liveQuoteShape(table) === "agent_quote_live_orders" ? "client_order_id" : LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.key ?? null);
-/** Each twin's replica of its paper engine and its simulated account: one row each (0087). */
-const TWIN_SIDE_TABLES: Record<string, { columns: string[]; key: string }> = Object.fromEntries(["pr5", "d"].flatMap((id) => [
-  [`agent_quote_twin_${id}_paper`, { columns: ["id", "state", "last_minute", "updated_at"], key: "id" }],
-  [`agent_quote_twin_${id}_sim`, { columns: ["id", "state", "updated_at", "last_error"], key: "id" }],
-]));
+/** Each twin's replica of its paper engine and its simulated account: one row each (0087's template). */
+const TWIN_SIDE_SHAPES: Record<string, { columns: string[]; key: string }> = {
+  paper: { columns: ["id", "state", "last_minute", "updated_at"], key: "id" },
+  sim: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
+};
+const twinSide = (table: string) => { const m = /^agent_quote_twin_[a-z][a-z0-9]{0,15}_(paper|sim)$/.exec(table); return m ? TWIN_SIDE_SHAPES[m[1]] : undefined; };
+/** The twins' spec table as 0088 creates it: one row a twin, read by the call and the page, written by migrations only. */
+const TWIN_SPECS_COLUMNS = ["id", "display_name", "display_order", "engine", "capital_gbp", "gov", "start", "table_prefix", "lease", "rules", "backfill", "prereg", "migration", "enabled"];
 const LIVE_OPEN_STATES = ["pending", "new", "partially_filled"];
 /** RW's paper test's tables as 0053 creates them: their columns, and the unique key each upsert names. */
 const PMRW_TABLES: Record<string, { columns: string[]; key: string }> = {
@@ -459,10 +464,26 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return notNull(["strategy_id", "venue", "symbol", "mode", "bar_start", "state", "numbers", "provider", "rule_action", "rule_reason", "final_action", "final_reason", "risk_allowed", "risk_reason"])
       ?? check("venue", VENUES.includes(String(r.venue)));
   }
-  if (table in TWIN_SIDE_TABLES) {
-    const unknown = Object.keys(r).find((c) => !TWIN_SIDE_TABLES[table].columns.includes(c));
+  const side = twinSide(table);
+  if (side) {
+    const unknown = Object.keys(r).find((c) => !side.columns.includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     return check("id", r.id === 1) ?? notNull(["state"]);
+  }
+  if (table === "agent_quote_twin_specs") {
+    const unknown = Object.keys(r).find((c) => !TWIN_SPECS_COLUMNS.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    const id = String(r.id);
+    return notNull(["id", "display_name", "display_order", "engine", "capital_gbp", "gov", "start", "table_prefix", "lease", "prereg", "migration", "enabled"])
+      ?? check("id", /^[a-z][a-z0-9]{0,15}$/.test(id))
+      ?? check("engine", ["pr5", "ruled-d"].includes(String(r.engine)))
+      ?? check("capital_gbp", Number(r.capital_gbp) > 0)
+      ?? check("gov", ["account", "variant-keys"].includes(String(r.gov)))
+      ?? check("rules", r.rules == null || (typeof r.rules === "object" && !Array.isArray(r.rules)))
+      ?? check("backfill", r.backfill == null || ["file", "sha256", "until"].every((k) => k in (r.backfill as Row)))
+      // Its two two-column checks are unnamed in 0088, so Postgres calls them `…_check` and `…_check1`.
+      ?? (r.table_prefix === `agent_quote_twin_${id}` ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
+      ?? (r.lease === `quotes-twin-${id}` ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
   }
   if (isLiveQuoteTable(table)) {
     const shape = liveQuoteShape(table);
@@ -722,7 +743,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (!select) return Promise.resolve(rows.map((r) => ({ ...r })) as any);
       const items = selectItems(select);
       // A path's base column must exist, as PostgREST refuses one that does not.
-      const known = LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? TWIN_SIDE_TABLES[table]?.columns;
+      const known = LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? twinSide(table)?.columns ?? (table === "agent_quote_twin_specs" ? TWIN_SPECS_COLUMNS : undefined);
       const missing = known && items.find((i) => i.keys.length && !known.includes(i.base));
       if (missing) return refuse("select", table, `column ${missing.base} does not exist`);
       // deno-lint-ignore no-explicit-any
@@ -791,7 +812,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // checks the row as stored, and refuses an ON CONFLICT that names no unique key; so does this.
       const keys = onConflict.split(",");
       if ((table in QUOTE_TABLES && onConflict !== QUOTE_TABLES[table].key) || (isLiveQuoteTable(table) && onConflict !== liveQuoteKey(table))
-        || (table in TWIN_SIDE_TABLES && onConflict !== TWIN_SIDE_TABLES[table].key)
+        || (twinSide(table) && onConflict !== twinSide(table)?.key)
         || (table in PMRW_TABLES && onConflict !== PMRW_TABLES[table].key) || (table in VIEWS_TABLES && onConflict !== VIEWS_TABLES[table].key)
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
         || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)

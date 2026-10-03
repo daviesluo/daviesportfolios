@@ -13,19 +13,20 @@
 //                             (quotes_live.ts, 0052), in dry-run until
 //                             `agent_quote_live_config` says otherwise.
 //                             pg_cron every minute. Cron or admin.
-//   POST ?action=quotesv    — "Stablecoin quotes variant-1" (quotes_variant.ts,
+//   POST ?action=quotesv    — PR5V's paper test (quotes_variant.ts,
 //                             0071): PR5's stored minutes replayed through
 //                             the variant's rule in two arms, into its own
 //                             tables. Reads the database only. Every minute,
 //                             in the one job. Cron or admin.
-//   POST ?action=quotesd    — "Stablecoin quotes variant-2" (quotes_ruled.ts,
+//   POST ?action=quotesd    — rule D's paper test (quotes_ruled.ts,
 //                             0072): the same decision function with rule D on
 //                             variant-1's own rate, its own tables. Reads the
 //                             database only. Every minute.
 //   POST ?action=quotestwins — the realistic twins of PR5's live executor
-//                             (quotes_twin.ts, 0087): its own code on simulated
-//                             accounts, "Stablecoin quotes" and "…variant-2" on
-//                             TESTING. Reads the database only. Every minute.
+//                             (quotes_twin.ts, 0087, 0088): its own code on
+//                             simulated accounts, "Stablecoin quotes",
+//                             "…variant-1" and "…variant-3" on TESTING. Reads
+//                             the database only. Every minute.
 //   POST ?action=quotes-convert — the one-off GBP → USDC / USDT conversion
 //                             that gives the ask rungs inventory: `{ book,
 //                             gbp, send }`. Without `send: true` it returns
@@ -152,7 +153,7 @@ import {
 } from "./quotes_live.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
-import { runQuotesTwins, TWIN_IDS, TWINS, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
+import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
 import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
@@ -783,8 +784,8 @@ type QuoteRuledStateRow = {
 };
 
 /**
- * "Stablecoin quotes variant-2" (`quotes_ruled.ts`) for the page. Arm `d`, the one its pre-registration judges, in the
- * shape of PR5's `quotes`, on the $3,600 its quotes lock. Beside it, each key's POSTs today and the deviation check
+ * Rule D's paper test (`quotes_ruled.ts`; "variant-2" in its pre-registration, off the page since 0087) for the payload.
+ * Arm `d`, the one its pre-registration judges, in the shape of PR5's `quotes`, on the $3,600 its quotes lock. Beside it, each key's POSTs today and the deviation check
  * against PR5V's arm `main` (`checkMaxUsd`, `checkDays`). Arm `v1` is not shown. Null until the engine has saved a state.
  */
 export function quotesRuledSummary(input: {
@@ -1634,9 +1635,13 @@ async function dashboard(now: number) {
   // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
   const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
   const quoteIndexRead = quoteTickersRead.then((rows) => liveIndexPrices(rows, now));
-  // The realistic twins (`0087`): TESTING's "Stablecoin quotes" and "…variant-2", each the live executor's record on a
-  // simulated account, read beside the rest; a twin not loaded yet, or a read that fails, is no row.
-  const quotesTwinsRead = quoteTickersRead.then((tickers) => Promise.all(TWIN_IDS.map((id) => readQuotesTwin(d, TWINS[id], now, dayStartMs, tickers))));
+  // The realistic twins: the enabled rows of `agent_quote_twin_specs` (0088) in their order, TESTING's "Stablecoin quotes",
+  // "…variant-1" (p50) and "…variant-3" (d), each the live executor's record on a simulated account, read beside the rest;
+  // a twin not loaded yet, or a read that fails, is no row (and the spec table unread, no twin).
+  const quotesTwinsRead = quoteTickersRead.then(async (tickers) => {
+    const { specs } = await twinSpecs(d).catch(() => ({ specs: [] as TwinSpec[] }));
+    return Promise.all(specs.map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
+  });
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
@@ -1652,7 +1657,7 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
-  // "Stablecoin quotes variant-2" (`0072`), read beside the variant: its own tables. A failed read leaves the page as it is.
+  // Rule D's paper test (`0072`), read beside the variant: its own tables. A failed read leaves the page as it is.
   const quotesRuledRead = (async () => {
     try {
       const st = await d.select<QuoteRuledStateRow>("agent_quoted_state", "id=eq.1&select=state,last_minute,updated_at,last_error");
@@ -1780,14 +1785,14 @@ async function dashboard(now: number) {
     jev24h: jevStats(decisions24h),
     /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
     quotes,
-    /** "Stablecoin quotes variant-1" on paper (`0071`, reference §4 item 45): arm main in `quotes`' shape; null until it has run. */
+    /** PR5V on paper (`0071`, reference §4 item 45; off the page since 0087): arm main in `quotes`' shape; null until it has run. */
     quotesVariant,
-    /** "Stablecoin quotes variant-2" on paper (`0072`, reference §4 item 47): arm d in `quotes`' shape; null until it has run. */
+    /** Rule D on paper (`0072`, reference §4 item 47; off the page since 0087): arm d in `quotes`' shape; null until it has run. */
     quotesRuled,
     /**
-     * The realistic twins of PR5's live executor (`0087`, quotes_twin.ts): TESTING's "Stablecoin quotes" (PR5's rule) and
-     * "Stablecoin quotes variant-2" (rule D), each in the live executor's shape (`quotesLiveSummary`, its `detail`) with
-     * `twin`; a twin not yet loaded is null.
+     * The realistic twins of PR5's live executor (`0087`, `0088`, quotes_twin.ts), in the page's order: TESTING's
+     * "Stablecoin quotes" (PR5's rule), "…variant-1" (PR5's rule at £50 a rung) and "…variant-3" (rule D), each in the
+     * live executor's shape (`quotesLiveSummary`, its `detail`) with `twin`; a twin not yet loaded is null.
      */
     quotesTwins: await quotesTwinsRead,
     /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */

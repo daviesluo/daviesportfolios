@@ -119,8 +119,8 @@ places stay when the number is not whole.
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
-  the two Stablecoin quotes rows and every Reward quotes row with the other strategies. Then a card per exchange —
-  Revolut X in blue, which on TESTING includes the two Stablecoin quotes rows, and on
+  every Stablecoin quotes row and every Reward quotes row with the other strategies. Then a card per exchange —
+  Revolut X in blue, which on TESTING includes the Stablecoin quotes rows, and on
   TESTING Polymarket in its blue, whose card is its Reward quotes rows
   added together — showing the same figures for
   that exchange in two groups: what it holds (funded, deployed, today)
@@ -204,13 +204,21 @@ places stay when the number is not whole.
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.
-- **Stablecoin quotes variant-1.** Right after it: the same, for the rule
-  with nine rungs a side, from 0.03 % to 0.3 %, whose quotes move at every
-  0.03 % move of fair, an entry only once fair has moved at least a third of
-  its rung's distance: on £1,800, £50 a rung, from 28 Sep. Its page is the
-  same, with nine rungs a side in each book. The name in the table is two
-  lines, and the first is the whole of "Stablecoin quotes". The paper test of
-  that rule keeps running behind the page until its reading.
+- **Stablecoin quotes variant-1.** Right after it, since 3 Oct: the same
+  rule and the same quotes, on £600, £50 a rung, so that what the size of a
+  rung changes can be read beside it. Its record starts with the quote
+  test's first minute too; its page is the same, with £50 rungs. Each
+  variant is the same page with its own figures, and the variants are listed
+  in the table of twin variants in the agents' reference.
+- **Stablecoin quotes variant-3.** After it (called variant-1 until 3 Oct):
+  the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
+  quotes move at every 0.03 % move of fair, an entry only once fair has moved
+  at least a third of its rung's distance: on £1,800, £50 a rung, from
+  28 Sep. Its page is the same, with nine rungs a side in each book. A
+  variant's name in the table is two lines, and the first is the whole of
+  "Stablecoin quotes". The paper test of that rule keeps running behind the
+  page until its reading. There is no variant-2 yet: the name waits for a
+  test to come.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

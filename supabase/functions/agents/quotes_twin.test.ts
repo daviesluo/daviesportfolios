@@ -6,12 +6,13 @@
 // (its sha256 checked) and the record continuing from it as the twin's own would have — and that no turn reaches a
 // network or writes a table that is not the twin's.
 
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { newBookState, QUOTE_BOOKS, stepMinute, type BookState, type Print, type QuoteBook } from "./quotes.ts";
 import { printOrder } from "./quotes_variant.ts";
 import { memDb, type Row } from "./testing.ts";
 import {
-  loadTwinBackfill, runQuotesTwins, stampTs, TWIN_READS, twinBackfillOf, twinWrites, TWINS, type TwinBackfill, type TwinDriverState, type TwinSpec,
+  loadTwinBackfill, runQuotesTwins, specFromRow, stampTs, TWIN_IDS, TWIN_READS, TWIN_SPEC_ROWS, twinBackfillOf, twinSpecs, twinWrites, TWINS,
+  type TwinBackfill, type TwinDeps, type TwinDriverState, type TwinSpec, type TwinSpecRow,
 } from "./quotes_twin.ts";
 import type { Db } from "./db.ts";
 
@@ -23,8 +24,11 @@ const KEY = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign"
 const SPEC: TwinSpec = { ...TWINS.pr5, start: T0 };
 const ORDERS = SPEC.instance.orders;
 
-/** A world: PR5's record as its call leaves it, minute by minute, and the twin's call a minute behind it. */
-function world(seed?: Record<string, Row[]>) {
+/**
+ * A world: PR5's record as its call leaves it, minute by minute, and the twins' call a minute behind it. `specs` are the
+ * twins it may hold (their tables and leases); a call runs `specs` unless it names others.
+ */
+function world(seed?: Record<string, Row[]>, specs: TwinSpec[] = [SPEC]) {
   const clock = { now: T0 };
   const inputs: Row[] = [];
   for (let t = T0 - 2 * H; t <= T0 + 30 * H; t += M) inputs.push({ kind: "fx", t: iso(t), value: X });
@@ -32,7 +36,7 @@ function world(seed?: Record<string, Row[]>) {
   // The last print before the start: a seller at 0.7553 on each book (the touch it implies: bid 0.7553, ask 0.7554).
   const seedPrint = (book: QuoteBook): Row => ({ id: `s-${book}`, book, ts: iso(T0 - 30e3), price: 0.7553, qty: 10, side: "sell" });
   const mem = memDb(seed ?? {
-    agent_locks: [{ name: "quotes-twins", lease_until: iso(0), holder: null }, { name: SPEC.instance.lease, lease_until: iso(0), holder: null }],
+    agent_locks: [{ name: "quotes-twins", lease_until: iso(0), holder: null }, ...specs.map((s) => ({ name: s.instance.lease, lease_until: iso(0), holder: null }))],
     agent_risk: [{ id: 1, global_pause: false }],
     agent_quote_state: [], agent_quote_minutes: [], agent_quote_prints: QUOTE_BOOKS.map(seedPrint), agent_quote_inputs: inputs, agent_quote_events: [],
     agent_quoted_state: [], agent_quoted_events: [], edge_call_beats: [],
@@ -40,14 +44,14 @@ function world(seed?: Record<string, Row[]>) {
   // PR5's engine, as its call steps it: the same `stepMinute`, from the last print before the start.
   const seedOf = (b: QuoteBook): Print => ({ id: `s-${b}`, ts: T0 - 30e3, ticks: 7553, qty: 10, side: "sell" });
   const books = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, seedOf(b))])) as Record<QuoteBook, BookState>;
-  // The twin may touch its own tables, its two leases, and read PR5's record and the risk row; nothing else.
-  const allowed = new Set([...twinWrites(SPEC), "agent_locks", ...TWIN_READS]);
+  // The twins may touch their own tables, their leases, and read PR5's record and the risk row; nothing else.
+  const allowed = new Set([...specs.flatMap(twinWrites), "agent_locks", ...TWIN_READS]);
   const readOnly = new Set(TWIN_READS);
   const touched = new Set<string>();
   const guard = (method: string, t: string, q = "") => {
     if (!allowed.has(t)) throw new Error(`the twin touched ${t} (${method})`);
     if (readOnly.has(t) && method !== "select") throw new Error(`the twin wrote ${t} (${method})`);
-    if (t === "agent_locks" && method !== "select" && !(q.includes("name=eq.quotes-twins") || q.includes(`name=eq.${SPEC.instance.lease}`))) throw new Error(`the twin took a lease not its own: ${q}`);
+    if (t === "agent_locks" && method !== "select" && !(q.includes("name=eq.quotes-twins") || specs.some((s) => q.includes(`name=eq.${s.instance.lease}`)))) throw new Error(`the twin took a lease not its own: ${q}`);
     touched.add(t);
   };
   const db: Db = {
@@ -78,12 +82,12 @@ function world(seed?: Record<string, Row[]>) {
       await mem.db.upsert("agent_quote_state", [{ id: 1, state: { fetchedTo }, last_minute: iso(t), updated_at: iso(t + M + 27e3), last_error: null }], "id");
     },
     /** The twins' call in minute t + 1, 38 s in. */
-    call(t: number) {
+    call(t: number, extra: Partial<TwinDeps> = {}, list: TwinSpec[] = specs) {
       clock.now = t + M + 38e3;
-      return runQuotesTwins({ db, now: clock.now, holder: `h${clock.now}`, signingKey: KEY, clock: () => clock.now }, [SPEC]);
+      return runQuotesTwins({ db, now: clock.now, holder: `h${clock.now}`, signingKey: KEY, clock: () => clock.now, ...extra }, list);
     },
-    orders: () => (mem.tables[ORDERS] ?? []) as Row[],
-    driver: () => ((mem.tables[SPEC.sim] ?? [])[0]?.state ?? null) as TwinDriverState | null,
+    orders: (s: TwinSpec = SPEC) => (mem.tables[s.instance.orders] ?? []) as Row[],
+    driver: (s: TwinSpec = SPEC) => ((mem.tables[s.sim] ?? [])[0]?.state ?? null) as TwinDriverState | null,
   };
   return w;
 }
@@ -232,4 +236,191 @@ Deno.test("stampTs stamps the turn's instant on the orders it writes and counts 
   // One recorded refused and never sent is not counted.
   await db.update(ORDERS, `id=eq.${a.id}`, { state: "rejected", response: { wouldBeRefused: true } });
   assertEquals(n, 1);
+});
+
+// ------------------------------------------------------------------ deviation 1 (2026-10-03): the twins are rows (0088), p50 the first new one, d renamed "variant-3"
+
+Deno.test("deviation 1 makes the twins rows: pr5's and d's specs are what was frozen (d's page name alone moved), and p50 is pr5's at £600 on tables of its own", () => {
+  // A spec as plain data: its key function by what it answers for each book and side (a conversion has none).
+  const keys = (s: TwinSpec) => QUOTE_BOOKS.flatMap((b) => (["bid", "ask", null] as const).map((x) => s.instance.govKey(b, x)));
+  const plain = (s: TwinSpec) => {
+    const { backfill: _bf, ...rest } = s;
+    return { ...rest, instance: { ...s.instance, rungs: [...s.instance.rungs], govKey: keys(s) } };
+  };
+  const tables = (id: string) => ({
+    config: `agent_quote_twin_${id}_config`, orders: `agent_quote_twin_${id}_orders`, events: `agent_quote_twin_${id}_events`,
+    state: `agent_quote_twin_${id}_state`, paper: `agent_quote_twin_${id}_paper`,
+  });
+  // pr5 and d as quotes_twin.ts held them when the twins' pre-registration froze it (sha256 921ce33a…): every field, no
+  // other; d's page name alone moved, "variant-1" to "variant-3" (Davies, 2026-10-03, deviation 1).
+  assertEquals(plain(TWINS.pr5), {
+    id: "pr5", name: "Stablecoin quotes", engine: "pr5", sim: "agent_quote_twin_pr5_sim", capitalGbp: 1200, start: Date.parse("2026-09-23T15:09:00Z"),
+    instance: { ...tables("pr5"), migration: "0087", lease: "quotes-twin-pr5", rungs: [0.001, 0.002, 0.003], exitReprice: 0.0005, govKey: Array(6).fill("account") },
+  });
+  assertEquals(plain(TWINS.d), {
+    id: "d", name: "Stablecoin quotes variant-3", engine: "ruled-d", sim: "agent_quote_twin_d_sim", capitalGbp: 1800, start: Date.parse("2026-09-28T00:00:00Z"),
+    instance: {
+      ...tables("d"), migration: "0087", lease: "quotes-twin-d", rungs: [0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003], exitReprice: 0.0003,
+      govKey: ["USDC-GBP/bid", "USDC-GBP/ask", "USDC-GBP/ask", "USDT-GBP/bid", "USDT-GBP/ask", "USDT-GBP/ask"],
+    },
+  });
+  // p50: pr5's spec but for its id, page name, tables and lease, its migration and its £600.
+  assertEquals(plain(TWINS.p50), {
+    ...plain(TWINS.pr5), id: "p50", name: "Stablecoin quotes variant-1", sim: "agent_quote_twin_p50_sim", capitalGbp: 600,
+    instance: { ...plain(TWINS.pr5).instance, ...tables("p50"), migration: "0088", lease: "quotes-twin-p50" },
+  });
+  // The page's order, variant-1 above variant-3, which the call runs them in.
+  assertEquals(TWIN_IDS, ["pr5", "p50", "d"]);
+  // £50 a rung: the capital over two books, two sides and three rungs, as the executor's `rungGbp` divides it.
+  assertEquals(TWINS.p50.capitalGbp / (QUOTE_BOOKS.length * 2 * TWINS.p50.instance.rungs.length), 50);
+  // The backfills, each its row's now: pr5's and d's as frozen (`TWIN_BACKFILLS` then), p50's beside them, to the same minute.
+  assertEquals(TWINS.pr5.backfill, { file: "docs/agents/backtests/twins/pr5.json.gz", sha256: "f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98", until: "2026-10-02T21:05:00.000Z" });
+  assertEquals(TWINS.d.backfill, { file: "docs/agents/backtests/twins/d.json.gz", sha256: "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392", until: "2026-10-02T21:05:00.000Z" });
+  assertEquals([TWINS.p50.backfill?.file, TWINS.p50.backfill?.until], ["docs/agents/backtests/twins/p50.json.gz", "2026-10-02T21:05:00.000Z"]);
+});
+
+/** A spec row for the tests: p50's, under another id, its tables and lease named by it. */
+const rowAs = (id: string, o: Partial<TwinSpecRow> = {}): TwinSpecRow => ({
+  ...TWIN_SPEC_ROWS[1], id, display_name: `T ${id}`, table_prefix: `agent_quote_twin_${id}`, lease: `quotes-twin-${id}`, ...o,
+});
+
+Deno.test("twinSpecs: the table's enabled rows in their order; a row this code cannot carry out is refused with why; before 0088, 0087's twins", async () => {
+  const mem = memDb({
+    agent_quote_twin_specs: [
+      rowAs("zz", { display_order: 50 }), ...TWIN_SPEC_ROWS, rowAs("off", { display_order: 15, enabled: false }),
+      rowAs("take", { display_order: 30, rules: { take: { bps: 5 } } }), rowAs("eng", { display_order: 45, engine: "nope" as TwinSpecRow["engine"] }),
+    ],
+  }, { now: () => T0 });
+  const r = await twinSpecs(mem.db);
+  assertEquals(r.specs.map((s) => s.id), ["pr5", "p50", "d", "zz"]);
+  assertEquals(r.specs.slice(0, 3), [TWINS.pr5, TWINS.p50, TWINS.d]);
+  assertEquals(r.refused, [{ id: "take", why: "twin take: no code for its rule take" }, { id: "eng", why: "twin eng: no engine nope" }]);
+  // The table not there yet (the function deployed before 0088 applied): the twins 0087 made, and nothing else.
+  const absent = (t: string) => Promise.reject(new Error(`db GET ${t} → 404: {"code":"PGRST205","message":"Could not find the table 'public.${t}' in the schema cache"}`));
+  assertEquals((await twinSpecs({ ...mem.db, select: (t, q) => (t === "agent_quote_twin_specs" ? absent(t) : mem.db.select(t, q)) })).specs, [TWINS.pr5, TWINS.d]);
+  // Any other failure is the call's: it runs no twin on a guess.
+  await assertRejects(() => twinSpecs({ ...mem.db, select: () => Promise.reject(new Error("db GET agent_quote_twin_specs → 503")) }), Error, "503");
+});
+
+Deno.test("the call runs the spec table's rows: a row it cannot carry out is reported, and the others turn", async () => {
+  const w = world();
+  w.mem.tables.agent_quote_twin_specs = [{ ...TWIN_SPEC_ROWS[0], start: iso(T0) }, rowAs("take", { display_order: 5, rules: { take: {} } })];
+  await w.pr5(T0);
+  w.clock.now = T0 + M + 38e3;
+  const r = await runQuotesTwins({ db: w.db, now: w.clock.now, holder: "h", signingKey: KEY, clock: () => w.clock.now });
+  assertEquals(r.twins.map((t) => [t.twin, t.skipped ?? null, t.errors, t.turns]), [["take", "its spec row is not one this code carries out", ["twin take: no code for its rule take"], 0], ["pr5", null, [], 1]]);
+  assert(w.orders().some((o) => o.leg === "entry"), "pr5's twin quoted");
+});
+
+Deno.test("the in-memory database knows every twin's tables and holds each to 0087's rules, as Postgres holds 0088's", async () => {
+  for (const s of [...TWIN_IDS.map((id) => TWINS[id]), specFromRow(rowAs("zz"))]) {
+    const I = s.instance, id = s.id;
+    const mem = memDb({}, { now: () => T0 });
+    const order = { mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", price: 0.7546, base_size: 132.5, client_order_id: crypto.randomUUID() };
+    const [row] = await mem.db.insert<Row>(I.orders, order, true);
+    // 0052's defaults, as a real insert stores them.
+    assertEquals([row.state, Number(row.filled_base), Number(row.fee_gbp), row.venue_order_id], ["pending", 0, 0, null], id);
+    const again = () => ({ ...order, client_order_id: crypto.randomUUID() });
+    await assertRejects(() => mem.db.insert(I.orders, { ...again(), leg: "bogus" }), Error, `${I.orders}_leg_check`);
+    await assertRejects(() => mem.db.insert(I.orders, { ...again(), k: 0.002, rung_side: null }), Error, `${I.orders}_check"`);
+    await assertRejects(() => mem.db.insert(I.orders, again()), Error, `${I.orders}_one_open_per_rung`);
+    await assertRejects(() => mem.db.insert(I.orders, { ...order, k: 0.003 }), Error, `${I.orders}_client_order_id_key`);
+    await assertRejects(() => mem.db.upsert(I.events, [{ mode: "live", minute: iso(T0), book: "-", rung_side: "-", k: 0, kind: "bogus", detail: {} }], "mode,minute,book,rung_side,k,kind"), Error, `${I.events}_kind_check`);
+    await assertRejects(() => mem.db.upsert(I.config, [{ id: 1, dry_run: false, capital_gbp: 0 }], "id"), Error, `${I.config}_capital_gbp_check`);
+    for (const t of [I.paper, s.sim]) {
+      await assertRejects(() => mem.db.upsert(t, [{ id: 2, state: {} }], "id"), Error, `${t}_id_check`);
+      await assertRejects(() => mem.db.upsert(t, [{ id: 1, state: {} }], "state"), Error, "ON CONFLICT");
+      // A path into a column the table does not have (as `fetched:state->fetchedTo` reads one it has).
+      await assertRejects(() => mem.db.select(t, "id=eq.1&select=x:nonsense->a"), Error, "column nonsense does not exist");
+    }
+  }
+  // The spec table's own checks (0088): a row on another twin's tables or lease, or with an engine or keys the code lacks.
+  const mem = memDb({}, { now: () => T0 });
+  const T = "agent_quote_twin_specs";
+  await assertRejects(() => mem.db.insert(T, rowAs("x", { table_prefix: "agent_quote_twin_pr5" })), Error, `${T}_check"`);
+  await assertRejects(() => mem.db.insert(T, rowAs("x", { lease: "quotes-twin-pr5" })), Error, `${T}_check1"`);
+  await assertRejects(() => mem.db.insert(T, rowAs("x", { engine: "take" as TwinSpecRow["engine"] })), Error, `${T}_engine_check`);
+  await assertRejects(() => mem.db.insert(T, rowAs("x", { gov: "two" as TwinSpecRow["gov"] })), Error, `${T}_gov_check`);
+  await assertRejects(() => mem.db.insert(T, rowAs("X-1", { table_prefix: "agent_quote_twin_X-1", lease: "quotes-twin-X-1" })), Error, `${T}_id_check`);
+  await assertRejects(() => mem.db.insert(T, rowAs("x", { capital_gbp: 0 })), Error, `${T}_capital_gbp_check`);
+});
+
+Deno.test("a twin added later costs the running ones nothing: the call that loads its backfill turns them, and its missing tables stop none", async () => {
+  const P50: TwinSpec = { ...TWINS.p50, start: T0 };
+  const pr5Tables = ["agent_risk", "agent_quote_state", "agent_quote_minutes", "agent_quote_prints", "agent_quote_inputs", "agent_quote_events", "agent_quoted_state", "agent_quoted_events", "edge_call_beats"];
+  const locks = (specs: TwinSpec[]) => [{ name: "quotes-twins", lease_until: iso(0), holder: null }, ...specs.map((s) => ({ name: s.instance.lease, lease_until: iso(0), holder: null }))];
+  // A: PR5's record and its twin alone, minute by minute. C: p50 alone on the same record, whose tables at its fifth
+  // minute become the backfill the others load. B and E: PR5's twin from the start, and p50 from minute 6, as a
+  // deploy adds it: B's tables are there from the start; E's are missing until minute 8, as before a migration applies.
+  const a = world();
+  const c = world({ agent_locks: locks([P50]) }, [P50]);
+  const b = world({ agent_locks: locks([SPEC, P50]) }, [SPEC, P50]);
+  const e = world({ agent_locks: locks([SPEC, P50]) }, [SPEC, P50]);
+  let missing = true;
+  const gone = (t: string) => missing && t.startsWith("agent_quote_twin_p50_");
+  const absent = (t: string) => Promise.reject(new Error(`db GET ${t} → 404: {"code":"PGRST205","message":"Could not find the table 'public.${t}' in the schema cache"}`));
+  const eDb: Db = {
+    select: (t, q) => (gone(t) ? absent(t) : e.db.select(t, q)), selectAll: (t, q) => (gone(t) ? absent(t) : e.db.selectAll(t, q)),
+    insert: (t, r, x) => (gone(t) ? absent(t) : e.db.insert(t, r, x)), upsert: (t, r, k) => (gone(t) ? absent(t) : e.db.upsert(t, r, k)),
+    update: (t, q, p) => (gone(t) ? absent(t) : e.db.update(t, q, p)), claim: (t, q, p) => (gone(t) ? absent(t) : e.db.claim(t, q, p)),
+  };
+  const tape = (t: number) => {
+    if ((t - T0) / M % 3 === 1) a.print("USDC-GBP", t + 40e3, 0.7550, 150, "sell");
+    if ((t - T0) / M % 5 === 2) a.print("USDT-GBP", t + 20e3, 0.7551, 220, "sell");
+    // A seller through the 0.1 % bids at minute 6: the turn the load's call must not cost fills, exits and quotes again.
+    if (t === T0 + 6 * M) for (const book of ["USDC-GBP", "USDT-GBP"] as const) a.print(book, t + 30e3, 0.7540, 400, "sell");
+  };
+  const copy = (w: ReturnType<typeof world>) => { for (const name of pr5Tables) w.mem.tables[name] = JSON.parse(JSON.stringify(a.mem.tables[name] ?? [])); };
+  let bf: TwinBackfill | null = null, gz: Uint8Array | null = null;
+  const fake = (() => Promise.resolve(new Response(gz!))) as typeof fetch;
+  type R = Awaited<ReturnType<typeof runQuotesTwins>>;
+  const reports: Record<string, R> = {};
+  for (let t = T0; t < T0 + 11 * M; t += M) {
+    const minute = (t - T0) / M;
+    tape(t);
+    await a.pr5(t);
+    copy(b);
+    copy(e);
+    await a.call(t);
+    if (minute <= 5) {
+      copy(c);
+      await c.call(t);
+      // Before the deploy, B and E run PR5's twin alone.
+      await b.call(t, {}, [SPEC]);
+      await e.call(t, {}, [SPEC]);
+      continue;
+    }
+    if (!bf) {
+      const data = twinBackfillOf(P50, T0 + 5 * M, {
+        config: c.mem.tables[P50.instance.config] as Row[], orders: c.orders(P50), events: (c.mem.tables[P50.instance.events] ?? []) as Row[],
+        state: c.mem.tables[P50.instance.state] as Row[], paper: c.mem.tables[P50.instance.paper] as Row[], sim: c.mem.tables[P50.sim] as Row[],
+      });
+      gz = new Uint8Array(await new Response(new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+      const sha = [...new Uint8Array(await crypto.subtle.digest("SHA-256", gz))].map((x) => x.toString(16).padStart(2, "0")).join("");
+      bf = { file: "docs/agents/backtests/twins/p50.json.gz", sha256: sha, until: iso(T0 + 5 * M) };
+    }
+    if (minute === 8) missing = false;                // E's migration applies
+    const deployed: Partial<TwinDeps> = { fetch: fake, backfills: { p50: bf } };
+    reports[`b${minute}`] = await b.call(t, deployed);
+    e.clock.now = t + M + 38e3;
+    reports[`e${minute}`] = await runQuotesTwins({ db: eDb, now: e.clock.now, holder: `h${e.clock.now}`, signingKey: KEY, clock: () => e.clock.now, ...deployed }, [SPEC, P50]);
+    // PR5's twin is A's, order for order and turn for turn, in both: p50 cost it nothing.
+    for (const w of [b, e]) {
+      assertEquals(w.orders().map(shape), a.orders().map(shape), `minute ${minute}`);
+      assertEquals([w.driver()?.turns, w.driver()?.venue.lastTurnAt], [a.driver()?.turns, a.driver()?.venue.lastTurnAt], `minute ${minute}`);
+    }
+  }
+  const twin = (key: string, id: string) => reports[key].twins.find((x) => x.twin === id);
+  // B: minute 6's call loads p50's backfill and turns PR5's twin; from minute 7 both turn, p50 from its own record.
+  assertEquals([reports.b6.skipped, twin("b6", "p50")?.skipped, twin("b6", "pr5")?.turns], ["a backfill was loaded this call", `its backfill to ${iso(T0 + 5 * M)} is loaded; it catches up from there`, 1]);
+  assertEquals([twin("b7", "p50")?.turns, twin("b7", "pr5")?.turns], [1, 1]);
+  assertEquals(b.driver(P50)?.origin, { kind: "backfill", file: bf!.file, sha256: bf!.sha256, until: T0 + 5 * M, loadedAt: T0 + 7 * M + 38e3 });
+  // E: while its tables are missing, p50 says so and does nothing, and PR5's twin turns; once they are there it
+  // loads, then turns.
+  for (const k of ["e6", "e7"]) {
+    assertEquals([twin(k, "p50")?.skipped, /PGRST205/.test(String(twin(k, "p50")?.errors[0])), twin(k, "pr5")?.turns, twin(k, "pr5")?.errors], ["its record cannot be read", true, 1, []]);
+  }
+  assertEquals([twin("e8", "p50")?.skipped?.startsWith("its backfill to"), twin("e8", "pr5")?.turns, twin("e9", "p50")?.turns], [true, 1, 1]);
+  assert(b.orders(P50).length > 0 && e.orders(P50).length > 0, "p50 quoted after its load in both, or the comparison proves less");
+  assert(a.orders().some((o) => o.leg === "entry" && Number(o.filled_base) > 0 && Date.parse(String(o.filled_at ?? o.ts)) >= T0 + 6 * M), "PR5's twin filled from minute 6, or the comparison proves less");
 });

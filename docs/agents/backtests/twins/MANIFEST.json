@@ -1,13 +1,15 @@
 {
- "study": "The realistic twins of PR5's live executor: each twin's record from its engine's first minute to 2026-10-02 21:05 UTC, computed by the production code on PR5's stored record (not a test with a verdict; docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md)",
- "write_up": "docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md; reference §4 item 51",
+ "study": "The realistic twins of PR5's live executor: each twin's record from its engine's first minute to 2026-10-02 21:05 UTC, computed by the production code on PR5's stored record (not a test with a verdict; docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md). Since 2026-10-03 each twin is a row of agent_quote_twin_specs (0088), whose backfill the row pins; p50's, 'Stablecoin quotes variant-1', is the first added that way (docs/agents/reviews/2026-10-03-pr5-size-twin-prereg.md)",
+ "write_up": "docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md (its deviation 1 adds p50); docs/agents/reviews/2026-10-03-pr5-size-twin-prereg.md; reference §4 item 51",
  "run": [
-  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts pr5  # -> ../pr5.json.gz (the bytes TWIN_BACKFILLS pins)",
-  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts d  # -> ../d.json.gz; prints no figure of its results (rule D's no-peek)"
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts pr5  # -> ../pr5.json.gz (the bytes its spec row pins)",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts d  # -> ../d.json.gz; prints no figure of its results (rule D's no-peek)",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts p50  # -> ../p50.json.gz, 'Stablecoin quotes variant-1' (PR5's rule at £600): the size study's s50 run, figure for figure",
+  "backfill.ts <id> builds any twin of the spec rows the migrations insert (spec_rows.ts reads them), a later variant's too"
  ],
  "sources": {
   "inputs/twins_inputs.json.gz": "production, SELECT only, 2026-10-02 21:08:45 UTC, every row before 21:08:00: agent_quote_prints (id|book|ms|price|qty|side), agent_quote_inputs (kind|ms|value), agent_quote_minutes (book|ms|x|x_t|fair_u|hours_n|prints_n, and book|ms|recorded_at), agent_quote_events (book, ms, side, k, kind, ticks, detail; tab-separated), agent_quoted_events of arm d, kinds order/refused/withdraw only (book|ms|side|k|kind|what|ticks|oid|leg|why), and the minutes of edge_call_beats for agents?action=quotes; each read with its md5, which matched",
-  "pr5.json.gz, d.json.gz": "scripts/backfill.ts on the inputs: each twin's tables as the code left them (orders without their ids), loaded by the agents function's quotestwins call"
+  "pr5.json.gz, d.json.gz, p50.json.gz": "scripts/backfill.ts on the inputs: each twin's tables as the code left them (orders without their ids), loaded by the agents function's quotestwins call; pr5.json.gz and p50.json.gz built again on the code of 2026-10-03 (the twins as rows, 0088) to the same bytes"
  },
  "committed": {
   "inputs/twins_inputs.json.gz": {
@@ -22,9 +24,17 @@
    "bytes": 696874,
    "sha256": "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392"
   },
+  "p50.json.gz": {
+   "bytes": 285094,
+   "sha256": "f94c9ebecb6a757498fa39f25a2e9907c4e0e4a00f008a16dda17f25335a7bc8"
+  },
   "scripts/backfill.ts": {
-   "bytes": 6012,
-   "sha256": "f60d42da751c6beaaa1f932a3da6bd2b12c63bacf716eb183c6e7f481afa661c"
+   "bytes": 6260,
+   "sha256": "0b29109946f664c5785e943da05edc5fed79cea8151d616e041a7c1254391d98"
+  },
+  "scripts/spec_rows.ts": {
+   "bytes": 1423,
+   "sha256": "b592f05fdc898c381348c613d18e0200f5c808f8833528af30219f264bf968bc"
   }
  }
 }

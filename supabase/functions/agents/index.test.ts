@@ -14,7 +14,7 @@ import {
   liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
 } from "./index.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
-import { TWINS } from "./quotes_twin.ts";
+import { specFromRow, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
 // The realistic twins' fixture: the live fixture's rows run as each twin's tables, and what the dashboard serves for them.
 import twinFixture from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
@@ -1246,38 +1246,51 @@ Deno.test("serveRequest — an action that throws is an agents.crash row naming 
   assertEquals(reports.map((x) => [x.kind, (x.context as { action: string }).action]), [["agents.crash", "tick"]]);
 });
 
-Deno.test("readQuotesTwin: each twin is read as the live account is, at its own capital and rungs, and is the browser test's fixture", async () => {
+Deno.test("readQuotesTwin: each twin of the spec rows is read as the live account is, at its own capital and rungs, and is the browser test's fixture", async () => {
   const live = liveFixture, f = twinFixture;
+  // The fixture's twins are the spec rows it was made from (src/twin_specs.test.js holds them to the migrations'), in the
+  // page's order; each is the live fixture's book run as its tables, at its own capital, beside its driver state.
+  const specs = (f.specs as unknown as TwinSpecRow[]).map(specFromRow);
+  // deno-lint-ignore no-explicit-any
+  const sims = f.sims as Record<string, any>, starts = f.starts as Record<string, string>;
   const answers = [];
-  for (const id of ["pr5", "d"] as const) {
-    const spec = { ...TWINS[id], start: Date.parse(f.starts[id]) };
-    // deno-lint-ignore no-explicit-any
-    const mem = memDb(twinFixtureTables(live, id, f.sims[id] as any), { now: () => f.nowMs });
-    answers.push(await readQuotesTwin(mem.db, spec, f.nowMs, f.dayStartMs, live.tickers));
+  for (const spec of specs) {
+    const mem = memDb(twinFixtureTables(live, spec, sims[spec.id]), { now: () => f.nowMs });
+    answers.push(await readQuotesTwin(mem.db, { ...spec, start: Date.parse(starts[spec.id]) }, f.nowMs, f.dayStartMs, live.tickers));
   }
   // The function's own answer for its rows is what the browser test serves.
   assertEquals(JSON.parse(JSON.stringify(answers)), f.twins);
-  const [pr5, d] = answers as NonNullable<(typeof answers)[number]>[];
+  const read = answers as NonNullable<(typeof answers)[number]>[];
+  const byId = (id: string) => read[specs.findIndex((s) => s.id === id)];
+  const pr5 = byId("pr5"), d = byId("d");
   // PR5's twin on the live account's rows reads exactly as the live account does: every figure of the LIVE row's.
   for (const k of ["capitalGbp", "realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp", "realisedUsd", "todayUsd", "unrealisedUsd", "costUsd", "valueUsd", "feesUsd", "heldRungs", "openOrders", "fills"] as const) {
     assertEquals(pr5[k], live.live[k], k);
   }
   assertEquals(JSON.parse(JSON.stringify(pr5.detail!.trips)), live.live.detail.trips);
   assertEquals(JSON.parse(JSON.stringify(pr5.detail!.books)), live.live.detail.books);
+  // Every twin, from its row alone: its capital (in USD at 1.32) and its loss stop of 1 % of it, its engine's rungs a side
+  // of each book on its page and their size, its keys, its name; and on the same book's fills, the same money as PR5's.
+  for (const [i, t] of read.entries()) {
+    const s = specs[i], n = s.instance.rungs.length;
+    assertEquals([t.twin.id, t.twin.name, t.capitalGbp, t.capitalUsd, t.lossStopGbp, t.detail!.rungs.length, t.twin.rungsASide, t.twin.rungGbp, t.twin.keys],
+      [s.id, s.name, s.capitalGbp, s.capitalGbp * 1.32, -s.capitalGbp / 100, 4 * n, n, s.capitalGbp / (4 * n), s.engine === "pr5" ? 1 : 4], s.id);
+    assertEquals([...new Set(t.detail!.rungs.map((r) => r.k))], [...s.instance.rungs], s.id);
+    for (const k of ["realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp"] as const) assertEquals(t[k], pr5[k], `${s.id} ${k}`);
+  }
   // Rule D's twin: the same fills on its 0.1, 0.2 and 0.3 % rungs, so the same money; its capital £1,800 ($2,376 at 1.32),
   // its loss stop £18, and nine rungs a side of each book on its page.
-  for (const k of ["realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp"] as const) assertEquals(d[k], pr5[k], k);
   assertEquals([d.capitalGbp, d.capitalUsd, d.lossStopGbp, d.detail!.rungs.length], [1800, 1800 * 1.32, -18, 36]);
   assertEquals([...new Set(d.detail!.rungs.map((r) => r.k))], [...RULED_ARMS.d.rungs]);
   // What it says of itself: what it follows, its size and keys, where its record began, its replica's check.
   assertEquals([pr5.twin.name, pr5.twin.rungsASide, pr5.twin.rungGbp, pr5.twin.keys], ["Stablecoin quotes", 3, 100, 1]);
-  assertEquals([d.twin.name, d.twin.rungsASide, d.twin.rungGbp, d.twin.keys], ["Stablecoin quotes variant-1", 9, 50, 4]);
+  assertEquals([d.twin.name, d.twin.rungsASide, d.twin.rungGbp, d.twin.keys], ["Stablecoin quotes variant-3", 9, 50, 4]);
   assertEquals([pr5.twin.origin, pr5.twin.paperCheck?.mismatches, pr5.twin.converting], ["backfill", 0, []]);
   // Its DAYS' orders are its driver's count of what it sent each day: the page reads only the orders that filled or rest.
   assertEquals(pr5.detail!.days.map((x) => [x.day, x.orders]), [["2026-09-17", 18], ["2026-09-16", 6]]);
   // Before its record is loaded (no driver state), there is no row.
   // deno-lint-ignore no-explicit-any
-  const bare = memDb(twinFixtureTables(live, "pr5", { id: 1, state: {}, updated_at: new Date(f.nowMs).toISOString(), last_error: null } as any), { now: () => f.nowMs });
+  const bare = memDb(twinFixtureTables(live, TWINS.pr5, { id: 1, state: {}, updated_at: new Date(f.nowMs).toISOString(), last_error: null } as any), { now: () => f.nowMs });
   assertEquals(await readQuotesTwin(bare.db, TWINS.pr5, f.nowMs, f.dayStartMs, live.tickers), null);
 });
 

@@ -17,11 +17,13 @@ const DRIVER = read('supabase/functions/agents/quotes_twin.ts').toString('utf8')
 const MANIFEST = JSON.parse(read('docs/agents/backtests/twins/MANIFEST.json').toString('utf8'));
 
 describe("the realistic twins' pre-registration", () => {
-  it('names the sha256 of each file it froze, and each file is that one', () => {
+  it('names the sha256 of each file it froze, and each file is that one, quotes_twin.ts as its deviation 1 left it', () => {
     for (const f of ['supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_twin.ts', 'supabase/migrations/0087_quote_twins.sql']) {
-      const named = new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|').exec(DOC)?.[1];
-      expect(named, f).toMatch(/^[0-9a-f]{64}$/);
-      expect(sha(f), f).toBe(named);
+      const named = [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+      // Deviation 1 (2026-10-03, its §12): quotes_twin.ts reads its twins from their rows (0088). §11 keeps the hash it was frozen at,
+      // 921ce33a…; §12 names the file from then on. Every other frozen file is named once, as frozen.
+      if (f.endsWith('/quotes_twin.ts')) expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', sha(f)]);
+      else expect(named, f).toEqual([sha(f)]);
     }
   });
 
@@ -30,13 +32,19 @@ describe("the realistic twins' pre-registration", () => {
     expect(sha('supabase/functions/agents/quotes_live_frozen.ts')).toBe('60d3f33f2bb8d328fe14693d570396afdffcc2cae9b75e05e2d4eed5ea459a52');
   });
 
-  it('pins in the code the backfills the document names, and each committed file is those bytes, to its end', () => {
+  it('pins in the code and the spec rows the backfills the document names, and each committed file is those bytes, to its end', () => {
+    // Since deviation 1 a twin's backfill is its spec row's (`agent_quote_twin_specs`, 0088), and the code's seed rows
+    // carry the same (src/twin_specs.test.js holds the two equal).
+    const seed = JSON.parse(/\/\* spec rows \*\/ (\[[\s\S]*?\]) \/\* end spec rows \*\//.exec(DRIVER)?.[1] ?? '[]');
+    const sql = read('supabase/migrations/0088_quote_twin_specs.sql').toString('utf8').replace(/--[^\n]*/g, '');
+    const rows = JSON.parse(/null::public\.agent_quote_twin_specs, \$json\$(\[[\s\S]*?\])\$json\$/.exec(sql)?.[1] ?? '[]');
     for (const id of ['pr5', 'd']) {
       const file = `docs/agents/backtests/twins/${id}.json.gz`;
       const inDoc = new RegExp('\\| `' + id + '` \\|[^\\n]*\\| `' + id + '\\.json\\.gz` \\| ([0-9a-f]{64}) \\|').exec(DOC)?.[1];
-      const inCode = new RegExp(id + ': \\{ file: "' + file.replace(/[.]/g, '\\.') + '", sha256: "([0-9a-f]{64})", until: "2026-10-02T21:05:00\\.000Z" \\}').exec(DRIVER)?.[1];
+      const inCode = seed.find((r) => r.id === id)?.backfill, inRow = rows.find((r) => r.id === id)?.backfill;
       expect(inDoc, id).toMatch(/^[0-9a-f]{64}$/);
-      expect(inCode, id).toBe(inDoc);
+      expect(inCode, id).toEqual({ file, sha256: inDoc, until: '2026-10-02T21:05:00.000Z' });
+      expect(inRow, id).toEqual(inCode);
       expect(sha(file), id).toBe(inDoc);
       expect(MANIFEST.committed[`${id}.json.gz`].sha256).toBe(inDoc);
       const data = JSON.parse(zlib.gunzipSync(read(file)).toString('utf8'));

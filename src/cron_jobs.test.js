@@ -373,6 +373,17 @@ describe('pg_cron jobs', () => {
     expect([...cronJobs(FILES.filter((f) => f <= TWINS))]).toEqual([...cronJobs(FILES.filter((f) => f < TWINS))]);
   });
 
+  // 0088: the twins become rows, p50 ("Stablecoin quotes variant-1") the first new one, run by 0087's own call (every enabled
+  // twin in turn): no call and no job of its own.
+  const TWIN_SPECS = FILES.find((f) => /^\d{4}_quote_twin_specs\.sql$/.test(f)) ?? '';
+
+  it("adds no call for the twins' rows (0088): the list and the jobs are what they were before it", () => {
+    expect(TWIN_SPECS).not.toBe('');
+    expect(replayList(sqlsOf(FILES.filter((f) => f <= TWIN_SPECS)))).toEqual(replayList(sqlsOf(FILES.filter((f) => f < TWIN_SPECS))));
+    expect([...cronJobs(FILES.filter((f) => f <= TWIN_SPECS))]).toEqual([...cronJobs(FILES.filter((f) => f < TWIN_SPECS))]);
+    expect(replayList(sqlsOf(FILES)).filter((r) => r.path === 'agents?action=quotestwins').map((r) => [r.timeout, r.every, r.enabled, r.retry])).toEqual([[58000, 1, true, true]]);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
