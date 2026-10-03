@@ -142,13 +142,18 @@ jobs:
             # header added to `fundamentals/_shared.ts` shipped
             # everywhere except the function that serves it.
             # `.test.ts` is excluded so a test-only edit still deploys
-            # nothing. `[^_]` skips the top-level `_shared/`, already
+            # nothing, and so is `.md`: a note beside the code, such as
+            # `agents/CLAUDE.md`, is not bundled, and adding one started a
+            # redeploy of the agents function for nothing inside a
+            # pre-registered window on 2026-10-03 (cancelled before its
+            # deploy step). `[^_]` skips the top-level `_shared/`, already
             # handled by the branch above.
             # `|| true` so a push touching supabase/functions/** with no
             # deployable file doesn't trip bash's pipefail.
             CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" \
               | { grep '^supabase/functions/[^_][^/]*/' || true; } \
               | { grep -v '\.test\.ts$' || true; } \
+              | { grep -v '\.md$' || true; } \
               | awk -F/ '{print $3}' \
               | sort -u)
           fi

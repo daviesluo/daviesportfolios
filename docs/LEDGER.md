@@ -700,7 +700,10 @@ a row of `edge_calls`). Claude Code loads `docs/agents/CLAUDE.md` when a session
 one-line pointers in `supabase/functions/agents/CLAUDE.md` and `src/agents/CLAUDE.md` load the same way, and Cursor's
 `.cursor/rules/agents.mdc` covers those paths. The working-with-davies skill and its two Cursor copies record the
 lesson: a parameter-only variant is a row, internal ids carry no number, mechanical work goes to `sonnet-max`. The
-variant-1 build was redirected to build the rows mechanism with `p50` as its first row (item 4).
+variant-1 build was redirected to build the rows mechanism with `p50` as its first row (item 4). Adding
+`supabase/functions/agents/CLAUDE.md` started an `agents` redeploy inside mini-pool's window (edge-functions run
+37090556577); it was cancelled during its tests, before the deploy step, and `edge-functions.yml` now leaves `.md`
+files out of what deploys a function.
 
 ### [2026-10-03 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
