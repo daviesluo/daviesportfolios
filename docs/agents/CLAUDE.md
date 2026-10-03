@@ -310,10 +310,18 @@ that follow from that evidence, in short:
   the live executor's own code on a simulated Revolut X account
   (`revx_sim.ts`: filled only by prints through a resting order, by their
   size; pennies as the venue moves them; maker conversions), "Stablecoin
-  quotes" carrying out PR5's decisions at £100 a rung and "Stablecoin quotes
-  variant-1" rule D's arm `d` at £50 (rule D's file calls it variant-2;
-  PR5V is off the page); TESTING's scoreboard and the Revolut X card include
-  them. PR5's, PR5V's and rule D's paper tests keep running behind the page
+  quotes" carrying out PR5's decisions at £100 a rung, "Stablecoin quotes
+  variant-1" (`p50`) the same decisions at £50 a rung, and "Stablecoin quotes
+  variant-3" (`d`, variant-1 until 2026-10-03) rule D's arm `d` at £50 (rule
+  D's file calls it variant-2; PR5V is off the page); "variant-2" is TAKE's,
+  frozen in `reviews/2026-10-03-take-prereg.md`. TESTING's scoreboard and the
+  Revolut X card include them. **Since `0088` each twin is a row of
+  `agent_quote_twin_specs`** (reference §4 item 51's "Twin variants" table):
+  the call and the page read the enabled rows. A variant that differs only in
+  its parameters is a migration of two statements, its row then
+  `select public.create_quote_twin_tables('<id>')`, with a one-page
+  pre-registration from `reviews/TEMPLATE-variant-prereg.md`; ids name
+  tables, never a variant number. PR5's, PR5V's and rule D's paper tests keep running behind the page
   with their frozen readings (`reviews/2026-10-02-pr5-realistic-twins-prereg.md`).
   Revolut X serves its whole trade history keylessly
   (`/api/1.0/public/trades/all`), and its candles are built from the MID

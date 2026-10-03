@@ -710,6 +710,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-03 03:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-1 and the twins' rows are in production** (`7476fbbf`, item 4). Reviewed before the push: `0088` keeps the
+spec table under RLS with no grant or policy, its table-making function runs as its caller with an empty
+`search_path`, and the page's code changed in comments only (the bundle differs by its build stamp). Full gates green on
+the merged tree (sweep 595 checks single-process: 224 + 76 + 232 + 69 in shards); the four runs on `7476fbbf` (check,
+migrations, edge-functions, pages-deploy) succeeded. Read at 03:42 UTC: `0088` applied; rows pr5 (10, £1,200), p50
+"Stablecoin quotes variant-1" (20, £600), d "Stablecoin quotes variant-3" (40, £1,800); p50's six tables made;
+`anon` and `authenticated` can read neither the spec table nor p50's tables and cannot execute
+`create_quote_twin_tables`; p50's backfill loaded (13,198 turns, 3,360 orders, as the size study's £50 run) and
+catching up from 2026-10-02 21:05; pr5, d and the live executor turning without error; no `ops_errors` in 30 minutes;
+the site serves `app-30713727.js`, byte for byte `dist/`'s. `docs/agents/CLAUDE.md` names the three twins and the
+two-statement recipe; README and CLAUDE.md say 595 checks.
+
 ### [2026-10-03 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The stablecoin twins are rows, and the size study's twin is "Stablecoin quotes variant-1"** (item 4; reference §4
