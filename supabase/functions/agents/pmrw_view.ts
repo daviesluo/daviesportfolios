@@ -176,7 +176,7 @@ export function rwSummary(input: {
   markets.sort((x, y) => (x.rank == null ? 1 : 0) - (y.rank == null ? 1 : 0) || Number(x.rank ?? 0) - Number(y.rank ?? 0) || String(x.cond).localeCompare(String(y.cond)));
 
   const asc = input.days.filter((d) => Date.parse(d.day) < st.dayOf).sort((a, b) => a.day.localeCompare(b.day));
-  const days = rwDayRows(asc, since ? new Date(since.ms).toISOString().slice(0, 10) : null, was.total, inst);
+  const days = rwDayRows(asc, since ? new Date(since.ms).toISOString().slice(0, 10) : null, was, inst);
   // Today against yesterday's close; on a variant's first day, against its first minute.
   const yesterday = asc.find((d) => Date.parse(d.day) === st.dayOf - DAY);
   const baseline = since && st.dayOf <= since.ms ? was.total
@@ -198,15 +198,22 @@ export function rwSummary(input: {
 /**
  * Closed days, newest first, each against the day before in the same phase: the warm-up starts at nothing, and so does
  * the run. A variant's (`from`, its first day) lists only its own days, the first against its first minute, whose
- * running total is `was`; each day's `runningUsd` is then its own since. A day row without its phase is placed against
+ * running figures are `was`; each day's `runningUsd` is then its own since. A day row without its phase is placed against
  * `inst`'s fourteen days.
+ *
+ * The first day is measured from `was`, not from the day before: a variant that starts at 20:00 owns four hours of
+ * that day, and the twenty before were its parent's. Measured from the day before, the row held all twenty-four, and
+ * the page's today (the variant's total less its closed days) went below zero on a reward, which only ever grows
+ * (RW-X's arms x4 and x5, 2026-10-03).
  */
-function rwDayRows(asc: RwDayRow[], from: string | null, was: number, inst: RwInstance) {
+function rwDayRows(asc: RwDayRow[], from: string | null, was: { total: number; stress: number; reward: number; fills: number }, inst: RwInstance) {
+  const atStart = { total: was.total, stress_total: was.stress, reward: was.reward, fills: was.fills };
   return asc.map((d, i) => {
     const p = d.detail?.phase ?? rwPhase(Date.parse(d.day), inst);
     const prev = i > 0 && (asc[i - 1].detail?.phase ?? rwPhase(Date.parse(asc[i - 1].day), inst)) === p ? asc[i - 1] : null;
-    const less = (k: "total" | "stress_total" | "reward" | "fills") => Number(d[k]) - (prev ? Number(prev[k]) : 0);
-    return { day: d.day, phase: p, totalUsd: less("total"), stressUsd: less("stress_total"), rewardUsd: less("reward"), fills: less("fills"), capitalUsd: Number(d.capital), markets: Number(d.markets), runningUsd: Number(d.total) - (from ? was : 0) };
+    const first = from != null && String(d.day).slice(0, 10) === from;
+    const less = (k: "total" | "stress_total" | "reward" | "fills") => Number(d[k]) - (first ? atStart[k] : prev ? Number(prev[k]) : 0);
+    return { day: d.day, phase: p, totalUsd: less("total"), stressUsd: less("stress_total"), rewardUsd: less("reward"), fills: less("fills"), capitalUsd: Number(d.capital), markets: Number(d.markets), runningUsd: Number(d.total) - (from ? was.total : 0) };
   }).filter((d) => !from || String(d.day).slice(0, 10) >= from).reverse();
 }
 

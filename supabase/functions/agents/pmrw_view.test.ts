@@ -152,6 +152,27 @@ Deno.test("rweSummary: RW and RW-E since 27 Sep from the same replay, today's ma
   assertEquals(rweSummary({ state: null, days, selection: [], nowMs: now }), null);
 });
 
+Deno.test("a variant that starts inside a day counts that day from its first minute, so today's reward is never below zero", () => {
+  // x4 and x5 began at 20:00 UTC on 2026-10-02 as copies of x1: their day rows hold the whole day, x1's hours included.
+  const S = Date.UTC(2026, 8, 28, 20), DAY = 86400e3, iso = (ms: number) => new Date(ms).toISOString();
+  const acc = (o: Partial<Acc>): Acc => ({ ...newAcc(), ...o });
+  // At its first minute the copy had earned 0.50 (all reward, nothing held); by 09-28's close 0.60, by 09-29 10:00 0.75.
+  const base: Record<string, Acc> = { Z: acc({ reward: 0.5, lastM: 0.4 }) };
+  const now: Record<string, Acc> = { Z: acc({ reward: 0.75, lastM: 0.4 }) };
+  const day = (d: string, cum: number) => ({ day: d, total: cum, stress_total: cum, reward: cum, fills: 0, capital: 20, markets: 1, detail: null });
+  const r = rwSummary({
+    state: { state: { acc: now, meta: {}, dayActive: ["Z"], lastDecided: S + 14 * 3600e3, dayOf: S - 20 * 3600e3 + DAY, statusAt: 0 }, last_minute: iso(S + 14 * 3600e3), last_error: null },
+    selection: [], latest: [], days: [day("2026-09-27", 0.3), day("2026-09-28", 0.6)], fills: [], firstMinute: null,
+    nowMs: S + 14 * 3600e3 + 60e3, since: { ms: S, base },
+  })!;
+  // Its own: 0.10 from 20:00 to 09-28's close, 0.15 today, 0.25 in all.
+  assertAlmostEquals(r.rewardUsd, 0.25, 1e-9);
+  assertEquals(r.days.map((d) => [d.day, Number(d.rewardUsd.toFixed(9)), Number(d.totalUsd.toFixed(9)), Number(d.runningUsd.toFixed(9))]), [["2026-09-28", 0.1, 0.1, 0.1]]);
+  // The page's today row is the whole less the closed days (`rwTodayRow`): 0.15, where the day against 09-27 gave -0.05.
+  assertAlmostEquals(r.rewardUsd - r.days.reduce((a, d) => a + d.rewardUsd, 0), 0.15, 1e-9);
+  assertAlmostEquals(r.todayUsd, 0.15, 1e-9);
+});
+
 Deno.test("a variant's summary counts from its first minute: a position it held is carried in at that minute's mark, a market settled before is not its", () => {
   const S = Date.UTC(2026, 8, 28), DAY = 86400e3, iso = (ms: number) => new Date(ms).toISOString();
   const acc = (o: Partial<Acc>): Acc => ({ ...newAcc(), ...o });

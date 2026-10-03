@@ -712,6 +712,23 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-03 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Reward quotes: a variant's first day is counted from its first minute, so its today row can no longer show a
+negative reward** (Davies: "为什么reward的测试v-3和v-4今天的reward是负数"). Found from the code, with no figure of x4
+or x5 read (their no-peek runs to 10-09 00:05). RW-X's arms x4 and x5 start at 2026-10-02 20:00 UTC, inside a UTC day.
+`rwDayRows` (`agents/pmrw_view.ts`) measured a variant's first closed day against the day before, so the arms' 10-02
+row held their parent's twenty hours as well as their own four, while the arms' totals (`rwSummary`: now less
+`since.base`) hold the four alone; the page's today row (`rwTodayRow`: the total less the closed days) then went below
+zero on a reward, which only grows. The arms' totals, and TODAY on the row and in TESTING's scoreboard (`todayUsd`,
+against yesterday's close), were right throughout. The first own day is now measured from the arm's figures at its
+first minute (`was`). Pin in `pmrw_view.test.ts` (an arm from 20:00: its first day 0.6 − 0.5 = 0.1, today
+0.25 − 0.1 = 0.15, as `todayUsd`); on the old code it fails (the first day 0.3) and the other 62 tests of RW, RW-E,
+RW-X, RW-C and their pages pass, as all 63 do on the new. A view change only: the engines and their tables are
+untouched, and Test 1's reading takes `pm_rw_x_days` directly. RW-E (from a day boundary) and RW-C (from its run's
+start) read as before; mini-pool's and mid-pool's pages do not use this function, and `pm_live.ts` (`8ba7b915…`) and
+`pm_prep.ts` (`8d7861ab…`) are unchanged. `agents` redeploys (Davies: "你东西该部署就部署").
+
 ### [2026-10-03 05:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Variant-2 caught up, and K1 holds so far** (the TAKE prereg's check, the one read it allows before its reading). At
