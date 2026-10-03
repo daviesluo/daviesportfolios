@@ -676,6 +676,27 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-03 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Disclosure: rule D's twin's figures were seen.** At 02:27 BST (01:27 UTC) Davies sent the session a screenshot of
+"Stablecoin quotes variant-1"'s BOOKS: each book's round trips, the share won and USDC's realised, and two USDT asks
+held with their marks. The twins' pre-registration (§9) keeps rule D's twin unread before rule D's reading (10-28); its
+figures on the page are his. Nothing of them is used in any analysis, reading or proposal, and no query of rule D's
+twin's fills or P&L was run.
+
+**What his screenshots showed, answered from the record.** Every rung idle: the weekend. The last GBP/USD minute is
+2026-10-02 21:29 UTC, and the executor's stale-input guard ("no GBP/USD minute in the last ten: dark") cancelled the
+live account's entries by 20:55 and the PR5 twin's ten by 21:00; neither has sent an order since, and they quote
+again when FX reopens. A book with no order shows no fair (the page takes it from a rung's order). The ENTRY ORDERS
+rows marked rejected are orders the executor never sent: post-only orders whose price the book it met already crossed
+(`request.crossesBook`, `response.wouldBeRefused`), as PR5's paper rule itself refuses one the market is through at
+go-live (`blocks`) and places it again when the market is not. The page's newest 50 of the PR5 twin hold 12 filled
+and 10 not-sent entries, 18 filled, 1 resting and 9 not-sent exits. The book a twin meets is PR5's snapshot where one
+was stored (50–92 a book a day since 09-28) and otherwise the touch the last print implies, a tick wide: the
+narrowest book that print allows, so it refuses at least as often as the real book would. QUEUE's recorded books
+could test that, but its freeze line allows only counts, bytes, hashes and timestamps of `agent_book_levels` until its
+export; none was read.
+
 ### [2026-10-03 01:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The site serves the twins' bundle.** Davies put Account → Cloudflare Pages → Edit back on the deploy token beside
