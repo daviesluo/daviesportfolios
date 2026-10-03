@@ -1,0 +1,19 @@
+{
+ "study": "PR5's rule carried out by its realistic twin (the production code) at rung sizes of £10, £25, £50 and £100 and with a reserve of pounds beyond the rungs, on the twins' committed inputs (2026-09-23 15:10 → 2026-10-02 21:05 UTC); and the PR5 twin's post-only orders against Revolut X's recorded UK books. PR5's twin only: rule D's is not run (unread before rule D's reading, 2026-10-28). A measurement, not a test with a verdict.",
+ "write_up": "reference §4 item 51, its addendum of 2026-10-03; docs/LEDGER.md item 4",
+ "run": [
+  "npx --yes deno@1.46.3 run --allow-read --allow-env study.ts s100 1200        # reproduces PR5's twin's backfill: 47 trips, 44 won, +£6.0476",
+  "npx --yes deno@1.46.3 run --allow-read --allow-env study.ts s100r5 1200 1260  # £100 a rung, 5 % more pounds",
+  "… s100r10 1200 1320; s50 600; s50r5 600 630; s25 300; s10 120; s10r5 120 126  (about 90 s each; results.json holds every run)"
+ ],
+ "sources": {
+  "../inputs/twins_inputs.json.gz": "the twins' committed inputs (../MANIFEST.json)",
+  "book_check.sql": "production, SELECT only, 2026-10-03 ~01:45 UTC: agent_quote_twin_pr5_orders and agent_book_levels rows before QUEUE's window (QUEUE's deviation 1, Davies' word); its two outputs are book_check.json"
+ },
+ "committed": {
+  "study.ts": { "bytes": 9348, "sha256": "16bedeab039dfdbf243b5098e4a8f5e284058b3bfbadbbd3a982de735ec2131c" },
+  "results.json": { "bytes": 32012, "sha256": "f4a17a4c940b986465179895516a3b6091a379e8811982e0767c7ea88cada94e" },
+  "book_check.sql": { "bytes": 3149, "sha256": "55cbb26745c8e5bf235498b8532cc2d4dcc62d98daaa4a71abbf8467531387af" },
+  "book_check.json": { "bytes": 3014, "sha256": "286a6cab2d9c8457d6528086ae2b28d0bfdd04285dadf06ca2b3e0fe351c318f" }
+ }
+}

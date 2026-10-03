@@ -738,3 +738,14 @@ Deviations are recorded in the review, the reference and the ledger.
   skipped read. The recorder's report of each minute names it, but it is returned to pg_net only, which keeps it for
   hours. Storing it would change `books.ts`, which this file freezes until the export, and the coverage floor does not
   need it. So the list gives each void minute and whether the other books were void in it, and no more.
+
+## Deviation 1 (2026-10-03, Davies' word): the books are read before the export
+
+Told that the realistic twins' crossing refusals could be checked against these books only after the export, Davies
+answered: "这个研究本来就是为了测试记录的，有用的话就用，之后都用这个来辅助判断是不是更好？" From 2026-10-03 01:45 UTC
+`agent_book_levels` is read for other checks and studies; the first read
+(`docs/agents/backtests/twins/size/book_check.sql`) took rows before the window only. Nothing frozen here changes: the
+recorder, its table, its prune job, `stepMinute`, the window, the scorer and checks 1–4 stand as written, and the
+reading after 11-02 runs as written. It is no longer blind, and its report says so: the books, rows of the window
+included from now on, may have been read by then.
+

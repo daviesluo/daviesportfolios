@@ -1,0 +1,23 @@
+{
+ "read": "2026-10-03 ~01:45 UTC, production, SELECT only (book_check.sql); agent_book_levels rows 2026-09-26 18:16 → 10-02 (before QUEUE's window)",
+ "by_leg": [
+  {"twin_refused": false, "leg": "entry", "n": 2200, "with_book_before": 2200, "real_cross_before": 1, "real_cross_after": 0, "cross_both": 0},
+  {"twin_refused": false, "leg": "exit", "n": 162, "with_book_before": 162, "real_cross_before": 8, "real_cross_after": 8, "cross_both": 7},
+  {"twin_refused": true, "leg": "entry", "n": 12, "with_book_before": 12, "real_cross_before": 12, "real_cross_after": 11, "cross_both": 11},
+  {"twin_refused": true, "leg": "exit", "n": 18, "with_book_before": 18, "real_cross_before": 11, "real_cross_after": 12, "cross_both": 9}
+ ],
+ "refused_entries": [
+  {"id": 797, "ts": "2026-09-28 07:51:25", "book": "USDT-GBP", "rung": "ask 0.2%", "price": 0.7551, "fair_est": 0.75359, "bid": 0.7551, "ask": 0.7552, "bidq": 369.99, "askq": 33365.20},
+  {"id": 956, "ts": "2026-09-28 14:49:25", "book": "USDT-GBP", "rung": "bid 0.1%", "price": 0.7536, "fair_est": 0.75435, "bid": 0.7534, "ask": 0.7535, "bidq": 256.58, "askq": 14672.11},
+  {"id": 1404, "ts": "2026-09-29 14:58:25", "book": "USDT-GBP", "rung": "bid 0.1%", "price": 0.7553, "fair_est": 0.75606, "bid": 0.7549, "ask": 0.7550, "bidq": 15266.17, "askq": 25909.57},
+  {"id": 1417, "ts": "2026-09-29 15:09:25", "book": "USDT-GBP", "rung": "bid 0.2%", "price": 0.7550, "fair_est": 0.75651, "bid": 0.7549, "ask": 0.7550, "bidq": 16204.56, "askq": 24515.46},
+  {"id": 1443, "ts": "2026-09-29 16:47:25", "book": "USDT-GBP", "rung": "bid 0.2%", "price": 0.7551, "fair_est": 0.75661, "bid": 0.7549, "ask": 0.7550, "bidq": 20579.49, "askq": 21185.61},
+  {"id": 1600, "ts": "2026-09-30 07:23:25", "book": "USDT-GBP", "rung": "ask 0.1%", "price": 0.7536, "fair_est": 0.75285, "bid": 0.7539, "ask": 0.7540, "bidq": 402.65, "askq": 20009.40},
+  {"id": 1632, "ts": "2026-09-30 08:28:25", "book": "USDT-GBP", "rung": "ask 0.1%", "price": 0.7539, "fair_est": 0.75315, "bid": 0.7539, "ask": 0.7540, "bidq": 322.71, "askq": 20010.01},
+  {"id": 1672, "ts": "2026-09-30 09:59:25", "book": "USDT-GBP", "rung": "ask 0.1%", "price": 0.7532, "fair_est": 0.75245, "bid": 0.7534, "ask": 0.7535, "bidq": 368.18, "askq": 20010.21},
+  {"id": 1693, "ts": "2026-09-30 10:34:25", "book": "USDT-GBP", "rung": "ask 0.1%", "price": 0.7523, "fair_est": 0.75155, "bid": 0.7526, "ask": 0.7527, "bidq": 35.04, "askq": 31464.99},
+  {"id": 2140, "ts": "2026-10-01 07:33:25", "book": "USDT-GBP", "rung": "bid 0.1%", "price": 0.7542, "fair_est": 0.75495, "bid": 0.7539, "ask": 0.7540, "bidq": 20009.40, "askq": 17232.07},
+  {"id": 2202, "ts": "2026-10-01 08:38:25", "book": "USDT-GBP", "rung": "bid 0.2%", "price": 0.7542, "fair_est": 0.75571, "bid": 0.7539, "ask": 0.7540, "bidq": 20011.91, "askq": 12801.79},
+  {"id": 2480, "ts": "2026-10-01 15:07:25", "book": "USDT-GBP", "rung": "bid 0.2%", "price": 0.7554, "fair_est": 0.75691, "bid": 0.7549, "ask": 0.7550, "bidq": 20007.00, "askq": 1328.19}
+ ]
+}

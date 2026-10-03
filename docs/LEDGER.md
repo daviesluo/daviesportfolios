@@ -279,12 +279,13 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
        row in `agent_quote_live_orders`. Do not read rule D's twin's fills or P&L before rule D's reading (10-28).
      - **Readouts:** PR5's twin beside PR5's verdict (10-21), rule D's after its reading (10-28), per rung as the
        pre-registration's §8; no pass or fail bar.
-     - **To do (Davies: "这个到时候你再研究下，不要忘了"):** once the twins' history exists, study each rung's realistic
-       result at their sizes (£100 and £50 a rung, after penny settlement, the through-volume fill rule and maker
-       conversions); if it points to one change worth testing, propose it to Davies as the next "Stablecoin quotes
-       variant-N" (the next free number on the page). First input: the pre-registration's §8 table, and its finding
-       that 5 of the 16 paper trips PR5's twin missed were bids short of free GBP (twelve rungs of exactly a twelfth of
-       the capital, after top-ups).
+     - **The size study is done (2026-10-03; Davies: "这个到时候你再研究下，不要忘了", asked again "之前说的这事你忘了？"):**
+       reference §4 item 51's addendum, `docs/agents/backtests/twins/size/`. PR5's rule on its twin at £10/£25/£50/£100
+       a rung: 60/58/57/47 trips, 14–15 bps each, 28.9/27.6/25.7/19.9 % a year realised; pennies under 0.2 bps a trip;
+       a 5 % pound reserve recovers 5 trips at £100 and none at £50 or less. **Proposed: "Stablecoin quotes variant-2",
+       PR5's rule unchanged at £50 a rung (£600)**: the size effect forward, and PR5's rule at variant-1's rung size for
+       the comparison after rule D's reading. Next candidate (a study first, on the books): taking the touch when the
+       book rests through a rung by more than the 9 bps taker fee (twelve refused entries kept 1–16 bps each).
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
      Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
@@ -379,8 +380,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    4. **QUEUE: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-queue-prereg.md`); window 2026-10-04 → 11-01.
       **Freeze line:** until the export is taken, none of `agents/books.ts`, the table `agent_book_levels`, its prune
       job `agents-books-prune`, `stepMinute` in `agents/quotes.ts` or its minute record (`agent_quote_minutes`)
-      changes, except a longer retention on Davies' word; any change is a deviation. Until then every read of
-      `agent_book_levels` is of counts, byte lengths, hashes and timestamps. Its dates:
+      changes, except a longer retention on Davies' word; any change is a deviation. **Deviation 1 (2026-10-03,
+      Davies: "这个研究本来就是为了测试记录的，有用的话就用，之后都用这个来辅助判断是不是更好？"):** `agent_book_levels`
+      may be read by other checks and studies, window rows included; QUEUE's design, scorer and checks stand, and its
+      reading says it was not blind (the prereg's last section). First read: the twin's crossing check, rows before
+      the window only (`backtests/twins/size/book_check.sql`). Its dates:
       - **Dry run, before 2026-10-04 00:00 UTC** (after 09-29 00:10): statements A and B of "Before the window", once
         each, as written (no `page` column). A statement that needs a change is changed before the window and
         recorded as a deviation.
@@ -675,6 +679,20 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The size study is done, and the books are read on Davies' word** (item 4, item 5a.4, reference §4 item 51's
+addendum). PR5's rule carried out by its twin (`backtests/twins/size/study.ts`, the production code on the twins'
+committed inputs; its £100 run reproduces the committed backfill, 47 trips, 44 won, +£6.0476) at £10, £25, £50 and
+£100 a rung, and with 5 % and 10 % more pounds than the rungs: the trips fall from 60 to 47 as the rungs grow while
+each keeps 14–15 bps, so the year's realised return on the capital falls from 28.9 % to 19.9 %; pennies cost under
+0.2 bps a trip at every size (the live account's own fills agree); a reserve recovers 5 trips at £100 and none below.
+Rule D was not run. Davies, told the twin's refusals could be checked only after QUEUE's export: "这个研究本来就是为了
+测试记录的，有用的话就用，之后都用这个来辅助判断是不是更好？" So `agent_book_levels` is read from now on, QUEUE's
+deviation 1 (its prereg's last section): rows before its window confirm all 12 refused entries and all but 1 of 2,200
+sent ones; exits are less sure (11–12 of 18 refusals confirmed, 7–8 of 162 sends would have been refused). Proposed:
+"Stablecoin quotes variant-2", PR5's rule at £50 a rung (£600). Gates: unit and Edge tests (docs only).
 
 ### [2026-10-03 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -1,0 +1,1708 @@
+{
+ "s100": {
+  "summary": {
+   "name": "s100",
+   "capitalGbp": 1200,
+   "startGbp": 1200,
+   "rungGbp": 100,
+   "turns": 13198,
+   "seconds": 88,
+   "trips": 47,
+   "won": 44,
+   "realised": 6.0476,
+   "pennyCost": 0.0704,
+   "bpsPerTrip": 14.12,
+   "perDay": 0.654,
+   "annualPct": 19.89,
+   "ordersRows": 3077,
+   "sent": 3037,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 268.5,
+     "price": 0.7538175046554935
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 395.6119,
+     "price": 0.7566000156618125
+    },
+    {
+     "at": "2026-09-24T16:45:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 6.6129,
+     "price": 0.756100216547102
+    },
+    {
+     "at": "2026-09-25T16:48:28.000Z",
+     "book": "USDT-GBP",
+     "coins": 128.2459,
+     "price": 0.7548000173728764
+    },
+    {
+     "at": "2026-09-28T07:39:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 6.6216,
+     "price": 0.7551010853823001
+    }
+   ],
+   "balances": {
+    "GBP": 697.5200000000006,
+    "USDT": 270.96140000000014,
+    "USDC": 402.2258599999999
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 8,
+    "won": 8,
+    "realised": 0.9896,
+    "bpsPerTrip": 13.8,
+    "pennyCost": 0.0147,
+    "entriesSent": 221,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.6258,
+    "bpsPerTrip": 29.8,
+    "pennyCost": 0.0038,
+    "entriesSent": 237,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 1,
+    "won": 0,
+    "realised": -0.0397,
+    "bpsPerTrip": -4,
+    "pennyCost": 0,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.045,
+    "bpsPerTrip": 4.5,
+    "pennyCost": 0.0049,
+    "entriesSent": 225,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 11,
+    "won": 9,
+    "realised": 0.541,
+    "bpsPerTrip": 5.2,
+    "pennyCost": 0.004,
+    "entriesSent": 133,
+    "notSent": 7,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 8,
+    "won": 8,
+    "realised": 1.4263,
+    "bpsPerTrip": 20.5,
+    "pennyCost": 0.0188,
+    "entriesSent": 246,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 2,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 5,
+    "won": 5,
+    "realised": 1.5556,
+    "bpsPerTrip": 31.1,
+    "pennyCost": 0,
+    "entriesSent": 225,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 8,
+    "won": 8,
+    "realised": 0.5467,
+    "bpsPerTrip": 7.7,
+    "pennyCost": 0.0241,
+    "entriesSent": 231,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 132.42
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.3573,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 254,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s100r5": {
+  "summary": {
+   "name": "s100r5",
+   "capitalGbp": 1200,
+   "startGbp": 1260,
+   "rungGbp": 100,
+   "turns": 13198,
+   "seconds": 93,
+   "trips": 52,
+   "won": 49,
+   "realised": 6.9092,
+   "pennyCost": 0.0792,
+   "bpsPerTrip": 14.45,
+   "perDay": 0.7472,
+   "annualPct": 21.64,
+   "ordersRows": 3332,
+   "sent": 3279,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 268.5,
+     "price": 0.7538175046554935
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 395.6119,
+     "price": 0.7566000156618125
+    },
+    {
+     "at": "2026-09-24T16:45:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 6.6129,
+     "price": 0.756100216547102
+    },
+    {
+     "at": "2026-09-24T18:06:28.000Z",
+     "book": "USDT-GBP",
+     "coins": 127.0274,
+     "price": 0.7559000272224775
+    },
+    {
+     "at": "2026-09-25T01:27:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 6.6102,
+     "price": 0.7564010438334405
+    }
+   ],
+   "balances": {
+    "GBP": 759.1600000000007,
+    "USDT": 269.73982,
+    "USDC": 402.21966999999984
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 11,
+    "won": 11,
+    "realised": 1.295,
+    "bpsPerTrip": 12.7,
+    "pennyCost": 0.0147,
+    "entriesSent": 241,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.6258,
+    "bpsPerTrip": 29.8,
+    "pennyCost": 0.0038,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 1,
+    "won": 0,
+    "realised": -0.0397,
+    "bpsPerTrip": -4,
+    "pennyCost": 0,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.045,
+    "bpsPerTrip": 4.5,
+    "pennyCost": 0.0049,
+    "entriesSent": 225,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.9781,
+    "bpsPerTrip": 8.5,
+    "pennyCost": 0.0128,
+    "entriesSent": 185,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 8,
+    "won": 8,
+    "realised": 1.4263,
+    "bpsPerTrip": 20.5,
+    "pennyCost": 0.0188,
+    "entriesSent": 257,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 2,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 5,
+    "won": 5,
+    "realised": 1.5556,
+    "bpsPerTrip": 31.1,
+    "pennyCost": 0,
+    "entriesSent": 277,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.6659,
+    "bpsPerTrip": 8.2,
+    "pennyCost": 0.0241,
+    "entriesSent": 256,
+    "notSent": 6,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 132.42
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.3573,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 258,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s100r10": {
+  "summary": {
+   "name": "s100r10",
+   "capitalGbp": 1200,
+   "startGbp": 1320,
+   "rungGbp": 100,
+   "turns": 13198,
+   "seconds": 93,
+   "trips": 52,
+   "won": 49,
+   "realised": 6.9092,
+   "pennyCost": 0.0792,
+   "bpsPerTrip": 14.45,
+   "perDay": 0.7472,
+   "annualPct": 20.66,
+   "ordersRows": 3332,
+   "sent": 3279,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 268.5,
+     "price": 0.7538175046554935
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 395.6119,
+     "price": 0.7566000156618125
+    },
+    {
+     "at": "2026-09-24T16:45:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 6.6129,
+     "price": 0.756100216547102
+    },
+    {
+     "at": "2026-09-24T18:05:28.000Z",
+     "book": "USDT-GBP",
+     "coins": 127.1068,
+     "price": 0.7559000009126187
+    },
+    {
+     "at": "2026-09-25T01:27:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 6.6102,
+     "price": 0.7564010438334405
+    }
+   ],
+   "balances": {
+    "GBP": 819.1000000000007,
+    "USDT": 269.81920000000014,
+    "USDC": 402.21966999999984
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 11,
+    "won": 11,
+    "realised": 1.295,
+    "bpsPerTrip": 12.7,
+    "pennyCost": 0.0147,
+    "entriesSent": 241,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.6258,
+    "bpsPerTrip": 29.8,
+    "pennyCost": 0.0038,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 1,
+    "won": 0,
+    "realised": -0.0397,
+    "bpsPerTrip": -4,
+    "pennyCost": 0,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.045,
+    "bpsPerTrip": 4.5,
+    "pennyCost": 0.0049,
+    "entriesSent": 225,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.9781,
+    "bpsPerTrip": 8.5,
+    "pennyCost": 0.0128,
+    "entriesSent": 185,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 8,
+    "won": 8,
+    "realised": 1.4263,
+    "bpsPerTrip": 20.5,
+    "pennyCost": 0.0188,
+    "entriesSent": 257,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 2,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 5,
+    "won": 5,
+    "realised": 1.5556,
+    "bpsPerTrip": 31.1,
+    "pennyCost": 0,
+    "entriesSent": 277,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.6659,
+    "bpsPerTrip": 8.2,
+    "pennyCost": 0.0241,
+    "entriesSent": 256,
+    "notSent": 6,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 132.42
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.3573,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 258,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s50": {
+  "summary": {
+   "name": "s50",
+   "capitalGbp": 600,
+   "startGbp": 600,
+   "rungGbp": 50,
+   "turns": 13198,
+   "seconds": 93,
+   "trips": 57,
+   "won": 53,
+   "realised": 3.904,
+   "pennyCost": 0.0649,
+   "bpsPerTrip": 14.61,
+   "perDay": 0.4222,
+   "annualPct": 25.68,
+   "ordersRows": 3360,
+   "sent": 3310,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 198.9918,
+     "price": 0.7538000189656084
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 197.806,
+     "price": 0.7566000156618125
+    },
+    {
+     "at": "2026-09-24T16:42:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.5292,
+     "price": 0.7559007502314946
+    },
+    {
+     "at": "2026-09-25T11:11:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.2784,
+     "price": 0.7543103448275862
+    },
+    {
+     "at": "2026-09-28T08:42:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.8494,
+     "price": 0.7535085240651785
+    },
+    {
+     "at": "2026-09-30T10:26:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 2.9763,
+     "price": 0.7526021892660113
+    }
+   ],
+   "balances": {
+    "GBP": 350.7400000000001,
+    "USDT": 135.77551999999974,
+    "USDC": 199.46651000000006
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 12,
+    "won": 12,
+    "realised": 0.7569,
+    "bpsPerTrip": 13.3,
+    "pennyCost": 0.0118,
+    "entriesSent": 244,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.3788,
+    "bpsPerTrip": 25.3,
+    "pennyCost": 0,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 2,
+    "won": 0,
+    "realised": -0.0295,
+    "bpsPerTrip": -5.9,
+    "pennyCost": 0.0099,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.0264,
+    "bpsPerTrip": 5.3,
+    "pennyCost": 0,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.5073,
+    "bpsPerTrip": 8.5,
+    "pennyCost": 0.0108,
+    "entriesSent": 168,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.9061,
+    "bpsPerTrip": 21.2,
+    "pennyCost": 0.0093,
+    "entriesSent": 259,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 6,
+    "won": 6,
+    "realised": 0.8137,
+    "bpsPerTrip": 30.3,
+    "pennyCost": 0.0029,
+    "entriesSent": 275,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 10,
+    "won": 10,
+    "realised": 0.3655,
+    "bpsPerTrip": 7.9,
+    "pennyCost": 0.0202,
+    "entriesSent": 265,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 66.21
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.1786,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 301,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s50r5": {
+  "summary": {
+   "name": "s50r5",
+   "capitalGbp": 600,
+   "startGbp": 630,
+   "rungGbp": 50,
+   "turns": 13198,
+   "seconds": 90,
+   "trips": 57,
+   "won": 53,
+   "realised": 3.904,
+   "pennyCost": 0.0649,
+   "bpsPerTrip": 14.61,
+   "perDay": 0.4222,
+   "annualPct": 24.46,
+   "ordersRows": 3379,
+   "sent": 3329,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 198.9918,
+     "price": 0.7538000189656084
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 197.806,
+     "price": 0.7566000156618125
+    },
+    {
+     "at": "2026-09-24T16:42:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 4.2722,
+     "price": 0.7560525163908908
+    },
+    {
+     "at": "2026-09-30T10:26:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 4.1237,
+     "price": 0.7541789028758223
+    }
+   ],
+   "balances": {
+    "GBP": 377.89000000000016,
+    "USDT": 136.92286999999982,
+    "USDC": 202.0817700000001
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 12,
+    "won": 12,
+    "realised": 0.7569,
+    "bpsPerTrip": 13.3,
+    "pennyCost": 0.0118,
+    "entriesSent": 244,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.3788,
+    "bpsPerTrip": 25.3,
+    "pennyCost": 0,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 2,
+    "won": 0,
+    "realised": -0.0295,
+    "bpsPerTrip": -5.9,
+    "pennyCost": 0.0099,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.0264,
+    "bpsPerTrip": 5.3,
+    "pennyCost": 0,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.5073,
+    "bpsPerTrip": 8.5,
+    "pennyCost": 0.0108,
+    "entriesSent": 190,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.9061,
+    "bpsPerTrip": 21.2,
+    "pennyCost": 0.0093,
+    "entriesSent": 259,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 6,
+    "won": 6,
+    "realised": 0.8137,
+    "bpsPerTrip": 30.3,
+    "pennyCost": 0.0029,
+    "entriesSent": 275,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 10,
+    "won": 10,
+    "realised": 0.3655,
+    "bpsPerTrip": 7.9,
+    "pennyCost": 0.0202,
+    "entriesSent": 265,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 66.21
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.1786,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 301,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s25": {
+  "summary": {
+   "name": "s25",
+   "capitalGbp": 300,
+   "startGbp": 300,
+   "rungGbp": 25,
+   "turns": 13198,
+   "seconds": 90,
+   "trips": 58,
+   "won": 54,
+   "realised": 2.0975,
+   "pennyCost": 0.0397,
+   "bpsPerTrip": 14.91,
+   "perDay": 0.2268,
+   "annualPct": 27.6,
+   "ordersRows": 3354,
+   "sent": 3305,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 99.4959,
+     "price": 0.7538000568465749
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 98.903,
+     "price": 0.756600053911419
+    },
+    {
+     "at": "2026-09-24T16:42:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.3043,
+     "price": 0.7559075820817038
+    },
+    {
+     "at": "2026-09-28T07:39:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.5569,
+     "price": 0.7542019824737825
+    },
+    {
+     "at": "2026-09-30T10:26:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 1.6078,
+     "price": 0.752604571606282
+    }
+   ],
+   "balances": {
+    "GBP": 175.4100000000002,
+    "USDT": 68.00340999999996,
+    "USDC": 99.75737999999998
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 12,
+    "won": 12,
+    "realised": 0.3918,
+    "bpsPerTrip": 13.4,
+    "pennyCost": 0.0118,
+    "entriesSent": 244,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 3,
+    "won": 3,
+    "realised": 0.1894,
+    "bpsPerTrip": 25.2,
+    "pennyCost": 0,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 2,
+    "won": 0,
+    "realised": -0.0196,
+    "bpsPerTrip": -7.8,
+    "pennyCost": 0.0099,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.0132,
+    "bpsPerTrip": 5.3,
+    "pennyCost": 0,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 245,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.262,
+    "bpsPerTrip": 8.7,
+    "pennyCost": 0.0001,
+    "entriesSent": 167,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.4811,
+    "bpsPerTrip": 21.4,
+    "pennyCost": 0.0068,
+    "entriesSent": 259,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 6,
+    "won": 6,
+    "realised": 0.4621,
+    "bpsPerTrip": 30.8,
+    "pennyCost": 0.0001,
+    "entriesSent": 277,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 11,
+    "won": 11,
+    "realised": 0.2282,
+    "bpsPerTrip": 8.7,
+    "pennyCost": 0.0111,
+    "entriesSent": 272,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 33.11
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.0893,
+    "bpsPerTrip": 17.9,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 301,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s10": {
+  "summary": {
+   "name": "s10",
+   "capitalGbp": 120,
+   "startGbp": 120,
+   "rungGbp": 10,
+   "turns": 13198,
+   "seconds": 93,
+   "trips": 60,
+   "won": 56,
+   "realised": 0.8782,
+   "pennyCost": 0.018,
+   "bpsPerTrip": 14.92,
+   "perDay": 0.095,
+   "annualPct": 28.89,
+   "ordersRows": 3362,
+   "sent": 3314,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 39.7983,
+     "price": 0.7538000947275453
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 39.5718,
+     "price": 0.7566001613271688
+    },
+    {
+     "at": "2026-09-25T01:16:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.1587,
+     "price": 0.7561436672967863
+    },
+    {
+     "at": "2026-09-28T16:28:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.3054,
+     "price": 0.7530120481927711
+    },
+    {
+     "at": "2026-09-30T10:26:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 0.5315,
+     "price": 0.7526011778208433
+    }
+   ],
+   "balances": {
+    "GBP": 70.1799999999999,
+    "USDT": 27.09659999999998,
+    "USDC": 40.038590000000006
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 13,
+    "won": 13,
+    "realised": 0.1751,
+    "bpsPerTrip": 13.5,
+    "pennyCost": 0.0001,
+    "entriesSent": 245,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 4,
+    "won": 4,
+    "realised": 0.0952,
+    "bpsPerTrip": 24.8,
+    "pennyCost": 0.0017,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 2,
+    "won": 0,
+    "realised": -0.0136,
+    "bpsPerTrip": -13.4,
+    "pennyCost": 0.0099,
+    "entriesSent": 236,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.0053,
+    "bpsPerTrip": 5.3,
+    "pennyCost": 0,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.0987,
+    "bpsPerTrip": 8.2,
+    "pennyCost": 0.0061,
+    "entriesSent": 168,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.1952,
+    "bpsPerTrip": 21.7,
+    "pennyCost": 0.0001,
+    "entriesSent": 259,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 6,
+    "won": 6,
+    "realised": 0.1848,
+    "bpsPerTrip": 30.8,
+    "pennyCost": 0,
+    "entriesSent": 277,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 11,
+    "won": 11,
+    "realised": 0.1019,
+    "bpsPerTrip": 9.3,
+    "pennyCost": 0.0001,
+    "entriesSent": 279,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 13.25
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.0357,
+    "bpsPerTrip": 17.8,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 301,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ },
+ "s10r5": {
+  "summary": {
+   "name": "s10r5",
+   "capitalGbp": 120,
+   "startGbp": 126,
+   "rungGbp": 10,
+   "turns": 13198,
+   "seconds": 91,
+   "trips": 60,
+   "won": 56,
+   "realised": 0.8782,
+   "pennyCost": 0.0179,
+   "bpsPerTrip": 14.92,
+   "perDay": 0.095,
+   "annualPct": 27.51,
+   "ordersRows": 3388,
+   "sent": 3340,
+   "conversions": [
+    {
+     "at": "2026-09-23T15:10:24.000Z",
+     "book": "USDT-GBP",
+     "coins": 39.7983,
+     "price": 0.7538000947275453
+    },
+    {
+     "at": "2026-09-24T15:10:27.000Z",
+     "book": "USDC-GBP",
+     "coins": 39.5718,
+     "price": 0.7566001613271688
+    },
+    {
+     "at": "2026-09-24T16:42:25.000Z",
+     "book": "USDC-GBP",
+     "coins": 0.8439,
+     "price": 0.7584016684836707
+    },
+    {
+     "at": "2026-09-30T10:26:25.000Z",
+     "book": "USDT-GBP",
+     "coins": 0.8247,
+     "price": 0.7638678387390119
+    }
+   ],
+   "balances": {
+    "GBP": 75.66000000000003,
+    "USDT": 27.389859999999985,
+    "USDC": 40.41832
+   }
+  },
+  "rungs": [
+   {
+    "rung": "USDC bid 0.1%",
+    "trips": 13,
+    "won": 13,
+    "realised": 0.1751,
+    "bpsPerTrip": 13.5,
+    "pennyCost": 0.0001,
+    "entriesSent": 245,
+    "notSent": 4,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.2%",
+    "trips": 4,
+    "won": 4,
+    "realised": 0.0952,
+    "bpsPerTrip": 24.8,
+    "pennyCost": 0.0017,
+    "entriesSent": 269,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC bid 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 287,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.1%",
+    "trips": 2,
+    "won": 0,
+    "realised": -0.0136,
+    "bpsPerTrip": -13.4,
+    "pennyCost": 0.0099,
+    "entriesSent": 241,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 1,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.2%",
+    "trips": 1,
+    "won": 1,
+    "realised": 0.0053,
+    "bpsPerTrip": 5.3,
+    "pennyCost": 0,
+    "entriesSent": 239,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDC ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 248,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.1%",
+    "trips": 12,
+    "won": 10,
+    "realised": 0.0987,
+    "bpsPerTrip": 8.2,
+    "pennyCost": 0.0061,
+    "entriesSent": 190,
+    "notSent": 15,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.2%",
+    "trips": 9,
+    "won": 9,
+    "realised": 0.1952,
+    "bpsPerTrip": 21.7,
+    "pennyCost": 0.0001,
+    "entriesSent": 259,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT bid 0.3%",
+    "trips": 6,
+    "won": 6,
+    "realised": 0.1848,
+    "bpsPerTrip": 30.8,
+    "pennyCost": 0,
+    "entriesSent": 277,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.1%",
+    "trips": 11,
+    "won": 11,
+    "realised": 0.1019,
+    "bpsPerTrip": 9.3,
+    "pennyCost": 0.0001,
+    "entriesSent": 279,
+    "notSent": 5,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 13.25
+   },
+   {
+    "rung": "USDT ask 0.2%",
+    "trips": 2,
+    "won": 2,
+    "realised": 0.0357,
+    "bpsPerTrip": 17.8,
+    "pennyCost": 0,
+    "entriesSent": 299,
+    "notSent": 1,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   },
+   {
+    "rung": "USDT ask 0.3%",
+    "trips": 0,
+    "won": 0,
+    "realised": 0,
+    "bpsPerTrip": null,
+    "pennyCost": 0,
+    "entriesSent": 301,
+    "notSent": 0,
+    "noFunds": 0,
+    "partialEntries": 0,
+    "held": 0
+   }
+  ]
+ }
+}
