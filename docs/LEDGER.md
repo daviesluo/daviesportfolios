@@ -286,7 +286,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      - **The variants, as Davies named them on 2026-10-03** ("你目前正在做的variant改名为variant-1排上面，这个新的是
        variant-2，原来的variant-1改名为variant-3"): "Stablecoin quotes" (PR5's rule, £100 a rung); **variant-1**, id
        `p50`, PR5's rule at £50 a rung (£600), being built; **variant-2**, TAKE (variant-1 plus lifting the touch when
-       the book rests through a rung by more than the 9 bps fee), its study running, approved to go live if it holds
+       the book rests through a rung by more than the 9 bps fee), studied and frozen (next bullet), approved to go live if it holds
        ("可以 批准研究后上线测试…你决定吧": built on variant-1, so the comparison isolates the one change); **variant-3**,
        rule D's twin (id `d`, formerly variant-1). Internal ids carry no variant number.
      - **Variants become rows** (Davies, 2026-10-03: "你说的这四点建议全做", after asking why small variants cost so
@@ -297,6 +297,17 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
        deleted; mini-pool's own rule, no changed `pm_live.ts` or `pm_prep.ts` inside its window, still holds). The page must not change but for the names and the new rows
        (Davies: "只是针对后台吧？我前端看到的不影响吧？"). Reward quotes' variants move to rows after their 10-09
        reading, not inside it.
+     - **TAKE, studied 2026-10-03 (reference §4 item 52, `backtests/take/`); its forward test is frozen in
+       `reviews/2026-10-03-take-prereg.md` and NOT built.** Davies' names that day: PR5's rule at £50 a rung is
+       "Stablecoin quotes variant-1", the take "variant-2" (id `take50`), rule D's twin "variant-3". In-sample (lit
+       09-28 → 10-02) the rule (a take keeps k after its 0.09 % fee) made 5 trips, 4 won, +£0.40 at £50 (+£0.18 net of
+       the maker trip it displaced), +£0.87 at £100; at the rung's own price it was 17 trips, +£0.35, first half
+       negative. Fair mostly holds (the book closes 9.4 of a 12.8 bps gap in four hours). **To do (main session):** build
+       variant-2 on variant-1's merged code by the prereg's build spec. The prereg must reach `main` before 2026-10-05
+       00:00 UTC or the window moves by whole weeks; the build may land later (the twin catches up on stored inputs, and
+       `agent_book_levels` keeps 35 days). The window is trips opened 10-05 → 11-02 (to 15 take trips, 11-30 at most),
+       read 2 days after its end by a script committed before it ends; until then only health and check K1 (variant-2
+       equals variant-1 before 10-05) are read.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
      Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
@@ -690,6 +701,20 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 03:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**TAKE studied; its forward test frozen, not built** (item 4, reference §4 item 52, `backtests/take/`,
+`reviews/2026-10-03-take-prereg.md`). Davies approved a study of taking the touch when the book rests through a rung,
+and a test on the best base. Read on QUEUE's deviation 1: the recorded books, PR5's minute records and the tail of its
+prints (every query and its md5 in `queries.sql`). The live executor's rules simulated on 841 book-minutes through the
+0.1 % rung (33 episodes, lit 09-28 → 10-02): the rule the stated principle gives (a take keeps its rung's k after the
+0.09 % fee) made 5 trips, 4 won, +£0.40 at £50 a rung, +£0.18 net of the maker trip it displaced; the IOC at the rung's
+own price made 17 trips, +£0.35, first half −£0.11, net +£0.09. Fair mostly holds; the take does not change the case
+for £50 (same trips at £100). Go, thinly: frozen as "Stablecoin quotes variant-2" (`take50`) on variant-1, trips opened
+10-05 → 11-02 UTC, four conditions, power 0.49 at +5 bps a trip. Disclosure: 200 characters of rule D's first three
+order placements (no fill or P&L) were printed while inspecting the twins' input file. Gates: unit and Edge tests.
+The main session merged it to `main` on 2026-10-03, before the freeze's deadline (10-05 00:00 UTC).
 
 ### [2026-10-03 02:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

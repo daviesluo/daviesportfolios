@@ -1,0 +1,26 @@
+{
+ "study": "TAKE: a taker IOC when Revolut X's GBP stablecoin book rests through a rung of PR5's rule, simulated with the live executor's own fill, fee, penny and exit rules on Revolut X's recorded UK books (agent_book_levels, QUEUE's deviation 1). In-sample and exploratory: paper minutes 2026-09-26 18:30 -> 2026-10-03 02:00 UTC (lit Monday 09-28 to Friday 10-02), at £50 and £100 a rung. Nothing of rule D, PR5V or rule D's twin was read.",
+ "write_up": "reference §4 item 52; docs/agents/reviews/2026-10-03-take-prereg.md (the forward test it proposes); docs/LEDGER.md item 4",
+ "run": [
+  "python3 study.py          # -> results.json, byte-identical on re-run (about 2 s); checks every input against its hash",
+  "python3 study.py takes    # the takes' (book, minute) keys that query M reads",
+  "python3 study.py power    # the forward bar's power: {0: 0.069, 5: 0.493, 8: 0.768, 10: 0.894, 16: 0.994} (bps a trip)"
+ ],
+ "sources": {
+  "../twins/inputs/twins_inputs.json.gz": "PR5's prints, minute records (x, fair_u), USD-book hours, paper events and call beats to 2026-10-02 21:08 UTC (sha256 checked); its rule-D file is not read",
+  "queries.sql": "every production read (SELECT only, 2026-10-03 02:28-02:56 UTC) with its output's md5",
+  "inputs/events_rle.txt": "query E2: the 841 book-minutes whose touch was through the 0.1 % rung, run-length coded; expands to query E's md5 3741a0e76d7d6a20c13ff9a3cf53a2ff",
+  "inputs/null_pool.csv": "query N: 591 hashed random minutes with the next read's touch; md5 e3732815a95498d9e8077150994b104b",
+  "inputs/tail_prints.txt": "query T: the GBP books' prints from 2026-10-02 21:00; md5 368a06795577dff9febf86949e05c6ce",
+  "inputs/markouts.csv": "query M: the mid 15/60/240/1,440 minutes after each take and episode start, and the touch 24 hours on; 49 rows md5 3293efcb33ab20266c915985fe6989f5 plus one row read alone"
+ },
+ "committed": {
+  "study.py": { "bytes": 33173, "sha256": "ae99501b6bdfe24d1d5a0e013ae927d1a9fb8b196ce5d66d9600260763f5c354" },
+  "queries.sql": { "bytes": 8893, "sha256": "f0a710edb26031ccc2a479646fc90091168db819cabefd380ba98d105ad50430" },
+  "results.json": { "bytes": 22558, "sha256": "80dfb4dafe03cb0d5ba1b80a29a1c8a4ce282b5166833be75167f4b1a10c956b" },
+  "inputs/events_rle.txt": { "bytes": 7413, "sha256": "8c4bbb9014c121ff3d9c97f3357454a179f7afc302fd3f9d8a0186c7122ab35e" },
+  "inputs/null_pool.csv": { "bytes": 30792, "sha256": "47e4ce26e1a31a426c90a89cadc0255f7c73bd3a0e2ca56920618f4b42833773" },
+  "inputs/tail_prints.txt": { "bytes": 2655, "sha256": "12bfd83e3a0a1b3f11e02aee94c21e615cf8c33ac2f54a00570b85eaaa1d3b7a" },
+  "inputs/markouts.csv": { "bytes": 3188, "sha256": "96e00169c13be3701aa1fd69b117af4072e8948812dd5ea4db444a84b0fc383d" }
+ }
+}

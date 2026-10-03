@@ -1,0 +1,1192 @@
+{
+ "rule": "rung + fee: a take on rung k sends an IOC limited at k + 0.09 % from fair (19 / 29 / 39 bps); sensitivity: rung price, margin 5 bps, margin 10 bps, margin 15 bps",
+ "span": "paper minutes 2026-09-26 18:30 -> 2026-10-03 02:00 UTC, positions run to 2026-10-03 02:20",
+ "event_rows": 841,
+ "event_rows_not_through_locally": 0,
+ "event_minutes": {
+  "rung price": {
+   "USDC-GBP bid 0.1%": {
+    "takeable": 137,
+    "guarded_or_no_next_read": 0
+   },
+   "USDT-GBP ask 0.1%": {
+    "takeable": 125,
+    "guarded_or_no_next_read": 1
+   },
+   "USDT-GBP ask 0.2%": {
+    "takeable": 5,
+    "guarded_or_no_next_read": 0
+   },
+   "USDT-GBP bid 0.1%": {
+    "takeable": 576,
+    "guarded_or_no_next_read": 2
+   },
+   "USDT-GBP bid 0.2%": {
+    "takeable": 247,
+    "guarded_or_no_next_read": 1
+   },
+   "USDT-GBP bid 0.3%": {
+    "takeable": 14,
+    "guarded_or_no_next_read": 0
+   }
+  },
+  "rung + fee": {
+   "USDC-GBP bid 0.1%": {
+    "takeable": 1,
+    "guarded_or_no_next_read": 0
+   },
+   "USDT-GBP ask 0.1%": {
+    "takeable": 7,
+    "guarded_or_no_next_read": 0
+   },
+   "USDT-GBP bid 0.1%": {
+    "takeable": 281,
+    "guarded_or_no_next_read": 1
+   },
+   "USDT-GBP bid 0.2%": {
+    "takeable": 17,
+    "guarded_or_no_next_read": 0
+   }
+  }
+ },
+ "episodes": {
+  "count": 33,
+  "reaching_19bps": 6,
+  "list": [
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-28 14:49",
+    "to": "2026-09-28 15:04",
+    "minutes": 9,
+    "deepest_bps": 12.1
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-29 15:14",
+    "to": "2026-09-29 15:54",
+    "minutes": 23,
+    "deepest_bps": 13.2
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-29 16:47",
+    "to": "2026-09-29 17:03",
+    "minutes": 14,
+    "deepest_bps": 11.2
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-29 17:22",
+    "to": "2026-09-29 17:22",
+    "minutes": 1,
+    "deepest_bps": 10.0
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-29 17:34",
+    "to": "2026-09-29 17:44",
+    "minutes": 9,
+    "deepest_bps": 11.1
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-29 17:55",
+    "to": "2026-09-29 18:00",
+    "minutes": 6,
+    "deepest_bps": 11.2
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-30 12:31",
+    "to": "2026-09-30 12:31",
+    "minutes": 1,
+    "deepest_bps": 12.2
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-09-30 15:19",
+    "to": "2026-09-30 16:03",
+    "minutes": 34,
+    "deepest_bps": 18.0
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-10-01 07:41",
+    "to": "2026-10-01 08:37",
+    "minutes": 38,
+    "deepest_bps": 19.6
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "from": "2026-10-02 10:22",
+    "to": "2026-10-02 10:24",
+    "minutes": 2,
+    "deepest_bps": 11.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 08:28",
+    "to": "2026-09-28 08:34",
+    "minutes": 5,
+    "deepest_bps": 11.6
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 10:20",
+    "to": "2026-09-28 10:25",
+    "minutes": 6,
+    "deepest_bps": 12.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 11:10",
+    "to": "2026-09-28 11:15",
+    "minutes": 6,
+    "deepest_bps": 11.4
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 12:48",
+    "to": "2026-09-28 13:20",
+    "minutes": 22,
+    "deepest_bps": 15.1
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 13:34",
+    "to": "2026-09-28 13:37",
+    "minutes": 4,
+    "deepest_bps": 12.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-28 14:47",
+    "to": "2026-09-28 15:22",
+    "minutes": 33,
+    "deepest_bps": 14.7
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-29 13:35",
+    "to": "2026-09-29 13:35",
+    "minutes": 1,
+    "deepest_bps": 13.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-29 14:38",
+    "to": "2026-09-29 18:13",
+    "minutes": 207,
+    "deepest_bps": 24.7
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-09-30 12:31",
+    "to": "2026-09-30 12:31",
+    "minutes": 1,
+    "deepest_bps": 10.2
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-01 07:32",
+    "to": "2026-10-01 10:57",
+    "minutes": 195,
+    "deepest_bps": 32.3
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-01 11:14",
+    "to": "2026-10-01 11:38",
+    "minutes": 25,
+    "deepest_bps": 17.5
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-01 13:19",
+    "to": "2026-10-01 13:44",
+    "minutes": 12,
+    "deepest_bps": 12.8
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-01 14:14",
+    "to": "2026-10-01 14:32",
+    "minutes": 3,
+    "deepest_bps": 11.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-01 14:44",
+    "to": "2026-10-01 15:35",
+    "minutes": 44,
+    "deepest_bps": 34.3
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "from": "2026-10-02 15:24",
+    "to": "2026-10-02 15:44",
+    "minutes": 14,
+    "deepest_bps": 14.1
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-28 07:32",
+    "to": "2026-09-28 07:58",
+    "minutes": 26,
+    "deepest_bps": 20.4
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-29 12:05",
+    "to": "2026-09-29 12:06",
+    "minutes": 2,
+    "deepest_bps": 11.7
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-30 07:18",
+    "to": "2026-09-30 07:31",
+    "minutes": 13,
+    "deepest_bps": 16.6
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-30 07:46",
+    "to": "2026-09-30 07:47",
+    "minutes": 2,
+    "deepest_bps": 10.5
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-30 08:27",
+    "to": "2026-09-30 09:06",
+    "minutes": 27,
+    "deepest_bps": 15.0
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-09-30 09:53",
+    "to": "2026-09-30 10:48",
+    "minutes": 54,
+    "deepest_bps": 20.4
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-10-02 12:33",
+    "to": "2026-10-02 12:33",
+    "minutes": 1,
+    "deepest_bps": 14.9
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "from": "2026-10-02 14:44",
+    "to": "2026-10-02 14:44",
+    "minutes": 1,
+    "deepest_bps": 10.2
+   }
+  ]
+ },
+ "halves_split_at": "2026-09-30 10:20",
+ "rule_runs": {
+  "gbp50": {
+   "all": {
+    "trips": 5,
+    "won": 4,
+    "stops": 0,
+    "pnl_gbp": 0.4003,
+    "bps_per_trip": 16.0,
+    "hold_min_median": 356,
+    "hold_min_max": 485,
+    "open": 0,
+    "open_marked_gbp": 0,
+    "with_open_gbp": 0.4003,
+    "with_open_bps": 16.0
+   },
+   "ioc_sent": 6,
+   "ioc_unfilled": 1,
+   "ioc_partial": 0,
+   "maker_trips_displaced": {
+    "trips": 1,
+    "gbp": 0.2189
+   },
+   "net_of_displaced_gbp": 0.1814,
+   "by_rung": {
+    "USDT-GBP ask 0.1%": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.0856,
+     "bps_per_trip": 8.6,
+     "hold_min_median": 36,
+     "hold_min_max": 65,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.0856,
+     "with_open_bps": 8.6
+    },
+    "USDT-GBP bid 0.1%": {
+     "trips": 2,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.1484,
+     "bps_per_trip": 14.8,
+     "hold_min_median": 421,
+     "hold_min_max": 485,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.1484,
+     "with_open_bps": 14.8
+    },
+    "USDT-GBP bid 0.2%": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.1663,
+     "bps_per_trip": 33.3,
+     "hold_min_median": 476,
+     "hold_min_max": 476,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.1663,
+     "with_open_bps": 33.3
+    }
+   },
+   "by_day": {
+    "2026-09-28": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.0559,
+     "bps_per_trip": 11.2,
+     "hold_min_median": 7,
+     "hold_min_max": 7,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.0559,
+     "with_open_bps": 11.2
+    },
+    "2026-09-29": {
+     "trips": 1,
+     "won": 0,
+     "stops": 0,
+     "pnl_gbp": -0.0185,
+     "bps_per_trip": -3.7,
+     "hold_min_median": 356,
+     "hold_min_max": 356,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": -0.0185,
+     "with_open_bps": -3.7
+    },
+    "2026-09-30": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.0296,
+     "bps_per_trip": 5.9,
+     "hold_min_median": 65,
+     "hold_min_max": 65,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.0296,
+     "with_open_bps": 5.9
+    },
+    "2026-10-01": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.3333,
+     "bps_per_trip": 33.3,
+     "hold_min_median": 480,
+     "hold_min_max": 485,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.3333,
+     "with_open_bps": 33.3
+    }
+   },
+   "halves": {
+    "1st": {
+     "trips": 3,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.067,
+     "bps_per_trip": 4.5,
+     "hold_min_median": 65,
+     "hold_min_max": 356,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.067,
+     "with_open_bps": 4.5
+    },
+    "2nd": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.3333,
+     "bps_per_trip": 33.3,
+     "hold_min_median": 480,
+     "hold_min_max": 485,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.3333,
+     "with_open_bps": 33.3
+    }
+   },
+   "trips": [
+    {
+     "rung": "USDT-GBP ask 0.1%",
+     "entry": "2026-09-28 07:51",
+     "exit": "2026-09-28 07:58",
+     "how": "maker",
+     "gap_bps": 20.1,
+     "pnl_gbp": 0.0559,
+     "bps": 11.2,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.1%",
+     "entry": "2026-09-29 15:08",
+     "exit": "2026-09-29 21:04",
+     "how": "maker",
+     "gap_bps": 19.4,
+     "pnl_gbp": -0.0185,
+     "bps": -3.7,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP ask 0.1%",
+     "entry": "2026-09-30 10:19",
+     "exit": "2026-09-30 11:24",
+     "how": "maker",
+     "gap_bps": 19.2,
+     "pnl_gbp": 0.0296,
+     "bps": 5.9,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.1%",
+     "entry": "2026-10-01 07:44",
+     "exit": "2026-10-01 15:49",
+     "how": "maker",
+     "gap_bps": 19.7,
+     "pnl_gbp": 0.167,
+     "bps": 33.4,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.2%",
+     "entry": "2026-10-01 08:58",
+     "exit": "2026-10-01 16:54",
+     "how": "maker",
+     "gap_bps": 29.9,
+     "pnl_gbp": 0.1663,
+     "bps": 33.3,
+     "partial": false
+    }
+   ],
+   "open": []
+  },
+  "gbp50_without_stall": {
+   "all": {
+    "trips": 5,
+    "won": 4,
+    "stops": 0,
+    "pnl_gbp": 0.4003,
+    "bps_per_trip": 16.0,
+    "hold_min_median": 356,
+    "hold_min_max": 485,
+    "open": 0,
+    "open_marked_gbp": 0,
+    "with_open_gbp": 0.4003,
+    "with_open_bps": 16.0
+   },
+   "ioc_sent": 6,
+   "ioc_unfilled": 1,
+   "ioc_partial": 0
+  },
+  "gbp100": {
+   "all": {
+    "trips": 5,
+    "won": 4,
+    "stops": 0,
+    "pnl_gbp": 0.8744,
+    "bps_per_trip": 17.5,
+    "hold_min_median": 356,
+    "hold_min_max": 550,
+    "open": 0,
+    "open_marked_gbp": 0,
+    "with_open_gbp": 0.8744,
+    "with_open_bps": 17.5
+   },
+   "ioc_sent": 6,
+   "ioc_unfilled": 1,
+   "ioc_partial": 0,
+   "maker_trips_displaced": {
+    "trips": 1,
+    "gbp": 0.4377
+   },
+   "net_of_displaced_gbp": 0.4367,
+   "by_rung": {
+    "USDT-GBP ask 0.1%": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.1912,
+     "bps_per_trip": 9.6,
+     "hold_min_median": 36,
+     "hold_min_max": 65,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.1912,
+     "with_open_bps": 9.6
+    },
+    "USDT-GBP bid 0.1%": {
+     "trips": 2,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.2963,
+     "bps_per_trip": 14.8,
+     "hold_min_median": 453,
+     "hold_min_max": 550,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.2963,
+     "with_open_bps": 14.8
+    },
+    "USDT-GBP bid 0.2%": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.387,
+     "bps_per_trip": 38.7,
+     "hold_min_median": 476,
+     "hold_min_max": 476,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.387,
+     "with_open_bps": 38.7
+    }
+   },
+   "by_day": {
+    "2026-09-28": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.1219,
+     "bps_per_trip": 12.2,
+     "hold_min_median": 7,
+     "hold_min_max": 7,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.1219,
+     "with_open_bps": 12.2
+    },
+    "2026-09-29": {
+     "trips": 1,
+     "won": 0,
+     "stops": 0,
+     "pnl_gbp": -0.0371,
+     "bps_per_trip": -3.7,
+     "hold_min_median": 356,
+     "hold_min_max": 356,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": -0.0371,
+     "with_open_bps": -3.7
+    },
+    "2026-09-30": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "pnl_gbp": 0.0693,
+     "bps_per_trip": 6.9,
+     "hold_min_median": 65,
+     "hold_min_max": 65,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.0693,
+     "with_open_bps": 6.9
+    },
+    "2026-10-01": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.7203,
+     "bps_per_trip": 36.0,
+     "hold_min_median": 513,
+     "hold_min_max": 550,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.7203,
+     "with_open_bps": 36.0
+    }
+   },
+   "halves": {
+    "1st": {
+     "trips": 3,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.1541,
+     "bps_per_trip": 5.1,
+     "hold_min_median": 65,
+     "hold_min_max": 356,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.1541,
+     "with_open_bps": 5.1
+    },
+    "2nd": {
+     "trips": 2,
+     "won": 2,
+     "stops": 0,
+     "pnl_gbp": 0.7203,
+     "bps_per_trip": 36.0,
+     "hold_min_median": 513,
+     "hold_min_max": 550,
+     "open": 0,
+     "open_marked_gbp": 0,
+     "with_open_gbp": 0.7203,
+     "with_open_bps": 36.0
+    }
+   },
+   "trips": [
+    {
+     "rung": "USDT-GBP ask 0.1%",
+     "entry": "2026-09-28 07:51",
+     "exit": "2026-09-28 07:58",
+     "how": "maker",
+     "gap_bps": 20.1,
+     "pnl_gbp": 0.1219,
+     "bps": 12.2,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.1%",
+     "entry": "2026-09-29 15:08",
+     "exit": "2026-09-29 21:04",
+     "how": "maker",
+     "gap_bps": 19.4,
+     "pnl_gbp": -0.0371,
+     "bps": -3.7,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP ask 0.1%",
+     "entry": "2026-09-30 10:19",
+     "exit": "2026-09-30 11:24",
+     "how": "maker",
+     "gap_bps": 19.2,
+     "pnl_gbp": 0.0693,
+     "bps": 6.9,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.1%",
+     "entry": "2026-10-01 07:44",
+     "exit": "2026-10-01 16:54",
+     "how": "maker",
+     "gap_bps": 19.7,
+     "pnl_gbp": 0.3333,
+     "bps": 33.3,
+     "partial": false
+    },
+    {
+     "rung": "USDT-GBP bid 0.2%",
+     "entry": "2026-10-01 08:58",
+     "exit": "2026-10-01 16:54",
+     "how": "maker",
+     "gap_bps": 29.9,
+     "pnl_gbp": 0.387,
+     "bps": 38.7,
+     "partial": false
+    }
+   ],
+   "open": []
+  },
+  "gbp100_without_stall": {
+   "all": {
+    "trips": 5,
+    "won": 4,
+    "stops": 0,
+    "pnl_gbp": 0.8744,
+    "bps_per_trip": 17.5,
+    "hold_min_median": 356,
+    "hold_min_max": 550,
+    "open": 0,
+    "open_marked_gbp": 0,
+    "with_open_gbp": 0.8744,
+    "with_open_bps": 17.5
+   },
+   "ioc_sent": 6,
+   "ioc_unfilled": 1,
+   "ioc_partial": 0
+  }
+ },
+ "sensitivity": {
+  "gbp50 rung + fee": {
+   "trips": 5,
+   "won": 4,
+   "pnl_gbp": 0.4003,
+   "bps_per_trip": 16.0,
+   "halves_gbp": {
+    "1st": 0.067,
+    "2nd": 0.3333
+   },
+   "displaced_gbp": 0.2189,
+   "net_gbp": 0.1814
+  },
+  "gbp50 rung price": {
+   "trips": 17,
+   "won": 8,
+   "pnl_gbp": 0.3451,
+   "bps_per_trip": 4.2,
+   "halves_gbp": {
+    "1st": -0.1084,
+    "2nd": 0.4535
+   },
+   "displaced_gbp": 0.2586,
+   "net_gbp": 0.0865
+  },
+  "gbp50 margin 5 bps": {
+   "trips": 11,
+   "won": 8,
+   "pnl_gbp": 0.6039,
+   "bps_per_trip": 11.0,
+   "halves_gbp": {
+    "1st": 0.0461,
+    "2nd": 0.5577
+   },
+   "displaced_gbp": 0.2189,
+   "net_gbp": 0.385
+  },
+  "gbp50 margin 10 bps": {
+   "trips": 9,
+   "won": 7,
+   "pnl_gbp": 0.6608,
+   "bps_per_trip": 14.7,
+   "halves_gbp": {
+    "1st": 0.1044,
+    "2nd": 0.5564
+   },
+   "displaced_gbp": 0.2189,
+   "net_gbp": 0.4419
+  },
+  "gbp50 margin 15 bps": {
+   "trips": 5,
+   "won": 3,
+   "pnl_gbp": 0.4897,
+   "bps_per_trip": 19.6,
+   "halves_gbp": {
+    "1st": -0.0371,
+    "2nd": 0.5268
+   },
+   "displaced_gbp": 0.2189,
+   "net_gbp": 0.2708
+  },
+  "gbp100 rung + fee": {
+   "trips": 5,
+   "won": 4,
+   "pnl_gbp": 0.8744,
+   "bps_per_trip": 17.5,
+   "halves_gbp": {
+    "1st": 0.1541,
+    "2nd": 0.7203
+   },
+   "displaced_gbp": 0.4377,
+   "net_gbp": 0.4367
+  },
+  "gbp100 rung price": {
+   "trips": 17,
+   "won": 8,
+   "pnl_gbp": 0.8386,
+   "bps_per_trip": 5.3,
+   "halves_gbp": {
+    "1st": -0.1767,
+    "2nd": 1.0153
+   },
+   "displaced_gbp": 0.5172,
+   "net_gbp": 0.3214
+  },
+  "gbp100 margin 5 bps": {
+   "trips": 11,
+   "won": 8,
+   "pnl_gbp": 1.3072,
+   "bps_per_trip": 12.4,
+   "halves_gbp": {
+    "1st": 0.1224,
+    "2nd": 1.1848
+   },
+   "displaced_gbp": 0.4377,
+   "net_gbp": 0.8695
+  },
+  "gbp100 margin 10 bps": {
+   "trips": 9,
+   "won": 7,
+   "pnl_gbp": 1.4155,
+   "bps_per_trip": 15.7,
+   "halves_gbp": {
+    "1st": 0.2389,
+    "2nd": 1.1766
+   },
+   "displaced_gbp": 0.4377,
+   "net_gbp": 0.9778
+  },
+  "gbp100 margin 15 bps": {
+   "trips": 5,
+   "won": 3,
+   "pnl_gbp": 1.0332,
+   "bps_per_trip": 20.7,
+   "halves_gbp": {
+    "1st": -0.0742,
+    "2nd": 1.1073
+   },
+   "displaced_gbp": 0.4377,
+   "net_gbp": 0.5955
+  }
+ },
+ "null_gbp50": {
+  "pool": {
+   "USDC-GBP ask": {
+    "n": 244,
+    "mean_bps": -13.2
+   },
+   "USDC-GBP bid": {
+    "n": 274,
+    "mean_bps": -13.5
+   },
+   "USDT-GBP ask": {
+    "n": 253,
+    "mean_bps": -11.6
+   },
+   "USDT-GBP bid": {
+    "n": 252,
+    "mean_bps": -11.3
+   }
+  },
+  "rung + fee": {
+   "takes": 5,
+   "actual_gbp": 0.4003,
+   "null_mean_gbp": -0.2856,
+   "null_p95_gbp": -0.0737,
+   "null_at_or_above_actual": 0.0001
+  },
+  "rung price": {
+   "takes": 17,
+   "actual_gbp": 0.3451,
+   "null_mean_gbp": -1.0158,
+   "null_p95_gbp": -0.6252,
+   "null_at_or_above_actual": 0.0
+  }
+ },
+ "null_gbp100": {
+  "pool": {
+   "USDC-GBP ask": {
+    "n": 244,
+    "mean_bps": -12.1
+   },
+   "USDC-GBP bid": {
+    "n": 274,
+    "mean_bps": -13.4
+   },
+   "USDT-GBP ask": {
+    "n": 253,
+    "mean_bps": -10.4
+   },
+   "USDT-GBP bid": {
+    "n": 252,
+    "mean_bps": -11.1
+   }
+  },
+  "rung + fee": {
+   "takes": 5,
+   "actual_gbp": 0.8744,
+   "null_mean_gbp": -0.5417,
+   "null_p95_gbp": -0.118,
+   "null_at_or_above_actual": 0.0
+  },
+  "rung price": {
+   "takes": 17,
+   "actual_gbp": 0.8386,
+   "null_mean_gbp": -1.9444,
+   "null_p95_gbp": -1.1611,
+   "null_at_or_above_actual": 0.0
+  }
+ },
+ "markouts": {
+  "episode_starts": {
+   "gap0": {
+    "n": 33,
+    "mean": 12.8,
+    "median": 11.4
+   },
+   "mid_15": {
+    "n": 33,
+    "mean": 1.0,
+    "median": 0.0
+   },
+   "fair_15": {
+    "n": 33,
+    "mean": -2.6,
+    "median": -2.7
+   },
+   "gap_15": {
+    "n": 33,
+    "mean": 9.1,
+    "median": 10.1
+   },
+   "mid_60": {
+    "n": 33,
+    "mean": 6.2,
+    "median": -0.0
+   },
+   "fair_60": {
+    "n": 33,
+    "mean": -2.8,
+    "median": -3.2
+   },
+   "gap_60": {
+    "n": 33,
+    "mean": 3.8,
+    "median": 1.3
+   },
+   "mid_240": {
+    "n": 33,
+    "mean": 9.4,
+    "median": 6.6
+   },
+   "fair_240": {
+    "n": 33,
+    "mean": -0.2,
+    "median": -0.5
+   },
+   "gap_240": {
+    "n": 33,
+    "mean": 3.2,
+    "median": 0.3
+   },
+   "mid_1440": {
+    "n": 29,
+    "mean": 8.4,
+    "median": 12.6
+   },
+   "fair_1440": {
+    "n": 29,
+    "mean": -5.6,
+    "median": 5.0
+   },
+   "gap_1440": {
+    "n": 29,
+    "mean": -1.2,
+    "median": -0.2
+   }
+  },
+  "takes rung + fee": {
+   "gap0": {
+    "n": 5,
+    "mean": 22.3,
+    "median": 20.4
+   },
+   "mid_15": {
+    "n": 5,
+    "mean": 8.2,
+    "median": 0.0
+   },
+   "fair_15": {
+    "n": 5,
+    "mean": -0.8,
+    "median": 0.5
+   },
+   "gap_15": {
+    "n": 5,
+    "mean": 13.3,
+    "median": 15.5
+   },
+   "take_marked_15": {
+    "n": 5,
+    "mean": -1.4,
+    "median": -9.7
+   },
+   "mid_60": {
+    "n": 5,
+    "mean": 11.3,
+    "median": 9.3
+   },
+   "fair_60": {
+    "n": 5,
+    "mean": 2.7,
+    "median": 4.6
+   },
+   "gap_60": {
+    "n": 5,
+    "mean": 13.7,
+    "median": 19.0
+   },
+   "take_marked_60": {
+    "n": 5,
+    "mean": 1.6,
+    "median": -0.4
+   },
+   "mid_240": {
+    "n": 5,
+    "mean": 13.8,
+    "median": 13.2
+   },
+   "fair_240": {
+    "n": 5,
+    "mean": -6.9,
+    "median": -3.8
+   },
+   "gap_240": {
+    "n": 5,
+    "mean": 1.6,
+    "median": 4.8
+   },
+   "take_marked_240": {
+    "n": 5,
+    "mean": 4.1,
+    "median": 3.6
+   },
+   "mid_1440": {
+    "n": 5,
+    "mean": 5.3,
+    "median": -3.3
+   },
+   "fair_1440": {
+    "n": 5,
+    "mean": -22.6,
+    "median": -18.6
+   },
+   "gap_1440": {
+    "n": 5,
+    "mean": -5.6,
+    "median": -3.6
+   },
+   "take_marked_1440": {
+    "n": 5,
+    "mean": -4.4,
+    "median": -13.0
+   }
+  },
+  "takes rung price": {
+   "gap0": {
+    "n": 17,
+    "mean": 15.4,
+    "median": 12.4
+   },
+   "mid_15": {
+    "n": 17,
+    "mean": 3.2,
+    "median": 0.0
+   },
+   "fair_15": {
+    "n": 17,
+    "mean": -2.1,
+    "median": -0.3
+   },
+   "gap_15": {
+    "n": 17,
+    "mean": 10.1,
+    "median": 11.1
+   },
+   "take_marked_15": {
+    "n": 17,
+    "mean": -6.8,
+    "median": -9.7
+   },
+   "mid_60": {
+    "n": 17,
+    "mean": 8.1,
+    "median": 2.7
+   },
+   "fair_60": {
+    "n": 17,
+    "mean": -1.6,
+    "median": -1.5
+   },
+   "gap_60": {
+    "n": 17,
+    "mean": 5.8,
+    "median": 1.4
+   },
+   "take_marked_60": {
+    "n": 17,
+    "mean": -1.9,
+    "median": -7.0
+   },
+   "mid_240": {
+    "n": 17,
+    "mean": 10.4,
+    "median": 13.2
+   },
+   "fair_240": {
+    "n": 17,
+    "mean": -4.1,
+    "median": -4.9
+   },
+   "gap_240": {
+    "n": 17,
+    "mean": 0.9,
+    "median": 0.3
+   },
+   "take_marked_240": {
+    "n": 17,
+    "mean": 0.5,
+    "median": 3.6
+   },
+   "mid_1440": {
+    "n": 15,
+    "mean": 11.2,
+    "median": 19.9
+   },
+   "fair_1440": {
+    "n": 15,
+    "mean": -4.6,
+    "median": 3.2
+   },
+   "gap_1440": {
+    "n": 15,
+    "mean": 0.3,
+    "median": 1.0
+   },
+   "take_marked_1440": {
+    "n": 15,
+    "mean": 1.2,
+    "median": 10.2
+   }
+  }
+ }
+}
