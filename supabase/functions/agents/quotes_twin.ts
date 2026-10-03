@@ -1,5 +1,6 @@
 // The realistic twins of PR5's live executor: the TESTING rows "Stablecoin quotes" (PR5's rule), "Stablecoin quotes
-// variant-1" (PR5's rule at £50 a rung, since 2026-10-03) and "Stablecoin quotes variant-3" (rule D's arm d, "variant-2" in
+// variant-1" (PR5's rule at £50 a rung, since 2026-10-03), "Stablecoin quotes variant-2" (variant-1 with TAKE's taker
+// entry from 2026-10-05, `take50`, 0089) and "Stablecoin quotes variant-3" (rule D's arm d, "variant-2" in
 // its own pre-registration; "variant-1" on the page from 2026-10-02, Davies: "这个variant-2上线testing后改名为variant-1", until
 // 2026-10-03). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
 // sizes the same evening, "改成原版每档100磅，variant-2 每档50磅，一定要确保新架构真实"; on the conversions, "都按我们昨天新设立的maker
@@ -25,6 +26,9 @@
 //   d    rule D (`stepVariantMinute` with `RULED_ARMS.d`, quotes_ruled.ts's judged arm), £1,800: thirty-six rungs of £50,
 //        nine a side of each book, four governed keys (a book and a side each: the frozen design's four sub-accounts).
 //        "Stablecoin quotes variant-3" on the page since 2026-10-03 (variant-1 before); PR5V keeps running off the page.
+//   take50  0089's row: p50 with the rule extension `take` (`TWIN_RULES`), "Stablecoin quotes variant-2", TAKE's forward
+//        test (docs/agents/reviews/2026-10-03-take-prereg.md). From its `take.from` a turn reads the book recorder's reads
+//        around it (`takeReadsAt`) and waits for the first after it, so it turns a call behind; before then it is p50's.
 // An id names a twin's tables and lease and never a variant number, so a page name changes in its row alone. pr5's and
 // d's specs are what they were (quotes_twin.test.ts pins them; their backfills rebuild to the same bytes).
 // It steps a REPLICA of its engine itself, from the inputs that engine decides on (PR5's stored minutes and prints), at
@@ -49,7 +53,9 @@ import {
 } from "./quotes.ts";
 import { newGovCounts, newVariantBook, printOrder, stepVariantMinute, variantKey, type GovCounts } from "./quotes_variant.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
-import { pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, type QuoteLiveInstance, type QuoteLiveReport } from "./quotes_live.ts";
+import {
+  pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, seenUntil, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport, type RecordedRead,
+} from "./quotes_live.ts";
 import { newSimState, SimRevx, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 
@@ -89,6 +95,14 @@ export const TWIN_PAPER_CHUNK_MINUTES = 480;
 /** The lease of one call (every twin in turn). */
 export const TWINS_LEASE = "quotes-twins";
 export const TWINS_LEASE_MS = 55e3;
+/**
+ * TAKE's twin (docs/agents/reviews/2026-10-03-take-prereg.md): a turn at which a take may happen waits for the book
+ * recorder's first read after it (it reads 40 s into the minute, after this call starts), at most this long; then it
+ * turns, and a take finds no read to fill against.
+ */
+export const TWIN_TAKE_WAIT_MS = 120e3;
+/** A take fills against the recorder's next read only when it came this soon after the turn (step 5). */
+export const TAKE_NEXT_READ_MS = 60e3;
 
 /** A twin's id: its spec row's, which names its tables and lease and never a variant number (a page name can change). */
 export type TwinId = string;
@@ -123,7 +137,7 @@ export type TwinSpec = {
 export type TwinSpecRow = {
   id: string; display_name: string; display_order: number; engine: "pr5" | "ruled-d"; capital_gbp: number | string;
   gov: "account" | "variant-keys"; start: string; table_prefix: string; lease: string;
-  /** Rule extensions by key, each the code of `TWIN_RULES[key]`: none yet (the coming TAKE twin adds the first). */
+  /** Rule extensions by key, each the code of `TWIN_RULES[key]`: `take` (`{ "from": "<UTC>" }`, TAKE's, 0089) the first. */
   rules: Record<string, unknown> | null;
   backfill: TwinBackfill | null; prereg: string;
   /** The migration that made its tables, which the executor names when they are missing. */
@@ -139,30 +153,44 @@ const GOV_KEYS: Record<TwinSpecRow["gov"], QuoteLiveInstance["govKey"]> = {
   account: () => "account",
   "variant-keys": (b, s) => variantKey(b, s ?? "ask"),
 };
-/** The rule extensions a spec row may name in `rules`, by key: none yet. A key with no code here is refused. */
-export const TWIN_RULES: Record<string, true> = {};
+/**
+ * The rule extensions a spec row may name in `rules`, by key, each the instance option it sets: `take`, TAKE's taker
+ * entry from `from` (`QuoteLiveInstance.take`; docs/agents/reviews/2026-10-03-take-prereg.md). A key with no code here,
+ * or one whose settings it cannot read, is refused.
+ */
+export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstance>> = {
+  take: (v) => {
+    const from = Date.parse(String((v as { from?: unknown } | null)?.from));
+    if (!Number.isFinite(from)) throw new Error(`its rule take needs "from", a UTC instant`);
+    return { take: { from } };
+  },
+};
 
 /** A spec row as the call and the page use it; a row this code cannot carry out is refused with why. */
 export function specFromRow(r: TwinSpecRow): TwinSpec {
   const eng = ENGINES[r.engine], govKey = GOV_KEYS[r.gov];
   if (!eng) throw new Error(`twin ${r.id}: no engine ${r.engine}`);
   if (!govKey) throw new Error(`twin ${r.id}: no governed keys ${r.gov}`);
-  const noCode = Object.keys(r.rules ?? {}).filter((k) => !TWIN_RULES[k]);
+  const noCode = Object.keys(r.rules ?? {}).filter((k) => !Object.hasOwn(TWIN_RULES, k));
   if (noCode.length) throw new Error(`twin ${r.id}: no code for its rule ${noCode.join(", ")}`);
+  const rules: Partial<QuoteLiveInstance> = {};
+  for (const [k, v] of Object.entries(r.rules ?? {})) {
+    try { Object.assign(rules, TWIN_RULES[k](v)); } catch (e) { throw new Error(`twin ${r.id}: ${msg(e)}`); }
+  }
   const p = r.table_prefix;
   return {
     id: r.id, name: r.display_name, engine: r.engine, sim: `${p}_sim`, capitalGbp: Number(r.capital_gbp), start: Date.parse(r.start),
     ...(r.backfill ? { backfill: r.backfill } : {}),
     instance: {
       config: `${p}_config`, orders: `${p}_orders`, events: `${p}_events`, state: `${p}_state`, paper: `${p}_paper`,
-      migration: r.migration, lease: r.lease, rungs: eng.rungs, exitReprice: eng.exitReprice, govKey,
+      migration: r.migration, lease: r.lease, rungs: eng.rungs, exitReprice: eng.exitReprice, govKey, ...rules,
     },
   };
 }
 
 /**
  * The rows 0088 inserts into `agent_quote_twin_specs`, in the page's order (Davies, 2026-10-03: "你目前正在做的variant改名为
- * variant-1排上面，这个新的是variant-2，原来的variant-1改名为variant-3"; variant-2 waits for its twin). At run time the call and
+ * variant-1排上面，这个新的是variant-2，原来的variant-1改名为variant-3"; variant-2 is 0089's row, take50). At run time the call and
  * the page read the table (`twinSpecs`); these are what the tests pin. A later variant is a row of its own migration, not a
  * line here; src/twin_specs.test.js holds these equal to 0088's rows. A row's `start` is its engine's first decided minute:
  * PR5's 2026-09-23 15:09 UTC (`agent_quote_events`' first row), rule D's 2026-09-28 00:00 (`RULED_START`).
@@ -201,8 +229,40 @@ export async function twinSpecs(db: Db): Promise<{ specs: TwinSpec[]; refused: A
 export const twinWrites = (s: TwinSpec) => [s.instance.config, s.instance.orders, s.instance.events, s.instance.state, s.instance.paper, s.sim];
 export const TWIN_READS = [
   "agent_quote_state", "agent_quote_minutes", "agent_quote_prints", "agent_quote_inputs", "agent_quote_events", "agent_quoted_state", "agent_quoted_events",
-  "edge_call_beats", "agent_risk", "agent_quote_twin_specs",
+  "edge_call_beats", "agent_risk", "agent_quote_twin_specs", "agent_book_levels",
 ];
+
+// ------------------------------------------------------------------ TAKE's reads of the recorded books
+
+/** Whether a twin's turn at `at` may take (its spec's `take`, from its instant): only then does it read the recorded books. */
+export const takesAt = (spec: TwinSpec, at: number) => !!spec.instance.take && at >= spec.instance.take.from;
+/** What the book recorder holds of a book around a turn: its last read at or before the turn, and its first after it. */
+export type TakeReads = { before: RecordedRead | null; after: RecordedRead | null };
+export async function takeReadsAt(db: Db, at: number): Promise<Record<QuoteBook, TakeReads>> {
+  const out = {} as Record<QuoteBook, TakeReads>;
+  for (const b of QUOTE_BOOKS) {
+    const sel = "select=ts,seen_until,bids,asks";
+    const [before] = await db.select<RecordedRead>("agent_book_levels", `book=eq.${b}&ts=lte.${enc(at)}&${sel}&order=ts.desc&limit=1`);
+    const [after] = await db.select<RecordedRead>("agent_book_levels", `book=eq.${b}&ts=gt.${enc(at)}&${sel}&order=ts.asc&limit=1`);
+    out[b] = { before: before ?? null, after: after ?? null };
+  }
+  return out;
+}
+/** Has the recorder read the book since `at`: the read the turn met, read again after it, or a new one? */
+export const recorderReadAfter = (r: TakeReads, at: number) => (r.before != null && seenUntil(r.before) > at) || r.after != null;
+/**
+ * The read a take at `at` fills against (step 5): the one the turn met when the recorder read it again after the turn,
+ * else the recorder's next read when it came within TAKE_NEXT_READ_MS; else none, and nothing fills.
+ */
+export function takeFillRead(r: TakeReads, at: number): RecordedRead | null {
+  if (r.before && Date.parse(r.before.ts) <= at && seenUntil(r.before) > at) return r.before;
+  return r.after && Date.parse(r.after.ts) > at && Date.parse(r.after.ts) - at <= TAKE_NEXT_READ_MS ? r.after : null;
+}
+/** A recorded read as the simulated account's book: its levels, named by the read and its first instant (`SimBook.at`). */
+export const simBookOfRead = (r: RecordedRead): SimBook => ({
+  bids: r.bids.map((l): SimLevel => [Number(l[0]), Number(l[1])]), asks: r.asks.map((l): SimLevel => [Number(l[0]), Number(l[1])]),
+  source: `recorded read ${new Date(Date.parse(r.ts)).toISOString()}`, at: Date.parse(r.ts),
+});
 
 // ------------------------------------------------------------------ the replica of the paper engine
 
@@ -484,6 +544,11 @@ export type TwinDriverState = {
   operator?: Partial<Record<QuoteBook, { cid: string | null; at: string; gbp: number; sent: number; done: boolean; last?: string }>>;
   /** The orders it sent each UTC day (rows written, less those recorded refused and never sent): its page's DAYS. */
   days?: Record<string, number>;
+  /**
+   * TAKE's twin, forward: the turns waiting for the book recorder's read after them (`TWIN_TAKE_WAIT_MS`), oldest first,
+   * each at PR5's instant with the minute PR5 had decided then. Absent when none waits.
+   */
+  waiting?: Array<{ at: number; upTo: number }>;
 };
 /** How many of the operator's conversions the twin's state keeps. */
 export const TWIN_CONVERSIONS_KEPT = 20;
@@ -563,16 +628,21 @@ async function startTwin(d: TwinDeps, spec: TwinSpec): Promise<TwinDriverState> 
  * turn the operator's conversions (a quarter of the capital into each coin, as makers), then the live executor, and
  * after it the operator's look at each conversion it sent.
  */
-async function twinTurn(d: TwinDeps, spec: TwinSpec, ds: TwinDriverState, paper: TwinPaper, at: number, upTo: number, snapshots: Map<string, SimBook>, report: TwinReport) {
+async function twinTurn(
+  d: TwinDeps, spec: TwinSpec, ds: TwinDriverState, paper: TwinPaper, at: number, upTo: number, snapshots: Map<string, SimBook>, report: TwinReport,
+  reads: Record<QuoteBook, TakeReads> | null = null,
+) {
   // Catching up, the replica stands where its engine stood at each of those turns: caught up, as PR5's engine was
   // whenever its call ran (it decides up to 120 missed minutes a run, and no gap in its beats is longer). Forward, it
   // steps as PR5's engine does, at most TWIN_PAPER_MAX_MINUTES a call: behind, the executor's stale-input guard holds.
   const stepped = await stepTwinPaper(d.db, paper, upTo, ds.mode === "catch-up" ? Number.POSITIVE_INFINITY : TWIN_PAPER_MAX_MINUTES);
   report.paper = { minutes: (report.paper?.minutes ?? 0) + stepped.minutes, rebuilt: (report.paper?.rebuilt ?? 0) + stepped.rebuilt };
   await d.db.upsert(spec.instance.paper, [{ id: 1, state: paper, last_minute: iso(paper.lastMinute), updated_at: iso(at) }], "id");
-  // The venue's clock: a print's instant while the prints are applied, then the turn's for the whole turn.
+  // The venue's clock: a print's instant while the prints are applied, then the turn's for the whole turn. A turn that
+  // may take (`reads`) gives the account the recorded read each take meets (`takeFillRead`).
   let venueNow = at;
-  const sim = new SimRevx(ds.venue, () => venueNow, (b, t) => snapshots.get(`${b}|${minuteOf(t)}`) ?? null);
+  const takeRead = reads ? (b: QuoteBook) => { const r = takeFillRead(reads[b], at); return r ? simBookOfRead(r) : null; } : undefined;
+  const sim = new SimRevx(ds.venue, () => venueNow, (b, t) => snapshots.get(`${b}|${minuteOf(t)}`) ?? null, takeRead);
   const applied = await applyPrintsTo(d.db, sim, at, (t) => { venueNow = t; }, spec.replay?.deadmanFrom);
   venueNow = at;
   if (applied.deadman != null) {
@@ -582,11 +652,15 @@ async function twinTurn(d: TwinDeps, spec: TwinSpec, ds: TwinDriverState, paper:
   // The orders it sends, by UTC day: each row written counts, one recorded refused and never sent does not.
   const tally = (t: number) => (n: number) => { const day = iso(t).slice(0, 10); (ds.days ??= {})[day] = (ds.days[day] ?? 0) + n; };
   // The executor's own clock moves with its pauses (its pacing, its re-reads); the venue's stands at the turn's instant.
+  // A take reaches the account by its order row, written before its POST (`request.take`), and decides on the read the
+  // turn met (`takeBookRow`).
   let offset = 0;
+  const markTake = (row: Record<string, unknown>) => { if ((row.request as { take?: unknown } | null)?.take === true) sim.markTake(String(row.client_order_id)); };
   const deps = {
-    db: stampTs(d.db, spec.instance.orders, () => at, tally(at)), now: at, holder: `${d.holder}:${spec.id}:${at}`, uuid: d.uuid ?? (() => crypto.randomUUID()),
+    db: stampTs(d.db, spec.instance.orders, () => at, tally(at), reads ? markTake : undefined), now: at, holder: `${d.holder}:${spec.id}:${at}`, uuid: d.uuid ?? (() => crypto.randomUUID()),
     account: revxVenue({ apiKey: `simulated-${spec.id}`, privateKey: d.signingKey }, sim.fetch, REVX_REGION, () => at), accountNote: null,
     fetch: sim.publicFetch, pause: (ms: number) => { offset += ms; return Promise.resolve(); }, clock: () => at + offset, instance: spec.instance,
+    ...(reads ? { recordedBook: (b: QuoteBook) => Promise.resolve(takeBookRow(reads[b].before, at)) } : {}),
   };
   const errors: string[] = [];
   /**
@@ -672,9 +746,10 @@ async function twinTurn(d: TwinDeps, spec: TwinSpec, ds: TwinDriverState, paper:
 
 /**
  * A database that stamps the orders it inserts with the turn's instant (`ts`), where the database would stamp its own
- * clock, and tells `tally` how many it wrote (+1 a row) and how many of them were recorded refused and never sent (−1).
+ * clock, tells `tally` how many it wrote (+1 a row) and how many of them were recorded refused and never sent (−1), and
+ * shows `onRow` each order it wrote (TAKE's twin: a take reaches the simulated account this way, before its POST).
  */
-export function stampTs(db: Db, table: string, at: () => number, tally?: (n: number) => void): Db {
+export function stampTs(db: Db, table: string, at: () => number, tally?: (n: number) => void, onRow?: (row: Record<string, unknown>) => void): Db {
   return {
     ...db,
     insert: async <T = unknown>(t: string, rows: unknown, returning?: boolean): Promise<T[]> => {
@@ -682,6 +757,7 @@ export function stampTs(db: Db, table: string, at: () => number, tally?: (n: num
       const list = (Array.isArray(rows) ? rows : [rows]).map((r) => ({ ts: iso(at()), ...(r as Record<string, unknown>) }));
       const out = await db.insert<T>(t, Array.isArray(rows) ? list : list[0], returning);
       tally?.(list.length);
+      if (onRow) for (const r of list) onRow(r);
       return out;
     },
     update: async (t, query, patch) => {
@@ -718,8 +794,11 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
       let snapshots = new Map<string, SimBook>(), snapTo = -Infinity, left = minutes.length;
       for (const m of minutes) {
         if (clock() - began >= budget) break;
+        // A turn that may take waits for the recorder's read after it (TAKE's twin), at most TWIN_TAKE_WAIT_MS.
+        const reads = takesAt(spec, m + TWIN_TURN_OFFSET_MS) ? await takeReadsAt(d.db, m + TWIN_TURN_OFFSET_MS) : null;
+        if (reads && !QUOTE_BOOKS.every((b) => recorderReadAfter(reads[b], m + TWIN_TURN_OFFSET_MS)) && d.now < m + TWIN_TURN_OFFSET_MS + TWIN_TAKE_WAIT_MS) break;
         if (m > snapTo) { snapTo = m + 240 * M; snapshots = await snapshotsFor(d.db, m, snapTo); }
-        await twinTurn(d, spec, ds, paper, m + TWIN_TURN_OFFSET_MS, (await pr5DecidedBy(d.db, m)) ?? paper.lastMinute, snapshots, report);
+        await twinTurn(d, spec, ds, paper, m + TWIN_TURN_OFFSET_MS, (await pr5DecidedBy(d.db, m)) ?? paper.lastMinute, snapshots, report, reads);
         report.turns++;
         report.lastTurn = iso(m + TWIN_TURN_OFFSET_MS);
         left--;
@@ -727,7 +806,7 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
       // Caught up: every minute PR5's call ran before its present one has had its turn. From here one turn a call.
       if (!left && d.catchUpUntil == null && Number.isFinite(horizon) && minuteOf(horizon) - M <= T) ds.mode = "forward";
     }
-    if (ds.mode === "forward" && d.catchUpUntil == null) {
+    if (ds.mode === "forward" && d.catchUpUntil == null && !spec.instance.take) {
       if (!Number.isFinite(horizon) || horizon <= (ds.venue.lastTurnAt ?? 0)) report.skipped = "PR5's call has read no print since this twin's last turn";
       else {
         const snapshots = await snapshotsFor(d.db, minuteOf(horizon), minuteOf(horizon));
@@ -735,6 +814,28 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
         report.turns++;
         report.lastTurn = iso(horizon);
       }
+    } else if (ds.mode === "forward" && d.catchUpUntil == null) {
+      // TAKE's twin: each new instant of PR5's call joins the queue with the minute PR5 had decided then, and turns as soon
+      // as it need not wait; one that may take waits for the recorder's read after it, which comes after this call starts,
+      // so from `take.from` it turns a call behind. Before then it turns in the call, as every twin does.
+      const queue = ds.waiting ?? [];
+      const newest = Math.max(ds.venue.lastTurnAt ?? 0, ...queue.map((w) => w.at));
+      if (Number.isFinite(horizon) && horizon > newest) queue.push({ at: horizon, upTo: T });
+      let turned = 0;
+      while (queue.length) {
+        const w = queue[0];
+        const reads = takesAt(spec, w.at) ? await takeReadsAt(d.db, w.at) : null;
+        if (reads && !QUOTE_BOOKS.every((b) => recorderReadAfter(reads[b], w.at)) && d.now < w.at + TWIN_TAKE_WAIT_MS) break;
+        queue.shift();
+        if (queue.length) ds.waiting = queue; else delete ds.waiting;
+        const snapshots = await snapshotsFor(d.db, minuteOf(w.at), minuteOf(w.at));
+        await twinTurn(d, spec, ds, paper, w.at, w.upTo, snapshots, report, reads);
+        report.turns++;
+        report.lastTurn = iso(w.at);
+        turned++;
+      }
+      if (queue.length) ds.waiting = queue; else delete ds.waiting;
+      if (!turned) report.skipped = queue.length ? `its turn at ${iso(queue[0].at)} waits for the book recorder's read after it` : "PR5's call has read no print since this twin's last turn";
     }
     ds.paperCheck = await checkTwinPaper(d.db, paper, ds.paperCheck).catch((e) => { report.errors.push(`paper check: ${msg(e)}`); return ds.paperCheck; });
     report.check = ds.paperCheck;

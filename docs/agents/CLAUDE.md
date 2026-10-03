@@ -313,8 +313,8 @@ that follow from that evidence, in short:
   quotes" carrying out PR5's decisions at £100 a rung, "Stablecoin quotes
   variant-1" (`p50`) the same decisions at £50 a rung, and "Stablecoin quotes
   variant-3" (`d`, variant-1 until 2026-10-03) rule D's arm `d` at £50 (rule
-  D's file calls it variant-2; PR5V is off the page); "variant-2" is TAKE's,
-  frozen in `reviews/2026-10-03-take-prereg.md`. TESTING's scoreboard and the
+  D's file calls it variant-2; PR5V is off the page); "variant-2" is TAKE's
+  (`take50`, `0089`, `reviews/2026-10-03-take-prereg.md`). TESTING's scoreboard and the
   Revolut X card include them. **Since `0088` each twin is a row of
   `agent_quote_twin_specs`** (reference §4 item 51's "Twin variants" table):
   the call and the page read the enabled rows. A variant that differs only in

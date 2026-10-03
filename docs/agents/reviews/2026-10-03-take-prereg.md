@@ -99,3 +99,30 @@ pre-registration. QUEUE's window overlaps; reading its books is QUEUE's deviatio
 * Tests, each with a counterfactual: the trigger at k + 0.09 % (a tick short does not take); every guard and the paper
   position; the read after the turn (same row, next row, none); cancel before take; the POST counted; variant-2 equal to
   variant-1 before `take.from` on the committed inputs; the browser sweep for the row.
+
+## Deviation 1 (2026-10-03): the build, three points the text leaves open, and one left out
+
+The rule above is unchanged. Built as its spec says (`0089`, reference §4 item 52); where the text is silent the build
+follows study.py:
+
+1. Two takes on one book side walk the same read: the later one takes what the earlier left (study.py's `taken`), in the
+   same turn or a later one while that read stands. K2's recomputation does the same.
+2. A take whose funds check fails sends nothing, and its rung quotes no paper entry in that turn (the turn is the take's).
+3. A turn waits for the recorder's read after it (at most 120 s) from `take.from` on, catching up as well as forward.
+
+Left out of the build spec: its page does not mark take trips. The row and page are the twins' own, read from its spec
+row, and no page code changed (the main session's call); every take is its order row's `request.take`, for the reading.
+
+Check K1 on the committed record: `take50.json.gz` is `p50.json.gz` in every row of every table but the twin's id
+(`src/take_twin.test.js`). The counterfactuals, each rule removed and its pin failing: the limit without the fee, the
+paper position, `take.from`, the 90 s age, the cancel before the take, a frozen cancel, the POST counted, the same or next
+read, the 60 s bound, the read's depletion, the mark, the wait and its 120 s. The files as built (a record; the twins'
+pre-registration's deviation 2 and variant-1's deviation 1 freeze the driver and the account):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_live.ts` | 425def7ed57f1b4e6157cadf7167e7d1711a06ec05fa552df25c35d2adf12e6b |
+| `supabase/functions/agents/quotes_twin.ts` | d13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a |
+| `supabase/functions/agents/revx_sim.ts` | 4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa |
+| `supabase/migrations/0089_quote_twin_take50.sql` | 39da274fb14282574eb2b8c6dd814e5937ae5ee91e18a80808787607f7991e49 |
+| `docs/agents/backtests/twins/take50.json.gz` | 8a1d68f9cfe183cf13b387a24103bff3fb6fc7ed3f59b91ca0b29614c051af26 |

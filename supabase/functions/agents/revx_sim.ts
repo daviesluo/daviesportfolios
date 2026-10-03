@@ -23,6 +23,11 @@
 //   * A marketable IOC (the 24-hour stop; the taker conversions of the live account's go-live, which the validation
 //     replays) walks the levels of that book up to its limit and fills what they hold; the rest is cancelled. With only a
 //     touch known (the last print's), it fills there, its depth unknown. The twins' own conversions are makers (rule 1).
+//   * A take (TAKE, docs/agents/reviews/2026-10-03-take-prereg.md step 5; `markTake` names it by its client id before
+//     its POST) is an IOC that walks instead the first RECORDED read of the book after its instant (`takeRead`: the read
+//     the turn met when the recorder read it again after the turn, else the next read within 60 s), less what earlier
+//     takes already took from that same read (the study's `taken`); with no such read nothing fills. Its fee and pennies
+//     are any taker's.
 //   * A cancel lands a read after its 204 (PR5's first live hour; FakeRevx's `cancelLagReads`).
 //   * The dead-man (monitor/deadman.ts, live since 2026-10-02): `deadman(at)` cancels every resting order at `at`, the
 //     driver's call when the executor's last turn is more than three minutes behind a print.
@@ -92,6 +97,8 @@ export type SimOrder = {
   cancelAsked?: number; cancelReadsLeft?: number;
   /** The prints that filled it, as a record: when, which, how much. */
   fills: Array<{ ts: number; print: string; qty: number }>;
+  /** A take (`markTake`): it met the recorded read after its instant. */
+  take?: true;
 };
 export type SimState = {
   v: 1; seq: number;
@@ -103,6 +110,11 @@ export type SimState = {
   /** The executor's last finished turn (the dead-man's clock), and the dead-man's cancels so far. */
   lastTurnAt: number | null;
   deadmen: Array<{ at: number; cancelled: number }>;
+  /**
+   * What takes have taken from a recorded read, by book and side of the order (`USDT-GBP|buy`): the read (its first
+   * instant) and the quantity taken at each price in ticks. Absent until a take fills.
+   */
+  taken?: Record<string, { at: number; used: Record<string, number> }>;
 };
 export function newSimState(balances: Record<string, number>, seeds: Partial<Record<QuoteBook, Print | null>> = {}): SimState {
   return { v: 1, seq: 1, balances: { ...balances }, orders: [], applied: { ...seeds }, lastTurnAt: null, deadmen: [] };
@@ -112,11 +124,17 @@ const isOpen = (o: SimOrder) => o.status === "new" || o.status === "partially_fi
 const ticksOf = (price: string | number) => Math.round(Number(price) / QUOTE_TICK);
 
 /**
- * The account. `now` is the venue's clock (a turn's instant while the executor runs); `book` the book each order meets.
- * `fetch` answers the private endpoints the live client calls, `publicFetch` the public ones the executor reads.
+ * The account. `now` is the venue's clock (a turn's instant while the executor runs); `book` the book each order meets;
+ * `takeRead` the recorded read a take meets (none: nothing fills). `fetch` answers the private endpoints the live client
+ * calls, `publicFetch` the public ones the executor reads.
  */
 export class SimRevx {
-  constructor(public st: SimState, private now: () => number, private book: SimBookSource) {}
+  /** The client ids of the takes the executor wrote and has not sent yet (`markTake`). */
+  private takes = new Set<string>();
+  constructor(public st: SimState, private now: () => number, private book: SimBookSource, private takeRead: SimBookSource = () => null) {}
+
+  /** The executor wrote this order as a take (`request.take`): its IOC meets `takeRead`, not the book the turn met. */
+  markTake(clientOrderId: string): void { this.takes.add(clientOrderId); }
 
   /** What open orders hold of an asset: a buy its pounds rounded up to the penny, a sell its coin. */
   reserved(asset: string): number {
@@ -253,14 +271,24 @@ export class SimRevx {
       return asset === "GBP" ? `Not enough funds! Wanted £${need.toFixed(2)} but has only £${has.toFixed(2)}` : `Not enough funds! Wanted ${venueNumber(need, 5)} ${asset} but has only ${venueNumber(has, 5)} ${asset}`;
     };
     if (tif === "ioc") {
-      // Walk the levels the book shows, up to the limit: a read's own levels, or the last print's implied touch.
-      const levels: SimLevel[] = [...((req.side === "buy" ? shown?.asks : shown?.bids) ?? [])].sort((a, b) => (req.side === "buy" ? a[0] - b[0] : b[0] - a[0]));
+      // Walk the levels the book shows, up to the limit: a read's own levels, or the last print's implied touch. A take
+      // walks the recorded read after its instant instead, less what earlier takes took from that same read.
+      const isTake = this.takes.delete(req.client_order_id);
+      const met = isTake ? this.takeRead(book, at) : shown;
+      const key = `${book}|${req.side}`;
+      const before = isTake && met && this.st.taken?.[key]?.at === met.at ? this.st.taken[key].used : {};
+      const used: Record<string, number> = { ...before };
+      const levels: SimLevel[] = [...((req.side === "buy" ? met?.asks : met?.bids) ?? [])]
+        .map(([px, q]): SimLevel => [px, isTake ? Math.max(0, q - (before[String(ticksOf(px))] ?? 0)) : q])
+        .sort((a, b) => (req.side === "buy" ? a[0] - b[0] : b[0] - a[0]));
       let want = size, notional = 0, got = 0;
       for (const [px, q] of levels) {
         if (want <= 1e-12 || (req.side === "buy" ? px > price + 1e-12 : px < price - 1e-12)) break;
         const take = Math.min(want, q);
         got += take; notional += take * px; want -= take;
+        if (isTake && take > 0) used[String(ticksOf(px))] = (used[String(ticksOf(px))] ?? 0) + take;
       }
+      if (isTake) o.take = true;
       got = Number(got.toFixed(5));
       if (got > 0) {
         const moved = revxHundredths(req.side, notional);
@@ -271,7 +299,8 @@ export class SimRevx {
         o.feeCurrency = req.side === "buy" ? base : quote;
         if (req.side === "buy") { this.st.balances[quote] = (this.st.balances[quote] ?? 0) - moved; this.st.balances[base] = (this.st.balances[base] ?? 0) + got - o.fee; }
         else { this.st.balances[base] = (this.st.balances[base] ?? 0) - got; this.st.balances[quote] = (this.st.balances[quote] ?? 0) + moved - o.fee; }
-        o.fills.push({ ts: at, print: `book: ${shown?.source ?? "none"}`, qty: got });
+        o.fills.push({ ts: at, print: `book: ${met?.source ?? "none"}`, qty: got });
+        if (isTake && met) (this.st.taken ??= {})[key] = { at: met.at, used };
       }
       o.status = got >= size - 1e-12 ? "filled" : "cancelled";
       if (o.status === "cancelled") o.cancelledBy = "ioc";

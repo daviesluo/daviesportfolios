@@ -210,6 +210,9 @@ places stay when the number is not whole.
   test's first minute too; its page is the same, with £50 rungs. Each
   variant is the same page with its own figures, and the variants are listed
   in the table of twin variants in the agents' reference.
+- **Stablecoin quotes variant-2.** After it: variant-1 again, and from 5 Oct
+  it also buys or sells at once, as a taker, when the order book has moved
+  past a rung by at least the taker's fee, then exits like any other fill.
 - **Stablecoin quotes variant-3.** After it (called variant-1 until 3 Oct):
   the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
   quotes move at every 0.03 % move of fair, an entry only once fair has moved
@@ -217,8 +220,7 @@ places stay when the number is not whole.
   28 Sep. Its page is the same, with nine rungs a side in each book. A
   variant's name in the table is two lines, and the first is the whole of
   "Stablecoin quotes". The paper test of that rule keeps running behind the
-  page until its reading. There is no variant-2 yet: the name waits for a
-  test to come.
+  page until its reading.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

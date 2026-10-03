@@ -218,3 +218,61 @@ Deno.test("nothing reaches a network: the account answers from memory, and refus
     assertEquals(calls, []);
   } finally { globalThis.fetch = real; }
 });
+
+// ------------------------------------------------------------------ TAKE (docs/agents/reviews/2026-10-03-take-prereg.md step 5)
+
+Deno.test("a take walks the recorded read after its instant, less what earlier takes took from it; unmarked, an IOC meets the turn's book; no read, no fill", async () => {
+  const clock = { now: T };
+  // The turn met a book asking 0.7552; the recorder's first read after the turn asks 100 at 0.7540 and 300 at 0.7541.
+  let after: SimBook | null = { bids: [[0.7538, 900]], asks: [[0.7540, 100], [0.7541, 300]], source: "recorded read 1", at: T + 15e3 };
+  const st = newSimState({ GBP: 600 });
+  const sim = new SimRevx(st, () => clock.now, () => read([[0.7549, 500]], [[0.7552, 500]]), () => after);
+  const venue = revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => clock.now);
+  const ioc = async (base: string, price: string, take: boolean) => {
+    const cid = crypto.randomUUID();
+    if (take) sim.markTake(cid);
+    const r = await venue.placeLimit({ clientOrderId: cid, symbol: "USDC/GBP", side: "buy", base, price, marketable: true });
+    assert(r.ok, JSON.stringify(r));
+    const v = await venue.order(r.venueOrderId);
+    if (!v.ok) throw new Error(v.error);
+    return v.view.raw as Record<string, string>;
+  };
+  // Unmarked, the same IOC meets the turn's book, whose ask is over its limit: nothing fills (the counterfactual).
+  assertEquals([(await ioc("66.3", "0.7541", false)).status, st.taken], ["cancelled", undefined]);
+  // A take of 66.3 at 0.7541 fills at 0.7540: 66.3 × 0.7540 = £49.9902, debited £50.00 (up to the penny); its fee
+  // 66.3 × 0.0009 = 0.05967 USDC, in the coin.
+  const a = await ioc("66.3", "0.7541", true);
+  assertEquals([a.status, a.filled_quantity, a.filled_amount, a.total_fee, a.fee_currency], ["filled", "66.3", "50", "0.05967", "USDC"]);
+  assertAlmostEquals(st.balances.USDC, 66.3 - 0.05967, 1e-9);
+  assertEquals(st.taken, { "USDC-GBP|buy": { at: T + 15e3, used: { "7540": 66.3 } } });
+  // A second take of 200 on the same read finds 33.7 left at 0.7540, then 166.3 at 0.7541: £25.4098 + £125.40683 =
+  // £150.81663, debited £150.82. Without what the first took it would have filled 100 + 100, £150.81.
+  const b = await ioc("200", "0.7541", true);
+  assertEquals([b.status, b.filled_quantity, b.filled_amount], ["filled", "200", "150.82"]);
+  // A new read is whole again: 100 at 0.7540 and 50 at 0.7541 of 150, £75.40 + £37.705 = £113.105, debited £113.11.
+  after = { bids: [[0.7538, 900]], asks: [[0.7540, 100], [0.7541, 300]], source: "recorded read 2", at: T + 75e3 };
+  assertEquals((await ioc("150", "0.7541", true)).filled_amount, "113.11");
+  // With no read after the instant (none within 60 s), nothing fills.
+  after = null;
+  const c = await ioc("66.3", "0.7541", true);
+  assertEquals([c.status, c.filled_quantity], ["cancelled", "0"]);
+  assertEquals(st.orders.map((o) => [o.take ?? false, o.status]), [[false, "cancelled"], [true, "filled"], [true, "filled"], [true, "filled"], [true, "cancelled"]]);
+});
+
+Deno.test("a sell take pays its fee in pounds, rounded up to the penny, and its pounds are floored", async () => {
+  const clock = { now: T };
+  const st = newSimState({ GBP: 0, USDT: 200 });
+  const sim = new SimRevx(st, () => clock.now, () => null, () => ({ bids: [[0.7580, 60], [0.7579, 500]], asks: [[0.7590, 500]], source: "recorded read", at: T + 15e3 }));
+  const venue = revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => clock.now);
+  const cid = crypto.randomUUID();
+  sim.markTake(cid);
+  // 65.97 USDT sold down to 0.7579: 60 × 0.7580 + 5.97 × 0.7579 = £45.48 + £4.524663 = £50.004663, credited £50.00; its
+  // fee £50.00 × 0.0009 = £0.045, £0.05 up to the penny.
+  const r = await venue.placeLimit({ clientOrderId: cid, symbol: "USDT/GBP", side: "sell", base: "65.97", price: "0.7579", marketable: true });
+  assert(r.ok);
+  const v = await venue.order(r.venueOrderId);
+  assert(v.ok);
+  const raw = v.view.raw as Record<string, string>;
+  assertEquals([raw.status, raw.filled_quantity, raw.filled_amount, raw.total_fee, raw.fee_currency], ["filled", "65.97", "50", "0.05", "GBP"]);
+  assertAlmostEquals(st.balances.GBP, 49.95, 1e-9);
+});

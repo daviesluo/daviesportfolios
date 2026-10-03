@@ -289,12 +289,19 @@ Deno.test("twinSpecs: the table's enabled rows in their order; a row this code c
     agent_quote_twin_specs: [
       rowAs("zz", { display_order: 50 }), ...TWIN_SPEC_ROWS, rowAs("off", { display_order: 15, enabled: false }),
       rowAs("take", { display_order: 30, rules: { take: { bps: 5 } } }), rowAs("eng", { display_order: 45, engine: "nope" as TwinSpecRow["engine"] }),
+      rowAs("queue", { display_order: 35, rules: { queue: { bps: 5 } } }), rowAs("tk", { display_order: 32, rules: { take: { from: "2026-10-05T00:00:00Z" } } }),
     ],
   }, { now: () => T0 });
   const r = await twinSpecs(mem.db);
-  assertEquals(r.specs.map((s) => s.id), ["pr5", "p50", "d", "zz"]);
-  assertEquals(r.specs.slice(0, 3), [TWINS.pr5, TWINS.p50, TWINS.d]);
-  assertEquals(r.refused, [{ id: "take", why: "twin take: no code for its rule take" }, { id: "eng", why: "twin eng: no engine nope" }]);
+  assertEquals(r.specs.map((s) => s.id), ["pr5", "p50", "tk", "d", "zz"]);
+  assertEquals([r.specs[0], r.specs[1], r.specs[3]], [TWINS.pr5, TWINS.p50, TWINS.d]);
+  // A rule the code has sets its instance option (`take`, TAKE's, 0089); its settings unreadable, or a rule the code
+  // lacks, and the row is refused with why.
+  assertEquals(r.specs[2].instance.take, { from: Date.parse("2026-10-05T00:00:00Z") });
+  assertEquals(r.refused, [
+    { id: "take", why: `twin take: its rule take needs "from", a UTC instant` }, { id: "queue", why: "twin queue: no code for its rule queue" },
+    { id: "eng", why: "twin eng: no engine nope" },
+  ]);
   // The table not there yet (the function deployed before 0088 applied): the twins 0087 made, and nothing else.
   const absent = (t: string) => Promise.reject(new Error(`db GET ${t} → 404: {"code":"PGRST205","message":"Could not find the table 'public.${t}' in the schema cache"}`));
   assertEquals((await twinSpecs({ ...mem.db, select: (t, q) => (t === "agent_quote_twin_specs" ? absent(t) : mem.db.select(t, q)) })).specs, [TWINS.pr5, TWINS.d]);
@@ -304,11 +311,11 @@ Deno.test("twinSpecs: the table's enabled rows in their order; a row this code c
 
 Deno.test("the call runs the spec table's rows: a row it cannot carry out is reported, and the others turn", async () => {
   const w = world();
-  w.mem.tables.agent_quote_twin_specs = [{ ...TWIN_SPEC_ROWS[0], start: iso(T0) }, rowAs("take", { display_order: 5, rules: { take: {} } })];
+  w.mem.tables.agent_quote_twin_specs = [{ ...TWIN_SPEC_ROWS[0], start: iso(T0) }, rowAs("queue", { display_order: 5, rules: { queue: {} } })];
   await w.pr5(T0);
   w.clock.now = T0 + M + 38e3;
   const r = await runQuotesTwins({ db: w.db, now: w.clock.now, holder: "h", signingKey: KEY, clock: () => w.clock.now });
-  assertEquals(r.twins.map((t) => [t.twin, t.skipped ?? null, t.errors, t.turns]), [["take", "its spec row is not one this code carries out", ["twin take: no code for its rule take"], 0], ["pr5", null, [], 1]]);
+  assertEquals(r.twins.map((t) => [t.twin, t.skipped ?? null, t.errors, t.turns]), [["queue", "its spec row is not one this code carries out", ["twin queue: no code for its rule queue"], 0], ["pr5", null, [], 1]]);
   assert(w.orders().some((o) => o.leg === "entry"), "pr5's twin quoted");
 });
 
@@ -343,6 +350,56 @@ Deno.test("the in-memory database knows every twin's tables and holds each to 00
   await assertRejects(() => mem.db.insert(T, rowAs("x", { gov: "two" as TwinSpecRow["gov"] })), Error, `${T}_gov_check`);
   await assertRejects(() => mem.db.insert(T, rowAs("X-1", { table_prefix: "agent_quote_twin_X-1", lease: "quotes-twin-X-1" })), Error, `${T}_id_check`);
   await assertRejects(() => mem.db.insert(T, rowAs("x", { capital_gbp: 0 })), Error, `${T}_capital_gbp_check`);
+});
+
+Deno.test("TAKE's twin is variant-1's turn for turn before take.from; from it a turn waits for the recorder's read after it (at most 120 s), and a take reaches the account by its order row", async () => {
+  const P50: TwinSpec = { ...TWINS.p50, start: T0 };
+  const FROM = T0 + 6 * M;
+  const TAKE: TwinSpec = { ...specFromRow(rowAs("take50", { display_order: 30, rules: { take: { from: iso(FROM) } } })), start: T0 };
+  const w = world(undefined, [P50, TAKE]);
+  w.mem.tables.agent_book_levels = [];
+  const levels = w.mem.tables.agent_book_levels as Row[];
+  const read = (book: QuoteBook, ts: number, bids: number, asks: number): Row => ({ book, ts: iso(ts), seen_until: iso(ts), reads: 1, bids: [[bids, 500, 1]], asks: [[asks, 500, 1]] });
+  const lastTurn = (s: TwinSpec) => w.driver(s)?.venue.lastTurnAt;
+  const takeOf = (r: Awaited<ReturnType<typeof runQuotesTwins>>) => r.twins.find((t) => t.twin === "take50")!;
+  // Before take.from both turn in the call, at PR5's instant, and their records are the same order for order.
+  for (let t = T0; t <= T0 + 4 * M; t += M) {
+    await w.pr5(t);
+    const r = await w.call(t);
+    assertEquals(r.twins.map((x) => [x.twin, x.errors, x.turns]), [["p50", [], 1], ["take50", [], 1]], `minute ${(t - T0) / M}`);
+    assertEquals(w.orders(TAKE).map(shape), w.orders(P50).map(shape), `minute ${(t - T0) / M}`);
+    assertEquals(lastTurn(TAKE), lastTurn(P50));
+  }
+  assert(w.orders(P50).some((o) => o.leg === "entry"), "the twins quoted before take.from, or the comparison proves less");
+  // The recorder reads 40 s into the minute: USDC asking 0.7539, through the 0.1 % bid's take limit (fair 0.75540, less
+  // 19 bps), and USDT through nothing.
+  levels.push(read("USDC-GBP", T0 + 5 * M + 40e3, 0.7530, 0.7539), read("USDT-GBP", T0 + 5 * M + 41e3, 0.7552, 0.7556));
+  // From take.from the turn at PR5's 09:06:25 may take: no read after it yet, so it waits; p50 turns.
+  await w.pr5(T0 + 5 * M);
+  const r5 = await w.call(T0 + 5 * M);
+  assertEquals([takeOf(r5).turns, takeOf(r5).skipped, lastTurn(TAKE), lastTurn(P50)], [0, `its turn at ${iso(FROM + 25e3)} waits for the book recorder's read after it`, T0 + 5 * M + 25e3, FROM + 25e3]);
+  assertEquals(w.driver(TAKE)?.waiting, [{ at: FROM + 25e3, upTo: T0 + 5 * M }]);
+  // The recorder reads both books again at :40, unchanged: the turn goes, a call behind, at its own instant, and its take
+  // is filled against that read: 66.32179 at 0.7539. The next instant waits in its place.
+  for (const r of levels) r.seen_until = iso(Date.parse(String(r.ts)) + M);
+  await w.pr5(T0 + 6 * M);
+  const r6 = await w.call(T0 + 6 * M);
+  assertEquals([takeOf(r6).turns, takeOf(r6).errors, lastTurn(TAKE)], [1, [], FROM + 25e3]);
+  assertEquals(w.driver(TAKE)?.waiting, [{ at: FROM + M + 25e3, upTo: T0 + 6 * M }]);
+  const takes = w.orders(TAKE).filter((o) => (o.request as { take?: unknown } | null)?.take === true);
+  assertEquals(takes.map((o) => [o.ts, o.book, o.rung_side, Number(o.k), o.side, Number(o.price), Number(o.base_size), o.paper_oid]), [[iso(FROM + 25e3), "USDC-GBP", "bid", 0.001, "buy", 0.7539, 66.32179, null]]);
+  const filled = w.driver(TAKE)!.venue.orders.find((o) => o.take);
+  assertEquals([filled?.status, filled?.filled, filled?.fills[0]?.print], ["filled", 66.32179, `book: recorded read ${iso(T0 + 5 * M + 40e3)}`]);
+  assertEquals(w.orders(P50).filter((o) => (o.request as { take?: unknown } | null)?.take === true).length, 0);
+  // No read after 09:07:25: it waits while 120 s have not passed since it, then turns with none to fill a take against.
+  await w.pr5(T0 + 7 * M);
+  const r7 = await w.call(T0 + 7 * M);
+  assertEquals([takeOf(r7).turns, lastTurn(TAKE)], [0, FROM + 25e3]);
+  await w.pr5(T0 + 8 * M);
+  const r8 = await w.call(T0 + 8 * M);
+  assertEquals([takeOf(r8).turns, takeOf(r8).errors, lastTurn(TAKE)], [1, [], FROM + M + 25e3]);
+  assertEquals(w.driver(TAKE)?.waiting?.map((x) => x.at), [FROM + 2 * M + 25e3, FROM + 3 * M + 25e3]);
+  assertEquals(lastTurn(P50), FROM + 3 * M + 25e3);
 });
 
 Deno.test("a twin added later costs the running ones nothing: the call that loads its backfill turns them, and its missing tables stop none", async () => {

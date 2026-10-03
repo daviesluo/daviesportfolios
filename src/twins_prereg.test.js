@@ -17,12 +17,14 @@ const DRIVER = read('supabase/functions/agents/quotes_twin.ts').toString('utf8')
 const MANIFEST = JSON.parse(read('docs/agents/backtests/twins/MANIFEST.json').toString('utf8'));
 
 describe("the realistic twins' pre-registration", () => {
-  it('names the sha256 of each file it froze, and each file is that one, quotes_twin.ts as its deviation 1 left it', () => {
+  it('names the sha256 of each file it froze, and each file is that one, as its last deviation left it', () => {
     for (const f of ['supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_twin.ts', 'supabase/migrations/0087_quote_twins.sql']) {
       const named = [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
-      // Deviation 1 (2026-10-03, its §12): quotes_twin.ts reads its twins from their rows (0088). §11 keeps the hash it was frozen at,
-      // 921ce33a…; §12 names the file from then on. Every other frozen file is named once, as frozen.
-      if (f.endsWith('/quotes_twin.ts')) expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', sha(f)]);
+      // Deviation 1 (2026-10-03, its §12): quotes_twin.ts reads its twins from their rows (0088). Deviation 2 (the same day,
+      // its §13): quotes_twin.ts and revx_sim.ts gain TAKE's rule (0089). Each section keeps the hash it named; the last
+      // names the file as it is. 0087 is named once, as frozen.
+      if (f.endsWith('/quotes_twin.ts')) expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', 'f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8', sha(f)]);
+      else if (f.endsWith('/revx_sim.ts')) expect(named, f).toEqual(['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', sha(f)]);
       else expect(named, f).toEqual([sha(f)]);
     }
   });

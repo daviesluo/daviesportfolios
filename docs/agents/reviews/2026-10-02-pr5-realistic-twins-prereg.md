@@ -309,3 +309,41 @@ the spec rows (pr5's row in it is main's to the byte, d's differs by its name al
 | `supabase/functions/agents/quotes_twin.ts` | f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8 |
 
 §11 keeps the hash the file was frozen at; this is the file from this deviation on. `src/twins_prereg.test.js` pins both.
+
+## 13. Deviation 2 (2026-10-03): TAKE's twin, "Stablecoin quotes variant-2"
+
+**Why.** TAKE's forward test (`2026-10-03-take-prereg.md`, reference §4 item 52; Davies: "可以 批准研究后上线测试…你决定吧")
+is variant-1's twin with a taker entry from 2026-10-05 00:00 UTC, its row `0089`'s (`take50`). Its build spec needs code
+in two of this document's frozen files: the simulated account fills a take against the book recorder's read after its
+instant, and the driver gives a turn that may take those reads and waits for them.
+
+**What changed in `revx_sim.ts`.** One rule, for takes alone: an IOC the executor wrote as a take (`request.take`; the
+driver hands its client id to `markTake` from the order row written before the POST) walks the recorder's first read
+after its instant (`takeRead`), less what earlier takes took from that same read (study.py's `taken`), in place of the
+book the turn met; with no such read nothing fills. Its fee and pennies are any taker's. An order that is not a take
+meets the book as before; the account's state gains a field (`taken`) only when a take fills, an order its `take` flag
+only when it is one.
+
+**What changed in `quotes_twin.ts`.** `TWIN_RULES` has its first rule, `take` (`{ "from": "<UTC>" }`), which sets the
+instance's `take`; a row whose rule settings cannot be read is refused with why. A turn at or after a twin's `take.from`
+reads each book's last recorded read at or before it and its first after it (`takeReadsAt`), hands the executor the first
+(`takeBookRow`: seen at most 90 s before the turn) and the account the second (`takeFillRead`), and runs once the
+recorder has read both books after it, or 120 s after its instant (`TWIN_TAKE_WAIT_MS`): forward, such a twin's turns
+queue (`waiting`) and turn a call behind. `agent_book_levels` joined `TWIN_READS`; `stampTs` shows the driver each order
+row it writes. Comments.
+
+**What did not change.** Every twin without `take` runs the code path it ran: pr5's, p50's and d's specs (the tests pin
+them), their turns and their records. Their backfills built again on this code are the same bytes: `pr5.json.gz`
+f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98, `p50.json.gz`
+f94c9ebecb6a757498fa39f25a2e9907c4e0e4a00f008a16dda17f25335a7bc8, `d.json.gz`
+ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392 (rule D's built with its output discarded: nothing of its
+record was printed or read). `revx_sim.test.ts` pins the take's fill beside the same IOC unmarked, which meets the turn's
+book as before.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/revx_sim.ts` | 4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa |
+| `supabase/functions/agents/quotes_twin.ts` | d13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a |
+
+§11 and §12 keep the hashes the files had before; this table names them from this deviation on. `src/twins_prereg.test.js`
+pins all of them.

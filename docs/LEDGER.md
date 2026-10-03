@@ -306,16 +306,18 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
        (Davies: "只是针对后台吧？我前端看到的不影响吧？"). Reward quotes' variants move to rows after their 10-09
        reading, not inside it.
      - **TAKE, studied 2026-10-03 (reference §4 item 52, `backtests/take/`); its forward test is frozen in
-       `reviews/2026-10-03-take-prereg.md` and NOT built.** Davies' names that day: PR5's rule at £50 a rung is
-       "Stablecoin quotes variant-1", the take "variant-2" (id `take50`), rule D's twin "variant-3". In-sample (lit
-       09-28 → 10-02) the rule (a take keeps k after its 0.09 % fee) made 5 trips, 4 won, +£0.40 at £50 (+£0.18 net of
-       the maker trip it displaced), +£0.87 at £100; at the rung's own price it was 17 trips, +£0.35, first half
-       negative. Fair mostly holds (the book closes 9.4 of a 12.8 bps gap in four hours). **To do (main session):** build
-       variant-2 on variant-1's merged code by the prereg's build spec. The prereg must reach `main` before 2026-10-05
-       00:00 UTC or the window moves by whole weeks; the build may land later (the twin catches up on stored inputs, and
-       `agent_book_levels` keeps 35 days). The window is trips opened 10-05 → 11-02 (to 15 take trips, 11-30 at most),
-       read 2 days after its end by a script committed before it ends; until then only health and check K1 (variant-2
-       equals variant-1 before 10-05) are read.
+       `reviews/2026-10-03-take-prereg.md` and BUILT the same day: "Stablecoin quotes variant-2", `take50`, `0089`
+       (not pushed when written; the main session reviews and pushes it, and the push applies the migration).** In-sample
+       (lit 09-28 → 10-02) the rule (a take keeps k after its 0.09 % fee) made 5 trips, 4 won, +£0.40 at £50 (+£0.18 net
+       of the maker trip it displaced). Its record to 10-02 21:05 is p50's row for row (check K1 on the backfills,
+       `src/take_twin.test.js`); it then catches up as p50 did, and from 10-05 00:00 turns a call behind, waiting for the
+       book recorder's read after each turn (120 s at most). **After the push:** read its health (`_sim.last_error`, mode
+       `forward`, `waiting` at most a turn or two) and check K1 against p50 once it is forward, before 10-05: its catch-up
+       turns stand at :25.000 where p50's forward turns stood at PR5's read instants, so a turn on an exact boundary (the
+       dead-man's 3 minutes, a 30-minute top-up, a 24-hour stop) or a print in between can differ; a K1 failure voids C4.
+       The window is trips opened 10-05 → 11-02 (to 15 take trips, 11-30 at most), read 2 days after its end by a script
+       committed before it ends, whose K2 mirrors the prereg's deviation 1 (two takes on one read share its levels); until
+       then only health and K1 are read.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
      Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
@@ -709,6 +711,23 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 04:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**"Stablecoin quotes variant-2" built by TAKE's frozen pre-registration** (item 4; `0089`, `take50`;
+`reviews/2026-10-03-take-prereg.md`, its rule unchanged). The executor gains an instance option `take` (from 2026-10-05
+00:00 UTC) and a dependency for the book recorder's reads: before a rung's paper entry, steps 1–4 (eligibility, the read
+at most 90 s old, the trigger at k + 0.09 % from its own fair, the entry cancelled and read back, then one IOC for £50 at
+the limit, `request.take`). The simulated account fills a take against the recorder's first read after the turn (the
+twins' pre-registration's deviation 2, variant-1's deviation 1); the driver waits for that read, so from `take.from` the
+twin turns a call behind (120 s at most). `take50.json.gz` is `p50.json.gz` in every row but its twin id (check K1);
+pr5's, p50's and rule D's backfills built again on the new code are the same bytes (rule D's output discarded). Each of
+the take's 14 rules removed in turn fails its pin. The page shows the new row from its spec row (fixture regenerated);
+the sweep's "no variant-2" check now counts variant-2 as the twins name it. Recorded in the TAKE prereg's deviation 1:
+two takes on one read share its levels (study.py's `taken`), which the reading's K2 must mirror. Nothing of rule D,
+PR5V or variant-3 was read; no production query was run. Not pushed. Gates: `sh bin/gates.sh --full` (sweep 603 checks
+in one process, 228 + 76 + 236 + 69 in shards; README says 603, `.claude/CLAUDE.md` still says 595, left to the main
+session).
 
 ### [2026-10-03 03:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

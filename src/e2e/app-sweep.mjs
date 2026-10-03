@@ -4336,10 +4336,10 @@ async function run() {
 
       // The paper tests the twins replaced keep running and the payload still carries them (`quotes`, `quotesVariant`,
       // `quotesRuled`), but they are no rows: TESTING's stablecoin rows are the twins alone, in their rows' order ("Stablecoin
-      // quotes", "Stablecoin quotes variant-1", PR5's rule at £600, and "Stablecoin quotes variant-3", rule D's twin; Davies,
-      // 2026-10-03: "你目前正在做的variant改名为variant-1排上面…原来的variant-1改名为variant-3"), no "variant-2" (rule D's paper
-      // test's own name; on the page it waits for a twin to come), and its Revolut X card counts the twins' capital and
-      // nothing of the paper tests'.
+      // quotes", "Stablecoin quotes variant-1", PR5's rule at £600, "Stablecoin quotes variant-2", TAKE's twin since
+      // 2026-10-03, and "Stablecoin quotes variant-3", rule D's twin; Davies, 2026-10-03: "你目前正在做的variant改名为variant-1
+      // 排上面…原来的variant-1改名为variant-3"), "variant-2" no more often than the twins name it (rule D's paper test's own
+      // name for itself is "variant-2" too), and its Revolut X card counts the twins' capital and nothing of the paper tests'.
       agentsMode = 'quotesv';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === TESTING.rows);
@@ -4349,9 +4349,10 @@ async function run() {
       const qvRevx = qvPanel.venues.find((v) => v.id === 'revx');
       await shot(page, 'agents-testing-twins');
       const qvWant = [TW.money(TESTING.revx.funded), `${TW.money(TESTING.revx.deployed)} (${TW.pct((TESTING.revx.deployed / TESTING.revx.funded) * 100, false)})`];
-      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === TW.names.join(' | ') && !qvNames.includes('Stablecoin quotes variant-2')
+      const v2 = (/** @type {string[]} */ names) => names.filter((n) => n === 'Stablecoin quotes variant-2').length;
+      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === TW.names.join(' | ') && v2(qvNames) === v2(TW.names)
         && qvRevx?.pairs['funded (Paper)'] === qvWant[0] && qvRevx?.pairs.deployed === qvWant[1]) {
-        ok(T('quotesv'), `with the paper tests in the payload, TESTING still has the twins alone (${TW.names.map((n) => `"${n}"`).join(', ')}), no variant-2, and its Revolut X card counts the twins (${qvWant[0]} funded, ${qvWant[1]} deployed)`);
+        ok(T('quotesv'), `with the paper tests in the payload, TESTING still has the twins alone (${TW.names.map((n) => `"${n}"`).join(', ')}), "variant-2" ${v2(TW.names)} time(s) as the twins name it, and its Revolut X card counts the twins (${qvWant[0]} funded, ${qvWant[1]} deployed)`);
       } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}, wanted ${qvWant.join(', ')}`);
       agentsMode = 'ok';
       await page.keyboard.press('Escape');

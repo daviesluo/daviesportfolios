@@ -62,7 +62,7 @@ import type { OrderView, Venue } from "../_shared/venue.ts";
 import type { Db } from "./db.ts";
 import {
   blocks, exitTicks, fairUAt, fxAt, QUOTE_BOOKS, QUOTE_FX_LOOKBACK_MS, QUOTE_REPRICE, QUOTE_REVX_GAP_MS, QUOTE_RUNGS, QUOTE_STOP_MS, QUOTE_TICK, QUOTE_USD_BOOK,
-  type Print, type QuoteBook, type QuoteState, type Rung, type Side,
+  quoteTicks, type Print, type QuoteBook, type QuoteState, type Rung, type Side,
 } from "./quotes.ts";
 import { bookLiveBuy, fillStamp, isUniqueViolation, withFeeNote, type FromAccount } from "./tick.ts";
 
@@ -96,6 +96,11 @@ export type QuoteLiveInstance = {
    * the live account, whatever the rung; a conversion (no rung side) counts against its book's ask key.
    */
   govKey: (book: QuoteBook, rungSide: Side | null) => string;
+  /**
+   * TAKE (docs/agents/reviews/2026-10-03-take-prereg.md), from `from` (ms): before a rung's paper entry, a taker IOC when
+   * the recorded book rests through the rung by its fee (`takeTriggered`). The live account's instance has none.
+   */
+  take?: { from: number };
 };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
@@ -432,6 +437,38 @@ export function exitMayGo(
   return !blocks(exitSide, ticks, lastPrint);                      // the market is still through it
 }
 
+// ------------------------------------------------------------------ TAKE (docs/agents/reviews/2026-10-03-take-prereg.md)
+
+/** Revolut X's taker fee, which a take keeps its rung's k after: its limit is k + this from fair (19 / 29 / 39 bps). */
+export const TAKE_FEE = 0.0009;
+/** A take decides on the recorder's last read of the book at or before the turn, seen at most this long before it (step 2). */
+export const TAKE_BOOK_MAX_AGE_MS = 90e3;
+/** A row of `agent_book_levels` (0057, 0058): the book first read at `ts`, read unchanged until `seen_until`; levels [price, quantity, orders], best first. */
+export type RecordedRead = { ts: string; seen_until: string | null; bids: Array<[number, number, number | null]>; asks: Array<[number, number, number | null]> };
+/** A read's last instant seen (a row written before 0058's code carries none: its `ts`). */
+export const seenUntil = (r: Pick<RecordedRead, "ts" | "seen_until">): number => Date.parse(r.seen_until ?? r.ts);
+/** Step 2: the last read at or before `at`, when it was seen at most TAKE_BOOK_MAX_AGE_MS before `at`; else none. */
+export function takeBookRow(last: RecordedRead | null, at: number): RecordedRead | null {
+  return last && Date.parse(last.ts) <= at && seenUntil(last) >= at - TAKE_BOOK_MAX_AGE_MS ? last : null;
+}
+/** The recorder's last read of `book` at or before `at`, as step 2 takes it: what the executor reads when no driver gives it one. */
+export async function recordedBookAt(db: Db, book: QuoteBook, at: number): Promise<RecordedRead | null> {
+  const [r] = await db.select<RecordedRead>("agent_book_levels", `book=eq.${book}&ts=lte.${enc(iso(at))}&select=ts,seen_until,bids,asks&order=ts.desc&limit=1`);
+  return takeBookRow(r ?? null, at);
+}
+/** Step 3's limit, in ticks: a bid rung buys at most k + the fee under fair, an ask rung sells at least k + the fee over it. */
+export const takeLimitTicks = (fair: number, k: number, side: Side): number => quoteTicks(fair, k + TAKE_FEE, side);
+/** A read's touch, in ticks: its best bid and best ask (null when a side is empty). */
+export function readTouch(r: Pick<RecordedRead, "bids" | "asks">): { bid: number | null; ask: number | null } {
+  const px = (ls: RecordedRead["bids"]) => ls.map((l) => Number(l[0])).filter((p) => p > 0);
+  const bids = px(r.bids), asks = px(r.asks);
+  return { bid: bids.length ? Math.round(Math.max(...bids) / QUOTE_TICK) : null, ask: asks.length ? Math.round(Math.min(...asks) / QUOTE_TICK) : null };
+}
+/** Step 3: a bid rung takes when the best ask is at or under its limit; an ask rung when the best bid is at or over it. */
+export function takeTriggered(side: Side, limitTicks: number, touch: { bid: number | null; ask: number | null }): boolean {
+  return side === "bid" ? touch.ask != null && touch.ask <= limitTicks : touch.bid != null && touch.bid >= limitTicks;
+}
+
 /** The governor's level for a count of today's POSTs. */
 export function governorLevel(postsToday: number): "all" | "no-entries" | "stops-only" {
   return postsToday >= QUOTE_LIVE_STOPS_ONLY_POSTS ? "stops-only" : postsToday >= QUOTE_LIVE_ENTRY_POSTS ? "no-entries" : "all";
@@ -499,6 +536,8 @@ export type QuoteLiveDeps = {
   clock?: () => number;
   /** Which executor this is: the live account when left out (`QUOTE_LIVE_INSTANCE`), or a realistic twin's. */
   instance?: QuoteLiveInstance;
+  /** An instance with `take`: the recorder's read of a book a take decides on (step 2); `recordedBookAt` on `db` when left out. */
+  recordedBook?: (book: QuoteBook, at: number) => Promise<RecordedRead | null>;
 };
 
 export type QuoteLiveReport = {
@@ -736,6 +775,8 @@ export async function runQuotesLive(d: QuoteLiveDeps): Promise<QuoteLiveReport> 
 type RungNow = {
   book: QuoteBook; side: Side; k: number; label: string;
   paper: PaperTarget | null; paperRefused: boolean;
+  /** What the paper rung is doing: a take waits while it holds a position of its own. */
+  paperMode: Rung["mode"] | null;
   live: RungBook; holding: boolean; dust: number;
 };
 
@@ -967,7 +1008,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     const dust = pair && px > 0 ? dustBase(pair, px) : 0;
     const live = rungBook(side, mine, dayStart, dust);
     const pr = paper?.books?.[b]?.rungs?.find((r) => r.side === side && r.k === k);
-    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), paperRefused: paperRefused(pr), live, holding: live.held > dust, dust });
+    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), paperRefused: paperRefused(pr), paperMode: pr?.mode ?? null, live, holding: live.held > dust, dust });
   }
   const mark = (b: QuoteBook) => lastPrintPx(b) ?? inputs[b]?.f ?? null;
   const dayPnl = rungs.reduce((a, r) => a + r.live.realisedTodayGbp + markedGbp(r.side, r.live, mark(r.book)), 0);
@@ -1129,6 +1170,51 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   };
   /** The books an ask of the live book was skipped on this turn for want of coin: step 6b tops their coin up. */
   const shortOf = new Set<QuoteBook>();
+  // TAKE (docs/agents/reviews/2026-10-03-take-prereg.md), an instance's option from `take.from`. On a rung that may enter
+  // in the live book (its turn's entry conditions, the rung holding nothing and quoting no exit, the paper rung in no
+  // position of its own), the recorder's read of the book at most 90 s old (step 2) is checked against the rung's take
+  // limit, k + the 0.09 % fee from this turn's fair (step 3). Through it, the rung's turn is the take's (step 4): its
+  // entry is cancelled and read back (a frozen cancel waits), and one taker IOC goes out at the limit for the rung's
+  // pounds, after the entry's own funds check, recorded as an entry with no paper order and `request.take`. The venue
+  // fills it, or not; a fill is any entry's (step 5's exit, re-price and 24-hour stop).
+  const takeOn = !!inst.take && d.now >= inst.take.from;
+  const readsOf = new Map<QuoteBook, Promise<RecordedRead | null>>();
+  const recordedOf = (b: QuoteBook) => {
+    if (!readsOf.has(b)) {
+      readsOf.set(b, (d.recordedBook ?? ((bk: QuoteBook, at: number) => recordedBookAt(d.db, bk, at)))(b, d.now)
+        .catch((e) => { report.errors.push(`${b}: the recorded book is unreadable (${msg(e)}): no take this turn`); return null; }));
+    }
+    return readsOf.get(b)!;
+  };
+  /** Whether the rung's turn is the take's: false when the book is not through its limit, and then its paper entry goes on. */
+  const takeTurn = async (r: RungNow, o: LiveOrderRow | null): Promise<boolean> => {
+    const f = inputs[r.book]?.f ?? null;
+    const read = f == null ? null : await recordedOf(r.book);
+    if (f == null || !read) return false;
+    const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);
+    if (!takeTriggered(r.side, limit, touch)) return false;
+    if (o && (await cancelConfirmed(o, "a take replaces the rung's entry")) !== "cancelled") return true;
+    const pair = pairs[LIVE_SYMBOL[r.book]];
+    const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");
+    const base = rungBase(gbpPerRung, price, pair, side);
+    const skip = (reason: string) => { report.skippedEntries.push({ mode: "live", rung: r.label, reason: `take: ${reason}` }); return true; };
+    if (!base) return skip("the rung's size is under the venue's minimum");
+    if (side === "buy") {
+      const need = pennyUp(Number(base) * price);
+      if (!((free.GBP ?? 0) + 1e-9 >= need)) return skip(`not enough free GBP: £${need.toFixed(2)} needed, £${Math.max(0, free.GBP ?? 0).toFixed(2)} free`);
+      free.GBP -= need;
+    } else {
+      const coin = coinOf(r.book);
+      if (!((free[coin] ?? 0) + 1e-9 >= Number(base))) { shortOf.add(r.book); return skip(`no ${coin} to sell beyond what its own longs will sell`); }
+      free[coin] -= Number(base);
+    }
+    const px = (t: number | null) => (t == null ? null : Number((t * QUOTE_TICK).toFixed(4)));
+    await placeOrder(ctx, {
+      mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "entry", side, ticks: limit, base, marketable: true, fair: f, paper: null,
+      extra: { take: true, takeRead: { ts: read.ts, seenUntil: read.seen_until, bestBid: px(touch.bid), bestAsk: px(touch.ask) } },
+    });
+    return true;
+  };
   for (const r of rungs) {
     for (const mode of ["dry_run", "live"] as LiveMode[]) {
       const o = openOf(mode, r);
@@ -1137,6 +1223,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (o && o.leg !== "entry") continue;
         if (o && (o.state === "pending" || o.cancel_requested_at || unreadable.has(o.id))) continue;  // in flight or frozen: never a second order
         const allowed = entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
+        if (takeOn && mode === "live" && allowed && r.paperMode !== "position" && (await takeTurn(r, o))) continue;
         const target = allowed ? r.paper : null;
         if (!target) {
           if (o) {

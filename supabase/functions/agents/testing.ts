@@ -720,13 +720,14 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // PostgREST's `or=(a.op.v,b.op.v)`: a row passes when any of its conditions does (a realistic twin's page reads its
       // orders that filled or rest this way).
       if (k === "or") { const any = orConditions(v); filters.push((r) => any.some((f) => f(r))); continue; }
-      const m = v.match(/^(eq|in|gte|lte|lt|is)\.(.*)$/);
+      const m = v.match(/^(eq|in|gte|gt|lte|lt|is)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
       if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
       if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
       if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
       if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
+      if (m[1] === "gt") filters.push((r) => String(r[k]) > val);
       if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
       if (m[1] === "lte") filters.push((r) => String(r[k]) <= val);
     }

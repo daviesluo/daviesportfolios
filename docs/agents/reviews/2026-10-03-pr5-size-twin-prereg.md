@@ -148,3 +148,20 @@ change to `quotes_twin.ts` is one of the twins' pre-registration as well.
 - Read for the proposal: the size study's figures (above). Read to size the call: production's function logs for
   `agents?action=quotestwins` (`execution_time_ms` only) and, from its responses of 2026-10-02 22:07–23:27 UTC, the PR5
   twin's own element (its mode, turns and last turn; selected by its id, nothing of the other twin's).
+
+## 7. Deviation 1 (2026-10-03): the driver and the simulated account gain TAKE's rule
+
+"Stablecoin quotes variant-2" (`take50`, `0089`, `2026-10-03-take-prereg.md`) is this twin with a taker entry from
+2026-10-05, and its code changed two files §5 froze, `quotes_twin.ts` and `revx_sim.ts` (the twins' pre-registration's
+deviation 2 says how). This twin is not changed by it: its row names no rule, so it runs the code path it ran, and
+`p50.json.gz` built again on the new code is the same bytes (f94c9ebecb6a757498fa39f25a2e9907c4e0e4a00f008a16dda17f25335a7bc8).
+In the call it turns before variant-2. Variant-2's record is this twin's before 2026-10-05 (its pre-registration's check
+K1), so this twin is its base as well; nothing of this twin's own readout changes.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | d13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a |
+| `supabase/functions/agents/revx_sim.ts` | 4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa |
+
+§5 keeps the hashes the files were frozen at; this table names them from this deviation on (`src/size_twin_prereg.test.js`
+pins both).
