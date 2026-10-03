@@ -443,9 +443,6 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      10-02. Deleting them (one migration, kind `agents.pm_live`, 05:50–09:35, naming the China Open market) was refused
      by the session's permission classifier; his to approve, or click Acknowledge in the badge, or let them age out.
    - **PR5 live now** (item 4): approve the preparation the classifier refused, and decide the paper-test interaction.
-   - **Cloudflare Pages' deploy token (2026-10-02 23:25):** `CLOUDFLARE_API_TOKEN` lost Account → Cloudflare Pages →
-     Edit when it was edited for the monitor (`pages-deploy` failed, code 10000; the site serves the bundle before the
-     twins). His click: add it back beside Workers Scripts → Edit; a session then re-runs the failed run.
    - **Cloudflare Pages:** the watch paths (Include `dist/*`) and the Direct Upload Action (`pages-deploy.yml`, both
      secrets) are set (2026-09-27). Left, his click: turn off Pages' own Git build's automatic deployments (Settings →
      Build → Branch control), which grokbot is doing (2026-09-30); then check the next `dist/` push: its `pages-deploy`
@@ -678,6 +675,16 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 01:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The site serves the twins' bundle.** Davies put Account → Cloudflare Pages → Edit back on the deploy token beside
+Workers Scripts → Edit (its value and the repository secret unchanged). `pages-deploy` run 37085303539
+(`workflow_dispatch` on `cdebc516`) succeeded in 36 s, and 40 s after it was queued daviesluo.com served
+`app-1ac85573.js`. Byte for byte, the served `app-1ac85573.js` and `agents-c6f6154a.js` (the chunk with the twins'
+rows) equal `dist/`'s; the root page differs from `dist/index.html` only by the challenge script Cloudflare injects at
+its edge (`/cdn-cgi/challenge-platform/`). The page itself was not opened: it needs a password. The twins at 01:15: both
+`forward`, no error, mismatches 46 and 0, 120 beats in two hours, no `ops_errors`; the live executor turned at 01:14:26.
 
 ### [2026-10-02 23:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
