@@ -712,6 +712,15 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-03 05:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-2 caught up, and K1 holds so far** (the TAKE prereg's check, the one read it allows before its reading). At
+05:03 UTC take50 and p50 both turned forward, 13,675 turns each, last at 05:02:25, no error and no `ops_errors` since
+04:38. Their orders before 2026-10-05 compared on minute, book, rung, leg, side, price, size, state, fill, average price
+and fee: 3,360 each, none in one and not the other, no take; their simulated balances and event counts are equal. Only
+those counts were read, no figure of either twin's P&L. From here both turn in the same call at the same instant, so
+they stay equal by construction until `take.from`; the reading's script checks K1 again over the whole span.
+
 ### [2026-10-03 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Variant-2 (TAKE, `take50`) is in production** (`43369d36`, item 4). Reviewed before the push: the take path runs only
