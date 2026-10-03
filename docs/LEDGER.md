@@ -292,8 +292,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      - **Variants become rows** (Davies, 2026-10-03: "你说的这四点建议全做", after asking why small variants cost so
        much time and tokens): a spec table and a table-making function, so a parameter-only variant is two SQL
        statements and a one-page pre-registration from a template; `p50` is its first row (one opus-max sub-agent, in
-       a worktree, not pushed; the main session reviews and pushes after 2026-10-04 00:00 UTC, the wake
-       `trig_016TTFXQmamNcJJgsyPkJVod` at 00:25). The page must not change but for the names and the new rows
+       a worktree, not pushed; the main session reviews and pushes it when it reports: Davies, 2026-10-03, "mini-pool
+       我不打算今天上线，之后上线等我再决定，你东西该部署就部署", so no deploy waits for 10-04, and the 00:25 wake was
+       deleted; mini-pool's own rule, no changed `pm_live.ts` or `pm_prep.ts` inside its window, still holds). The page must not change but for the names and the new rows
        (Davies: "只是针对后台吧？我前端看到的不影响吧？"). Reward quotes' variants move to rows after their 10-09
        reading, not inside it.
 
