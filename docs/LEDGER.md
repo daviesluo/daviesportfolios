@@ -173,7 +173,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      row to Davies in Chinese. **Never run the go-time statement on a check**: his standing word for an automatic
      go-live is withdrawn; the path goes live only in the conversation where he says go (design step 8, word for word).
      A fix inside the window ends it as FAIL and moves the check a day, by a next addendum. (f) needs his funding
-     (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC).
+     (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC). **Read before its check, on Davies' word**
+     (2026-10-03 23:36 UTC, "授权你现在读", to compare the pools): the window's running figures (`pm_prep_state.state`'s
+     `day` and `pnl`) and the closed days; the check runs as frozen and its report names the read (history, 23:45).
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -196,7 +198,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      read only the prereg's health readings (the two `last_error`s and clocks, `ops_errors` of `agents.pm_mid` and
      `agents.pm_midprep` and their crash rows, whether a day's selection landed, and since its Addendum 1
      `pm_mid_state.state`'s `keyed`, `signerProblem`, `pusd`, `at` and `sbRegion`), never mid-pool's page or the
-     dashboard's summary. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
+     dashboard's summary. **Deviation 1 (2026-10-03 23:36 UTC, on Davies' word "授权你现在读"):** its 10-02 day row,
+     d1's running figures (`state.day`, `state.pnl`), both days' selections (count, rates, capital) and the share of its
+     reward each market holds were read before the day-1 check, to compare it with mini-pool (history, 23:45); the check
+     and the readout run as frozen, and both name it. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
      is the last row of TESTING STRATEGIES, right after mini-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
@@ -711,6 +716,32 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 23:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mini-pool against mid-pool, read before their checks on Davies' word** (asked which to take live on the
+strategies' own results; told the read breaks both no-peek rules and costs mid-pool a blind readout, he answered
+"授权你现在读"). Read at 23:36–23:38 UTC, read-only, and nothing else: every row of `pm_prep_days` and
+`pm_midprep_days`; both states' `day`, `pnl`, `dayOf`, `stopDay` and `stopTotal`; each pool's 10-02 and 10-03
+selection as a count, the sum, least and most of its rates and its capital; the share of each pool's reward its best
+market and its best three hold. Paper figures (formula rewards; R unmeasured), dollars:
+
+- **10-03 to 23:34 UTC**, both at eight markets and about $150 of first quotes: pools of $62 a day (mini, $6–9 each)
+  and $180 (mid, $11–40); formula reward 16.38 against 42.72 (about 27 % and 24 % of the pools); fills 14 against 34,
+  the fills' P&L on the day −2.48 against −2.17; at R = 0.40 +4.07 against +14.92; dark market-minutes 812 against 65;
+  none diverged, no stop.
+- **10-02** (mid-pool from 05:01): formula 14.75 against 25.19, fills' P&L −1.92 against +3.55, at R = 0.40 +3.98
+  against +13.63.
+- **Since each began:** formula 31.37 against 67.92, the fills marked −4.40 against +1.38, at R = 0.40 +8.15 against
+  +28.55; mini-pool breaks even at R ≈ 0.14, mid-pool's fills are in profit. Neither rests on one market: the best
+  holds 13 % and 15 % of the reward, the best three 34 % and 40 %.
+
+On these two days mid-pool earns about 2.6 times as much for the same capital and pays no more on its fills. What
+they cannot show: R (only live orders can), and how others answer real orders in larger pools. Mid-pool's
+pre-registration also makes a funded mid-pool wait for its own pre-registration, with its margin measured again from
+the overlap audit (no earlier than 10-23 00:05) and a new measurement, so its real orders stay out of the books RW
+(to 10-09) and RW-C (10-09 → 10-23) read. Both checks at 00:15 run as frozen; mini-pool's check report, mid-pool's
+day-1 report and its readout each name this read (mid-pool's deviation 1).
 
 ### [2026-10-03 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
