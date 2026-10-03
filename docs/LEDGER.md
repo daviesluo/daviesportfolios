@@ -712,6 +712,21 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-03 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Variant-2 (TAKE, `take50`) is in production** (`43369d36`, item 4). Reviewed before the push: the take path runs only
+for an instance with `take`, from `take.from` (the live account's has none and still equals `quotes_live_frozen.ts`);
+a take's IOC fills against the recorder's read after the turn; take50's backfill equals p50's but for its id (K1
+before 10-05). Full gates green on the merged tree (sweep 603 checks single-process: 228 + 76 + 236 + 69). Runs on
+`43369d36`: migrations (04:36:18), edge-functions (04:37:27) and check succeeded; no bundled source changed, so no
+pages deploy. Read at 04:41 UTC: `0089` applied; the rows in order pr5, p50 (variant-1), take50 (variant-2,
+`rules.take.from` 2026-10-05 00:00 UTC), d (variant-3); take50's six tables closed to `anon` and `authenticated`; two
+`agents.quotes_twins` errors at 04:36:40 and 04:37:39, the deployed code refusing the new row's rule in the 70 s
+between the migration and the deploy, none after; take50's backfill loaded (3,360 orders, as p50's) and catching up
+about 24 minutes of record a call; pr5, p50, d and the live executor turning without error. **To do:** once take50
+turns forward, check K1 (its tables equal p50's to the penny before 10-05) and record it. Variant-2's and variant-3's
+results stay unread. CLAUDE.md says 603 checks.
+
 ### [2026-10-03 04:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **"Stablecoin quotes variant-2" built by TAKE's frozen pre-registration** (item 4; `0089`, `take50`;
