@@ -1,0 +1,10 @@
+---
+description: The agents feature's rules (trading loop, stablecoin quotes, Polymarket, studies) are in docs/agents/CLAUDE.md. Load when working on them.
+globs: supabase/functions/agents/**,src/agents/**,docs/agents/**,supabase/migrations/**
+alwaysApply: false
+---
+# Read `docs/agents/CLAUDE.md` first
+
+The rules for the agents feature — everything that trades, quotes or reads a venue, its studies and its
+pre-registrations — moved from `.claude/CLAUDE.md` to `docs/agents/CLAUDE.md` on 2026-10-03. Read it, and
+`docs/agents/reference.md`, before changing anything under these paths. `.claude/CLAUDE.md` still applies.

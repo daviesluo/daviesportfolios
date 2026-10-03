@@ -282,10 +282,20 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      - **The size study is done (2026-10-03; Davies: "这个到时候你再研究下，不要忘了", asked again "之前说的这事你忘了？"):**
        reference §4 item 51's addendum, `docs/agents/backtests/twins/size/`. PR5's rule on its twin at £10/£25/£50/£100
        a rung: 60/58/57/47 trips, 14–15 bps each, 28.9/27.6/25.7/19.9 % a year realised; pennies under 0.2 bps a trip;
-       a 5 % pound reserve recovers 5 trips at £100 and none at £50 or less. **Proposed: "Stablecoin quotes variant-2",
-       PR5's rule unchanged at £50 a rung (£600)**: the size effect forward, and PR5's rule at variant-1's rung size for
-       the comparison after rule D's reading. Next candidate (a study first, on the books): taking the touch when the
-       book rests through a rung by more than the 9 bps taker fee (twelve refused entries kept 1–16 bps each).
+       a 5 % pound reserve recovers 5 trips at £100 and none at £50 or less.
+     - **The variants, as Davies named them on 2026-10-03** ("你目前正在做的variant改名为variant-1排上面，这个新的是
+       variant-2，原来的variant-1改名为variant-3"): "Stablecoin quotes" (PR5's rule, £100 a rung); **variant-1**, id
+       `p50`, PR5's rule at £50 a rung (£600), being built; **variant-2**, TAKE (variant-1 plus lifting the touch when
+       the book rests through a rung by more than the 9 bps fee), its study running, approved to go live if it holds
+       ("可以 批准研究后上线测试…你决定吧": built on variant-1, so the comparison isolates the one change); **variant-3**,
+       rule D's twin (id `d`, formerly variant-1). Internal ids carry no variant number.
+     - **Variants become rows** (Davies, 2026-10-03: "你说的这四点建议全做", after asking why small variants cost so
+       much time and tokens): a spec table and a table-making function, so a parameter-only variant is two SQL
+       statements and a one-page pre-registration from a template; `p50` is its first row (one opus-max sub-agent, in
+       a worktree, not pushed; the main session reviews and pushes after 2026-10-04 00:00 UTC, the wake
+       `trig_016TTFXQmamNcJJgsyPkJVod` at 00:25). The page must not change but for the names and the new rows
+       (Davies: "只是针对后台吧？我前端看到的不影响吧？"). Reward quotes' variants move to rows after their 10-09
+       reading, not inside it.
 
    - **PR5V, "Stablecoin quotes - variant": frozen 2026-09-28 14:27 UTC** (`reviews/2026-09-28-pr5-variant-prereg.md`;
      Davies: "本轮优化后的最优策略可以按Stablecoin quotes - variant上线paper testing"). PR5's rule with nine rungs a side
@@ -679,6 +689,18 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-03 02:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The agents' rules left `.claude/CLAUDE.md` for `docs/agents/CLAUDE.md`** (Davies: "你说的这四点建议全做", the third
+of four fixes for what small variants cost). The section, 38,874 bytes of the file's 60,087, was paid for on every
+call of every session and sub-agent; the file is now 22,567 bytes, keeping a pointer and the four rules no session
+may miss (no trade by hand in the two Revolut X accounts; only Davies arms; no-peek binds; every recurring Edge call is
+a row of `edge_calls`). Claude Code loads `docs/agents/CLAUDE.md` when a session reads a file under `docs/agents/`;
+one-line pointers in `supabase/functions/agents/CLAUDE.md` and `src/agents/CLAUDE.md` load the same way, and Cursor's
+`.cursor/rules/agents.mdc` covers those paths. The working-with-davies skill and its two Cursor copies record the
+lesson: a parameter-only variant is a row, internal ids carry no number, mechanical work goes to `sonnet-max`. The
+variant-1 build was redirected to build the rows mechanism with `p50` as its first row (item 4).
 
 ### [2026-10-03 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

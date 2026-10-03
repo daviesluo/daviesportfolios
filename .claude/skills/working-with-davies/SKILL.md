@@ -85,6 +85,20 @@ Fable/Opus-class sessions. If a check is genuinely needed, run it in a
 real work to do. He said it in so many words on 2026-09-20
 after four re-checks found nothing: "以后千万不要用fable模型跑这个复查".
 
+**A variant that differs by a parameter is a row, not a build.** On
+2026-10-03 he asked why the stablecoin and Reward quotes variants, each a
+small change, took so long and so many tokens ("…结构都差不多只有很小的区别
+为什么都要做那么久用那么多tokens，reward的那几个也一样"), and approved all four
+fixes ("你说的这四点建议全做"): a twin variant is a row of a spec table plus a
+one-page pre-registration from the variants template in
+`docs/agents/reviews/` (Reward quotes' variants follow after their 10-09
+reading); its docs are one line in the reference's variants table; the
+sweep's fixture is generated, never hand-computed; the agents' rules live in
+`docs/agents/CLAUDE.md`, loaded only when working on them; and mechanical
+work goes to `sonnet-max`, with `opus-max` kept for design and verdicts.
+Internal ids carry no variant number: he renamed the variants twice in two
+days, and a name is a display string, never a table's.
+
 **Two kinds of sub-agent, both at max effort.** "以后你开的所有sub-agents必须都是
 opus5.5 max（重要性高难度高的任务）或者sonnet5.5 max（难度低的任务）" (2026-09-30).
 `.claude/agents/` defines both: `opus-max` for important or difficult

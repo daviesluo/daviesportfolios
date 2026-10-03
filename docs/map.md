@@ -832,7 +832,7 @@ before touching migration state.
 | `docs/agents/scripts/bitget/sample_books.py`, `analyze_samples.py`, `pull_history.py`, `pull_binance_ref.sh`, `analyze_tapes.py`, `analyze_depth.py`, `depth_shares.py` | The Bitget feasibility study: its books sampled, a year of their prints and depth, and Binance's reference rates; results and sources in `backtests/bitget/`. |
 | `docs/improvement-plan.md` | The whole-repository review of 2026-09-05, as a plan. |
 | `docs/LEDGER.md`, `docs/handover.md` | The live work log, and its archive. |
-| `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there), the two sub-agents they may open (`.claude/agents/`), and the ledger protocol they follow (`.agents/skills/ledger/`). |
+| `.claude/`, `.cursor/`, `.agents/` | Instructions for the AI coding agents, in one file (`.claude/CLAUDE.md`; Cursor's rule points there) with the agents feature's rules in `docs/agents/CLAUDE.md` (pointed at from `supabase/functions/agents/` and `src/agents/`, and by Cursor's `agents.mdc`), the two sub-agents they may open (`.claude/agents/`), and the ledger protocol they follow (`.agents/skills/ledger/`). |
 
 ---
 
