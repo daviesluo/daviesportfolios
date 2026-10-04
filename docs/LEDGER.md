@@ -740,6 +740,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Every Reward quotes page keeps every column on a phone** (Davies: "手机端每个reward子页面中的表格每列都显示（和电脑端一样），左右滑动就行了，不要少列"):
+`RwDetail`'s DAYS and QUOTES tables lose their `ag-ph` cells (Fills, WORST CASE, Pool/day, Quote, Share, Rewards,
+Orders); the tables already scroll sideways in `.hl-scroll`. The sweep now expects no hidden column at either width,
+the scroll container `overflow-x: auto`, and the page itself not wider than the phone. RW, RW-E, RW-X, RW-C, mini-pool
+and mid-pool all use this page. TAKE's `0090` read back: `rules.take.from` 2026-10-04 16:00 UTC.
+
 ### [2026-10-04 13:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **TAKE (variant-2) starts at 2026-10-04 16:00 UTC, not 10-05 00:00** (Davies: "这个现在就开始吧 为什么要等？"; the

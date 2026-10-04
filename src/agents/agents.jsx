@@ -679,7 +679,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th">Costs</th><th className="hl-th ag-ph">Fills</th><th className="hl-th ag-ph">WORST CASE</th><th className="hl-th">Rewards</th><th className="hl-th">Total</th>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th">Costs</th><th className="hl-th">Fills</th><th className="hl-th">WORST CASE</th><th className="hl-th">Rewards</th><th className="hl-th">Total</th>
             </tr></thead>
             <tbody>
               {dayRows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>{waiting ?? 'No day yet.'}</td></tr>}
@@ -687,9 +687,9 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                 <tr key={d.live ? 'today' : d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
                   <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}{d.stop ? ' · stopped' : ''}</td>
                   <td>{d.capitalUsd == null ? '—' : m(fmtUsd(d.capitalUsd))}</td>
-                  <td className="ag-ph">{d.fills}</td>
+                  <td>{d.fills}</td>
                   {/* A worst case that was not recorded (a paper layer's closed days) is a dash, never $0.00. */}
-                  <td className="ag-ph ag-gl" style={d.stressUsd == null ? undefined : { color: pctColor(d.stressUsd) }}>{d.stressUsd == null ? '—' : usd(d.stressUsd)}</td>
+                  <td className="ag-gl" style={d.stressUsd == null ? undefined : { color: pctColor(d.stressUsd) }}>{d.stressUsd == null ? '—' : usd(d.stressUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
                   <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
                 </tr>
@@ -703,8 +703,8 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
-              <th className="hl-th">Market</th><th className="hl-th ag-ph">Pool/day</th><th className="hl-th ag-ph">Quote</th><th className="hl-th ag-ph">Share</th>
-              <th className="hl-th">Held</th><th className="hl-th ag-ph">Rewards</th><th className="hl-th ag-ph">Orders</th><th className="hl-th">Total</th>
+              <th className="hl-th">Market</th><th className="hl-th">Pool/day</th><th className="hl-th">Quote</th><th className="hl-th">Share</th>
+              <th className="hl-th">Held</th><th className="hl-th">Rewards</th><th className="hl-th">Orders</th><th className="hl-th">Total</th>
             </tr></thead>
             <tbody>
               {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>{waiting ?? 'No market chosen today yet.'}</td></tr>}
@@ -714,13 +714,13 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                 return (
                   <tr key={x.cond}>
                     <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
-                    <td className="ag-ph">{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
+                    <td>{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
                     {/* A paper layer's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
-                    <td className="ag-ph">{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
-                    <td className="ag-ph">{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
+                    <td>{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
+                    <td>{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
                     <td>{m(rwHeldOf(x))}</td>
-                    <td className="ag-ph ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>
-                    <td className="ag-ph ag-gl" style={{ color: pctColor(c.b) }}>{usd(c.b)}</td>
+                    <td className="ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>
+                    <td className="ag-gl" style={{ color: pctColor(c.b) }}>{usd(c.b)}</td>
                     <td className="ag-gl" style={{ color: pctColor(c.total) }}>{usd(c.total)}</td>
                   </tr>
                 );
