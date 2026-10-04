@@ -781,7 +781,12 @@ lost, frame rows after 7 days). Reference item 55; the evidence in `backtests/pm
 in `monitor/health.ts`: the Worker's `loop` is one alert state, and a stale recorder would mask a dead trading tick; its
 faults go to `ops_errors` as `agents.pm_rec`. Reviewed before landing: the migration, the private bucket, the prune.
 Pause it with `update public.edge_calls set enabled = false where path in ('agents?action=pmrec','agents?action=pmrec-meta')`.
-Signed URLs are never committed. Davies sets the archive's horizon.
+Signed URLs are never committed. Davies sets the archive's horizon. **Verified in production** (read-only, a sonnet-max
+check at 20:20 UTC): `0092` applied, both calls running since 19:10 with no `last_error` and no `ops_errors`; a books
+frame every minute 19:11–20:20 (70 of 70, ~2,850 books each, no failed read); the 19:00 hour archived at 20:05 to the
+private bucket `pm-rec` (books 8.7 MB, universe 2.0 MB, prints 78 KB, plus the day's markets dump 2.6 MB), each
+object's size equal to its `pm_rec_archive` row, the frames' data then cleared and none lost; `pm-rec-prune` ran at
+19:41; the recorder's tables 26.6 MB, the database 672 MB.
 
 **The repository is public.** `gh api repos/daviesluo/daviesportfolios` reads `private: false` (checked 19:05 UTC),
 while this file, `docs/handover.md` and `.claude/CLAUDE.md` were written for a private one and quote real balances.
