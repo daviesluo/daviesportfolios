@@ -187,8 +187,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      dry-run scored its quotes against the rest of the book's midpoint, not the book Polymarket would hold with them in it
      (508 of 10-03's minutes); it now scores them as the venue would, and its selection ranks first the books with two
      levels of the minimum within 10 ¢ a side (`PM_MINI_QUALITY`). **The window is 2026-10-05 00:00 → 10-06 00:00 UTC**,
-     read by `prep_check_addendum6.sql` (sha256 pinned). **Next:** at or after **2026-10-06 00:10 UTC** run it once,
-     read-only, and report every row to Davies in Chinese; never the go-time statement (history, 2026-10-04 16:44).
+     read by `prep_check_addendum6.sql` (sha256 pinned). **Every check window closed by Addendum 7** (2026-10-04 ~17:00,
+     Davies: "验证没问题就直接落地TESTING STRATEGIES列表，把mini-pool 的检验窗口全关了，目前上线live的最大candidate是这个live-prep策略"):
+     Addendum 6's window is withdrawn before its first minute and its check is never run; mini-pool is not a go-live
+     candidate. It keeps dry-running as a comparison and arms nothing (history, 2026-10-04 17:00).
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -747,6 +749,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 17:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mini-pool's check windows are closed and live-prep is the lead live candidate** (Davies: "验证没问题就直接落地TESTING
+STRATEGIES列表，把mini-pool 的检验窗口全关了，目前上线live的最大candidate是这个live-prep策略"). Mini-pool's pre-registration takes
+Addendum 7: Addendum 6's window (10-05) is withdrawn and `prep_check_addendum6.sql` will never run. Mini-pool keeps its
+dry-run as a comparison and is not a candidate. Reward quotes live-prep (S2) lands on the TESTING list as soon as its
+Phase B build is verified, without waiting for 10-06. The opus-max agent building it in `lp-phase-b` has been told so.
+Its change to shared code stays mid-pool's deviation 3. The 10-06 00:20 Routine is rewritten to match.
 
 ### [2026-10-04 16:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

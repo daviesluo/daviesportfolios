@@ -413,3 +413,14 @@ mini-pool's action on `PM_MINI_INSTANCE`).
 reported to Davies; no session and no routine runs the go-time statement, and the path goes live only in the
 conversation where he says go. (f) reads the account: if it fails only because the account is not funded, the window's
 verdict stands. A fix inside this window ends it as FAIL, as above.
+
+## Addendum 7 (2026-10-04, about 17:00 UTC): every check window closed, on Davies' word
+
+Davies, 2026-10-04: "验证没问题就直接落地TESTING STRATEGIES列表，把mini-pool 的检验窗口全关了，目前上线live的最大candidate是这个live-prep策略".
+Mini-pool's check windows are closed. Addendum 6's window (2026-10-05 00:00 → 10-06 00:00 UTC) is withdrawn before
+its first minute, and `prep_check_addendum6.sql` is never run. No window of this pre-registration reached a passing
+check: Addendum 2's failed (d) and (f). Mini-pool is therefore not a go-live candidate. The lead candidate is "Reward
+quotes live-prep", under its own pre-registration. The path and its paper layer keep running in dry-run as a
+comparison until Davies says otherwise. They arm nothing: the config stays `dry_run` true with `live_confirmed_at` null,
+and arming mini-pool would need a new pre-registration and his word. The files of the earlier addenda stay as they
+were written.
