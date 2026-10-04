@@ -65,8 +65,9 @@ The evidence:
   selection, settlement, minute and event is the same, and what differs is only what the path now reads of the account's
   earnings (below). `pm_mid.test.ts` pins the action's wiring: as deployed a day sends nothing but GETs and its keyless
   batch read; armed, the same action and client send; the kill switches reach the venue. The change was built and
-  every gate passed on 2026-10-04; it is not on `main`, because deploying it changes the live order path's code, which
-  waits for Davies' word (precondition 3).
+  every gate passed on 2026-10-04, and again rebuilt the same day on the formula fix (whose own fields its comparison
+  takes out of both sides first, as `pm_mid_formula.test.ts` states and pins them); it is not on `main`, because
+  deploying it changes the live order path's code, which waits for Davies' word (precondition 3).
 
 ## What only live can show (listed, not changed in the dry-run)
 
@@ -288,7 +289,7 @@ which a pool of $10–$50 may bring more of.
 
 | file | sha256 |
 |---|---|
-| `supabase/functions/agents/pm_live.ts` | at the freeze (`effd6351…` on `main` since 2026-10-04's formula fix; `8ccbb655…26fe` with the payouts change) |
+| `supabase/functions/agents/pm_live.ts` | at the freeze (`effd6351…` on `main` since 2026-10-04's formula fix; `61b1d53f…81cb` with the payouts change) |
 | `supabase/functions/agents/pm_prep.ts` | `ea3ee5b1…6dc9` (2026-10-04's formula fix; `8d7861ab…4dea` at mid-pool's pre-registration) |
 | `supabase/functions/agents/pm_mid.ts` | at the freeze (`9fd37436…` on `main`; its comments change with the payouts change) |
 | the readout's statement and script | written and pinned at the freeze |
