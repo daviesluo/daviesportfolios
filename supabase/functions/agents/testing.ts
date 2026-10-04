@@ -284,10 +284,14 @@ export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; no
  * minutes. Until 0084 its config also refused `dry_run` false and any `live_confirmed_at`, and its orders every mode but
  * `dry_run`; 0084 dropped those, as mid-pool became the same order path as mini-pool, and added a rule across the two
  * configs (`oneArmedRefusal`). Postgres names a constraint by its own table, so the double's refusals name the mid table.
+ * Live-prep's (0091) likewise, as `pm_lp_*` and `pm_lpprep_*`: a reward rate of $10 and over with no ceiling, its config
+ * $100 a market at most and no day stop (`loss_day_usd` null, the only value its CHECK admits), and the rule across the
+ * configs extended to three.
  */
-const pmLiveShape = (table: string) => table.replace(/^pm_mid_/, "pm_live_");
-const pmPrepShape = (table: string) => table.replace(/^pm_midprep_/, "pm_prep_");
+const pmLiveShape = (table: string) => table.replace(/^pm_(mid|lp)_/, "pm_live_");
+const pmPrepShape = (table: string) => table.replace(/^pm_(midprep|lpprep)_/, "pm_prep_");
 const isMidTable = (table: string) => table.startsWith("pm_mid_");
+const isLpTable = (table: string) => table.startsWith("pm_lp_");
 const isPmLiveTable = (table: string) => pmLiveShape(table) in PM_LIVE_SCHEMA;
 const isPmPrepTable = (table: string) => pmPrepShape(table) in PM_PREP_SCHEMA;
 /** The orders table a fills table's foreign key references: `pm_live_orders`, or mid-pool's `pm_mid_orders`. */
@@ -525,20 +529,21 @@ export function schemaRefusal(table: string, r: Row): string | null {
     return bad ? `new row for relation "${table}" violates check constraint "${table}_${bad}_check"` : null;
   }
   if (isPmLiveTable(table)) {
-    const shape = pmLiveShape(table), mid = isMidTable(table);
-    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !(mid && shape === "pm_live_config" && c === "created_at"));
+    const shape = pmLiveShape(table), mid = isMidTable(table), lp = isLpTable(table);
+    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !((mid || lp) && shape === "pm_live_config" && c === "created_at"));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
     const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
     const MODES = ["dry_run", "live"];
-    // Mid-pool's band (0081): [$10, $50), where small-pool's is [$0, $10) (RW's universe is $10 and over).
-    const inBand = (v: unknown) => (mid ? Number(v) >= 10 && Number(v) < 50 : Number(v) >= 0 && Number(v) < 10);
+    // Mid-pool's band (0081): [$10, $50), where small-pool's is [$0, $10) (RW's universe is $10 and over); live-prep's
+    // (0091) $10 and over, RW's universe itself.
+    const inBand = (v: unknown) => (mid ? Number(v) >= 10 && Number(v) < 50 : lp ? Number(v) >= 10 : Number(v) >= 0 && Number(v) < 10);
     if (shape === "pm_live_config") {
       const within = (c: string, lo: number, hi: number, loOpen = true) => ok(c, (v) => (loOpen ? Number(v) > lo : Number(v) >= lo) && Number(v) <= hi);
       return check("id", r.id === 1)
-        ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", "loss_day_usd", "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
-        ?? check("cap_total_usd", within("cap_total_usd", 0, 320)) ?? check("cap_market_usd", within("cap_market_usd", 0, 60))
-        ?? check("loss_day_usd", within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
+        ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", ...(lp ? [] : ["loss_day_usd"]), "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
+        ?? check("cap_total_usd", within("cap_total_usd", 0, 320)) ?? check("cap_market_usd", within("cap_market_usd", 0, lp ? 100 : 60))
+        ?? check("loss_day_usd", lp ? r.loss_day_usd == null : within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
         ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
@@ -560,7 +565,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? (r.mode === "live" || (r.actual_usd == null && r.actual_sponsored_usd == null && r.rebate_usd == null) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (shape === "pm_live_markets") {
-      return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank", ...(mid ? ["reward_rate"] : [])])
+      return notNull(["day", "kind", "cond", "yes_token", "no_token", "neg_risk", "tick", "min_size", "rank", ...(mid || lp ? ["reward_rate"] : [])])
         ?? check("kind", ["standard", "neg_risk"].includes(String(r.kind))) ?? check("tick", Number(r.tick) > 0) ?? check("min_size", Number(r.min_size) > 0)
         ?? check("reward_rate", ok("reward_rate", inBand)) ?? check("rank", Number(r.rank) > 0)
         ?? ((r.kind === "neg_risk") === (r.neg_risk === true) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
@@ -588,18 +593,18 @@ export function schemaRefusal(table: string, r: Row): string | null {
   return null;
 }
 
-/** The two configs of the one Polymarket account the order path's instances trade (0084's trigger reads both). */
-const PM_ONE_ACCOUNT_CONFIGS = ["pm_live_config", "pm_mid_config"];
+/** The configs of the one Polymarket account the order path's instances trade (0091's trigger reads all three), in name order. */
+const PM_ONE_ACCOUNT_CONFIGS = ["pm_live_config", "pm_lp_config", "pm_mid_config"];
 /**
- * 0084's trigger `pm_one_account_one_armed`, on both configs: a row written armed (`live_confirmed_at` not null) is refused
- * while the other config's row is armed, in Postgres's words (the exception it raises, as a check violation). Applied to
- * the row as stored, on INSERT, UPDATE and an upsert's merge, after the row's own checks, as an AFTER trigger fires.
+ * 0091's trigger `pm_one_account_one_armed` (0084's, for two configs, until then), on every config: a row written armed
+ * (`live_confirmed_at` not null) is refused while another config's row is armed, naming the first armed other by name,
+ * in Postgres's words (the exception it raises, as a check violation). Applied to the row as stored, on INSERT, UPDATE
+ * and an upsert's merge, after the row's own checks, as an AFTER trigger fires.
  */
 function oneArmedRefusal(tables: Record<string, Row[]>, table: string, r: Row): string | null {
   if (!PM_ONE_ACCOUNT_CONFIGS.includes(table) || r.live_confirmed_at == null) return null;
-  const other = table === "pm_live_config" ? "pm_mid_config" : "pm_live_config";
-  return (tables[other] ?? []).some((x) => x.live_confirmed_at != null)
-    ? `${table} cannot be armed while ${other} is armed: mini-pool and mid-pool trade one Polymarket account` : null;
+  const other = PM_ONE_ACCOUNT_CONFIGS.find((t) => t !== table && (tables[t] ?? []).some((x) => x.live_confirmed_at != null));
+  return other ? `${table} cannot be armed while ${other} is armed: mini-pool, mid-pool and live-prep trade one Polymarket account` : null;
 }
 
 /**
@@ -942,6 +947,8 @@ type FakePmMarket = {
   depth: Array<[number, number]>;
   /** Gamma's times, as Gamma writes them (`endDate` ISO, `gameStartTime` Postgres-style); absent when Gamma gives none. */
   endDate?: string | null; gameStartTime?: string | null;
+  /** Gamma's fee type (`feeType`, RW's `cat`: "weather_fees" for a weather market); absent when Gamma gives none. */
+  feeType?: string;
   /** Closed or resolved: its book is gone (`/book` answers 404, as the CLOB does) and Gamma shows it closed. */
   resolved?: boolean;
   /** Gamma's `outcomePrices[0]` once resolved: YES's payout; and its `closedTime`, as Gamma writes it. */
@@ -1188,6 +1195,7 @@ export class FakePolymarket {
         ...(m.resolved && m.payout !== undefined ? { outcomePrices: JSON.stringify([String(m.payout), String(1 - m.payout)]) } : {}),
         ...(m.resolved && m.closedTime !== undefined ? { closedTime: m.closedTime } : {}),
         ...(m.endDate !== undefined ? { endDate: m.endDate } : {}), ...(m.gameStartTime !== undefined ? { gameStartTime: m.gameStartTime } : {}),
+        ...(m.feeType !== undefined ? { feeType: m.feeType } : {}),
       }));
       return { status: 200, body: { markets } };
     }

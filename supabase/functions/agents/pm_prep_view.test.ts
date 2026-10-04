@@ -20,10 +20,12 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/prep_fixture.json" with { type: "json" };
 import midFixture from "../../../src/e2e/mid_fixture.json" with { type: "json" };
+import lpFixture from "../../../src/e2e/lp_fixture.json" with { type: "json" };
 import { PREP_STALE_MINUTES, prepSummary } from "./pm_prep_view.ts";
 import { readPrepSummary } from "./index.ts";
 import { PREP_INSTANCE, type PrepInstance } from "./pm_prep.ts";
 import { PREP_MID_INSTANCE } from "./pm_mid.ts";
+import { PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
 
 // deno-lint-ignore no-explicit-any
@@ -122,6 +124,34 @@ Deno.test("mid-pool's page figures for its hand-worked record: the fixture the s
   for (const r of [...MF.input.rates, ...MF.input.markets.map((m: { reward_rate: number }) => ({ rate: m.reward_rate }))]) assertEquals(r.rate >= 10 && r.rate < 50, true);
 });
 
+// "Reward quotes live-prep" (0091), the same view of its own layer's records (`src/e2e/lp_fixture.json`, which the sweep
+// serves as the dashboard's `prepLp`: its `output` must be the function's own answer for its `input`). It is mid-pool's
+// record moved to two markets of its own, E (20 a day, its quote 0.40 / 0.43, mid 0.415, N 20) and F (a pool of 120 a
+// day: live-prep's band has no ceiling; 0.70 / 0.72, mid 0.71, N 10), with one more fill: on 17 Sep E's ask, a SELL of the
+// 20 YES the paper held, at 0.43 (live-prep's sell of what is held, first).
+//
+// By hand: E bought 20 YES at 0.40 (8.00) and sold them at 0.43 (8.60): +0.60 realised, nothing held. F holds 10 NO at
+// 0.28, cost 2.80, at the mid 10 × 0.29 = 2.90: +0.10 open. Rewards 9.00 (E 3.50, F 5.50), so realised 9.00 + 0.60 = 9.60
+// and the total 9.70: E 3.50 + 0.60 = 4.10, F 5.50 + 0.10 = 5.60. 16 Sep closed at 4.80, so today 9.70 − 4.80 = 4.90. F's
+// share at the last minute is 0.006 × 1440 / 120 = 7.2 %. One position open.
+
+// deno-lint-ignore no-explicit-any
+const LF = lpFixture as any;
+
+Deno.test("live-prep's page figures for its record: the fixture the sweep serves is the function's own answer, a sell of what is held among them", () => {
+  const out = prepSummary(LF.input)!;
+  assertEquals(JSON.parse(JSON.stringify(out)), LF.output);
+  near(out.heldUsd, 2.9, "held at the mid"); near(out.costUsd, 2.8, "cost"); near(out.unrealisedUsd, 0.1, "unrealised");
+  near(out.rewardUsd, 9, "rewards"); near(out.realisedFillsUsd, 0.6, "E's 20 YES sold at 0.43, bought at 0.40"); near(out.realisedUsd, 9.6, "realised");
+  near(out.totalUsd, 9.7, "total"); near(out.todayUsd, 4.9, "today: 9.70 − 4.80");
+  assertEquals(out.markets.map((m) => [m.q, m.ratePerDay, m.yes, m.no, m.share, m.totalUsd]), [["Will E happen?", 20, 0, 0, 0.18, 4.1], ["Will F happen?", 120, 0, 10, 0.072, 5.6]]);
+  assertEquals(out.recent.map((f) => [f.q, f.tokenSide, f.outcome, f.size, f.tokenPrice]), [["Will E happen?", "SELL", "yes", 20, 0.43], ["Will F happen?", "BUY", "no", 10, 0.28], ["Will E happen?", "BUY", "yes", 20, 0.4]]);
+  assertEquals([out.open, out.quoting, out.running, out.lagMinutes, out.fills, out.capUsd], [1, 2, true, 2, 3, 320]);
+  // Every rate of its record is in live-prep's band, $10 and over, and one is over mid-pool's ceiling.
+  const rates = [...LF.input.rates, ...LF.input.markets.map((m: { reward_rate: number }) => ({ rate: m.reward_rate }))].map((r: { rate: number }) => r.rate);
+  assertEquals([rates.every((r) => r >= 10), rates.some((r) => r >= 50)], [true, true]);
+});
+
 Deno.test("the dashboard reads each paper layer from its own instance's tables: small-pool's from 0077's and its path's, mid-pool's from 0081's", async () => {
   // Each fixture's record as the rows its tables hold, side by side in one database.
   // deno-lint-ignore no-explicit-any
@@ -135,9 +165,10 @@ Deno.test("the dashboard reads each paper layer from its own instance's tables: 
     [inst.reads.markets]: input.markets,
     [inst.reads.config]: [{ id: 1, cap_total_usd: cap }],
   });
-  const mem = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320) }, { now: () => F.input.nowMs });
+  const mem = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320), ...rowsOf(LF.input, PREP_LP_INSTANCE, 320) }, { now: () => F.input.nowMs });
   const dayStart = Date.parse("2026-09-17T00:00:00Z");
-  for (const [inst, fixture] of [[PREP_INSTANCE, F], [PREP_MID_INSTANCE, MF]] as const) {
+  // Live-prep's from 0091's: its own tables, never mini-pool's.
+  for (const [inst, fixture] of [[PREP_INSTANCE, F], [PREP_MID_INSTANCE, MF], [PREP_LP_INSTANCE, LF]] as const) {
     const reads = [inst.tables.state, inst.tables.days, inst.tables.minutes, inst.tables.fills, inst.tables.settlements, inst.reads.minutes, inst.reads.markets, inst.reads.config];
     const db = onlyTables(mem.db, reads, { readOnly: reads });
     const out = await readPrepSummary(db, inst, fixture.input.nowMs, dayStart);

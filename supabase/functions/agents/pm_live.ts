@@ -59,7 +59,11 @@
 // finds every table, request and report the same but the fields the formula of 2026-10-04 makes. The second, mid-pool
 // ($10 to under $50, a dry-run its own table holds there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Mini-pool's action runs
 // `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default with a book-quality rule its
-// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance.
+// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance, except where an instance
+// sets `lp`: "Reward quotes live-prep" (`PM_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04) is the one that does, with its own
+// rule, candidate rules, per-market cap, pause after a jump, exits from markets it carries, its stop, and in dry-run its
+// paper layer's holdings in place of the account's (`PmLpOptions`). Every branch it adds runs only for it, so mini-pool
+// and mid-pool make the same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
 
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
@@ -221,6 +225,42 @@ export type PmLiveInstance = {
   action: string;
   path: string;
   errorKind: string;
+  /** Live-prep's rules (`PmLpOptions`); absent for every other instance, whose turns it changes in nothing. */
+  lp?: PmLpOptions;
+};
+/**
+ * What a selection's candidate must satisfy beyond the band, the listing and Gamma's word that it accepts orders. With
+ * none given (mini-pool, mid-pool) a market ending within 48 hours is passed over and no fee type is.
+ */
+export type PmCandidateRules = {
+  /** Whether a market whose Gamma `endDate` falls within `PM_LIVE_MIN_HORIZON_MS` is passed over (RW-E's same-day rule holds either way). */
+  endHorizon: boolean;
+  /** Gamma's `feeType` values whose markets are passed over (RW-X's `noCats`: RW's `cat` is that field). */
+  excludeFeeTypes: readonly string[];
+};
+/**
+ * "Reward quotes live-prep"'s rules (2026-10-04; `pm_lp.ts`, its pre-registration
+ * `reviews/2026-10-04-polymarket-lp-prereg.md`). Only `PM_LP_INSTANCE` sets them.
+ */
+export type PmLpOptions = {
+  /** Its quoting rule (`lpQuotes`): RW's prices, each side a sell of what is held before a buy, 5N of inventory its way. */
+  rule: PmQuoteRule;
+  /** Its selection's candidate rules: no 48-hour end horizon, weather markets left out. */
+  candidate: PmCandidateRules;
+  /** The code's ceiling on its config's per-market cap (the default's is `PM_LIVE_CAP_MARKET_USD`). */
+  capMarketCeiling: number;
+  /**
+   * x2's pause, frozen 2026-09-27 (`reviews/2026-09-27-polymarket-rw-variants-prereg.md`, `pmrw_x.ts`'s `armQuotes`):
+   * when the rest of the market's adjusted mid moves `cents` or more between two of the turns that read its book, nothing
+   * rests in it that minute and the `minutes − 1` after; a further jump starts the pause again (`pauseAfterJump`).
+   */
+  pause: { cents: number; minutes: number };
+  /**
+   * Its paper layer's tables (`pm_lpprep_*`), read in dry-run only: the paper's fills and settlements are the holdings
+   * the dry-run decides on (the account's are a real account's, which a dry-run never fills), and its closed days the
+   * rewards its stop counts at R = 0.40.
+   */
+  paper: { fills: string; settlements: string; days: string };
 };
 /**
  * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
@@ -252,6 +292,8 @@ export const PM_LIVE_INSTANCE: PmLiveInstance = {
 export const PM_MINI_INSTANCE: PmLiveInstance = { ...PM_LIVE_INSTANCE, bookQuality: PM_MINI_QUALITY };
 /** The tables an instance's turn may touch: its own nine, `agent_risk` (read) and `agent_locks` (its lease). */
 export const pmLiveDbTables = (inst: PmLiveInstance): readonly string[] => [...Object.values(inst.tables), "agent_risk", "agent_locks"];
+/** What live-prep's turn may touch beside those: its paper layer's fills, settlements and days, which its dry-run reads. */
+export const pmLpDbTables = (inst: PmLiveInstance): readonly string[] => [...pmLiveDbTables(inst), ...(inst.lp ? Object.values(inst.lp.paper) : [])];
 
 export type PmLiveMode = "dry_run" | "live";
 export type PmLiveConfig = {
@@ -276,6 +318,8 @@ export type PmOrderRow = {
   cancel_requested_at: string | null; cancel_gate: string | null; cancel_reason: string | null; filled_at: string | null; cancelled_at: string | null;
 };
 type FillRow = { trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; status: string; match_time: string | null };
+/** A paper fill as live-prep's dry-run reads its layer's (`pm_lpprep_fills`): the path's booking of it. */
+type PaperFillRow = { cond: string; token: string; token_side: "BUY" | "SELL"; token_price: number | string; size: number | string; ts: string };
 /** One market's minute as `pm_live_minutes` keeps it: the inputs of RW's formula and its answer. */
 export type PmMinuteRow = {
   mode: PmLiveMode; minute: string; cond: string; rate: number; max_spread: number; min_size: number; tick: number;
@@ -316,6 +360,16 @@ export function effectiveLimits(c: PmLiveConfig) {
     maxMarkets: Math.floor(lower(c.max_markets ?? 0, PM_LIVE_MAX_MARKETS)),
     budget: Math.min(lower(c.select_budget_usd ?? 0, PM_LIVE_CAP_TOTAL_USD), capTotal),
   };
+}
+
+/**
+ * Live-prep's limits (`PmLpOptions`): `effectiveLimits`, with its own per-market ceiling in place of the default's, and
+ * no day stop at all (`lossDay` Infinity, so no day's P&L ever reaches it; its config's day limit is null, which
+ * `effectiveLimits` would read as 0). The other instances' are `effectiveLimits` itself, untouched.
+ */
+export function lpLimits(c: PmLiveConfig, lp: Pick<PmLpOptions, "capMarketCeiling">): ReturnType<typeof effectiveLimits> {
+  const n = Number(c.cap_market_usd);
+  return { ...effectiveLimits(c), capMarket: Number.isFinite(n) && n >= 0 ? Math.min(n, lp.capMarketCeiling) : lp.capMarketCeiling, lossDay: Infinity };
 }
 
 /**
@@ -624,6 +678,23 @@ export function closeOnly(intents: PmIntent[], held: { yes: number; no: number }
   return out;
 }
 
+/** Each market's last adjusted mid and the minute its pause ends (ms), as x2's arm keeps them (`RwxArmState`). */
+export type PmPauseState = { lastMid: Record<string, number>; pausedUntil: Record<string, number> };
+/**
+ * x2's pause, word for word as `pmrw_x.ts`'s `armQuotes` applies it (frozen 2026-09-27): when market `cond`'s adjusted
+ * mid `mid` is `cents` or more from the last one recorded, the market is paused from minute `t` (ms) for `minutes`; the
+ * mid is recorded whenever there is one; and the market is paused while that end is after `t`. A minute without a mid
+ * (a side holding no level of the minimum) starts nothing and records nothing. Mutates `s`; returns whether it is paused.
+ */
+export function pauseAfterJump(s: PmPauseState, cond: string, t: number, mid: number | null, rule: { cents: number; minutes: number }): boolean {
+  if (mid !== null) {
+    const prev = s.lastMid[cond];
+    if (prev !== undefined && Math.abs(mid - prev) * 100 >= rule.cents - 1e-9) s.pausedUntil[cond] = t + rule.minutes * M;
+    s.lastMid[cond] = mid;
+  }
+  return (s.pausedUntil[cond] ?? 0) > t;
+}
+
 /** Would a post-only order at `price` take? A buy at or over the token's best ask, a sell at or under its best bid. */
 export function crosses(x: Pick<PmIntent, "outcome" | "side" | "price">, b: Pick<PmBookNow, "bestBid" | "bestAsk">): boolean {
   // The NO book is the YES book's mirror: NO's best bid is 1 − YES's best ask, NO's best ask 1 − YES's best bid.
@@ -760,6 +831,22 @@ export function candidateOf(m: Record<string, unknown>, listing: Map<string, PmR
     cond, yes: toks[0] as string, no: toks[1] as string, negRisk: m.negRisk === true, question: String(m.question ?? "").slice(0, 100),
     rate: r.rate, v: r.v, minSize: r.minSize, endDate, gameStart,
   };
+}
+
+/**
+ * A candidate by live-prep's rules (`PmCandidateRules`): a market of a fee type they name is passed over; with the end
+ * horizon off, `candidateOf` judges it as if Gamma gave no end date (so only the game's start can pass it over by the
+ * horizon), then RW-E's same-day rule is applied to the end date it does give, in RW-E's own code, and the end date is
+ * kept on the candidate. With the horizon on it is `candidateOf` itself. `candidateOf` is not changed by it.
+ */
+export function lpCandidateOf(m: Record<string, unknown>, listing: Map<string, PmRewardRow>, nowMs: number | undefined, band: PmLiveInstance["band"], rules: PmCandidateRules): PmCandidate | null {
+  if (typeof m.feeType === "string" && rules.excludeFeeTypes.includes(m.feeType)) return null;
+  if (rules.endHorizon) return candidateOf(m, listing, nowMs, band);
+  const c = candidateOf({ ...m, endDate: null }, listing, nowMs, band);
+  if (!c) return null;
+  const endDate = typeof m.endDate === "string" ? m.endDate : null;
+  if (nowMs !== undefined && pmTime(endDate) !== null && rweSameDay(dayOf(nowMs), endDate)) return null;
+  return { ...c, endDate };
 }
 
 /** A clock in milliseconds and the instant on it after which no further read starts. */
@@ -899,6 +986,8 @@ export type PmSelectOpts = {
   bookBatch?: (tokens: string[]) => Promise<Map<string, PmBookReply>>;
   /** The instance's book-quality rule (`PmLiveInstance.bookQuality`); none when absent. */
   bookQuality?: PmBookQualityRule;
+  /** Live-prep's candidate rules (`PmLpOptions.candidate`); the default's 48-hour horizon and no fee type when absent. */
+  candidate?: PmCandidateRules;
 };
 
 /**
@@ -943,7 +1032,9 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   note.gammaReads = chunks.length;
   if (gammaError) return fail(gammaError);
   if (late) return fail("time budget: the deadline came before Gamma was read for every candidate");
-  const eligible = universe.map((cond) => gamma.get(cond)).map((m) => (m ? candidateOf(m, listing.rows, nowMs, band) : null)).filter((c): c is PmCandidate => !!c);
+  const eligible = universe.map((cond) => gamma.get(cond))
+    .map((m) => (m ? (opts.candidate ? lpCandidateOf(m, listing.rows, nowMs, band, opts.candidate) : candidateOf(m, listing.rows, nowMs, band)) : null))
+    .filter((c): c is PmCandidate => !!c);
   note.eligible = eligible.length;
   // Each eligible market's book, and RW's first round on it.
   const scored: Scored[] = [];
@@ -1214,7 +1305,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   if (!cfg) { report.skipped = `no ${T.config} row: migration ${inst.migrations.tables} has not run`; return; }
   // The day's markets, the minutes and the readout are 0076's: until it has run, the turn does nothing (it was a dry-run).
   if (cfg.max_markets === undefined) { report.skipped = `the ${T.config} row has no max_markets: migration ${inst.migrations.selection} has not run`; return; }
-  const lim = effectiveLimits(cfg);
+  const lim = inst.lp ? lpLimits(cfg, inst.lp) : effectiveLimits(cfg);
   const prev = ((await db.select<{ state: Record<string, unknown> }>(T.state, "id=eq.1&select=state"))[0]?.state ?? {}) as Record<string, any>;
   let globalPause = false, riskReadable = true;
   try { globalPause = !!(await db.select<{ global_pause: boolean }>("agent_risk", "id=eq.1&select=global_pause"))[0]?.global_pause; }
@@ -1246,6 +1337,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const sel = await selectMarkets(venue, day, {
         maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue, band: inst.band, exclusion: inst.exclusion, pm: d.pm,
         bookBatch: inst.bookBatch ? (tokens: string[]) => inst.bookBatch!(tokens, d.pm) : undefined, bookQuality: inst.bookQuality,
+        ...(inst.lp ? { candidate: inst.lp.candidate } : {}),
       }, goneToday, deadline, d.now);
       sel.note.ms = Math.round(clock() - began);
       if (sel.picks.length) {
@@ -1260,8 +1352,19 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // ── what is held: the markets CONFIRMED fills (live only) left tokens in, from an earlier day too ──────────────────
   // A market Gamma has shown resolved is settled at its payout (`pm_live_settlements`) and holds nothing more; its tokens
   // left on chain until Davies redeems them are watched as capital (`unredeemed`), not marked as exposure.
-  const settlements = await db.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
-  const fillsBook = async (extra: PmSettlement[] = []) => {
+  // Live-prep's DRY-RUN decides on its paper layer's holdings instead (`PmLpOptions.paper`): the paper's fills of the
+  // orders this path rested, and the paper's settlements. A dry-run never fills, and the account's balances are a real
+  // account's, so with them its sells, its 5N rule, its caps on what is held, its exits and its stop would never run
+  // before it is live. The layer decides a minute two minutes after it (`RW_DECIDE_LAG_MS`), so the holdings a turn
+  // decides on are its paper's of two minutes before; a sell the paper cannot cover fills no further than it holds.
+  const paper = mode === "dry_run" && inst.lp ? inst.lp.paper : null;
+  const settlements = await db.selectAll<PmSettlement>(paper?.settlements ?? T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
+  const fillsBook = async (extra: PmSettlement[] = []): Promise<{ rows: Array<Pick<FillRow, "cond" | "token">>; tb: ReturnType<typeof tokenBooks> }> => {
+    if (paper) {
+      const rows = await db.selectAll<PaperFillRow>(paper.fills, "select=cond,token,token_side,token_price,size,ts&order=cond.asc,minute.asc,print_id.asc");
+      const fills = rows.map((f): PmFill => ({ token: f.token, side: f.token_side, price: Number(f.token_price), size: Number(f.size), ts: Date.parse(f.ts) }));
+      return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
+    }
     const rows = await db.selectAll<FillRow>(T.fills, "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
     const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
     return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
@@ -1277,7 +1380,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const markets: TurnMarket[] = [...selected.map((m) => ({ ...m, quoting: true })), ...heldMarkets];
   // Fail-safe: a settled market is watched until a turn reads both its balances at 0, and only then left out.
   const redeemed = new Set<string>(Array.isArray(prev.redeemed) ? (prev.redeemed as unknown[]).filter((x): x is string => typeof x === "string") : []);
-  const unredeemed = settlements.filter((s) => !redeemed.has(s.cond));
+  // A paper settlement leaves no token on chain: nothing of it waits to be redeemed.
+  const unredeemed = paper ? [] : settlements.filter((s) => !redeemed.has(s.cond));
 
   // ── 2. what the venue says ────────────────────────────────────────────────────────────────────────────────────────
   const g0 = geoOf(await venue.geoblock(), d.now, prev);
@@ -1327,11 +1431,13 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       else { inventoryReadable = false; report.errors.push(`balance of ${token.slice(0, 10)}… unreadable: ${br.status} ${br.error ?? "no balance"}`); }
     }
   }
+  // Live-prep's dry-run holds what its paper holds; the account's balances above decide the inventory gate alone.
+  if (paper) for (const m of markets) for (const token of [m.yes_token, m.no_token]) heldOf.set(token, before.tb[token]?.held ?? 0);
   // A held market whose book is gone is settled at Gamma's payout once Gamma shows it closed with one and a closed time
-  // (RW's condition, `pmMarkets`); until then it is held at its cost.
+  // (RW's condition, `pmMarkets`); until then it is held at its cost. A paper holding is settled by the paper layer.
   const newSettlements: PmSettlement[] = [];
   const goneHeld = heldMarkets.filter((m) => conditions[m.cond] === "left the book (404)");
-  if (goneHeld.length) {
+  if (goneHeld.length && !paper) {
     const g = await venue.gammaByConditions(goneHeld.map((m) => m.cond), true);
     if (!g.ok) report.errors.push(`gamma (closed markets): ${g.status} ${g.error}`);
     const closedTime = new Map<string, string>();
@@ -1441,7 +1547,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const scoring = new Map<string, boolean>();
   let pct: Record<string, number> | null = null;
   if (mode === "live") {
-    for (const o of openAll.filter((x) => x.mode === "live" && x.state === "live" && markets.some((m) => m.quoting && m.cond === x.cond))) {
+    for (const o of openAll.filter((x) => x.mode === "live" && x.state === "live" && markets.some((m) => (m.quoting || !!inst.lp) && m.cond === x.cond))) {
       if (pastDeadline(deadline)) break;
       const r = await venue.orderScoring(o.hash);
       if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
@@ -1454,8 +1560,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   const minuteRows: PmMinuteRow[] = [];
   // Our orders in each book as this turn read it, for the formula of what rests after the turn (`detail.after`).
+  // Live-prep records the markets it carries from an earlier day too: its exits rest there, and its paper layer fills
+  // them from those minutes.
   const inBookAtRead = new Map<string, PmOwnOrder[]>();
-  for (const m of markets.filter((x) => x.quoting)) {
+  for (const m of markets.filter((x) => x.quoting || !!inst.lp)) {
     const b = books.get(m.cond);
     if (!b) continue;
     const rows = resting(m.cond, mode);
@@ -1489,21 +1597,42 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   const pnl = bookPnl(tb, marks);
   report.pnl = pnl;
-  const hasEvent = async (kind: string, since: string | null) => (await db.select(T.events, `mode=eq.live&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`)).length > 0;
+  // Live-prep's stops (`PmLpOptions`): each mode's own, so a stop its dry-run tripped on paper never holds the live path,
+  // nor the reverse; no day stop (`lossDay` is Infinity); and the total counts what was paid beside the fills: live, what
+  // Polymarket paid as its readout booked it (`pm_lp_reward_days`, live rows); in dry-run, its paper's closed days at
+  // R = 0.40. Until the first payout is read, the fills alone. The other instances' stops read and write `live` alone.
+  const stopMode: PmLiveMode = inst.lp ? mode : "live";
+  const hasEvent = async (kind: string, since: string | null) => (await db.select(T.events, `mode=eq.${stopMode}&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`)).length > 0;
   let lossDay = false, lossTotal = false;
   try {
     lossDay = await hasEvent("loss_stop_day", iso(dayStart));
     lossTotal = await hasEvent("loss_stop_total", null);
   } catch (e) { lossDay = lossTotal = true; report.errors.push(`loss stops unreadable (${msg(e)}): nothing that opens this turn`); }
+  let paid: number | null = null;
+  if (inst.lp && !lossTotal) {
+    try {
+      const rows = paper
+        ? (await db.selectAll<{ reward_r40: number | string | null }>(paper.days, "select=reward_r40&order=day.asc")).map((r) => num(r.reward_r40))
+        : (await db.selectAll<{ actual_usd: number | string | null; actual_sponsored_usd: number | string | null }>(T.rewardDays, "mode=eq.live&select=actual_usd,actual_sponsored_usd&order=mode.asc,day.asc,cond.asc"))
+          .map((r) => num(r.actual_usd) + num(r.actual_sponsored_usd));
+      paid = Math.round(rows.reduce((s, x) => s + x, 0) * 1e8) / 1e8;
+    } catch (e) { lossTotal = true; report.errors.push(`what was paid is unreadable (${msg(e)}): the stop cannot be judged; nothing that opens this turn`); }
+  }
   if (!lossDay && pnl.day <= -lim.lossDay) {
     lossDay = true;
-    await db.upsert(T.events, [{ mode: "live", minute, kind: "loss_stop_day", detail: { dayPnl: pnl.day, limit: -lim.lossDay } }], "mode,minute,kind");
+    await db.upsert(T.events, [{ mode: stopMode, minute, kind: "loss_stop_day", detail: { dayPnl: pnl.day, limit: -lim.lossDay } }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (day): ${pnl.day} USD is past −${lim.lossDay}; nothing opens until the next UTC day; sells of what is held stay armed`);
   }
-  if (!lossTotal && pnl.total <= -lim.lossTotal) {
+  if (!lossTotal && pnl.total + (paid ?? 0) <= -lim.lossTotal) {
     lossTotal = true;
-    await db.upsert(T.events, [{ mode: "live", minute, kind: "loss_stop_total", detail: { totalPnl: pnl.total, limit: -lim.lossTotal } }], "mode,minute,kind");
-    report.errors.push(`LOSS STOP (all): ${pnl.total} USD is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`);
+    const basis = Math.round((pnl.total + (paid ?? 0)) * 1e8) / 1e8;
+    await db.upsert(T.events, [{
+      mode: stopMode, minute, kind: "loss_stop_total",
+      detail: inst.lp ? { totalPnl: pnl.total, paid, basis, limit: -lim.lossTotal } : { totalPnl: pnl.total, limit: -lim.lossTotal },
+    }], "mode,minute,kind");
+    report.errors.push(inst.lp
+      ? `LOSS STOP (all): fills ${pnl.total} and paid ${paid ?? 0} USD, ${basis} in all, is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`
+      : `LOSS STOP (all): ${pnl.total} USD is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`);
   }
 
   // ── 3. the gates ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1514,26 +1643,55 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   report.gates = g;
 
   // ── 4. what each slot should hold ─────────────────────────────────────────────────────────────────────────────────
-  const rule = d.rule ?? rwQuotes;
+  const rule = d.rule ?? inst.lp?.rule ?? rwQuotes;
   const wants = new Map<string, Want>();
   const withheld = new Map<string, string>();
   const withhold = (slot: string, gate: string, reason: string) => { withheld.set(slot, gate); report.withheld.push({ slot, gate, reason }); };
   const lifetime = lim.lifetimeS;
+  // Live-prep's pause after a jump (`pauseAfterJump`), kept from turn to turn for the markets it reads, and what each of
+  // its markets' minutes records of the turn's decision (`detail.lp`), which its paper layer reads.
+  const lpPrev = (prev.lp ?? {}) as Partial<PmPauseState>;
+  const pauseState: PmPauseState = { lastMid: { ...(lpPrev.lastMid ?? {}) }, pausedUntil: { ...(lpPrev.pausedUntil ?? {}) } };
+  const lpDetail = new Map<string, Record<string, unknown>>();
   for (const m of markets) {
     const b = books.get(m.cond);
     const held = { yes: heldOf.get(m.yes_token) ?? 0, no: heldOf.get(m.no_token) ?? 0 };
     report.markets.push({ kind: m.kind, cond: m.cond, quoting: m.quoting, book: b ? (({ levels: _l, ...rest }) => rest)(b) : null, held: inventoryReadable ? held : null });
+    let paused = false;
+    if (inst.lp) {
+      // Judged on every book a turn reads, whatever the gates say, as x2's arm judges every minute it has a book for: the
+      // rest of the market's adjusted mid (RW's row of the book without our orders).
+      if (b) {
+        const own0 = mode === "live" ? openAll.filter((o) => o.mode === "live" && o.cond === m.cond && o.state === "live").map(ownOf) : [];
+        const o0 = othersLevels(b.levels, own0);
+        const row0 = summarize(o0.bids, o0.asks, num(m.max_spread), num(m.min_size));
+        const mid = row0 && row0[2] !== null && row0[3] !== null ? (row0[2] + row0[3]) / 2 : null;
+        paused = pauseAfterJump(pauseState, m.cond, Math.floor(d.now / M) * M, mid, inst.lp.pause);
+      } else paused = (pauseState.pausedUntil[m.cond] ?? 0) > Math.floor(d.now / M) * M;
+      lpDetail.set(m.cond, {
+        state: paused ? "paused" : !m.quoting ? "carried" : g.open ? "quote" : "close", held, n: sizeN(num(m.min_size)),
+        pausedUntil: paused ? iso(pauseState.pausedUntil[m.cond]) : null, stopTotal: lossTotal, paid,
+      });
+    }
     if (!b || g.cancelAll) continue;
     // Our own orders in the book this turn read (live): the rule and the post-only check judge the rest of the book.
     const own = mode === "live" ? openAll.filter((o) => o.mode === "live" && o.cond === m.cond && o.state === "live").map(ownOf) : [];
     const others = othersLevels(b.levels, own);
     const touch = { bestBid: others.bids[0]?.[0] ?? 0, bestAsk: others.asks[0]?.[0] ?? 1 };
     let intents: PmIntent[] = [];
-    // A market held from an earlier day is not quoted: RW holds what a market it left still holds.
+    // A market held from an earlier day is not quoted: RW holds what a market it left still holds. Live-prep works it
+    // off instead: the rule's quote on it, close-only, so only the sells of what it holds rest, at the rule's prices.
     if (m.quoting) {
       try { intents = rule({ market: m, book: b, held, own }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+    } else if (inst.lp) {
+      try { intents = closeOnly(rule({ market: m, book: b, held, own }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
+    // Paused (live-prep): nothing rests in the market this minute; what is held is held.
+    if (paused && intents.length) {
+      for (const x of intents) withhold(slotKey({ cond: m.cond, token: tokenOf(x.outcome), side: x.side }), "pause", `the adjusted mid jumped ${inst.lp!.pause.cents} ¢ or more: not quoted until ${iso(pauseState.pausedUntil[m.cond])}`);
+      intents = [];
+    }
     // Sells a rule wants are capped at what is held, whatever the mode; while opening is stopped, buys become close-only sells.
     const sellsCapped = closeOnly(intents.filter((x) => x.side === "SELL"), held, b);
     const list = g.open ? [...intents.filter((x) => x.side === "BUY"), ...sellsCapped] : g.reduce ? closeOnly(intents, held, b) : [];
@@ -1747,7 +1905,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         const slot = slotKey(o);
         const w = wants.get(slot);
         if (!w) {
-          const managed = markets.some((m) => m.cond === o.cond && m.quoting);
+          // Live-prep manages the markets it carries as well (its exits rest there).
+          const managed = markets.some((m) => m.cond === o.cond && (m.quoting || !!inst.lp));
           await cancel(o, withheld.get(slot) ?? (!managed ? "selection" : books.get(o.cond) ? "rule" : "book"),
             !managed ? "the market is not in today's selection" : books.get(o.cond) ? "the rule wants nothing resting here" : "the book is unreadable or one-sided");
           continue;
@@ -1779,6 +1938,12 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const after = [...openAll, ...posted].filter((o) => o.mode === mode && o.cond === r.cond && o.state === "live").map(ownOf);
     const fa = minuteFormula({ rate: r.rate, v: r.max_spread, minSize: r.min_size, levels: b.levels, inBook: inBookAtRead.get(r.cond) ?? [], quotes: after });
     r.detail.after = { formula: fa.formula, ours: fa.ours, others: fa.others, m: fa.m, orders: after.length };
+    // Live-prep: what the turn decided the market on (its state, the holdings, N), for its paper layer; and what the caps
+    // counted after the turn (holdings at cost and resting buys, in all and in this market), for its pre-registration's
+    // check.
+    if (inst.lp) {
+      r.detail.lp = { ...(lpDetail.get(r.cond) ?? {}), committed: Math.round(committed * 1e6) / 1e6, committedMarket: Math.round((byMarket.get(r.cond) ?? 0) * 1e6) / 1e6 };
+    }
   }
   if (minuteRows.length) {
     try { await db.upsert(T.minutes, minuteRows, "mode,minute,cond"); } catch (e) { report.errors.push(`minutes not recorded (${msg(e)})`); }
@@ -1841,6 +2006,15 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         redeemed: [...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)],
         markets: report.markets, minutes: report.minutes, withheld: report.withheld,
         open: (await db.select<{ id: number }>(T.orders, "state=in.(pending,live)&select=id&limit=50")).length,
+        // Live-prep's pause (`pauseAfterJump`): the markets this turn read, a pause only while it lasts; and what its stop
+        // counted as paid.
+        ...(inst.lp ? {
+          lp: {
+            lastMid: Object.fromEntries(Object.entries(pauseState.lastMid).filter(([c]) => markets.some((m) => m.cond === c))),
+            pausedUntil: Object.fromEntries(Object.entries(pauseState.pausedUntil).filter(([c, u]) => u > Math.floor(d.now / M) * M && markets.some((m) => m.cond === c))),
+            paid, holdings: paper ? "paper" : "account",
+          },
+        } : {}),
       },
     }], "id");
   } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }

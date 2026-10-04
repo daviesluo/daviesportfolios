@@ -59,6 +59,19 @@
 //                             Cron bearer only.
 //   POST ?action=pmmidprep  — mid-pool's paper layer (pm_prep.ts on 0081's
 //                             tables), as pmprep is small-pool's. Every minute.
+//   POST ?action=pmlp       — "Reward quotes live-prep" (pm_lp.ts, 0091): the
+//                             same order path on every rewarded market of $10
+//                             a day and over, with live-prep's rules (sells of
+//                             what is held first, 5N, x2's pause, exits from
+//                             the markets it carries, a stop on fills and
+//                             what was paid), every minute from eu-west-1,
+//                             wired as pmlive is: a dry-run on its paper's
+//                             holdings until `pm_lp_config` says otherwise,
+//                             and never armed while another config is (0091).
+//                             Cron bearer only.
+//   POST ?action=pmlpprep   — live-prep's paper layer (pm_prep.ts on 0091's
+//                             tables): it fills the path's own orders, sells
+//                             included. Every minute.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -137,6 +150,7 @@ import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polym
 import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } from "./pm_live.ts";
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
+import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
@@ -491,6 +505,49 @@ export async function runPmMidPrepAction(deps: { db?: Db; now?: number; fetchImp
     ...(deps.fetchImpl ? { pm: { fetchImpl: deps.fetchImpl } } : {}),
   });
   if (report.errors.length) await reportServerError("agents.pm_midprep", tickErrorReport(report));
+  return report;
+}
+
+/**
+ * "Reward quotes live-prep", one minute (`pm_lp.ts`, 0091): the order path on live-prep's instance, wired as
+ * `runPmMidAction` wires mid-pool's: the same reads of the secrets (`loadPmLiveEnv`), the same keyed wire, account,
+ * signer and switch, the pUSD read every minute. What keeps its every order home is its config row, `pm_lp_config`:
+ * `dry_run` true and `live_confirmed_at` null; 0091's trigger refuses arming it while mini-pool's or mid-pool's row is
+ * armed. Its dry-run decides on its paper layer's holdings (`PmLpOptions.paper`). It never throws past here: its faults
+ * go to `ops_errors` as `agents.pm_lp`.
+ */
+export async function runPmLpAction(deps: { db?: Db; fetchImpl?: typeof fetch; read?: (n: string) => string | undefined; now?: number } = {}) {
+  try {
+    const env = loadPmLiveEnv(deps.read);
+    const report = await runPmLive({
+      db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(),
+      venue: pmVenue({ fetchImpl: deps.fetchImpl, creds: env.creds, address: env.signer, sigType: env.sigType ?? 1, scrub: (s) => env.scrub(s), timeoutMs: PM_LIVE_TIMEOUT_MS }),
+      sbRegion: (deps.read ?? ((n: string) => Deno.env.get(n)))("SB_REGION") ?? null,
+      sendsEnabled: PM_ORDER_SENDS_ENABLED,
+      account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
+      signer: env.key,
+      signerProblem: env.keyProblem,
+      inst: PM_LP_INSTANCE,
+      pm: { fetchImpl: deps.fetchImpl, timeoutMs: PM_LIVE_TIMEOUT_MS },
+    });
+    if (env.check.problems.length) report.errors.push(`secrets: ${env.check.problems.join("; ")}`);
+    const clean = env.scrub(report);
+    if (clean.errors.length) await reportServerError(PM_LP_INSTANCE.errorKind, tickErrorReport(clean));
+    return clean;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError(PM_LP_INSTANCE.errorKind, { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/** Live-prep's paper layer, one run (`pm_prep.ts` on 0091's tables). Keyless. Faults go to `ops_errors` as `agents.pm_lpprep`. */
+export async function runPmLpPrepAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  const report = await runPmPrep({
+    db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_LP_INSTANCE,
+    ...(deps.fetchImpl ? { pm: { fetchImpl: deps.fetchImpl } } : {}),
+  });
+  if (report.errors.length) await reportServerError("agents.pm_lpprep", tickErrorReport(report));
   return report;
 }
 
@@ -1767,6 +1824,8 @@ async function dashboard(now: number) {
   // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
   const prep = await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs);
   const prepMid = await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs);
+  // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
+  const prepLp = await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs);
   const rwc = await rwcRead;
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
@@ -1808,6 +1867,8 @@ async function dashboard(now: number) {
     prep,
     /** "Reward quotes mid-pool", the path again on $10–$50 pools, filled on paper the same way (`0081`); likewise. */
     prepMid,
+    /** "Reward quotes live-prep", the path on $10 and over with live-prep's rules, filled on paper (`0091`); likewise. */
+    prepLp,
   };
 }
 
@@ -2295,6 +2356,11 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "pmmid" && req.method === "POST" && who === "cron") return json(200, await runPmMidAction());
   // Its paper layer (pm_prep.ts on 0081's tables). Keyless public reads only.
   if (action === "pmmidprep" && req.method === "POST" && operator) return json(200, await runPmMidPrepAction());
+  // "Reward quotes live-prep" (pm_lp.ts, 0091): the same path on $10 and over with live-prep's rules, from eu-west-1, a
+  // dry-run its config row holds there. Cron bearer only, as the path's own call.
+  if (action === "pmlp" && req.method === "POST" && who === "cron") return json(200, await runPmLpAction());
+  // Its paper layer (pm_prep.ts on 0091's tables). Keyless public reads only.
+  if (action === "pmlpprep" && req.method === "POST" && operator) return json(200, await runPmLpPrepAction());
   // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
   if (action === "views" && req.method === "POST" && operator) {
     const key = youtubeKey();

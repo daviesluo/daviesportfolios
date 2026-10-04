@@ -1701,21 +1701,26 @@ export function rwcRow(r) {
   return row && { ...row, id: RWC_ROW_ID, name: 'Reward quotes confirmation' };
 }
 
-/** "Reward quotes mini-pool"'s id among the table's rows ("Reward quotes live-prep", then "small-pool", until 2026-10-02). */
+/**
+ * "Reward quotes mini-pool"'s id among the table's rows (the row was named small-pool, and before that live-prep, until
+ * 2026-10-02; that first name is the third instance's own row today, `LP_ROW_ID`, read from its own tables).
+ */
 export const PREP_ROW_ID = '__prep';
 /** "Reward quotes mid-pool"'s id among the table's rows. */
 export const MID_ROW_ID = '__mid';
+/** "Reward quotes live-prep"'s id among the table's rows (`0091`, `pm_lp.ts`): the dashboard's `prepLp`. */
+export const LP_ROW_ID = '__lp';
 /**
- * Whether a row is one of the order path's paper layers, mini-pool's or mid-pool's: its page says when a loss stop
- * holds it close-only.
+ * Whether a row is one of the order path's paper layers, mini-pool's, mid-pool's or live-prep's: its page says when a
+ * loss stop holds it close-only.
  * @param {string} id
  */
-export const isPrepRowId = (id) => id === PREP_ROW_ID || id === MID_ROW_ID;
+export const isPrepRowId = (id) => id === PREP_ROW_ID || id === MID_ROW_ID || id === LP_ROW_ID;
 
 /**
  * A paper layer's loss stop that holds it close-only, in words, or '' (the dashboard sends a day stop only on its own
  * UTC day).
- * @param {any} r  the dashboard's `prep` or `prepMid`
+ * @param {any} r  the dashboard's `prep`, `prepMid` or `prepLp`
  */
 export function prepStopText(r) {
   return r?.stopTotal ? 'its total loss stop has tripped: close-only' : r?.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
@@ -1723,7 +1728,8 @@ export function prepStopText(r) {
 
 /**
  * "Reward quotes mini-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
- * before it goes live; named live-prep until 2026-10-02, when he renamed it small-pool beside mid-pool and then mini-pool) as a row of TESTING
+ * before it goes live; renamed small-pool on 2026-10-02 beside mid-pool, then mini-pool; its first name went to the third
+ * instance in 2026-10-04's `0091`, whose row is `lpRow`) as a row of TESTING
  * STRATEGIES on the Polymarket card, in the cells a strategy's row has.
  * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
  * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
@@ -1774,6 +1780,20 @@ export function prepRow(r) {
 export function midRow(r) {
   const row = prepRow(r);
   return row && { ...row, id: MID_ROW_ID, name: 'Reward quotes mid-pool' };
+}
+
+/**
+ * "Reward quotes live-prep" (`0091`; Davies, 2026-10-04: "以现在知道的所有信息，选出来一个最佳的reward区间+市场+rules等一切最优的
+ * 策略…做出一个策略组合加到测试列表中叫它Reward quotes live-prep", then "验证没问题就直接落地TESTING STRATEGIES列表…目前上线live的最大
+ * candidate是这个live-prep策略"): the order path on every pool of $10 a day and over with live-prep's rules, its dry-run
+ * filled on paper by the same layer, the last row of TESTING after mid-pool's. The dashboard's `prepLp` is made by the
+ * same `prepSummary` from its own tables (`pm_lpprep_*`), never mini-pool's, so its row and its page are the layer's, on
+ * its own $320 cap. null keeps it off the table.
+ * @param {any} r  the dashboard's `prepLp`
+ */
+export function lpRow(r) {
+  const row = prepRow(r);
+  return row && { ...row, id: LP_ROW_ID, name: 'Reward quotes live-prep' };
 }
 
 /** RW-E's paper test's id among the table's rows. */

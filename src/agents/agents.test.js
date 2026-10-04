@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -15,6 +15,7 @@ import twinFixture from '../e2e/quotes_twin_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
 import midFixture from '../e2e/mid_fixture.json';
+import lpFixture from '../e2e/lp_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -1568,6 +1569,38 @@ describe("mini-pool's page is RW's (Davies, 2026-10-01)", () => {
     // RW's fills are in its one YES book.
     expect([rwFillView({ side: 'bid', price: 0.45 }), rwFillView({ side: 'ask', price: 0.48 })]).toEqual([
       { buy: true, text: 'bought Yes', price: 0.45 }, { buy: false, text: 'sold Yes', price: 0.48 }]);
+  });
+});
+
+describe('lpRow ("Reward quotes live-prep", 0091)', () => {
+  it("is the layer's row under its own id and name, read from its own layer's figures (pm_lpprep_*), never mini-pool's", () => {
+    const row = lpRow(lpFixture.output);
+    if (!row) throw new Error('no row for the fixture');
+    expect(row).toMatchObject({
+      id: LP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
+      capitalUsd: 320, heldUsd: 2.9, costUsd: 2.8, todayUsd: 4.9, unrealisedUsd: 0.1, realisedUsd: 9.6, openPositions: 1, nextText: 'every minute',
+      rewards: { realisedUsd: 9, unrealisedUsd: 0 }, orders: { realisedUsd: 0.6, unrealisedUsd: 0.1 },
+      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
+    });
+    // Deployed: what it holds, $2.90, and what its two quotes tie up, $29.20.
+    expect(row.valueUsd).toBeCloseTo(2.9 + 29.2, 9);
+    const { id: _a, name: _b, ...same } = row;
+    const { id: _c, name: _d, ...small } = /** @type {NonNullable<ReturnType<typeof prepRow>>} */ (prepRow(lpFixture.output));
+    expect(same).toEqual(small);
+    expect(lpRow(null)).toBe(null);
+    // The three layers' rows, each its own id; the name live-prep is this row's alone.
+    expect([prepRow(lpFixture.output)?.name, midRow(lpFixture.output)?.name, row.name]).toEqual(['Reward quotes mini-pool', 'Reward quotes mid-pool', 'Reward quotes live-prep']);
+    expect(new Set([PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID]).size).toBe(3);
+  });
+  it('shows a loss stop on its page as the other layers do', () => {
+    expect(isPrepRowId(LP_ROW_ID)).toBe(true);
+    expect(lpRow({ ...lpFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
+  });
+  it("reads its page from RW's functions: a sell of what it held among its fills, by token", () => {
+    const r = lpFixture.output;
+    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['—', '10 No']);
+    expect(r.recent.map((f) => { const x = rwFillView(f); return `${x.buy ? 'buy' : 'sell'} ${x.text} ${fmtCents(x.price)}`; }))
+      .toEqual(['sell sold Yes 43¢', 'buy bought No 28¢', 'buy bought Yes 40¢']);
   });
 });
 

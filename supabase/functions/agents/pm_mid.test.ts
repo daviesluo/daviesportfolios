@@ -346,10 +346,10 @@ Deno.test("0084's rules hold in the double: a config may leave dry-run and be ar
   assert((await refused(() => w.mem.db.upsert("pm_mid_minutes", [{ ...minute, rate: 50 }], "mode,minute,cond"))).includes("pm_mid_minutes_rate_check"));
   // Small-pool's tables keep their own band: a $10 minute is refused there.
   assert((await refused(() => w.mem.db.upsert("pm_live_minutes", [{ ...minute, rate: 10 }], "mode,minute,cond"))).includes("pm_live_minutes_rate_check"));
-  // One account (0084's trigger, in Postgres's words as PGlite 16 gave them): with mini-pool armed, no write arms mid-pool,
+  // One account (0084's trigger, 0091's words for three configs, as PGlite 16 gives them): with mini-pool armed, no write arms mid-pool,
   // and the other way round; unarmed writes pass, mid-pool out of dry-run but unarmed among them.
   const m = world({ liveConfig: { dry_run: false, live_confirmed_at: iso(T0 - 2 * M) } });
-  const toMid = "pm_mid_config cannot be armed while pm_live_config is armed: mini-pool and mid-pool trade one Polymarket account";
+  const toMid = "pm_mid_config cannot be armed while pm_live_config is armed: mini-pool, mid-pool and live-prep trade one Polymarket account";
   assert((await refused(() => m.mem.db.update("pm_mid_config", "id=eq.1", ARMED))).includes(toMid));
   assert((await refused(() => m.mem.db.upsert("pm_mid_config", [{ ...MID_CONFIG, ...ARMED }], "id"))).includes(toMid));
   assert((await refused(() => m.mem.db.insert("pm_mid_config", { ...MID_CONFIG, id: 1, ...ARMED }))).includes(toMid));
@@ -360,7 +360,7 @@ Deno.test("0084's rules hold in the double: a config may leave dry-run and be ar
   assertEquals(await refused(() => m.mem.db.update("pm_live_config", "id=eq.1", { live_confirmed_at: null })), "");
   assertEquals(await refused(() => m.mem.db.update("pm_mid_config", "id=eq.1", ARMED)), "");
   assert((await refused(() => m.mem.db.update("pm_live_config", "id=eq.1", { live_confirmed_at: iso(T0) })))
-    .includes("pm_live_config cannot be armed while pm_mid_config is armed: mini-pool and mid-pool trade one Polymarket account"));
+    .includes("pm_live_config cannot be armed while pm_mid_config is armed: mini-pool, mid-pool and live-prep trade one Polymarket account"));
   assertEquals((m.mem.tables.pm_live_config as Row[])[0].live_confirmed_at, null);
 });
 

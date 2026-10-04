@@ -1,0 +1,342 @@
+{
+ "input": {
+  "nowMs": 1789686000000,
+  "capUsd": 320,
+  "state": {
+   "state": {
+    "version": 1,
+    "startedAt": "2026-09-16T00:00:00.000Z",
+    "lastDecided": 1789685880000,
+    "dayOf": 1789603200000,
+    "statusAt": 0,
+    "acc": {
+     "0x00000000000000000000000000000000000000000000000000000000000000e5": {
+      "net": 0,
+      "cash": 0.6,
+      "reward": 3.5,
+      "fills": 2,
+      "fillShares": 40,
+      "tickCost": 0.2,
+      "firstCap": 19.4,
+      "maxInvCost": 8,
+      "lastM": 0.415,
+      "lastAb": 0.4,
+      "lastAa": 0.43,
+      "quotedMinutes": 2600,
+      "settled": null
+     },
+     "0x00000000000000000000000000000000000000000000000000000000000000f6": {
+      "net": -10,
+      "cash": 7.2,
+      "reward": 5.5,
+      "fills": 1,
+      "fillShares": 10,
+      "tickCost": 0.1,
+      "firstCap": 9.8,
+      "maxInvCost": 2.8,
+      "lastM": 0.71,
+      "lastAb": 0.7,
+      "lastAa": 0.72,
+      "quotedMinutes": 2500,
+      "settled": null
+     }
+    },
+    "tokens": {
+     "0x00000000000000000000000000000000000000000000000000000000000000e5": {
+      "yes": "5001",
+      "no": "5002"
+     },
+     "0x00000000000000000000000000000000000000000000000000000000000000f6": {
+      "yes": "6001",
+      "no": "6002"
+     }
+    },
+    "marks": {
+     "0x00000000000000000000000000000000000000000000000000000000000000e5": 0.415,
+     "0x00000000000000000000000000000000000000000000000000000000000000f6": 0.71
+    },
+    "stopDay": null,
+    "stopTotal": null,
+    "day": {
+     "reward": 4,
+     "fills": 1,
+     "matched": 2600,
+     "dark": 50,
+     "diverged": 3,
+     "missing": 0,
+     "markets": [
+      "0x00000000000000000000000000000000000000000000000000000000000000e5",
+      "0x00000000000000000000000000000000000000000000000000000000000000f6"
+     ]
+    },
+    "pnl": null
+   },
+   "last_minute": "2026-09-17T22:58:00.000Z",
+   "last_error": null,
+   "updated_at": "2026-09-17T22:59:31.000Z"
+  },
+  "days": [
+   {
+    "day": "2026-09-16",
+    "reward": 5,
+    "fills_pnl_total": -0.2,
+    "fills": 1,
+    "stop_day": false,
+    "stop_total": false
+   }
+  ],
+  "latest": [
+   {
+    "minute": "2026-09-17T22:58:00.000Z",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "class": "matched",
+    "b": 0.4,
+    "a": 0.43,
+    "n": 20,
+    "qb": true,
+    "qa": true,
+    "close_only": false,
+    "reward": 0.0025
+   },
+   {
+    "minute": "2026-09-17T22:58:00.000Z",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "class": "matched",
+    "b": 0.7,
+    "a": 0.72,
+    "n": 10,
+    "qb": true,
+    "qa": true,
+    "close_only": false,
+    "reward": 0.006
+   }
+  ],
+  "rates": [
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "rate": 20
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "rate": 120
+   }
+  ],
+  "fills": [
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "minute": "2026-09-16T10:00:00.000Z",
+    "print_id": "q1",
+    "ts": "2026-09-16T10:00:20.000Z",
+    "side": "bid",
+    "price": 0.4,
+    "size": 20,
+    "token": "5001",
+    "token_side": "BUY",
+    "token_price": 0.4,
+    "close_only": false
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "minute": "2026-09-17T15:00:00.000Z",
+    "print_id": "q4",
+    "ts": "2026-09-17T15:00:20.000Z",
+    "side": "ask",
+    "price": 0.43,
+    "size": 20,
+    "token": "5001",
+    "token_side": "SELL",
+    "token_price": 0.43,
+    "close_only": false
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "minute": "2026-09-17T12:00:00.000Z",
+    "print_id": "q2",
+    "ts": "2026-09-17T12:00:20.000Z",
+    "side": "ask",
+    "price": 0.72,
+    "size": 10,
+    "token": "6002",
+    "token_side": "BUY",
+    "token_price": 0.28,
+    "close_only": false
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "minute": "2026-09-17T22:59:00.000Z",
+    "print_id": "q3",
+    "ts": "2026-09-17T22:59:20.000Z",
+    "side": "bid",
+    "price": 0.7,
+    "size": 10,
+    "token": "6001",
+    "token_side": "BUY",
+    "token_price": 0.7,
+    "close_only": false
+   }
+  ],
+  "settlements": [],
+  "markets": [
+   {
+    "day": "2026-09-16",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "question": "Will E happen?",
+    "reward_rate": 20,
+    "rank": 1,
+    "n_size": 20,
+    "capital": 19.4
+   },
+   {
+    "day": "2026-09-16",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "question": "Will F happen?",
+    "reward_rate": 120,
+    "rank": 2,
+    "n_size": 10,
+    "capital": 9.8
+   },
+   {
+    "day": "2026-09-17",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "question": "Will E happen?",
+    "reward_rate": 20,
+    "rank": 1,
+    "n_size": 20,
+    "capital": 19.4
+   },
+   {
+    "day": "2026-09-17",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "question": "Will F happen?",
+    "reward_rate": 120,
+    "rank": 2,
+    "n_size": 10,
+    "capital": 9.8
+   }
+  ]
+ },
+ "output": {
+  "lastMinute": "2026-09-17T22:58:00.000Z",
+  "lagMinutes": 2,
+  "running": true,
+  "lastError": null,
+  "phase": "run",
+  "runStart": null,
+  "runEnd": null,
+  "dayOfRun": null,
+  "finished": false,
+  "catchingUp": false,
+  "notStarted": false,
+  "startedAt": "2026-09-16T00:00:00.000Z",
+  "capUsd": 320,
+  "capitalUsd": 29.2,
+  "rewardUsd": 9,
+  "fillsPnlUsd": 0.7,
+  "heldUsd": 2.9,
+  "quotedUsd": 29.2,
+  "costUsd": 2.8,
+  "realisedUsd": 9.6,
+  "realisedFillsUsd": 0.6,
+  "unrealisedUsd": 0.1,
+  "totalUsd": 9.7,
+  "stressUsd": 4.8,
+  "mismatchUsd": 0,
+  "bestMarketUsd": 5.6,
+  "todayUsd": 4.9,
+  "fills": 3,
+  "stopDay": null,
+  "stopTotal": null,
+  "open": 1,
+  "quoting": 2,
+  "markets": [
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "q": "Will E happen?",
+    "rank": 1,
+    "quoting": true,
+    "ratePerDay": 20,
+    "cls": "matched",
+    "bid": 0.4,
+    "ask": 0.43,
+    "yes": 0,
+    "no": 0,
+    "mark": 0.415,
+    "share": 0.18,
+    "rewardUsd": 3.5,
+    "fillsPnlUsd": 0.6,
+    "totalUsd": 4.1
+   },
+   {
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "q": "Will F happen?",
+    "rank": 2,
+    "quoting": true,
+    "ratePerDay": 120,
+    "cls": "matched",
+    "bid": 0.7,
+    "ask": 0.72,
+    "yes": 0,
+    "no": 10,
+    "mark": 0.71,
+    "share": 0.072,
+    "rewardUsd": 5.5,
+    "fillsPnlUsd": 0.1,
+    "totalUsd": 5.6
+   }
+  ],
+  "recent": [
+   {
+    "ts": "2026-09-17T15:00:20.000Z",
+    "minute": "2026-09-17T15:00:00.000Z",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "q": "Will E happen?",
+    "side": "ask",
+    "price": 0.43,
+    "size": 20,
+    "tokenSide": "SELL",
+    "outcome": "yes",
+    "tokenPrice": 0.43,
+    "closeOnly": false
+   },
+   {
+    "ts": "2026-09-17T12:00:20.000Z",
+    "minute": "2026-09-17T12:00:00.000Z",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000f6",
+    "q": "Will F happen?",
+    "side": "ask",
+    "price": 0.72,
+    "size": 10,
+    "tokenSide": "BUY",
+    "outcome": "no",
+    "tokenPrice": 0.28,
+    "closeOnly": false
+   },
+   {
+    "ts": "2026-09-16T10:00:20.000Z",
+    "minute": "2026-09-16T10:00:00.000Z",
+    "cond": "0x00000000000000000000000000000000000000000000000000000000000000e5",
+    "q": "Will E happen?",
+    "side": "bid",
+    "price": 0.4,
+    "size": 20,
+    "tokenSide": "BUY",
+    "outcome": "yes",
+    "tokenPrice": 0.4,
+    "closeOnly": false
+   }
+  ],
+  "days": [
+   {
+    "day": "2026-09-16",
+    "phase": "run",
+    "live": false,
+    "totalUsd": 4.8,
+    "stressUsd": null,
+    "rewardUsd": 5,
+    "fills": 1,
+    "capitalUsd": 29.2,
+    "stop": false
+   }
+  ]
+ }
+}

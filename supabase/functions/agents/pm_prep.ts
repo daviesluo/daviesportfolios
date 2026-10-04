@@ -1,6 +1,7 @@
-// "Reward quotes live-prep": the paper test of exactly what Polymarket's order path would do (Davies, 2026-10-01, about
-// 18:15 UTC: "Polymarket的准备好的live策略是不是从来没有paper trading测试过？要不要先上线Reward quotes live-prep测试一下？有问题也及时修复，
-// 然后我们操作账户和转账问题，纸面测试24小时之后再验证一遍没问题自动上线？"). Migration 0077; pre-registration
+// The order path's paper layer, first "Reward quotes mini-pool"'s: the paper test of exactly what Polymarket's order path
+// would do (Davies, 2026-10-01, about 18:15 UTC, when the row he asked for was called live-prep, a name it gave up on
+// 2026-10-02 and which is today the third instance's, `pm_lp.ts`: "Polymarket的准备好的live策略是不是从来没有paper trading测试过？
+// 要不要先上线Reward quotes live-prep测试一下？有问题也及时修复，然后我们操作账户和转账问题，纸面测试24小时之后再验证一遍没问题自动上线？"). Migration 0077; pre-registration
 // docs/agents/reviews/2026-10-01-polymarket-live-prep-prereg.md; its check docs/agents/backtests/pmlive/prep_check.sql.
 //
 // WHAT IT TESTS: the order path's OWN decisions (`agents/pm_live.ts`, in dry-run), not a second implementation of them.
@@ -53,9 +54,20 @@
 // small-pool" (the name the row took that day; "live-prep" before it), reading `pm_live_*` and writing `pm_prep_*`, name
 // for name, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_prep_frozen.ts`) and finds every table
 // and report the same. Mid-pool's (`PREP_MID_INSTANCE`, `pm_mid.ts`) reads `pm_mid_*` and writes `pm_midprep_*`. The rule,
-// the fills, the book-keeping and the stops do not differ by instance.
+// the fills, the book-keeping and the stops do not differ by instance, but for live-prep's.
+//
+// LIVE-PREP'S LAYER (`PREP_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04; `lp` set). Its path decides its dry-run on THIS layer's
+// holdings (`PmLpOptions.paper`, pm_live.ts), so the path itself rests the sells of what the paper holds, stops a side at
+// 5N, pauses after a jump, works off the markets it carries and stops itself; the layer fills what the path rested,
+// nothing else. A market-minute is `matched` when every order resting after the path's turn is RW's quote on the row on
+// its side (a BUY of N, or a SELL of at most N: `classifyLp`), `dark` when nothing rests, `diverged` otherwise, as
+// before. A matched minute is filled from the prints side by side as stepRw fills a side (`stepSides`), a sell no
+// further than the paper holds, and booked by each order's own token, side and price (`decideLp`); it is paid the
+// path's own formula of what rested (`detail.after`) only in a minute the path quoted in full (`detail.lp.state`
+// "quote"): a carried market's exits, a close-only minute and a one-sided minute earn nothing. The layer keeps no stop of
+// its own: the path's stop is the rule (the minute's `detail.lp.stopTotal`), and the layer records when it held.
 
-import { newAcc, quote, RW_DECIDE_LAG_MS, RW_INV_CAP, RW_STATUS_EVERY_MS, sizeN, stepRw, type Acc, type BookRow } from "./pmrw.ts";
+import { newAcc, quote, RW_DECIDE_LAG_MS, RW_INV_CAP, RW_STATUS_EVERY_MS, sizeN, stepRw, type Acc, type BookRow, type RwFill } from "./pmrw.ts";
 import { applyFill } from "./pmrw_e.ts";
 import { pmBooks, pmMarkets, pmPrints, type PmPrint, type PmPublicOpts } from "../_shared/polymarket_public.ts";
 import { asTickSize } from "../_shared/polymarket_orders.ts";
@@ -80,6 +92,8 @@ export type PrepInstance = {
   reads: { config: string; markets: string; minutes: string; orders: string };
   lock: string;
   migration: string;
+  /** Live-prep's layer (the header's LIVE-PREP'S LAYER): it fills the path's sells too and keeps no stop of its own. */
+  lp?: boolean;
 };
 /** The layer as it ran before instances, name for name (0077): beside the small-pool path. */
 export const PREP_INSTANCE: PrepInstance = {
@@ -326,6 +340,108 @@ export function heldOf(books: ReturnType<typeof tokenBooks>, tk: { yes: string; 
   return { yes: books[tk.yes]?.held ?? 0, no: books[tk.no]?.held ?? 0 };
 }
 
+// ------------------------------------------------------------------ live-prep's layer (the header's LIVE-PREP'S LAYER)
+
+/** What live-prep's path recorded of its decision on a market's minute (`detail.lp`, pm_live.ts). */
+export type LpMinute = {
+  /** `quote`: selected and opening; `close`: selected, close-only (a gate or the stop); `carried`: held from an earlier day; `paused`. */
+  state: "quote" | "close" | "carried" | "paused" | null;
+  stopTotal: boolean;
+};
+/** A minute's `detail.lp`, or nothing known (null state: paid nothing) when the path did not record one. */
+export function lpOf(r: Pick<PrepLiveMinute, "detail">): LpMinute {
+  const x = (r.detail as { lp?: { state?: unknown; stopTotal?: unknown } | null } | null | undefined)?.lp;
+  const s = x?.state;
+  return { state: s === "quote" || s === "close" || s === "carried" || s === "paused" ? s : null, stopTotal: x?.stopTotal === true };
+}
+
+/**
+ * What live-prep's path had resting in a market after a turn, against RW's quote on the row it decided on (`ruleQuote`):
+ * `matched` when every order resting is on its side of the one book at RW's price there — the bid a BUY of YES at b or a
+ * SELL of NO at 1 − b, the ask a BUY of NO at 1 − a or a SELL of YES at a — at most one a side, a BUY of exactly N and a
+ * SELL of more than nothing and at most N; `dark` when nothing rests; `diverged` otherwise, with why. One side alone is
+ * matched: the path stops a side at 5N, withholds a buy the caps refuse, sells no more than is held, and rests only the
+ * reducing side of a market it carries or of a close-only minute.
+ */
+export function classifyLp(resting: PrepOrder[], rule: { b: number; a: number; n: number } | null): { cls: PrepClass; bid: PrepOrder | null; ask: PrepOrder | null; why: string | null } {
+  if (!resting.length) return { cls: "dark", bid: null, ask: null, why: null };
+  const at = (o: PrepOrder) => inYesBook({ outcome: o.outcome, side: o.side, price: Number(o.price) });
+  const desc = resting.map((o) => `${o.outcome} ${o.side} ${Number(o.price)} × ${Number(o.size)}`).join(", ");
+  if (!rule) return { cls: "diverged", bid: null, ask: null, why: `orders rest (${desc}) where RW's rule quotes nothing` };
+  const bids = resting.filter((o) => at(o).side === "bid"), asks = resting.filter((o) => at(o).side === "ask");
+  if (bids.length > 1 || asks.length > 1) return { cls: "diverged", bid: null, ask: null, why: `${bids.length} bid(s) and ${asks.length} ask(s) rest (${desc}); live-prep rests at most one a side` };
+  const same = (x: number, y: number) => Math.abs(x - y) < 1e-9;
+  const ok = (o: PrepOrder | undefined, price: number) => !o || (same(at(o).price, price)
+    && (o.side === "BUY" ? same(Number(o.size), rule.n) : Number(o.size) > 0 && Number(o.size) <= rule.n + 1e-9));
+  if (!ok(bids[0], rule.b) || !ok(asks[0], rule.a)) {
+    return { cls: "diverged", bid: null, ask: null, why: `rests ${desc}; RW's quote on the row is ${rule.b} / ${rule.a} × ${rule.n}` };
+  }
+  return { cls: "matched", bid: bids[0] ?? null, ask: asks[0] ?? null, why: null };
+}
+
+/**
+ * One minute's fills of the sides that rest, each side exactly as RW's `stepRw` fills it: a bid at `bid.price` (the one
+ * book's) by every print of the minute that SELLS strictly through it, an ask at `ask.price` by every print that BUYS
+ * strictly through it, each up to its size, in the prints' order; RW's account (`Acc`) books them as stepRw does. With
+ * both sides at RW's quote on the row, each of size N, and the inventory inside stepRw's cap, the fills are stepRw's
+ * (pinned in pm_lp.test.ts). No reward: the caller pays the path's formula.
+ */
+export function stepSides(acc: Acc, tSec: number, row: BookRow, tick: number, legs: { bid: { price: number; size: number } | null; ask: { price: number; size: number } | null }, prints: PmPrint[]): RwFill[] {
+  if (row[2] !== null && row[3] !== null) { acc.lastM = (row[2] + row[3]) / 2; acc.lastAb = row[2]; acc.lastAa = row[3]; }
+  if (legs.bid || legs.ask) acc.quotedMinutes++;
+  let bidLeft = legs.bid ? Math.max(0, legs.bid.size) : 0, askLeft = legs.ask ? Math.max(0, legs.ask.size) : 0;
+  const b = legs.bid?.price ?? 0, a = legs.ask?.price ?? 1;
+  const fills: RwFill[] = [];
+  for (const p of prints) {
+    if (!(p.ts > tSec && p.ts <= tSec + 60)) continue;
+    let ypx: number, dirn: "BUY" | "SELL";
+    if (p.oi === 0) { ypx = p.price; dirn = p.side; } else if (p.oi === 1) { ypx = 1 - p.price; dirn = p.side === "BUY" ? "SELL" : "BUY"; } else continue;
+    if (dirn === "SELL" && bidLeft > 0 && ypx < b - 1e-12) {
+      const qf = Math.min(bidLeft, p.size);
+      bidLeft -= qf;
+      acc.net += qf; acc.cash -= qf * b; acc.fills++; acc.fillShares += qf; acc.tickCost += qf * tick;
+      fills.push({ ts: p.ts, side: "bid", price: b, size: qf, minuteSec: tSec, printId: p.id });
+      acc.maxInvCost = Math.max(acc.maxInvCost, acc.net * b);
+    } else if (dirn === "BUY" && askLeft > 0 && ypx > a + 1e-12) {
+      const qf = Math.min(askLeft, p.size);
+      askLeft -= qf;
+      acc.net -= qf; acc.cash += qf * a; acc.fills++; acc.fillShares += qf; acc.tickCost += qf * tick;
+      fills.push({ ts: p.ts, side: "ask", price: a, size: qf, minuteSec: tSec, printId: p.id });
+      acc.maxInvCost = Math.max(acc.maxInvCost, -acc.net * (1 - a));
+    }
+  }
+  return fills;
+}
+
+/**
+ * One matched market-minute of live-prep on paper: the orders that rested after the path's turn (`classifyLp`), filled
+ * from the minute's prints by `stepSides`, a SELL no further than the paper holds of its token as the minute starts;
+ * each fill booked by its own order: a BUY of YES or of NO, or a SELL of what is held, at the order's price. `reward`
+ * is what the caller pays the minute (the path's formula of what rested, in a minute it quoted in full; else 0).
+ */
+export function decideLp(p: {
+  acc: Acc; t: number; row: BookRow; tick: number; bid: PrepOrder | null; ask: PrepOrder | null; tokens: { yes: string; no: string };
+  held: { yes: number; no: number }; prints: PmPrint[]; reward: number; closeOnly: boolean;
+}): { reward: number; fills: PrepFill[]; qb: boolean; qa: boolean; b: number | null; a: number | null } {
+  const leg = (o: PrepOrder | null) => {
+    if (!o) return null;
+    const cap = o.side === "SELL" ? Math.max(0, o.outcome === "yes" ? p.held.yes : p.held.no) : Infinity;
+    return { price: inYesBook({ outcome: o.outcome, side: o.side, price: Number(o.price) }).price, size: Math.min(Number(o.size), cap) };
+  };
+  const bid = leg(p.bid), ask = leg(p.ask);
+  const out = stepSides(p.acc, p.t / 1000, p.row, p.tick, { bid, ask }, p.prints);
+  const cond = (p.bid ?? p.ask)!.cond;
+  const fills = out.map((f): PrepFill => {
+    const o = (f.side === "bid" ? p.bid : p.ask)!;
+    return {
+      cond, minute: p.t, printId: f.printId, ts: f.ts * 1000, side: f.side, price: f.price, size: f.size, closeOnly: p.closeOnly,
+      token: o.outcome === "yes" ? p.tokens.yes : p.tokens.no, tokenSide: o.side, tokenPrice: Number(o.price),
+    };
+  });
+  p.acc.reward += p.reward;
+  return { reward: p.reward, fills, qb: !!bid && bid.size > 0, qa: !!ask && ask.size > 0, b: bid?.price ?? null, a: ask?.price ?? null };
+}
+
 // ------------------------------------------------------------------ the driver
 
 const newState = (now: number): PrepState => ({
@@ -455,6 +571,46 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
         if (!tk || settled.has(c)) continue;
         const row = rowOf(r), tick = Number(r.tick), v = Number(r.max_spread), minSize = Number(r.min_size), rate = Number(r.rate);
         const rule = ruleQuote(row, tick, v, minSize);
+        if (inst.lp) {
+          // Live-prep: fill what the path rested, sells included; pay the path's formula in a minute it quoted in full.
+          const acc = (st.acc[c] ??= newAcc());
+          const held = heldOf(before.books, tk), lp = lpOf(r);
+          const cl = classifyLp(restingAfterTurn(orders, c, t), rule);
+          let out: ReturnType<typeof decideLp> | null = null;
+          if (cl.cls === "matched" && row) {
+            const full = lp.state === "quote" && !!cl.bid && !!cl.ask;
+            out = decideLp({
+              acc, t, row, tick, bid: cl.bid, ask: cl.ask, tokens: tk, held, prints: prints.get(c) ?? [], reward: full ? afterFormula(r) ?? 0 : 0,
+              closeOnly: lp.state !== "quote",
+            });
+            newFills.push(...out.fills);
+            st.day.reward += out.reward; report.reward += out.reward;
+            st.day.fills += out.fills.length; report.fills += out.fills.length;
+          } else if (row && row[2] !== null && row[3] !== null) {
+            acc.lastM = (row[2] + row[3]) / 2; acc.lastAb = row[2]; acc.lastAa = row[3];
+          }
+          st.day[cl.cls]++; report[cl.cls]++;
+          if (!st.day.markets.includes(c)) st.day.markets.push(c);
+          const after = { yes: held.yes, no: held.no };
+          for (const f of out?.fills ?? []) {
+            const k = f.token === tk.yes ? "yes" : "no";
+            after[k] = Math.max(0, after[k] + (f.tokenSide === "BUY" ? f.size : -f.size));
+          }
+          minuteRows.push({
+            minute: iso(t), cond: c, class: cl.cls, bb: nz(r.bb), ba: nz(r.ba), b: rule?.b ?? null, a: rule?.a ?? null, n: rule?.n ?? null,
+            qb: out ? out.qb : null, qa: out ? out.qa : null, close_only: cl.cls === "matched" && lp.state !== "quote", reward: out?.reward ?? 0, fills: out?.fills.length ?? 0,
+            yes_held: after.yes, no_held: after.no, mark: st.marks[c] ?? null,
+            detail: cl.cls === "diverged" ? { why: cl.why, state: lp.state }
+              : cl.cls === "matched" ? { bid: cl.bid?.id ?? null, ask: cl.ask?.id ?? null, state: lp.state, paid: out!.reward > 0 ? "venue" : "none" } : { state: lp.state },
+          });
+          // The path's total stop, as its minutes record it: the layer keeps none of its own, and notes when it held.
+          if (lp.stopTotal && st.stopTotal === null) {
+            st.stopTotal = iso(t);
+            report.stops.push(`loss_stop_total (the path's) at ${iso(t)}`);
+            await db.upsert(T.events, [{ minute: iso(t), kind: "loss_stop_total", detail: { by: "the path", paperPnl: st.pnl } }], "minute,kind");
+          }
+          continue;
+        }
         const cl = classify(restingAfterTurn(orders, c, t), rule);
         const acc = (st.acc[c] ??= newAcc());
         const held = heldOf(before.books, tk);
@@ -490,6 +646,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
       // The path's stops, on the paper's P&L after this minute's fills: acting from the next minute, as the path's next turn would.
       const pnl = paperPnl(fills.concat(newFills), settlements, st.tokens, st.marks, dayStart);
       st.pnl = { at: iso(t), day: r6(pnl.day), total: r6(pnl.total) };
+      if (inst.lp) continue;                                  // live-prep's stop is its path's (above)
       if (st.stopTotal === null && pnl.total <= -lim.lossTotal) {
         st.stopTotal = iso(t);
         report.stops.push(`loss_stop_total at ${iso(t)}: ${r6(pnl.total)}`);
@@ -512,7 +669,9 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
   const pnlNow = paperPnl(fills, settlements, st.tokens, st.marks, Math.floor(d.now / DAY) * DAY);
   const heldConds = Object.entries(st.tokens).filter(([c, tk]) => !settled.has(c) && (pnlNow.held[tk.yes] ?? 0) + (pnlNow.held[tk.no] ?? 0) > 0).map(([c]) => c);
   report.held = heldConds.length;
-  if (heldConds.length) {
+  // Live-prep's path reads the book of every market its paper holds and records it (its exits rest there): its minutes
+  // mark them, and this layer reads no book of its own.
+  if (heldConds.length && !inst.lp) {
     const today = new Set((await db.select<{ cond: string }>(R.markets, `day=eq.${dayStr(d.now)}&select=cond&order=cond.asc`)).map((m) => m.cond));
     const watch = heldConds.filter((c) => !today.has(c));
     const have = watch.length ? await db.select(T.minutes, `minute=eq.${enc(iso(nowMinute))}&class=eq.held&select=cond&limit=1`) : [];

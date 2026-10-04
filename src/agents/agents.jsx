@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, MID_ROW_ID, isPrepRowId, midRow, prepRow, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
+  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rweRow, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxRows, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, RWC_ROW_ID, rwcRow,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -638,8 +638,8 @@ function RwBar({ v, r, usd }) {
  */
 function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
   // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`),
-  // RW-C's from its own engine run (`rwcRow`), and mini-pool's and mid-pool's from their own layers (`prepRow`,
-  // `midRow`); RW's own is `rwRow`.
+  // RW-C's from its own engine run (`rwcRow`), and mini-pool's, mid-pool's and live-prep's from their own layers
+  // (`prepRow`, `midRow`, `lpRow`); RW's own is `rwRow`.
   const row = rowIn ?? rwRow(r);
   const v = rwView(r);
   if (!row || !v) return null;
@@ -1465,9 +1465,12 @@ function AgentsModal({ hideValues, onClose }) {
   // "Reward quotes mid-pool" (0081): the path again on $10–$50 pools, filled on paper the same way, the last row
   // (Davies, 2026-10-02).
   const mid = React.useMemo(() => midRow(dash?.prepMid), [dash]);
+  // "Reward quotes live-prep" (0091): the path on $10 and over with live-prep's rules, filled on paper, the last row
+  // (Davies, 2026-10-04: the lead candidate to go live).
+  const lp = React.useMemo(() => lpRow(dash?.prepLp), [dash]);
   // The paper tests are rows of TESTING, and its scoreboard and venue cards add them in (Davies, 2026-09-24: they
   // count); LIVE never does.
-  const tests = React.useMemo(() => [...twins, ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : []), ...(mid ? [mid] : [])], [twins, rw, rwe, rwx, rwc, prep, mid]);
+  const tests = React.useMemo(() => [...twins, ...(rw ? [rw] : []), ...(rwe ? [rwe] : []), ...rwx, ...(rwc ? [rwc] : []), ...(prep ? [prep] : []), ...(mid ? [mid] : []), ...(lp ? [lp] : [])], [twins, rw, rwe, rwx, rwc, prep, mid, lp]);
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its twin is on TESTING.
@@ -1493,6 +1496,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwcOpen = selected === RWC_ROW_ID && !!dash?.rwc && !!rwc;
   const prepOpen = selected === PREP_ROW_ID && !!dash?.prep && !!prep;
   const midOpen = selected === MID_ROW_ID && !!dash?.prepMid && !!mid;
+  const lpOpen = selected === LP_ROW_ID && !!dash?.prepLp && !!lp;
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1650,6 +1654,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><RwDetail r={dash.prepMid} m={m} at={dash.at} nowMs={now} row={mid} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {lpOpen && lp && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{lp.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><RwDetail r={dash.prepLp} m={m} at={dash.at} nowMs={now} row={lp} /></PageGuard>
         </div>
       </Modal>
     )}
