@@ -1,0 +1,13 @@
+Per UTC day: immediate exit realised on the fill's day; hold = change of RW's own fills P&L (pm_rw_days total - reward) over that day
+day    n    exit_raw  exit_cf  hold(RW day row)
+09-25  147  -112.72   -32.38    -55.53
+09-26  255  -189.56   -68.45   -100.45
+09-27  290  -149.07   -65.75   -155.48
+09-28  359  -206.48   -90.24    +84.55
+09-29  418  -232.33   -96.12   -169.30
+09-30  148  -172.39   -45.92    -86.80
+10-01  393  -290.81  -111.00    -19.80
+10-02  549  -172.90   -51.45    -26.05
+10-03  106  -118.43   -19.82    -39.88
+sum   2665 -1644.69  -581.13   -568.74   (daily sd, by hand: hold ~77, cf ~30; worst day hold -169.30, cf -111.00, raw -290.81)
+Per market (126): p05 of market totals hold -33.74, cf -18.12, raw -41.30; worst market hold -50.15 (SPY>$765 on 9-29), cf -31.44, raw -83.21

@@ -1,0 +1,1963 @@
+{
+ "0x2c8d321c54ea7c4b488059173ebbd0d6f31856fbf5355d2b0d5f1b10863898c0": {
+  "feeType": "general_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the median home value in San Francisco Metro be less than $1,176,000 on September 30?",
+  "closed": true,
+  "endDate": "2026-10-11T03:59:00Z",
+  "closedTime": "2026-09-30 15:10:51+00",
+  "createdAt": "2026-07-01T19:55:52.119667Z",
+  "negRisk": true
+ },
+ "0x06cb0130791e73595d2d22cceb1baaa9cae7dddfac52968dca7ca403c8cd3cc4": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast's next video get between 70 and 80 million views on week 1?",
+  "closed": true,
+  "endDate": "2026-09-26T23:59:00Z",
+  "closedTime": "2026-09-26 18:10:05+00",
+  "createdAt": "2026-09-17T15:44:57.866593Z",
+  "negRisk": true
+ },
+ "0x051ddc65cb9fab1200c14f0a24d7d5aec5cb969ed296d8a6e9ce1aba8afff6d7": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Ariana Grande win Artist of the Year at the 2026 MTV Video Music Awards?",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 02:58:51+00",
+  "createdAt": "2026-09-18T21:55:12.373679Z",
+  "negRisk": true
+ },
+ "0x52b22b88d62d8b2aeed3b92b2b16bd696e7439e08f06afc62314da5126ef7088": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \u201cThe Fate of Ophelia\u201d by Taylor Swift win Best Pop at the 2026 MTV Video Music Awards",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 02:13:48+00",
+  "createdAt": "2026-09-18T21:55:37.087213Z",
+  "negRisk": true
+ },
+ "0x2a7dc2dc77f3c0754f90992bf665e2e4e6a981c7926406c09ea69ee4dc4d2286": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \u201cNuevayol\u201d by Bad Bunny win Best Latin at the 2026 MTV Video Music Awards?",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 04:43:18+00",
+  "createdAt": "2026-09-18T21:56:33.818506Z",
+  "negRisk": true
+ },
+ "0x09d228140baff44da077b22a58e20fd40902de705ec9ca3bd02cf012a6965797": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Elon Musk attend the White House state dinner for Xi Jinping?",
+  "closed": true,
+  "endDate": "2026-10-08T03:59:00Z",
+  "closedTime": "2026-09-25 02:53:17+00",
+  "createdAt": "2026-09-21T23:03:10.406856Z",
+  "negRisk": false
+ },
+ "0x4a6d4c72d86663a536102eccaa422e573b3df66b7e6afa12225778b39991212f": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Will 20-24 ships transit the Strait of Hormuz between September 21-September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T23:59:00Z",
+  "closedTime": "2026-09-29 14:47:20+00",
+  "createdAt": "2026-09-22T18:23:36.685116Z",
+  "negRisk": true
+ },
+ "0x49f9103ae5a9a4f161ac763fca548da812175255d4aa8bcdcece304ab83920ea": {
+  "feeType": "mentions_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the announcers say \"Fumble\" or \"Fumbles\" during the Falcons vs Packers game?",
+  "closed": true,
+  "endDate": "2026-09-25T23:59:00Z",
+  "closedTime": "2026-09-25 02:50:17+00",
+  "createdAt": "2026-09-22T23:10:36.571213Z",
+  "negRisk": false
+ },
+ "0x4d0b90fb40e4e4e06e37ff63b1a00e4d22c2347c9eead42b8aaeb71ab8f631b9": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 35 and 40 million views in week 1?",
+  "closed": true,
+  "endDate": "2026-10-03T23:59:00Z",
+  "closedTime": "2026-10-03 18:10:30+00",
+  "createdAt": "2026-09-22T23:13:41.661235Z",
+  "negRisk": true
+ },
+ "0x50f44d99d1453bb238b3e0bddd8bcc5d0745cb0908d2a4a990730d4e9ab0837d": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 13\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-26 02:49:48+00",
+  "createdAt": "2026-09-23T04:29:07.46541Z",
+  "negRisk": true
+ },
+ "0x27daefcec97deadf6e419e94afe86570b8c9661425e2ba476f081da4bde58723": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Seoul (Incheon) be 18\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-25 15:23:17+00",
+  "createdAt": "2026-09-23T04:29:14.396771Z",
+  "negRisk": true
+ },
+ "0x47f0bf9bd71bbf7ea3243cd31a4fdfdc3a1c796d7242025b759546b954031a5b": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Seoul (Incheon) be 19\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-25 15:25:03+00",
+  "createdAt": "2026-09-23T04:29:14.590088Z",
+  "negRisk": true
+ },
+ "0x12d2f97bbcd0ca24a9ac18b168ee3da747854735378ec7186b67951c4b7516f8": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 14\u00b0C on September 26?",
+  "closed": true,
+  "endDate": "2026-09-26T12:00:00Z",
+  "closedTime": "2026-09-26 22:23:18+00",
+  "createdAt": "2026-09-24T04:29:04.769309Z",
+  "negRisk": true
+ },
+ "0x0e4d7e11878c607dab0d400c9c183f51b963063851d01c3971aa67dd86c326e2": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 15\u00b0C on September 26?",
+  "closed": true,
+  "endDate": "2026-09-26T12:00:00Z",
+  "closedTime": "2026-09-26 22:22:45+00",
+  "createdAt": "2026-09-24T04:29:04.912132Z",
+  "negRisk": true
+ },
+ "0x06ca2b61177c3192c9a08884afffddac59b6aa60d53e8483f78352f1c15fb14f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Jinan be 26\u00b0C or higher on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-25 16:33:17+00",
+  "createdAt": "2026-09-24T04:55:43.423397Z",
+  "negRisk": true
+ },
+ "0x0aa8d6f5ca93d5a16d74da7cf037b662c6dd8d05d001cffcfbf98f0c6b74126b": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Wellington be 15\u00b0C on September 26?",
+  "closed": true,
+  "endDate": "2026-09-26T12:00:00Z",
+  "closedTime": "2026-09-26 14:08:48+00",
+  "createdAt": "2026-09-24T04:56:25.735511Z",
+  "negRisk": true
+ },
+ "0x251caae983a3f50c832c2c02e38043c445c8175f2c0faff2e5926b86632b5488": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the next Claude Sonnet model be released on September 28, 2026?",
+  "closed": true,
+  "endDate": "2026-09-29T03:59:00Z",
+  "closedTime": "2026-09-28 20:08:47+00",
+  "createdAt": "2026-09-24T07:31:19.206699Z",
+  "negRisk": true
+ },
+ "0x06c9a9e868fc03015b1209504853d55f2669f3975988345c5dc1a35dae12f1ee": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Singapore be 29\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 16:20:47+00",
+  "createdAt": "2026-09-25T04:57:37.544387Z",
+  "negRisk": true
+ },
+ "0x1a79f92665c9c453c537f9cd3264304949fcdb823bb417f37bc0490b790ac10a": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Singapore be 30\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 16:20:47+00",
+  "createdAt": "2026-09-25T04:57:37.699983Z",
+  "negRisk": true
+ },
+ "0x3c81e534502a5a23eecbc215aa82abfcded94bc563b2e0763dd09d7a4edb0bac": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Beijing be 27\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 16:27:50+00",
+  "createdAt": "2026-09-25T04:58:02.037467Z",
+  "negRisk": true
+ },
+ "0x04fc3028e4915d0e137a54bbc5fd667c5fb2d763b66442edffb0137acab09b00": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 350k?",
+  "closed": true,
+  "endDate": "2026-10-03T03:59:00Z",
+  "closedTime": "2026-10-03 12:57:57+00",
+  "createdAt": "2026-09-25T19:57:05.331177Z",
+  "negRisk": false
+ },
+ "0x2733b8f437b913c81239fb8699e9e7901b375558e3519992c4df84cb0a0f2034": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will South Korea ETF (EWY) hit (HIGH) $191 Week of September 28 2026?",
+  "closed": true,
+  "endDate": "2026-10-02T20:00:00Z",
+  "closedTime": "2026-10-02 13:51:32.244756+00",
+  "createdAt": "2026-09-25T22:01:35.496098Z",
+  "negRisk": false
+ },
+ "0x190b35a2f84a724339fcd20ae62f54f6f096b4db8d4a7ace1517062dc4525b61": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the biggest earthquake on September 26, 2026 be 5.9 to 6.0?",
+  "closed": true,
+  "endDate": "2026-09-27T18:00:00Z",
+  "closedTime": "2026-09-27 20:20:35+00",
+  "createdAt": "2026-09-26T04:07:02.449826Z",
+  "negRisk": true
+ },
+ "0x02b456eaebb4fa56b3104ea3989f3c7b18327663c20cdbb444ae83bca50edf33": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Seoul (Incheon) be 18\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 15:29:15+00",
+  "createdAt": "2026-09-26T04:29:26.327311Z",
+  "negRisk": true
+ },
+ "0x093eb8fc0e4822654cb3ec74230ef4b88786a14259dce732ea6144e221dc760b": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Hong Kong be 27\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-29 02:59:45+00",
+  "createdAt": "2026-09-26T04:30:06.985381Z",
+  "negRisk": true
+ },
+ "0x24802a989202611ceac29aaa18a74e1f207d7bfef88ce64c0d9c426b3c9216f6": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Patient Zero\" hit 45m first week streams?",
+  "closed": true,
+  "endDate": "2026-10-02T16:00:00Z",
+  "closedTime": "2026-10-02 18:04:48+00",
+  "createdAt": "2026-09-26T16:20:09.064737Z",
+  "negRisk": false
+ },
+ "0x470355663a563b25661f918c334f1625bd3168cccd1f4b84a0bd1706e6b4d802": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Wellington be 18\u00b0C on September 29?",
+  "closed": true,
+  "endDate": "2026-09-29T12:00:00Z",
+  "closedTime": "2026-09-29 11:45:47+00",
+  "createdAt": "2026-09-27T04:56:24.452178Z",
+  "negRisk": true
+ },
+ "0x104d2f669d765dd6b152d027ce28eedffee51989d35dc28b89ff056b0608565f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Hong Kong be 28\u00b0C on September 30?",
+  "closed": true,
+  "endDate": "2026-09-30T12:00:00Z",
+  "closedTime": "2026-10-02 02:49:14+00",
+  "createdAt": "2026-09-28T04:30:06.321583Z",
+  "negRisk": true
+ },
+ "0x50ab1fc7eb5d3c048ad35c25ad9af67c6e5f55d8b2f41def8aa536d99b6654e1": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Shanghai be 23\u00b0C on September 30?",
+  "closed": true,
+  "endDate": "2026-09-30T12:00:00Z",
+  "closedTime": "2026-09-30 16:25:17+00",
+  "createdAt": "2026-09-28T04:30:10.451323Z",
+  "negRisk": true
+ },
+ "0x0d06ee85e73db423682291fbc00b0b269ed3e317b0a06235b6a676156015e47a": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "S&P 500 (SPY) closes above $765 on September 29?",
+  "closed": true,
+  "endDate": "2026-09-29T20:00:00Z",
+  "closedTime": "2026-09-29 20:39:15+00",
+  "createdAt": "2026-09-28T12:01:03.856657Z",
+  "negRisk": false
+ },
+ "0x0b26809bba4bc81cd4e77cb4d509f59049fb8abad1d683ce692e9ca5406ff858": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Hong Kong be 28\u00b0C on October 1?",
+  "closed": true,
+  "endDate": "2026-10-01T12:00:00Z",
+  "closedTime": "2026-10-02 02:48:12+00",
+  "createdAt": "2026-09-29T04:29:53.549923Z",
+  "negRisk": true
+ },
+ "0x4921e1e179073a0d8a5635d2a1bf942b6b417f6aa6aca6e26a87d3a162f648e1": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Seattle be between 68-69\u00b0F on October 1?",
+  "closed": true,
+  "endDate": "2026-10-01T12:00:00Z",
+  "closedTime": "2026-10-02 08:29:09+00",
+  "createdAt": "2026-09-29T11:55:54.888994Z",
+  "negRisk": true
+ },
+ "0x5766b0fe1e1386e08fc05c73de8d9f2338879dc4ba87e9200c816d47b5ba3122": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Wellington be 16\u00b0C on October 2?",
+  "closed": true,
+  "endDate": "2026-10-02T12:00:00Z",
+  "closedTime": "2026-10-02 11:22:11+00",
+  "createdAt": "2026-09-30T04:56:32.499138Z",
+  "negRisk": true
+ },
+ "0x26150fa0b6e11be51544d69cce2fe8b03893e5aa9188d4bb3d1cb4843c87c39a": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "SPY (SPY) Up or Down on October 1?",
+  "closed": true,
+  "endDate": "2026-10-01T20:00:00Z",
+  "closedTime": "2026-10-01 22:05:42+00",
+  "createdAt": "2026-09-30T12:00:54.818417Z",
+  "negRisk": false
+ },
+ "0x548cdc3863776a86689b6817db809f22c534cc06dd1acd8ce067e1a2a65be900": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 29 and 29.5 million views on day 5?",
+  "closed": true,
+  "endDate": "2026-10-01T23:59:00Z",
+  "closedTime": "2026-10-01 18:03:11+00",
+  "createdAt": "2026-09-30T16:54:15.930199Z",
+  "negRisk": true
+ },
+ "0x1d81e5007f2c9483df49f2116e0c0c94e585506a1040e1520c1cbbd921b80479": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in London be 13\u00b0C on October 3?",
+  "closed": true,
+  "endDate": "2026-10-03T12:00:00Z",
+  "closedTime": "2026-10-04 00:09:29+00",
+  "createdAt": "2026-10-01T04:28:50.782909Z",
+  "negRisk": true
+ },
+ "0x51d382284c97e5a93def6454d8e06d2d6078f30d7c6753ba5f65140217976e7c": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "S&P 500 (SPX) Opens Up or Down on October 2?",
+  "closed": true,
+  "endDate": "2026-10-02T20:00:00Z",
+  "closedTime": "2026-10-02 22:29:56+00",
+  "createdAt": "2026-10-01T12:00:51.225454Z",
+  "negRisk": false
+ },
+ "0x9286ce99c568e808602dd1c999522a2b7a65c61493befd8de056296ad3d421a6": {
+  "feeType": "economics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Core PCE YoY be 3.4% in August?",
+  "closed": true,
+  "endDate": "2026-09-30T13:30:00Z",
+  "closedTime": "2026-09-30 14:47:47+00",
+  "createdAt": "2026-08-27T19:47:23.626624Z",
+  "negRisk": true
+ },
+ "0x87c58fb2b75618a57c39092fb14ab43e0c1e470d4f8559b88e9a1750a478488c": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Donald Trump post 100-119 Truth Social posts from September 18 to September 25, 2026?",
+  "closed": true,
+  "endDate": "2026-09-25T16:00:00Z",
+  "closedTime": "2026-09-25 23:36:46.234093+00",
+  "createdAt": "2026-09-15T04:00:04.206411Z",
+  "negRisk": true
+ },
+ "0x796c320ce22d16c53b34a8355f4f87085c2748f22db2d69bfb35a7f11243e261": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Primetime\" Opening Weekend Box Office be between 19m and 22m?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-10-02 22:42:03+00",
+  "createdAt": "2026-09-16T02:20:14.800715Z",
+  "negRisk": true
+ },
+ "0x75b67ccde036790bdb5aedb3c4efdbaed5b906c873a8855157ba863011ec904d": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Heart of the Beast\" Opening Weekend Box Office be between 17m and 20m?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-28 21:44:17+00",
+  "createdAt": "2026-09-16T02:21:17.113038Z",
+  "negRisk": true
+ },
+ "0xb4813fb29711f6447b2a9c4dca90cd21f91be8dfc74361020ebf731af4603751": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \u201cChoka Choka\u201d by Anitta and Shakira win Best Latin at the 2026 MTV Video Music Awards",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 04:43:17+00",
+  "createdAt": "2026-09-18T21:56:33.517417Z",
+  "negRisk": true
+ },
+ "0x9dc7080d88c50d87b43b6fdf22e5c6f05f5421a00a243222a7dfa5e3876bf621": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Donald Trump post 160-179 Truth Social posts from September 22 to September 29, 2026?",
+  "closed": true,
+  "endDate": "2026-09-29T16:00:00Z",
+  "closedTime": "2026-09-29 18:03:06+00",
+  "createdAt": "2026-09-19T04:00:02.390969Z",
+  "negRisk": true
+ },
+ "0x890c45f928e86bb7aa0969274ec60025a17716c91953c64e4b40e43d1cd30b09": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Donald Trump post 180-199 Truth Social posts from September 25 to October 2, 2026?",
+  "closed": true,
+  "endDate": "2026-10-02T16:00:00Z",
+  "closedTime": "2026-10-02 18:04:00+00",
+  "createdAt": "2026-09-22T04:00:03.142707Z",
+  "negRisk": true
+ },
+ "0x73cc17c7fde880b47cff7b8dc63740416296f536a0f3ea067efe1e00bdd91bcd": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest wind gust at Boston Logan be 50 kt or more?",
+  "closed": true,
+  "endDate": "2026-09-29T03:59:00Z",
+  "closedTime": "2026-09-28 13:14:36+00",
+  "createdAt": "2026-09-22T19:16:05.296104Z",
+  "negRisk": false
+ },
+ "0x6f1f43eab592a7644e3550266fc971bae315aa4666148611e42d1656272b3bae": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 40 and 45 million views in week 1?",
+  "closed": true,
+  "endDate": "2026-10-03T23:59:00Z",
+  "closedTime": "2026-10-03 18:10:30+00",
+  "createdAt": "2026-09-22T23:13:41.899325Z",
+  "negRisk": true
+ },
+ "0xb5f008d6e1fb6fb09102334085db75916ca0bd03862113b624d633369e5f3e3f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 12\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-26 02:53:05+00",
+  "createdAt": "2026-09-23T04:29:07.294836Z",
+  "negRisk": true
+ },
+ "0x712984a62e770c52cc971dba7b6acc472e84664d8e36ceab5d1e959a93d08911": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Qingdao be 22\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-25 16:31:18+00",
+  "createdAt": "2026-09-23T04:58:46.014578Z",
+  "negRisk": true
+ },
+ "0x8da7a868cb48ed8f4c46f906949e6cbb0f3c14baf66727f86ad5234dd31da424": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 300k?",
+  "closed": true,
+  "endDate": "2026-10-03T03:59:00Z",
+  "closedTime": "2026-10-03 12:54:54+00",
+  "createdAt": "2026-09-23T21:39:01.194223Z",
+  "negRisk": false
+ },
+ "0x8f04448130664d765e669828639dfcd65de06ea92ef94ead0569e892b2d9c1be": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in New York City be between 56-57\u00b0F on September 26?",
+  "closed": true,
+  "endDate": "2026-09-26T12:00:00Z",
+  "closedTime": "2026-09-27 05:15:15+00",
+  "createdAt": "2026-09-24T07:29:01.784125Z",
+  "negRisk": true
+ },
+ "0xb3d40e0b18da15c14b18d91dcb066d1ae3b5967ab8491e5b2700fd1e52411519": {
+  "feeType": "economics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "No change flips Hike 25 bps for October Fed by October 15?",
+  "closed": true,
+  "endDate": "2026-10-16T03:59:00Z",
+  "closedTime": "2026-09-30 00:16:45+00",
+  "createdAt": "2026-09-24T19:43:40.798041Z",
+  "negRisk": false
+ },
+ "0x80731d4943dd482634c41c32b65a2e931d4698e0ae84714e03e4147ac27327b2": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 13\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 23:24:35+00",
+  "createdAt": "2026-09-25T04:29:10.917256Z",
+  "negRisk": true
+ },
+ "0x9e0b2abcb79f380deef306da7aedb6d0694dfd08dcf2df10b8278532ba2cfb4e": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Tokyo be 19\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 15:25:47+00",
+  "createdAt": "2026-09-25T04:29:53.949513Z",
+  "negRisk": true
+ },
+ "0x7bfc4ff349bcda2155cc789019efc3f6596daa40477d3564808794626c374ea8": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Lucknow be 25\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 18:53:50+00",
+  "createdAt": "2026-09-25T04:56:55.814126Z",
+  "negRisk": true
+ },
+ "0x9dc60ea2d17067dfaf6ec35c67d79a2fe256577880a9bab9eb4aafedc60deff8": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Qingdao be 27\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 16:26:20+00",
+  "createdAt": "2026-09-25T04:59:25.300329Z",
+  "negRisk": true
+ },
+ "0x854c97414ac821f4f5452c42cf941c00319fd4a6be8fcf844a255361ee450486": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 250k?",
+  "closed": true,
+  "endDate": "2026-10-03T03:59:00Z",
+  "closedTime": "2026-10-03 13:00:17+00",
+  "createdAt": "2026-09-25T19:57:05.300624Z",
+  "negRisk": false
+ },
+ "0x7b439e61fb3f3efec80f8a5ca6e76d65d2920af211aa6ce37832ca9438727abe": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Airbnb, Inc. (ABNB) hit (LOW) $150 Week of September 28 2026?",
+  "closed": true,
+  "endDate": "2026-10-02T20:00:00Z",
+  "closedTime": "2026-10-02 20:20:44+00",
+  "createdAt": "2026-09-25T22:00:56.109873Z",
+  "negRisk": false
+ },
+ "0xb68b0f25f873b80f82e85b7e9b86a93af9aa1f0e8a0e3adee8a95889b63c3afe": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Paris be 16\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 22:27:51+00",
+  "createdAt": "2026-09-26T04:29:17.40443Z",
+  "negRisk": true
+ },
+ "0x5a7baba88a3d9cef6c3d1c6ac961118bae3ec9129e5ef773e7a3ca16caed7274": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Shanghai be 24\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 19:18:47+00",
+  "createdAt": "2026-09-26T04:30:11.127788Z",
+  "negRisk": true
+ },
+ "0x97450fbe0f624ad5499e26ae07fa510470cc2ca68e868b99e3ccaa412628bc93": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Madrid be 27\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 23:01:06+00",
+  "createdAt": "2026-09-26T04:57:31.407157Z",
+  "negRisk": true
+ },
+ "0xba6b08cb1dd0237b23b76c36a6391e2da4d88b08ac909f4a93e9068994c441c3": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Chongqing be 27\u00b0C or below on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 21:40:47+00",
+  "createdAt": "2026-09-26T04:57:51.226332Z",
+  "negRisk": true
+ },
+ "0xa85b2baf463671f91cfbb66d04befeac7a6948ba0916a967c9f80dbeaca9359f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Beijing be 27\u00b0C on September 29?",
+  "closed": true,
+  "endDate": "2026-09-29T12:00:00Z",
+  "closedTime": "2026-09-29 16:38:45+00",
+  "createdAt": "2026-09-27T04:57:54.527239Z",
+  "negRisk": true
+ },
+ "0xc23ea77727a83dafd102e1e712a3f354821130ae2fb8a22c245095c43becc063": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Beijing be 28\u00b0C on September 29?",
+  "closed": true,
+  "endDate": "2026-09-29T12:00:00Z",
+  "closedTime": "2026-09-29 16:27:47+00",
+  "createdAt": "2026-09-27T04:57:54.713806Z",
+  "negRisk": true
+ },
+ "0x586397f46436c7b49aa6a5962ea0be0092365b06ed80ad270bdf728529583161": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Shanghai be 22\u00b0C on September 30?",
+  "closed": true,
+  "endDate": "2026-09-30T12:00:00Z",
+  "closedTime": "2026-09-30 17:49:15+00",
+  "createdAt": "2026-09-28T04:30:10.281225Z",
+  "negRisk": true
+ },
+ "0x8af96adee9578e75f9901245c47e664284d5973ea9a4f886a168b445092d8964": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "SPY (SPY) Up or Down on September 29?",
+  "closed": true,
+  "endDate": "2026-09-29T20:00:00Z",
+  "closedTime": "2026-09-29 20:25:45+00",
+  "createdAt": "2026-09-28T12:00:46.00171Z",
+  "negRisk": false
+ },
+ "0xb3312bbe901c54bd82448443d1f2bb477af1fad7329b7f6d8b522198cd232934": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 24 and 25 million views on day 3?",
+  "closed": true,
+  "endDate": "2026-09-29T23:59:00Z",
+  "closedTime": "2026-09-29 18:04:47+00",
+  "createdAt": "2026-09-28T14:36:44.473936Z",
+  "negRisk": true
+ },
+ "0x7943abb489e859972d32a57e9e9d31fa7da7a4a0ef837f0222024f82ea671027": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the next GPT Sol model (6.1+) debut at a score of at least 1460 by June 30, 2027?",
+  "closed": true,
+  "endDate": "2027-06-30T23:59:00Z",
+  "closedTime": "2026-10-03 18:06:29+00",
+  "createdAt": "2026-09-29T19:52:23.830442Z",
+  "negRisk": false
+ },
+ "0x9c0ba9df5303cb4e983afc687249a1290893ed843c8077f6b4cb3be60d70dc50": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in New York City be between 66-67\u00b0F on October 2?",
+  "closed": true,
+  "endDate": "2026-10-02T12:00:00Z",
+  "closedTime": "2026-10-03 05:17:42+00",
+  "createdAt": "2026-09-30T07:29:01.822443Z",
+  "negRisk": true
+ },
+ "0x9461dbc409767b885be8b9ed4d0df91313dbf333a08ce8cca8ebf215d7cc51a7": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in New York City be between 68-69\u00b0F on October 2?",
+  "closed": true,
+  "endDate": "2026-10-02T12:00:00Z",
+  "closedTime": "2026-10-03 05:17:44+00",
+  "createdAt": "2026-09-30T07:29:01.983274Z",
+  "negRisk": true
+ },
+ "0xaa18ed40e846f4d90f6fd392f51080e9f0928aa02686df62cb11b119b1f175ab": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in San Francisco be between 74-75\u00b0F on October 2?",
+  "closed": true,
+  "endDate": "2026-10-02T12:00:00Z",
+  "closedTime": "2026-10-03 08:39:39+00",
+  "createdAt": "2026-09-30T11:56:34.508878Z",
+  "negRisk": true
+ },
+ "0x5d4e21ca964c4c74985a0835700125f96b65ae2466ed2475ceebca7246f76e92": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 29.5 and 30 million views on day 5?",
+  "closed": true,
+  "endDate": "2026-10-01T23:59:00Z",
+  "closedTime": "2026-10-01 18:03:11+00",
+  "createdAt": "2026-09-30T16:54:16.158479Z",
+  "negRisk": true
+ },
+ "0x9989cada9c76ad8e9841f3424b91f6d916fe068a97a1d53cedd7fa6415fe5f55": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will South Korea ETF (EWY) hit (LOW) $178 Week of September 28 2026?",
+  "closed": true,
+  "endDate": "2026-10-02T20:00:00Z",
+  "closedTime": "2026-10-02 20:20:29+00",
+  "createdAt": "2026-10-01T16:39:25.427886Z",
+  "negRisk": false
+ },
+ "0xafe162fc6bc65adee13a97c86d0139cea60ccad9cc124c2140f89954d7cc516f": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will MrBeast Gaming's next video get between 31.5 and 32 million views on day 6?",
+  "closed": true,
+  "endDate": "2026-10-02T23:59:00Z",
+  "closedTime": "2026-10-02 18:03:32+00",
+  "createdAt": "2026-10-01T23:04:41.854977Z",
+  "negRisk": true
+ },
+ "0xf828d652fd9d3512e92d00b2a563ba77f1a67ee177d2e95af34a811ae2d11841": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \u201cHate That I Made You Love Me\u201d by Ariana Grande win Video of the Year at the 2026 MTV",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 03:53:35+00",
+  "createdAt": "2026-09-18T21:54:58.981878Z",
+  "negRisk": true
+ },
+ "0xd69024f30e74bb29eede55a88d03346cd5a30f9b6496900e1d45b3aa01bd2778": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \u201cThe Fate of Ophelia\u201d by Taylor Swift win Best Art Direction at the 2026 MTV Video Mu",
+  "closed": true,
+  "endDate": "2026-09-28T03:59:00Z",
+  "closedTime": "2026-09-28 04:34:15+00",
+  "createdAt": "2026-09-18T21:57:11.991309Z",
+  "negRisk": true
+ },
+ "0xcab9a3b3c831342ff8fb98db824b6a2bcccec22242fd068dc9708a4dff8b1196": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Jinan be 24\u00b0C on September 25?",
+  "closed": true,
+  "endDate": "2026-09-25T12:00:00Z",
+  "closedTime": "2026-09-25 16:33:17+00",
+  "createdAt": "2026-09-24T04:55:43.11513Z",
+  "negRisk": true
+ },
+ "0xe0de4f1a92efc17857c258f54c00cd588197d7d8624e934f339f2f9aa9b53167": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in New York City be between 58-59\u00b0F on September 26?",
+  "closed": true,
+  "endDate": "2026-09-26T12:00:00Z",
+  "closedTime": "2026-09-27 05:15:15+00",
+  "createdAt": "2026-09-24T07:29:02.007792Z",
+  "negRisk": true
+ },
+ "0xc8a44cee25e593fdc5cd43390a54418be69362fafae39905b694ef98aed3ab6f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Beijing be 28\u00b0C on September 27?",
+  "closed": true,
+  "endDate": "2026-09-27T12:00:00Z",
+  "closedTime": "2026-09-27 16:27:50+00",
+  "createdAt": "2026-09-25T04:58:02.23383Z",
+  "negRisk": true
+ },
+ "0xff52a556121bec3b9cc540e62a2fba90982da04a2b165637994da2f1e544e48b": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 200k?",
+  "closed": true,
+  "endDate": "2026-10-03T03:59:00Z",
+  "closedTime": "2026-10-03 12:59:47+00",
+  "createdAt": "2026-09-25T19:57:05.320686Z",
+  "negRisk": false
+ },
+ "0xe5a42eb19b99fac892b02c981d876717ecaac0e0f18925081c170090895cf3f7": {
+  "feeType": "finance_prices_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Airbnb, Inc. (ABNB) hit (LOW) $152 Week of September 28 2026?",
+  "closed": true,
+  "endDate": "2026-10-02T20:00:00Z",
+  "closedTime": "2026-10-02 20:20:14+00",
+  "createdAt": "2026-09-25T22:00:55.949149Z",
+  "negRisk": false
+ },
+ "0xe1b7b21832ea5edaefc2f3df062beca135b94d57eafb0f71c89c669f9a4133c6": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Seoul (Incheon) be 20\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 15:23:17+00",
+  "createdAt": "2026-09-26T04:29:26.75575Z",
+  "negRisk": true
+ },
+ "0xe222eee01143ca593fe891a9e05a0787aa53d59171911ba5e3888d2fa8ddb79f": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Tokyo be 24\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 15:25:48+00",
+  "createdAt": "2026-09-26T04:56:44.407099Z",
+  "negRisk": true
+ },
+ "0xd36a35255f379ab6b26db1128575fc9de0e5fa775f780784bdb64dca0fd56fb1": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Madrid be 26\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-29 00:44:14+00",
+  "createdAt": "2026-09-26T04:57:31.029801Z",
+  "negRisk": true
+ },
+ "0xef6d6c48056e2edcda41e1b2189a3182525bb78aa824a8350f5ee7e47936583a": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the highest temperature in Jinan be 25\u00b0C on September 28?",
+  "closed": true,
+  "endDate": "2026-09-28T12:00:00Z",
+  "closedTime": "2026-09-28 23:03:33+00",
+  "createdAt": "2026-09-27T04:55:43.439566Z",
+  "negRisk": true
+ },
+ "0xd65c558815e88918a5785583ee20412d96d584479c927107987e8560ee153738": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will it rain in Phoenix, AZ on September 29?",
+  "closed": true,
+  "endDate": "2026-09-30T18:00:00Z",
+  "closedTime": "2026-09-30 20:01:14+00",
+  "createdAt": "2026-09-28T11:09:02.239992Z",
+  "negRisk": false
+ },
+ "0xc994dc58c520b73434929716f0098cb572afa0fa1828c568f47616df8fc40f7a": {
+  "feeType": "crypto_fees_v2",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.07,
+   "takerOnly": true,
+   "rebateRate": 0.2
+  },
+  "question": "Over $15M committed to the Jumper public sale?",
+  "closed": true,
+  "endDate": "2026-10-06T03:59:00Z",
+  "closedTime": "2026-09-29 23:51:06+00",
+  "createdAt": "2026-09-28T16:13:31.584995Z",
+  "negRisk": false
+ },
+ "0xde7d227cd6685a06a052f82cd3a15022d8f5a5874f7c5d2b2a4ac8ac8c25037b": {
+  "feeType": "crypto_fees_v2",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.07,
+   "takerOnly": true,
+   "rebateRate": 0.2
+  },
+  "question": "Over $40M committed to the Jumper public sale?",
+  "closed": true,
+  "endDate": "2026-10-06T03:59:00Z",
+  "closedTime": "2026-10-02 11:31:26+00",
+  "createdAt": "2026-09-28T16:13:31.695942Z",
+  "negRisk": false
+ },
+ "0xf861300bb19cc3899f55383a4e1318e29ae18daaf68e74831675ff8742844114": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the next GPT Sol model (6.1+) debut at a score of at least 1440 by June 30, 2027?",
+  "closed": true,
+  "endDate": "2027-06-30T23:59:00Z",
+  "closedTime": "2026-10-03 18:06:29+00",
+  "createdAt": "2026-09-29T19:52:23.41287Z",
+  "negRisk": false
+ },
+ "0xdd9cbf8a9ee8ef55b1af27293877f4df121f184c0ce37b5fe9e06c26fa2fda11": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the biggest earthquake on October 1, 2026 be 5.3 to 5.4?",
+  "closed": true,
+  "endDate": "2026-10-02T18:00:00Z",
+  "closedTime": "2026-10-02 20:06:06.398207+00",
+  "createdAt": "2026-10-01T04:07:00.651509Z",
+  "negRisk": true
+ },
+ "0x1e6b21ebd7b7740b6ea6a1553013586f6afd85f41eae68922d2eeb352ff8312e": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Will there be between 25 and 29 average daily transits of the Bab el-Mandeb Strait on Sept",
+  "closed": false,
+  "endDate": "2026-10-01T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-08-26T22:14:42.02766Z",
+  "negRisk": true
+ },
+ "0x4611b382e5bea764589d1b889b8ce238b8fa4fbe2c4ab47a88b981f81c476b3a": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Will 170-189 ships transit the Bab el-Mandeb Strait between September 28-October 4?",
+  "closed": false,
+  "endDate": "2026-10-04T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-22T18:25:23.864422Z",
+  "negRisk": true
+ },
+ "0x12f62fed8b7d9dbce2b4169b7c2a8196c30a771bc99b008960eee238699d9260": {
+  "feeType": "sports_fees_v3",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.15
+  },
+  "question": "Will JiJieHao qualify to PGL Major Singapore 2026?",
+  "closed": false,
+  "endDate": "2027-01-13T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-23T18:06:43.365324Z",
+  "negRisk": false
+ },
+ "0x3d2ee0a920b3a8315a8d0a4ec9baa0fe1be88441e33663c6a42980635e7b2771": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Google have the second highest OpenRouter market share the week of September 28?",
+  "closed": false,
+  "endDate": "2026-10-06T16:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-28T06:00:37.814456Z",
+  "negRisk": true
+ },
+ "0x2b9931e13d436ee68b2870d31400f5bed8f5f13ad321355d0fd1048f706bba6a": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "US-Iran Hormuz Agreement by November 30?",
+  "closed": false,
+  "endDate": "2026-12-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-28T17:51:04.145488Z",
+  "negRisk": false
+ },
+ "0x55977409f1bea658f96f0654d1491f3c1dc2ab66b976c1f120841efd5e0397d6": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"The Social Reckoning\" score at least 80 on the Rotten Tomatoes Tomatometer?",
+  "closed": false,
+  "endDate": "2026-10-12T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T23:45:02.131544Z",
+  "negRisk": false
+ },
+ "0x282a94fe878e665992131c77e04583d413203425de086980b6489bf905a74b2d": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Other Mommy\" score at least 70 on the Rotten Tomatoes Tomatometer?",
+  "closed": false,
+  "endDate": "2026-10-12T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T23:46:20.870665Z",
+  "negRisk": false
+ },
+ "0x32397f66834e82b310df9bd31070de7e33b279729ab3e8d4ff590b467b5ba289": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the lowest temperature in Hong Kong be 27\u00b0C on October 2?",
+  "closed": false,
+  "endDate": "2026-10-02T12:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-30T04:30:04.583468Z",
+  "negRisk": true
+ },
+ "0x23070ac725260b5a78f7e3b8f2e3f3557bf42a72e139c490524656745536f3f9": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Donald Trump publicly insult Kathy Hochul by October 31, 2026?",
+  "closed": false,
+  "endDate": "2026-10-31T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T14:27:21.667143Z",
+  "negRisk": false
+ },
+ "0x282f3445692740b3e4dd4ba87ef82197abd1f2d47d40c880799ccd702006c951": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Maura Higgins be eliminated in week 4 of Dancing With The Stars: Season 35?",
+  "closed": false,
+  "endDate": "2026-10-07T06:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T18:38:25.952996Z",
+  "negRisk": false
+ },
+ "0x08c90e15f164e0cc677923fb6a8b7eae14886f4f3afeab0d3bf758bbeaea3fa1": {
+  "feeType": "general_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the median home value in Miami be between $809,000 and $830,000 on December 31?",
+  "closed": false,
+  "endDate": "2027-01-11T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T23:11:21.67008Z",
+  "negRisk": true
+ },
+ "0x0947264cf061021fc8c4fbdf29d74c8b39acfc60fe7d322f388d49563037a052": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Saudi troops enter Sanaa by October 31, 2026?",
+  "closed": false,
+  "endDate": "2026-11-01T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-02T22:52:58.6325Z",
+  "negRisk": false
+ },
+ "0x29cb352dd52a65118d3d91c929ce09aeefb6205c0e35e6e9334adae347e3afc1": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Saudi troops enter Sanaa by December 31, 2026?",
+  "closed": false,
+  "endDate": "2027-01-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-02T22:52:58.914525Z",
+  "negRisk": false
+ },
+ "0x7989873aeb336d445685d8bc85e8b7a8ec65a5ca948ee94393f5eee012f487d9": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the Abgeordnetenhaus of Berlin have between 158 and 162 seats after the 2026 election",
+  "closed": false,
+  "endDate": "2026-09-20T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-14T22:47:57.281554Z",
+  "negRisk": true
+ },
+ "0x94f0e18c6ca9505893f01c3e3232f2cd8d9f2c5fe5e72f9c0d1c5e9bbee585d5": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Saudi Arabia military action against Yemen on September 22?",
+  "closed": false,
+  "endDate": "2026-09-22T20:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-17T14:17:48.660239Z",
+  "negRisk": false
+ },
+ "0x817db91aa08b018e8ac7e2727bce15e63b29c1f193316c1fc74bf6760e7277e2": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Saudi Arabia military action against Yemen on September 23?",
+  "closed": false,
+  "endDate": "2026-09-23T20:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-17T14:17:49.016359Z",
+  "negRisk": false
+ },
+ "0x62bb9d57d8340148046e4e6380c7c3b9f84b6124d8765cde264fb5bd7e28fe4b": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Jon Ossoff Democratic nomination odds leader on October 31?",
+  "closed": false,
+  "endDate": "2026-10-31T16:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-22T22:44:24.566443Z",
+  "negRisk": true
+ },
+ "0x7c68d0a1699ffc12d44bf91329f0e4cfe5da7a55cff95b527fb71eaf389b3cd8": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Lula or Bolsonaro favored on October 5?",
+  "closed": false,
+  "endDate": "2026-10-05T12:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-24T19:52:27.517722Z",
+  "negRisk": false
+ },
+ "0x58be9f46ec37ab8204493dea74bcb76d4950f470f6e3a580300e6f860f583731": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the next GPT Sol model (6.1+) debut with a Humanity's Last Exam score of 45% or highe",
+  "closed": false,
+  "endDate": "2027-06-30T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T19:53:08.826843Z",
+  "negRisk": false
+ },
+ "0x9f63c0c0a7240ea7e0bc305cddc25e8173d67a662030b10af5b7047b83f181e8": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Other Mommy\" score at least 50 on the Rotten Tomatoes Tomatometer?",
+  "closed": false,
+  "endDate": "2026-10-12T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T23:46:20.01508Z",
+  "negRisk": false
+ },
+ "0xc444783d54aab62f4679cf9874bbc8a0165ea6dc78cdb8051faf7c693702934a": {
+  "feeType": "sports_fees_v3",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.15
+  },
+  "question": "Will the NBA announce an expansion team in Las Vegas by October 16, 2026?",
+  "closed": false,
+  "endDate": "2026-10-17T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-30T01:53:41.09314Z",
+  "negRisk": false
+ },
+ "0x7f988cdcad6f0364ee9008c0f70dc30f66b00680c768d7d41c9daccd2e89fb64": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Will Russia enter Havrylivka by October 31, 2026?",
+  "closed": false,
+  "endDate": "2026-11-01T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-30T22:23:32.471415Z",
+  "negRisk": false
+ },
+ "0xa2911a6afaf73e1dd2089aa9e6fde91f04bc2b2b33a836d63090e2727847a171": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Anthropic have the best AI model on LiveBench (Overall) at the end of November 2026?",
+  "closed": false,
+  "endDate": "2026-12-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T00:10:39.782462Z",
+  "negRisk": true
+ },
+ "0x9a491cfeafea1e4fbc18d550e6dffb5b1e5091be3b7acf991170ee02a177cf78": {
+  "feeType": "weather_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will 15% to 24% of Corn acreage be in D1-D4 drought this week?",
+  "closed": false,
+  "endDate": "2026-10-08T13:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T13:00:02.283772Z",
+  "negRisk": true
+ },
+ "0xa476fad5511829d53a9cd97a185f9d1383470251929bfbc6e319888310424b51": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Harry Shum Jr. be eliminated in week 4 of Dancing With The Stars: Season 35?",
+  "closed": false,
+  "endDate": "2026-10-07T06:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T18:38:22.830732Z",
+  "negRisk": false
+ },
+ "0x5cfb7551e856eb2d1fd0f420d3159838c834d512cec7629aa02e8149879099cb": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Ezra Frech be eliminated in week 4 of Dancing With The Stars: Season 35?",
+  "closed": false,
+  "endDate": "2026-10-07T06:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T18:38:24.719749Z",
+  "negRisk": false
+ },
+ "0x649f567bafba8a8fac3e65de5580e8124245844e04d63347f8497065a5373291": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Amber Glenn be eliminated in week 4 of Dancing With The Stars: Season 35?",
+  "closed": false,
+  "endDate": "2026-10-07T06:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T18:38:26.788385Z",
+  "negRisk": false
+ },
+ "0xe50af0f2a196ec216438aaed3884c58eab5c92e86707b0dcea997bcdf6fd0081": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Saudi Arabia military action against Yemen on September 26?",
+  "closed": false,
+  "endDate": "2026-09-26T20:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-17T14:17:50.064102Z",
+  "negRisk": false
+ },
+ "0xec8b96d42ea940a5990d11f37c67df475db44142b336b256ce7f67f929fa79b6": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Claude Opus's output price be at or below $10 in 2026?",
+  "closed": false,
+  "endDate": "2027-01-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-24T08:36:38.323688Z",
+  "negRisk": false
+ },
+ "0xdffa8b3b9651d7c90d3efaaadfb7ceef69373fbeb8f99e289d8d76f9beb7b1a6": {
+  "feeType": "sports_fees_v3",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.15
+  },
+  "question": "Will the Boston Bruins record 90+ points?",
+  "closed": false,
+  "endDate": "2027-04-30T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-27T20:01:50.309442Z",
+  "negRisk": false
+ },
+ "0xdc45cab391d78a2aa951f788daf342b3fd32f7fe00f3c7d2619d5da001f4f7df": {
+  "feeType": "sports_fees_v3",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.15
+  },
+  "question": "Will the longest game of the 2026 MLB Postseason last 15+ innings?",
+  "closed": false,
+  "endDate": "2026-11-16T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-28T15:02:34.605079Z",
+  "negRisk": false
+ },
+ "0xf72096d3fd3da83090bcba789967f8efd0764f30106b5edaf94c084ca1c12ca5": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Closer Senate Race: Georgia or Kansas?",
+  "closed": false,
+  "endDate": "2026-11-04T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-28T20:15:08.016361Z",
+  "negRisk": false
+ },
+ "0xf107eae97889ed39a3e2d1aae7049f733e81f672410091b6e6c0eb29b6805a44": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Khamenei post 0-4 posts from October 2 to October 9, 2026?",
+  "closed": false,
+  "endDate": "2026-10-09T16:00:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T04:00:00.852292Z",
+  "negRisk": true
+ },
+ "0xd1b6170c1d3f5a3cdbb1d1178b4a8622e15927c66b0a8a3b5bb68d5b022e5935": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"Other Mommy\" score at least 60 on the Rotten Tomatoes Tomatometer?",
+  "closed": false,
+  "endDate": "2026-10-12T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-29T23:46:20.383962Z",
+  "negRisk": false
+ },
+ "0xc90894254e1f804e3087e89288d192b529287b7de6e3f5230c06868f7777661d": {
+  "feeType": null,
+  "feesEnabled": false,
+  "feeSchedule": null,
+  "question": "Israel accuses Iran/proxies of plane stabbing incident by Oct 31?",
+  "closed": false,
+  "endDate": "2026-11-01T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-30T21:34:42.561925Z",
+  "negRisk": false
+ },
+ "0xda67aa9d45d5dcfd5f4e7a2b002dbf5d91bd84b1db64381a85ddb341e39a350b": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Anthropic have the best AI model on LiveBench (Mathematics) at the end of November 20",
+  "closed": false,
+  "endDate": "2026-12-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T00:10:23.977145Z",
+  "negRisk": true
+ },
+ "0xf50050f4845b2b46fb33f37cb3c73bf05fb4741df6be86ed994a86fc2d224934": {
+  "feeType": "general_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the median home value in the Chicago Metro be between $303,000 and $308,000 on Decemb",
+  "closed": false,
+  "endDate": "2027-01-11T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T23:14:40.406293Z",
+  "negRisk": true
+ }
+}

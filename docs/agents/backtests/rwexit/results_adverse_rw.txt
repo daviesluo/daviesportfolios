@@ -1,0 +1,8 @@
+RW adverse selection (2,416 fills whose next book had both size-adjusted touches; signs per fill, s*(mid_h - ref))
+h      n     against_pre flat_pre favour_pre | further_vs_t1 back_vs_t1 | markout<0 | $move_vs_pre $move_vs_t1 | $edge0 $halfspread_exit_raw $halfspread_exit_cf
+t+1    2416  0.591 0.298 0.111 | -     -     | 0.334 | -760.59     0.00 | 664.60 -1124.78 -228.09
+15m    2416  0.596 0.142 0.262 | 0.442 0.358 | 0.413 | -869.86  -109.26
+60m    2416  0.568 0.065 0.366 | 0.486 0.435 | 0.449 | -969.25  -208.66
+4h     2414  0.558 0.016 0.426 | 0.505 0.471 | 0.494 | -1174.25 -417.55
+day    2416  0.547 0.010 0.443 | 0.521 0.466 | 0.515 | -1241.29 -480.69
+end    2416  0.516 0.003 0.481 | 0.511 0.486 | 0.509 | -1161.76 -401.16

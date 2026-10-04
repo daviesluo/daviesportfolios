@@ -1,0 +1,130 @@
+{
+ "0x40016ccec38f60de0055b5b0faa2fc7816d968cde5e5e1217648aa72d3261571": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Democrats win exactly 4 House seats in Minnesota in the 2026 midterm elections?",
+  "closed": false,
+  "endDate": "2026-11-04T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-08-11T14:02:49.178211Z",
+  "negRisk": true
+ },
+ "0x9944434f935214330f33c0ec2a5dc1991dd09082e8abd14b6a01eb2ecff395c5": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will the Republican Party candidate win the 2026 NC-10 House election by 15%-20%?",
+  "closed": false,
+  "endDate": "2026-11-04T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-08-11T17:53:40.209782Z",
+  "negRisk": true
+ },
+ "0xaa667e038144ed1ed0f1a0a53c2b97a7421a4a871133ca3eca23a034a7a3de6e": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will total votes cast in the 2026 midterm election for Senator from New Hampshire be betwe",
+  "closed": false,
+  "endDate": "2026-11-04T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-08-18T14:23:58.838431Z",
+  "negRisk": true
+ },
+ "0x656b0723cb694a274d4420d2d9f186d50e754fd5e25bf61b0a9b0ca60dcf5bf0": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Ignotas Adomavi\u010dius win the 2026 Northern Nal\u0161ia district by-election?",
+  "closed": false,
+  "endDate": "2026-11-08T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-09-23T14:07:40.031393Z",
+  "negRisk": true
+ },
+ "0xa5a08eeb7724af0ff3512db15f6a778fb14784261ac99f3777c0a5dfe54dd773": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will Baidu be the second-best Chinese AI company at the end of December 2026?",
+  "closed": false,
+  "endDate": "2027-01-01T04:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T14:01:00.251658Z",
+  "negRisk": true
+ },
+ "0x67d66925fa79005696aebcb4f21a2a3026d825bfb1e528efc83e19df9cea4282": {
+  "feeType": "culture_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.05,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will \"A Different World: Season 1\" be the #2 US Netflix show this week?",
+  "closed": false,
+  "endDate": "2026-10-06T23:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-01T15:28:38.93058Z",
+  "negRisk": true
+ },
+ "0x067a78888bd6c71aaf4f738e6ad4b5ae9f45f8f61f0f876370e498e60aad8010": {
+  "feeType": "politics_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will PL hold the second-most seats in the 2026 Brazilian Chamber of Deputies election?",
+  "closed": false,
+  "endDate": "2026-10-05T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-02T18:08:04.111683Z",
+  "negRisk": true
+ },
+ "0xc4cb61ab76f2fc5fab8e4ac3ac1587d118aa18cec827875fa3886323fe92df66": {
+  "feeType": "tech_fees",
+  "feesEnabled": true,
+  "feeSchedule": {
+   "exponent": 1,
+   "rate": 0.04,
+   "takerOnly": true,
+   "rebateRate": 0.25
+  },
+  "question": "Will OpenRouter process 170T or more tokens the week of September 28?",
+  "closed": false,
+  "endDate": "2026-10-05T03:59:00Z",
+  "closedTime": null,
+  "createdAt": "2026-10-02T18:24:42.465346Z",
+  "negRisk": true
+ }
+}

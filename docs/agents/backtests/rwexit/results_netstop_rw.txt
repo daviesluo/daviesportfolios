@@ -1,0 +1,26 @@
+RW net-inventory exit rules replayed on RW's own fills (q_netstop_rw.sql), 9 days, exits at the next recorded book's touch (+fee):
+kind k   exits fees    fills_pnl  worst_mkt p05_mkt open_shares_end
+none 0      0    0.00   -568.72   -50.15   -33.74  5844.1   (reproduces RW)
+tick 1    892  140.50  -1545.84   -70.83   -37.77  1107.0
+tick 2    720  121.15  -1475.05   -47.43   -37.66  1170.7
+tick 3    629  109.33  -1439.82   -56.75   -37.52  1180.6
+cent 5    397   88.66  -1437.76   -49.89   -39.60  2433.6
+cent 10   205   54.67  -1207.16   -47.88   -35.86  3377.9
+time 15   992  144.48  -1294.81   -67.81   -30.09   722.5
+time 60   505   90.64   -997.75   -50.12   -30.39  1268.9
+Per-fill stops (each fill its own stop vs its fill price, no netting): stop1 -1796.55 raw / -1073.51 cf (2341 of 2665 fire, 656 on the first book);
+stop2 -1804.47 / -1136.03 (2245, 483); stop3 -1809.78 / -1195.74 (2165, 362)
+cf-corrected (q_netstop_cf_rw.sql): kind k exits fees fills_pnl worst_mkt p05_mkt open_end
+none 0      0   0.00   -568.72 -50.15 -33.74 5844.1
+time 1   2165 207.69   -848.50 -40.59 -23.50  365.5   (= sell on fill, netted; per-fill version: -581.12 cf / -1644.69 raw)
+tick 1    892 143.63   -951.68 -39.64 -26.46 1107.0
+tick 2    720 124.01   -961.63 -41.80 -27.67 1170.7
+tick 3    629 111.77   -964.95 -43.45 -29.15 1180.6
+cent 10   205  56.51   -981.39 -43.06 -32.55 3377.9
+time 15   992 144.63  -1279.55 -67.81 -30.09  722.5
+time 60   505  90.70   -994.27 -50.12 -30.39 1268.9
+Whole strategy, 9 days, rewards at the formula x R (exit-on-fill never caps: +436.57 formula reward, extra fills -114.80 cf / -234.86 raw):
+R=1.0: RW +1307.34 | exit-on-fill cf +1616.71 (+309.37) | raw +433.08 (-874.26)
+R=0.4: RW  +181.70 | exit-on-fill cf  +229.13 (+47.43)  | raw -954.50 (-1136.20)
+Break-even: the true exit must sit within 26% (R=1) / 4% (R=0.4) of the way from the cf price to the paper book's price.
+Daily: hold mean -63.19 sd 76.98 (worst -169.30, best +84.55); cf exit mean -64.57 sd 30.38 (worst -111.00); raw mean -182.74 sd 56.04

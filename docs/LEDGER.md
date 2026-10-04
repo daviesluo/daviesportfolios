@@ -75,7 +75,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      20261009, × 365 / 6, per market the 10-08 `perMarket` less the 10-02), the seventh against x1; first RW-X's two checks
      and that x4's and x5's 10-01 rows equal x1's (Addendum 1). **Test 2** on RW-C's minutes (`pmrwc-x`, every rule from 10-09 00:00),
      after RW-NEXT's RW-C verdict (≥ 10-23 00:05, seed 20261023, against x1 there). Not among RW-NEXT's five; an arm that
-     passes both goes to Davies.
+     passes both goes to Davies. **Selling a fill at once was priced on 2026-10-04 and loses** (`backtests/rwexit/`,
+     reference item 36): its lever is the 3N cap, which is x5's question. Next on it: once a path is live, read the
+     first 20–50 live fills' next books before any exit rule; a trim near the cap only if x5 fails and the measured R is
+     near 1, as a new replay after 10-23 on books stored with their sizes.
 
    - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): ON
      `main` since 2026-09-28 04:39 UTC** (`3682b557` engine + `0069`, `17728e3c` page; history 00:38 and 05:12).
@@ -723,6 +726,21 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**EXIT: selling a Reward quotes fill at once does not pay** (Davies: "如果fill了的单可不可以直接卖出认亏来控制order的loss？
+这是个好策略或者值得测试的策略吗？"). Priced by an `opus-max` sub-agent, read-only, and filed as run in
+`docs/agents/backtests/rwexit/` (queries, outputs, Gamma's fee fields, `MANIFEST.json`); reference item 36 has the
+summary. On RW's 2,665 paper fills (09-25 → 10-04, 126 markets), holding to 10-04 00:00 lost $568.72 (RW's own day
+row to the cent); selling each at the first book after its minute, plus the taker fee, loses $581.12 at the best price
+the record allows, about $1,135 centrally and $1,644.69 at the recorded book; stops (1, 2, 3 ticks, 10¢) and timers
+(15, 60 minutes) lose $280–711 more than holding. The exit cuts the worst fill from −$18.60 to −$3.91 at a lower mean.
+What it found that matters: RW's 3N cap stopped a side in 18.6 % of quoting minutes, earning nothing in them ($436.57 at
+the formula over nine days) — x5's question, read on 10-09. No exit rule is pre-registered. **Disclosure:** to price
+the groups, the study split RW's own fills by weather markets and by markets ending the same day, the kinds RW-E and x1
+leave out; those are RW's figures, not the arms' (nothing of `pm_rw_e_*`, `pm_rw_x_*`, `pm_rwc_*`, `pm_mid_*` or
+`pm_midprep_*` was read), and it read mini-pool's tables only after its check (00:28:57 on).
 
 ### [2026-10-04 00:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

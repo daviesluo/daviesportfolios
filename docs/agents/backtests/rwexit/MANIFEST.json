@@ -1,0 +1,133 @@
+{
+ "study": "EXIT: selling a Reward quotes fill at once (at the first book after its minute, at the touch plus the market's taker fee), on a stop (1, 2, 3 ticks, 10 cents against the net position) or on a timer (15, 60 minutes), priced against holding, on RW's 2,665 paper fills of 2026-09-25 00:00 -> 2026-10-04 00:00 UTC (126 markets) and mini-pool's 21 (10-02 -> 10-03, read only after its 10-04 00:15 check). A measurement on Davies' question, not a pre-registered test.",
+ "question": "Davies, 2026-10-04: \"如果fill了的单可不可以直接卖出认亏来控制order的loss？这是个好策略或者值得测试的策略吗？\"",
+ "write_up": "reference §4 item 36, its addendum of 2026-10-04; docs/LEDGER.md history 2026-10-04",
+ "run": [
+  "every q_*.sql: production, SELECT only, through the Supabase connector, 2026-10-04 00:05-00:40 UTC; each results_*.txt is its output as run",
+  "python3 gamma_fees.py conds_rw.txt gamma_fees_rw.json (and conds_mini.txt -> gamma_fees_mini.json): Gamma's public fee fields, keyless GET, 2026-10-04"
+ ],
+ "reads": "pm_rw_* (RW's own records; no no-peek clause) and, after 00:28:57 UTC on 10-04, pm_prep_* and pm_live_*. Nothing of pm_rw_e_*, pm_rw_x_*, pm_rwc_*, pm_mid_* or pm_midprep_*.",
+ "check": "holding every fill to 10-04 00:00 gives -568.720171, pm_rw_days 2026-10-03 total less reward to the cent (results_totals_rw.txt)",
+ "committed": {
+  "base_rw.sql": {
+   "bytes": 6383,
+   "sha256": "cef27d92e5a56110fc5a32209855db1b6ed71682dc63d162eb59dd21c96add7a"
+  },
+  "conds_mini.txt": {
+   "bytes": 536,
+   "sha256": "fe07b9ba1413295f9954963591571aed95857e0cce1423fd974d7def5e28b356"
+  },
+  "conds_rw.txt": {
+   "bytes": 8442,
+   "sha256": "0e98c09cc77a65d8489811175015e2d13240fb263896ed8cb27686679696425d"
+  },
+  "gamma_fees.py": {
+   "bytes": 1545,
+   "sha256": "c3e86dde2b98d057203e21301fc5a114b04a39fcb92ac64784efe12b70e878cc"
+  },
+  "gamma_fees_mini.json": {
+   "bytes": 3781,
+   "sha256": "5e4e86f3901b266b81176dbf2b4b4d30b920e46b274127d606d7e31138dc62f8"
+  },
+  "gamma_fees_rw.json": {
+   "bytes": 59098,
+   "sha256": "a48e9cca4905cfba6b0b9c5a1ec2cf359f5b0663d1c9bd2a66b14425b2772137"
+  },
+  "hand_checks_rw.txt": {
+   "bytes": 1630,
+   "sha256": "2923a3ba5e40123c7f1bfefc4c4929be5f956d9134fefd100a47800785a5b509"
+  },
+  "per_fill_cte.sql": {
+   "bytes": 1354,
+   "sha256": "759b67fbb8f5a14332e60d8962227b31175480a152bc9832d672066f466a775b"
+  },
+  "q_adverse_rw.sql": {
+   "bytes": 6742,
+   "sha256": "26b855a707fc7b80a55a64410b7df8bed864e40d1ac80f39637f6301faa5c05d"
+  },
+  "q_cap_extra_rw.sql": {
+   "bytes": 2846,
+   "sha256": "1e2f9db0da849b974c13ca32b6a69773a1157a5bed47cd8cdd7aac7efd04f383"
+  },
+  "q_cap_rw.sql": {
+   "bytes": 1616,
+   "sha256": "c9ac682c9adcd409b4f4e64f7fdfe2d75414fe25977054cb83dae2119059f26a"
+  },
+  "q_check.sql": {
+   "bytes": 6916,
+   "sha256": "d98b9576f02027926ae4c99abf1eeeade46c1e44b86eee8c62e9ddb677901192"
+  },
+  "q_days_markets_rw.sql": {
+   "bytes": 3684,
+   "sha256": "47374f13d2bb2af323698049b64edaea68b755bacbb703ad553d8c5530dd6b2b"
+  },
+  "q_dist_rw.sql": {
+   "bytes": 6373,
+   "sha256": "25d8c1f8e26d8e9ce63bfdc1e63f6d0b98eaae4390d3fb5e4c1d3f5b7ca05203"
+  },
+  "q_groups_cf_rw.sql": {
+   "bytes": 6337,
+   "sha256": "57824e1fd392fa2dc153aa37df6b3f6b3ae371705bd430875bdd8be1d983bcb5"
+  },
+  "q_mini.sql": {
+   "bytes": 5578,
+   "sha256": "187637d5cfe8def18f15d4c36314dfbe5815d97d8a0862c66b257c8f7d47320f"
+  },
+  "q_netstop_cf_rw.sql": {
+   "bytes": 6038,
+   "sha256": "16478c72b0e13ef7455400c8e23a6349949e07b154bc993a1090a59d6a917bc9"
+  },
+  "q_netstop_rw.sql": {
+   "bytes": 5365,
+   "sha256": "9e6fca64ef73a15bf89f42e887a9129d57cccf508b86239fc7090a57dfd4803d"
+  },
+  "q_netting_rw.sql": {
+   "bytes": 738,
+   "sha256": "f3e613b2706142ec14d7dde92a64851709cb14a1b60cabbfb43581eb1f56e064"
+  },
+  "q_perfill_stops_rw.sql": {
+   "bytes": 6094,
+   "sha256": "a0186b05610a31e7ad2a7fee85654983cbac392367ed9b41d6ff01a9319fd8fe"
+  },
+  "q_totals.sql": {
+   "bytes": 8558,
+   "sha256": "d440d362676df6458979d3773f889c2a9633a9c25257dc7b620a6afc237ef44a"
+  },
+  "results_adverse_rw.txt": {
+   "bytes": 734,
+   "sha256": "a66a8a1f8218bf131e68128533357c00c44c00171d3378b34364c1195ef4ae80"
+  },
+  "results_cap_rw.txt": {
+   "bytes": 769,
+   "sha256": "d74b8671087e69f2cb70dc546481d806e51c305ef80966d09d79a700e65fb8ad"
+  },
+  "results_days_markets_rw.txt": {
+   "bytes": 803,
+   "sha256": "7928e4fc9728021fff47b6d4397a2105c8648cb6f75a98f44062a1e170d09f1e"
+  },
+  "results_dist_rw.txt": {
+   "bytes": 1748,
+   "sha256": "650a4f2c3e17445d1bbb6a52d6784de9bdf2829f54ba3cd2911c1b8e3799eb15"
+  },
+  "results_groups_cf_rw.txt": {
+   "bytes": 1476,
+   "sha256": "f6f69c6dd59cd41912d0ef4b2eaf1c6cff8a5248e0aa0810587bedd7ead00158"
+  },
+  "results_mini.txt": {
+   "bytes": 814,
+   "sha256": "c1758bb313218daa665eecfae6441dbe5a5e5663684f82daa9a33abae011a4e7"
+  },
+  "results_netstop_rw.txt": {
+   "bytes": 2042,
+   "sha256": "b4d9153c88f197451dd4a9b831a6dcf04f492d1390961172497401c053377cd1"
+  },
+  "results_totals_rw.txt": {
+   "bytes": 3196,
+   "sha256": "4498ba9b67c22d84824b9a2a772033767e24bb9423f7b1daecfb7ba8c978b4d4"
+  },
+  "rw_perfill_cte.sql": {
+   "bytes": 5644,
+   "sha256": "c8898d60b0be253f758cb2738fcc0aa192da68268fcffa88f814e8238f7b45e2"
+  }
+ }
+}

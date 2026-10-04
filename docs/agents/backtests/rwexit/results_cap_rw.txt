@@ -1,0 +1,6 @@
+RW inventory cap (3N) in the record, decided quoting minutes 2026-09-25 00:00 -> 2026-10-04 00:00 UTC
+decided minutes 130,534; capped (a side stopped) 24,344 = 18.6% (bid side 11,161 = long >= 3N; ask side 13,183 = short >= 3N), in 77 markets
+reward recorded $1,876.06 (all in uncapped minutes; a capped minute pays 0 because RW's score is the smaller side's)
+reward foregone in capped minutes, RW's own quotes both sides, others' score as recorded: $436.57 at the formula (R=1), $174.63 at R=0.40
+prints through the capped side in those minutes (fills an exit-on-fill rule would also take): 522 minutes, 7,913.7 shares;
+  their immediate exit: -$234.86 at the next book's touch, -$114.80 at the better of touch and print price (14 minutes with no next book counted 0)

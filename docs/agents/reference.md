@@ -3562,6 +3562,19 @@ every script re-run byte-identical by the coordinating session).
       total cap, counted in TESTING's scoreboard and the Polymarket card, with Reward quotes' page (`agents/pm_prep_view.ts`;
       Davies, 2026-10-01): its days are each the change since the close before, as RW's, and a closed day's worst case,
       which the layer does not keep, reads a dash. The path's own day figure stays with its stop and the check.
+    - **Selling a fill at once does not pay (2026-10-04, `backtests/rwexit/`; Davies: "如果fill了的单可不可以直接卖出认亏来
+      控制order的loss？").** Priced read-only on RW's 2,665 paper fills of 2026-09-25 → 10-04 (126 markets): held to 10-04
+      00:00 they lost $568.72, RW's own figure to the cent. Sold at the first book after the fill's minute, at the touch
+      plus the market's taker fee (Gamma's `feeSchedule`, rate × X × (1 − X)), they lose $581.12 at the best price the
+      record allows, about $1,135 at the central estimate and $1,644.69 at the recorded book. The next book had already
+      moved against 59 % of the fills; what moved after it ($400–480) is less than the exit's half-spread ($228–1,125)
+      and fees (about $210). The exit narrows the outcomes (the worst fill −$18.60 → −$3.91, the daily SD $77 → $30) at a
+      lower mean. Stops at 1, 2 and 3 ticks or 10¢ against the net position, and timers of 15 and 60 minutes, lose
+      $280–711 more than holding. The lever it found is RW's 3N cap: one side stopped in 18.6 % of the quoting minutes,
+      which then earn nothing, $436.57 at the formula over the nine days; x5 ("lean") tests the passive way to keep both
+      sides quoting. Mini-pool's 21 fills point the same way and are too few. No exit rule is pre-registered: the first
+      live fills' next books (`pm_live_minutes`, mode `live`) show which exit price is real before any rule is priced
+      again.
 
 37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item). **Its first version read the four books at once at :00 and lost three to 429 every minute** (18:16–18:20 UTC: the public bucket is about a token a second, and the tick reads it from :00); from migration `0058` it reads 40 s into the minute, after the tick's reads and PR5's (from :25), one book every 1.25 s in an order that turns each minute, and stops at the first 429. A row's `ts` is the instant its reading arrived, `seen_until` the last reading that found the same book and `reads` how many did, so a book that stood still is told apart from one nobody read.
 
