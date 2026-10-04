@@ -764,6 +764,29 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Polymarket's rewarded markets are recorded for research** (Davies: "把polymarket的所有有reward的市场详细价格与order book
+等一切重要的信息也全和之前revolut stablecoins市场一样详细记录下来吧？…你觉得是个好主意的话就加上也加到watchdog上"). Built by an
+opus-max agent on `aee17037`: `agents/pm_book_rec.ts` with `agents?action=pmrec` every minute (the books within 10 ¢ of
+every market paying $10 a day or more and of every market a Reward quotes path holds or quotes, a fifteenth of all
+~18,900 rewarded markets summarised each minute so each is read every 15, and the set's prints from the global tape) and
+`agents?action=pmrec-meta` every five (the listing every 15 minutes, Gamma metadata 250 markets a run, each closed hour
+archived to the private Storage bucket `pm-rec` and indexed with a signed URL in `pm_rec_archive`, a daily dump of the
+markets). `0092_pm_book_recorder.sql`: four tables, RLS on and no grant or policy, two leases, two `edge_calls` rows
+with retry on (the watchdog), and the hourly SQL-only `pm-rec-prune` (unarchived data dropped after 6 h and marked
+lost, frame rows after 7 days). Reference item 55; the evidence in `backtests/pmrec/`. Measured keylessly: a minute
+1.8–2.5 s and 318–375 ms of the function's own CPU; ~320 MB a day to Storage (~9.7 GB a month, inside the Pro plan's
+100 GB for about ten months, then $0.021 a GB-month); ~50 MB of the database, ~115 MB at most if the archive stops. Not
+in `monitor/health.ts`: the Worker's `loop` is one alert state, and a stale recorder would mask a dead trading tick; its
+faults go to `ops_errors` as `agents.pm_rec`. Reviewed before landing: the migration, the private bucket, the prune.
+Pause it with `update public.edge_calls set enabled = false where path in ('agents?action=pmrec','agents?action=pmrec-meta')`.
+Signed URLs are never committed. Davies sets the archive's horizon.
+
+**The repository is public.** `gh api repos/daviesluo/daviesportfolios` reads `private: false` (checked 19:05 UTC),
+while this file, `docs/handover.md` and `.claude/CLAUDE.md` were written for a private one and quote real balances.
+Told Davies; whether it stays public, or which files leave it, is his call. Nothing was changed.
+
 ### [2026-10-04 18:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **A Reward quotes row's "N open" is its QUOTES table's rows.** Davies: "STRATEGIES表格中Reward quotes的那些行中xx open应该显示的是
