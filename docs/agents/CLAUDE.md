@@ -452,9 +452,15 @@ that follow from that evidence, in short:
   `live_confirmed_at` null). **The two trade one account and are never
   both armed**: a trigger on both configs refuses arming one while the
   other is, and each go-time statement refuses it too (the design doc's
-  steps 8 and 8m); a funded mid-pool first needs its own
-  pre-registration, its margin measured again and payouts told apart per
-  path. It leaves out every market RW's frozen selection, recomputed from
+  steps 8 and 8m). **A funded mid-pool is being readied** (Davies,
+  2026-10-04: "准备mid-pool的上线，确保和现在的策略一致"): its
+  pre-registration is a draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`)
+  that freezes on his go date, no earlier than the overlap audit
+  (2026-10-23 00:05 UTC); its margin was measured again on 2026-10-04
+  (0.67 overlapped in 4 of 111 pairs, 0.8 in none; the draft keeps 0.67,
+  the dry-run's rule); and a change that makes each path book only the
+  payouts of the markets it quoted live is built and waits for his word
+  to deploy, since it changes the live order path's code. It leaves out every market RW's frozen selection, recomputed from
   public data, takes or scores at ≥ 0.33 of its last pick, never reading
   `pm_rw_*` or `pm_rwc_*`. Its config holds a copy of the attestation, so
   a revocation also runs `update public.pm_mid_config set ireland_until =

@@ -1,5 +1,5 @@
 {
- "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01); and mid-pool's exclusion margin and its selection's CPU, measured through its own code (2026-10-02); and 0084's trigger and both go-time statements run on PGlite (2026-10-02)",
+ "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01); and mid-pool's exclusion margin and its selection's CPU, measured through its own code (2026-10-02); and 0084's trigger and both go-time statements run on PGlite (2026-10-02); and, for mid-pool's go-live (2026-10-04), its margin measured again and its go-time statement run on PGlite over every migration",
  "write_up": "docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md",
  "run": [
   "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
@@ -10,19 +10,37 @@
   "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_out.txt  # live, keyless, about 17 minutes; RW's selection recomputed by agents/pm_mid.ts rwSelectionNow, counts and ratios only, no market named",
   "cd scripts && python3 cpu_time.py deno run --allow-net --allow-env mid_selection_time.ts 0 batch, then 3 batch and 3 single, each appended to ../results/mid_selection_time_out.txt  # live, keyless; Deno 1.46.3; mid-pool's selection through agents/pm_live.ts selectMarkets with its instance, its CPU read around each process",
   "mid_check.sql, mid_readout.sql, mid_audit.sql  # the mid-pool pre-registration's day-1 check, fourteen-day readout and overlap audit (reviews/2026-10-02-polymarket-mid-pool-prereg.md): read-only, one statement each, run once at their dates; their sha256 are pinned by src/pm_mid_prereg.test.js",
-  "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/one_armed_check.mjs  # from the repository root -> results/one_armed_check_out.txt (0084's one-armed trigger and both go-time statements on PostgreSQL 16; the counterfactuals `trigger` and `migration` appended)"
+  "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/one_armed_check.mjs  # from the repository root -> results/one_armed_check_out.txt (0084's one-armed trigger and both go-time statements on PostgreSQL 16; the counterfactuals `trigger` and `migration` appended)",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_2026-10-04_out.txt  # the same measurement again for a funded mid-pool (2026-10-04 00:13-00:29 UTC), unchanged script; live, keyless, counts and ratios only, no market named",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_2026-10-04b_out.txt  # its second run, straight after (2026-10-04 00:31 UTC on)",
+  "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/mid_live_check.mjs  # from the repository root -> results/mid_live_check_out.txt (mid-pool's go-time statement, step 8m, on PostgreSQL 16 over every migration 0001-0089; the counterfactuals `nokey` and `widen` appended)"
  ],
  "sources": {
   "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",
   "results/bridge_quotes.txt": "bridge.polymarket.com /quote, keyless, 2026-10-01 ~02:00 UTC; nothing created",
   "results/selection_time_out.txt": "CLOB /rewards/markets/current, Gamma /markets/keyset and CLOB /book, keyless, through agents/pm_live.ts selectMarkets, 2026-10-01 16:53-16:54 UTC",
   "results/mid_margin_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets and /books (POST), Gamma /markets, keyless, through agents/pm_live.ts rewardListing and agents/pm_mid.ts rwSelectionNow, 2026-10-02 03:58-04:14 UTC",
-  "results/mid_selection_time_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets, /books (POST) and /book, Gamma /markets, keyless, through agents/pm_live.ts selectMarkets with PM_MID_INSTANCE's band, exclusion and batch read, 2026-10-02 04:17-04:20 UTC"
+  "results/mid_selection_time_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets, /books (POST) and /book, Gamma /markets, keyless, through agents/pm_live.ts selectMarkets with PM_MID_INSTANCE's band, exclusion and batch read, 2026-10-02 04:17-04:20 UTC",
+  "results/mid_margin_2026-10-04_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets and /books (POST), Gamma /markets, keyless, through agents/pm_live.ts rewardListing and agents/pm_mid.ts rwSelectionNow, 2026-10-04 00:13-00:29 UTC",
+  "results/mid_margin_2026-10-04b_out.txt": "the same reads, 2026-10-04 from 00:31 UTC",
+  "results/mid_live_check_out.txt": "PGlite 0.2.17 (PostgreSQL 16.4), every file of supabase/migrations applied in order over stubs of pg_cron, pg_net, the vault and the API roles; step 8m read from reviews/2026-10-01-polymarket-live-calibration.md"
  },
  "committed": {
   "results/bridge_quotes.txt": {
    "bytes": 1251,
    "sha256": "64f79ef85cb7d21afac78ab0b8250d2400eb0c866b74f5901e104039eb0bcc0b"
+  },
+  "results/mid_live_check_out.txt": {
+   "bytes": 9589,
+   "sha256": "d0b10f68368e3d8735fecc376102a18b43dc876cd3baf43cd3635cc692429092"
+  },
+  "results/mid_margin_2026-10-04_out.txt": {
+   "bytes": 5410,
+   "sha256": "655b7c2d69e7154e6f37a5926fdafb535c2ceec26c58eba719423644ccc30e57"
+  },
+  "results/mid_margin_2026-10-04b_out.txt": {
+   "bytes": 5301,
+   "sha256": "281d884914b4b41844664a41ec4be9290d35cebb7dac9bb43a8d49a244c364d1"
   },
   "results/mid_margin_out.txt": {
    "bytes": 5851,
@@ -52,6 +70,10 @@
    "bytes": 876,
    "sha256": "c993055d470daee9cce426195139eaa99d4317123ad15a3b2e1464d2288392d9"
   },
+  "scripts/mid_live_check.mjs": {
+   "bytes": 16598,
+   "sha256": "c7ec4676f5f2f3c7f6ddc6a5c6e985b6beab39d9a5d4e8989b1a104443da1ecc"
+  },
   "scripts/mid_margin.ts": {
    "bytes": 5137,
    "sha256": "0cb278339d4af7973038b725cb00322efa5863446e7d8b5aee2d51a195d15131"
@@ -78,5 +100,6 @@
   }
  },
  "calibration_write_up": "docs/agents/reviews/2026-10-01-polymarket-live-calibration.md",
- "mid_pool_prereg": "docs/agents/reviews/2026-10-02-polymarket-mid-pool-prereg.md"
+ "mid_pool_prereg": "docs/agents/reviews/2026-10-02-polymarket-mid-pool-prereg.md",
+ "mid_pool_live_prereg_draft": "docs/agents/reviews/2026-10-04-polymarket-mid-pool-live-prereg.md"
 }

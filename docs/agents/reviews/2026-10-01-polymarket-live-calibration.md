@@ -157,8 +157,10 @@ offset" (up to 1,440 samples), and "The minimum reward payout is $1". So once a 
 two days before (each day twice, the second a day later, for a late posting; never twice on one UTC day) and writes,
 per mode, day and market (`pm_live_reward_days`): the minutes it had a quote, the minutes both sides scored by RW's
 formula, the minutes the venue called both sides scoring, the formula's sums (all, and over the venue-scored minutes),
-the rate, and, live only, what was paid: native, sponsored and rebates. A market paid but never quoted is a live row
-with no minutes. R is a query:
+the rate, and, live only, what was paid: native, sponsored and rebates. A market paid but never quoted was a live row
+with no minutes until 2026-10-04; since then a path books a payout only for a market its own minutes show it quoting
+live that day, because two paths quote from the one account (step 8m), and the account's day total stays on every row.
+R is a query, on each path's own table:
 
     select sum(coalesce(actual_usd, 0) + coalesce(actual_sponsored_usd, 0)) / nullif(sum(formula_usd), 0) as r,
            sum(formula_usd) as formula, count(*) as market_days
@@ -418,6 +420,18 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
    the readout (`pm_live.ts`), which waits until mini-pool's window has been checked (2026-10-04 00:10 UTC). The two
    paths' bands are disjoint at each selection, but a market whose rate crosses $10 between two days can be chosen by
    both, one after the other: then the account's balance of its tokens reads as held by whichever path asks.
+
+   **Where each stands, 2026-10-04** (Davies: "准备mid-pool的上线，确保和现在的策略一致"). Its pre-registration is drafted,
+   not frozen: `2026-10-04-polymarket-mid-pool-live-prereg.md`, which freezes only when Davies names the go date and puts
+   the earliest funded start after the overlap audit (no earlier than 2026-10-23 00:05 UTC). The margin was measured
+   again the same way, keylessly: 0.67 is no longer overlap-free (4 of 111 pairs on 2026-10-04, none of 91 on 10-02),
+   0.8 had none; the draft keeps 0.67, the dry-run's rule, for a start after RW-C's verdict. What Polymarket pays is
+   told apart per path by a change built on 2026-10-04 and deployed only on Davies' word (`pm_live.ts`'s readout): a path books a payout only for
+   a market its own minutes show it quoting live that day, and mid-pool reads what the account earns once it is live,
+   so its R is `pm_mid_reward_days`' live rows' (step 14's query on that table); pinned by `agents/pm_payouts.test.ts`, which lands with it.
+   This statement, word for word, was run on PGlite 16 over every migration, 0001 to `0089`
+   (`backtests/pmlive/scripts/mid_live_check.mjs`): it refuses on each of twelve conditions and, armed, changes only
+   `pm_mid_config`'s `dry_run`, `live_confirmed_at`, `updated_at` and its cap, $320 on a balance of $400 or more.
 
 **The first day**
 

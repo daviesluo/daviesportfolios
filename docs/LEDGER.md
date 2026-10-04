@@ -191,9 +191,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      its action is mini-pool's: the key loaded for the stored signer, the pUSD read every minute, the same keyed wire; its
      config row is the lock (`dry_run` true, `live_confirmed_at` null), and a trigger on both configs refuses arming either
      while the other is armed (one account). Its go-time statement is the design doc's step 8m, run only in the
-     conversation where Davies says go; a funded mid-pool needs first its own pre-registration, its margin measured again
-     and the readout told apart per path (mini-pool's books every paid market of the account: a `pm_live.ts` change, after
-     mini-pool's window is checked). Its selection leaves out what RW's frozen selection, recomputed from public data with
+     conversation where Davies says go; a funded mid-pool needs first its own pre-registration (drafted 2026-10-04), its
+     margin measured again (done 2026-10-04) and the readout told apart per path (a `pm_live.ts` change, built
+     2026-10-04, deployed only on Davies' word). Its selection leaves out what RW's frozen selection, recomputed from public data with
      RW's code, takes or scores at ≥ 0.33 of its last pick (margin 0.67, measured), keeping only a count. Pre-registered:
      `reviews/2026-10-02-polymarket-mid-pool-prereg.md`, frozen by the commit that adds it; d1 is the first full UTC day
      after `pm_mid_config.created_at`, and the window fourteen days. **Running since 2026-10-02 05:01 UTC** (its first
@@ -210,8 +210,18 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      reward each market holds were read before the day-1 check, to compare it with mini-pool (history, 23:39); the check
      and the readout run as frozen, and both name it. **Day-1 check at 00:18 UTC on 10-04** (`mid_check.sql`, its hash
      verified): every row PASS, (f) N/A; (d) 9,352 of 11,520 market-minutes scored (81.2 %); (e) +$15.01 at R = 0.40.
-     The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1. **Being readied for live** on Davies'
-     word (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 00:22). A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
+     The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1. **Readied for live** on Davies' word
+     (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 01:01): the funded pre-registration is a
+     draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`) that freezes on his go date, the earliest after the
+     overlap audit (≥ 2026-10-23 00:05 UTC); step 8m arms only the current config (PGlite, `scripts/mid_live_check.mjs`);
+     the margin measured again: 0.67 overlapped in 4 of 111 pairs, 0.8 in none (the draft keeps 0.67). **Waiting on
+     Davies:** the payouts-per-path change to `pm_live.ts` (each path books only its own live markets' payouts; no
+     dry-run decision changes) is built and green but not on `main`, because deploying it changes the live order path's
+     code; deployed before 10-17 it is a deviation of mid-pool's readout, from 10-17 none. **Before a go date:** he funds
+     the account to at least $400.00 of pUSD ($320 cap); the probe from Ireland (design step 2); the two unused pUSD
+     spenders revoked or kept (step 3, his call); a live row and page for the funded path and a freshness reading in the
+     monitor (`monitor/health.ts`), built before go (PR5 live had both); the readout (≥ 10-17 00:10) and the audit
+     (≥ 10-23 00:05) reported. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
      is the last row of TESTING STRATEGIES, right after mini-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
@@ -726,6 +736,32 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 01:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mid-pool readied for a funded go-live with its current strategy unchanged; the one code change waits for Davies'
+word** (his, about 00:00 UTC: "准备mid-pool的上线，确保和现在的策略一致"). Built by an `opus-max` sub-agent in a worktree,
+reviewed here; landed now: the draft pre-registration `reviews/2026-10-04-polymarket-mid-pool-live-prereg.md` (freezes
+on his go date; the earliest funded start after the overlap audit, ≥ 2026-10-23 00:05 UTC; what an earlier date
+accepts), step 8m run word for word on PGlite 16 over all 92 migrations (`backtests/pmlive/scripts/mid_live_check.mjs`,
+125 checks: it refuses on twelve conditions, and armed on $401.37 changes of 137 tables only `pm_mid_config`'s
+`dry_run`, `live_confirmed_at` and `updated_at`, the cap 320; without its key check, or also setting the market count,
+2 checks fail each), the margin measured again keylessly (`results/mid_margin_2026-10-04_out.txt`, `…b_out.txt`,
+00:13–00:47 UTC: at 0.67 one of mid-pool's picks was among RW's later picks in 4 of 111 pairs, none of 32 within two
+minutes, where 10-02 had none of 91; at 0.8 none of 111; the draft keeps 0.67, the dry-run's rule, for a start after
+RW-C's verdict), the design doc's "where each stands" under step 8m, reference item 53, and `docs/agents/CLAUDE.md`'s
+mid-pool sentence. **Not landed: the payouts change** (`pm_live.ts`'s readout and share read: each path books only the
+payouts of the markets its own minutes show it quoting live, and mid-pool reads the account's earnings only once live;
+until it lands a live mid-pool's rewards would be booked in mini-pool's readout). It changes no dry-run decision
+(`pm_payouts.test.ts` beside a byte copy of the frozen path; six counterfactuals fail 2–4 of 130 pins each; full gates
+green: vitest 1,176, Edge 989, sweep 609), but landing it redeploys the live order path's code, and the session's
+permission check stopped that as a production deploy without Davies' explicit word, so it waits for him: deployed
+before 10-17 it is a deviation of mid-pool's readout, from 10-17 00:00 none. It lives only in this container, as
+commit `4876f97d` on the local branch `mid-pool-live-prep` (worktree `.claude/worktrees/agent-ac18e281283212ff7`); a
+new container rebuilds it from the draft's "told apart per path" section and reference item 53. Health at 00:13 and
+00:54 UTC (prereg readings only): keyed, no signer problem, pUSD 0.036673, eu-west-1, no `last_error`; one
+`agents.pm_mid` at 00:00:12 (the reward listing timed out; 10-04's eight markets landed); both configs dry-run and
+unarmed; the attestation standing.
 
 ### [2026-10-04 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
