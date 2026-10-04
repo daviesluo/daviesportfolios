@@ -182,7 +182,13 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      **Checked at 00:17 UTC on 10-04** (`prep_check_addendum2.sql`, its hash verified): a1–c3, e and g PASS; **(d) FAIL**,
      8,193 of 11,520 market-minutes scored (71.1 %, bar 75 %), the pools' thin books and not the code; **(f) FAIL**,
      the account unfunded (pUSD 0.036673). No go-live on a FAIL; whether mini-pool's selection is tightened (a rule
-     change: a new addendum and window) is Davies' call (history, 2026-10-04 00:22).
+     change: a new addendum and window) is Davies' call (history, 2026-10-04 00:22). **Fixed and given a new window by
+     Addendum 6** (2026-10-04, Davies: "把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉"): the
+     dry-run scored its quotes against the rest of the book's midpoint, not the book Polymarket would hold with them in it
+     (508 of 10-03's minutes); it now scores them as the venue would, and its selection ranks first the books with two
+     levels of the minimum within 10 ¢ a side (`PM_MINI_QUALITY`). **The window is 2026-10-05 00:00 → 10-06 00:00 UTC**,
+     read by `prep_check_addendum6.sql` (sha256 pinned). **Next:** at or after **2026-10-06 00:10 UTC** run it once,
+     read-only, and report every row to Davies in Chinese; never the go-time statement (history, 2026-10-04 16:55).
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -210,7 +216,9 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      reward each market holds were read before the day-1 check, to compare it with mini-pool (history, 23:39); the check
      and the readout run as frozen, and both name it. **Day-1 check at 00:18 UTC on 10-04** (`mid_check.sql`, its hash
      verified): every row PASS, (f) N/A; (d) 9,352 of 11,520 market-minutes scored (81.2 %); (e) +$15.01 at R = 0.40.
-     The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1. **Readied for live** on Davies' word
+     The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1 and **deviation 2** (2026-10-04, its
+     Addendum 2: the formula fix deployed with mini-pool's Addendum 6 scores what rests in the book as the venue holds it;
+     no decision changes, pinned beside byte copies of the frozen code; history, 2026-10-04 16:55). **Readied for live** on Davies' word
      (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 01:01): the funded pre-registration is a
      draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`) that freezes on his go date, the earliest after the
      overlap audit (≥ 2026-10-23 00:05 UTC); step 8m arms only the current config (PGlite, `scripts/mid_live_check.mjs`);
@@ -739,6 +747,28 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mini-pool fixed and ranked by book depth; its window moves to 2026-10-05 (Addendum 6); mid-pool takes the formula fix
+as its deviation 2** (Davies: "把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉"). Addendum 2's check
+failed (d) 71.1 % and (f) unfunded. Of 10-03's 3,327 minutes with no formula, 508 were the dry-run scoring its quotes
+against the rest of the book's midpoint (not 153), 836 a side with no level of the minimum, 1,935 a book too wide. The
+formula now scores against the book with our quotes in it, never twice live (`minuteFormula`, `detail.after`, the paper
+paying it): 10-03 75.5 %, 10-02 77.0 %, 10-04 partial 71.5 %; mid-pool d1 82.2 % for 81.2 %. Mini-pool's selection ranks
+first the books with two levels of the minimum within 10 ¢ a side (`PM_MINI_QUALITY`), chosen on a two-hour keyless
+sample (121 reads, `backtests/pmlive/results/mini_books_out.txt`): picks' scoring minutes 72.5 → 93.6 % (1 h),
+80.0 → 93.2 % (30 min), at 104 % / 89 % of the formula. Sizes, stops, gates, go-time and mid-pool's rule unchanged;
+both tests not blind from 10-04. Pinned beside both frozen codes; 18 counterfactuals fail. Code `pm_live.ts`
+effd6351…, `pm_prep.ts` ea3ee5b1…; check `prep_check_addendum6.sql` 6b839a0f…. The pending payouts patch is rebuilt on
+the fix (pm_live.ts after it 61b1d53f…). Built in a worktree by an opus-max agent (`51cd7e45`, `0a4797d4`, the second
+committed with `LEDGER_OK=1` before this line), reviewed and pushed by the coordinator; the deploy is read in the next
+section. **TAKE (variant-2) from 16:00:** its rule is in force and the twin runs with no error, but every stablecoin
+executor, the live account's and the twins', is dark for the weekend by design ("no GBP/USD minute in the last ten":
+the FX market is shut, last order Friday 20:55 UTC), so its first take can come only after the FX market reopens on
+Sunday evening. **Reward quotes live-prep (Davies' request of 2026-10-04): Phase A done** by an opus-max agent, read-only:
+the spec (S2), its draft pre-registration and Phase B's plan are in the session's scratchpad (`rw_best/`) until Phase B
+commits them with the build.
 
 ### [2026-10-04 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
