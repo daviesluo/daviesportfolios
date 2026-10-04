@@ -1,0 +1,17 @@
+{"check":"the four tables, two leases, two calls and one job, after the migration ran twice","ok":true}
+{"check":"a market takes its id and its phase from the database, id % 15","ok":true}
+{"check":"a write may not name the phase","ok":true,"detail":"cannot insert a non-DEFAULT value into column \"phase\""}
+{"check":"a frame of an unknown kind is refused","ok":true,"detail":"new row for relation \"pm_rec_frames\" violates check constraint \"pm_rec_frames_kind_check\""}
+{"check":"the hourly job is three statements: the cap on held data, the frames after seven days, the markets after a week delisted","ok":true,"detail":["update public.pm_rec_frames set data = null, lost = true where archived_at is null and not lost and minute < now() - interval '6 hours'","delete from public.pm_rec_frames where minute < now() - interval '7 days'","delete from public.pm_rec_markets where delisted_at < now() - interval '7 days' and (ours_until is null or ours_until < now())"]}
+{"frames":[{"kind":"books","h":"1","held":true,"archived":false,"lost":false},{"kind":"books","h":"5","held":true,"archived":false,"lost":false},{"kind":"books","h":"7","held":false,"archived":false,"lost":true},{"kind":"prints","h":"7","held":false,"archived":true,"lost":false},{"kind":"books","h":"144","held":false,"archived":true,"lost":false}]}
+{"check":"held data under six hours old stays held","ok":true,"detail":[1,5]}
+{"check":"held data past six hours is dropped and marked lost","ok":true}
+{"check":"a frame's counts are kept seven days, archived or lost, and then deleted","ok":true}
+{"check":"a market delisted a week ago goes unless a path holds it","ok":true,"detail":["a","d","e","f"]}
+{"framesSize":{"anHourOfBooksHeldMB":11.08,"perFrameKB":185,"afterArchiveAndVacuumMB":0.27,"withTheNextHourHeldMB":11.23}}
+{"check":"an hour of book frames held is about its gzip (176 KB a frame), and the next hour is held in the space the archive freed","ok":true,"detail":{"heldHour":11083776,"clearedHour":270336,"nextHour":11231232}}
+{"marketsSize":{"rows":20000,"totalMB":14.16,"perRowB":708}}
+{"check":"20,000 markets take under 15 MB with their indexes","ok":true,"detail":14163968}
+{"shapeNotTaken":{"perRowB":332,"rowsPerDay":2549232,"mbPerDay":847}}
+{"check":"a row per book per minute would be several hundred MB a day, over the budget in a day","ok":true,"detail":847}
+{"failed":0,"mode":"as written"}

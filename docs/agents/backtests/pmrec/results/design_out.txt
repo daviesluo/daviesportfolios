@@ -1,0 +1,11 @@
+{"step":"listing","rows":18926,"pages":48,"how":"concurrent+one page","ms":7221,"cpuMs":230}
+{"step":"rates","atLeast":{"$0":18856,"$1":18643,"$5":7157,"$6":3430,"$10":2856,"$20":1855,"$50":800,"$100":347,"$500":124},"dailyRateSum":{"all":550568,"$10+":509189}}
+{"step":"short list","rows":18913,"ms":3546,"cpuMs":260,"listedWithTokens":18707}
+{"step":"books","read":0,"markets":2810,"books":2810,"requests":29,"failed":0,"ms":1334,"cpuMs":160,"twoSided":2748,"levels":37786,"timestampAgeS":{"p10":1,"p50":17,"p90":131}}
+{"step":"books","read":1,"markets":2810,"books":2810,"requests":29,"failed":0,"ms":1308,"cpuMs":160,"twoSided":2748,"levels":37740,"timestampAgeS":{"p10":1,"p50":15,"p90":129},"window":{"same":1079,"changed":1731,"sameTsMoved":566},"whole":{"same":725,"sameTsMoved":212,"sameHashMoved":212,"changedTsSame":0}}
+{"step":"books","read":2,"markets":2810,"books":2810,"requests":29,"failed":0,"ms":1295,"cpuMs":140,"twoSided":2747,"levels":37756,"timestampAgeS":{"p10":2,"p50":17,"p90":130},"window":{"same":991,"changed":1819,"sameTsMoved":512},"whole":{"same":640,"sameTsMoved":161,"sameHashMoved":161,"changedTsSame":0}}
+{"step":"encoding","encoding":"ladder, size-cutoff touch, last trade (as recorded)","books":2810,"rawKb":511,"gzipKb":176}
+{"step":"encoding","encoding":"and RW's q1, q2 and depth within v","books":2810,"rawKb":589,"gzipKb":216}
+{"step":"encoding","encoding":"ladder only","books":2810,"rawKb":470,"gzipKb":161}
+{"step":"encoding","encoding":"as recorded, prices as steps","books":2810,"rawKb":425,"gzipKb":158}
+{"step":"tape","pages":3,"prints":3000,"windowS":153,"perMinute":1176,"$10 set per minute":100,"compared":{"markets":10,"inTape":69,"inOwnFeed":69}}
