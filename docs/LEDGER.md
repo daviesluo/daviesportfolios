@@ -214,10 +214,13 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 01:01): the funded pre-registration is a
      draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`) that freezes on his go date, the earliest after the
      overlap audit (≥ 2026-10-23 00:05 UTC); step 8m arms only the current config (PGlite, `scripts/mid_live_check.mjs`);
-     the margin measured again: 0.67 overlapped in 4 of 111 pairs, 0.8 in none (the draft keeps 0.67). **Waiting on
-     Davies:** the payouts-per-path change to `pm_live.ts` (each path books only its own live markets' payouts; no
-     dry-run decision changes) is built and green but not on `main`, because deploying it changes the live order path's
-     code; deployed before 10-17 it is a deviation of mid-pool's readout, from 10-17 none. **Before a go date:** he funds
+     the margin measured again: 0.67 overlapped in 4 of 111 pairs, 0.8 in none (the draft keeps 0.67). **Kept for
+     later on Davies' word** (2026-10-04, "之后再部署吧 我想等v-3 v-4的结果更明显了看看能不能inform现在的mid策略之后再决定上线，具体时间我来定，代码你先都存好"):
+     the payouts-per-path change to `pm_live.ts` (each path books only its own live markets' payouts; no dry-run decision
+     changes) is `docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`, its README saying how to land it;
+     deployed before 10-17 it is a deviation of mid-pool's readout, from 10-17 none. **His go-live decision waits for the
+     RW-X arms** (x4 "wide", x5 "lean": Test 1 at or after 10-09 00:05, Test 2 after RW-C's verdict): report then whether
+     either should change mid-pool's quoting rule; a changed rule runs in the dry-run before any go date, which is his. **Before a go date:** he funds
      the account to at least $400.00 of pUSD ($320 cap); the probe from Ireland (design step 2); the two unused pUSD
      spenders revoked or kept (step 3, his call); a live row and page for the funded path and a freshness reading in the
      monitor (`monitor/health.ts`), built before go (PR5 live had both); the readout (≥ 10-17 00:10) and the audit
@@ -736,6 +739,19 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The payouts-per-path change is kept as a patch, not deployed** (Davies, told it waited for his word: "之后再部署吧
+我想等v-3 v-4的结果更明显了看看能不能inform现在的mid策略之后再决定上线，具体时间我来定，代码你先都存好"). The agent's commit was
+rebuilt on `8d06a995` (code, pins and map rows only; the docs already landed), its six test files run there (Deno
+109 pass: `pm_live`, `pm_mid`, `pm_prep`, `pm_prep_view`, `pm_instance`, `pm_payouts`; vitest 24: `pm_mid_prereg`,
+`docs_map`, `pm_prep_prereg`; `deno check` clean), and exported with `git format-patch` as
+`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch` (sha256 `413644f8…17fa`; `git apply --check` clean on
+`8d06a995`, where `pm_live.ts` is still `8ba7b915…`). `docs/agents/pending/README.md` says what it waits for and how to
+land it; the draft pre-registration, reference item 53, `docs/agents/CLAUDE.md` and the map point there. This
+supersedes the 01:01 section's "it lives only in this container". Nothing deploys from `docs/`. Mid-pool's go-live
+waits for the RW-X arms' results (Test 1 at or after 10-09 00:05) and then his date.
 
 ### [2026-10-04 01:01 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

@@ -459,8 +459,10 @@ that follow from that evidence, in short:
   (2026-10-23 00:05 UTC); its margin was measured again on 2026-10-04
   (0.67 overlapped in 4 of 111 pairs, 0.8 in none; the draft keeps 0.67,
   the dry-run's rule); and a change that makes each path book only the
-  payouts of the markets it quoted live is built and waits for his word
-  to deploy, since it changes the live order path's code. It leaves out every market RW's frozen selection, recomputed from
+  payouts of the markets it quoted live is built and kept as
+  `docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch` until
+  he decides, after the RW-X arms' results, when mid-pool goes live. It
+  leaves out every market RW's frozen selection, recomputed from
   public data, takes or scores at ≥ 0.33 of its last pick, never reading
   `pm_rw_*` or `pm_rwc_*`. Its config holds a copy of the attestation, so
   a revocation also runs `update public.pm_mid_config set ireland_until =

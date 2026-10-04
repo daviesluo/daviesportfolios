@@ -137,8 +137,9 @@ Each of these, read and recorded in the conversation where Davies says go:
    six, 1 of 38 further); at 0.8 in none. The 2026-10-02 measurement found none at either (91 pairs). This draft keeps
    0.67, the dry-run's rule, for a go date after 2026-10-23 00:05 UTC, when RW's and RW-C's paper tests have ended and
    no frozen test reads those books; the audit's counts and these measurements are reported with the freeze.
-3. **The payouts change is deployed, on Davies' word.** Built and pinned on 2026-10-04 with every gate green, and not
-   on `main`: it changes the live order path's code, so it reaches production only when he says so (its runs green,
+3. **The payouts change is deployed, on Davies' word.** Built and pinned on 2026-10-04 with every gate green, and kept
+   off `main` as `docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch` (Davies: "之后再部署吧…具体时间我来定，
+   代码你先都存好"): it changes the live order path's code, so it reaches production only when he says so (its runs green,
    `agents` redeployed, mid-pool's next turns read without error). Deployed on or before 2026-10-16 it falls inside
    mid-pool's dry-run window (d2–d14) and is a deviation its readout names (it changes no dry-run decision: pinned);
    from 2026-10-17 00:00 UTC it is not.
