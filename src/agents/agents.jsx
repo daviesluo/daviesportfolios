@@ -537,10 +537,8 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
         <div className="ag-sb-divider" />
         <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(x.fees, x.ccy))})`} />
       </div>
-      {lines && <div className="ag-twin-line dim">{lines.what}</div>}
       {lines?.waiting.map((w) => <div key={w} className="ag-twin-line ag-twin-waiting dim">{w}</div>)}
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
-      {lines?.warn && <div className="ag-warn-line">{lines.warn}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
       <QuoteBooks books={quotesLiveBooks(q)} m={m} empty={empty} />
       <section className="ag-section ag-ql-inventory">

@@ -740,6 +740,13 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 10:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The stablecoin twins' pages lose two lines** (Davies: "testing页面中的每个Stablecoin quotes子页面“3 rungs a side at £100 ·
+the live code on a simulated Revolut X account…its replica differs from its engine's record in 46 events”这些信息行都删了"):
+`quotesTwinLines` keeps only the "asks wait for their coin" lines; the unit test and the sweep expect no line where the
+two were. Display only; nothing of the twins' engines or records changes.
+
 ### [2026-10-04 10:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The 10-04 health routine (`trig_014Rdj3qAgVVbh8h3eKcjb8X`): all well**, read-only, counts and timestamps only. QUEUE's

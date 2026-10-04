@@ -1207,20 +1207,19 @@ export function quotesTwinOf(selected, dash) {
 }
 
 /**
- * What a twin's page says of the twin, under its scoreboard: one line for what it is (its rungs, their size, the
- * simulated account and its fill rule), and one for each book whose asks wait for the coin a resting conversion is
- * buying (Davies, 2026-10-02: the conversions are makers, and an ask has no coin until its conversion fills).
+ * What a twin's page says under its scoreboard: one line for each book whose asks wait for the coin a resting
+ * conversion is buying (Davies, 2026-10-02: the conversions are makers, and an ask has no coin until its conversion
+ * fills). The lines saying what the twin is, and how far its replica differs from its engine, were taken off on
+ * Davies' word (2026-10-04).
  * @param {any} t  one of the dashboard's `quotesTwins`
  * @param {(s: string) => string} [m]
- * @returns {{ what: string, waiting: string[], warn: string | null }}
+ * @returns {{ waiting: string[] }}
  */
 export function quotesTwinLines(t, m = (s) => s) {
   const tw = t?.twin ?? {};
-  const what = `${Number(tw.rungsASide) || 0} rungs a side at ${m(fmtGbp(tw.rungGbp))} · the live code on a simulated Revolut X account: an order fills only by trades through its price`;
   const waiting = (tw.converting ?? []).map((/** @type {any} */ c) =>
     `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
-  const warn = Number(tw.paperCheck?.mismatches) > 0 ? `its replica differs from its engine's record in ${tw.paperCheck.mismatches} events` : null;
-  return { what, waiting, warn };
+  return { waiting };
 }
 
 /** PR5's live executor's id among LIVE's rows. */

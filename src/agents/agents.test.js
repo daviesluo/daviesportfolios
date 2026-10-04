@@ -981,17 +981,14 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     const catching = quotesTwinRow({ ...pr5, running: false, lagMinutes: 300, twin: { ...pr5.twin, mode: 'catch-up', lastTurn: '2026-09-17T18:00:25.000Z' } });
     expect(catching?.status.detail).toMatch(/^catching up: its record stands at \d{1,2} \w{3} \d{2}:\d{2}$/);
   });
-  it('says on its page what it is, and which asks wait for the coin a maker conversion is buying', () => {
+  it('says on its page which asks wait for the coin a maker conversion is buying', () => {
     const mask = (/** @type {string} */ s) => s.replace(/\d/g, '•');
-    expect(quotesTwinLines(pr5)).toEqual({ what: '3 rungs a side at £100 · the live code on a simulated Revolut X account: an order fills only by trades through its price', waiting: [], warn: null });
-    expect(quotesTwinLines(d).what).toBe('9 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price');
+    expect(quotesTwinLines(pr5)).toEqual({ waiting: [] });
     // Variant-1's line is the same component's: PR5's three rungs a side, at its £50 (masked with the values).
-    expect(quotesTwinLines(p50)).toEqual({ what: '3 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price', waiting: [], warn: null });
-    expect(quotesTwinLines(p50, mask).what).toBe('3 rungs a side at £•• · the live code on a simulated Revolut X account: an order fills only by trades through its price');
+    expect(quotesTwinLines(p50)).toEqual({ waiting: [] });
     const waiting = { ...d, twin: { ...d.twin, converting: [{ book: 'USDT-GBP', ts: '2026-09-17T22:40:00Z', price: 0.7566, base: 594.79, filledBase: 120.5 }] } };
     expect(quotesTwinLines(waiting).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £0.7566, 120.50 of 594.79 filled']);
     expect(quotesTwinLines(waiting, mask).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £•.••••, •••.•• of •••.•• filled']);
-    expect(quotesTwinLines({ ...pr5, twin: { ...pr5.twin, paperCheck: { mismatches: 3 } } }).warn).toBe("its replica differs from its engine's record in 3 events");
   });
 });
 

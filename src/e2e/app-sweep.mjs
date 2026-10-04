@@ -591,7 +591,7 @@ const TW = (() => {
       scoreboard: `FUNDED=${money(t.capitalGbp, '£')} | DEPLOYED=${money(t.valueGbp, '£')}(${pct((t.valueGbp / t.capitalGbp) * 100, false)}) | TODAY [(loss stop ${money(t.lossStopGbp, '£')})]=`
         + `${money(t.todayGbp, '£', true)}(${pct((t.todayGbp / t.capitalGbp) * 100)}) | UNREALIZED G/L=${money(t.unrealisedGbp, '£', true)}(${pct((t.unrealisedGbp / t.costGbp) * 100)}) | `
         + `REALIZED G/L [(incl. fees ${money(t.feesGbp, '£')})]=${money(t.realisedGbp, '£', true)}(${pct((t.realisedGbp / t.capitalGbp) * 100)})`,
-      line: `${t.twin.rungsASide} rungs a side at ${money(t.twin.rungGbp, '£')} · the live code on a simulated Revolut X account: an order fills only by trades through its price`,
+      line: '',
     })),
   };
 })();
@@ -2951,7 +2951,7 @@ async function run() {
         '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | £0.0900 | +£0.0288'];
       if (tp && tp.title === 'Stablecoin quotes' && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
         && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
-        && tp.twinLines.join(' / ') === '3 rungs a side at £100 · the live code on a simulated Revolut X account: an order fills only by trades through its price' && tp.warns.length === 0
+        && tp.twinLines.length === 0 && tp.warns.length === 0
         && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
         && tp.cards[0].ladder.join(' / ') === '0.1 % | £0.7569 | £0.7585 / 0.2 % | £0.7561 | held £0.7591 +£0.2112 / 0.3 % | £0.7553 | £0.7600'
         && tp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192|USDT|527.64 USDT · £399.43 at £0.7570 -£0.1138'
@@ -2976,7 +2976,7 @@ async function run() {
         '0.2 % | £0.7561 | held £0.7591 +£0.2112', '0.25 % | idle | idle', '0.3 % | £0.7553 | £0.7600'];
       if (tdp && tdp.title === dName && tdp.head === 'PAPER Revolut X' && tdp.tested === 'tested 20h'
         && tdp.scoreboard === 'FUNDED=£1,800 | DEPLOYED=£999.14(55.51%) | TODAY [(loss stop -£18)]=+£0.23(+0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
-        && tdp.twinLines.join(' / ') === '9 rungs a side at £50 · the live code on a simulated Revolut X account: an order fills only by trades through its price'
+        && tdp.twinLines.length === 0
         && tdp.cards.length === 2 && tdp.cards.every((c) => c.ladder.length === 9) && tdp.cards[0].ladder.join(' / ') === RULED_LADDER.join(' / ') && tdp.overflow <= 1) {
         ok(S('agents'), `rule D's twin's page: "${dName}", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs`);
       } else fail(S('agents'), `rule D twin page ${JSON.stringify(tdp && { ...tdp, cards: tdp.cards.map((c) => c.ladder.join(' / ')) })}`);
@@ -3922,7 +3922,7 @@ async function run() {
       await page.waitForTimeout(300);
       const pp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       if (pp && pp.livePages === 0 && pp.twinPages === 1 && pp.head === 'PAPER Revolut X' && pp.cards.map((c) => c.head).join(',') === 'USDC/GBP,USDT/GBP' && pp.cards.every((c) => c.ladder.length === 3)
-        && pp.trips.length === 3 && /^3 rungs a side at £100 · the live code on a simulated Revolut X account/.test(pp.twinLines[0] ?? '')) {
+        && pp.trips.length === 3 && pp.twinLines.length === 0) {
         ok(T('pr5-page'), "TESTING's Stablecoin quotes opens its twin's page, not the live executor's: PAPER, its two books of three rungs, 3 round trips, and its line");
       } else fail(T('pr5-page'), `TESTING's Stablecoin quotes: ${JSON.stringify(pp && { live: pp.livePages, twin: pp.twinPages, head: pp.head, books: pp.cards.map((c) => c.head), trips: pp.trips.length, lines: pp.twinLines })}`);
       await page.keyboard.press('Escape');
