@@ -17,7 +17,7 @@
 // N × (b + 1 − a): 4.90 + 19.40 on 16 Sep, 4.90 + 19.44 today. The shares at the last minute: A earned 0.0002 of a pool
 // of 8 a day, 0.0002 × 1440 / 8 = 3.6 %; B 0.00014 of 7, 2.88 %.
 
-import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/prep_fixture.json" with { type: "json" };
 import midFixture from "../../../src/e2e/mid_fixture.json" with { type: "json" };
 import { PREP_STALE_MINUTES, prepSummary } from "./pm_prep_view.ts";
@@ -73,6 +73,9 @@ Deno.test("a closed day is its change since the close before, so the days add up
   near(out.days[0].totalUsd + out.days[1].totalUsd + out.todayUsd, out.totalUsd, "the days are the total");
   // No selection on the 18th yet: nothing quoting and no costs; what is held is still listed, from an earlier day.
   assertEquals([out.quoting, out.capitalUsd, out.markets.map((m) => m.quoting)], [0, null, [false, false]]);
+  // Held from an earlier day, each is still named by its question, never by its id (2026-10-04: "0x2764…" on the page).
+  const named = new Map(F.input.markets.map((m: { cond: string; question: string | null }) => [m.cond, m.question]));
+  for (const m of out.markets) { assert(String(m.q).length > 0 && !/^0x[0-9a-f]{16,}$/i.test(String(m.q)), `${m.cond} unnamed`); assertEquals(m.q, named.get(String(m.cond))); }
   near(out.days[0].capitalUsd!, 24.34, "17 Sep's costs");
 });
 

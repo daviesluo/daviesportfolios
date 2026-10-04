@@ -105,6 +105,9 @@ export function prepSummary(input: {
     return tk ? { yes: pnl.held[tk.yes] ?? 0, no: pnl.held[tk.no] ?? 0 } : { yes: 0, no: 0 };
   };
   const latest = new Map(input.latest.map((r) => [r.cond, r]));
+  // A market's question from any day the path chose it: a market still held from an earlier day is named too, never by
+  // its id (Davies, 2026-10-04: the held rows showed "0x2764…" where their question belonged).
+  const qOf = new Map(input.markets.filter((m) => m.question).map((m) => [m.cond, String(m.question)]));
   const rates = new Map(input.rates.map((r) => [r.cond, Number(r.rate)]));
   const todays = input.markets.filter((m) => dayOf(m.day) === today).sort((a, b) => Number(a.rank) - Number(b.rank));
   const markets: Array<Record<string, unknown>> = [];
@@ -122,7 +125,7 @@ export function prepSummary(input: {
     // Our share of the pool at that minute, as RW's page shows it: the formula paid rate / 1440 × ours / (ours + others).
     const r = nz(row?.reward), rate = rates.get(m.cond);
     markets.push({
-      cond: m.cond, q: m.question ?? "", rank: Number(m.rank), quoting: true, ratePerDay: nz(m.reward_rate),
+      cond: m.cond, q: m.question || qOf.get(m.cond) || "", rank: Number(m.rank), quoting: true, ratePerDay: nz(m.reward_rate),
       cls: row?.class ?? null, bid, ask, yes: h.yes, no: h.no, mark: st.marks?.[m.cond] ?? null,
       share: r !== null && r > 0 && rate !== undefined && rate > 0 ? r6((r * 1440) / rate) : null,
       ...partOut(m.cond),
@@ -133,12 +136,11 @@ export function prepSummary(input: {
     const h = heldBy(cond);
     if (seen.has(cond) || h.yes + h.no <= 0) continue;
     markets.push({
-      cond, q: "", rank: null, quoting: false, ratePerDay: null, cls: null, bid: null, ask: null, yes: h.yes, no: h.no, mark: st.marks?.[cond] ?? null,
+      cond, q: qOf.get(cond) ?? "", rank: null, quoting: false, ratePerDay: null, cls: null, bid: null, ask: null, yes: h.yes, no: h.no, mark: st.marks?.[cond] ?? null,
       share: null, ...partOut(cond),
     });
   }
   const open = markets.filter((x) => Number(x.yes) + Number(x.no) > 0).length;
-  const qOf = new Map(input.markets.map((m) => [m.cond, m.question ?? ""]));
   const recent = fills.slice().sort((x, y) => y.ts - x.ts || y.minute - x.minute || (x.printId < y.printId ? 1 : -1)).slice(0, PREP_RECENT_FILLS).map((f) => ({
     ts: iso(f.ts), minute: iso(f.minute), cond: f.cond, q: qOf.get(f.cond) ?? "", side: f.side, price: f.price, size: f.size, tokenSide: f.tokenSide,
     outcome: st.tokens?.[f.cond]?.yes === f.token ? "yes" : "no", tokenPrice: f.tokenPrice, closeOnly: f.closeOnly,

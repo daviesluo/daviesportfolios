@@ -24,6 +24,7 @@ const inserted = FILES.flatMap((file) => [...sqlOf(file).matchAll(INSERT)].flatM
 const ROWS = inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => x.row)
   .sort((a, b) => a.display_order - b.display_order);
 const firstOf = (id) => inserted.find((x) => x.row.id === id);
+const RULE_MOVE = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{\w+,from\}', '"[0-9T:Z-]+"'::jsonb\)\s+where id = '\w+' and rules->'\w+'->>'from' = '[0-9T:Z-]+';/g;
 const SPECS_0088 = FILES.find((f) => f.startsWith('0088_')) ?? '';
 
 describe("the twins' spec rows", () => {
@@ -68,15 +69,18 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it('are touched by no migration in any other way than 0088 creates them and a migration inserts them', () => {
+  it('are touched by no migration in any other way than 0088 creates them, a migration inserts them, or moves one rule date', () => {
     for (const f of FILES) {
       const sql = sqlOf(f);
       const named = (sql.match(/agent_quote_twin_specs/g) ?? []).length;
       const inserts = [...sql.matchAll(INSERT)].length;
+      const moves = [...sql.matchAll(RULE_MOVE)].length;
       // An insert names the table twice; 0088 also creates it, enables its row level security, and its function reads it
-      // (its type, its select and its refusal).
-      expect(named, f).toBe(2 * inserts + (f === SPECS_0088 ? 5 : 0));
+      // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
+      // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once.
+      expect(named, f).toBe(2 * inserts + moves + (f === SPECS_0088 ? 5 : 0));
     }
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order", () => {

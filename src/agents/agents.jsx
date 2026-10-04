@@ -438,6 +438,9 @@ function RungSide({ side, children = null }) {
  * stacks its date over its time, a book is its coin, and a size its number (`.ag-ql-tables` in styles.css). The text is
  * the same at every width; only what a phone shows of it differs.
  */
+/** A market as the page names it: its question, never its id (a 66-character hex string reads as noise). @param {unknown} q */
+const marketName = (q) => (typeof q === 'string' && q.trim() && !/^0x[0-9a-f]{16,}$/i.test(q.trim()) ? q : 'Market name not recorded');
+
 /** A time, its date and its clock in two parts a phone stacks. @param {{ iso: string }} props */
 function Stamp({ iso }) {
   const s = when(iso), i = s.lastIndexOf(' ');
@@ -713,7 +716,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                 const c = { total: s.total, a: s.parts[0], b: s.parts[1] };
                 return (
                   <tr key={x.cond}>
-                    <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{x.q || x.cond}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
+                    <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.q}>{marketName(x.q)}</span>{x.quoting ? null : <span className="hl-sub dim">held from an earlier day</span>}</td>
                     <td>{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
                     {/* A paper layer's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
                     <td>{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'dark' ? 'nothing resting' : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
@@ -743,7 +746,7 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
                 return (
                   <tr key={`${f.cond}|${f.minute}|${f.ts}|${f.side}|${f.price}|${f.size}`} className={`txn-row txn-row-${fv.buy ? 'buy' : 'sell'}`}>
                     <td className="dim">{when(f.ts)}</td>
-                    <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{f.q || f.cond}</span></td>
+                    <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{marketName(f.q)}</span></td>
                     <td><span className={`ag-side ag-side-${fv.buy ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{fv.text}</span></td>
                     <td className="ag-col-shares">{m(rwShareText(f.size))}</td>
                     <td className="ag-col-price">{m(fmtCents(fv.price))}</td>

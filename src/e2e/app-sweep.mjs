@@ -3079,6 +3079,8 @@ async function run() {
       const rPh = await page.locator('.ag-rw-detail th').evaluateAll((els) => els.filter((el) => getComputedStyle(el).display === 'none').length);
       const rScroll = await page.locator('.ag-rw-markets .hl-scroll, .ag-rw-detail .hl-scroll').first().evaluate((el) => getComputedStyle(el).overflowX).catch(() => '');
       const rOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth);
+      // A market is named by its question, never by its id (2026-10-04: held rows showed "0x2764…").
+      const rHex = await page.locator('.ag-rw-detail .ag-rw-q').evaluateAll((els) => els.filter((el) => /^0x[0-9a-f]{16,}$/i.test((el.textContent || '').trim())).length);
       if (rTitle === 'Reward quotes' && rLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
         && rSplitLines.length === 2 && rSplitLines[0].text === 'rewards +$41.60' && rSplitLines[1].text === 'orders +$0.40'
         && rSplitLines.every((l) => l.oneLine && l.fits) && rSplitLines[1].top > rSplitLines[0].top + 2
@@ -3092,9 +3094,9 @@ async function run() {
         && rTiles.join(',') === 'WORST CASE,TOP SHARE,QUOTING TODAY,POSITIONS STILL HELD' && /WORST CASE \+\$17\.20/.test(rBar) && /45 %/.test(rBar) && /QUOTING TODAY/.test(rBar) && /POSITIONS STILL HELD/.test(rBar) && !/if rewards were halved/.test(rBar)
         && rNote === 0 && rMeta === 0 && rWhen === '' && !/Day \d+ of 14/.test(rBar) && await page.locator('.ag-rw-run').count() === 0
         && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(rFoot) && rWarn === 0
-        && rPh === 0 && rScroll === 'auto' && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
+        && rPh === 0 && rScroll === 'auto' && rHex === 0 && rOverflow <= 1 && !rQ.clipped && rQ.lines <= (narrow ? 4 : 2)) {
         ok(S('agents'), `its page: FUNDED first, realised stays inside its cell, STATUS is worst case, top share, quoting today and positions still held, the open day leads the days, 4 quotes, 4 days, 5 fills; every column${narrow ? ', a phone scrolling the tables sideways' : ''}`);
-      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${JSON.stringify(rSplitLines)}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, columns hidden ${rPh}, scroll ${rScroll}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
+      } else fail(S('agents'), `RW page: title "${rTitle}", labels ${rLabels.join(',')}, split ${JSON.stringify(rSplitLines)}, sections ${rSections.join(',')}, markets ${rMarkets} ("${rFirst}" / "${rHeldRow}"), days ${rDayHeads.join(',')} / ${rDays.join('|')} / "${rFirstDay}", fills ${rFills} heads ${rFillHeads.join(',')} eq ${rFillEq} ("${rFirstFill}"), tiles ${rTiles.join(',')}, bar "${rBar}", note ${rNote}, meta ${rMeta}, when "${rWhen}", foot "${rFoot}", warnings ${rWarn}, columns hidden ${rPh}, scroll ${rScroll}, ids shown ${rHex}, overflow ${rOverflow}, question ${JSON.stringify(rQ)}`);
       // RW-E has a row and a page of its own, so its section beside RW went (Davies, 2026-09-26), although the fixture's
       // RW still carries the replay's figures.
       const eGone = await page.locator('.ag-rw-detail .ag-rw-e').count() === 0

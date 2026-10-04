@@ -740,6 +740,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Reward quotes pages name every market by its question** (Davies: "quotes表格中里有很多市场名字显示类似于“0x2764…”这样的乱码，请修复，并确保之后不会发生").
+Cause: `prepSummary` (mini-pool's and mid-pool's pages) gave a market still held from an earlier day an empty question,
+and the page fell back to its condition id. Every market the path chose has its question in `pm_live_markets` (26 of
+26 read); RW's state names all 149 of its markets, and RW-E's and RW-X's pages read RW's names. Now the question comes
+from any day the path chose the market, and the page never prints an id (`marketName`: a 0x… string or nothing reads
+"Market name not recorded"). Pinned in `pm_prep_view.test.ts` (fails on the old code: held rows unnamed) and in the
+sweep (no `0x…` name on an RW page).
+Also fixed: `src/twin_specs.test.js` refused `0090` (TAKE's start, 13:36), whose guarded `update` of one rule date it
+did not allow, so `check` was red on `afa53647` and `768f6fb8`; the guard now allows exactly that form, and lists 0090.
+
 ### [2026-10-04 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Every Reward quotes page keeps every column on a phone** (Davies: "手机端每个reward子页面中的表格每列都显示（和电脑端一样），左右滑动就行了，不要少列"):
