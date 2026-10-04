@@ -740,6 +740,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**COUNTS: leaving post-count and view-count markets out of Reward quotes variant-2 (x1) would not help** (Davies:
+"…你研究下如果把这两类或还有类似的市场也去掉的话表现会更好吗？"). An `opus-max` sub-agent replayed RW-X's own code on RW's
+minutes, reproducing every `pm_rw_x_days` row and the stored state to the cent, then x1 less each class (frozen at
+14:48:36 before any arm ran): posts +$14.46 (one market; −$16.95 without it), views $0.00 (x1 never quoted one), live
+counters −$268.92, finance −$33.31, general −$9.94; a 24-hour cut on count markets +$20.45, all from that one market.
+x4 = x1 by design (its 0.9 keep never binds at a 1¢ tick; 0.6–0.7 would act), x5 −$8.72 since the 10-02 row. Filed in
+`docs/agents/backtests/rwcounts/`; reference item 36. **Read under the 14:45 waiver:** `pm_rw_x_days`/`pm_rw_x_state`
+for every arm (x4/x5 Test 1-window figures before 10-09), mini-pool's and mid-pool's paper records; nothing of RW-C.
+
 ### [2026-10-04 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Every no-peek rule is cancelled, on Davies' word** ("所有不偷看条款全部取消，所有的数据都可用来达到最佳研究效果，你也可以发消息给子代理告诉他们").

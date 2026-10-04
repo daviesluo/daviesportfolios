@@ -1,0 +1,727 @@
+{
+ "read_at": "2026-10-04T15:01:21Z",
+ "rewarded": 18833,
+ "rate>=6": 3350,
+ "with_question": 3350,
+ "bands": {
+  "mini $6-<10": {
+   "markets": 573,
+   "P": 11,
+   "V": 0,
+   "C": 13,
+   "list": {
+    "P": [
+     [
+      "0x0885bd5a",
+      7,
+      "Will Elon Musk post 160-179 tweets from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x0fcfd063",
+      7,
+      "Will Elon Musk post <40 tweets from October 5 to October 7, 2026?",
+      "2026-10-07T16:00"
+     ],
+     [
+      "0x2204435f",
+      6,
+      "Will NYC Mayor post 20-39 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0x401f9cca",
+      6,
+      "Will Elon Musk post 240-259 tweets from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x474342d8",
+      7,
+      "Will Donald Trump post 100-119 Truth Social posts from October 6 to October 13, ",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x9d5be9ca",
+      8,
+      "Will Elon Musk post 800-839 tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0xa085cfad",
+      7,
+      "Will Ted Cruz post 140-159 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xa8ed6bb8",
+      7,
+      "Will Elon Musk post 240-259 tweets from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xc962471f",
+      6,
+      "Will Zelenskyy post 100-119 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xdc65d7b2",
+      6,
+      "Will Ted Cruz post 160-179 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xf134ee06",
+      6,
+      "Will CZ post 60-79 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ]
+    ],
+    "V": []
+   }
+  },
+  "mid $10-50": {
+   "markets": 2240,
+   "P": 87,
+   "V": 7,
+   "C": 30,
+   "list": {
+    "P": [
+     [
+      "0x0622faf8",
+      15,
+      "Will Donald Trump post 180-199 Truth Social posts from October 6 to October 13, ",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x0ca2f2a9",
+      30,
+      "Will Zelenskyy post 100-119 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x176ccdc4",
+      17,
+      "Will Ted Cruz post 120-139 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x1b6ea683",
+      29,
+      "Will Elon Musk post 180-199 tweets from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x1f001358",
+      10,
+      "Will Elon post \"Texas\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x20e13b2f",
+      43,
+      "Will Donald Trump post 200+ Truth Social posts from October 2 to October 9, 2026",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x20f0d346",
+      10,
+      "Will Trump post \"Bitcoin,\" \"Crypto,\" or \"Cryptocurrency\" on Truth Social this we",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x244bc3d9",
+      10,
+      "Will Trump post \"Putin\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x2c518946",
+      10,
+      "Will Trump post \"Vance\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x33aa603d",
+      10,
+      "Will Elon post \"Trump\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x34c6a871",
+      21,
+      "Will Zelenskyy post 60-79 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x3618d9c4",
+      36,
+      "Will Elon Musk post 1000+ tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0x364de8a5",
+      10,
+      "Will Elon post \"Deport\" or \"Deported\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x3746b219",
+      25,
+      "Will Donald Trump post 200+ Truth Social posts from October 6 to October 13, 202",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x3d41a11a",
+      16,
+      "Will Donald Trump post 180-199 Truth Social posts from October 2 to October 9, 2",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x3f55b7a8",
+      30,
+      "Will Elon Musk post 200-219 tweets from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x458ee60c",
+      19,
+      "Will Donald Trump post 140-159 Truth Social posts from October 6 to October 13, ",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x48467d5b",
+      10,
+      "Will Elon post \"Deport\" or \"Deported\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x4caaa495",
+      34,
+      "Will Elon Musk post 200-219 tweets from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x51cc55f0",
+      26,
+      "Will Elon Musk post 240-259 tweets from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0x59ab95a3",
+      10,
+      "Will Trump post \"President Xi\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x5b6b6380",
+      10,
+      "Will Trump post \"Sanction\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x6878b759",
+      32,
+      "Will White House post 180-199 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x6a88e7f5",
+      10,
+      "Will Trump post \"President Xi\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x6f3ca5b7",
+      23,
+      "Will Zelenskyy post 60-79 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x716b602a",
+      10,
+      "Will Trump post \"Rigged\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x73ea3bd3",
+      10,
+      "Will Trump post \"Terrorism\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x77a5ab0c",
+      34,
+      "Will Ted Cruz post 100-119 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x7ae296d2",
+      10,
+      "Will Zelenskyy post 160-179 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x7d62b204",
+      31,
+      "Will Elon Musk post 180-199 tweets from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x7dbfd160",
+      13,
+      "Will CZ post 0-19 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0x7df01bc1",
+      10,
+      "Will Elon post \"Border\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x83a0d798",
+      10,
+      "Will Elon post \"Texas\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x8867b2f5",
+      23,
+      "Will Donald Trump post 140-159 Truth Social posts from October 2 to October 9, 2",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x8c36dcce",
+      21,
+      "Will Elon Musk post 220-239 tweets from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x8e31b566",
+      11.99872,
+      "Will Trump post \"Putin\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x92348eb7",
+      10,
+      "Will Trump post \"Deranged\" or \"Derangement\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0x934a1fe6",
+      43,
+      "Will CZ post 0-19 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x934fb7b5",
+      10,
+      "Will Trump post \"Russia\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x94136102",
+      46,
+      "Will Zelenskyy post 80-99 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0x96eac2ec",
+      11,
+      "Will Elon Musk post 840-879 tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0x97d0d423",
+      10,
+      "Will Elon post \"Mexico\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0x99f9e739",
+      10,
+      "Will Elon post \"ChatGPT\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xa9846bdf",
+      15,
+      "Will Elon Musk post 920-959 tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0xb098e0d7",
+      10,
+      "Will Elon post \"Iran\" or \"Iranian\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xb422a546",
+      18,
+      "Will Donald Trump post 160-179 Truth Social posts from October 2 to October 9, 2",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xb7031c75",
+      11,
+      "Will Donald Trump post 200+ Truth Social posts from September 29 to October 6, 2",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xb9d40dc5",
+      25,
+      "Will Trump post \"China\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xb9fea68a",
+      48,
+      "Will Elon Musk post 65-89 tweets from October 3 to October 5, 2026?",
+      "2026-10-05T16:00"
+     ],
+     [
+      "0xbe7a46b1",
+      43,
+      "Will CZ post 20-39 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xbf46a88d",
+      19,
+      "Will Donald Trump post 120-139 Truth Social posts from October 6 to October 13, ",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xc1f475bd",
+      12,
+      "Will Elon Musk post 160-179 tweets from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xc2567654",
+      10,
+      "Will Elon post \"Sam\" or \"Altman\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xc30df70c",
+      10,
+      "Will Trump post \"Uranium\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xc322e7c4",
+      15,
+      "Will Donald Trump post 160-179 Truth Social posts from October 6 to October 13, ",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xc34ab143",
+      15,
+      "Will Elon Musk post 880-919 tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0xc34cac54",
+      25,
+      "Will Elon post \"Border\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xc390c1e5",
+      10,
+      "Will Elon post \"Trump\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xc88b65a5",
+      43,
+      "Will Ted Cruz post 120-139 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xca98c86a",
+      10,
+      "Will Trump post \"Rigged\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xcb633a79",
+      10,
+      "Will Elon post \"Tesla\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xcd9ef60d",
+      43,
+      "Will White House post 180-199 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xcf87e9f1",
+      50,
+      "Will Elon Musk post 220-239 tweets from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xd1e19b00",
+      25,
+      "Will Elon post \"Sam\" or \"Altman\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xd233ee97",
+      33,
+      "Will Zelenskyy post 100-119 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xd47bbb50",
+      15,
+      "Will Elon Musk post 960-999 tweets in October 2026?",
+      "2026-11-01T04:00"
+     ],
+     [
+      "0xd4c9aecc",
+      10,
+      "Will Trump post \"Vance\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xd6d4ce62",
+      10,
+      "Will Elon post \"Mexico\" on X this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xd78c4466",
+      25,
+      "Will Elon post \"Tweak\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xd82d5b5a",
+      10,
+      "Will Trump post \"Scam\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xdb02472f",
+      10,
+      "Will Khamenei post 0-4 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xdc09fc4f",
+      10,
+      "Will Elon post \"ChatGPT\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xdcd54719",
+      10,
+      "Will Trump post \"Fool\" on Truth Social this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xe016472b",
+      38,
+      "Will Elon Musk post 65-89 tweets from October 5 to October 7, 2026?",
+      "2026-10-07T16:00"
+     ],
+     [
+      "0xe903865f",
+      16,
+      "Will Ted Cruz post 100-119 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xe9a4a332",
+      37,
+      "Will Zelenskyy post 80-99 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xea24c2bd",
+      10,
+      "Will Trump post \"China\" on Truth Social this week?",
+      "2026-10-11T23:59"
+     ],
+     [
+      "0xeae5afce",
+      33,
+      "Will Ted Cruz post 80-99 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xed2d966b",
+      23,
+      "Will Elon Musk post 200-219 tweets from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xef012048",
+      26,
+      "Will Ted Cruz post 80-99 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xf578c0d2",
+      29,
+      "Will Donald Trump post 160-179 Truth Social posts from September 29 to October 6",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xf5804460",
+      42,
+      "Will Ted Cruz post 100-119 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xf6ca0941",
+      20,
+      "Will Donald Trump post 180-199 Truth Social posts from September 29 to October 6",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xf890d2fb",
+      10,
+      "Will Elon post \"Video game\" or \"Videogame\" on X this week?",
+      "2026-10-04T23:59"
+     ],
+     [
+      "0xf8b8e02c",
+      35,
+      "Will Donald Trump post 140-159 Truth Social posts from September 29 to October 6",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0xfb9b6572",
+      21,
+      "Will Elon Musk post 220-239 tweets from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0xff8f79dc",
+      43,
+      "Will CZ post 0-19 posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ]
+    ],
+    "V": [
+     [
+      "0x10ed406a",
+      20,
+      "Will Taylor Swift's daily YouTube view count hit 26M in October?",
+      "2026-10-31T23:59"
+     ],
+     [
+      "0x2a119c13",
+      26,
+      "Will the #1 global Netflix movie have between 20 and 24 million views this week?",
+      "2026-10-06T23:59"
+     ],
+     [
+      "0x51c593f7",
+      20,
+      "Will Taylor Swift's daily YouTube view count hit 24M in October?",
+      "2026-10-31T23:59"
+     ],
+     [
+      "0x574d4ff3",
+      12,
+      "Will the #1 global Netflix show have less than 6 million views this week?",
+      "2026-10-06T23:59"
+     ],
+     [
+      "0x8150f5f6",
+      21,
+      "Will the #1 global Netflix movie have between 28 and 32 million views this week?",
+      "2026-10-06T23:59"
+     ],
+     [
+      "0x8ef185fb",
+      20,
+      "Will Taylor Swift's daily YouTube view count hit 25M in October?",
+      "2026-10-31T23:59"
+     ],
+     [
+      "0xe940533a",
+      21,
+      "Will the #1 global Netflix show have between 6 and 9 million views this week?",
+      "2026-10-06T23:59"
+     ]
+    ]
+   }
+  },
+  "over $50": {
+   "markets": 537,
+   "P": 7,
+   "V": 2,
+   "C": 8,
+   "list": {
+    "P": [
+     [
+      "0x22181ebf",
+      87,
+      "Will CZ post 20-39 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ],
+     [
+      "0x60878290",
+      68,
+      "Will White House post 200+ posts from October 6 to October 13, 2026?",
+      "2026-10-13T16:00"
+     ],
+     [
+      "0x8f057133",
+      55,
+      "Will Elon Musk post 40-64 tweets from October 5 to October 7, 2026?",
+      "2026-10-07T16:00"
+     ],
+     [
+      "0xa640b4f8",
+      57,
+      "Will CZ post 20-39 posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xa96ad025",
+      54,
+      "Will Elon Musk post 40-64 tweets from October 3 to October 5, 2026?",
+      "2026-10-05T16:00"
+     ],
+     [
+      "0xd19da1f5",
+      57,
+      "Will White House post 200+ posts from October 2 to October 9, 2026?",
+      "2026-10-09T16:00"
+     ],
+     [
+      "0xea22e1ec",
+      54,
+      "Will Ted Cruz post 120-139 posts from September 29 to October 6, 2026?",
+      "2026-10-06T16:00"
+     ]
+    ],
+    "V": [
+     [
+      "0x47845e36",
+      63,
+      "Will the #1 global Netflix show have between 9 and 12 million views this week?",
+      "2026-10-06T23:59"
+     ],
+     [
+      "0xf325ab5d",
+      53,
+      "Will the #1 global Netflix movie have between 24 and 28 million views this week?",
+      "2026-10-06T23:59"
+     ]
+    ]
+   }
+  }
+ }
+}

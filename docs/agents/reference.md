@@ -3575,6 +3575,15 @@ every script re-run byte-identical by the coordinating session).
       sides quoting. Mini-pool's 21 fills point the same way and are too few. No exit rule is pre-registered: the first
       live fills' next books (`pm_live_minutes`, mode `live`) show which exit price is real before any rule is priced
       again.
+    - **Leaving post-count and view-count markets out of x1 does not help (2026-10-04, `backtests/rwcounts/`; Davies asked).**
+      RW-X's own replay reproduces all 49 `pm_rw_x_days` rows and the stored state to the cent; then arms of x1 less a
+      class, the classes frozen before any ran. Over x1's 09-28 → 10-04 14:44: without post-count markets +$14.46 at R = 1,
+      all of it one market (Trump 180–199 posts, −$31.41; without it −$16.95; day-block bootstrap 5th–95th −35.55 to
+      +78.04); without view-count markets $0.00 (x1 never quoted one: RW's were same-day or picked before x1's start);
+      without markets that resolve on a live public counter −$268.92 (x1's best class); without finance −$33.31, general
+      −$9.94. x4 equals x1 by design: at a 1¢ tick one tick out keeps a median 0.57 of the share, so its 0.9 keep never
+      binds (it moved only in 0.1¢-tick markets on 10-02); x5 trails x1 by $8.72 since the 10-02 row (rewards −12.84, fills
+      +4.12). Neither pool has chosen a post-count or view-count market. No exclusion is proposed.
 
 37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item). **Its first version read the four books at once at :00 and lost three to 429 every minute** (18:16–18:20 UTC: the public bucket is about a token a second, and the tick reads it from :00); from migration `0058` it reads 40 s into the minute, after the tick's reads and PR5's (from :25), one book every 1.25 s in an order that turns each minute, and stops at the first 429. A row's `ts` is the instant its reading arrived, `seen_until` the last reading that found the same book and `reads` how many did, so a book that stood still is told apart from one nobody read.
 

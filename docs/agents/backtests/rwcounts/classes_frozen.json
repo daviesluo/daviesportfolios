@@ -1,0 +1,436 @@
+{
+ "written_at": "2026-10-04T14:48:36.197416Z",
+ "classes": {
+  "P": {
+   "q": "\\b(posts?|tweets?|truth social)\\b"
+  },
+  "V": {
+   "q": "\\bviews?\\b"
+  },
+  "F": {
+   "cat": [
+    "finance_prices_fees"
+   ]
+  },
+  "G": {
+   "cat": [
+    "general_fees"
+   ]
+  },
+  "C": {
+   "q": "\\b(streams?|first week sales|transits?|tomatometer|app store|market share|committed|box office|livebench)\\b",
+   "cat": [
+    "mentions_fees"
+   ]
+  }
+ },
+ "arms": {
+  "x1-P": [
+   "P"
+  ],
+  "x1-V": [
+   "V"
+  ],
+  "x1-PV": [
+   "P",
+   "V"
+  ],
+  "x1-F": [
+   "F"
+  ],
+  "x1-G": [
+   "G"
+  ],
+  "x1-C": [
+   "C"
+  ],
+  "x1-PVC": [
+   "P",
+   "V",
+   "C"
+  ],
+  "x1-PVFG": [
+   "P",
+   "V",
+   "F",
+   "G"
+  ],
+  "x1-PV-L12": [
+   "P",
+   "V",
+   "late12"
+  ],
+  "x1-PV-L24": [
+   "P",
+   "V",
+   "late24"
+  ],
+  "x1-PV-L48": [
+   "P",
+   "V",
+   "late48"
+  ],
+  "x1-PVC-L12": [
+   "P",
+   "V",
+   "C",
+   "late12"
+  ],
+  "x1-PVC-L24": [
+   "P",
+   "V",
+   "C",
+   "late24"
+  ],
+  "x1-PVC-L48": [
+   "P",
+   "V",
+   "C",
+   "late48"
+  ],
+  "x4-PV": [
+   "P",
+   "V"
+  ],
+  "x5-PV": [
+   "P",
+   "V"
+  ],
+  "x4-PVC": [
+   "P",
+   "V",
+   "C"
+  ],
+  "x5-PVC": [
+   "P",
+   "V",
+   "C"
+  ],
+  "rw-P": [
+   "P"
+  ],
+  "rw-V": [
+   "V"
+  ],
+  "rw-PV": [
+   "P",
+   "V"
+  ],
+  "rw-C": [
+   "C"
+  ],
+  "rw-PVC": [
+   "P",
+   "V",
+   "C"
+  ]
+ },
+ "members": {
+  "P": [
+   [
+    "0x87c58fb2",
+    "culture_fees",
+    "Will Donald Trump post 100-119 Truth Social posts from September 18 to September 25, 2026?",
+    "2026-09-25T16:00:00+00:00"
+   ],
+   [
+    "0x9dc7080d",
+    "culture_fees",
+    "Will Donald Trump post 160-179 Truth Social posts from September 22 to September 29, 2026?",
+    "2026-09-29T16:00:00+00:00"
+   ],
+   [
+    "0xf107eae9",
+    "culture_fees",
+    "Will Khamenei post 0-4 posts from October 2 to October 9, 2026?",
+    "2026-10-09T16:00:00+00:00"
+   ],
+   [
+    "0x890c45f9",
+    "culture_fees",
+    "Will Donald Trump post 180-199 Truth Social posts from September 25 to October 2, 2026?",
+    "2026-10-02T16:00:00+00:00"
+   ],
+   [
+    "0xafdcf414",
+    "culture_fees",
+    "Will NYC Mayor post 20-39 posts from October 2 to October 9, 2026?",
+    "2026-10-09T16:00:00+00:00"
+   ]
+  ],
+  "V": [
+   [
+    "0x06cb0130",
+    "culture_fees",
+    "Will MrBeast's next video get between 70 and 80 million views on week 1?",
+    "2026-09-26T23:59:00+00:00"
+   ],
+   [
+    "0x4d0b90fb",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 35 and 40 million views in week 1?",
+    "2026-10-03T23:59:00+00:00"
+   ],
+   [
+    "0x6f1f43ea",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 40 and 45 million views in week 1?",
+    "2026-10-03T23:59:00+00:00"
+   ],
+   [
+    "0xb3312bbe",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 24 and 25 million views on day 3?",
+    "2026-09-29T23:59:00+00:00"
+   ],
+   [
+    "0x548cdc38",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 29 and 29.5 million views on day 5?",
+    "2026-10-01T23:59:00+00:00"
+   ],
+   [
+    "0x5d4e21ca",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 29.5 and 30 million views on day 5?",
+    "2026-10-01T23:59:00+00:00"
+   ],
+   [
+    "0xafe162fc",
+    "culture_fees",
+    "Will MrBeast Gaming's next video get between 31.5 and 32 million views on day 6?",
+    "2026-10-02T23:59:00+00:00"
+   ]
+  ],
+  "F": [
+   [
+    "0x0d06ee85",
+    "finance_prices_fees",
+    "S&P 500 (SPY) closes above $765 on September 29?",
+    "2026-09-29T20:00:00+00:00"
+   ],
+   [
+    "0x2733b8f4",
+    "finance_prices_fees",
+    "Will South Korea ETF (EWY) hit (HIGH) $191 Week of September 28 2026?",
+    "2026-10-02T20:00:00+00:00"
+   ],
+   [
+    "0x7b439e61",
+    "finance_prices_fees",
+    "Will Airbnb, Inc. (ABNB) hit (LOW) $150 Week of September 28 2026?",
+    "2026-10-02T20:00:00+00:00"
+   ],
+   [
+    "0x8af96ade",
+    "finance_prices_fees",
+    "SPY (SPY) Up or Down on September 29?",
+    "2026-09-29T20:00:00+00:00"
+   ],
+   [
+    "0x26150fa0",
+    "finance_prices_fees",
+    "SPY (SPY) Up or Down on October 1?",
+    "2026-10-01T20:00:00+00:00"
+   ],
+   [
+    "0xe5a42eb1",
+    "finance_prices_fees",
+    "Will Airbnb, Inc. (ABNB) hit (LOW) $152 Week of September 28 2026?",
+    "2026-10-02T20:00:00+00:00"
+   ],
+   [
+    "0x51d38228",
+    "finance_prices_fees",
+    "S&P 500 (SPX) Opens Up or Down on October 2?",
+    "2026-10-02T20:00:00+00:00"
+   ],
+   [
+    "0x9989cada",
+    "finance_prices_fees",
+    "Will South Korea ETF (EWY) hit (LOW) $178 Week of September 28 2026?",
+    "2026-10-02T20:00:00+00:00"
+   ]
+  ],
+  "G": [
+   [
+    "0x2c8d321c",
+    "general_fees",
+    "Will the median home value in San Francisco Metro be less than $1,176,000 on September 30?",
+    "2026-10-11T03:59:00+00:00"
+   ],
+   [
+    "0x08c90e15",
+    "general_fees",
+    "Will the median home value in Miami be between $809,000 and $830,000 on December 31?",
+    "2027-01-11T04:59:00+00:00"
+   ],
+   [
+    "0xf50050f4",
+    "general_fees",
+    "Will the median home value in the Chicago Metro be between $303,000 and $308,000 on December 31?",
+    "2027-01-11T04:59:00+00:00"
+   ]
+  ],
+  "C": [
+   [
+    "0x49f9103a",
+    "mentions_fees",
+    "Will the announcers say \"Fumble\" or \"Fumbles\" during the Falcons vs Packers game?",
+    "2026-09-25T23:59:00+00:00"
+   ],
+   [
+    "0x04fc3028",
+    "culture_fees",
+    "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 350k?",
+    "2026-10-02T00:00:00+00:00"
+   ],
+   [
+    "0x75b67ccd",
+    "culture_fees",
+    "Will \"Heart of the Beast\" Opening Weekend Box Office be between 17m and 20m?",
+    "2026-09-27T12:00:00+00:00"
+   ],
+   [
+    "0x854c9741",
+    "culture_fees",
+    "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 250k?",
+    "2026-10-02T00:00:00+00:00"
+   ],
+   [
+    "0x8da7a868",
+    "culture_fees",
+    "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 300k?",
+    "2026-10-02T00:00:00+00:00"
+   ],
+   [
+    "0xff52a556",
+    "culture_fees",
+    "Will \"The Life of a Showgirl: The Encore\" first week sales be at least 200k?",
+    "2026-10-02T00:00:00+00:00"
+   ],
+   [
+    "0x796c320c",
+    "culture_fees",
+    "Will \"Primetime\" Opening Weekend Box Office be between 19m and 22m?",
+    "2026-09-27T12:00:00+00:00"
+   ],
+   [
+    "0x4a6d4c72",
+    null,
+    "Will 20-24 ships transit the Strait of Hormuz between September 21-September 27?",
+    "2026-09-27T23:59:00+00:00"
+   ],
+   [
+    "0xc994dc58",
+    "crypto_fees_v2",
+    "Over $15M committed to the Jumper public sale?",
+    "2026-10-06T03:59:00+00:00"
+   ],
+   [
+    "0x24802a98",
+    "culture_fees",
+    "Will \"Patient Zero\" hit 45m first week streams?",
+    "2026-10-02T16:00:00+00:00"
+   ],
+   [
+    "0x282a94fe",
+    "culture_fees",
+    "Will \"Other Mommy\" score at least 70 on the Rotten Tomatoes Tomatometer?",
+    "2026-10-12T23:59:00+00:00"
+   ],
+   [
+    "0x55977409",
+    "culture_fees",
+    "Will \"The Social Reckoning\" score at least 80 on the Rotten Tomatoes Tomatometer?",
+    "2026-10-12T23:59:00+00:00"
+   ],
+   [
+    "0x9f63c0c0",
+    "culture_fees",
+    "Will \"Other Mommy\" score at least 50 on the Rotten Tomatoes Tomatometer?",
+    "2026-10-12T23:59:00+00:00"
+   ],
+   [
+    "0xd1b6170c",
+    "culture_fees",
+    "Will \"Other Mommy\" score at least 60 on the Rotten Tomatoes Tomatometer?",
+    "2026-10-12T23:59:00+00:00"
+   ],
+   [
+    "0x1e6b21eb",
+    null,
+    "Will there be between 25 and 29 average daily transits of the Bab el-Mandeb Strait on September 30?",
+    "2026-10-01T03:59:00+00:00"
+   ],
+   [
+    "0x4611b382",
+    null,
+    "Will 170-189 ships transit the Bab el-Mandeb Strait between September 28-October 4?",
+    "2026-10-04T23:59:00+00:00"
+   ],
+   [
+    "0xde7d227c",
+    "crypto_fees_v2",
+    "Over $40M committed to the Jumper public sale?",
+    "2026-10-06T03:59:00+00:00"
+   ],
+   [
+    "0xa2911a6a",
+    "tech_fees",
+    "Will Anthropic have the best AI model on LiveBench (Overall) at the end of November 2026?",
+    "2026-12-01T04:59:00+00:00"
+   ],
+   [
+    "0x3d2ee0a9",
+    "tech_fees",
+    "Will Google have the second highest OpenRouter market share the week of September 28?",
+    "2026-10-06T16:00:00+00:00"
+   ],
+   [
+    "0x98887aa5",
+    "culture_fees",
+    "Will Shadowrocket be #1 Paid App in the US Apple App Store on October 9?",
+    "2026-10-09T23:59:00+00:00"
+   ],
+   [
+    "0xda67aa9d",
+    "tech_fees",
+    "Will Anthropic have the best AI model on LiveBench (Mathematics) at the end of November 2026?",
+    "2026-12-01T04:59:00+00:00"
+   ]
+  ]
+ },
+ "x4_diagnostics": {
+  "written_at": "2026-10-04T14:51:42.458336Z",
+  "note": "diagnostic only, chosen after seeing that x4 equals x1: x4 with keep 0.8, 0.7, 0.6, 0.5 instead of 0.9, from its own 10-02 20:00; in-sample, not a candidate",
+  "arms": {
+   "x4-k80": 0.8,
+   "x4-k70": 0.7,
+   "x4-k60": 0.6,
+   "x4-k50": 0.5
+  }
+ },
+ "exploratory": {
+  "written_at": "2026-10-04T14:58:51.247617Z",
+  "note": "chosen AFTER the class results were seen (the late-window gain came from one post-count market): does a cut N hours before the scheduled end help on every market, a rolling form of RW-E same-day rule? In-sample, exploratory, not a candidate.",
+  "arms": {
+   "x1-ALL-L12": [
+    "ALL",
+    "late12"
+   ],
+   "x1-ALL-L24": [
+    "ALL",
+    "late24"
+   ],
+   "x1-ALL-L48": [
+    "ALL",
+    "late48"
+   ],
+   "rw-ALL-L24": [
+    "ALL",
+    "late24"
+   ]
+  }
+ }
+}
