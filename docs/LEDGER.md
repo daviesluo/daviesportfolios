@@ -188,7 +188,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      (508 of 10-03's minutes); it now scores them as the venue would, and its selection ranks first the books with two
      levels of the minimum within 10 ¢ a side (`PM_MINI_QUALITY`). **The window is 2026-10-05 00:00 → 10-06 00:00 UTC**,
      read by `prep_check_addendum6.sql` (sha256 pinned). **Next:** at or after **2026-10-06 00:10 UTC** run it once,
-     read-only, and report every row to Davies in Chinese; never the go-time statement (history, 2026-10-04 16:55).
+     read-only, and report every row to Davies in Chinese; never the go-time statement (history, 2026-10-04 16:44).
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -218,7 +218,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      verified): every row PASS, (f) N/A; (d) 9,352 of 11,520 market-minutes scored (81.2 %); (e) +$15.01 at R = 0.40.
      The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1 and **deviation 2** (2026-10-04, its
      Addendum 2: the formula fix deployed with mini-pool's Addendum 6 scores what rests in the book as the venue holds it;
-     no decision changes, pinned beside byte copies of the frozen code; history, 2026-10-04 16:55). **Readied for live** on Davies' word
+     no decision changes, pinned beside byte copies of the frozen code; history, 2026-10-04 16:44). **Readied for live** on Davies' word
      (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 01:01): the funded pre-registration is a
      draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`) that freezes on his go date, the earliest after the
      overlap audit (≥ 2026-10-23 00:05 UTC); step 8m arms only the current config (PGlite, `scripts/mid_live_check.mjs`);
@@ -748,7 +748,21 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
-### [2026-10-04 16:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-04 16:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The fix is deployed and running.** `edge-functions` run 37217861082 (c6c4daa6) succeeded 16:44:08 → 16:45:35 UTC;
+`agents` is version 140, updated 16:45:30. Every mini-pool and mid-pool minute recorded from 16:46 carries
+`detail.after` and `mRw` (8 of 8 each at 16:46); both states and both paper layers have no `last_error`, and
+`ops_errors` has nothing since 16:44. The paper layers decide two minutes behind, and their matched minutes up to 16:44
+(recorded before the deploy) are paid RW's line (`paid: rw`), as the rule says. **Scheduled:** a one-shot Routine at
+2026-10-06 00:20 UTC (`trig_01MUaysruKoiGbxgQPK5xecu`) runs mini-pool's Addendum 6 check, confirms variant-2's first
+takes after the FX market reopened, and lands Reward quotes live-prep's Phase B if it has handed back; the 10-17
+mid-pool readout's Routine now names deviations 1 and 2 (and 3 if Phase B lands inside the window). **Phase B** is
+being built by the same opus-max agent in its own worktree (`lp-phase-b`), with nothing pushed before the 10-06 check:
+a deploy of `pm_live.ts` or `pm_prep.ts` inside mini-pool's window would end it as FAIL. The previous section's header
+said 16:55; it was written at 16:44, and both are corrected here.
+
+### [2026-10-04 16:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Mini-pool fixed and ranked by book depth; its window moves to 2026-10-05 (Addendum 6); mid-pool takes the formula fix
 as its deviation 2** (Davies: "把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉"). Addendum 2's check
