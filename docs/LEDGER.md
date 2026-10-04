@@ -750,6 +750,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 17:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Both sub-agents run at high effort** (Davies: "把两个子代理的effort改成high，之后开opus子代理effort都是high"):
+`.claude/agents/opus-max.md` and `sonnet-max.md` now say `effort: high`. The names stay, so every Routine and
+instruction that calls them still works. `.claude/CLAUDE.md`, the working-with-davies skill and its two Cursor copies
+say so. Agents already running keep the effort they started with. **Two agents are running**: live-prep's Phase B,
+in the worktree at `.claude/worktrees/agent-ae8f87d25420061f3`, now on branch `lp-phase-b`, which adds migration
+`0091_pm_lp.sql`; and a Polymarket rewarded-market recorder (Davies, 2026-10-04: record every rewarded market's prices
+and books, tiered for size, with a watchdog row). The recorder works in its own worktree. Its migration number is
+settled when the second of the two lands.
+
 ### [2026-10-04 17:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Mini-pool's check windows are closed and live-prep is the lead live candidate** (Davies: "验证没问题就直接落地TESTING

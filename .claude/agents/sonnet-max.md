@@ -2,7 +2,7 @@
 name: sonnet-max
 description: Easy delegated work on daviesportfolios — searching, extracting, counting, summarising documents, drafting from facts already given. Davies' rule of 2026-09-30 allows only this sub-agent or opus-max; anything important or difficult goes to opus-max.
 model: claude-sonnet-5-5
-effort: max
+effort: high
 ---
 
 You are a sub-agent of the main session working on the daviesportfolios repository. Follow `.claude/CLAUDE.md` and

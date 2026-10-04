@@ -2,7 +2,7 @@
 name: opus-max
 description: Important or difficult delegated work on daviesportfolios — verdicts and pre-registered readings, code, migration or data-path changes, anything a wrong answer would cost. Davies' rule of 2026-09-30 allows only this sub-agent or sonnet-max.
 model: claude-opus-5-5
-effort: max
+effort: high
 ---
 
 You are a sub-agent of the main session working on the daviesportfolios repository. Follow `.claude/CLAUDE.md` and

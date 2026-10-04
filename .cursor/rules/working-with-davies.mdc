@@ -98,14 +98,17 @@ work goes to `sonnet-max`, with `opus-max` kept for design and verdicts.
 Internal ids carry no variant number: he renamed the variants twice in two
 days, and a name is a display string, never a table's.
 
-**Two kinds of sub-agent, both at max effort.** "以后你开的所有sub-agents必须都是
+**Two kinds of sub-agent, both at high effort.** "以后你开的所有sub-agents必须都是
 opus5.5 max（重要性高难度高的任务）或者sonnet5.5 max（难度低的任务）" (2026-09-30).
 `.claude/agents/` defines both: `opus-max` for important or difficult
 work (verdicts, pre-registered readings, code and data-path changes),
 `sonnet-max` for easy work (searching, extracting, counting, summarising).
 Launch them by those names. No built-in agent type (Explore,
-general-purpose, a guide), no other model, no lower effort, and a
-scheduled wake follows the same rule.
+general-purpose, a guide), no other model, and a scheduled wake follows
+the same rule. Both ran at max effort until 2026-10-04, when Davies set
+them to high: "把两个子代理的effort改成high，之后开opus子代理effort都是high"
+(the names `opus-max` and `sonnet-max` stay, so nothing that calls them
+breaks).
 
 **At most three sub-agents at a time.** "以后请同时最多只开3个sub-agents"
 (2026-09-28, after a session had four running at once). Count every
