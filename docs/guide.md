@@ -271,10 +271,10 @@ places stay when the number is not whole.
   quotes' page. 8 October is a warm-up that counts nowhere; until
   9 October 01:00 UK time its row and its page say when it starts and show
   nothing else, and after 23 October it is finished.
-- **Reward quotes mini-pool.** On Polymarket, before the last row: a paper
-  test, before real money, of exactly what the account that will quote
-  on Polymarket would do (until 2 October it was called live-prep, then
-  small-pool). That account is built and runs every minute
+- **Reward quotes mini-pool.** On Polymarket, two rows before the last: a
+  paper test, before real money, of exactly what the account that will
+  quote on Polymarket would do (until 2 October it was called small-pool,
+  and live-prep before that; that name is the last row's now). That account is built and runs every minute
   without sending anything: it picks the day's markets (rewards of $6 to
   under $10 a day), works out its bid and ask in each, and writes down
   every order it would send. It quotes up to eight markets a day, the
@@ -299,7 +299,7 @@ places stay when the number is not whole.
   it prefers markets whose order book has depth: on each side, at least
   two prices within 10 cents of the best one, each holding the reward's
   minimum size. It takes a thinner market only when too few have it.
-- **Reward quotes mid-pool.** The last row, on Polymarket: the same test
+- **Reward quotes mid-pool.** The row after mini-pool, on Polymarket: the same test
   on bigger pools, markets paying $10 to under $50 a day in rewards, for
   fourteen days. It is the same code as mini-pool, at the same size
   (up to eight markets a day, a $320 cap), and the same real order
@@ -310,6 +310,21 @@ places stay when the number is not whole.
   quote, and leaves out the ones close to them too. Its row and its
   page read exactly like mini-pool's, and from 4 October its rewards are
   worked out the same way.
+- **Reward quotes live-prep.** The last row, on Polymarket: the strategy
+  the study of 4 October found best on everything recorded, and since
+  that day the lead candidate to go live. It is the same account and
+  the same real order path, on every market paying $10 a day or more in
+  rewards (the markets the other Reward quotes tests quote included), up
+  to ten markets a day and $200 of quotes, $100 a market and $320 in all.
+  It sells what it holds before it buys more, stops adding to a side at
+  five times its order size, stays out of a market for an hour after its
+  price jumps 15 cents, leaves out weather markets, and keeps selling what
+  it still holds in a market it no longer picks. It stops for good if its
+  orders' result plus what Polymarket paid falls to −$75. Until Davies
+  says go it only writes down what it would send, deciding as if it held
+  what this row's paper holds, and this row fills those orders on paper
+  the same way as the rows above. Only one of the three can ever be live.
+  Its row and page read like mini-pool's.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

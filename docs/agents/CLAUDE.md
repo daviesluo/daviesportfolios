@@ -439,8 +439,11 @@ that follow from that evidence, in short:
   a proxy or anyone else's account. `_shared/polymarket.ts` (the probe's
   client) is read-only (GET only, a fixed list of URLs, the L2 headers to
   the CLOB host only); the key controls real funds.
-  Its paper row is "Reward quotes mini-pool" ("live-prep", then
-  "small-pool", until 2026-10-02); since `0080` its dry-run runs at the go-live size, eight
+  Its paper row is "Reward quotes mini-pool" ("small-pool" until
+  2026-10-02, and first "live-prep", the name the third instance carries
+  since `0091`; mini-pool's check windows were closed on 2026-10-04 by
+  its pre-registration's Addendum 7, so it is no longer a go-live
+  candidate and keeps its dry-run as a comparison); since `0080` its dry-run runs at the go-live size, eight
   markets and $160 of first quotes, and only Davies' word in the
   conversation arms it: no routine runs the go-time statement ("什么时候
   上线我说了算不自动转了"). **Since 2026-10-04** (its pre-registration's Addendum 6) each minute's formula scores our quotes in
@@ -469,7 +472,25 @@ that follow from that evidence, in short:
   public data, takes or scores at ≥ 0.33 of its last pick, never reading
   `pm_rw_*` or `pm_rwc_*`. Its config holds a copy of the attestation, so
   a revocation also runs `update public.pm_mid_config set ireland_until =
-  now() where id = 1;`.
+  now() where id = 1;`. **"Reward quotes live-prep" is the lead candidate
+  to go live** (`0091`, `agents/pm_lp.ts`, reference §4 item 54; Davies,
+  2026-10-04: "目前上线live的最大candidate是这个live-prep策略", and mini-pool's
+  check windows closed by its Addendum 7): the same path and layer as a
+  third instance on every pool of $10 a day and over, RW's and RW-C's
+  markets included ("不考虑其他一切因素"), with its own rules as options only
+  its instance sets (a sell of what is held before a buy, 5N, x2's pause,
+  exits from carried markets, no end-date horizon, no weather market, ten
+  markets and $200, $100 a market, a −$75 stop on fills plus what was paid,
+  no day stop); in dry-run it decides on its paper layer's holdings. Its
+  pre-registration (`reviews/2026-10-04-polymarket-lp-prereg.md`) checks
+  d1, the first full UTC day after `pm_lp_config.created_at`; its go-time
+  statement is the design doc's step 8lp, and its go also needs the
+  payouts-per-path patch applied, the account funded (pUSD ≥ $81) and the
+  probe's read of the conditional-token allowances. **The three trade one
+  account and only one is ever armed**: 0091's trigger refuses arming any
+  config while another is. Its config also holds a copy of the attestation:
+  a revocation runs `update public.pm_lp_config set ireland_until = now()
+  where id = 1;` too.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

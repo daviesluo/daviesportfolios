@@ -3694,6 +3694,44 @@ the book, 82.2 % for 81.2 %) and nothing else of it moves, pinned beside its fro
 `pm_live_mid_frozen.ts`, `pm_prep_mid_frozen.ts`); from that day its test is not blind, on Davies' word, and the payouts
 patch is rebuilt on the new path.
 
+54. **"Reward quotes live-prep": the best reward strategy the record supports, a third instance of the order path, the
+lead candidate to go live (2026-10-04, migration `0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`,
+`backtests/pmlp/`).** Davies: "以现在知道的所有信息，选出来一个最佳的reward区间+市场+rules等一切最优的策略，不考虑其他一切因素，做出一个策略组合
+加到测试列表中叫它Reward quotes live-prep，然后你验证后确保一切都没问题后做上线准备", the band and every criterion free ("可以flexable任意
+区间，最优就行"), then "验证没问题就直接落地TESTING STRATEGIES列表，把mini-pool的检验窗口全关了，目前上线live的最大candidate是这个live-prep
+策略" (mini-pool's windows closed by its Addendum 7). **The study (Phase A):** RW's stored record (09-25 00:00 → 10-04 15:12
+UTC, 9.6 days, replayed to the cent) at the account's $320 with RW's own functions and an account's caps, sells, stops
+and carried positions, 15 rounds and about 290 arms, every one kept (`backtests/pmlp/results/round1.txt` … `round15.txt`).
+What the path as mini-pool runs it loses on RW's universe, with day-block intervals and four day splits: buying only
+(a YES and a NO held together tie up $1 until resolution) −$643 at R = 1; its loss stops on fills alone −$750; holding
+carried positions −$407; RW's 3N −$102; no pause −$50; the 48-hour end horizon −$88; 8 markets / $160 −$28; $60 a
+market −$22. **S2**, the specification: universe $10 and over with no ceiling (RW's ranking takes nothing under $20 in a
+fresh read; a band of $10–$100 lost $687), N ≤ 20, RW-E's same-day rule and the game-start horizon, no weather market,
+no book filter, no exclusion of RW's or RW-C's markets ("不考虑其他一切因素" is the basis); ten markets and $200 by RW's
+`firstScore` and `choose`; RW's prices at N, a sell of what is held before a buy, 5N, x2's pause (15 ¢, 60 minutes,
+frozen 2026-09-27, positive at R = 0.40 in all 20 cells of its plateau); close-only exits from carried markets; $320 and
+$100 a market; a −$75 total stop on fills plus what was paid; no day stop. On the record: $1,049.91 at R = 1, $359.07 at
+R = 0.40, stress $387.13; $109 [77, 147] / $37 [23, 53] a day; break-even R 0.09 (stress 0.16; with every print AT our
+price filling us, 0.14 / 0.27); scoring in 84.3 % of quoted minutes; the best market 7.8 % of the total; against the
+path as built +$815 [452, 1,246] and +$234 [34, 440]. Chosen in-sample with split checks: the dry-run and the live
+readout are the out-of-sample tests. **The build (Phase B):** every rule an option only its instance sets
+(`PmLpOptions`, `PrepInstance.lp`), the exports the frozen copies compare left byte for byte, so mini-pool and mid-pool
+decide as before (`pm_instance.test.ts`, `pm_mid_formula.test.ts`, unchanged, and mid-pool's Addendum 3, its deviation
+3). In dry-run the path decides on its paper layer's holdings, so its sells, 5N, caps on holdings, exits and stop run
+before it is live; the layer fills what the path rested, sells included (`classifyLp`, `stepSides`, `decideLp`), about
+two minutes behind. 0091: its tables `pm_lp_*` and `pm_lpprep_*` (a band of $10 and over, $100 a market, `loss_day_usd`
+null only), its leases, `agents?action=pmlp&forceFunctionRegion=eu-west-1` and `agents?action=pmlpprep` every minute
+(retry on), and 0084's trigger function replaced so only one of the three configs can be armed. Pinned in
+`pm_lp.test.ts` (each rule against the code it extends, and simulated days of path and layer together) and on the page
+(the last row of TESTING, its page RW's, `src/e2e/lp_fixture.json`, the browser sweep at both widths). Its day-1 check
+(`backtests/pmlp/lp_check.sql`) ran on PGlite over every migration and a simulated dry-run day of this code; its go-time
+statement (the design doc's step 8lp: the cap from the path's own pUSD read, refused under $81, stale, unkeyed, outside
+eu-west-1, without a current attestation, or while mini-pool or mid-pool is armed) was run on PGlite on each refusal
+and five balances (`backtests/pmlp/results/lp_live_check_out.txt`). Before its go (its pre-registration's P1–P5): the
+day-1 check passed, the $400 account funded (pUSD ≥ $81), the payouts-per-path patch applied (rebuilt on this code,
+`docs/agents/pending/`), mini-pool and mid-pool unarmed, and the probe's read of the conditional-token allowances its
+sells need. Once live its orders rest in the books RW and RW-C read on paper.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit
