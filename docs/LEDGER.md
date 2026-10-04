@@ -779,8 +779,13 @@ configs while another is armed. Mini-pool and mid-pool are unchanged: `pm_instan
 each fail a test; on PGlite over all migrations the go-time statement refuses its 13 cases, arms at the caps the
 balance allows and then changes only `pm_lp_config`; a simulated day of `lp_check.sql` passed every row but (d) at
 58.3 % against 60 %. What stands between it and live is item 2's live-prep sub-item (P1–P5 and a monitor reading).
-To verify after the push: `0091` applied, `agents` redeployed, `pm_lp_state` with region eu-west-1, keyed and a
-selection, and no `agents.pm_lp*` rows in `ops_errors`.
+**Verified in production after the push (17:52:55 UTC; migrations, edge-functions, pages-deploy and check all green):**
+`0091` applied (`pm_lp_config` created 17:53:13 UTC: dry-run, unarmed, 10 / $200 / $320 / $100, so d1 = 2026-10-05
+and P1's check is due at 2026-10-06 00:10 UTC); the path's first selection landed at 17:55:02 UTC, ten markets;
+`pm_lp_state` region eu-west-1, keyed, dry-run, unarmed, and both states fresh at 17:57–17:58 with no `last_error`;
+31 dry-run orders recorded; no `ops_errors` since the push; mini-pool and mid-pool unarmed, dry-run and moving with
+no error. The 10-06 00:20 Routine (`trig_01MUaysruKoiGbxgQPK5xecu`) is rewritten to run `lp_check.sql` (P1) once,
+read-only, and report every row; it arms nothing. The recorder agent is told its migration is `0092`.
 
 ### [2026-10-04 17:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
