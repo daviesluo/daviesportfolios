@@ -764,6 +764,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 18:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**A Reward quotes row's "N open" is its QUOTES table's rows.** Davies: "STRATEGIES表格中Reward quotes的那些行中xx open应该显示的是
+quotes里面的行数吧？但我看好像目前显示的都是fills里的行数". It counted the markets holding inventory (`open`), so live-prep's
+first evening, ten markets quoted and nothing held, read "0 open", which before a fill matches the FILLS table. Now
+`rwQuoteRows` counts the page's QUOTES rows (today's markets and those held from an earlier day) on RW's row, RW-E's,
+the variants', RW-C's and the three paper layers'. Display only: no rule or record reads it. Pinned: vitest (ten markets
+and none held read 10; a held earlier market counts; every Reward row says the same), four cases that fail on the old
+code; the sweep's row texts move to the fixtures' QUOTES rows (RW 4, RW-E, its variants and RW-C 3, live-prep 2), and
+RW's page check already reads 4 rows. The guide says what the number is. Also asked: live-prep's Quote column read
+something else in its first minutes and is right now (Davies, "quote列现在显示正常了"): the paper layer decides two minutes
+behind the path, so until its first minute there is no bid or ask to show. Production read-only: its last minute had
+all ten markets matched, with both sides resting.
+
 ### [2026-10-04 17:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Reward quotes live-prep (S2) lands in dry-run, unarmed, as the last row of TESTING** (Davies: "验证没问题就直接落地

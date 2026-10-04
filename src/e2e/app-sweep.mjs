@@ -3022,8 +3022,8 @@ async function run() {
       const testNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const rwBadge = await rwRowEl.first().locator('.ag-venue-polymarket').count();
       if (await rwRowEl.count() === 1 && testNames.slice(-5).join('|') === 'Reward quotes|Reward quotes variant-1|Reward quotes variant-2|Reward quotes variant-3|Reward quotes variant-4' && rwBadge === 1 && /Polymarket/.test(rwRowText) && !/not in the scoreboard/.test(rwRowText)
-        && /2 open · \$1,000 cap/.test(rwRowText) && /\+\$12\.50 \(\+1\.25%\)/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42 \(\+4\.20%\)/.test(rwRowText) && /every minute/.test(rwRowText)) {
-        ok(S('agents'), 'RW is the testing row before RW-E and its three variants, the last rows: Polymarket, 2 open of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
+        && /4 open · \$1,000 cap/.test(rwRowText) && /\+\$12\.50 \(\+1\.25%\)/.test(rwRowText) && /-\$1(?!\d)/.test(rwRowText) && /\+\$42 \(\+4\.20%\)/.test(rwRowText) && /every minute/.test(rwRowText)) {
+        ok(S('agents'), 'RW is the testing row before RW-E and its three variants, the last rows: Polymarket, 4 open (its QUOTES rows) of its $1,000 cap, counted in the scoreboard, today +$12.50 (+1.25%), unrealised -$1, realised +$42 (+4.20%), every minute');
       } else fail(S('agents'), `RW row "${rwRowText}", testing rows ${testNames.join(' | ')}, Polymarket badges ${rwBadge}`);
       // RW-E, the row after RW (Davies, 2026-09-26): RW's cells read from the replay's arm, by the fixture's own figures —
       // today 7.50 on its $1,000 cap (+0.75%), unrealised −1.20 on D's No, which cost 20 × 0.34 (−17.65%), realised 23.60
@@ -3033,10 +3033,10 @@ async function run() {
       const rweRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-1') });
       const rweRowText = (await rweRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rweName = await nameGeometry(rweRowEl.first());
-      if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /1 open · \$1,000 cap/.test(rweRowText)
+      if (await rweRowEl.count() === 1 && await rweRowEl.first().locator('.ag-venue-polymarket').count() === 1 && /3 open · \$1,000 cap/.test(rweRowText)
         && rweName.lines === 1 && rweName.fits && rweName.qual === 0
         && /\+\$7\.50 \(\+0\.75%\)/.test(rweRowText) && /-\$1\.20 \(-17\.65%\)/.test(rweRowText) && /\+\$23\.60 \(\+2\.36%\)/.test(rweRowText) && /every minute/.test(rweRowText)) {
-        ok(S('agents'), 'RW-E is the testing row after RW: "Reward quotes variant-1" on one line, Polymarket, 1 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
+        ok(S('agents'), 'RW-E is the testing row after RW: "Reward quotes variant-1" on one line, Polymarket, 3 open of its $1,000 cap, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute');
       } else fail(S('agents'), `RW-E row "${rweRowText}", name ${JSON.stringify(rweName)}`);
       // Its page: the strategy page's header and scoreboard, the bar so far, today's markets, the closed days and the fills.
       await rwRowEl.first().click();
@@ -3154,9 +3154,9 @@ async function run() {
       }
       await page.locator('.ag-strategies-testing .ag-row').last().scrollIntoViewIfNeeded().catch(() => {});
       await shot(page, 'agents-rwx-rows');
-      if (xRows.every((x) => x.n === 1 && x.pm === 1 && x.lines === 1 && x.fits && x.qual === 0 && /1 open · \$1,000 cap/.test(x.text)
+      if (xRows.every((x) => x.n === 1 && x.pm === 1 && x.lines === 1 && x.fits && x.qual === 0 && /3 open · \$1,000 cap/.test(x.text)
         && /\+\$7\.50 \(\+0\.75%\)/.test(x.text) && /-\$1\.20 \(-17\.65%\)/.test(x.text) && /\+\$23\.60 \(\+2\.36%\)/.test(x.text) && /every minute/.test(x.text))) {
-        ok(S('agents'), 'RW-E\'s variants are testing rows: "Reward quotes variant-2", "-3" and "-4", each on one line, on Polymarket, 1 open of its $1,000 cap, RW-E\'s figures, every minute');
+        ok(S('agents'), 'RW-E\'s variants are testing rows: "Reward quotes variant-2", "-3" and "-4", each on one line, on Polymarket, 3 open of its $1,000 cap, RW-E\'s figures, every minute');
       } else fail(S('agents'), `variant rows ${JSON.stringify(xRows)}`);
       // A variant's page is RW's page read from its arm: its title, RW-E's figures, no warning while both checks hold.
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-3') }).first().click().catch(() => {});
@@ -4129,9 +4129,9 @@ async function run() {
       const rcText = (await rcRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rcGreen = await rcRow.first().locator('.ag-dot-running').count();
       // Deployed: D's No held, $5.60, and B's and C's quotes, $39.20 (Davies, 2026-10-01: every dollar at work).
-      if (/1 open · \$1,000 cap/.test(rcText) && / \$44\.80 /.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
+      if (/3 open · \$1,000 cap/.test(rcText) && / \$44\.80 /.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
         && /every minute/.test(rcText) && !/9 Oct/.test(rcText) && rcGreen === 1) {
-        ok(T('rwc-running'), 'RW-C running: 1 open of its $1,000 cap, deployed $44.80, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green');
+        ok(T('rwc-running'), 'RW-C running: 3 open of its $1,000 cap, deployed $44.80, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green');
       } else fail(T('rwc-running'), `RW-C row "${rcText}", green dots ${rcGreen}`);
       await rcRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4370,8 +4370,8 @@ async function run() {
       const lpAfter = await readAgentsPanel(page);
       // Today +$4.90, 1.53 % of $320; one position open (F's 10 NO; E's 20 YES were sold).
       if (lpNames.slice(-3).join(' | ') === 'Reward quotes mini-pool | Reward quotes mid-pool | Reward quotes live-prep' && lpNames.filter((n) => /live-prep/.test(n)).length === 1
-        && /Polymarket/.test(lpText) && /1 open · \$320 cap/.test(lpText) && /\+\$4\.90 \(\+1\.53%\)/.test(lpText) && /every minute/.test(lpText) && lpGreen === 1) {
-        ok(T('lp'), 'the last three testing rows are "Reward quotes mini-pool", "Reward quotes mid-pool" and "Reward quotes live-prep", one row of that name, on Polymarket: 1 open of its $320 cap, today +$4.90 (+1.53%), every minute, green');
+        && /Polymarket/.test(lpText) && /2 open · \$320 cap/.test(lpText) && /\+\$4\.90 \(\+1\.53%\)/.test(lpText) && /every minute/.test(lpText) && lpGreen === 1) {
+        ok(T('lp'), 'the last three testing rows are "Reward quotes mini-pool", "Reward quotes mid-pool" and "Reward quotes live-prep", one row of that name, on Polymarket: 2 open of its $320 cap, today +$4.90 (+1.53%), every minute, green');
       } else fail(T('lp'), `live-prep row "${lpText}" (rows ${lpNames.join(' | ')}), green dots ${lpGreen}`);
       const lpCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
       const lpAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };

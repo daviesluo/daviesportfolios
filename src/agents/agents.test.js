@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1027,7 +1027,8 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect([row?.id, row?.name, row?.venueId, row?.venue, row?.mode, row?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
     // Its cap is the $1,000 it is funded with (Davies, 2026-09-26), not the $296 its markets have at work today, which
     // stays in the days table; today and realised are on the cap, unrealised on inventory cost, as on every other row.
-    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([1000, 40, 3]);
+    // "N open" is its QUOTES table's rows (Davies, 2026-10-04), one here, not the markets holding inventory (`open`, 3).
+    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([1000, 40, 1]);
     expect(row?.todayPct).toBeCloseTo((20 / 1000) * 100, 12);
     expect(row?.realisedPct).toBeCloseTo((61 / 1000) * 100, 12);
     // A payload from before the cap (a kept copy) still reads, on the capital at work.
@@ -1572,13 +1573,28 @@ describe("mini-pool's page is RW's (Davies, 2026-10-01)", () => {
   });
 });
 
+describe('rwQuoteRows — a Reward quotes row\'s "N open"', () => {
+  // Davies, 2026-10-04: "xx open应该显示的是quotes里面的行数". Live-prep's first evening quoted ten markets and held
+  // none: the row read "0 open", the count of markets holding inventory, which before a fill matched the FILLS table.
+  const quoting = (/** @type {number} */ n) => Array.from({ length: n }, (_, i) => ({ cond: `c${i}`, quoting: true, yes: 0, no: 0 }));
+  it('counts the QUOTES table\'s rows, quoted today or held from an earlier day, whatever is held', () => {
+    expect(rwQuoteRows({ open: 0, markets: quoting(10) })).toBe(10);
+    expect(rwQuoteRows({ open: 1, markets: [...quoting(2), { cond: 'old', quoting: false, yes: 5, no: 0 }] })).toBe(3);
+    expect([rwQuoteRows({ open: 2 }), rwQuoteRows(null)]).toEqual([0, 0]);
+  });
+  it('is what every Reward quotes row says, RW\'s and the paper layers\'', () => {
+    const lp = { ...lpFixture.output, open: 0, markets: quoting(10) };
+    expect([lpRow(lp)?.openPositions, prepRow(lp)?.openPositions, midRow(lp)?.openPositions]).toEqual([10, 10, 10]);
+  });
+});
+
 describe('lpRow ("Reward quotes live-prep", 0091)', () => {
   it("is the layer's row under its own id and name, read from its own layer's figures (pm_lpprep_*), never mini-pool's", () => {
     const row = lpRow(lpFixture.output);
     if (!row) throw new Error('no row for the fixture');
     expect(row).toMatchObject({
       id: LP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, heldUsd: 2.9, costUsd: 2.8, todayUsd: 4.9, unrealisedUsd: 0.1, realisedUsd: 9.6, openPositions: 1, nextText: 'every minute',
+      capitalUsd: 320, heldUsd: 2.9, costUsd: 2.8, todayUsd: 4.9, unrealisedUsd: 0.1, realisedUsd: 9.6, openPositions: 2, nextText: 'every minute',
       rewards: { realisedUsd: 9, unrealisedUsd: 0 }, orders: { realisedUsd: 0.6, unrealisedUsd: 0.1 },
       status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
     });

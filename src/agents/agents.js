@@ -1601,6 +1601,14 @@ export function rwView(r) {
 }
 
 /**
+ * A Reward quotes row's "N open": the rows of its page's QUOTES table, the markets it quotes today and those it still
+ * holds from an earlier day (Davies, 2026-10-04: "xx open应该显示的是quotes里面的行数"). It counted only the markets
+ * holding inventory, which before any fill is none and so read like the FILLS table's count.
+ * @param {any} r  the dashboard's `rw`, `prep`, `prepMid`, `prepLp` or a variant's
+ */
+export const rwQuoteRows = (r) => (Array.isArray(r?.markets) ? r.markets.length : 0);
+
+/**
  * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is the $1,000
  * it is funded with (the dashboard's `fundedUsd`; Davies, 2026-09-26: a cap like every other strategy's), the base of
  * its today and realised percents; what its markets have at work each day (each market's first quote and its largest
@@ -1638,7 +1646,7 @@ export function rwRow(r) {
     // Before its first minute, NEXT is when it starts: the date and time alone, two lines at most in the table's column.
     // A replay working through a backlog (a new replay version replays from RW's start) is catching up, not stopped.
     nextText: r.finished ? 'finished' : r.catchingUp ? 'catching up' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
-    openPositions: Number(r.open) || 0,
+    openPositions: rwQuoteRows(r),
     status: r.finished
       ? { label: 'paper', running: false, tone: 'paused', detail: 'the fourteen days are over' }
       : r.catchingUp
@@ -1761,7 +1769,7 @@ export function prepRow(r) {
     rewards: { realisedUsd: Number(r.rewardUsd) || 0, unrealisedUsd: 0 },
     orders: { realisedUsd: Number(r.realisedFillsUsd) || 0, unrealisedUsd: Number(r.unrealisedUsd) || 0 },
     nextText: 'every minute',
-    openPositions: Number(r.open) || 0,
+    openPositions: rwQuoteRows(r),
     status: !r.running
       ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${Number(r.lagMinutes) || 0} min old` }
       : stopped

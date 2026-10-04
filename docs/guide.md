@@ -226,7 +226,9 @@ places stay when the number is not whole.
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC
   day, decided every minute from the public order books and trades. Its row
   reads like a strategy's, on a cap of $1,000, as each Reward quotes row
-  has (what its markets have at work each day is the days table's Costs
+  has, and its "N open" is how many rows its page's quotes table has (the
+  markets quoted today and those still held from an earlier day), on every
+  Reward quotes row (what its markets have at work each day is the days table's Costs
   column, which the test's rule sets without looking at the cap); deployed is
   every dollar at work, what its quotes resting now tie up (a bid's Yes at
   its price, an ask's No at one minus its price, each at its size) and what
