@@ -175,7 +175,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      A fix inside the window ends it as FAIL and moves the check a day, by a next addendum. (f) needs his funding
      (pUSD ≥ $81 read within 5 minutes; 0.036673 at 01:25 UTC). **Read before its check, on Davies' word**
      (2026-10-03 23:36 UTC, "授权你现在读", to compare the pools): the window's running figures (`pm_prep_state.state`'s
-     `day` and `pnl`) and the closed days; the check runs as frozen and its report names the read (history, 23:45).
+     `day` and `pnl`) and the closed days; the check runs as frozen and its report names the read (history, 23:39).
+     **Checked at 00:17 UTC on 10-04** (`prep_check_addendum2.sql`, its hash verified): a1–c3, e and g PASS; **(d) FAIL**,
+     8,193 of 11,520 market-minutes scored (71.1 %, bar 75 %), the pools' thin books and not the code; **(f) FAIL**,
+     the account unfunded (pUSD 0.036673). No go-live on a FAIL; whether mini-pool's selection is tightened (a rule
+     change: a new addendum and window) is Davies' call (history, 2026-10-04 00:22).
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -200,8 +204,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `pm_mid_state.state`'s `keyed`, `signerProblem`, `pusd`, `at` and `sbRegion`), never mid-pool's page or the
      dashboard's summary. **Deviation 1 (2026-10-03 23:36 UTC, on Davies' word "授权你现在读"):** its 10-02 day row,
      d1's running figures (`state.day`, `state.pnl`), both days' selections (count, rates, capital) and the share of its
-     reward each market holds were read before the day-1 check, to compare it with mini-pool (history, 23:45); the check
-     and the readout run as frozen, and both name it. A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
+     reward each market holds were read before the day-1 check, to compare it with mini-pool (history, 23:39); the check
+     and the readout run as frozen, and both name it. **Day-1 check at 00:18 UTC on 10-04** (`mid_check.sql`, its hash
+     verified): every row PASS, (f) N/A; (d) 9,352 of 11,520 market-minutes scored (81.2 %); (e) +$15.01 at R = 0.40.
+     The readout runs at or after 2026-10-17 00:10 UTC and names deviation 1. **Being readied for live** on Davies'
+     word (2026-10-04, "准备mid-pool的上线，确保和现在的策略一致"; history, 2026-10-04 00:22). A revocation of the Ireland attestation is recorded in both config rows. On the Agents page it
      is the last row of TESTING STRATEGIES, right after mini-pool's, with Reward quotes' page (`prepMid`).
    - **Any live step needs RW-NEXT Part 4** (and the pre-study above): Davies' word after RW-C passes; `eu-west-1`
      only; positions opened only while his Ireland attestation is current, otherwise reduce or close only (**standing
@@ -717,7 +724,44 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
-### [2026-10-03 23:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-04 00:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The two day-1 checks of 2026-10-03, run by the 00:15 routine** (`trig_014N6zxm3dqcQLMqUut3NKND`), each once,
+read-only and as frozen (sha256 `8b72a9d2…65f0` and `723716c6…94c0` verified; nothing of `pm_live.ts`, `pm_prep.ts`,
+`pm_mid.ts` or the pools' tables changed in the window: its two migrations, `0088` and `0089`, were the twins'). Both reports
+name the read of 10-03 23:36 (the section below).
+
+- **Mini-pool, `prep_check_addendum2.sql` (00:17 UTC):** a1 1,440 turns PASS; a2 0 fault minutes PASS; a3 decided to
+  00:15, one day row PASS; b1 8 markets in one run at 00:00:01 PASS; b2 none outside the rules PASS; b3 8 markets,
+  $148.60 of $160 PASS; c1 0 of 3,384 orders crossing PASS; c2 0 under size PASS; c3 $19.80 a market, $152.40 in all
+  PASS; **d 8,193 of 11,520 market-minutes scored (71.1 %, bar 75 %) FAIL**; e +$2.0011 at R = 0.40 (fills −$4.5845,
+  formula $16.4640, matched 10,683; no stop) PASS; g 0 of 11,520 diverged PASS; **f FAIL**: region eu-west-1, every
+  gate true, keyed, but pUSD 0.036673 (the account is not funded).
+- **Why (d) failed: the pools, not the code.** Of the 3,327 minutes without a formula reward, 844 had fewer than two
+  quotes resting (the first minute, a book with no mid), and 2,330 would score nothing even with our own orders in the
+  book: the book wider than twice the reward's spread (2,387 zero minutes in all) or its mid under 0.10 (881). Three
+  markets of eight carry it: one scored 19.5 % of its minutes (its best bid flickering between 0.03 and 0.27 under a
+  0.39 ask, a 6.5¢ band), two 52 % and 67 % (mids near 0.08–0.09). 153 minutes are the dry-run's own blind spot (the
+  formula reads the book without our orders; live, ours would set the touch and score); counted as scored, (d) is still
+  72.4 %. No fix is made: a tighter selection (a book within the band, a mid inside [0.10, 0.90]) is a rule change and
+  Davies' call, by a new addendum and window. No go-live on a FAIL.
+- **Mid-pool, `mid_check.sql` (00:18 UTC):** w PASS; a1 1,440 PASS; a2 0 PASS; a3 to 00:16, one day row PASS; b1 8
+  markets in one run at 00:00:01 PASS; b2 none outside, exclusion RW / 0.67 / 32 excluded PASS; b3 $151.78 PASS; c1 0 of
+  3,407 PASS; c2 0 PASS; c3 $19.86 / $155.12 PASS; d 9,352 of 11,520 (81.2 %) PASS; e +$15.0098 (fills −$2.4907, formula
+  $43.7512, matched 11,455; no stop) PASS; g 0 PASS; f N/A (dry_run true, live_confirmed_at null). Its readout runs as
+  frozen at or after 2026-10-17 00:10 UTC.
+
+**Davies' next words (about 00:00 UTC):** "准备mid-pool的上线，确保和现在的策略一致" — an `opus-max` sub-agent in a
+worktree is readying it, on a branch it does not push: the live path against the dry-run (step 8m on PGlite), payouts
+told apart per path, the exclusion margin measured again, a draft pre-registration for a funded mid-pool (which, by the
+dry-run's own pre-registration, waits for the overlap audit, no earlier than 10-23 00:05, unless Davies takes the risk
+to RW-C), and a readiness list. He also asked whether variant-3 and variant-4 (x4, x5) beat variant-2 (x1): that is
+their Test 1, read at or after 10-09 00:05, so nothing of theirs was read and he was told so. And whether selling a
+filled order at once would cap the fills' losses: a second `opus-max` sub-agent is pricing it, read-only, on RW's paper
+fills and mini-pool's (read only after its check), against holding at 15 and 60 minutes, 4 hours, the day's end and
+settlement, with two milder rules (a stop after k ticks, a time stop).
+
+### [2026-10-03 23:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Mini-pool against mid-pool, read before their checks on Davies' word** (asked which to take live on the
 strategies' own results; told the read breaks both no-peek rules and costs mid-pool a blind readout, he answered
