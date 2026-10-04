@@ -191,6 +191,20 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      Davies: "验证没问题就直接落地TESTING STRATEGIES列表，把mini-pool 的检验窗口全关了，目前上线live的最大candidate是这个live-prep策略"):
      Addendum 6's window is withdrawn before its first minute and its check is never run; mini-pool is not a go-live
      candidate. It keeps dry-running as a comparison and arms nothing (history, 2026-10-04 17:00).
+   - **Reward quotes live-prep (S2): the lead live candidate, a third instance of the order path, in dry-run and unarmed**
+     (Davies, 2026-10-04: "验证没问题就直接落地TESTING STRATEGIES列表…目前上线live的最大candidate是这个live-prep策略").
+     `0091_pm_lp.sql`, `agents/pm_lp.ts`, `agents?action=pmlp&forceFunctionRegion=eu-west-1` and `agents?action=pmlpprep`
+     every minute (rows of `edge_calls`, retry true); the last row of TESTING. Rules: pools of $10 and over with no ceiling,
+     10 markets / $200 a day, RW's prices with what is held sold first, 5N, x2's pause, carried markets close-only, no
+     weather or same-day markets, $320 total / $100 a market, a −$75 stop on fills plus what was paid, no day stop.
+     Pre-registered: `reviews/2026-10-04-polymarket-lp-prereg.md`; d1 is the first full UTC day after
+     `pm_lp_config.created_at`. **Before Davies' go, in order:** P1 `lp_check.sql` once at or after d1 + 1 day 00:10 UTC,
+     every row passing ((d), quoted minutes ≥ 60 %, is the one most at risk: 58.3 % on a simulated day); P2 pUSD ≥ $81 in
+     the account; P3 the payouts-per-path patch (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`, rebuilt
+     on this code) applied with an addendum, Davies' call ("之后再部署吧"), since without it the paths book each other's
+     payouts; P4 mini-pool and mid-pool unarmed; P5 the probe reading the conditional-token allowances (not built); and a
+     `monitor/health.ts` freshness reading for `pm_lp_state` (not built). Then step 8lp, only in the conversation where
+     he says go. Not measured: the selection's CPU on Supabase over about 1,379 markets.
    - **Reward quotes mid-pool: the path and its paper layer again, on $10–$50 pools; since `0084` the same real order path as mini-pool, in dry-run**
      (Davies, 2026-10-02: "…再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward quotes，也是400美元funded测试").
      `0081`, `agents/pm_mid.ts` (an instance of `pm_live.ts` and `pm_prep.ts`), `agents?action=pmmid&forceFunctionRegion=eu-west-1`
@@ -749,6 +763,24 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-04 17:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Reward quotes live-prep (S2) lands in dry-run, unarmed, as the last row of TESTING** (Davies: "验证没问题就直接落地
+TESTING STRATEGIES列表"). Phase B, built by the opus-max agent in `lp-phase-b` and rebased onto `4d87d416`: the build
+(`agents/pm_lp.ts`, options in `pm_live.ts` / `pm_prep.ts` that only live-prep sets, `0091_pm_lp.sql`, the page, the
+fixture and sweep checks), the pre-registration with `lp_check.sql` / `lp_readout.sql` pinned by hash and Phase A's
+evidence in `backtests/pmlp/`, mid-pool's Addendum 3 (this deploy is its deviation 3), the payouts-per-path patch
+rebuilt on this code (still pending) and the docs. Reviewed before landing: `0091` creates 16 tables, every one with
+RLS and no grant, the config dry-run and unarmed (10 markets, $200, caps $320 / $100, stop $75, no day stop), the
+attestation copied from mini-pool's config; the one-account trigger function now refuses arming any of the three
+configs while another is armed. Mini-pool and mid-pool are unchanged: `pm_instance.test.ts` and
+`pm_mid_formula.test.ts` pass unedited. The agent's evidence: Deno 1,006 and vitest 1,195 pass; 18 code mutations
+each fail a test; on PGlite over all migrations the go-time statement refuses its 13 cases, arms at the caps the
+balance allows and then changes only `pm_lp_config`; a simulated day of `lp_check.sql` passed every row but (d) at
+58.3 % against 60 %. What stands between it and live is item 2's live-prep sub-item (P1–P5 and a monitor reading).
+To verify after the push: `0091` applied, `agents` redeployed, `pm_lp_state` with region eu-west-1, keyed and a
+selection, and no `agents.pm_lp*` rows in `ops_errors`.
 
 ### [2026-10-04 17:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
