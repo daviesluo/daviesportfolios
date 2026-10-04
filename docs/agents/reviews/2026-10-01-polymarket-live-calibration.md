@@ -41,7 +41,8 @@ N ≤ 20, accepting orders with two tokens, a two-sided book, and a first-round 
 ranked each UTC day by RW's own first-round reward per dollar (`firstScore`, `choose`), at most `max_markets` of them
 within `select_budget_usd`. **What it answers:** R = Σ actual rewards / Σ formula rewards, over the market-days it
 quoted live (`pm_live_reward_days`), where the formula is RW's reward line computed every minute on the quotes as they
-rested, against the book without them (`pm_live_minutes`).
+rested, against the book without them (`pm_live_minutes`); since 2026-10-04 against the book with them in it, as the
+venue holds them, its midpoint the whole book's (mini-pool's pre-registration, Addendum 6).
 
 **Why a calibration, and why now.** The one thing paper cannot show is whether Polymarket pays what the paper formula
 says. RW's six paper days broke even at R ≈ 0.40 (fills as RW's paper filled them) and need R ≈ 0.58 at the stress

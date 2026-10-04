@@ -1,5 +1,5 @@
 {
- "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01); and mid-pool's exclusion margin and its selection's CPU, measured through its own code (2026-10-02); and 0084's trigger and both go-time statements run on PGlite (2026-10-02); and, for mid-pool's go-live (2026-10-04), its margin measured again and its go-time statement run on PGlite over every migration",
+ "study": "Polymarket's first live step, a read-only pre-study (2026-10-01): the reward universe's keyless aggregates, the power of an actual-to-formula reward ratio, and the bridge's quotes; and the live calibration's selection, timed end to end through the order path's own code (2026-10-01); and mid-pool's exclusion margin and its selection's CPU, measured through its own code (2026-10-02); and 0084's trigger and both go-time statements run on PGlite (2026-10-02); and, for mid-pool's go-live (2026-10-04), its margin measured again and its go-time statement run on PGlite over every migration; and mini-pool's book-quality rule (2026-10-04, Addendum 6 of its pre-registration): its universe's books read keylessly once a minute for two hours and replayed through the order path's own code, beside its own record's market-days",
  "write_up": "docs/agents/reviews/2026-10-01-polymarket-live-prestudy.md",
  "run": [
   "cd scripts && python3 ratio_power.py  # -> results/ratio_power_out.txt, identical on re-run (seed 20261001)",
@@ -13,7 +13,11 @@
   "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/one_armed_check.mjs  # from the repository root -> results/one_armed_check_out.txt (0084's one-armed trigger and both go-time statements on PostgreSQL 16; the counterfactuals `trigger` and `migration` appended)",
   "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_2026-10-04_out.txt  # the same measurement again for a funded mid-pool (2026-10-04 00:13-00:29 UTC), unchanged script; live, keyless, counts and ratios only, no market named",
   "cd scripts && npx --yes deno@1.46.3 run --allow-net --allow-env mid_margin.ts 14 > ../results/mid_margin_2026-10-04b_out.txt  # its second run, straight after (2026-10-04 00:31 UTC on)",
-  "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/mid_live_check.mjs  # from the repository root -> results/mid_live_check_out.txt (mid-pool's go-time statement, step 8m, on PostgreSQL 16 over every migration 0001-0089; the counterfactuals `nokey` and `widen` appended)"
+  "PGLITE=<pglite 0.2.17>/dist/index.js node docs/agents/backtests/pmlive/scripts/mid_live_check.mjs  # from the repository root -> results/mid_live_check_out.txt (mid-pool's go-time statement, step 8m, on PostgreSQL 16 over every migration 0001-0089; the counterfactuals `nokey` and `widen` appended)",
+  "prep_check_addendum6.sql  # the check of the live-prep pre-registration's Addendum 6 (its window 2026-10-05 00:00 -> 10-06 00:00 UTC): prep_check.sql with only its date lines moved; read-only, one statement, run once at or after 2026-10-06 00:10 UTC; its sha256 is pinned by src/pm_prep_prereg.test.js",
+  "npx --yes deno@1.46.3 run --allow-net --allow-env --allow-write docs/agents/backtests/pmlive/scripts/mini_books.ts 130 books.jsonl && gzip -9 -n -c books.jsonl > docs/agents/backtests/pmlive/results/mini_books.jsonl.gz  # from the repository root; live, keyless; asked for 130 minutes, it read 121 (2026-10-04 14:19-16:19 UTC) before the session's two-hour limit on a background command stopped it; every book of mini-pool's eligible universe once a minute, both tokens' every fifteenth",
+  "scripts/mini_history_days.sql  # read-only, one statement: mini-pool's own record by market-day (pm_live_minutes, pm_live_markets); its rows as read 2026-10-04 15:31 UTC are results/mini_history_days.json",
+  "npx --yes deno@1.46.3 run --allow-read docs/agents/backtests/pmlive/scripts/mini_books_read.ts docs/agents/backtests/pmlive/results/mini_books.jsonl.gz 60 docs/agents/backtests/pmlive/results/mini_history_days.json > docs/agents/backtests/pmlive/results/mini_books_out.txt  # from the repository root; reads only the committed files; identical on re-run"
  ],
  "sources": {
   "results/reward_agg_out.txt": "CLOB /rewards/markets/current, 39 pages, 2026-10-01 ~02:15 UTC",
@@ -23,7 +27,10 @@
   "results/mid_selection_time_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets, /books (POST) and /book, Gamma /markets, keyless, through agents/pm_live.ts selectMarkets with PM_MID_INSTANCE's band, exclusion and batch read, 2026-10-02 04:17-04:20 UTC",
   "results/mid_margin_2026-10-04_out.txt": "CLOB /rewards/markets/current, /sampling-simplified-markets and /books (POST), Gamma /markets, keyless, through agents/pm_live.ts rewardListing and agents/pm_mid.ts rwSelectionNow, 2026-10-04 00:13-00:29 UTC",
   "results/mid_margin_2026-10-04b_out.txt": "the same reads, 2026-10-04 from 00:31 UTC",
-  "results/mid_live_check_out.txt": "PGlite 0.2.17 (PostgreSQL 16.4), every file of supabase/migrations applied in order over stubs of pg_cron, pg_net, the vault and the API roles; step 8m read from reviews/2026-10-01-polymarket-live-calibration.md"
+  "results/mid_live_check_out.txt": "PGlite 0.2.17 (PostgreSQL 16.4), every file of supabase/migrations applied in order over stubs of pg_cron, pg_net, the vault and the API roles; step 8m read from reviews/2026-10-01-polymarket-live-calibration.md",
+  "results/mini_books.jsonl.gz": "CLOB /rewards/markets/current, Gamma /markets and CLOB /book, keyless, through agents/pm_live.ts rewardListing, inUniverse and candidateOf, 2026-10-04 14:19-16:19 UTC (121 reads); every eligible market's YES book once a minute, its NO book every fifteenth read, levels within 12 c of each touch",
+  "results/mini_history_days.json": "scripts/mini_history_days.sql on the production database (read-only), 2026-10-04 15:31 UTC",
+  "results/mini_books_out.txt": "scripts/mini_books_read.ts on results/mini_books.jsonl.gz and results/mini_history_days.json, through agents/pm_live.ts minuteFormula, rwQuotes, bookQualityOf and PM_MINI_QUALITY, and agents/pm_live_frozen.ts minuteFormula"
  },
  "committed": {
   "results/bridge_quotes.txt": {
@@ -49,6 +56,18 @@
   "results/mid_selection_time_out.txt": {
    "bytes": 3110,
    "sha256": "4fd78f03c787de10f87344e3a952ee53e36392e1751c67b2861d8e6c9f2d8385"
+  },
+  "results/mini_books.jsonl.gz": {
+   "bytes": 3418555,
+   "sha256": "02246a2a912badf97532e1f928465be2f083dd43096c516a9f9e8f88815868cf"
+  },
+  "results/mini_books_out.txt": {
+   "bytes": 66519,
+   "sha256": "bb4fc9cc9f040d5a8b34c90ee3f80e3c19e98be1b79a6521cfe3343b2683530c"
+  },
+  "results/mini_history_days.json": {
+   "bytes": 3415,
+   "sha256": "ae149f2bb8102ec2c969ec8e3bd2e057d66f00e7a3601825ff037d74e922b723"
   },
   "results/one_armed_check_out.txt": {
    "bytes": 10112,
@@ -81,6 +100,18 @@
   "scripts/mid_selection_time.ts": {
    "bytes": 2812,
    "sha256": "ada6a9d6c03b9dd42bd1a26e37c39a890d0eb985547d9dc425cd16dd52b81708"
+  },
+  "scripts/mini_books.ts": {
+   "bytes": 5083,
+   "sha256": "e2e70c21966b0de53a97215660144eea1311b93c79ca0989fb678263092a2300"
+  },
+  "scripts/mini_books_read.ts": {
+   "bytes": 22177,
+   "sha256": "6245bcc2e2df5c02b8969714b43fd8ce102b966a61da5d8469f8d056441c30f6"
+  },
+  "scripts/mini_history_days.sql": {
+   "bytes": 1709,
+   "sha256": "7da90245813e95a78d0449b1c9db13638f6424e17105f50db38521ccb99b727c"
   },
   "scripts/one_armed_check.mjs": {
    "bytes": 14972,

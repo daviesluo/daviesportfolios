@@ -12,6 +12,7 @@ const DOC = fs.readFileSync(path.join(ROOT, 'docs/agents/reviews/2026-10-01-poly
 const SQL = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check.sql'));
 const ADD1 = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check_addendum1.sql'));
 const ADD2 = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check_addendum2.sql'));
+const ADD6 = fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlive/prep_check_addendum6.sql'));
 
 describe('the live-prep pre-registration', () => {
   it('names the sha256 of the check it froze, and the check is that file', () => {
@@ -77,5 +78,34 @@ describe('the live-prep pre-registration', () => {
     const differ = frozen.map((l, i) => (l === moved[i] ? null : i)).filter((i) => i !== null);
     expect(differ.length).toBe(2);
     for (const i of differ) expect(moved[i]).toBe(frozen[i].replaceAll('2026-10-03', '2026-10-04').replaceAll('2026-10-02', '2026-10-03'));
+  });
+
+  // Addendum 6 (2026-10-04, Davies: "把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉"): the formula's
+  // measurement fix and mini-pool's book-quality rule, deployed after Addendum 2's window, move the check to the first full
+  // UTC day after the deploy. Its check is the frozen one with the window's dates moved and nothing else, and it arms nothing.
+  it("names the sha256 of Addendum 6's check, and the check is that file", () => {
+    const named = /`prep_check_addendum6\.sql`\*\*, sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    expect(named).toMatch(/^[0-9a-f]{64}$/);
+    expect(crypto.createHash('sha256').update(ADD6).digest('hex')).toBe(named);
+  });
+
+  it("reads Addendum 6's window, 2026-10-05 00:00 to 2026-10-06 00:00 UTC, with every bar of the frozen check", () => {
+    expect(DOC).toContain('**The window: 2026-10-05 00:00:00 → 2026-10-06 00:00:00 UTC**');
+    const sql = ADD6.toString('utf8');
+    expect(sql).toContain("w as (select timestamptz '2026-10-05 00:00:00+00' as w0, timestamptz '2026-10-06 00:00:00+00' as w1, date '2026-10-05' as d),");
+    expect(sql.replace(/--[^\n]*/g, '')).not.toMatch(/\b(insert|update|delete|alter|drop|create|truncate|grant)\b/i);
+    // Line for line the frozen check, but for its header comment and the two lines that name the window's dates.
+    const body = (b) => b.toString('utf8').split('\n').filter((l) => !l.startsWith('--'));
+    const frozen = body(SQL), moved = body(ADD6);
+    expect(moved.length).toBe(frozen.length);
+    const differ = frozen.map((l, i) => (l === moved[i] ? null : i)).filter((i) => i !== null);
+    expect(differ.length).toBe(2);
+    for (const i of differ) expect(moved[i]).toBe(frozen[i].replaceAll('2026-10-03', '2026-10-06').replaceAll('2026-10-02', '2026-10-05'));
+  });
+
+  it("names the code Addendum 6 deploys, the path's and the layer's, each by a sha256", () => {
+    const add6 = DOC.slice(DOC.indexOf('## Addendum 6'));
+    expect(add6.length).toBeGreaterThan(100);
+    for (const f of ['pm_live.ts', 'pm_prep.ts']) expect(add6).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `[0-9a-f]{64}`'));
   });
 });

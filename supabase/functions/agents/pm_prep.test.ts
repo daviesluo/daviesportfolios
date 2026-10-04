@@ -14,7 +14,7 @@ import golden from "../../../docs/agents/backtests/polymarket/results/rw_golden.
 import { newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
 import type { PmLevel } from "../_shared/polymarket_public.ts";
 import {
-  classify, endedMinute, placedMinute, PREP_DB_TABLES, PREP_LOCK, PREP_READS, PREP_R_BREAK_EVEN, restingAfterTurn, ruleQuote, runPmPrep, twice,
+  classify, decideMinute, endedMinute, placedMinute, PREP_DB_TABLES, PREP_LOCK, PREP_READS, PREP_R_BREAK_EVEN, restingAfterTurn, ruleQuote, runPmPrep, twice,
   type PrepOrder, type PrepState,
 } from "./pm_prep.ts";
 import { onTick, PM_LIVE_DB_TABLES, runPmLive, rwQuotes, type PmBookNow, type PmLiveConfig, type PmMarketRow } from "./pm_live.ts";
@@ -233,6 +233,55 @@ Deno.test("a hand-worked day: the path's own orders filled by RW's rule, minute 
   // The next run decides from t7 on; with nothing new it writes no fill.
   const r2 = await runPmPrep({ db: h.db, now: h.t(9) + 30e3, holder: "b", pm: { fetchImpl: pubFetch(h.pub) } });
   assertEquals([r2.from, r2.to, r2.fills], [iso(h.t(7)), iso(h.t(7)), 0]);
+});
+
+Deno.test("the reward of a matched minute is the path's own formula of the quotes it rested, with them in the book (detail.after); a minute recorded before the path kept it is paid RW's line; dark and diverged nothing", async () => {
+  const h = handDay();
+  // The path's record of each minute carries what rested after its turn, scored as the venue would hold it.
+  const after = [0.0011, 0.0012, 0.0013, 0.9, 0.0014, 0.8];
+  const mins0 = (h.mem.tables.pm_live_minutes as Row[]).sort((a, b) => String(a.minute).localeCompare(String(b.minute)));
+  mins0.forEach((m, i) => { m.detail = { m: 0.46, mRw: 0.46, after: { formula: after[i], ours: 1, others: 1, m: 0.46, orders: 2 } }; });
+  // The fourth matched minute (t4) keeps its old shape: recorded before the path kept `after`.
+  mins0[4].detail = {};
+  const r = await runPmPrep({ db: h.db, now: h.t(8) + 30e3, holder: "a", pm: { fetchImpl: pubFetch(h.pub) } });
+  assertEquals(r.errors, []);
+  const mins = (h.mem.tables.pm_prep_minutes as Row[]).sort((a, b) => String(a.minute).localeCompare(String(b.minute)));
+  assertEquals(mins.map((m) => [m.class, (m.detail as Record<string, unknown>).paid ?? null]), [
+    ["matched", "venue"], ["matched", "venue"], ["matched", "venue"], ["dark", null], ["matched", "rw"], ["diverged", null],
+  ]);
+  const line = rwReward(8, 4.5, 1, 5, 10, 10, 0.46);
+  const paid = mins.map((m) => Number(m.reward));
+  assertEquals([paid[0], paid[1], paid[2], paid[3], paid[5]], [0.0011, 0.0012, 0.0013, 0, 0]);
+  assertAlmostEquals(paid[4], line, 1e-15);
+  // RW's own line is kept beside what was paid.
+  for (const i of [0, 1, 2, 4]) assertAlmostEquals(Number((mins[i].detail as Record<string, unknown>).rw), line, 1e-12);
+  const st = (h.mem.tables.pm_prep_state as Row[])[0].state as PrepState;
+  assertAlmostEquals(st.day.reward, 0.0011 + 0.0012 + 0.0013 + line, 1e-12);
+  assertAlmostEquals(st.acc[h.c].reward, st.day.reward, 1e-12);                            // the account's line is the same figure
+  assertAlmostEquals(r.reward, st.day.reward, 1e-12);
+  // The fills and the inventory are stepRw's, as before: the same as the hand-worked day's.
+  assertEquals(st.acc[h.c].net, 4);
+  assertEquals((h.mem.tables.pm_prep_fills as Row[]).length, 4);
+});
+
+Deno.test("decideMinute: a side the paper's inventory stops earns nothing, whatever the path's formula of both its quotes; with both quoted, the account's reward is the path's figure", () => {
+  const row: BookRow = [0.45, 0.47, 0.45, 0.47, 10, 10];
+  const bid = { id: 1, ts: iso(T0), cond: cond(1), token: "Y", outcome: "yes", side: "BUY", price: 0.45, size: 5, state: "live", cancelled_at: null, request: null, book_seen: null } as PrepOrder;
+  const ask = { ...bid, id: 2, token: "N", outcome: "no", price: 0.53 } as PrepOrder;
+  const base = { t: T0, row, tick: 0.01, v: 4.5, rate: 8, minSize: 5, venueMin: 5, bid, ask, tokens: { yes: "Y", no: "N" }, held: { yes: 0, no: 0 }, stopped: false, prints: [] };
+  const a1 = newAcc();
+  const both = decideMinute({ ...base, acc: a1, venueReward: 0.004 });
+  assertEquals([both.reward, both.qb, both.qa], [0.004, true, true]);
+  assertAlmostEquals(both.rwReward, rwReward(8, 4.5, 1, 5, 10, 10, 0.46), 1e-12);
+  assertAlmostEquals(a1.reward, 0.004, 1e-12);
+  const a2 = newAcc();
+  a2.net = 15;                                                                                 // 3N its way: the bid stops
+  const one = decideMinute({ ...base, acc: a2, venueReward: 0.004 });
+  assertEquals([one.reward, one.rwReward, one.qb, one.qa, a2.reward], [0, 0, false, true, 0]);
+  const a3 = newAcc();
+  const old = decideMinute({ ...base, acc: a3 });                                              // no figure: RW's line, as before
+  assertEquals([old.reward, a3.reward], [old.rwReward, old.rwReward]);
+  assert(old.reward > 0);
 });
 
 Deno.test("a minute is never decided without its prints: a failed read decides nothing, and the next run decides from the same place", async () => {

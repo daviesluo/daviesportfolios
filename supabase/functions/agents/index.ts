@@ -134,7 +134,7 @@ import {
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { loadPolymarketEnv, polymarketProbe } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, PM_ORDER_SENDS_ENABLED, pmVenue } from "../_shared/polymarket_orders.ts";
-import { PM_LIVE_TIMEOUT_MS, runPmLive, type PmSettlement } from "./pm_live.ts";
+import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } from "./pm_live.ts";
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
@@ -421,6 +421,9 @@ export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch;
       account: env.funder && env.signer ? { maker: env.funder, signer: env.signer } : null,
       signer: env.key,
       signerProblem: env.keyProblem,
+      // Mini-pool from its pre-registration's Addendum 6 (2026-10-04): the default instance with its selection's
+      // book-quality rule.
+      inst: PM_MINI_INSTANCE,
     });
     if (env.check.problems.length) report.errors.push(`secrets: ${env.check.problems.join("; ")}`);
     const clean = env.scrub(report);

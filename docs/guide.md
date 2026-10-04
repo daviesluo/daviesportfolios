@@ -294,6 +294,11 @@ places stay when the number is not whole.
   column shows a dash; the running one is in its status. If the account's
   own loss limit would have been hit, its dot turns amber and says so:
   from then on, as the real account would, it only sells what it holds.
+  From 4 October its rewards are worked out with its own quotes in the
+  market's order book, as Polymarket works them out, and from 5 October
+  it prefers markets whose order book has depth: on each side, at least
+  two prices within 10 cents of the best one, each holding the reward's
+  minimum size. It takes a thinner market only when too few have it.
 - **Reward quotes mid-pool.** The last row, on Polymarket: the same test
   on bigger pools, markets paying $10 to under $50 a day in rewards, for
   fourteen days. It is the same code as mini-pool, at the same size
@@ -303,7 +308,8 @@ places stay when the number is not whole.
   Both use the same Polymarket account, so only one of the two can ever
   be live. It never picks a market that the other Reward quotes tests
   quote, and leaves out the ones close to them too. Its row and its
-  page read exactly like mini-pool's.
+  page read exactly like mini-pool's, and from 4 October its rewards are
+  worked out the same way.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

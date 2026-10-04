@@ -443,7 +443,10 @@ that follow from that evidence, in short:
   "small-pool", until 2026-10-02); since `0080` its dry-run runs at the go-live size, eight
   markets and $160 of first quotes, and only Davies' word in the
   conversation arms it: no routine runs the go-time statement ("什么时候
-  上线我说了算不自动转了"). **"Reward quotes mid-pool"** (`0081`,
+  上线我说了算不自动转了"). **Since 2026-10-04** (its pre-registration's Addendum 6) each minute's formula scores our quotes in
+  the book as the venue holds them, the paper pays a matched minute that figure, and mini-pool's selection takes first
+  the books with two levels of the reward minimum within 10 ¢ of the touch on each side, the rest only for what they leave
+  (`PM_MINI_QUALITY`); mid-pool takes the formula only (its Addendum 2). **"Reward quotes mid-pool"** (`0081`,
   `agents/pm_mid.ts`, 2026-10-02) runs the same path and paper layer again
   as a second instance on $10–$50 pools, at mini-pool's go-live size, and
   since `0084` (Davies: "把mid-pool 的结构和路径也做成和mini-pool一样的真实下单路径，

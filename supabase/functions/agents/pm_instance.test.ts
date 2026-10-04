@@ -17,7 +17,7 @@
 // The frozen layer imports its book-keeping from today's pm_live.ts (its one import of that file, which a byte-for-byte
 // copy cannot change): those functions are pinned below to be the frozen path's own, text for text.
 
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import * as Frozen from "./pm_live_frozen.ts";
 import * as FrozenPrep from "./pm_prep_frozen.ts";
 import * as Path from "./pm_live.ts";
@@ -111,6 +111,8 @@ const STEPS: Array<[number, ((w: World) => void)?]> = [
     const t = T0 + (k + 1) * M;
     const acts: Record<number, (w: World) => void> = {
       2: (w) => { w.A.bid = 0.46; },                                            // a re-price
+      4: (w) => { w.C.bid = 0.30; },                                            // C's bid gone for a minute: our resting
+      5: (w) => { w.C.bid = 0.50; },                                            // quotes set the venue's midpoint (2026-10-04)
       6: (w) => { w.B.bid = 0; },                                               // B's book one-sided
       8: (w) => { w.B.bid = 0.20; },
       9: (w) => { w.pm.down.geoblock = true; },                                 // answered from memory, then closed
@@ -152,7 +154,45 @@ const STEPS: Array<[number, ((w: World) => void)?]> = [
   [at("2026-10-04T06:01:30Z")], [at("2026-10-04T06:02:30Z")],
 ];
 
-Deno.test("the default instance is the pre-registered path and layer: every table, request and report the same, turn by turn", async () => {
+/**
+ * What the measurement fix of 2026-10-04 changes (Addendum 6 of the live-prep pre-registration), and nothing else: the
+ * formula of a minute scores the quotes against the venue's book with them in it, so its figures (`ours`, `others`,
+ * `formula_usd`, the midpoint and the per-side scores in `detail`, which also gains `mRw` and `after`), the readout's
+ * sums of them and its count of the minutes we scored in (`minutes_two_sided`), the state's copy of the minutes, and
+ * the paper layer's reward of a matched minute (its minutes' `reward` and `detail`, its days' `reward`, `reward_r40` and
+ * `pnl_day_r40`, its accounts' and day's running reward). Every other field of every table, every request, every body
+ * and every other field of every report must be the frozen code's.
+ */
+function masked(tables: Record<string, Row[]>): Record<string, Row[]> {
+  const t = structuredClone(tables) as Record<string, Row[]>;
+  for (const r of t.pm_live_minutes ?? []) { delete r.ours; delete r.others; delete r.formula_usd; delete r.detail; }
+  for (const r of t.pm_live_reward_days ?? []) { delete r.formula_usd; delete r.formula_scored_usd; delete r.minutes_two_sided; }
+  for (const e of t.pm_live_events ?? []) {
+    if (e.kind === "readout") for (const d of ((e.detail as { days?: Row[] })?.days ?? [])) { delete d.formula; delete d.formulaScored; }
+  }
+  for (const r of t.pm_live_state ?? []) {
+    for (const m of ((r.state as { minutes?: Row[] })?.minutes ?? [])) { delete m.formula; delete m.ours; delete m.others; }
+  }
+  for (const r of t.pm_prep_minutes ?? []) { delete r.reward; delete r.detail; }
+  for (const r of t.pm_prep_days ?? []) { delete r.reward; delete r.reward_r40; delete r.pnl_day_r40; }
+  for (const r of t.pm_prep_state ?? []) {
+    const st = r.state as PrepStateShape;
+    if (st?.acc) for (const a of Object.values(st.acc)) delete (a as Row).reward;
+    if (st?.day) delete (st.day as Row).reward;
+  }
+  return t;
+}
+type PrepStateShape = { acc?: Record<string, unknown>; day?: Record<string, unknown> };
+// deno-lint-ignore no-explicit-any
+function maskedReport(r: any): unknown {
+  const x = structuredClone(r);
+  for (const m of x.live?.minutes ?? []) { delete m.formula; delete m.ours; delete m.others; }
+  for (const d of x.live?.readout ?? []) delete d.formula;
+  if (x.prep) delete x.prep.reward;
+  return x;
+}
+
+Deno.test("the default instance is the pre-registered path and layer but for the formula of 2026-10-04: every table, request and report the same, turn by turn, but the fields that formula makes", async () => {
   const frozen = world(Frozen.runPmLive, FrozenPrep.runPmPrep);
   const today = world(Path.runPmLive, Prep.runPmPrep);
   const named = world(Path.runPmLive, Prep.runPmPrep, true);                   // the default named, not left out
@@ -161,17 +201,17 @@ Deno.test("the default instance is the pre-registered path and layer: every tabl
     for (const w of [frozen, today, named]) act?.(w);
     const a = await frozen.turn(t), b = await today.turn(t), c = await named.turn(t);
     const label = iso(t);
-    assertEquals(JSON.stringify(b), JSON.stringify(a), `reports at ${label}`);
-    assertEquals(JSON.stringify(c), JSON.stringify(a), `reports at ${label} (named)`);
-    assertEquals(JSON.stringify(today.mem.tables), JSON.stringify(frozen.mem.tables), `tables after ${label}`);
-    assertEquals(JSON.stringify(named.mem.tables), JSON.stringify(frozen.mem.tables), `tables after ${label} (named)`);
+    assertEquals(JSON.stringify(maskedReport(b)), JSON.stringify(maskedReport(a)), `reports at ${label}`);
+    assertEquals(JSON.stringify(c), JSON.stringify(b), `reports at ${label} (named)`);
+    assertEquals(JSON.stringify(masked(today.mem.tables as Record<string, Row[]>)), JSON.stringify(masked(frozen.mem.tables as Record<string, Row[]>)), `tables after ${label}`);
+    assertEquals(JSON.stringify(named.mem.tables), JSON.stringify(today.mem.tables), `tables after ${label} (named)`);
     assertEquals(today.pm.urls, frozen.pm.urls, `requests by ${label}`);
     assertEquals(named.pm.urls, frozen.pm.urls, `requests by ${label} (named)`);
     assertEquals(today.pm.bodies, frozen.pm.bodies, `bodies by ${label}`);
     for (const o of today.mem.tables.pm_live_orders as Row[]) states.add(`${o.mode}:${o.state}`);
   }
   // What the days went through, read from the record: an equality over a world that did nothing would prove nothing.
-  const T = today.mem.tables as Record<string, Row[]>;
+  const T = today.mem.tables as Record<string, Row[]>, F = frozen.mem.tables as Record<string, Row[]>;
   const kinds = new Set(T.pm_live_events.map((e) => `${e.mode}:${e.kind}`));
   for (const k of ["dry_run:selection", "dry_run:gates", "dry_run:condition", "dry_run:readout", "live:selection", "live:gates", "live:loss_stop_day", "live:readout"]) assert(kinds.has(k), k);
   for (const s of ["dry_run:live", "dry_run:cancelled", "dry_run:expired", "live:pending", "live:live", "live:cancelled", "live:filled", "live:rejected"]) {
@@ -184,6 +224,49 @@ Deno.test("the default instance is the pre-registered path and layer: every tabl
   assert(T.pm_prep_fills.length >= 10 && T.pm_prep_days.length >= 1, `paper fills ${T.pm_prep_fills.length}, days ${T.pm_prep_days.length}`);
   assert(T.pm_prep_minutes.some((m) => m.class === "matched") && T.pm_prep_minutes.some((m) => m.class === "dark"), "matched and dark minutes");
   assert(today.pm.calls.some((c) => c.startsWith("POST clob.polymarket.com/order")) && today.pm.calls.some((c) => c.startsWith("DELETE clob.polymarket.com/cancel-all")), "live writes");
+
+  // What the formula changed, minute by minute: RW's midpoint is the frozen code's own; where the venue's (with our quotes
+  // in its book) is the same, every figure is the frozen one; where our resting quotes moved it, the figures are the
+  // venue's. Both happen in these days, dry-run and live.
+  const key = (r: Row) => `${r.mode}|${r.minute}|${r.cond}`;
+  const old = new Map(F.pm_live_minutes.map((r) => [key(r), r]));
+  const moved = { dry_run: 0, live: 0 }, same = { dry_run: 0, live: 0 };
+  for (const r of T.pm_live_minutes) {
+    const o = old.get(key(r))!, d = r.detail as Record<string, any>, od = o.detail as Record<string, any>;
+    assertEquals(d.mRw, od.m, key(r));
+    assertEquals(d.orders, od.orders, key(r));
+    if (d.m === od.m || (d.m !== null && od.m !== null && Math.abs(d.m - od.m) < 1e-12)) {
+      same[r.mode as "dry_run" | "live"]++;
+      for (const f of ["ours", "others", "formula_usd"]) assertAlmostEquals(Number(r[f]), Number(o[f]), 1e-12, `${key(r)} ${f}`);
+    } else moved[r.mode as "dry_run" | "live"]++;
+    assert(d.after && typeof d.after.formula === "number" && d.after.formula >= 0, `${key(r)} after`);
+  }
+  assert(same.dry_run > 20 && same.live > 5 && moved.dry_run >= 1, JSON.stringify({ same, moved }));
+  // The readout's counts and sums are of today's own minutes, as they were of the frozen code's.
+  for (const d of T.pm_live_reward_days) {
+    const mins = T.pm_live_minutes.filter((m) => m.mode === d.mode && m.cond === d.cond && String(m.minute).slice(0, 10) === d.day);
+    if (!mins.length) continue;
+    assertEquals(d.minutes_two_sided, mins.filter((m) => Number(m.ours) > 0).length, `${d.day} ${d.cond}`);
+    assertAlmostEquals(Number(d.formula_usd), Math.round(mins.reduce((s, m) => s + Number(m.formula_usd), 0) * 1e6) / 1e6, 1e-6);
+  }
+  // The paper layer: a matched minute is paid the path's own figure of the quotes it rested (`after`), and keeps RW's
+  // line beside it, which is what the frozen layer paid; its days' columns follow from its minutes as before.
+  const after = new Map(T.pm_live_minutes.filter((r) => r.mode === "dry_run").map((r) => [`${r.minute}|${r.cond}`, (r.detail as Record<string, any>).after.formula]));
+  const oldPrep = new Map(F.pm_prep_minutes.map((r) => [`${r.minute}|${r.cond}`, r]));
+  let venuePaid = 0, differs = 0;
+  for (const r of T.pm_prep_minutes.filter((x) => x.class === "matched")) {
+    const d = r.detail as Record<string, any>, o = oldPrep.get(`${r.minute}|${r.cond}`)!;
+    assertAlmostEquals(d.rw, Number(o.reward), 1e-12, `${r.minute} RW's line is the frozen layer's reward`);
+    // Paid the path's figure when the paper quoted both sides; a side its own inventory stopped earns nothing, as RW's line.
+    if (d.paid === "venue") { venuePaid++; assertAlmostEquals(Number(r.reward), r.qb && r.qa ? after.get(`${r.minute}|${r.cond}`) : 0, 1e-12, `${r.minute} paid the path's figure`); }
+    if (Math.abs(Number(r.reward) - Number(o.reward)) > 1e-12) differs++;
+  }
+  assert(venuePaid > 10, `${venuePaid} matched minutes paid the path's figure`);
+  for (const d of T.pm_prep_days) {
+    assertAlmostEquals(Number(d.reward_r40), Math.round(Number(d.reward) * 0.4 * 1e6) / 1e6, 1e-6);
+    assertAlmostEquals(Number(d.pnl_day_r40), Math.round((Number(d.fills_pnl_day) + Number(d.reward_r40)) * 1e6) / 1e6, 2e-6);
+  }
+  console.log(JSON.stringify({ minutesSame: same, minutesMoved: moved, prepMatchedPaidVenue: venuePaid, prepRewardDiffers: differs }));
 });
 
 Deno.test("the frozen layer's book-keeping, taken from today's pm_live.ts, is the frozen path's own, text for text", () => {
@@ -204,10 +287,11 @@ Deno.test("every export of the frozen code is today's, text for text and value f
     }
   };
   // The path: the universe and the candidate take the instance's band, the selection its band and exclusion, the turn its
-  // tables, lease and migrations.
-  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["inUniverse", "candidateOf", "selectMarkets", "runPmLive"]);
-  // The layer: its run takes the instance's tables and lease.
-  check(FrozenPrep as Record<string, unknown>, Prep as Record<string, unknown>, ["runPmPrep"]);
+  // tables, lease and migrations; and (2026-10-04) the formula scores against the venue's book with our quotes in it, the
+  // turn records what rests after it, and the selection ranks by an instance's book-quality rule (the default has none).
+  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["inUniverse", "candidateOf", "selectMarkets", "runPmLive", "minuteFormula"]);
+  // The layer: its run takes the instance's tables and lease; and (2026-10-04) a matched minute is paid the path's figure.
+  check(FrozenPrep as Record<string, unknown>, Prep as Record<string, unknown>, ["runPmPrep", "decideMinute"]);
   // The default instances are the names the code had: its tables, its lease, its band.
   assertEquals(Path.pmLiveDbTables(Path.PM_LIVE_INSTANCE), Path.PM_LIVE_DB_TABLES);
   assertEquals([Path.PM_LIVE_INSTANCE.lock, Path.PM_LIVE_INSTANCE.band, Path.PM_LIVE_INSTANCE.exclusion], ["pm-live", { floor: 6, ceiling: 10 }, undefined]);
@@ -215,4 +299,8 @@ Deno.test("every export of the frozen code is today's, text for text and value f
   // …which is the frozen layer's own list of what it may touch.
   assertEquals([...Prep.prepDbTables(Prep.PREP_INSTANCE)].sort(), [...FrozenPrep.PREP_DB_TABLES].sort());
   assertEquals([Prep.prepReads(Prep.PREP_INSTANCE), Prep.PREP_INSTANCE.lock], [[...Prep.PREP_READS], "pm-prep"]);
+  // Mini-pool from Addendum 6 is the default instance and its book-quality rule, nothing else; the default has none.
+  const { bookQuality, ...rest } = Path.PM_MINI_INSTANCE;
+  assertEquals(rest, Path.PM_LIVE_INSTANCE);
+  assertEquals([bookQuality, Path.PM_LIVE_INSTANCE.bookQuality], [Path.PM_MINI_QUALITY, undefined]);
 });

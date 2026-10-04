@@ -260,3 +260,48 @@ go-live size, so the two compare better later; do it now, don't wait. What chang
   the account's balance and when, the region the turn ran from), and they describe the account and the key, which
   mini-pool's state shows the same, not mid-pool's markets, orders or P&L.
 - **The window does not move:** d1 is 2026-10-03, checked by `mid_check.sql` as frozen.
+
+## Addendum 2 (2026-10-04, about 15:00 UTC): deviation 2, the formula measured as the venue would hold our quotes
+
+Written inside the window (d1 was 2026-10-03; the readout runs at or after 2026-10-17 00:10 UTC). Davies, 2026-10-04
+about 14:10 UTC, verbatim:
+
+> 把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉
+
+In English: fix and optimise mini-pool completely now; any dry-run problem that also affects mid-pool, fix there too.
+And about 14:45 UTC, verbatim: "所有不偷看条款全部取消，所有的数据都可用来达到最佳研究效果" (every no-peek clause is
+cancelled; all data may be used for the best research). **From 2026-10-04 this test is not blind, on his word**: the
+"No peeking" section above no longer binds, its readings are not deviations, and the readout runs as frozen and says it
+was not blind. What changes, and nothing else:
+
+- **Deviation 2: the deploy of 2026-10-04's measurement fix** to `pm_live.ts` and `pm_prep.ts`, the shared code mid-pool
+  runs (mini-pool's pre-registration, Addendum 6, gives its evidence; deviation 1 was the read of 2026-10-03 23:36
+  UTC). The readout names it with the day it is deployed; the days before it were measured the old way, the days after
+  it the new, and the deploy's own day both.
+- **What it changes in mid-pool's record, and only there.** The formula of a minute (`pm_mid_minutes`: `ours`, `others`,
+  `formula_usd`, and `detail`, whose `m` is now the venue's midpoint and which gains `mRw`, RW's, and `after`) scores our
+  quotes against the book as the venue would hold them, with our quotes in it: Polymarket scores every order "vs the
+  size-cutoff-adjusted midpoint" of the market's one book, and our orders, at N ≥ the minimum, are in it. The code until
+  now put the midpoint at the rest of the market's alone, so a dry-run whose book had moved since its quotes were placed
+  read them as outside the spread they would have set live. The readout's sums of those minutes (`pm_mid_reward_days`'
+  `formula_usd`, `formula_scored_usd`, `minutes_two_sided`) follow. The paper layer pays a matched minute the path's own
+  figure of the quotes it rested, with them in the book (`detail.after`), instead of stepRw's line: `pm_midprep_minutes`'
+  `reward` (RW's line stays in its `detail`), `pm_midprep_days`' `reward`, `reward_r40` and `pnl_day_r40`.
+- **Measured on mid-pool's own record** (read 2026-10-04, after the cancellation above): the minutes whose formula was
+  zero and is above zero with our quotes in the book were 277 of 2026-10-02's 8,168 market-minutes, 123 of d1's 11,520
+  (d1's (d) would have read 82.2 % for 81.2 %) and 95 of 10-04's first 7,024. At placement our quotes move the venue's
+  midpoint from RW's in 1,315 of 10-02's 8,045 matched minutes, 1,652 of d1's 11,455 and 856 of 10-04's first 6,720:
+  those minutes' paper reward changes. What mid-pool loses most is not this: on d1, 1,931 of its 2,056 resting minutes
+  with no formula had quotes more than twice the maximum spread apart, a book too wide to score with or without us.
+- **No decision of mid-pool changes, pinned.** `agents/pm_mid_formula.test.ts` runs mid-pool through today's path and
+  layer beside the code this document froze, byte for byte (`pm_live_mid_frozen.ts` sha256
+  `8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653`, `pm_prep_mid_frozen.ts` sha256
+  `8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea`, held to the hashes under "Its code at the freeze"
+  by `src/pm_mid_prereg.test.js`), minute by minute over three simulated days, dry-run and live: every table, request,
+  body and report is the frozen code's but the fields named above, its orders, fills, selections (RW's exclusion
+  recomputed from public data included), settlements, paper fills and paper events whole, and where the venue's midpoint
+  is RW's every figure is the frozen one.
+- **Nothing else moves.** Its rule, its band, its exclusion and its margin, its sizes, its gates and its stops; its
+  day-1 check (2026-10-03, every row PASS, (f) N/A) stands; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql` are
+  unchanged. Mini-pool's book-quality rule (its Addendum 6) is mini-pool's instance alone (`PM_MINI_INSTANCE`):
+  `PM_MID_INSTANCE` has none, and its selection is pinned unchanged by the test above.

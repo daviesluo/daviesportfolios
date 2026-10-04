@@ -16,8 +16,7 @@
 //   matched   its bid (a BUY of YES) and ask (a BUY of NO) are RW's quote on the minute's row at RW's N, as `rwQuotes`
 //             places them with nothing held: the minute is RW's minute, and `stepRw` decides it on that row and the
 //             minute's prints — the fills, a side stopped at 3N of the PAPER inventory (the path's own rule, which
-//             only fills can exercise), and the reward (the path's figure of those quotes, with them in the book, in
-//             place of RW's reward line since 2026-10-04). A dry-run never holds anything, so this is the one place
+//             only fills can exercise), and RW's reward line. A dry-run never holds anything, so this is the one place
 //             where what live mode would do differs from what the dry-run did, and stepRw is RW's rule for it.
 //   dark      nothing rested (a gate closed, the book unreadable or one-sided, the rule quoting nothing): no fill, no
 //             reward, as live.
@@ -33,10 +32,8 @@
 // mid of the book the path read, as it marks. Its loss stops act as the path's do (`effectiveLimits` of its config,
 // −$25 a day and −$75 in all): from the minute after one trips nothing opens — the day stop until the next UTC day, the
 // total stop for good — and only `closeOnly`'s sells of what is held rest, each side run alone through `stepRw`.
-// Rewards are the formula's, and at R = 0.40, RW's break-even ratio of what is paid to what the formula says: since
-// 2026-10-04 the path's own figure of the quotes it rested, scored against the book with them in it as the venue holds
-// them (`detail.after`), RW's line (as stepRw computes it, the rest of the book's midpoint) for a minute recorded before
-// the path kept it; the formula is never counted in the path's stop, which reads fills alone, as live.
+// Rewards are the formula's (RW's line, as stepRw computes it), and at R = 0.40, RW's break-even ratio of what is paid
+// to what the formula says; the formula is never counted in the path's stop, which reads fills alone, as live.
 //
 // WHAT IT READS AND WRITES: `pm_live_config` (the stops), `pm_live_markets` (the day's tokens), `pm_live_minutes` and
 // `pm_live_orders` (the dry-run's), read only; Polymarket's public prints of the markets the path quoted, its public
@@ -111,20 +108,7 @@ export type PrepOrder = Pick<PmOrderRow, "id" | "ts" | "cond" | "token" | "outco
 export type PrepLiveMinute = {
   minute: string; cond: string; rate: number | string; max_spread: number | string; min_size: number | string; tick: number | string;
   bb: number | string | null; ba: number | string | null; ab: number | string | null; aa: number | string | null; q1: number | string | null; q2: number | string | null;
-  /** The path's record of the minute: since 2026-10-04 its `after`, the formula of what rested after its turn. */
-  detail?: unknown;
 };
-
-/**
- * The formula of the quotes the path rested after its turn of this minute, scored against the book it read with them in
- * it as the venue would hold them (`detail.after.formula`, pm_live.ts, 2026-10-04), or null for a minute recorded before
- * the path kept it. In a matched minute those quotes are RW's quote on the row: the very quotes this layer fills.
- */
-export function afterFormula(r: Pick<PrepLiveMinute, "detail">): number | null {
-  const a = (r.detail as { after?: { formula?: unknown } } | null | undefined)?.after;
-  const f = a && typeof a.formula === "number" ? a.formula : NaN;
-  return Number.isFinite(f) && f >= 0 ? f : null;
-}
 /** One paper fill: RW's (the side of the one book, RW's price, the print that proved it) and the path's booking of it. */
 export type PrepFill = {
   cond: string; minute: number; printId: string; ts: number; side: "bid" | "ask"; price: number; size: number;
@@ -231,7 +215,7 @@ export function classify(resting: PrepOrder[], rule: { b: number; a: number; n: 
 
 /**
  * One matched market-minute on paper. Normally RW's `stepRw` decides it on the row the path decided on, with the paper's
- * inventory (a side stopped at 3N its way, as `rwQuotes` stops it on what is held): RW's fills, and its reward (below). Each
+ * inventory (a side stopped at 3N its way, as `rwQuotes` stops it on what is held): RW's fills, RW's reward line. Each
  * fill is booked as the path would book its order's fill: a bid as a BUY of YES, an ask as a BUY of NO, at the order's
  * own price. While a paper loss stop is in force, the path is close-only: `rwQuotes`' intents on what is held go through
  * the path's own `closeOnly`, and each sell it rests (our bid as a SELL of NO, our ask as a SELL of YES, at most what is
@@ -239,18 +223,11 @@ export function classify(resting: PrepOrder[], rule: { b: number; a: number; n: 
  * side (with `invCap` 0, an account short by one quotes only its bid, one long by one only its ask) at the sell's size,
  * and its fills are applied to the market's account by RW-E's `applyFill`, stepRw's own book-keeping. A one-sided minute
  * earns no reward, by RW's formula.
- *
- * The reward (2026-10-04): with both sides quoted, the path's own formula of those quotes against the book they were
- * placed on with them in it, as the venue holds them (`venueReward`, the minute's `detail.after.formula`), in place of
- * stepRw's line, which put the midpoint at the rest of the market's alone; the account's reward (RW's `Acc`) is the same
- * figure. A minute the path recorded before it kept that figure (`venueReward` null) is paid stepRw's line, as before.
- * Fills, the inventory rule and the stops are stepRw's and the path's as before.
  */
 export function decideMinute(p: {
   acc: Acc; t: number; row: BookRow; tick: number; v: number; rate: number; minSize: number; venueMin: number;
   bid: PrepOrder; ask: PrepOrder; tokens: { yes: string; no: string }; held: { yes: number; no: number }; stopped: boolean; prints: PmPrint[];
-  venueReward?: number | null;
-}): { reward: number; rwReward: number; fills: PrepFill[]; qb: boolean; qa: boolean; b: number | null; a: number | null } {
+}): { reward: number; fills: PrepFill[]; qb: boolean; qa: boolean; b: number | null; a: number | null } {
   const N = sizeN(p.minSize), tSec = p.t / 1000, cond = p.bid.cond;
   if (!p.stopped) {
     const out = stepRw(p.acc, tSec, p.row, p.tick, p.v, p.rate, N, p.prints);
@@ -258,13 +235,7 @@ export function decideMinute(p: {
       cond, minute: p.t, printId: f.printId, ts: f.ts * 1000, side: f.side, price: f.price, size: f.size, closeOnly: false,
       token: f.side === "bid" ? p.tokens.yes : p.tokens.no, tokenSide: "BUY", tokenPrice: Number(f.side === "bid" ? p.bid.price : p.ask.price),
     }));
-    const rwReward = out.decision?.reward ?? 0;
-    let reward = rwReward;
-    if (out.decision && p.venueReward != null) {
-      reward = out.decision.qb && out.decision.qa ? p.venueReward : 0;
-      p.acc.reward += reward - rwReward;
-    }
-    return { reward, rwReward, fills, qb: out.decision?.qb ?? false, qa: out.decision?.qa ?? false, b: out.decision?.b ?? null, a: out.decision?.a ?? null };
+    return { reward: out.decision?.reward ?? 0, fills, qb: out.decision?.qb ?? false, qa: out.decision?.qa ?? false, b: out.decision?.b ?? null, a: out.decision?.a ?? null };
   }
   // Close-only. `rwQuotes`' inventory rule on what is held, then the path's own `closeOnly`.
   const net = p.held.yes - p.held.no;
@@ -291,7 +262,7 @@ export function decideMinute(p: {
     }
   }
   if (p.row[2] !== null && p.row[3] !== null) { p.acc.lastM = (p.row[2] + p.row[3]) / 2; p.acc.lastAb = p.row[2]; p.acc.lastAa = p.row[3]; }
-  return { reward: 0, rwReward: 0, fills, qb, qa, b, a };
+  return { reward: 0, fills, qb, qa, b, a };
 }
 
 /** The paper fills as the path's own `tokenBooks` reads its CONFIRMED fills. */
@@ -390,7 +361,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
   const from = st.lastDecided + M, to = Math.min(nowMinute - RW_DECIDE_LAG_MS, from + (PREP_MAX_MINUTES - 1) * M);
   if (to >= from) {
     const live = await db.selectAll<PrepLiveMinute>(R.minutes,
-      `mode=eq.dry_run&minute=gte.${enc(iso(from))}&minute=lte.${enc(iso(to))}&select=minute,cond,rate,max_spread,min_size,tick,bb,ba,ab,aa,q1,q2,detail&order=mode.asc,minute.asc,cond.asc`);
+      `mode=eq.dry_run&minute=gte.${enc(iso(from))}&minute=lte.${enc(iso(to))}&select=minute,cond,rate,max_spread,min_size,tick,bb,ba,ab,aa,q1,q2&order=mode.asc,minute.asc,cond.asc`);
     const markets = await db.select<{ day: string; cond: string; yes_token: string; no_token: string }>(R.markets,
       `day=gte.${dayStr(from)}&day=lte.${dayStr(to)}&select=day,cond,yes_token,no_token&order=day.asc,cond.asc`);
     // The dry-run's orders that could rest in the range: those resting now, and those ended since its first minute.
@@ -462,7 +433,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
         if (cl.cls === "matched" && row) {
           out = decideMinute({
             acc, t, row, tick, v, rate, minSize, venueMin: venueMin.get(c) ?? PREP_VENUE_MIN_FALLBACK, bid: cl.bid!, ask: cl.ask!, tokens: tk, held, stopped,
-            prints: prints.get(c) ?? [], venueReward: afterFormula(r),
+            prints: prints.get(c) ?? [],
           });
           newFills.push(...out.fills);
           st.day.reward += out.reward; report.reward += out.reward;
@@ -481,10 +452,7 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
           minute: iso(t), cond: c, class: cl.cls, bb: nz(r.bb), ba: nz(r.ba), b: rule?.b ?? null, a: rule?.a ?? null, n: rule?.n ?? null,
           qb: out ? out.qb : null, qa: out ? out.qa : null, close_only: cl.cls === "matched" && stopped, reward: out?.reward ?? 0, fills: out?.fills.length ?? 0,
           yes_held: after.yes, no_held: after.no, mark: st.marks[c] ?? null,
-          // A matched minute keeps RW's own line beside the reward it was paid, and which one that is (`venue`: the path's
-          // formula with the quotes in the book, 2026-10-04; `rw`: stepRw's, for a minute recorded before the path kept it).
-          detail: cl.cls === "diverged" ? { why: cl.why }
-            : cl.cls === "matched" ? { bid: cl.bid!.id, ask: cl.ask!.id, rw: out?.rwReward ?? 0, paid: stopped ? "close-only" : afterFormula(r) === null ? "rw" : "venue" } : {},
+          detail: cl.cls === "diverged" ? { why: cl.why } : cl.cls === "matched" ? { bid: cl.bid!.id, ask: cl.ask!.id } : {},
         });
       }
       // The path's stops, on the paper's P&L after this minute's fills: acting from the next minute, as the path's next turn would.

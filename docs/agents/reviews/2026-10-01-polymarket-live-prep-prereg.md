@@ -258,3 +258,158 @@ two compare better later; now). What changes for this test, and nothing else:
 - **The check is unchanged.** `prep_check_addendum2.sql` reads `pm_live_config`'s values, not its triggers, and its
   (f) reads the facts the statement now checks (the region, the attestation, `keyed`, the balance). Its rows are
   reported to Davies, and nothing arms the path.
+
+## Addendum 6 (2026-10-04, about 16:30 UTC): the formula as the venue holds our quotes, a book-quality rule for the selection, and the window moved to 2026-10-05
+
+Written before the window it opens. Davies, 2026-10-04 about 14:10 UTC, verbatim:
+
+> 把mini-pool现在就全部修复优化了，dry-run的问题如果影响mid-pool的话也都修复掉
+
+In English: fix and optimise mini-pool completely now; any dry-run problem that also affects mid-pool, fix there too. And
+about 14:45 UTC, verbatim: "所有不偷看条款全部取消，所有的数据都可用来达到最佳研究效果" (every no-peek clause is cancelled;
+all data may be used for the best research). **From 2026-10-04 this test is not blind, on his word:** "nothing of the
+window is read before the check" no longer binds, a read is not a deviation, and the check runs as frozen and says it
+was not blind.
+
+**Addendum 2's window, checked** at 00:17 UTC on 10-04 (`prep_check_addendum2.sql`, its hash verified): every row PASS
+but (d), 8,193 of 11,520 market-minutes with a formula above zero (71.1 %, the bar 75 %), and (f), the account unfunded
+(pUSD 0.036673). Its verdict stands: FAIL, and no go-live.
+
+**Why (d) failed, minute by minute** (the path's own record, `pm_live_minutes` of mode `dry_run`, read after the
+cancellation above; 10-03, eight markets, 1,440 minutes each, none missing):
+
+| a minute with no formula reward | minutes | where in the code | live |
+|---|---|---|---|
+| the first minute after the 00:00 selection: nothing rested when the book was read | 8 | the formula scores what rested before the turn | the same |
+| nothing rested: the minute before, one side of the rest of the book held no level of the reward minimum within 10 ¢ of its touch, so RW's rule quoted nothing and the path withdrew (0xc4cb61ab 457, 0x067a7888 292, 0xaab54954 78, the rest 9) | 836 | `rwQuotes` → `summarize`, `quote` | the same |
+| two quotes rested and the rest of the book has no size-cutoff midpoint now | 30 | `minuteFormula` | 10 of them score |
+| two quotes rested and do not score against the rest of the book's midpoint, but do with our quotes in the book (the dry-run's blind spot) | 498 | `minuteFormula` | they score |
+| two quotes rested more than twice the maximum spread apart: placed a tick inside a book that wide, they cannot score with or without us (0x067a7888 836, 0x0eab98b4 391, 0xaab54954 190, 0xc4cb61ab 186, 0x7f789735 180, 0x67d66925 122, 0x9944434f 30) | 1,935 | the market's book | the same |
+| another's level of the minimum inside our quotes, or the book through one | 20 | `minuteFormula` | the same |
+
+The first estimate of the blind spot, 153 minutes, missed most of it: it is 508 (4.4 %), and on 0x67d66925, whose
+midpoint sat near 0.065, 335 of its 462 minutes with no formula score once our quotes are in the book (rest of the book
+0.02 / 0.13, our 0.03 / 0.10: the rest's midpoint 0.075 puts our bid 4.5 ¢ out, exactly the spread; ours, 0.065, puts
+both 3.5 ¢ out). With it, (d) on 10-03 reads 8,701 of 11,520, 75.5 %, and on 10-02 77.0 %, on 10-04's first 7,160
+minutes 71.5 %: the rest, 2,811 minutes on 10-03 besides the 8 first minutes, is the pools' books, and the fix alone
+does not clear the bar.
+
+**The fix, in the path and the layer mid-pool shares** (mid-pool's pre-registration, Addendum 2, names it as its
+deviation 2):
+
+- **The formula scores our quotes against the book as the venue holds them** (`minuteFormula`): Polymarket scores every
+  order "vs the size-cutoff-adjusted midpoint" of the market's one book (docs.polymarket.com, liquidity rewards, read
+  2026-10-04), one midpoint for every maker, and our orders, at N ≥ the reward minimum, are in that book. The rest of the
+  market is the book as read less our orders in it (live: those resting at the venue; a dry-run's: none), RW's row and
+  the others' scores as before; the venue's book is the rest plus our resting quotes, so a live book that already holds
+  them is never counted twice; the midpoint is the venue's book's (`withOwnLevels`, `summarize`); the others' scores are
+  taken at it (`scoresAt`, `summarize`'s own sums); a quote the rest of the book has crossed since it was placed is not
+  resting (the venue would have matched it). Where our quotes leave the midpoint where the rest of the book put it, every
+  figure is the old one, digit for digit.
+- **Each minute also records what rests after its turn** (`detail.after`): the same formula of the quotes the turn leaves
+  resting, against the book it read with them in it. The next minute's formula of those quotes on an unchanged book is
+  that figure.
+- **The paper layer pays a matched minute that figure** (`decideMinute`, `afterFormula`): the reward of the very quotes
+  it fills, with both sides quoted on paper (a side its inventory stops earns nothing, as before), in place of stepRw's
+  line, which put the midpoint at the rest of the book's alone; RW's line stays beside it in the minute's `detail`, and a
+  minute recorded before the path kept the figure is paid RW's line. Its fills, inventory, stops and settlements are
+  stepRw's and the path's as before. At placement our quotes move the venue's midpoint from RW's in 2,130 of 10-03's
+  10,683 matched minutes (20 %): those minutes' paper reward changes.
+- **No decision changes**: the rule still reads the rest of the book (RW's quotes, so it never chases itself), and the
+  post-only check, the caps, the stops and the readout's reads are untouched; nothing reads the formula but the record,
+  the readout's sums and the paper's reward. `pm_instance.test.ts` runs the default instance beside the code this
+  document froze (`pm_live_frozen.ts`, `pm_prep_frozen.ts`) over three simulated days, minute by minute, dry-run and live,
+  and finds every table, request, body and report the same but the fields the formula makes (each minute's `ours`,
+  `others`, `formula_usd` and `detail`; the readout's `formula_usd`, `formula_scored_usd` and `minutes_two_sided` and its
+  event's sums; the state's copy of the minutes; the paper minutes' `reward` and `detail`, its days' `reward`,
+  `reward_r40` and `pnl_day_r40`, its accounts' running reward), and those exactly: where the venue's midpoint is RW's,
+  the frozen figure; a matched minute paid the path's `after`, its `detail.rw` the frozen layer's reward.
+- **A missing token book is not derived from its mirror.** The path reads the YES book only; the NO book is its mirror
+  (NO's bids at 1 − YES's asks, size for size: of 2,682 pairs the sample below read in one request, 2,677 were exact
+  mirrors, and the 5 others had the same touch and differed behind it, two snapshots at most 3 ms apart). A minute with
+  no size-cutoff midpoint is the minimum's absence on one side of the one book (07:42 on 0x067a7888: 0.63 / 0.81 with no
+  level of 20 within 10 ¢), not a book missing: nothing to derive, and RW's rule rightly quotes nothing on it.
+
+**Mini-pool's rule: books with depth first** (`PM_MINI_INSTANCE`, the default instance with `PM_MINI_QUALITY`;
+mid-pool's instance has none). At the 00:00 selection RW's first round scores every candidate and drops any under $2.50
+a day, as before. A candidate whose book (the rest of the market's, as read at the selection) holds at least **two
+levels of the reward minimum within 10 ¢ of the touch on each side**, RW's own window and size cutoff, ranks first
+(`bookQualityOf`); the others come back, in RW's order, only for the slots and the budget those leave (`selectMarkets`).
+The day still takes at most eight markets and $160, and a day with too few deep books still quotes thin ones. The
+selection's event records how many it passed over, why, and how many came back. The rule aims at what the fix leaves: a
+side with one level of the minimum loses its size-cutoff touch when that order goes, and RW's rule then rests nothing
+(836 of 10-03's minutes) or a tick inside a touch that has widened past twice the maximum spread (1,935).
+
+- **Chosen on a sample, because the record cannot test it.** `pm_live_minutes` keeps each minute's touch and
+  size-cutoff touch, never the levels behind them. `backtests/pmlive/scripts/mini_books.ts` read the book of every
+  market of mini-pool's universe that passed its rules (298 markets) once a minute for two hours, keyless (121 reads,
+  2026-10-04 14:19 → 16:19 UTC), and `mini_books_read.ts` replays them through the path's own code: each market's
+  minutes as the dry-run records them under this addendum's formula, and a selection every five minutes, its picks
+  scored over the next hour (13 selections) and over the next half hour (19; `results/mini_books_out.txt`).
+- **What it buys.** Without the rule the picks score in 72.5 % of their minutes over the next hour and 80.0 % over the
+  next half hour (the record with the fix: 75.5 % on 10-03, 77.0 % on 10-02, 71.5 % on 10-04's first 7,160 minutes);
+  with it, 93.6 % and 93.2 %. Of the 22 markets the ranking scored at the first read, the 7 whose books pass score in
+  99.9 % of the sample's minutes, the 15 that fail in 67.9 %; an hour and more after that read, 100 % against 74.6 %.
+- **What it costs.** The picks earn 104 % of the unruled picks' formula over the next hour and 89 % over the next half
+  hour. RW's own first-round estimate of them is 82 % and 79 % of the unruled picks' (a deeper book shares its pool with
+  more of the others' size), and their minutes scoring more often gives most of it back. The rule passes over 67 % of
+  the candidates; at 21 of the 121 reads fewer than eight books pass (at the fewest 5), and the rest of the ranking
+  fills the slots.
+- **Weighed and not taken**, each run through the same function on the same sample (the picks' share of minutes with a
+  formula, and their formula against the unruled picks', over the next hour and the next half hour):
+
+  | candidate | share, 1 h | formula, 1 h | share, 30 min | formula, 30 min |
+  |---|---|---|---|---|
+  | none (the path as frozen) | 72.5 % | 100 % | 80.0 % | 100 % |
+  | **the rule: two levels a side first, the rest for what is left** | **93.6 %** | **104 %** | **93.2 %** | **89 %** |
+  | two levels a side, the rest never | 95.5 % | 98 % | 94.0 % | 85 % |
+  | two levels a side and a spread behind the best ≤ 3 v first | 94.7 % | 99 % | 94.4 % | 82 % |
+  | two levels a side and a midpoint in [0.05, 0.95] first | 92.6 % | 104 % | 93.2 % | 89 % |
+  | three levels a side first | 83.6 % | 98 % | 88.3 % | 84 % |
+  | a midpoint in [0.05, 0.95] | 78.5 % | 106 % | 84.7 % | 99 % |
+  | a midpoint in [0.10, 0.90] | 77.0 % | 89 % | 82.3 % | 84 % |
+  | Gamma's liquidity ≥ 500 | 87.9 % | 104 % | 89.2 % | 96 % |
+  | Gamma's 24-hour volume ≥ 100 | 88.0 % | 92 % | 90.6 % | 79 % |
+  | a size-cutoff spread ≤ 1 v | 83.3 % | 75 % | 85.3 % | 63 % |
+  | a touch spread ≤ 1.5 v | 76.2 % | 84 % | 81.3 % | 77 % |
+
+  The strict rule earns less and quotes fewer markets on a day short of deep books. The midpoint band [0.05, 0.95]
+  keeps the formula but lifts the share only to 78.5 % and 84.7 %, and on mini-pool's own record it would have changed
+  no selection, so 10-04's 71.5 % would stand. Gamma's liquidity figure keeps more of the formula over the half hour
+  and less of the share, and it is a number Gamma computes, not the book the formula reads.
+- **The record, where it can speak.** On mid-pool's, the 6 of 24 market-days whose midpoint lay outside [0.10, 0.90]
+  at the selection scored 43.4 %, the rest 81.4 %; mini-pool quoted none outside [0.05, 0.95], so its own record cannot
+  weigh the band. Of the 26 market-days mini-pool quoted from 10-01, three markets are still in its universe: the two
+  whose books pass at most of the sample's reads scored 72.8 % and 98.9 % on their days, the one that fails at most
+  reads 69.2 % (`results/mini_history_days.json`, from `scripts/mini_history_days.sql`): too few to weigh, and not
+  against it.
+
+**Dropping a chosen market during the day: not adopted.** A market gone dark earns nothing whether it stays or goes;
+the selection stays once a UTC day ((b1) counts one run), so a market dropped could not be replaced; and in the sample,
+of the 22 markets the ranking scored at the first read, 8 went 15 minutes without a formula and then scored in 52.0 %
+of their later minutes, and 4 went 30 minutes and then scored in 53.6 %. A drop would give back what comes back and add
+nothing.
+
+**What does not change:** RW's quotes and N, the band, the 48-hour horizon, RW-E's rule, the $2.50 formula floor, RW's
+ranking within each of the rule's two tiers, the sizes (at most eight markets, $160 of first quotes, $320 in all, $60 a
+market, GTD 600 s), the stops (−$25 a day, −$75 in all), the gates, the go-time statement (the design doc's step 8, as
+Addendum 5 has it) and every bar of the check.
+
+**The window: 2026-10-05 00:00:00 → 2026-10-06 00:00:00 UTC**, the first full UTC day after the deploy, which lands before
+2026-10-05 00:00 UTC; the selection at 00:00 is the first under the rule. If it lands later, the window is the first full
+UTC day after it, by a next addendum whose check moves only its dates. The minutes between the deploy and the window are
+a run-in.
+
+**The check is `prep_check_addendum6.sql`**, sha256 `6b839a0fb917da8e124e4af1e67e913b9c852cf96da489f67150a0834204b5c9`
+(`src/pm_prep_prereg.test.js` fails if the file changes): `prep_check.sql` as frozen, line for line, with its window's
+date lines moved to 2026-10-05 → 10-06 and every bar the same. Run read-only before the window (2026-10-04, about 14:50
+UTC), it parses and reads FAIL where it should: no minute, selection, order, day row or paper decision in the window yet,
+and (f) the account unfunded (pUSD 0.036673). `prep_check.sql` and the checks of Addenda 1 and 2 stay as frozen.
+
+**The code it deploys**: `pm_live.ts` sha256 `effd6351652944acfceaaa7525b4aa081367115d9cc228397090987ec5711617`, `pm_prep.ts` sha256 `ea3ee5b1eb2608cf240b40bbce0a1d57641c66a90ed682763506b5f1aab46dc9` (`agents/index.ts` runs
+mini-pool's action on `PM_MINI_INSTANCE`).
+
+**What happens**, as under Addendum 2: at or after 2026-10-06 00:10 UTC the check runs once and its output, every row, is
+reported to Davies; no session and no routine runs the go-time statement, and the path goes live only in the
+conversation where he says go. (f) reads the account: if it fails only because the account is not funded, the window's
+verdict stands. A fix inside this window ends it as FAIL, as above.

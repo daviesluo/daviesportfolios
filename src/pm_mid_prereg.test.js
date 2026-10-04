@@ -70,4 +70,21 @@ describe('the mid-pool pre-registration', () => {
   it("names the code it froze: the path's, the layer's and mid-pool's instance, each by a sha256", () => {
     for (const f of ['pm_live.ts', 'pm_prep.ts', 'pm_mid.ts']) expect(DOC).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `[0-9a-f]{64}`'));
   });
+
+  // Addendum 2 (2026-10-04): the formula's measurement fix reaches mid-pool through the shared code.
+  // supabase/functions/agents/pm_mid_formula.test.ts runs mid-pool through today's path and layer beside the code this
+  // document froze, minute by minute: the copies it runs are those files, byte for byte.
+  it('keeps the path and the layer it froze, byte for byte, as the copies the formula fix is checked against', () => {
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    const live = /`pm_live\.ts` sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    const prep = /`pm_prep\.ts` sha256 `([0-9a-f]{64})`/.exec(DOC)?.[1];
+    expect([live, prep]).toEqual(['8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653', '8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea']);
+    expect(sha('supabase/functions/agents/pm_live_mid_frozen.ts')).toBe(live);
+    expect(sha('supabase/functions/agents/pm_prep_mid_frozen.ts')).toBe(prep);
+  });
+
+  it('names the deploy of the formula fix as deviation 2, in its Addendum 2', () => {
+    expect(DOC).toContain('## Addendum 2');
+    expect(DOC).toMatch(/deviation 2/i);
+  });
 });

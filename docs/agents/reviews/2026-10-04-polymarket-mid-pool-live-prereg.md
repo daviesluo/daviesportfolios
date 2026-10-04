@@ -77,8 +77,9 @@ The dry-run never sends, and the account holds nothing, so these parts of the sa
   information (`refusalWait`); an order that would take our own resting one withheld.
 - Cancels: a DELETE read back, read again after 300 and 700 ms while the venue still shows it, its slot frozen until the
   venue shows it gone; the global pause's cancel-all. How soon `GET /data/order/{id}` shows a cancel is unmeasured.
-- Our own orders in the book: the rule, the post-only check and each minute's formula take them out
-  (`othersLevels`); the next day's selection scores the books without our orders still resting. The exclusion's
+- Our own orders in the book: the rule and the post-only check take them out (`othersLevels`), and each minute's
+  formula scores them against the book with them in it, as the venue holds them, never twice (since 2026-10-04, mid-pool's
+  pre-registration's Addendum 2); the next day's selection scores the books without our orders still resting. The exclusion's
   recomputation of RW's selection reads the public books with them in, as RW's and RW-C's own selections would: in a
   market of ours they count among the others, which lowers RW's score of it.
 - Inventory: real CONFIRMED fills, so RW's 3N stop, close-only sells of what is held, holdings at cost inside the caps
@@ -287,8 +288,8 @@ which a pool of $10–$50 may bring more of.
 
 | file | sha256 |
 |---|---|
-| `supabase/functions/agents/pm_live.ts` | at the freeze (`8ba7b915…` on `main`; `8ccbb655…26fe` with the payouts change) |
-| `supabase/functions/agents/pm_prep.ts` | `8d7861ab…4dea` (unchanged since mid-pool's pre-registration) |
+| `supabase/functions/agents/pm_live.ts` | at the freeze (`effd6351…` on `main` since 2026-10-04's formula fix; `8ccbb655…26fe` with the payouts change) |
+| `supabase/functions/agents/pm_prep.ts` | `ea3ee5b1…6dc9` (2026-10-04's formula fix; `8d7861ab…4dea` at mid-pool's pre-registration) |
 | `supabase/functions/agents/pm_mid.ts` | at the freeze (`9fd37436…` on `main`; its comments change with the payouts change) |
 | the readout's statement and script | written and pinned at the freeze |
 

@@ -22,8 +22,7 @@
 //      listing read whole (`rewardListing`: its pages concurrently, overlapping, proved complete), the markets in the
 //      universe, Gamma's word on each (accepting orders, two tokens, nothing ending or starting within 48 hours, RW-E's
 //      same-day rule), each one's book, RW's `firstScore` on it, a floor on the formula reward a day (so a payout can
-//      clear Polymarket's $1 minimum), and RW's `choose` within the config's budget and number of markets; an instance
-//      with a book-quality rule (mini-pool's, since 2026-10-04) ranks the books that pass it first.
+//      clear Polymarket's $1 minimum), and RW's `choose` within the config's budget and number of markets.
 //   2. What the venue says: each market's book (today's, and any held from an earlier day), the geoblock (a good answer
 //      kept for ten minutes), the account's closed-only flag and what it holds; in live mode every open order read back
 //      by its hash and its trades until CONFIRMED or FAILED.
@@ -37,10 +36,8 @@
 //      A quote the venue refused goes again only on new information (`refusalWait`), and an order that would take one of
 //      our own still in the book is withheld.
 //   6. The minute's formula (`minuteFormula`, `pm_live_minutes`): for each market, RW's reward formula on the quotes that
-//      rested when the turn read the book, against the book as the venue holds them, with them in it (since 2026-10-04:
-//      the venue's size-cutoff midpoint is the whole book's, ours included), and the same formula of what rests after the
-//      turn (`detail.after`, the paper layer's reward); in live mode beside whether the venue says each order is scoring,
-//      and its live share of the pool.
+//      rested when the turn read the book, against the book without them; in live mode beside whether the venue says each
+//      order is scoring, and its live share of the pool.
 //   7. Once a UTC day after 01:00, the readout (`pm_live_reward_days`): for the two days before, what the account was
 //      paid per market (`/rewards/user`, native and sponsored), its day's total, the maker rebates, and the formula sums
 //      of those days' minutes. R is a query: Σ actual / Σ formula over the live rows.
@@ -56,17 +53,15 @@
 // reward rates, the migrations that made it, and an optional exclusion its selection applies. `PM_LIVE_INSTANCE` is the
 // path as it ran before instances, name for name ("Reward quotes small-pool": $6 to under $10); a turn given no instance
 // runs it, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_live_frozen.ts`) minute by minute and
-// finds every table, request and report the same but the fields the formula of 2026-10-04 makes. The second, mid-pool
-// ($10 to under $50, a dry-run its own table holds there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Mini-pool's action runs
-// `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default with a book-quality rule its
-// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance.
+// finds every table, request and report the same. The second, mid-pool ($10 to under $50, a dry-run its own table holds
+// there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Nothing of the rule, the gates, the caps or the stops differs by instance.
 
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
   type PmRebate, type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmUserEarning, type PmVenue,
 } from "../_shared/polymarket_orders.ts";
 import type { PmLevel, PmPublicOpts } from "../_shared/polymarket_public.ts";
-import { choose, firstScore, othersOf, pyRound, quote, RW_INV_CAP, RW_LEVEL_WINDOW, scoreS, sizeN, summarize, type BookRow } from "./pmrw.ts";
+import { choose, firstScore, othersOf, quote, RW_INV_CAP, scoreS, sizeN, summarize, type BookRow } from "./pmrw.ts";
 import { excludedByDay } from "./pmrw_e.ts";
 import type { Db } from "./db.ts";
 
@@ -204,13 +199,6 @@ export type PmLiveInstance = {
    */
   bookBatch?: (tokens: string[], pm?: PmPublicOpts) => Promise<Map<string, PmBookReply>>;
   /**
-   * A book-quality rule its selection applies to every candidate RW's first round scores (`bookQualityOf`): one whose
-   * book fails it is passed over, and the ranking takes the next that passes; those it passed over come back, in RW's
-   * order, only for the slots and the budget the others leave. Mini-pool's since 2026-10-04 (`PM_MINI_QUALITY`);
-   * mid-pool's instance has none.
-   */
-  bookQuality?: PmBookQualityRule;
-  /**
    * Whether it reads what the account earns: its live share of each pool every minute, and once a day what it was paid.
    * The account is one: an instance that can never be live (mid-pool's table holds it in dry-run) reads neither, so what
    * the venue pays for another instance's quotes never lands in its tables; its minutes keep no share and its readout the
@@ -222,13 +210,6 @@ export type PmLiveInstance = {
   path: string;
   errorKind: string;
 };
-/**
- * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
- * with depth first. Its own record keeps no book's levels, so it was chosen on a keyless sample of its whole universe,
- * every book once a minute for two hours, replayed through this code (`backtests/pmlive/scripts/mini_books.ts`,
- * `mini_books_read.ts`; their output in `results/mini_books_out.txt`), beside that record's market-days.
- */
-export const PM_MINI_QUALITY: PmBookQualityRule = { name: "two levels a side holding the reward minimum within 10 ¢ of the touch", levels: 2 };
 /** The path as it ran before instances, name for name: "Reward quotes small-pool", $6 to under $10 a day (0074, 0076). */
 export const PM_LIVE_INSTANCE: PmLiveInstance = {
   name: "Reward quotes small-pool",
@@ -244,12 +225,6 @@ export const PM_LIVE_INSTANCE: PmLiveInstance = {
   path: "agents?action=pmlive&forceFunctionRegion=eu-west-1",
   errorKind: "agents.pm_live",
 };
-/**
- * "Reward quotes mini-pool" from Addendum 6 (2026-10-04): the default instance, its tables, lease, band and everything
- * else, with its selection's book-quality rule (`PM_MINI_QUALITY`). Its action (`runPmLiveAction`) runs it; the default
- * stays the path its pre-registration froze, which `pm_instance.test.ts` runs beside the frozen code.
- */
-export const PM_MINI_INSTANCE: PmLiveInstance = { ...PM_LIVE_INSTANCE, bookQuality: PM_MINI_QUALITY };
 /** The tables an instance's turn may touch: its own nine, `agent_risk` (read) and `agent_locks` (its lease). */
 export const pmLiveDbTables = (inst: PmLiveInstance): readonly string[] => [...Object.values(inst.tables), "agent_risk", "agent_locks"];
 
@@ -447,22 +422,6 @@ export function othersLevels(l: PmLevels, own: PmOwnOrder[] = []): PmLevels {
 }
 
 /**
- * The book as the venue holds it with our orders resting in it, `othersLevels`' inverse: each order added to the level
- * at its price in the one book (a YES bid or a NO sell a bid, a YES sell or a NO bid an ask at 1 − p), best level first.
- * A dry-run's orders are in no book, so the formula puts them here, where the venue would hold them (2026-10-04).
- */
-export function withOwnLevels(l: PmLevels, own: PmOwnOrder[] = []): PmLevels {
-  const bids = l.bids.map(([p, s]) => [p, s] as PmLevel), asks = l.asks.map(([p, s]) => [p, s] as PmLevel);
-  for (const o of own) {
-    if (!(o.size > 0)) continue;
-    const at = inYesBook(o), side = at.side === "bid" ? bids : asks;
-    const lvl = side.find(([p]) => Math.abs(p - at.price) < 1e-9);
-    if (lvl) lvl[1] += o.size; else side.push([at.price, o.size]);
-  }
-  return { bids: bids.sort((x, y) => y[0] - x[0]), asks: asks.sort((x, y) => x[0] - y[0]) };
-}
-
-/**
  * The PLACEHOLDER rule the path was built and first dry-run with: join the touch at the market's minimum size, a bid as
  * BUY YES at the best bid and an ask as BUY NO at 1 − the best ask. It is no strategy; the tests of the plumbing use it.
  */
@@ -493,49 +452,14 @@ export const rwQuotes: PmQuoteRule = ({ market, book, held, own }) => {
 
 /** RW's formula on one minute: the reward a market's pool pays the quotes that rested, against everyone else's. */
 export type PmMinuteFormula = {
-  /** RW's row of the REST of the market (the book less our orders): what the rule reads, and what the minute records. */
-  row: BookRow | null;
-  /** The size-cutoff-adjusted midpoint the formula scored against: the venue's, with our resting quotes in its book. */
-  m: number | null;
-  /** RW's adjusted midpoint of the rest of the market alone (the row's), which the formula used until 2026-10-04. */
-  mRw: number | null;
-  ours: number; others: number; formula: number;
+  row: BookRow | null; m: number | null; ours: number; others: number; formula: number;
   bid: { price: number; size: number } | null; ask: { price: number; size: number } | null; qBid: number; qAsk: number;
 };
-
-/**
- * The others' scores at the midpoint `m`, exactly as `summarize` scores a book (its q1, q2): the levels of `l` within
- * 10 ¢ of the touch `bb` / `ba` (RW's recorder), each holding at least the minimum, within `v` of `m`, rounded as RW
- * stored them. With the touch and the midpoint `l`'s own, it is `summarize(l)`'s q1 and q2, digit for digit.
- */
-export function scoresAt(l: PmLevels, bb: number, ba: number, m: number, v: number, minSize: number): [number, number] {
-  let q1 = 0, q2 = 0;
-  for (const [p, s] of l.bids) {
-    if (p < bb - RW_LEVEL_WINDOW - 1e-9) continue;
-    const d = (m - p) * 100;
-    if (s >= minSize && 0 <= d && d < v) q1 += ((v - d) / v) ** 2 * s;
-  }
-  for (const [p, s] of l.asks) {
-    if (p > ba + RW_LEVEL_WINDOW + 1e-9) continue;
-    const d = (p - m) * 100;
-    if (s >= minSize && 0 <= d && d < v) q2 += ((v - d) / v) ** 2 * s;
-  }
-  return [pyRound(q1, 4), pyRound(q2, 4)];
-}
-
 /**
  * RW's reward line (`stepRw`: `rate / 1440 × Q / (Q + others)`) on the quotes as they rested, not as the rule would have
- * placed them, against the book AS THE VENUE HOLDS IT (2026-10-04): the market's one book with our resting quotes in it.
- * Polymarket scores every order "vs the size-cutoff-adjusted midpoint" of the market's book (docs, liquidity rewards),
- * one midpoint for every maker, and ours are in that book at N ≥ the minimum, so where our quotes are the best levels
- * holding the minimum, the venue's midpoint is ours. `levels` is the book as read and `inBook` our orders in it (live:
- * the ones resting at the venue; a dry-run's are in no book): the rest of the market is `levels` less `inBook` (RW's
- * row, the others' scores), and the venue's book is the rest plus `quotes`, so a live book that already holds them is
- * never counted twice. A quote the rest of the market has crossed since it was placed is not resting (the venue would
- * have matched it; the paper layer fills it from the prints): it is neither in that book nor scored. Our score is the
- * smaller side's (RW's `min`), each side's sum over our orders on it at least the reward minimum in size; the others'
- * are `scoresAt` the venue's midpoint. Until 2026-10-04 the midpoint was the rest of the market's alone (`mRw`): in a
- * dry-run whose book had moved since its quotes were placed, it put them outside the spread they would have set live.
+ * placed them: the others' scores from the book less our own orders (`inBook`), RW's adjusted midpoint from them, our
+ * score the smaller side's (RW's `min`), each side's sum over our orders on it at least the reward minimum in size. In a
+ * dry-run nothing of ours is in the book and `quotes` are the orders it recorded as resting.
  */
 export function minuteFormula(p: { rate: number; v: number; minSize: number; levels: PmLevels; inBook: PmOwnOrder[]; quotes: PmOwnOrder[] }): PmMinuteFormula {
   const o = othersLevels(p.levels, p.inBook);
@@ -545,57 +469,19 @@ export function minuteFormula(p: { rate: number; v: number; minSize: number; lev
     const at = inYesBook(q), cur = best[at.side];
     if (!cur || (at.side === "bid" ? at.price > cur.price : at.price < cur.price)) best[at.side] = { price: at.price, size: q.size };
   }
-  const mRw = row && row[2] !== null && row[3] !== null ? (row[2] + row[3]) / 2 : null;
-  const oBid = o.bids[0]?.[0] ?? -Infinity, oAsk = o.asks[0]?.[0] ?? Infinity;
-  const resting = p.quotes.filter((q) => {
-    const at = inYesBook(q);
-    return q.size > 0 && (at.side === "bid" ? at.price < oAsk - 1e-9 : at.price > oBid + 1e-9);
-  });
-  const venue = withOwnLevels(o, resting);
-  const vrow = summarize(venue.bids, venue.asks, p.v, p.minSize);
-  const none = { row, m: null, mRw, ours: 0, others: 0, formula: 0, bid: best.bid, ask: best.ask, qBid: 0, qAsk: 0 };
-  if (!vrow || vrow[2] === null || vrow[3] === null) return none;
-  const m = (vrow[2] + vrow[3]) / 2;
+  const none = { row, m: null, ours: 0, others: 0, formula: 0, bid: best.bid, ask: best.ask, qBid: 0, qAsk: 0 };
+  if (!row || row[2] === null || row[3] === null) return none;
+  const m = (row[2] + row[3]) / 2;
   let qBid = 0, qAsk = 0;
-  for (const q of resting) {
+  for (const q of p.quotes) {
     if (!(q.size >= p.minSize - 1e-9)) continue;                       // under the size cutoff an order scores nothing
     const at = inYesBook(q);
     const s = scoreS(p.v, (at.side === "bid" ? m - at.price : at.price - m) * 100) * q.size;
     if (at.side === "bid") qBid += s; else qAsk += s;
   }
-  const [q1, q2] = scoresAt(o, vrow[0], vrow[1], m, p.v, p.minSize);
-  const ours = Math.min(qBid, qAsk), others = othersOf(m, q1, q2);
+  const ours = Math.min(qBid, qAsk), others = othersOf(m, row[4], row[5]);
   const formula = ours > 0 ? p.rate / 1440 * ours / (ours + others) : 0;
-  return { row, m, mRw, ours, others, formula, bid: best.bid, ask: best.ask, qBid, qAsk };
-}
-
-/**
- * A book-quality rule for a selection: what the rest of the market's book must hold at the selection for a candidate
- * to be taken (mini-pool's, 2026-10-04, Addendum 6 of its pre-registration). `levels`: on each side, at least this many
- * levels holding the reward minimum within RW's 10 ¢ of the touch. `spreadOverV`, when given: with the best of them
- * taken away on either side, the size-cutoff spread (the gap between the best bid and the best ask holding the minimum)
- * at most this many times the reward's maximum spread. `mid`, when given: the size-cutoff midpoint inside this band.
- * Mini-pool's rule is `levels` alone; the other two are the candidates its evidence weighed and passed over
- * (`backtests/pmlive/scripts/mini_books_read.ts` runs every candidate through this one function).
- */
-export type PmBookQualityRule = { name: string; levels: number; spreadOverV?: number; mid?: [number, number] };
-/**
- * Why a candidate's book fails `rule`, or null when it passes. The book is the rest of the market's (RW's view, our own
- * orders taken out), read at the selection: the sides' levels holding the minimum within 10 ¢ of the touch, as RW's
- * `summarize` keeps them.
- */
-export function bookQualityOf(x: { v: number; minSize: number; levels: PmLevels; tick: number }, rule: PmBookQualityRule): string | null {
-  const { bids, asks } = x.levels;
-  if (!bids.length || !asks.length) return "one-sided";
-  const qb = bids.filter(([p, s]) => p >= bids[0][0] - RW_LEVEL_WINDOW - 1e-9 && s >= x.minSize).map(([p]) => p);
-  const qa = asks.filter(([p, s]) => p <= asks[0][0] + RW_LEVEL_WINDOW + 1e-9 && s >= x.minSize).map(([p]) => p);
-  if (qb.length < rule.levels || qa.length < rule.levels) return "depth";
-  const mid = (qb[0] + qa[0]) / 2;
-  if (rule.mid && (mid < rule.mid[0] - 1e-9 || mid > rule.mid[1] + 1e-9)) return "mid";
-  const k = Math.max(0, rule.levels - 1);
-  const worst = Math.max(qa[0] - qb[k], qa[k] - qb[0]) * 100;
-  if (rule.spreadOverV !== undefined && worst > rule.spreadOverV * x.v + 1e-9) return "spread";
-  return null;
+  return { row, m, ours, others, formula, bid: best.bid, ask: best.ask, qBid, qAsk };
 }
 
 /** Down to the size's two decimals, through integers (a binary float like 19.99 × 100 is 1998.9999…). */
@@ -897,8 +783,6 @@ export type PmSelectOpts = {
   pm?: PmPublicOpts;
   /** The instance's batch read of its candidates' books (`PmLiveInstance.bookBatch`); one GET each when absent. */
   bookBatch?: (tokens: string[]) => Promise<Map<string, PmBookReply>>;
-  /** The instance's book-quality rule (`PmLiveInstance.bookQuality`); none when absent. */
-  bookQuality?: PmBookQualityRule;
 };
 
 /**
@@ -947,9 +831,6 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   note.eligible = eligible.length;
   // Each eligible market's book, and RW's first round on it.
   const scored: Scored[] = [];
-  const passedOver: Record<string, number> = {};
-  /** The candidates the instance's book-quality rule passed over: taken only for the slots and budget the rest leave. */
-  const behind: Scored[] = [];
   let bookError = "", booksRead = 0, gone = 0, mismatched = 0, oneSided = 0;
   // An instance that reads its candidates' books at once has them all before the first is scored; a token the batch has
   // no book for is one the CLOB has none for, as a GET's 404 says. A batch that fails takes nothing, as any read here.
@@ -981,26 +862,12 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
     const fs = firstScore(summarize(lv.bids, lv.asks, c.v, c.minSize), tick, c.v, c.minSize, c.rate);
     if (!fs) return;
     const formulaDay = fs.perDollar * 1440 * fs.cap;
-    if (formulaDay < PM_LIVE_MIN_FORMULA_DAY_USD - 1e-9) return;
-    // The instance's book-quality rule, on the same book: a candidate it fails is passed over, and RW's ranking takes the
-    // next that passes; it comes back only for the slots and the budget those leave (below).
-    const why = opts.bookQuality ? bookQualityOf({ v: c.v, minSize: c.minSize, levels: lv, tick }, opts.bookQuality) : null;
-    const x = { cond: c.cond, perDollar: fs.perDollar, cap: fs.cap, c, book: b, formulaDay };
-    if (why) { passedOver[why] = (passedOver[why] ?? 0) + 1; behind.push(x); return; }
-    scored.push(x);
+    if (formulaDay >= PM_LIVE_MIN_FORMULA_DAY_USD - 1e-9) scored.push({ cond: c.cond, perDollar: fs.perDollar, cap: fs.cap, c, book: b, formulaDay });
   }, () => !!bookError || late);
   Object.assign(note, { booksRead, booksGone: gone, mismatched, oneSided, scored: scored.length });
-  const quality = opts.bookQuality ? { rule: opts.bookQuality.name, passedOver: Object.values(passedOver).reduce((s, n) => s + n, 0), why: passedOver } : null;
-  if (quality) note.bookQuality = quality;
   if (bookError) return fail(bookError);
   if (late) return fail("time budget: the deadline came before every candidate's book was read");
-  const first = choose(scored, opts.budget).slice(0, Math.max(0, opts.maxMarkets));
-  // The books the rule passed over fill what those leave, in RW's order within the budget left: the rule ranks a day's
-  // markets, books with depth first, and a day with too few of them still quotes the rest.
-  const left = opts.budget - first.reduce((s, x) => s + x.cap, 0);
-  const filled = first.length < opts.maxMarkets ? choose(behind, left).slice(0, Math.max(0, opts.maxMarkets - first.length)) : [];
-  const chosen = [...first, ...filled];
-  if (quality) note.bookQuality = { ...quality, filled: filled.length };
+  const chosen = choose(scored, opts.budget).slice(0, Math.max(0, opts.maxMarkets));
   note.chosen = chosen.length;
   note.capital = Math.round(chosen.reduce((s, x) => s + x.cap, 0) * 100) / 100;
   note.formulaDay = Math.round(chosen.reduce((s, x) => s + x.formulaDay, 0) * 100) / 100;
@@ -1245,7 +1112,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const began = clock();
       const sel = await selectMarkets(venue, day, {
         maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue, band: inst.band, exclusion: inst.exclusion, pm: d.pm,
-        bookBatch: inst.bookBatch ? (tokens: string[]) => inst.bookBatch!(tokens, d.pm) : undefined, bookQuality: inst.bookQuality,
+        bookBatch: inst.bookBatch ? (tokens: string[]) => inst.bookBatch!(tokens, d.pm) : undefined,
       }, goneToday, deadline, d.now);
       sel.note.ms = Math.round(clock() - began);
       if (sel.picks.length) {
@@ -1453,14 +1320,11 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
   }
   const minuteRows: PmMinuteRow[] = [];
-  // Our orders in each book as this turn read it, for the formula of what rests after the turn (`detail.after`).
-  const inBookAtRead = new Map<string, PmOwnOrder[]>();
   for (const m of markets.filter((x) => x.quoting)) {
     const b = books.get(m.cond);
     if (!b) continue;
     const rows = resting(m.cond, mode);
     const quotes = rows.map(ownOf), inBook = mode === "live" ? quotes : [];
-    inBookAtRead.set(m.cond, inBook);
     const rate = num(m.reward_rate), v = num(m.max_spread), minSize = num(m.min_size);
     const f = minuteFormula({ rate, v, minSize, levels: b.levels, inBook, quotes });
     if (f.row && (f.row[2] === null || f.row[3] === null)) conditions[m.cond] ??= "no adjusted midpoint: a side has no level of the reward minimum";
@@ -1474,7 +1338,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       bb: row?.[0] ?? null, ba: row?.[1] ?? null, ab: row?.[2] ?? null, aa: row?.[3] ?? null, q1: row?.[4] ?? null, q2: row?.[5] ?? null,
       bid_price: f.bid?.price ?? null, bid_size: f.bid?.size ?? null, ask_price: f.ask?.price ?? null, ask_size: f.ask?.size ?? null,
       bid_scoring: sideScoring("bid"), ask_scoring: sideScoring("ask"), ours: f.ours, others: f.others, formula_usd: f.formula,
-      pct: pct ? (pct[m.cond] ?? 0) : null, detail: { qBid: f.qBid, qAsk: f.qAsk, m: f.m, mRw: f.mRw, orders: rows.length },
+      pct: pct ? (pct[m.cond] ?? 0) : null, detail: { qBid: f.qBid, qAsk: f.qAsk, m: f.m, orders: rows.length },
     });
     report.minutes.push({ cond: m.cond, formula: f.formula, ours: f.ours, others: f.others, bid: f.bid?.price ?? null, ask: f.ask?.price ?? null });
   }
@@ -1643,8 +1507,6 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     return done("frozen");
   };
 
-  /** The rows this turn wrote, as `patch` leaves them: with `openAll`'s, what rests after the turn (`detail.after`). */
-  const posted: PmOrderRow[] = [];
   /** Write the order `pending` (the slot's claim), then send it (live) or record what the venue would say (dry-run). */
   const post = async (w: Want, reason: string) => {
     const label = slotLabel(w);
@@ -1682,7 +1544,6 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (/duplicate key|23505|409/.test(msg(e))) { report.errors.push(`${label}: another open order holds this slot, or this hash exists; nothing sent`); return; }
       throw e;
     }
-    posted.push(row);
     posts++;
     report.posts++;
     if (mode === "dry_run") {
@@ -1770,16 +1631,6 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
 
   // ── 6. the minute's record ────────────────────────────────────────────────────────────────────────────────────────
-  // Beside each minute's formula (the quotes that rested when the book was read), the formula of what rests AFTER this
-  // turn against the same book with those quotes in it, as the venue would hold them (`detail.after`, 2026-10-04): the
-  // reward of the minute those quotes start, which is what the paper layer pays a minute where it rests RW's quote.
-  for (const r of minuteRows) {
-    const m = markets.find((x) => x.cond === r.cond), b = books.get(r.cond);
-    if (!m || !b) continue;
-    const after = [...openAll, ...posted].filter((o) => o.mode === mode && o.cond === r.cond && o.state === "live").map(ownOf);
-    const fa = minuteFormula({ rate: r.rate, v: r.max_spread, minSize: r.min_size, levels: b.levels, inBook: inBookAtRead.get(r.cond) ?? [], quotes: after });
-    r.detail.after = { formula: fa.formula, ours: fa.ours, others: fa.others, m: fa.m, orders: after.length };
-  }
   if (minuteRows.length) {
     try { await db.upsert(T.minutes, minuteRows, "mode,minute,cond"); } catch (e) { report.errors.push(`minutes not recorded (${msg(e)})`); }
   }

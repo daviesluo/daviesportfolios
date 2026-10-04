@@ -21,14 +21,14 @@ import {
   type PmOrderStruct, type PmVenue,
 } from "../_shared/polymarket_orders.ts";
 import type { PmLevel } from "../_shared/polymarket_public.ts";
-import { choose, firstScore, newAcc, RW_INV_CAP, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
+import { choose, firstScore, newAcc, RW_INV_CAP, scoreS, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
 import { excludedByDay } from "./pmrw_e.ts";
 import {
-  attestationCurrent, bookNow, bookPnl, candidateOf, closeOnly, crosses, cursorOffset, effectiveLimits, gates, geoOf, inUniverse, inYesBook, minuteFormula, onTick,
-  othersLevels, placeholderQuotes, PM_LIVE_CANCEL_REREAD_MS, PM_LISTING_OVERLAP, refusalWait, PM_LIVE_DB_TABLES, PM_LIVE_GEO_CACHE_MS, PM_LIVE_LEASE_MS, PM_LIVE_LIFETIME_S, PM_LIVE_MAX_N,
+  attestationCurrent, bookNow, bookPnl, bookQualityOf, candidateOf, closeOnly, crosses, cursorOffset, effectiveLimits, gates, geoOf, inUniverse, inYesBook, minuteFormula, onTick,
+  othersLevels, placeholderQuotes, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MINI_QUALITY, scoresAt, withOwnLevels, PM_LIVE_CANCEL_REREAD_MS, PM_LISTING_OVERLAP, refusalWait, PM_LIVE_DB_TABLES, PM_LIVE_GEO_CACHE_MS, PM_LIVE_LEASE_MS, PM_LIVE_LIFETIME_S, PM_LIVE_MAX_N,
   PM_LIVE_CAP_TOTAL_USD, PM_LIVE_LOSS_TOTAL_USD, PM_LIVE_MIN_FORMULA_DAY_USD, PM_LIVE_MIN_HORIZON_MS, PM_LIVE_REWARD_FLOOR, PM_LIVE_REWARD_RATE_MAX, PM_LIVE_SELECT_UNTIL_MS, PM_LIVE_SEND_UNTIL_MS,
   PM_LIVE_TIMEOUT_MS, PM_OPEN_GATES, pmTime, postOutcome, rewardListing, rewardRate, runPmLive, rweSameDay, rwQuotes, selectMarkets, settlementFills,
-  stateOfStatus, tokenBooks, tradeStatus, type GateInputs, type PmBookNow, type PmLiveConfig, type PmMarketRow, type PmQuoteRule,
+  stateOfStatus, tokenBooks, tradeStatus, type GateInputs, type PmBookNow, type PmLiveConfig, type PmMarketRow, type PmOwnOrder, type PmQuoteRule,
 } from "./pm_live.ts";
 import { runPmLiveAction } from "./index.ts";
 import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_OWNER, PM_TEST_SIGNER, type Row } from "./testing.ts";
@@ -45,7 +45,14 @@ const CONFIG: PmLiveConfig & { id: number } = {
   cap_total_usd: 300, cap_market_usd: 60, loss_day_usd: 25, loss_total_usd: 75, max_posts_day: 6000, gtd_lifetime_s: 300, max_markets: 2, select_budget_usd: 40,
 };
 
-type WorldOpts = { live?: boolean; region?: string | null; config?: Partial<PmLiveConfig>; signer?: boolean; rule?: PmQuoteRule; realClient?: boolean; wide?: boolean };
+type WorldOpts = {
+  live?: boolean; region?: string | null; config?: Partial<PmLiveConfig>; signer?: boolean; rule?: PmQuoteRule; realClient?: boolean; wide?: boolean;
+  /**
+   * A second level 5 ¢ behind each touch, as deep as the first: outside every market's 4.5 ¢ of its midpoint, so no score
+   * moves, and close enough for mini-pool's book-quality rule to take the market (2026-10-04).
+   */
+  deep?: boolean;
+};
 
 /**
  * The universe is a reward rate in [$6, $10), a maximum spread, N ≤ 20, accepting, nothing ending or starting within 48
@@ -61,7 +68,11 @@ type WorldOpts = { live?: boolean; region?: string | null; config?: Partial<PmLi
 function makeWorld(o: WorldOpts = {}) {
   const clock = { now: T0 };
   const pm = new FakePolymarket(() => clock.now);
-  const add = (n: number, extra: Record<string, unknown>) => pm.addMarket({ cond: cond(n), yes: tok(n, "yes"), no: tok(n, "no"), depth: [[0, 5]], ...extra });
+  const add = (n: number, extra: Record<string, unknown>) => {
+    const m = pm.addMarket({ cond: cond(n), yes: tok(n, "yes"), no: tok(n, "no"), depth: [[0, 5]], ...extra });
+    if (o.deep) m.depth = [...m.depth, [Math.round(0.05 / Number(m.tick)), m.depth[0][1]]];
+    return m;
+  };
   add(1, { rate: 50, bid: 0.30, ask: 0.32 });
   add(2, { rate: 10, bid: 0.60, ask: 0.62 });
   add(3, { rate: 8, sponsoredRate: 12, bid: 0.40, ask: 0.42 });
@@ -319,7 +330,8 @@ Deno.test("rwQuotes is RW's own quote: on every recorded book of RW's golden day
   assertEquals(rwQuotes({ market: MKT({ max_spread: null }), book: bk, held: { yes: 0, no: 0 }, own: [] }), []);
 });
 
-Deno.test("minuteFormula is RW's reward line: the quotes stepRw would rest, scored against the same book, pay what stepRw's decision pays, minute for minute", () => {
+Deno.test("minuteFormula at placement is RW's reward line wherever our quotes leave the venue's midpoint where the rest of the book put it; elsewhere the midpoint is the venue's, with them in it", () => {
+  let same = 0, moved = 0;
   for (const g of goldenBooks) {
     const levels = { bids: g.book!.b, asks: g.book!.a };
     const N = sizeN(g.min_size), rate = 144;
@@ -328,12 +340,72 @@ Deno.test("minuteFormula is RW's reward line: the quotes stepRw would rest, scor
     const book: PmBookNow = { bestBid: levels.bids[0][0], bestAsk: levels.asks[0][0], tick: "0.01", minSize: 5, negRisk: false, at: null, hash: null, levels };
     const quotes = rwQuotes({ market: MKT({ max_spread: g.v, min_size: g.min_size }), book, held: { yes: 0, no: 0 }, own: [] });
     const f = minuteFormula({ rate, v: g.v, minSize: g.min_size, levels, inBook: [], quotes });
-    assertAlmostEquals(f.formula, want?.reward ?? 0, 1e-12, g.cond);
-    if (want) { assertAlmostEquals(f.ours, want.ours, 1e-9); assertAlmostEquals(f.others, want.others, 1e-9); }
+    // The venue's book is the book with our quotes in it: its size-cutoff midpoint is the formula's.
+    const v = withOwnLevels(levels, quotes), vrow = summarize(v.bids, v.asks, g.v, g.min_size);
+    if (!want) { assertEquals(f.formula, 0, g.cond); continue; }
+    assertEquals(f.mRw, want.m);
+    assertAlmostEquals(f.m!, (vrow![2]! + vrow![3]!) / 2, 1e-12);
+    if (Math.abs(f.m! - want.m) < 1e-12) {
+      same++;
+      assertAlmostEquals(f.formula, want.reward, 1e-12, g.cond);
+      assertAlmostEquals(f.ours, want.ours, 1e-9); assertAlmostEquals(f.others, want.others, 1e-9);
+    } else {
+      moved++;
+      const sc = (d: number) => scoreS(g.v, d * 100) * N;
+      assertAlmostEquals(f.ours, Math.min(sc(f.m! - want.b), sc(want.a - f.m!)), 1e-9, g.cond);
+      assert(f.ours >= want.ours - 1e-9, `${g.cond}: our quotes setting the midpoint never score less than against the others' (${f.ours} < ${want.ours})`);
+    }
+  }
+  // Both happen on RW's golden day: a book whose quotes are a tick inside a touch that holds the minimum leaves the
+  // midpoint where it was; one whose touch is thinner than the minimum, or whose quote is capped at m ± half a tick, moves it.
+  assert(same > 20 && moved > 5, `same ${same}, moved ${moved}`);
+});
+
+Deno.test("the dry-run's blind spot, from mini-pool's own record of 2026-10-03: resting quotes the book moved away from score as the venue would hold them, which the code before 2026-10-04 read as nothing", () => {
+  const q = (bid: number, ask: number, size = 20): PmOwnOrder[] => [{ outcome: "yes", side: "BUY", price: bid, size }, { outcome: "no", side: "BUY", price: onTick(1 - ask, "0.01"), size }];
+  const S = (v: number, s: number) => ((v - s) / v) ** 2;
+  // 0x067a7888 at 01:04: the rest of the book 0.03 / 0.39 (its 0.27 bid gone for a minute), our 0.29 / 0.38 resting from
+  // 01:03. Without them the midpoint is 0.21 and neither quote is inside 6.5 ¢ of it; with them it is 0.335, both 4.5 ¢ out.
+  const L1 = { bids: [[0.03, 50]] as PmLevel[], asks: [[0.39, 40]] as PmLevel[] };
+  const f1 = minuteFormula({ rate: 8, v: 6.5, minSize: 20, levels: L1, inBook: [], quotes: q(0.29, 0.38) });
+  assertAlmostEquals(f1.mRw!, 0.21, 1e-12);
+  assertAlmostEquals(f1.m!, 0.335, 1e-12);
+  const ours1 = S(6.5, 4.5) * 20, others1 = (S(6.5, 5.5) * 40) / 3;               // the 0.39 ask 5.5 ¢ out; one-sided: a third
+  assertAlmostEquals(f1.ours, ours1, 1e-9);
+  assertAlmostEquals(f1.others, Math.round(S(6.5, 5.5) * 40 * 1e4) / 1e4 / 3, 1e-9);
+  assertAlmostEquals(f1.formula, 8 / 1440 * ours1 / (ours1 + others1), 1e-6);
+  // 0x67d66925 at 06:03: the rest 0.02 / 0.13 holding the minimum (0.11 under it), our 0.03 / 0.10. Without them the
+  // midpoint is 0.075, our bid exactly 4.5 ¢ out (nothing); with them 0.065, both 3.5 ¢ out, alone in the pool.
+  const L2 = { bids: [[0.02, 50]] as PmLevel[], asks: [[0.11, 5], [0.13, 50]] as PmLevel[] };
+  const f2 = minuteFormula({ rate: 9, v: 4.5, minSize: 20, levels: L2, inBook: [], quotes: q(0.03, 0.10) });
+  assertAlmostEquals(f2.mRw!, 0.075, 1e-12);
+  assertAlmostEquals(f2.m!, 0.065, 1e-12);
+  assertEquals(f2.others, 0);
+  assertAlmostEquals(f2.formula, 9 / 1440, 1e-12);
+  // Live, the same quotes are in the book as read: the formula is the same, never counted twice. In the third book a
+  // second bid of ours, 12 left of 20 (a replacement beside one not yet gone), holds less than the minimum: counted once,
+  // its level is no size-cutoff touch (the midpoint 0.45); counted twice it would be (0.455).
+  const L3 = { bids: [[0.42, 50], [0.40, 50]] as PmLevel[], asks: [[0.48, 50], [0.50, 50]] as PmLevel[] };
+  const Q3: PmOwnOrder[] = [...q(0.43, 0.47), { outcome: "yes", side: "BUY", price: 0.44, size: 12 }];
+  assertAlmostEquals(minuteFormula({ rate: 9, v: 4.5, minSize: 20, levels: L3, inBook: [], quotes: Q3 }).m!, 0.45, 1e-12);
+  for (const [L, Q, rate, v] of [[L1, q(0.29, 0.38), 8, 6.5], [L2, q(0.03, 0.10), 9, 4.5], [L3, Q3, 9, 4.5]] as const) {
+    const dry = minuteFormula({ rate, v, minSize: 20, levels: L, inBook: [], quotes: Q });
+    const live = minuteFormula({ rate, v, minSize: 20, levels: withOwnLevels(L, Q), inBook: Q, quotes: Q });
+    assertEquals(JSON.stringify(live), JSON.stringify(dry));
+  }
+  assertEquals(othersLevels(withOwnLevels(L2, q(0.03, 0.10)), q(0.03, 0.10)), L2);
+  // A quote the rest of the book has since crossed is not resting (the venue would have matched it): not in the book, not scored.
+  const crossed = minuteFormula({ rate: 9, v: 4.5, minSize: 20, levels: { bids: [[0.02, 50]], asks: [[0.03, 50], [0.13, 50]] }, inBook: [], quotes: q(0.03, 0.10) });
+  assertEquals([crossed.qBid, crossed.ours, crossed.formula], [0, 0, 0]);
+  // The others' scores at the venue's midpoint are summarize's, digit for digit, at the book's own touch and midpoint.
+  for (const g of goldenBooks.slice(0, 30)) {
+    const row = summarize(g.book!.b, g.book!.a, g.v, g.min_size);
+    if (!row || row[2] === null || row[3] === null) continue;
+    assertEquals(scoresAt({ bids: g.book!.b, asks: g.book!.a }, row[0], row[1], (row[2] + row[3]) / 2, g.v, g.min_size), [row[4], row[5]]);
   }
 });
 
-Deno.test("our own orders are taken out of the book: the rule and the formula see the rest of the market, so neither chases itself nor scores against itself", () => {
+Deno.test("our own orders are taken out of the book: the rule and the others' scores are the rest of the market's, so the rule never chases itself and we never score against ourselves", () => {
   // We bid 0.41 × 5 and ask 0.49 × 5 (a BUY of NO at 0.51) into a book of 0.40 / 0.50: the venue shows them in its one book.
   const own = [{ outcome: "yes" as const, side: "BUY" as const, price: 0.41, size: 5 }, { outcome: "no" as const, side: "BUY" as const, price: 0.51, size: 5 }];
   assertEquals([inYesBook(own[0]), inYesBook(own[1]), inYesBook({ outcome: "yes", side: "SELL", price: 0.49 }), inYesBook({ outcome: "no", side: "SELL", price: 0.59 })],
@@ -345,7 +417,8 @@ Deno.test("our own orders are taken out of the book: the rule and the formula se
   // Without ours the touch is 0.40 / 0.50 and RW bids 0.41, asks 0.49: what already rests. Read with them, it would step in.
   assertEquals(rwQuotes({ market: MKT(), book, held: { yes: 0, no: 0 }, own }), own);
   assertEquals(rwQuotes({ market: MKT(), book, held: { yes: 0, no: 0 }, own: [] }).map((x) => x.price), [0.42, 0.52]);
-  // The formula: our 5 at 0.41 / 0.49 against the others' 5 at 0.40 / 0.50 (m 0.45), not against themselves.
+  // The formula: our 5 at 0.41 / 0.49 against the others' 5 at 0.40 / 0.50, not against themselves; the midpoint is the
+  // venue's, ours in its book (0.45 either way here: our quotes are a tick inside each side).
   const f = minuteFormula({ rate: 14.4, v: 4.5, minSize: 5, levels, inBook: own, quotes: own });
   const s = (d: number) => ((4.5 - d) / 4.5) ** 2;
   assertAlmostEquals(f.ours, s(4) * 5, 1e-9);
@@ -366,6 +439,71 @@ Deno.test("our own orders are taken out of the book: the rule and the formula se
 });
 
 // ------------------------------------------------------------------ the universe and the selection
+
+Deno.test("bookQualityOf: each side's levels holding the minimum within 10 ¢ of its touch, the size-cutoff spread with either best taken away, the midpoint's band", () => {
+  const rule = { name: "t", levels: 2, spreadOverV: 2, mid: [0.1, 0.9] as [number, number] };
+  const x = (bids: PmLevel[], asks: PmLevel[]) => bookQualityOf({ v: 4.5, minSize: 20, levels: { bids, asks }, tick: 0.01 }, rule);
+  // Two levels a side holding 20: without the best bid the spread is 0.48 − 0.40 = 8 ¢, without the best ask 0.50 − 0.42 = 8 ¢,
+  // both within 2 × 4.5 ¢.
+  assertEquals(x([[0.42, 20], [0.40, 25]], [[0.48, 20], [0.50, 30]]), null);
+  assertEquals(x([[0.42, 20], [0.39, 25]], [[0.48, 20], [0.50, 30]]), null);                    // 9 ¢: at the bar
+  assertEquals(x([[0.42, 20], [0.38, 25]], [[0.48, 20], [0.50, 30]]), "spread");                // 10 ¢: past it
+  assertEquals(x([[0.42, 20], [0.40, 25]], [[0.48, 20], [0.52, 30]]), "spread");
+  // An order under the minimum is no level of the rule's, at the touch or behind it; nor is one past 10 ¢ of the touch.
+  assertEquals(x([[0.44, 5], [0.42, 20], [0.40, 25]], [[0.48, 20], [0.50, 30]]), null);
+  assertEquals(x([[0.42, 20], [0.40, 10]], [[0.48, 20], [0.50, 30]]), "depth");
+  assertEquals(x([[0.42, 20], [0.31, 50]], [[0.48, 20], [0.50, 30]]), "depth");
+  assertEquals(x([[0.05, 20], [0.04, 20]], [[0.09, 20], [0.10, 20]]), "mid");                   // midpoint 0.07
+  assertEquals(x([], [[0.48, 20]]), "one-sided");
+  // One level a side and a spread of 1.5 v: the size-cutoff spread itself.
+  const one = { name: "t1", levels: 1, spreadOverV: 1.5, mid: [0, 1] as [number, number] };
+  assertEquals(bookQualityOf({ v: 4.5, minSize: 20, levels: { bids: [[0.42, 20]], asks: [[0.48, 20]] }, tick: 0.01 }, one), null);    // 6 ¢ <= 6.75
+  assertEquals(bookQualityOf({ v: 4.5, minSize: 20, levels: { bids: [[0.42, 20]], asks: [[0.49, 20]] }, tick: 0.01 }, one), "spread"); // 7 ¢
+  // Mini-pool's rule is the depth alone (Addendum 6): two levels a side holding the minimum within 10 ¢ of the touch,
+  // whatever the spread behind them and wherever the midpoint.
+  assertEquals(PM_MINI_QUALITY, { name: "two levels a side holding the reward minimum within 10 ¢ of the touch", levels: 2 });
+  const mini = (bids: PmLevel[], asks: PmLevel[]) => bookQualityOf({ v: 4.5, minSize: 20, levels: { bids, asks }, tick: 0.01 }, PM_MINI_QUALITY);
+  assertEquals(mini([[0.42, 20], [0.33, 25]], [[0.48, 20], [0.57, 30]]), null);                 // 9 ¢ behind each best: still within 10 ¢
+  assertEquals(mini([[0.05, 20], [0.04, 20]], [[0.09, 20], [0.10, 20]]), null);                 // midpoint 0.07
+  assertEquals(mini([[0.42, 20], [0.40, 19.99]], [[0.48, 20], [0.50, 30]]), "depth");           // the second bid under the minimum
+  assertEquals(mini([[0.42, 20], [0.40, 25]], [[0.48, 20], [0.58, 30]]), null);                 // the second ask 10 ¢ away: at the bar
+  assertEquals(mini([[0.42, 20], [0.40, 25]], [[0.48, 20], [0.59, 30]]), "depth");              // 11 ¢: past it
+  assertEquals(mini([[0.42, 20], [0.40, 25]], [[0.48, 20], [0.49, 1], [0.59, 30]]), "depth");   // a level under the minimum is none
+  assertEquals(mini([[0.42, 20], [0.40, 25]], []), "one-sided");
+});
+
+Deno.test("mini-pool's selection ranks the books its rule passes first: one it passes over comes back only for the slots and the budget the others leave; the default instance, the path its pre-registration froze, ranks as before", async () => {
+  const run = async (inst: typeof PM_LIVE_INSTANCE, edit: (w: ReturnType<typeof makeWorld>) => void = () => {}) => {
+    const w = makeWorld({ deep: true });
+    edit(w);
+    await w.turn(T0, { inst });
+    const ranked = w.markets().slice().sort((x, y) => Number(x.rank) - Number(y.rank)).map((m) => m.cond as string);
+    return { ranked, note: (w.events("selection")[0]?.detail as Record<string, any>) ?? {} };
+  };
+  // Every book two levels a side: the rule passes them all, and mini-pool chooses what the default chooses, in its order
+  // (the test config's two slots: A, then B).
+  const d0 = await run(PM_LIVE_INSTANCE), m0 = await run(PM_MINI_INSTANCE);
+  assertEquals([d0.ranked, m0.ranked], [[cond(5), cond(6)], [cond(5), cond(6)]]);
+  assertEquals([d0.note.bookQuality, m0.note.bookQuality], [undefined, { rule: PM_MINI_QUALITY.name, passedOver: 0, why: {}, filled: 0 }]);
+  // A's book one level a side: the two slots go to the books that pass (B, C), as the ranking without A takes them;
+  // the default takes A first.
+  const single = (w: ReturnType<typeof makeWorld>) => { w.A.depth = [[0, 5]]; };
+  const d1 = await run(PM_LIVE_INSTANCE, single), m1 = await run(PM_MINI_INSTANCE, single);
+  const noA = await run(PM_LIVE_INSTANCE, (w) => { w.A.accepting = false; });
+  assertEquals([d1.ranked, m1.ranked, noA.ranked], [[cond(5), cond(6)], [cond(6), cond(7)], [cond(6), cond(7)]]);
+  assertEquals(m1.note.bookQuality, { rule: PM_MINI_QUALITY.name, passedOver: 1, why: { depth: 1 }, filled: 0 });
+  // A third slot and the budget for it: the books that pass leave it, and A comes back for it, behind them. The day
+  // quotes what the default's does, in the rule's order.
+  const three = (w: ReturnType<typeof makeWorld>) => { single(w); w.setConfig({ max_markets: 3, select_budget_usd: 160 }); };
+  const d3 = await run(PM_LIVE_INSTANCE, three), m3 = await run(PM_MINI_INSTANCE, three);
+  assertEquals([d3.ranked, m3.ranked], [[cond(5), cond(6), cond(7)], [cond(6), cond(7), cond(5)]]);
+  assertEquals(m3.note.bookQuality, { rule: PM_MINI_QUALITY.name, passedOver: 1, why: { depth: 1 }, filled: 1 });
+  // A third slot without the budget for A (B and C use $39.04 of $40): nothing comes back.
+  const tight = await run(PM_MINI_INSTANCE, (w) => { single(w); w.setConfig({ max_markets: 3 }); });
+  assertEquals([tight.ranked, tight.note.bookQuality.filled], [[cond(6), cond(7)], 0]);
+  // Mid-pool's instance has no rule.
+  assertEquals((await import("./pm_mid.ts")).PM_MID_INSTANCE.bookQuality, undefined);
+});
 
 Deno.test("inUniverse and candidateOf: a listed rate in [$6, $10), a spread, N ≤ 20; accepting with two tokens; nothing at $10, nothing unlisted", () => {
   const m = { conditionId: cond(9).toUpperCase().replace("0X", "0x"), clobTokenIds: '["11","12"]', enableOrderBook: true, acceptingOrders: true, closed: false, negRisk: false, question: "Q" };
@@ -639,6 +777,25 @@ Deno.test("the minute's formula is recorded every minute for every market quoted
   assertAlmostEquals(Number(a.formula_usd), 8 / 1440 * 0.5, 1e-6);
   assertEquals([a.rate, a.max_spread, a.min_size, Number(a.ab), Number(a.aa)], [8, 4.5, 5, 0.45, 0.47]);
   assertEquals(rows.every((m) => m.pct === 0), true);                                     // the venue's live share: the account has none
+});
+
+Deno.test("each minute also records what rests after its turn, scored against the book it read with those quotes in it (detail.after): the next minute's formula of the same quotes on the same book is that figure", async () => {
+  const w = makeWorld({ wide: true });                                                    // A 0.45 / 0.50: RW bids 0.46, asks 0.49
+  await w.turn(T0);
+  const first = w.minutes().filter((m) => m.minute === iso(Math.floor(T0 / M) * M));
+  // Nothing rested when the first book was read; after the turn RW's quote rests, scored on that book with it in it.
+  const a0 = first.find((m) => m.cond === cond(5))!, d0 = a0.detail as Record<string, any>;
+  assertEquals([Number(a0.formula_usd), d0.after.orders], [0, 2]);
+  const Q: PmOwnOrder[] = [{ outcome: "yes", side: "BUY", price: 0.46, size: 5 }, { outcome: "no", side: "BUY", price: 0.51, size: 5 }];
+  const want = minuteFormula({ rate: 8, v: 4.5, minSize: 5, levels: { bids: [[0.45, 5]], asks: [[0.50, 5]] }, inBook: [], quotes: Q });
+  assertAlmostEquals(d0.after.formula, want.formula, 1e-12);
+  assertAlmostEquals(d0.after.m, 0.475, 1e-12);
+  assert(want.formula > 0);
+  // The book does not move: the next minute's formula of those quotes is the figure the turn before recorded as after.
+  await w.turn(T0 + M);
+  const a1 = w.minutes().find((m) => m.minute === iso(Math.floor((T0 + M) / M) * M) && m.cond === cond(5))!;
+  assertAlmostEquals(Number(a1.formula_usd), d0.after.formula, 1e-12);
+  assertEquals([(a1.detail as Record<string, any>).m, (a1.detail as Record<string, any>).mRw], [0.475, 0.475]);
 });
 
 Deno.test("dry-run writes only on change: the same book writes nothing; a moved touch re-prices (cancel, then the new order); an order near its expiry is refreshed; one the loop missed expires", async () => {
@@ -1627,7 +1784,8 @@ Deno.test("the fake is as strict as the CLOB: off-tick, under-minimum, too-near 
 // ------------------------------------------------------------------ the action, as the one-minute job calls it
 
 Deno.test("agents?action=pmlive: it loads the key only for the stored signer, records the runtime's SB_REGION, signs its account reads, scrubs what it returns, and never throws", async () => {
-  const w = makeWorld();
+  // Books of two levels a side: mini-pool's book-quality rule, which its action runs (PM_MINI_INSTANCE), takes A and B.
+  const w = makeWorld({ deep: true });
   const secret = btoa("TEST-L2-SECRET-32-BYTES-LONG-001");
   const planted: Record<string, string> = {
     POLYMARKET_PRIVATE_KEY: PM_TEST_KEY, POLYMARKET_CLOB_API_KEY: PM_TEST_OWNER, POLYMARKET_CLOB_SECRET: secret, POLYMARKET_CLOB_PASSPHRASE: "test-passphrase-123",
@@ -1642,11 +1800,14 @@ Deno.test("agents?action=pmlive: it loads the key only for the stored signer, re
   assert(r.why.includes("pm_live_config.dry_run is on"), r.why);
   assertEquals(w.open().length, 4);
   assertEquals(w.writes(), []);
+  // The action runs mini-pool's instance: its selection applied the book-quality rule and recorded it.
+  const sel = w.events("selection")[0]?.detail as Record<string, any>;
+  assertEquals(sel?.bookQuality, { rule: PM_MINI_QUALITY.name, passedOver: 0, why: {}, filled: 0 });
   assert(!w.pm.calls.some((c) => c.endsWith("(401)")), "every account read carried the key's L2 headers");
   const out = JSON.stringify(r) + JSON.stringify(w.mem.tables);
   for (const s of ["test-passphrase-123", secret, PM_TEST_KEY.slice(2, 22), PM_TEST_KEY.slice(30, 50).toUpperCase()]) assert(!out.includes(s), s);
   // Unlocked by the config, it is live and sends (the wire reads the runtime's own SB_REGION, not the action's reader).
-  const L = makeWorld({ live: true });
+  const L = makeWorld({ live: true, deep: true });
   const prevRegion = Deno.env.get("SB_REGION");
   Deno.env.set("SB_REGION", "eu-west-1");
   try {
@@ -1656,7 +1817,7 @@ Deno.test("agents?action=pmlive: it loads the key only for the stored signer, re
     if (prevRegion === undefined) Deno.env.delete("SB_REGION"); else Deno.env.set("SB_REGION", prevRegion);
   }
   // A key that is not the signer's loads none: a dry-run, and it says why.
-  const K = makeWorld({ live: true });
+  const K = makeWorld({ live: true, deep: true });
   const rk = await runPmLiveAction({ db: K.db, fetchImpl: K.pm.fetch, read: (n) => (n === "POLYMARKET_PRIVATE_KEY" ? `0x${"11".repeat(32)}` : planted[n]), now: T0 }) as Awaited<ReturnType<typeof runPmLive>>;
   assertEquals([rk.mode, K.writes()], ["dry_run", []]);
   assert(rk.why.includes("the private key's address is not POLYMARKET_SIGNER_ADDRESS"), rk.why);
