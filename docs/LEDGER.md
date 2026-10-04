@@ -740,6 +740,15 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 10:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The 10-04 health routine (`trig_014Rdj3qAgVVbh8h3eKcjb8X`): all well**, read-only, counts and timestamps only. QUEUE's
+window (from 00:00): each of the four books read 619–620 times in 622 minutes, its first row at 00:00:40–43 and last
+seen 10:21:40–43 (rows stored on change: USDC-GBP 351, USDT-GBP 279, USDC-USD 27, USDT-USD 19); no level read. RW
+decided to 10:19, RW-E and RW-X to 10:18, none with `last_error`; RW-X's `checkMaxUsd` 0, `checkEMaxUsd` 0 over 9 days,
+version 2, its arms e, rw, x1–x5; 10-02's and 10-03's day rows present for all three (dates only); no `ops_errors` of
+theirs or the recorder's in 24 hours.
+
 ### [2026-10-04 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The payouts-per-path change is kept as a patch, not deployed** (Davies, told it waited for his word: "之后再部署吧
