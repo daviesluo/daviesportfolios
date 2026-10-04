@@ -184,8 +184,9 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   balance as its own. Tell Davies so whenever the subject comes up.
 - Only Davies arms anything live, in the conversation where he says go; Polymarket opens a position only from
   Ireland, under his standing attestation. Secrets are never printed and never moved.
-- A pre-registered test's no-peek rules bind every session: what may not be read before its reading is not read, and
-  anything seen by accident is disclosed in the ledger.
+- **No test has a no-peek rule since 2026-10-04** (Davies: "所有不偷看条款全部取消，所有的数据都可用来达到最佳研究效果"):
+  every record may be read for research at any time. A pre-registered reading still runs as its pre-registration says
+  (its script, bar and date), and its report says it was not blind.
 - Every recurring Edge call is a row of `public.edge_calls` and joins the watchdog in the migration that adds it.
 
 ## Git workflow

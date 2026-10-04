@@ -742,6 +742,15 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
 ### [2026-10-04 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
+**Every no-peek rule is cancelled, on Davies' word** ("所有不偷看条款全部取消，所有的数据都可用来达到最佳研究效果，你也可以发消息给子代理告诉他们").
+Every record may now be read for research: RW-X's x4/x5, RW-C, mid-pool, PR5V, rule D, variant-2 (TAKE), QUEUE's
+levels, PR5-W and the rest. The pre-registrations are not edited: their readings run as written (scripts, bars, dates)
+and each report says it was not blind from 2026-10-04. `.claude/CLAUDE.md`'s agents bullet says so; the two running
+sub-agents (mini-pool's fix, the count-market study) were told. Where the what-remains list or a routine still says
+"read only the health readings", that clause no longer binds.
+
+### [2026-10-04 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
 **Reward quotes pages name every market by its question** (Davies: "quotes表格中里有很多市场名字显示类似于“0x2764…”这样的乱码，请修复，并确保之后不会发生").
 Cause: `prepSummary` (mini-pool's and mid-pool's pages) gave a market still held from an earlier day an empty question,
 and the page fell back to its condition id. Every market the path chose has its question in `pm_live_markets` (26 of
