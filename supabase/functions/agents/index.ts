@@ -77,6 +77,18 @@
 //                             the YouTube counters they resolve on, every
 //                             minute and every second around each market's
 //                             deadline. Reads only. pg_cron every minute.
+//   POST ?action=pmrec      — the Polymarket book recorder (pm_book_rec.ts,
+//                             0092): every minute, the books of every market
+//                             paying $10 a day or more in rewards and of every
+//                             market a Reward quotes path holds or quotes, a
+//                             fifteenth of every rewarded market, and their
+//                             prints, as gzip'd frames in its own table.
+//                             Keyless reads only. Cron or admin.
+//   POST ?action=pmrec-meta — its housekeeping, every five minutes: the reward
+//                             listing, Gamma's metadata, the held and quoted
+//                             markets, and each closed hour of frames moved
+//                             to Supabase Storage (bucket pm-rec, private)
+//                             with a signed URL. Cron or admin.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -174,6 +186,7 @@ import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
+import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -377,6 +390,48 @@ async function runQuotesAction(wait: boolean) {
 async function runBooksAction(wait: boolean) {
   if (wait) await new Promise((r) => setTimeout(r, booksDelayMs(Date.now())));
   return await runBooks({ db: db() });
+}
+
+/**
+ * The Polymarket book recorder's minute (pm_book_rec.ts, 0092): keyless public reads into its own frames. A fault goes to
+ * `ops_errors` as `agents.pm_rec` when it first appears and at most hourly while it lasts (`report.report` says when);
+ * the full list is its state row's `last_error`. It never throws past here.
+ */
+export async function runPmRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const report = await runPmRec({ db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), fetchImpl: deps.fetchImpl });
+    if (report.report) await reportServerError("agents.pm_rec", tickErrorReport(report));
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.pm_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * The recorder's housekeeping every five minutes (pm_book_rec.ts): the reward listing and Gamma through the order path's
+ * keyless wire (no credentials, sends off), and the archive in Supabase Storage with the service key, which never leaves
+ * the function. Its database calls wait 20 s, not 8: an hour of book frames is read twenty frames (~7 MB) at a time.
+ */
+export async function runPmRecMetaAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number; read?: (n: string) => string | undefined } = {}) {
+  try {
+    const read = deps.read ?? ((n: string) => Deno.env.get(n));
+    const sbUrl = read("SUPABASE_URL") ?? "", key = read("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const f = deps.fetchImpl ?? fetch;
+    const report = await runPmRecMeta({
+      db: deps.db ?? makeDb(sbUrl, key, f, 20_000), now: deps.now ?? Date.now(), holder: crypto.randomUUID(),
+      venue: pmVenue({ fetchImpl: f, creds: null, address: null, sigType: 1, timeoutMs: PM_REC_VENUE_TIMEOUT_MS, sendsEnabled: false }),
+      pm: { fetchImpl: f, timeoutMs: 20_000 },
+      storage: sbUrl && key ? pmRecStorage(sbUrl, key, f) : null,
+    });
+    if (report.report) await reportServerError("agents.pm_rec", tickErrorReport(report));
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.pm_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
 }
 
 /**
@@ -2347,6 +2402,9 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
     return json(200, await researchRwx(db(), parseRwxSpecs(body), Number.isFinite(until) ? until : undefined));
   }
   if (action === "books" && req.method === "POST" && operator) return json(200, await runBooksAction(url.searchParams.get("wait") !== "0"));
+  // The Polymarket book recorder (pm_book_rec.ts, 0092): its minute, and its housekeeping every five. Keyless reads.
+  if (action === "pmrec" && req.method === "POST" && operator) return json(200, await runPmRecAction());
+  if (action === "pmrec-meta" && req.method === "POST" && operator) return json(200, await runPmRecMetaAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.

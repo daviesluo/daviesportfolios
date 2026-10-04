@@ -279,6 +279,57 @@ export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; no
   },
 };
 /**
+ * The Polymarket book recorder's tables as 0092 creates them (`agents/pm_book_rec.ts`): their columns, the unique key each
+ * upsert names, the NOT NULL columns a stored row carries, their CHECKs, the defaults a proposed row takes (given the
+ * database's clock), and the columns Postgres fills itself: `pm_rec_markets`' identity `id` and its generated `phase`
+ * (id % 15), which no write may name. Exported for its tests.
+ */
+export const PM_REC_SCHEMA: Record<string, {
+  columns: string[]; key: string; notNull: string[]; defaults: (now: string) => Row; check?: (r: Row) => string | null; generated?: string[];
+}> = {
+  pm_rec_markets: {
+    columns: ["id", "cond", "yes", "no", "rate", "max_spread", "min_size", "params_at", "delisted_at", "ours_until", "question", "slug", "event_slug",
+      "category", "fee_type", "neg_risk", "end_date", "game_start", "gamma_at", "volume24hr", "volume", "liquidity", "competitive", "accepting", "closed",
+      "first_seen", "phase"],
+    key: "cond", notNull: ["id", "cond", "yes", "no", "rate", "max_spread", "min_size", "gamma_at", "first_seen", "phase"],
+    defaults: (now) => ({
+      rate: 0, max_spread: 0, min_size: 0, params_at: null, delisted_at: null, ours_until: null, question: null, slug: null, event_slug: null, category: null,
+      fee_type: null, neg_risk: null, end_date: null, game_start: null, gamma_at: "1970-01-01T00:00:00.000Z", volume24hr: null, volume: null, liquidity: null,
+      competitive: null, accepting: null, closed: null, first_seen: now,
+    }),
+    check: (r) => (!/^0x[0-9a-f]{64}$/.test(String(r.cond)) ? "cond" : !(Number(r.rate) >= 0) ? "rate" : !(Number(r.max_spread) >= 0) ? "max_spread"
+      : !(Number(r.min_size) >= 0) ? "min_size" : null),
+    generated: ["id", "phase"],
+  },
+  pm_rec_frames: {
+    columns: ["minute", "kind", "n", "bytes", "ms", "detail", "data", "recorded_at", "archived_at", "lost"],
+    key: "minute,kind", notNull: ["minute", "kind", "n", "bytes", "recorded_at", "lost"],
+    defaults: (now) => ({ ms: null, detail: null, data: null, recorded_at: now, archived_at: null, lost: false }),
+    check: (r) => (!["books", "universe", "prints"].includes(String(r.kind)) ? "kind" : !(Number(r.n) >= 0) ? "n" : !(Number(r.bytes) >= 0) ? "bytes"
+      : r.data != null && !/^\\x([0-9a-f]{2})*$/.test(String(r.data)) ? "data" : null),
+  },
+  pm_rec_archive: {
+    columns: ["hour", "kind", "path", "frames", "lines", "bytes", "first_minute", "last_minute", "sha256", "url", "url_expires", "archived_at"],
+    key: "hour,kind", notNull: ["hour", "kind", "path", "frames", "lines", "bytes", "sha256", "url_expires", "archived_at"],
+    defaults: (now) => ({ first_minute: null, last_minute: null, url: null, archived_at: now }),
+    check: (r) => (!["books", "universe", "prints", "markets"].includes(String(r.kind)) ? "kind" : !/^[0-9a-f]{64}$/.test(String(r.sha256)) ? "sha256"
+      : !(Number(r.frames) >= 0) ? "frames" : !(Number(r.lines) >= 0) ? "lines" : !(Number(r.bytes) >= 0) ? "bytes" : null),
+  },
+  pm_rec_state: {
+    columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id", notNull: ["id", "state"],
+    defaults: () => ({ state: {}, last_minute: null, updated_at: null, last_error: null }),
+    check: (r) => ([1, 2].includes(Number(r.id)) ? null : "id"),
+  },
+};
+const isPmRecTable = (table: string) => table in PM_REC_SCHEMA;
+/** A write naming a column Postgres fills itself, in Postgres's words; null when it names none. */
+function pmRecGeneratedRefusal(table: string, r: Row, update: boolean): string | null {
+  const g = PM_REC_SCHEMA[table]?.generated?.find((c) => c in r);
+  if (!g) return null;
+  return update ? `column "${g}" can only be updated to DEFAULT` : `cannot insert a non-DEFAULT value into column "${g}"`;
+}
+
+/**
  * Mid-pool's tables (0081, 0084): the order path's nine as `pm_mid_*` and the layer's seven as `pm_midprep_*`, each the
  * shape of its small-pool namesake, held to the same rules but one: a reward rate in [$10, $50) on the markets and the
  * minutes. Until 0084 its config also refused `dry_run` false and any `live_confirmed_at`, and its orders every mode but
@@ -519,6 +570,15 @@ export function schemaRefusal(table: string, r: Row): string | null {
       ?? (((r.leg === "convert") === (r.rung_side == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check"`)
       ?? (((r.rung_side == null) === (r.k == null)) ? null : `new row for relation "${table}" violates check constraint "${table}_check1"`);
   }
+  if (isPmRecTable(table)) {
+    const sc = PM_REC_SCHEMA[table];
+    const unknown = Object.keys(r).find((c) => !sc.columns.includes(c));
+    if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
+    const nn = notNull(sc.notNull);
+    if (nn) return nn;
+    const bad = sc.check?.(r) ?? null;
+    return bad ? `new row for relation "${table}" violates check constraint "${table}_${bad}_check"` : null;
+  }
   if (isPmPrepTable(table)) {
     const sc = PM_PREP_SCHEMA[pmPrepShape(table)];
     const unknown = Object.keys(r).find((c) => !sc.columns.includes(c));
@@ -731,14 +791,23 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
       if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
       if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }
-      if (m[1] === "gte") filters.push((r) => String(r[k]) >= val);
-      if (m[1] === "gt") filters.push((r) => String(r[k]) > val);
-      if (m[1] === "lt") filters.push((r) => String(r[k]) < val);
-      if (m[1] === "lte") filters.push((r) => String(r[k]) <= val);
+      // A null compares to nothing, as SQL's (and `orConditions`'): `ours_until=gt.<now>` once matched every row whose
+      // `ours_until` was null, because "null" sorts after a timestamp as text (2026-10-04, the book recorder's harness).
+      if (m[1] === "gte") filters.push((r) => r[k] != null && String(r[k]) >= val);
+      if (m[1] === "gt") filters.push((r) => r[k] != null && String(r[k]) > val);
+      if (m[1] === "lt") filters.push((r) => r[k] != null && String(r[k]) < val);
+      if (m[1] === "lte") filters.push((r) => r[k] != null && String(r[k]) <= val);
     }
     return { filters, order, limit, offset, select };
   };
   const refuse = (method: string, table: string, why: string) => Promise.reject(new Error(`db ${method} ${table} → 400: ${why}`));
+  /** A new row of one of the recorder's tables as Postgres stores it: its defaults, and `pm_rec_markets`' id and phase. */
+  const pmRecStored = (table: string, r: Row): Row => {
+    const row = { ...PM_REC_SCHEMA[table].defaults(new Date(opts.now()).toISOString()), ...r };
+    if (table !== "pm_rec_markets") return row;
+    const id = nextId++;
+    return { id, ...row, phase: id % 15 };
+  };
   const db: Db = {
     select: (table, query) => {
       const { filters, order, limit, offset, select } = parse(query);
@@ -751,6 +820,9 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // A path's base column must exist, as PostgREST refuses one that does not.
       const known = LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? twinSide(table)?.columns ?? (table === "agent_quote_twin_specs" ? TWIN_SPECS_COLUMNS : undefined);
       const missing = known && items.find((i) => i.keys.length && !known.includes(i.base));
+      // The recorder's tables (0092): every column a select names must exist, aliased or not.
+      const recMissing = isPmRecTable(table) && items.find((i) => !PM_REC_SCHEMA[table].columns.includes(i.base));
+      if (recMissing) return refuse("select", table, `column ${table}.${recMissing.base} does not exist`);
       if (missing) return refuse("select", table, `column ${missing.base} does not exist`);
       // deno-lint-ignore no-explicit-any
       return Promise.resolve(rows.map((r) => pickRow(items, r)) as any);
@@ -762,6 +834,26 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         if (!fn) return Promise.reject(new Error(`db POST ${table} → 404: {"code":"PGRST202","message":"Could not find the function public.${table.slice(4)} in the schema cache"}`));
         fn(tables);
         return Promise.resolve([]);
+      }
+      // The recorder's tables (0092): the stored row with Postgres's defaults, `pm_rec_markets`' identity and its generated
+      // phase; a write naming either is refused, and so is a second row on a key.
+      if (isPmRecTable(table)) {
+        const sc = PM_REC_SCHEMA[table], t = (tables[table] ??= []), out: Row[] = [];
+        for (const r of overTheWire(Array.isArray(rows) ? rows : [rows]) as Row[]) {
+          const gen = pmRecGeneratedRefusal(table, r, false);
+          if (gen) return refuse("POST", table, gen);
+          const stored = pmRecStored(table, r);
+          const why = schemaRefusal(table, stored);
+          if (why) return refuse("POST", table, why);
+          const keys = sc.key.split(",");
+          if ([...t, ...out].some((x) => keys.every((k) => String(x[k]) === String(stored[k])))) {
+            return Promise.reject(new Error(`db POST ${table} → 409: duplicate key value violates unique constraint "${table}_pkey"`));
+          }
+          out.push(stored);
+        }
+        t.push(...out);
+        // deno-lint-ignore no-explicit-any
+        return Promise.resolve((returning ? out.map((r) => ({ ...r })) : []) as any);
       }
       const list = (overTheWire(Array.isArray(rows) ? rows : [rows]) as Row[]).map((r) => withDefaults(table, r));
       for (const r of list) {
@@ -823,11 +915,34 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         || (table in VARIANT_TABLES && onConflict !== VARIANT_TABLES[table].key)
         || (table in RULED_TABLES && onConflict !== RULED_TABLES[table].key)
         || (isPmLiveTable(table) && onConflict !== PM_LIVE_SCHEMA[pmLiveShape(table)].key)
-        || (isPmPrepTable(table) && onConflict !== PM_PREP_SCHEMA[pmPrepShape(table)].key)) {
+        || (isPmPrepTable(table) && onConflict !== PM_PREP_SCHEMA[pmPrepShape(table)].key)
+        || (isPmRecTable(table) && onConflict !== PM_REC_SCHEMA[table].key)) {
         return refuse("POST", table, "there is no unique or exclusion constraint matching the ON CONFLICT specification");
       }
       const t = (tables[table] ??= []);
       const list = overTheWire(rows) as Row[];
+      // The recorder's tables (0092): Postgres checks the row an upsert proposes (its defaults filled, the identity and the
+      // generated phase computed) and then the row as stored; a write naming a column it fills itself is refused.
+      if (isPmRecTable(table)) {
+        const keys = PM_REC_SCHEMA[table].key.split(",");
+        // The table's rows by key, once a call: the listing's first upsert proposes ~19,000 markets at once.
+        const keyOf = (x: Row) => keys.map((k) => String(x[k])).join("\u0000");
+        const at = new Map(t.map((x, i) => [keyOf(x), i]));
+        for (const r of list) {
+          const gen = pmRecGeneratedRefusal(table, r, false);
+          if (gen) return refuse("POST", table, gen);
+          const proposed = { ...PM_REC_SCHEMA[table].defaults(new Date(opts.now()).toISOString()), ...r, ...(table === "pm_rec_markets" ? { id: 0, phase: 0 } : {}) };
+          const i = at.get(keyOf(r));
+          const why = schemaRefusal(table, proposed) ?? (i !== undefined ? schemaRefusal(table, { ...t[i], ...r }) : null);
+          if (why) return refuse("POST", table, why);
+        }
+        for (const r of list) {
+          const i = at.get(keyOf(r));
+          if (i !== undefined) t[i] = { ...t[i], ...r };
+          else { at.set(keyOf(r), t.length); t.push(pmRecStored(table, r)); }
+        }
+        return Promise.resolve();
+      }
       for (const r of list) {
         const cur = t.find((x) => keys.every((k) => String(x[k]) === String(r[k])));
         // Postgres checks NOT NULL on the row an upsert PROPOSES, before it looks for the conflict: an ON CONFLICT
@@ -864,6 +979,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
     update: (table, query, patch) => {
       const { filters } = parse(query);
       const wire = overTheWire(patch) as Row;
+      const gen = isPmRecTable(table) ? pmRecGeneratedRefusal(table, wire, true) : null;
+      if (gen) return refuse("PATCH", table, gen);
       const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
       for (const r of hit) {
         const why = schemaRefusal(table, { ...r, ...wire }) ?? oneArmedRefusal(tables, table, { ...r, ...wire });

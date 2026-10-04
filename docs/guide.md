@@ -480,6 +480,13 @@ resting on the exchange was cancelled; it quotes again by itself when it
 comes back. The same alerts open, or add to, a GitHub issue labelled
 `monitor`.
 
+`agents.pm_rec` is the Polymarket recorder, which keeps the rewarded
+markets' order books, reward terms and trades for research: a read it
+could not make, an hour it could not archive, or one of its two calls
+not running. It shows once, then at most hourly while the fault lasts.
+Nothing on the page and no strategy reads the record, so it never stops
+a strategy.
+
 Every live price is checked before the board takes it. One that cannot
 be the holding's — a hundred times off (pence read as pounds), another
 stock's or fund's price relayed by a public proxy, or not a number at all

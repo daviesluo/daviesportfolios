@@ -409,6 +409,52 @@ describe('pg_cron jobs', () => {
     expect([...cronJobs(FILES.filter((f) => f <= LP))]).toEqual([...cronJobs(FILES.filter((f) => f < LP))]);
   });
 
+  // 0092: the Polymarket book recorder, its minute call and its housekeeping call, and an hourly prune of its own.
+  const REC = FILES.find((f) => /^\d{4}_pm_book_recorder\.sql$/.test(f)) ?? '';
+
+  it("adds the book recorder's two calls to the list (0092), every other row as it was, and one job that calls nothing", () => {
+    expect(REC).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < REC)));
+    const after = replayList(sqlsOf(FILES.filter((f) => f <= REC)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // The minute's reads every minute; the listing, Gamma and the archive every fifth. Both run again by the watchdog when
+    // the platform failed to boot them (the migration gives the reason: a lease each, frames upserted on their minute and
+    // kind, every housekeeping step idempotent).
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=pmrec', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+      { path: 'agents?action=pmrec-meta', timeout: 58000, every: 5, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.slice(before.length).map((r) => beatKeyOfPath(r.path))).toEqual(['agents?action=pmrec', 'agents?action=pmrec-meta']);
+    // A day: 1,440 minute calls and 288 housekeeping calls more, the rest of the list's minutes unchanged.
+    const day = Date.UTC(2026, 9, 5);
+    let added = 0;
+    for (let m = 0; m < 1440; m++) {
+      const at = day + m * 60e3;
+      const was = before.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      const is = after.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      expect(is.slice(0, was.length)).toEqual(was);
+      added += is.length - was.length;
+    }
+    expect(added).toBe(1440 + 288);
+    // The function routes both actions, for the cron bearer or an admin, as the stablecoin books' recorder.
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "pmrec" && req.method === "POST" && operator) return json(200, await runPmRecAction());');
+    expect(src).toContain('if (action === "pmrec-meta" && req.method === "POST" && operator) return json(200, await runPmRecMetaAction());');
+    // One job more, hourly, of SQL alone: still one job queues pg_net calls.
+    const jobsBefore = cronJobs(FILES.filter((f) => f < REC)), jobsAfter = cronJobs(FILES.filter((f) => f <= REC));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['pm-rec-prune']);
+    expect(jobsAfter.get('pm-rec-prune').schedule).toBe('41 * * * *');
+    expect(jobsAfter.get('pm-rec-prune').command).not.toContain('net.http_post');
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    // A market's generated phase and the module's cycle are one modulus: a change to either alone would leave a
+    // fifteenth of the rewarded markets never read into the universe frames.
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_book_rec.ts'), 'utf8');
+    const phases = Number(/^export const PM_REC_PHASES = (\d+);$/m.exec(rec)?.[1]);
+    expect(phases).toBe(15);
+    expect(fs.readFileSync(path.join(DIR, REC), 'utf8')).toContain(`phase       smallint generated always as ((id % ${phases})::smallint) stored`);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))

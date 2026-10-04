@@ -3732,6 +3732,57 @@ day-1 check passed, the $400 account funded (pUSD ≥ $81), the payouts-per-path
 `docs/agents/pending/`), mini-pool and mid-pool unarmed, and the probe's read of the conditional-token allowances its
 sells need. Once live its orders rest in the books RW and RW-C read on paper.
 
+55. **Polymarket's rewarded markets are recorded for research: their books, reward terms, metadata and prints
+(2026-10-04, migration `0092`, `agents/pm_book_rec.ts`, `backtests/pmrec/`).** Davies: "把polymarket的所有有reward的市场详细价格与
+order book等一切重要的信息也全和之前revolut stablecoins市场一样详细记录下来吧？以后可以更好inform策略，随时可以调用研究，你觉得是个好主意的话就
+加上也加到watchdog上", as item 37 records Revolut X's stablecoin books. **Measured first, keyless**
+(`backtests/pmrec/results/`): the reward listing held 18,926 markets, 2,856 of them paying $10 a day or more (1,855
+$20, 800 $50, 347 $100), and those carry 92 % of the listing's daily rates ($509,189 of $550,568); a market's YES book is
+its book (§2d). Their books came in 29 POSTs of a hundred, ~1.3 s and 140–160 ms of CPU, and from one minute to the next
+1,731 and 1,819 of 2,810 changed within RW's 10 ¢ window. **What it keeps:** (a) every minute, the books of the $10 set
+and of every market a Reward quotes path holds or quotes (each path's day's selection and its minutes of the last five,
+thirteen tables in `PM_REC_OURS_SOURCES`): each side's levels within 10 ¢ of its best, the book's `timestamp`, the
+size-cutoff touch under the market's minimum size and the last trade; (b) a fifteenth of every rewarded market each
+minute (its id modulo 15 against the minute's), so each one every 15 minutes: its reward terms, touch, size-cutoff touch,
+RW's q1 and q2, depth within the maximum spread and within 10 ¢, level counts, last trade, minimum order, and Gamma's
+24-hour volume and liquidity; its static metadata (question, slug, event, category, fee type, neg-risk, end date, game
+start, tokens) is `pm_rec_markets`, dumped whole once a day; (c) the set's prints, from the data API's global tape
+(`/v2/trades`, by its cursor back to the last print recorded): about 1,000–1,200 prints a minute across Polymarket and
+100–300 in the set, and for ten markets compared over the same seconds the tape held exactly the prints their own feeds
+held (69 of 69). The CLOB's `timestamp` is the book's last update, not its last change: every book that changed from one
+minute to the next had moved it, and so had 161 and 212 of the 640 and 725 whose every level came back the same (their
+`hash` with it); its median age when read was 15–17 s. **Frames, not rows:** a row per changed book per minute would be
+about 850 MB a day (332 bytes a row with its key on PGlite, 2.55 million a day), on a database of 632 MB that stalled on
+10-02. So each minute's kind is ONE row of `pm_rec_frames`, a gzip of JSON lines (a header with `fields` and `scale`,
+then a line each): books ~180 KB, universe ~41 KB, prints ~2 KB, ~320 MB a day. Every five minutes the meta call moves
+each closed hour to Supabase Storage (private bucket `pm-rec`, which its first upload creates) as one object per hour and
+kind, the frames' gzip members end to end (~10.8 MB of books an hour), records it in `pm_rec_archive` (path, counts,
+bytes, sha256, a URL signed for a year and signed again in its last 30 days), and clears the frames' data, keeping their
+counts seven days; once a day it adds the dump of `pm_rec_markets` (~2.6 MB). Storage grows ~9.7 GB a month, inside the
+Pro plan's 100 GB for about ten months and $0.021 a GB-month beyond; it is kept until Davies sets a horizon. The database
+holds the hour being written and the one being archived (~13 MB an hour), ~19,000 markets (~14 MB) and a week of counts:
+about 50 MB. `pm-rec-prune` (hourly at :41) drops the data the archive has not taken in six hours and marks it `lost`,
+so a stopped archive costs at most ~115 MB; it deletes frame rows after seven days, and markets seven days after the
+listing dropped them unless a path names them. **Two calls,** each its own lease, state row and `edge_calls` row with
+`retry` on (frames are upserted on their minute and kind, and every housekeeping step is idempotent):
+`agents?action=pmrec` every minute (no read starts past 40 s; measured 1.8–2.5 s and 318–375 ms of the function's own
+CPU, the in-memory database's share apart) and `agents?action=pmrec-meta` every five (the listing every 15 minutes
+through the order path's own `rewardListing`, 7.2 s and 230 ms of CPU, its first run inserting every market in 13.5 s and
+620 ms; Gamma's metadata 250 markets a run, so each listed market about every six hours; the held and quoted markets;
+and, on a run that did not read the listing, the archive, a full hour of all three kinds in 128 ms of CPU, the dump and
+the re-signing). A listed market neither the CLOB's short list nor Gamma names is counted (`noTokens`) and looked for
+again at the next listing: the short list, read page by page while it moves, lacked 12 of 18,895 in the first run and
+219 of 18,926 in another read. Each call checks the other (no books frame for ten minutes, the
+meta call silent for thirty) and reports to `ops_errors` as `agents.pm_rec`, once and then at most hourly while a fault
+lasts. **Not among the monitor's health readings:** the Worker's `loop` check is one alert state, so a stale recorder
+there would hide a dead trading tick until both recovered. **It never touches a trading path:** keyless reads only and
+its own tables; it reads the paths' tables only to name their markets, and its listing read is its own request, so
+live-prep's daily selection (about 1,379 markets) pays none of its CPU. **Reading it:** `select hour, kind, frames,
+lines, bytes, url from pm_rec_archive order by hour desc`; a signed URL opens its object to anyone for a year, so it is
+read with SQL and never committed. `backtests/pmrec/scripts/read.ts` decodes an object through the module's own
+`readFrames`; Python's `gzip.open` reads every member, the Web `DecompressionStream` only the first. The open hour is in
+`pm_rec_frames.data` (`\x` hex of the gzip).
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

@@ -508,6 +508,14 @@ that follow from that evidence, in short:
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
   page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's
   scoreboard includes it, on the Polymarket card rather than Revolut X's.
+- **Polymarket's rewarded markets are recorded for research** (`0092`, `agents/pm_book_rec.ts`, reference §4 item 55;
+  Davies, 2026-10-04): every minute the books of every market paying $10 a day or more and of every market a Reward
+  quotes path holds or quotes, a fifteenth of all ~18,900 rewarded markets summarised, and the set's prints, as gzip'd
+  frames in `pm_rec_frames`, moved each closed hour to the private Storage bucket `pm-rec` and indexed in
+  `pm_rec_archive`. Keyless reads, its own tables, leases and `edge_calls` rows; nothing of a trading path reads it, and
+  a new Reward quotes path is one line of `PM_REC_OURS_SOURCES`. An archive row's signed URL opens its object to anyone
+  for a year: read it with SQL, never commit it. Frames the archive has not taken in six hours are dropped: the
+  database's budget outranks the record.
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by
