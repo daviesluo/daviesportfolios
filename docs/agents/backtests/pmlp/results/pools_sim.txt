@@ -1,0 +1,20 @@
+mini: 2026-10-01T17:55:00.000Z → 2026-10-04T15:14:00.000Z (2.89 days); its own selection; prints 3465
+arm                                 tot     R0.4   stress      rew    fills |   h1 tot   h1 R.4 |   h2 tot   h2 R.4 |  comMax  comAvg   carr     fLow    r4Low   capW   invS stops  mkts exits  exCost  rebate
+mini: as recorded (RW rule, all 8)    33.23     9.12    -0.80    40.19    -6.96 |    13.35     4.55 |    19.88     4.56 |  330.42  169.56  43.34   -21.09   -10.94      0      0     0   6.5     0    0.00    0.61
+mini: chosen rules                23.60    -0.51    -3.17    40.19   -16.59 |    13.35     4.55 |    10.25    -5.07 |  202.65  110.45   0.34   -24.88   -14.73      0      0     0   6.5     7    9.63    0.61
+mini: chosen, invCap 3            23.60    -0.51    -3.17    40.19   -16.59 |    13.35     4.55 |    10.25    -5.07 |  202.65  110.45   0.34   -24.88   -14.73      0      0     0   6.5     7    9.63    0.61
+mini: chosen, third               27.50     1.05    -1.22    44.09   -16.59 |    14.82     5.14 |    12.68    -4.09 |  202.65  110.45   0.34   -24.88   -14.12      0      0     0   6.5     7    9.63    0.61
+   mini: as recorded (RW rule, all 8): per day R=1 11.51, R=0.4 3.16, rewards 13.91, fills -2.41
+   mini: chosen rules: per day R=1 8.17, R=0.4 -0.18, rewards 13.91, fills -5.74
+   mini: chosen, invCap 3: per day R=1 8.17, R=0.4 -0.18, rewards 13.91, fills -5.74
+   mini: chosen, third: per day R=1 9.52, R=0.4 0.36, rewards 15.27, fills -5.74
+mid: 2026-10-02T05:01:00.000Z → 2026-10-04T15:14:00.000Z (2.43 days); its own selection; prints 124
+arm                                 tot     R0.4   stress      rew    fills |   h1 tot   h1 R.4 |   h2 tot   h2 R.4 |  comMax  comAvg   carr     fLow    r4Low   capW   invS stops  mkts exits  exCost  rebate
+mid: as recorded (RW rule, all 8)    83.40    30.48    17.02    88.20    -4.80 |    28.77    13.64 |    54.63    16.85 |  468.62  266.76  69.90    -7.94     0.00      0   1075     0   8.0     0    0.00    1.59
+mid: chosen rules                 72.51    15.16    12.76    95.58   -23.07 |    28.77    13.64 |    43.74     1.52 |  227.69  146.44   4.33   -25.19    -0.32      0     21     0   8.0    10   18.60    1.79
+mid: chosen, invCap 3             68.62    15.70    13.31    88.20   -19.58 |    28.77    13.64 |    39.85     2.06 |  222.38  143.19   4.28   -21.70     0.00      0   1075     0   8.0    10   14.79    1.59
+mid: chosen, third                80.24    18.25    16.63   103.31   -23.07 |    32.25    15.03 |    47.99     3.22 |  227.69  146.44   4.33   -25.19     0.00      0     21     0   8.0    10   18.60    1.79
+   mid: as recorded (RW rule, all 8): per day R=1 34.38, R=0.4 12.57, rewards 36.36, fills -1.98
+   mid: chosen rules: per day R=1 29.89, R=0.4 6.25, rewards 39.40, fills -9.51
+   mid: chosen, invCap 3: per day R=1 28.29, R=0.4 6.47, rewards 36.36, fills -8.07
+   mid: chosen, third: per day R=1 33.08, R=0.4 7.52, rewards 42.59, fills -9.51

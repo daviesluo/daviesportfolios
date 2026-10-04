@@ -1,0 +1,158 @@
+PASS  applied 0001_auth_attempts.sql
+PASS  applied 0002_ops_errors.sql
+PASS  applied 0003_index_fundamentals_cache.sql
+PASS  applied 0004_ops_errors_retention.sql
+PASS  applied 0005_analyst_estimates_cache.sql
+PASS  applied 0006_drop_analyst_estimates_cache.sql
+PASS  applied 0007_trading212_cache.sql
+PASS  applied 0008_trading212_claim_refresh_rpc.sql
+PASS  applied 0009_board_data.sql
+PASS  applied 0010_stock_fundamentals_cache.sql
+PASS  applied 0011_auth_attempts_search_path_escalation.sql
+PASS  applied 0012_av_quota.sql
+PASS  applied 0013_board_data_version.sql
+PASS  applied 0014_stock_fundamentals_cache_retention.sql
+PASS  applied 0015_overnight_intraday_points.sql
+PASS  applied 0016_overnight_cron.sql
+PASS  applied 0017_revoke_bump_auth_attempt_from_public.sql
+PASS  applied 0018_revoke_overnight_anon_read.sql
+PASS  applied 0019_day_session_record_window.sql
+PASS  applied 0020_revert_day_session_record_window.sql
+PASS  applied 0021_cron_secret_via_vault.sql
+PASS  applied 0022_portfolio_snapshots.sql
+PASS  applied 0023_t212_orders.sql
+PASS  applied 0024_reset_t212_orders_sync.sql
+PASS  applied 0025_t212_transactions.sql
+PASS  applied 0026_snapshot_record_cron.sql
+PASS  applied 0028_restore_pltr_position.sql
+PASS  applied 0029_price_snapshots.sql
+PASS  applied 0030_restore_multiplatform_shares.sql
+PASS  applied 0031_rklb_other_platform_lot.sql
+PASS  applied 0032_map_stored_fill_tickers.sql
+PASS  applied 0033_mark_other_platform_lots.sql
+PASS  applied 0034_map_remaining_fill_tickers.sql
+PASS  applied 0035_drop_overnight_yahoo_snapshots.sql
+PASS  applied 0036_price_snapshot_15m_band.sql
+PASS  applied 0037_agents.sql
+PASS  applied 0038_drop_dislocation_seed.sql
+PASS  applied 0039_trend4h_adds_avax.sql
+PASS  applied 0040_trend4h_adds_sui.sql
+PASS  applied 0041_one_order_per_decision_attempt.sql
+PASS  applied 0042_maker_probes.sql
+PASS  applied 0043_retire_three_testing_rows.sql
+PASS  applied 0044_delete_retired_rows.sql
+PASS  applied 0045_maker_probe_cascade.sql
+PASS  applied 0046_delete_kraken_twin.sql
+PASS  applied 0047_jev_question_v2.sql
+PASS  applied 0048_drop_max_order_usd.sql
+PASS  applied 0049_binance_paper_rows.sql
+PASS  applied 0050_maker_probes_trade_proven.sql
+PASS  applied 0051_paper_quotes.sql
+PASS  applied 0052_live_quotes.sql
+PASS  applied 0053_pm_rw_paper.sql
+PASS  applied 0054_go_live.sql
+PASS  applied 0055_quote_minutes.sql
+PASS  applied 0056_pm_rw_e.sql
+PASS  applied 0057_book_levels.sql
+PASS  applied 0058_book_levels_timing.sql
+PASS  applied 0059_jev_shadow_paper_rows.sql
+PASS  applied 0060_pmrw_e_every_minute.sql
+PASS  applied 0061_strategy_names_without_venue.sql
+PASS  applied 0062_view_markets_recorder.sql
+PASS  applied 0063_one_minute_batch.sql
+PASS  applied 0064_pm_rw_x.sql
+PASS  applied 0065_delete_binance_twins.sql
+PASS  applied 0066_paper_rows_x10.sql
+PASS  applied 0067_paper_rows_x2_5.sql
+PASS  applied 0068_maker_probes_after_open.sql
+PASS  applied 0069_pm_rwc.sql
+PASS  applied 0070_quote_days.sql
+PASS  applied 0071_quotes_variant.sql
+PASS  applied 0072_quotes_ruled.sql
+PASS  applied 0073_quoted_truefx_before_turn.sql
+PASS  applied 0074_pm_live.sql
+PASS  applied 0075_edge_call_watchdog.sql
+PASS  applied 0076_pm_live_calibration.sql
+PASS  applied 0077_pm_live_prep.sql
+PASS  applied 0078_quote_tickers.sql
+PASS  applied 0079_live_fill_prices.sql
+PASS  applied 0080_pm_live_full_size.sql
+PASS  applied 0081_pm_mid.sql
+PASS  applied 0082_anon_key_opens_nothing.sql
+PASS  applied 0083_cron_run_details_prune.sql
+PASS  applied 0084_pm_mid_order_path.sql
+PASS  applied 0085_pm_rw_x_rest_arms.sql
+PASS  applied 0086_quote_live_deadman.sql
+PASS  applied 0087_quote_twins.sql
+PASS  applied 0088_quote_twin_specs.sql
+PASS  applied 0089_quote_twin_take50.sql
+PASS  applied 0090_take50_from_now.sql
+PASS  applied 0091_pm_lp.sql
+PASS  applied 20260817034719_portfolio_snapshots_out_of_band.sql
+PASS  applied 20260818044126_t212_orders_out_of_band.sql
+PASS  applied 20260818044956_drop_aug17_fx_spike_snapshot.sql
+PASS  applied 20260818083328_strict_t212_fills.sql
+PASS  the latest numbered migration is 0091_pm_lp.sql
+PASS  pm_lp_config after the chain: {"dry_run":true,"live_confirmed_at":null,"cap":320,"cm":100,"ld":null,"lt":75,"mp":6000,"gtd":600,"mm":10,"b":200}
+PASS  pm_live_config after the chain, as it was: {"dry_run":true,"live_confirmed_at":null,"cap":320,"cm":60,"ld":25,"lt":75,"mp":6000,"gtd":600,"mm":8,"b":160}
+PASS  pm_mid_config after the chain, as it was: {"dry_run":true,"live_confirmed_at":null,"cap":320,"cm":60,"ld":25,"lt":75,"mp":6000,"gtd":600,"mm":8,"b":160}
+PASS  a market cap over $100 refused
+PASS  a day stop refused: live-prep has none
+PASS  a total stop past -$75 refused
+PASS  more than twelve markets refused
+PASS  pm_lp_markets' band: ["CHECK ((reward_rate >= (10)::numeric))"]
+PASS  pm_lp_minutes' band: ["CHECK ((rate >= (10)::numeric))"]
+PASS  pm_lp_orders may hold live orders
+PASS  row level security on its 16 tables
+PASS  its calls in public.edge_calls: [{"path":"agents?action=pmlp&forceFunctionRegion=eu-west-1","enabled":true,"retry":true},{"path":"agents?action=pmlpprep","enabled":true,"retry":true}]
+PASS  its leases: pm-lp, pm-lpprep
+PASS  the one-armed trigger: pm_live_config:pm_live_config_one_armed, pm_lp_config:pm_lp_config_one_armed, pm_mid_config:pm_mid_config_one_armed
+live-prep's statement (step 8lp), as the doc words it:
+update public.pm_lp_config c
+set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+or s.keyed is not true or s.region is distinct from 'eu-west-1'
+or c.ireland_attested_at is null or c.ireland_attested_at > now()
+or (c.ireland_until is not null and c.ireland_until <= now())
+or exists (select 1 from public.pm_live_config o where o.live_confirmed_at is not null)
+or exists (select 1 from public.pm_mid_config o where o.live_confirmed_at is not null)
+then null
+else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+dry_run = false, live_confirmed_at = now(), updated_at = now()
+from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+state->>'sbRegion' as region from public.pm_lp_state where id = 1) s
+where c.id = 1;
+PASS  refused (the balance unread), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (the balance six minutes old), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused ($0.036673, the balance on 2026-10-04), the row as it was: new row for relation "pm_lp_config" violates check constraint "pm_lp_config_cap_total_usd_check"
+PASS  refused ($80.99), the row as it was: new row for relation "pm_lp_config" violates check constraint "pm_lp_config_cap_total_usd_check"
+PASS  refused (the last turn from eu-west-2), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (no region recorded), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (the key not loaded), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (keyed unrecorded), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (the attestation revoked), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (no attestation), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (an attestation dated ahead), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (mini-pool armed), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  refused (mid-pool armed), the row as it was: null value in column "cap_total_usd" of relation "pm_lp_config" violates not-null constraint
+PASS  a plain update arming live-prep refused by the trigger while pm_live_config is armed
+PASS  a plain update arming live-prep refused by the trigger while pm_mid_config is armed
+PASS  on $401.37: armed, cap 320 (want 320)
+PASS  on $400: armed, cap 320 (want 320)
+PASS  on $398.2: armed, cap 318 (want 318)
+PASS  on $300: armed, cap 220 (want 220)
+PASS  on $81: armed, cap 1 (want 1)
+PASS  armed on $401.37
+PASS  the tables the statement changed, of 153: ["public.pm_lp_config"]
+PASS  every other column of the row as it was (the cap stays 320 on $401.37): {"id":1,"created_at":"2026-10-04T17:32:14.31+00:00","max_markets":10,"loss_day_usd":null,"cap_total_usd":320,"ireland_until":null,"max_posts_day":6000,"cap_market_usd":100,"gtd_lifetime_s":600,"loss_total_usd":75,"select_budget_usd":200,"ireland_attested_at":"2026-10-01T05:29:45.546613+00:00"}
+PASS  armed, the strategy's sizes unchanged: {"dry_run":false,"live_confirmed_at":"set","cap":320,"cm":100,"ld":null,"lt":75,"mp":6000,"gtd":600,"mm":10,"b":200}
+PASS  pm_live_config's own statement refused while live-prep is armed
+PASS  a plain update arming pm_live_config refused by the trigger
+PASS  pm_mid_config's own statement refused while live-prep is armed
+PASS  a plain update arming pm_mid_config refused by the trigger
+PASS  its kill switch (live_confirmed_at = null) runs
+PASS  its back-to-dry-run switch runs
+PASS  live-prep disarmed: mini-pool may be armed
+PASS  …and then live-prep may not
+PASS  the revocation statement runs on all three rows
+
+every check passed (PGlite PostgreSQL 16.4 on x86_64-pc-linux-gnu; 94 migrations)

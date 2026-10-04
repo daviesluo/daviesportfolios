@@ -1,0 +1,16 @@
+mini's record (2.89 days)
+arm                                 tot     R0.4   stress      rew    fills |   h1 tot   h1 R.4 |   h2 tot   h2 R.4 |  comMax  comAvg   carr     fLow    r4Low   capW   invS stops  mkts exits  exCost  rebate
+mini: RW's rule as recorded (no caps)    33.23     9.12    -0.80    40.19    -6.96 |    13.35     4.55 |    19.88     4.56 |  330.42  169.56  43.34   -21.09   -10.94      0      0     0   6.5     0    0.00    0.61
+mini: path as built (buy-only, 3N, 320/60, fills stops)    32.71     8.91    -1.06    39.67    -6.96 |    13.35     4.55 |    19.36     4.36 |  319.99  168.37  43.34   -21.09   -10.94    419      0     0   6.5     0    0.00    0.61
+mini: S2's rules                  29.11     5.61     2.86    39.16   -10.05 |    12.98     4.40 |    16.13     1.21 |  201.36  108.91   1.84   -22.42   -12.48      0      0     0   6.5     7    2.58    0.61
+   mini: RW's rule as recorded (no caps): per day R=1 11.51, R=0.4 3.16
+   mini: path as built (buy-only, 3N, 320/60, fills stops): per day R=1 11.33, R=0.4 3.08
+   mini: S2's rules: per day R=1 10.08, R=0.4 1.94
+mid's record (2.43 days)
+arm                                 tot     R0.4   stress      rew    fills |   h1 tot   h1 R.4 |   h2 tot   h2 R.4 |  comMax  comAvg   carr     fLow    r4Low   capW   invS stops  mkts exits  exCost  rebate
+mid: RW's rule as recorded (no caps)    83.40    30.48    17.02    88.20    -4.80 |    28.77    13.64 |    54.63    16.85 |  468.62  266.76  69.90    -7.94     0.00      0   1075     0   8.0     0    0.00    1.59
+mid: path as built (buy-only, 3N, 320/60, fills stops)    74.28    29.25    15.43    75.05    -0.77 |    28.77    13.64 |    45.51    15.61 |  319.94  221.77  51.53    -5.27     0.00   3092   2042     0   8.0     0    0.00    1.44
+mid: S2's rules                   66.87    18.10    15.00    81.29   -14.42 |    10.66     3.71 |    56.21    14.39 |  213.21  135.15   7.66   -16.44    -5.25      0     17     0   8.0     8    4.50    1.62
+   mid: RW's rule as recorded (no caps): per day R=1 34.38, R=0.4 12.57
+   mid: path as built (buy-only, 3N, 320/60, fills stops): per day R=1 30.62, R=0.4 12.06
+   mid: S2's rules: per day R=1 27.57, R=0.4 7.46

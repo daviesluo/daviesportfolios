@@ -1,0 +1,28 @@
+universe read 2026-10-04T15:21:14.648Z: 18581 markets with rate >= $1; scored 12139
+eligible = book scores, accepting, N <= 20, scheduled end > 48 h, not weather
+        band listed  elig p50 $/$/d    p90    max | choose($160, 8):  n    cap formula/d  $/$/d | ($300, 20):  n formula/d | ($320,40):  n     f/d
+        $1-3   9104  5023     0.011   0.03   0.12 |                 8  145.2     16.00  0.110 |          16     30.74 |         17   32.54
+        $3-6   6151  2851     0.022   0.12   0.28 |                 8  145.0     40.00  0.276 |          16     80.00 |         17   85.00
+       $6-10    552   186     0.021   0.13   0.54 |                 8  141.0     49.63  0.352 |          16     78.58 |         17   81.21
+      $10-20   1012   244     0.031   0.24   0.98 |                 8  147.8     84.61  0.572 |          16    134.57 |         17  140.52
+      $20-50   1051   247     0.050   0.24   1.86 |                 8  151.6    214.33  1.414 |          15    284.62 |         16  291.93
+     $50-100    430    48     0.171   1.29   2.72 |                 8  153.3    254.65  1.661 |          15    363.55 |         16  371.31
+    $100-200    160    14     0.174   1.10   4.15 |                 8  156.2    191.85  1.228 |          14    200.77 |         14  200.77
+    $200-500     66     1     0.364   0.36   0.36 |                 1   19.8      7.23  0.364 |           1      7.23 |          1    7.23
+    $500-inf     55     0       nan    nan    nan |                 0    0.0      0.00    nan |           0      0.00 |          0    0.00
+      $6-inf   3326   740     0.038   0.27   4.15 |                 8  152.0    335.08  2.204 |          15    516.34 |         16  541.57
+     $10-inf   2774   554     0.045   0.33   4.15 |                 8  152.0    335.08  2.204 |          15    516.34 |         16  541.57
+     $20-inf   1762   310     0.067   0.46   4.15 |                 8  152.0    335.08  2.204 |          15    516.34 |         16  541.57
+     $50-inf    711    63     0.174   1.29   4.15 |                 8  152.5    324.28  2.126 |          15    469.84 |         16  486.62
+      $1-inf  18581  8614     0.014   0.07   4.15 |                 8  152.0    335.08  2.204 |          15    516.34 |         16  541.57
+
+choose($160, 8) over every eligible market (any rate >= $1):
+   rate    194 v  8.5 N  20 mid 0.610 cap 19.20 formula/d  79.77 $/$/d 4.155 others     16.7 | Will OpenAI have the best Text-to-Image AI at the end of December 2026
+   rate     50 v  4.5 N  20 mid 0.370 cap 18.40 formula/d  50.00 $/$/d 2.717 others      0.0 | Will the next Google Gemini Pro model be released by November 30, 2026
+   rate     75 v  4.5 N  20 mid 0.829 cap 19.20 formula/d  41.44 $/$/d 2.158 others      0.2 | Will Abyss be the fewest played map at VALORANT Champions 2026?
+   rate    111 v  4.5 N  20 mid 0.360 cap 19.20 formula/d  38.75 $/$/d 2.018 others     11.5 | Will the Reserve Bank of India increase the policy repo rate by 25 bps
+   rate     48 v  4.5 N  20 mid 0.450 cap 18.80 formula/d  34.98 $/$/d 1.861 others      0.8 | Will "Choosin' Texas - Ella Langley" be the Billboard Hot 100 #1 song 
+   rate     67 v  8.5 N  20 mid 0.525 cap 19.80 formula/d  32.94 $/$/d 1.664 others     18.3 | Will Google have the best Text-to-Video AI at the end of December 2026
+   rate     65 v  4.5 N  20 mid 0.285 cap 19.00 formula/d  30.00 $/$/d 1.579 others      4.6 | Will Vinted: Pre-loved marketplace be #2 Free App in the US Apple App 
+   rate     34 v  6.5 N  20 mid 0.715 cap 18.40 formula/d  27.20 $/$/d 1.478 others      0.5 | Will Brendan Blomeley win the next Clarence mayoral election?
+choose($320, 40) over every eligible market: bands of the picks Counter({'$50-100': 7, '$20-50': 7, '$100-200': 2})

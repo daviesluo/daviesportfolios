@@ -26,7 +26,10 @@ changes, none of their tables is read, and none of their markets is quoted.
 `0076` keeps the config row at `dry_run = true`, `live_confirmed_at = null`. Going live is one statement, after the
 funding below, in the conversation where Davies says go; it also sets the total cap from the balance that arrived.
 Since `0084` (2026-10-02) mid-pool is the same order path on the same account, in dry-run and unarmed, with its own
-statement (step 8m); the database refuses arming either while the other is armed.
+statement (step 8m); the database refuses arming either while the other is armed. Since `0091` (2026-10-04) "Reward
+quotes live-prep" is a third instance of the path on the same account, in dry-run and unarmed, and the lead candidate to
+go live (Davies, 2026-10-04: "目前上线live的最大candidate是这个live-prep策略"), with its own statement (step 8lp); the
+database refuses arming any of the three while another is armed.
 
 ## The strategy, and why this one
 
@@ -434,6 +437,61 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
    (`backtests/pmlive/scripts/mid_live_check.mjs`): it refuses on each of twelve conditions and, armed, changes only
    `pm_mid_config`'s `dry_run`, `live_confirmed_at`, `updated_at` and its cap, $320 on a balance of $400 or more.
 
+8lp. **Live-prep's statement, instead of step 8** (`0091`, `agents/pm_lp.ts`; Davies, 2026-10-04: "以现在知道的所有信息，
+   选出来一个最佳的reward区间+市场+rules等一切最优的策略，不考虑其他一切因素，做出一个策略组合加到测试列表中叫它Reward quotes live-prep，
+   然后你验证后确保一切都没问题后做上线准备", then "验证没问题就直接落地TESTING STRATEGIES列表，把mini-pool的检验窗口全关了，目前上线
+   live的最大candidate是这个live-prep策略"). "Reward quotes live-prep" is the same order path on the same account, run as a
+   third instance on every rewarded market of $10 a day and over, with its own rules (its pre-registration,
+   `2026-10-04-polymarket-lp-prereg.md`): RW's prices, a sell of what is held before a buy, 5N, x2's pause, exits from the
+   markets it carries, no end-date horizon, no weather market, ten markets and $200 of first quotes, $320 in all and $100
+   a market, a total stop of −$75 on the fills plus what Polymarket paid, and no day stop. Its action loads the key for
+   the stored signer and reads the pUSD every minute (`pm_lp_state.state`: `keyed`, `signerProblem`, `pusd`), its wire is
+   the same keyed wire, and its config row keeps it home, `dry_run` true and `live_confirmed_at` null. Only ONE of the
+   three is ever armed: in the conversation where Davies says go for live-prep, this, with the same checks as step 8
+   against its own state and against mini-pool's and mid-pool's arms:
+
+        update public.pm_lp_config c
+           set cap_total_usd = case when s.pusd is null or s.at is null or s.at < now() - interval '5 minutes'
+                                         or s.keyed is not true or s.region is distinct from 'eu-west-1'
+                                         or c.ireland_attested_at is null or c.ireland_attested_at > now()
+                                         or (c.ireland_until is not null and c.ireland_until <= now())
+                                         or exists (select 1 from public.pm_live_config o where o.live_confirmed_at is not null)
+                                         or exists (select 1 from public.pm_mid_config o where o.live_confirmed_at is not null)
+                                    then null
+                                    else least(320, floor(s.pusd - c.loss_total_usd - 5)) end,
+               dry_run = false, live_confirmed_at = now(), updated_at = now()
+          from (select (state->>'pusd')::numeric as pusd, (state->>'at')::timestamptz as at, (state->>'keyed')::boolean as keyed,
+                       state->>'sbRegion' as region from public.pm_lp_state where id = 1) s
+         where c.id = 1;
+
+   Read back: `select dry_run, live_confirmed_at, cap_total_usd from public.pm_lp_config;`, then steps 9–14 on the
+   `pm_lp_*` tables and `agents.pm_lp`. A refusal reads as a `cap_total_usd` that may not be null (a check failed) or may
+   not be under $1 (a balance under **$81**: the cap is the balance less the $75 stop and $5), or as the trigger's
+   "pm_lp_config cannot be armed while pm_live_config is armed" (or pm_mid_config). Before it, read `select
+   state->'keyed', state->>'signerProblem', state->>'pusd', state->>'at', state->>'sbRegion' from public.pm_lp_state;`
+   (`true`, null, the balance, within five minutes, `eu-west-1`). **What live-prep still needs before this statement**,
+   each in its pre-registration (preconditions P1–P5): its day-1 check passed (`backtests/pmlp/lp_check.sql`, its
+   window d1 the first full UTC day after `pm_lp_config.created_at`); the funding, the same $400 account, a pUSD of at
+   least $81 read by the path itself; mini-pool and mid-pool unarmed (the trigger holds it); what Polymarket pays told
+   apart per path (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`, rebuilt on live-prep's build: without
+   it mini-pool's dry-run readout books live-prep's payouts as its own live rows, and live-prep's stop and R count every
+   payout of the account, which holds only while live-prep is the one path ever live); and the probe's read of the
+   account's conditional-token allowances for both exchanges (`GET /balance-allowance?asset_type=CONDITIONAL`): its sells
+   of what it holds need them, where mini-pool's and mid-pool's dry-runs never sold. Its orders are GTD of 600 s, so a
+   loop that stops leaves nothing resting past ten minutes; no freshness reading of `pm_lp_state` is in the monitor yet
+   (none of mini-pool's or mid-pool's is either): one is to be added before or with the go.
+
+   **What it does to the other tests** (the pre-registration says it in full). Once live, live-prep's orders rest in the
+   books RW (to 10-09) and RW-C (10-09 → 10-23) read on paper, and its fills are prints they count: "不考虑其他一切因素" is
+   the basis for leaving their markets in its universe. Its dry-run touches nothing. Settled markets' tokens hold capital
+   under the cap until Davies redeems them (daily, on RW's record, costs $5.63 at R = 1; every 72 hours $75.68).
+
+   This statement, word for word, was run on PGlite 16 over every migration, 0001 to `0091`
+   (`backtests/pmlp/scripts/lp_live_check.mjs`, its output `backtests/pmlp/results/lp_live_check_out.txt`): it refuses on
+   each of its conditions, mini-pool or mid-pool armed among them, and, armed, changes only `pm_lp_config`'s `dry_run`,
+   `live_confirmed_at`, `updated_at` and its cap, $320 on a balance of $400 or more; armed, neither of the others can be
+   armed, by its statement or by hand; and its kill switches run. It is never run by a session or a routine.
+
 **The first day**
 
 9. Within the minute: `select state->>'mode', state->>'why', state->'gates', state->>'openBlockedBy', state->>'pusd', last_error from public.pm_live_state;`
@@ -467,6 +525,8 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
 - Mid-pool's, the same on its own row (`0084`): `update public.pm_mid_config set live_confirmed_at = null where id = 1;`
   and `update public.pm_mid_config set dry_run = true where id = 1;`. The global pause stops both paths; its cancel-all
   is the account's, so it takes both paths' orders.
+- Live-prep's, the same on its own row (`0091`): `update public.pm_lp_config set live_confirmed_at = null where id = 1;`
+  and `update public.pm_lp_config set dry_run = true where id = 1;`. The global pause stops all three paths.
 - In code, `PM_ORDER_SENDS_ENABLED = false` and a deploy: no order and no cancel can leave, so cancel first; what
   rests then expires within ten minutes (GTD). It holds both paths.
 

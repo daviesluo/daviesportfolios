@@ -1,0 +1,12 @@
+ROUND 11: fills at our price as well as through it (an upper bound on live fills)
+arm                                 tot     R0.4   stress      rew    fills |   h1 tot   h1 R.4 |   h2 tot   h2 R.4 |  comMax  comAvg   carr     fLow    r4Low   capW   invS stops  mkts exits  exCost  rebate |     dTot       b5      b95   P>0 |     dR.4       b5      b95   P>0
+S1                              1000.28   307.99   330.22  1153.83  -153.55 |   351.41    80.08 |   648.87   227.90 |  319.96  210.94  44.44  -168.39     0.00   1139   5202     0   6.7    48   35.70   23.64 |     0.00     0.00     0.00  0.00 |     0.00     0.00     0.00  0.00
+S1, fills at our price too       863.04   241.13   211.20  1036.51  -173.47 |   343.99    77.30 |   519.05   163.83 |  320.00  241.22  84.12  -188.58     0.00   9407   5843     0   6.7    50   44.63   32.64 |  -137.24  -240.38   -41.70  0.00 |   -66.85  -132.63    -8.88  0.03
+S1, fills at price, invCap 3     742.91   191.37   155.45   919.23  -176.33 |   278.76    59.89 |   464.14   131.47 |  320.00  238.54  91.26  -178.40     0.00   6658  14101     0   6.7    51   35.00   31.30 |  -257.38  -359.20  -163.04  0.00 |  -116.62  -181.97   -60.28  0.00
+S1, fills at price, wide 0.6     806.86   245.46   215.79   935.66  -128.81 |   319.34    83.17 |   487.52   162.29 |  320.00  237.30  77.24  -144.20     0.00   6876   5330     0   6.7    48   42.62   30.23 |  -193.43  -308.78   -84.86  0.00 |   -62.53  -132.46    -2.78  0.04
+S1, fills at price, keep same-day   958.97   116.64    34.23  1403.89  -444.92 |   307.50   -11.28 |   651.47   127.92 |  320.00  260.36  81.66  -461.79   -30.19   8528   6730     0   8.6    53   48.75   52.48 |   -41.31  -166.75    85.34  0.29 |  -191.35  -331.93   -66.70  0.00
+  S1: break-even R = 0.133; stress break-even 0.214
+  S1, fills at our price too: break-even R = 0.167; stress break-even 0.296
+  S1, fills at price, invCap 3: break-even R = 0.192; stress break-even 0.331
+  S1, fills at price, wide 0.6: break-even R = 0.138; stress break-even 0.269
+  S1, fills at price, keep same-day: break-even R = 0.317; stress break-even 0.476

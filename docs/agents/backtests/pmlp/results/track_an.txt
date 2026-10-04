@@ -1,0 +1,16 @@
+4 reads: ['15:37', '16:07', '16:37', '17:07']
+the 10 picks at read 0, their first-round per-dollar and others' score at each later read:
+  0x43d00866 rate    61 | 1.85/4 2.35/1 2.64/1 1.72/4 | Will ISM Services PMI be between 54.0 and 54.9 in 
+  0x81938aef rate   113 | 1.52/18 0.28/226 0.21/289 0.24/263 | Will the Reserve Bank of India increase the policy
+  0xa39a79d8 rate    71 | 1.33/4 1.00/23 0.31/183 0.23/249 | Will Abyss be the fewest played map at VALORANT Ch
+  0xb71af50d rate    23 | 1.31/0 1.36/0 0.71/3 0.62/4 | Will Alexandre Guimarães win the second-most votes
+  0xd4e42e97 rate    46 | 1.21/4 0.81/17 1.65/2 0.43/51 | Will Claude go down 5-7 times in October?
+  0x76051f8c rate    83 | 1.19/40 0.31/197 0.32/190 0.29/212 | Will a Junior win the 2026 Heisman Trophy?
+  0xedf01899 rate   200 | 1.15/108 0.48/269 0.44/302 0.35/370 | Will OpenAI have the best Text-to-Image AI at the 
+  0x20a007d9 rate    18 | 1.08/0 1.08/0 0.30/4  dead  | Will Frédéric Côté win the next La Prairie Quebec 
+  0xa45752fb rate    49 | 1.03/6 0.70/8 0.91/8 0.36/12 | Will Vinted: Pre-loved marketplace be #2 Free App 
+  0x9aed1232 rate    18 | 0.98/0  dead   dead   dead  | Will Elon Musk’s net worth be between $800B and $9
+read 0 15:37: top-10 first-round formula  237.91/day; read-0 picks re-scored  237.91/day (100 % of a fresh pick); 10 of 10 picks still in the top 10
+read 1 16:07: top-10 first-round formula  210.56/day; read-0 picks re-scored  156.02/day (74 % of a fresh pick); 5 of 10 picks still in the top 10
+read 2 16:37: top-10 first-round formula  239.02/day; read-0 picks re-scored  142.08/day (59 % of a fresh pick); 3 of 10 picks still in the top 10
+read 3 17:07: top-10 first-round formula  232.36/day; read-0 picks re-scored   81.29/day (35 % of a fresh pick); 1 of 10 picks still in the top 10
