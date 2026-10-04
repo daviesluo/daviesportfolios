@@ -1,4 +1,4 @@
-From e3db3636c5a1421439dde916d22a851ea5e32863 Mon Sep 17 00:00:00 2001
+From 60ab257e6f86add6c1e499d8d511af5abfd55d6f Mon Sep 17 00:00:00 2001
 From: daviesluo <daviesluo@gmail.com>
 Date: Sun, 4 Oct 2026 16:32:16 +0000
 Subject: [PATCH] Tell what Polymarket pays apart per path, so a live
@@ -17,19 +17,23 @@ it redeploys the live order path, which waits for his decision on mid-pool's go-
 
 Rebuilt on 51cd7e45 (2026-10-04's formula fix and mini-pool's book-quality rule): the comparison
 with the path mid-pool froze takes the fix's own fields out of both sides first, as
-pm_mid_formula.test.ts states them, so it still shows this change alone.
+pm_mid_formula.test.ts states them, so it still shows this change alone. Rebuilt again on the
+build of "Reward quotes live-prep" (pm_live.ts sha256 23112a4f...e5a9; one header comment merged):
+live-prep reads what the account earns, so the same change keeps its R and its stop on its own
+markets and keeps its live payouts out of mini-pool's dry-run readout. It applies before
+live-prep's go.
 ---
  docs/map.md                                   |   3 +-
  supabase/functions/agents/index.ts            |   4 +-
- supabase/functions/agents/pm_live.ts          |  87 ++--
+ supabase/functions/agents/pm_live.ts          |  95 ++--
  supabase/functions/agents/pm_mid.ts           |  11 +-
  .../functions/agents/pm_mid_formula.test.ts   |  31 +-
  supabase/functions/agents/pm_payouts.test.ts  | 409 ++++++++++++++++++
- 6 files changed, 502 insertions(+), 43 deletions(-)
+ 6 files changed, 506 insertions(+), 47 deletions(-)
  create mode 100644 supabase/functions/agents/pm_payouts.test.ts
 
 diff --git a/docs/map.md b/docs/map.md
-index 4991f313..9691039b 100644
+index 8f6cfaf1..1813f8e3 100644
 --- a/docs/map.md
 +++ b/docs/map.md
 @@ -614,7 +614,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
@@ -47,13 +51,13 @@ index 4991f313..9691039b 100644
  | `agents/pm_mid_formula.test.ts` | Runs mid-pool through today's path and layer beside the code its pre-registration froze, minute by minute, and finds every decision the same and only the formula's fields changed. |
 +| `agents/pm_payouts.test.ts` | Pins what Polymarket pays told apart per path: mid-pool through today's path beside the path its pre-registration froze, minute by minute, and the two paths on one account each booking only the markets it quoted live. |
  | `agents/pm_mid.ts` | "Reward quotes mid-pool": the order path and its paper layer as a second instance, on rewarded markets of $10 to under $50, the same real order path as mini-pool held in dry-run by its config row; its selection first recomputes RW's frozen selection from public data and leaves out what that takes or nearly takes, keeping only a count. |
- | `agents/pm_mid.test.ts` | Pins mid-pool's instance: RW's selection recomputed is RW's own, the margin at its boundary, none of RW's picks among mid-pool's, its own tables only, its action wired as mini-pool's with its config row the lock, and never both configs armed. |
- | `agents/pmrw.ts` | The paper test of RW, quotes for Polymarket's liquidity rewards, and of RW-C, the same engine again on its own tables and days: the day's portfolio, then the frozen rule one minute at a time from public reads, storing every input beside every outcome. |
+ | `agents/pm_lp.ts` | "Reward quotes live-prep": the order path and its paper layer as a third instance, on every rewarded market of $10 a day and over, with its own rules (a sell of what is held before a buy, 5N, x2's pause, exits from markets it carries, no end-date horizon, no weather market, $100 a market, a total stop on the fills and what was paid); in dry-run it decides on its paper's holdings. |
+ | `agents/pm_lp.test.ts` | Pins live-prep's instance and each of its rules against the code it extends, and simulated days of its path and layer together: the sells, 5N, the caps on what the paper holds, the pause, a carried market's exits, the stop in its own mode, and armed, the account's holdings and the live stop. |
 diff --git a/supabase/functions/agents/index.ts b/supabase/functions/agents/index.ts
-index 62356229..97be1877 100644
+index 15409bd5..fd9f6a41 100644
 --- a/supabase/functions/agents/index.ts
 +++ b/supabase/functions/agents/index.ts
-@@ -2290,8 +2290,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
+@@ -2351,8 +2351,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
    if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
    // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
    if (action === "pmprep" && req.method === "POST" && operator) return json(200, await runPmPrepAction());
@@ -65,7 +69,7 @@ index 62356229..97be1877 100644
    // Its paper layer (pm_prep.ts on 0081's tables). Keyless public reads only.
    if (action === "pmmidprep" && req.method === "POST" && operator) return json(200, await runPmMidPrepAction());
 diff --git a/supabase/functions/agents/pm_live.ts b/supabase/functions/agents/pm_live.ts
-index 995719f2..e134d255 100644
+index d38496e1..c651bf3e 100644
 --- a/supabase/functions/agents/pm_live.ts
 +++ b/supabase/functions/agents/pm_live.ts
 @@ -43,7 +43,8 @@
@@ -78,21 +82,29 @@ index 995719f2..e134d255 100644
  //
  // A TURN'S TIME: it shares the one-minute cron job's batch, so it stays inside its call's 58 s and its 55 s lease. Every
  // venue request gives up after 5 s; no selection or readout read starts later than 40 s into the turn and no order is
-@@ -57,9 +58,10 @@
+@@ -57,13 +58,14 @@
  // path as it ran before instances, name for name ("Reward quotes small-pool": $6 to under $10); a turn given no instance
  // runs it, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_live_frozen.ts`) minute by minute and
  // finds every table, request and report the same but the fields the formula of 2026-10-04 makes. The second, mid-pool
 -// ($10 to under $50, a dry-run its own table holds there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Mini-pool's action runs
 -// `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default with a book-quality rule its
--// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance.
+-// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance, except where an instance
+-// sets `lp`: "Reward quotes live-prep" (`PM_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04) is the one that does, with its own
+-// rule, candidate rules, per-market cap, pause after a jump, exits from markets it carries, its stop, and in dry-run its
+-// paper layer's holdings in place of the account's (`PmLpOptions`). Every branch it adds runs only for it, so mini-pool
+-// and mid-pool make the same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
 +// ($10 to under $50; since 0084 the same order path, held in dry-run by its config row), is `PM_MID_INSTANCE` in
 +// `pm_mid.ts`. Mini-pool's action runs `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default
 +// with a book-quality rule its selection applies. Nothing of the rule, the gates, the caps or the stops differs by
-+// instance; what one reads of the account's earnings does (`readsPayouts`).
++// instance, but what one reads of the account's earnings (`readsPayouts`) and where an instance sets `lp`: "Reward
++// quotes live-prep" (`PM_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04) is the one that does, with its own rule, candidate rules,
++// per-market cap, pause after a jump, exits from markets it carries, its stop, and in dry-run its paper layer's holdings
++// in place of the account's (`PmLpOptions`). Every branch it adds runs only for it, so mini-pool and mid-pool make the
++// same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
  
  import {
    asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
-@@ -211,10 +213,12 @@ export type PmLiveInstance = {
+@@ -215,10 +217,12 @@ export type PmLiveInstance = {
     */
    bookQuality?: PmBookQualityRule;
    /**
@@ -109,7 +121,7 @@ index 995719f2..e134d255 100644
     */
    readsPayouts: boolean;
    /** Its action, its row of `public.edge_calls`, and the kind its faults are reported to `ops_errors` as. */
-@@ -1447,8 +1451,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
+@@ -1553,8 +1557,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
        if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
      }
    }
@@ -121,7 +133,7 @@ index 995719f2..e134d255 100644
      const r = await venue.rewardPercentages();
      if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
    }
-@@ -1853,9 +1858,16 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
+@@ -2027,9 +2032,16 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
   * native, then sponsored only, every page from "MA==" as the official clients page it), the day's total over both
   * (`/rewards/user/total?sponsored=true`), the maker rebates paid to the proxy wallet (`/rebates/current`), and the day's
   * minutes from `pm_live_minutes`: per market and mode, the minutes with a quote, with both sides scored by RW's formula,
@@ -141,7 +153,7 @@ index 995719f2..e134d255 100644
   */
  async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
    const { db, venue } = d;
-@@ -1874,18 +1886,26 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2048,18 +2060,26 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      }
      return { rows, error: `rewards/user (sponsored ${sponsored}): more than ${EARNING_PAGES} pages` };
    };
@@ -179,7 +191,7 @@ index 995719f2..e134d255 100644
    }
    const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
    const paid = (rows: PmUserEarning[]) => {
-@@ -1893,9 +1913,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2067,9 +2087,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      for (const e of rows) { const c = String(e.condition_id ?? "").toLowerCase(); if (c) out.set(c, (out.get(c) ?? 0) + usd(e)); }
      return out;
    };
@@ -189,7 +201,7 @@ index 995719f2..e134d255 100644
    const start = `${dd}T00:00:00.000Z`, end = iso(Date.parse(start) + DAY);
    const mins = await db.selectAll<PmMinuteRow>(T.minutes, `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
    type Agg = { mode: PmLiveMode; cond: string; minutes: number; two: number; scored: number; formula: number; formulaScored: number; rate: number };
-@@ -1910,16 +1927,22 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2084,16 +2101,22 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      a.formula += num(r.formula_usd);
      agg.set(k, a);
    }
@@ -216,7 +228,7 @@ index 995719f2..e134d255 100644
    }));
    if (rows.length) await db.upsert(T.rewardDays, rows, "mode,day,cond");
    const live = rows.filter((r) => r.mode === "live");
-@@ -1927,6 +1950,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2101,6 +2124,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
    return {
      markets: rows.length, actual: sum(live.map((r) => (r.actual_usd ?? 0) + (r.actual_sponsored_usd ?? 0))), sponsored: sum(live.map((r) => r.actual_sponsored_usd ?? 0)),
      formula: sum(live.map((r) => r.formula_usd)), formulaScored: sum(live.map((r) => r.formula_scored_usd)), rebates: sum(live.map((r) => r.rebate_usd ?? 0)),
