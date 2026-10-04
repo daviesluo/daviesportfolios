@@ -126,3 +126,12 @@ pre-registration's deviation 2 and variant-1's deviation 1 freeze the driver and
 | `supabase/functions/agents/revx_sim.ts` | 4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa |
 | `supabase/migrations/0089_quote_twin_take50.sql` | 39da274fb14282574eb2b8c6dd814e5937ae5ee91e18a80808787607f7991e49 |
 | `docs/agents/backtests/twins/take50.json.gz` | 8a1d68f9cfe183cf13b387a24103bff3fb6fc7ed3f59b91ca0b29614c051af26 |
+
+## Addendum 1 (2026-10-04, about 13:40 UTC): the rule starts at 2026-10-04 16:00 UTC
+
+Written before the new start. Davies, verbatim: "这个现在就开始吧 为什么要等？". `take.from` moves from 2026-10-05 00:00 to
+2026-10-04 16:00 UTC (migration `0090`), an instant still in the future when it lands, so no turn already taken changes.
+The window becomes take trips opened 2026-10-04 16:00 → 2026-11-02 00:00 UTC; the bar C1–C4, the seed, the checks and the
+reading's date are unchanged. For C3's day blocks, 2026-10-04 is a day of its own (a Sunday, eight hours). K1 reads
+variant-2 against variant-1 before 16:00. Nothing of either twin's trips or P&L has been read; K1's interim count
+(10-03 05:03) was orders only.

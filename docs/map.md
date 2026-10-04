@@ -755,6 +755,7 @@ before touching migration state.
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
 | `0088_quote_twin_specs.sql` | The twins as rows (`agent_quote_twin_specs`), the function that makes a twin's tables from 0087's statement, and p50 ("Stablecoin quotes variant-1") the first twin made that way. |
 | `0089_quote_twin_take50.sql` | TAKE's twin as a row and its tables: "Stablecoin quotes variant-2" (`take50`), variant-1 with a taker entry from 2026-10-05. |
+| `0090_take50_from_now.sql` | Moves TAKE's start (`take50`'s `rules.take.from`) to 2026-10-04 16:00 UTC, its pre-registration's Addendum 1. |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

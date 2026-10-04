@@ -43,3 +43,13 @@ describe("TAKE's twin, variant-2", () => {
     expect(b.orders.some((o) => o.request?.take === true)).toBe(false);
   });
 });
+
+describe('0090 — TAKE starts on 2026-10-04 at 16:00 UTC (its Addendum 1)', () => {
+  it('moves only take50\'s take.from, and only from the frozen instant', () => {
+    const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/0090_take50_from_now.sql'), 'utf8');
+    const stmt = sql.split('\n').filter((l) => !l.startsWith('--')).join(' ');
+    expect(stmt).toMatch(/update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{take,from\}', '"2026-10-04T16:00:00Z"'::jsonb\)\s+where id = 'take50' and rules->'take'->>'from' = '2026-10-05T00:00:00Z';/);
+    expect(Date.parse('2026-10-04T16:00:00Z')).toBeGreaterThan(Date.parse(ROW.backfill.until));
+  });
+});
+

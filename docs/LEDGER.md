@@ -740,6 +740,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-04 13:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**TAKE (variant-2) starts at 2026-10-04 16:00 UTC, not 10-05 00:00** (Davies: "这个现在就开始吧 为什么要等？"; the
+Monday start had no reason in the rule). Addendum 1 of `reviews/2026-10-03-take-prereg.md`, written before the new
+start; `0090_take50_from_now.sql` moves only `take50`'s `rules.take.from`, guarded on the frozen value, pinned in
+`src/take_twin.test.js`. Window 10-04 16:00 → 11-02 00:00; bar, seed, checks and reading date unchanged; 10-04 is a day
+block of its own. **To check after 16:00:** the row reads 16:00, take50 turns without `agents.quotes_twins` errors.
+
 ### [2026-10-04 10:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The stablecoin twins' pages lose two lines** (Davies: "testing页面中的每个Stablecoin quotes子页面“3 rungs a side at £100 ·
