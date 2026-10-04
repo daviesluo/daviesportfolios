@@ -87,4 +87,14 @@ describe('the mid-pool pre-registration', () => {
     expect(DOC).toContain('## Addendum 2');
     expect(DOC).toMatch(/deviation 2/i);
   });
+
+  // Addendum 3 (2026-10-04): live-prep's build reaches mid-pool through the shared code; the same comparison pins it.
+  it("names the deploy of live-prep's build as deviation 3, in its Addendum 3, and the frozen copies it is checked against are unchanged", () => {
+    expect(DOC).toContain('## Addendum 3');
+    expect(DOC).toMatch(/Deviation 3: the deploy of live-prep's build/);
+    expect(DOC).toContain('`agents/pm_mid_formula.test.ts`, unchanged');
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    expect(sha('supabase/functions/agents/pm_live_mid_frozen.ts')).toBe('8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653');
+    expect(sha('supabase/functions/agents/pm_prep_mid_frozen.ts')).toBe('8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea');
+  });
 });

@@ -305,3 +305,33 @@ was not blind. What changes, and nothing else:
   day-1 check (2026-10-03, every row PASS, (f) N/A) stands; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql` are
   unchanged. Mini-pool's book-quality rule (its Addendum 6) is mini-pool's instance alone (`PM_MINI_INSTANCE`):
   `PM_MID_INSTANCE` has none, and its selection is pinned unchanged by the test above.
+
+## Addendum 3 (2026-10-04, about 18:00 UTC): deviation 3, the deploy of "Reward quotes live-prep"
+
+Written inside the window (d1 was 2026-10-03; the readout runs at or after 2026-10-17 00:10 UTC), before the deploy it
+records. Davies, 2026-10-04, verbatim: "以现在知道的所有信息，选出来一个最佳的reward区间+市场+rules等一切最优的策略，不考虑其他一切因素，
+做出一个策略组合加到测试列表中叫它Reward quotes live-prep，然后你验证后确保一切都没问题后做上线准备", and about 17:00 UTC: "验证没问题就
+直接落地TESTING STRATEGIES列表，把mini-pool的检验窗口全关了，目前上线live的最大candidate是这个live-prep策略". Live-prep is a third
+instance of the order path and its paper layer (`agents/pm_lp.ts`, migration `0091_pm_lp.sql`, its own pre-registration
+`2026-10-04-polymarket-lp-prereg.md`). What changes for mid-pool, and nothing else:
+
+- **Deviation 3: the deploy of live-prep's build** to `pm_live.ts`, `pm_prep.ts` and `agents/index.ts`, the shared code
+  mid-pool runs. The readout names it with the day it is deployed. Every rule it adds is an option only live-prep's
+  instance sets (`PmLpOptions`, `PrepInstance.lp`); the exports the frozen copies are compared with text for text
+  (`effectiveLimits`, `candidateOf`, `pmLiveDbTables`, the layer's book-keeping) are left byte for byte as they were,
+  and live-prep's rules sit in new functions beside them (`lpLimits`, `lpCandidateOf`, `pmLpDbTables`, `classifyLp`,
+  `stepSides`, `decideLp`).
+- **No decision of mid-pool changes, pinned.** `agents/pm_mid_formula.test.ts`, unchanged, runs mid-pool through the
+  build's path and layer beside the code this document froze, byte for byte (`pm_live_mid_frozen.ts`,
+  `pm_prep_mid_frozen.ts`, the hashes under "Its code at the freeze"), minute by minute over three simulated days,
+  dry-run and live, and finds every table, request, body and report the same but the fields Addendum 2 names; its test
+  of every export, text for text and value for value, passes unchanged too. Mini-pool's instance is pinned the same way
+  beside its own frozen code (`pm_instance.test.ts`, unchanged).
+- **One rule of the account reaches mid-pool's config.** 0091 replaces 0084's trigger function, so a write arming
+  `pm_mid_config` is now refused while `pm_live_config` OR `pm_lp_config` is armed (its words name the three paths);
+  0084's trigger on `pm_mid_config` itself is unchanged. Mid-pool is unarmed and its dry-run never reads an arm, so no
+  minute of its record moves; it narrows when mid-pool could be armed, which is Davies' decision either way.
+- **Nothing else moves.** Its rule, its band, its exclusion and its margin, its sizes, its gates and its stops; its
+  tables, its leases and its rows of the one-minute job; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql`. Live-prep
+  quotes the universe of $10 and over with no exclusion, mid-pool's band among it: both are dry-runs, so neither's orders
+  reach a book, and live-prep's own pre-registration says what its going live does to the other tests.
