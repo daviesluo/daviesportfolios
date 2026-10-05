@@ -450,7 +450,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
       `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all of them (under 60: "undecided"). Expect
       about 14 weeks at the last week's pace and 57 at the backtests', so 2027-06-30 likely comes first, at about 100
       exits (chance of a pass 0.27–0.45 at a true 5 % miss rate). A pass moves only `trend-1h`'s exits, after the five
-      checks in its §6.
+      checks in its §6. **Pulls:** 10-05, 6 windows (probes 22–27, all `trend-1h`, 4 BTC and 2 ETH), none failed, 179 UK
+      prints; B empty (every probe's `o15` and `o60` recorded); C 3 exits and 3 entries.
    3. **RW-NEXT: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
       (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). Its slip rule turns on one check at
       **2026-10-08 00:10 UTC**, which the first session on or after then runs before anything else (or a one-shot
@@ -763,6 +764,18 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-05 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's first weekly pull** (item 5a.2; the Monday Routine `trig_01Dm3nw4TbBm2GCX2z12tN7o`, 06:37 UTC). A sonnet-max
+agent ran `weekly.sql` read-only and `pull_tape.py` unchanged; I checked its files by counts and hashes, printing no
+price. A, serialised to one JSON text in SQL with its md5 and written byte for byte (md5 equal), is
+`backtests/mx1/tape/2026-10-05.windows.json`: six probes since the freeze (ids 22–27), all the `trend-1h` row, four
+BTC/USD and two ETH/USD. The pull, `tape/2026-10-05.json.gz`, has six windows, none failed and none merged, 179 UK
+prints (BTC 121, ETH 58; 19 to 39 a window), its `script_sha256` and `source_sha256` equal to the script's and the
+windows file's. B is empty (`basis/2026-10-05.json`, `[]`): every probe's `o15` and `o60` is recorded, so no stand-in
+is needed yet. C: 3 exits and 3 entries. At this week's pace, three exits a week, 150 would take about fifty weeks, so
+2027-06-30 comes first and the reading falls on the first pull after it, as item 5a.2 expects. `docs/map.md` gains MX-1's data folder.
 
 ### [2026-10-04 19:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
