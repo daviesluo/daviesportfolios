@@ -775,7 +775,7 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
-### [2026-10-07 22:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-07 21:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The paper layers' DAYS table gets a WORST CASE on every day, today's live** (Davies: "Reward quotes列表里后三个点开之后
 DAYS里worst case里没数据"; then "WORST CASE目前是当天实时都可以显示吧？…之前的问题只是mini-pool、mid-pool、live-prep 展开后
@@ -795,7 +795,7 @@ and the sweep reading today's and a closed day's worst case on all three pages; 
 (3 sweep checks fail). It changes nothing any path or layer decides or writes, so it is no deviation of mid-pool's or
 live-prep's tests (their checks read neither the new table nor the new error kind).
 
-### [2026-10-07 22:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-07 21:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Mini-pool's and mid-pool's day stop counts only the day's change** (Davies, answering a question: "只算当天变化"), on
 the order path and both paper layers: the book's value now less its value at 00:00 UTC (each holding at its mark then,
