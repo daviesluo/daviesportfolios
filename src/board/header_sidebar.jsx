@@ -673,6 +673,16 @@ function TopMovers({ metrics, hideValues = false }) {
  * @param {{ metrics: any, source: any, portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   hideValues: boolean, isReadOnly?: boolean, refreshedAt?: number, forceRefreshKey?: number }} props
  */
+/**
+ * The desktop foot's keyboard shortcuts, as the page's key handler takes them (app.jsx): a read-only viewer has no
+ * edit mode, so its E key does nothing and the hint leaves it out (Davies, 2026-10-07: "在viewer模式中不该有E (edit)，
+ * 然后把X (ext)改为X (extended)").
+ * @param {boolean} isReadOnly
+ */
+export function shortcutsHint(isReadOnly) {
+  return isReadOnly ? 'R (refresh) · X (extended)' : 'R (refresh) · E (edit) · X (extended)';
+}
+
 function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0 }) {
   // The by-value position list. Memoised on metrics so the per-tick
   // refresh churn (clock, flash) doesn't re-sort the book on every
@@ -738,7 +748,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
         <div className="foot-kv"><span>Stored</span><span className="mono">Supabase</span></div>
         {/* Shortcuts row is desktop-only — the r/e/x keys don't exist
             on touch and the row was visual noise on phones. */}
-        <div className="foot-kv"><span>Shortcuts</span><span className="mono">R (refresh) · E (edit) · X (ext)</span></div>
+        <div className="foot-kv"><span>Shortcuts</span><span className="mono">{shortcutsHint(isReadOnly)}</span></div>
       </div>
     </aside>
   );

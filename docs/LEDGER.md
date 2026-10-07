@@ -774,6 +774,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The desktop foot's shortcuts say what each mode's keys do.** Davies: "网站右下角"Shortcuts R (refresh) · E (edit) · X (ext)"，
+在viewer模式中不该有E (edit)，然后把X (ext)改为X (extended)". The page's key handler already ignores E for a read-only
+viewer (`app.jsx`); only the hint was wrong. `shortcutsHint` (`board/header_sidebar.jsx`) gives the owner "R (refresh)
+· E (edit) · X (extended)" and a viewer "R (refresh) · X (extended)". Pinned: vitest renders the foot both ways (two
+cases that fail on the old foot) and the sweep's viewer part reads it on desktop. Also queued, on Davies' word the same
+evening: with extended hours off, the 24H VS S&P and INVESTMENT charts are to start from the previous close, not 0 %,
+and match the scoreboard's live change during the session; it waits for a free sub-agent (three opus-high agents are
+running: the paper layers' live worst case, the day stop on today's change, the dead-man's grace).
+
 ### [2026-10-07 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **Three sub-agents by tier: `opus-high`, `sonnet-max`, `haiku-max`** (Davies: "以后sub-agent最高effort改为opus-high

@@ -4552,6 +4552,12 @@ async function run() {
     if (JSON.stringify(items) === JSON.stringify(['Holding list', 'Sectors list', 'Agents (beta)'])) ok(S('menu'), `menu ${JSON.stringify(items)}: no Transaction history`);
     else fail(S('menu'), `menu ${JSON.stringify(items)}`);
     await page.keyboard.press('Escape');
+    // The desktop foot's shortcuts: a viewer has no edit mode, so no E (Davies, 2026-10-07).
+    if (vp.name === 'desktop') {
+      const keys = ((await page.locator('.sidebar-foot-desktop').textContent().catch(() => '')) || '').replace(/\s+/g, ' ');
+      if (/Shortcuts\s*R \(refresh\) · X \(extended\)/.test(keys) && !/E \(edit\)/.test(keys)) ok(S('shortcuts'), 'the foot lists R (refresh) · X (extended), no E (edit)');
+      else fail(S('shortcuts'), `foot "${keys}"`);
+    }
     await ctx.close();
   }
 

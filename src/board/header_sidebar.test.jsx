@@ -24,7 +24,7 @@ vi.mock('../charts/perf_chart.jsx', () => ({
   PerfPanel: () => null,
 }));
 
-import { Header, Sidebar, UpcomingEarnings } from './header_sidebar.jsx';
+import { Header, Sidebar, UpcomingEarnings, shortcutsHint } from './header_sidebar.jsx';
 import { YtdStore } from '../prices/chart_store.js';
 import { CHARTS_UPDATED_EVENT } from '../prices/cache.js';
 
@@ -606,5 +606,30 @@ describe('Sidebar — Top Movers window', () => {
       window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT));
     });
     expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
+  });
+});
+
+describe('Sidebar foot — the keyboard shortcuts', () => {
+  // Davies, 2026-10-07: a viewer's E key does nothing (app.jsx returns early when read-only), so its hint has no E;
+  // "X (ext)" reads "X (extended)".
+  const footText = () => document.querySelector('.sidebar-foot-desktop')?.textContent ?? '';
+  const renderFoot = (isReadOnly) =>
+    render(<Sidebar metrics={{ marketValue: 0, positions: {} }} source="live" portfolio={{}}
+      marketData={{}} extendedHours={false} phase="regular" hideValues={false} isReadOnly={isReadOnly} />);
+
+  it('names R, E and X for the owner, X as "extended"', () => {
+    renderFoot(false);
+    expect(footText()).toContain('R (refresh) · E (edit) · X (extended)');
+    expect(footText()).not.toContain('X (ext)·');
+  });
+
+  it('leaves E (edit) out for a read-only viewer', () => {
+    renderFoot(true);
+    expect(footText()).toContain('R (refresh) · X (extended)');
+    expect(footText()).not.toContain('E (edit)');
+  });
+
+  it('is one function of the mode', () => {
+    expect([shortcutsHint(false), shortcutsHint(true)]).toEqual(['R (refresh) · E (edit) · X (extended)', 'R (refresh) · X (extended)']);
   });
 });
