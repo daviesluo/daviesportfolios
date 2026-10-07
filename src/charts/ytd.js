@@ -57,18 +57,21 @@ export const RANGES = {
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
 
 /**
- * Button label on the vs-S&P / Investment panel range row. That panel's
- * shortest window is a trailing 24 hours measured from its own first
- * point, not a session measured from yesterday's close, so it reads
- * `24H`. The ticker-detail modal keeps `RANGES['1D'].label` (`1D`) —
- * that one really is a day chart with a previous-close marker. The
- * internal key stays `1D` so fetch / cache / prefetch don't fork.
+ * Button label on the vs-S&P / Investment panel range row. The shortest
+ * window is two things (Davies, 2026-10-07): with extended hours on, a
+ * trailing 24 hours on the futures from its own first point, so `24H`;
+ * with them off, the latest regular session measured from its previous
+ * close, a day, so `1D`. The internal key stays `1D` either way so
+ * fetch / cache / prefetch don't fork; tests find the button by its
+ * `data-range` key, not its label.
  *
  * @param {string} rangeKey
+ * @param {boolean} [extendedHours]
  * @returns {string}
  */
-export function panelRangeLabel(rangeKey) {
-  return rangeKey === '1D' ? '24H' : (RANGES[rangeKey]?.label ?? rangeKey);
+export function panelRangeLabel(rangeKey, extendedHours = false) {
+  if (rangeKey === '1D') return extendedHours ? '24H' : '1D';
+  return RANGES[rangeKey]?.label ?? rangeKey;
 }
 
 /**

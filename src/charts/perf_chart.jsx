@@ -175,16 +175,16 @@ export function seedCut(bars, cutKey) {
 // Tiny placeholder shell so the loading / error / range-button row
 // renders the same chrome as the full chart — keeps the layout from
 // jumping when the user flips between ranges.
-function renderShell(child, rangeKey, setRangeKey) {
+function renderShell(child, rangeKey, setRangeKey, extendedHours) {
   return (
     <div className="perf-chart-wrap">
       {child}
-      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
+      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} extendedHours={extendedHours} />
     </div>
   );
 }
 
-function RangeButtons({ rangeKey, onChange }) {
+function RangeButtons({ rangeKey, onChange, extendedHours }) {
   return (
     <div className="perf-range-row">
       {RANGE_KEYS.map(k => (
@@ -192,8 +192,9 @@ function RangeButtons({ rangeKey, onChange }) {
           key={k}
           type="button"
           className={`perf-range-btn mono${k === rangeKey ? ' on' : ''}`}
+          data-range={k}
           onClick={() => onChange(k)}
-        >{panelRangeLabel(k)}</button>
+        >{panelRangeLabel(k, extendedHours)}</button>
       ))}
     </div>
   );
@@ -878,9 +879,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   const seriesCacheRef = React.useRef(
     /** @type {{deps: any[], val: {portYtd: any[], recordedFrom: number|null, dayBasis: number|null}}|null} */ (null));
 
-  if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
-  if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
-  if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey);
+  if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey, extendedHours);
+  if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey, extendedHours);
+  if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey, extendedHours);
 
   // US market hours in UTC for today, used here for the ^GSPC RTH
   // filter and below for CLOSE / OPEN marker detection. Hoisted above
@@ -979,7 +980,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       if (slice.length > bestLen) { bestLen = slice.length; bestKey = k; }
     }
     if (!bestKey || bestLen < 2) {
-      return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey);
+      return renderShell(<div className="sparkline-empty dim mono">No data for this range</div>, rangeKey, setRangeKey, extendedHours);
     }
     const fallbackSeries = (hist?.[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     spWindow = rangeKey === '1D'
@@ -1158,7 +1159,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   const { portYtd, recordedFrom, dayBasis } = series.val;
 
   if (portYtd.length < 2) {
-    return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey);
+    return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey, extendedHours);
   }
 
   // Re-binding for downstream rendering code that still uses
@@ -1674,7 +1675,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         </g>
       </svg>
 
-      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} />
+      <RangeButtons rangeKey={rangeKey} onChange={setRangeKey} extendedHours={extendedHours} />
     </div>
   );
 }

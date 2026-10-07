@@ -643,8 +643,7 @@ async function run() {
         await page.waitForTimeout(150);
       }
       for (const rangeKey of RANGES) {
-        const label = rangeKey === '1D' ? '24H' : rangeKey;
-        await page.click(`.left-col .perf-range-btn:text-is("${label}")`);
+        await page.click(`.left-col .perf-range-btn[data-range="${rangeKey}"]`);
         await page.waitForTimeout(400);
         const read = await page.evaluate(readPanel);
         const row = { book: bk.name, snapshotMode, view, rangeKey, ...read };

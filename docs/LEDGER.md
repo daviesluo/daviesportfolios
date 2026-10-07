@@ -792,6 +792,9 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
   that a commit carried against this repo's rule; content unchanged. Old -> new: fcc6b370 -> b107f2c0 (realized
   G/L), f325babf -> dd2e979e (24H; its ledger line now names b107f2c0). A clone holding the old hashes resets to
   origin/main.
+- The panel's shortest range button reads 1D with extended hours off and 24H with them on (Davies: "24H改为1D吧，
+  extended hours的那个实际就是24小时不用改"); internal key `1D`, buttons carry `data-range`, and the sweep and perf
+  matrix click by it and check both labels.
 - Queued, both with sub-agents: Trading 212 fill currency stored per fill (and dividends folded into the
   average cost, Davies: "分红的盈利也算起来，直接算在average cost里"); TB1 tight-book arms replacing the page's
   Reward quotes variant-3/-4 (x4/x5 keep recording behind), prereg to freeze before 10-09 00:00 UTC.

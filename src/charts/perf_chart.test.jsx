@@ -341,7 +341,7 @@ describe('PerfChart — every range starts BOTH lines at 0 %', () => {
       />,
     );
     const labels = Array.from(container.querySelectorAll('.perf-range-btn')).map(e => e.textContent);
-    expect(labels).toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+    expect(labels).toEqual(['1D', '1W', '1M', '3M', 'YTD']);
   });
 });
 
@@ -466,7 +466,7 @@ describe('PerfChart — the Investment view is the SAME series, drawn in dollars
     expect(container.querySelector('svg g[style*="display: none"]')).toBeTruthy();
     // Range buttons carry across the swap.
     const labels = Array.from(container.querySelectorAll('.perf-range-btn')).map(e => e.textContent);
-    expect(labels).toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+    expect(labels).toEqual(['1D', '1W', '1M', '3M', 'YTD']);
   });
 });
 
@@ -490,7 +490,7 @@ describe('PerfPanel — one slot, two charts', () => {
     // The range row is the same one either way — flipping the view must
     // not reset which window is on screen.
     expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))
-      .toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+      .toEqual(['1D', '1W', '1M', '3M', 'YTD']);
 
     act(() => { sp.click(); });
     expect(selected(/** @type {HTMLElement} */ (container))).toEqual([sp.textContent]);
@@ -540,6 +540,6 @@ describe('PerfPanel — one slot, two charts', () => {
     expect(container.textContent).not.toMatch(/INVESTMENT|DEPOSITED/);
     // The range row stays: the viewer still reads every window.
     expect([...container.querySelectorAll('.perf-range-btn')].map(b => b.textContent))
-      .toEqual(['24H', '1W', '1M', '3M', 'YTD']);
+      .toEqual(['1D', '1W', '1M', '3M', 'YTD']);
   });
 });

@@ -50,7 +50,7 @@ vi.mock('../prices/chart_store.js', () => {
 vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
 
 import { PerfChart, perfSessionBasis, latestSessionBars, seedCut, _resetPerfSeedMemo } from './perf_chart.jsx';
-import { applyVariantFilter, perfRowFilter } from './ytd.js';
+import { applyVariantFilter, perfRowFilter, panelRangeLabel } from './ytd.js';
 import { computeMetrics } from '../portfolio/metrics.js';
 import { YtdStore } from '../prices/chart_store.js';
 
@@ -193,5 +193,15 @@ describe('the 24H ext-off rows and the seed', () => {
     const bars = [{ date: '2026-09-15' }, { date: '2026-09-16T19:55' }, { date: '2026-09-17T13:30' }];
     expect(seedCut(bars, '2026-09-16T20:00').map((b) => b.date)).toEqual(['2026-09-16T19:55', '2026-09-17T13:30']);
     expect(seedCut(bars, '2026-09-18T00:00').map((b) => b.date)).toEqual(['2026-09-17T13:30']);
+  });
+});
+
+// Davies, 2026-10-07: "24H改为1D吧，extended hours的那个实际就是24小时不用改".
+describe('the shortest range button names what it shows', () => {
+  it('reads 1D with extended hours off (the latest session) and 24H with them on (a trailing 24 hours)', () => {
+    expect(panelRangeLabel('1D', false)).toBe('1D');
+    expect(panelRangeLabel('1D', true)).toBe('24H');
+    expect(['1W', '1M', '3M', 'YTD'].map((k) => [panelRangeLabel(k, false), panelRangeLabel(k, true)]))
+      .toEqual([['1W', '1W'], ['1M', '1M'], ['3M', '3M'], ['YTD', 'YTD']]);
   });
 });

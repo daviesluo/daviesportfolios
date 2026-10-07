@@ -407,13 +407,14 @@ they trade the S&P line stops a little short of the portfolio's.
 
 ### VS S&P 500
 
-The portfolio's return against the S&P 500 over 24H, 1W, 1M, 3M or YTD.
-On 1W, 1M, 3M and YTD, and on 24H with extended hours on, **both lines
+The portfolio's return against the S&P 500 over 1D (24H with extended
+hours on), 1W, 1M, 3M or YTD. On 1W, 1M, 3M and YTD, and on 24H with
+extended hours on, **both lines
 start at 0 % at the left edge**, so the chart answers one question: how
 did the two move against each other over this window. 1W is a real seven
 days.
 
-**24H with extended hours off is the day's view.** It shows the latest
+**1D (extended hours off) is the day's view.** It shows the latest
 regular session of the US market (today's, from 9:30 in New York, while
 it trades and after it closes; before the open and at the weekend, the
 last one), and both lines are measured from the previous close: the
@@ -423,7 +424,8 @@ had moved overnight by the open. The portfolio line ends on the
 scoreboard's DAY CHANGE % and the S&P line on the S&P 500 card in Market
 Conditions, live while the market is open.
 
-With extended hours on, 24H is a trailing 24 hours and 24H and 1W use
+With extended hours on, the shortest button reads 24H: a trailing 24
+hours, and 24H and 1W use
 the S&P futures instead, and the title and legend say so. The futures
 line then runs through the night, and the portfolio line follows the
 overnight prices recorded from Trading 212 instead of staying flat;
@@ -431,7 +433,7 @@ holdings that don't trade overnight stay flat. That window starts at 0 %
 and won't match DAY CHANGE. Hover to read both returns at that moment,
 with its date or time.
 
-On 24H, dashed lines mark the US market's OPEN (9:30 in New York, 14:30
+On 1D and 24H, dashed lines mark the US market's OPEN (9:30 in New York, 14:30
 UK time for most of the year) and CLOSE (16:00 in New York, 21:00 UK
 time) with extended hours on; with them off, only the OPEN, at the left
 edge, while the market is open. Each is drawn only when that moment
@@ -450,7 +452,7 @@ gridlines, one under each time label.
   converted at a rate fixed once and kept, not at today's rate, so the
   line moves only when money does.
 - The legend gives each line's own move over the window, in percent.
-  On 24H with extended hours off, Value's figure is measured from the
+  On 1D (extended hours off), Value's figure is measured from the
   portfolio's value at the previous close, so it reads the scoreboard's
   DAY CHANGE %; Deposited's is its move over the session, as before.
 - The dollar axis doesn't start at zero, so both lines keep their shape.

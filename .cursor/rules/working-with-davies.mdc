@@ -223,9 +223,10 @@ Changing any of these means re-opening a decision he has already made.
 
 - Every range rebases both lines to 0% at the window's first point,
   except 24H with extended hours off (next rule). The shortest button
-  is labelled **24H** (internal key still `1D`; the ticker modal still
-  says 1D). There is no DAY / 24H toggle — the extended-hours switch
-  picks the reading. He first asked for a literal trailing 24 h, then
+  reads **1D** with extended hours off and **24H** with them on
+  (Davies, 2026-10-07: "24H改为1D吧，extended hours的那个实际就是24小时不用改";
+  internal key `1D` either way, tests find it by `data-range`). There is
+  no DAY / 24H toggle — the extended-hours switch picks the reading. He first asked for a literal trailing 24 h, then
   for both, then dropped the DAY reading, then (2026-10-07) asked for
   it back with extended hours off. Don't put a toggle back.
 - **24H with extended hours off is the latest regular session, measured

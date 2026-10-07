@@ -1617,7 +1617,7 @@ async function run() {
     await page.locator('#perf-tab-sp:visible').first().click().catch(() => {});
     await page.locator('.ext-switch:visible').first().click().catch(() => {});
     await page.waitForTimeout(900);
-    await page.locator('.perf-range-btn:visible:text-is("24H")').first().click().catch(() => {});
+    await page.locator('.perf-range-btn:visible[data-range="1D"]').first().click().catch(() => {});
     const spLegend = () => page.evaluate(() => {
       const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
       const item = wrap && [...wrap.querySelectorAll('.perf-legend-item')].find((n) => /S&P/.test(n.textContent || ''));
@@ -2388,8 +2388,15 @@ async function run() {
     for (const view of ['sp', 'investment']) {
       await page.locator(view === 'sp' ? '#perf-tab-sp:visible' : '#perf-tab-inv:visible').first().click();
       await page.waitForTimeout(250);
-      for (const label of ['24H', '1W', '1M', '3M', 'YTD']) {
-        await page.locator(`.perf-range-btn:visible:text-is("${label}")`).first().click();
+      for (const label of ['1D', '1W', '1M', '3M', 'YTD']) {
+        const btn = page.locator(`.perf-range-btn:visible[data-range="${label}"]`).first();
+        // The shortest window is a day with extended hours off (Davies, 2026-10-07: "24H改为1D").
+        if (label === '1D') {
+          const text = (await btn.textContent())?.trim();
+          if (text === '1D') ok(S(`range-label/${view}`), 'with extended hours off the shortest window reads 1D');
+          else fail(S(`range-label/${view}`), `with extended hours off the shortest window reads "${text}", want 1D`);
+        }
+        await btn.click();
         await page.waitForTimeout(350);
         const state = await page.evaluate(() => {
           // The VISIBLE panel — the left column on desktop, the sidebar
@@ -2431,7 +2438,7 @@ async function run() {
         // where 24H still passed and 3M failed. 3M passing is what says
         // recorded data reached the panel at all; 24H passing then
         // means its window really is wholly on the recorded side.
-        if (view === 'investment' && (label === '24H' || label === '3M')) {
+        if (view === 'investment' && (label === '1D' || label === '3M')) {
           const ruled = await page.evaluate(() => {
             const panel = [...document.querySelectorAll('.perf-chart-wrap')]
               .find((w) => w.getBoundingClientRect().width > 0)?.closest('.panel');
@@ -2460,7 +2467,7 @@ async function run() {
     // every lot dated before every window) would be too weak here.
     //
     //   (1 + value%) / (1 + deposited%) == 1 + portfolio%
-    for (const label of ['24H', '1W', '1M', '3M', 'YTD']) {
+    for (const label of ['1D', '1W', '1M', '3M', 'YTD']) {
       const inv = seen.investment[label], sp = seen.sp[label];
       if (!inv || !sp) continue;
       const lhs = (1 + inv[0] / 100) / (1 + inv[1] / 100);
@@ -2485,7 +2492,11 @@ async function run() {
     await page.locator('#perf-tab-sp:visible').first().click();
     await page.locator('.ext-switch:visible').first().click();
     await page.waitForTimeout(900);
-    await page.locator('.perf-range-btn:visible:text-is("24H")').first().click();
+    const extBtn = page.locator('.perf-range-btn:visible[data-range="1D"]').first();
+    const extText = (await extBtn.textContent())?.trim();
+    if (extText === '24H') ok(S('range-label/ext'), 'with extended hours on the shortest window reads 24H');
+    else fail(S('range-label/ext'), `with extended hours on the shortest window reads "${extText}", want 24H`);
+    await extBtn.click();
     await page.waitForTimeout(500);
     const marks = await page.evaluate(() => {
       const panel = [...document.querySelectorAll('.perf-chart-wrap')]
