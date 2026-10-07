@@ -198,8 +198,14 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      10 markets / $200 a day, RW's prices with what is held sold first, 5N, x2's pause, carried markets close-only, no
      weather or same-day markets, $320 total / $100 a market, a −$75 stop on fills plus what was paid, no day stop.
      Pre-registered: `reviews/2026-10-04-polymarket-lp-prereg.md`; d1 is the first full UTC day after
-     `pm_lp_config.created_at`. **Before Davies' go, in order:** P1 `lp_check.sql` once at or after d1 + 1 day 00:10 UTC,
-     every row passing ((d), quoted minutes ≥ 60 %, is the one most at risk: 58.3 % on a simulated day); P2 pUSD ≥ $81 in
+     `pm_lp_config.created_at`. **Before Davies' go, in order:** P1 **checked 2026-10-07 20:22 UTC** (`lp_check.sql`
+     run once as written, sha256 `7e94b042…0a57` verified on the file and on the text sent; late, as "at or after"
+     allows, because the 10-06 00:20 Routine's wake reached this session only at 10-07 20:17; not blind): d1 10-05, a1
+     1,440 of 1,440, a2 2, a3 one day row, b1 10 markets in one run at 00:05:04, b2 none outside the rules, b3 $188.70,
+     c1 0 of 4,525 crossing, c2–c6 all 0 ($98.72 a market and $320.00 in all at worst; 459 sells in carried markets),
+     (d) 7,101 of 11,068 = 64.2 %, (e) +$21.69 at R = 0.40 and no stop, (g) 0 of 14,990: all PASS; (f) FAIL on funding
+     alone (pUSD $0.04; eu-west-1, the four gates true, keyed, no other config armed), so by the pre-registration the
+     verdict on (a)–(e) and (g) stands and (f) is read again at the go; P2 pUSD ≥ $81 in
      the account; P3 the payouts-per-path patch (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`, rebuilt
      on this code) applied with an addendum, Davies' call ("之后再部署吧"), since without it the paths book each other's
      payouts; P4 mini-pool and mid-pool unarmed; P5 the probe reading the conditional-token allowances (not built); and a
@@ -786,6 +792,17 @@ quoting again since the FX reopening (dark guard cleared and first entry 2026-10
 times, all filled (10-05 02:51 and 02:59 bids, 10-06 11:16 ask) and all closed by their exits; no `last_error`. Left for
 Davies (item 9): the instance size or incremental reads, and the dead-man's rule on an unreadable state. The
 trend-4h-live cap check at 10-08 06:20 will find CW-8 not clean (job 27's failures) and keep $60, as its rule says.
+**Verified after the push (20:47 UTC, migrations green):** the first run, 20:50:00, succeeded; `net._http_response` fell
+from 297 MB to 200 kB and the database from 1,298 MB to 1,003 MB; from 20:50 every minute's calls beat on time (22–26
+a minute, 2 s into it on average, against 30–35 s late and a third missing before). RW's daily health line (the 546/5xx
+read) now sees ten minutes of responses at most: read the Edge logs instead. **Also found** (a second opus-max check):
+live-prep's P1, run at 20:22 (item 2); RW lost about 175 of 10-07's minutes to the stall (an infrastructure deviation
+to name beside its verdict, with 10-08's if any); mid-pool's paper layer has tripped its day stop at 00:00 on 10-05,
+10-06 and 10-07 (−26.84, −48.52, −42.41 against −25), because `bookPnl` counts every holding's whole unrealised P&L
+as the day's (`pm_live.ts:743–753`, by design: "stricter") and its dry-run caps never bind the paper's $330–360 of
+inventory (it decides on the account's fills, which are none: `pm_live.ts:1352–1360`); put to Davies. And the last
+three Reward quotes rows show no WORST CASE: the paper layers keep no worst case at a day's close (an opus-max agent
+is building its record outside the frozen files).
 
 ### [2026-10-05 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
