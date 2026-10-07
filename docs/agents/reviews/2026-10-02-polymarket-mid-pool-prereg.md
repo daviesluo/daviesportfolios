@@ -335,3 +335,52 @@ instance of the order path and its paper layer (`agents/pm_lp.ts`, migration `00
   tables, its leases and its rows of the one-minute job; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql`. Live-prep
   quotes the universe of $10 and over with no exclusion, mid-pool's band among it: both are dry-runs, so neither's orders
   reach a book, and live-prep's own pre-registration says what its going live does to the other tests.
+
+## Addendum 4 (2026-10-07, about 21:40 UTC): deviation 4, the day stop counts only the day's change
+
+Written inside the window (d1 was 2026-10-03; the readout runs at or after 2026-10-17 00:10 UTC), before the deploy it
+records. Davies, 2026-10-07, answering whether the day stop of mini-pool and mid-pool should keep counting every
+holding's whole unrealised loss as the day's or count only the day's own change; the option he chose, verbatim:
+
+> 只算当天变化
+
+In English: count only the day's change. Why it was asked: the day stop's figure (`bookPnl` in `pm_live.ts`, "all of
+it counts today: stricter") counted every holding's whole unrealised P&L against its cost as each day's, so an inventory
+carried across 00:00 counted its whole loss again every day. Mid-pool's paper layer carries $330–360 of it (its days'
+`held_value`), and tripped the −$25 day stop at the first minute of 2026-10-05 (−$26.84), 10-06 (−$48.52) and 10-07
+(−$42.41) on that alone (`pm_midprep_events`, kind `loss_stop_day`), and quoted nothing for three days; a live path would
+stop buying every day the same way. What changes, and nothing else:
+
+- **Deviation 4: the deploy of this change** to `pm_live.ts` and `pm_prep.ts`, the shared code mid-pool runs. The day
+  stop, the path's (`loss_day_usd`) and its paper layer's, now counts the day's change: what is held now at its marks,
+  less what was held as the UTC day began at its marks then (a holding bought that day at its cost), plus the day's sells
+  and settlements (`sinceOpenPnl`, `paperDayPnl`). The path keeps its opening marks in its state (`dayOpen`: the last marks
+  read before 00:00); the layer the marks it held as the day began, the ones the day before closed on (`state.open`). The
+  limit is unchanged, −$25 a day, and acts as before.
+- **The total stop does not change**: −$75 in all, every holding from its cost, the carried loss included. On mid-pool's
+  paper the total read −$60.32 at 2026-10-07 21:17 UTC (`pm_midprep_state`), $14.68 from it.
+- **What the readout reads.** `mid_readout.sql` is unchanged. It reads `pm_midprep_days`' `fills_pnl_day`,
+  `pnl_day_r40`, `held_value` and its stop flags: `fills_pnl_day` and `pnl_day_r40` keep the figure on cost, as frozen
+  (the day rows gain the stop's figure in `detail.dayChange`, which the readout does not read). What moves is when the
+  paper quotes: from the first 00:00 UTC after the deploy a carried inventory no longer stops it, so its fills, rewards and
+  stop flags from then are a different rule's. **The readout names**, beside its rows: 2026-10-05, 10-06 and 10-07 as days
+  the frozen day stop stopped at 00:00 on the carried inventory alone (each `stop_day` true, no fill on 10-05 and 10-06,
+  rewards $0.07 and $0; 10-07's row is not closed at this writing); the deploy of this change, at the time of the Edge
+  Functions run that deploys the commit carrying `pm_live.ts` sha256 below; and the first day counted the new way, the
+  first full UTC day after that deploy (the rest of the deploy's own day counts as before: neither the path nor the layer
+  has opening marks for it).
+- **Pinned.** `agents/pm_daystop.test.ts` works it by hand, on the path and on the paper layer: 100 YES carried at a $40
+  loss at the day's opening mark do not trip the $25 day stop at 00:00 or 00:01; a fresh $26 loss within the day does;
+  the total stop trips past −$75 on the carried loss; on the frozen rule the same turns trip the day stop at 00:00.
+  `agents/pm_mid_formula.test.ts` runs mid-pool's instances on the frozen rule (`dayStopOnCost`, which no action sets)
+  beside `pm_live_mid_frozen.ts` and `pm_prep_mid_frozen.ts`, byte for byte (the hashes under "Its code at the freeze"),
+  and finds every table, request, body and report the same but the fields Addendum 2 names, as before; its last test
+  runs mid-pool as deployed beside that over the same simulated days and finds them the same until a holding is carried
+  across 00:00 (M3's 20 YES at 0.46, marked 0.315 as 10-07 began): the frozen rule stops the day at 00:01 on the carried
+  −$2.90, the deployed one opens and stops at 06:00 on the settlement's −$6.30 that day (−$9.20 in all).
+- **The code it deploys**: `pm_live.ts` sha256 `4032d6c01e255f5e682eb916d8ffdbdb35e774a7859f8defccfb22afe9236706`,
+  `pm_prep.ts` sha256 `a13ef03c870db2a17411456ffbfcb1b203ffe4654525d7792e6e38ed675b696a`; `pm_mid.ts` is unchanged,
+  `9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd`. The frozen copies stay the bytes named above.
+- **Nothing else moves.** Its rule, its band, its exclusion and its margin, its sizes, its gates and the total stop; its
+  tables, leases and rows of the one-minute job; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql`. The draft of its
+  funded pre-registration (`2026-10-04-polymarket-mid-pool-live-prereg.md`) states the day stop the same way.

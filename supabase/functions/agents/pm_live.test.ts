@@ -1328,12 +1328,14 @@ Deno.test("loss stops: past the day's limit nothing opens for the rest of the UT
   r = await w.turn(Date.parse("2026-10-03T00:01:00Z"));
   assertEquals(r.gates?.open, true);
   // The new day's YES bid fills too (10 YES at 0.45), and A falls to 0.30 / 0.32, under our NO bid's ask at 0.47:
-  // −1.40 today and in all, past both limits.
+  // −1.40 in all, past the run's limit. Today (the day stop counts the change since 00:00 from 2026-10-07): the 5 held
+  // from yesterday start the day at their mark as it began, 0.46 (the 10-02 turn's, A at 0.45 / 0.47), the 5 bought
+  // today at 0.45: 5 × (0.31 − 0.46) + 5 × (0.31 − 0.45) = −1.45, past the day's.
   const yes2 = w.open("live").find((o) => o.cond === cond(5) && o.outcome === "yes" && o.side === "BUY")!;
   w.pm.settle(w.pm.fill(String(yes2.hash), 5), "CONFIRMED");
   w.A.bid = 0.30; w.A.ask = 0.32;
   r = await w.turn(Date.parse("2026-10-03T00:02:00Z"));
-  assertEquals(r.pnl, { day: -1.4, total: -1.4 });
+  assertEquals(r.pnl, { day: -1.45, total: -1.4 });
   assertEquals(r.gates?.openBlockedBy, "loss_day");
   assertEquals([w.events("loss_stop_day").length, w.events("loss_stop_total").length], [2, 1]);
   w.A.bid = 0.45; w.A.ask = 0.47;
@@ -1364,7 +1366,8 @@ Deno.test("a market held from an earlier day is read and marked, never quoted; r
   const s = await w.turn(Date.parse("2026-10-03T06:05:30Z"));
   assertEquals(s.errors, []);
   assertEquals((w.mem.tables.pm_live_settlements as Row[]).map((x) => [x.cond, Number(x.payout), x.closed_time]), [[cond(5), 1, "2026-10-03 06:00:00+00"]]);
-  assertEquals(s.pnl, { day: 2.75, total: 2.75 });
+  // In all +5 × 0.55; today (the change since 00:00, 2026-10-07) from the mark the day began at, 0.46: +5 × 0.54.
+  assertEquals(s.pnl, { day: 2.7, total: 2.75 });
   // Until redeemed, its 5 YES are $5 of capital the pUSD does not have back: B's and C's bids ($39.04) fit a $42 total
   // cap alone, not beside it.
   w.setConfig({ cap_total_usd: 42 });

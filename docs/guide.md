@@ -296,6 +296,9 @@ places stay when the number is not whole.
   column shows a dash; the running one is in its status. If the account's
   own loss limit would have been hit, its dot turns amber and says so:
   from then on, as the real account would, it only sells what it holds.
+  The limit for one day counts only that day's change: what it holds
+  starts each day at its price at midnight UTC (a change of 7 October), so a
+  loss carried from an earlier day counts only toward the overall limit.
   From 4 October its rewards are worked out with its own quotes in the
   market's order book, as Polymarket works them out, and from 5 October
   it prefers markets whose order book has depth: on each side, at least

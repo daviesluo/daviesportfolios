@@ -97,4 +97,22 @@ describe('the mid-pool pre-registration', () => {
     expect(sha('supabase/functions/agents/pm_live_mid_frozen.ts')).toBe('8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653');
     expect(sha('supabase/functions/agents/pm_prep_mid_frozen.ts')).toBe('8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea');
   });
+
+  // Addendum 4 (2026-10-07, Davies: "只算当天变化"): deviation 4, the day stop counts only the day's change. The same
+  // comparison pins it, its frozen copies unchanged; the readout runs as frozen and names the stopped days and the deploy.
+  it("names the day stop of 2026-10-07 as deviation 4, in its Addendum 4: the stopped days, the deploy, the code by sha256, the frozen copies and statements unchanged", () => {
+    const add4 = DOC.slice(DOC.indexOf('## Addendum 4'));
+    expect(add4.length).toBeGreaterThan(100);
+    expect(add4).toMatch(/Deviation 4: the deploy of this change/);
+    expect(add4).toContain('> 只算当天变化');
+    for (const d of ['2026-10-05', '10-06', '10-07']) expect(add4).toContain(d);
+    expect(add4).toContain('**The readout names**');
+    expect(add4).toContain('`mid_readout.sql` is unchanged');
+    for (const f of ['pm_live.ts', 'pm_prep.ts', 'pm_mid.ts']) expect(add4).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` (?:sha256 |is unchanged,\\s+)`[0-9a-f]{64}`'));
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    expect(sha('supabase/functions/agents/pm_live_mid_frozen.ts')).toBe('8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653');
+    expect(sha('supabase/functions/agents/pm_prep_mid_frozen.ts')).toBe('8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea');
+    // pm_mid.ts is the file Addendum 1 named: the change does not touch it.
+    expect(sha('supabase/functions/agents/pm_mid.ts')).toBe('9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd');
+  });
 });

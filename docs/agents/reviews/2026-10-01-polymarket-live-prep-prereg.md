@@ -424,3 +424,44 @@ quotes live-prep", under its own pre-registration. The path and its paper layer 
 comparison until Davies says otherwise. They arm nothing: the config stays `dry_run` true with `live_confirmed_at` null,
 and arming mini-pool would need a new pre-registration and his word. The files of the earlier addenda stay as they
 were written.
+
+## Addendum 8 (2026-10-07, about 21:40 UTC): the day stop counts only the day's change; mini-pool is a comparison only
+
+Davies, 2026-10-07, answering whether the day stop of mini-pool and mid-pool should keep counting every holding's whole
+unrealised loss as the day's or count only the day's own change; the option he chose, verbatim:
+
+> 只算当天变化
+
+In English: count only the day's change. Mini-pool's check windows were closed by Addendum 7, so nothing of this
+pre-registration is read again: mini-pool is a dry-run kept as a comparison, and this addendum records what changes in
+the code it runs. What changes, and nothing else:
+
+- **The day stop's figure.** Until now the path's day (`bookPnl` in `pm_live.ts`, "all of it counts today: stricter")
+  was the day's realised trades plus every holding's whole unrealised P&L against its cost, so a holding carried from an
+  earlier day counted its whole loss again each day. It is now the day's change: what the book holds now at its marks,
+  less what it held as the UTC day began at its marks then (a holding bought today at its cost), plus the day's sells and
+  settlements (`sinceOpenPnl`). The path keeps the opening marks in its state (`dayOpen`: the last marks read before
+  00:00, kept with each turn's `marks` and `marksAt`; a token neither has starts at its cost, which counts as before).
+  The paper layer does the same on paper (`paperDayPnl`): its opening marks are the marks it held as the day began, the
+  ones the day before closed on (`state.open`). The limit is unchanged, −$25 a day, and acts as before: nothing opens
+  until the next UTC day, and sells of what is held stay armed.
+- **The total stop does not change**: −$75 in all, every holding from its cost, a carried loss included.
+- **What the record gains:** a day stop's event keeps the figure on cost beside its own and when its day began
+  (`detail.onCost`, `detail.since`); the paper's state its opening marks (`open`) and in `pnl.day` the stop's figure; a
+  closed paper day `detail.dayChange`. `pm_prep_days.fills_pnl_day` and `pnl_day_r40` keep the figure on cost, as
+  `prep_check.sql` and its addenda read them; the state's `pnl.day`, which the page does not read, is the stop's figure.
+- **Pinned.** `agents/pm_daystop.test.ts` works it by hand, on the path and on the paper layer: 100 YES carried from
+  the day before at a $40 loss at the day's opening mark do not trip the $25 day stop at 00:00 or 00:01; a fresh $26 loss
+  within the day does; the total stop trips past −$75 on the carried loss; on the frozen rule the same turns trip the day
+  stop at 00:00 (and with the new rule switched off, the first assertion fails: −40 for 0). `pm_instance.test.ts` runs
+  today's default instances on the frozen rule (`dayStopOnCost`, which no action sets, as Addendum 6's comparison ran the
+  default without the book-quality rule) beside `pm_live_frozen.ts` and `pm_prep_frozen.ts`, byte for byte, and finds
+  every table, request, body and report the same but the formula's fields, as before; its last test runs the default as
+  deployed beside that over the same simulated days and finds the two the same until a holding is carried across 00:00
+  (B's 20 YES at 0.201, marked 0.115 as 10-04 began): the frozen rule stops the day at 00:01 on the carried −1.72, the
+  deployed one opens and stops at 06:01 on the settlement's −2.30 that day (−4.02 in all).
+- **The code it deploys**: `pm_live.ts` sha256 `4032d6c01e255f5e682eb916d8ffdbdb35e774a7859f8defccfb22afe9236706`,
+  `pm_prep.ts` sha256 `a13ef03c870db2a17411456ffbfcb1b203ffe4654525d7792e6e38ed675b696a` (before it, on `main`:
+  `23112a4f…e5a9` and `78c804ee…8db6`). `pm_live_frozen.ts` and `pm_prep_frozen.ts` stay the bytes frozen above.
+- **When it counts:** from the first 00:00 UTC after the deploy. Neither the path nor the layer has opening marks for
+  the deploy's own day (`agents/pm_daystop.test.ts` pins the path's), so the rest of that day counts as before.

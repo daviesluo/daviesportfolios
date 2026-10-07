@@ -236,3 +236,34 @@ passed on that day; (d) is the record's measure, and the simulated books are not
 - **Mid-pool's exclusion of RW's picks** does not apply to live-prep.
 - **Redemption:** settled markets' tokens hold capital under the cap until redeemed (by hand, Davies): on RW's record,
   redeemed daily it costs $5.63 at R = 1, every 72 hours $75.68, never $143.58.
+
+## Addendum 1 (2026-10-07, about 21:40 UTC): the shared code's day stop changes; live-prep has none, and is unchanged
+
+Written after d1 (2026-10-05), before the deploy it records: a change to `pm_live.ts` and `pm_prep.ts` deployed after d1
+is a deviation an addendum records ("The window"). Davies, 2026-10-07, answering whether the day stop of mini-pool and
+mid-pool should keep counting every holding's whole unrealised loss as the day's or count only the day's own change; the
+option he chose, verbatim:
+
+> 只算当天变化
+
+In English: count only the day's change. What changes, and what it does here:
+
+- **The change.** The day stop of mini-pool and mid-pool, the path's and the paper layer's, counts the day's change:
+  what is held now at its marks, less what was held as the UTC day began at its marks then (bought that day: at its
+  cost), plus the day's sells and settlements (`sinceOpenPnl`, `paperDayPnl`). Their total stop is unchanged.
+- **Live-prep has no day stop** ("The account": its config's `loss_day_usd` is null, `lpLimits` gives no limit, and
+  0091's CHECK admits nothing else), so none of its decisions changes. The code branches on it: the new figure, and the
+  opening marks it needs, are taken only for an instance with a day limit; live-prep's path keeps `bookPnl`'s day in its
+  report and state, and its layer keeps no stop of its own, as before. Its total stop (−$75 on the fills plus what was
+  paid) is unchanged.
+- **Pinned** (`agents/pm_lp.test.ts`, "live-prep has no day stop"): live-prep's path and layer as deployed beside the
+  same on the frozen day stop (`dayStopOnCost`, which no action sets), over simulated days on which its paper holds 10 YES
+  carried into the next UTC day below their cost and rests their sells, write every table, send every request and body
+  and report every turn the same; no day stop and no opening marks appear in either.
+- **The code it deploys**: `pm_live.ts` sha256 `4032d6c01e255f5e682eb916d8ffdbdb35e774a7859f8defccfb22afe9236706`,
+  `pm_prep.ts` sha256 `a13ef03c870db2a17411456ffbfcb1b203ffe4654525d7792e6e38ed675b696a` (frozen above: `23112a4f…e5a9`
+  and `78c804ee…8db6`); `pm_lp.ts` and `0091_pm_lp.sql` are unchanged. `lp_check.sql` (run on d1) and `lp_readout.sql`
+  are unchanged.
+- **The payouts patch (P3)** applies to `pm_live.ts` and is rebuilt on this code
+  (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`); applying it is still Davies' call and its own
+  addendum's.

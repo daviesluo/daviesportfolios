@@ -10,6 +10,11 @@
 //
 // The frozen layer imports its book-keeping from today's pm_live.ts, as mini-pool's does (pm_instance.test.ts pins those
 // functions to be the frozen path's own, text for text).
+//
+// The day stop of 2026-10-07 (Davies: "只算当天变化"; deviation 4, Addendum 4 of the pre-registration) changes a
+// decision, so the comparison runs today's mid-pool instances on the day stop the pre-registration froze
+// (`dayStopOnCost`, set by no action); the last test runs mid-pool as deployed beside that, over the same days, and finds
+// the day stop the one difference, worked by hand.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import * as Frozen from "./pm_live_mid_frozen.ts";
@@ -51,7 +56,13 @@ function markets(pm: FakePolymarket) {
 }
 
 /** One world of mid-pool alone: its path run by `runLive`, its paper layer by `runPrep`, prints through its bids. */
-function midWorld(runLive: Run, runPrep: Run) {
+/** Mid-pool's instances, on the day stop its pre-registration froze when `onCost` (every change but 2026-10-07's). */
+const midInst = (onCost: boolean) => onCost
+  ? { live: { ...PM_MID_INSTANCE, dayStopOnCost: true }, prep: { ...PREP_MID_INSTANCE, dayStopOnCost: true } }
+  : { live: PM_MID_INSTANCE, prep: PREP_MID_INSTANCE };
+
+function midWorld(runLive: Run, runPrep: Run, onCost = false) {
+  const inst = midInst(onCost);
   const clock = { now: T0 };
   const pm = new FakePolymarket(() => clock.now);
   const m = markets(pm);
@@ -78,10 +89,10 @@ function midWorld(runLive: Run, runPrep: Run) {
       const live = await runLive({
         db, now: t, holder: `h${t}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true,
         account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER }, signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now,
-        inst: PM_MID_INSTANCE, pm: { fetchImpl: pm.publicFetch },
+        inst: inst.live, pm: { fetchImpl: pm.publicFetch },
       });
       clock.now = t + 5e3;
-      const prep = await runPrep({ db: prepDb, now: t + 5e3, holder: `p${t}`, inst: PREP_MID_INSTANCE, pm: { fetchImpl: pm.publicFetch, clock: () => clock.now } });
+      const prep = await runPrep({ db: prepDb, now: t + 5e3, holder: `p${t}`, inst: inst.prep, pm: { fetchImpl: pm.publicFetch, clock: () => clock.now } });
       return { live, prep };
     },
     open: () => (mem.tables.pm_mid_orders as Row[]).filter((o) => o.state === "pending" || o.state === "live"),
@@ -176,8 +187,8 @@ function firstDiff(a: Record<string, unknown>, b: Record<string, unknown>): stri
   return "";
 }
 
-Deno.test("mid-pool through today's path and layer is mid-pool through the code its pre-registration froze, turn by turn, dry-run and live, but the fields the formula of 2026-10-04 makes", async () => {
-  const frozen = midWorld(Frozen.runPmLive, FrozenPrep.runPmPrep), today = midWorld(Path.runPmLive, Prep.runPmPrep);
+Deno.test("mid-pool through today's path and layer, on the frozen day stop, is mid-pool through the code its pre-registration froze, turn by turn, dry-run and live, but the fields the formula of 2026-10-04 makes", async () => {
+  const frozen = midWorld(Frozen.runPmLive, FrozenPrep.runPmPrep), today = midWorld(Path.runPmLive, Prep.runPmPrep, true);
   const states = new Set<string>();
   for (const [t, act] of STEPS) {
     for (const w of [frozen, today]) act?.(w);
@@ -238,4 +249,67 @@ Deno.test("every export of the code mid-pool froze is today's, text for text and
   assertEquals([...Prep.PREP_DB_TABLES].sort(), [...FrozenPrep.PREP_DB_TABLES].sort());
   assertEquals([...Prep.prepDbTables(PREP_MID_INSTANCE)].sort(), [...FrozenPrep.prepDbTables(PREP_MID_INSTANCE)].sort());
   assertEquals(Prep.prepReads(PREP_MID_INSTANCE), FrozenPrep.prepReads(PREP_MID_INSTANCE));
+});
+
+/**
+ * What the day stop of 2026-10-07 adds to mid-pool's record and nothing else: the path's state keeps its opening marks
+ * and its last marks (`dayOpen`, `marks`, `marksAt`), the layer's state its opening marks (`open`) and its day figure, a
+ * stop's event the figure on cost beside its own and when its day began (`since`, `onCost`), and a closed paper day the
+ * stop's figure (`detail.dayChange`).
+ */
+function stripDayStop(tables: Record<string, unknown>): Record<string, Row[]> {
+  const t = structuredClone(tables) as Record<string, Row[]>;
+  for (const r of t.pm_mid_state ?? []) { const s = r.state as Row; delete s.dayOpen; delete s.marks; delete s.marksAt; }
+  for (const r of t.pm_midprep_state ?? []) { const s = r.state as Row; delete s.open; if (s.pnl) delete (s.pnl as Row).day; }
+  for (const e of [...(t.pm_mid_events ?? []), ...(t.pm_midprep_events ?? [])]) if (String(e.kind) === "loss_stop_day") { const d = e.detail as Row; delete d.since; delete d.onCost; delete d.dayPnl; }
+  for (const r of t.pm_midprep_days ?? []) delete (r.detail as Row).dayChange;
+  return t;
+}
+
+/**
+ * Deviation 4 (2026-10-07, Davies: "只算当天变化"): mid-pool's day stop counts only the day's change. By hand, on these
+ * days: live on 10-06, M3's YES bid fills 20 at 0.46 (01:06) and M3 falls to 0.30 / 0.33 (01:17): 20 × (0.315 − 0.46) =
+ * −2.90, past the day's −0.50 on either rule (bought that day). The 20 are carried into 10-07 at 0.315, the mark the day
+ * began at. On the frozen rule the whole −2.90 counts again on 10-07, and the stop trips at its first turn (00:01), as
+ * mid-pool's paper stopped at 00:00 on 10-05, 10-06 and 10-07; counted from 00:00 the day is 0, and the path opens. M3
+ * resolves NO at 06:00: 20 × (0 − 0.315) = −6.30 today, which trips it then; −9.20 in all.
+ */
+Deno.test("deviation 4: mid-pool's day stop of 2026-10-07 is the one change from the frozen rule; a carried loss no longer trips the next day's stop, and the day's own loss does", async () => {
+  const prod = midWorld(Path.runPmLive, Prep.runPmPrep), cost = midWorld(Path.runPmLive, Prep.runPmPrep, true);
+  const DIVERGE = at("2026-10-07T00:01:30Z");
+  // deno-lint-ignore no-explicit-any
+  const reports: Array<[number, any, any]> = [];
+  for (const [t, act] of STEPS) {
+    for (const w of [prod, cost]) act?.(w);
+    const a = await prod.turn(t), b = await cost.turn(t);
+    reports.push([t, a, b]);
+    if (t >= DIVERGE) continue;
+    const label = iso(t);
+    assertEquals(JSON.stringify(a), JSON.stringify(b), `reports at ${label}`);
+    assertEquals(firstDiff(stripDayStop(prod.mem.tables), stripDayStop(cost.mem.tables)), "", `tables after ${label}`);
+    assertEquals(prod.pm.urls, cost.pm.urls, `requests by ${label}`);
+    assertEquals(prod.pm.bodies, cost.pm.bodies, `bodies by ${label}`);
+  }
+  const P = prod.mem.tables as Record<string, Row[]>, C = cost.mem.tables as Record<string, Row[]>;
+  const stops = (T: Record<string, Row[]>) => T.pm_mid_events.filter((e) => e.kind === "loss_stop_day").map((e) => [e.minute, (e.detail as Row).dayPnl]);
+  assertEquals(P.pm_mid_fills.map((f) => [f.cond, f.side, Number(f.price), Number(f.size), f.status]), [[prod.M3.cond, "BUY", 0.46, 20, "CONFIRMED"]]);
+  assertEquals(stops(C), [["2026-10-06T01:18:00.000Z", -2.9], ["2026-10-07T00:01:00.000Z", -2.9]]);
+  assertEquals(stops(P), [["2026-10-06T01:18:00.000Z", -2.9], ["2026-10-07T06:00:00.000Z", -6.3]]);
+  const ev = P.pm_mid_events.find((e) => e.kind === "loss_stop_day" && e.minute === "2026-10-07T06:00:00.000Z")!.detail as Row;
+  assertEquals([ev.since, ev.onCost, ev.limit], ["2026-10-07T00:01:30.000Z", -9.2, -0.5]);
+  const turn = (t: string) => reports.find(([x]) => x === at(t))!;
+  const [, a0, b0] = turn("2026-10-07T00:01:30Z");
+  assertEquals([a0.live.pnl, a0.live.gates.openBlockedBy], [{ day: 0, total: -2.9 }, null]);
+  assertEquals([b0.live.pnl, b0.live.gates.openBlockedBy], [{ day: -2.9, total: -2.9 }, "loss_day"]);
+  const opened = (T: Record<string, Row[]>) => T.pm_mid_orders.filter((o) => o.mode === "live" && o.gate === "open" && String(o.ts) >= "2026-10-07" && String(o.ts) < "2026-10-07T06").length;
+  assert(opened(P) > 0 && opened(C) === 0, `orders that open on 10-07 before the settlement: ${opened(P)} and ${opened(C)}`);
+  const open = (P.pm_mid_state[0].state as Row).dayOpen as { day: string; at: string; marks: Record<string, number> };
+  assertEquals([open.day, open.at], ["2026-10-07", "2026-10-07T00:01:30.000Z"]);
+  assertAlmostEquals(open.marks[prod.M3.yes], 0.315, 1e-12);
+  const [, a1, b1] = turn("2026-10-07T06:00:30Z");
+  assertEquals([a1.live.pnl, b1.live.pnl], [{ day: -6.3, total: -9.2 }, { day: -9.2, total: -9.2 }]);
+  // The paper layer stops at the same minute on both rules; the figure on cost it keeps is the frozen rule's own.
+  const pStop = P.pm_midprep_events.filter((e) => e.kind === "loss_stop_day"), cStop = C.pm_midprep_events.filter((e) => e.kind === "loss_stop_day");
+  assertEquals([pStop.map((e) => e.minute), cStop.map((e) => e.minute)], [["2026-10-06T13:17:00.000Z"], ["2026-10-06T13:17:00.000Z"]]);
+  assertEquals([(pStop[0].detail as Row).onCost, (pStop[0].detail as Row).since], [(cStop[0].detail as Row).dayPnl, "2026-10-06T00:00:00.000Z"]);
 });

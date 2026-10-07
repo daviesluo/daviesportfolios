@@ -218,7 +218,9 @@ simulation's assumptions: 90 % half-width 0.074–0.238 at R = 1). The dry-run's
 ## Stops and kill switches
 
 - **Automatic** (the path's own, as in the dry-run): at −$25 on the UTC day nothing opens until the next day; at −$75
-  in all nothing opens again until a person clears the stop. Sells of what is held stay armed under both.
+  in all nothing opens again until a person clears the stop. Sells of what is held stay armed under both. The day's
+  figure is the day's change since 2026-10-07 (mid-pool's deviation 4, Davies: "只算当天变化"): each holding from its mark
+  at 00:00 UTC, or its cost if bought that day, plus the day's trades; the total counts every holding from cost.
 - `update public.pm_mid_config set live_confirmed_at = null where id = 1;` — nothing that opens; open buys withdrawn on
   the next turn; sells of what is held stay armed.
 - `update public.pm_mid_config set dry_run = true where id = 1;` — back to dry-run; its live orders cancelled.

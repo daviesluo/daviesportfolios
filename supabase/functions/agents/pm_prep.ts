@@ -33,7 +33,11 @@
 // `tokenBooks` and `bookPnl` on those fills and on each market's settlement (`settlementFills`), marked at the touch
 // mid of the book the path read, as it marks. Its loss stops act as the path's do (`effectiveLimits` of its config,
 // −$25 a day and −$75 in all): from the minute after one trips nothing opens — the day stop until the next UTC day, the
-// total stop for good — and only `closeOnly`'s sells of what is held rest, each side run alone through `stepRw`.
+// total stop for good — and only `closeOnly`'s sells of what is held rest, each side run alone through `stepRw`. Since
+// 2026-10-07 the day stop counts only the day's change, as the path's does (`paperDayPnl`, Davies: "只算当天变化"): each
+// holding from the mark it held as the UTC day began (`st.open`, the marks the day before closed on), or its cost if
+// bought today, plus the day's realised trades; the total stop and the day's row (`fills_pnl_day`, which the frozen
+// readouts read) count every holding from its cost, as before, and the row keeps the stop's figure in `detail.dayChange`.
 // Rewards are the formula's, and at R = 0.40, RW's break-even ratio of what is paid to what the formula says: since
 // 2026-10-04 the path's own figure of the quotes it rested, scored against the book with them in it as the venue holds
 // them (`detail.after`), RW's line (as stepRw computes it, the rest of the book's midpoint) for a minute recorded before
@@ -72,8 +76,8 @@ import { applyFill } from "./pmrw_e.ts";
 import { pmBooks, pmMarkets, pmPrints, type PmPrint, type PmPublicOpts } from "../_shared/polymarket_public.ts";
 import { asTickSize } from "../_shared/polymarket_orders.ts";
 import {
-  bookPnl, closeOnly, effectiveLimits, inYesBook, onTick, settlementFills, tokenBooks, type PmFill, type PmIntent, type PmLiveConfig, type PmOrderRow,
-  type PmSettlement,
+  bookPnl, closeOnly, effectiveLimits, inYesBook, onTick, settlementFills, sinceOpenPnl, tokenBooks, type PmFill, type PmIntent, type PmLiveConfig,
+  type PmOrderRow, type PmSettlement,
 } from "./pm_live.ts";
 import type { Db } from "./db.ts";
 
@@ -94,6 +98,11 @@ export type PrepInstance = {
   migration: string;
   /** Live-prep's layer (the header's LIVE-PREP'S LAYER): it fills the path's sells too and keeps no stop of its own. */
   lp?: boolean;
+  /**
+   * The day stop as the pre-registrations froze it, every holding's whole unrealised P&L counted as the day's: the path's
+   * `PmLiveInstance.dayStopOnCost`, for the comparisons with the frozen copies only. No action runs it.
+   */
+  dayStopOnCost?: boolean;
 };
 /** The layer as it ran before instances, name for name (0077): beside the small-pool path. */
 export const PREP_INSTANCE: PrepInstance = {
@@ -156,6 +165,8 @@ export type PrepState = {
   marks: Record<string, number>;                         // the touch mid (YES) of each market's latest book
   stopDay: string | null;                                // the UTC day a day stop tripped in
   stopTotal: string | null;                              // when the total stop tripped
+  /** The marks (YES, by market) as the UTC day `day` began, which the day stop counts from (since 2026-10-07). */
+  open?: { day: string; marks: Record<string, number> };
   day: PrepDay;
   pnl: { at: string; day: number; total: number } | null;
 };
@@ -335,6 +346,24 @@ export function paperPnl(fills: PrepFill[], settlements: PmSettlement[], tokens:
   return { ...pnl, heldValue: r6(heldValue), held, books: tb };
 }
 
+/**
+ * The day stop's figure on paper, as the path computes its own (`sinceOpenPnl`): the paper's fills and settlements up to
+ * `until`, each holding marked at its market's touch mid now, and each one held as the day began from `open` (YES at the
+ * mid, NO at 1 − mid), the day from `dayStart`.
+ */
+export function paperDayPnl(fills: PrepFill[], settlements: PmSettlement[], tokens: Record<string, { yes: string; no: string }>, marks: Record<string, number>,
+  open: Record<string, number>, dayStart: number, until = Infinity): number {
+  const fs = pathFills(fills.filter((f) => f.ts < until));
+  const ss = settlementFills(settlements.filter((s) => Date.parse(s.settled_at) < until));
+  const now: Record<string, number | null> = {}, at0: Record<string, number> = {};
+  for (const [cond, tk] of Object.entries(tokens)) {
+    const mid = marks[cond], o = open[cond];
+    now[tk.yes] = mid ?? null; now[tk.no] = mid == null ? null : 1 - mid;
+    if (typeof o === "number") { at0[tk.yes] = o; at0[tk.no] = 1 - o; }
+  }
+  return sinceOpenPnl([...fs, ...ss], dayStart, at0, now);
+}
+
 /** Each market's holdings by the path's book-keeping: YES and NO held. */
 export function heldOf(books: ReturnType<typeof tokenBooks>, tk: { yes: string; no: string }): { yes: number; no: number } {
   return { yes: books[tk.yes]?.held ?? 0, no: books[tk.no]?.held ?? 0 };
@@ -496,6 +525,8 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
   const cfg = (await db.select<PmLiveConfig>(R.config, "id=eq.1&select=*"))[0];
   if (!cfg) { report.skipped = `no ${R.config} row`; return; }
   const lim = effectiveLimits(cfg);
+  // The day stop counts only the day's change since 2026-10-07 (`paperDayPnl`); live-prep's layer keeps no stop of its own.
+  const sinceOpen = !inst.lp && !inst.dayStopOnCost;
   const stored = (await db.select<{ state: PrepState | Record<string, never> }>(T.state, "id=eq.1&select=state"))[0]?.state;
   const st: PrepState = stored && (stored as PrepState).version === 1 ? stored as PrepState : newState(d.now);
   const settlements = await db.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
@@ -555,8 +586,10 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
     const minuteRows: Record<string, unknown>[] = [];
     const newFills: PrepFill[] = [];
     for (let t = from; t <= to; t += M) {
-      if (t >= st.dayOf + DAY) await closeDays(d, T, st, t, fills.concat(newFills), settlements, report);
+      if (t >= st.dayOf + DAY) await closeDays(d, T, st, t, fills.concat(newFills), settlements, report, sinceOpen);
       const day = dayStr(t), dayStart = Math.floor(t / DAY) * DAY;
+      // The marks as the day begins, before its first minute's books: what the day before closed on (`paperDayPnl`).
+      if (sinceOpen && t === dayStart) st.open = { day, marks: { ...st.marks } };
       const rows = liveAt.get(t) ?? [];
       // A minute of a day with markets in which the path recorded nothing at all: its turn did not run, or read no book.
       if (!rows.length && (dayMarkets.get(day) ?? []).length) { st.day.missing++; report.missing++; }
@@ -645,17 +678,24 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
       }
       // The path's stops, on the paper's P&L after this minute's fills: acting from the next minute, as the path's next turn would.
       const pnl = paperPnl(fills.concat(newFills), settlements, st.tokens, st.marks, dayStart);
-      st.pnl = { at: iso(t), day: r6(pnl.day), total: r6(pnl.total) };
+      // The day stop's day: the change since the day began, once the layer holds the day's opening marks (from the first
+      // 00:00 it decides after the deploy of 2026-10-07; the rest of that day counts as before).
+      const fromOpen = sinceOpen && st.open?.day === day;
+      const dayPnl = fromOpen ? paperDayPnl(fills.concat(newFills), settlements, st.tokens, st.marks, st.open!.marks, dayStart) : pnl.day;
+      st.pnl = { at: iso(t), day: r6(dayPnl), total: r6(pnl.total) };
       if (inst.lp) continue;                                  // live-prep's stop is its path's (above)
       if (st.stopTotal === null && pnl.total <= -lim.lossTotal) {
         st.stopTotal = iso(t);
         report.stops.push(`loss_stop_total at ${iso(t)}: ${r6(pnl.total)}`);
         await db.upsert(T.events, [{ minute: iso(t), kind: "loss_stop_total", detail: { totalPnl: r6(pnl.total), limit: -lim.lossTotal } }], "minute,kind");
       }
-      if (st.stopDay !== day && pnl.day <= -lim.lossDay) {
+      if (st.stopDay !== day && dayPnl <= -lim.lossDay) {
         st.stopDay = day;
-        report.stops.push(`loss_stop_day at ${iso(t)}: ${r6(pnl.day)}`);
-        await db.upsert(T.events, [{ minute: iso(t), kind: "loss_stop_day", detail: { dayPnl: r6(pnl.day), limit: -lim.lossDay } }], "minute,kind");
+        report.stops.push(`loss_stop_day at ${iso(t)}: ${r6(dayPnl)}`);
+        await db.upsert(T.events, [{
+          minute: iso(t), kind: "loss_stop_day",
+          detail: fromOpen ? { dayPnl: r6(dayPnl), limit: -lim.lossDay, since: iso(dayStart), onCost: r6(pnl.day) } : { dayPnl: r6(pnl.day), limit: -lim.lossDay },
+        }], "minute,kind");
       }
     }
     if (minuteRows.length) await db.upsert(T.minutes, minuteRows, "minute,cond");
@@ -711,16 +751,18 @@ async function prepRun(d: PrepDeps, inst: PrepInstance, report: PrepReport): Pro
  * Close every UTC day that ended before minute `t`: its formula rewards (and at R = 0.40), its fills' P&L by the path's
  * book-keeping at the day's end (the day's and the run's), its holdings at the mid, its minutes by class, and its stops.
  */
-async function closeDays(d: PrepDeps, T: PrepInstance["tables"], st: PrepState, t: number, fills: PrepFill[], settlements: PmSettlement[], report: PrepReport) {
+async function closeDays(d: PrepDeps, T: PrepInstance["tables"], st: PrepState, t: number, fills: PrepFill[], settlements: PmSettlement[], report: PrepReport, sinceOpen: boolean) {
   while (t >= st.dayOf + DAY) {
     const day = dayStr(st.dayOf), end = st.dayOf + DAY;
     const pnl = paperPnl(fills, settlements, st.tokens, st.marks, st.dayOf, end);
+    // The day stop's figure at the day's end (`paperDayPnl`), beside the frozen columns, when the layer held its opening marks.
+    const dayChange = sinceOpen && st.open?.day === day ? { dayChange: r6(paperDayPnl(fills, settlements, st.tokens, st.marks, st.open.marks, st.dayOf, end)) } : {};
     const reward = r6(st.day.reward), r40 = r6(st.day.reward * PREP_R_BREAK_EVEN);
     await d.db.upsert(T.days, [{
       day, reward, reward_r40: r40, fills_pnl_day: r6(pnl.day), fills_pnl_total: r6(pnl.total), pnl_day_r40: r6(pnl.day + r40), held_value: pnl.heldValue,
       fills: st.day.fills, minutes_matched: st.day.matched, minutes_dark: st.day.dark, minutes_diverged: st.day.diverged, minutes_missing: st.day.missing,
       stop_day: st.stopDay === day, stop_total: st.stopTotal !== null && st.stopTotal.slice(0, 10) <= day, markets: st.day.markets.length,
-      detail: { markets: st.day.markets, startedAt: st.startedAt }, closed_at: iso(d.now),
+      detail: { markets: st.day.markets, startedAt: st.startedAt, ...dayChange }, closed_at: iso(d.now),
     }], "day");
     report.days++;
     st.dayOf = end;

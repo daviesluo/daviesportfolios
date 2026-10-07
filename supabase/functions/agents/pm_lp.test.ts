@@ -267,8 +267,10 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>> } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean } = {}) {
   const clock = { now: T0 };
+  // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
+  const inst = o.onCost ? { ...PM_LP_INSTANCE, dayStopOnCost: true } : PM_LP_INSTANCE, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
     pm.addMarket({ cond: cond(n), yes: tok(n, "yes"), no: tok(n, "no"), rate, sponsoredRate: null, minSize: 5, depth: [[0, 50]], ...extra });
@@ -298,11 +300,11 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
       clock.now = t;
       const r = await runPmLive({
         db, now: t, holder: `h${t}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true, account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER },
-        signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst: PM_LP_INSTANCE, pm: { fetchImpl: pm.publicFetch },
+        signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst, pm: { fetchImpl: pm.publicFetch },
       });
       errors.push(...r.errors.filter((e) => !/pUSD|LOSS STOP/.test(e)).map((e) => `${iso(t)} path: ${e}`));
       clock.now = t + 5e3;
-      const p = await runPmPrep({ db: prepDb, now: t + 5e3, holder: `p${t}`, pm: { fetchImpl: pm.publicFetch, clock: () => clock.now }, inst: PREP_LP_INSTANCE });
+      const p = await runPmPrep({ db: prepDb, now: t + 5e3, holder: `p${t}`, pm: { fetchImpl: pm.publicFetch, clock: () => clock.now }, inst: prepInst });
       errors.push(...p.errors.map((e) => `${iso(t)} layer: ${e}`));
       return r;
     },
@@ -439,6 +441,45 @@ Deno.test("the stop: on the paper's fills and what its closed days would have be
   assertEquals(b.rows("pm_lp_events").filter((e) => e.kind === "loss_stop_total").length, 0);
   assertEquals((b.rows("pm_lp_state")[0].state as any).lp.paid, 1);
   assert(a.othersUntouched() && b.othersUntouched());
+});
+
+/**
+ * The day stop of 2026-10-07 (Davies: "只算当天变化") is mini-pool's and mid-pool's: live-prep has none (its config's day
+ * limit is null, `lpLimits` gives Infinity), so it is unchanged in behaviour. Pinned on a day that would show it: L1's
+ * paper holds 10 YES at 0.45 from 10-05, carried into 10-06 at a loss (the book falls to 0.37 / 0.39 at 23:58), and the
+ * days run on into 10-06 with L1 carried and its sells resting. The path and its layer as deployed, and the same on the
+ * frozen day stop, write every table, send every request and body and report every turn the same; no day stop and no
+ * opening marks appear in either; the turn's day figure is the frozen one.
+ */
+Deno.test("live-prep has no day stop: the change of 2026-10-07 leaves its path and layer the same, turn by turn, with a loss carried across 00:00", async () => {
+  const now = world(), old = world({ onCost: true });
+  const late = Date.parse("2026-10-05T23:55:30Z"), day2 = Date.parse("2026-10-06T00:00:30Z");
+  const reports: Array<[number, string, string]> = [];
+  for (const w of [now, old]) {
+    w.pm.prints.set(w.L1.cond, Array.from({ length: 2 }, (_, k): P => [at(k, 10), "SELL", 0, 0.44, 5]));
+    const turn = async (t: number) => { const r = await w.turn(t); reports.push([t, w === now ? "now" : "old", JSON.stringify(r)]); return r; };
+    for (let k = 0; k < 6; k++) await turn(T0 + k * M);
+    for (let k = 0; k < 2; k++) await turn(late + k * M);
+    w.L1.bid = 0.37; w.L1.ask = 0.39;
+    for (let k = 2; k < 5; k++) await turn(late + k * M);
+    w.L1.rate = 5;                                                                             // out of the universe on 10-06
+    for (let k = 0; k < 5; k++) await turn(day2 + k * M);
+  }
+  const of = (who: string) => reports.filter((r) => r[1] === who).map(([t, , r]) => [t, r]);
+  assertEquals(of("now"), of("old"));
+  assertEquals(JSON.stringify(now.mem.tables), JSON.stringify(old.mem.tables));
+  assertEquals(now.pm.urls, old.pm.urls);
+  assertEquals(now.pm.bodies, old.pm.bodies);
+  assertEquals([now.errors, old.errors], [[], []]);
+  // The day the record shows: 10 YES of L1 held into 10-06 below their cost, its sells resting; no day stop, no opening marks.
+  assert(now.rows("pm_lpprep_fills").some((f) => f.cond === now.L1.cond && f.token_side === "BUY" && String(f.ts) < "2026-10-06"), "a paper buy on 10-05");
+  assert(now.restingAfter(now.L1.cond, day2 + 4 * M - 30e3).some((x) => x.side === "SELL"), JSON.stringify(now.rows("pm_lp_orders").filter((x) => x.cond === now.L1.cond).map((x) => [x.ts, x.side, x.outcome, x.price, x.state])));
+  const last = JSON.parse(of("now").at(-1)![1] as string);
+  assert(last.pnl.total < 0 && last.pnl.day === last.pnl.total, JSON.stringify(last.pnl));         // the frozen figure: everything counts today
+  assertEquals(now.rows("pm_lp_events").filter((e) => e.kind === "loss_stop_day").length, 0);
+  const st = now.rows("pm_lp_state")[0].state as Record<string, unknown>;
+  assertEquals([st.dayOpen, st.marks, st.marksAt], [undefined, undefined, undefined]);
+  assertEquals((now.rows("pm_lpprep_state")[0].state as Record<string, unknown>).open, undefined);
 });
 
 Deno.test("armed: the account's holdings, not the paper's; a sell once it holds N; the live stop counts what the readout booked paid", async () => {

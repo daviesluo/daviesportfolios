@@ -108,4 +108,25 @@ describe('the live-prep pre-registration', () => {
     expect(add6.length).toBeGreaterThan(100);
     for (const f of ['pm_live.ts', 'pm_prep.ts']) expect(add6).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `[0-9a-f]{64}`'));
   });
+
+  // Addendum 8 (2026-10-07, Davies: "只算当天变化"): the day stop counts only the day's change. Mini-pool's windows are
+  // closed (Addendum 7), so it records the code mini-pool's comparison runs; the frozen copies stay the bytes it froze.
+  it("records the day stop of 2026-10-07 in Addendum 8, in Davies' words, with the code it deploys by sha256, the frozen copies unchanged", () => {
+    const add8 = DOC.slice(DOC.indexOf('## Addendum 8'));
+    expect(add8.length).toBeGreaterThan(100);
+    expect(add8).toContain('> 只算当天变化');
+    expect(add8).toContain('**The total stop does not change**');
+    const named = (f) => new RegExp('`' + f.replace('.', '\\.') + '` sha256 `([0-9a-f]{64})`').exec(add8)?.[1];
+    expect(named('pm_live.ts')).toMatch(/^[0-9a-f]{64}$/);
+    expect(named('pm_prep.ts')).toMatch(/^[0-9a-f]{64}$/);
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    expect(sha('supabase/functions/agents/pm_live_frozen.ts')).toBe('fbdaca34bd7f0037fb88ea7f9782ecc31311f283b6b0fe7c7c1cd45b3c519b89');
+    expect(sha('supabase/functions/agents/pm_prep_frozen.ts')).toBe('83fe596fe7cb9b0dfd4e0a88c4259bc6484e37d9a755d6d0bbc46c56525d7061');
+    // The same code as the other two pre-registrations' addenda of that day name.
+    for (const other of ['2026-10-02-polymarket-mid-pool-prereg.md', '2026-10-04-polymarket-lp-prereg.md']) {
+      const doc = fs.readFileSync(path.join(ROOT, 'docs/agents/reviews', other), 'utf8');
+      const add = doc.slice(doc.indexOf('(2026-10-07'));
+      for (const f of ['pm_live.ts', 'pm_prep.ts']) expect(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `([0-9a-f]{64})`').exec(add)?.[1], `${other} ${f}`).toBe(named(f));
+    }
+  });
 });

@@ -84,4 +84,18 @@ describe('the live-prep pre-registration', () => {
     expect(DOC).toContain('目前上线live的最大candidate是这个live-prep策略');
     expect(DOC).toMatch(/Live-prep goes live only in the\s+conversation where he\s+says go/);
   });
+
+  // Addendum 1 (2026-10-07, Davies: "只算当天变化"): the shared code's day stop changes; live-prep has none, and is
+  // unchanged (supabase/functions/agents/pm_lp.test.ts runs it beside the frozen rule and finds every turn the same).
+  it("records the day stop of 2026-10-07 in its Addendum 1, in Davies' words: no day stop here, its rules and statements unchanged", () => {
+    const add1 = DOC.slice(DOC.indexOf('## Addendum 1'));
+    expect(add1.length).toBeGreaterThan(100);
+    expect(add1).toContain('> 只算当天变化');
+    expect(add1).toContain('**Live-prep has no day stop**');
+    for (const f of ['pm_live.ts', 'pm_prep.ts']) expect(add1).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `[0-9a-f]{64}`'));
+    // Its own instance and migration are the bytes frozen above.
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    expect(sha('supabase/functions/agents/pm_lp.ts')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(DOC)?.[1]);
+    expect(src('supabase/functions/agents/pm_live.ts')).toContain('const dayOpen = !inst.dayStopOnCost && Number.isFinite(lim.lossDay)');
+  });
 });

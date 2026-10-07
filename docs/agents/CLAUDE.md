@@ -425,7 +425,9 @@ that follow from that evidence, in short:
   RW's rule as RW-E applies it on rewarded markets of $6 to under $10 a
   day, outside RW's and RW-C's universe, measuring R = actual ÷ formula
   rewards; caps $320 in all (the deposit less the $75 stop and $5) and
-  $60 a market, stops −$25 a day and −$75 in all. Going live is ONE
+  $60 a market, stops −$25 a day and −$75 in all (the day's counts only the day's change since 2026-10-07, "只算当天变化":
+  each holding from its mark at 00:00 UTC, or its cost if bought that day; the total counts every holding from cost, a
+  carried loss included; mid-pool's the same, and live-prep has no day stop). Going live is ONE
   statement, in the conversation where he says go, which sets the cap
   from the balance the path itself read (refused when unread, stale or
   too small, and since `0084` without the key loaded, outside eu-west-1,

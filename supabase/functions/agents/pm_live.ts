@@ -29,7 +29,9 @@
 //      by its hash and its trades until CONFIRMED or FAILED.
 //   3. The gates (`gates`): the global pause, `live_confirmed_at` (live only), the region, the geoblock's country, the
 //      closed-only flag, Davies' Ireland attestation, the inventory read, the loss stops. While any of them stops
-//      opening, the path is close-only exactly as RW-NEXT Part 4 words it (`closeOnly`).
+//      opening, the path is close-only exactly as RW-NEXT Part 4 words it (`closeOnly`). Since 2026-10-07 the day stop
+//      counts only the day's change (`sinceOpenPnl`, Davies: "只算当天变化"): each holding from its mark as the UTC day
+//      began, or its cost if bought today, plus the day's realised trades; the total stop counts everything from cost.
 //   4. The quotes (`rwQuotes`): RW's bid and ask on the book WITHOUT our own orders, at N = max(the reward minimum, 5),
 //      a side stopped at 3N of inventory its way; then close-only, the venue's rules, post-only, the caps, the governor.
 //   5. The orders: a slot whose order is right is left alone; one that must change is cancelled and its replacement sent
@@ -227,6 +229,14 @@ export type PmLiveInstance = {
   errorKind: string;
   /** Live-prep's rules (`PmLpOptions`); absent for every other instance, whose turns it changes in nothing. */
   lp?: PmLpOptions;
+  /**
+   * The day stop as the pre-registrations froze it: every holding's whole unrealised P&L against its cost counts as the
+   * day's (`bookPnl`'s `day`). No action runs an instance with it. Since 2026-10-07 (Davies, asked whether the day stop
+   * should count every holding's whole loss or only the day's change: "只算当天变化") the day stop counts the change since
+   * 00:00 UTC (`sinceOpenPnl`); the comparisons with the frozen copies (`pm_instance.test.ts`, `pm_mid_formula.test.ts`)
+   * set this to run today's code on the frozen rule, and `pm_daystop.test.ts` shows what the change alone does.
+   */
+  dayStopOnCost?: boolean;
 };
 /**
  * What a selection's candidate must satisfy beyond the band, the listing and Gamma's word that it accepts orders. With
@@ -750,6 +760,67 @@ export function bookPnl(books: ReturnType<typeof tokenBooks>, marks: Record<stri
     total += t.realised + unrealised;
   }
   return { day: Math.round(day * 1e8) / 1e8, total: Math.round(total * 1e8) / 1e8 };
+}
+
+/**
+ * The day stop's figure since 2026-10-07 (Davies, asked whether the day stop should count every holding's whole loss or
+ * only the day's change, chose "只算当天变化"): the book's value now less its value as the UTC day began, plus the day's
+ * realised trades. A token held at `dayStart` starts the day at its opening mark (`open`), one bought today at its cost,
+ * and a sell today realises against that basis (average cost, as `tokenBooks`); so the figure is today's sells and
+ * settlements + what is held now at `marks` − what was held at 00:00 at `open` − today's buys. A token held at 00:00
+ * with no opening mark starts at its cost, which counts its whole unrealised P&L today, as `bookPnl` did (stricter);
+ * with no opening marks at all this is `bookPnl(tokenBooks(fills, dayStart), marks).day` exactly. The total stop is not
+ * this: it keeps counting every holding from its cost, the carried loss included (`bookPnl`'s `total`).
+ */
+export function sinceOpenPnl(fills: PmFill[], dayStart: number, open: Record<string, number | null | undefined>, marks: Record<string, number | null>): number {
+  const out: Record<string, { held: number; cost: number; today: number }> = {};
+  let opened = false;
+  const openDay = () => {
+    opened = true;
+    for (const [token, t] of Object.entries(out)) {
+      const m = open[token];
+      if (t.held > 0 && typeof m === "number" && Number.isFinite(m)) t.cost = m;
+    }
+  };
+  for (const f of [...fills].sort((a, b) => a.ts - b.ts)) {
+    if (!opened && f.ts >= dayStart) openDay();
+    const t = (out[f.token] ??= { held: 0, cost: 0, today: 0 });
+    if (f.side === "BUY") {
+      t.cost = t.held + f.size > 0 ? (t.cost * t.held + f.price * f.size) / (t.held + f.size) : 0;
+      t.held += f.size;
+    } else {
+      const q = Math.min(t.held, f.size);
+      if (f.ts >= dayStart) t.today += q * (f.price - t.cost);
+      t.held = Math.max(0, Number((t.held - f.size).toPrecision(12)));
+      if (t.held === 0) t.cost = 0;
+    }
+  }
+  if (!opened) openDay();
+  let day = 0;
+  for (const [token, t] of Object.entries(out)) {
+    const m = marks[token];
+    day += t.today + (t.held > 0 && m != null ? t.held * (m - t.cost) : 0);
+  }
+  return Math.round(day * 1e8) / 1e8;
+}
+
+/**
+ * The marks the path's book held as the UTC day `day` began (`sinceOpenPnl`'s `open`), kept in its state as `dayOpen`.
+ * Once kept for the day, they stand. Otherwise, at the day's first turn: each token's last mark read before 00:00 (the
+ * previous turn's, kept as `marks` with `marksAt`), and where there is none, this turn's, the first read of the day. A
+ * token held at 00:00 that has neither stays out, and starts the day at its cost. A state that kept no marks at all (the
+ * first turn after the deploy of 2026-10-07, or a new instance's) says nothing of 00:00: that day keeps no opening mark,
+ * and counts as before.
+ */
+export function dayOpenMarks(
+  prev: { dayOpen?: unknown; marks?: unknown; marksAt?: unknown }, day: string, dayStart: number, marks: Record<string, number | null>, at: string,
+): { day: string; at: string; marks: Record<string, number> } {
+  const numbers = (x: unknown): Record<string, number> => Object.fromEntries(Object.entries(x && typeof x === "object" ? x as Record<string, unknown> : {})
+    .filter((e): e is [string, number] => typeof e[1] === "number" && Number.isFinite(e[1])));
+  const kept = prev.dayOpen as { day?: unknown; at?: unknown; marks?: unknown } | null | undefined;
+  if (kept && kept.day === day && typeof kept.at === "string") return { day, at: kept.at, marks: numbers(kept.marks) };
+  if (typeof prev.marksAt !== "string" || !(Date.parse(prev.marksAt) < dayStart)) return { day, at, marks: {} };
+  return { day, at, marks: { ...numbers(marks), ...numbers(prev.marks) } };
 }
 
 /** A trade's status in the docs' words: the OpenAPI writes TRADE_STATUS_CONFIRMED, the clients and the lifecycle page CONFIRMED. */
@@ -1359,15 +1430,17 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // decides on are its paper's of two minutes before; a sell the paper cannot cover fills no further than it holds.
   const paper = mode === "dry_run" && inst.lp ? inst.lp.paper : null;
   const settlements = await db.selectAll<PmSettlement>(paper?.settlements ?? T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc");
-  const fillsBook = async (extra: PmSettlement[] = []): Promise<{ rows: Array<Pick<FillRow, "cond" | "token">>; tb: ReturnType<typeof tokenBooks> }> => {
+  const fillsBook = async (extra: PmSettlement[] = []): Promise<{ rows: Array<Pick<FillRow, "cond" | "token">>; tb: ReturnType<typeof tokenBooks>; all: PmFill[] }> => {
     if (paper) {
       const rows = await db.selectAll<PaperFillRow>(paper.fills, "select=cond,token,token_side,token_price,size,ts&order=cond.asc,minute.asc,print_id.asc");
       const fills = rows.map((f): PmFill => ({ token: f.token, side: f.token_side, price: Number(f.token_price), size: Number(f.size), ts: Date.parse(f.ts) }));
-      return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
+      const all = [...fills, ...settlementFills([...settlements, ...extra])];
+      return { rows, tb: tokenBooks(all, dayStart), all };
     }
     const rows = await db.selectAll<FillRow>(T.fills, "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
     const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
-    return { rows, tb: tokenBooks([...fills, ...settlementFills([...settlements, ...extra])], dayStart) };
+    const all = [...fills, ...settlementFills([...settlements, ...extra])];
+    return { rows, tb: tokenBooks(all, dayStart), all };
   };
   const before = await fillsBook();
   const settled = new Set(settlements.map((s) => s.cond));
@@ -1588,14 +1661,20 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
 
   // ── P&L from CONFIRMED live fills (this turn's read-backs and settlements included), and the loss stops ─────────────
-  const { tb } = await fillsBook(newSettlements);
+  const { tb, all: allFills } = await fillsBook(newSettlements);
   const marks: Record<string, number | null> = {};
   for (const m of markets) {
     const b = books.get(m.cond);
     const mid = b ? (b.bestBid + b.bestAsk) / 2 : null;
     marks[m.yes_token] = mid; marks[m.no_token] = mid == null ? null : 1 - mid;
   }
-  const pnl = bookPnl(tb, marks);
+  const onCost = bookPnl(tb, marks);
+  // The day stop counts only the day's change since 2026-10-07 (`sinceOpenPnl`, Davies: "只算当天变化"): each holding from
+  // its mark as the UTC day began (`dayOpenMarks`, kept in the state), or its cost if bought today. The total keeps every
+  // holding from its cost. An instance with no day stop (live-prep's) and one run on the frozen rule (`dayStopOnCost`)
+  // keep `bookPnl`'s day, and their state, as before.
+  const dayOpen = !inst.dayStopOnCost && Number.isFinite(lim.lossDay) ? dayOpenMarks(prev, day, dayStart, marks, nowIso) : null;
+  const pnl = dayOpen ? { day: sinceOpenPnl(allFills, dayStart, dayOpen.marks, marks), total: onCost.total } : onCost;
   report.pnl = pnl;
   // Live-prep's stops (`PmLpOptions`): each mode's own, so a stop its dry-run tripped on paper never holds the live path,
   // nor the reverse; no day stop (`lossDay` is Infinity); and the total counts what was paid beside the fills: live, what
@@ -1620,7 +1699,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   if (!lossDay && pnl.day <= -lim.lossDay) {
     lossDay = true;
-    await db.upsert(T.events, [{ mode: stopMode, minute, kind: "loss_stop_day", detail: { dayPnl: pnl.day, limit: -lim.lossDay } }], "mode,minute,kind");
+    await db.upsert(T.events, [{
+      mode: stopMode, minute, kind: "loss_stop_day",
+      detail: dayOpen ? { dayPnl: pnl.day, limit: -lim.lossDay, since: dayOpen.at, onCost: onCost.day } : { dayPnl: pnl.day, limit: -lim.lossDay },
+    }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (day): ${pnl.day} USD is past −${lim.lossDay}; nothing opens until the next UTC day; sells of what is held stay armed`);
   }
   if (!lossTotal && pnl.total + (paid ?? 0) <= -lim.lossTotal) {
@@ -2000,6 +2082,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         attested, gates: g.verdicts, openBlockedBy: g.openBlockedBy, reduceBlockedBy: g.reduceBlockedBy, gateKey, geo, geoCachedFrom: g0.geo.cachedFrom,
         geoGood: g0.good, geoStaleReported: g0.staleReported, closedOnly, pusd,
         limits: lim, posts: { day, [mode]: posts }, governorDay: posts >= lim.maxPosts ? day : prev.governorDay ?? null, pnl,
+        // The day stop's opening marks, and this turn's marks for the next day's (`dayOpenMarks`).
+        ...(dayOpen ? { dayOpen, marks: Object.fromEntries(Object.entries(marks).filter((e) => e[1] != null)), marksAt: nowIso } : {}),
         selectionDay: day, selectionTriedAt, goneDay: day, gone: [...goneToday, ...goneNow.map((x) => x.cond)],
         conditions, conditionKey, readouts, readoutTriedAt,
         // Settled markets whose tokens a turn has read gone from the chain: redeemed, no longer watched.
