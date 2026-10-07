@@ -1375,20 +1375,30 @@ const sbHeaders = (extra: Record<string, string> = {}) => ({
 /**
  * Fill the currency of stored fills that have none, from T212's instrument metadata (`currencyCode`, GBX kept). The
  * fills written before 0095 carry none, and an item that omits `order.instrument.currency` stores none. Runs only while
- * such rows exist and at most once in six hours (the metadata endpoint allows one call in 50 s), stamped on the invest
+ * such rows exist and at most once in 15 minutes (the metadata endpoint allows one call in 50 s), stamped on the invest
  * account's sync row. Writes only rows still null, so a currency a fill stated is never overwritten.
+ *
+ * The null rows are read a thousand at a time to the end: PostgREST caps a read at 1,000 rows whatever `limit` says,
+ * and the first pass (2026-10-07 23:39) read one page, saw 59 of the 69 tickers and left the other ten without one.
  */
 async function backfillOrderCurrencies(apiKey: string, apiSecret: string): Promise<Record<string, unknown> | null> {
   try {
-    const nulls = await fetch(`${SB_URL}/rest/v1/t212_orders?currency=is.null&select=t212_ticker&limit=5000`, {
-      headers: sbHeaders(), signal: AbortSignal.timeout(5_000),
-    });
-    if (!nulls.ok) return null;
-    const tickers = [...new Set(((await nulls.json()) as { t212_ticker: string }[]).map((r) => r.t212_ticker))];
+    const seen = new Set<string>();
+    for (let offset = 0; offset < 50_000; offset += 1000) {
+      const page = await fetch(
+        `${SB_URL}/rest/v1/t212_orders?currency=is.null&select=t212_ticker&order=id.asc&limit=1000&offset=${offset}`,
+        { headers: sbHeaders(), signal: AbortSignal.timeout(5_000) },
+      );
+      if (!page.ok) return null;
+      const rows = (await page.json()) as { t212_ticker: string }[];
+      for (const r of rows) seen.add(r.t212_ticker);
+      if (rows.length < 1000) break;
+    }
+    const tickers = [...seen];
     if (tickers.length === 0) return null;
     const state = await readOrdersSync("invest");
     const last = Date.parse(String(state?.currency_backfill_at ?? ""));
-    if (isFinite(last) && Date.now() - last < 6 * 3600_000) return { pending: tickers.length, skipped: "recent" };
+    if (isFinite(last) && Date.now() - last < 15 * 60_000) return { pending: tickers.length, skipped: "recent" };
     await fetch(`${SB_URL}/rest/v1/t212_orders_sync?account=eq.invest`, {
       method: "PATCH", headers: sbHeaders({ "content-type": "application/json" }),
       body: JSON.stringify({ currency_backfill_at: new Date().toISOString() }), signal: AbortSignal.timeout(5_000),
@@ -1567,15 +1577,22 @@ async function fillDividendFx(): Promise<Record<string, unknown> | null> {
 
 async function readDividends(): Promise<{ rows: unknown[]; complete: boolean }> {
   try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/t212_dividends?select=id,account,ticker,paid_on,quantity,amount,currency,instrument_currency,`
-        + "gross_per_share,type,amount_holding,holding_currency,fx_rate,fx_source&order=paid_on.asc,id.asc&limit=10000",
-      { headers: sbHeaders(), signal: AbortSignal.timeout(8_000) },
-    );
-    if (!res.ok) return { rows: [], complete: false };
-    const rows = await res.json();
+    // A thousand at a time: PostgREST caps a read at 1,000 rows whatever `limit` asks for.
+    const rows: unknown[] = [];
+    for (let offset = 0; offset < 50_000; offset += 1000) {
+      const res = await fetch(
+        `${SB_URL}/rest/v1/t212_dividends?select=id,account,ticker,paid_on,quantity,amount,currency,instrument_currency,`
+          + `gross_per_share,type,amount_holding,holding_currency,fx_rate,fx_source&order=paid_on.asc,id.asc&limit=1000&offset=${offset}`,
+        { headers: sbHeaders(), signal: AbortSignal.timeout(8_000) },
+      );
+      if (!res.ok) return { rows: [], complete: false };
+      const page = await res.json();
+      if (!Array.isArray(page)) return { rows: [], complete: false };
+      rows.push(...page);
+      if (page.length < 1000) break;
+    }
     const states = await Promise.all(t212HistoryAccounts().map(([name]) => readDividendsSync(name)));
-    return { rows: Array.isArray(rows) ? rows : [], complete: states.every((st) => st?.complete === true) };
+    return { rows, complete: states.every((st) => st?.complete === true) };
   } catch {
     return { rows: [], complete: false };
   }

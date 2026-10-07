@@ -794,6 +794,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Driven twice through pg_net with the cron bearer (requests 296906, 296932): both dividend walks complete (ISA 51,
+  invest 44 rows; types DIVIDEND and RETURN_OF_CAPITAL), every non-matching one converted at the day's close (51 ISA
+  GBP→USD, 1 invest USD→GBP), none left unconverted. The fill-currency backfill filled 59 of 69 tickers and missed
+  ten: PostgREST caps a read at 1,000 rows whatever `limit` says, so the scan of null rows saw one page, and the
+  six-hour stamp then held the retry. Fixed: the scan pages to the end, the throttle is 15 minutes (the metadata
+  endpoint allows one call in 50 s), and the dividends read pages the same way.
+
 ### [2026-10-07 23:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `trading212` stores each fill's currency and walks the dividends. `shapeT212Order` keeps `order.instrument.currency`
   (GBX as GBX; a fill that states none is upserted without the key, so it never erases one). `backfillOrderCurrencies`
