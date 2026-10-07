@@ -301,3 +301,120 @@ describe('withClosedFromFills', () => {
     expect(withClosedFromFills(board, null)).toBe(board);
   });
 });
+
+// ---- The fill's currency is Trading 212's, stored on the fill (0095, 2026-10-07) ----
+import { statedFillCurrency, fillCurrencyConflicts, dividendEventsByTicker, withDividendCosts } from './t212_fills.js';
+import { lotsFromOrders, fillCurrency, T212_PENCE_TICKERS } from './trading212.js';
+import { annotateLedger } from './transactions.js';
+
+const cfill = (ticker, date, side, shares, price, currency) => ({ ...fill(ticker, date, side, shares, price), currency });
+
+describe('fill currency — what Trading 212 states decides, the hand tables only stand in', () => {
+  it('a new London line stated in pence is divided by 100 although no hand table lists it', () => {
+    const led = lotsFromOrders([cfill('NEWP.L', '2026-01-05', 'buy', 2, 1234, 'GBX')], 'NEWP.L');
+    expect(led?.lots[0].cost).toBeCloseTo(12.34, 9);
+    expect(withClosedFromFills({}, [cfill('NEWP.L', '2026-01-05', 'buy', 2, 1234, 'GBX')])['NEWP.L'].currency).toBe('GBP');
+  });
+
+  it('a new London line stated in dollars is booked in dollars, not the suffix\'s pounds', () => {
+    const all = withClosedFromFills({}, [cfill('NEWD.L', '2026-01-05', 'buy', 1, 50, 'USD')]);
+    expect(all['NEWD.L'].currency).toBe('USD');
+    expect(all['NEWD.L'].lots[0].cost).toBe(50);
+  });
+
+  it('a row without a currency falls back to the pence list and the ticker\'s rule, as before', () => {
+    expect(fillCurrency({}, 'JEQP.L')).toEqual({ currency: 'GBP', unit: 0.01, stated: false });
+    expect(fillCurrency({ currency: null }, 'ROLG.L')).toEqual({ currency: 'GBP', unit: 1, stated: false });
+    expect(fillCurrency({ currency: 'gbx' }, 'ROLG.L')).toEqual({ currency: 'GBP', unit: 0.01, stated: true });
+    expect(lotsFromOrders([fill('JEQP.L', '2026-01-05', 'buy', 1, 2000)], 'JEQP.L')?.lots[0].cost).toBe(20);
+  });
+
+  it('statedFillCurrency: one currency when the fills agree, null when none states one or they disagree', () => {
+    expect(statedFillCurrency([cfill('A.L', '2026-01-05', 'buy', 1, 1, 'GBX'), fill('A.L', '2026-01-06', 'buy', 1, 1)], 'A.L')).toBe('GBP');
+    expect(statedFillCurrency([fill('A.L', '2026-01-05', 'buy', 1, 1)], 'A.L')).toBe(null);
+    expect(statedFillCurrency([cfill('A.L', '2026-01-05', 'buy', 1, 1, 'GBP'), cfill('A.L', '2026-01-06', 'buy', 1, 1, 'USD')], 'A.L')).toBe(null);
+  });
+
+  // The book's London and European fills as Trading 212 states them (the probe, 2026-10-07), against the hand tables:
+  // no disagreement, so nothing is reported today.
+  it('every currency the stored fills carry agrees with the hand tables', () => {
+    const stated = [
+      ['JEQP.L', 'GBX'], ['CSPX.L', 'USD'], ['QQQ3.L', 'USD'], ['VUAA.L', 'USD'], ['SAEM.L', 'USD'],
+      ['ROLG.L', 'GBP'], ['SEGM.L', 'GBP'], ['VUAG.L', 'GBP'], ['2DG.SG', 'EUR'], ['XFAB.PA', 'EUR'], ['AAPL', 'USD'],
+    ];
+    const orders = stated.map(([t, c]) => cfill(t, '2026-01-05', 'buy', 1, 1, c));
+    expect(fillCurrencyConflicts(orders, {})).toEqual([]);
+    expect([...T212_PENCE_TICKERS]).toEqual(['JEQP.L']);
+  });
+
+  it('a disagreement is named: pence the list lacks, a listed line stated otherwise, a holding in another currency, two currencies', () => {
+    const got = fillCurrencyConflicts([
+      cfill('NEWP.L', '2026-01-05', 'buy', 1, 1, 'GBX'),
+      cfill('JEQP.L', '2026-01-05', 'buy', 1, 1, 'GBP'),
+      cfill('AAPL', '2026-01-05', 'buy', 1, 1, 'USD'),
+      cfill('MIX', '2026-01-05', 'buy', 1, 1, 'USD'), cfill('MIX', '2026-01-06', 'buy', 1, 1, 'EUR'),
+    ], { AAPL: { currency: 'EUR' } });
+    expect(got).toEqual([
+      { ticker: 'NEWP.L', stated: 'GBX', expected: 'not GBX', reason: 'pence list' },
+      { ticker: 'JEQP.L', stated: 'GBP', expected: 'GBX', reason: 'pence list' },
+      { ticker: 'AAPL', stated: 'USD', expected: 'EUR', reason: 'holding currency' },
+      { ticker: 'MIX', stated: 'EUR/USD', expected: 'one currency', reason: 'fills disagree' },
+    ]);
+  });
+
+  it('a holding kept in another currency than its fills is not rebuilt from them', () => {
+    const orders = [cfill('ABC', '2026-01-05', 'buy', 2, 10, 'EUR')];
+    expect(rebuildLedgerFromFills({ shares: 2, t212Shares: 2, currency: 'USD', lots: [] }, orders, 'ABC')).toBe(null);
+    expect(rebuildLedgerFromFills({ shares: 2, t212Shares: 2, currency: 'EUR', lots: [] }, orders, 'ABC')?.lots).toHaveLength(1);
+  });
+});
+
+describe('dividends — one set of events for the board and the history', () => {
+  const row = (over = {}) => ({
+    ticker: 'ABC', paid_on: '2026-02-01T12:00:00.000Z', quantity: 10, amount: 15, currency: 'GBP',
+    amount_holding: 20, holding_currency: 'USD', ...over,
+  });
+
+  it('dividendEventsByTicker: the converted net amount in the holding\'s currency, and why a row was left out', () => {
+    const { byTicker, skipped } = dividendEventsByTicker([
+      row(),
+      row({ paid_on: '2026-02-02T12:00:00.000Z', amount_holding: null }),
+      row({ ticker: 'XYZ', holding_currency: 'USD' }),
+    ], { ABC: { currency: 'USD' }, XYZ: { currency: 'EUR' } });
+    expect(byTicker).toEqual({ ABC: [{ date: '2026-02-01', amount: 20, ts: Date.parse('2026-02-01T12:00:00.000Z'), shares: 10 }] });
+    expect(skipped).toEqual([
+      { ticker: 'ABC', reason: 'not yet converted', paidOn: '2026-02-02T12:00:00.000Z' },
+      { ticker: 'XYZ', reason: 'currency USD ≠ EUR', paidOn: '2026-02-01T12:00:00.000Z' },
+    ]);
+  });
+
+  it('withDividendCosts: a holding with no dividends is the same object; one with them reads cost − dividends / shares', () => {
+    const portfolio = { holdings: { ABC: { shares: 10, cost: 100, currency: 'USD' }, DEF: { shares: 5, cost: 7 } } };
+    expect(withDividendCosts(portfolio, {})).toBe(portfolio);
+    expect(withDividendCosts(portfolio, { DEF: [] })).toBe(portfolio);
+    const shown = withDividendCosts(portfolio, { ABC: [{ date: '2026-02-01', amount: 20 }] });
+    expect(shown?.holdings.ABC.cost).toBeCloseTo(98, 9);
+    expect(shown?.holdings.ABC.dividendsReceived).toBe(20);
+    expect(shown?.holdings.DEF).toBe(portfolio.holdings.DEF);
+    expect(portfolio.holdings.ABC.cost).toBe(100); // the stored book is never touched
+    // Sold out: no average cost to lower.
+    const closed = { holdings: { ABC: { shares: 0, cost: 0 } } };
+    expect(withDividendCosts(closed, { ABC: [{ date: '2026-02-01', amount: 20 }] })).toBe(closed);
+  });
+
+  it('a position rebuilt from its fills reads the same Avg Cost on the board and on its latest history row', () => {
+    const orders = [
+      fill('ABC', '2026-01-05', 'buy', 10, 100),
+      fill('ABC', '2026-01-20', 'sell', 4, 130),
+      fill('ABC', '2026-03-01', 'buy', 6, 90),
+    ];
+    const holdings = { ABC: { shares: 12, cost: 0, t212Shares: 12, currency: 'USD', lots: [] } };
+    applyFillLedgers(holdings, orders);
+    const divs = [{ date: '2026-02-10', amount: 3, shares: 6 }, { date: '2026-04-10', amount: 6, shares: 12 }];
+    const board = withDividendCosts({ holdings }, { ABC: divs })?.holdings.ABC.cost;
+    const last = annotateLedger(holdings.ABC.lots, holdings.ABC.sells, divs).at(-1);
+    expect(last?.kind).toBe('div');
+    expect(board).toBeCloseTo(/** @type {number} */ (last?.acAfter), 9);
+    expect(board).toBeCloseTo((1000 - 520 + 540 - 9) / 12, 9);
+  });
+});

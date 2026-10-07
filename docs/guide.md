@@ -82,17 +82,32 @@ Tap a tile to open its chart.
 - **Sectors list.** The same table grouped by sector, each group headed
   by its position and name (`ST · Neocloud`) and its totals. Sorting
   orders the sectors and the holdings inside them.
-- **Transaction history** (edit password only). Every buy and sale
-  across every holding, newest first, closed positions included, with
-  the total realised gain in dollars at the top. Sales are entered in a
-  holding's editor. On a purchase, Avg Cost is what the position cost
-  per share afterwards, with earlier sales' gains folded in, so selling
-  high and buying back lower lowers it. On a sale, it is the plain
-  average price paid for the shares, which is what the realised gain is
-  measured against: shares × (price − Avg Cost), a closing sale
-  included. A position sold out shows exactly what came back less what
-  it cost, in the currency the listing trades in, converted at today's
-  rate.
+- **Transaction history** (edit password only). Every buy, sale and
+  dividend across every holding, newest first, closed positions
+  included, with the total realised gain in dollars at the top. Sales
+  are entered in a holding's editor. On a purchase, Avg Cost is what the
+  position cost per share afterwards, with earlier sales' gains and the
+  dividends received folded in, so selling high and buying back lower
+  lowers it, and so does every dividend. On a sale, it is the average
+  price paid for the shares less the dividends they had paid, which is
+  what the realised gain is measured against: shares × (price − Avg
+  Cost), a closing sale included. A position sold out shows exactly
+  what came back less what it cost, plus every dividend it paid, in the
+  currency the listing trades in, converted at today's rate.
+- **Dividends.** Each dividend Trading 212 paid is a row of its own,
+  marked DIVIDEND: the shares it was paid on, the cash received (after
+  any tax withheld) in the holding's currency, and the Avg Cost after it.
+  It realises nothing while you hold the shares; it lowers what they
+  cost instead. A dividend paid in another currency than the holding's
+  (the ISA pays in pounds on a dollar stock) is converted at that day's
+  closing rate. The same dividends lower the average cost everywhere
+  else the site shows one: the position cards, the ticker page, the
+  holding list's cost basis and the holding editor.
+- **Currency.** Each fill is booked in the currency Trading 212 says the
+  listing trades in, not the one its symbol suggests: some London
+  listings trade in dollars and some in pence, and pence are booked as
+  pounds. If the broker ever disagrees with what the board expects, the
+  errors box says so.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current

@@ -131,8 +131,8 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from '../charts/indicators.js';
 import { isUsEquity } from '../prices/ticker_class.js';
-import { fetchTrading212Holdings, fetchTrading212Orders, syncTrading212History, applyTrading212, applyTrading212NightPrice } from '../portfolio/trading212.js';
-import { applyFillLedgers } from '../portfolio/t212_fills.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, fetchTrading212Dividends, syncTrading212History, applyTrading212, applyTrading212NightPrice } from '../portfolio/trading212.js';
+import { applyFillLedgers, dividendEventsByTicker, fillCurrencyConflicts, withClosedFromFills, withDividendCosts } from '../portfolio/t212_fills.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 
 // The last resort: a render-time crash no surface's own boundary caught (one in the board's own frame) shows a readable
@@ -379,10 +379,6 @@ function Board({ isReadOnly }) {
   // effect sends, and nothing from here may reach the server. See
   // portfolio/shown_prices.js.
   const [lastShown, setLastShown] = useState(() => Storage.loadLastPrices());
-  // What the page draws: the book with the last-shown prices over it.
-  // Every number on screen reads this; every edit and save reads
-  // `portfolio`.
-  const shownPortfolio = useMemo(() => withShownPrices(portfolio, lastShown), [portfolio, lastShown]);
   // For the tick's tile flash, which must compare against what was ON
   // SCREEN, not against the stored price underneath it — or every tile
   // flashes on the first tick after a reload although nothing moved.
@@ -417,6 +413,43 @@ function Board({ isReadOnly }) {
     () => ({ rows: t212Orders, complete: t212OrdersComplete }),
     [t212Orders, t212OrdersComplete],
   );
+  // The dividends both broker accounts received (`t212_dividends`), as each
+  // ticker's ledger events in its holding's currency. They come off the
+  // average cost on the board, the ticker modal, the lot editor and the
+  // Transaction history alike (Davies, 2026-10-07: "整个网站的average cost都改").
+  const [t212Dividends, setT212Dividends] = useState(/** @type {any[]} */ ([]));
+  const dividendEvents = React.useMemo(
+    () => dividendEventsByTicker(t212Dividends, withClosedFromFills(portfolio?.holdings, t212Orders)),
+    [t212Dividends, portfolio?.holdings, t212Orders],
+  );
+  // What the page draws: the book with the last-shown prices over it, and
+  // each position's average cost net of the dividends it has paid. Every
+  // number on screen reads this; every edit and save reads `portfolio`, so
+  // the stored cost never carries the dividends and no sync compounds them.
+  const shownPortfolio = useMemo(
+    () => withDividendCosts(withShownPrices(portfolio, lastShown), dividendEvents.byTicker),
+    [portfolio, lastShown, dividendEvents],
+  );
+  // A stored fill or dividend currency that disagrees with what the board
+  // would otherwise assume is reported, never quietly decided one way: an
+  // ops_errors row (the site's errors box) once per distinct set a session.
+  // A dividend not yet converted is only reported once it is two days old;
+  // the next sync normally converts it.
+  const currencyReportedRef = useRef('');
+  useEffect(() => {
+    if (!portfolio?.holdings) return;
+    const fills = fillCurrencyConflicts(t212Orders, portfolio.holdings);
+    const stale = Date.now() - 2 * 86400_000;
+    const divs = dividendEvents.skipped.filter((d) => d.reason !== 'not yet converted' || Date.parse(d.paidOn) < stale);
+    if (fills.length === 0 && divs.length === 0) return;
+    const key = JSON.stringify([fills, divs.map((d) => `${d.ticker}:${d.reason}`)]);
+    if (key === currencyReportedRef.current) return;
+    currencyReportedRef.current = key;
+    reportError('t212.currency', {
+      message: `Trading 212 currency disagreement: ${fills.length} fill ticker(s), ${divs.length} dividend(s) left out of the average cost`,
+      context: { fills, dividends: divs.slice(0, 20) },
+    });
+  }, [t212Orders, portfolio?.holdings, dividendEvents]);
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
@@ -852,6 +885,9 @@ function Board({ isReadOnly }) {
       // page lands.
       fetchTrading212Orders(),
     ]);
+    // The dividends, cached like the fills; not awaited with the prices, so
+    // a slow read never holds the board.
+    fetchTrading212Dividends().then((d) => { if (Array.isArray(d?.rows)) setT212Dividends(d.rows); });
     const t212OrderRows = Array.isArray(t212OrderRead?.rows) ? t212OrderRead.rows : [];
     setT212Orders(t212OrderRows);
     setT212OrdersComplete(t212OrderRead?.complete === true);
@@ -1280,11 +1316,16 @@ function Board({ isReadOnly }) {
         setT212Orders(orders.rows);
         setT212OrdersComplete(orders.complete === true);
       }
+      const dividends = await fetchTrading212Dividends();
+      if (!cancelled && Array.isArray(dividends?.rows)) setT212Dividends(dividends.rows);
       // Once the walk has latched, each pass re-reads page one — which is
       // where a trade made minutes ago lands. Two minutes rather than
       // ten: one call per account, so ~1 request/min against T212's 6,
       // and a fill shows up on the board while it still feels recent.
-      timer = setTimeout(step, res.ordersComplete === true ? 2 * 60 * 1000 : 20000);
+      // The dividends walk rides on the same call; it keeps the faster pace
+      // until it has finished too.
+      const walked = res.ordersComplete === true && res.dividendsComplete !== false;
+      timer = setTimeout(step, walked ? 2 * 60 * 1000 : 20000);
     };
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
@@ -1687,6 +1728,7 @@ function Board({ isReadOnly }) {
               marketData={marketData}
               hideValues={hideValues}
               t212Orders={t212Orders}
+              dividends={dividendEvents.byTicker}
               onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
               onClose={() => setShowTransactionHistory(false)}
             />
@@ -1730,6 +1772,7 @@ function Board({ isReadOnly }) {
           positions={portfolio.positions}
           t212Orders={t212Orders}
           t212OrdersComplete={t212OrdersComplete}
+          dividends={dividendEvents.byTicker[editingTicker] ?? []}
           onClose={() => setEditingTicker(null)}
           onSave={(patch) => { updateHolding(editingTicker, patch); setEditingTicker(null); }}
           onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}

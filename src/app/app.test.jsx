@@ -63,6 +63,7 @@ vi.mock('../portfolio/trading212.js', () => ({
   // — which vitest reports as an unhandled error rather than a failing
   // assertion, so it can hide behind a green-looking summary.
   fetchTrading212Orders: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
+  fetchTrading212Dividends: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
   syncTrading212History: vi.fn(() => Promise.resolve(null)),
   applyTrading212: (h) => h,
   applyTrading212NightPrice: (h) => h,

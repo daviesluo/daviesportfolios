@@ -17,6 +17,20 @@ import { TableExportButtons } from './table_export.jsx';
 /** @param {number} n  native amount → 2dp with thousands separators (no symbol) */
 const amt2 = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/** The Type column's word for a row: BUY, SELL or DIVIDEND, the same on screen and in an export. */
+export function typeLabel(/** @type {string} */ kind) {
+  return kind === 'buy' ? 'BUY' : kind === 'sell' ? 'SELL' : 'DIVIDEND';
+}
+
+/** What a row moved in cash, in its holding's currency: a dividend's net amount received, else shares × price. */
+const amountOf = (/** @type {any} */ r) => (typeof r.amount === 'number' ? r.amount : r.shares * r.price);
+
+/** Shares as shown: a dividend paid on an unknown quantity shows a dash. */
+const sharesText = (/** @type {any} */ r) => (r.kind === 'div' && !(r.shares > 0) ? '—' : fmtShFor(r.shares, r.ticker));
+
+/** Price as shown: a dividend's is the net amount per share it was paid on, a dash when that is unknown. */
+const priceText = (/** @type {any} */ r, /** @type {string} */ sym) => (r.kind === 'div' && !(r.shares > 0) ? '—' : `${sym}${amt2(r.price)}`);
+
 /**
  * The ledger as a 2D string matrix (header + rows) for the copy / download
  * buttons — formatted exactly like the on-screen table (native-currency
@@ -28,12 +42,12 @@ export function transactionRowsToMatrix(rows) {
   const body = (rows || []).map((r) => {
     const sym = currencySymbol(r.currency);
     return [
-      r.kind === 'buy' ? 'BUY' : 'SELL',
+      typeLabel(r.kind),
       r.date,
       r.ticker,
-      fmtShFor(r.shares, r.ticker),
-      `${sym}${amt2(r.price)}`,
-      `${sym}${amt2(r.shares * r.price)}`,
+      sharesText(r),
+      priceText(r, sym),
+      `${sym}${amt2(amountOf(r))}`,
       avgCostText(r, sym),
       realizedText(r, sym),
     ];
@@ -60,7 +74,10 @@ export function avgCostText(r, sym) {
  * @param {string} sym
  */
 export function realizedText(r, sym) {
-  if (r.kind !== 'sell' || typeof r.gain !== 'number') return '';
+  // A buy realizes nothing, nor does a dividend received while shares are
+  // held (it comes off their cost). One received while none are is realized
+  // as it arrives, and shows here without a percentage.
+  if (r.kind === 'buy' || typeof r.gain !== 'number') return '';
   const g = `${r.gain >= 0 ? '+' : '-'}${sym}${amt2(Math.abs(r.gain))}`;
   return typeof r.gainPct === 'number'
     ? `${g} (${r.gainPct >= 0 ? '+' : ''}${r.gainPct.toFixed(2)}%)`
@@ -75,12 +92,12 @@ const COLUMNS = [
   { id: 'symbol',  label: 'Symbol',   align: 'hl-left',  key: (/** @type {any} */ r) => r.ticker },
   { id: 'shares',  label: 'Shares',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares },
   { id: 'price',   label: 'Price',    align: 'hl-right', key: (/** @type {any} */ r) => r.price },
-  { id: 'amount',  label: 'Amount',   align: 'hl-right', key: (/** @type {any} */ r) => r.shares * r.price },
+  { id: 'amount',  label: 'Amount',   align: 'hl-right', key: (/** @type {any} */ r) => amountOf(r) },
   { id: 'avgcost', label: 'Avg Cost',     align: 'hl-right', key: (/** @type {any} */ r) => r.acAfter ?? 0 },
   // Purchases realize nothing, so they sort as zero and settle between
   // the profitable sales and the losing ones — which is where a row that
   // banked nothing belongs.
-  { id: 'gain',    label: 'Realised G/L', align: 'hl-right', key: (/** @type {any} */ r) => (r.kind === 'sell' ? (r.gain ?? 0) : 0) },
+  { id: 'gain',    label: 'Realised G/L', align: 'hl-right', key: (/** @type {any} */ r) => (r.kind !== 'buy' ? (r.gain ?? 0) : 0) },
 ];
 
 /**
@@ -117,7 +134,7 @@ export function nextSortState(sort, colId) {
   return null;
 }
 
-function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose }) {
+function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), dividends = /** @type {Record<string, any[]> | null} */ (null), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose }) {
   // Closed positions are gone from the board but not from the record —
   // 41 tickers and ~950 executed trades on this book. See
   // `withClosedFromFills`.
@@ -125,13 +142,15 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
     () => withClosedFromFills(holdings, t212Orders),
     [holdings, t212Orders],
   );
-  const log = React.useMemo(() => buildTransactionLog(allHoldings), [allHoldings]);
+  // Each dividend received is a row of its own, and comes off the average
+  // cost of the rows after it (`annotateLedger`).
+  const log = React.useMemo(() => buildTransactionLog(allHoldings, dividends), [allHoldings, dividends]);
   /** @type {[{col: string, dir: 'desc'|'asc'} | null, Function]} */
   const [sort, setSort] = React.useState(/** @type {any} */ (null));
   const rows = React.useMemo(() => sortTransactionRows(log, sort), [log, sort]);
   const realizedUsd = React.useMemo(
-    () => totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate),
-    [allHoldings, marketData],
+    () => totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate, dividends),
+    [allHoldings, marketData, dividends],
   );
   const m = (s) => (hideValues ? maskDigits(s) : s);
 
@@ -194,7 +213,7 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
                 return (
                   <tr key={i} className={`txn-row txn-row-${r.kind}`}>
                     <td className="hl-left" data-col="type">
-                      <span className={`txn-badge txn-${r.kind}`}>{r.kind === 'buy' ? 'BUY' : 'SELL'}</span>
+                      <span className={`txn-badge txn-${r.kind}`}>{typeLabel(r.kind)}</span>
                     </td>
                     <td className="hl-left txn-date" data-col="date">{r.date}</td>
                     <td className="hl-left txn-sym" data-col="symbol">
@@ -206,14 +225,14 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
                         )
                         : r.ticker}
                     </td>
-                    <td className="hl-right" data-col="shares">{fmtShFor(r.shares, r.ticker)}</td>
-                    <td className="hl-right" data-col="price">{m(`${sym}${amt2(r.price)}`)}</td>
-                    <td className="hl-right hl-strong" data-col="amount">{m(`${sym}${amt2(r.shares * r.price)}`)}</td>
+                    <td className="hl-right" data-col="shares">{sharesText(r)}</td>
+                    <td className="hl-right" data-col="price">{m(priceText(r, sym))}</td>
+                    <td className="hl-right hl-strong" data-col="amount">{m(`${sym}${amt2(amountOf(r))}`)}</td>
                     <td className="hl-right txn-dim" data-col="avgcost">{m(avgCostText(r, sym))}</td>
                     <td
                       className="hl-right"
                       data-col="gain"
-                      style={r.kind === 'sell' ? { color: pctClr(r.gain ?? 0) } : undefined}
+                      style={r.kind !== 'buy' && typeof r.gain === 'number' ? { color: pctClr(r.gain) } : undefined}
                     >{m(realizedText(r, sym))}</td>
                   </tr>
                 );

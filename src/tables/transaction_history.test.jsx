@@ -235,3 +235,48 @@ describe('closed positions and the clickable symbol', () => {
     expect(screen.queryByRole('button', { name: 'NFLX' })).not.toBeInTheDocument();
   });
 });
+
+// ---- A dividend received is a row of its own (Davies, 2026-10-07: "分红可以在Transaction history表中作为单独的行显示") ----
+describe('dividend rows', () => {
+  beforeEach(() => cleanup());
+  const BOOK = {
+    ABC: {
+      currency: 'USD',
+      lots: [{ date: '2026-01-05', shares: 10, cost: 100 }],
+      sells: [{ date: '2026-03-01', shares: 10, price: 110 }],
+    },
+  };
+  const DIVS = { ABC: [{ date: '2026-02-01', amount: 20, shares: 10, ts: Date.parse('2026-02-01T12:00:00Z') }] };
+
+  it('a DIVIDEND badge, the cash received, the Avg Cost after it, no Realised G/L; the sale it lowers checks by hand', () => {
+    const matrix = transactionRowsToMatrix(buildTransactionLog(BOOK, DIVS));
+    expect(matrix.slice(1)).toEqual([
+      ['SELL', '2026-03-01', 'ABC', '10', '$110.00', '$1,100.00', '$98.00', '+$120.00 (+12.24%)'],
+      ['DIVIDEND', '2026-02-01', 'ABC', '10', '$2.00', '$20.00', '$98.00', ''],
+      ['BUY', '2026-01-05', 'ABC', '10', '$100.00', '$1,000.00', '$100.00', ''],
+    ]);
+  });
+
+  it('on screen: its own badge, the headline counts it, and hide-values masks its money', () => {
+    render(<TransactionHistoryModal holdings={BOOK} dividends={DIVS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    expect(screen.getByText('+$120.00')).toBeInTheDocument();
+    const div = /** @type {HTMLElement} */ (document.querySelector('.txn-row-div'));
+    expect(within(div).getByText('DIVIDEND')).toHaveClass('txn-badge', 'txn-div');
+    expect(within(div).getByText('$20.00')).toBeInTheDocument();
+    cleanup();
+    render(<TransactionHistoryModal holdings={BOOK} dividends={DIVS} marketData={MARKET} hideValues onClose={vi.fn()} />);
+    const row = /** @type {HTMLElement} */ (document.querySelector('.txn-row-div'));
+    expect(row.querySelector('[data-col="amount"]')?.textContent).not.toMatch(/\d/);
+    expect(row.querySelector('[data-col="avgcost"]')?.textContent).not.toMatch(/\d/);
+  });
+
+  it('sorts by Amount on the cash it brought in', () => {
+    const rows = sortTransactionRows(buildTransactionLog(BOOK, DIVS), { col: 'amount', dir: 'asc' });
+    expect(rows.map((r) => r.kind)).toEqual(['div', 'buy', 'sell']);
+  });
+
+  it('a dividend paid on an unknown quantity shows dashes for shares and price, and its amount', () => {
+    const matrix = transactionRowsToMatrix(buildTransactionLog(BOOK, { ABC: [{ date: '2026-02-01', amount: 20 }] }));
+    expect(matrix.find((r) => r[0] === 'DIVIDEND')?.slice(3, 6)).toEqual(['—', '—', '$20.00']);
+  });
+});

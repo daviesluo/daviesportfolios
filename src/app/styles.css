@@ -17,6 +17,7 @@
 
   --gain: oklch(0.78 0.17 150);
   --gain-dim: oklch(0.78 0.17 150 / 0.2);
+  --txn-div-dim: oklch(0.82 0.14 85 / 0.18);
   --loss: oklch(0.70 0.20 25);
   --loss-dim: oklch(0.70 0.20 25 / 0.2);
   /* Row-wide washes for TOP MOVERS' magnitude bars. Lower alpha than
@@ -1328,6 +1329,7 @@ body {
 .txn-table .txn-row td:first-child { border-left: 2px solid transparent; }
 .txn-table .txn-row-buy  td:first-child { border-left-color: var(--gain-dim); }
 .txn-table .txn-row-sell td:first-child { border-left-color: var(--loss-dim); }
+.txn-table .txn-row-div  td:first-child { border-left-color: var(--txn-div-dim); }
 /* This table's first column is Type, which is worth nothing frozen —
    drop the Holding list's sticky-first-column treatment. */
 .txn-table td:first-child,
@@ -1357,7 +1359,8 @@ body {
   .txn-table thead { display: none; }
   .txn-table .txn-row {
     display: grid;
-    grid-template-columns: 46px 1fr auto;
+    /* Wide enough for the DIVIDEND badge, the longest of the three. */
+    grid-template-columns: 62px 1fr auto;
     grid-template-areas:
       "type    symbol  amount"
       "date    shares  price"
@@ -1370,6 +1373,7 @@ body {
   }
   .txn-table .txn-row-buy  { border-left-color: var(--gain-dim); }
   .txn-table .txn-row-sell { border-left-color: var(--loss-dim); }
+  .txn-table .txn-row-div  { border-left-color: var(--txn-div-dim); }
   .txn-table .txn-row td { padding: 0; border: 0; }
   .txn-table td[data-col="type"]    { grid-area: type; }
   .txn-table td[data-col="symbol"]  { grid-area: symbol; font-size: 13px; }
@@ -1399,6 +1403,9 @@ body {
 }
 .txn-buy  { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
 .txn-sell { color: var(--loss); border-color: var(--loss-dim); background: var(--loss-dim); }
+/* A dividend is cash in, neither a buy nor a sale: the board's gold, dimmed
+   the way the other two badges dim their colour. */
+.txn-div  { color: var(--gold); border-color: var(--txn-div-dim); background: var(--txn-div-dim); }
 /* "Move holding" position picker — revealed under the lot grid when
    the user clicks Move holding in the footer. Inline row: label +
    position <select> + Move/Cancel. */

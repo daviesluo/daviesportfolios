@@ -32,7 +32,7 @@
 import { detectCurrency } from './fx.js';
 import { cleanLots } from './lots.js';
 import { cleanSells, netPosition } from './transactions.js';
-import { lotsFromOrders } from './trading212.js';
+import { fillCurrency, lotsFromOrders, T212_PENCE_TICKERS } from './trading212.js';
 
 /** Rows the broker has no claim over: another platform's, or hand-typed. */
 export const SRC_OTHER = 'other';
@@ -92,6 +92,11 @@ export function rebuildLedgerFromFills(holding, orders, ticker) {
   if (!Number.isFinite(t212Shares) && !isClosed) return null;
   const broker = brokerLedgerFor(orders, ticker);
   if (broker.lots.length === 0 && broker.sells.length === 0) return null;
+  // The fills are in the currency Trading 212 states for them; a holding kept
+  // in another one would mix two currencies in one ledger. Left alone, and
+  // `fillCurrencyConflicts` reports it.
+  const stated = statedFillCurrency(orders, ticker);
+  if (stated && stated !== holdingCurrencyOf(holding, ticker)) return null;
 
   const keptLots = cleanLots(holding.lots).filter(isOther);
   const keptSells = cleanSells(holding.sells).filter(isOther);
@@ -226,9 +231,148 @@ export function withClosedFromFills(holdings, orders) {
     if (led.lots.length === 0 && led.sells.length === 0) continue;
     out[t] = {
       shares: 0, cost: 0, closed: true,
-      currency: detectCurrency(t),
+      // The currency Trading 212 states for the fills, else the ticker's rule.
+      currency: statedFillCurrency(orders, t) ?? detectCurrency(t),
       lots: led.lots, sells: led.sells,
     };
   }
   return out;
+}
+
+/** @param {any} holding  @param {string} ticker */
+function holdingCurrencyOf(holding, ticker) {
+  return typeof holding?.currency === 'string' && holding.currency ? holding.currency : detectCurrency(ticker);
+}
+
+/**
+ * The currency a ticker's fills are kept in, from what Trading 212 stated on
+ * them (GBX → GBP): one currency when every fill that states one agrees, null
+ * when none states one or they disagree.
+ * @param {Array<any> | null | undefined} orders
+ * @param {string} ticker
+ * @returns {string | null}
+ */
+export function statedFillCurrency(orders, ticker) {
+  const seen = new Set();
+  for (const o of Array.isArray(orders) ? orders : []) {
+    if (o?.ticker !== ticker) continue;
+    const c = fillCurrency(o, ticker);
+    if (c.stated) seen.add(c.currency);
+  }
+  return seen.size === 1 ? /** @type {string} */ ([...seen][0]) : null;
+}
+
+/**
+ * Every place a stored fill currency disagrees with what the client would
+ * otherwise assume, so it is reported instead of quietly decided: two
+ * currencies on one ticker's fills; GBX on a ticker the pence list lacks, or
+ * a listed one stated otherwise; and a currency (GBX as GBP) that is not the
+ * holding's (`holdings[t].currency`, else the ticker's rule). Empty when they
+ * all agree, which is every ticker on 2026-10-07.
+ * @param {Array<any> | null | undefined} orders
+ * @param {Record<string, any> | null | undefined} holdings
+ * @returns {Array<{ticker: string, stated: string, expected: string, reason: string}>}
+ */
+export function fillCurrencyConflicts(orders, holdings) {
+  /** @type {Map<string, Set<string>>} */
+  const raw = new Map();
+  for (const o of Array.isArray(orders) ? orders : []) {
+    const t = o?.ticker;
+    const c = typeof o?.currency === 'string' ? o.currency.trim().toUpperCase() : '';
+    if (typeof t !== 'string' || !t || !/^[A-Z]{3}$/.test(c)) continue;
+    if (!raw.has(t)) raw.set(t, new Set());
+    /** @type {Set<string>} */ (raw.get(t)).add(c);
+  }
+  const out = [];
+  for (const [ticker, set] of raw) {
+    const list = [...set].sort();
+    if (list.length > 1) {
+      out.push({ ticker, stated: list.join('/'), expected: 'one currency', reason: 'fills disagree' });
+      continue;
+    }
+    const stated = list[0];
+    const pence = T212_PENCE_TICKERS.has(ticker);
+    if ((stated === 'GBX') !== pence) {
+      out.push({ ticker, stated, expected: pence ? 'GBX' : 'not GBX', reason: 'pence list' });
+    }
+    const kept = stated === 'GBX' ? 'GBP' : stated;
+    const expected = holdingCurrencyOf(holdings?.[ticker], ticker);
+    if (kept !== expected) out.push({ ticker, stated, expected, reason: 'holding currency' });
+  }
+  return out;
+}
+
+/**
+ * Each ticker's dividends as ledger events in its holding's currency, plus
+ * whatever could not be used and why. `rows` come from `t212_dividends`
+ * (both accounts); the amount is `amount_holding`, the net cash received
+ * converted into the holding's currency by the server (the amount itself
+ * when the account pays in it). A row whose holding currency is not the
+ * holding's, or whose conversion has not been made yet, is left out of
+ * every figure and named in `skipped`.
+ * @param {Array<any> | null | undefined} rows
+ * @param {Record<string, any> | null | undefined} holdings
+ * @returns {{byTicker: Record<string, Array<{date: string, ts?: number, amount: number, shares?: number}>>,
+ *            skipped: Array<{ticker: string, reason: string, paidOn: string}>}}
+ */
+export function dividendEventsByTicker(rows, holdings) {
+  /** @type {Record<string, Array<{date: string, ts?: number, amount: number, shares?: number}>>} */
+  const byTicker = {};
+  /** @type {Array<{ticker: string, reason: string, paidOn: string}>} */
+  const skipped = [];
+  for (const r of Array.isArray(rows) ? rows : []) {
+    const t = r?.ticker;
+    const paidOn = String(r?.paid_on || '');
+    if (typeof t !== 'string' || !t || !paidOn) continue;
+    const want = holdingCurrencyOf(holdings?.[t], t);
+    const amount = r?.amount_holding == null || r.amount_holding === '' ? NaN : Number(r.amount_holding);
+    if (typeof r?.holding_currency === 'string' && r.holding_currency && r.holding_currency !== want) {
+      skipped.push({ ticker: t, reason: `currency ${r.holding_currency} ≠ ${want}`, paidOn });
+      continue;
+    }
+    if (!Number.isFinite(amount)) {
+      skipped.push({ ticker: t, reason: 'not yet converted', paidOn });
+      continue;
+    }
+    const ms = Date.parse(paidOn);
+    const shares = Number(r?.quantity);
+    (byTicker[t] ||= []).push({
+      date: paidOn.slice(0, 10), amount,
+      ...(Number.isFinite(ms) ? { ts: ms } : {}),
+      ...(Number.isFinite(shares) && shares > 0 ? { shares } : {}),
+    });
+  }
+  return { byTicker, skipped };
+}
+
+/**
+ * The book with each held position's average cost less the dividends it has
+ * paid: `cost − Σ dividends / shares`, the net-cash average with dividends
+ * counted as cash returned. The ONE place the board's average cost takes
+ * them in; the Transaction history's rows walk the same events
+ * (`annotateLedger`), so a position rebuilt from its fills reads the same
+ * Avg Cost in both. Display only: the stored `cost` stays dividend-free,
+ * so no sync or save compounds it. A holding with no dividends, or none
+ * held, comes back as the same object.
+ * @template {{holdings: Record<string, any>}} P
+ * @param {P | null | undefined} portfolio
+ * @param {Record<string, Array<{date?: any, ts?: any, amount: number}>> | null | undefined} byTicker
+ * @returns {P | null | undefined}
+ */
+export function withDividendCosts(portfolio, byTicker) {
+  if (!portfolio?.holdings || !byTicker) return portfolio;
+  /** @type {Record<string, any> | null} */
+  let holdings = null;
+  for (const [t, h] of Object.entries(portfolio.holdings)) {
+    const divs = byTicker[t];
+    if (!h || h.isCash || !Array.isArray(divs) || divs.length === 0) continue;
+    const shares = Number(h.shares);
+    const cost = Number(h.cost);
+    if (!(shares > 0) || !Number.isFinite(cost)) continue;
+    const received = netPosition([], [], divs).netCash * -1;
+    if (!received) continue;
+    if (!holdings) holdings = { ...portfolio.holdings };
+    holdings[t] = { ...h, cost: cost - received / shares, dividendsReceived: received };
+  }
+  return holdings ? /** @type {P} */ ({ ...portfolio, holdings }) : portfolio;
 }

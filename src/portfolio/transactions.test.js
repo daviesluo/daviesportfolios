@@ -419,3 +419,133 @@ describe('realizedGain — properties over random ledgers', () => {
     }
   });
 });
+
+// ---- Dividends come off the average cost (Davies, 2026-10-07: "分红的盈利也算起来，直接算在average cost里") ----
+// Synthetic numbers only. A dividend is `{ date, ts?, amount, shares? }`, the net cash received in the holding's currency.
+
+describe('dividends — folded into the average cost and the realized figure', () => {
+  const lots = [{ date: '2026-01-05', shares: 10, cost: 100 }];
+  const div = [{ date: '2026-02-01', amount: 20, shares: 10 }];
+
+  it('netPosition takes the dividends off the net cash; with none it reads exactly as before', () => {
+    expect(netPosition(lots, [], div)).toEqual({ shares: 10, netCash: 980, avgCost: 98 });
+    const sells = [{ date: '2026-03-01', shares: 4, price: 120 }];
+    expect(netPosition(lots, sells, [])).toEqual(netPosition(lots, sells));
+    expect(netPosition(lots, sells, null)).toEqual(netPosition(lots, sells));
+  });
+
+  it('a sale realizes the dividends received while held: 10 @ 100, 20 paid, sold @ 110 → +120 (proceeds − cost + dividends)', () => {
+    const sells = [{ date: '2026-03-01', shares: 10, price: 110 }];
+    expect(realizedGain(lots, sells, div)).toBeCloseTo(1100 - 1000 + 20, 9);
+    expect(realizedGain(lots, sells)).toBeCloseTo(100, 9);
+    const rows = annotateLedger(lots, sells, div);
+    expect(rows.map((r) => r.kind)).toEqual(['buy', 'div', 'sell']);
+    expect(rows[1]).toMatchObject({ kind: 'div', amount: 20, shares: 10, price: 2, acAfter: 98, gain: null });
+    // The sale row's Avg Cost is the classic average it was measured against, net of the dividend.
+    expect(rows[2].acAfter).toBeCloseTo(98, 9);
+    expect(rows[2].gain).toBeCloseTo(10 * (110 - 98), 9);
+  });
+
+  it('half sold before the dividend, half after: the dividend lowers only the later sale\'s cost', () => {
+    const sells = [{ date: '2026-01-20', shares: 5, price: 110 }, { date: '2026-03-01', shares: 5, price: 110 }];
+    const d = [{ date: '2026-02-01', amount: 10, shares: 5 }];
+    const rows = annotateLedger(lots, sells, d);
+    expect(rows.filter((r) => r.kind === 'sell').map((r) => r.acAfter)).toEqual([100, 98]);
+    expect(realizedGain(lots, sells, d)).toBeCloseTo(1100 - 1000 + 10, 9);
+  });
+
+  it('a dividend paid after the last sale is realized as it arrives, and only that row shows a Realised G/L', () => {
+    const sells = [{ date: '2026-01-20', shares: 10, price: 105 }];
+    const late = [{ date: '2026-02-10', amount: 7, shares: 10 }];
+    const rows = annotateLedger(lots, sells, late);
+    expect(rows[2]).toMatchObject({ kind: 'div', gain: 7, acAfter: 0 });
+    expect(realizedGain(lots, sells, late)).toBeCloseTo(50 + 7, 9);
+  });
+
+  it('a buy row after a dividend carries the net-cash average with the dividend off it', () => {
+    const more = [...lots, { date: '2026-03-01', shares: 10, cost: 120 }];
+    const rows = annotateLedger(more, [], div);
+    expect(rows.at(-1)?.acAfter).toBeCloseTo((1000 - 20 + 1200) / 20, 9);
+    expect(netPosition(more, [], div).avgCost).toBeCloseTo((1000 - 20 + 1200) / 20, 9);
+  });
+
+  it('same-day events follow their time: a dividend stamped before a sale counts toward it', () => {
+    const sells = [{ date: '2026-02-01', shares: 10, price: 110, ts: Date.parse('2026-02-01T16:00:00Z') }];
+    const d = [{ date: '2026-02-01', amount: 20, ts: Date.parse('2026-02-01T12:00:00Z') }];
+    expect(annotateLedger(lots, sells, d).map((r) => r.kind)).toEqual(['buy', 'div', 'sell']);
+    expect(annotateLedger(lots, sells, d)[2].gain).toBeCloseTo(120, 9);
+  });
+
+  it('buildTransactionLog and totalRealizedUsd carry the dividend rows and their gain; the auto-invested ETFs stay out', () => {
+    const holdings = {
+      ABC: { currency: 'GBP', lots, sells: [{ date: '2026-03-01', shares: 10, price: 110 }] },
+      'VUAA.L': { currency: 'USD', lots: [{ date: '2026-01-05', shares: 1, cost: 100 }] },
+    };
+    const divs = { ABC: div, 'VUAA.L': [{ date: '2026-02-01', amount: 5 }] };
+    const log = buildTransactionLog(holdings, divs);
+    expect(log.map((r) => `${r.kind}:${r.ticker}`)).toEqual(['sell:ABC', 'div:ABC', 'buy:ABC']);
+    expect(log[1]).toMatchObject({ amount: 20, currency: 'GBP', acAfter: 98, gain: null });
+    expect(totalRealizedUsd(holdings, (c) => (c === 'GBP' ? 1.25 : 1), divs)).toBeCloseTo(120 * 1.25, 9);
+    expect(totalRealizedUsd(holdings, (c) => (c === 'GBP' ? 1.25 : 1))).toBeCloseTo(100 * 1.25, 9);
+  });
+});
+
+describe('dividends — properties over random ledgers', () => {
+  const rng = (seed) => () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+  it('sold out = proceeds − cost + dividends, rows sum to the total, every sale gains shares × (price − its Avg Cost), on 2,000 ledgers', () => {
+    const r = rng(20261008);
+    let withDivs = 0;
+    for (let n = 0; n < 2000; n++) {
+      const lots = [], sells = [], divs = [];
+      let held = 0, day = 1, proceeds = 0, cost = 0, received = 0;
+      const steps = 2 + Math.floor(r() * 12);
+      for (let i = 0; i < steps; i++) {
+        const date = `2026-01-${String(Math.min(28, day)).padStart(2, '0')}`;
+        const ts = Date.parse(`${date}T00:00:00Z`) + i * 60_000;
+        if (r() >= 0.25) day += 1;
+        const price = Math.round((5 + r() * 200) * 100) / 100;
+        const roll = r();
+        if (roll < 0.2) {
+          // A dividend: usually while held, sometimes after a sell-out; now and then a negative correction.
+          const amount = Math.round((r() < 0.1 ? -1 : 1) * (0.01 + r() * 30) * 100) / 100;
+          divs.push({ date, ts, amount, shares: held > 0 ? held : undefined }); received += amount;
+        } else if (held > 1e-6 && roll < 0.55) {
+          const sh = Math.round(held * (0.1 + r() * 0.9) * 1e4) / 1e4;
+          if (sh <= 0) continue;
+          sells.push({ date, ts, shares: sh, price }); held -= sh; proceeds += sh * price;
+        } else {
+          const sh = Math.round((0.01 + r() * 20) * 1e4) / 1e4;
+          lots.push({ date, ts, shares: sh, cost: price }); held += sh; cost += sh * price;
+        }
+      }
+      if (held > 1e-6) { sells.push({ date: '2026-02-27', ts: Date.parse('2026-02-27T00:00:00Z'), shares: held, price: 100 }); proceeds += held * 100; }
+      if (r() < 0.3) { const amount = 3.21; divs.push({ date: '2026-02-28', amount }); received += amount; }
+      if (divs.length) withDivs++;
+      const tol = 1e-6 * Math.max(1, Math.abs(cost));
+      const total = realizedGain(lots, sells, divs);
+      expect(Math.abs(total - (proceeds - cost + received))).toBeLessThan(tol);
+      const rows = annotateLedger(lots, sells, divs);
+      expect(Math.abs(rows.reduce((s, x) => s + (x.gain ?? 0), 0) - total)).toBeLessThan(tol);
+      for (const x of rows.filter((y) => y.kind === 'sell')) {
+        expect(Math.abs(/** @type {number} */ (x.gain) - x.shares * (x.price - x.acAfter))).toBeLessThan(tol);
+      }
+      // Without dividends the walk is the one that was there before.
+      expect(realizedGain(lots, sells, [])).toBe(realizedGain(lots, sells));
+    }
+    expect(withDivs).toBeGreaterThan(1000);
+  });
+});
+
+describe('the headline is the sum of the rows, same-day trades in the order they happened', () => {
+  // Main on 2026-10-07: `realizedGain` sorted by date alone (a day's buys before its sales) while `annotateLedger` sorted
+  // by date and time, so on the real book the headline and its own rows disagreed. Bought 10 @ 50; on one day sold 10 @
+  // 120 at 10:00 and bought 10 @ 100 at 15:00. The sale came first: 10 × (120 − 50) = +700, not the +450 that pricing
+  // it against the afternoon's buy gives.
+  it('a sale before a same-day buy is measured against what was held then', () => {
+    const day = '2026-03-02';
+    const lots = [{ date: '2026-03-01', shares: 10, cost: 50 }, { date: day, shares: 10, cost: 100, ts: Date.parse(`${day}T15:00:00Z`) }];
+    const sells = [{ date: day, shares: 10, price: 120, ts: Date.parse(`${day}T10:00:00Z`) }];
+    expect(realizedGain(lots, sells)).toBeCloseTo(700, 9);
+    expect(annotateLedger(lots, sells).reduce((s, r) => s + (r.gain ?? 0), 0)).toBeCloseTo(700, 9);
+  });
+});

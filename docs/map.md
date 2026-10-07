@@ -526,10 +526,10 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `portfolio/positions.js` | Where the 11 positions sit on the pitch. |
 | `portfolio/metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs, and the day-change bases the 24H chart shares with them. |
 | `portfolio/lots.js` | Cleans and sums the buy lots the editor collects. |
-| `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys and sells. |
+| `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys, sells and dividends. |
 | `portfolio/fx.js` | Which currency a ticker trades in, and its rate to USD. |
-| `portfolio/trading212.js` | The client half of the broker sync: positions, live prices and the fill history, applied without touching shares held at another platform. |
-| `portfolio/t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere. |
+| `portfolio/trading212.js` | The client half of the broker sync: positions, live prices, the fill history in each fill's own currency and the dividends, applied without touching shares held at another platform. |
+| `portfolio/t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere; turns its dividends into the ledger's events and the average cost the site shows. |
 
 #### `prices/` — prices, history and the caches
 
@@ -580,7 +580,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 |---|---|
 | `tables/holdings_list.jsx` | The sortable holding list. |
 | `tables/sectors_list.jsx` | The same list grouped by sector. |
-| `tables/transaction_history.jsx` | Every buy and sale, closed positions included. |
+| `tables/transaction_history.jsx` | Every buy, sale and dividend, closed positions included. |
 | `tables/table_export.jsx`, `tables/holdings_export.js` | Copy and Excel export for the three tables, formatted exactly as the tables show them. |
 
 #### `agents/` — the Agents page

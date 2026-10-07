@@ -794,6 +794,32 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Dividends come off the average cost on the whole site, and each is a row of the Transaction history** (Davies:
+  "分红的盈利也算起来，直接算在average cost里"; "整个网站的average cost都改，另外分红可以在Transaction history表中作为单独的行显示").
+  `annotateLedger` / `realizedGain` / `netPosition` take dividend events (`{date, ts, amount}`, the net cash in the
+  holding's currency): off the net cash and the classic basis, realized when nothing is held; `realizedGain` is now
+  the sum of `annotateLedger`'s rows, one walk. The board's average cost goes through ONE function,
+  `withDividendCosts` (t212_fills.js, `cost − Σ dividends / shares`) on `shownPortfolio`: the position cards, the
+  ticker page, the holding/sectors lists' cost basis and unrealised G/L all read it; the stored `cost` stays
+  dividend-free (display only, so no sync compounds it); the lot editor shows the same net figure with a line saying
+  so. DIVIDEND rows: gold badge, shares paid on, net per share, cash received, Avg Cost after, Realised G/L blank
+  (unless paid while none is held), sortable, exported; the phone card's type column widened to fit it.
+- **Fill currency:** `lotsFromOrders` / `withClosedFromFills` use the stored currency (GBX ÷ 100 → GBP); the hand
+  tables only stand in for a row without one; `fillCurrencyConflicts` reports any disagreement to the errors box
+  (`t212.currency`) and `rebuildLedgerFromFills` refuses a holding kept in another currency than its fills.
+- **A second fault fixed on the way:** main's headline (`realizedGain`) walked a day's buys before its sales, while
+  the rows (`annotateLedger`) walk by time, so on the real book the headline and its own rows disagreed on four open
+  positions (BMNR, MSTR, ORCL, RKLB). One walk now; pinned by a same-day case (old code reads 450 for 700).
+- **Charts unchanged:** the vs-S&P and Investment lines read lots and sells (deposits are fills × price, value is
+  shares × price), never `cost`, so dividends move neither; the cash a dividend paid is not modelled there.
+- Evidence: vitest (dividend pins, a second 2,000-ledger property test: sold out = proceeds − cost + dividends, rows
+  sum to the total, every sale = shares × (price − its Avg Cost); fill-currency and conflict pins; the history's
+  DIVIDEND row, mask and sort), 22 of them fail on the old client; the sweep reads ACME's dividend row on desktop and
+  phone (layout: no overlap) and its ticker page AC $198.00 net of the dividend (482 checks). Real book checked in
+  the scratchpad only: every sold-out ticker realizes proceeds − cost + dividends to the cent. The board's AC still
+  takes T212's `averagePricePaid` where a ledger does not reconcile, less the same dividends.
+
 ### [2026-10-07 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Driven twice through pg_net with the cron bearer (requests 296906, 296932): both dividend walks complete (ISA 51,
   invest 44 rows; types DIVIDEND and RETURN_OF_CAPITAL), every non-matching one converted at the day's close (51 ISA

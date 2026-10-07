@@ -30,6 +30,7 @@
 import { EDGE_TRADING212_URL, SB_ANON } from '../app/supabase_config.js';
 import { getAppToken } from '../app/auth.js';
 import { hasOvernightSession } from '../prices/ticker_class.js';
+import { detectCurrency } from './fx.js';
 
 /**
  * Fetch the current T212 snapshot. Returns null on any failure
@@ -185,6 +186,46 @@ export async function fetchTrading212Orders() {
 /** Drop the cached history — used after a backfill page lands. */
 export function clearTrading212OrdersCache() {
   ordersCache = null;
+  dividendsCache = null;
+}
+
+/**
+ * The dividends both accounts received, oldest first, from `t212_dividends`:
+ * `[{ ticker, paid_on, quantity, amount, currency, amount_holding,
+ * holding_currency, … }]`, `amount` the net cash in the account's currency
+ * and `amount_holding` the same in the holding's (null until converted).
+ * Cached like the fills, and cleared with them when a sync page lands.
+ * @returns {Promise<{rows: any[], complete: boolean}>}
+ */
+let dividendsCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
+
+export async function fetchTrading212Dividends() {
+  if (dividendsCache && Date.now() - dividendsCache.ts < ORDERS_TTL_MS) {
+    return { rows: dividendsCache.rows, complete: dividendsCache.complete };
+  }
+  try {
+    const res = await fetch(`${EDGE_TRADING212_URL}?action=dividends`, {
+      method: 'GET',
+      headers: {
+        'apikey': SB_ANON,
+        'Authorization': `Bearer ${SB_ANON}`,
+        'X-App-Token': getAppToken(),
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true };
+    const body = await res.json();
+    const rows = Array.isArray(body?.dividends) ? body.dividends : [];
+    dividendsCache = {
+      ts: Date.now(),
+      // As with the fills: an empty read never replaces a good one.
+      rows: rows.length > 0 || !dividendsCache ? rows : dividendsCache.rows,
+      complete: body?.complete === true,
+    };
+    return { rows: dividendsCache.rows, complete: dividendsCache.complete };
+  } catch {
+    return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true };
+  }
 }
 
 /**
@@ -198,6 +239,7 @@ export function clearTrading212OrdersCache() {
  *   accounts: any[],
  *   complete: boolean,
  *   ordersComplete?: boolean,
+ *   dividendsComplete?: boolean,
  *   stream?: string,
  *   scopeDenied?: boolean,
  * } | null>}
@@ -244,19 +286,43 @@ export async function syncTrading212History() {
  * fills at 2000, and booked as pounds every gain or loss on it read a
  * hundred times its size in the realized total (2026-10-07). Their fills are
  * divided by 100 so every lot and sale is in the holding's currency (GBP).
- * The fill rows carry no currency, so the list is explicit.
+ *
+ * Since 0095 every stored fill carries the instrument's currency as Trading
+ * 212 states it (`currency`, GBX kept), and that decides. This list is the
+ * fallback for a row without one; a stored currency that disagrees with it
+ * is reported (`fillCurrencyConflicts`, t212_fills.js), never silently used
+ * one way or the other.
  */
-const T212_PENCE_TICKERS = new Set(['JEQP.L']);
+export const T212_PENCE_TICKERS = new Set(['JEQP.L']);
+
+/**
+ * The currency a fill's price is in, and the factor that puts it in the
+ * holding's: the stored `currency` when there is one (GBX → GBP at 1/100),
+ * else the pence list and the ticker's own currency rule.
+ * @param {{currency?: any} | null | undefined} order
+ * @param {string} ticker
+ * @returns {{currency: string, unit: number, stated: boolean}}
+ */
+export function fillCurrency(order, ticker) {
+  const raw = typeof order?.currency === 'string' ? order.currency.trim().toUpperCase() : '';
+  if (/^[A-Z]{3}$/.test(raw)) {
+    return raw === 'GBX'
+      ? { currency: 'GBP', unit: 0.01, stated: true }
+      : { currency: raw, unit: 1, stated: true };
+  }
+  return T212_PENCE_TICKERS.has(ticker)
+    ? { currency: 'GBP', unit: 0.01, stated: false }
+    : { currency: detectCurrency(ticker), unit: 1, stated: false };
+}
 
 export function lotsFromOrders(orders, ticker) {
   if (!Array.isArray(orders) || !ticker) return null;
-  const unit = T212_PENCE_TICKERS.has(ticker) ? 0.01 : 1;
   const lots = [];
   const sells = [];
   for (const o of orders) {
     if (!o || o.ticker !== ticker) continue;
     const shares = Number(o.shares);
-    const price = Number(o.price) * unit;
+    const price = Number(o.price) * fillCurrency(o, ticker).unit;
     const raw = String(o.executed_at || '');
     const date = raw.slice(0, 10);
     if (!date || !isFinite(shares) || shares <= 0 || !isFinite(price) || price <= 0) continue;

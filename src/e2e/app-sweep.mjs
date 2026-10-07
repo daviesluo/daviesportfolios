@@ -218,6 +218,16 @@ const T212_ORDERS = [
   { ticker: 'ACME', side: 'buy', shares: 10, price: 200, executed_at: `${dayAgo(60)}T14:30:00Z` },
 ];
 
+// One dividend on ACME, after its sale, on the 6 shares left: $12.00 net, in dollars as the holding is. The board's
+// average cost takes it off (200 − 12 / 6 = $198.00 on the card), and the Transaction history shows it as a row of its
+// own: DIVIDEND, $12.00, the net-cash average after it ((2,000 − 920 − 12) / 6 = $178.00), no Realised G/L, and the
+// headline unchanged (it was received while held, so it lowers a cost instead of being realized).
+const T212_DIVIDENDS = [
+  { id: 'invest:d1', account: 'invest', ticker: 'ACME', paid_on: `${dayAgo(20)}T15:00:00Z`, quantity: 6, amount: 12,
+    currency: 'USD', instrument_currency: 'USD', gross_per_share: 2.35, type: 'DIVIDEND', amount_holding: 12,
+    holding_currency: 'USD', fx_rate: 1, fx_source: 'same' },
+];
+
 const QUOTES = {
   // A real after-hours print: 240 -> 247.20 is +3.00 %, and
   // `extPriceTrusted` says so outright so the +-5 % heuristic isn't
@@ -1322,6 +1332,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       }
       return json(out);
     }
+    if (url.includes('/trading212') && url.includes('action=dividends')) return json({ dividends: T212_DIVIDENDS, complete: true });
     if (url.includes('/trading212')) return json({ source: 'orders', orders: T212_ORDERS, complete: true });
     if (url.includes('/fundamentals')) return json({});
     if (url.includes('/overnight-fetch')) return json({});
@@ -2713,7 +2724,7 @@ async function run() {
         return {
           headers: [...document.querySelectorAll('.txn-table .hl-th')].map((e) => e.textContent?.trim()),
           symbols: rows.map((r) => r.querySelector('[data-col="symbol"]')?.textContent?.trim()),
-          kinds: rows.map((r) => r.className.includes('txn-row-sell') ? 'sell' : 'buy'),
+          kinds: rows.map((r) => (r.className.includes('txn-row-sell') ? 'sell' : r.className.includes('txn-row-div') ? 'div' : 'buy')),
           realised: rows.map((r) => r.querySelector('[data-col="realised"]')?.textContent?.trim() ?? ''),
         };
       });
@@ -2725,6 +2736,36 @@ async function run() {
       if (syms.has('ACME')) ok(S('history'), 'ACME buy + sell present');
       else fail(S('history'), 'ACME missing');
       // Realised G/L belongs to sells only.
+      await shot(page, 'transaction-history');
+      // The dividend is a row of its own, laid out like the others at this width.
+      const divRow = await page.evaluate(() => {
+        const r = document.querySelector('.txn-row-div');
+        if (!r) return null;
+        const cell = (c) => r.querySelector(`[data-col="${c}"]`);
+        const badge = r.querySelector('.txn-badge');
+        const box = r.getBoundingClientRect();
+        const cells = [...r.querySelectorAll('td')].filter((td) => td.textContent?.trim());
+        // On a phone the cells sit in a card's grid: none may overflow the card or overlap another.
+        const rects = cells.map((td) => td.getBoundingClientRect());
+        const overlap = rects.some((a, i) => rects.some((b, j) => j > i
+          && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
+        const outside = rects.some((a) => a.left < box.left - 1 || a.right > box.right + 1);
+        return {
+          badge: badge?.textContent?.trim(), badgeClass: badge?.className, symbol: cell('symbol')?.textContent?.trim(),
+          amount: cell('amount')?.textContent?.trim(), avgcost: cell('avgcost')?.textContent?.trim(),
+          gain: cell('gain')?.textContent?.trim(), overlap, outside,
+        };
+      });
+      if (divRow && divRow.badge === 'DIVIDEND' && /txn-div/.test(divRow.badgeClass || '') && divRow.symbol === 'ACME'
+          && divRow.amount === '$12.00' && /\$178\.00$/.test(divRow.avgcost || '') && divRow.gain === '') {
+        ok(S('history'), `ACME's dividend is its own row: ${divRow.badge} ${divRow.amount}, Avg Cost ${divRow.avgcost}, no Realised G/L`);
+      } else fail(S('history'), `dividend row ${JSON.stringify(divRow)}`);
+      if (divRow && !divRow.overlap && !divRow.outside) ok(S('history'), 'the dividend row\'s cells neither overlap nor leave the row');
+      else fail(S('history'), `dividend row layout: overlap ${divRow?.overlap}, outside ${divRow?.outside}`);
+      const headline = await page.locator('.txn-realized-val').first().textContent().catch(() => '');
+      if (headline === '+$240.00') ok(S('history'), 'TOTAL REALIZED is unchanged by a dividend received while held (+$240.00)');
+      else fail(S('history'), `TOTAL REALIZED reads "${headline}" (want +$240.00)`);
+
       const buyWithRealised = tx.kinds
         .map((k, i) => (k === 'buy' && tx.realised[i] ? tx.symbols[i] : null)).filter(Boolean);
       if (buyWithRealised.length === 0) ok(S('history'), 'BUY rows leave Realised G/L blank');
@@ -2765,6 +2806,11 @@ async function run() {
         const modal = await page.locator('.modal-title').first().textContent().catch(() => '');
         if (/ACME/.test(modal || '')) ok(S('history'), 'symbol opens the ticker modal');
         else fail(S('history'), `symbol click left modal title "${modal}"`);
+        // The board's average cost is net of the dividend: ACME is stored at 200 and has paid $12.00 on its 6 shares,
+        // so the ticker modal reads AC $198.00 and a cost of 6 × 198 = $1,188 (the stored book still says 200).
+        const meta = ((await page.locator('.modal-meta', { hasText: 'shares' }).first().textContent({ timeout: 3000 }).catch(() => '')) || '').replace(/\s+/g, ' ');
+        if (/AC \$198\.00/.test(meta) && /Cost \$1,188/.test(meta)) ok(S('dividends'), `ACME's AC is net of its dividend: ${meta.slice(0, 60)}`);
+        else fail(S('dividends'), `ACME's ticker modal reads "${meta}" (want AC $198.00, Cost $1,188)`);
         await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
       } else fail(S('history'), 'ACME symbol is not clickable');

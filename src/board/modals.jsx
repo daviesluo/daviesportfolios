@@ -410,7 +410,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
 // Per-lot editor. Each row is a single purchase batch; total shares and
 // weighted-average cost are derived from the rows on save and become the
 // holding's `shares`/`cost` (lots are the source of truth for the YTD chart).
-function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {any[]} */ ([]), t212OrdersComplete = false, onClose, onSave, onDelete, onMove }) {
+function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {any[]} */ ([]), t212OrdersComplete = false, dividends = /** @type {any[]} */ ([]), onClose, onSave, onDelete, onMove }) {
   const today = new Date().toISOString().slice(0, 10);
   // ONE list, newest at the top, buys and sells together — a holding's
   // history read in the order it happened, which is how it reads on the
@@ -480,10 +480,15 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
   // banked profit on this ticker, surfaced only once a sale exists.
   const validLots = cleanLots(lots);
   const validSells = cleanSells(sells);
-  const net = netPosition(lots, sells);
+  // Dividends this ticker has paid come off the average cost and count in
+  // what it realized, as on the board and in the Transaction history. They
+  // are the broker's record, not rows of this editor, and saving stores the
+  // rows' own cost: the board takes the dividends off again when it shows it.
+  const net = netPosition(lots, sells, dividends);
   const weightedCost = net.avgCost;
-  const realized = realizedGain(lots, sells);
+  const realized = realizedGain(lots, sells, dividends);
   const hasSells = validSells.length > 0;
+  const dividendTotal = dividends.reduce((sum, d) => sum + (Number(d?.amount) || 0), 0);
   // Future-dated rows get dropped on save. The date input's max=today
   // blocks the picker, but a paste / typed value still gets through — and
   // used to vanish on Save with no feedback. Only future dates are flagged
@@ -591,6 +596,11 @@ function EditTickerModal({ ticker, holding, positions, t212Orders = /** @type {a
           )}
         </div>
         {acHint && <div className="lot-hint mono dim">{acHint}</div>}
+        {dividends.length > 0 && (
+          <div className="lot-hint mono dim">
+            {`Avg cost is net of ${dividends.length} dividend${dividends.length === 1 ? '' : 's'} received (${sym}${dividendTotal.toFixed(2)}).`}
+          </div>
+        )}
         {futureCount > 0 && (
           <div className="lot-warn mono" role="alert">
             {futureCount === 1
