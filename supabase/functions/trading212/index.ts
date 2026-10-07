@@ -69,6 +69,11 @@
 // ticker held in both). Best-effort: an ISA fetch failure degrades to
 // invest-only. Absent → invest-only, exactly as before.
 //
+// `?action=probe` is the one exception to that gate: a read-only check of
+// what the stored keys can read (account currency, the orders page's
+// currency fields, dividends, instrument metadata), fired from the
+// database through pg_net with the Vault `cron_secret`, or by an admin.
+//
 // Token-gated by the same HMAC-signed `x-app-token` the `data` /
 // `ops-error` functions use — admin OR ro is accepted, since the
 // read-only "screenshot" mode is supposed to see synced holdings
@@ -78,7 +83,7 @@
 // `APP_AUTH_SECRET` env var (same value as the `auth` function).
 
 import { reportServerError } from "../_shared/ops.ts";
-import { verifyToken } from "../_shared/token.ts";
+import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { T212_DCA_ETFS, t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 
 // Re-exported so this function's index.test.ts keeps pinning the exact
@@ -474,6 +479,92 @@ export function shapeT212Transaction(raw: unknown, account: string): {
     currency,
     occurred_at: new Date(when as string).toISOString(),
   };
+}
+
+/**
+ * The read-only probe's summary of one orders page: which currency fields T212 sends on a fill, and what they say, per
+ * instrument. No price, quantity or amount leaves here: what the probe answers lands in `net._http_response`.
+ */
+export function probeOrderCurrencies(items: unknown[]): {
+  keys: { item: string[]; order: string[]; instrument: string[]; fill: string[]; walletImpact: string[] };
+  instruments: Record<string, { instrumentCurrency: unknown; orderCurrency: unknown; walletCurrency: unknown; fxRate: string }>;
+} {
+  const keys = { item: new Set<string>(), order: new Set<string>(), instrument: new Set<string>(), fill: new Set<string>(), walletImpact: new Set<string>() };
+  const instruments: Record<string, { instrumentCurrency: unknown; orderCurrency: unknown; walletCurrency: unknown; fxRate: string }> = {};
+  const obj = (v: unknown) => (v && typeof v === "object" ? v as Record<string, unknown> : null);
+  for (const it of items) {
+    const o = obj(it);
+    if (!o) continue;
+    Object.keys(o).forEach((k) => keys.item.add(k));
+    const ord = obj(o.order), fill = obj(o.fill);
+    const inst = obj(ord?.instrument), wallet = obj(fill?.walletImpact);
+    Object.keys(ord ?? {}).forEach((k) => keys.order.add(k));
+    Object.keys(inst ?? {}).forEach((k) => keys.instrument.add(k));
+    Object.keys(fill ?? {}).forEach((k) => keys.fill.add(k));
+    Object.keys(wallet ?? {}).forEach((k) => keys.walletImpact.add(k));
+    const ticker = typeof inst?.ticker === "string" ? inst.ticker : (typeof ord?.ticker === "string" ? ord.ticker : "");
+    if (!ticker || !fill || instruments[ticker]) continue;
+    instruments[ticker] = {
+      instrumentCurrency: inst?.currency ?? inst?.currencyCode ?? null,
+      orderCurrency: ord?.currency ?? null,
+      walletCurrency: wallet?.currency ?? null,
+      fxRate: typeof wallet?.fxRate,
+    };
+  }
+  const sorted = (x: Set<string>) => [...x].sort();
+  return {
+    keys: { item: sorted(keys.item), order: sorted(keys.order), instrument: sorted(keys.instrument), fill: sorted(keys.fill), walletImpact: sorted(keys.walletImpact) },
+    instruments,
+  };
+}
+
+export const T212_DIVIDENDS_URL = "https://live.trading212.com/api/v0/history/dividends";
+export const T212_INSTRUMENTS_URL = "https://live.trading212.com/api/v0/equity/metadata/instruments";
+export const T212_ACCOUNT_SUMMARY_URL = "https://live.trading212.com/api/v0/equity/account/summary";
+
+/**
+ * `?action=probe`: read-only. One GET per endpoint the fill-currency and dividend work needs, per account, reporting
+ * each one's status (a 403's body names what the key lacks) and the SHAPE of what came back: the orders page's
+ * currency fields per instrument, the dividends page's keys and its first items, the account's currency, and the
+ * instruments' `currencyCode` for the codes asked about (`&tickers=`). It writes nothing and places nothing.
+ */
+async function runProbe(tickers: string[]): Promise<Record<string, unknown>> {
+  const out: Record<string, unknown> = { at: new Date().toISOString() };
+  const read = async (url: string, key: string, secret: string) => {
+    const attempts = secret ? [basicAuthHeader(key, secret), key] : [key];
+    const got = await historyPageRequest(url, attempts, fetch, 25_000);
+    if (!got.ok) return { status: 0, error: got.message };
+    if (!got.res.ok) return { status: got.res.status, error: (await got.res.text().catch(() => "")).slice(0, 300) };
+    return { status: got.res.status, body: got.body };
+  };
+  for (const [name, key, secret] of t212HistoryAccounts()) {
+    const acct: Record<string, unknown> = {};
+    const summary = await read(T212_ACCOUNT_SUMMARY_URL, key, secret);
+    const sb = summary.body && typeof summary.body === "object" ? summary.body as Record<string, unknown> : null;
+    acct.summary = { status: summary.status, error: summary.error, currency: sb?.currency ?? sb?.currencyCode ?? null, keys: sb ? Object.keys(sb).sort() : [] };
+    const orders = await read(`${T212_ORDERS_URL}?limit=50`, key, secret);
+    acct.orders = { status: orders.status, error: orders.error, ...(orders.body ? probeOrderCurrencies(ordersItemsOf(orders.body)) : {}) };
+    const divs = await read(`${T212_DIVIDENDS_URL}?limit=50`, key, secret);
+    const divItems = divs.body ? ordersItemsOf(divs.body) : [];
+    const divKeys = new Set<string>();
+    for (const it of divItems) if (it && typeof it === "object") Object.keys(it).forEach((k) => divKeys.add(k));
+    acct.dividends = {
+      status: divs.status, error: divs.error, count: divItems.length,
+      envelope: divs.body && typeof divs.body === "object" && !Array.isArray(divs.body) ? Object.keys(divs.body as object).sort() : [],
+      keys: [...divKeys].sort(), next: nextPagePathOf(divs.body), sample: divItems.slice(0, 3),
+    };
+    out[name] = acct;
+  }
+  const [, key, secret] = t212HistoryAccounts()[0];
+  const meta = await read(T212_INSTRUMENTS_URL, key, secret);
+  const list = Array.isArray(meta.body) ? meta.body as Record<string, unknown>[] : [];
+  const want = new Set(tickers);
+  out.instruments = {
+    status: meta.status, error: meta.error, count: list.length,
+    keys: list[0] ? Object.keys(list[0]).sort() : [],
+    asked: list.filter((r) => want.has(String(r.ticker))).map((r) => ({ ticker: r.ticker, currencyCode: r.currencyCode, type: r.type, isin: r.isin })),
+  };
+  return out;
 }
 
 // 1 s cache. `/equity/positions` allows 1 req / second, so this is the
@@ -1580,6 +1671,26 @@ if (import.meta.main) {
         return new Response(JSON.stringify({ error: "method not allowed" }), {
           status: 405, headers: { ...CORS, "content-type": "application/json" },
         });
+      }
+
+      // The read-only probe: pg_net with the Vault `cron_secret` (or an admin token). Before the app-token gate so
+      // the cron bearer reaches it; nothing in it writes or trades.
+      const reqUrl = new URL(req.url);
+      if (reqUrl.searchParams.get("action") === "probe") {
+        const cron = Deno.env.get("CRON_SECRET") ?? "";
+        const auth = req.headers.get("authorization") ?? "";
+        const isCron = cron !== "" && auth.startsWith("Bearer ") && constantTimeEqual(auth.slice(7).trim(), cron);
+        const admin = isCron ? null : await verifyToken(req.headers.get("x-app-token") ?? "");
+        if (!isCron && admin?.role !== "admin") {
+          return new Response(JSON.stringify({ error: "unauthorised" }), {
+            status: 401, headers: { ...CORS, "content-type": "application/json" },
+          });
+        }
+        if (!T212_API_KEY) {
+          return new Response(JSON.stringify({ error: "T212_API_KEY not set" }), { headers: { ...CORS, "content-type": "application/json" } });
+        }
+        const tickers = (reqUrl.searchParams.get("tickers") ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+        return new Response(JSON.stringify(await runProbe(tickers)), { headers: { ...CORS, "content-type": "application/json" } });
       }
 
       // Token gate. Either admin or ro is fine — read-only viewers

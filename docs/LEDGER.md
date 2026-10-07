@@ -775,6 +775,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 22:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- `trading212?action=probe` (read-only, the Vault `cron_secret` through pg_net, or an admin token): per account, the
+  account summary's currency, the orders page's currency fields per instrument (`probeOrderCurrencies`, which carries
+  no price, quantity or amount), the dividends page's status, keys and first items, and the instrument metadata's
+  `currencyCode` for the codes asked about. Why: the durable fill currency and the dividends (Davies: "这两件都做")
+  need to know what the stored keys can read before anything depends on it; a 403 names the scope the key lacks.
+  Pinned by one Deno test. Next: fire it once deployed and build on what it reads.
+
 ### [2026-10-07 22:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - 24H with extended hours off now draws the latest regular session measured from its previous close, on both
   tabs, on Davies' word (2026-10-07, "之前那个确认无误，可以开工"): the book from the scoreboard's own previous-close

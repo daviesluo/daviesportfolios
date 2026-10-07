@@ -15,6 +15,7 @@ import { assert, assertEquals, assertStrictEquals } from "https://deno.land/std@
 import * as sharedTickers from "../_shared/t212_tickers.ts";
 import {
   shapeT212Portfolio,
+  probeOrderCurrencies,
   shapeT212Order,
   shapeT212Transaction,
   flattenT212OrderItem,
@@ -806,4 +807,21 @@ Deno.test("historyPageRequest — a timeout or a dropped connection is a failed 
   const down = await historyPageRequest("https://t212.example/page", ["key"], (() => Promise.resolve(new Response("maintenance", { status: 503 }))) as unknown as typeof fetch);
   if (!down.ok) throw new Error("a 5xx is a response, not a failed request");
   assertEquals([down.res.status, down.body, await down.res.text()], [503, undefined, "maintenance"]);
+});
+
+Deno.test("probeOrderCurrencies — names the currency fields per instrument and carries no price or quantity", () => {
+  const items = [
+    {
+      order: { side: "BUY", currency: "GBP", instrument: { ticker: "JEQPl_EQ", currency: "GBX", isin: "GB0000000001" } },
+      fill: { id: 1, price: 1234, quantity: 3, filledAt: "2025-01-02T10:00:00Z", walletImpact: { currency: "GBP", fxRate: 0.01, netValue: -37.02 } },
+    },
+    { order: { side: "BUY", instrument: { ticker: "VUAAl_EQ", currency: "USD" } } },
+    { order: { side: "BUY", instrument: { ticker: "VUAAl_EQ", currency: "USD" } }, fill: { id: 2, price: 100, quantity: 1, filledAt: "2025-01-02T10:00:00Z" } },
+  ];
+  const got = probeOrderCurrencies(items);
+  assertEquals(got.instruments.JEQPl_EQ, { instrumentCurrency: "GBX", orderCurrency: "GBP", walletCurrency: "GBP", fxRate: "number" });
+  assertEquals(got.instruments.VUAAl_EQ, { instrumentCurrency: "USD", orderCurrency: null, walletCurrency: null, fxRate: "undefined" });
+  assertEquals(got.keys.walletImpact, ["currency", "fxRate", "netValue"]);
+  const text = JSON.stringify(got);
+  for (const figure of ["1234", "37.02", "\"quantity\":"]) assertEquals(text.includes(figure), false, figure);
 });
