@@ -16,6 +16,13 @@ import * as sharedTickers from "../_shared/t212_tickers.ts";
 import {
   shapeT212Portfolio,
   probeOrderCurrencies,
+  normCurrency,
+  holdingCurrencyFor,
+  splitByCurrency,
+  shapeT212Dividend,
+  dailyCloseAt,
+  metadataCurrencies,
+  bearerIsCron,
   shapeT212Order,
   shapeT212Transaction,
   flattenT212OrderItem,
@@ -824,4 +831,118 @@ Deno.test("probeOrderCurrencies — names the currency fields per instrument and
   assertEquals(got.keys.walletImpact, ["currency", "fxRate", "netValue"]);
   const text = JSON.stringify(got);
   for (const figure of ["1234", "37.02", "\"quantity\":"]) assertEquals(text.includes(figure), false, figure);
+});
+
+
+// ---- The fill's currency, from Trading 212 itself (2026-10-07) ----
+// The client guessed a fill's currency from the board ticker's suffix, and `.L` says nothing: JEQP.L fills in pence,
+// CSPX.L and QQQ3.L in dollars. Every nested fill states its instrument's currency (`order.instrument.currency`, read by
+// the probe on both accounts), so the shaper stores it, GBX as GBX.
+
+Deno.test("shapeT212Order — stores the instrument's currency the fill states, pence kept as GBX", () => {
+  const fill = (ticker: string, currency?: string) => shapeT212Order({
+    fill: { id: 21, quantity: 2, price: 2000, filledAt: "2025-12-10T10:00:00Z", walletImpact: { currency: "USD", fxRate: 0.0126 } },
+    order: { status: "FILLED", side: "BUY", currency: "USD", instrument: { ticker, ...(currency ? { currency } : {}) } },
+  }, "invest");
+  assertEquals(fill("JEQPl_EQ", "GBX")?.currency, "GBX");
+  assertEquals(fill("JEQPl_EQ", "GBX")?.price, 2000);
+  assertEquals(fill("CSPX_EQ", "usd")?.currency, "USD");
+  // Neither the order's nor the wallet's currency stands in for the instrument's: in the ISA they are the account's
+  // pounds on a dollar stock.
+  assertEquals(fill("AAPL_US_EQ")?.currency, null);
+});
+
+Deno.test("splitByCurrency — a fill without a currency is sent without the key, so the upsert keeps the stored one", () => {
+  const rows = [
+    { id: "a", price: 1, currency: "USD" as string | null },
+    { id: "b", price: 2, currency: null as string | null },
+  ];
+  const { withCurrency, without } = splitByCurrency(rows);
+  assertEquals(withCurrency, [{ id: "a", price: 1, currency: "USD" }]);
+  assertEquals(without, [{ id: "b", price: 2 }]);
+  assertEquals("currency" in without[0], false);
+});
+
+Deno.test("normCurrency / holdingCurrencyFor — three letters upper case; a pence line is kept in pounds", () => {
+  assertEquals(normCurrency(" gbx "), "GBX");
+  assertEquals(normCurrency("GBp"), "GBX");
+  assertEquals(normCurrency("US"), null);
+  assertEquals(normCurrency(7), null);
+  assertEquals(holdingCurrencyFor("GBX"), "GBP");
+  assertEquals(holdingCurrencyFor("EUR"), "EUR");
+  assertEquals(holdingCurrencyFor(null), null);
+});
+
+Deno.test("metadataCurrencies — the asked codes' currencyCode from the instrument list", () => {
+  const list = [
+    { ticker: "JEQPl_EQ", currencyCode: "GBX", type: "ETF" },
+    { ticker: "QQQ3l_EQ", currencyCode: "USD", type: "ETF" },
+    { ticker: "ROLGl_EQ", currencyCode: "GBP", type: "ETF" },
+    { ticker: "OTHER_US_EQ", currencyCode: "USD" },
+    { ticker: "BROKEN", currencyCode: 5 },
+  ];
+  assertEquals(metadataCurrencies(list, ["JEQPl_EQ", "QQQ3l_EQ", "ROLGl_EQ", "BROKEN", "GONE_EQ"]), {
+    JEQPl_EQ: "GBX", QQQ3l_EQ: "USD", ROLGl_EQ: "GBP",
+  });
+});
+
+// ---- Dividends (2026-10-07) ----
+// The item shape is the probe's, with synthetic numbers: `amount` is the net cash in the ACCOUNT's currency,
+// `grossAmountPerShare` in the instrument's.
+
+const divItem = (over: Record<string, unknown> = {}) => ({
+  type: "DIVIDEND", amount: 8.5, paidOn: "2026-03-02T15:00:00.000+03:00", ticker: "ABC_US_EQ", currency: "USD",
+  quantity: 40, reference: "ref-1", instrument: { isin: "US0000000001", name: "Abc", ticker: "ABC_US_EQ", currency: "USD" },
+  amountInEuro: 7.3, grossAmountPerShare: 0.25, ...over,
+});
+
+Deno.test("shapeT212Dividend — a dividend paid in the holding's currency is stored with its net amount as is", () => {
+  const row = shapeT212Dividend(divItem(), "invest");
+  assertEquals(row, {
+    id: "invest:ref-1", account: "invest", t212_ticker: "ABC_US_EQ", ticker: "ABC", paid_on: "2026-03-02T12:00:00.000Z",
+    quantity: 40, amount: 8.5, currency: "USD", instrument_currency: "USD", gross_per_share: 0.25, type: "DIVIDEND",
+    amount_holding: 8.5, holding_currency: "USD", fx_rate: 1, fx_source: "same",
+  });
+});
+
+Deno.test("shapeT212Dividend — paid in another currency, the conversion is left for the day's close", () => {
+  const row = shapeT212Dividend(divItem({ currency: "GBP", amount: 6.2 }), "isa");
+  assertEquals(row?.amount, 6.2);
+  assertEquals(row?.currency, "GBP");
+  assertEquals(row?.holding_currency, "USD");
+  assertEquals(row?.amount_holding, null);
+  assertEquals(row?.fx_rate, null);
+  // A pence line's dividend in a pound account needs no conversion: the holding is kept in pounds.
+  const pence = shapeT212Dividend(divItem({ currency: "GBP", ticker: "JEQPl_EQ", instrument: { ticker: "JEQPl_EQ", currency: "GBX" } }), "isa");
+  assertEquals(pence?.holding_currency, "GBP");
+  assertEquals(pence?.amount_holding, 8.5);
+  assertEquals(pence?.ticker, "JEQP.L");
+});
+
+Deno.test("shapeT212Dividend — a row it cannot store says why, and a negative correction is kept", () => {
+  const skips: string[] = [];
+  assertEquals(shapeT212Dividend(divItem({ reference: undefined }), "isa", skips), null);
+  assertEquals(shapeT212Dividend(divItem({ paidOn: "soon" }), "isa", skips), null);
+  assertEquals(shapeT212Dividend(divItem({ amount: null }), "isa", skips), null);
+  assertEquals(shapeT212Dividend(divItem({ currency: "" }), "isa", skips), null);
+  assertEquals(skips, ["no-reference", "no-paid-on", "no-amount", "no-currency"]);
+  assertEquals(shapeT212Dividend(divItem({ amount: -1.2, type: "TAX_CORRECTION" }), "isa")?.amount, -1.2);
+});
+
+Deno.test("dailyCloseAt — the close of the last bar opened at or before the payment", () => {
+  const day = 86400;
+  const ts = [100 * day, 101 * day, 102 * day, 105 * day];
+  const closes = [1.30, null, 1.32, 1.35];
+  assertEquals(dailyCloseAt(ts, closes, (101 * day + 3600) * 1000), 1.30); // a bar without a close is skipped
+  assertEquals(dailyCloseAt(ts, closes, (103 * day) * 1000), 1.32);        // a weekend reads Friday's
+  assertEquals(dailyCloseAt(ts, closes, (99 * day) * 1000), null);         // before the series: tried again later
+});
+
+Deno.test("bearerIsCron — the cron secret as a bearer, never an empty secret or another scheme", () => {
+  assertEquals(bearerIsCron("Bearer s3cret", "s3cret"), true);
+  assertEquals(bearerIsCron("Bearer  s3cret ", "s3cret"), true);
+  assertEquals(bearerIsCron("Bearer other", "s3cret"), false);
+  assertEquals(bearerIsCron("Basic s3cret", "s3cret"), false);
+  assertEquals(bearerIsCron("Bearer ", ""), false);
+  assertEquals(bearerIsCron(null, "s3cret"), false);
 });

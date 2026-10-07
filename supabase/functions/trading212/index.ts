@@ -69,7 +69,8 @@
 // ticker held in both). Best-effort: an ISA fetch failure degrades to
 // invest-only. Absent → invest-only, exactly as before.
 //
-// `?action=probe` is the one exception to that gate: a read-only check of
+// `?action=orders-sync` also takes the cron bearer (it stands in for the
+// admin who otherwise drives it), and `?action=probe` is the other exception to that gate: a read-only check of
 // what the stored keys can read (account currency, the orders page's
 // currency fields, dividends, instrument metadata), fired from the
 // database through pg_net with the Vault `cron_secret`, or by an admin.
@@ -154,6 +155,9 @@ export function flattenT212OrderItem(raw: unknown): Record<string, unknown> | nu
     explicitFillPrice: fill?.price,
     explicitFilledAt: fill?.filledAt,
     ticker,
+    // The instrument's trading currency as T212 states it on the fill (GBX for a pence line). The flat legacy row has
+    // no instrument, and its `currency` could mean the account's, so it gets none.
+    instrumentCurrency: instrument.currency ?? instrument.currencyCode ?? null,
     status: ord.status ?? o.status,
     side: ord.side ?? o.side,
     filledQuantity: fl.quantity ?? ord.filledQuantity ?? o.filledQuantity,
@@ -255,6 +259,7 @@ export function shapeT212Order(raw: unknown, account: string, skips?: string[]):
   side: "buy" | "sell";
   shares: number;
   price: number;
+  currency: string | null;
 } | null {
   const o = flattenT212OrderItem(raw);
   // `skips` is a diagnostic sink, not control flow: every `return null`
@@ -343,7 +348,116 @@ export function shapeT212Order(raw: unknown, account: string, skips?: string[]):
     side,
     shares,
     price: Math.abs(price),
+    // The price's currency, stored as T212 states it (GBX kept, the client divides). Null when the item does not say;
+    // `backfillOrderCurrencies` then fills it from the instrument metadata.
+    currency: normCurrency(o.instrumentCurrency),
   };
+}
+
+/** True when an Authorization header carries the cron secret as its bearer (constant-time; never with an empty secret). */
+export function bearerIsCron(authorization: string | null, cronSecret: string): boolean {
+  const auth = authorization ?? "";
+  return cronSecret !== "" && auth.startsWith("Bearer ") && constantTimeEqual(auth.slice(7).trim(), cronSecret);
+}
+
+/** A currency code as stored: three letters, upper case (GBX stays GBX); anything else is null. */
+export function normCurrency(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  // Yahoo's spelling of pence, should it ever arrive: upper-cased it would read as pounds, a hundred times too much.
+  if (v.trim() === "GBp") return "GBX";
+  const c = v.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : null;
+}
+
+/** The currency a holding is kept in for an instrument's trading currency: pence lines are kept in pounds. */
+export function holdingCurrencyFor(instrumentCurrency: string | null): string | null {
+  if (!instrumentCurrency) return null;
+  return instrumentCurrency === "GBX" ? "GBP" : instrumentCurrency;
+}
+
+/**
+ * Split shaped fills for the upsert: rows that state a currency, and rows that don't. PostgREST's bulk upsert sends
+ * one column set for the batch, and `merge-duplicates` overwrites every column it is sent, so a row without a currency
+ * must leave the key out — sent as null, a re-read page would erase a currency the metadata backfill had filled in.
+ */
+export function splitByCurrency<T extends { currency: string | null }>(rows: T[]): { withCurrency: T[]; without: Omit<T, "currency">[] } {
+  const withCurrency: T[] = [];
+  const without: Omit<T, "currency">[] = [];
+  for (const r of rows) {
+    if (r.currency) withCurrency.push(r);
+    else {
+      const { currency: _drop, ...rest } = r;
+      without.push(rest);
+    }
+  }
+  return { withCurrency, without };
+}
+
+/**
+ * One row of `/api/v0/history/dividends`, as stored. Read 2026-10-07 by the probe: `{ type, amount, paidOn, ticker,
+ * currency, quantity, reference, instrument: { isin, name, ticker, currency }, amountInEuro, grossAmountPerShare }`.
+ * `amount` is the NET cash credited in the account's currency (`currency`); `grossAmountPerShare` is in the
+ * instrument's. A row without a reference, a ticker, a paid time or an amount is not stored (and named in `skips`).
+ * The conversion into the holding's currency is not done here (`amount_holding` stays null until `fillDividendFx`),
+ * except when the account pays in the holding's own currency, where it is the amount itself.
+ */
+export function shapeT212Dividend(raw: unknown, account: string, skips?: string[]): {
+  id: string; account: string; t212_ticker: string; ticker: string | null; paid_on: string;
+  quantity: number | null; amount: number; currency: string; instrument_currency: string | null;
+  gross_per_share: number | null; type: string | null;
+  amount_holding: number | null; holding_currency: string | null; fx_rate: number | null; fx_source: string | null;
+} | null {
+  const skip = (reason: string): null => { skips?.push(reason); return null; };
+  if (!raw || typeof raw !== "object") return skip("not-an-object");
+  const o = raw as Record<string, unknown>;
+  const num = (v: unknown): number | null =>
+    (typeof v === "number" && isFinite(v)) ? v
+      : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
+  const inst = (o.instrument && typeof o.instrument === "object") ? o.instrument as Record<string, unknown> : {};
+  const t212Ticker = (typeof o.ticker === "string" && o.ticker) || (typeof inst.ticker === "string" && inst.ticker) || "";
+  if (!t212Ticker) return skip("no-ticker");
+  const reference = typeof o.reference === "string" && o.reference ? o.reference : (o.id != null ? String(o.id) : "");
+  if (!reference) return skip("no-reference");
+  const amount = num(o.amount);
+  if (amount == null) return skip("no-amount");
+  const when = typeof o.paidOn === "string" && !isNaN(Date.parse(o.paidOn)) ? o.paidOn : null;
+  if (!when) return skip("no-paid-on");
+  const currency = normCurrency(o.currency);
+  if (!currency) return skip("no-currency");
+  const instrumentCurrency = normCurrency(inst.currency);
+  const holdingCurrency = holdingCurrencyFor(instrumentCurrency);
+  const same = holdingCurrency !== null && holdingCurrency === currency;
+  return {
+    id: `${account}:${reference}`,
+    account,
+    t212_ticker: t212Ticker,
+    ticker: t212TickerToYahoo(t212Ticker),
+    paid_on: new Date(when).toISOString(),
+    quantity: num(o.quantity),
+    amount,
+    currency,
+    instrument_currency: instrumentCurrency,
+    gross_per_share: num(o.grossAmountPerShare),
+    type: typeof o.type === "string" ? o.type : null,
+    amount_holding: same ? amount : null,
+    holding_currency: holdingCurrency,
+    fx_rate: same ? 1 : null,
+    fx_source: same ? "same" : null,
+  };
+}
+
+/**
+ * The close of a daily FX series on the day a dividend was paid: the last bar that opened at or before `atMs` and has
+ * a close. A payment before the series' first bar has none (null), and the caller leaves the row for a later call.
+ */
+export function dailyCloseAt(timestamps: number[], closes: (number | null)[], atMs: number): number | null {
+  let best: number | null = null;
+  for (let i = 0; i < timestamps.length; i++) {
+    const c = closes[i];
+    if (timestamps[i] * 1000 > atMs) break;
+    if (typeof c === "number" && isFinite(c) && c > 0) best = c;
+  }
+  return best;
 }
 
 /**
@@ -1090,8 +1204,15 @@ async function fetchT212TransactionsPage(
   return { ok: true, body: got.body };
 }
 
-/** Upsert a batch of shaped fills. Idempotent on the fill id. */
-async function writeOrders(rows: unknown[]): Promise<boolean> {
+/** Upsert a batch of shaped fills. Idempotent on the fill id; a fill without a currency leaves the stored one alone. */
+async function writeOrders(rows: NonNullable<ReturnType<typeof shapeT212Order>>[]): Promise<boolean> {
+  const { withCurrency, without } = splitByCurrency(rows);
+  const a = await writeOrdersBatch(withCurrency);
+  const b = await writeOrdersBatch(without);
+  return a && b;
+}
+
+async function writeOrdersBatch(rows: unknown[]): Promise<boolean> {
   if (rows.length === 0) return true;
   try {
     const res = await fetch(`${SB_URL}/rest/v1/t212_orders`, {
@@ -1168,7 +1289,7 @@ async function readOrders(): Promise<{ rows: unknown[]; ok: boolean }> {
     try {
       const res = await fetch(
         `${SB_URL}/rest/v1/t212_orders`
-          + "?select=id,ticker,executed_at,side,shares,price,account"
+          + "?select=id,ticker,executed_at,side,shares,price,account,currency"
           + `&order=executed_at.asc,id.asc&limit=${pageSize}&offset=${offset}`,
         {
           headers: {
@@ -1242,6 +1363,222 @@ async function readStableOrders(): Promise<{ orders: unknown[]; complete: boolea
     orders: read.rows,
     complete: read.ok && before.complete && after.complete,
   };
+}
+
+const sbHeaders = (extra: Record<string, string> = {}) => ({
+  apikey: SERVICE_KEY,
+  authorization: `Bearer ${SERVICE_KEY}`,
+  accept: "application/json",
+  ...extra,
+});
+
+/**
+ * Fill the currency of stored fills that have none, from T212's instrument metadata (`currencyCode`, GBX kept). The
+ * fills written before 0095 carry none, and an item that omits `order.instrument.currency` stores none. Runs only while
+ * such rows exist and at most once in six hours (the metadata endpoint allows one call in 50 s), stamped on the invest
+ * account's sync row. Writes only rows still null, so a currency a fill stated is never overwritten.
+ */
+async function backfillOrderCurrencies(apiKey: string, apiSecret: string): Promise<Record<string, unknown> | null> {
+  try {
+    const nulls = await fetch(`${SB_URL}/rest/v1/t212_orders?currency=is.null&select=t212_ticker&limit=5000`, {
+      headers: sbHeaders(), signal: AbortSignal.timeout(5_000),
+    });
+    if (!nulls.ok) return null;
+    const tickers = [...new Set(((await nulls.json()) as { t212_ticker: string }[]).map((r) => r.t212_ticker))];
+    if (tickers.length === 0) return null;
+    const state = await readOrdersSync("invest");
+    const last = Date.parse(String(state?.currency_backfill_at ?? ""));
+    if (isFinite(last) && Date.now() - last < 6 * 3600_000) return { pending: tickers.length, skipped: "recent" };
+    await fetch(`${SB_URL}/rest/v1/t212_orders_sync?account=eq.invest`, {
+      method: "PATCH", headers: sbHeaders({ "content-type": "application/json" }),
+      body: JSON.stringify({ currency_backfill_at: new Date().toISOString() }), signal: AbortSignal.timeout(5_000),
+    });
+    const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
+    const got = await historyPageRequest(T212_INSTRUMENTS_URL, attempts, fetch, 25_000);
+    if (!got.ok || !got.res.ok || !Array.isArray(got.body)) {
+      return { pending: tickers.length, error: got.ok ? `metadata ${got.res.status}` : got.message };
+    }
+    const codes = metadataCurrencies(got.body, tickers);
+    let filled = 0;
+    for (const [t212Ticker, currency] of Object.entries(codes)) {
+      const res = await fetch(
+        `${SB_URL}/rest/v1/t212_orders?t212_ticker=eq.${encodeURIComponent(t212Ticker)}&currency=is.null`,
+        { method: "PATCH", headers: sbHeaders({ "content-type": "application/json" }), body: JSON.stringify({ currency }), signal: AbortSignal.timeout(5_000) },
+      );
+      if (res.ok) filled++;
+    }
+    return { pending: tickers.length, filled, unknown: tickers.filter((t) => !codes[t]) };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** The metadata's `currencyCode` for each asked T212 code it lists, normalised (GBX kept). */
+export function metadataCurrencies(list: unknown[], tickers: string[]): Record<string, string> {
+  const want = new Set(tickers);
+  const out: Record<string, string> = {};
+  for (const r of list) {
+    if (!r || typeof r !== "object") continue;
+    const row = r as Record<string, unknown>;
+    const t = typeof row.ticker === "string" ? row.ticker : "";
+    const c = normCurrency(row.currencyCode);
+    if (want.has(t) && c) out[t] = c;
+  }
+  return out;
+}
+
+async function readDividendsSync(account: string): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/t212_dividends_sync?account=eq.${encodeURIComponent(account)}&select=*`, {
+      headers: sbHeaders(), signal: AbortSignal.timeout(5_000),
+    });
+    if (!res.ok) return null;
+    const arr = await res.json();
+    return Array.isArray(arr) && arr[0] ? arr[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function upsertRows(table: string, rows: unknown | unknown[]): Promise<boolean> {
+  if (Array.isArray(rows) && rows.length === 0) return true;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+      method: "POST",
+      headers: sbHeaders({ "content-type": "application/json", prefer: "resolution=merge-duplicates" }),
+      body: JSON.stringify(rows),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      const hint = snippet.includes("42P01") || snippet.includes("PGRST205") ? " — migration 0095 has not run yet." : "";
+      console.error(`T212 ${table} write ${res.status}: ${snippet}${hint}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error(`T212 ${table} write error:`, e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+/**
+ * Advance the dividends walk by one page for one account, then top up page one once it has finished, as the orders
+ * walk does. `/history/dividends` pages with `nextPagePath` (`?limit=50&cursor=…`) like the orders endpoint.
+ */
+async function syncDividendsOnce(account: string, apiKey: string, apiSecret: string): Promise<Record<string, unknown>> {
+  const state = await readDividendsSync(account);
+  const done = state?.complete === true;
+  const cursor = done ? null : (typeof state?.cursor === "string" ? state.cursor : null);
+  const url = new URL(T212_DIVIDENDS_URL);
+  url.searchParams.set("limit", "50");
+  if (cursor) url.searchParams.set("cursor", cursor);
+  const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
+  const got = await historyPageRequest(url.toString(), attempts);
+  const fetched = typeof state?.fetched === "number" ? state.fetched : 0;
+  if (!got.ok || !got.res.ok) {
+    const message = got.ok ? `T212 ${got.res.status} ${(await got.res.text().catch(() => "")).slice(0, 200)}` : got.message;
+    await upsertRows("t212_dividends_sync", { account, cursor, complete: done, fetched, last_error: message, updated_at: new Date().toISOString() });
+    return { account, stream: "dividends", error: message, complete: done, added: 0 };
+  }
+  if (!ordersPageEnvelopeRecognized(got.body)) {
+    const msg = "shape mismatch: unrecognised dividends envelope";
+    await upsertRows("t212_dividends_sync", { account, cursor, complete: false, fetched, last_error: msg, updated_at: new Date().toISOString() });
+    return { account, stream: "dividends", error: msg, complete: false, added: 0 };
+  }
+  const items = ordersItemsOf(got.body);
+  const skips: string[] = [];
+  const rows = items.map((it) => shapeT212Dividend(it, account, skips))
+    .filter((r): r is NonNullable<ReturnType<typeof shapeT212Dividend>> => r !== null);
+  if (items.length > 0 && rows.length === 0) {
+    // Nothing on the page read: the shaper is what is wrong, so the cursor stays and the reasons are recorded.
+    const msg = `shape mismatch: ${items.length} dividends, 0 parsed [${[...new Set(skips)].slice(0, 4).join(", ")}]`;
+    await upsertRows("t212_dividends_sync", { account, cursor, complete: false, fetched, last_error: msg, updated_at: new Date().toISOString() });
+    return { account, stream: "dividends", error: msg, complete: false, added: 0 };
+  }
+  // A row whose conversion is already known (paid in the holding's currency) is sent with it; the rest leave the
+  // conversion columns out, so a re-read page never erases a rate `fillDividendFx` stored.
+  const known = rows.filter((r) => r.amount_holding !== null);
+  const open = rows.filter((r) => r.amount_holding === null).map(({ amount_holding: _a, fx_rate: _r, fx_source: _s, ...rest }) => rest);
+  const wrote = (await upsertRows("t212_dividends", known)) && (await upsertRows("t212_dividends", open));
+  const next = nextOrdersCursor(got.body);
+  const complete = wrote && (done || next === null);
+  await upsertRows("t212_dividends_sync", {
+    account,
+    cursor: wrote ? (done ? null : next) : cursor,
+    complete,
+    fetched: wrote && !done ? fetched + rows.length : fetched,
+    last_error: wrote ? (skips.length ? `skipped ${skips.length}: ${[...new Set(skips)].join(", ")}` : null) : "storage write failed",
+    updated_at: new Date().toISOString(),
+  });
+  return { account, stream: "dividends", added: rows.length, skipped: items.length - rows.length, complete };
+}
+
+/**
+ * Convert the stored dividends whose holding currency differs from the account's: the net amount at the close of the
+ * account→holding pair (Yahoo's `<FROM><TO>=X` daily series) on the day it was paid. Up to 200 rows a call; a row
+ * whose day has no close stays null and is tried again on a later call.
+ */
+async function fillDividendFx(): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_dividends?amount_holding=is.null&holding_currency=not.is.null`
+        + "&select=id,paid_on,amount,currency,holding_currency&order=paid_on.asc&limit=200",
+      { headers: sbHeaders(), signal: AbortSignal.timeout(5_000) },
+    );
+    if (!res.ok) return null;
+    const rows = await res.json() as { id: string; paid_on: string; amount: number; currency: string; holding_currency: string }[];
+    if (rows.length === 0) return null;
+    const byPair = new Map<string, typeof rows>();
+    for (const r of rows) {
+      const pair = `${r.currency}${r.holding_currency}=X`;
+      byPair.set(pair, [...(byPair.get(pair) ?? []), r]);
+    }
+    let filled = 0;
+    for (const [pair, list] of byPair) {
+      const times = list.map((r) => Date.parse(r.paid_on));
+      const from = Math.floor(Math.min(...times) / 1000) - 10 * 86400;
+      const to = Math.floor(Math.max(...times) / 1000) + 86400;
+      const y = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(pair)}?period1=${from}&period2=${to}&interval=1d`,
+        { headers: { "user-agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8_000) },
+      ).catch(() => null);
+      if (!y || !y.ok) continue;
+      const body = await y.json().catch(() => null);
+      const result = body?.chart?.result?.[0];
+      const ts: number[] = Array.isArray(result?.timestamp) ? result.timestamp : [];
+      const closes: (number | null)[] = result?.indicators?.quote?.[0]?.close ?? [];
+      for (const r of list) {
+        const rate = dailyCloseAt(ts, closes, Date.parse(r.paid_on));
+        if (rate == null) continue;
+        const ok = await fetch(`${SB_URL}/rest/v1/t212_dividends?id=eq.${encodeURIComponent(r.id)}`, {
+          method: "PATCH", headers: sbHeaders({ "content-type": "application/json" }),
+          body: JSON.stringify({ amount_holding: r.amount * rate, fx_rate: rate, fx_source: `yahoo:${pair}:1d-close` }),
+          signal: AbortSignal.timeout(5_000),
+        });
+        if (ok.ok) filled++;
+      }
+    }
+    return { pending: rows.length, filled };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+async function readDividends(): Promise<{ rows: unknown[]; complete: boolean }> {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/t212_dividends?select=id,account,ticker,paid_on,quantity,amount,currency,instrument_currency,`
+        + "gross_per_share,type,amount_holding,holding_currency,fx_rate,fx_source&order=paid_on.asc,id.asc&limit=10000",
+      { headers: sbHeaders(), signal: AbortSignal.timeout(8_000) },
+    );
+    if (!res.ok) return { rows: [], complete: false };
+    const rows = await res.json();
+    const states = await Promise.all(t212HistoryAccounts().map(([name]) => readDividendsSync(name)));
+    return { rows: Array.isArray(rows) ? rows : [], complete: states.every((st) => st?.complete === true) };
+  } catch {
+    return { rows: [], complete: false };
+  }
 }
 
 /**
@@ -1676,10 +2013,8 @@ if (import.meta.main) {
       // The read-only probe: pg_net with the Vault `cron_secret` (or an admin token). Before the app-token gate so
       // the cron bearer reaches it; nothing in it writes or trades.
       const reqUrl = new URL(req.url);
+      const isCron = bearerIsCron(req.headers.get("authorization"), Deno.env.get("CRON_SECRET") ?? "");
       if (reqUrl.searchParams.get("action") === "probe") {
-        const cron = Deno.env.get("CRON_SECRET") ?? "";
-        const auth = req.headers.get("authorization") ?? "";
-        const isCron = cron !== "" && auth.startsWith("Bearer ") && constantTimeEqual(auth.slice(7).trim(), cron);
         const admin = isCron ? null : await verifyToken(req.headers.get("x-app-token") ?? "");
         if (!isCron && admin?.role !== "admin") {
           return new Response(JSON.stringify({ error: "unauthorised" }), {
@@ -1697,7 +2032,11 @@ if (import.meta.main) {
       // should see the synced holdings the same as the rest of the
       // portfolio. Anonymous callers get 401 so the holdings aren't
       // world-readable through the function URL.
-      const verified = await verifyToken(req.headers.get("x-app-token") ?? "");
+      // `orders-sync` also answers the cron bearer, as the admin it stands in for: the fills, dividends and currency
+      // backfills it advances can then be driven from the database (pg_net with the Vault `cron_secret`), not only by
+      // an open admin page. Every other action keeps the app token alone.
+      const cronSync = isCron && reqUrl.searchParams.get("action") === "orders-sync";
+      const verified = cronSync ? { role: "admin" as const } : await verifyToken(req.headers.get("x-app-token") ?? "");
       if (!verified) {
         return new Response(JSON.stringify({ error: "invalid token" }), {
           status: 401, headers: { ...CORS, "content-type": "application/json" },
@@ -1734,6 +2073,12 @@ if (import.meta.main) {
           headers: { ...CORS, "content-type": "application/json" },
         });
       }
+      if (action === "dividends") {
+        const read = await readDividends();
+        return new Response(JSON.stringify({ dividends: read.rows, complete: read.complete }), {
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
       if (action === "transactions") {
         const rows = await readTransactions();
         return new Response(JSON.stringify({
@@ -1754,6 +2099,14 @@ if (import.meta.main) {
         const results = action === "history-sync"
           ? await syncHistoryPerAccount()
           : await syncHistoryAccounts("orders");
+        // The dividends walk rides on the same call, one page per account (its own endpoint, its own rate limit),
+        // then the two backfills that fill in what a page could not: fill currencies from the instrument metadata,
+        // and dividends paid in another currency than the holding's at that day's close.
+        const dividends = action === "orders-sync"
+          ? await Promise.all(t212HistoryAccounts().map(([name, key, secret]) => syncDividendsOnce(name, key, secret)))
+          : [];
+        const currencyBackfill = action === "orders-sync" ? await backfillOrderCurrencies(T212_API_KEY, T212_API_SECRET) : null;
+        const dividendFx = action === "orders-sync" ? await fillDividendFx() : null;
         const ordersStateComplete = await ordersSyncComplete();
         const ordersComplete = action === "orders-sync"
           ? ordersStateComplete && results.every((row) => row.complete === true && !row.error)
@@ -1772,6 +2125,10 @@ if (import.meta.main) {
           complete: bothComplete,
           ordersComplete,
           transactionsComplete,
+          dividends,
+          dividendsComplete: dividends.length > 0 ? dividends.every((d) => d.complete === true) : undefined,
+          currencyBackfill,
+          dividendFx,
         }), { headers: { ...CORS, "content-type": "application/json" } });
       }
 

@@ -794,6 +794,19 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 23:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- `trading212` stores each fill's currency and walks the dividends. `shapeT212Order` keeps `order.instrument.currency`
+  (GBX as GBX; a fill that states none is upserted without the key, so it never erases one). `backfillOrderCurrencies`
+  fills the rows without one from `/equity/metadata/instruments` (`currencyCode`), at most once in six hours, only
+  rows still null. `syncDividendsOnce` walks `/history/dividends` a page per account per `orders-sync` (cursor in
+  `t212_dividends_sync`, page one again once complete), storing the NET amount in the account's currency, the gross
+  per share, the instrument's currency and `amount_holding`: the net in the holding's currency (GBX → GBP), the
+  amount itself when the account pays in it, else `fillDividendFx` converts it at Yahoo's daily close of the
+  account→holding pair on the day paid, recording the rate and its source. `?action=dividends` serves them.
+  `orders-sync` now also answers the cron bearer (as the admin it stands in for), so the walk and both backfills can
+  be driven through pg_net; no schedule is added, so nothing joins `edge_calls`. Pinned: 9 new Deno tests
+  (currency on the shaper, the upsert split, the dividend shaper on the probe's shape with synthetic numbers, the day's
+  close, the metadata map, the bearer check). Next: drive the walk, verify, then the client.
 ### [2026-10-07 23:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - TB1 built and frozen on Davies' word ("TB1"紧盘口"：两个版本…前端的3和4改为这两个新的测试，做好就立即上线，页面数据清空从新开始"):
   `reviews/2026-10-07-polymarket-rw-tb1-prereg.md` (frozen by this commit; its addendum to RW-NEXT Part 2 and the
