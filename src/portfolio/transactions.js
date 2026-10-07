@@ -188,9 +188,12 @@ export function annotateLedger(lots, sells) {
     ...cleanLots(lots).map((l) => ({ date: l.date, shares: l.shares, price: l.cost, ts: l.ts, kind: /** @type {const} */ ('buy') })),
     ...cleanSells(sells).map((sl) => ({ date: sl.date, shares: sl.shares, price: sl.price, ts: sl.ts, kind: /** @type {const} */ ('sell') })),
   ].sort((a, b) => a.date.localeCompare(b.date) || ((a.ts ?? 0) - (b.ts ?? 0)));
-  // `acAfter` is the net-cash average the position view shows; a sale's
-  // `gain` is against the classic average cost (`basis`), as `realizedGain`
-  // books it, so the rows' gains add up to the headline.
+  // A purchase's `acAfter` is the net-cash average the position view shows
+  // once it has happened. A sale's is the classic average cost (`basis`) it
+  // was measured against, the one `realizedGain` books, so a sale row checks
+  // by hand — Realised G/L = shares × (price − Avg Cost) — a closing sale
+  // included (Davies, 2026-10-07: sell rows read blank once a position
+  // closed). The rows' gains add up to the headline.
   let netCash = 0, shares = 0, basis = 0, held = 0;
   const out = [];
   for (const t of txns) {
@@ -210,7 +213,7 @@ export function annotateLedger(lots, sells) {
       if (held <= 1e-9) { held = 0; basis = 0; }
       out.push({
         ...t,
-        acAfter: shares > 1e-9 ? netCash / shares : 0,
+        acAfter: ac,
         gain,
         // Against what the sold shares cost, which is the only basis the
         // percentage can mean. A sale out of a zero-cost position (a

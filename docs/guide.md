@@ -85,12 +85,14 @@ Tap a tile to open its chart.
 - **Transaction history** (edit password only). Every buy and sale
   across every holding, newest first, closed positions included, with
   the total realised gain in dollars at the top. Sales are entered in a
-  holding's editor. A sale's gain folds into the average cost of the
-  shares still held, so selling high and buying back lower lowers the
-  average cost. The realised gain does not use that figure: each sale
-  is measured against the plain average price paid for the shares, so a
-  position sold out shows exactly what came back less what it cost, in
-  the currency the listing trades in, converted at today's rate.
+  holding's editor. On a purchase, Avg Cost is what the position cost
+  per share afterwards, with earlier sales' gains folded in, so selling
+  high and buying back lower lowers it. On a sale, it is the plain
+  average price paid for the shares, which is what the realised gain is
+  measured against: shares × (price − Avg Cost), a closing sale
+  included. A position sold out shows exactly what came back less what
+  it cost, in the currency the listing trades in, converted at today's
+  rate.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current

@@ -449,9 +449,12 @@ Changing any of these means re-opening a decision he has already made.
 - **Realized G/L is the classic average cost, and he called it a number
   that must never be wrong again** (2026-10-07). A sale realizes
   `shares × (price − AC)` and takes `shares × AC` out of the basis, so a
-  sold-out position realizes exactly proceeds − cost. The net-cash
-  average (`acAfter`) stays the shown AC, but pricing sales against it
-  counts an earlier sale's gain again at every later sale. The fill's
+  sold-out position realizes exactly proceeds − cost. A buy row's Avg
+  Cost stays the net-cash average (his model); a sell row's is the
+  classic AC it was measured against, so every sell row checks by hand,
+  a closing one included (he asked for it the same day: sell rows read
+  blank once a position closed). Pricing sales against the net-cash
+  average counts an earlier sale's gain again at every later sale. The fill's
   currency is the listing's, not the `.L` suffix's: some LSE lines trade
   in dollars (`TICKER_CURRENCY_OVERRIDES`) and some fill in pence (the
   pence set in `trading212.js`). A new London fill gets its Yahoo

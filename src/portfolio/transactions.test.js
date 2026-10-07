@@ -331,14 +331,23 @@ describe('realizedGain — the classic average cost, never a gain twice', () => 
     expect(realizedGain(lots, sells)).toBeCloseTo(56, 10);
   });
 
-  it("the ledger rows: each sale's gain at the classic average, adding up to the total; the shown average stays net cash", () => {
+  it("the ledger rows: each sale's gain at the classic average, adding up to the total, and the sale shows that average", () => {
     const lots = [{ date: '2026-01-01', shares: 10, cost: 10 }];
     const sells = [{ date: '2026-02-01', shares: 5, price: 20 }, { date: '2026-03-01', shares: 5, price: 20 }];
     const rows = annotateLedger(lots, sells);
     expect(rows.map((r) => r.gain)).toEqual([null, 50, 50]);
     expect(rows.map((r) => r.gainPct)).toEqual([null, 100, 100]);
-    // Net cash after the first sale: 100 − 100 = 0 for 5 shares, as the position view has always shown it.
-    expect(rows[1].acAfter).toBe(0);
+    // Each sale reads the average it was measured against, the closing one included (2026-10-07: it read blank).
+    expect(rows.map((r) => r.acAfter)).toEqual([10, 10, 10]);
+  });
+
+  it('a purchase after a sale still shows the net-cash average the position view shows', () => {
+    // buy 10@10, sell 5@20, buy 5@10: net cash 100 − 100 + 50 = 50 over 10 shares = 5; the next sale is measured at 10.
+    const lots = [{ date: '2026-01-01', shares: 10, cost: 10 }, { date: '2026-03-01', shares: 5, cost: 10 }];
+    const sells = [{ date: '2026-02-01', shares: 5, price: 20 }, { date: '2026-04-01', shares: 10, price: 20 }];
+    const rows = annotateLedger(lots, sells);
+    expect(rows.map((r) => r.acAfter)).toEqual([10, 10, 5, 10]);
+    expect(rows[3].gain).toBeCloseTo(100, 10);
   });
 });
 
@@ -402,8 +411,11 @@ describe('realizedGain — properties over random ledgers', () => {
       if (held > 1e-6) { const date = '2026-02-28'; sells.push({ date, shares: held, price: 100 }); proceeds += held * 100; }
       const total = realizedGain(lots, sells);
       expect(Math.abs(total - (proceeds - cost))).toBeLessThan(1e-6 * Math.max(1, Math.abs(cost)));
-      const rowsSum = annotateLedger(lots, sells).reduce((s, x) => s + (x.gain ?? 0), 0);
+      const rows = annotateLedger(lots, sells);
+      const rowsSum = rows.reduce((s, x) => s + (x.gain ?? 0), 0);
       expect(Math.abs(rowsSum - total)).toBeLessThan(1e-6 * Math.max(1, Math.abs(cost)));
+      // Every sale row checks by hand: its gain is its shares × (its price − the Avg Cost it shows).
+      for (const x of rows) if (x.kind === 'sell') expect(Math.abs((x.gain ?? 0) - x.shares * (x.price - x.acAfter))).toBeLessThan(1e-6);
     }
   });
 });

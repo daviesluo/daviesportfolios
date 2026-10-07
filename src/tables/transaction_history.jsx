@@ -42,10 +42,10 @@ export function transactionRowsToMatrix(rows) {
 }
 
 /**
- * What the position cost per share once this row had happened. A sale
- * changes it too — the cash it returns comes off the basis of what's
- * left — so the column reads for both kinds, which is the point of it.
- * Blank once a position is fully closed: nothing left to have a cost.
+ * A purchase: what the position cost per share once it had happened (the
+ * net-cash average). A sale: the average cost it was measured against, so
+ * its Realised G/L is shares × (price − this), a closing sale included.
+ * Blank only when there is no cost to show (a zero-cost position).
  * @param {import('../portfolio/transactions.js').TxnRow} r
  * @param {string} sym
  */

@@ -783,6 +783,19 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
   need to know what the stored keys can read before anything depends on it; a 403 names the scope the key lacks.
   Pinned by one Deno test. Next: fire it once deployed and build on what it reads.
 
+### [2026-10-07 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Transaction history: a sell row's Avg Cost is now the classic average cost the sale was measured against, so
+  Realised G/L = shares x (price - Avg Cost) on every sell row; a closing sale no longer reads blank (Davies,
+  2026-10-07: sell rows had none; he chose this reading over the net-cash average before the sale). Buy rows keep
+  the net-cash average. Pinned: hand-worked rows, and the 2,000-ledger property test now checks every sell row.
+- main was force-pushed once, on Davies' word in the conversation ("这两件都做"), to drop a Claude co-author trailer
+  that a commit carried against this repo's rule; content unchanged. Old -> new: fcc6b370 -> b107f2c0 (realized
+  G/L), f325babf -> dd2e979e (24H; its ledger line now names b107f2c0). A clone holding the old hashes resets to
+  origin/main.
+- Queued, both with sub-agents: Trading 212 fill currency stored per fill (and dividends folded into the
+  average cost, Davies: "分红的盈利也算起来，直接算在average cost里"); TB1 tight-book arms replacing the page's
+  Reward quotes variant-3/-4 (x4/x5 keep recording behind), prereg to freeze before 10-09 00:00 UTC.
+
 ### [2026-10-07 22:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - 24H with extended hours off now draws the latest regular session measured from its previous close, on both
   tabs, on Davies' word (2026-10-07, "之前那个确认无误，可以开工"): the book from the scoreboard's own previous-close
