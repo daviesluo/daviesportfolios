@@ -239,14 +239,24 @@ export async function syncTrading212History() {
  * @param {Array<{ticker?: string|null, executed_at?: string, side?: string, shares?: any, price?: any}>} orders
  * @param {string} ticker
  */
+/**
+ * London listings Trading 212 fills in pence (GBX), not pounds: a £20 share
+ * fills at 2000, and booked as pounds every gain or loss on it read a
+ * hundred times its size in the realized total (2026-10-07). Their fills are
+ * divided by 100 so every lot and sale is in the holding's currency (GBP).
+ * The fill rows carry no currency, so the list is explicit.
+ */
+const T212_PENCE_TICKERS = new Set(['JEQP.L']);
+
 export function lotsFromOrders(orders, ticker) {
   if (!Array.isArray(orders) || !ticker) return null;
+  const unit = T212_PENCE_TICKERS.has(ticker) ? 0.01 : 1;
   const lots = [];
   const sells = [];
   for (const o of orders) {
     if (!o || o.ticker !== ticker) continue;
     const shares = Number(o.shares);
-    const price = Number(o.price);
+    const price = Number(o.price) * unit;
     const raw = String(o.executed_at || '');
     const date = raw.slice(0, 10);
     if (!date || !isFinite(shares) || shares <= 0 || !isFinite(price) || price <= 0) continue;

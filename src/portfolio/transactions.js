@@ -16,6 +16,13 @@
 //   avgCost   = netShares > 0 ? netCash / netShares : 0
 // `realizedGain` reports the gain banked at each sale separately for the
 // history's headline figure (sale proceeds − basis of the sold shares).
+// That basis is the classic average cost — what the held shares cost, which
+// a sale does not change — NOT the net-cash average above: under net cash a
+// sale's gain is already folded into what the remaining shares "cost", so
+// pricing the next sale against it books the earlier gain a second time.
+// Two sales of one position double-counted that way (2026-10-07: a position
+// bought at 10 and sold in two halves at 20 read +150 for a +100 round
+// trip). For a position sold out, realized is exactly proceeds − cost.
 
 import { cleanLots } from './lots.js';
 
@@ -102,16 +109,20 @@ export function realizedGain(lots, sells) {
     ...cleanLots(lots).map((l) => ({ date: l.date, shares: l.shares, price: l.cost, kind: /** @type {const} */ ('buy') })),
     ...cleanSells(sells).map((s) => ({ date: s.date, shares: s.shares, price: s.price, kind: /** @type {const} */ ('sell') })),
   ].sort((a, b) => a.date.localeCompare(b.date));
-  let netCash = 0, shares = 0, realized = 0;
+  // Average cost: a buy adds its cash to the basis, a sale removes the sold
+  // shares at the average and banks the difference (see the header).
+  let basis = 0, shares = 0, realized = 0;
   for (const t of txns) {
     if (t.kind === 'buy') {
-      netCash += t.shares * t.price;
+      basis += t.shares * t.price;
       shares += t.shares;
     } else {
-      const ac = shares > 0 ? netCash / shares : 0;
+      const ac = shares > 0 ? basis / shares : 0;
       realized += t.shares * (t.price - ac);
-      netCash -= t.shares * t.price;
+      basis -= Math.min(t.shares, Math.max(shares, 0)) * ac;
       shares -= t.shares;
+      // Sold out (float dust or an over-sale): nothing is held, nothing costs.
+      if (shares <= 1e-9) { shares = 0; basis = 0; }
     }
   }
   return realized;
@@ -177,18 +188,26 @@ export function annotateLedger(lots, sells) {
     ...cleanLots(lots).map((l) => ({ date: l.date, shares: l.shares, price: l.cost, ts: l.ts, kind: /** @type {const} */ ('buy') })),
     ...cleanSells(sells).map((sl) => ({ date: sl.date, shares: sl.shares, price: sl.price, ts: sl.ts, kind: /** @type {const} */ ('sell') })),
   ].sort((a, b) => a.date.localeCompare(b.date) || ((a.ts ?? 0) - (b.ts ?? 0)));
-  let netCash = 0, shares = 0;
+  // `acAfter` is the net-cash average the position view shows; a sale's
+  // `gain` is against the classic average cost (`basis`), as `realizedGain`
+  // books it, so the rows' gains add up to the headline.
+  let netCash = 0, shares = 0, basis = 0, held = 0;
   const out = [];
   for (const t of txns) {
     if (t.kind === 'buy') {
       netCash += t.shares * t.price;
       shares += t.shares;
+      basis += t.shares * t.price;
+      held += t.shares;
       out.push({ ...t, acAfter: shares > 0 ? netCash / shares : 0, gain: null, gainPct: null });
     } else {
-      const ac = shares > 0 ? netCash / shares : 0;
+      const ac = held > 0 ? basis / held : 0;
       const gain = t.shares * (t.price - ac);
       netCash -= t.shares * t.price;
       shares -= t.shares;
+      basis -= Math.min(t.shares, Math.max(held, 0)) * ac;
+      held -= t.shares;
+      if (held <= 1e-9) { held = 0; basis = 0; }
       out.push({
         ...t,
         acAfter: shares > 1e-9 ? netCash / shares : 0,

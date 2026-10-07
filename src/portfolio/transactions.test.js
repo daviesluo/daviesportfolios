@@ -7,7 +7,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { cleanSells, netPosition, realizedGain, buildTransactionLog, totalRealizedUsd,
-         toLedgerRows, fromLedgerRows } from './transactions.js';
+         toLedgerRows, fromLedgerRows, annotateLedger } from './transactions.js';
+import { withClosedFromFills } from './t212_fills.js';
 import { cleanLots } from './lots.js';
 
 describe('cleanSells', () => {
@@ -304,5 +305,105 @@ describe('toLedgerRows / fromLedgerRows', () => {
   it('survives a holding with no ledger at all', () => {
     expect(toLedgerRows({})).toEqual([]);
     expect(fromLedgerRows(undefined)).toEqual({ lots: [], sells: [] });
+  });
+});
+
+// 2026-10-07: the realized total priced each sale against the NET-CASH average, into which an earlier sale's gain had
+// already been folded, so a position sold in two or more pieces booked its first gain twice (and a loss twice). Every
+// case below is worked by hand; a sold-out position must read exactly proceeds − cost.
+describe('realizedGain — the classic average cost, never a gain twice', () => {
+  it('two halves sold at a profit: +100 for a +100 round trip (the net-cash average read +150)', () => {
+    const lots = [{ date: '2026-01-01', shares: 10, cost: 10 }];
+    const sells = [{ date: '2026-02-01', shares: 5, price: 20 }, { date: '2026-03-01', shares: 5, price: 20 }];
+    expect(realizedGain(lots, sells)).toBe(100);
+  });
+
+  it('two halves sold at a loss: −200 for a −200 round trip (the net-cash average read −300)', () => {
+    const lots = [{ date: '2026-01-01', shares: 10, cost: 100 }];
+    const sells = [{ date: '2026-02-01', shares: 5, price: 80 }, { date: '2026-03-01', shares: 5, price: 80 }];
+    expect(realizedGain(lots, sells)).toBe(-200);
+  });
+
+  it('buys between sales: a sold-out position reads proceeds − cost', () => {
+    // buy 10@10, sell 4@15 (+20), buy 6@12 (average 11), sell 12@14 (+36): 56 = (60 + 168) − (100 + 72).
+    const lots = [{ date: '2026-01-01', shares: 10, cost: 10 }, { date: '2026-03-01', shares: 6, cost: 12 }];
+    const sells = [{ date: '2026-02-01', shares: 4, price: 15 }, { date: '2026-04-01', shares: 12, price: 14 }];
+    expect(realizedGain(lots, sells)).toBeCloseTo(56, 10);
+  });
+
+  it("the ledger rows: each sale's gain at the classic average, adding up to the total; the shown average stays net cash", () => {
+    const lots = [{ date: '2026-01-01', shares: 10, cost: 10 }];
+    const sells = [{ date: '2026-02-01', shares: 5, price: 20 }, { date: '2026-03-01', shares: 5, price: 20 }];
+    const rows = annotateLedger(lots, sells);
+    expect(rows.map((r) => r.gain)).toEqual([null, 50, 50]);
+    expect(rows.map((r) => r.gainPct)).toEqual([null, 100, 100]);
+    // Net cash after the first sale: 100 − 100 = 0 for 5 shares, as the position view has always shown it.
+    expect(rows[1].acAfter).toBe(0);
+  });
+});
+
+describe('totalRealizedUsd — a London fill in pence is booked in pounds', () => {
+  it('JEQP: 10 bought at 2000p and sold at 1950p is a £5 loss, not £500', () => {
+    const orders = [
+      { ticker: 'JEQP.L', side: 'buy', shares: 10, price: 2000, executed_at: '2025-01-10T12:00:00Z' },
+      { ticker: 'JEQP.L', side: 'sell', shares: 10, price: 1950, executed_at: '2025-02-10T12:00:00Z' },
+    ];
+    const all = withClosedFromFills({}, orders);
+    expect(all['JEQP.L'].currency).toBe('GBP');
+    expect(totalRealizedUsd(all, (c) => (c === 'GBP' ? 1.32 : 1))).toBeCloseTo(-5 * 1.32, 9);
+  });
+
+  it.each(['CSPX.L', 'QQQ3.L'])('%s, which trades in dollars, is booked in dollars', (ticker) => {
+    const orders = [
+      { ticker, side: 'buy', shares: 0.5, price: 500, executed_at: '2025-01-10T12:00:00Z' },
+      { ticker, side: 'sell', shares: 0.5, price: 600, executed_at: '2025-02-10T12:00:00Z' },
+    ];
+    const all = withClosedFromFills({}, orders);
+    expect(all[ticker].currency).toBe('USD');
+    expect(totalRealizedUsd(all, (c) => (c === 'GBP' ? 1.32 : 1))).toBeCloseTo(50, 9);
+  });
+
+  // Every London listing the book has filled at Trading 212, with the currency Yahoo quotes it in (read 2026-10-07).
+  // The `.L` suffix says nothing about it: four trade in dollars, one in pence. A new London fill belongs in this table.
+  it.each([
+    ['VUAA.L', 'USD'], ['SAEM.L', 'USD'], ['CSPX.L', 'USD'], ['QQQ3.L', 'USD'],
+    ['JEQP.L', 'GBp'], ['ROLG.L', 'GBP'], ['SEGM.L', 'GBP'], ['VUAG.L', 'GBP'],
+  ])('%s is quoted in %s, and its fills are booked that way', (ticker, quoted) => {
+    const all = withClosedFromFills({}, [{ ticker, side: 'buy', shares: 1, price: 100, executed_at: '2025-01-10T12:00:00Z' }]);
+    expect(all[ticker].currency).toBe(quoted === 'GBp' ? 'GBP' : quoted);
+    expect(all[ticker].lots[0].cost).toBe(quoted === 'GBp' ? 1 : 100);
+  });
+});
+
+// The property that makes the headline trustworthy whatever the ledger: over many random ledgers (buys and partial
+// sales interleaved, fractional shares, same-day rows), a position sold out realizes exactly proceeds − cost, an open
+// one realizes what its sales took in less the average cost of what they sold, and the rows' gains add up to it.
+describe('realizedGain — properties over random ledgers', () => {
+  const rng = (seed) => () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+  it('a sold-out position reads proceeds − cost, and the rows add up to the total, on 2,000 ledgers', () => {
+    const r = rng(20261007);
+    for (let n = 0; n < 2000; n++) {
+      const lots = [], sells = [];
+      let held = 0, day = 1, proceeds = 0, cost = 0;
+      const steps = 2 + Math.floor(r() * 12);
+      for (let i = 0; i < steps; i++) {
+        const date = `2026-01-${String(Math.min(28, day)).padStart(2, '0')}`;
+        if (r() < 0.25) day += 0; else day += 1;
+        const price = Math.round((5 + r() * 200) * 100) / 100;
+        if (held > 1e-6 && r() < 0.45) {
+          const sh = Math.round(held * (0.1 + r() * 0.9) * 1e4) / 1e4;
+          if (sh <= 0) continue;
+          sells.push({ date, shares: sh, price }); held -= sh; proceeds += sh * price;
+        } else {
+          const sh = Math.round((0.01 + r() * 20) * 1e4) / 1e4;
+          lots.push({ date, shares: sh, cost: price }); held += sh; cost += sh * price;
+        }
+      }
+      if (held > 1e-6) { const date = '2026-02-28'; sells.push({ date, shares: held, price: 100 }); proceeds += held * 100; }
+      const total = realizedGain(lots, sells);
+      expect(Math.abs(total - (proceeds - cost))).toBeLessThan(1e-6 * Math.max(1, Math.abs(cost)));
+      const rowsSum = annotateLedger(lots, sells).reduce((s, x) => s + (x.gain ?? 0), 0);
+      expect(Math.abs(rowsSum - total)).toBeLessThan(1e-6 * Math.max(1, Math.abs(cost)));
+    }
   });
 });

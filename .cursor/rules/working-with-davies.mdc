@@ -420,6 +420,21 @@ Changing any of these means re-opening a decision he has already made.
   shares. Don't remove that warning; don't add a code path that saves
   a ledger without it.
 
+- **Realized G/L is the classic average cost, and he called it a number
+  that must never be wrong again** (2026-10-07). A sale realizes
+  `shares × (price − AC)` and takes `shares × AC` out of the basis, so a
+  sold-out position realizes exactly proceeds − cost. The net-cash
+  average (`acAfter`) stays the shown AC, but pricing sales against it
+  counts an earlier sale's gain again at every later sale. The fill's
+  currency is the listing's, not the `.L` suffix's: some LSE lines trade
+  in dollars (`TICKER_CURRENCY_OVERRIDES`) and some fill in pence (the
+  pence set in `trading212.js`). A new London fill gets its Yahoo
+  currency checked and a row in the `transactions.test.js` table. The
+  2,000-ledger property test (sold out = proceeds − cost, rows sum to
+  the total) is the guard; never loosen it. Verify against the real book
+  in a scratchpad only: the amounts never go into the repo, its ledger,
+  its handover or a commit message.
+
 ### Security / Edge
 
 - `prices` / `chart` / `fundamentals` are token-gated like `data`.

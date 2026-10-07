@@ -87,7 +87,10 @@ Tap a tile to open its chart.
   the total realised gain in dollars at the top. Sales are entered in a
   holding's editor. A sale's gain folds into the average cost of the
   shares still held, so selling high and buying back lower lowers the
-  average cost.
+  average cost. The realised gain does not use that figure: each sale
+  is measured against the plain average price paid for the shares, so a
+  position sold out shows exactly what came back less what it cost, in
+  the currency the listing trades in, converted at today's rate.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current

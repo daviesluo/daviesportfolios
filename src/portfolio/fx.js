@@ -20,6 +20,11 @@ import { isEuroExchange } from '../prices/ticker_class.js';
 const TICKER_CURRENCY_OVERRIDES = /** @type {const} */ ({
   'VUAA.L': 'USD',
   'SAEM.L': 'USD',
+  // iShares Core S&P 500 and WisdomTree's 3x Nasdaq 100 trade in dollars on
+  // the LSE (Yahoo's currency for both, 2026-10-07): Trading 212 fills them
+  // in USD, so their gains are USD, not GBP.
+  'CSPX.L': 'USD',
+  'QQQ3.L': 'USD',
 });
 
 /**
