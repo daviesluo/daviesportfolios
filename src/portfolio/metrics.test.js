@@ -7,7 +7,7 @@
 
 import { pctIsFlat } from '../app/formatters.js';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { computeMetrics } from './metrics.js';
+import { computeMetrics, previousCloseValue, quoteDayMove } from './metrics.js';
 import { fxRateToUSD, fxToUSD } from './fx.js';
 
 // --- fxRateToUSD --------------------------------------------------
@@ -601,5 +601,53 @@ describe('computeMetrics — ext hours on a foreign listing over the weekend', (
     const m = computeMetrics(book(), { extended: false, marketData: md });
     expect(pctOf(m, '2DG.SG')).toBeCloseTo(6.13, 6);
     expect(pctOf(m, 'VUAA.L')).toBeCloseTo(1.27, 6);
+  });
+});
+
+// The performance panel's 24H window with extended hours off reads these two (Davies, 2026-10-07): its portfolio line
+// is measured from `previousCloseValue`, its S&P line from the Market Conditions card's `quoteDayMove`. One function
+// each, so the chart's ends ARE the scoreboard's DAY CHANGE and the card's figure.
+describe('previousCloseValue — the scoreboard DAY CHANGE basis', () => {
+  const book = {
+    holdings: {
+      ACME: { shares: 10, cost: 150, lastPrice: 240, prevClose: 220, currency: 'USD' },
+      BRIT: { shares: 100, cost: 2, lastPrice: 2.5, prevClose: 2.4, currency: 'GBP' },
+      NEW: { shares: 4, cost: 50, lastPrice: 60, currency: 'USD' },       // no prevClose: flat, at its price
+      CASH: { shares: 1, cost: 0, lastPrice: 500, isCash: true },
+      GONE: { shares: 9, cost: 1, lastPrice: 1, prevClose: 1, currency: 'USD' }, // not on the board
+    },
+    positions: { A: { role: 'FWD', tickers: ['ACME', 'BRIT', 'NEW', 'CASH'] } },
+  };
+  const md = { 'GBPUSD=X': { lastPrice: 1.25 } };
+
+  it('is every board holding at its previous close, plus cash: marketValue - dayChange', () => {
+    // 10 x 220 + 100 x 2.4 x 1.25 + 4 x 60 + 500 = 2200 + 300 + 240 + 500 = 3240
+    expect(previousCloseValue(book, md)).toBeCloseTo(3240, 9);
+    const m = computeMetrics(book, { extended: false, marketData: md });
+    expect(previousCloseValue(book, md)).toBeCloseTo(m.marketValue - m.dayChange, 9);
+  });
+
+  it('reads extended hours off whatever the toggle says, and is null for a book with nothing to value', () => {
+    expect(previousCloseValue({ holdings: {}, positions: {} }, md)).toBeNull();
+    expect(previousCloseValue({ holdings: {} }, md)).toBeNull();
+    expect(previousCloseValue(null, md)).toBeNull();
+  });
+});
+
+describe('quoteDayMove — what a Market Conditions card reads', () => {
+  it('extended hours off: the last price against the previous close', () => {
+    expect(quoteDayMove({ lastPrice: 5200, prevClose: 5150 }, '^GSPC', false))
+      .toEqual({ price: 5200, anchor: 5150, pct: ((5200 - 5150) / 5150) * 100 });
+  });
+
+  it('extended hours on: a future reads its extended price against today\'s close; an index never does', () => {
+    const d = { lastPrice: 5200, prevClose: 5150, extPrice: 5252, todayRegularClose: 5200 };
+    expect(quoteDayMove(d, 'ES=F', true)).toEqual({ price: 5252, anchor: 5200, pct: 1 });
+    expect(quoteDayMove(d, '^VIX', true)).toEqual({ price: 5200, anchor: 5200, pct: 0 });
+  });
+
+  it('falls back to the quote\'s own dayPct without a price, and to nothing without a quote', () => {
+    expect(quoteDayMove({ dayPct: 0.5 }, '^GSPC', false)).toEqual({ price: null, anchor: null, pct: 0.5 });
+    expect(quoteDayMove(undefined, '^GSPC', false)).toEqual({ price: null, anchor: null, pct: null });
   });
 });

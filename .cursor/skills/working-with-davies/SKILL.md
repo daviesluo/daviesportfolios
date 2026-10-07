@@ -187,10 +187,13 @@ consistent before believing it.
 consistent complaint and it is always worth treating as a defect, even
 when each number is defensible on its own:
 
-- The vs-S&P chart's 24H PORTFOLIO will not equal the scoreboard's
-  DAY CHANGE, and its S&P line will not equal the Market Conditions
-  card — those were the previous-close reading, and he dropped it.
-  Don't "fix" 24H back onto yesterday's close.
+- With extended hours off, the vs-S&P chart's 24H PORTFOLIO ends on
+  the scoreboard's DAY CHANGE %, its S&P line on the Market Conditions
+  S&P card, and the INVESTMENT tab's VALUE % on DAY CHANGE too (Davies,
+  2026-10-07, reversing September's "24H will not match them"). The
+  ends come from the scoreboard's and the card's own functions, never a
+  second copy. With extended hours on, 24H is a trailing 24 h from 0 %
+  and does not match them. See the chart rules below.
 - The Investment chart's Value must equal the scoreboard's PORTFOLIO.
 - With deposits flat, the Investment value line and the vs-S&P
   portfolio line must have the same shape and the same reading.
@@ -220,24 +223,44 @@ Changing any of these means re-opening a decision he has already made.
 ### Charts — vs-S&P and Investment Performance
 
 - Every range rebases both lines to 0% at the window's first point,
-  including the shortest range. That button is labelled **24H**
-  (internal key still `1D`; the ticker modal still says 1D). There is
-  no DAY / 24H toggle and no previous-close reading on this panel — a
-  trailing 24 h is the only 1-day view. He first asked for a literal
-  trailing 24 h, then for both, then dropped the DAY reading. Don't
-  put the toggle back.
-- No previous-close basis is forced on any range, 24H included: every
-  window is anchored at its own first point, so the basis at that point
-  equals the value there and the reading is the window's move
-  (`perf_chart.jsx` explains why — forcing `prevCloseBasis` on 24H once
-  read +14.81 % where the Investment view of the same window read
-  +16.00 %). Don't bring it back to "make it match the scoreboard".
+  except 24H with extended hours off (next rule). The shortest button
+  is labelled **24H** (internal key still `1D`; the ticker modal still
+  says 1D). There is no DAY / 24H toggle — the extended-hours switch
+  picks the reading. He first asked for a literal trailing 24 h, then
+  for both, then dropped the DAY reading, then (2026-10-07) asked for
+  it back with extended hours off. Don't put a toggle back.
+- **24H with extended hours off is the latest regular session, measured
+  from its previous close, on both lines and both tabs** (Davies,
+  2026-10-07: "在不开extended hours时只显示开盘后的，忽略了之前收盘到开盘时的变动，
+  在这种情况下开始不需要从0%开始，并且确保在盘中时和scoreboard里的实时变动一样";
+  "之前那个确认无误，可以开工"). This REVERSES the September rule "no
+  previous-close basis on any range, don't bring it back to make it
+  match the scoreboard"; don't revert it to 0 % at the open. The window
+  is today's session while it trades and after the close, the last one
+  before the open, at weekends and on holidays (its rows keep the whole
+  five-day fetch, `perfRowFilter`, because a trailing 24 h cut a
+  Saturday's view to Friday's last bars). The portfolio line is
+  `computeAt`'s value over the scoreboard's previous-close value
+  (`previousCloseValue`, metrics.js); the S&P line is `^GSPC` over the
+  card's previous close, its last point at the card's price
+  (`quoteDayMove`); nothing is rebased, so the first point shows the
+  overnight gap and the ends ARE DAY CHANGE and the card, live in the
+  session. INVESTMENT's VALUE % takes the same basis; Deposited is as
+  before. The September objection does not apply: forcing
+  `prevCloseBasis` inside `computeAt` read +14.81 % where INVESTMENT read
+  +16.00 % because it was a per-lot flag one tab used; this basis is one
+  number both tabs share, and `prevCloseBasis` stays off on every range.
+  Without the card's quote the window falls back to the rebased reading
+  for both lines. Extended hours on (the trailing 24 h on the futures,
+  from 0 %) and every range from 1W up are unchanged. The perf matrix's
+  `SESSIONS` section pins it before the open, in the session, after the
+  close and at a weekend, ext on and off, both tabs.
 - 1W is a real trailing week, not "since last Monday" or a coarse
   bucket that erases the series.
 - 1D is one point per five minutes over the window. Extended-hours on
-  or off, the time window and the benchmark (cash index vs futures)
-  stay in lockstep — the title and legend both flip to FUTURES when
-  the toggle is on.
+  or off, the time window (trailing 24 h vs the latest session) and the
+  benchmark (futures vs cash index) stay in lockstep — the title and
+  legend both flip to FUTURES when the toggle is on.
 - Investment Performance lives in the same panel slot, as the second
   of two tabs (VS S&P 500 | INVESTMENT — the heading is the switch). Value
   is the vs-S&P portfolio series in dollars; Net deposit is money paid
@@ -250,7 +273,10 @@ Changing any of these means re-opening a decision he has already made.
   2026-09-28), so while the futures trade their line ends short of
   the book's. Don't stretch the benchmark to now or re-date its last
   bar, and don't let the book's live point sit at the benchmark's
-  time. The benchmark is re-fetched every minute on 24H and 1W.
+  time. The benchmark is re-fetched every minute on 24H and 1W. On 24H
+  with extended hours off the cash index's last bar keeps its time and
+  takes the Market Conditions card's price, so the line ends on the
+  card's figure; a check that its bars refreshed reads an earlier bar.
 - On 1W / 1M / 3M / YTD, overlay 5-minute snapshots onto the vs-S&P
   timestamp grid. Do not concatenate them: index spacing gives every
   point equal width, so a day of 5-minute samples stretched "today"
@@ -578,6 +604,14 @@ Read these as a checklist before pushing.
   matched `<fn>/index.ts`, so a change to `fundamentals/_shared.ts`
   shipped everywhere except `fundamentals`. Green CI is not a deploy —
   check the thing actually serving the request.
+- **A fetch's variant is not the window it serves.** The first cut of
+  the 24H previous-close window kept five days for the fetch variants
+  `reg` / `closed`, meaning extended hours off; but `fetchParamsFor`
+  asks about the phase first, so extended hours ON in the session is
+  `reg` too, and the futures' trailing 24 h became five days of bars
+  (the session matrix read +8.85 % where +6.92 % was right, 2026-10-07).
+  Key a rule on what it means (the range and the switch), not on a
+  label that happens to coincide with it.
 - **Sweeping the restated constants and missing the derived one.**
   Moving 1W to 15-minute bars updated the five places that SAY how long
   a 1W bar is, and left `maBarsFor`'s own `{'1W': 13}` bars-a-day

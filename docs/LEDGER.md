@@ -775,6 +775,29 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 22:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- 24H with extended hours off now draws the latest regular session measured from its previous close, on both
+  tabs, on Davies' word (2026-10-07, "之前那个确认无误，可以开工"): the book from the scoreboard's own previous-close
+  value (`previousCloseValue`), the S&P from the Market Conditions card's anchor with its last point at the card's
+  price (`quoteDayMove`, which the card now calls too), so its ends ARE the DAY CHANGE % and the card. Ext on and
+  1W+ unchanged. The ext-off rows keep the five-day fetch (`perfRowFilter`, keyed on range + switch: keying on the
+  fetch variant made ext-on in-session five days, caught by the new matrix); the seed keeps 24 h. The skill's
+  settled rule ("no previous-close basis on 24H") is reversed with its reason, in all three copies.
+- Evidence: perf-matrix SESSIONS (16 cases: pre-market / in session / after close / weekend x ext off/on x both
+  tabs, hand-worked; ext off ends = DAY CHANGE and = the card); the 60-case 24H expectations reworked by hand; the
+  old bundle fails 74 (all ext-off, none ext-on). The matrix fixture's CASH sat in ST and GK (counted twice);
+  fixed. The 14-17 UTC refusal is gone. CLAUDE.md's verify:perf bullet updated. gates --full green (sub-agent),
+  rebased onto b107f2c0 with the bundle rebuilt.
+- Open: ext-on 24H before the open reads vs-S&P +3.57 % against INVESTMENT +3.70 % in the matrix fixture
+  (pre-existing; the basis is the last bar before the futures' UTC day, not the first point); the sweep fixture's
+  CN fund intraday bars (100) disagree with its quote (1.5).
+- Reward quotes study (read-only, not blind; Test 1 of RW-X4/X5 still runs as frozen on/after 10-09 00:05):
+  variant-3 (x4) ≈ x1 (−$7.32 total, the 0.9 keep almost never binds at a 1¢ tick); variant-4 (x5) worse
+  (−$68.83, P(>0) 0.00); neither should change live-prep or mid-pool. New: fills when the raw spread is ≤ 1 tick
+  are the adverse ones; "skip ≤ 1 tick" on S2's sim reads +$46.7 at R = 0.40 (P 0.95, in-sample). Proposed paper
+  arm TB1 (skip / one tick back on ≤ 1-tick books) on RW-C, prereg to freeze before 10-09 00:00, awaiting Davies.
+  Scripts in the session scratchpad (`rwx107/`), not committed.
+
 ### [2026-10-07 21:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **The paper layers' DAYS table gets a WORST CASE on every day, today's live** (Davies: "Reward quotes列表里后三个点开之后

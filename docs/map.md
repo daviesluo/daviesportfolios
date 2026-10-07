@@ -84,13 +84,16 @@ How the less obvious parts work, and why they are built the way they are.
   NAVs when the intraday-estimate endpoint is geo-blocked).
 - **Yahoo-Finance-equivalent YTD chart math** — per-lot purchase
   history, Jan-1 close as the basis for pre-year lots, lot.cost as
-  the basis for in-year lots. The performance panel forces no
-  previous-close basis on any range: every range, 24H included, is
-  anchored at the window's own first point, so the 24H figure is the
-  window's move and deliberately does not equal the scoreboard's DAY
-  CHANGE (a forced previous-close basis once made the panel read
-  +14.81 % where the Investment view of the same window read +16.00 %).
-  Pinned by a vitest suite so the formula can't quietly regress.
+  the basis for in-year lots. The performance panel anchors every
+  window at its own first point (both lines from 0 %), except 24H with
+  extended hours off: that is the latest regular session measured from
+  its previous close, the book from the scoreboard's own previous-close
+  value and the S&P from the Market Conditions card's anchor, so its
+  ends are the scoreboard's DAY CHANGE and the card (2026-10-07). The
+  basis is one number both tabs share, not the per-lot
+  `prevCloseBasis` flag that once made the panel read +14.81 % where the
+  Investment view of the same window read +16.00 %. Pinned by a vitest
+  suite and the perf matrix so the formula can't quietly regress.
 - **Two views, one panel** — the centre switches between the football
   tactics board (default) and a heatmap (one tile per holding, sized by
   market value, colored by day-change); beside it the performance panel
@@ -521,7 +524,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `portfolio/shown_prices.js` | The prices each holding last showed, drawn over the book after a reload until the live quotes land, and never saved. |
 | `portfolio/portfolio_edits.js` | The board's edits: change, add, move or remove a holding, swap two positions, rename one. |
 | `portfolio/positions.js` | Where the 11 positions sit on the pitch. |
-| `portfolio/metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs. |
+| `portfolio/metrics.js` | The per-position totals behind the scoreboard, the heat map and the drill-downs, and the day-change bases the 24H chart shares with them. |
 | `portfolio/lots.js` | Cleans and sums the buy lots the editor collects. |
 | `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys and sells. |
 | `portfolio/fx.js` | Which currency a ticker trades in, and its rate to USD. |
@@ -787,7 +790,7 @@ before touching migration state.
 | `src/e2e/lp_fixture.json` | "Reward quotes live-prep"'s page the same way, for a record of its own with a $120 pool and a sell of what its paper held. |
 | `src/e2e/quotes_live_fixture.json` | The live stablecoin quotes' page as the dashboard serves it for a synthetic book worked out by hand: the browser test shows it, and the `agents` function's test proves it is that function's own answer. |
 | `src/e2e/quotes_twin_fixture.json` | The realistic twins' rows as the dashboard serves them for that book run as each twin's, made from the spec rows by the twins' fixture generator: the browser test shows them, and the `agents` function's test proves they are that function's own answer. |
-| `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books, 60 cases against answers worked out by hand, clock pinned. |
+| `src/e2e/perf-matrix.mjs` | The second browser test CI runs: the performance panel in two views, five ranges, three data states and two books (60 cases), and 24H at four instants with extended hours off and on (16), against answers worked out by hand, clocks pinned. |
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |

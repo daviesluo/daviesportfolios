@@ -324,12 +324,13 @@ from anywhere in the repository (`--full`: every one).
   were green, because each was an integration failure.
 - `npm run verify:perf` — the performance-panel matrix in
   `src/e2e/perf-matrix.mjs`: 60 cases (two views × five ranges ×
-  three recorded-data states × two books) read back from the committed
+  three recorded-data states × two books) plus 16 session cases (24H
+  before the open, in the session, after the close and at a weekend,
+  extended hours off and on, both tabs), read back from the committed
   bundle and compared with answers worked out by hand. A hard CI gate
   since 2026-09-23. Its clock is pinned too (`PERF_MATRIX_CLOCK` moves
-  it), and it refuses an instant its fixture cannot serve: its "18
-  failures" were all 14:00–20:00 UTC, where the fixture's first bar has
-  left the 24H window and the app was right.
+  it), and it refuses an instant its fixture cannot serve (the file
+  names which).
 - `deno test --allow-env supabase/functions/` — Edge Function pin
   tests. Required locally before pushing changes to any
   `supabase/functions/<name>/index.ts`; CI runs the same on every PR

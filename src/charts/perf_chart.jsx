@@ -22,7 +22,9 @@ import {
   RANGE_KEYS,
   anchorDateFor,
   fetchParamsFor,
-  applyVariantFilter,
+  perfRowFilter,
+  filterToLatestDay,
+  filterToLast24h,
   panelRangeLabel,
   resampleToSlots,
 } from './ytd.js';
@@ -36,6 +38,7 @@ import {
   moneyTicks, fmtAxisMoney, fmtChipMoney, windowPct, provenanceSplitIndex,
 } from './investment_view.js';
 import { reportError } from '../app/ops_error.js';
+import { previousCloseValue, quoteDayMove } from '../portfolio/metrics.js';
 import { fmtDayMonth, fmtMonth } from '../app/formatters.js';
 import {
   mergeOvernightSeries,
@@ -117,6 +120,56 @@ export const LIVE_BENCH_TTL_MS = 60 * 1000;
 export function perfMaxAgeMs(rangeKey, sym, spSymbol) {
   const ttl = PERF_CACHE_TTL_MS[/** @type {keyof typeof PERF_CACHE_TTL_MS} */ (rangeKey)] || PERF_CACHE_TTL_MS.YTD;
   return (rangeKey === '1D' || rangeKey === '1W') && sym === spSymbol ? Math.min(ttl, LIVE_BENCH_TTL_MS) : ttl;
+}
+
+// ---- 24H with extended hours off: the latest session, from its previous close.
+//
+// Davies (2026-10-07): with extended hours off, the 24H window showed only
+// the regular session, rebased to 0 % at its open, so the move from the
+// previous close to the open was lost, and in the session the portfolio
+// line did not read what the scoreboard's DAY CHANGE did. Now that window
+// is the latest regular session (today's while it trades or once it has
+// closed, the last one before the open, at the weekend or on a holiday),
+// and both lines are measured from that session's previous close: the
+// portfolio from the book's value at the previous close, which is the
+// scoreboard's own function (`previousCloseValue`, metrics.js), and the
+// S&P from the cash index's previous close, which is the Market Conditions
+// card's (`quoteDayMove`). Its first point therefore shows the overnight
+// gap, and its end IS the scoreboard's DAY CHANGE and the card's S&P
+// change. Extended hours on (the trailing 24 h on the futures, rebased to
+// 0 % at its first point) and every range from 1W up are as they were.
+/** @param {string} rangeKey @param {boolean} extendedHours */
+export function perfSessionBasis(rangeKey, extendedHours) {
+  return rangeKey === '1D' && !extendedHours;
+}
+
+/**
+ * The latest regular session out of the benchmark's regular-hours bars:
+ * the bars of the last UTC day they cover. A US cash session (13:30–20:00
+ * UTC, an hour later in winter) never crosses midnight UTC, so a day IS a
+ * session here.
+ * @template {{date: string}} T @param {T[]} bars @returns {T[]}
+ */
+export function latestSessionBars(bars) {
+  return filterToLatestDay(bars);
+}
+
+/**
+ * The cut the seed keeps of a series: the bars from 24 hours before the
+ * benchmark's last bar, and the last bar before that so a point at the
+ * window's start still finds the price it had. The 24H rows with extended
+ * hours off now keep five days (see `perfRowFilter`), and the seed lives in
+ * localStorage; the window drawn from it is the same, because every point
+ * of the latest session is later than the cut.
+ * @template {{date: string}} T @param {T[]} bars @param {string} cutKey  `YYYY-MM-DDTHH:MM`, UTC
+ * @returns {T[]}
+ */
+export function seedCut(bars, cutKey) {
+  if (!Array.isArray(bars) || !cutKey) return bars;
+  const sorted = bars.slice().sort((a, b) => a.date.localeCompare(b.date));
+  let first = sorted.findIndex((p) => p.date >= cutKey);
+  if (first < 0) first = sorted.length;
+  return sorted.slice(Math.max(0, first - 1));
 }
 
 // Tiny placeholder shell so the loading / error / range-button row
@@ -263,9 +316,12 @@ export function perfSeedSignature(seed) {
 export function perfSeedFrom({ variantKey, spSymbol, hist, recorded, tickers, nowMs = Date.now() }) {
   /** @type {Record<string, Array<{date: string, close: number}>>} */
   const bars = {};
+  const sp = Array.isArray(hist?.[spSymbol]) ? hist[spSymbol].slice().sort((a, b) => a.date.localeCompare(b.date)) : [];
+  const spLastMs = sp.length > 0 ? parseChartDateUTC(sp[sp.length - 1].date).getTime() : NaN;
+  const cutKey = Number.isFinite(spLastMs) ? new Date(spLastMs - 24 * 3600_000).toISOString().slice(0, 16) : '';
   for (const s of [spSymbol, ...tickers]) {
     const src = hist?.[s];
-    if (Array.isArray(src) && src.length > 0) bars[s] = src.map((p) => ({ date: p.date, close: p.close }));
+    if (Array.isArray(src) && src.length > 0) bars[s] = seedCut(src, cutKey).map((p) => ({ date: p.date, close: p.close }));
   }
   const held = new Set(tickers);
   const since = rangeStartMs('1D', nowMs);
@@ -455,7 +511,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     const applyBatch = (batch, part, askedAt) => {
       for (const s of stale) {
         let data = batch[s];
-        data = applyVariantFilter(data, params.variant);
+        data = perfRowFilter(data, rangeKey, extendedHours, params.variant);
         if (data) {
           merged[s] = data;
           newEntries[s] = { ts: askedAt, data };
@@ -610,7 +666,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         const batch = { ...spBatch, ...tickerBatch };
         const next = { ...loadPerfCache(year, cacheKey) };
         for (const sym of stale) {
-          const data = applyVariantFilter(batch[sym], params.variant);
+          const data = perfRowFilter(batch[sym], rangeKey, extendedHours, params.variant);
           // `now` is when this refresh asked, read before its requests went out (see PERF_CACHE_TTL_MS).
           if (data) next[sym] = { ts: now, data };
         }
@@ -668,7 +724,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         const newEntries = { ...entries };
         for (const s of stale) {
           let data = batch[s];
-          data = applyVariantFilter(data, params.variant);
+          data = perfRowFilter(data, rk, extendedHours, params.variant);
           if (data) newEntries[s] = { ts: askedAt, data };
         }
         savePerfCache(year, cacheKey, newEntries);
@@ -820,7 +876,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // is here, unconditional; only the cache LOOKUP happens down there,
   // and a lookup is not a hook.
   const seriesCacheRef = React.useRef(
-    /** @type {{deps: any[], val: {portYtd: any[], recordedFrom: number|null}}|null} */ (null));
+    /** @type {{deps: any[], val: {portYtd: any[], recordedFrom: number|null, dayBasis: number|null}}|null} */ (null));
 
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey);
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey);
@@ -863,7 +919,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // recorded price, not a flat prevClose. Holdings that don't trade
   // overnight just hold flat through the night.
   const keepOvernightFutures = extendedHours && spSymbol === 'ES=F';
-  const allSp = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
+  // 24H with extended hours off draws the latest session from its previous
+  // close (see `perfSessionBasis`).
+  const sessionBasis = perfSessionBasis(rangeKey, extendedHours);
+  const allSpRth = (!keepOvernightFutures && rangeKey === '1D' && (spSymbol === '^GSPC' || spSymbol === 'ES=F'))
     ? allSpRaw.filter(p => {
         if (typeof p.date !== 'string' || p.date.length < 16 || p.date[10] !== 'T') return true;
         const utcMins = parseInt(p.date.slice(11, 13), 10) * 60 + parseInt(p.date.slice(14, 16), 10);
@@ -880,6 +939,7 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
         return etMins >= 4 * 60 && etMins < 20 * 60;
       })
     : allSpRaw;
+  const allSp = sessionBasis ? latestSessionBars(allSpRth) : allSpRth;
 
   // 1D's anchor date is whatever calendar day the fetched data
   // actually covers — the latest UTC date in the series. Yesterday
@@ -923,7 +983,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     }
     const fallbackSeries = (hist?.[bestKey] || []).slice().sort((a, b) => a.date.localeCompare(b.date));
     spWindow = rangeKey === '1D'
-      ? fallbackSeries
+      // The ext-off rows keep five days (perfRowFilter); without the
+      // benchmark there is no session to pick, so it is the trailing 24 h
+      // the window always drew in this case.
+      ? (sessionBasis ? filterToLast24h(fallbackSeries) : fallbackSeries)
       : windowSlots
         ? resampleToSlots(fallbackSeries, windowSlots)
         : fallbackSeries.filter(p => p.date >= anchorDate);
@@ -1063,22 +1126,36 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
       // genuinely bought inside the window SHOULD use its cost: it
       // contributes nothing at the moment of purchase and its move counts
       // from there, which is what stops money paid in reading as a gain.
+      //
+      // 24H with extended hours off is measured from the previous close
+      // again since 2026-10-07, on Davies' word — but not through this
+      // flag. Its basis is one number for the whole window, the scoreboard's
+      // previous-close value (`dayBasis` below), and the Investment view's
+      // VALUE figure takes the same number, so the two views cannot read
+      // +14.81 % against +16.00 % again.
     };
 
     const grid = edgeDate ? [...spWindow.map(p => p.date), edgeDate] : spWindow.map(p => p.date);
+    // 24H with extended hours off: every point is measured from the book's
+    // value at the session's previous close — the scoreboard's own number
+    // (`previousCloseValue`), so the live end is its DAY CHANGE % — rather
+    // than from `computeAt`'s window basis. The VALUE is `computeAt`'s
+    // either way: one valuation of the book.
+    const dayBasis = sessionBasis ? previousCloseValue(portfolio, marketData) : null;
     const portYtd = grid.map(date => {
       const { value, basis } = computeAt({ ...ytdOpts, date });
       const pct = basis > 0 ? ((value - basis) / basis) * 100 : 0;
+      const sincePrevClose = dayBasis != null ? ((value - dayBasis) / dayBasis) * 100 : null;
       // `value` is the book in dollars at this point — the Investment view
       // draws exactly this, so it is by construction the same number the
       // vs-S&P view turns into a percentage.
-      return { date, pct, value };
+      return { date, pct, value, sincePrevClose };
     });
-    return { portYtd, recordedFrom };
+    return { portYtd, recordedFrom, dayBasis };
     })() };
     seriesCacheRef.current = series;
   }
-  const { portYtd, recordedFrom } = series.val;
+  const { portYtd, recordedFrom, dayBasis } = series.val;
 
   if (portYtd.length < 2) {
     return renderShell(<div className="sparkline-empty dim mono">Insufficient data</div>, rangeKey, setRangeKey);
@@ -1088,8 +1165,8 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // spYtd / yearStart names.
   const spYtd = spWindow;
 
-  // BOTH lines start the window at 0 %, on EVERY range including the
-  // shortest. What the panel answers is "how did these two move against
+  // BOTH lines start the window at 0 %, on every range but one (below).
+  // What the panel answers is "how did these two move against
   // each other over the window I'm looking at", and that question only
   // has an unambiguous answer when both are measured from the same
   // instant — the window's own first point. Anchoring the S&P on a
@@ -1105,11 +1182,31 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   // reported figure IS the window's move. The S&P's old previous-close /
   // prior-year-end anchor is gone with it: the benchmark has no baseline
   // other than its own first bar in the window.
+  //
+  // Except 24H with extended hours off (Davies, 2026-10-07; see
+  // `perfSessionBasis`): there both lines are measured from the session's
+  // previous close and nothing is rebased, so the first point shows the
+  // gap from that close to the open. The book's basis is the scoreboard's
+  // (`dayBasis`); the S&P's anchor is the Market Conditions card's, and its
+  // last point is the card's price — the in-progress bar's latest print in
+  // the session, the official close after it — so the line ends on exactly
+  // the card's figure. Both or neither: without the card's quote (a first
+  // load with nothing cached) the window is drawn rebased, as before.
+  const spMove = sessionBasis && hasSp ? quoteDayMove(marketData?.[spSymbol], spSymbol, false) : null;
+  const spAnchor = spMove && spMove.anchor != null && spMove.anchor > 0 && spMove.price != null && spMove.price > 0
+    ? spMove.anchor : null;
+  const fromPrevClose = sessionBasis && dayBasis != null && (!hasSp || spAnchor != null);
   const portBase = portYtd[0].pct;
-  const portNorm = portYtd.map(p => ({ date: p.date, v: p.pct - portBase }));
-  const spOpen   = hasSp && spYtd.length > 0 ? spYtd[0].close : 0;
+  const portNorm = fromPrevClose
+    ? portYtd.map(p => ({ date: p.date, v: /** @type {number} */ (p.sincePrevClose) }))
+    : portYtd.map(p => ({ date: p.date, v: p.pct - portBase }));
+  const spOpen   = fromPrevClose && spAnchor != null ? spAnchor : (hasSp && spYtd.length > 0 ? spYtd[0].close : 0);
+  const spLastIdx = spYtd.length - 1;
   const spNorm   = (hasSp && spOpen > 0)
-    ? spYtd.map(p => ({ date: p.date, v: ((p.close - spOpen) / spOpen) * 100 }))
+    ? spYtd.map((p, i) => {
+        const close = fromPrevClose && i === spLastIdx ? /** @type {number} */ (spMove?.price) : p.close;
+        return { date: p.date, v: ((close - spOpen) / spOpen) * 100 };
+      })
     : [];
 
   // ---- Which pair of lines this view draws.
@@ -1249,7 +1346,12 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
   const spCurrent   = lineB.length > 0 ? lineB[lineB.length - 1].v : null;
   // In the dollar view the emphasis colour tracks the WINDOW's move, not
   // the sign of an absolute balance — every balance is positive.
-  const portWindowPct = windowPct(lineA);
+  // The VALUE figure on 24H with extended hours off is the book's move
+  // from its previous-close value — the scoreboard's DAY CHANGE % — not
+  // the line's first point (Net deposit is measured as it always was).
+  const portWindowPct = isInv && fromPrevClose && lineA.length > 0 && dayBasis != null
+    ? ((lineA[lineA.length - 1].v - dayBasis) / dayBasis) * 100
+    : windowPct(lineA);
   const depWindowPct  = windowPct(lineB);
   const portColor = isInv
     ? ((portWindowPct ?? 0) >= 0 ? 'var(--gain)' : 'var(--loss)')

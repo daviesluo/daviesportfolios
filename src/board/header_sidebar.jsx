@@ -19,7 +19,7 @@ import { londonTimeParts, usMarketPhase, ukTzAbbr } from '../prices/market_hours
 import { isCnFund } from '../prices/ticker_class.js';
 import { Storage } from '../app/storage.js';
 import { fetchFundamentals } from '../prices/yahoo_fetch.js';
-import { isIndex } from '../prices/ticker_class.js';
+import { quoteDayMove } from '../portfolio/metrics.js';
 import { PerfPanel } from '../charts/perf_chart.jsx';
 import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveOver } from './movers.js';
 import { loadRangeCache, CHARTS_UPDATED_EVENT } from '../prices/cache.js';
@@ -868,9 +868,7 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         // isIndex keeps the card on lastPrice (today's regular close)
         // for indices, matching the modal. Futures (ES=F, the
         // ext-mode S&P proxy) do trade ~24h, so they keep extPrice.
-        const price = d
-          ? ((useExt && !isIndex(activeTicker) && d.extPrice != null && d.extPrice > 0) ? d.extPrice : d.lastPrice)
-          : null;
+        //
         // Anchor for "since the most recent 16:00 ET close that has
         // occurred". In ext mode every MC ticker has todayRegularClose
         // populated by app.jsx (same bar the modal looks up via
@@ -879,19 +877,11 @@ function MarketConditions({ marketData, extendedHours, phase, className = '', on
         // useExt+regularCloseIdx<0 fallback so the card still reports
         // the same number as the modal even on the unhappy path. In
         // regular hours we use prevClose, also matching the modal.
-        let anchor = null;
-        if (d) {
-          if (useExt && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0) {
-            anchor = d.todayRegularClose;
-          } else if (useExt && d.lastPrice && d.lastPrice > 0) {
-            anchor = d.lastPrice;
-          } else {
-            anchor = d.prevClose ?? d.lastPrice ?? null;
-          }
-        }
-        const pct       = (price != null && anchor != null && anchor > 0)
-                            ? ((price - anchor) / anchor) * 100
-                            : (d ? (d.dayPct ?? 0) : null);
+        //
+        // Both live in `quoteDayMove` (metrics.js), which the performance
+        // panel's 24H S&P line reads too with extended hours off: its
+        // anchor and its last point are this card's.
+        const { price, anchor, pct } = quoteDayMove(d, activeTicker, useExt);
         const dayChange = (price != null && anchor != null) ? price - anchor : null;
         // Card click opens whichever ticker the card is currently
         // *displaying* — so in ext mode the S&P card opens the ES=F

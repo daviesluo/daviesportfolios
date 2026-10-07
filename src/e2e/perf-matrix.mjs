@@ -21,6 +21,22 @@
 //                 (2900-2500)/2500 = +16.00%, rebased from its own first
 //                 point which is already 0.
 //
+// 24H with extended hours off is the exception (Davies, 2026-10-07): the
+// latest session, measured from its previous close on both lines, with
+// nothing rebased. ACME's previous close is 220 and the S&P's 5150:
+//
+//   book at the previous close   10 x 220 + 500 = 2700
+//   portfolio %   (2900-2700)/2700 = +7.41%   (= the scoreboard's DAY CHANGE)
+//   first point   (2500-2700)/2700 = -7.41%   (the gap from the close to 14:00)
+//   S&P %         (5200-5150)/5150 = +0.97%   (= the Market Conditions card)
+//   S&P first     (5000-5150)/5150 = -2.91%
+//   sold-down     6 x 220 + 500 = 1820:  (1940-1820)/1820 = +6.59%,
+//                 first (1700-1820)/1820 = -6.59%
+//
+// A second matrix below (SESSIONS) drives the same window at four instants
+// — before the open, in the session, after the close, a weekend — with
+// extended hours off and on, on both tabs.
+//
 // A hard CI gate since 2026-09-23 (check.yml's matrix step). Its clock is
 // pinned below, so it gives the same answer at any hour, and it refuses an
 // instant its fixture cannot serve. Run it from src/ after a chart change:
@@ -85,9 +101,15 @@ const YEAR = CLOCK.getUTCFullYear();
 const dayAgo = (n) => new Date(NOW_MS - n * 86400_000).toISOString().slice(0, 10);
 const D = (m, d) => `${YEAR}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
+// CASH sits in GK alone, as on the real board. The app lays its default
+// positions under a loaded book, and their GK already holds CASH, so a book
+// that also put CASH under ST had it twice on the scoreboard ($3,400 where
+// the chart's value read $2,900) and once in the chart: a fixture describing
+// a board no one can make, found when the scoreboard joined this matrix.
 const PORTFOLIO = {
   positions: {
-    ST: { label: 'Striker', subtitle: '', role: 'FWD', tickers: ['ACME', 'CASH'] },
+    GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
+    ST: { label: 'Striker', subtitle: '', role: 'FWD', tickers: ['ACME'] },
   },
   holdings: {
     ACME: {
@@ -128,10 +150,14 @@ const PORTFOLIO_SOLD = {
 };
 
 // Which book the fixture server hands out, and what it should read.
+// `day` / `dayFirst`: 24H with extended hours off, from the previous close
+// (the header's arithmetic).
 const BOOKS = [
-  { name: 'buys-only', portfolio: PORTFOLIO, move: '+16.00%' },
-  { name: 'sold-down', portfolio: PORTFOLIO_SOLD, move: '+14.12%' },
+  { name: 'buys-only', portfolio: PORTFOLIO, move: '+16.00%', day: '+7.41%', dayFirst: -7.41 },
+  { name: 'sold-down', portfolio: PORTFOLIO_SOLD, move: '+14.12%', day: '+6.59%', dayFirst: -6.59 },
 ];
+const DAY_SP = '+0.97%';
+const DAY_SP_FIRST = -2.91;
 let book = BOOKS[0];
 
 // Daily bars for the daily ranges, intraday for the short ones. Both
@@ -172,10 +198,11 @@ const intradayBars = (t) => {
 // were written to. Probed at 21 pinned instants on 2026-09-23: every
 // failure this matrix ever reported sits in one of the cases below, and in
 // each the app was right about the data it was given.
-//   - After 14:00 and up to 17:00 UTC the 24H window keeps two of the
-//     previous session's three bars (it falls back to the whole day only
-//     below two), so 24H reads +7.41 %. These were the 18 failures this
-//     harness reported for months.
+//   - (Until 2026-10-07.) After 14:00 and up to 17:00 UTC the trailing-24 h
+//     window kept two of the previous session's three bars, so 24H read
+//     +7.41 % — the 18 failures this harness reported for months. 24H with
+//     extended hours off is now the whole latest session, so that hour is
+//     no longer refused: probed at 15:00 UTC, all green.
 //   - A session day on a weekend: the 3M grid samples weekdays only, so 3M
 //     draws flat or empty.
 //   - London off British Summer Time: the 3M grid's 17:00 London slot is
@@ -188,10 +215,6 @@ const zoneName = (tz, at, locale) => new Intl.DateTimeFormat(locale, { timeZone:
   .formatToParts(at).find((p) => p.type === 'timeZoneName')?.value;
 
 function fixtureProblem(at) {
-  const minuteOfDay = at.getUTCHours() * 60 + at.getUTCMinutes() + at.getUTCSeconds() / 60;
-  if (minuteOfDay > 14 * 60 && minuteOfDay <= 17 * 60) {
-    return 'after 14:00 and up to 17:00 UTC the 24H window keeps only two of the three bars';
-  }
   const session = new Date(at);
   if (at.getUTCHours() < 20) session.setUTCDate(session.getUTCDate() - 1);
   if (session.getUTCDay() === 0 || session.getUTCDay() === 6) {
@@ -218,6 +241,65 @@ const b64url = (s) => Buffer.from(s).toString('base64')
   .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const TOKEN = `${b64url(JSON.stringify({ role: 'admin', exp: NOW_MS + 3600_000 }))}.sig`;
 
+// ---- reading the page -------------------------------------------------
+
+/**
+ * What the performance panel in the left column shows, read off the DOM,
+ * with each line's points turned back into the panel's own units by
+ * inverting the y axis from two of its printed tick labels; and the
+ * header's DAY CHANGE % and the S&P card's %, the two figures the 24H
+ * window with extended hours off must end on. Runs in the page.
+ */
+function readPanel() {
+  const panel = document.querySelector('.left-col .panel');
+  if (!panel) return null;
+  const svg = panel.querySelector('svg');
+  const txt = (/** @type {Element | null | undefined} */ e) => (e?.textContent || '').replace(/\s+/g, ' ').trim();
+  const ticks = [...(svg?.querySelectorAll('text') || [])]
+    .filter((e) => /^[+-]?\d+(\.\d+)?%$/.test(txt(e)))
+    .map((e) => ({ v: parseFloat(txt(e)), y: Number(e.getAttribute('y')) }));
+  const toPct = (/** @type {number} */ y) => {
+    if (ticks.length < 2) return null;
+    const a = ticks[0], b = ticks[ticks.length - 1];
+    return a.v + ((y - a.y) * (b.v - a.v)) / (b.y - a.y);
+  };
+  const paths = [...panel.querySelectorAll('svg path[d^="M"]')].map((p) => {
+    const d = p.getAttribute('d') || '';
+    const ys = d.replace('M', '').split('L').map((seg) => Number(seg.split(',')[1]));
+    return {
+      d,
+      dash: p.getAttribute('stroke-dasharray'),
+      opacity: p.getAttribute('opacity'),
+      points: d.split('L').length,
+      pcts: ys.map((y) => { const v = toPct(y); return v == null ? null : Math.round(v * 100) / 100; }),
+    };
+  });
+  let dayChange = null;
+  for (const c of document.querySelectorAll('.scoreboard-cell')) {
+    if (txt(c.querySelector('.sb-label')) === 'DAY CHANGE') dayChange = txt(c.querySelector('.sb-pct'));
+  }
+  const card = [...document.querySelectorAll('.mc-card')]
+    .find((c) => /^(\^GSPC|ES=F)$/.test(txt(c.querySelector('.mc-card-ticker'))));
+  const footer = card ? [...card.querySelectorAll('.mc-footer span')] : [];
+  return {
+    tabOn: panel.querySelector('.view-tab.is-on')?.textContent || '',
+    empty: !!panel.querySelector('.sparkline-empty'),
+    labels: [...panel.querySelectorAll('.perf-lbl')].map((e) => e.textContent),
+    values: [...panel.querySelectorAll('.perf-val')].map((e) => e.textContent),
+    ticks: [...(svg?.querySelectorAll('text') || [])].map((e) => e.textContent),
+    paths,
+    dayChange,
+    mcTicker: card ? txt(card.querySelector('.mc-card-ticker')) : null,
+    mcSp: footer.length > 1 ? txt(footer[1]) : null,
+  };
+}
+
+/** "(+7.41%)" or "+7.41%" → "+7.41%", for comparing the header's figures with the legend's. */
+const pctOf = (/** @type {string | null | undefined} */ s) => (s || '').replace(/[()\s]/g, '');
+/** A point read back off the axis, against a hand-worked figure: within 0.05 of a percent. */
+const near = (/** @type {number | null | undefined} */ got, /** @type {number} */ want) =>
+  typeof got === 'number' && Math.abs(got - want) <= 0.05;
+
 // ---- run -----------------------------------------------------------
 
 const RANGES = ['1D', '1W', '1M', '3M', 'YTD'];
@@ -235,6 +317,242 @@ function snapshotRows(mode) {
     });
   }
   return rows;
+}
+
+// ---- the 24H window at four instants ------------------------------------
+//
+// Davies (2026-10-07): with extended hours off, 24H showed only the regular
+// session rebased to 0 % at the open, losing the move from the previous
+// close, and in the session it did not read what the scoreboard did. Now it
+// is the latest session measured from its previous close, and its ends are
+// the header's DAY CHANGE and the S&P card. This matrix drives that window
+// before the open, in the session, after the close and at a weekend, with
+// extended hours off and on, on both tabs, each at its own pinned instant,
+// and reads the chart, the header and the card off the page.
+//
+// The book: ACME 10 shares, $500 cash. Four bars a session at 13:30, 15:00,
+// 17:00 and 19:55 UTC:
+//
+//   Wed 16 Sep   ACME 190 195 205 210    ^GSPC 4950 4980 5010 5050
+//   Thu 17 Sep   ACME 220 215 225 230    ^GSPC 5080 5060 5100 5120
+//   Fri 18 Sep   ACME 226 228 222 224    ^GSPC 5110 5130 5090 5100
+//
+// Extended hours off, worked by hand (value = 10 x ACME + 500):
+//
+//   before the open, Fri 12:00 UTC: Thursday's session against Wednesday's close (ACME 210, S&P 5050).
+//     basis 10 x 210 + 500 = 2600. Open 2700: +3.85 %. End at the live price 230, 2800: +7.69 %.
+//     S&P open (5080-5050)/5050 = +0.59 %; end at the card's 5120: +1.39 %.
+//   in the session, Thu 17:30 UTC: Thursday so far, a 17:25 bar (ACME 227, S&P 5102) in progress,
+//     ACME live at 228 and the S&P card at 5105. Open +3.85 %; the book's own point at 17:30,
+//     2780: +6.92 %. S&P open +0.59 %, end (5105-5050)/5050 = +1.09 %.
+//   after the close, Thu 23:00 UTC: Thursday whole: +3.85 % -> +7.69 %; S&P +0.59 % -> +1.39 %.
+//   a Saturday, 16:30 UTC: Friday's whole session against Thursday's close (ACME 230, S&P 5120),
+//     though only its last two bars are inside a trailing 24 h. basis 2800. Open 2760: -1.43 %;
+//     end 2740: -2.14 %. S&P open (5110-5120)/5120 = -0.20 %, end at the card's 5100: -0.39 %.
+//
+// INVESTMENT's VALUE reads the same figure as the portfolio line; DEPOSITED +0.00 %.
+//
+// Extended hours on is unchanged: the trailing 24 h of the futures (5000 -> 5050 -> 5100, so the
+// S&P reads +2.00 %), both lines from 0 % at the first point. Its portfolio figure is the existing
+// rule worked by hand: the rebased move (V_end - V_first) / B, where B values each pre-window lot at
+// ACME's last bar before the UTC day of the futures' last bar (`buildTickerSeries`), or its first
+// bar inside the window when there is none; INVESTMENT reads (V_end - V_first) / V_first:
+//
+//   before the open: B = 10 x 230 + 500 = 2800, V_first 2700 (Thu 13:00, ACME's first bar 220
+//     carried back), V_end 2800  ->  vs-S&P +3.57 %, INVESTMENT +3.70 %. The two tabs differ here
+//     with extended hours on: the window crosses midnight UTC and B is not the first point's value.
+//     That was so before this change and is reported, not changed, by it.
+//   in the session: B = 2600 (Wed 19:55, 210), V_first 2600, V_end 2780 (live 228) -> +6.92 % both.
+//   after the close: B = V_first = 2700 (Thu 13:30, 220), V_end 2800 -> +3.70 % both.
+//   a Saturday: B = V_first = 2720 (Fri 17:00, 222), V_end 2740 -> +0.74 % both.
+const S_TIMES = ['13:30', '15:00', '17:00', '19:55'];
+const S_DAYS = {
+  '2026-09-16': { ACME: [190, 195, 205, 210], '^GSPC': [4950, 4980, 5010, 5050] },
+  '2026-09-17': { ACME: [220, 215, 225, 230], '^GSPC': [5080, 5060, 5100, 5120] },
+  '2026-09-18': { ACME: [226, 228, 222, 224], '^GSPC': [5110, 5130, 5090, 5100] },
+};
+const SESSIONS = [
+  {
+    name: 'pre-market', clock: '2026-09-18T12:00:00Z',
+    quotes: { ACME: [230, 210], '^GSPC': [5120, 5050] },
+    es: [['2026-09-17T13:00', 5000], ['2026-09-18T06:00', 5050], ['2026-09-18T11:45', 5100]],
+    off: { port: '+7.69%', portFirst: 3.85, portPts: 4, sp: '+1.39%', spFirst: 0.59, spPts: 4 },
+    on: { port: '+3.57%', inv: '+3.70%' },
+  },
+  {
+    name: 'in-session', clock: '2026-09-17T17:30:00Z',
+    quotes: { ACME: [228, 210], '^GSPC': [5105, 5050] },
+    extra: { ACME: [['2026-09-17T17:25', 227]], '^GSPC': [['2026-09-17T17:25', 5102]] },
+    es: [['2026-09-16T18:30', 5000], ['2026-09-17T11:30', 5050], ['2026-09-17T17:15', 5100]],
+    off: { port: '+6.92%', portFirst: 3.85, portPts: 5, sp: '+1.09%', spFirst: 0.59, spPts: 4 },
+    on: { port: '+6.92%', inv: '+6.92%' },
+  },
+  {
+    name: 'after-close', clock: '2026-09-17T23:00:00Z',
+    quotes: { ACME: [230, 210], '^GSPC': [5120, 5050] },
+    es: [['2026-09-17T00:00', 5000], ['2026-09-17T17:00', 5050], ['2026-09-17T22:45', 5100]],
+    off: { port: '+7.69%', portFirst: 3.85, portPts: 4, sp: '+1.39%', spFirst: 0.59, spPts: 4 },
+    on: { port: '+3.70%', inv: '+3.70%' },
+  },
+  {
+    name: 'weekend', clock: '2026-09-19T16:30:00Z',
+    quotes: { ACME: [224, 230], '^GSPC': [5100, 5120] },
+    es: [['2026-09-18T17:00', 5000], ['2026-09-18T19:00', 5050], ['2026-09-18T20:55', 5100]],
+    off: { port: '-2.14%', portFirst: -1.43, portPts: 4, sp: '-0.39%', spFirst: -0.20, spPts: 4 },
+    on: { port: '+0.74%', inv: '+0.74%' },
+  },
+];
+
+/** The session fixture's intraday bars for one symbol, as they stood at `nowKey` (UTC minute). */
+function sessionBars(st, sym, nowKey) {
+  if (sym === 'ES=F') return st.es.map(([date, close]) => ({ date, close }));
+  const out = [];
+  for (const [day, row] of Object.entries(S_DAYS)) {
+    if (!row[sym]) continue;
+    S_TIMES.forEach((t, i) => out.push({ date: `${day}T${t}`, close: row[sym][i] }));
+  }
+  for (const [date, close] of (st.extra?.[sym] || [])) out.push({ date, close });
+  return out.filter((b) => b.date <= nowKey).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** @param {any} st */
+function sessionBook(st) {
+  const [last, prev] = st.quotes.ACME;
+  return {
+    positions: {
+      GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
+      ST: { label: 'Striker', subtitle: '', role: 'FWD', tickers: ['ACME'] },
+    },
+    holdings: {
+      ACME: {
+        shares: 10, cost: 150, lastPrice: last, prevClose: prev, dayPct: ((last - prev) / prev) * 100,
+        currency: 'USD', lots: [{ date: '2026-01-02', shares: 10, cost: 150 }],
+      },
+      CASH: { shares: 1, cost: 0, lastPrice: 500, dayPct: 0, isCash: true },
+    },
+    depositFxRates: { USD: 1 },
+  };
+}
+
+/** @param {import('playwright').Browser} browser */
+async function runSessions(browser) {
+  const rows = [];
+  let failures = 0;
+  for (const st of SESSIONS) {
+    const clock = new Date(st.clock);
+    const nowKey = clock.toISOString().slice(0, 16);
+    const book = sessionBook(st);
+    const [spLast, spPrev] = st.quotes['^GSPC'];
+    const quotes = {
+      ACME: { lastPrice: st.quotes.ACME[0], prevClose: st.quotes.ACME[1], currency: 'USD', dayPct: book.holdings.ACME.dayPct },
+      '^GSPC': { lastPrice: spLast, prevClose: spPrev, currency: 'USD', dayPct: ((spLast - spPrev) / spPrev) * 100 },
+      'ES=F': { lastPrice: 5100, prevClose: 5000, currency: 'USD', dayPct: 2 },
+    };
+    const token = `${b64url(JSON.stringify({ role: 'admin', exp: clock.getTime() + 3600_000 }))}.sig`;
+    const ctx = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
+    await ctx.addInitScript(([t]) => { sessionStorage.setItem('dp.token', t); }, [token]);
+    const page = await ctx.newPage();
+    await page.clock.setFixedTime(clock);
+    await page.route('**/functions/v1/**', async (route) => {
+      const url = route.request().url();
+      const json = (body) => route.fulfill({
+        status: 200, contentType: 'application/json',
+        headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(body),
+      });
+      if (url.includes('/data?') && url.includes('action=load')) return json({ data: book, version: 1 });
+      if (url.includes('action=price-snapshots')) return json({ rows: [] });
+      if (url.includes('/data?')) return json({ ok: true, version: 2 });
+      if (url.includes('/chart?')) {
+        const u = new URL(url);
+        const tickers = (u.searchParams.get('tickers') || '').split(',').filter(Boolean);
+        const daily = /^\d+(d|wk|mo)$/.test(u.searchParams.get('interval') || '1d');
+        const out = {};
+        for (const t of tickers) {
+          out[t] = daily
+            ? [{ date: '2026-06-01', close: t === 'ACME' ? 200 : 5000 }, { date: '2026-09-16', close: t === 'ACME' ? 210 : 5050 }]
+            : sessionBars(st, t, nowKey);
+        }
+        return json(out);
+      }
+      if (url.includes('/prices?')) {
+        const u = new URL(url);
+        const out = {};
+        for (const t of (u.searchParams.get('tickers') || '').split(',')) if (quotes[t]) out[t] = quotes[t];
+        return json(out);
+      }
+      if (url.includes('/trading212')) return json({ source: 'disabled' });
+      if (url.includes('/ops-error')) return json({ ok: true });
+      return json({});
+    });
+    await page.route('**/*', (route) => {
+      const u = route.request().url();
+      if (u.startsWith(`http://localhost:${PORT}`)) return route.continue();
+      if (u.includes('/functions/v1/')) return route.fallback();
+      return route.abort();
+    });
+    await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('.left-col .perf-chart-wrap svg', { timeout: 20_000 });
+
+    /** Read the panel until `ready` accepts it, or 8 s; the last read either way. */
+    const settle = async (/** @type {(r: any) => boolean} */ ready) => {
+      let r = null;
+      for (let i = 0; i < 40; i++) {
+        r = await page.evaluate(readPanel);
+        if (r && !r.empty && ready(r)) break;
+        await page.waitForTimeout(200);
+      }
+      return r;
+    };
+    for (const ext of [false, true]) {
+      if (ext) {
+        await page.locator('.ext-switch:visible').first().click();
+        await page.waitForTimeout(300);
+      }
+      for (const view of ['sp', 'investment']) {
+        await page.click(view === 'sp' ? '.left-col #perf-tab-sp' : '.left-col #perf-tab-inv');
+        await page.waitForTimeout(150);
+        const r = await settle((x) => (view === 'investment'
+          ? x.labels?.[0] === 'VALUE'
+          : x.labels?.[1] === (ext ? 'S&P 500 FUTURES' : 'S&P 500')));
+        const tag = `${st.name}/${ext ? 'ext on' : 'ext off'}/${view === 'sp' ? 'vs S&P' : 'INVESTMENT'}`;
+        rows.push({ tag, r });
+        const fail = (msg) => { failures++; console.log(`  FAIL [24H ${tag}] ${msg}`); };
+        if (!r) { fail('panel missing'); continue; }
+        if (r.empty) { fail('drew the empty state'); continue; }
+        const [lineB, lineA] = r.paths;
+        if (view === 'investment') {
+          const want = ext ? st.on.inv : st.off.port;
+          if (r.values[0] !== want) fail(`VALUE ${r.values[0]} (want ${want})`);
+          if (r.values[1] !== '+0.00%') fail(`DEPOSITED ${r.values[1]} (want +0.00%)`);
+          if (!ext && pctOf(r.dayChange) !== r.values[0]) fail(`VALUE ${r.values[0]} but DAY CHANGE ${r.dayChange}`);
+        } else if (!ext) {
+          if (r.values[0] !== st.off.port) fail(`portfolio ${r.values[0]} (want ${st.off.port})`);
+          if (r.values[1] !== st.off.sp) fail(`S&P ${r.values[1]} (want ${st.off.sp})`);
+          if (pctOf(r.dayChange) !== r.values[0]) fail(`portfolio ${r.values[0]} but DAY CHANGE ${r.dayChange}`);
+          if (r.mcTicker !== '^GSPC' || pctOf(r.mcSp) !== r.values[1]) fail(`S&P ${r.values[1]} but the card (${r.mcTicker}) ${r.mcSp}`);
+          if (!near(lineA?.pcts?.[0], st.off.portFirst)) fail(`portfolio's first point ${lineA?.pcts?.[0]} (want ${st.off.portFirst})`);
+          if (!near(lineB?.pcts?.[0], st.off.spFirst)) fail(`S&P's first point ${lineB?.pcts?.[0]} (want ${st.off.spFirst})`);
+          if (lineA?.points !== st.off.portPts) fail(`portfolio has ${lineA?.points} points (want ${st.off.portPts})`);
+          if (lineB?.points !== st.off.spPts) fail(`S&P has ${lineB?.points} points (want ${st.off.spPts})`);
+        } else {
+          if (r.values[0] !== st.on.port) fail(`portfolio ${r.values[0]} (want ${st.on.port})`);
+          if (r.values[1] !== '+2.00%') fail(`S&P futures ${r.values[1]} (want +2.00%)`);
+          if (!near(lineA?.pcts?.[0], 0) || !near(lineB?.pcts?.[0], 0)) {
+            fail(`not both from 0 %: portfolio ${lineA?.pcts?.[0]}, S&P ${lineB?.pcts?.[0]}`);
+          }
+        }
+      }
+    }
+    await ctx.close();
+  }
+  console.log('\n=== 24H: extended hours off / on x pre-market / in session / after close / weekend x both tabs ===');
+  for (const { tag, r } of rows) {
+    const [lineB, lineA] = r?.paths || [];
+    console.log(`${tag.padEnd(36)} legend=${(r?.values || []).join(' / ').padEnd(18)}`
+      + ` first=${lineA?.pcts?.[0] ?? '-'} / ${lineB?.pcts?.[0] ?? '-'} pts=${lineA?.points ?? 0}/${lineB?.points ?? 0}`
+      + ` DAY CHANGE=${r?.dayChange ?? '-'} card ${r?.mcTicker ?? '-'}=${r?.mcSp ?? '-'}`);
+  }
+  return { failures, cases: rows.length };
 }
 
 async function run() {
@@ -328,26 +646,7 @@ async function run() {
         const label = rangeKey === '1D' ? '24H' : rangeKey;
         await page.click(`.left-col .perf-range-btn:text-is("${label}")`);
         await page.waitForTimeout(400);
-        const read = await page.evaluate(() => {
-          const panel = document.querySelector('.left-col .panel');
-          if (!panel) return null;
-          const svg = panel.querySelector('svg');
-          const paths = [...panel.querySelectorAll('svg path[d^="M"]')]
-            .map((p) => ({
-              d: p.getAttribute('d'),
-              dash: p.getAttribute('stroke-dasharray'),
-              opacity: p.getAttribute('opacity'),
-              points: (p.getAttribute('d') || '').split('L').length,
-            }));
-          return {
-            tabOn: panel.querySelector('.view-tab.is-on')?.textContent || '',
-            empty: !!panel.querySelector('.sparkline-empty'),
-            labels: [...panel.querySelectorAll('.perf-lbl')].map((e) => e.textContent),
-            values: [...panel.querySelectorAll('.perf-val')].map((e) => e.textContent),
-            ticks: [...(svg?.querySelectorAll('text') || [])].map((e) => e.textContent),
-            paths,
-          };
-        });
+        const read = await page.evaluate(readPanel);
         const row = { book: bk.name, snapshotMode, view, rangeKey, ...read };
         results.push(row);
 
@@ -363,7 +662,8 @@ async function run() {
         if (!(read.tabOn || '').includes(wantTab)) fail(`active tab "${read.tabOn}" (want ${wantTab})`);
         if (view === 'investment') {
           if (read.labels.join(',') !== 'VALUE,DEPOSITED') fail(`legend labels ${read.labels}`);
-          if (read.values[0] !== book.move) fail(`value move ${read.values[0]} (want ${book.move})`);
+          const wantValue = rangeKey === '1D' ? book.day : book.move;
+          if (read.values[0] !== wantValue) fail(`value move ${read.values[0]} (want ${wantValue})`);
           if (read.values[1] !== '+0.00%') fail(`deposit move ${read.values[1]} (want +0.00%)`);
           const dashed = read.paths.filter((p) => p.dash);
           if (dashed.length !== 1) fail(`expected 1 dashed deposit line, got ${dashed.length}`);
@@ -372,11 +672,23 @@ async function run() {
           if (!read.ticks.some((t) => /^\$/.test(t || ''))) fail('no dollar axis ticks');
         } else {
           if (read.labels[0] !== 'PORTFOLIO') fail(`legend labels ${read.labels}`);
-          if (read.values[0] !== book.move) fail(`portfolio move ${read.values[0]} (want ${book.move})`);
-          if (read.values[1] !== '+4.00%') fail(`S&P move ${read.values[1]} (want +4.00%)`);
-          // Both lines rebased: same first y.
-          const firstY = read.paths.map((p) => Number((p.d || '').replace('M', '').split(',')[1]));
-          if (Math.abs(firstY[0] - firstY[1]) > 0.2) fail(`lines start apart: ${firstY[0]} vs ${firstY[1]}`);
+          if (rangeKey === '1D') {
+            // From the previous close: the header's own figures, and a first
+            // point that is the gap from that close, not 0 %.
+            if (read.values[0] !== book.day) fail(`portfolio ${read.values[0]} (want ${book.day}, the DAY CHANGE)`);
+            if (read.values[1] !== DAY_SP) fail(`S&P ${read.values[1]} (want ${DAY_SP}, the Market Conditions card)`);
+            if (pctOf(read.dayChange) !== read.values[0]) fail(`portfolio ${read.values[0]} but DAY CHANGE ${read.dayChange}`);
+            if (pctOf(read.mcSp) !== read.values[1]) fail(`S&P ${read.values[1]} but the card ${read.mcSp}`);
+            const [spLine, portLine] = read.paths;
+            if (!near(portLine?.pcts?.[0], book.dayFirst)) fail(`portfolio's first point ${portLine?.pcts?.[0]} (want ${book.dayFirst})`);
+            if (!near(spLine?.pcts?.[0], DAY_SP_FIRST)) fail(`S&P's first point ${spLine?.pcts?.[0]} (want ${DAY_SP_FIRST})`);
+          } else {
+            if (read.values[0] !== book.move) fail(`portfolio move ${read.values[0]} (want ${book.move})`);
+            if (read.values[1] !== '+4.00%') fail(`S&P move ${read.values[1]} (want +4.00%)`);
+            // Both lines rebased: same first y.
+            const firstY = read.paths.map((p) => Number((p.d || '').replace('M', '').split(',')[1]));
+            if (Math.abs(firstY[0] - firstY[1]) > 0.2) fail(`lines start apart: ${firstY[0]} vs ${firstY[1]}`);
+          }
         }
       }
       if (view === 'investment') {
@@ -387,6 +699,9 @@ async function run() {
     await ctx.close();
   }
   }
+
+  const sessions = await runSessions(browser);
+  failures += sessions.failures;
 
   await browser.close();
   server.close();
@@ -400,7 +715,8 @@ async function run() {
       + (r.empty ? '  EMPTY' : ''),
     );
   }
-  console.log(`\n${failures === 0 ? 'ALL GREEN' : failures + ' FAILURES'} across ${results.length} cases at ${CLOCK.toISOString()}`);
+  console.log(`\n${failures === 0 ? 'ALL GREEN' : failures + ' FAILURES'} across ${results.length} cases at ${CLOCK.toISOString()}`
+    + ` and ${sessions.cases} 24H cases at their own four instants`);
   process.exit(failures === 0 ? 0 : 1);
 }
 

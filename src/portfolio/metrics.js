@@ -5,7 +5,7 @@
 // pull in fetch plumbing / market hours / Storage.
 
 import { fxRateToUSD } from './fx.js';
-import { isUsEquity, isEuroExchange, isCnFund, isCrypto } from '../prices/ticker_class.js';
+import { isUsEquity, isEuroExchange, isCnFund, isCrypto, isIndex } from '../prices/ticker_class.js';
 import { foreignSessionIsOpen, isForeignListing } from '../prices/market_hours.js';
 
 // Yahoo's `postMarketPrice` for OTC ADRs like SFTBY is bogus — it
@@ -232,6 +232,55 @@ export const computeMetrics = (portfolio, opts = {}) => {
     fxMissingTickers,
   };
 };
+
+/**
+ * The book's value at the previous close, as the scoreboard's DAY CHANGE
+ * measures it with extended hours off: `marketValue − dayChange` of
+ * `computeMetrics`, i.e. every holding at its `prevClose` (its price when
+ * it has none) plus cash. The performance panel's 24H window with extended
+ * hours off is measured from this number (Davies, 2026-10-07), so its live
+ * end IS the scoreboard's DAY CHANGE %: one function, not a second
+ * reconstruction of it. Null when the book has no positions or no value.
+ * @param {any} portfolio
+ * @param {any} marketData
+ * @returns {number | null}
+ */
+export function previousCloseValue(portfolio, marketData) {
+  if (!portfolio || !portfolio.positions || !portfolio.holdings) return null;
+  const m = computeMetrics(portfolio, { extended: false, marketData });
+  const prev = m.marketValue - m.dayChange;
+  return Number.isFinite(prev) && prev > 0 ? prev : null;
+}
+
+/**
+ * The move a Market Conditions card shows for one quote: the price it
+ * reads, the anchor it measures from, and the percentage between them.
+ * With extended hours on (outside the session) a futures or stock card
+ * reads its extended price against today's regular close; an index never
+ * takes an extended price (Yahoo ships a synthetic one for ^VIX, which the
+ * drill modal rejects). Otherwise it is the last price against the
+ * previous close. The card draws it, and the performance panel's 24H S&P
+ * line with extended hours off is measured on the same anchor and ends on
+ * the same price, so the two cannot read differently.
+ * @param {{ lastPrice?: number, prevClose?: number, extPrice?: number | null,
+ *   todayRegularClose?: number, dayPct?: number } | null | undefined} d
+ * @param {string} ticker
+ * @param {boolean} useExt  extended hours on and the regular session not trading
+ * @returns {{ price: number | null, anchor: number | null, pct: number | null }}
+ */
+export function quoteDayMove(d, ticker, useExt) {
+  if (!d) return { price: null, anchor: null, pct: null };
+  const price = (useExt && !isIndex(ticker) && d.extPrice != null && d.extPrice > 0) ? d.extPrice : (d.lastPrice ?? null);
+  /** @type {number | null} */
+  let anchor;
+  if (useExt && typeof d.todayRegularClose === 'number' && d.todayRegularClose > 0) anchor = d.todayRegularClose;
+  else if (useExt && d.lastPrice && d.lastPrice > 0) anchor = d.lastPrice;
+  else anchor = d.prevClose ?? d.lastPrice ?? null;
+  const pct = (price != null && anchor != null && anchor > 0)
+    ? ((price - anchor) / anchor) * 100
+    : (d.dayPct ?? 0);
+  return { price, anchor, pct };
+}
 
 /**
  * Build the "DEF-MID-FWD" formation string for the brand header.

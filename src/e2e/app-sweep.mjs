@@ -267,7 +267,7 @@ const BASE_PRICES = {
   ACME: 200, NOVA: 100, 'BRIT.L': 2, 'VUAA.L': 80, '017731': 100, '^GSPC': 5000,
 };
 
-/** The benchmark's last intraday bar, times this: the refresh checks move it after the page has settled (0b'). */
+/** The benchmark's last two intraday bars, times this: the refresh checks move them after the page has settled (0b'). */
 let SP_BUMP = 1;
 /**
  * Section 0b'': while set, ES=F's intraday bars are a futures session still trading, its newest print ten minutes
@@ -313,7 +313,7 @@ const barsFor = (t, daily, includePrePost = false, sessions = 1) => {
       continue;
     }
     bars.push({ date: at(14, 0), close: base });
-    bars.push({ date: at(17, 0), close: mid });
+    bars.push({ date: at(17, 0), close: t === '^GSPC' ? mid * SP_BUMP : mid });
     bars.push({ date: at(19, 55), close: t === '^GSPC' ? last * SP_BUMP : last });
     if (includePrePost && EXT_PRINT[t] != null) {
       bars.push({ date: at(21, 0), close: EXT_PRINT[t] });
@@ -1473,24 +1473,48 @@ async function run() {
   // ---- 0b'. the performance panel follows a refresh -------------------------
   // Davies (2026-09-28): the vs-S&P panel moved with neither the clock nor the
   // refresh button — its bars were fetched once, when its window was first
-  // drawn, and nothing asked again. Here the benchmark's last bar moves after
-  // the page has settled: the button must bring it in at once, and the app's
+  // drawn, and nothing asked again. Here the benchmark's bars move after the
+  // page has settled: the button must bring them in at once, and the app's
   // own refresh must once the 24H window's five minutes have passed (driven
   // through its return-to-the-tab catch-up, the tick's own code path).
+  //
+  // Read at the S&P line's 17:00 bar, not at its end: since 2026-10-07 24H
+  // with extended hours off ends on the Market Conditions card's price
+  // (perf_chart.jsx), so the legend reads the card's +0.97 % whatever the
+  // bars say. The 17:00 bar is 5100 x SP_BUMP against the card's previous
+  // close 5150: -0.97 %, then +0.02 % (5151), then +1.01 % (5202). It is
+  // read from the crosshair's S&P chip with the pointer on that bar, to two
+  // decimals: read off the axis it was a pixel's guess, a whole percent once
+  // this fixture's book stretches the axis to 60 %.
   for (const vp of viewports('perf-refresh')) {
     const S = (n) => `${vp.name}/perf-refresh/${n}`;
     const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true });
-    const spReading = () => page.evaluate(() => {
+    const spReading = () => page.evaluate(async () => {
       const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
-      const item = wrap && [...wrap.querySelectorAll('.perf-legend-item')].find((n) => /S&P/.test(n.textContent || ''));
-      return item ? (item.textContent || '').replace(/\s+/g, ' ').trim() : null;
+      const svg = /** @type {SVGSVGElement | null | undefined} */ (wrap?.querySelector('svg'));
+      const line = svg?.querySelector('path[d^="M"]');
+      const ctm = svg?.getScreenCTM();
+      if (!svg || !line || !ctm) return null;
+      const pts = (line.getAttribute('d') || '').replace('M', '').split('L').map((s) => s.split(',').map(Number));
+      if (pts.length < 3) return null;
+      const [x, y] = pts[1];
+      svg.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: ctm.a * x + ctm.e, clientY: ctm.d * y + ctm.f }));
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const cross = [...svg.querySelectorAll('g')]
+        .find((g) => g.querySelectorAll('text').length === 3 && g.querySelectorAll('circle').length === 2);
+      const chip = cross ? cross.querySelectorAll('text')[2].textContent || '' : '';
+      svg.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+      const v = parseFloat(chip.replace('~', ''));
+      return Number.isFinite(v) ? v : null;
     });
-    const readingEnds = async (want, ms = 8000) => {
+    const fmt = (/** @type {number | null} */ v) => (v == null ? 'nothing' : `${v >= 0 ? '+' : ''}${v.toFixed(2)} %`);
+    const isNear = (/** @type {number | null} */ got, /** @type {number} */ want) => got != null && Math.abs(got - want) < 0.001;
+    const readingNear = async (/** @type {number} */ want, ms = 8000) => {
       const t0 = Date.now();
       let got = null;
       while (Date.now() - t0 < ms) {
         got = await spReading().catch(() => null);
-        if (got && got.endsWith(want)) break;
+        if (isNear(got, want)) break;
         await page.waitForTimeout(100);
       }
       return got;
@@ -1498,13 +1522,13 @@ async function run() {
     // `:visible`, here and in the sections after: the panel is drawn twice, and on a phone the first copy in the page is
     // the desktop column's, never shown, so a wait for the first `.perf-legend-item` to show ran out its 15 s every time.
     await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
-    const before = await readingEnds('+4.00%');
-    SP_BUMP = 1.01;                                    // 5000 → 5252: +5.04 %
+    const before = await readingNear(-0.97);
+    SP_BUMP = 1.01;                                    // 5100 → 5151: +0.02 %
     await page.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
-    const pressed = await readingEnds('+5.04%');
-    if (before?.endsWith('+4.00%') && pressed?.endsWith('+5.04%')) ok(S('button'), `the refresh button brings the benchmark's new bar in at once: ${before} → ${pressed}`);
-    else fail(S('button'), `after the refresh button the panel reads "${pressed}" (before "${before}"), wanted +5.04 %`);
-    SP_BUMP = 1.02;                                    // 5000 → 5304: +6.08 %
+    const pressed = await readingNear(0.02);
+    if (isNear(before, -0.97) && isNear(pressed, 0.02)) ok(S('button'), `the refresh button brings the benchmark's new bars in at once: its 17:00 bar ${fmt(before)} → ${fmt(pressed)}`);
+    else fail(S('button'), `after the refresh button the S&P's 17:00 bar reads ${fmt(pressed)} (before ${fmt(before)}), wanted +0.02 %`);
+    SP_BUMP = 1.02;                                    // 5100 → 5202: +1.01 %
     await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
     await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
     // The misses this check had while every gate ran at once (two on 2026-10-01, desktop, one on 09-30, phone, each
@@ -1516,10 +1540,10 @@ async function run() {
     // them after. The wait ends the moment the reading arrives; the time it took is printed, so a drift toward the limit
     // shows before it fails.
     const tickT0 = Date.now();
-    const ticked = await readingEnds('+6.08%', 20_000);
+    const ticked = await readingNear(1.01, 20_000);
     const tickS = ((Date.now() - tickT0) / 1000).toFixed(1);
-    if (ticked?.endsWith('+6.08%')) ok(S('tick'), `the app's own refresh brings it in once the 24H bars are five minutes old: ${ticked} (${tickS} s)`);
-    else fail(S('tick'), `after the app's refresh six minutes on the panel reads "${ticked}", wanted +6.08 %`);
+    if (isNear(ticked, 1.01)) ok(S('tick'), `the app's own refresh brings them in once the 24H bars are five minutes old: ${fmt(ticked)} (${tickS} s)`);
+    else fail(S('tick'), `after the app's refresh six minutes on the S&P's 17:00 bar reads ${fmt(ticked)}, wanted +1.01 %`);
     SP_BUMP = 1;
     await ctx.close();
   }

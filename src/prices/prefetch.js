@@ -26,7 +26,7 @@
 
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, filterToLastHours, RANGE_KEYS } from '../charts/ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, perfRowFilter, filterToLastHours, RANGE_KEYS } from '../charts/ytd.js';
 import { refreshPriceSnapshots, rangeStartMs } from './price_snapshots.js';
 import {
   RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh,
@@ -187,8 +187,8 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     // Per-entry sets — IDB has no quota concern so we don't merge
     // into a single big object then trim.
     for (const s of meta.stale) {
-      let data = batch[s];
-      data = applyVariantFilter(data, meta.params.variant);
+      // The performance panel's rows: 24H with extended hours off keeps the whole fetch (see perfRowFilter).
+      const data = perfRowFilter(batch[s], meta.rk, extendedHours, meta.params.variant);
       if (data) {
         YtdStore.set(meta.ytdKey(s), { ts: askedAt, data });
       }

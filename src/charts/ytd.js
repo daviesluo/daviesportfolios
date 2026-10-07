@@ -406,6 +406,33 @@ export function applyVariantFilter(data, variant) {
   return data;
 }
 
+/**
+ * What the performance panel keeps of a fetched series: `applyVariantFilter`,
+ * except on 24H with extended hours off. That window is the latest regular
+ * session measured from its previous close (Davies, 2026-10-07), and the
+ * latest session can have opened more than 24 hours ago — a Saturday
+ * afternoon, a market holiday — so a trailing-24-hour cut kept only its
+ * tail. Those rows keep the whole five-day fetch, and the panel picks the
+ * session out when it draws (`latestSessionBars`). The ticker modal's rows,
+ * from the same fetch, still take `applyVariantFilter`.
+ *
+ * Keyed on the range and the switch, not on the fetch's variant: with
+ * extended hours ON in the session the fetch's variant is `reg` too
+ * (`fetchParamsFor` asks about the phase first), and keeping five days
+ * there made the futures' trailing 24 h five days of bars — the session
+ * matrix in perf-matrix.mjs read +8.85 % where +6.92 % was right.
+ * @template T
+ * @param {T} data
+ * @param {string} rangeKey
+ * @param {boolean} extendedHours
+ * @param {string} variant  the fetch's (`fetchParamsFor`)
+ * @returns {T}
+ */
+export function perfRowFilter(data, rangeKey, extendedHours, variant) {
+  if (rangeKey === '1D' && !extendedHours) return data;
+  return applyVariantFilter(data, variant);
+}
+
 /** Computes the date string the chart's leftmost edge should sit at, given
  *  a range. For 1D the anchor is "now" so we use today's date with the
  *  earliest practical timestamp; for daily ranges it's a pure YYYY-MM-DD. */
