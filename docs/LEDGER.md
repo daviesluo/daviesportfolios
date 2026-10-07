@@ -775,6 +775,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 23:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- The probe (request 295815, 22:49 UTC) read: both keys answer `/history/dividends` (200; items `amount`, `currency`,
+  `quantity`, `paidOn`, `reference`, `grossAmountPerShare`, `instrument{currency}`, `amountInEuro`, `type`; `amount` is
+  the net in the ACCOUNT's currency, the ISA's GBP and invest's USD, the gross per share in the instrument's), the
+  instrument metadata (200, `currencyCode`: JEQPl_EQ GBX, CSPX_EQ / QQQ3l_EQ / VUAAl_EQ / SAEMl_EQ USD, ROLGl_EQ /
+  SEGMl_EQ / VUAGl_EQ GBP, 2DGd_EQ / XFABp_EQ EUR, every US line USD), and every nested fill's
+  `order.instrument.currency`. `/equity/account/summary` is 403 on both keys (no account-data scope); nothing needs it.
+- `0095_t212_fill_currency_dividends.sql` lands alone, before any code reads it: `t212_orders.currency` (null until the
+  function fills it), `t212_orders_sync.currency_backfill_at`, and `t212_dividends` / `t212_dividends_sync` (RLS on, no
+  grant, no policy). No recurring Edge call: the dividends walk will ride on `orders-sync`. Next: the function and the
+  client that use them.
+
 ### [2026-10-07 22:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `trading212?action=probe` (read-only, the Vault `cron_secret` through pg_net, or an admin token): per account, the
   account summary's currency, the orders page's currency fields per instrument (`probeOrderCurrencies`, which carries

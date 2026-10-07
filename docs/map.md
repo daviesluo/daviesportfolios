@@ -774,6 +774,7 @@ before touching migration state.
 | `0092_pm_book_recorder.sql` | The Polymarket book recorder's tables (its markets, its frames, its archive's index, its two state rows), its two leases, its two rows of the one-minute job (every minute and every fifth, both run again by the watchdog), and its hourly prune: data the archive has not taken in six hours dropped, frames' counts after seven days, markets a week after the listing dropped them. |
 | `0093_http_response_truncate.sql` | A job emptying pg_net's response table every ten minutes, whose own six-hour pruning leaves dead space no vacuum reclaims (the 10-07 stall). |
 | `0094_pm_prep_stress_days.sql` | The three paper layers' worst case at each UTC day's start, a row a layer and a day, with the accounts it sums and how it was made. |
+| `0095_t212_fill_currency_dividends.sql` | Each broker fill's trading currency (`t212_orders.currency`, GBX kept), and the dividends both accounts received with their walk's cursor (`t212_dividends`, `t212_dividends_sync`). |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 
