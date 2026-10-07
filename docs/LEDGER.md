@@ -775,6 +775,25 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-07 22:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Mini-pool's and mid-pool's day stop counts only the day's change** (Davies, answering a question: "只算当天变化"), on
+the order path and both paper layers: the book's value now less its value at 00:00 UTC (each holding at its mark then,
+or its cost if bought that day) plus the day's sells and settlements (`sinceOpenPnl` in `pm_live.ts`, `paperDayPnl` in
+`pm_prep.ts`; the path keeps `dayOpen`/`marks`/`marksAt` in its state, the layer `state.open`). The −$75 total is
+unchanged and still counts the carried loss. Why: mid-pool's paper stopped at 00:00 on 10-05 (−26.84), 10-06 (−48.52)
+and 10-07 (−42.41) on carried inventory alone, and a live path would have stopped buying every day the same way.
+Built by an opus-high agent, reviewed and landed here. Live-prep has no day stop and is unchanged (`pm_lp.test.ts`,
+turn for turn). The deploy's own day counts as before; the first 00:00 UTC after it is the first day counted so.
+`pm_live.ts` 23112a4f…e5a9 → 4032d6c0…6706, `pm_prep.ts` 78c804ee…8db6 → a13ef03c…696a; mini-pool's Addendum 8,
+mid-pool's Addendum 4 (deviation 4: its 10-17 readout names 10-05..10-07 as stopped and the deploy time), live-prep's
+Addendum 1. The frozen copies are unchanged; their comparisons run today's code on the old rule through a test-only
+`dayStopOnCost` that no deployed instance sets (pinned), and a test beside each shows the day stop the one difference.
+`pm_daystop.test.ts` pins the hand-worked cases (a carried −$40 does not trip a $25 day stop at 00:01; a fresh −$26
+does; the total trips past −$75) and fails on the old rule. The payouts-per-path patch is rebuilt on it (after it:
+`pm_live.ts` 57f4b1d7…1e40). **Watch:** mid-pool's paper total read −$60.32 at 21:17 UTC, $14.68 from its −$75 total
+stop, so once it quotes again it may stop for good within days.
+
 ### [2026-10-07 21:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 **PR5's dead-man holds on an unreadable state while a read in the last 3 minutes found the executor fresh** (Davies:
