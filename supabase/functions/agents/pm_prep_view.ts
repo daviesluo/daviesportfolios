@@ -5,7 +5,8 @@
 // (the order path's `tokenBooks` and `bookPnl`) on the fills the state has decided, and a market's part of it is
 // `bookPnl` on that market's two tokens; the rewards and the worst case are RW's own on the layer's account per market,
 // which is RW's `Acc`. Nothing is computed a second way. The days are RW's: each the change since the close before,
-// so they add up to the total; the path's own day figure, which counts every holding against its cost (its day stop's
+// so they add up to the total, the worst case's too, from the layer's worst case at each day's start (0094,
+// `pm_prep_stress.ts`); the path's own day figure, which counts every holding against its cost (its day stop's
 // reading), stays with the stop and the pre-registered check.
 
 import { bookPnl, type PmSettlement } from "./pm_live.ts";
@@ -28,6 +29,8 @@ export type PrepMinuteRow = {
 };
 /** The path's reward rate for each market at the last decided minute (`pm_live_minutes`), the one the formula used. */
 export type PrepRateRow = { cond: string; rate: number | string };
+/** The layer's worst case at a UTC day's 00:00 (`pm_prep_stress_days`, 0094): what it had made by RW's stress arm until then. */
+export type PrepStressDayRow = { day: string; stress: number | string };
 export type PrepFillRow = {
   cond: string; minute: string; print_id: string; ts: string; side: "bid" | "ask"; price: number | string; size: number | string; token: string;
   token_side: "BUY" | "SELL"; token_price: number | string; close_only: boolean;
@@ -50,12 +53,14 @@ const dayOf = (d: string) => String(d).slice(0, 10);
  * between the two sees fills of minutes not yet decided).
  *
  * What RW keeps and this layer does not, the page reads as it can: a day's Costs are what its selection's quotes need,
- * N × (b + 1 − a) a market (`pm_live_markets.capital`, the path's own measure; RW's also count the largest inventory),
- * and a closed day's worst case is not recorded, so it is null (the running one is RW's `accStress` on the account).
+ * N × (b + 1 − a) a market (`pm_live_markets.capital`, the path's own measure; RW's also count the largest inventory).
+ * The layer keeps only its running worst case (RW's `accStress` on each account, summed); `stressDays` is that figure
+ * at each UTC day's start (`pm_prep_stress.ts`), so a closed day's is the next day's start less its own, and today's
+ * (`todayStressUsd`) the running figure less today's start. A day without both is null, never a guess.
  */
 export function prepSummary(input: {
   state: PrepStateRow | null; days: PrepDayRow[]; latest: PrepMinuteRow[]; rates: PrepRateRow[]; fills: PrepFillRow[]; settlements: PmSettlement[];
-  markets: PrepMarketRow[]; capUsd: number; nowMs: number;
+  markets: PrepMarketRow[]; stressDays?: PrepStressDayRow[]; capUsd: number; nowMs: number;
 }) {
   const st = input.state?.state as PrepState | undefined;
   if (!st || typeof st !== "object" || st.version !== 1 || !input.state?.last_minute) return null;
@@ -150,12 +155,21 @@ export function prepSummary(input: {
     const xs = input.markets.filter((m) => dayOf(m.day) === day).map((m) => nz(m.capital)).filter((x): x is number => x !== null);
     return xs.length ? r6(xs.reduce((s, x) => s + x, 0)) : null;
   };
+  // The worst case at each day's start; a day's is the next start less its own.
+  const startOf = new Map((input.stressDays ?? []).map((r) => [dayOf(r.day), Number(r.stress)]));
+  const nextDay = (day: string) => iso(Date.parse(day) + DAY).slice(0, 10);
+  const stressOf = (day: string) => {
+    const a = startOf.get(day), b = startOf.get(nextDay(day));
+    return a === undefined || b === undefined || !Number.isFinite(a) || !Number.isFinite(b) ? null : r6(b - a);
+  };
   // A closed day is its change: the run's fills P&L at its close less the close before's, and its rewards.
   const days = closed.map((d, i) => ({
     day: dayOf(d.day), phase: "run", live: false,
     totalUsd: r6(Number(d.fills_pnl_total) - (i > 0 ? Number(closed[i - 1].fills_pnl_total) : 0) + Number(d.reward)),
-    stressUsd: null, rewardUsd: Number(d.reward), fills: Number(d.fills), capitalUsd: capitalOf(d.day), stop: !!d.stop_day || !!d.stop_total,
+    stressUsd: stressOf(dayOf(d.day)), rewardUsd: Number(d.reward), fills: Number(d.fills), capitalUsd: capitalOf(d.day), stop: !!d.stop_day || !!d.stop_total,
   })).reverse();
+  // Today is the day the layer is accumulating (`dayOf`): the running worst case less its start.
+  const stressStart = startOf.get(iso(st.dayOf).slice(0, 10));
   const last = closed.at(-1);
   return {
     lastMinute: input.state.last_minute, lagMinutes, running: lagMinutes <= PREP_STALE_MINUTES, lastError: input.state.last_error ?? null,
@@ -165,6 +179,8 @@ export function prepSummary(input: {
     rewardUsd: r6(reward), fillsPnlUsd: pnl.total, heldUsd: pnl.heldValue, quotedUsd: r6(quoted), costUsd: r6(cost),
     realisedUsd: r6(reward + realisedFills), realisedFillsUsd: r6(realisedFills), unrealisedUsd: r6(pnl.total - realisedFills),
     totalUsd: r6(total), stressUsd: r6(stress), mismatchUsd: r6(parts - total), bestMarketUsd: Number.isFinite(best) ? r6(best) : null,
+    // Today's worst case, live: the running one less the day's start; null without a start (the row says so with a dash).
+    todayStressUsd: stressStart === undefined || !Number.isFinite(stressStart) ? null : r6(stress - stressStart),
     // Today against the last close, as RW's: the days and today then add up to the total.
     todayUsd: r6(total - (last ? Number(last.fills_pnl_total) : 0) - closedReward),
     fills: fills.length,

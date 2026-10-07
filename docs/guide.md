@@ -292,8 +292,10 @@ places stay when the number is not whole.
   resting (or why there were none of the rule's), its share of the pool,
   what it holds, and what its rewards and orders made; and the latest
   fills, as the account trades them: it buys No where Reward quotes sells
-  Yes, so it can hold both. It keeps no worst case for each day, so that
-  column shows a dash; the running one is in its status. If the account's
+  Yes, so it can hold both. Each day has its worst case too, as on Reward
+  quotes: today's is live, the worst case in its status less where it
+  stood at midnight UTC, and the days add up to it. A day whose start was
+  never recorded shows a dash rather than a guess. If the account's
   own loss limit would have been hit, its dot turns amber and says so:
   from then on, as the real account would, it only sells what it holds.
   The limit for one day counts only that day's change: what it holds

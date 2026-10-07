@@ -4219,9 +4219,10 @@ async function run() {
       const prp = await prRead();
       await shot(page, 'agents-prep');
       // Days: today 4.90 + 19.44 of quotes, two fills, +$0.50 of rewards and +$1.47 in all; 16 Sep 4.90 + 19.40, two fills,
-      // +$1.20 and +$0.90 (its fills −$0.30). The layer keeps no worst case for a day, so both read a dash, never $0.00.
-      const prDayOk = prp.days.length === 2 && /· today$/.test(prp.days[0][0]) && prp.days[0].slice(1).join('|') === '$24.34|2|—|+$0.50|+$1.47'
-        && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '$24.30|2|—|+$1.20|+$0.90';
+      // +$1.20 and +$0.90 (its fills −$0.30). The worst case by day (0094, Davies 2026-10-07: the column was empty): 16 Sep
+      // its close's 0.64 less its start's 0, +$0.64, and today, live, the running 1.00 less today's start, +$0.36.
+      const prDayOk = prp.days.length === 2 && /· today$/.test(prp.days[0][0]) && prp.days[0].slice(1).join('|') === '$24.34|2|+$0.36|+$0.50|+$1.47'
+        && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '$24.30|2|+$0.64|+$1.20|+$0.90';
       // Quotes: each market's pool, RW's bid / ask, its share of the pool at the last minute, what it holds by token, and
       // its rewards and orders adding up to its total: A 1.00 + 0.39 = 1.39, B 0.70 + 0.28 = 0.98.
       const prMktOk = prp.markets.map((r) => r.join('|')).join(' / ')
@@ -4234,7 +4235,7 @@ async function run() {
         && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && prp.tiles.join('|') === 'WORST CASE=+$1|TOP SHARE=59 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
         && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {
-        ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, a dash where no worst case is kept; each market's share, holdings by token and parts adding up; the four fills newest first");
+        ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, their worst cases +$0.36 (today, live) and +$0.64 adding up to the +$1; each market's share, holdings by token and parts adding up; the four fills newest first");
       } else fail(T('prep'), `mini-pool page: ${JSON.stringify(prp)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
@@ -4325,9 +4326,10 @@ async function run() {
       });
       await shot(page, 'agents-mid');
       // Days: today $29.20 of quotes, one fill, +$4 of rewards and +$4.60 in all; 16 Sep $29.20, one fill, +$5 and +$4.80
-      // (its fills −$0.20). No worst case kept for a day: a dash.
-      const mdDayOk = mdp.days.length === 2 && /· today$/.test(mdp.days[0][0]) && mdp.days[0].slice(1).join('|') === '$29.20|1|—|+$4|+$4.60'
-        && /^16 Sep/.test(mdp.days[1][0]) && mdp.days[1].slice(1).join('|') === '$29.20|1|—|+$5|+$4.80';
+      // (its fills −$0.20). The worst case by day: 16 Sep +$2.30 (its close's less its start's 0), today, live, +$1.90
+      // (the running 4.20 less today's start, 2.30).
+      const mdDayOk = mdp.days.length === 2 && /· today$/.test(mdp.days[0][0]) && mdp.days[0].slice(1).join('|') === '$29.20|1|+$1.90|+$4|+$4.60'
+        && /^16 Sep/.test(mdp.days[1][0]) && mdp.days[1].slice(1).join('|') === '$29.20|1|+$2.30|+$5|+$4.80';
       // Quotes: C $20 a day at 40¢ / 43¢, 18 % of its pool, 20 Yes, +$3.50 + $0.30 = +$3.80; D $36 at 70¢ / 72¢, 24 %,
       // 10 No, +$5.50 + $0.10 = +$5.60.
       const mdMktOk = mdp.markets.map((r) => r.join('|')).join(' / ')
@@ -4340,7 +4342,7 @@ async function run() {
         && mdp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && mdp.tiles.join('|') === 'WORST CASE=+$4.20|TOP SHARE=60 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
         && mdDayOk && mdMktOk && mdFillOk && mdp.warn === 0 && mdp.overflow >= 0 && mdp.overflow <= 1 && mdp.docOverflow <= 0) {
-        ok(T('mid'), "its page is RW's, as mini-pool's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
+        ok(T('mid'), "its page is RW's, as mini-pool's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total, their worst cases +$1.90 (today, live) and +$2.30 adding up to the +$4.20; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
       } else fail(T('mid'), `mid-pool page: ${JSON.stringify(mdp)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
@@ -4394,7 +4396,8 @@ async function run() {
           title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
           sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
           split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
-          markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
+          tiles: [...(d?.querySelectorAll('.ag-rw-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`),
+          days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
           overflow: d ? d.scrollWidth - d.clientWidth : -1,
           docOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
@@ -4403,9 +4406,11 @@ async function run() {
       // Its fills newest first, the sell of what it held among them; F's pool of $120 a day, over mid-pool's ceiling.
       const lpFillOk = lpp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will E happen?|sold Yes|20|43¢ / Will F happen?|bought No|10|28¢ / Will E happen?|bought Yes|20|40¢';
       const lpMktOk = lpp.markets.length === 2 && lpp.markets[0][0] === 'Will E happen?' && lpp.markets[1][0] === 'Will F happen?' && lpp.markets[1][1] === '$120' && lpp.markets[1][4] === '10 No';
+      // Its worst case: +$4.80 in all (E 1.95, F 2.65); by day 16 Sep +$2.30 and today, live, +$2.50, adding up to it.
+      const lpDayOk = lpp.days.length === 2 && /· today$/.test(lpp.days[0][0]) && lpp.days[0][3] === '+$2.50' && /^16 Sep/.test(lpp.days[1][0]) && lpp.days[1][3] === '+$2.30';
       if (lpp.title === 'Reward quotes live-prep' && lpp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && lpp.split.join('|') === 'rewards +$9|orders +$0.60'
-        && lpFillOk && lpMktOk && lpp.overflow >= 0 && lpp.overflow <= 1 && lpp.docOverflow <= 0) {
-        ok(T('lp'), "its page is RW's, as the other layers': realised = rewards +$9 + orders +$0.60; its three fills newest first, the sell of the YES it held at 43¢ first; F's pool of $120 a day; nothing wider than the screen");
+        && /^WORST CASE=\+\$4\.80$/.test(lpp.tiles[0] ?? '') && lpDayOk && lpFillOk && lpMktOk && lpp.overflow >= 0 && lpp.overflow <= 1 && lpp.docOverflow <= 0) {
+        ok(T('lp'), "its page is RW's, as the other layers': realised = rewards +$9 + orders +$0.60; worst case +$4.80, by day today +$2.50 (live) and 16 Sep +$2.30; its three fills newest first, the sell of the YES it held at 43¢ first; F's pool of $120 a day; nothing wider than the screen");
       } else fail(T('lp'), `live-prep page: ${JSON.stringify(lpp)}`);
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);

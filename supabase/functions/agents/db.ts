@@ -47,6 +47,8 @@ const PAGED_KEYS: Record<string, string> = {
   // "Reward quotes live-prep" (0091): likewise, and the two tables its stop sums (its readout's days, its paper's days).
   pm_lp_fills: "trade_id,hash", pm_lp_minutes: "mode,minute,cond", pm_lp_settlements: "cond", pm_lp_reward_days: "mode,day,cond",
   pm_lpprep_minutes: "minute,cond", pm_lpprep_fills: "cond,minute,print_id", pm_lpprep_settlements: "cond", pm_lpprep_days: "day",
+  // The three layers' worst case at each day's start (0094), a row a layer and a day.
+  pm_prep_stress_days: "layer,day",
   // Rule D's events (0072), by their primary key: the realistic twin checks its replica of arm d against them (quotes_twin.ts).
   agent_quoted_events: "arm,book,minute,side,k,kind",
 };

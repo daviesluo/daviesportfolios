@@ -13,7 +13,10 @@
 // up to the total 2.37; the top share is 1.39 / 2.37, 59 %. The worst case is RW's on each account (rewards halved, every
 // fill a tick worse, inventory at the adjusted touch): A 0.50 − 0.08 − 0.19 + 1 × 0.46 = 0.69 (net 1 YES, cash −4.50 +
 // 1.92 + 2.50, ticks of 0.01 on 19 shares), B 0.35 − 4.02 − 0.02 + 20 × 0.200 = 0.31, so 1.00. 16 Sep closed with the
-// fills at −0.30, so that day made −0.30 + 1.20 = 0.90 and today 2.37 − 0.90 = 1.47. Costs are the selections'
+// fills at −0.30, so that day made −0.30 + 1.20 = 0.90 and today 2.37 − 0.90 = 1.47. The worst case at each day's start
+// (0094): 0 on 16 Sep, and at 17 Sep's start, with A's 0.70 and B's 0.50 of 16 Sep's rewards, A's two fills of that day
+// and its 6 YES at the adjusted bid 0.46, A 0.35 − 4.50 + 1.92 − 0.14 + 6 × 0.46 = 0.39 and B 0.25: 0.64. So 16 Sep's worst
+// case is 0.64 and today's, live, 1.00 − 0.64 = 0.36. Costs are the selections'
 // N × (b + 1 − a): 4.90 + 19.40 on 16 Sep, 4.90 + 19.44 today. The shares at the last minute: A earned 0.0002 of a pool
 // of 8 a day, 0.0002 × 1440 / 8 = 3.6 %; B 0.00014 of 7, 2.88 %.
 
@@ -27,6 +30,7 @@ import { PREP_INSTANCE, type PrepInstance } from "./pm_prep.ts";
 import { PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
+import { PREP_STRESS_TABLE } from "./pm_prep_stress.ts";
 
 // deno-lint-ignore no-explicit-any
 const F = fixture as any;
@@ -54,7 +58,9 @@ Deno.test("RW's page from the layer's records: each market's part, the worst cas
   // Today against the last close, as RW's: the closed day and today add up to the total.
   near(out.todayUsd, 1.47, "today"); near(out.days[0].totalUsd, 0.9, "16 Sep: −0.30 + 1.20");
   near(out.todayUsd + out.days[0].totalUsd, out.totalUsd, "today and the closed days are the total");
-  assertEquals(out.days.map((d) => [d.day, d.live, d.fills, d.rewardUsd, d.stressUsd, d.capitalUsd]), [["2026-09-16", false, 2, 1.2, null, 24.3]]);
+  assertEquals(out.days.map((d) => [d.day, d.live, d.fills, d.rewardUsd, d.stressUsd, d.capitalUsd]), [["2026-09-16", false, 2, 1.2, 0.64, 24.3]]);
+  // The worst case by day: 16 Sep's start to 17 Sep's, and today's live, adding up to the running one.
+  near(out.todayStressUsd!, 0.36, "today's worst case: 1.00 − 0.64"); near(out.days[0].stressUsd! + out.todayStressUsd!, out.stressUsd, "and the days are the worst case");
   near(out.capitalUsd!, 24.34, "today's costs: 4.90 + 19.44");
   assertEquals([out.phase, out.notStarted, out.finished, out.catchingUp], ["run", false, false, false]);
 });
@@ -102,7 +108,9 @@ Deno.test("no state is no row; a last decided minute older than five minutes is 
 // the mids 20 × 0.415 + 10 × 0.29 = 8.30 + 2.90 = 11.20, so +0.40 open, nothing realised by a fill. Rewards: 5.00 on 16
 // Sep and 4.00 so far today, 9.00 (C 3.50, D 5.50), all realised. Total 9.40: C 3.50 + 0.30 = 3.80, D 5.50 + 0.10 = 5.60,
 // the top share 5.60 / 9.40 = 60 %. 16 Sep closed with the fills at −0.20: −0.20 + 5.00 = 4.80, so today 9.40 − 4.80 =
-// 4.60. RW's worst case: C 1.75 − 8.00 − 0.20 + 20 × 0.40 = 1.55, D 2.75 + 7.20 − 0.10 − 10 × 0.72 = 2.65, so 4.20. Costs
+// 4.60. RW's worst case: C 1.75 − 8.00 − 0.20 + 20 × 0.40 = 1.55, D 2.75 + 7.20 − 0.10 − 10 × 0.72 = 2.65, so 4.20; at 17
+// Sep's start, with 16 Sep's rewards C 2.00 and D 3.00 and C's fill: C 1.00 − 8.00 − 0.20 + 20 × 0.40 = 0.80 and D 1.50,
+// 2.30, from 0 at 16 Sep's start: 16 Sep's worst case 2.30, today's 4.20 − 2.30 = 1.90. Costs
 // N × (b + 1 − a): C 20 × 0.97 = 19.40, D 10 × 0.98 = 9.80, 29.20 each day, which are also what its quotes tie up. The
 // shares at the last minute: C 0.0025 × 1440 / 20 = 18 %, D 0.006 × 1440 / 36 = 24 %.
 
@@ -116,6 +124,7 @@ Deno.test("mid-pool's page figures for its hand-worked record: the fixture the s
   near(out.rewardUsd, 9, "rewards"); near(out.realisedUsd, 9, "realised: the rewards alone"); near(out.realisedFillsUsd, 0, "no closing fill");
   near(out.totalUsd, 9.4, "total"); near(out.todayUsd, 4.6, "today: 9.40 − 4.80"); near(out.days[0].totalUsd, 4.8, "16 Sep: −0.20 + 5.00");
   near(out.stressUsd, 4.2, "RW's worst case: 1.55 + 2.65"); near(out.bestMarketUsd!, 5.6, "D");
+  near(out.days[0].stressUsd!, 2.3, "16 Sep's worst case: its close's 2.30 less its start's 0"); near(out.todayStressUsd!, 1.9, "today's: 4.20 − 2.30");
   near(out.quotedUsd, 29.2, "what its quotes tie up: 20 × 0.40 + 20 × 0.57 + 10 × 0.70 + 10 × 0.28"); near(out.capitalUsd!, 29.2, "today's costs");
   assertEquals(out.markets.map((m) => [m.q, m.ratePerDay, m.yes, m.no, m.share, m.totalUsd]), [["Will C happen?", 20, 20, 0, 0.18, 3.8], ["Will D happen?", 36, 0, 10, 0.24, 5.6]]);
   assertEquals(out.recent.map((f) => [f.q, f.tokenSide, f.outcome, f.size, f.tokenPrice]), [["Will D happen?", "BUY", "no", 10, 0.28], ["Will C happen?", "BUY", "yes", 20, 0.4]]);
@@ -133,7 +142,9 @@ Deno.test("mid-pool's page figures for its hand-worked record: the fixture the s
 // By hand: E bought 20 YES at 0.40 (8.00) and sold them at 0.43 (8.60): +0.60 realised, nothing held. F holds 10 NO at
 // 0.28, cost 2.80, at the mid 10 × 0.29 = 2.90: +0.10 open. Rewards 9.00 (E 3.50, F 5.50), so realised 9.00 + 0.60 = 9.60
 // and the total 9.70: E 3.50 + 0.60 = 4.10, F 5.50 + 0.10 = 5.60. 16 Sep closed at 4.80, so today 9.70 − 4.80 = 4.90. F's
-// share at the last minute is 0.006 × 1440 / 120 = 7.2 %. One position open.
+// share at the last minute is 0.006 × 1440 / 120 = 7.2 %. One position open. The worst case: E 1.75 + 0.60 − 0.40 + 0 = 1.95
+// and F 2.75 + 7.20 − 0.10 − 10 × 0.72 = 2.65, 4.80; at 17 Sep's start (16 Sep: E's 20 YES at 0.40 bought, rewards E 2.00
+// and F 3.00) E 1.00 − 8.00 − 0.20 + 20 × 0.40 = 0.80 and F 1.50, 2.30: 16 Sep's 2.30, today's 4.80 − 2.30 = 2.50.
 
 // deno-lint-ignore no-explicit-any
 const LF = lpFixture as any;
@@ -144,6 +155,7 @@ Deno.test("live-prep's page figures for its record: the fixture the sweep serves
   near(out.heldUsd, 2.9, "held at the mid"); near(out.costUsd, 2.8, "cost"); near(out.unrealisedUsd, 0.1, "unrealised");
   near(out.rewardUsd, 9, "rewards"); near(out.realisedFillsUsd, 0.6, "E's 20 YES sold at 0.43, bought at 0.40"); near(out.realisedUsd, 9.6, "realised");
   near(out.totalUsd, 9.7, "total"); near(out.todayUsd, 4.9, "today: 9.70 − 4.80");
+  near(out.stressUsd, 4.8, "the worst case: 1.95 + 2.65"); near(out.days[0].stressUsd!, 2.3, "16 Sep's"); near(out.todayStressUsd!, 2.5, "today's: 4.80 − 2.30");
   assertEquals(out.markets.map((m) => [m.q, m.ratePerDay, m.yes, m.no, m.share, m.totalUsd]), [["Will E happen?", 20, 0, 0, 0.18, 4.1], ["Will F happen?", 120, 0, 10, 0.072, 5.6]]);
   assertEquals(out.recent.map((f) => [f.q, f.tokenSide, f.outcome, f.size, f.tokenPrice]), [["Will E happen?", "SELL", "yes", 20, 0.43], ["Will F happen?", "BUY", "no", 10, 0.28], ["Will E happen?", "BUY", "yes", 20, 0.4]]);
   assertEquals([out.open, out.quoting, out.running, out.lagMinutes, out.fills, out.capUsd], [1, 2, true, 2, 3, 320]);
@@ -165,16 +177,29 @@ Deno.test("the dashboard reads each paper layer from its own instance's tables: 
     [inst.reads.markets]: input.markets,
     [inst.reads.config]: [{ id: 1, cap_total_usd: cap }],
   });
-  const mem = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320), ...rowsOf(LF.input, PREP_LP_INSTANCE, 320) }, { now: () => F.input.nowMs });
+  // The worst case at each day's start (0094): one table, a row a layer and a day, each layer's beside the others'.
+  // deno-lint-ignore no-explicit-any
+  const startsOf = (input: any, inst: PrepInstance) => input.stressDays.map((r: { day: string; stress: number }) => ({ layer: inst.lock, ...r, parts: {}, source: "recorded" }));
+  const stressDays = [...startsOf(F.input, PREP_INSTANCE), ...startsOf(MF.input, PREP_MID_INSTANCE), ...startsOf(LF.input, PREP_LP_INSTANCE)];
+  const mem = memDb({
+    ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320), ...rowsOf(LF.input, PREP_LP_INSTANCE, 320), [PREP_STRESS_TABLE]: stressDays,
+  }, { now: () => F.input.nowMs });
   const dayStart = Date.parse("2026-09-17T00:00:00Z");
   // Live-prep's from 0091's: its own tables, never mini-pool's.
   for (const [inst, fixture] of [[PREP_INSTANCE, F], [PREP_MID_INSTANCE, MF], [PREP_LP_INSTANCE, LF]] as const) {
-    const reads = [inst.tables.state, inst.tables.days, inst.tables.minutes, inst.tables.fills, inst.tables.settlements, inst.reads.minutes, inst.reads.markets, inst.reads.config];
+    const reads = [
+      inst.tables.state, inst.tables.days, inst.tables.minutes, inst.tables.fills, inst.tables.settlements, inst.reads.minutes, inst.reads.markets, inst.reads.config, PREP_STRESS_TABLE,
+    ];
     const db = onlyTables(mem.db, reads, { readOnly: reads });
     const out = await readPrepSummary(db, inst, fixture.input.nowMs, dayStart);
     assertEquals(JSON.parse(JSON.stringify(out)), fixture.output, inst.name);
     assertEquals([...db.touched].sort(), [...reads].sort(), inst.name);
   }
+  // Before 0094 is applied (its table not there), the read fails alone: the row is shown, its days' worst cases a dash.
+  const before = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320) }, { now: () => F.input.nowMs });
+  const noTable: typeof before.db = { ...before.db, select: (t, q) => (t === PREP_STRESS_TABLE ? Promise.reject(new Error(`db GET ${t} → 404`)) : before.db.select(t, q)) };
+  const out = await readPrepSummary(noTable, PREP_INSTANCE, F.input.nowMs, dayStart);
+  assertEquals([out?.totalUsd, out?.stressUsd, out?.todayStressUsd, out?.days.map((d) => d.stressUsd)], [F.output.totalUsd, 1, null, [null]]);
   // A layer that has decided nothing yet is no row.
   const empty = memDb({ ...rowsOf(F.input, PREP_INSTANCE, 320), pm_midprep_state: [] }, { now: () => F.input.nowMs });
   assertEquals(await readPrepSummary(empty.db, PREP_MID_INSTANCE, F.input.nowMs, dayStart), null);

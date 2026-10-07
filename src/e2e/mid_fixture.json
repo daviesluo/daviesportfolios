@@ -200,6 +200,16 @@
     "n_size": 10,
     "capital": 9.8
    }
+  ],
+  "stressDays": [
+   {
+    "day": "2026-09-16",
+    "stress": 0
+   },
+   {
+    "day": "2026-09-17",
+    "stress": 2.3
+   }
   ]
  },
  "output": {
@@ -229,6 +239,7 @@
   "stressUsd": 4.2,
   "mismatchUsd": 0,
   "bestMarketUsd": 5.6,
+  "todayStressUsd": 1.9,
   "todayUsd": 4.6,
   "fills": 2,
   "stopDay": null,
@@ -305,7 +316,7 @@
     "phase": "run",
     "live": false,
     "totalUsd": 4.8,
-    "stressUsd": null,
+    "stressUsd": 2.3,
     "rewardUsd": 5,
     "fills": 1,
     "capitalUsd": 29.2,

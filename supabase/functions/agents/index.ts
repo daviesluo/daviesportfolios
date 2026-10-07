@@ -47,6 +47,9 @@
 //                             paper from Polymarket's public prints by RW's
 //                             rule, two minutes behind; its own tables only,
 //                             the path's read only. Keyless. Every minute.
+//                             After its turn (and each layer's below), its
+//                             worst case at each UTC day's start
+//                             (pm_prep_stress.ts, 0094).
 //   POST ?action=pmmid      — "Reward quotes mid-pool" (pm_mid.ts, 0081, 0084):
 //                             the same order path on rewarded markets of $10
 //                             to under $50 a day, every minute from eu-west-1,
@@ -163,7 +166,8 @@ import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } fr
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
-import { prepSummary, type PrepDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
+import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
+import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -511,9 +515,21 @@ export async function runPmLiveAction(deps: { db?: Db; fetchImpl?: typeof fetch;
  * pre-registration's check reads.
  */
 export async function runPmPrepAction(deps: { db?: Db; now?: number } = {}) {
-  const report = await runPmPrep({ db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID() });
+  const d = deps.db ?? db();
+  const report = await runPmPrep({ db: d, now: deps.now ?? Date.now(), holder: crypto.randomUUID() });
   if (report.errors.length) await reportServerError("agents.pm_prep", tickErrorReport(report));
-  return report;
+  return { ...report, stressDays: await recordPrepStressAction(d, PREP_INSTANCE, report.at) };
+}
+
+/**
+ * After a paper layer's turn, its worst case at each day's start (`pm_prep_stress.ts`, 0094): the state at rest after
+ * 23:59, its first day, and the oldest days it has no row for. Its faults go to `ops_errors` as `agents.pm_prep_stress`,
+ * never as the layer's own kind, which its pre-registration's check reads.
+ */
+export async function recordPrepStressAction(d: Db, inst: PrepInstance, at: string) {
+  const out = await recordPrepStress(d, inst);
+  if (out.errors.length) await reportServerError("agents.pm_prep_stress", tickErrorReport({ errors: out.errors.map((e) => `${out.layer}: ${e}`), at }));
+  return out;
 }
 
 /**
@@ -555,12 +571,13 @@ export async function runPmMidAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
 
 /** Mid-pool's paper layer, one run (`pm_prep.ts` on 0081's tables). Keyless. Faults go to `ops_errors` as `agents.pm_midprep`. */
 export async function runPmMidPrepAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  const d = deps.db ?? db();
   const report = await runPmPrep({
-    db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_MID_INSTANCE,
+    db: d, now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_MID_INSTANCE,
     ...(deps.fetchImpl ? { pm: { fetchImpl: deps.fetchImpl } } : {}),
   });
   if (report.errors.length) await reportServerError("agents.pm_midprep", tickErrorReport(report));
-  return report;
+  return { ...report, stressDays: await recordPrepStressAction(d, PREP_MID_INSTANCE, report.at) };
 }
 
 /**
@@ -598,12 +615,13 @@ export async function runPmLpAction(deps: { db?: Db; fetchImpl?: typeof fetch; r
 
 /** Live-prep's paper layer, one run (`pm_prep.ts` on 0091's tables). Keyless. Faults go to `ops_errors` as `agents.pm_lpprep`. */
 export async function runPmLpPrepAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  const d = deps.db ?? db();
   const report = await runPmPrep({
-    db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_LP_INSTANCE,
+    db: d, now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PREP_LP_INSTANCE,
     ...(deps.fetchImpl ? { pm: { fetchImpl: deps.fetchImpl } } : {}),
   });
   if (report.errors.length) await reportServerError("agents.pm_lpprep", tickErrorReport(report));
-  return report;
+  return { ...report, stressDays: await recordPrepStressAction(d, PREP_LP_INSTANCE, report.at) };
 }
 
 export async function runTick(now = Date.now()) {
@@ -1574,8 +1592,10 @@ export function dayOpensFrom(rows: { venue: string; symbol: string; open: number
  * A paper layer's summary for the Agents page (`prepSummary`, RW's shape), read from its instance's tables: its state
  * first (it is saved after the fills it counts), its days, its minutes at the last decided minute, every fill and
  * settlement, and from the path it shadows (`inst.reads`) the selection of every day since the layer started (a day's
- * markets and what their quotes need), the rates at that minute and the total cap. Small-pool's instance reads 0077's
- * tables and its path's; mid-pool's 0081's. A layer that has decided nothing yet, or a read that fails, is no row.
+ * markets and what their quotes need), the rates at that minute and the total cap, and its worst case at each day's start
+ * (0094, `pm_prep_stress.ts`). Small-pool's instance reads 0077's tables and its path's; mid-pool's 0081's. A layer that
+ * has decided nothing yet, or a read that fails, is no row; but for the worst case's days, whose failed read leaves them
+ * a dash.
  */
 export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, dayStartMs: number) {
   const T = inst.tables, R = inst.reads;
@@ -1586,7 +1606,7 @@ export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, da
     const startedAt = String((st[0].state as { startedAt?: unknown } | null)?.startedAt ?? "").slice(0, 10);
     const firstDay = /^\d{4}-\d{2}-\d{2}$/.test(startedAt) ? startedAt : new Date(dayStartMs).toISOString().slice(0, 10);
     const at = encodeURIComponent(last);
-    const [days, latest, rates, fills, settlements, markets, cfg] = await Promise.all([
+    const [days, latest, rates, fills, settlements, markets, cfg, stressDays] = await Promise.all([
       d.select<PrepDayRow>(T.days, "select=day,reward,fills_pnl_total,fills,stop_day,stop_total&order=day.asc&limit=400"),
       d.select<PrepMinuteRow>(T.minutes, `minute=eq.${at}&select=minute,cond,class,b,a,n,qb,qa,close_only,reward&order=cond.asc`),
       d.select<PrepRateRow>(R.minutes, `mode=eq.dry_run&minute=eq.${at}&select=cond,rate&order=cond.asc`),
@@ -1594,8 +1614,10 @@ export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, da
       d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
       d.select<PrepMarketRow>(R.markets, `day=gte.${firstDay}&select=day,cond,question,reward_rate,rank,n_size,capital&order=day.asc,rank.asc&limit=400`),
       d.select<{ cap_total_usd: number | string }>(R.config, "id=eq.1&select=cap_total_usd"),
+      // Its worst case at each day's start (0094): a read that fails (the table not there yet) leaves the days without one.
+      d.select<PrepStressDayRow>(PREP_STRESS_TABLE, `layer=eq.${encodeURIComponent(stressLayer(inst))}&select=day,stress&order=day.asc&limit=400`).catch(() => []),
     ]);
-    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
+    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, stressDays, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
   } catch { return null; }
 }
 

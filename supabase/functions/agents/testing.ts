@@ -277,6 +277,12 @@ export const PM_PREP_SCHEMA: Record<string, { columns: string[]; key: string; no
     columns: ["minute", "kind", "detail"], key: "minute,kind", notNull: ["minute", "kind"],
     check: (r) => (["loss_stop_day", "loss_stop_total", "settlement"].includes(String(r.kind)) ? null : "kind"),
   },
+  // The three layers' worst case at each day's start (0094, `pm_prep_stress.ts`): one table for all three, by layer.
+  pm_prep_stress_days: {
+    columns: ["layer", "day", "stress", "parts", "source", "detail", "recorded_at"], key: "layer,day", notNull: ["layer", "day", "stress", "parts", "source"],
+    check: (r) => (!["pm-prep", "pm-midprep", "pm-lpprep"].includes(String(r.layer)) ? "layer" : !["start", "recorded", "replay"].includes(String(r.source)) ? "source"
+      : !/^\d{4}-\d{2}-\d{2}$/.test(String(r.day)) ? "day" : !Number.isFinite(Number(r.stress)) ? "stress" : null),
+  },
 };
 /**
  * The Polymarket book recorder's tables as 0092 creates them (`agents/pm_book_rec.ts`): their columns, the unique key each
