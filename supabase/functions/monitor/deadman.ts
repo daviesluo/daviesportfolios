@@ -13,16 +13,34 @@
 // while pg_cron does not. It reads when the executor last finished a turn (`agent_quote_live_state.updated_at`, written
 // at the end of every turn), with a short timeout and one retry:
 //   * fresh, at most `DEADMAN_STALE_MS` old (three missed one-minute turns): it does nothing, and calls nothing at the venue;
-//   * older, or not readable at all: it lists the sub-account's active orders and cancels every one, entries, exits and a
-//     resting conversion alike ("all resting orders", Davies), and reads each back as the executor reads its own: an
-//     order still open on its read-back is read again after the executor's own pauses, and only a read-back showing it
-//     cancelled (or filled) counts it done. One the venue still shows open is reported open, and the next minute asks again.
+//   * not readable at all (the read timed out, failed or was refused) while a read at most `DEADMAN_GRACE_MS` ago found
+//     the executor fresh: it holds, calls nothing at the venue, and records why (`graceOf`, below);
+//   * older, or not readable at all with no fresh read in that grace: it lists the sub-account's active orders and
+//     cancels every one, entries, exits and a resting conversion alike ("all resting orders", Davies), and reads each
+//     back as the executor reads its own: an order still open on its read-back is read again after the executor's own
+//     pauses, and only a read-back showing it cancelled (or filled) counts it done. One the venue still shows open is
+//     reported open, and the next minute asks again.
 // It never places an order: the venue it is given has no placement (`DeadmanVenue`).
+//
+// The grace on an unreadable state. Davies, 2026-10-07, choosing "读不到时看上次" (when it cannot read, look at the last
+// time): an executor whose state cannot be read is judged stale only when no read in the last three minutes found it
+// fresh. Why: on 2026-10-07 the database stalled (pg_net's response table, emptied since 0093) and the dead-man fired 48
+// times; 45 were "state could not be read (Signal timed out.)" while the executor had started a call within the previous
+// two minutes, and each cancelled every resting order, whose re-posts used up the day's POST governor (900 by 18:25 UTC,
+// 950 by 20:36). The last fresh read is remembered by the Worker, in a Durable Object (`DeadmanMemory` in
+// `workers/monitor/src/monitor.js`), not in the database: in a stall the database is what cannot be read, and a memory
+// kept there would be unreadable exactly when the grace is wanted. The Worker sends it with each call (`lastFreshAt`:
+// this function's own clock at that fresh read, the `at` of its answer) and stores the `at` of every fresh answer. The
+// grace is bounded: a fresh read three minutes old or less holds; older, missing, unparseable or stamped ahead of this
+// clock, the unreadable state cancels as it always did. So an outage still ends in a cancel about three minutes after the
+// last fresh read (at worst about six after the executor's last turn, since a fresh read can see a turn up to three
+// minutes old), and without the Worker's memory nothing changes. A state that WAS read is never held: a stale turn
+// cancels at once, and a missing row or a time that does not parse is an answer, not a stall, and cancels as before.
 //
 // What it records. When it acted (or could not list the orders), one `agent_quote_live_events` row (kind `deadman`,
 // migration 0086) and one `ops_errors` row (kind `monitor.deadman`), each best-effort with a short timeout: the
-// database is the likeliest thing to be down when this fires. The full report always goes back to the Worker, which
-// queues it for the errors box when the database did not take it.
+// database is the likeliest thing to be down when this fires. When it held, only the `ops_errors` row, saying why. The
+// full report always goes back to the Worker, which queues a cancel's for the errors box when the database did not take it.
 //
 // What happens next. The executor's next turn finds each of its orders cancelled on its own read-back, marks the row
 // cancelled, and its rung quotes the paper engine's decision again; an exit goes out again for what the rung holds
@@ -32,6 +50,16 @@ import { cancelOrder, getOrder, orderViewProblem, readOrder, revxFetch, toOrderV
 
 /** Older than this, the executor has missed three one-minute turns: it finishes a turn about 26–35 s into each minute. */
 export const DEADMAN_STALE_MS = 180_000;
+/**
+ * An unreadable state is held, not cancelled, while a read at most this long ago found the executor fresh (Davies,
+ * 2026-10-07: "读不到时看上次"): three minutes, as he chose it.
+ */
+export const DEADMAN_GRACE_MS = 180_000;
+/**
+ * A last fresh read stamped further ahead of this clock than this is not believed and gives no grace. It is this
+ * function's own clock from an earlier call, so only drift between two of its machines can put it ahead.
+ */
+export const DEADMAN_GRACE_AHEAD_MS = 5_000;
 /** Each read of the executor's state waits this long, and a failed read is tried once more after a short pause. */
 export const DEADMAN_READ_TIMEOUT_MS = 4_000;
 export const DEADMAN_READ_ATTEMPTS = 2;
@@ -63,7 +91,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 
 /** What one read of the executor's state found: its `updated_at` (null with no row), or why it could not be read. */
 export type StateRead = { ok: true; updatedAt: string | null } | { ok: false; error: string };
-export type Verdict = { verdict: "fresh" | "stale" | "unreadable"; ageS: number | null; stateAt: string | null; why: string };
+export type Verdict = { verdict: "fresh" | "stale" | "unreadable" | "held"; ageS: number | null; stateAt: string | null; why: string };
 
 /** "4 min 12 s", "1 h 05 min", "35 s": an age a person reads. */
 export function ago(seconds: number): string {
@@ -86,6 +114,25 @@ export function judge(read: StateRead, now: number): Verdict {
   const ageMs = now - t, ageS = Math.round(ageMs / 1000), stateAt = iso(t);
   if (ageMs > DEADMAN_STALE_MS) return { verdict: "stale", ageS, stateAt, why: `PR5's executor last finished a turn ${ago(ageS)} ago (${stateAt.slice(11, 19)} UTC)` };
   return { verdict: "fresh", ageS, stateAt, why: `PR5's executor finished a turn ${ago(Math.max(0, ageS))} ago` };
+}
+
+/** What the grace makes of the last fresh read, for a state that could not be read: hold (cancel nothing) or not, and why. */
+export type Grace = { hold: boolean; ageS: number | null; why: string };
+
+/**
+ * The grace on an unreadable state: hold only when `lastFreshAt` (when a read last found the executor fresh, on this
+ * function's clock) is a time no more than `DEADMAN_GRACE_AHEAD_MS` ahead of `now` and at most `DEADMAN_GRACE_MS`
+ * behind it. Anything else (none, unparseable, older, ahead) gives no grace, and the state cancels as it always did.
+ */
+export function graceOf(lastFreshAt: string | null | undefined, now: number): Grace {
+  const limit = ago(DEADMAN_GRACE_MS / 1000);
+  if (lastFreshAt == null || lastFreshAt === "") return { hold: false, ageS: null, why: "the monitor remembers no read that found it fresh" };
+  const t = Date.parse(lastFreshAt);
+  if (!Number.isFinite(t)) return { hold: false, ageS: null, why: `the last fresh read's time ${JSON.stringify(lastFreshAt).slice(0, 40)} does not parse` };
+  const ageMs = now - t, ageS = Math.round(ageMs / 1000);
+  if (ageMs < -DEADMAN_GRACE_AHEAD_MS) return { hold: false, ageS, why: `the last fresh read is stamped ${ago(-ageS)} ahead of this clock, so it is not believed` };
+  if (ageMs > DEADMAN_GRACE_MS) return { hold: false, ageS, why: `no read in the last ${limit} found it fresh (the last ${ago(ageS)} ago)` };
+  return { hold: true, ageS, why: `a read ${ago(Math.max(0, ageS))} ago found it fresh (the grace is ${limit})` };
 }
 
 /** One order on the active list, as listed: enough to cancel it and to say which it was. */
@@ -191,6 +238,10 @@ export async function cancelEvery(v: DeadmanVenue, orders: ActiveOrder[], o: {
 
 export type DeadmanReport = Verdict & {
   at: string;
+  /** When a read last found the executor fresh, as the Worker remembered it for this call (null: it sent none). */
+  lastFreshAt: string | null;
+  /** For a state that could not be read: what the grace made of `lastFreshAt` (null when the state was read). */
+  grace: Grace | null;
   /** True when it sent a cancel, or tried to and could not list the orders. */
   acted: boolean;
   listed: number | null;
@@ -203,6 +254,11 @@ export type DeadmanDeps = {
   now: () => number;
   readState: () => Promise<StateRead>;
   /**
+   * When a read last found the executor fresh, on this function's clock, as the Worker remembers it (`graceOf`). Left out
+   * or null, a state that cannot be read has no grace and cancels, as before 2026-10-07.
+   */
+  lastFreshAt?: string | null;
+  /**
    * PR5's sub-account, loaded only when there is something to cancel: null when its key does not load, with `note`
    * saying why (a secret's name, never its value).
    */
@@ -213,7 +269,7 @@ export type DeadmanDeps = {
 
 /** A line for a person: what the dead-man found and did. */
 export function summary(r: DeadmanReport): string {
-  if (r.verdict === "fresh") return r.why;
+  if (r.verdict === "fresh" || r.verdict === "held") return r.why;
   if (r.error) return `${r.why}; ${r.error}`;
   if (!r.listed) return `${r.why}; no order rested on the venue`;
   const n = (k: CancelOutcome["outcome"]) => r.orders.filter((o) => o.outcome === k).length;
@@ -226,14 +282,28 @@ export function summary(r: DeadmanReport): string {
 }
 
 /**
- * One minute of the dead-man. Fresh: nothing else happens. Stale or unreadable: every active order is cancelled and
- * read back, and what was done is recorded. It never throws for the venue's or the database's sake.
+ * One minute of the dead-man. Fresh: nothing else happens. Not readable at all, with a fresh read in the grace: held,
+ * nothing at the venue, and the reason recorded. Stale, or unreadable without that grace: every active order is
+ * cancelled and read back, and what was done is recorded. It never throws for the venue's or the database's sake.
  */
 export async function runDeadman(d: DeadmanDeps): Promise<DeadmanReport> {
   const t0 = d.now();
-  const v = judge(await d.readState(), t0);
-  const report: DeadmanReport = { ...v, at: iso(t0), acted: false, listed: null, orders: [], error: null, recorded: null };
+  const read = await d.readState();
+  const v = judge(read, t0);
+  const lastFreshAt = typeof d.lastFreshAt === "string" && d.lastFreshAt ? d.lastFreshAt.slice(0, 40) : null;
+  const report: DeadmanReport = { ...v, at: iso(t0), lastFreshAt, grace: null, acted: false, listed: null, orders: [], error: null, recorded: null };
   if (v.verdict === "fresh") return report;
+  // Only a read that failed can be held: a stale turn, a missing row or a time that does not parse was read, and cancels.
+  if (v.verdict === "unreadable" && !read.ok) {
+    report.grace = graceOf(lastFreshAt, t0);
+    if (report.grace.hold) {
+      report.verdict = "held";
+      report.why = `${v.why}; held, nothing cancelled: ${report.grace.why}`;
+      report.recorded = await d.record(report);
+      return report;
+    }
+    report.why = `${v.why}; ${report.grace.why}`;
+  }
   const { venue, note } = await d.venue().catch((e) => ({ venue: null, note: msg(e) }));
   if (!venue) {
     // Nothing can be cancelled, and saying so every minute would bury the errors box: the Worker alerts on it instead.
@@ -289,15 +359,19 @@ export function recordRows(r: DeadmanReport): { event: Record<string, unknown>; 
     id: o.id, clientOrderId: o.clientOrderId, symbol: o.symbol, side: o.side, price: o.price, quantity: o.quantity,
     outcome: o.outcome, readState: o.readState, readFilled: o.readFilled, cancelAnswer: o.cancelAnswer, ...(o.detail ? { detail: o.detail } : {}),
   }));
-  const detail = { verdict: r.verdict, why: r.why, stateAt: r.stateAt, ageS: r.ageS, listed: r.listed, error: r.error, orders };
-  const context = { verdict: r.verdict, stateAt: r.stateAt, ageS: r.ageS, listed: r.listed, outcomes: r.orders.map((o) => o.outcome) };
+  const grace = { lastFreshAt: r.lastFreshAt, graceAgeS: r.grace?.ageS ?? null };
+  const detail = { verdict: r.verdict, why: r.why, stateAt: r.stateAt, ageS: r.ageS, ...grace, listed: r.listed, error: r.error, orders };
+  const context = { verdict: r.verdict, stateAt: r.stateAt, ageS: r.ageS, ...grace, listed: r.listed, outcomes: r.orders.map((o) => o.outcome) };
   return {
     event: { mode: "live", minute, book: "-", rung_side: "-", k: 0, kind: "deadman", detail },
     ops: { kind: "monitor.deadman", symbol: "pr5", message: summary(r).slice(0, 512), context, ip: "monitor" },
   };
 }
 
-/** Write the record, each row on its own and best-effort: what the database took. */
+/**
+ * Write the record, each row on its own and best-effort: what the database took. A held minute did nothing on the
+ * account, so it writes only its `ops_errors` row, the reason it held; the events row is for what was done there.
+ */
 export async function writeRecord(r: DeadmanReport, sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = DEADMAN_READ_TIMEOUT_MS): Promise<{ events: boolean; ops: boolean }> {
   if (!sbUrl || !key) return { events: false, ops: false };
   const { event, ops } = recordRows(r);
@@ -311,7 +385,8 @@ export async function writeRecord(r: DeadmanReport, sbUrl: string, key: string, 
     }
   };
   const [events, opsOk] = await Promise.all([
-    post("agent_quote_live_events?on_conflict=mode,minute,book,rung_side,k,kind", [event], "resolution=merge-duplicates,return=minimal"),
+    r.verdict === "held" ? Promise.resolve(false)
+      : post("agent_quote_live_events?on_conflict=mode,minute,book,rung_side,k,kind", [event], "resolution=merge-duplicates,return=minimal"),
     post("ops_errors", ops, "return=minimal"),
   ]);
   return { events, ops: opsOk };

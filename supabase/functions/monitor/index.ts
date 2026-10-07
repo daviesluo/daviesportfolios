@@ -8,9 +8,11 @@
 //
 // Three actions, POST only:
 //   ?action=deadman  PR5's dead-man switch (`deadman.ts`): when its live executor has not finished a turn for three
-//                    minutes, or its state cannot be read at all, every resting order on its Revolut X sub-account is
-//                    cancelled and read back. Fresh, it touches nothing. It writes its call's beat first
-//                    (`edge_call_beats`, key `monitor?action=deadman`), so the Worker's minutes show in the database.
+//                    minutes, or its state cannot be read at all and no read in the last three minutes found it fresh
+//                    (the body's `lastFreshAt`, which the Worker remembers), every resting order on its Revolut X
+//                    sub-account is cancelled and read back. Fresh, or unreadable inside that grace, it touches nothing.
+//                    It writes its call's beat beside the work (`edge_call_beats`, key `monitor?action=deadman`), so the
+//                    Worker's minutes show in the database.
 //   ?action=health   is Supabase's minute loop alive (`health.ts`): four read-only freshness readings with limits.
 //   ?action=report   the Worker's alerts into `ops_errors`, which the site's errors box reads (`ops-error`'s summary):
 //                    kinds `monitor.*` only. A report the database does not take answers 503, and the Worker keeps it
@@ -87,10 +89,20 @@ export async function insertReports(rows: OpsRow[], sbUrl: string, key: string, 
   }
 }
 
+/**
+ * The dead-man call's body: `{ lastFreshAt }`, when a read last found PR5's executor fresh, as the Worker remembers it.
+ * Anything else (no body, not JSON, not a time, too long) is null: no grace, as before 2026-10-07.
+ */
+export function lastFreshOf(body: unknown): string | null {
+  const v = (body as { lastFreshAt?: unknown } | null)?.lastFreshAt;
+  if (typeof v !== "string" || !v || v.length > 40 || !Number.isFinite(Date.parse(v))) return null;
+  return v;
+}
+
 export type HandlerDeps = {
   secret: string;
   beat: (key: string) => Promise<unknown>;
-  deadman: () => Promise<DeadmanReport>;
+  deadman: (lastFreshAt: string | null) => Promise<DeadmanReport>;
   health: () => Promise<HealthReport>;
   insert: (rows: OpsRow[]) => Promise<{ ok: boolean; error?: string }>;
 };
@@ -103,8 +115,9 @@ export async function handle(req: Request, d: HandlerDeps): Promise<Response> {
   if (!(await isAuthorised(req.headers.get(SECRET_HEADER), d.secret))) return json(401, { error: "unauthorised" });
   const action = new URL(req.url).searchParams.get("action");
   if (action === "deadman") {
+    const lastFreshAt = lastFreshOf(await req.json().catch(() => null));
     // The beat beside the work, never before it: the database is the likeliest thing to be slow when this matters.
-    const [, report] = await Promise.all([d.beat(beatKeyOfRequest("monitor", req.url)).catch(() => false), d.deadman()]);
+    const [, report] = await Promise.all([d.beat(beatKeyOfRequest("monitor", req.url)).catch(() => false), d.deadman(lastFreshAt)]);
     return json(200, report);
   }
   if (action === "health") return json(200, await d.health());
@@ -139,13 +152,13 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       secret: Deno.env.get("MONITOR_SECRET") ?? "",
       beat: (k) => writeBeat(k),
       // One line a call in the function's log: what each minute found, without a venue or a database read to ask.
-      deadman: async () => {
+      deadman: async (lastFreshAt) => {
         const r = await runDeadman({
-          now: () => Date.now(), pause, venue: pr5Venue,
+          now: () => Date.now(), pause, venue: pr5Venue, lastFreshAt,
           readState: () => readState(() => readStateOnce(sbUrl, key), pause),
           record: (rec) => writeRecord(rec, sbUrl, key),
         });
-        console.log(`deadman ${r.verdict} age=${r.ageS ?? "-"}s listed=${r.listed ?? "-"} outcomes=${r.orders.map((o) => o.outcome).join(",") || "-"}${r.error ? ` error=${r.error.slice(0, 120)}` : ""}`);
+        console.log(`deadman ${r.verdict} age=${r.ageS ?? "-"}s lastFresh=${r.lastFreshAt ?? "-"}${r.grace ? ` grace=${r.grace.hold ? "hold" : "none"}` : ""} listed=${r.listed ?? "-"} outcomes=${r.orders.map((o) => o.outcome).join(",") || "-"}${r.error ? ` error=${r.error.slice(0, 120)}` : ""}`);
         return r;
       },
       health: async () => {

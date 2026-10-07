@@ -433,7 +433,10 @@ How the less obvious parts work, and why they are built the way they are.
   read-only health action: the tick's beat and finished turn, PR5's
   executor, the newest decision) and PR5's dead-man switch, which cancels
   every resting order on PR5's Revolut X sub-account when its executor has
-  missed three turns. A check that fails two minutes running alerts, and
+  missed three turns, or when its state cannot be read and no read in the
+  last three minutes found it fresh (the Worker remembers that read in a
+  Durable Object, since a stall makes the database unreadable). A check
+  that fails two minutes running alerts, and
   again when it recovers, two ways: a row in the site's errors box
   (`ops_errors`, kinds `monitor.*`) and a GitHub issue labelled `monitor`
   (`monitor-alert.yml`, opened by github-actions, so its owner is notified).
@@ -794,9 +797,9 @@ before touching migration state.
 | `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
 | `.github/workflows/monitor-deploy.yml` | On a change to `workers/monitor/`, or by hand: tests and deploys the monitor Worker with a pinned wrangler, and sets `MONITOR_SECRET` on the Worker and in Supabase when asked or missing. |
 | `.github/workflows/monitor-alert.yml` | Started by the monitor Worker: opens the one issue labelled `monitor`, or comments on it. |
-| `workers/monitor/wrangler.jsonc` | The monitor Worker's configuration: its one-minute cron, its KV namespace, the public addresses it checks. |
-| `workers/monitor/src/index.js` | The monitor Worker's entry: the cron's minute, and a GET answering its health output. |
-| `workers/monitor/src/monitor.js` | What a minute of the monitor does: the three checks, the alert after two failing minutes and the recovery, the queue in KV, and the GitHub dispatch. |
+| `workers/monitor/wrangler.jsonc` | The monitor Worker's configuration: its one-minute cron, its KV namespace, the dead-man's memory (a Durable Object), the public addresses it checks. |
+| `workers/monitor/src/index.js` | The monitor Worker's entry: the cron's minute, a GET answering its health output, and the `DeadmanMemory` class it exports. |
+| `workers/monitor/src/monitor.js` | What a minute of the monitor does: the three checks, the alert after two failing minutes and the recovery, the queue in KV, the GitHub dispatch, and the dead-man's memory of its last fresh read. |
 | `.github/SECURITY.md`, `CODEOWNERS`, `dependabot.yml`, `pull_request_template.md` | How to report a vulnerability, who reviews what, dependency updates, the PR layout. |
 | `docs/README.md` | The front page GitHub shows on the repository's home page: what the project is, screenshots, how it is built. |
 | `docs/guide.md` | How to use each part of the site. |
@@ -903,7 +906,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
 Cloudflare Worker daviesportfolios-monitor (its own cron, every minute: outside GitHub and pg_cron)
  ├─ daviesluo.com                    the shell 200, and the app-*.js it names 200 JavaScript
  ├─ monitor ?action=health           the minute loop's readings (tick beat and turn, PR5's executor, newest decision), read-only
- ├─ monitor ?action=deadman          PR5's executor quiet > 3 min → every resting order on its sub-account cancelled → agent_quote_live_events, ops_errors
+ ├─ monitor ?action=deadman          PR5's executor quiet > 3 min, or unreadable with no fresh read in 3 min (DeadmanMemory) → every resting order on its sub-account cancelled → agent_quote_live_events, ops_errors
  ├─ monitor ?action=report           its alerts and recoveries → ops_errors (the errors box); queued in KV while Supabase is down
  └─ GitHub workflow_dispatch         monitor-alert.yml → the issue labelled monitor (opened, or commented on)
 ```

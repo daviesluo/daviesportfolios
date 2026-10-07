@@ -13,7 +13,8 @@
 //   loop  Supabase's minute loop, by the `monitor` Edge Function's read-only health action (supabase/functions/monitor/
 //         health.ts: the tick's beat and finished turn, PR5's executor, the newest decision, each against a limit);
 //   pr5   PR5's dead-man (supabase/functions/monitor/deadman.ts): it cancels PR5's resting orders itself when the
-//         executor has missed three turns; this check fails whenever it found the executor stale or could not run.
+//         executor has missed three turns, or when its state cannot be read and no read in the last three minutes found
+//         it fresh; this check fails whenever it did not find the executor fresh (held included) or could not run.
 // A check alerts after `FAILS_TO_ALERT` failing runs in a row, so one slow minute never pages (each Supabase reading is
 // already allowed three minutes), and once more when it recovers. An alert goes two ways: to the site's errors box (the
 // function's report action → `ops_errors`, kinds `monitor.*`) and, when the Worker holds a GitHub token, to GitHub, where
@@ -24,8 +25,20 @@
 // runs 1,440 times. A check that stays failing after its alert writes nothing more; a run that changes nothing writes
 // nothing; and a daily budget keeps a flapping check from reaching the limit. A report the errors box could not take
 // (Supabase down) waits in the state's outbox and goes when Supabase answers again; a dispatch GitHub refused for a
-// moment the same. Workers Free also allows 10 ms of CPU and 50 subrequests a run: a run makes at most eight (the KV
-// read and write, two site fetches, two function calls, one report, one dispatch) and parses a few kilobytes.
+// moment the same. Workers Free also allows 10 ms of CPU and 50 subrequests a run: a run makes at most ten (the KV
+// read and write, the dead-man's memory read and write, two site fetches, two function calls, one report, one
+// dispatch) and parses a few kilobytes.
+//
+// The dead-man's memory. Davies, 2026-10-07, choosing "读不到时看上次": PR5's executor whose state cannot be read is
+// judged stale only when no read in the last three minutes found it fresh (`graceOf` in deadman.ts has the rule and
+// why). The function is stateless, so the Worker remembers when a read last found the executor fresh and sends it with
+// each dead-man call. It lives in a Durable Object (`DeadmanMemory`, one instance, SQLite-backed, as Workers Free
+// allows), not in the database, which is the thing a stall makes unreadable, and not in KV: a fresh minute is nearly
+// every minute, 1,440 writes a day against KV's 1,000, and KV can take a minute to show a write to another location.
+// The object answers with one strongly consistent value, written once a fresh minute (Durable Objects on Workers Free:
+// 100,000 requests a day; this makes about 2,900). The value is the function's own clock at that read (the answer's
+// `at`), so the function compares its clock with its own. Whatever fails here fails toward the old rule: a memory that
+// cannot be read, or is not bound, sends nothing, and the function then cancels on an unreadable state as it always did.
 
 /** Failing runs in a row before a check alerts. */
 export const FAILS_TO_ALERT = 2;
@@ -44,7 +57,12 @@ export const KV_CACHE_TTL_S = 30;
 export const WRITE_BUDGET = 900;
 export const OUTBOX_MAX = 50;
 export const OUTBOX_MAX_AGE_MS = 24 * 3600e3;
-export const TIMEOUT_MS = { site: 10_000, deadman: 55_000, health: 20_000, report: 15_000, github: 10_000 };
+export const TIMEOUT_MS = { site: 10_000, deadman: 55_000, health: 20_000, report: 15_000, github: 10_000, memory: 3_000 };
+/** The one instance of the dead-man's memory, by name, and the key it keeps its value under. */
+export const MEMORY_NAME = 'pr5';
+export const MEMORY_KEY = 'lastFreshAt';
+/** The memory refuses a time further ahead of its own clock than this: a bad value must not outlive the minute it came in. */
+export const MEMORY_AHEAD_MS = 60_000;
 /** A browser's User-Agent, as healthcheck.yml sends: a bot-shaped one can be challenged by the CDN. */
 export const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
@@ -56,6 +74,9 @@ export const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit
  * @typedef {{ SITE_URL: string, SB_URL: string, SB_ANON: string, GITHUB_REPO: string, GITHUB_WORKFLOW: string, MONITOR_SECRET?: string, MONITOR_GITHUB_PAT?: string }} Env
  * @typedef {(input: string, init?: RequestInit) => Promise<Response>} Fetch
  * @typedef {{ ok: boolean, detail: string }} CheckResult
+ * @typedef {{ get(): Promise<string | null>, put(at: string): Promise<unknown> }} Memory
+ * @typedef {{ get(key: string): Promise<unknown>, put(key: string, value: unknown): Promise<unknown> }} DoStorage
+ * @typedef {{ idFromName(name: string): unknown, get(id: unknown): { fetch(input: string, init?: RequestInit): Promise<Response> } }} DoNamespace
  */
 
 const iso = (/** @type {number} */ ms) => new Date(ms).toISOString();
@@ -203,6 +224,7 @@ export function pr5Result(/** @type {{ ok: boolean, status: number, json: any, t
 
 /** What the dead-man found and did, in a line. */
 export function deadmanLine(/** @type {any} */ j) {
+  if (j.verdict === 'held') return String(j.why);
   if (j.error) return `${j.why}; ${j.error}`;
   if (!j.listed) return `${j.why}; no order rested on the venue`;
   const n = (/** @type {string} */ k) => (Array.isArray(j.orders) ? j.orders : []).filter((/** @type {any} */ o) => o.outcome === k).length;
@@ -212,6 +234,70 @@ export function deadmanLine(/** @type {any} */ j) {
   if (n('unread')) parts.push(`${n('unread')} not read back`);
   if (n('skipped')) parts.push(`${n('skipped')} left for the next minute`);
   return `${j.why}; ${parts.join(', ')}`;
+}
+
+// --------------------------------------------------------------------------------------------- the dead-man's memory
+
+/** A time as the memory keeps it: an ISO string that parses, or null. */
+const asTime = (/** @type {unknown} */ v) => (typeof v === 'string' && v.length <= 40 && Number.isFinite(Date.parse(v)) ? v : null);
+
+/**
+ * The Durable Object that remembers when a read last found PR5's executor fresh. GET answers `{ lastFreshAt }`; PUT
+ * `{ lastFreshAt }` keeps the later of the stored and the given time, and refuses one that does not parse or is more
+ * than `MEMORY_AHEAD_MS` ahead of its own clock. It never moves backwards, so a late write cannot undo a newer one.
+ * Not an RPC class: the plain fetch interface keeps it free of `cloudflare:workers`, so the tests import it as it runs.
+ */
+export class DeadmanMemory {
+  /** @param {{ storage: DoStorage }} state */
+  constructor(state) {
+    this.storage = state.storage;
+    /** @type {() => number} */
+    this.clock = () => Date.now();
+  }
+
+  /** @param {Request} request */
+  async fetch(request) {
+    const stored = asTime(await this.storage.get(MEMORY_KEY));
+    if (request.method === 'GET') return Response.json({ lastFreshAt: stored });
+    if (request.method !== 'PUT') return new Response('GET or PUT', { status: 405 });
+    let given = null;
+    try { given = asTime((await request.json())?.lastFreshAt); } catch { /* refused below */ }
+    if (!given || Date.parse(given) > this.clock() + MEMORY_AHEAD_MS) return Response.json({ error: 'lastFreshAt: a time not ahead of now' }, { status: 400 });
+    if (stored && Date.parse(stored) >= Date.parse(given)) return Response.json({ lastFreshAt: stored });
+    await this.storage.put(MEMORY_KEY, given);
+    return Response.json({ lastFreshAt: given });
+  }
+}
+
+/**
+ * The Worker's handle on the memory: its one instance through the binding, or null when it is not bound (the dead-man
+ * then has no grace, as before 2026-10-07).
+ * @param {DoNamespace | undefined} ns @returns {Memory | null}
+ */
+export function memoryOf(ns) {
+  if (!ns) return null;
+  const stub = () => ns.get(ns.idFromName(MEMORY_NAME));
+  return {
+    async get() {
+      const res = await stub().fetch('https://deadman-memory/');
+      if (!res.ok) throw new Error(`the memory answered ${res.status}`);
+      return asTime((await res.json())?.lastFreshAt);
+    },
+    async put(at) {
+      const res = await stub().fetch('https://deadman-memory/', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lastFreshAt: at }) });
+      if (!res.ok) throw new Error(`the memory answered ${res.status}`);
+      return res.json();
+    },
+  };
+}
+
+/** A promise given up after `ms`. @template T @param {Promise<T>} p @param {number} ms @returns {Promise<T>} */
+function within(p, ms) {
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let timer;
+  /** @type {Promise<never>} */
+  const late = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`no answer in ${ms} ms`)), ms); });
+  return Promise.race([p, late]).finally(() => clearTimeout(timer));
 }
 
 // ------------------------------------------------------------------------------------------------------- delivery
@@ -275,7 +361,7 @@ const essence = (/** @type {State} */ s) => JSON.stringify({ ...s, writes: null 
 
 /**
  * One minute. Never throws: a failure is a failing check, or a delivery that waits.
- * @param {{ now: number, fetch: Fetch, kv: Kv, env: Env }} d
+ * @param {{ now: number, fetch: Fetch, kv: Kv, env: Env, memory?: Memory | null }} d
  */
 export async function runMinute(d) {
   const nowIso = iso(d.now), day = nowIso.slice(0, 10), env = d.env;
@@ -285,12 +371,27 @@ export async function runMinute(d) {
   const secret = !!env.MONITOR_SECRET, gh = !!env.MONITOR_GITHUB_PAT;
   const githubNote = gh ? 'an issue is dispatched to GitHub' : 'GitHub skipped: the Worker has no MONITOR_GITHUB_PAT';
 
+  // The dead-man's memory: read before its call, which carries it; written after a fresh answer. A failure on either
+  // side is only noted: without it the function has no grace, which is the rule it ran before.
+  const memory = d.memory ?? null;
+  /** @type {{ recalled: string | null, stored: string | null, error: string | null }} */
+  const mem = { recalled: null, stored: null, error: memory ? null : 'not bound' };
+  const callDeadman = async () => {
+    if (memory) {
+      try { mem.recalled = await within(memory.get(), TIMEOUT_MS.memory); } catch (e) { mem.error = `read: ${msg(e)}`; }
+    }
+    return callMonitor(d.fetch, env, 'deadman', { lastFreshAt: mem.recalled }, TIMEOUT_MS.deadman);
+  };
   const [site, health, deadman] = await Promise.all([
     checkSite(d.fetch, env.SITE_URL),
     secret ? callMonitor(d.fetch, env, 'health', {}, TIMEOUT_MS.health) : Promise.resolve(null),
-    secret ? callMonitor(d.fetch, env, 'deadman', {}, TIMEOUT_MS.deadman) : Promise.resolve(null),
+    secret ? callDeadman() : Promise.resolve(null),
   ]);
   const pr5 = pr5Result(deadman);
+  const freshAt = pr5.report && pr5.report.verdict === 'fresh' ? asTime(pr5.report.at) : null;
+  if (memory && freshAt) {
+    try { await within(memory.put(freshAt), TIMEOUT_MS.memory); mem.stored = freshAt; } catch (e) { mem.error = `${mem.error ? `${mem.error}; ` : ''}write: ${msg(e)}`; }
+  }
   /** @type {Record<CheckName, CheckResult>} */
   const results = { site, loop: loopResult(health), pr5 };
 
@@ -358,7 +459,7 @@ export async function runMinute(d) {
 
   return {
     at: nowIso, results: Object.fromEntries(CHECKS.map((c) => [c, { ok: results[c].ok, detail: results[c].detail }])),
-    events: fresh.map((i) => `${i.kind} ${i.check}`), delivery, wrote, writeError, kvRead,
+    events: fresh.map((i) => `${i.kind} ${i.check}`), delivery, wrote, writeError, kvRead, memory: mem,
     outbox: next.outbox.length, github: gh ? (next.github ? `refused ${next.github.status}` : 'configured') : 'skipped: no MONITOR_GITHUB_PAT', state: next,
   };
 }
@@ -367,7 +468,7 @@ export async function runMinute(d) {
  * The Worker's own health output (GET): its configuration and where each check stands, from KV. No detail of what the
  * checks found is shown here: the address is public.
  */
-export function healthOutput(/** @type {Partial<Env>} */ env, /** @type {State | null} */ state) {
+export function healthOutput(/** @type {Partial<Env>} */ env, /** @type {State | null} */ state, hasMemory = false) {
   const checks = state ? Object.fromEntries(CHECKS.map((c) => {
     const s = state.checks[c];
     return [c, { state: s.alerted ? 'failing (alerted)' : s.fails ? 'failed once' : 'ok', since: s.since }];
@@ -378,6 +479,7 @@ export function healthOutput(/** @type {Partial<Env>} */ env, /** @type {State |
       ? (state?.github ? `configured, but GitHub refused the last dispatch (${state.github.status}) since ${state.github.at}` : 'configured: an alert opens or comments on the issue labelled monitor')
       : 'skipped: the Worker has no MONITOR_GITHUB_PAT secret, so alerts go to the site\'s errors box only',
     monitorSecret: env.MONITOR_SECRET ? 'configured' : 'missing: the Supabase checks and the dead-man cannot be called',
+    deadmanMemory: hasMemory ? 'bound: an unreadable state is held while a read in the last 3 minutes found the executor fresh' : 'not bound: an unreadable state always cancels',
     checks, queued: state ? state.outbox.length : null, writesToday: state ? state.writes : null,
   };
 }

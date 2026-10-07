@@ -3,16 +3,18 @@
 // live site, the `monitor` Edge Function's three actions, GitHub's dispatch endpoint and Workers KV. It pins the state
 // machine — an alert after two failing runs in a row, once, and once more on recovery; one failing run between passes
 // never pages — that KV is written only when something changed, the queue that holds a report while Supabase is down
-// and flushes it when Supabase answers, GitHub skipped without its token, Workers Free's limits, and the configuration
-// it is deployed with. Like cron_jobs.test.js, it sits in src/ because vitest runs here, not because the Worker is the
+// and flushes it when Supabase answers, GitHub skipped without its token, the dead-man's memory (the Durable Object that
+// remembers when a read last found PR5's executor fresh, and what the Worker sends and stores), Workers Free's limits,
+// and the configuration it is deployed with. Like cron_jobs.test.js, it sits in src/ because vitest runs here, not because the Worker is the
 // page's.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import worker from '../workers/monitor/src/index.js';
+import worker, * as WORKER_MODULE from '../workers/monitor/src/index.js';
 import {
-  CHECKS, checkSite, dispatchInputs, emptyState, FAILS_TO_ALERT, healthOutput, KV_KEY, OUTBOX_MAX, parseState, runMinute, stepCheck, WRITE_BUDGET,
+  CHECKS, checkSite, DeadmanMemory, dispatchInputs, emptyState, FAILS_TO_ALERT, healthOutput, KV_KEY, MEMORY_AHEAD_MS, MEMORY_KEY, memoryOf, OUTBOX_MAX,
+  parseState, pr5Result, runMinute, stepCheck, WRITE_BUDGET,
 } from '../workers/monitor/src/monitor.js';
 import { SB_ANON, SB_URL } from './app/supabase_config.js';
 
@@ -53,7 +55,12 @@ const STALE_LOOP = {
   at: 't', ok: false,
   checks: { ...HEALTHY.checks, tickBeat: { ok: false, ageS: 482, limitS: 180 }, quotes: { ok: false, ageS: 455, limitS: 180 } },
 };
-const FRESH = { verdict: 'fresh', why: "PR5's executor finished a turn 35 s ago", acted: false, listed: null, orders: [], error: null, recorded: null };
+const FRESH = { verdict: 'fresh', why: "PR5's executor finished a turn 35 s ago", at: '2026-10-02T13:05:00.412Z', acted: false, listed: null, orders: [], error: null, recorded: null };
+/** 10-07's shape: the state's read timed out, and a read 2 min before had found the executor fresh. */
+const HELD = {
+  verdict: 'held', at: '2026-10-07T17:01:00.380Z', lastFreshAt: '2026-10-07T16:59:00.391Z', acted: false, listed: null, orders: [], error: null, recorded: { events: false, ops: true },
+  why: "PR5's executor state could not be read (Signal timed out.); held, nothing cancelled: a read 2 min 00 s ago found it fresh (the grace is 3 min 00 s)",
+};
 const cancelled = (n, recorded = { events: true, ops: true }) => ({
   verdict: 'stale', why: "PR5's executor last finished a turn 4 min 12 s ago (13:00:50 UTC)", acted: true, listed: n, error: null, recorded,
   orders: Array.from({ length: n }, (_, i) => ({ id: `rx-${i}`, outcome: 'cancelled' })),
@@ -90,7 +97,30 @@ function fakeNet() {
   n.dispatches = () => n.calls.filter((c) => c.url.includes('api.github.com')).map((c) => c.body);
   return n;
 }
-const run = (net, kv, minute, env = ENV) => runMinute({ now: at(minute), fetch: net.fetch, kv, env });
+const run = (net, kv, minute, env = ENV, /** @type {import('../workers/monitor/src/monitor.js').Memory | null | undefined} */ memory = undefined) => runMinute({ now: at(minute), fetch: net.fetch, kv, env, memory });
+
+/** A Durable Object's storage, as the memory uses it: one map, every get and put counted. */
+function fakeDoStorage() {
+  /** @type {any} */
+  const st = { map: new Map(), gets: 0, puts: 0 };
+  st.get = async (k) => { st.gets++; return st.map.get(k); };
+  st.put = async (k, v) => { st.puts++; st.map.set(k, v); };
+  return st;
+}
+/**
+ * The DEADMAN_MEMORY binding: one real `DeadmanMemory` behind a namespace that hands out its stub by name, as Cloudflare
+ * does (one instance per name). `down` makes the stub throw, as an object that cannot be reached.
+ */
+function fakeNamespace(clock = () => at(0)) {
+  const storage = fakeDoStorage(), obj = new DeadmanMemory({ storage });
+  obj.clock = clock;
+  /** @type {any} */
+  const ns = { storage, obj, names: [], down: false, calls: 0 };
+  ns.idFromName = (name) => { ns.names.push(name); return { name }; };
+  ns.get = () => ({ fetch: async (input, init) => { ns.calls++; if (ns.down) throw new Error('Durable Object unreachable'); return obj.fetch(new Request(input, init)); } });
+  return ns;
+}
+const deadmanBodies = (net) => net.calls.filter((c) => c.url.endsWith('action=deadman')).map((c) => c.body);
 const stored = (kv) => parseState(kv.store.get(KV_KEY) ?? null);
 
 afterEach(() => { vi.unstubAllGlobals(); });
@@ -247,6 +277,81 @@ describe('a minute of the Worker', () => {
   });
 });
 
+describe("the dead-man's memory (Davies, 2026-10-07: \"读不到时看上次\")", () => {
+  it('the Durable Object keeps the latest fresh read: never backwards, never a time it cannot parse or one ahead of its clock', async () => {
+    const storage = fakeDoStorage(), m = new DeadmanMemory({ storage });
+    m.clock = () => Date.parse('2026-10-07T17:00:00Z');
+    const get = async () => (await (await m.fetch(new Request('https://deadman-memory/'))).json()).lastFreshAt;
+    const put = (v) => m.fetch(new Request('https://deadman-memory/', { method: 'PUT', body: JSON.stringify({ lastFreshAt: v }) }));
+    expect(await get()).toBeNull();
+    expect((await put('2026-10-07T16:59:00.391Z')).status).toBe(200);
+    expect(await get()).toBe('2026-10-07T16:59:00.391Z');
+    expect(await (await put('2026-10-07T16:58:00.400Z')).json()).toEqual({ lastFreshAt: '2026-10-07T16:59:00.391Z' });   // a late write
+    expect(storage.map.get(MEMORY_KEY)).toBe('2026-10-07T16:59:00.391Z');
+    expect(MEMORY_AHEAD_MS).toBe(60_000);
+    expect((await put('2026-10-07T17:01:00.001Z')).status).toBe(400);    // more than a minute ahead of its clock
+    expect((await put('2026-10-07T17:01:00.000Z')).status).toBe(200);    // the edge itself
+    for (const bad of ['soon', 5, null, 'x'.repeat(41)]) expect((await put(bad)).status).toBe(400);
+    expect((await m.fetch(new Request('https://deadman-memory/', { method: 'PUT', body: 'not json' }))).status).toBe(400);
+    expect(await get()).toBe('2026-10-07T17:01:00.000Z');
+    expect((await m.fetch(new Request('https://deadman-memory/', { method: 'DELETE' }))).status).toBe(405);
+  });
+
+  it("a fresh answer's `at` is stored; the next minute's call carries it; a held answer stores nothing; the instance is the one named pr5", async () => {
+    const net = fakeNet(), kv = fakeKv(), ns = fakeNamespace(), memory = memoryOf(ns);
+    const r0 = await run(net, kv, 0, ENV, memory);
+    expect(deadmanBodies(net)).toEqual([{ lastFreshAt: null }]);        // nothing remembered yet
+    expect(r0.memory).toEqual({ recalled: null, stored: FRESH.at, error: null });
+    expect(ns.storage.map.get(MEMORY_KEY)).toBe(FRESH.at);
+    net.deadman = HELD;
+    const r1 = await run(net, kv, 1, ENV, memory);
+    expect(deadmanBodies(net)[1]).toEqual({ lastFreshAt: FRESH.at });
+    expect(r1.memory).toEqual({ recalled: FRESH.at, stored: null, error: null });
+    expect(ns.storage.map.get(MEMORY_KEY)).toBe(FRESH.at);              // a held minute found nothing fresh
+    // Neither does a cancel.
+    net.deadman = cancelled(3);
+    await run(net, kv, 2, ENV, memory);
+    expect([deadmanBodies(net)[2], ns.storage.map.get(MEMORY_KEY), [...new Set(ns.names)]]).toEqual([{ lastFreshAt: FRESH.at }, FRESH.at, ['pr5']]);
+  });
+
+  it('held is not fresh: the pr5 check fails with its reason and queues nothing, since nothing was done', async () => {
+    expect(pr5Result({ ok: true, status: 200, json: HELD, text: '' })).toMatchObject({ ok: false, detail: HELD.why });
+    const net = fakeNet(), kv = fakeKv();
+    net.deadman = HELD;
+    const r = await run(net, kv, 0);
+    expect([r.results.pr5.ok, r.results.pr5.detail, r.events]).toEqual([false, HELD.why, []]);
+    net.deadman = { ...HELD, recorded: { events: false, ops: false } };  // not even the errors box took its line: still nothing queued
+    expect((await run(net, fakeKv(), 5)).events).toEqual([]);
+  });
+
+  it('a memory that cannot be reached or is not bound sends no time, so the function cancels on an unreadable state as before; the run goes on', async () => {
+    const net = fakeNet(), kv = fakeKv(), ns = fakeNamespace();
+    ns.storage.map.set(MEMORY_KEY, '2026-10-02T13:04:00.400Z');
+    ns.down = true;
+    const r = await run(net, kv, 0, ENV, memoryOf(ns));
+    expect(deadmanBodies(net)).toEqual([{ lastFreshAt: null }]);
+    expect(r.memory.error).toBe('read: Durable Object unreachable; write: Durable Object unreachable');
+    expect(r.results.pr5.ok).toBe(true);
+    const r2 = await run(net, kv, 1);                                   // not bound
+    expect([deadmanBodies(net)[1], r2.memory]).toEqual([{ lastFreshAt: null }, { recalled: null, stored: null, error: 'not bound' }]);
+    expect(memoryOf(undefined)).toBeNull();
+  });
+
+  it('a memory that does not answer is given up after three seconds, and the dead-man is called all the same', async () => {
+    vi.useFakeTimers();
+    try {
+      const net = fakeNet(), kv = fakeKv();
+      const memory = { get: () => new Promise(() => {}), put: () => new Promise(() => {}) };
+      const p = run(net, kv, 0, ENV, memory);
+      await vi.advanceTimersByTimeAsync(3_000);
+      await vi.advanceTimersByTimeAsync(3_000);
+      const r = await p;
+      expect(deadmanBodies(net)).toEqual([{ lastFreshAt: null }]);
+      expect(r.memory.error).toBe('read: no answer in 3000 ms; write: no answer in 3000 ms');
+    } finally { vi.useRealTimers(); }
+  });
+});
+
 describe('GitHub', () => {
   it('skipped without the token: nothing is dispatched, the errors box is told so, and the health output says so', async () => {
     const net = fakeNet(), kv = fakeKv();
@@ -326,18 +431,22 @@ describe("Workers Free's limits", () => {
     expect(stored(kv).writes).toEqual({ day: '2026-10-03', n: 1 });
   });
 
-  it('a run makes at most eight subrequests, with everything failing and the queue full', async () => {
-    const net = fakeNet(), kv = fakeKv();
+  it('a run makes at most ten subrequests, with everything failing, the queue full and the memory read and written', async () => {
+    const net = fakeNet(), kv = fakeKv(), ns = fakeNamespace();
     const s = emptyState();
     s.outbox = Array.from({ length: OUTBOX_MAX }, (_, i) => ({ id: `q${i}`, at: new Date(at(0)).toISOString(), kind: 'alert', check: 'loop', text: 't', site: true, github: true }));
     kv.store.set(KV_KEY, JSON.stringify(s));
     // The site fails on its chunk, so both of its fetches are made: the most a run can send.
     net.appType = 'text/html'; net.report = 503; net.github = 500; net.health = STALE_LOOP; net.deadman = cancelled(12, { events: false, ops: false });
-    const r = await run(net, kv, 1);
-    expect(net.calls.length + kv.gets + kv.puts).toBeLessThanOrEqual(8);
+    const r = await run(net, kv, 1, ENV, memoryOf(ns));
+    expect(net.calls.length + kv.gets + kv.puts + ns.calls).toBeLessThanOrEqual(10);
+    expect(ns.calls).toBe(1);                                           // a cancel stores nothing: one read
     expect(stored(kv).outbox.length).toBe(OUTBOX_MAX);                  // kept fifty deep, the oldest dropped and counted
     expect(stored(kv).dropped).toBe(1);
     expect(r.wrote).toBe(true);
+    net.deadman = FRESH;
+    await run(net, fakeKv(), 2, ENV, memoryOf(ns));
+    expect(ns.calls).toBe(3);                                           // a fresh minute: one read and one write
   });
 
   it('an unreadable KV is not overwritten: the checks and the dead-man still run', async () => {
@@ -355,6 +464,10 @@ describe('the Worker as deployed', () => {
     expect(CONFIG.name).toBe('daviesportfolios-monitor');
     expect(CONFIG.triggers.crons).toEqual(['* * * * *']);
     expect(CONFIG.kv_namespaces).toEqual([{ binding: 'MONITOR_KV', id: '98f4596d95c8454e901cae2ae1b97da5' }]);
+    // The dead-man's memory: the class the entry exports, SQLite-backed (the only kind Workers Free allows).
+    expect(CONFIG.durable_objects).toEqual({ bindings: [{ name: 'DEADMAN_MEMORY', class_name: 'DeadmanMemory' }] });
+    expect(CONFIG.migrations).toEqual([{ tag: 'v1', new_sqlite_classes: ['DeadmanMemory'] }]);
+    expect(typeof /** @type {any} */ (WORKER_MODULE).DeadmanMemory).toBe('function');
     expect([CONFIG.vars.SB_ANON, CONFIG.vars.SB_URL]).toEqual([SB_ANON, SB_URL]);
     expect(CONFIG.vars.GITHUB_WORKFLOW).toBe('monitor-alert.yml');
     expect(fs.existsSync(path.join(ROOT, '.github/workflows', CONFIG.vars.GITHUB_WORKFLOW))).toBe(true);
@@ -366,15 +479,19 @@ describe('the Worker as deployed', () => {
     const net = fakeNet(), kv = fakeKv();
     vi.stubGlobal('fetch', net.fetch);
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-    await worker.scheduled({ scheduledTime: at(0) }, { ...ENV, MONITOR_KV: kv });
+    const ns = fakeNamespace();
+    await worker.scheduled({ scheduledTime: at(0) }, { ...ENV, MONITOR_KV: kv, DEADMAN_MEMORY: ns });
     expect(net.calls.length).toBe(4);                                   // the shell, the chunk, health and the dead-man
+    expect([ns.calls, ns.storage.map.get(MEMORY_KEY)]).toEqual([2, FRESH.at]);   // the memory through its binding
     const line = JSON.parse(log.mock.calls[0][0]);
-    expect([line.wrote, Object.keys(line.results)]).toEqual([false, [...CHECKS]]);
+    expect([line.wrote, Object.keys(line.results), line.memory]).toEqual([false, [...CHECKS], { recalled: null, stored: FRESH.at, error: null }]);
     expect(line.state).toBeUndefined();
     log.mockRestore();
-    const res = await worker.fetch(new Request('https://monitor.example/'), { ...ENV, MONITOR_KV: kv });
+    const res = await worker.fetch(new Request('https://monitor.example/'), { ...ENV, MONITOR_KV: kv, DEADMAN_MEMORY: ns });
     const out = await res.json();
     expect([res.status, out.monitorSecret, out.checks.loop.state, out.queued]).toEqual([200, 'configured', 'ok', 0]);
+    expect(out.deadmanMemory).toMatch(/^bound: /);
+    expect(healthOutput(ENV, null).deadmanMemory).toBe('not bound: an unreadable state always cancels');
     expect(JSON.stringify(out)).not.toContain('the-shared-secret');
     expect(JSON.stringify(out)).not.toContain('github_pat_x');
     expect(net.calls.length).toBe(4);

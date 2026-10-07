@@ -10,6 +10,11 @@
   // The state: one key, written only when it changes (Workers Free allows 1,000 KV writes a day). The namespace was
   // created on 2026-10-02 as "daviesportfolios-monitor".
   "kv_namespaces": [{ "binding": "MONITOR_KV", "id": "98f4596d95c8454e901cae2ae1b97da5" }],
+  // The dead-man's memory (2026-10-07): when a read last found PR5's executor fresh, in one SQLite-backed Durable Object
+  // (the only kind Workers Free allows), created by this Worker's first deploy with it (the migration below). Kept out of
+  // KV for its write budget and out of the database, which a stall makes unreadable (src/monitor.js says more).
+  "durable_objects": { "bindings": [{ "name": "DEADMAN_MEMORY", "class_name": "DeadmanMemory" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DeadmanMemory"] }],
   // The health output at <name>.<account>.workers.dev; no preview URLs.
   "workers_dev": true,
   "preview_urls": false,

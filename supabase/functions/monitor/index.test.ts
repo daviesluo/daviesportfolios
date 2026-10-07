@@ -1,5 +1,6 @@
-// Pins the monitor function: PR5's dead-man (stale past three minutes or unreadable → every resting order cancelled and
-// read back, nothing placed, fresh → nothing at the venue), its record, the health readings and their limits, the
+// Pins the monitor function: PR5's dead-man (stale past three minutes, or unreadable with no fresh read in the last three
+// minutes → every resting order cancelled and read back, nothing placed; fresh, or unreadable inside that grace → nothing
+// at the venue), its record, the health readings and their limits, the
 // reports into the errors box, and the shared secret. The venue is the fake Revolut X of `agents/testing.ts`, driven
 // through the real client (`_shared/revx.ts`): it lands a cancel a read after its 204, as the venue was measured, and can
 // lose a cancel. The database double serves PostgREST's paths and refuses what the schema refuses: 0052's columns and
@@ -10,11 +11,12 @@ import { FakeRevx } from "../agents/testing.ts";
 import { QUOTE_LIVE_CANCEL_REREAD_MS } from "../agents/quotes_live.ts";
 import { REVX_KEY_NAMES } from "../agents/index.ts";
 import {
-  ago, cancelEvery, DEADMAN_CANCEL_REREAD_MS, DEADMAN_DEADLINE_MS, DEADMAN_READ_RETRY_MS, DEADMAN_STALE_MS, type DeadmanReport, type DeadmanVenue, judge,
+  ago, cancelEvery, DEADMAN_CANCEL_REREAD_MS, DEADMAN_DEADLINE_MS, DEADMAN_GRACE_AHEAD_MS, DEADMAN_GRACE_MS, DEADMAN_READ_RETRY_MS, DEADMAN_STALE_MS,
+  type DeadmanReport, type DeadmanVenue, graceOf, judge,
   PR5_KEY_NAMES, pr5KeyFrom, readState, readStateOnce, recordRows, revxDeadmanVenue, runDeadman, type StateRead, summary, writeRecord,
 } from "./deadman.ts";
 import { HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth, TICK_BEAT_KEY } from "./health.ts";
-import { handle, type HandlerDeps, insertReports, isAuthorised, reportRows, SECRET_HEADER } from "./index.ts";
+import { handle, type HandlerDeps, insertReports, isAuthorised, lastFreshOf, reportRows, SECRET_HEADER } from "./index.ts";
 
 const T0 = Date.parse("2026-10-02T13:05:02Z");
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -108,7 +110,7 @@ async function restingWorld() {
 }
 
 /** A dead-man run with every dependency given, the pauses recorded. */
-function deps(o: { read: StateRead | (() => Promise<StateRead>); venue?: DeadmanVenue | null; note?: string; rest?: ReturnType<typeof fakeRest>; clock?: { now: number } }) {
+function deps(o: { read: StateRead | (() => Promise<StateRead>); venue?: DeadmanVenue | null; note?: string; rest?: ReturnType<typeof fakeRest>; clock?: { now: number }; lastFreshAt?: string | null }) {
   const pauses: number[] = [];
   const rest = o.rest ?? fakeRest();
   const clock = o.clock ?? { now: T0 };
@@ -118,6 +120,7 @@ function deps(o: { read: StateRead | (() => Promise<StateRead>); venue?: Deadman
     d: {
       now: () => clock.now,
       readState: typeof o.read === "function" ? o.read : () => Promise.resolve(o.read as StateRead),
+      lastFreshAt: o.lastFreshAt,
       venue: () => { venueLoads++; return Promise.resolve({ venue: o.venue ?? null, note: o.venue ? null : (o.note ?? "REVOLUT_X_API_KEY_2 missing") }); },
       record: (r: DeadmanReport) => writeRecord(r, SB, "service-key", rest.fetch),
       pause: (ms: number) => { pauses.push(ms); return Promise.resolve(); },
@@ -203,6 +206,94 @@ Deno.test("unreadable: a state that cannot be read at all cancels as a stale one
   assertEquals([r.verdict, r.orders.filter((o) => o.outcome === "cancelled").length, w.rx.resting().length], ["unreadable", 10, 0]);
 });
 
+// The grace on an unreadable state (Davies, 2026-10-07, "读不到时看上次"), in the shapes of that day's stall: of the dead-man's
+// 48 firings, 45 were "state could not be read (Signal timed out.)" while the executor had turned within two minutes, and
+// 3 were a stale state that had been read (04:07, 17:03, 19:35: the last turn 3 min 31 s, 3 min 24 s, 3 min 36 s before).
+const TIMED_OUT: StateRead = { ok: false, error: "Signal timed out." };
+
+Deno.test("grace: an unreadable state is held only while the last fresh read is three minutes old or less, and not ahead of the clock", () => {
+  assertEquals([DEADMAN_GRACE_MS, DEADMAN_GRACE_AHEAD_MS], [180_000, 5_000]);
+  const g = (ageMs: number) => graceOf(iso(T0 - ageMs), T0);
+  assertEquals([g(60e3).hold, g(120e3).hold, g(180e3).hold, g(180e3 + 1).hold, g(240e3).hold], [true, true, true, false, false]);
+  assertEquals([g(0).hold, g(-5e3).hold, g(-5e3 - 1).hold], [true, true, false]);       // drift between two machines, not a minute ahead
+  assertEquals(g(120e3), { hold: true, ageS: 120, why: "a read 2 min 00 s ago found it fresh (the grace is 3 min 00 s)" });
+  assertEquals(g(240e3), { hold: false, ageS: 240, why: "no read in the last 3 min 00 s found it fresh (the last 4 min 00 s ago)" });
+  assertEquals(graceOf(null, T0), { hold: false, ageS: null, why: "the monitor remembers no read that found it fresh" });
+  assertEquals([graceOf(undefined, T0).hold, graceOf("", T0).hold, graceOf("not a time", T0).hold], [false, false, false]);
+});
+
+Deno.test("10-07: unreadable with a fresh read 2 min ago is held — nothing listed, cancelled or even keyed at the venue — and its reason is recorded", async () => {
+  const w = await restingWorld();
+  const x = deps({ read: TIMED_OUT, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt: iso(T0 - 120e3) });
+  const r = await runDeadman(x.d);
+  assertEquals([r.verdict, r.acted, r.listed, r.orders, r.error], ["held", false, null, [], null]);
+  assertEquals(r.why, "PR5's executor state could not be read (Signal timed out.); held, nothing cancelled: a read 2 min 00 s ago found it fresh (the grace is 3 min 00 s)");
+  assertEquals([r.lastFreshAt, r.grace], [iso(T0 - 120e3), { hold: true, ageS: 120, why: "a read 2 min 00 s ago found it fresh (the grace is 3 min 00 s)" }]);
+  assertEquals([w.rx.calls.length, x.venueLoads(), w.rx.resting().length], [w.setupCalls, 0, 10]);
+  // Recorded in the errors box only: the events table is for what was done on the account, and nothing was.
+  assertEquals([r.recorded, x.rest.t.agent_quote_live_events.length, x.rest.t.ops_errors.length], [{ events: false, ops: true }, 0, 1]);
+  const [op] = x.rest.t.ops_errors;
+  assertEquals([op.kind, op.symbol, op.message], ["monitor.deadman", "pr5", r.why]);
+  assertEquals(op.context, { verdict: "held", stateAt: null, ageS: null, lastFreshAt: iso(T0 - 120e3), graceAgeS: 120, listed: null, outcomes: [] });
+  assertEquals(summary(r), r.why);
+});
+
+Deno.test("10-07: unreadable with the last fresh read 4 min ago cancels every resting order, and says the grace had run out", async () => {
+  const w = await restingWorld();
+  const x = deps({ read: TIMED_OUT, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt: iso(T0 - 240e3) });
+  const r = await runDeadman(x.d);
+  assertEquals([r.verdict, r.acted, r.orders.filter((o) => o.outcome === "cancelled").length, w.rx.resting().length], ["unreadable", true, 10, 0]);
+  assertEquals(summary(r), "PR5's executor state could not be read (Signal timed out.); no read in the last 3 min 00 s found it fresh (the last 4 min 00 s ago); the dead-man cancelled 10 of 10 resting orders");
+  const [ev] = x.rest.t.agent_quote_live_events;
+  assertEquals([(ev.detail as Row).verdict, (ev.detail as Row).lastFreshAt, (ev.detail as Row).graceAgeS], ["unreadable", iso(T0 - 240e3), 240]);
+});
+
+Deno.test("10-07: unreadable and never found fresh (the Worker sent nothing) cancels, as before the grace", async () => {
+  for (const lastFreshAt of [null, undefined]) {
+    const w = await restingWorld();
+    const r = await runDeadman(deps({ read: TIMED_OUT, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt }).d);
+    assertEquals([r.verdict, r.orders.filter((o) => o.outcome === "cancelled").length, w.rx.resting().length], ["unreadable", 10, 0]);
+    assert(r.why.endsWith("the monitor remembers no read that found it fresh"), r.why);
+  }
+});
+
+Deno.test("10-07: a stale state that was read cancels at once, whatever the last fresh read; so do a missing row and a time that does not parse", async () => {
+  // 17:03: the state read, the last turn 3 min 24 s before; a fresh read 60 s ago does not hold it.
+  for (const read of [{ ok: true, updatedAt: iso(T0 - 204e3) }, { ok: true, updatedAt: null }, { ok: true, updatedAt: "not a time" }] as StateRead[]) {
+    const w = await restingWorld();
+    const r = await runDeadman(deps({ read, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt: iso(T0 - 60e3) }).d);
+    assertEquals([r.grace, r.orders.filter((o) => o.outcome === "cancelled").length, w.rx.resting().length], [null, 10, 0], JSON.stringify(read));
+    assert(r.verdict === "stale" || r.verdict === "unreadable", r.verdict);
+  }
+});
+
+Deno.test("10-07: fresh does nothing, whatever the memory says", async () => {
+  const w = await restingWorld();
+  const x = deps({ read: { ok: true, updatedAt: iso(T0 - 35e3) }, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt: iso(T0 - 600e3) });
+  const r = await runDeadman(x.d);
+  assertEquals([r.verdict, r.acted, r.grace, r.recorded, w.rx.calls.length, x.venueLoads(), x.rest.calls], ["fresh", false, null, null, w.setupCalls, 0, []]);
+});
+
+Deno.test("a long outage still ends in a cancel: fresh at :00, the database unreadable from the next minute — held three minutes, cancelled at the fourth", async () => {
+  const w = await restingWorld();
+  // The Worker's part, as it runs: it sends what it remembers and stores the `at` of each fresh answer.
+  let remembered: string | null = null;
+  const minute = async (n: number, read: StateRead) => {
+    w.clock.now = T0 + n * 60e3;
+    const r = await runDeadman(deps({ read, venue: revxDeadmanVenue(ENV, w.rx.fetch), clock: w.clock, lastFreshAt: remembered }).d);
+    if (r.verdict === "fresh") remembered = r.at;
+    return r;
+  };
+  const first = await minute(0, { ok: true, updatedAt: iso(T0 - 30e3) });
+  assertEquals([first.verdict, remembered], ["fresh", iso(T0)]);
+  const seen: string[] = [];
+  for (let n = 1; n <= 4; n++) seen.push((await minute(n, TIMED_OUT)).verdict);
+  assertEquals(seen, ["held", "held", "held", "unreadable"]);           // 60, 120 and 180 s held; 240 s cancels
+  assertEquals(w.rx.resting().length, 0);
+  // And on: nothing new is remembered while it cannot read, so every later minute cancels what the executor re-posted.
+  assertEquals([(await minute(5, TIMED_OUT)).verdict, remembered], ["unreadable", iso(T0)]);
+});
+
 Deno.test("a cancel the venue does not carry out is reported open after both re-reads — never counted cancelled; the next minute asks again", async () => {
   const w = await restingWorld();
   w.rx.cancelMode = "lost";                                                // 204, and the order stays on the book
@@ -286,7 +377,7 @@ Deno.test("with the database down the cancels are done all the same, and the rep
 Deno.test("the record is what the schema takes: 0086 adds `deadman` to 0052's kinds and changes nothing else", () => {
   assertEquals(KINDS_0086, [...KINDS_0052, "deadman"]);
   const r: DeadmanReport = {
-    verdict: "stale", ageS: 252, stateAt: iso(T0 - 252e3), why: "w", at: iso(T0), acted: true, listed: 1, error: null, recorded: null,
+    verdict: "stale", ageS: 252, stateAt: iso(T0 - 252e3), why: "w", at: iso(T0), lastFreshAt: null, grace: null, acted: true, listed: 1, error: null, recorded: null,
     orders: [{ id: "rx-1", clientOrderId: "c", symbol: "USDC/GBP", side: "buy", price: "0.7540", quantity: "10", filled: "0", state: "new", outcome: "cancelled", readState: "cancelled", readFilled: 0, cancelAnswer: "204" }],
   };
   const { event, ops } = recordRows(r);
@@ -385,7 +476,7 @@ Deno.test("handle: POST only, the secret before anything, the beat beside the de
   const d: HandlerDeps = {
     secret: "s3cret",
     beat: (k) => { seen.push(`beat ${k}`); return Promise.resolve(true); },
-    deadman: () => { seen.push("deadman"); return Promise.resolve(report); },
+    deadman: (last) => { seen.push(`deadman ${last}`); return Promise.resolve(report); },
     health: () => { seen.push("health"); return Promise.resolve({ at: "t", ok: true, checks: {} as never }); },
     insert: (rows) => { seen.push(`insert ${rows.length}`); return Promise.resolve(rows.length > 1 ? { ok: false, error: "503" } : { ok: true }); },
   };
@@ -400,7 +491,13 @@ Deno.test("handle: POST only, the secret before anything, the beat beside the de
   assertEquals(seen, []);                                                  // refused before any work, and before the beat
   const r = await handle(req("deadman"), d);
   assertEquals([r.status, await r.json()], [200, report]);
-  assertEquals(seen.splice(0).sort(), ["beat monitor?action=deadman", "deadman"]);
+  assertEquals(seen.splice(0).sort(), ["beat monitor?action=deadman", "deadman null"]);
+  // The Worker's memory rides in the body; a body without it, or with something that is not a time, is no grace.
+  await handle(req("deadman", { body: { lastFreshAt: "2026-10-07T17:01:00.512Z" } }), d);
+  await handle(req("deadman", { body: {} }), d);
+  await handle(req("deadman", { body: { lastFreshAt: "soon" } }), d);
+  assertEquals(seen.splice(0).filter((x) => x.startsWith("deadman")), ["deadman 2026-10-07T17:01:00.512Z", "deadman null", "deadman null"]);
+  assertEquals([lastFreshOf(null), lastFreshOf({ lastFreshAt: 5 }), lastFreshOf({ lastFreshAt: "x".repeat(41) })], [null, null, null]);
   assertEquals((await handle(req("health"), d)).status, 200);
   assertEquals(seen.splice(0), ["health"]);
   const one = await handle(req("report", { body: { reports: [{ kind: "monitor.alert", message: "m" }] } }), d);
