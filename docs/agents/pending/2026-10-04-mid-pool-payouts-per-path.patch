@@ -1,4 +1,4 @@
-From 60ab257e6f86add6c1e499d8d511af5abfd55d6f Mon Sep 17 00:00:00 2001
+From c882f974594c1f96d9f259f8a7ad47ee145e71f8 Mon Sep 17 00:00:00 2001
 From: daviesluo <daviesluo@gmail.com>
 Date: Sun, 4 Oct 2026 16:32:16 +0000
 Subject: [PATCH] Tell what Polymarket pays apart per path, so a live
@@ -22,18 +22,23 @@ build of "Reward quotes live-prep" (pm_live.ts sha256 23112a4f...e5a9; one heade
 live-prep reads what the account earns, so the same change keeps its R and its stop on its own
 markets and keeps its live payouts out of mini-pool's dry-run readout. It applies before
 live-prep's go.
+
+Rebuilt a third time on the day stop of 2026-10-07 (pm_live.ts sha256 4032d6c0...6706; with this
+change 57f4b1d7...1e40): pm_live.ts merged as it was; the comparison with the path mid-pool froze
+runs today's path on the day stop that path had (dayStopOnCost), as pm_mid_formula.test.ts does,
+so it still shows this change alone; the two test headers and the map's rows merged.
 ---
  docs/map.md                                   |   3 +-
  supabase/functions/agents/index.ts            |   4 +-
  supabase/functions/agents/pm_live.ts          |  95 ++--
  supabase/functions/agents/pm_mid.ts           |  11 +-
  .../functions/agents/pm_mid_formula.test.ts   |  31 +-
- supabase/functions/agents/pm_payouts.test.ts  | 409 ++++++++++++++++++
- 6 files changed, 506 insertions(+), 47 deletions(-)
+ supabase/functions/agents/pm_payouts.test.ts  | 414 ++++++++++++++++++
+ 6 files changed, 511 insertions(+), 47 deletions(-)
  create mode 100644 supabase/functions/agents/pm_payouts.test.ts
 
 diff --git a/docs/map.md b/docs/map.md
-index 8f6cfaf1..1813f8e3 100644
+index ed61fd4d..6c10183f 100644
 --- a/docs/map.md
 +++ b/docs/map.md
 @@ -614,7 +614,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
@@ -45,19 +50,19 @@ index 8f6cfaf1..1813f8e3 100644
  | `agents/quotes_live.ts` | Carries the paper quote test's decisions to PR5's own Revolut X sub-account, order for order, under the design's hard limits; in dry-run until two settings say live. It runs as an instance (its tables, lease, rungs, exit re-price and governed keys), the live account by default. |
  | `agents/quotes_live_frozen.ts` | The live executor as it was before it became an instance, byte for byte, run only by `quotes_live_instance.test.ts` beside today's default instance. |
  | `agents/quotes_live_instance.test.ts` | Runs the executor's default instance beside the frozen one over six simulated hours, turn by turn, and finds every table, the account and every report the same. |
-@@ -631,6 +631,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
- | `agents/pm_instance.test.ts` | Runs the default instances of the path and the layer beside the frozen code over the same simulated days, minute by minute, and finds every table, request and report the same but the fields the formula of 2026-10-04 makes. |
+@@ -632,6 +632,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
  | `agents/pm_live_mid_frozen.ts`, `agents/pm_prep_mid_frozen.ts` | The order path and its paper layer as mid-pool's pre-registration froze them, byte for byte, run only by `pm_mid_formula.test.ts` beside today's mid-pool instances. |
- | `agents/pm_mid_formula.test.ts` | Runs mid-pool through today's path and layer beside the code its pre-registration froze, minute by minute, and finds every decision the same and only the formula's fields changed. |
+ | `agents/pm_mid_formula.test.ts` | Runs mid-pool through today's path and layer, on the day stop it froze, beside the code its pre-registration froze, minute by minute, and finds every decision the same and only the formula's fields changed; and the day stop of 2026-10-07 the one other difference. |
+ | `agents/pm_daystop.test.ts` | Pins by hand the day stop that counts only the day's change since 00:00 UTC, on the order path and on its paper layer, each against the rule it replaced. |
 +| `agents/pm_payouts.test.ts` | Pins what Polymarket pays told apart per path: mid-pool through today's path beside the path its pre-registration froze, minute by minute, and the two paths on one account each booking only the markets it quoted live. |
  | `agents/pm_mid.ts` | "Reward quotes mid-pool": the order path and its paper layer as a second instance, on rewarded markets of $10 to under $50, the same real order path as mini-pool held in dry-run by its config row; its selection first recomputes RW's frozen selection from public data and leaves out what that takes or nearly takes, keeping only a count. |
  | `agents/pm_lp.ts` | "Reward quotes live-prep": the order path and its paper layer as a third instance, on every rewarded market of $10 a day and over, with its own rules (a sell of what is held before a buy, 5N, x2's pause, exits from markets it carries, no end-date horizon, no weather market, $100 a market, a total stop on the fills and what was paid); in dry-run it decides on its paper's holdings. |
- | `agents/pm_lp.test.ts` | Pins live-prep's instance and each of its rules against the code it extends, and simulated days of its path and layer together: the sells, 5N, the caps on what the paper holds, the pause, a carried market's exits, the stop in its own mode, and armed, the account's holdings and the live stop. |
+ | `agents/pm_lp.test.ts` | Pins live-prep's instance and each of its rules against the code it extends, and simulated days of its path and layer together: the sells, 5N, the caps on what the paper holds, the pause, a carried market's exits, the stop in its own mode, no day stop, and armed, the account's holdings and the live stop. |
 diff --git a/supabase/functions/agents/index.ts b/supabase/functions/agents/index.ts
-index 15409bd5..fd9f6a41 100644
+index 3b188e56..c283d588 100644
 --- a/supabase/functions/agents/index.ts
 +++ b/supabase/functions/agents/index.ts
-@@ -2351,8 +2351,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
+@@ -2409,8 +2409,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
    if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
    // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
    if (action === "pmprep" && req.method === "POST" && operator) return json(200, await runPmPrepAction());
@@ -69,10 +74,10 @@ index 15409bd5..fd9f6a41 100644
    // Its paper layer (pm_prep.ts on 0081's tables). Keyless public reads only.
    if (action === "pmmidprep" && req.method === "POST" && operator) return json(200, await runPmMidPrepAction());
 diff --git a/supabase/functions/agents/pm_live.ts b/supabase/functions/agents/pm_live.ts
-index d38496e1..c651bf3e 100644
+index 5c4ca2fc..6a665032 100644
 --- a/supabase/functions/agents/pm_live.ts
 +++ b/supabase/functions/agents/pm_live.ts
-@@ -43,7 +43,8 @@
+@@ -45,7 +45,8 @@
  //      and its live share of the pool.
  //   7. Once a UTC day after 01:00, the readout (`pm_live_reward_days`): for the two days before, what the account was
  //      paid per market (`/rewards/user`, native and sponsored), its day's total, the maker rebates, and the formula sums
@@ -82,7 +87,7 @@ index d38496e1..c651bf3e 100644
  //
  // A TURN'S TIME: it shares the one-minute cron job's batch, so it stays inside its call's 58 s and its 55 s lease. Every
  // venue request gives up after 5 s; no selection or readout read starts later than 40 s into the turn and no order is
-@@ -57,13 +58,14 @@
+@@ -59,13 +60,14 @@
  // path as it ran before instances, name for name ("Reward quotes small-pool": $6 to under $10); a turn given no instance
  // runs it, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_live_frozen.ts`) minute by minute and
  // finds every table, request and report the same but the fields the formula of 2026-10-04 makes. The second, mid-pool
@@ -104,7 +109,7 @@ index d38496e1..c651bf3e 100644
  
  import {
    asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
-@@ -215,10 +217,12 @@ export type PmLiveInstance = {
+@@ -217,10 +219,12 @@ export type PmLiveInstance = {
     */
    bookQuality?: PmBookQualityRule;
    /**
@@ -121,7 +126,7 @@ index d38496e1..c651bf3e 100644
     */
    readsPayouts: boolean;
    /** Its action, its row of `public.edge_calls`, and the kind its faults are reported to `ops_errors` as. */
-@@ -1553,8 +1557,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
+@@ -1626,8 +1630,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
        if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
      }
    }
@@ -133,7 +138,7 @@ index d38496e1..c651bf3e 100644
      const r = await venue.rewardPercentages();
      if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
    }
-@@ -2027,9 +2032,16 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
+@@ -2111,9 +2116,16 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
   * native, then sponsored only, every page from "MA==" as the official clients page it), the day's total over both
   * (`/rewards/user/total?sponsored=true`), the maker rebates paid to the proxy wallet (`/rebates/current`), and the day's
   * minutes from `pm_live_minutes`: per market and mode, the minutes with a quote, with both sides scored by RW's formula,
@@ -153,7 +158,7 @@ index d38496e1..c651bf3e 100644
   */
  async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
    const { db, venue } = d;
-@@ -2048,18 +2060,26 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2132,18 +2144,26 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      }
      return { rows, error: `rewards/user (sponsored ${sponsored}): more than ${EARNING_PAGES} pages` };
    };
@@ -191,7 +196,7 @@ index d38496e1..c651bf3e 100644
    }
    const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
    const paid = (rows: PmUserEarning[]) => {
-@@ -2067,9 +2087,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2151,9 +2171,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      for (const e of rows) { const c = String(e.condition_id ?? "").toLowerCase(); if (c) out.set(c, (out.get(c) ?? 0) + usd(e)); }
      return out;
    };
@@ -201,7 +206,7 @@ index d38496e1..c651bf3e 100644
    const start = `${dd}T00:00:00.000Z`, end = iso(Date.parse(start) + DAY);
    const mins = await db.selectAll<PmMinuteRow>(T.minutes, `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
    type Agg = { mode: PmLiveMode; cond: string; minutes: number; two: number; scored: number; formula: number; formulaScored: number; rate: number };
-@@ -2084,16 +2101,22 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2168,16 +2185,22 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
      a.formula += num(r.formula_usd);
      agg.set(k, a);
    }
@@ -228,7 +233,7 @@ index d38496e1..c651bf3e 100644
    }));
    if (rows.length) await db.upsert(T.rewardDays, rows, "mode,day,cond");
    const live = rows.filter((r) => r.mode === "live");
-@@ -2101,6 +2124,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
+@@ -2185,6 +2208,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso:
    return {
      markets: rows.length, actual: sum(live.map((r) => (r.actual_usd ?? 0) + (r.actual_sponsored_usd ?? 0))), sponsored: sum(live.map((r) => r.actual_sponsored_usd ?? 0)),
      formula: sum(live.map((r) => r.formula_usd)), formulaScored: sum(live.map((r) => r.formula_scored_usd)), rebates: sum(live.map((r) => r.rebate_usd ?? 0)),
@@ -264,13 +269,13 @@ index 7aa25cf8..ad9e3f57 100644
  export const PM_MID_INSTANCE: PmLiveInstance = {
    name: "Reward quotes mid-pool",
 diff --git a/supabase/functions/agents/pm_mid_formula.test.ts b/supabase/functions/agents/pm_mid_formula.test.ts
-index af06c58f..745fe7a9 100644
+index 70798994..826773f9 100644
 --- a/supabase/functions/agents/pm_mid_formula.test.ts
 +++ b/supabase/functions/agents/pm_mid_formula.test.ts
-@@ -10,6 +10,11 @@
- //
- // The frozen layer imports its book-keeping from today's pm_live.ts, as mini-pool's does (pm_instance.test.ts pins those
- // functions to be the frozen path's own, text for text).
+@@ -15,6 +15,11 @@
+ // decision, so the comparison runs today's mid-pool instances on the day stop the pre-registration froze
+ // (`dayStopOnCost`, set by no action); the last test runs mid-pool as deployed beside that, over the same days, and finds
+ // the day stop the one difference, worked by hand.
 +//
 +// With the payouts change (docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch), a live mid-pool also reads
 +// what the account earns: its live minutes' share of each pool, a live day's payouts, and the reads that fetch them.
@@ -279,7 +284,7 @@ index af06c58f..745fe7a9 100644
  
  import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
  import * as Frozen from "./pm_live_mid_frozen.ts";
-@@ -138,6 +143,25 @@ const STEPS: Array<[number, ((w: MidWorld) => void)?]> = [
+@@ -149,6 +154,25 @@ const STEPS: Array<[number, ((w: MidWorld) => void)?]> = [
    [at("2026-10-07T06:01:30Z")], [at("2026-10-07T06:02:30Z")],
  ];
  
@@ -305,7 +310,7 @@ index af06c58f..745fe7a9 100644
  /** The fields the formula of 2026-10-04 makes (pm_instance.test.ts's list, on mid-pool's tables), taken out. */
  function masked(tables: Record<string, unknown>): Record<string, Row[]> {
    const t = structuredClone(tables) as Record<string, Row[]>;
-@@ -183,9 +207,9 @@ Deno.test("mid-pool through today's path and layer is mid-pool through the code
+@@ -194,9 +218,9 @@ Deno.test("mid-pool through today's path and layer, on the frozen day stop, is m
      for (const w of [frozen, today]) act?.(w);
      const a = await frozen.turn(t), b = await today.turn(t);
      const label = iso(t);
@@ -318,7 +323,7 @@ index af06c58f..745fe7a9 100644
      assertEquals(today.pm.bodies, frozen.pm.bodies, `bodies by ${label}`);
      for (const o of today.mem.tables.pm_mid_orders as Row[]) states.add(`${o.mode}:${o.state}`);
    }
-@@ -196,6 +220,7 @@ Deno.test("mid-pool through today's path and layer is mid-pool through the code
+@@ -207,6 +231,7 @@ Deno.test("mid-pool through today's path and layer, on the frozen day stop, is m
    assert(T.pm_midprep_fills.length >= 5 && T.pm_midprep_minutes.some((m) => m.class === "matched"), "paper fills and matched minutes");
    // The decisions, whole: orders, fills, selections, settlements and the paper's fills are the frozen code's.
    for (const k of ["pm_mid_orders", "pm_mid_fills", "pm_mid_markets", "pm_mid_settlements", "pm_midprep_fills", "pm_midprep_settlements", "pm_midprep_events"]) {
@@ -328,10 +333,10 @@ index af06c58f..745fe7a9 100644
    // The formula's fields: RW's midpoint is the frozen code's own; where the venue's is the same, so is every figure.
 diff --git a/supabase/functions/agents/pm_payouts.test.ts b/supabase/functions/agents/pm_payouts.test.ts
 new file mode 100644
-index 00000000..0f86a9ab
+index 00000000..570c4c8d
 --- /dev/null
 +++ b/supabase/functions/agents/pm_payouts.test.ts
-@@ -0,0 +1,409 @@
+@@ -0,0 +1,414 @@
 +// What Polymarket pays, told apart per path (2026-10-04; pm_live.ts's `readout` and the minute's share of the pool).
 +//
 +// Mini-pool and mid-pool quote from ONE Polymarket account, and Polymarket pays the account, not a path. Until this
@@ -356,6 +361,11 @@ index 00000000..0f86a9ab
 +//      dry-run and live with a paid readout, and still finds every table, request and report the same.
 +//   3. The two paths on one account: whichever is live books what was paid for its own live markets, the other books
 +//      nothing live, and a market neither quoted live is neither's; the account's day total stays visible on both.
++//
++// The day stop of 2026-10-07 (Davies: "只算当天变化"; mid-pool's deviation 4) is on main before this change and changes a
++// decision once a holding is carried across 00:00, so in 1. today's path runs mid-pool's instance on the day stop the
++// pre-registration froze (`dayStopOnCost`, which no action sets), as pm_mid_formula.test.ts runs it: what is compared is
++// this change alone. pm_mid_formula.test.ts and pm_daystop.test.ts pin the day stop itself.
 +
 +import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 +import * as Frozen from "./pm_live_mid_frozen.ts";
@@ -405,7 +415,7 @@ index 00000000..0f86a9ab
 +// ------------------------------------------------------------------ 1. mid-pool against the code it froze
 +
 +/** One world of mid-pool alone: its path run by `runLive`, its paper layer by today's pm_prep.ts, prints through its bids. */
-+function midWorld(runLive: RunLive) {
++function midWorld(runLive: RunLive, onCost = false) {
 +  const clock = { now: T0 };
 +  const pm = new FakePolymarket(() => clock.now);
 +  const m = markets(pm);
@@ -432,7 +442,7 @@ index 00000000..0f86a9ab
 +      const live = await runLive({
 +        db, now: t, holder: `h${t}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true,
 +        account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER }, signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now,
-+        inst: PM_MID_INSTANCE, pm: { fetchImpl: pm.publicFetch },
++        inst: onCost ? { ...PM_MID_INSTANCE, dayStopOnCost: true } : PM_MID_INSTANCE, pm: { fetchImpl: pm.publicFetch },
 +      });
 +      clock.now = t + 5e3;
 +      const prep = await Prep.runPmPrep({ db: prepDb, now: t + 5e3, holder: `p${t}`, inst: PREP_MID_INSTANCE, pm: { fetchImpl: pm.publicFetch, clock: () => clock.now } });
@@ -561,7 +571,7 @@ index 00000000..0f86a9ab
 +}
 +
 +Deno.test("mid-pool through today's path is mid-pool through the path its pre-registration froze: every dry-run table, request and report the same, and live the same but what it now reads of the account's earnings", async () => {
-+  const frozen = midWorld(Frozen.runPmLive), today = midWorld(Path.runPmLive);
++  const frozen = midWorld(Frozen.runPmLive), today = midWorld(Path.runPmLive, true);
 +  const states = new Set<string>();
 +  let dryTurns = 0, liveTurns = 0;
 +  for (const [t, act] of STEPS) {
