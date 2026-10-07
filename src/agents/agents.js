@@ -1494,8 +1494,9 @@ export function rwBarTileKeys(_phase) {
  * The UTC day still in progress, in the same columns as a closed day. Closed days are each the change since the
  * previous close of the same phase; this row is the snapshot minus those changes, so it does not repeat them.
  * Its total is the scoreboard's today (`todayUsd`). Costs are the capital at work now, a level, as on a closed day.
- * A closed day whose worst case was not recorded (null: the order path's paper layers keep none) leaves today's unknown
- * too, and a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (theirs).
+ * A closed day whose worst case was not recorded (null) leaves today's unknown too, unless the summary carries today's
+ * itself (`todayStressUsd`, the order path's paper layers: their running worst case less the day's recorded start), and
+ * a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (theirs).
  * @param {any} r  the dashboard's `rw`
  * @param {string | number | null | undefined} [at]  when the page was read; the day's label
  */
@@ -1510,7 +1511,10 @@ export function rwTodayRow(r, at) {
   return {
     day, phase, live: true,
     totalUsd: Number(r.todayUsd) || 0,
-    stressUsd: closed.some((d) => d.stressUsd == null) ? null : (Number(r.stressUsd) || 0) - sum('stressUsd'),
+    // The paper layers send today's worst case themselves (`todayStressUsd`: the running one less the day's start), so
+    // it does not wait on every closed day having one; RW's rows send none and keep the subtraction.
+    stressUsd: 'todayStressUsd' in r ? (r.todayStressUsd == null ? null : Number(r.todayStressUsd))
+      : closed.some((d) => d.stressUsd == null) ? null : (Number(r.stressUsd) || 0) - sum('stressUsd'),
     rewardUsd: (Number(r.rewardUsd) || 0) - sum('rewardUsd'),
     fills: (Number(r.fills) || 0) - sum('fills'),
     capitalUsd: r.capitalUsd == null ? null : Number(r.capitalUsd) || 0,

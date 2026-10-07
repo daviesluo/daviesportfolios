@@ -1549,15 +1549,27 @@ describe("mini-pool's page is RW's (Davies, 2026-10-01)", () => {
     // Its rewards and orders split realised as the row does, to the cent: +$1.70 and +$0.25.
     expect([v?.rewardUsd, v?.totalUsd]).toEqual([1.7, 2.37]);
   });
-  it("adds today to its closed days, which add up to its total; a worst case not recorded is unknown, never $0.00", () => {
+  it("adds today to its closed days, which add up to its total, the worst case too; a worst case not recorded is unknown, never $0.00", () => {
     const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
-    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 2, capitalUsd: 24.34, stressUsd: null, stop: false });
+    // Today's worst case, live, is the layer's own (`todayStressUsd`: 1.00 less 0.64 at today's start, 2026-10-07), and
+    // 16 Sep's is its close's 0.64 less its start's 0: the days and today are the running 1.00.
+    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 2, capitalUsd: 24.34, stop: false });
+    expect(today?.stressUsd).toBeCloseTo(0.36, 12);
+    expect(r.days[0].stressUsd).toBeCloseTo(0.64, 12);
+    expect((today?.stressUsd ?? 0) + r.days.reduce((s, d) => s + (d.stressUsd ?? 0), 0)).toBeCloseTo(r.stressUsd, 12);
     expect(today?.totalUsd).toBeCloseTo(1.47, 12);
     expect(today?.rewardUsd).toBeCloseTo(0.5, 12);
     expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
-    // Before its first close the running worst case is today's; RW's rows, whose days all keep theirs, are unchanged.
-    expect(rwTodayRow({ ...r, days: [] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(1);
-    expect(rwTodayRow({ ...r, days: [{ ...r.days[0], stressUsd: 0.4 }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.6, 12);
+    // Today's comes from the layer even when a closed day has none (no start recorded for it), and a today the layer
+    // could not work out (no start for it) is unknown, never the running figure.
+    expect(rwTodayRow({ ...r, days: [{ ...r.days[0], stressUsd: null }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.36, 12);
+    expect(rwTodayRow({ ...r, todayStressUsd: null }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(null);
+    // RW's rows send no `todayStressUsd`: before their first close the running worst case is today's, and after it the
+    // running one less their closed days', unchanged.
+    const { todayStressUsd: _t, ...rwShaped } = r;
+    expect(rwTodayRow({ ...rwShaped, days: [] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(1);
+    expect(rwTodayRow({ ...rwShaped, days: [{ ...r.days[0], stressUsd: 0.4 }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.6, 12);
+    expect(rwTodayRow({ ...rwShaped, days: [{ ...r.days[0], stressUsd: null }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(null);
     // A level it does not know stays unknown; a loss stop of the day marks it.
     expect(rwTodayRow({ ...r, capitalUsd: null }, '2026-09-17T23:00:00Z')?.capitalUsd).toBe(null);
     expect(rwTodayRow({ ...r, stopDay: '2026-09-17' }, '2026-09-17T23:00:00Z')?.stop).toBe(true);
@@ -1617,6 +1629,8 @@ describe('lpRow ("Reward quotes live-prep", 0091)', () => {
     expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['—', '10 No']);
     expect(r.recent.map((f) => { const x = rwFillView(f); return `${x.buy ? 'buy' : 'sell'} ${x.text} ${fmtCents(x.price)}`; }))
       .toEqual(['sell sold Yes 43¢', 'buy bought No 28¢', 'buy bought Yes 40¢']);
+    // Its worst case by day: 16 Sep's 2.30 and today's 2.50 (4.80 less today's start, 2.30), live.
+    expect([rwTodayRow(r, '2026-09-17T23:00:00Z')?.stressUsd, r.days[0].stressUsd, r.stressUsd]).toEqual([2.5, 2.3, 4.8]);
   });
 });
 
@@ -1651,7 +1665,9 @@ describe('midRow ("Reward quotes mid-pool", 0081)', () => {
     expect(v).toMatchObject({ phase: 'run', bestShareText: '60 %', stoppedText: '', mismatch: false });
     expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['20 Yes', '10 No']);
     const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
-    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 1, capitalUsd: 29.2, stressUsd: null, stop: false });
+    // Its worst case: 16 Sep's 2.30 and today's 1.90 (4.20 less today's start, 2.30), live.
+    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 1, capitalUsd: 29.2, stop: false });
+    expect([today?.stressUsd, r.days[0].stressUsd]).toEqual([1.9, 2.3]);
     expect(today?.totalUsd).toBeCloseTo(4.6, 12);
     expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
   });
