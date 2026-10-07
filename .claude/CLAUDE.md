@@ -20,12 +20,14 @@ rule is here and not only in the skill because the skill is cut short
 when a context is compacted, and English came back four times (the last
 on 2026-09-23: "怎么会话又变成英文了").
 
-**Sub-agents are `opus-max` or `sonnet-max`, nothing else** (Davies,
-2026-09-30): both run at high effort since 2026-10-04 (Davies: "把两个子代理的effort改成high，
-之后开opus子代理effort都是high"; the names stay), the first for important or difficult
-work, the second for easy work, and both are defined in `.claude/agents/`.
-Never a built-in agent type or another model; at most three at a time
-(the working-with-davies skill).
+**Sub-agents are `opus-high`, `sonnet-max` or `haiku-max`, nothing else** (Davies,
+2026-10-07: "以后sub-agent最高effort改为opus-high（重要性和难度要求最高的任务）…重要性和难度次一级的用sonnet5.5 max，
+最低级的任务可以用haiku5.5 max"): `opus-high` (Opus, high effort) for the most important and
+difficult work, `sonnet-max` (Sonnet, max effort) for the next tier, `haiku-max` (Haiku 4.5, the
+newest Haiku there is, max effort) for the simplest; all three are defined in `.claude/agents/`.
+A session reads those files from its primary checkout, so keep that checkout on `origin/main`
+(on 10-07 a stale one ran every agent at max). Never a built-in agent type or another model;
+at most three at a time (the working-with-davies skill).
 
 ## A fresh container
 

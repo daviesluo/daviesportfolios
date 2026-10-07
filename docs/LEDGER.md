@@ -698,8 +698,9 @@ Facts a fresh session would otherwise rediscover:
   day-1 `mid_check.sql`; report only, never arm); and, set 2026-10-02, `trig_01XwUUNT5yXL3pzHoyH4JLaG` 10-17 00:20
   (mid-pool's fourteen-day `mid_readout.sql`, only after a passed day-1 check). The same day the 10-09 wake gained d3
   (RW-X4/X5's Test 1) and the 10-23 wake RW-X4/X5's Test 2 and mid-pool's `mid_audit.sql`. Each wake delegates
-  only to `sonnet-max` (easy work) or `opus-max` (important or difficult work), as Davies ruled for every sub-agent on
-  2026-09-30, and checks their work before committing.
+  only to `opus-high` (the most important and difficult work), `sonnet-max` (the next tier) or `haiku-max` (the
+  simplest), as Davies ruled on 2026-10-07, and checks their work before committing; a Routine's prompt that still
+  names `opus-max` means `opus-high`.
   Why not their own sessions: a Routine created from a session here cannot store connectors ("not available for this
   organization"), so a fresh session it starts has no database; and a session created with `create_session` waits for
   a person to approve its MCP calls (the test session `session_0141N6ayHSNVrjfNezYV18Yj` stopped at the first one).
@@ -772,6 +773,20 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-07 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**Three sub-agents by tier: `opus-high`, `sonnet-max`, `haiku-max`** (Davies: "以后sub-agent最高effort改为opus-high
+（重要性和难度要求最高的任务）（现在在跑的这个effort也改为high），重要性和难度次一级的用sonnet5.5 max，最低级的任务可以用haiku5.5 max").
+`.claude/agents/opus-max.md` is `opus-high.md` (Opus, high), `sonnet-max` runs at max again, and `haiku-max` is new
+(Haiku 4.5, the newest Haiku there is: no Haiku 5.5 exists; max). `.claude/CLAUDE.md`, the working-with-davies skill
+and its two Cursor copies say so. **Found doing it:** the session reads agent definitions from its primary checkout,
+`/home/user/daviesportfolios`, which sat 21 commits behind at `dc97fe55`, so every agent since 10-04 ran at max while
+`main` said high; that checkout is fast-forwarded to `origin/main` with this push. The three agents running at max
+(the paper layers' worst case, the day stop on today's change, the dead-man's grace) are stopped and relaunched as
+`opus-high`, each continuing from its own worktree. Davies chose both rule changes the same evening: the day stop
+of mini-pool and mid-pool (path and paper) counts only the change since 00:00 UTC, as a recorded deviation; the
+dead-man treats an unreadable state as stale only when no read in the last 3 minutes found the executor fresh.
 
 ### [2026-10-07 20:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

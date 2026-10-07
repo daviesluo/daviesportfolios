@@ -1,6 +1,6 @@
 ---
-name: opus-max
-description: Important or difficult delegated work on daviesportfolios — verdicts and pre-registered readings, code, migration or data-path changes, anything a wrong answer would cost. Davies' rule of 2026-09-30 allows only this sub-agent or sonnet-max.
+name: opus-high
+description: The most important and most difficult delegated work on daviesportfolios — verdicts and pre-registered readings, code, migration or data-path changes, anything touching live money or a wrong answer would cost. Davies' rule of 2026-10-07: opus-high for the top tier, sonnet-max for the second, haiku-max for the simplest.
 model: claude-opus-5-5
 effort: high
 ---
