@@ -20,6 +20,11 @@
 // for every whole N it holds. Neither re-implements the rule: RW's own `quote` places the moved quotes, from a book whose
 // raw touch is put a tick outside them (`restRow`), and RW's own `stepRw` scores, fills and books them. Until their rule
 // starts they are x1, so a state that does not hold them yet starts them as a copy of x1 (`seed`).
+//
+// Two more on 2026-10-07 (`reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, Davies: "TB1"紧盘口"：两个版本"), TB1, act on
+// the minutes whose raw touch is at most a tick wide, where RW's quote joins the touch (`RwxTight`): tb1-skip rests
+// nothing in such a minute, tb1-back rests both quotes a tick behind RW's. They are not copies of x1: each starts flat at
+// its own first minute (`fresh`), and before it is not an arm of the replay at all.
 
 import {
   newAcc, othersOf, quote, RW_DECIDE_LAG_MS, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, RWC_RUN_START, scoreS, sizeN, snapshot, stepRw,
@@ -49,7 +54,21 @@ export type RwxSpec = {
    * has been replayed without it.
    */
   seed?: string;
+  tight?: RwxTight;                           // what it does in a minute whose raw touch is at most `maxTicks` ticks wide
+  /**
+   * An arm that starts flat at its own first minute (`rwxArmStart`), holding nothing, rather than as a copy of another:
+   * before that minute it is not an arm of the replay. A replay that first meets it past that minute starts it at the
+   * first minute it then replays, and keeps that minute in the arm's `start`.
+   */
+  fresh?: boolean;
 };
+/**
+ * TB1 (pre-registration `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`), from `from`: in a minute the arm quotes whose
+ * stored raw touch (`bb`, `ba`) is at most `maxTicks` ticks wide, `skip` rests nothing, and `back` rests each of RW's
+ * quotes one whole tick further from the adjusted mid where that stays inside (0, 1) and inside the reward band
+ * (`backTicks`). Every other minute is RW's.
+ */
+export type RwxTight = { mode: "skip" | "back"; maxTicks: number; from: number };
 /**
  * Where an arm's quotes rest (pre-registration `reviews/2026-10-02-polymarket-rw-rest-prereg.md`), from `from`. `wide`:
  * both of RW's quotes move away from the adjusted mid by the most whole ticks that keep the minute's reward at least
@@ -58,11 +77,12 @@ export type RwxSpec = {
  */
 export type RwxRest = { rule: "wide"; from: number; keep: number } | { rule: "lean"; from: number };
 /** The minute an arm's own record starts: its quotes' rule's when it has one, its other rules' otherwise. */
-export const rwxArmStart = (spec: RwxSpec): number => spec.rest?.from ?? spec.from;
+export const rwxArmStart = (spec: RwxSpec): number => spec.rest?.from ?? spec.tight?.from ?? spec.from;
 export type RwxArmState = {
   acc: Record<string, Acc>; dayActive: string[]; diverged: string[]; pausedUntil: Record<string, number>; lastMid: Record<string, number>;
   pauses?: Record<string, Array<[number, number]>>;   // bookkeeping for the page: each market's paused spans, [from, until) in ms
   base?: Record<string, Acc>;                         // bookkeeping for the page: the accounts at the arm's `from`, before it
+  start?: number;                                     // a `fresh` arm's first minute when a replay started it late
 };
 export type RwxState = { lastDecided: number; dayOf: number; arms: Record<string, RwxArmState>; checkMaxUsd: number };
 export type RwxDayOut = { day: string; arm: string; total: number; stress_total: number; reward: number; fills: number; capital: number; markets: number; detail: Record<string, unknown> };
@@ -71,10 +91,13 @@ const iso = (ms: number) => new Date(ms).toISOString();
 const dayStr = (ms: number) => iso(Math.floor(ms / DAY) * DAY).slice(0, 10);
 const newArm = (): RwxArmState => ({ acc: {}, dayActive: [], diverged: [], pausedUntil: {}, lastMid: {} });
 
-/** The fresh state: the source's start (RW's unless `start` names another), nothing held, every arm the source. */
+/**
+ * The fresh state: the source's start (RW's unless `start` names another), nothing held, every arm the source but a
+ * `fresh` one whose own first minute is later, which joins at that minute.
+ */
 export const newRwxState = (specs: RwxSpec[], start = RW_RUN_START): RwxState => ({
   lastDecided: start - M, dayOf: start, checkMaxUsd: 0,
-  arms: Object.fromEntries([["rw", newArm()], ...specs.map((s) => [s.id, newArm()])]),
+  arms: Object.fromEntries([["rw", newArm()], ...specs.filter((s) => !s.fresh || rwxArmStart(s) <= start).map((s) => [s.id, newArm()])]),
 });
 
 /** Whether an arm quotes a market this minute, before its inventory is read: RW's decision, less what its rule leaves out. */
@@ -192,6 +215,28 @@ export function restTicks(rest: RwxRest, row: BookRow, tick: number, v: number, 
   return { q, out: leanTicks(q.m, q.b, q.a, tick, v, N, net) };
 }
 
+/** Whether a minute's stored raw touch is at most `maxTicks` ticks wide (TB1's minutes); a side missing is not. */
+export const isTight = (row: BookRow | null, tick: number, maxTicks: number): boolean =>
+  row !== null && Number.isFinite(row[0]) && Number.isFinite(row[1]) && (row[1] - row[0]) / tick <= maxTicks + 1e-9;
+
+/**
+ * TB1's `back` move in one minute: each of RW's quotes `b`, `a` one whole tick further from the adjusted mid `m`, where
+ * the moved quote stays inside (0, 1) and inside the reward band of `v` cents; a side that cannot move stays RW's.
+ */
+export function backTicks(m: number, b: number, a: number, tick: number, v: number): { bid: number; ask: number } {
+  const kb = onGrid(b, tick), ka = onGrid(a, tick), top = onGrid(1, tick);
+  return {
+    bid: kb - 1 >= 1 && inBand(v, (m - (kb - 1) * tick) * 100) ? 1 : 0,
+    ask: ka + 1 <= top - 1 && inBand(v, ((ka + 1) * tick - m) * 100) ? 1 : 0,
+  };
+}
+
+/** TB1's `back` minute as `restTicks` gives a move: RW's quote of the book and how far each side goes out; null when none. */
+export function tightBack(row: BookRow, tick: number, v: number): { q: Quote; out: { bid: number; ask: number } } | null {
+  const q = quote(row, tick);
+  return q ? { q, out: backTicks(q.m, q.b, q.a, tick, v) } : null;
+}
+
 /**
  * Replay the minutes (st.lastDecided, to] of RW's stored record in every arm. Pure: every read is in `inputs`, and the
  * day rows it closes are returned. RW-E's order: minute by minute, a day closed before its first minute past midnight,
@@ -247,17 +292,20 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
       st.arms[s.id] = copy;
     }
   }
-  const live = specs.filter((s) => !s.seed || st.arms[s.id]);
+  const live = specs.filter((s) => (!s.seed && !s.fresh) || st.arms[s.id]);
   const ids = ["rw", ...live.map((s) => s.id)];
   const specOf = new Map(live.map((s) => [s.id, s]));
   for (const id of ids) st.arms[id] ??= newArm();
+  // A `fresh` arm the state does not hold yet joins, flat, at the first minute replayed from its own first minute on.
+  let waiting = specs.filter((s) => s.fresh && !st.arms[s.id]);
 
   const closeDay = () => {
     const day = dayStr(st.dayOf);
     for (const id of ids) {
       const a = st.arms[id];
       const s = snapshot({ acc: a.acc } as unknown as RwState, a.dayActive);
-      const detail: Record<string, unknown> = { perMarket: s.perMarket, active: a.dayActive };
+      // Each market's running reward beside its total (bookkeeping since 2026-10-07: TB1's bar reads a market-day at R = 0.40).
+      const detail: Record<string, unknown> = { perMarket: s.perMarket, active: a.dayActive, rewardByMarket: Object.fromEntries(Object.entries(a.acc).map(([c, x]) => [c, x.reward])) };
       if (id === "rw") {
         const own = rwDay.get(day);
         if (own) {
@@ -278,6 +326,13 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
   let minutes = 0;
   for (let t = from; t <= to; t += M) {
     if (t >= st.dayOf + DAY) closeDay();
+    if (waiting.length) {
+      for (const spec of waiting.filter((s) => t >= rwxArmStart(s))) {
+        st.arms[spec.id] = { ...newArm(), base: {}, ...(t !== rwxArmStart(spec) ? { start: t } : {}) };
+        live.push(spec); ids.push(spec.id); specOf.set(spec.id, spec);
+      }
+      waiting = waiting.filter((s) => !st.arms[s.id]);
+    }
     // The page shows an arm only from its own first minute (Davies, 2026-09-27), against what it held as that began.
     for (const spec of live) if (t === rwxArmStart(spec)) st.arms[spec.id].base = structuredClone(st.arms[spec.id].acc);
     const dayExcluded = excluded.get(dayStr(t));
@@ -296,7 +351,14 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
       for (const id of ids) {
         const a = st.arms[id];
         const spec = specOf.get(id) ?? null;
-        const quoting = spec ? armQuotes(spec, a, c, t, r.quoting, dayExcluded?.has(c) ?? false, cat, mid) : r.quoting;
+        let quoting = spec ? armQuotes(spec, a, c, t, r.quoting, dayExcluded?.has(c) ?? false, cat, mid) : r.quoting;
+        // TB1: a minute whose raw touch is at most a tick wide, where RW's quote joins the touch.
+        const tight = quoting && spec?.tight && t >= spec.tight.from && isTight(row, tick, spec.tight.maxTicks) ? spec.tight : null;
+        if (tight?.mode === "skip") {
+          quoting = false;
+          // RW's fills of a minute this arm sat out are not its own, so the page leaves the market's record out.
+          if (fills.length && !a.diverged.includes(c)) a.diverged.push(c);
+        }
         if (!quoting && !a.acc[c]) continue;
         const acc = (a.acc[c] ??= newAcc());
         if (acc.settled != null) continue;
@@ -304,7 +366,8 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
         if (quoting) {
           const cap = spec && t >= spec.from ? (spec.invCap ?? RW_INV_CAP) : RW_INV_CAP;
           // Where the arm's own rule rests its quotes from its minute, in whole ticks out from RW's (on what it holds now).
-          const rest = spec?.rest && t >= spec.rest.from && meta && row ? restTicks(spec.rest, row, tick, Number(meta.v), N, acc.net) : null;
+          const rest = spec?.rest && t >= spec.rest.from && meta && row ? restTicks(spec.rest, row, tick, Number(meta.v), N, acc.net)
+            : tight?.mode === "back" && meta && row ? tightBack(row, tick, Number(meta.v)) : null;
           const moved = rest !== null && (rest.out.bid > 0 || rest.out.ask > 0);
           // RW's recorded decision is this arm's while it holds what RW held, its cap quotes the sides RW's did, and its
           // quotes rest where RW's did.
@@ -314,7 +377,7 @@ export function replayArms(st: RwxState, to: number, inputs: RweInputs, specs: R
             if (meta && row) {
               if (!a.diverged.includes(c)) a.diverged.push(c);
               // An arm with a rule of where it rests reads the minute's prints alone (`minutePrints`: the same fills).
-              const prints = spec.rest ? printsAt(c, t) : printsOf.get(c) ?? [];
+              const prints = spec.rest || spec.tight ? printsAt(c, t) : printsOf.get(c) ?? [];
               stepRw(acc, t / 1000, moved ? restRow(row, rest!.q, tick, rest!.out) : row, tick, Number(meta.v), Number(meta.rate), N, prints, 0, cap);
             }
           } else if (recorded) {
@@ -426,10 +489,18 @@ export const RWX_REST_START = Date.UTC(2026, 9, 2, 20);
 /** The `wide` rule keeps at least nine tenths of the reward RW's own quotes earn in each minute (x4). */
 export const RWX_WIDE_KEEP = 0.9;
 /**
+ * TB1's first minute on RW's minutes: 2026-10-08 00:00 UTC, or the first minute the replay decides after the code that
+ * adds them lands, if that is later (`fresh`; Davies, 2026-10-07: "做好就立即上线，页面数据清空从新开始"). On RW's minutes
+ * they are shown, not judged: their test is on RW-C's (`RWCX_SPECS`, from RW-C's first minute).
+ */
+export const RWX_TB1_START = Date.UTC(2026, 9, 8);
+/**
  * The arms the forward replay runs. The first four are frozen by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`:
  * `e` is RW-E (its rule from RW-E's first minute), the second check; `x1`–`x3` are RW-E plus each rule from RW-X's first
  * minute. `x4` and `x5`, frozen by `reviews/2026-10-02-polymarket-rw-rest-prereg.md`, are x1 exactly plus where their
  * quotes rest from `RWX_REST_START` (its Addendum 1), and were added to the running replay as copies of x1 (`seed`).
+ * `tb1-skip` and `tb1-back`, frozen by `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, are x1's rules plus TB1's from
+ * `RWX_TB1_START`, each starting flat there (`fresh`).
  */
 export const RWX_SPECS: RwxSpec[] = [
   { id: "e", noSameDayFrom: RWE_START, from: RWE_START },
@@ -438,15 +509,19 @@ export const RWX_SPECS: RwxSpec[] = [
   { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
   { id: "x4", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "wide", from: RWX_REST_START, keep: RWX_WIDE_KEEP }, seed: "x1" },
   { id: "x5", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "lean", from: RWX_REST_START }, seed: "x1" },
+  { id: "tb1-skip", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], tight: { mode: "skip", maxTicks: 1, from: RWX_TB1_START }, fresh: true },
+  { id: "tb1-back", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], tight: { mode: "back", maxTicks: 1, from: RWX_TB1_START }, fresh: true },
 ];
 /**
  * The page's names (Davies), numbered after RW-E's "Reward quotes variant-1", one line each, the rule not shown on the
  * site. x1 (no weather) is variant-2 since 2026-09-27. variant-3 and variant-4 were x2 (a pause after a jump) and x3
  * (both) until 2026-10-02, when Davies took the pause off the page and asked for two more variants on x1, numbered from
- * variant-3: x4 (wider) and x5 (leaning against what it holds). x2 and x3 have no page name: the replay still runs them.
+ * variant-3: x4 (wider) and x5 (leaning against what it holds). On 2026-10-07 Davies gave both names to TB1 ("前端的3和4改为
+ * 这两个新的测试"): variant-3 is tb1-skip and variant-4 tb1-back, and x4 and x5 left the page. x2–x5 have no page name: the
+ * replay still runs them, x4 and x5 for their frozen tests.
  */
 export const RWX_NAMES: Record<string, string> = {
-  x1: "Reward quotes variant-2", x4: "Reward quotes variant-3", x5: "Reward quotes variant-4",
+  x1: "Reward quotes variant-2", "tb1-skip": "Reward quotes variant-3", "tb1-back": "Reward quotes variant-4",
 };
 /**
  * The replay's rule version: a stored state of another is replayed again from RW's start. 2 (2026-09-27, the same
@@ -472,11 +547,12 @@ export const RWX_REPLAY: RwxReplay = {
 };
 /**
  * The same arms on RW-C's fourteen days (the RW-NEXT pre-registration, part 2): each frozen rule unchanged, with every
- * "from" — RW-E's, the variant's own and, for x4 and x5, their quotes' (their pre-registration's forward window) — at
- * RW-C's first minute.
+ * "from" — RW-E's, the variant's own and, for x4 and x5, their quotes' (their pre-registration's forward window), for
+ * TB1's two its own (its pre-registration's test) — at RW-C's first minute, where every arm starts flat.
  */
 export const RWCX_SPECS: RwxSpec[] = RWX_SPECS.map((s) => ({
   ...s, noSameDayFrom: RWC_RUN_START, from: RWC_RUN_START, ...(s.rest ? { rest: { ...s.rest, from: RWC_RUN_START } } : {}),
+  ...(s.tight ? { tight: { ...s.tight, from: RWC_RUN_START } } : {}),
 }));
 /** RW-C's (0069): its minutes, its own tables and lease; checked against RW-E's replay of RW-C (`pm_rwc_e_days`). */
 export const RWCX_REPLAY: RwxReplay = {

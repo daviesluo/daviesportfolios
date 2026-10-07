@@ -75,15 +75,24 @@ Deno.test("RW-C's instance: fourteen days from 2026-10-09 00:00 UTC, its warm-up
 
 Deno.test("RW-C's replays run the frozen arms with every 'from' at RW-C's first minute, and nothing else changed", () => {
   assertEquals(RWCX_SPECS.map((s) => s.id), RWX_SPECS.map((s) => s.id));
-  // Every "from", x4's and x5's quotes' among them (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, its forward window).
-  const fromless = (s: RwxSpec) => ({ ...s, noSameDayFrom: null, from: 0, ...(s.rest ? { rest: { ...s.rest, from: 0 } } : {}) });
+  // Every "from", x4's and x5's quotes' among them (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`, its forward window),
+  // and TB1's (`reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, its test).
+  const fromless = (s: RwxSpec) => ({
+    ...s, noSameDayFrom: null, from: 0, ...(s.rest ? { rest: { ...s.rest, from: 0 } } : {}), ...(s.tight ? { tight: { ...s.tight, from: 0 } } : {}),
+  });
   for (const [i, s] of RWCX_SPECS.entries()) {
-    assertEquals([s.noSameDayFrom, s.from, s.rest?.from ?? RWC_RUN_START], [RWC_RUN_START, RWC_RUN_START, RWC_RUN_START], s.id);
+    assertEquals([s.noSameDayFrom, s.from, s.rest?.from ?? RWC_RUN_START, s.tight?.from ?? RWC_RUN_START], [RWC_RUN_START, RWC_RUN_START, RWC_RUN_START, RWC_RUN_START], s.id);
     assertEquals(fromless(s), fromless(RWX_SPECS[i]), s.id);
   }
-  // The five arms RW-NEXT froze map exactly as they did before x4 and x5 were added: no `rest` key appears on them.
-  for (const s of RWCX_SPECS.slice(0, 4)) assertEquals(Object.keys(s).sort(), Object.keys(RWX_SPECS.find((x) => x.id === s.id)!).sort(), s.id);
-  assertEquals(RWCX_SPECS.map((s) => s.id), ["e", "x1", "x2", "x3", "x4", "x5"]);
+  // The five arms RW-NEXT froze map exactly as they did before x4 and x5 were added: no `rest` or `tight` key appears on
+  // them; and x4 and x5 as they did before TB1 was added: no `tight` key on them.
+  for (const s of RWCX_SPECS.slice(0, 6)) assertEquals(Object.keys(s).sort(), Object.keys(RWX_SPECS.find((x) => x.id === s.id)!).sort(), s.id);
+  assertEquals(RWCX_SPECS.map((s) => s.id), ["e", "x1", "x2", "x3", "x4", "x5", "tb1-skip", "tb1-back"]);
+  // TB1 on RW-C's minutes: x1's rules and its own, all from RW-C's first minute, where it starts flat as every arm does.
+  assertEquals(RWCX_SPECS.slice(6), [
+    { id: "tb1-skip", noSameDayFrom: RWC_RUN_START, from: RWC_RUN_START, noCats: ["weather_fees"], tight: { mode: "skip", maxTicks: 1, from: RWC_RUN_START }, fresh: true },
+    { id: "tb1-back", noSameDayFrom: RWC_RUN_START, from: RWC_RUN_START, noCats: ["weather_fees"], tight: { mode: "back", maxTicks: 1, from: RWC_RUN_START }, fresh: true },
+  ]);
   // RW's own arms are untouched by the mapping.
   assertEquals(RWX_SPECS[1], { id: "x1", noSameDayFrom: RWE_START, from: Date.UTC(2026, 8, 28), noCats: ["weather_fees"] });
   // x4's own rule from 2026-10-02 20:00 UTC on RW's minutes (the rest pre-registration's Addendum 1; 10-03 00:00 as frozen).
@@ -94,10 +103,10 @@ Deno.test("RW-C's tables are held to RW's rules in the double, and its paged rea
   const fill = { cond: "0xa", minute: iso(RWC_RUN_START), ts: iso(RWC_RUN_START + 5e3), side: "bid", price: 0.49, size: 20, print_id: "p" };
   assertEquals(schemaRefusal("pm_rwc_fills", fill), null);
   assertEquals(schemaRefusal("pm_rwc_fills", { ...fill, side: "buy" }), `new row for relation "pm_rwc_fills" violates check constraint "pm_rwc_fills_side_check"`);
-  // 0085 added x4 and x5 to the arm check of both variants' day tables; any other arm is still refused.
+  // 0085 added x4 and x5 to the arm check of both variants' day tables, 0096 TB1's two; any other arm is still refused.
   const xDay = { day: "2026-10-09", total: 0, stress_total: 0, reward: 0, fills: 0, capital: 0, markets: 0, detail: {} };
   for (const t of ["pm_rw_x_days", "pm_rwc_x_days"]) {
-    for (const arm of ["rw", "e", "x1", "x2", "x3", "x4", "x5"]) assertEquals(schemaRefusal(t, { ...xDay, arm }), null, `${t} ${arm}`);
+    for (const arm of ["rw", "e", "x1", "x2", "x3", "x4", "x5", "tb1-skip", "tb1-back"]) assertEquals(schemaRefusal(t, { ...xDay, arm }), null, `${t} ${arm}`);
     assertEquals(schemaRefusal(t, { ...xDay, arm: "x6" }), `new row for relation "${t}" violates check constraint "${t}_arm_check"`);
   }
   assertEquals(schemaRefusal("pm_rwc_state", { id: 2, state: {} }), `new row for relation "pm_rwc_state" violates check constraint "pm_rwc_state_id_check"`);
@@ -340,7 +349,9 @@ Deno.test("the replays on RW-C's minutes: arm rw is RW-C's own days to under a c
   assertEquals(e.arms.e.acc[B.cond], undefined);
   // Every arm's first minute is RW-C's: each kept its accounts as that minute began — nothing, as RW-C starts flat.
   assertEquals(e.base, {});
-  for (const id of ["e", "x1", "x2", "x3", "x4", "x5"]) assertEquals(x.arms[id].base, {}, id);
+  for (const id of ["e", "x1", "x2", "x3", "x4", "x5", "tb1-skip", "tb1-back"]) assertEquals(x.arms[id].base, {}, id);
+  // TB1's two started there, not late: no `start` of their own.
+  assertEquals([x.arms["tb1-skip"].start, x.arms["tb1-back"].start], [undefined, undefined]);
   // A day row of RW-C's 5 ¢ off: the replay, run again from RW-C's start, says so, and its figures are void.
   tables.pm_rwc_days[0].total = Number(own.total) + 0.05;
   tables.pm_rwc_e_state.length = 0;

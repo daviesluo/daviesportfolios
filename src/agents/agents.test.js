@@ -1075,17 +1075,18 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
   });
   it("RW-E's variants are rows of their own after it (Davies, 2026-09-27): RW's row read from each variant's summary, under its id and name", () => {
-    // The dashboard's three since 2026-10-02: x1 (variant-2), and x4 and x5 (variant-3 and -4, Davies: two more on x1).
+    // The dashboard's three since 2026-10-07: x1 (variant-2), and TB1's two (variant-3 tb1-skip and -4 tb1-back, Davies:
+    // "前端的3和4改为这两个新的测试"; x4 and x5 had the names from 2026-10-02).
     const list = [
       { ...r, id: 'x1', name: 'Reward quotes variant-2', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'x4', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'x5', name: 'Reward quotes variant-4', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'tb1-skip', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
+      { ...r, id: 'tb1-back', name: 'Reward quotes variant-4', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
     ];
     const rows = rwxRows(list);
     expect(rows.map((x) => [x.id, x.name, x.venueId, x.mode, x.nextText])).toEqual([
       [`${RWX_ROW_PREFIX}x1`, 'Reward quotes variant-2', 'polymarket', 'paper', 'every minute'],
-      [`${RWX_ROW_PREFIX}x4`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
-      [`${RWX_ROW_PREFIX}x5`, 'Reward quotes variant-4', 'polymarket', 'paper', 'every minute'],
+      [`${RWX_ROW_PREFIX}tb1-skip`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
+      [`${RWX_ROW_PREFIX}tb1-back`, 'Reward quotes variant-4', 'polymarket', 'paper', 'every minute'],
     ]);
     // Every cell is RW's function of the same summary, as RW-E's row is.
     expect({ ...rows[0], id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(list[0]));
@@ -1099,17 +1100,17 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
   });
   it("a variant before its first minute shows only when it starts (Davies, 2026-09-27: only what it did under its own rules)", () => {
     // The dashboard's summary of a variant whose replay has not reached its first minute: nothing in it yet.
-    // variant-4 (x5) until 2026-10-03 00:00 UTC, its own rule's first minute.
+    // variant-4 (tb1-back) until 2026-10-08 00:00 UTC, its own rule's first minute.
     const waiting = {
-      ...r, id: 'x5', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-10-03T00:00:00.000Z', running: true,
+      ...r, id: 'tb1-back', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-10-08T00:00:00.000Z', running: true,
       totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
       markets: [], days: [], recent: [], checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true },
     };
     const [row] = rwxRows([waiting]);
-    // 2026-10-03 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
-    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['3 Oct 01:00 BST', 'starts 3 Oct 01:00 BST']);
+    // 2026-10-08 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
+    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['8 Oct 01:00 BST', 'starts 8 Oct 01:00 BST']);
     // NEXT is the start alone; the status says it in words.
-    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['3 Oct 01:00 BST', 'paused', false, 'starts 3 Oct 01:00 BST']);
+    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['8 Oct 01:00 BST', 'paused', false, 'starts 8 Oct 01:00 BST']);
     expect([row.capitalUsd, row.valueUsd, row.todayUsd, row.unrealisedUsd, row.realisedUsd]).toEqual([1000, 0, 0, 0, 0]);
     // No today row in its days table, as there is no day of its own yet.
     expect(rwTodayRow(waiting, '2026-09-27T21:00:00.000Z')).toBe(null);

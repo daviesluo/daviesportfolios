@@ -287,11 +287,12 @@ Deno.test("RW-E's variants' rows: x1 is the engine run without its weather marke
     fills: all.tables.pm_rw_fills as never, nowMs,
   };
   // x3 is not a row of the page (Davies, 2026-09-28: it repeats x1 and x2 market by market), nor x2 since 2026-10-02 (the
-  // pause did worst); the replay still runs both. Variant-3 and -4 are x4 and x5, not started before 10-03 00:00 UTC.
+  // pause did worst); the replay still runs both, and x4 and x5 since 2026-10-07. Variant-3 and -4 are TB1's two, which
+  // the replay has not started before 2026-10-08 00:00 UTC: rows that say when they start.
   assertEquals(rwxArmSummaries(pageInput).map((r) => [r.id, r.name, r.notStarted]),
-    [["x1", "Reward quotes variant-2", false], ["x4", "Reward quotes variant-3", true], ["x5", "Reward quotes variant-4", true]]);
+    [["x1", "Reward quotes variant-2", false], ["tb1-skip", "Reward quotes variant-3", true], ["tb1-back", "Reward quotes variant-4", true]]);
   // x2's row as it read while it was on the page, to pin that it is RW-E when there is no jump to pause on.
-  const rows = rwxArmSummaries({ ...pageInput, offPage: new Set(["x3", "x4", "x5"]) });
+  const rows = rwxArmSummaries({ ...pageInput, offPage: new Set(["x3", "x4", "x5", "tb1-skip", "tb1-back"]) });
   assertEquals(rows.map((r) => r.id), ["x1", "x2"]);
   // With no jump to pause on, x3's two rules are x1's one: its accounts and its days are x1's to the bit. Before their
   // own minute, 10-03, x4 and x5 are x1 too.

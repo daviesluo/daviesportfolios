@@ -3441,6 +3441,22 @@ every script re-run byte-identical by the coordinating session).
       ms had the new arms read the whole print list); RW's last 720 minutes held 44 markets and 302 prints. On the page
       the names are now x1 "variant-2", x4 "variant-3", x5 "variant-4" (variant-3 and -4 were x2 and x3 until 10-02),
       and a moved arm's QUOTES show its own resting prices and share.
+    - **TB1, two more arms on x1 for the minutes whose raw touch is one tick wide; x4 and x5 off the page (2026-10-07,
+      migration `0096`, `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, frozen with the code).** Davies: "TB1"紧盘口"：两个
+      版本…作为 RW-C 回放里新增的两个版本，不动 live-prep 已冻结的规则。用 10-09 到 10-22 的新数据做样本外检验…目前的variant-3和4
+      转为在后台继续记录，前端的3和4改为这两个新的测试，做好就立即上线，页面数据清空从新开始". In a minute it quotes whose stored
+      raw touch is at most a tick wide (where RW's quote joins the touch), **tb1-skip ("Reward quotes variant-3")** rests
+      nothing and **tb1-back ("variant-4")** rests each of RW's quotes a tick further from the adjusted mid while inside
+      the band and (0, 1) (`isTight`, `backTicks`; placed by `restRow`, scored and filled by `stepRw`); every other minute
+      is x1's. Designed after a non-blind read of RW's record (the 2026-10-07 study: fills at a 1-tick touch were the
+      adverse ones). Each starts flat at its own first minute (`fresh`, not a copy of x1): on RW's minutes 2026-10-08
+      00:00 UTC, or the first minute the replay decides after the code lands (kept as the arm's `start`), shown on the
+      page until RW's end and not judged; on RW-C's from 10-09 00:00, where their test is: RW-X's seven conditions, plus
+      a paired day bootstrap of (arm − x1) at R = 0.40 (seed 20261023) and the difference without the best market-day
+      both > 0, read after RW-C's verdict. Every arm's day row now carries `detail.rewardByMarket` for that. x4 and x5
+      keep running in both replays for their frozen Test 1 and Test 2 (`RWX_OFF_PAGE`); on RW's whole record the seven
+      older arms' states and day rows were identical before and after the change (a recorded deviation of RW-X's
+      "bookkeeping only", with an addendum to RW-NEXT Part 2, both in the new file); a minute's run 2 ms before and after.
     - **RW-NEXT is frozen (2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`) and amends what follows the three
       verdicts above, nothing else in their files:** the five arms are read together by its Part 1, which fixes before
       10-09 which one is the candidate (RW-E if it passes; a variant only under its 1.3; RW only if RW-E does not pass),

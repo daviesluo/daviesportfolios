@@ -8,8 +8,8 @@ import { quote, RW_RUN_START, type BookRow } from "./pmrw.ts";
 import { printOrder, type PmPrint } from "../_shared/polymarket_public.ts";
 import { newRweState, replayMinutes, RWE_START, type RweInputs } from "./pmrw_e.ts";
 import {
-  leanTicks, minutePrints, newRwxState, parseRwxSpecs, replayArms, researchRwx, restRow, runPmrwX, RWX_NAMES, RWX_REST_START, RWX_SPECS, RWX_START, RWX_STATE_VERSION,
-  rwxArmStart, wideTicks, type RwxSpec, type RwxStored,
+  backTicks, isTight, leanTicks, minutePrints, newRwxState, parseRwxSpecs, replayArms, researchRwx, restRow, runPmrwX, RWX_NAMES, RWX_REST_START, RWX_SPECS, RWX_START,
+  RWX_STATE_VERSION, RWX_TB1_START, rwxArmStart, wideTicks, type RwxSpec, type RwxStored,
 } from "./pmrw_x.ts";
 import { rwxArmSummaries } from "./pmrw_view.ts";
 import { memDb, type Row } from "./testing.ts";
@@ -168,18 +168,31 @@ Deno.test("the tracked arms are the pre-registrations', frozen: RW-E, each rule 
     { id: "x3", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], pause: { cents: 15, minutes: 60 } },
   ]);
   // x4 and x5 exactly as `reviews/2026-10-02-polymarket-rw-rest-prereg.md` froze them: x1, plus where the quotes rest.
-  assertEquals(RWX_SPECS.slice(4), [
+  assertEquals(RWX_SPECS.slice(4, 6), [
     { id: "x4", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "wide", from: RWX_REST_START, keep: 0.9 }, seed: "x1" },
     { id: "x5", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], rest: { rule: "lean", from: RWX_REST_START }, seed: "x1" },
   ]);
   // Their rules before their own minute are x1's, rule for rule, which is what lets a running replay start them as x1.
-  for (const s of RWX_SPECS.slice(4)) {
+  for (const s of RWX_SPECS.slice(4, 6)) {
     const { rest: _rest, seed: _seed, ...rules } = s;
     assertEquals({ ...rules, id: "x1" }, RWX_SPECS[1], s.id);
     assertEquals([s.seed, rwxArmStart(s)], ["x1", RWX_REST_START], s.id);
   }
-  // The page's names are Davies': numbered after RW-E's "variant-1"; variant-3 and -4 are x4 and x5 since 2026-10-02.
-  assertEquals(RWX_NAMES, { x1: "Reward quotes variant-2", x4: "Reward quotes variant-3", x5: "Reward quotes variant-4" });
+  // TB1's two exactly as `reviews/2026-10-07-polymarket-rw-tb1-prereg.md` froze them: x1's rules, plus what they do in a
+  // minute whose raw touch is at most a tick wide, from 2026-10-08 00:00 UTC on RW's minutes, each starting flat there.
+  assertEquals(RWX_TB1_START, Date.parse("2026-10-08T00:00:00Z"));
+  assertEquals(RWX_SPECS.slice(6), [
+    { id: "tb1-skip", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], tight: { mode: "skip", maxTicks: 1, from: RWX_TB1_START }, fresh: true },
+    { id: "tb1-back", noSameDayFrom: RWE_START, from: RWX_START, noCats: ["weather_fees"], tight: { mode: "back", maxTicks: 1, from: RWX_TB1_START }, fresh: true },
+  ]);
+  for (const s of RWX_SPECS.slice(6)) {
+    const { tight: _tight, fresh: _fresh, ...rules } = s;
+    assertEquals({ ...rules, id: "x1" }, RWX_SPECS[1], s.id);
+    assertEquals(rwxArmStart(s), RWX_TB1_START, s.id);
+  }
+  // The page's names are Davies': numbered after RW-E's "variant-1"; variant-3 and -4 were x4 and x5 from 2026-10-02 and
+  // are TB1's two since 2026-10-07 ("前端的3和4改为这两个新的测试").
+  assertEquals(RWX_NAMES, { x1: "Reward quotes variant-2", "tb1-skip": "Reward quotes variant-3", "tb1-back": "Reward quotes variant-4" });
 });
 
 /**
@@ -311,12 +324,13 @@ Deno.test("a variant's page leaves out the fills RW made while it was paused: a 
     latest: [{ cond: C, minute: iso(K(9)), b: 0.69, a: 0.71, m: 0.70, ours: 5, others: 5, qb: true, qa: true }],
     days: out.days, fills, nowMs: K(10),
   };
-  // x2 is off the page since 2026-10-02 (Davies), as x3 since 09-28; variant-3 and -4 are x4 and x5, which say when they
-  // start until their own minute (`RWX_REST_START`). The page's handling of a paused arm is pinned below with x2 put back on it.
+  // x2 is off the page since 2026-10-02 (Davies), as x3 since 09-28, and x4 and x5 since 10-07; variant-3 and -4 are TB1's
+  // two, which say when they start until the replay starts them (`RWX_TB1_START`). The page's handling of a paused arm is
+  // pinned below with x2 put back on it.
   const shown = rwxArmSummaries(input);
   assertEquals(shown.map((r) => [r.id, r.name, r.notStarted, r.startsAt]), [
     ["x1", "Reward quotes variant-2", false, iso(RWX_START)],
-    ["x4", "Reward quotes variant-3", true, iso(RWX_REST_START)], ["x5", "Reward quotes variant-4", true, iso(RWX_REST_START)],
+    ["tb1-skip", "Reward quotes variant-3", true, iso(RWX_TB1_START)], ["tb1-back", "Reward quotes variant-4", true, iso(RWX_TB1_START)],
   ]);
   const page = rwxArmSummaries({ ...input, offPage: new Set(["x3"]) });
   const x1 = page.find((r) => r.id === "x1")!, x2 = page.find((r) => r.id === "x2")!;
@@ -586,7 +600,9 @@ Deno.test("a rest arm's page shows where its own quotes rest: x4 a tick out on b
   // The world starts after x1's first minute (09-28), when it held nothing.
   st.arms.x1.base = {};
   const out = replayArms(st, K(3), inputs, RWX_SPECS);
+  // x4 and x5 are off the page since 2026-10-07 (TB1 took their names); put back on it to pin how their rows read.
   const page = rwxArmSummaries({
+    offPage: new Set(["x2", "x3"]),
     rwState: { state: { acc: {}, meta: {} }, last_minute: iso(K(3)), last_error: null },
     xState: { state: { ...st, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(K(3)), last_error: null },
     selectionAll: inputs.selection, today: [{ day: dayOfMs(K(0)), cond: C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: C, cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
@@ -601,4 +617,157 @@ Deno.test("a rest arm's page shows where its own quotes rest: x4 a tick out on b
   const x4 = page.find((r) => r.id === "x4")!;
   assertEquals([x4.notStarted, x4.startedAt, x4.fills], [false, iso(RWX_REST_START), 2]);
   assertAlmostEquals(x4.totalUsd, 4 * 0.1 * (20 / 9) / (20 / 9 + 0.3) + 0.8, 1e-9);
+});
+
+// ------------------------------------------------------------------------------- TB1: the minutes with a 1-tick touch
+// Pre-registration `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`: x1's rules plus, in a minute whose stored raw touch
+// is at most a tick wide (where RW's quote joins the touch), tb1-skip rests nothing and tb1-back rests each quote a tick
+// behind RW's while inside the band and (0, 1). Each starts flat at its own first minute (`fresh`), never as a copy.
+
+Deno.test("isTight and backTicks: a touch at most a tick wide on either grid, and each side a tick out only inside the band and (0, 1)", () => {
+  assertEquals([isTight([0.49, 0.50, 0.49, 0.50, 1, 1], 0.01, 1), isTight([0.29, 0.30, null, null, 0, 0], 0.01, 1), isTight([0.48, 0.50, 0.48, 0.50, 1, 1], 0.01, 1)], [true, true, false]);
+  assertEquals([isTight([0.123, 0.124, null, null, 0, 0], 0.001, 1), isTight([0.123, 0.125, null, null, 0, 0], 0.001, 1), isTight(null, 0.01, 1)], [true, false, false]);
+  // Both out in a 3 ¢ band around 0.495; at the band's edge (0.47 is 2.5 ¢ out, 0.465 would be 3) or at 0.01 / 0.99, not.
+  assertEquals(backTicks(0.495, 0.49, 0.50, 0.01, 3), { bid: 1, ask: 1 });
+  assertEquals(backTicks(0.50, 0.48, 0.52, 0.01, 3), { bid: 0, ask: 0 });
+  assertEquals(backTicks(0.025, 0.02, 0.03, 0.01, 3.5), { bid: 1, ask: 1 });
+  assertEquals(backTicks(0.015, 0.01, 0.02, 0.01, 3.5), { bid: 0, ask: 1 });
+  assertEquals(backTicks(0.985, 0.98, 0.99, 0.01, 3.5), { bid: 1, ask: 0 });
+});
+
+/**
+ * One culture market across TB1's first minute `T0` (K(0); production's `RWX_TB1_START`, a midnight), others' score
+ * 0.3, N = 20, a 3 ¢ band. K(-2), K(-1), K(2), K(3): a 0.48 / 0.52 book, RW quotes 0.49 / 0.51 (reward rN). K(0) and K(1):
+ * a 0.49 / 0.50 book, a tick wide, RW joins it at 0.49 / 0.50 (reward rT). Prints: a sale at 0.48 in K(0) and at 0.47 in
+ * K(1), each through RW's 0.49 bid (RW buys 20 twice); a purchase at 0.53 in K(2), through its 0.51 ask (RW sells 20).
+ */
+function tightWorld(T0 = RWX_TB1_START) {
+  const K = (k: number) => T0 + k * M;
+  const C = "0xt1";
+  const rN = 0.1 * (80 / 9) / (80 / 9 + 0.3), rT = 0.1 * (125 / 9) / (125 / 9 + 0.3);
+  const tightAt = (k: number) => k === 0 || k === 1;
+  const rows = [];
+  for (let k = -2; k <= 3; k++) {
+    rows.push(tightAt(k)
+      ? { cond: C, minute: iso(K(k)), quoting: true, tick: 0.01, bb: 0.49, ba: 0.50, ab: 0.49, aa: 0.50, q1: 0.3, q2: 0.3, m: 0.495, b: 0.49, a: 0.50, reward: rT }
+      : { cond: C, minute: iso(K(k)), quoting: true, tick: 0.01, bb: 0.48, ba: 0.52, ab: 0.48, aa: 0.52, q1: 0.3, q2: 0.3, m: 0.50, b: 0.49, a: 0.51, reward: rN });
+  }
+  const prints = [
+    { id: "s0", cond: C, ts: iso(K(0) + 20e3), side: "SELL" as const, oi: 0, price: 0.48, size: 20 },
+    { id: "s1", cond: C, ts: iso(K(1) + 20e3), side: "SELL" as const, oi: 0, price: 0.47, size: 20 },
+    { id: "b2", cond: C, ts: iso(K(2) + 20e3), side: "BUY" as const, oi: 0, price: 0.53, size: 20 },
+  ];
+  const fills = [
+    { cond: C, minute: iso(K(0)), ts: iso(K(0) + 20e3), side: "bid" as const, price: 0.49, size: 20, print_id: "s0" },
+    { cond: C, minute: iso(K(1)), ts: iso(K(1) + 20e3), side: "bid" as const, price: 0.49, size: 20, print_id: "s1" },
+    { cond: C, minute: iso(K(2)), ts: iso(K(2) + 20e3), side: "ask" as const, price: 0.51, size: 20, print_id: "b2" },
+  ];
+  const selection = [...new Set([dayOfMs(K(-2)), dayOfMs(K(3))])].map((day) => ({ day, cond: C, tick: 0.01, v: 3, min_size: 20, rate: 144, end_date: "2026-12-01T00:00:00Z", q: C, cat: "culture_fees" }));
+  const dayOf = Math.floor(K(-3) / DAY_MS) * DAY_MS;
+  return { K, C, rN, rT, dayOf, inputs: { rows, fills, prints, selection, settlements: [], rwDays: [] } as RweInputs };
+}
+
+Deno.test("TB1 by hand: tb1-skip sits out the 1-tick minutes, tb1-back rests a tick behind in them, both flat from their first minute, x1 untouched", () => {
+  const { K, C, rN, rT, dayOf, inputs } = tightWorld();
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: K(-3), dayOf };
+  // Before their first minute they are not arms of the replay at all.
+  assertEquals([st.arms["tb1-skip"], st.arms["tb1-back"]], [undefined, undefined]);
+  const days = replayArms(st, K(-1), inputs, RWX_SPECS).days;
+  assertEquals([st.arms["tb1-skip"], st.arms["tb1-back"], days], [undefined, undefined, []]);
+  const out = replayArms(st, K(3), inputs, RWX_SPECS);
+  const acc = (arm: string) => st.arms[arm].acc[C];
+  // x1 is RW here: six minutes of RW's reward, its three fills, long 20.
+  assertEquals([acc("x1").fills, acc("x1").net, st.arms.x1.diverged], [3, 20, []]);
+  assertAlmostEquals(acc("x1").reward, 4 * rN + 2 * rT, 1e-12);
+  assertAlmostEquals(acc("x1").cash, -0.49 * 20 * 2 + 0.51 * 20, 1e-12);
+  // tb1-skip from K(0), flat: nothing rests in K(0) and K(1), so neither sale fills it; flat in K(2) where RW was long 40,
+  // so it runs RW's rule itself and the purchase fills its 0.51 ask; short 20 in K(3). RW's fills of K(0) are not its own.
+  assertEquals([acc("tb1-skip").fills, acc("tb1-skip").net, acc("tb1-skip").quotedMinutes, st.arms["tb1-skip"].diverged], [1, -20, 2, [C]]);
+  assertAlmostEquals(acc("tb1-skip").reward, 2 * rN, 1e-12);
+  assertAlmostEquals(acc("tb1-skip").cash, 0.51 * 20, 1e-12);
+  // tb1-back from K(0), flat: 0.48 / 0.51 in K(0) and K(1) (a quarter of the score: reward 0.1 × 5 / 5.3 each); the sale at
+  // 0.48 is not through its bid, the one at 0.47 is (buys 20 at 0.48); RW's own quotes in K(2), where the purchase fills
+  // its ask at 0.51, and in K(3), flat.
+  const rB = 0.1 * 5 / 5.3;
+  assertEquals([acc("tb1-back").fills, acc("tb1-back").net, acc("tb1-back").quotedMinutes, st.arms["tb1-back"].diverged], [2, 0, 4, [C]]);
+  assertAlmostEquals(acc("tb1-back").reward, 2 * rB + 2 * rN, 1e-12);
+  assertAlmostEquals(acc("tb1-back").cash, -0.48 * 20 + 0.51 * 20, 1e-12);
+  // They began flat at K(0), which is their first minute, so no `start` of their own; nothing before it was theirs.
+  for (const id of ["tb1-skip", "tb1-back"]) assertEquals([st.arms[id].base, st.arms[id].start], [{}, undefined], id);
+  // The day closed at K(0) (10-07) has no row of theirs; x4 and x5 are still replayed beside them.
+  assertEquals(out.days.map((d) => d.arm).sort(), ["e", "rw", "x1", "x2", "x3", "x4", "x5"]);
+  assert(["x4", "x5"].every((id) => st.arms[id].acc[C]));
+});
+
+Deno.test("TB1 starts flat at the first minute a replay decides on or after its first minute, and changes nothing of the other arms", () => {
+  const { K, C, dayOf, inputs } = tightWorld();
+  // A state from before the code that adds them, already past their first minute: they start at the next minute it
+  // decides, K(2), keep that minute as their `start`, and count from it on the page.
+  const late = { ...newRwxState(RWX_SPECS.slice(0, 6)), lastDecided: K(-3), dayOf };
+  // The world starts after x1's first minute (09-28), when it held nothing.
+  late.arms.x1.base = {};
+  replayArms(late, K(1), inputs, RWX_SPECS.slice(0, 6));
+  replayArms(late, K(3), inputs, RWX_SPECS);
+  for (const id of ["tb1-skip", "tb1-back"]) assertEquals([late.arms[id].start, late.arms[id].base], [K(2), {}], id);
+  // From K(2) both are flat where RW is long 40: each runs the rule itself, sells 20 at 0.51 and holds −20.
+  assertEquals([late.arms["tb1-skip"].acc[C].net, late.arms["tb1-back"].acc[C].net], [-20, -20]);
+  // The page counts them from K(2).
+  const page = rwxArmSummaries({
+    rwState: { state: { acc: {}, meta: {} }, last_minute: iso(K(3)), last_error: null },
+    xState: { state: { ...late, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(K(3)), last_error: null },
+    selectionAll: inputs.selection, today: [], latest: [], days: [], fills: inputs.fills, nowMs: K(4),
+  });
+  assertEquals(page.map((r) => [r.id, r.notStarted, r.startedAt]), [["x1", false, iso(RWX_START)], ["tb1-skip", false, iso(K(2))], ["tb1-back", false, iso(K(2))]]);
+  // The other arms are byte for byte what the replay without TB1 makes, state and day rows, in one pass or in chunks.
+  const without = { ...newRwxState(RWX_SPECS.slice(0, 6)), lastDecided: K(-3), dayOf };
+  without.arms.x1.base = {};
+  const daysWithout = replayArms(without, K(3), inputs, RWX_SPECS.slice(0, 6)).days;
+  const withTb1 = { ...newRwxState(RWX_SPECS), lastDecided: K(-3), dayOf };
+  withTb1.arms.x1.base = {};
+  const daysWith = [...replayArms(withTb1, K(0), inputs, RWX_SPECS).days, ...replayArms(withTb1, K(3), inputs, RWX_SPECS).days];
+  for (const id of ["rw", "e", "x1", "x2", "x3", "x4", "x5"]) {
+    assertEquals(withTb1.arms[id], without.arms[id], id);
+    assertEquals(late.arms[id], without.arms[id], id);
+  }
+  assertEquals(daysWith.filter((d) => !d.arm.startsWith("tb1")), daysWithout);
+  assertEquals([withTb1.lastDecided, withTb1.dayOf, withTb1.checkMaxUsd], [without.lastDecided, without.dayOf, without.checkMaxUsd]);
+});
+
+Deno.test("TB1's day rows begin with its first minute, carry each market's reward, and the page shows its own quotes and fills", () => {
+  // A world two days after TB1's first minute, its K(0) a midnight: a replay meeting the arms there starts them at its
+  // first minute, K(-2), and their first day's row (closed at K(0)) holds K(-2) and K(-1) alone, two normal minutes.
+  const w = tightWorld(RWX_TB1_START + 2 * DAY_MS);
+  const st = { ...newRwxState(RWX_SPECS), lastDecided: w.K(-3), dayOf: Math.floor(w.K(-3) / DAY_MS) * DAY_MS };
+  const days = replayArms(st, w.K(3), w.inputs, RWX_SPECS).days;
+  assertEquals(st.arms["tb1-skip"].start, w.K(-2));
+  const skipDay = days.find((d) => d.arm === "tb1-skip")!, x1Day = days.find((d) => d.arm === "x1")!;
+  assertEquals([skipDay.day, x1Day.day, days.filter((d) => d.arm.startsWith("tb1")).length], [dayOfMs(w.K(-1)), dayOfMs(w.K(-1)), 2]);
+  assertAlmostEquals(skipDay.reward, 2 * w.rN, 1e-12);
+  // Each market's running reward beside its total, in every arm's row (TB1's bar reads a market-day at R = 0.40).
+  assertAlmostEquals((skipDay.detail.rewardByMarket as Record<string, number>)[w.C], 2 * w.rN, 1e-12);
+  assertAlmostEquals((x1Day.detail.rewardByMarket as Record<string, number>)[w.C], 2 * w.rN, 1e-12);
+  assertEquals(Object.keys(x1Day.detail).sort(), ["active", "diverged", "perMarket", "rewardByMarket"]);
+
+  // The page, on the production world after K(3), with a latest minute a tick wide: tb1-skip rests nothing in it, tb1-back
+  // a tick behind RW's 0.49 / 0.50, x1 RW's own. RW's fills in a market TB1 changed are not listed as its own.
+  const p = tightWorld();
+  const s2 = { ...newRwxState(RWX_SPECS), lastDecided: p.K(-3), dayOf: p.dayOf };
+  s2.arms.x1.base = {};
+  const out = replayArms(s2, p.K(3), p.inputs, RWX_SPECS);
+  const latestTight = { cond: p.C, minute: iso(p.K(3)), tick: 0.01, bb: 0.49, ba: 0.50, b: 0.49, a: 0.50, m: 0.495, ours: 125 / 9, others: 0.3, qb: true, qa: true };
+  const page = rwxArmSummaries({
+    rwState: { state: { acc: {}, meta: {} }, last_minute: iso(p.K(3)), last_error: null },
+    xState: { state: { ...s2, version: RWX_STATE_VERSION, checkEMaxUsd: 0 }, last_minute: iso(p.K(3)), last_error: null },
+    selectionAll: p.inputs.selection,
+    today: [{ day: dayOfMs(p.K(0)), cond: p.C, rank: 1, rate: 144, v: 3, min_size: 20, capital: 20, q: p.C, cat: "culture_fees", end_date: "2026-12-01T00:00:00Z" }],
+    latest: [latestTight], days: out.days, fills: p.inputs.fills, nowMs: p.K(4),
+  });
+  const row = (id: string) => page.find((r) => r.id === id)!;
+  const q = (id: string) => row(id).markets.map((m) => [m.bid, m.ask]);
+  assertEquals([q("x1"), q("tb1-skip"), q("tb1-back")], [[[0.49, 0.50]], [[null, null]], [[0.48, 0.51]]]);
+  assertEquals([row("tb1-skip").name, row("tb1-back").name], ["Reward quotes variant-3", "Reward quotes variant-4"]);
+  // x1 lists RW's three fills, TB1's two none of RW's (their own are not on record); every figure is from their start.
+  assertEquals([row("x1").recent.length, row("tb1-skip").recent.length, row("tb1-back").recent.length], [3, 0, 0]);
+  assertEquals([row("tb1-skip").startedAt, row("tb1-back").startedAt], [iso(RWX_TB1_START), iso(RWX_TB1_START)]);
+  assertAlmostEquals(row("tb1-back").totalUsd, 2 * 0.1 * 5 / 5.3 + 2 * p.rN + (-0.48 + 0.51) * 20, 1e-9);
 });

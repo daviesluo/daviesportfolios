@@ -9,7 +9,7 @@
 
 import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
-import { leanTicks, RWX_NAMES, RWX_SPECS, rwxArmStart, wideTicks, type RwxStored } from "./pmrw_x.ts";
+import { backTicks, isTight, leanTicks, RWX_NAMES, RWX_SPECS, rwxArmStart, wideTicks, type RwxArmState, type RwxStored } from "./pmrw_x.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -32,7 +32,11 @@ export const RW_FUNDED_USD = 1000;
 
 export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };
 export type RwSelRow = { day: string; cond: string; rank: number; rate: number | string; v: number | string; min_size: number | string; capital: number | string; q: string | null; cat: string | null; end_date: string | null };
-export type RwMinuteRow = { cond: string; minute: string; tick?: number | string | null; b: number | string | null; a: number | string | null; m: number | string | null; ours: number | string | null; others: number | string | null; qb: boolean | null; qa: boolean | null };
+export type RwMinuteRow = {
+  cond: string; minute: string; tick?: number | string | null; b: number | string | null; a: number | string | null; m: number | string | null; ours: number | string | null; others: number | string | null; qb: boolean | null; qa: boolean | null;
+  /** The raw touch, which TB1's page reads (absent in older payloads and tests: then no minute is TB1's). */
+  bb?: number | string | null; ba?: number | string | null;
+};
 export type RwDayRow = { day: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets: number | string; detail: { phase?: string } | null };
 export type RwFillRow = { cond: string; minute: string; ts: string; side: "bid" | "ask"; price: number | string; size: number | string; print_id: string };
 
@@ -351,9 +355,11 @@ export function rweArmSummary(input: {
  * because each rule acts on one market at a time, so its row repeated two others. `x2` (the pause, then "variant-3")
  * left it on 2026-10-02 (Davies: hide the pause if it does badly; over 09-28 → 10-01 it trailed x1, RW-E and x3 on the
  * total), and variant-3 and variant-4 are x4 and x5 from then. The replays still run both, unchanged, as the frozen
- * pre-registration has them, so their days are in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdicts.
+ * pre-registration has them, so their days are in `pm_rw_x_days` (and `pm_rwc_x_days`) for the verdicts. `x4` and `x5`
+ * left it on 2026-10-07 (Davies: "目前的variant-3和4转为在后台继续记录，前端的3和4改为这两个新的测试"): variant-3 and
+ * variant-4 are TB1's two arms from then, and both replays still run x4 and x5 for their frozen tests.
  */
-export const RWX_OFF_PAGE = new Set(["x2", "x3"]);
+export const RWX_OFF_PAGE = new Set(["x2", "x3", "x4", "x5"]);
 
 /** A replayed variant's closed days, as `pm_rw_x_days` holds them. */
 export type RwxDaysRow ={ day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
@@ -385,8 +391,10 @@ export function rwxArmSummaries(input: {
   };
   const out = [];
   for (const spec of RWX_SPECS) {
-    if (spec.id === "e" || (input.offPage ?? RWX_OFF_PAGE).has(spec.id) || !st.arms[spec.id]) continue;
-    const a = st.arms[spec.id];
+    if (spec.id === "e" || (input.offPage ?? RWX_OFF_PAGE).has(spec.id)) continue;
+    // A `fresh` arm the replay has not started yet is a row that says when it starts, with nothing in it.
+    if (!st.arms[spec.id] && !spec.fresh) continue;
+    const a: RwxArmState = st.arms[spec.id] ?? { acc: {}, dayActive: [], diverged: [], pausedUntil: {}, lastMid: {} };
     const diverged = new Set(a.diverged);
     // Left out for a whole day: RW-E's rule from its first day, the arm's categories from its own.
     const leftOut = (cond: string, day: string) => {
@@ -399,7 +407,26 @@ export function rwxArmSummaries(input: {
     // An arm that moves its quotes (x4, x5) shows where they rest now: RW's latest quotes moved by its own rule, on what
     // it holds now, with its own caps and its own score against the others' (bookkeeping for the page).
     const rest = spec.rest;
+    // TB1 (tb1-skip, tb1-back) on a minute whose raw touch is at most a tick wide: nothing rests, or both a tick behind.
+    const tight = spec.tight;
+    const tightNow = (r: RwMinuteRow) => {
+      const t = Date.parse(r.minute);
+      if (!tight || t < tight.from || r.bb == null || r.ba == null) return false;
+      const tick = Number(r.tick ?? metaFor(input.selectionAll, r.cond, t)?.tick) || 0.01;
+      return isTight([Number(r.bb), Number(r.ba), null, null, 0, 0], tick, tight.maxTicks);
+    };
     const restLatest = (r: RwMinuteRow): RwMinuteRow => {
+      if (tight?.mode === "back" && tightNow(r)) {
+        const meta = metaFor(input.selectionAll, r.cond, Date.parse(r.minute));
+        if (!meta || r.b == null || r.a == null || r.m == null) return r;
+        const tick = Number(r.tick ?? meta.tick) || 0.01, v = Number(meta.v), N = sizeN(Number(meta.min_size));
+        const m = Number(r.m), b = Number(r.b), ask = Number(r.a), net = a.acc[r.cond]?.net ?? 0;
+        const out = backTicks(m, b, ask, tick, v);
+        const nb = (Math.round(b / tick) - out.bid) * tick, na = (Math.round(ask / tick) + out.ask) * tick;
+        const qb = net < RW_INV_CAP * N, qa = net > -RW_INV_CAP * N;
+        const ours = Math.min(qb ? scoreS(v, (m - nb) * 100) * N : 0, qa ? scoreS(v, (na - m) * 100) * N : 0);
+        return { ...r, b: nb, a: na, ours, qb, qa };
+      }
       const t = Date.parse(r.minute), meta = rest ? metaFor(input.selectionAll, r.cond, t) : null;
       if (!rest || !meta || t < rest.from || r.b == null || r.a == null || r.m == null) return r;
       const tick = Number(r.tick ?? meta.tick) || 0.01, v = Number(meta.v), N = sizeN(Number(meta.min_size));
@@ -417,7 +444,7 @@ export function rwxArmSummaries(input: {
         last_minute: xState.last_minute, last_error: xState.last_error, updated_at: xState.updated_at,
       },
       selection: input.today.filter((x) => !leftOut(x.cond, String(x.day).slice(0, 10))),
-      latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute))).map(restLatest),
+      latest: input.latest.filter((r) => !leftOut(r.cond, today) && !paused(r.cond, Date.parse(r.minute)) && !(tight?.mode === "skip" && tightNow(r))).map(restLatest),
       days: input.days.filter((d) => d.arm === spec.id).map((d) => ({
         day: String(d.day).slice(0, 10), total: d.total, stress_total: d.stress_total, reward: d.reward, fills: d.fills, capital: d.capital,
         markets: d.markets ?? 0, detail: null,
@@ -426,7 +453,7 @@ export function rwxArmSummaries(input: {
         && !paused(f.cond, Date.parse(f.minute))),
       firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
       // Only what the variant did under its own rules: from its first minute, against what it held as that began.
-      since: { ms: rwxArmStart(spec), base: a.base },
+      since: { ms: a.start ?? rwxArmStart(spec), base: a.base },
     });
     if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks });
   }

@@ -255,21 +255,26 @@ places stay when the number is not whole.
   same quotes, each with a rule changed, so they can be compared side by
   side with Reward quotes; which rule each changes is not on the site (it
   is in the reference, §4 item 36). Variant-3 and variant-4 are built on
-  variant-2 and each change one thing more: where the quotes rest. Each
-  holds its own positions and makes its own profit and loss, worked out
-  from the same order books and trades Reward quotes reads, and each is
-  brought up to date every minute. Their pages are Reward quotes' page,
-  for their quotes, which are each row's own prices. Each shows only what
-  it did under its own rule: it counts from the minute that rule starts
-  (variant-1 from 27 September, variant-2 from 28 September, variant-3
-  and variant-4 from 3 October, each at 01:00 UK time), anything it held
-  then is counted from that minute's price, and nothing from before is
-  shown. Until then its row says when it starts. A warning appears on a
-  page only if its copy of the rows it came from stops matching them. Two
-  earlier variants, one that paused after a jump in the price and one
-  with both of the first rules, are still worked out but are not rows:
-  the first did worst of the variants over their first four days, and the
-  second does, market by market, exactly what one of the others does.
+  variant-2 and each change one thing more: what it does in a minute when
+  the gap between the best buyer and the best seller is a single price
+  step. Variant-3 then quotes nothing; variant-4 quotes one step further
+  back. Each holds its own positions and makes its own profit and loss,
+  worked out from the same order books and trades Reward quotes reads,
+  and each is brought up to date every minute. Their pages are Reward
+  quotes' page, for their quotes, which are each row's own prices. Each
+  shows only what it did under its own rule: it counts from the minute
+  that rule starts (variant-1 from 27 September, variant-2 from 28
+  September, variant-3 and variant-4 from 8 October, each at 01:00 UK
+  time, or from the minute they went live if that was later). Variant-3
+  and variant-4 start with nothing held, so their pages begin empty;
+  the others count anything they held then from that minute's price.
+  Nothing from before is shown, and until then a row says when it starts.
+  A warning appears on a page only if its copy of the rows it came from
+  stops matching them. Four earlier variants are still worked out but
+  are not rows: one that paused after a jump in the price, one with both
+  of the first rules, and the two that were variant-3 and variant-4 until
+  7 October (resting the quotes further out, and leaning against what is
+  held), which keep running for their own tests.
 - **Reward quotes confirmation.** From 8 October, the row after the variants: Reward
   quotes' own rule run again, forward, for fourteen more days, 9 to 23
   October, to see whether what it did in its first fourteen holds on days

@@ -505,11 +505,11 @@ const AGENTS_RWE = (dayStartMs) => {
  * RW-E's variants as rows of their own (Davies, 2026-09-27): `rwx`, one entry per variant on the page in `rwe`'s shape,
  * as `rwxArmSummaries` builds them. A variant is RW-E until its own rule first leaves something out, so each carries
  * RW-E's figures to the cent (AGENTS_RWE) under its own id and name, with both of the replay's checks holding. Since
- * 2026-10-02 they are x1 ("variant-2") and x4 and x5 ("variant-3" and "variant-4", x1 with its quotes moved); x2 and x3
- * are not among them: the replay still runs both, the dashboard does not send them.
+ * 2026-10-07 they are x1 ("variant-2") and TB1's two ("variant-3" tb1-skip and "variant-4" tb1-back, x1 on the minutes
+ * whose touch is a tick wide); x2–x5 are not among them: the replay still runs them, the dashboard does not send them.
  */
 const AGENTS_RWX = (dayStartMs) => [
-  ['x1', 'Reward quotes variant-2'], ['x4', 'Reward quotes variant-3'], ['x5', 'Reward quotes variant-4'],
+  ['x1', 'Reward quotes variant-2'], ['tb1-skip', 'Reward quotes variant-3'], ['tb1-back', 'Reward quotes variant-4'],
 ].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, startedAt: new Date(NOW_MS - (20 * 60 + 30) * 60e3).toISOString(), checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
 
 /**
@@ -990,13 +990,13 @@ const AGENTS_RW_CENTS = () => {
 };
 /**
  * RW-E's variants before their first minute (Davies, 2026-09-27: a variant shows only what it did under its own rules):
- * x1's 2026-09-28 00:00 UTC, x4's and x5's 2026-10-03 00:00 UTC. Each summary is `notStarted`, with nothing in it, as
+ * x1's 2026-09-28 00:00 UTC, TB1's two 2026-10-08 00:00 UTC. Each summary is `notStarted`, with nothing in it, as
  * `rwSummary` returns one until the replay has reached that minute and kept its accounts.
  */
 const AGENTS_RWX_WAITING = () => ({
   ...AGENTS_DASHBOARD,
   rwx: AGENTS_DASHBOARD.rwx.map((x) => ({
-    ...x, notStarted: true, startsAt: x.id === 'x1' ? '2026-09-28T00:00:00.000Z' : '2026-10-03T00:00:00.000Z', startedAt: null,
+    ...x, notStarted: true, startsAt: x.id === 'x1' ? '2026-09-28T00:00:00.000Z' : '2026-10-08T00:00:00.000Z', startedAt: null,
     capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
     todayUsd: 0, heldUsd: 0, quotedUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null, markets: [], days: [], recent: [],
   })),
@@ -2787,7 +2787,7 @@ async function run() {
       const head = await page.locator('.ag-sb-realised .ag-sb-usd').first().textContent().catch(() => '');
       await shot(page, 'agents-list');
       // The strategies' 12.34, RW's 42, RW-E's 23.60 and the three variants on the page each realising RW-E's 23.60 (Davies,
-      // 2026-09-27; since 2026-10-02 x1, x4 and x5), and each realistic twin's (2026-10-02) at 1.32 (TESTING.realised; the
+      // 2026-09-27; since 2026-10-07 x1, tb1-skip and tb1-back), and each realistic twin's (2026-10-02) at 1.32 (TESTING.realised; the
       // live fixture's -£0.0345066 each, -$0.0455487). RW-C is not a row before its warm-up.
       const wantHead = TW.money(TESTING.realised, '$', true);
       if (money(head) === money(wantHead) && /^\+/.test((head || '').trim())) ok(S('agents'), `headline is the realised total, strategies plus the ${5 + TW.n} tests (${(head || '').trim()})`);
@@ -2798,7 +2798,7 @@ async function run() {
       // those migrations removed are off the page because none of them still holds anything here.
       // Plus the realistic twins of the live executor (Davies, 2026-10-02: in place of the quote test, its variant and
       // rule D; one a spec row since 0088), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three
-      // of its variants (variant-2 since 2026-09-27; variant-3 and -4, x1 with its quotes moved, since 2026-10-02, Davies).
+      // of its variants (variant-2 since 2026-09-27; variant-3 and -4, TB1's two on x1, since 2026-10-07, Davies).
       // RW-C (0069) is not a row before its warm-up begins, 2026-10-08 (Davies, 2026-09-28).
       if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent`);
       else fail(S('agents'), `expected ${TESTING.rows} rows (six strategies, ${TW.n} twins, RW, RW-E and three variants), got ${rows}`);
@@ -3178,7 +3178,7 @@ async function run() {
       await page.waitForTimeout(300);
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
-      // RW-E's variants (Davies, 2026-09-27), the last rows (x1, x4 and x5 since 2026-10-02): RW's cells read from each
+      // RW-E's variants (Davies, 2026-09-27), the last rows (x1, tb1-skip and tb1-back since 2026-10-07): RW's cells read from each
       // variant's arm, here RW-E's figures to the cent (AGENTS_RWX), each name "Reward quotes variant-N" on one line.
       const xRows = [];
       for (const name of ['Reward quotes variant-2', 'Reward quotes variant-3', 'Reward quotes variant-4']) {
@@ -3645,7 +3645,7 @@ async function run() {
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
       // realised; and each Reward quotes row is funded $1,000 (the same day). The three variants on the page (x1 since
-      // 2026-09-27, x4 and x5 since 2026-10-02) add RW-E's figures three times more; RW-C is not a row before its warm-up.
+      // 2026-09-27, tb1-skip and tb1-back since 2026-10-07) add RW-E's figures three times more; RW-C is not a row before its warm-up.
       // The realistic twins (2026-10-02) are the live fixture's book at 1.32 each: funded their capital ($1,584, $792 and
       // $2,376), deployed $1,318.86, today +$0.29978, unrealised -$0.17550 on a cost of $791.04, realised -$0.04555, fees
       // $0.23721. TESTING's scoreboard adds them to the rest (TESTING): deployed is every dollar at work (Davies,
@@ -4044,10 +4044,10 @@ async function run() {
       // "starts …"; its name stays on one line and the words fit.
       agentsMode = 'rwx-waiting';
       await openAgentsPage(page);
-      await waitFor(async () => /3 Oct 01:00 BST/.test((await page.locator('.ag-strategies-testing').first().innerText().catch(() => '')) || ''));
+      await waitFor(async () => /8 Oct 01:00 BST/.test((await page.locator('.ag-strategies-testing').first().innerText().catch(() => '')) || ''));
       await page.waitForTimeout(150);
       const waitRows = [];
-      const STARTS = { 'Reward quotes variant-2': '28 Sep 01:00 BST', 'Reward quotes variant-3': '3 Oct 01:00 BST', 'Reward quotes variant-4': '3 Oct 01:00 BST' };
+      const STARTS = { 'Reward quotes variant-2': '28 Sep 01:00 BST', 'Reward quotes variant-3': '8 Oct 01:00 BST', 'Reward quotes variant-4': '8 Oct 01:00 BST' };
       for (const name of Object.keys(STARTS)) {
         const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) }).first();
         const text = (await el.innerText().catch(() => '')).replace(/\s+/g, ' ');
@@ -4069,7 +4069,7 @@ async function run() {
       if (waitRows.length === 3 && waitRows.every((x) => x.next.text === STARTS[x.name] && x.next.lines >= 1 && x.next.lines <= 2 && x.next.fits
         && x.dot.grey && x.dot.title === `starts ${STARTS[x.name]}`
         && !/every minute/.test(x.text) && x.lines === 1 && x.fits && !/\+\$7\.50|\+\$23\.60|1 open/.test(x.text))) {
-        ok(T('rwx-waiting'), 'a variant before its first minute has NEXT its start ("28 Sep 01:00 BST" for variant-2, "3 Oct 01:00 BST" for variant-3 and -4; two lines at most) on a grey dot that says "starts …", none of RW-E\'s figures, and fits its row');
+        ok(T('rwx-waiting'), 'a variant before its first minute has NEXT its start ("28 Sep 01:00 BST" for variant-2, "8 Oct 01:00 BST" for variant-3 and -4; two lines at most) on a grey dot that says "starts …", none of RW-E\'s figures, and fits its row');
       } else fail(T('rwx-waiting'), `waiting rows ${JSON.stringify(waitRows)}`);
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-3') }).first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -4077,7 +4077,7 @@ async function run() {
       const wEmpty = (await page.locator('.ag-rw-detail .hl-empty').allTextContents()).map((t) => t.trim());
       const wOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       await shot(page, 'agents-rwx-waiting-page');
-      if (wEmpty.join('|') === 'Starts 3 Oct 01:00 BST.|Starts 3 Oct 01:00 BST.|Starts 3 Oct 01:00 BST.' && wOverflow >= 0 && wOverflow <= 1) {
+      if (wEmpty.join('|') === 'Starts 8 Oct 01:00 BST.|Starts 8 Oct 01:00 BST.|Starts 8 Oct 01:00 BST.' && wOverflow >= 0 && wOverflow <= 1) {
         ok(T('rwx-waiting'), "its page's days, quotes and fills each say when it starts, and nothing else");
       } else fail(T('rwx-waiting'), `waiting page: empty rows ${JSON.stringify(wEmpty)}, overflow ${wOverflow}`);
       agentsMode = 'ok';

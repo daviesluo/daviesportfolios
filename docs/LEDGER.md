@@ -80,6 +80,25 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      first 20–50 live fills' next books before any exit rule; a trim near the cap only if x5 fails and the measured R is
      near 1, as a new replay after 10-23 on books stored with their sizes.
 
+   - **TB1 ("tight book", page "Reward quotes variant-3" = `tb1-skip`, "variant-4" = `tb1-back`; x4 and x5 off the page
+     and still replayed): frozen 2026-10-07 (`reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, with the code and `0096`;
+     designed after a NON-blind read of RW's record).** x1 plus, in a minute whose stored raw touch is at most a tick
+     wide: skip rests nothing, back rests each quote a tick behind RW's (inside the band). Each starts FLAT at its own
+     first minute (`fresh`): on RW's minutes 10-08 00:00 UTC or the first minute decided after the deploy (`start` in
+     `pm_rw_x_state`), shown on the page until RW's end 10-09 00:00, not judged; on RW-C's from 10-09 00:00. **Verdict**
+     after RW-C's (≥ 10-23 00:05 UTC), from `pm_rwc_x_days`: RW-X's seven conditions over 10-09 → 10-22 (seed 20261023),
+     plus 7′ paired day bootstrap of (arm − x1) at R = 0.40 > 0 and 8 the R = 0.40 difference without the best
+     market-day > 0 (`detail.rewardByMarket`, every arm's row since this commit); void if either arm carries a `start`
+     in `pm_rwc_x_state` or a day row is missing. **Health:** both arms in `pm_rwc_x_state.state.arms` with `base` {} and
+     no `start` after 10-09 00:05; x4/x5 still written in both replays. **After 10-09 00:00 the page's variant-2/-3/-4
+     rows stop with RW's run**: showing RW-C's TB1 arms on the page instead is a further change, Davies' call.
+   - **Intraday re-selection every 2 h (S2; a dropped market goes close-only): backtested 2026-10-07 on the pm-rec
+     archive, 10-05 00:00 → 10-07 21:59 UTC, read-only, no paper arm** (scratch scripts, not committed): against S2's
+     daily selection, −$62.36 at R = 1 (day-block bootstrap p5 −120.60 / p95 −4.12, P(> 0) 0.03) and −$14.92 at R = 0.40
+     (p5 −63.73 / p95 +33.89, P 0.37); only three day blocks (6-hour blocks: P 0.15 and 0.35). It churns (202 markets
+     chosen in 35 selections against 29) and the held inventory of dropped markets fills the $320 cap (carried mean
+     $244.7 against $75.8). With S2's modelled passive exit instead it reads +$215.72 / +$48.65, so the answer hinges on
+     the exit, which is not measured. Not supported as specified; a longer archive would be needed to say more.
    - **RW-C, RW's rule forward on 2026-10-09 → 10-23 UTC (RW-NEXT part 2; Davies approved the build 2026-09-27): ON
      `main` since 2026-09-28 04:39 UTC** (`3682b557` engine + `0069`, `17728e3c` page; history 00:38 and 05:12).
      `pmrw.ts` as a second instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`,
@@ -774,6 +793,23 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-07 23:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- TB1 built and frozen on Davies' word ("TB1"紧盘口"：两个版本…前端的3和4改为这两个新的测试，做好就立即上线，页面数据清空从新开始"):
+  `reviews/2026-10-07-polymarket-rw-tb1-prereg.md` (frozen by this commit; its addendum to RW-NEXT Part 2 and the
+  deviation of RW-X's "bookkeeping only" are in it), `agents/pmrw_x.ts` (`RwxTight`, `isTight`, `backTicks`,
+  `tightBack`, `fresh` arms; `tb1-skip`, `tb1-back` in `RWX_SPECS`, so in RW-C's replay too), `0096` (arm checks),
+  `pmrw_view.ts` (variant-3/-4 are TB1's, x4/x5 in `RWX_OFF_PAGE`; TB1's page quotes on a 1-tick minute), the page's
+  latest minute now reads `bb`/`ba`. Every arm's day row gains `detail.rewardByMarket`. No client code changed (no
+  bundle): the rows come from the dashboard payload.
+- Evidence: hand-worked world pins (skip and back fills/rewards by hand, a late start keeps `start`, the page's
+  quotes); mutations of the skip, back and late-start code each fail 2 tests. On RW's whole record (09-25 → 10-07
+  21:49) the replay before (`dd2e979e`) and after gave the seven older arms identical states and day rows (less the new
+  key), in 26 catch-ups and 6,197 three-minute runs. In-sample, TB1 active from 10-03 against x1's rules started flat
+  there, at R = 0.40: skip +$29.34, back +$17.01 (five days). CPU: a minute's run median 2 ms before and after.
+- x4/x5 keep recording in both replays; their frozen Test 1 (≥ 10-09 00:05) and Test 2 are untouched.
+- Read-only research, nothing to the page: intraday re-selection every 2 h backtested on the pm-rec archive (what-remains,
+  item 2); not supported as specified with close-only exits. Archive downloads deleted after.
 
 ### [2026-10-07 23:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - The probe (request 295815, 22:49 UTC) read: both keys answer `/history/dividends` (200; items `amount`, `currency`,

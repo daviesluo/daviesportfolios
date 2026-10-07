@@ -485,8 +485,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
       return notNull(["book", "index_price", "ts"]) ?? check("book", ["USDC-GBP", "USDT-GBP"].includes(String(r.book))) ?? check("index_price", Number(r.index_price) > 0);
     }
     if (shape === "pm_rw_e_days" || shape === "pm_rw_x_days") {
-      // 0085 added x4 and x5 to both variants' day tables (RW's and RW-C's).
-      const arms = shape === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3", "x4", "x5"];
+      // 0085 added x4 and x5 to both variants' day tables (RW's and RW-C's), 0096 TB1's two.
+      const arms = shape === "pm_rw_e_days" ? ["rw", "e"] : ["rw", "e", "x1", "x2", "x3", "x4", "x5", "tb1-skip", "tb1-back"];
       return notNull(["day", "arm", "total", "stress_total", "reward", "fills", "capital", "markets", "detail"]) ?? check("arm", arms.includes(String(r.arm)))
         ?? check("fills", Number(r.fills) >= 0) ?? check("capital", Number(r.capital) >= 0) ?? check("markets", Number(r.markets) >= 0);
     }
