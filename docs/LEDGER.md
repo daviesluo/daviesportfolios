@@ -632,8 +632,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      the verdict's migration can drop or archive them.
    - `pm_view_books`, the view-count study's raw books, grows about 12 MB a day; nothing prunes it before its study
      reads it (about 500 MB at six weeks).
-   - On 10-03, read `net._http_response`'s size: six hours of responses is about 10 MB. Past 50 MB the dead space is
-     back, and it needs a job of its own.
+   - `net._http_response`: past 50 MB the dead space was back (297 MB on 10-07, the stall); since `0093` a job empties
+     it every ten minutes. RW's minutes (`pm_rw_minutes`) are the largest table (280 MB on 10-07). **Davies' call:** the
+     instance (Micro, 1 GB, the database 1.3 GB on 10-07) or incremental reads of the order tables the minute loop reads
+     whole; and PR5's dead-man, which cancels on an unreadable state even when the last read found the executor fresh.
    - **The health-check gap: closed by the monitor Worker, built 2026-10-02 on Davies' word** ("可以的，有问题开github
      issue吧并且也可以在网站中的error框发给我，我看到后可以叫你来处理"). `healthcheck.yml` ran 9 times in the 48 hours to 17:00 UTC
      of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
@@ -764,6 +766,26 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-07 20:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**The database stalled again from 10-07 02:55 UTC, on the same table as 10-02; `0093` empties it every ten minutes.**
+Davies: "检查下每个策略的最新情况，有问题及时修复". Two opus-max health checks, read-only. The cause: `net._http_response`,
+297 MB for ~6.4k live rows, its last autovacuum 10-02 14:12; pg_net's worker spent 40–180 s at a time in its own
+six-hour delete reading that heap (pg_stat_statements: max 179 s), 2,237–2,652 s of every hour in 03:00–06:59 and
+15:00–20:00 (quiet 07:00–14:59, cause not established). The one-minute job (cron 27) logged 27 "job startup timeout"
+rows (03:32 → 20:03) and ran 36–41 times an hour at 30 s late; PostgREST reads timed out ("Signal timed out."; ops_errors
+26–94 an hour). **PR5 live:** its dead-man fired 48 times, 45 of them a read that timed out while the executor was alive
+(`monitor/deadman.ts:36–37`, `:77–78`, `:236`); every firing cancelled every resting order, the guard's on/off flips and
+the re-posts took the governor to 900 at 18:25:41 (no entries since) and 950 by 20:36 (stops only) until 00:00 UTC;
+the one fill in it (a USDC exit at 19:35) is booked, nothing pending, no venue rejection, no loss stop. The twins, PR5's
+paper engine, the crypto rows, Jev and the workflows were OK (the trend rows decided every bar). `0093` schedules
+`http-response-truncate` every ten minutes: a TRUNCATE that waits at most 30 s for the table's lock and otherwise waits
+for the next run (pinned in `cron_jobs.test.js`). Nothing reads the table. **TAKE (variant-2, take50), for its entry:**
+quoting again since the FX reopening (dark guard cleared and first entry 2026-10-04 23:02 UTC); its take leg acted 3
+times, all filled (10-05 02:51 and 02:59 bids, 10-06 11:16 ask) and all closed by their exits; no `last_error`. Left for
+Davies (item 9): the instance size or incremental reads, and the dead-man's rule on an unreadable state. The
+trend-4h-live cap check at 10-08 06:20 will find CW-8 not clean (job 27's failures) and keep $60, as its rule says.
 
 ### [2026-10-05 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

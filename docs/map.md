@@ -763,6 +763,7 @@ before touching migration state.
 | `0090_take50_from_now.sql` | Moves TAKE's start (`take50`'s `rules.take.from`) to 2026-10-04 16:00 UTC, its pre-registration's Addendum 1. |
 | `0091_pm_lp.sql` | "Reward quotes live-prep"'s tables, the path's and the layer's shapes as `pm_lp_*` and `pm_lpprep_*` with a band of $10 and over, $100 a market and no day stop, its config unarmed in dry-run, its two leases and two rows of the one-minute job; and the one-armed trigger on all three Polymarket configs. |
 | `0092_pm_book_recorder.sql` | The Polymarket book recorder's tables (its markets, its frames, its archive's index, its two state rows), its two leases, its two rows of the one-minute job (every minute and every fifth, both run again by the watchdog), and its hourly prune: data the archive has not taken in six hours dropped, frames' counts after seven days, markets a week after the listing dropped them. |
+| `0093_http_response_truncate.sql` | A job emptying pg_net's response table every ten minutes, whose own six-hour pruning leaves dead space no vacuum reclaims (the 10-07 stall). |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |
 | `20260818083328_strict_t212_fills.sql` | Clears order rows built from unfilled orders and restarts the fill backfill. |
 

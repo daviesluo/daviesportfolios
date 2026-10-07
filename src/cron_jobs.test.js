@@ -455,6 +455,21 @@ describe('pg_cron jobs', () => {
     expect(fs.readFileSync(path.join(DIR, REC), 'utf8')).toContain(`phase       smallint generated always as ((id % ${phases})::smallint) stored`);
   });
 
+  it('empties pg_net\'s response table every ten minutes, waiting at most 30 s for its lock (0093)', () => {
+    // 10-07: the table held 297 MB of dead space its own six-hour pruning had to read, and the database stalled on it.
+    const T = '0093_http_response_truncate.sql';
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['http-response-truncate']);
+    const job = jobsAfter.get('http-response-truncate');
+    expect(job.schedule).toBe('*/10 * * * *');
+    expect(job.command).toContain('truncate net._http_response;');
+    expect(job.command).toContain("set_config('lock_timeout', '30s', true)");
+    expect(job.command).toContain('exception when lock_not_available');
+    // SQL alone: still one job queues every pg_net call.
+    expect(job.command).not.toContain('net.http_post');
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
