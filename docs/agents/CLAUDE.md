@@ -338,7 +338,9 @@ that follow from that evidence, in short:
   that is not through it; a post-only order the book it met shows crossing
   recorded refused and never sent, 2026-10-02; and a **dead-man switch**
   outside Supabase, 2026-10-02 on Davies' word: when the executor has not
-  finished a turn for three minutes, or its state cannot be read, the
+  finished a turn for three minutes, or its state cannot be read and no
+  read in the last three minutes found it fresh (2026-10-07, Davies:
+  "读不到时看上次"; the Worker remembers that read in a Durable Object), the
   `monitor` function, called every minute by the monitor Worker, cancels
   every resting order on the `_2` account and reads each back; the next
   turn quotes the paper's decisions again; reference §4 item 35). Its asks hold coin bought by `quotes-convert`

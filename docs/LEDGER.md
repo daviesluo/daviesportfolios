@@ -307,7 +307,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `pending` past 2 minutes; the state row is under 3 minutes old.
    - **Its dead-man switch (2026-10-02, Davies: "加一个“掉线保护”…这个加上"):** the monitor Worker calls
      `monitor?action=deadman` every minute; when `agent_quote_live_state.updated_at` is more than 3 minutes old, or cannot
-     be read, every resting order on the `_2` account is cancelled and read back (reference §4 item 35), recorded as an
+     be read and no read in the last 3 minutes found it fresh (since 2026-10-07: the Worker's `DeadmanMemory` Durable
+     Object keeps that read; a held minute is one `ops_errors` row, verdict `held`), every resting order on the `_2` account is cancelled and read back (reference §4 item 35), recorded as an
      `agent_quote_live_events` row of kind `deadman` (`0086`) and an `ops_errors` row `monitor.deadman`; the executor's
      next turn reads them back cancelled and quotes the paper's decisions again. Fresh, it touches nothing at the venue. Kill switch: `update
      public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (cancels entries; exits and stops stay
@@ -641,7 +642,7 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    - `net._http_response`: past 50 MB the dead space was back (297 MB on 10-07, the stall); since `0093` a job empties
      it every ten minutes. RW's minutes (`pm_rw_minutes`) are the largest table (280 MB on 10-07). **Davies' call:** the
      instance (Micro, 1 GB, the database 1.3 GB on 10-07) or incremental reads of the order tables the minute loop reads
-     whole; and PR5's dead-man, which cancels on an unreadable state even when the last read found the executor fresh.
+     whole. (PR5's dead-man now holds an unreadable state for 3 minutes after a fresh read, 2026-10-07.)
    - **The health-check gap: closed by the monitor Worker, built 2026-10-02 on Davies' word** ("可以的，有问题开github
      issue吧并且也可以在网站中的error框发给我，我看到后可以叫你来处理"). `healthcheck.yml` ran 9 times in the 48 hours to 17:00 UTC
      of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
@@ -773,6 +774,26 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-07 21:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**PR5's dead-man holds on an unreadable state while a read in the last 3 minutes found the executor fresh** (Davies:
+"读不到时看上次"). On 10-07 it fired 48 times, 45 on "state could not be read (Signal timed out.)", each cancelling every
+resting order (governor 900 at 18:25, 950 by 20:36). Built by an opus-high agent, reviewed and landed here: `monitor/
+deadman.ts` (`DEADMAN_GRACE_MS` 180 s, `graceOf`) holds a failed read when the last fresh read is at most 3 minutes old
+and no more than 5 s ahead of the function's clock: nothing at the venue, the key not even loaded, one `ops_errors` row
+(`monitor.deadman`, verdict `held`, the last fresh read and its age), no events row. A stale state that was read, a
+missing row and an unparseable time still cancel at once; an outage still ends in a cancel at the first minute past 3
+minutes from the last fresh read (at worst ~6 minutes after the executor's last turn, since a fresh read can see a turn
+up to 3 minutes old — the stricter variant, holding only while the last known turn is under 3 minutes old, is not
+built); the twins' stale rule is unchanged. The last fresh read lives in the monitor Worker, a SQLite-backed Durable
+Object `DeadmanMemory` (binding `DEADMAN_MEMORY`, wrangler migration v1), not the database (which a stall makes
+unreadable) nor KV (1,440 writes a day against 1,000); the Worker sends it with each call and stores the `at` of each
+fresh answer; an unreachable or unbound memory sends nothing and the old rule applies, so an old Worker or an old
+function is safe in either deploy order. Replayed on 10-07's function log: 49 of 50 unreadable answers would have held
+(last fresh read 66–137 s before); in 9 the next readable answer was stale, so those cancels would have come 1–2
+minutes later. Pins: 7 new Deno tests (10-07's shapes, a long outage held, held, held, cancel), 5 new Worker tests; the
+old `deadman.ts` fails the 2-minute hold and the long outage. `docs/agents/CLAUDE.md` and item 4 state the rule.
 
 ### [2026-10-07 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
