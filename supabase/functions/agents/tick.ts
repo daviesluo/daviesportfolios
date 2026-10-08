@@ -779,6 +779,12 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   const holdInFlight = (key: string, side: string) => { inFlight.add(key); if (side === "sell") sellsInFlight.set(key, (sellsInFlight.get(key) ?? 0) + 1); };
   const requoteWanted: { o: OrderRow; touch: number }[] = [];
   const settledIds = new Set<number>();            // rows this turn closed: no longer risk
+  /**
+   * What this turn wrote as filled for an order it left open (review A2): the exposure loop below reads the row as the turn
+   * began, so without it the part filled this turn counted twice for the turn, once in the position and once more as the
+   * open buy's rest.
+   */
+  const filledNow = new Map<number, number>();
   /** Live orders whose read-back failed this turn (or whose settlement did): what the venue did with them is unknown. */
   const unreadable = new Set<number>();
   const settle = async (o: OrderRow, patch: Record<string, unknown>, state: string) => {
@@ -928,6 +934,10 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           if (!booked) { unreadable.add(o.id); holdInFlight(key, o.side); continue; }   // found, but not bookable yet: still pending
           await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: booked.base, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view, booked.fromAccount), updated_at: nowIso });
           report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
+          // Still working, its rest is what remains after this fill; filled, or closed with nothing filled, it is no longer an
+          // open buy (A2). One closed WITH a fill keeps its count as before: that fill is not in the book this turn reads.
+          if (found.view.state === "new" || found.view.state === "partially_filled") filledNow.set(o.id, booked.base);
+          else if (found.view.state === "filled" || !(booked.base > 0)) settledIds.add(o.id);
           holdInFlight(key, o.side);
           continue;
         }
@@ -998,6 +1008,7 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
             if (!booked) unreadable.add(o.id);
             else if (o.state !== "partially_filled" || Number(o.filled_base) !== booked.base) {
               await d.db.update("agent_orders", `id=eq.${o.id}`, { state: "partially_filled", filled_base: booked.base, avg_fill_price: view.avgPrice, fee_usd: view.feeUsd, response: withFeeNote(view.raw, view, booked.fromAccount), filled_at: fillStamp(o, nowIso), updated_at: nowIso });
+              filledNow.set(o.id, booked.base);
             }
           }
         }
@@ -1247,7 +1258,8 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
   for (const o of open) {
     if (o.side !== "buy" || settledIds.has(o.id)) continue;
     const bucket = mk(o.venue, o.mode);
-    exposure[bucket] = (exposure[bucket] ?? 0) + Math.max(0, Number(o.base_size) - Number(o.filled_base || 0)) * Number(o.price);
+    const filledBase = filledNow.get(o.id) ?? Number(o.filled_base || 0);   // what this turn booked, not the row it read (A2)
+    exposure[bucket] = (exposure[bucket] ?? 0) + Math.max(0, Number(o.base_size) - filledBase) * Number(o.price);
   }
   // Today's P&L per venue and mode, summed one strategy at a time so each is marked from ITS signal venue's day open. The
   // dashboard computes its "today" the same way, so the page and the daily loss breaker read one figure.

@@ -270,7 +270,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      paths in the reviewer's scratchpad.
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
      `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
-     D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys).
+     D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
+     `agents` function redeploys). **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
+     digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
+     stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
+     residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
 
 ## Machine and platform setup
 
@@ -426,6 +430,19 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A fill the loop books in a turn counts once in that turn's exposure** (review A2, batch 5; `agents/tick.ts`). The
+  turn reads the open orders first and their exposure last; a live buy whose fill it booked without closing the row (a
+  partial fill that grew, a pending row it reconciled from the venue) counted its new fill twice: in the position, and
+  in the open buy's rest computed from the row as the turn began. The rest now reads what the turn wrote, and a
+  reconciled pending row found filled (or closed with nothing filled) is no longer an open buy; one closed with a fill
+  keeps its old count, as that fill is not in the book this turn reads (a separate finding, reported to Davies). In a
+  live turn: only the exposure the risk gate reads changes, and only in the turn that books such a fill; it is lower by
+  the fill counted twice, so an entry that double count refused for that turn can go through. No order, cancel, stop or
+  row write changes. Pinned in `tick.test.ts`: the turn that books 0.05 more of a 0.155 buy at 129 reads the same
+  exposure as the turn after it, and a reconciled pending buy too; on the old code $26.46 against $20.01 ($6.45 = 0.05 ×
+  129 twice).
 
 ### [2026-10-08 23:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep takes TB1's skip** (Davies: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"): `lpQuotes` rests

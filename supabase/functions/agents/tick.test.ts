@@ -540,6 +540,27 @@ Deno.test("a partially filled live order is a position: the stop sees it and the
   assert(!r.skipped.some((s) => s.includes("stop wants out")), r.skipped.join("; "));
 });
 
+Deno.test("a fill booked this turn is counted once in its exposure: in the position, not again as the open buy's rest (A2)", async () => {
+  // A live BTC buy of 0.155 at 129, 0.05 filled when the turn begins; the venue now reports 0.10. The turn books 0.10, the
+  // position holds 0.10, and the order's rest is 0.055. ETH's decision reads the venue's live exposure: it must equal what
+  // the next turn reads, the row already at 0.10 (the old loop read the rest from the row as the turn began, 0.105, and
+  // counted the 0.05 filled this turn twice, $6.45 more).
+  const live = { strategies: [strategy({ mode: "live", symbols: ["BTC/USD", "ETH/USD"] })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, series: { "BTC/USD": series(), "ETH/USD": series() } };
+  const buy = (filled: number, state = "partially_filled") => seedOrder({ id: 31, ts: new Date(NOW - 10 * ONE_M).toISOString(), mode: "live", state, filled_base: filled, avg_fill_price: filled > 0 ? 129 : null, filled_at: filled > 0 ? new Date(NOW - 9 * ONE_M).toISOString() : null, client_order_id: "c31", venue_order_id: state === "pending" ? null : "V-31", price: 129, base_size: 0.155 });
+  const view: OrderView = { state: "partially_filled", filledBase: 0.10, avgPrice: 129, feeUsd: 0.05, raw: {} };
+  const exposureOf = async (w: ReturnType<typeof world>) => {
+    const r = await tick(w.deps);
+    assertEquals(w.mem.tables.agent_orders.find((o) => o.id === 31)!.filled_base, 0.10);
+    const eth = w.mem.tables.agent_decisions.find((d) => d.symbol === "ETH/USD");
+    assert(eth, [...r.skipped, ...r.errors].join("; "));
+    return (eth!.numbers as { exposureUsd: number }).exposureUsd;
+  };
+  const steady = await exposureOf(world({ ...live, orders: [buy(0.10)], orderView: view }));
+  assertAlmostEquals(await exposureOf(world({ ...live, orders: [buy(0.05)], orderView: view })), steady, 1e-9);
+  // A pending buy whose reply never landed, found working at the venue with 0.10 filled: the same.
+  assertAlmostEquals(await exposureOf(world({ ...live, orders: [buy(0, "pending")], active: { c31: { venueOrderId: "V-31", view } } })), steady, 1e-9);
+});
+
 Deno.test("a pending live order whose reply never landed is reconciled by client id next turn", async () => {
   const view: OrderView = { state: "new", filledBase: 0, avgPrice: null, feeUsd: 0, raw: { status: "open" } };
   const pending = seedOrder({ id: 5, mode: "live", state: "pending", client_order_id: "c-pend" });
