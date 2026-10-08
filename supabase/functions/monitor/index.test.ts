@@ -15,7 +15,7 @@ import {
   type DeadmanReport, type DeadmanVenue, graceOf, judge,
   PR5_KEY_NAMES, pr5KeyFrom, readState, readStateOnce, recordRows, revxDeadmanVenue, runDeadman, type StateRead, summary, writeRecord,
 } from "./deadman.ts";
-import { HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth, TICK_BEAT_KEY } from "./health.ts";
+import { DB_SIZE_PATH, DB_SIZE_WATCH_BYTES, HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth, TICK_BEAT_KEY } from "./health.ts";
 import { handle, type HandlerDeps, insertReports, isAuthorised, lastFreshOf, reportRows, SECRET_HEADER } from "./index.ts";
 
 const T0 = Date.parse("2026-10-02T13:05:02Z");
@@ -38,7 +38,7 @@ type Row = Record<string, unknown>;
  * PostgREST over the four tables the function touches, as the schema has them: an unknown column is a 400, and an events
  * row is held to 0052's checks and 0086's kinds. `down` makes every request throw, as a database that does not answer.
  */
-function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[] } = {}) {
+function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[]; dbBytes?: number } = {}) {
   const t: Record<string, Row[]> = {
     agent_quote_live_state: o.state ?? [], agent_locks: o.locks ?? [], edge_call_beats: o.beats ?? [], agent_decisions: o.decisions ?? [],
     agent_quote_live_events: [], ops_errors: [],
@@ -65,6 +65,8 @@ function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: 
     if (s.down) throw new TypeError("error sending request: connection refused");
     if (s.status) return new Response(JSON.stringify({ message: "upstream" }), { status: s.status });
     const table = u.pathname.replace("/rest/v1/", "");
+    // 0101's `db_size_bytes()`, as PostgREST answers a function returning a bigint: the bare number.
+    if (table === "rpc/db_size_bytes" && method === "GET") return new Response(JSON.stringify(o.dbBytes ?? 1_160_000_000), { status: 200 });
     if (!(table in t)) return new Response(JSON.stringify({ code: "PGRST205", message: `Could not find the table 'public.${table}'` }), { status: 404 });
     if (method === "POST") {
       const body = JSON.parse(String(init?.body));
@@ -430,7 +432,7 @@ Deno.test("health: the four reads go to the tick's beat, its lease, PR5's state 
   });
   const h = await runHealth(SB, "service-key", () => T0, rest.fetch);
   assertEquals(rest.calls.every((c) => c.startsWith("GET ")), true);
-  assertEquals(rest.calls.sort(), Object.values(HEALTH_QUERIES).map((q) => `GET ${q.path}`).sort());
+  assertEquals(rest.calls.sort(), [...Object.values(HEALTH_QUERIES).map((q) => `GET ${q.path}`), `GET ${DB_SIZE_PATH}`].sort());
   // 13:05:02 less 12:57:00, 12:57:00.558, 12:57:27 and 12:00:04.001 (the newest decision by id).
   assertEquals([h.checks.tickBeat.ageS, h.checks.tickTurn.ageS, h.checks.quotes.ageS, h.checks.decisions.ageS], [482, 481, 455, 3898]);
   assertEquals([h.ok, h.checks.tickBeat.ok, h.checks.quotes.ok, h.checks.decisions.ok], [false, false, false, true]);
@@ -439,6 +441,21 @@ Deno.test("health: the four reads go to the tick's beat, its lease, PR5's state 
   rest.down = true;
   const down = await runHealth(SB, "service-key", () => T0, rest.fetch);
   assertEquals([down.ok, HEALTH_NAMES.every((n) => down.checks[n].error)], [false, true]);
+});
+
+// The database's size beside the four readings (review F4, 0101): shown, and never failing the loop's reading.
+Deno.test("health: the database's size is read beside the four and never fails them, over its watch line or unread", async () => {
+  const fresh = { beats: [{ minute: iso(T0 - 30e3), path: TICK_BEAT_KEY }], locks: [{ name: "tick", lease_until: iso(T0 + 20e3), holder: "x" }],
+    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 1, ts: iso(T0 - 600e3) }] };
+  const small = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 1_160_000_000 }).fetch);
+  assertEquals([small.ok, small.size], [true, { ok: true, bytes: 1_160_000_000, limitBytes: DB_SIZE_WATCH_BYTES, over: false }]);
+  const big = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 4_200_000_000 }).fetch);
+  assertEquals([big.ok, big.size?.ok && big.size.over], [true, true]);
+  const refused = fakeRest(fresh);
+  const f: typeof fetch = (input, init) => String(input).includes("/rpc/") ? Promise.resolve(new Response('{"message":"permission denied"}', { status: 401 })) : refused.fetch(input, init);
+  const unread = await runHealth(SB, "service-key", () => T0, f);
+  assertEquals([unread.ok, unread.size?.ok], [true, false]);
+  assertEquals(DB_SIZE_WATCH_BYTES, 4_000_000_000);
 });
 
 // ---------------------------------------------------------------------------------------------------- reports and auth

@@ -163,7 +163,8 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       },
       health: async () => {
         const h = await runHealth(sbUrl, key, () => Date.now());
-        console.log(`health ${h.ok ? "ok" : "stale"} ${Object.entries(h.checks).map(([n, c]) => `${n}=${c.ok ? c.ageS : `x${c.ageS ?? "?"}`}`).join(" ")}`);
+        const size = h.size?.ok ? `${(h.size.bytes / 1e9).toFixed(2)}GB${h.size.over ? "!" : ""}` : "?";
+        console.log(`health ${h.ok ? "ok" : "stale"} ${Object.entries(h.checks).map(([n, c]) => `${n}=${c.ok ? c.ageS : `x${c.ageS ?? "?"}`}`).join(" ")} db=${size}`);
         return h;
       },
       insert: (rows) => insertReports(rows, sbUrl, key),

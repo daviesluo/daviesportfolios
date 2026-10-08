@@ -16,6 +16,11 @@
 // minutes. The Worker alerts only after two failing minutes in a row, so one slow minute never pages.
 //
 // Read-only: four small selects with the service key, each with its own timeout, none of which writes.
+//
+// Beside them, the database's size (review F4, 0101: it grew about 120 MB a day): `size`, from `db_size_bytes()`, shown
+// with the four and never failing them, so a database grown large does not hold the loop's alert open and hide a stall
+// behind it. Its own watch is SQL's: `db-size-watch` (0101) writes a `db.size` row to the errors box once a day while
+// it is over `DB_SIZE_WATCH_BYTES`.
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 200);
@@ -31,7 +36,12 @@ export const TICK_BEAT_KEY = "agents?action=tick";
 /** What one reading found: a time (null: there is none), or why it could not be read. */
 export type Reading = { ok: true; at: string | null } | { ok: false; error: string };
 export type HealthCheck = { ok: boolean; at: string | null; ageS: number | null; limitS: number; error?: string };
-export type HealthReport = { at: string; ok: boolean; checks: Record<HealthName, HealthCheck> };
+export type HealthReport = { at: string; ok: boolean; checks: Record<HealthName, HealthCheck>; size?: SizeReading };
+
+/** The size the daily watch (0101's `db-size-watch`) writes to the errors box past: 4 GB, half the plan's 8 GB disk. */
+export const DB_SIZE_WATCH_BYTES = 4_000_000_000;
+/** The database's size, or why it could not be read. */
+export type SizeReading = { ok: true; bytes: number; limitBytes: number; over: boolean } | { ok: false; error: string };
 
 /** Each reading against its limit. A time ahead of the clock (a turn in flight holds its lease into the future) is fresh. */
 export function judgeHealth(now: number, readings: Record<HealthName, Reading>): HealthReport {
@@ -72,8 +82,27 @@ export async function readOne(sbUrl: string, key: string, q: { path: string; col
   }
 }
 
-/** The four readings at once, judged. */
+/** The database's size by `db_size_bytes()` (0101), a GET of a stable function, answered as a bare number. */
+export const DB_SIZE_PATH = "rpc/db_size_bytes";
+export async function readDbSize(sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = HEALTH_READ_TIMEOUT_MS): Promise<SizeReading> {
+  if (!sbUrl || !key) return { ok: false, error: "the function has no database URL or service key" };
+  try {
+    const res = await f(`${sbUrl}/rest/v1/${DB_SIZE_PATH}`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(timeoutMs) });
+    const text = await res.text();
+    if (!res.ok) return { ok: false, error: `${res.status} ${text.slice(0, 160)}` };
+    const bytes = Number(JSON.parse(text));
+    if (!Number.isFinite(bytes) || bytes < 0) return { ok: false, error: "the reply is not a size" };
+    return { ok: true, bytes, limitBytes: DB_SIZE_WATCH_BYTES, over: bytes > DB_SIZE_WATCH_BYTES };
+  } catch (e) {
+    return { ok: false, error: msg(e) };
+  }
+}
+
+/** The four readings at once, judged, and the size beside them (outside `ok`). */
 export async function runHealth(sbUrl: string, key: string, now: () => number, f: typeof fetch = fetch): Promise<HealthReport> {
-  const entries = await Promise.all(HEALTH_NAMES.map(async (n) => [n, await readOne(sbUrl, key, HEALTH_QUERIES[n], f)] as const));
-  return judgeHealth(now(), Object.fromEntries(entries) as Record<HealthName, Reading>);
+  const [entries, size] = await Promise.all([
+    Promise.all(HEALTH_NAMES.map(async (n) => [n, await readOne(sbUrl, key, HEALTH_QUERIES[n], f)] as const)),
+    readDbSize(sbUrl, key, f),
+  ]);
+  return { ...judgeHealth(now(), Object.fromEntries(entries) as Record<HealthName, Reading>), size };
 }

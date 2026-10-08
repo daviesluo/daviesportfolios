@@ -585,6 +585,10 @@ read failed: the board takes nothing from that answer as a sale. Each
 shows once, then at most hourly while the fault lasts, and again at once
 when it changes (a rate limit becoming an expired key, say).
 
+`db.size` means the database has grown past 4 GB, once a day while it
+stays there: what has served its test can be pruned or archived. Nothing
+stops on it.
+
 Every live price is checked before the board takes it. One that cannot
 be the holding's — a hundred times off (pence read as pounds), another
 stock's or fund's price relayed by a public proxy, or not a number at all

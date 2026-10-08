@@ -497,7 +497,16 @@ that follow from that evidence, in short:
   account and only one is ever armed**: 0091's trigger refuses arming any
   config while another is. Its config also holds a copy of the attestation:
   a revocation runs `update public.pm_lp_config set ireland_until = now()
-  where id = 1;` too.
+  where id = 1;` too. **Their dry-run record keeps 14 days** (`0101`,
+  review F4, 2026-10-08): `pm_paths_prune()`, daily, deletes each path's
+  dry-run minutes and ended dry-run orders (never one a fill names) and its
+  paper layer's minutes older than 14 days, and never later than a day
+  before what the paper layer has decided; nothing of mode `live`, no fill,
+  day, settlement, event or state row. Every frozen check that read those
+  rows has run, and what is left to run reads none of them (the
+  migration's header lists each). A new instance's tables join it in the
+  migration that adds them, or that migration says why not; a check or
+  study that needs older dry-run rows says so before they age out.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

@@ -681,6 +681,14 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      it every ten minutes. RW's minutes (`pm_rw_minutes`) are the largest table (280 MB on 10-07). **Davies' call:** the
      instance (Micro, 1 GB, the database 1.3 GB on 10-07) or incremental reads of the order tables the minute loop reads
      whole. (PR5's dead-man now holds an unreadable state for 3 minutes after a fresh read, 2026-10-07.)
+   - **`0101` (review F4, approved 2026-10-08):** the paper layers' ended-orders read (256 ms a call, the whole orders
+     table) goes by a `(mode, cancelled_at)` index; the three order paths' dry-run minutes and ended dry-run orders and
+     their paper layers' minutes keep 14 days (`pm_paths_prune()`, 04:23 UTC daily; the first rows go on 10-15); the
+     monitor's health shows the database's size, and `db-size-watch` writes `db.size` to the errors box daily past 4 GB.
+     Still growing, each for its own decision: RW's and RW-C's tables (after their verdicts and TB1), `pm_view_books`
+     (after its study), PR5's `agent_quote_inputs` (after 10-21). Still read whole each minute, for a later change:
+     the recorder's market list (`pm_rec_markets`, about 14,000 buffers a call in id order with offsets) and the
+     twins' filled orders (all of them, `select=*`, frozen with TAKE to 11-02).
    - **The health-check gap: closed by the monitor Worker, built 2026-10-02 on Davies' word** ("可以的，有问题开github
      issue吧并且也可以在网站中的error框发给我，我看到后可以叫你来处理"). `healthcheck.yml` ran 9 times in the 48 hours to 17:00 UTC
      of the 288 asked, none during the stall. `daviesportfolios-monitor` (`workers/monitor/`) runs every minute on
@@ -812,6 +820,35 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 15:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The order paths' dry-run record keeps 14 days, their ended-orders read is indexed, and the database's size is
+  watched** (review F4, approved by Davies 2026-10-08). `0101_pm_paths_retention.sql`:
+  - **Index.** The paper layers read their path's ended orders every minute by `cancelled_at`, which no index covered:
+    a scan of the whole table (production's EXPLAIN on 10-08: 24,589 rows and 4,290 buffers for 5 matches; 256, 254 and
+    206 ms a call in `pg_stat_statements`). Now `(mode, cancelled_at) where cancelled_at is not null` on each of the
+    three orders tables; on PGlite, under a forced generic plan, the read goes from the primary key with a filter to an
+    index range scan on both conditions. The read itself (`pm_prep.ts`, frozen) is unchanged.
+  - **Retention.** `pm_paths_prune()` (04:23 UTC daily) deletes, per path, the dry-run minutes, the dry-run orders in
+    an ended state (`cancelled`, `expired`, `rejected`) that no fill names, and the paper layer's minutes, all older than
+    14 days and never later than a day before the paper layer's last decided minute (no state row: nothing). The
+    migration's header lists every reader and why none needs those rows: the code reads two days back at most; the
+    frozen checks that read dry-run rows have run (mini-pool's, `mid_check.sql` 10-04, `lp_check.sql` 10-07); what is
+    left (`mid_readout.sql`, `mid_audit.sql`, `lp_readout.sql`, live-prep's (f)) reads days tables, live rows, markets,
+    config and state. Not touched: RW's, RW-C's and the variants' tables, `pm_view_books`, PR5's and the twins'. On
+    PGlite over a planted record (paths' tables from 0074/0076/0077/0081/0084/0091/0094): with the layer current it
+    deleted the dry-run minutes of 15, 20 and 22 days, the ended, expired and rejected orders older than 14 days and
+    the paper minutes of 20 and 22 days, and kept the 13-day rows, a 22-day open order, the live rows and an order a
+    fill names; with the layer 20 days behind only what is older than 21 days; with no state row nothing; a second run
+    nothing. The oldest rows are of 10-01, so the first go on 10-15; the group writes about 73 MB a day.
+  - **Size.** `db_size_bytes()` (service role only) for a `size` reading beside the monitor's four (`health.ts`: shown,
+    never failing the loop's reading, so a large database cannot hold that alert open over a stall), and
+    `db-size-watch` (06:17 UTC daily) writing a `db.size` row to the errors box while the database is over 4 GB (1.16 GB
+    on 10-08).
+  Pins: `cron_jobs.test.js` (both jobs, their minutes off :X0/:X5, nine deletes and each one's condition, the cutoffs,
+  the indexes, the grants; fails without 0101) and the monitor's Deno tests (the size read, over the line and unread,
+  never failing `ok`; 28 pass). Not done, written in item 9: the recorder's `pm_rec_markets` read and the twins' whole
+  filled-orders read. 0101 applies on push and `monitor` redeploys. Guide, map, `docs/agents/CLAUDE.md`.
 
 ### [2026-10-08 15:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Trading 212 history walk runs without a page open, and a hidden page stops calling it** (review F17, approved

@@ -609,7 +609,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents` | The crypto loop and its page (below). |
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
-| `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
+| `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings and the database's size beside them (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
 
 #### `agents/` and `_shared/`
 
@@ -770,6 +770,7 @@ before touching migration state.
 | `0098_board_data_history.sql` | Keeps the portfolio's earlier versions: each change to `board_data` first copies the version it replaces into `board_data_history` (service role only), pruned at 90 days. |
 | `0099_edge_calls_select_timeout.sql` | The two daily Polymarket selections wait 55 s in the one-minute job instead of 290 s, so no minute's pg_net batch holds the next minute's calls. |
 | `0100_t212_orders_sync_call.sql` | Runs the Trading 212 history walk (`trading212?action=orders-sync`) from the one-minute job every ten minutes, so fills reach the database without an admin page open. |
+| `0101_pm_paths_retention.sql` | Keeps the three Polymarket order paths' dry-run minutes and ended dry-run orders, and their paper layers' minutes, 14 days (`pm_paths_prune`, daily); indexes the paper layers' ended-orders read; the database's size for the monitor and a daily watch past 4 GB. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

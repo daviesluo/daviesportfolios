@@ -555,6 +555,44 @@ describe('pg_cron jobs', () => {
     expect([...cronJobs(FILES.filter((f) => f <= T))]).toEqual([...cronJobs(FILES.filter((f) => f < T))]);
   });
 
+  it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {
+    // review F4 (2026-10-08): what each delete removes and why it is safe is in the migration's header; checked on PGlite.
+    const T = FILES.find((f) => /^\d{4}_pm_paths_retention\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n)).sort()).toEqual(['db-size-watch', 'pm-paths-prune']);
+    expect(jobsAfter.get('pm-paths-prune').schedule).toBe('23 4 * * *');
+    expect(jobsAfter.get('pm-paths-prune').command.trim()).toBe('select public.pm_paths_prune();');
+    expect(jobsAfter.get('db-size-watch').schedule).toBe('17 6 * * *');
+    expect(norm(jobsAfter.get('db-size-watch').command)).toContain("where s.b > 4000000000;");
+    // Off the minutes the one-minute batch and the response prune share (:X0, :X5).
+    for (const n of ['pm-paths-prune', 'db-size-watch']) expect(Number(jobsAfter.get(n).schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    expect(replayList(sqlsOf(FILES.filter((f) => f <= T)))).toEqual(replayList(sqlsOf(FILES.filter((f) => f < T))));
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    // Each delete names one of the nine tables; a path's minutes and orders are its dry-run's alone, its orders ended
+    // ones a fill does not name; the paper layers' minutes go by the same cutoff.
+    const deletes = [...sql.matchAll(/delete from public\.(\w+)( o)? where ([^;]+);/g)].map((m) => [m[1], norm(m[3])]);
+    expect(deletes.map(([t]) => t)).toEqual(['pm_live_minutes', 'pm_live_orders', 'pm_prep_minutes', 'pm_mid_minutes', 'pm_mid_orders', 'pm_midprep_minutes', 'pm_lp_minutes', 'pm_lp_orders', 'pm_lpprep_minutes']);
+    for (const [t, where] of deletes) {
+      if (/_orders$/.test(t)) {
+        expect(where).toMatch(/^o\.mode = 'dry_run' and o\.state in \('cancelled', 'expired', 'rejected'\) and o\.ts < cut_\w+ and \(o\.cancelled_at is null or o\.cancelled_at < cut_\w+\) and not exists \(select 1 from public\.pm_\w+_fills f where f\.hash = o\.hash\)$/);
+      } else if (/^pm_(live|mid|lp)_minutes$/.test(t)) expect(where).toMatch(/^mode = 'dry_run' and minute < cut_\w+$/);
+      else expect(where).toMatch(/^minute < cut_\w+$/);
+    }
+    // The cutoffs: 14 days by default, and never past a day before the paper layer's last decided minute.
+    expect(norm(sql)).toContain("create or replace function public.pm_paths_prune(keep interval default interval '14 days')");
+    for (const layer of ['pm_prep', 'pm_midprep', 'pm_lpprep']) {
+      expect(norm(sql)).toContain(`least(now() - keep, coalesce((select s.last_minute from public.${layer}_state s where s.id = 1) - interval '1 day', '-infinity'::timestamptz))`);
+    }
+    // The paper layers' ended-orders read goes by an index a generic plan can use.
+    for (const p of ['pm_live', 'pm_mid', 'pm_lp']) expect(sql).toMatch(new RegExp(`create index if not exists ${p}_orders_mode_cancelled\\s+on public\\.${p}_orders\\s+\\(mode, cancelled_at\\) where cancelled_at is not null;`));
+    // The size for the monitor's reading, to the service role alone.
+    expect(sql).toMatch(/revoke all on function public\.db_size_bytes\(\) from public, anon, authenticated;\s+grant execute on function public\.db_size_bytes\(\) to service_role;/);
+    expect(sql).toMatch(/revoke all on function public\.pm_paths_prune\(interval\) from public, anon, authenticated;/);
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
