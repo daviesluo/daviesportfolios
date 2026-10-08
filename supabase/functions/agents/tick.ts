@@ -340,7 +340,11 @@ export function bookLiveBuy(gross: number, step: string, account: { asset: strin
   if (!account) return { ok: true, base: Number(floorToStep(gross, step)) };
   const beyond = account.held - account.rest;
   if (gross - beyond > gross * account.feeBps / 1e4 + 2 * Number(step)) return { ok: false, beyond };
-  return { ok: true, base: Number(floorToStep(Math.min(gross, beyond), step)), fromAccount: { asset: account.asset, held: account.held, rest: account.rest, gross } };
+  // The account holding more than this buy can have added (review A3) is another buy of the coin not yet booked, or coins
+  // from elsewhere: of it this buy's own is at most the gross less the fee Revolut X takes in the coin (reference §3.31).
+  // Booked whole, the first of two such buys took the second's coins, and the second fell short of its own for good.
+  const most = beyond > gross + 2 * Number(step) ? gross * (1 - account.feeBps / 1e4) : gross;
+  return { ok: true, base: Number(floorToStep(Math.min(most, beyond), step)), fromAccount: { asset: account.asset, held: account.held, rest: account.rest, gross } };
 }
 
 /**

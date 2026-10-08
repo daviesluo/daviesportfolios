@@ -240,6 +240,19 @@ Deno.test("bookLiveBuy, the tick's D11/D12 rule the executor books buys through:
   assertEquals(bookLiveBuy(5.5, "0.00001", { asset: "USDT", held: 19, rest: 14.5, feeBps: 9 }).ok, false);
 });
 
+Deno.test("bookLiveBuy, two buys of a coin unbooked at once with no fee reported: each books its own coins, and the second is not refused (A3)", () => {
+  // Two 132 USDC rungs filled in one minute; the venue took 9 bps of each in the coin, so the account holds 2 × 131.8812.
+  // The first booked takes its own net, not the gross out of the second's coins; the second then books exactly what is left.
+  const held = 2 * (132 - 132 * 0.0009);
+  assertEquals(bookLiveBuy(132, "0.0001", { asset: "USDC", held, rest: 0, feeBps: 9 }), { ok: true, base: 131.8812, fromAccount: { asset: "USDC", held, rest: 0, gross: 132 } });
+  const second = bookLiveBuy(132, "0.0001", { asset: "USDC", held, rest: 131.8812, feeBps: 9 });
+  assertEquals(second.ok ? second.base : second, 131.8812);
+  // One buy alone books as before: its own net from the balance, or its gross when the account shows the gross.
+  assertEquals(bookLiveBuy(132, "0.0001", { asset: "USDC", held: 131.8812, rest: 0, feeBps: 9 }).ok, true);
+  const alone = bookLiveBuy(132, "0.0001", { asset: "USDC", held: 132.0001, rest: 0, feeBps: 9 });
+  assertEquals(alone.ok ? alone.base : alone, 132);
+});
+
 Deno.test("paperEntryTarget: a quoting paper rung's order is the target; idle, holding, exiting or refused is none", () => {
   const s = newBookState("USDC-GBP");
   stepMinute(s, T0, { x: X, fairU: 1.0, prints: [] });

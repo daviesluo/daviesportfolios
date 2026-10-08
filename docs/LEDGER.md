@@ -271,7 +271,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
      `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
      D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys). **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
+     `agents` function redeploys); A3. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
      digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
      stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
      residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
@@ -430,6 +430,22 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A buy booked from the account with another of its coin unbooked takes only its own coins** (review A3, batch 5;
+  `bookLiveBuy` in `agents/tick.ts`, which the loop and PR5's executor both settle through). A buy the venue reports no
+  fee for is booked from the account's balance less the rest of the live book (D12), at most its gross. With two such
+  buys of a coin unbooked at once, the first was booked its gross out of the second's coins, and the second, short by
+  both fees, was refused for good ("settles when the account accounts for it"). When the balance holds more than this
+  buy's gross and two steps, its own share is now at most the gross less its fee in the coin (Revolut X takes a buy's
+  fee in the coin, reference §3.31). Not the review's fix (count the other open buys in the rest): PR5's rungs rest
+  unfilled most of the time, so that would refuse every such settlement while another rung rests. In a live turn:
+  nothing changes unless a buy comes back with no fee (none has: 0 of the 76 live fills) and the account holds more of
+  its coin than the book and that buy explain; then it books its net instead of its gross. A fee in dollars on a second
+  buy would leave its fee as dust at the venue rather than in the book. Pinned in `quotes_live.test.ts`: two 132 USDC
+  buys over 263.7624 held book 131.8812 each; the old rule booked the first 132 and refused the second (short 0.2376
+  against 0.119 allowed). PR5's instance test (beside its frozen copy), the twins, the simulator and the tick: 196
+  passed; the replays never derive a fee, so this branch never runs in them.
 
 ### [2026-10-08 23:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A fill the loop books in a turn counts once in that turn's exposure** (review A2, batch 5; `agents/tick.ts`). The
