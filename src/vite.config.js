@@ -75,10 +75,9 @@ export default defineConfig({
         // outDir is `dist/` and holds only build output, but the precache
         // stays explicitly scoped: the point is which files a device is
         // PUSHED on install, not which files exist. Runtime caches
-        // (network-first for Supabase, cache-first for the fonts) are
-        // picked up via `runtimeCaching` so the chart's live data never
-        // gets stuck on a stale snapshot. The fonts are not precached: of
-        // their thirteen subsets a page uses the two Latin ones.
+        // (network-first for Supabase, stale-while-revalidate for fonts)
+        // are picked up via `runtimeCaching` so the chart's live data never
+        // gets stuck on a stale snapshot.
         globPatterns: [
           'index.html',
           'manifest.webmanifest',
@@ -98,15 +97,15 @@ export default defineConfig({
         ],
         runtimeCaching: [
           {
-            // The site's own font files (app/fonts.css; Google Fonts until
-            // 2026-10-08, review M7). Their names carry their content's hash,
-            // so a cached copy is never stale; only a 200 is kept, never the
-            // 404 page a missing file is answered with.
-            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/') && url.pathname.endsWith('.woff2'),
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'google-fonts-stylesheets' },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'fonts',
-              cacheableResponse: { statuses: [200] },
+              cacheName: 'google-fonts-webfonts',
               expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },

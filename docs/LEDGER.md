@@ -237,6 +237,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 4's deploy order:** `overnight-fetch` starts requiring the app token one commit after the page starts
      sending it; push that commit once the page's bundle is live, or accept that an older open tab gets no new
      overnight points until it reloads. The `_shared/token.ts` commit redeploys every function (unchanged code).
+   - **M7 (the site's own fonts) reverted, to redo:** CI's Chromium drew the sweep with Inter for the first time (the
+     sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed (history
+     17:45). Redo it with the layouts that fail fixed for Inter at both widths, proved on CI's browser, not this one.
    - **Next:** the second, read-only review: the Deno suite, the perf matrix and the whole sweep; the live site without
      a login; backups and PITR; Cloudflare's settings, read-only; a line-by-line audit of the order arithmetic in
      `tick.ts`, `quotes_live.ts` and `pm_live.ts`. Findings reported, not fixed, without his word.
@@ -358,6 +361,17 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-08 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Review batch 4 landed less M7, which is reverted; `overnight-fetch`'s token check waits for a green main.** Batch
+  4's eight commits went out as 9ba3d76e with the gates green here, and check.yml went red on CI's browser
+  (run 37818540386): `phone/tabs/pr5-page` (ROUND TRIPS and the orders past their boxes by 6 px) and three desktop
+  checks, `tabs/rwx-waiting` among them (a variant's NEXT on three lines). The sweep aborts every third-party host, so
+  until M7 it drew the page in a fallback font; M7 served Inter from the site and CI's Chromium (headless shell 1243)
+  drew it wider than this container's 1194. The site has always shown Inter, from Google, so the checks may be
+  catching a real 6 px overflow on phones; that is for the redo (item 10). pages-deploy publishes only on a green
+  check, so the site stayed on batch 3's bundle the whole time; the Edge Functions deployed (trading212 without the
+  cash walk, every function for `_shared/token.ts`).
+
 ### [2026-10-08 17:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The ledger is slimmed and has a size budget** (review F15, approved by Davies 2026-10-08). It had reached 372,764
   bytes (about 93,000 tokens, read whole on every resume): the what-remains list 74,931, the setup 7,835, 168 history
@@ -392,25 +406,6 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     alone: `agent-ae8f87d2…` (`lp-phase-b`) and `coord` (`coord-main`) are merged, `agent-a16b8130…`
     (`realized-fix`), `agent-a3c95fae…` and `agent-a5a85cb5…` have every commit in main under another hash, and
     `agent-a84c1de2…`, `agent-ac18e281…` (`mid-pool-live-prep`) and `agent-ae80ba22…` hold one commit each not in main.
-
-### [2026-10-08 17:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The fonts are the site's own files, and nothing third-party holds the first paint** (review M7, approved by Davies
-  2026-10-08). `index.html` loaded Inter and JetBrains Mono through a Google Fonts stylesheet in `<head>`, which the
-  browser must fetch from a third party before it paints. The same 13 woff2 files Google served today (one variable
-  file a family and subset, weights 400-700; 300 KB in all, of which a page uses the two Latin ones, 80 KB) are in
-  `src/app/fonts/` with their OFL licences, and `src/app/fonts.css` is Google's own 52 rules with only the URL
-  changed. `index.html` preloads the two Latin files; Vite hashes them into `dist/assets/` (the smallest subset,
-  1.6 KB, is inlined as a `data:` URL). CSP: `font-src 'self' data:`, `style-src` without Google. The worker caches
-  the font files cache-first, 200s only (Google's two runtime caches went). The browser tests serve `.woff2` as
-  `font/woff2`, so the sweep now draws with the real fonts (it had aborted Google's and drawn fallbacks): all 644
-  checks green, perf 76, size ok. Evidence: with Google answering 2 s late, first contentful paint 2,096, 2,100 and
-  2,096 ms on the old bundle, 120, 116 and 104 ms on this one; the sweep's 28 desktop screenshots, drawn with Google's
-  stylesheet and fonts (answered with these bytes) on the old bundle and with these files on the new, are identical
-  but for the pulsing status dots' phase (at most 2,361 pixels, all in the dot column). Pins: `src/fonts.test.js`
-  (no Google in the page or the CSP, the preloads, the 52 rules and their files; two of its four fail on the old page
-  and headers), and no `.map` committed. **Source maps were never published:** `*.js.map` is ignored, the deploy
-  uploads the committed `dist/`, and the live site answers `app-dd113a14.js.map`, `ops_error-8fda3738.js.map` and
-  `sw.js.map` with its 404 page (fetched with a cache-busting query); my finding read the local build directory.
 
 ### [2026-10-08 17:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The stated test counts are today's** (review M4, approved by Davies 2026-10-08). The docs said 603 sweep checks

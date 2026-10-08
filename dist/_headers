@@ -18,9 +18,9 @@
 #                           inline styles are unavoidable. Strictly worse
 #                           than nonce-style-src but the alternative is
 #                           rewriting every styled JSX prop.
-#   font-src              — the site's own files (app/fonts.css; Google Fonts
-#                           until 2026-10-08, review M7), and data: for the
-#                           one subset small enough for Vite to inline.
+#       fonts.googleapis  — index.html loads Inter / JetBrains Mono from
+#                           Google Fonts (preconnect + <link>).
+#   font-src              — actual font files come from gstatic.
 #   img-src               — data: + blob: cover Vite's inline SVGs and any
 #                           runtime canvas → blob exports.
 #   connect-src           — every host the app fetches from. Adding a new
@@ -66,7 +66,7 @@
   X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://fundgz.1234567.com.cn https://api.fund.eastmoney.com https://danjuanapp.com https://stock.xueqiu.com https://api.cors.lol https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://cors.eu.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://fundgz.1234567.com.cn https://api.fund.eastmoney.com https://danjuanapp.com https://stock.xueqiu.com https://api.cors.lol https://corsproxy.io https://api.allorigins.win https://api.codetabs.com https://cors.eu.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 /
   Cache-Control: public, max-age=0, must-revalidate
