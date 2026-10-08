@@ -1,0 +1,21 @@
+-- 0100: the Trading 212 history walk runs from the one-minute job every ten minutes, not only from an open admin page.
+--
+-- Why (review F17, approved by Davies 2026-10-08). The walk (`trading212?action=orders-sync`: one page of fills per
+-- account, one of dividends, the fill-currency and dividend-FX backfills) ran only while an admin tab was open, which
+-- called it every two minutes, and went on calling it from a hidden tab. With no tab open the fills, and so the lot
+-- ledger, the deposit line and the dividends on Avg Cost, waited for the next visit. The function already answered the
+-- cron bearer for this action (`bearerIsCron`); it now also takes the job's POST (`handleCronPost`), writing its beat
+-- first, as every function the job calls does (0075).
+--
+-- The row. Every ten minutes, all day. 55 s at most, under the minute like every row (0099); in the 24 hours to
+-- 2026-10-08 15:00 UTC the page's 392 calls took 0.8 s at the median, 2.0 s at p95 and 37.6 s at most (the edge logs).
+-- The walk is resumable: each call reads the next page where the last stopped, so a call cut short loses nothing.
+--
+-- Run again by the watchdog when its worker never started (`retry`): a second call in its minute reads the next page,
+-- or page one again, and upserts what it reads on each fill's id, so it changes nothing a first call did. Trading 212's
+-- limit (six history calls a minute an account) is not reached: one call a page an account, and the page's own calls
+-- now stop while it is hidden.
+--
+-- ⚠️  As 0075: the job's URL is the PRODUCTION project's Edge host, so this row makes any database it is applied to call
+-- production.
+insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('trading212?action=orders-sync', 55000, 10, 23, true) on conflict (path) do nothing;

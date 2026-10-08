@@ -813,6 +813,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Trading 212 history walk runs without a page open, and a hidden page stops calling it** (review F17, approved
+  by Davies 2026-10-08). `orders-sync` (fills, dividends and their two backfills) ran only from an open admin tab, every
+  two minutes, hidden or not. `0100_t212_orders_sync_call.sql` makes it a row of the one-minute job: every ten minutes,
+  55 s at most, run again by the watchdog when its worker never started (the walk upserts on each fill's id). The
+  function now takes the job's POST for that action alone (`handleCronPost`: the cron bearer, the beat first, then the
+  same sync the page's GET runs, now `historySyncResponse`); any other POST is refused as before. The page skips the
+  walk while hidden and walks within two minutes of being shown. Sizes from the edge logs: the page's 392 calls in the
+  24 hours to 10-08 15:00 UTC took 0.8 s at the median, 2.0 s at p95, 37.6 s at most. Pins: `cron_jobs.test.js` (the
+  row, 144 calls a day, the POST route; the beat check covers `trading212` now), `handleCronPost` in the function's Deno
+  tests (75 pass), and an app test (a hidden tab never calls the walk; shown, within two minutes), which fails without
+  the guard. 0100 checked on PGlite against 0075's table (applied twice: one row). Redeploys `trading212`; 0100
+  applies on push. Its freshness is not among the monitor's readings: no money moves on it. Guide and map.
+
 ### [2026-10-08 15:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **No call of the one-minute job can hold the next minute's batch** (review F6, approved by Davies 2026-10-08).
   pg_net runs a batch until its slowest call answers, and `pmrw-select` and `pmrwc-select` waited 290 s, so one that

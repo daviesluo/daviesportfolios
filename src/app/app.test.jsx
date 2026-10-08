@@ -112,6 +112,7 @@ import { refreshPrices } from '../prices/yahoo_fetch.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 import { fetchTodayRegularClose } from '../prices/historical.js';
+import { syncTrading212History } from '../portfolio/trading212.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, knownPortfolioVersion } from '../portfolio/portfolio_remote.js';
 
 beforeEach(() => {
@@ -543,4 +544,41 @@ describe('App — an unsaved edit left by a tab that reloaded', () => {
     await waitFor(() => expect(sessionStorage.getItem('dp.pendingSave')).toBeNull());
     expect(queryByText(/CONFLICT/)).toBeNull();
   }, 10000);
+});
+
+// The Trading 212 history walk (review F17): the one-minute job runs it every ten minutes (0100), so a hidden tab no
+// longer calls it every two minutes; it walks again once it is shown.
+describe('App — the Trading 212 history walk', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  const SERVER_PORTFOLIO = {
+    holdings: { NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] } },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  let visibility = 'hidden';
+  beforeEach(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibility });
+  });
+  afterEach(() => {
+    delete /** @type {any} */ (document).visibilityState;   // jsdom's own getter again
+    vi.useRealTimers();
+  });
+
+  it('a hidden tab never calls the walk; once shown, it does within two minutes', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    visibility = 'hidden';
+    setAdminToken();
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+    render(<App />);
+    await vi.advanceTimersByTimeAsync(9_000);                 // past the walk's first 8 s
+    expect(syncTrading212History).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(5 * 60_000);
+    expect(syncTrading212History).not.toHaveBeenCalled();
+    visibility = 'visible';
+    await vi.advanceTimersByTimeAsync(2 * 60_000);
+    expect(syncTrading212History).toHaveBeenCalledTimes(1);
+  }, 20000);
 });

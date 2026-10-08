@@ -45,6 +45,7 @@ import {
   t212FaultKey,
   t212FaultReportDue,
   T212_FAULT_REPORT_EVERY_MS,
+  handleCronPost,
   mergeShaped,
   mergeShapedWithFallback,
   attachPreviousHoldingSlices,
@@ -985,4 +986,32 @@ Deno.test("bearerIsCron — the cron secret as a bearer, never an empty secret o
   assertEquals(bearerIsCron("Basic s3cret", "s3cret"), false);
   assertEquals(bearerIsCron("Bearer ", ""), false);
   assertEquals(bearerIsCron(null, "s3cret"), false);
+});
+
+// The one-minute job's call (0100, review F17): the cron bearer and `?action=orders-sync` by POST, its beat before the
+// sync, so `edge-watchdog` can tell a call that started from one whose worker never did. Any other POST is refused.
+Deno.test("handleCronPost — the cron bearer, then the beat, then the sync; anything else by POST is refused and writes no beat", async () => {
+  const url = "https://x.supabase.co/functions/v1/trading212?action=orders-sync";
+  const steps: string[] = [];
+  const deps = {
+    cronSecret: "s3cret",
+    beat: (key: string) => { steps.push(`beat ${key}`); return Promise.resolve(true); },
+    run: () => { steps.push("sync"); return Promise.resolve(new Response('{"stream":"orders"}', { status: 200 })); },
+  };
+  const post = (u: string, auth: string) => new Request(u, { method: "POST", headers: { Authorization: auth } });
+  const ok = await handleCronPost(post(url, "Bearer s3cret"), deps);
+  assertEquals(ok.status, 200);
+  assertEquals(await ok.json(), { stream: "orders" });
+  assertEquals(steps, ["beat trading212?action=orders-sync", "sync"]);
+  // A wrong bearer, no secret set, or another action: refused as every POST was before, and nothing written.
+  steps.length = 0;
+  assertEquals((await handleCronPost(post(url, "Bearer nope"), deps)).status, 405);
+  assertEquals((await handleCronPost(post(url, "Bearer s3cret"), { ...deps, cronSecret: "" })).status, 405);
+  assertEquals((await handleCronPost(post(url.replace("orders-sync", "history-sync"), "Bearer s3cret"), deps)).status, 405);
+  assertEquals((await handleCronPost(post(url.replace("?action=orders-sync", ""), "Bearer s3cret"), deps)).status, 405);
+  assertEquals(steps, []);
+  // A beat the database refuses stops nothing: the sync still runs.
+  const r = await handleCronPost(post(url, "Bearer s3cret"), { ...deps, beat: () => Promise.reject(new Error("db down")) });
+  assertEquals(r.status, 200);
+  assertEquals(steps, ["sync"]);
 });

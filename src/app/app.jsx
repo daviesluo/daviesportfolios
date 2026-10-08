@@ -1338,12 +1338,19 @@ function Board({ isReadOnly }) {
   // without a reload. `/equity/positions` reports a POSITION — quantity
   // and average price, no dates — which is why a synced ticker could
   // only ever carry a lot whose date was a guess.
+  // A hidden tab does not walk (review F17, 2026-10-08): the one-minute
+  // job runs the same walk every ten minutes (0100), so this tab only
+  // looks again two minutes later, and walks once it is shown.
   useEffect(() => {
     if (isReadOnly) return undefined;
     let cancelled = false;
     let timer = /** @type {any} */ (null);
     const step = async () => {
       if (cancelled) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        timer = setTimeout(step, 2 * 60 * 1000);
+        return;
+      }
       const res = await syncTrading212History();
       if (cancelled || !res) return;
       const denied = (Array.isArray(res.accounts) ? res.accounts : [])

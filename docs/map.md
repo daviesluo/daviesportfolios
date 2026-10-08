@@ -601,7 +601,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `prices` | Live quotes for every holding and market card from Yahoo, and Chinese funds from Eastmoney. |
 | `chart` | Price bars for the charts, from Yahoo or Eastmoney. |
 | `fundamentals` | P/E, P/S, EPS history and market cap from Yahoo, Finnhub and Alpha Vantage, cached; one file per source (`_yahoo.ts`, `_finnhub.ts`, `_alphavantage.ts`) plus `_caches.ts`, `_math.ts` and `_shared.ts`. |
-| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit and saying whether every account answered (its refusals reach the errors box), its fill history with each fill's currency, and the dividends both accounts received. |
+| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit and saying whether every account answered (its refusals reach the errors box), its fill history with each fill's currency, and the dividends both accounts received, walked by the one-minute job every ten minutes as well as by the admin page. |
 | `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker, in the board's units (a price 100 times the board's own is never written). |
 | `overnight-record` | Run by pg_cron through the US overnight session: records Trading 212's overnight quotes. |
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |
@@ -769,6 +769,7 @@ before touching migration state.
 | `0097_http_response_prune.sql` | Replaces 0093's truncate with a job deleting pg_net responses over ten minutes old at :05, :15, …, so it never locks the table while the one-minute batch writes to it. |
 | `0098_board_data_history.sql` | Keeps the portfolio's earlier versions: each change to `board_data` first copies the version it replaces into `board_data_history` (service role only), pruned at 90 days. |
 | `0099_edge_calls_select_timeout.sql` | The two daily Polymarket selections wait 55 s in the one-minute job instead of 290 s, so no minute's pg_net batch holds the next minute's calls. |
+| `0100_t212_orders_sync_call.sql` | Runs the Trading 212 history walk (`trading212?action=orders-sync`) from the one-minute job every ten minutes, so fills reach the database without an admin page open. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

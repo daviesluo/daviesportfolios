@@ -131,6 +131,10 @@ Tap a tile to open its chart.
   you hold at another platform stay. If it cannot confirm the sale, the
   board is left as it is and, after ten minutes, the errors box says
   which holding and why.
+- **When fills arrive.** The site reads Trading 212's fill history and
+  dividends every ten minutes by itself, whether the page is open or
+  not; while the page is open and in view it also reads them every two
+  minutes, so a fill shows soon after it is made.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current

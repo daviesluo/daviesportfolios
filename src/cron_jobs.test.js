@@ -526,6 +526,35 @@ describe('pg_cron jobs', () => {
     expect(src).toContain('if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runSelectKeptAlive(() => runPmrwSelect(');
   });
 
+  it("adds the Trading 212 history walk to the list (0100): every ten minutes, its function's beat first, every other row as it was", () => {
+    // review F17 (2026-10-08): the walk ran only while an admin page was open.
+    const T = FILES.find((f) => /^\d{4}_t212_orders_sync_call\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'trading212?action=orders-sync', timeout: 55000, every: 10, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('trading212?action=orders-sync');
+    // 144 calls a day, the rest of the list's minutes unchanged.
+    const day = Date.UTC(2026, 9, 9);
+    let added = 0;
+    for (let m = 0; m < 1440; m++) {
+      const at = day + m * 60e3;
+      const was = before.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      const is = after.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      expect(is.slice(0, was.length)).toEqual(was);
+      added += is.length - was.length;
+    }
+    expect(added).toBe(144);
+    // The function takes the job's POST for this action alone, its beat before the walk (pinned in its Deno test).
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/trading212/index.ts'), 'utf8');
+    expect(src).toMatch(/if \(req\.method === "POST"\) \{\s+return await handleCronPost\(req, \{/);
+    expect(src).toContain('if (action !== "orders-sync" || !bearerIsCron(req.headers.get("authorization"), deps.cronSecret)) {');
+    expect([...cronJobs(FILES.filter((f) => f <= T))]).toEqual([...cronJobs(FILES.filter((f) => f < T))]);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))

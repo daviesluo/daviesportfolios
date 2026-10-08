@@ -85,6 +85,7 @@
 // `APP_AUTH_SECRET` env var (same value as the `auth` function).
 
 import { reportServerError } from "../_shared/ops.ts";
+import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { T212_DCA_ETFS, t212TickerToYahoo } from "../_shared/t212_tickers.ts";
 
@@ -2019,6 +2020,71 @@ async function syncHistoryPerAccount(): Promise<Record<string, unknown>[]> {
 // 500. Best-effort: never throws.
 // reportServerError now lives in ../_shared/ops.ts (imported above).
 
+/**
+ * One step of the history walk (`orders-sync`: fills, then dividends and the two backfills; `history-sync`: fills and
+ * cash movements per account) and its answer. The admin page's GET runs it, and since 0100 the one-minute job's POST
+ * does too (`handleCronPost`), every ten minutes, so the fills reach the database without a page open (review F17).
+ */
+async function historySyncResponse(action: "orders-sync" | "history-sync"): Promise<Response> {
+  // Sequential, not parallel: two accounts on one endpoint already
+  // sit on the 6/min ceiling. history-sync picks the next page
+  // *per account* so a finished invest walk can start cash
+  // history while ISA is still chewing cancelled orders.
+  const results = action === "history-sync"
+    ? await syncHistoryPerAccount()
+    : await syncHistoryAccounts("orders");
+  // The dividends walk rides on the same call, one page per account (its own endpoint, its own rate limit),
+  // then the two backfills that fill in what a page could not: fill currencies from the instrument metadata,
+  // and dividends paid in another currency than the holding's at that day's close.
+  const dividends = action === "orders-sync"
+    ? await Promise.all(t212HistoryAccounts().map(([name, key, secret]) => syncDividendsOnce(name, key, secret)))
+    : [];
+  const currencyBackfill = action === "orders-sync" ? await backfillOrderCurrencies(T212_API_KEY, T212_API_SECRET) : null;
+  const dividendFx = action === "orders-sync" ? await fillDividendFx() : null;
+  const ordersStateComplete = await ordersSyncComplete();
+  const ordersComplete = action === "orders-sync"
+    ? ordersStateComplete && results.every((row) => row.complete === true && !row.error)
+    : ordersStateComplete;
+  const transactionsComplete = action === "history-sync"
+    ? await transactionsSyncComplete()
+    : false;
+  const bothComplete = action === "history-sync"
+    ? (ordersComplete && transactionsComplete)
+    : results.every((r) => r.complete === true);
+  const stream = results.find((r) => r.stream && r.stream !== "skip")?.stream
+    ?? (action === "history-sync" ? "none" : "orders");
+  return new Response(JSON.stringify({
+    stream,
+    accounts: results,
+    complete: bothComplete,
+    ordersComplete,
+    transactionsComplete,
+    dividends,
+    dividendsComplete: dividends.length > 0 ? dividends.every((d) => d.complete === true) : undefined,
+    currencyBackfill,
+    dividendFx,
+  }), { headers: { ...CORS, "content-type": "application/json" } });
+}
+
+/**
+ * The one-minute job's call (0100, review F17): POST, the cron bearer, `?action=orders-sync`. Its beat first
+ * (`_shared/beats.ts`, 0075), so a call whose worker the platform never started is told apart from one that started
+ * and `edge-watchdog` runs it again; then the sync (`run`). Any other POST is refused as every POST was before.
+ * Exported with its parts injectable so that order is pinned.
+ */
+export async function handleCronPost(req: Request, deps: {
+  cronSecret: string; beat: (key: string) => Promise<unknown>; run: () => Promise<Response>;
+}): Promise<Response> {
+  const action = new URL(req.url).searchParams.get("action");
+  if (action !== "orders-sync" || !bearerIsCron(req.headers.get("authorization"), deps.cronSecret)) {
+    return new Response(JSON.stringify({ error: "method not allowed" }), {
+      status: 405, headers: { ...CORS, "content-type": "application/json" },
+    });
+  }
+  await deps.beat(beatKeyOfRequest("trading212", req.url)).catch(() => false);
+  return await deps.run();
+}
+
 // Trading 212's own failures, reported (review F16, 2026-10-08). Until then a refused or timed-out positions read, or
 // an answer of the wrong shape, reached only the function's logs: the page went on with the cache, then with nothing,
 // and the client's read returns null without a word, so the sync could stop for days unnoticed. Now each becomes an
@@ -2076,6 +2142,15 @@ if (import.meta.main) {
     try {
       if (req.method === "OPTIONS") {
         return new Response(null, { headers: CORS });
+      }
+      if (req.method === "POST") {
+        return await handleCronPost(req, {
+          cronSecret: Deno.env.get("CRON_SECRET") ?? "",
+          beat: (key) => writeBeat(key),
+          run: async () => T212_API_KEY
+            ? await historySyncResponse("orders-sync")
+            : new Response(JSON.stringify({ source: "disabled" }), { headers: { ...CORS, "content-type": "application/json" } }),
+        });
       }
       if (req.method !== "GET") {
         return new Response(JSON.stringify({ error: "method not allowed" }), {
@@ -2165,44 +2240,7 @@ if (import.meta.main) {
             status: 403, headers: { ...CORS, "content-type": "application/json" },
           });
         }
-        // Sequential, not parallel: two accounts on one endpoint already
-        // sit on the 6/min ceiling. history-sync picks the next page
-        // *per account* so a finished invest walk can start cash
-        // history while ISA is still chewing cancelled orders.
-        const results = action === "history-sync"
-          ? await syncHistoryPerAccount()
-          : await syncHistoryAccounts("orders");
-        // The dividends walk rides on the same call, one page per account (its own endpoint, its own rate limit),
-        // then the two backfills that fill in what a page could not: fill currencies from the instrument metadata,
-        // and dividends paid in another currency than the holding's at that day's close.
-        const dividends = action === "orders-sync"
-          ? await Promise.all(t212HistoryAccounts().map(([name, key, secret]) => syncDividendsOnce(name, key, secret)))
-          : [];
-        const currencyBackfill = action === "orders-sync" ? await backfillOrderCurrencies(T212_API_KEY, T212_API_SECRET) : null;
-        const dividendFx = action === "orders-sync" ? await fillDividendFx() : null;
-        const ordersStateComplete = await ordersSyncComplete();
-        const ordersComplete = action === "orders-sync"
-          ? ordersStateComplete && results.every((row) => row.complete === true && !row.error)
-          : ordersStateComplete;
-        const transactionsComplete = action === "history-sync"
-          ? await transactionsSyncComplete()
-          : false;
-        const bothComplete = action === "history-sync"
-          ? (ordersComplete && transactionsComplete)
-          : results.every((r) => r.complete === true);
-        const stream = results.find((r) => r.stream && r.stream !== "skip")?.stream
-          ?? (action === "history-sync" ? "none" : "orders");
-        return new Response(JSON.stringify({
-          stream,
-          accounts: results,
-          complete: bothComplete,
-          ordersComplete,
-          transactionsComplete,
-          dividends,
-          dividendsComplete: dividends.length > 0 ? dividends.every((d) => d.complete === true) : undefined,
-          currencyBackfill,
-          dividendFx,
-        }), { headers: { ...CORS, "content-type": "application/json" } });
+        return await historySyncResponse(action);
       }
 
       const now = Date.now();
