@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Regression coverage for the PerfChart's render decision tree. The
 // math is pinned by ytd.test.js + utils.metrics.test.js — this just
 // asserts the chart's wiring actually consumes those values.

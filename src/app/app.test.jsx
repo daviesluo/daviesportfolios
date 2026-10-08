@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Smoke test for the top-level App component. Two scenarios:
 //   1. No app token in sessionStorage → renders the password gate.
 //   2. A valid token present (ro role) → renders the read-only board.

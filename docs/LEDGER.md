@@ -821,6 +821,16 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Vitest runs under Node unless a test asks for a DOM** (review F14, approved by Davies 2026-10-08). Every one of the
+  69 files ran in jsdom, whose set-up took more of the workers' time than the tests. Now `environment: 'node'`, and the
+  25 files that need a DOM start with `// @vitest-environment jsdom`: the 15 component tests (`.jsx`) and `agents`,
+  `chunk_recovery`, `storage`, `sw_banner`, `screenshot`, `trading212`, `network`, `overnight_intraday`, `prefetch` and
+  `yahoo_fetch` (found by running all 69 under Node: exactly those 25 failed). Timed on this container, two runs each:
+  before 36.5 s and 36.0 s (environment 58.0 s and 56.7 s summed over workers, tests 20.6 s and 20.4 s), after 23.9 s,
+  24.8 s and 24.2 s (environment 20.2–21.5 s, tests 21.0 s); 1,323 tests pass either way. CLAUDE.md's testing section
+  says so.
+
 ### [2026-10-08 15:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The scoreboard never shows the book at 1:1 while the exchange rates load: the sweep's `scoreboard` flake was a real
   bug** (review F13, Davies via the coordinator 2026-10-08: "if the APP shows a wrong total transiently, that is a real

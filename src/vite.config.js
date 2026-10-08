@@ -232,7 +232,11 @@ export default defineConfig({
   // vs jsdom by globbed pattern. `setupFiles` brings in jest-dom's
   // matcher extensions (toBeInTheDocument etc.) globally.
   test: {
-    environment: 'jsdom',
+    // Node by default; a test that needs a DOM says so on its first line (`// @vitest-environment jsdom`): every
+    // component test and ten of the module tests (review F14, 2026-10-08). With jsdom for all 69 files, setting up
+    // environments took 58 s of the workers' time against 21 s of tests (36.5 s a run); a file that reaches for
+    // `document` or `window` without the line fails at once, so none is left behind.
+    environment: 'node',
     setupFiles: ['./test_setup.js'],
     // Tests live under src/, alongside the modules they pin.
     include: ['./**/*.test.{js,jsx,ts,tsx}'],

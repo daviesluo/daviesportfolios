@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pins the SFTBY-shape ext-price suppression: OTC ADRs that quote only
 // their regular US session must never carry a Yahoo postMarketPrice, so
 // the phantom "after-hours / overnight" move can't reach the UI. Tests

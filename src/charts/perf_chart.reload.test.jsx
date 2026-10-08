@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // What the vs-S&P panel draws while a reload's data is still arriving.
 //
 // Measured in the real bundle before the fix, with every response held

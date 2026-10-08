@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Interaction coverage for EditTickerModal's "Move holding" flow — the
 // two-step position picker that relocates a holding on the tactics
 // board. Regression net for the picker's option set (excludes GK + the

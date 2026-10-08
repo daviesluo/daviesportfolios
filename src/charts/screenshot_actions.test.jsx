@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Wiring test for the chart-modal screenshot buttons: each button finds
 // its own `.modal` panel via closest(), copy/save get the panel node + a
 // `screenshot-skip` ignore predicate, save's filename is date-stamped, and

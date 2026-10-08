@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Unit tests for the valuation-metadata hook extracted from the modal.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';

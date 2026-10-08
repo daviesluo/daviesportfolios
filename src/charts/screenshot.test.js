@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pin the screenshot helpers' platform routing — the part most likely to
 // regress: copy must build an image/png ClipboardItem around the pending
 // capture (Safari-safe), and save must route to the share sheet on mobile

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // The boundary around one surface of the page (improvement plan item 20): a throw inside it becomes that surface's own
 // message with a Retry, reported under the surface's name, while everything outside it stays drawn. The browser sweep
 // checks the same on the built bundle, surface by surface (src/e2e/app-sweep.mjs, part `surfaces`).

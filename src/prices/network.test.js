@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Unit tests for the network/proxy plumbing — pin the race-and-cancel
 // behavior of fetchHistoricalBatch so future refactors can't silently
 // regress the perf wins from PRs #47/#48 (Codex P1: edge-only path used

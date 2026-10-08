@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Unit tests for the price-series data hook extracted from the modal.
 // The pure deps (ytd / cache / indicators / ticker_class / helpers) run
 // for real; the network + stores are mocked.

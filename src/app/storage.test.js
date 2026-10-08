@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pins for the persisted-state layer (storage.js). The cold-start
 // correctness of the portfolio total + MC cards rides on
 // loadMarketCache's validation / expiry / legacy-fallback, and the

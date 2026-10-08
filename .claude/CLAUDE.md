@@ -324,7 +324,9 @@ from anywhere in the repository (`--full`: every one).
   T212 sync application, and the chart-modal indicator math (MA /
   VWAP / TTM-EPS-P/E / extended-hours-bar detection). Add a pin
   test whenever a regression is fixed so the bug can't quietly come
-  back.
+  back. Tests run under Node; one that needs a DOM (every component
+  test) starts with `// @vitest-environment jsdom`, which made the
+  run 24 s instead of 36 s (2026-10-08).
 - `npm run build` — Vite production bundle, output to `dist/` (committed;
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in

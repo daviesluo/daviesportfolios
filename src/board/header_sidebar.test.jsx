@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Interaction coverage for the scoreboard's two header controls: the
 // currency-cycle 💱 button and the hide-values eye. The cycle button
 // alone went through ~5 rounds of preview-only iteration on its

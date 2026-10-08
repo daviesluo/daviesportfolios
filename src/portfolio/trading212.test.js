@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pin the lots-merge shape so a future change to applyTrading212
 // can't silently break the VUAA.L / SAEM.L auto-sync. The
 // fetchTrading212Holdings path is just a fetch wrapper — covered by

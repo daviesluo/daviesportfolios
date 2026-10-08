@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pins for the overnight intraday client layer: the cache round-trip,
 // fetch-writes-cache + event, and the mergeOvernightSeries splice
 // logic (the highest-risk part — it decides line-vs-dot and what gets

@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pin prefetch ↔ TickerChartModal cache-key alignment. A mismatch
 // between the key prefetch writes and the key the modal reads ships
 // silently — the chart still works, just always pays a cold fetch

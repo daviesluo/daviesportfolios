@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Davies, 2026-10-07: "在不开extended hours时只显示开盘后的，忽略了之前收盘到开盘时的变动，在这种情况下开始不需要从0%开始，
 // 并且确保在盘中时和scoreboard里的实时变动一样". 24H with extended hours off is the latest regular session, measured
 // from its previous close on both lines, on both tabs; extended hours on and every longer range are as they were.

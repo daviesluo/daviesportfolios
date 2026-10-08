@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // The per-bar portfolio build used to sit in PerfChart's render body: for
 // every point on the window it calls `computeAt`, i.e. it values the
 // whole book once per bar. On a 150-bar range one refresh tick re-ran

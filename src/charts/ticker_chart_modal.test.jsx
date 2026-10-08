@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Regression coverage for TickerChartModal's rendering decision tree.
 // The bar isn't "full E2E exercise" — it's "did a prop rename, a
 // hook reorder, or a render-branch refactor break the surface the

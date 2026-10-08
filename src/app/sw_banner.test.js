@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Pin tests for the post-RELOAD suppression machinery in sw-banner.jsx.
 // We can't render the React component without a DOM, so the testable
 // surface is the trio of pure helpers the component leans on:
