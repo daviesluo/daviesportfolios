@@ -1824,11 +1824,13 @@ export function rweRow(r) {
 }
 
 /**
- * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md` and, for x4 and x5,
- * `reviews/2026-10-02-polymarket-rw-rest-prereg.md`). Each is a row of its own after RW-E's, read the same way: the
- * dashboard's `rwx` is a list in `rw`'s shape, one entry per variant on the page, each with its `id` (x1, x4 and x5 since
- * 2026-10-02), its `name` and the replay's `checks`; the server names them and leaves the others off. A row's id is
- * `__rwx-` and the variant's. An empty or absent list adds no row.
+ * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md` and, for TB1's two,
+ * `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`). Each is a row of its own after RW-E's, read the same way: the
+ * dashboard's `rwx` is a list in `rw`'s shape, one entry per variant on the page, each with its `id` (x1 as variant-2, and
+ * tb1-skip and tb1-back as variant-3 and -4 since 2026-10-07; x4 and x5 had those names from 2026-10-02 and left the page
+ * then), its `name`, the replay's `checks` and the replay it reads (`source`: RW's until RW-C's first minute, 2026-10-09
+ * 00:00 UTC, RW-C's from it); the server names them and leaves the others off. A row's id is `__rwx-` and the variant's.
+ * An empty or absent list adds no row.
  * @param {any} list  the dashboard's `rwx`
  */
 export function rwxRows(list) {
@@ -1851,7 +1853,28 @@ export function rwxCheckWarn(r) {
   const c = r?.checks;
   if (!c || c.ok) return null;
   const gap = Math.max(Number(c.rwMaxUsd) || 0, Number(c.eMaxUsd) || 0);
-  return `The replay differs from RW's or RW-E's own days by ${fmtUsd(gap)}, so these figures are not this rule on RW's data.`;
+  // On RW-C's replay (from 2026-10-09) the checks are against RW-C's own days and RW-E's replay of them.
+  const src = r?.source === 'RW-C' ? 'RW-C' : 'RW';
+  return src === 'RW'
+    ? `The replay differs from RW's or RW-E's own days by ${fmtUsd(gap)}, so these figures are not this rule on RW's data.`
+    : `The replay differs from RW-C's own days or RW-E's on RW-C's by ${fmtUsd(gap)}, so these figures are not this rule on RW-C's data.`;
+}
+
+/**
+ * Which replay a variant's row reads and since when, for its page (2026-10-08). The rows read RW's replay until RW-C's
+ * first minute, 2026-10-09 00:00 UTC, and RW-C's from it, TB1's test (Davies, 2026-10-07): one at a time, so at the switch
+ * a row starts again from zero, as RW-C's own row does, and never adds the two runs together. On RW's it says when it
+ * moves. null for a payload that does not say (one from before the switch was built).
+ * @param {any} r  one entry of the dashboard's `rwx`
+ */
+export function rwxSourceText(r) {
+  const src = r?.source;
+  if (src !== 'RW' && src !== 'RW-C') return null;
+  const since = r.startedAt ?? r.startsAt;
+  const head = `On ${src}'s minutes${since ? ` ${r.startedAt ? 'since' : 'from'} ${rwStartStamp(since)}` : ''}.`;
+  const next = r.sourceNext;
+  if (next?.source && next?.at) return `${head} From ${rwStartStamp(next.at)} it reads ${next.source}'s, its test, and starts again from zero.`;
+  return src === 'RW-C' ? `${head} Its figures on RW's minutes before then are not in it.` : head;
 }
 
 /**

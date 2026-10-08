@@ -517,10 +517,24 @@ const AGENTS_RWE = (dayStartMs) => {
  * RW-E's figures to the cent (AGENTS_RWE) under its own id and name, with both of the replay's checks holding. Since
  * 2026-10-07 they are x1 ("variant-2") and TB1's two ("variant-3" tb1-skip and "variant-4" tb1-back, x1 on the minutes
  * whose touch is a tick wide); x2–x5 are not among them: the replay still runs them, the dashboard does not send them.
+ * Until RW-C's first minute (2026-10-09 00:00 UTC; the pinned clock is before it) they read RW's replay and say they
+ * move to RW-C's then (`source`, `sourceNext`); from it they read RW-C's (AGENTS_RWX_RWC, served in `rwc-running`).
  */
 const AGENTS_RWX = (dayStartMs) => [
   ['x1', 'Reward quotes variant-2'], ['tb1-skip', 'Reward quotes variant-3'], ['tb1-back', 'Reward quotes variant-4'],
-].map(([id, name]) => ({ ...AGENTS_RWE(dayStartMs), id, name, startedAt: new Date(NOW_MS - (20 * 60 + 30) * 60e3).toISOString(), checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true } }));
+].map(([id, name]) => ({
+  ...AGENTS_RWE(dayStartMs), id, name, startedAt: new Date(NOW_MS - (20 * 60 + 30) * 60e3).toISOString(), checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 2, ok: true },
+  source: 'RW', sourceNext: { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' },
+}));
+/**
+ * The same three rows from RW-C's first minute, as `rwxArmSummaries` makes them on RW-C's replay (`rwxPageReplay`): each
+ * its RW-C arm's own summary, here RW-C's running fixture's figures (AGENTS_RWC_RUNNING), counted from RW-C's first minute
+ * against RW-C's fourteen days, with nothing of RW's replay in it and nothing about a later move.
+ */
+const AGENTS_RWX_RWC = (dayStartMs) => AGENTS_RWX(dayStartMs).map((x) => ({
+  ...AGENTS_RWC_RUNNING(dayStartMs), id: x.id, name: x.name, checks: x.checks,
+  runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z', startedAt: '2026-10-09T00:00:00.000Z', source: 'RW-C', sourceNext: null,
+}));
 
 /**
  * RW-C (`0069`), RW's engine run again on 2026-10-09 → 10-23 UTC, as `rwcSummary` returns it in its warm-up before its
@@ -1260,7 +1274,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'pr5-live-noexit') return json(AGENTS_PR5_LIVE_NO_EXIT());
       if (agentsMode === 'rwx-waiting') return json(AGENTS_RWX_WAITING());
       if (agentsMode === 'rwc-warmup') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_WAITING() });
-      if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000) });
+      // RW-C inside its fourteen days: its own row, and the variant rows reading RW-C's replay in place of RW's.
+      if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000), rwx: AGENTS_RWX_RWC(Math.floor(NOW_MS / 86400_000) * 86400_000) });
       if (agentsMode === 'quotesv') return json({ ...AGENTS_DASHBOARD, quotesVariant: AGENTS_QUOTESV(AGENTS_DASHBOARD.at), quotesRuled: AGENTS_QUOTESD(AGENTS_DASHBOARD.at) });
       if (agentsMode === 'prep') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output });
       if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
@@ -3249,7 +3264,13 @@ async function run() {
       const xFills = await page.locator('.ag-rw-fills tbody tr').count();
       const xWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
       const xOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
+      const xSource = ((await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim())).join('|');
       await shot(page, 'agents-rwx');
+      // Until RW-C's first minute a variant reads RW's replay, says since when (its own first minute, AGENTS_RWX's), and that
+      // it moves to RW-C's at 2026-10-09 00:00 UTC and starts again from zero.
+      if (xSource === "On RW's minutes since 17 Sep 03:30 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.") {
+        ok(S('agents'), "a variant's page says it reads RW's replay since its first minute and moves to RW-C's at 9 Oct 01:00 BST, starting again from zero");
+      } else fail(S('agents'), `variant page source line "${xSource}"`);
       if (xTitle === 'Reward quotes variant-3' && xSplit.join('|') === 'rewards +$23.20|orders +$0.40' && xSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && xMarkets === 3 && xFills === 3 && xWarn === 0 && xOverflow >= 0 && xOverflow <= 1) {
         ok(S('agents'), "a variant's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, 3 markets, 3 fills, no warning");
@@ -4229,6 +4250,28 @@ async function run() {
         && !rcDays.some((d) => /warm-up/.test(d)) && rcMarkets === 3 && rcFills === 3 && rcWarn === 0 && rcOverflow >= 0 && rcOverflow <= 1) {
         ok(T('rwc-running'), "its page: its own title, realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills, no warning");
       } else fail(T('rwc-running'), `RW-C page: title "${rcTitle}", split ${rcSplit.join('|')}, days ${rcDays.join(' | ')}, markets ${rcMarkets}, fills ${rcFills}, warnings ${rcWarn}, overflow ${rcOverflow}`);
+      // From RW-C's first minute the variant rows read RW-C's replay (AGENTS_RWX_RWC): still one row each, not RW's beside
+      // RW-C's, in RW's cells with their RW-C figures, and each page says it reads RW-C's minutes since 9 Oct 01:00 BST.
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      const rcxRows = [];
+      for (const name of ['Reward quotes variant-2', 'Reward quotes variant-3', 'Reward quotes variant-4']) {
+        const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
+        rcxRows.push({ name, n: await el.count(), text: (await el.first().innerText().catch(() => '')).replace(/\s+/g, ' ') });
+      }
+      const rcxTotal = await page.locator('.ag-strategies .ag-row').count();
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-3') }).first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const rcxTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const rcxSource = ((await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim())).join('|');
+      const rcxOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
+      await shot(page, 'agents-rwx-rwc');
+      if (rcxRows.every((x) => x.n === 1 && /3 open · \$1,000 cap/.test(x.text) && /\+\$7\.50 \(\+0\.75%\)/.test(x.text) && /\+\$23\.60 \(\+2\.36%\)/.test(x.text) && /every minute/.test(x.text))
+        && rcxTotal === TESTING.rows + 1 && rcxTitle === 'Reward quotes variant-3'
+        && rcxSource === "On RW-C's minutes since 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it." && rcxOverflow >= 0 && rcxOverflow <= 1) {
+        ok(T('rwc-running'), "from RW-C's first minute the variant rows read RW-C's replay: one row each (RW-C's own row the only one added), their RW-C figures, and a page that says \"On RW-C's minutes since 9 Oct 01:00 BST\"");
+      } else fail(T('rwc-running'), `variant rows on RW-C ${JSON.stringify(rcxRows)}, rows ${rcxTotal} (want ${TESTING.rows + 1}), title "${rcxTitle}", source "${rcxSource}", overflow ${rcxOverflow}`);
       agentsMode = 'ok';
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);

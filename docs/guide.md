@@ -290,6 +290,14 @@ places stay when the number is not whole.
   of the first rules, and the two that were variant-3 and variant-4 until
   7 October (resting the quotes further out, and leaning against what is
   held), which keep running for their own tests.
+  Variant-2, variant-3 and variant-4 are worked out on Reward quotes' own
+  order books and trades until 9 October 01:00 UK time, when its fourteen
+  days end, and from then on Reward quotes confirmation's, the new days
+  their real test is on. At that minute each of the three starts again
+  from nothing: its figures, days, quotes and fills are the confirmation
+  days' alone, never added to what it made before, and until its first
+  minute there is worked out the row says when it starts. Each page says
+  which days it is reading and since when.
 - **Reward quotes confirmation.** From 8 October, the row after the variants: Reward
   quotes' own rule run again, forward, for fourteen more days, 9 to 23
   October, to see whether what it did in its first fourteen holds on days

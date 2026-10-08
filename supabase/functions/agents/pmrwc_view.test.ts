@@ -1,10 +1,14 @@
 // RW-C on the Agents page (pmrw_view.ts's `rwcSummary`): the dashboard's `rwc`, RW's own summary of RW-C's own engine
 // run against its fourteen days, 2026-10-09 → 10-23 UTC — from before the engine has a state at all, through its
-// warm-up, which counts nowhere, to after its end.
+// warm-up, which counts nowhere, to after its end. And the variant rows (x1, tb1-skip, tb1-back), which read RW's replay
+// until RW-C's first minute and RW-C's from it (`rwxPageReplay`, `readRwxRows`), pinned on both sides of that instant.
 
-import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { RWC_INSTANCE, RWC_RUN_END, RWC_RUN_START, RWC_WARM_UP } from "./pmrw.ts";
-import { RW_FUNDED_USD, rwcSummary, rwSummary, type RwFillRow } from "./pmrw_view.ts";
+import { RW_FUNDED_USD, RWX_PAGE_SWITCH, rwcSummary, rwSummary, rwxPageReplay, type RwFillRow } from "./pmrw_view.ts";
+import { RWCX_REPLAY, RWX_REPLAY, RWX_START, RWX_STATE_VERSION } from "./pmrw_x.ts";
+import { readRwxRows } from "./index.ts";
+import { memDb, onlyTables, type Row } from "./testing.ts";
 
 const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -66,3 +70,107 @@ Deno.test("rwcSummary from RW-C's own records: nothing of the warm-up, its days 
   const done = rwcSummary({ state: st(RWC_RUN_END, RWC_RUN_END - M), selection: [], latest: [], days, fills, nowMs: RWC_RUN_END + 3600e3 })!;
   assertEquals([done.finished, done.running, done.phase], [true, false, "after"]);
 });
+
+// ------------------------------------------------------------------------------------------------ the variant rows' replay
+
+
+/**
+ * Two worlds in one database: RW's replay (`pm_rw_x_*`, on RW's run) and RW-C's (`pm_rwc_x_*`, on RW-C's), each arm of the
+ * page holding one market whose figure is its reward alone (nothing held, no fill), so a row's total is that reward by hand:
+ * on RW's replay x1 $10, tb1-skip $4, tb1-back $5; on RW-C's x1 $0.70, tb1-skip $0.30, tb1-back $0.50. A row that read
+ * the other replay, or both, would show another number.
+ */
+function twoReplays(rw: { lastDecided: number; dayOf: number } | null, rwc: { lastDecided: number; dayOf: number } | null) {
+  const acc = (reward: number) => ({ net: 0, cash: 0, reward, fills: 0, fillShares: 0, tickCost: 0, firstCap: 20, maxInvCost: 0, lastM: 0.5, lastAb: 0.49, lastAa: 0.51, quotedMinutes: 1, settled: null });
+  const arm = (reward: number | null) => ({ acc: reward == null ? {} : { [A.cond]: acc(reward) }, dayActive: [], diverged: [], pausedUntil: {}, lastMid: {}, base: {} });
+  const engine = (w: { lastDecided: number; dayOf: number }) => [{ id: 1, state: { lastDecided: w.lastDecided, dayOf: w.dayOf, statusAt: 0, dayActive: [], meta: {}, acc: {} }, last_minute: iso(w.lastDecided), last_error: null, updated_at: iso(w.lastDecided + 60e3) }];
+  const replay = (w: { lastDecided: number; dayOf: number }, r: [number, number, number]) => [{
+    id: 1, last_minute: iso(w.lastDecided), last_error: null, updated_at: iso(w.lastDecided + 60e3),
+    state: {
+      version: RWX_STATE_VERSION, checkEMaxUsd: 0, checkEDays: 1, checkMaxUsd: 0, lastDecided: w.lastDecided, dayOf: w.dayOf,
+      arms: { rw: arm(null), e: arm(null), x1: arm(r[0]), x2: arm(1), x3: arm(1), x4: arm(1), x5: arm(1), "tb1-skip": arm(r[1]), "tb1-back": arm(r[2]) },
+    },
+  }];
+  const day = (d: string, arm: string, total: number) => ({ day: d, arm, total, stress_total: total, reward: total, fills: 0, capital: 20, markets: 1, detail: {} });
+  const run = (p: string) => ({ [`${p}_selection`]: [] as Row[], [`${p}_minutes`]: [] as Row[], [`${p}_fills`]: [] as Row[], [`${p}_days`]: [] as Row[] });
+  return memDb({
+    ...run("pm_rw"), ...run("pm_rwc"),
+    pm_rw_state: rw ? engine(rw) : [], pm_rw_x_state: rw ? replay(rw, [10, 4, 5]) : [],
+    // RW's x1 closed 10-07 at $6 (its today is then $4); none of it may reach a row that reads RW-C.
+    pm_rw_x_days: [day("2026-10-07", "x1", 6)],
+    pm_rwc_state: rwc ? engine(rwc) : [], pm_rwc_x_state: rwc ? replay(rwc, [0.7, 0.3, 0.5]) : [],
+    pm_rwc_x_days: [day("2026-10-09", "x1", 0.4), day("2026-10-09", "tb1-skip", 0.1), day("2026-10-09", "tb1-back", 0.2)],
+  } as Record<string, Row[]>, { now: () => 0 });
+}
+const RW_TABLES = ["pm_rw_state", "pm_rw_selection", "pm_rw_minutes", "pm_rw_fills", "pm_rw_days", "pm_rw_x_state", "pm_rw_x_days"];
+const RWC_TABLES = RW_TABLES.map((t) => t.replace("pm_rw_", "pm_rwc_"));
+/** The page's rows at `now` as the dashboard reads them: the replay the clock picks, through `readRwxRows`. */
+async function rowsAt(db: ReturnType<typeof twoReplays>, now: number) {
+  const guarded = onlyTables(db.db, [...RW_TABLES, ...RWC_TABLES]);
+  const rows = await readRwxRows(guarded, now, rwxPageReplay(now));
+  return { rows, touched: [...guarded.touched].sort() };
+}
+
+Deno.test("the variant rows switch from RW's replay to RW-C's at RW-C's first minute, 2026-10-09 00:00 UTC, by the clock", () => {
+  assertEquals(RWX_PAGE_SWITCH, Date.parse("2026-10-09T00:00:00Z"));
+  assertEquals([RWX_PAGE_SWITCH, RWX_PAGE_SWITCH], [RWC_RUN_START, RWX_REPLAY.source.runEnd]);
+  assertEquals(rwxPageReplay(Date.UTC(2026, 9, 8, 12)), RWX_REPLAY);
+  assertEquals(rwxPageReplay(RWX_PAGE_SWITCH - 1), RWX_REPLAY);
+  assertEquals(rwxPageReplay(RWX_PAGE_SWITCH), RWCX_REPLAY);
+  assertEquals(rwxPageReplay(RWC_RUN_END + DAY), RWCX_REPLAY);
+});
+
+Deno.test("before the switch the rows are RW's replay's arms, read from RW's tables alone, and say they move to RW-C's", async () => {
+  const now = RWX_PAGE_SWITCH - M;   // 10-08 23:59 UTC
+  const world = { lastDecided: now - 3 * M, dayOf: Date.UTC(2026, 9, 8) };
+  const { rows, touched } = await rowsAt(twoReplays(world, world), now);
+  assertEquals(rows.map((r) => [r.id, r.name, r.source, r.startedAt, r.notStarted]), [
+    ["x1", "Reward quotes variant-2", "RW", iso(RWX_START), false],
+    ["tb1-skip", "Reward quotes variant-3", "RW", "2026-10-08T00:00:00.000Z", false],
+    ["tb1-back", "Reward quotes variant-4", "RW", "2026-10-08T00:00:00.000Z", false],
+  ]);
+  assertEquals(rows.map((r) => r.totalUsd), [10, 4, 5]);
+  assertEquals(rows.map((r) => r.sourceNext), Array(3).fill({ source: "RW-C", at: "2026-10-09T00:00:00.000Z" }));
+  // RW's day row for x1 is its own; nothing of RW-C's was read.
+  assertEquals(rows[0].days.map((d) => [d.day, d.totalUsd]), [["2026-10-07", 6]]);
+  assert(touched.every((t) => RW_TABLES.includes(t)), touched.join());
+});
+
+Deno.test("from the switch the rows are RW-C's replay's arms, from zero at its first minute, read from RW-C's tables alone", async () => {
+  // 10-10 12:00 UTC: RW-C's replay has closed 10-09; RW's records are all still there, and none of them is read.
+  const now = Date.UTC(2026, 9, 10, 12);
+  const rw = { lastDecided: RW_RUN_END_MINUS(), dayOf: Date.UTC(2026, 9, 8) };
+  const rwc = { lastDecided: now - 3 * M, dayOf: Date.UTC(2026, 9, 10) };
+  const { rows, touched } = await rowsAt(twoReplays(rw, rwc), now);
+  assertEquals(rows.map((r) => [r.id, r.name, r.source, r.sourceNext, r.startedAt, r.runStart, r.notStarted, r.phase, r.dayOfRun]), [
+    ["x1", "Reward quotes variant-2", "RW-C", null, "2026-10-09T00:00:00.000Z", "2026-10-09T00:00:00.000Z", false, "run", 2],
+    ["tb1-skip", "Reward quotes variant-3", "RW-C", null, "2026-10-09T00:00:00.000Z", "2026-10-09T00:00:00.000Z", false, "run", 2],
+    ["tb1-back", "Reward quotes variant-4", "RW-C", null, "2026-10-09T00:00:00.000Z", "2026-10-09T00:00:00.000Z", false, "run", 2],
+  ]);
+  // By hand: each total is its RW-C arm's reward, and today is that less its RW-C 10-09 close; RW's $10 / $4 / $5 and
+  // x1's RW day are nowhere in them.
+  rows.forEach((r, i) => assertAlmostEquals(r.totalUsd, [0.7, 0.3, 0.5][i], 1e-12));
+  rows.forEach((r, i) => assertAlmostEquals(r.todayUsd, [0.3, 0.2, 0.3][i], 1e-12));
+  assertEquals(rows.map((r) => r.days.map((d) => d.day)), [["2026-10-09"], ["2026-10-09"], ["2026-10-09"]]);
+  assert(touched.every((t) => RWC_TABLES.includes(t)), touched.join());
+  assert(touched.includes("pm_rwc_x_state") && touched.includes("pm_rwc_selection"), touched.join());
+});
+
+Deno.test("in RW-C's first minutes, before its replay has a state, the rows are there, empty, saying they start at 10-09 00:00", async () => {
+  const rw = { lastDecided: RW_RUN_END_MINUS(), dayOf: Date.UTC(2026, 9, 8) };
+  const early = await rowsAt(twoReplays(rw, null), RWX_PAGE_SWITCH + 5 * M);
+  assertEquals(early.rows.map((r) => [r.id, r.name, r.source, r.notStarted, r.startsAt, r.running, r.totalUsd, r.fills, r.markets.length, r.days.length]), [
+    ["x1", "Reward quotes variant-2", "RW-C", true, "2026-10-09T00:00:00.000Z", true, 0, 0, 0, 0],
+    ["tb1-skip", "Reward quotes variant-3", "RW-C", true, "2026-10-09T00:00:00.000Z", true, 0, 0, 0, 0],
+    ["tb1-back", "Reward quotes variant-4", "RW-C", true, "2026-10-09T00:00:00.000Z", true, 0, 0, 0, 0],
+  ]);
+  assert(early.touched.every((t) => RWC_TABLES.includes(t)), early.touched.join());
+  // Still no state twelve minutes after its first minute could be decided: not running.
+  const late = await rowsAt(twoReplays(rw, null), RWCX_REPLAY.quietUntil! + 13 * M);
+  assertEquals(late.rows.map((r) => r.running), [false, false, false]);
+  // RW's replay with no state keeps its rows off, as before.
+  assertEquals((await rowsAt(twoReplays(null, null), RWX_PAGE_SWITCH - M)).rows, []);
+});
+
+/** RW's last decided minute, 2026-10-08 23:59 UTC. */
+function RW_RUN_END_MINUS() { return RWC_RUN_START - M; }

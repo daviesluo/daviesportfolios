@@ -3457,6 +3457,21 @@ every script re-run byte-identical by the coordinating session).
       keep running in both replays for their frozen Test 1 and Test 2 (`RWX_OFF_PAGE`); on RW's whole record the seven
       older arms' states and day rows were identical before and after the change (a recorded deviation of RW-X's
       "bookkeeping only", with an addendum to RW-NEXT Part 2, both in the new file); a minute's run 2 ms before and after.
+      **From RW-C's first minute the page's variant rows read RW-C's replay (2026-10-08, `RWX_PAGE_SWITCH` =
+      2026-10-09 00:00 UTC, `rwxPageReplay`, `readRwxRows`).** RW's replay stops at RW's end, the same minute, so
+      variant-2, -3 and -4 (x1, tb1-skip, tb1-back) would have frozen; from it they are `pm_rwc_x_*`'s arms, read against
+      RW-C's own engine run (its selection, latest minute and fills) and its fourteen days, the out-of-sample test Davies
+      is watching. A row reads ONE replay at a time, picked by the clock, never both: at the switch its figures, days,
+      quotes and fills start again at zero (RW-C's arms start flat there), and what the arms did on RW's minutes stays in
+      `pm_rw_x_days` for x1's, x4's and x5's verdicts and TB1's unjudged day. Before the replay's first state (it is quiet
+      until 00:02) the three rows are there, empty, saying they start at 10-09 00:00, and read as not running 12 minutes
+      after that. Each entry carries `source` (`RW` / `RW-C`) and, on RW's, `sourceNext`; the page prints which replay and
+      since when (`rwxSourceText`), and the replay's check warning names RW-C's days on RW-C's. **Totals:** every row of
+      TESTING is one arm of one run, each added once: RW-C's own row ("Reward quotes confirmation") is RW's rule on RW-C's
+      minutes (the replay's `rw` arm, never a page row), the variant rows are its other arms, and RW's and RW-E's rows stay
+      RW's (finished from 10-09). Nothing of the replays changed; pinned in `pmrwc_view.test.ts` with a pinned clock on
+      both sides of the switch (the old reader, RW's replay at any hour, fails three of its four tests) and in the sweep's
+      `rwc-running` mode.
     - **RW-NEXT is frozen (2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`) and amends what follows the three
       verdicts above, nothing else in their files:** the five arms are read together by its Part 1, which fixes before
       10-09 which one is the candidate (RW-E if it passes; a variant only under its 1.3; RW only if RW-E does not pass),

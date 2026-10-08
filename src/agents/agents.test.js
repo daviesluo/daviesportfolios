@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1364,6 +1364,29 @@ describe("rwxCheckWarn: a variant's page says when its replay is not RW's rule o
     expect(rwxCheckWarn({})).toBe(null);
     expect(rwxCheckWarn({ checks: { rwMaxUsd: 0.002, eMaxUsd: 0.05, eDays: 2, ok: false } }))
       .toBe("The replay differs from RW's or RW-E's own days by $0.05, so these figures are not this rule on RW's data.");
+    // On RW-C's replay (from 2026-10-09) its checks are RW-C's.
+    expect(rwxCheckWarn({ source: 'RW-C', checks: { rwMaxUsd: 0.03, eMaxUsd: 0, eDays: 1, ok: false } }))
+      .toBe("The replay differs from RW-C's own days or RW-E's on RW-C's by $0.03, so these figures are not this rule on RW-C's data.");
+  });
+});
+
+describe("rwxSourceText: a variant's page says which replay it reads and since when (RW's until 2026-10-09, RW-C's from it)", () => {
+  it("on RW's replay, since its own first minute, and that it moves to RW-C's at RW-C's first minute and starts again", () => {
+    const next = { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' };
+    expect(rwxSourceText({ source: 'RW', startedAt: '2026-10-08T00:00:00.000Z', sourceNext: next }))
+      .toBe("On RW's minutes since 8 Oct 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.");
+    expect(rwxSourceText({ source: 'RW', startedAt: '2026-09-28T00:00:00.000Z', sourceNext: next }))
+      .toBe("On RW's minutes since 28 Sep 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.");
+  });
+  it("on RW-C's, from its first minute, with nothing of RW's in it; before it has started, from when it starts", () => {
+    expect(rwxSourceText({ source: 'RW-C', startedAt: '2026-10-09T00:00:00.000Z', sourceNext: null }))
+      .toBe("On RW-C's minutes since 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it.");
+    expect(rwxSourceText({ source: 'RW-C', startedAt: null, startsAt: '2026-10-09T00:00:00.000Z', notStarted: true, sourceNext: null }))
+      .toBe("On RW-C's minutes from 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it.");
+  });
+  it('says nothing for a payload that does not name its replay', () => {
+    expect(rwxSourceText(null)).toBe(null);
+    expect(rwxSourceText({ startedAt: '2026-10-08T00:00:00.000Z' })).toBe(null);
   });
 });
 

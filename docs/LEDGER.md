@@ -90,8 +90,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      plus 7′ paired day bootstrap of (arm − x1) at R = 0.40 > 0 and 8 the R = 0.40 difference without the best
      market-day > 0 (`detail.rewardByMarket`, every arm's row since this commit); void if either arm carries a `start`
      in `pm_rwc_x_state` or a day row is missing. **Health:** both arms in `pm_rwc_x_state.state.arms` with `base` {} and
-     no `start` after 10-09 00:05; x4/x5 still written in both replays. **After 10-09 00:00 the page's variant-2/-3/-4
-     rows stop with RW's run**: showing RW-C's TB1 arms on the page instead is a further change, Davies' call.
+     no `start` after 10-09 00:05; x4/x5 still written in both replays. **From 10-09 00:00 UTC the page's
+     variant-2/-3/-4 rows read RW-C's replay** (`pm_rwc_x_*`; `RWX_PAGE_SWITCH`, 2026-10-08 on Davies' word of 10-07):
+     they start again from zero there, one replay at a time; before RW-C's replay has a state (quiet until 00:02) they
+     say they start at 10-09 00:00. **To confirm after 00:05:** the dashboard's `rwx` entries carry `source` "RW-C",
+     `startedAt` 2026-10-09T00:00:00.000Z and `notStarted` false. Variant-1 (RW-E) still reads RW's replay and is
+     finished from 10-09; moving it to `pm_rwc_e_*` too is Davies' call.
    - **Intraday re-selection every 2 h (S2; a dropped market goes close-only): backtested 2026-10-07 on the pm-rec
      archive, 10-05 00:00 → 10-07 21:59 UTC, read-only, no paper arm** (scratch scripts, not committed): against S2's
      daily selection, −$62.36 at R = 1 (day-block bootstrap p5 −120.60 / p95 −4.12, P(> 0) 0.03) and −$14.92 at R = 0.40
@@ -793,6 +797,31 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 00:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The page's variant-2/-3/-4 rows (x1, tb1-skip, tb1-back) read RW-C's replay from RW-C's first minute** (Davies,
+  2026-10-07: the page's variant-3 and -4 are TB1's two tests, whose test is RW-C's 10-09 → 10-22): RW's replay stops at
+  RW's end, 10-09 00:00 UTC, so the rows would have frozen. `pmrw_view.ts`: `RWX_PAGE_SWITCH` (= `RWC_RUN_START`),
+  `rwxPageReplay(now)`, and `rwxArmSummaries` reads the replay it is given (its specs, engine run and fourteen days);
+  before RW-C's replay has a state the three rows are there, empty, "starts 9 Oct 01:00 BST". `index.ts`: `readRwxRows`
+  reads one replay's tables and its run's (RW-C's run is read once for its own row and the variants). A row reads ONE
+  replay, never both: at the switch its figures, days, quotes and fills restart at zero; RW's stay in `pm_rw_x_days`.
+  Each entry carries `source` / `sourceNext`; the page prints which replay and since when (`rwxSourceText`, agents.js),
+  and the check warning names RW-C's days there. TESTING's scoreboard and the Polymarket card add each row once, as
+  before: RW-C's own row is RW's rule on RW-C's minutes (the replay's `rw` arm, not a page row), the variants its other
+  arms. Variant-1 (RW-E) is not moved (not asked; Davies' call). The stale comment in `agents.js` naming x4/x5 fixed.
+- Evidence: `pmrwc_view.test.ts` reads two replays from one in-memory database through `readRwxRows` with a pinned
+  clock: 10-08 23:59 RW's figures by hand ($10 / $4 / $5) from RW's tables only; 10-10 12:00 RW-C's ($0.70 / $0.30 /
+  $0.50, today $0.30 / $0.20 / $0.30, days from 10-09 only) from RW-C's tables only; 10-09 00:05 the empty rows,
+  running, and not running 13 minutes after 00:02. Counterfactuals: the old reader (RW's replay at every hour) fails 3 of
+  the 4 new tests; ignoring the given replay fails 2. Vitest pins `rwxSourceText` and the RW-C check wording; the sweep
+  reads the RW source line on variant-3's page and, in `rwc-running`, the three rows once each with RW-C's figures and
+  "On RW-C's minutes since 9 Oct 01:00 BST".
+- **TB1's first tick, recorded (reported by the session that froze TB1, re-read here at 00:11):** both arms began
+  writing flat at 2026-10-08 00:00 UTC; at 00:07 `pm_rw_x_state` held arms e, rw, tb1-back, tb1-skip, x1–x5,
+  `last_error` null, tb1-skip's `base` {} and no `start` on either; x4/x5 day rows still written (10-07's for all seven
+  older arms, closed 00:03:00 UTC, none for TB1, as designed); `pmrw-x`'s median wall time about 1.3 s, unchanged (that
+  figure is the earlier session's, not re-measured). `pm_rwc_x_state` has no row yet (quiet until 10-09 00:02), as designed.
 
 ### [2026-10-07 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Dividends come off the average cost on the whole site, and each is a row of the Transaction history** (Davies:

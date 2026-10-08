@@ -7,9 +7,9 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
-import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
+import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, RWC_RUN_START, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
-import { backTicks, isTight, leanTicks, RWX_NAMES, RWX_SPECS, rwxArmStart, wideTicks, type RwxArmState, type RwxStored } from "./pmrw_x.ts";
+import { backTicks, isTight, leanTicks, RWCX_REPLAY, RWX_NAMES, RWX_REPLAY, rwxArmStart, wideTicks, type RwxArmState, type RwxReplay, type RwxStored } from "./pmrw_x.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** How many of the phase's fills the page lists, newest first. */
@@ -361,6 +361,22 @@ export function rweArmSummary(input: {
  */
 export const RWX_OFF_PAGE = new Set(["x2", "x3", "x4", "x5"]);
 
+/**
+ * The instant the page's variant rows (x1, tb1-skip, tb1-back: "Reward quotes variant-2", "-3" and "-4") stop reading RW's
+ * replay (`pm_rw_x_*`) and read RW-C's (`pm_rwc_x_*`): RW-C's first minute, 2026-10-09 00:00 UTC, the minute RW's
+ * fourteen days end (Davies, 2026-10-07: the page's variant-3 and -4 are TB1's two tests, whose test is RW-C's replay
+ * 10-09 → 10-22). From then RW's replay does nothing more, and the rows would have frozen.
+ *
+ * A row reads ONE replay at a time, never a sum of the two: RW-C's is a different run of the engine on other minutes,
+ * and its arms start flat at its first minute, so from this instant each row's figures, days, quotes and fills begin
+ * again at zero, as RW-C's own row ("Reward quotes confirmation") does. What the arms did on RW's minutes stays in
+ * `pm_rw_x_days` for the verdicts. Each row says which replay it reads and since when (`source`, `startedAt`), and before
+ * this instant that it moves to RW-C's here (`sourceNext`).
+ */
+export const RWX_PAGE_SWITCH = RWC_RUN_START;
+/** The replay the page's variant rows read at `nowMs`: RW's before `RWX_PAGE_SWITCH`, RW-C's from it. */
+export const rwxPageReplay = (nowMs: number): RwxReplay => (nowMs >= RWX_PAGE_SWITCH ? RWCX_REPLAY : RWX_REPLAY);
+
 /** A replayed variant's closed days, as `pm_rw_x_days` holds them. */
 export type RwxDaysRow ={ day: string; arm: string; total: number | string; stress_total: number | string; reward: number | string; fills: number | string; capital: number | string; markets?: number | string };
 
@@ -376,9 +392,35 @@ export function rwxArmSummaries(input: {
   days: RwxDaysRow[]; fills: RwFillRow[]; nowMs: number;
   /** The arms left off the page: `RWX_OFF_PAGE` unless a test puts one back to pin how its row reads. */
   offPage?: ReadonlySet<string>;
+  /**
+   * The replay the records are: RW's (`RWX_REPLAY`, the default) or RW-C's (`RWCX_REPLAY`), whose specs, engine run and
+   * fourteen days the rows are read against. The dashboard picks it by the clock (`rwxPageReplay`); every input above is
+   * that replay's and its engine run's, never a mix.
+   */
+  replay?: RwxReplay;
 }) {
+  const replay = input.replay ?? RWX_REPLAY, inst = replay.source;
+  const offPage = input.offPage ?? RWX_OFF_PAGE;
+  // Which replay each row reads, and, on RW's, that the rows move to RW-C's at its first minute (and start again there).
+  const source = { source: inst.name, sourceNext: inst === RW_INSTANCE ? { source: RWCX_REPLAY.source.name, at: new Date(RWX_PAGE_SWITCH).toISOString() } : null };
   const st = input.xState?.state as RwxStored | undefined;
-  if (!st || typeof st !== "object" || !("arms" in st) || !input.xState?.last_minute) return [];
+  if (!st || typeof st !== "object" || !("arms" in st) || !input.xState?.last_minute) {
+    // RW's replay with no state leaves the rows off, as it always has. RW-C's has none until its first minute is decided
+    // (it is quiet until then): from the switch the rows are there, empty, saying when they start, as RW-C's own row
+    // does, and read as not running once that state is `RWC_FIRST_STATE_MINUTES` late.
+    if (inst === RW_INSTANCE || input.nowMs < RWX_PAGE_SWITCH) return [];
+    const at = (ms: number) => new Date(ms).toISOString();
+    return replay.specs.filter((s) => s.id !== "e" && !offPage.has(s.id) && RWX_NAMES[s.id]).map((s) => ({
+      phase: rwPhase(input.nowMs, inst), runStart: at(inst.runStart), runEnd: at(inst.runEnd), dayOfRun: null,
+      lastMinute: null, lagMinutes: null, lastError: input.xState?.last_error ?? null,
+      running: input.nowMs < (replay.quietUntil ?? inst.runStart) + RWC_FIRST_STATE_MINUTES * M, finished: input.nowMs >= inst.runEnd, fundedUsd: RW_FUNDED_USD,
+      catchingUp: false, notStarted: true, startsAt: at(rwxArmStart(s)), startedAt: null,
+      capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
+      todayUsd: 0, heldUsd: 0, quotedUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
+      markets: [] as Array<Record<string, unknown>>, days: [] as ReturnType<typeof rwDayRows>, recent: [] as ReturnType<typeof rwRecent>,
+      id: s.id, name: RWX_NAMES[s.id], checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 0, ok: true }, ...source,
+    }));
+  }
   const xState = input.xState;
   const excluded = excludedByDay(input.selectionAll);
   const rw = input.rwState?.state as RwState | undefined;
@@ -390,8 +432,8 @@ export function rwxArmSummaries(input: {
     ok: st.checkMaxUsd < RWE_CHECK_USD && (st.checkEMaxUsd ?? 0) < RWE_CHECK_USD,
   };
   const out = [];
-  for (const spec of RWX_SPECS) {
-    if (spec.id === "e" || (input.offPage ?? RWX_OFF_PAGE).has(spec.id)) continue;
+  for (const spec of replay.specs) {
+    if (spec.id === "e" || offPage.has(spec.id)) continue;
     // A `fresh` arm the replay has not started yet is a row that says when it starts, with nothing in it.
     if (!st.arms[spec.id] && !spec.fresh) continue;
     const a: RwxArmState = st.arms[spec.id] ?? { acc: {}, dayActive: [], diverged: [], pausedUntil: {}, lastMid: {} };
@@ -451,11 +493,12 @@ export function rwxArmSummaries(input: {
       })),
       fills: input.fills.filter((f) => !diverged.has(f.cond) && !leftOut(f.cond, new Date(Math.floor(Date.parse(f.minute) / DAY) * DAY).toISOString().slice(0, 10))
         && !paused(f.cond, Date.parse(f.minute))),
-      firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+      firstMinute: new Date(inst.runStart).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
       // Only what the variant did under its own rules: from its first minute, against what it held as that began.
       since: { ms: a.start ?? rwxArmStart(spec), base: a.base },
+      inst,
     });
-    if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks });
+    if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks, ...source });
   }
   return out;
 }
