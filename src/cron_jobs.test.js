@@ -12,6 +12,9 @@
 // plus the watchdog's, every minute of a day must queue what 0074 queued,
 // and every function the list calls must write its beat
 // (`_shared/beats.ts`), or `edge-watchdog` would run it twice a minute.
+// From 0104 a row inserted is first called 15 minutes after it is written
+// (`active_from`), so its function's deploy lands first, and no insert may
+// name the column.
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -54,6 +57,10 @@ const count = (s, needle) => s.split(needle).length - 1;
 function replayList(sqls) {
   const rows = new Map();
   let nextId = 1;
+  // 0104: the column, added with no default (every row before it holds null), then its default for every row after.
+  let activeFromColumn = false;
+  /** @type {string | null} */
+  let activeFromDefault = null;
   for (const [name, raw] of sqls) {
     // Comments out, and dollar-quoted bodies (a cron job's command) out: what is left splits on `;`.
     const sql = raw.replace(/--[^\n]*/g, '').replace(/(\$[a-z_]*\$)[\s\S]*?\1/g, "''");
@@ -62,13 +69,22 @@ function replayList(sqls) {
       const s = stmt.trim().replace(/\s+/g, ' ');
       if (/^create table if not exists public\.edge_calls \(/.test(s)) continue;
       if (/^alter table public\.edge_calls enable row level security$/.test(s)) continue;
+      if (/^alter table public\.edge_calls add column if not exists active_from timestamptz$/.test(s)) { activeFromColumn = true; continue; }
+      if (/^alter table public\.edge_calls alter column active_from set default now\(\) \+ interval '15 minutes'$/.test(s)) {
+        if (!activeFromColumn) throw new Error(`${name}: sets active_from's default before the column exists`);
+        activeFromDefault = 'written + 15 minutes';
+        continue;
+      }
+      if (/^insert into public\.edge_calls \([^)]*\bactive_from\b/.test(s)) {
+        throw new Error(`${name}: an insert into public.edge_calls names active_from; leave it to its default (0104), so the call waits 15 minutes for its function's deploy`);
+      }
       let m = /^insert into public\.edge_calls \(path, timeout_ms, every_minutes, last_utc_hour, retry\) values (.*) on conflict \(path\) do nothing$/.exec(s);
       if (m) {
         const values = [...m[1].matchAll(/\('([^']+)', (\d+), (\d+), (\d+), (true|false)\)/g)];
         // Every row of the VALUES read, or the statement is one this cannot read.
         if (values.map((v) => v[0]).join(', ') !== m[1]) throw new Error(`${name}: an insert into public.edge_calls this test cannot read: ${s.slice(0, 160)}`);
         for (const v of values) {
-          if (!rows.has(v[1])) rows.set(v[1], { id: nextId++, path: v[1], timeout: Number(v[2]), every: Number(v[3]), lastHour: Number(v[4]), enabled: true, retry: v[5] === 'true' });
+          if (!rows.has(v[1])) rows.set(v[1], { id: nextId++, path: v[1], timeout: Number(v[2]), every: Number(v[3]), lastHour: Number(v[4]), enabled: true, retry: v[5] === 'true', activeFrom: activeFromDefault });
         }
         continue;
       }
@@ -649,6 +665,69 @@ describe('pg_cron jobs', () => {
     expect(sql).toMatch(/revoke all on function public\.db_size_bytes\(\) from public, anon, authenticated;\s+grant execute on function public\.db_size_bytes\(\) to service_role;/);
     expect(sql).toMatch(/revoke all on function public\.pm_paths_prune\(interval\) from public, anon, authenticated;/);
     expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
+  });
+
+  // 0104: a call added in the same push as the code it calls met the old function (0100, 10-08): rows from 0104 on wait 15
+  // minutes for the deploy, and the job and the watchdog read the instant.
+  const ACTIVE = FILES.find((f) => /^\d{4}_edge_calls_active_from\.sql$/.test(f)) ?? '';
+
+  it("adds edge_calls.active_from (0104): no default for the rows already there, 15 minutes for every row after, and the job reads it", () => {
+    expect(ACTIVE).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < ACTIVE))), after = replayList(sqlsOf(FILES.filter((f) => f <= ACTIVE)));
+    // No row is added, dropped or changed, and every row on the list holds null: the job calls each as before.
+    expect(after).toEqual(before);
+    expect(after.length).toBeGreaterThan(20);
+    expect(after.every((r) => r.activeFrom === null)).toBe(true);
+    // The column comes with no default (a default on ADD COLUMN would fill every existing row with now() + 15 minutes
+    // and stop the whole list for a quarter of an hour), and the default is set after it, inside a short lock wait.
+    const stmts = fs.readFileSync(path.join(DIR, ACTIVE), 'utf8').replace(/--[^\n]*/g, '').replace(/(\$[a-z_]*\$)[\s\S]*?\1/g, "''")
+      .split(';').map((x) => norm(x)).filter(Boolean);
+    expect(stmts).toEqual([
+      "set lock_timeout = '3s'",
+      'alter table public.edge_calls add column if not exists active_from timestamptz',
+      "alter table public.edge_calls alter column active_from set default now() + interval '15 minutes'",
+      "select cron.schedule( 'edge-calls-every-minute', '* * * * *', '' )",
+      'reset lock_timeout',
+    ]);
+    // The job: 0075's request word for word, its filter with the one condition more, its order, one statement.
+    const old = cronJobs(FILES.filter((f) => f <= WD)).get('edge-calls-every-minute');
+    const now = cronJobs(FILES.filter((f) => f <= ACTIVE)).get('edge-calls-every-minute');
+    expect(now.schedule).toBe(old.schedule);
+    const requestOf = (c) => norm(c).replace(/ from public\.edge_calls as call .*$/, '');
+    expect(requestOf(now.command)).toBe(requestOf(old.command));
+    const whereOf = (c) => norm(c).match(/ from public\.edge_calls as call where (.*) order by call\.id;$/)[1];
+    expect(whereOf(now.command)).toBe(whereOf(old.command).replace(/^call\.enabled and /, 'call.enabled and (call.active_from is null or call.active_from <= now()) and '));
+    expect(count(now.command, ';')).toBe(1);
+    // Every other job as it was.
+    const others = (files) => [...cronJobs(files)].filter(([n]) => n !== 'edge-calls-every-minute');
+    expect(others(FILES.filter((f) => f <= ACTIVE))).toEqual(others(FILES.filter((f) => f < ACTIVE)));
+    // And the watchdog reads it: due only from the first minute at or after the instant (its Deno test pins the rest).
+    const wd = fs.readFileSync(path.join(ROOT, 'supabase/functions/edge-watchdog/index.ts'), 'utf8');
+    expect(wd).toContain('return c.enabled && activeBy(c, minuteMs) && ');
+    expect(wd).toContain('d.rest.select<EdgeCall>(LIST_TABLE, "select=*&order=id.asc")');
+  });
+
+  it('holds every call a migration adds from 0104 on for 15 minutes: no insert names active_from, and those before it hold null', () => {
+    expect(ACTIVE).not.toBe('');
+    const inserting = FILES.filter((f) => /insert into public\.edge_calls\b/.test(fs.readFileSync(path.join(DIR, f), 'utf8').replace(/--[^\n]*/g, '')));
+    expect(inserting.slice(0, 7)).toEqual(['0075_edge_call_watchdog.sql', '0077_pm_live_prep.sql', '0081_pm_mid.sql', '0087_quote_twins.sql', '0091_pm_lp.sql', '0092_pm_book_recorder.sql', '0100_t212_orders_sync_call.sql']);
+    for (const f of inserting) {
+      const had = new Set(replayList(sqlsOf(FILES.filter((x) => x < f))).map((r) => r.path));
+      const added = replayList(sqlsOf(FILES.filter((x) => x <= f))).filter((r) => !had.has(r.path));
+      for (const r of added) expect([f, r.path, r.activeFrom]).toEqual([f, r.path, f < ACTIVE ? null : 'written + 15 minutes']);
+    }
+    // A migration after 0104 adding a call, as 0100 did: held 15 minutes. One naming the column, or setting its default
+    // before the column exists, is refused.
+    const upTo = sqlsOf(FILES.filter((f) => f <= ACTIVE));
+    const add = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('agents?action=later', 55000, 1, 23, true) on conflict (path) do nothing;";
+    expect(replayList([...upTo, ['9999_later.sql', add]]).at(-1)).toMatchObject({ path: 'agents?action=later', activeFrom: 'written + 15 minutes' });
+    expect(() => replayList([...upTo, ['9999_later.sql', "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry, active_from) values ('agents?action=later', 55000, 1, 23, true, now()) on conflict (path) do nothing;"]])).toThrow(/names active_from/);
+    expect(() => replayList([['x', "alter table public.edge_calls alter column active_from set default now() + interval '15 minutes';"]])).toThrow(/before the column exists/);
+  });
+
+  it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
+    const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
+    expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);
   });
 
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {

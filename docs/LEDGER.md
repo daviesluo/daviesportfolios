@@ -241,7 +241,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `select minute from public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;`
      (a row a minute). `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
    - **A migration that adds an `edge_calls` row for an action its function learns in the same push** can meet the old
-     function once (0100, 2026-10-08; history 16:59): land the function first unless the call is resumable.
+     function once (0100, 2026-10-08; history 16:59). From 0104 (batch 5, not yet landed) the row waits 15 minutes for
+     the deploy (`active_from`); until it is live, land the function first unless the call is resumable.
 
 10. **The repository review of 2026-10-08** (`opus-high`; batches 1–4 approved by Davies, F2, F3 and F11 not):
    - **Open with Davies:** F21 (the coordinator puts it to him; not fixed); M9, a deposit's own-date FX rate instead of
@@ -268,7 +269,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
-     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again.
+     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
+     D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys).
 
 ## Machine and platform setup
 
@@ -433,6 +435,25 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   35 changes) and that P2–P5 read the new rule from its first deployed minute; RWC-OPT's Addendum 1 makes C1 the
   out-of-sample measure of it. After the deploy: read `pm_lp_state.last_error` and that `pm_lp_minutes` has a row every
   minute. Not armed; only Davies arms.
+
+### [2026-10-08 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A call the one-minute job gains waits 15 minutes for its function's deploy** (review D1, batch 5). 0104 adds
+  `edge_calls.active_from` with no default, so every row on the list holds null and is called as before, then sets the
+  default `now() + 15 minutes` for every row inserted later; the job (0075's request word for word) adds
+  `(call.active_from is null or call.active_from <= now())`; `edge-watchdog` counts a row due only from the first
+  minute that begins at or after its instant, and reads the list whole (`select=*`), so it and 0104 land in either
+  order. Safe while the job runs: `lock_timeout` 3 s, reset after; `db push` (CLI 2.117.0's `ExecBatch`, read from its
+  source) sends the file as one transaction with its version row. migrations.yml no longer cancels a run in flight.
+  Why 15: on 10-07 and 10-08 a migrations run took 20 to 67 s and a deploy run 65 to 145 s (GitHub's run times);
+  0100's row met trading212 v74 once. On PGlite (Postgres 16, pg_cron/pg_net/Vault stubbed) after 0075, 0099 and 0100
+  (0103, which only turns rows off, not run there; it was 0102 until 0103 landed first): 0104 applied twice; 19 rows,
+  none with an instant; at 2026-10-09 10:00 UTC the old and new job queue the same 18 calls in the same order; a later
+  insert gets written + 900 s and is queued at +15 min, not at +14.99. Pins: `cron_jobs.test.js` (the file's five
+  statements in order, the job's filter, every migration that inserts into the list, 0075 to 0100 holding null and any
+  later row the default, an insert naming the column refused, migrations.yml's concurrency) and the watchdog's Deno
+  test (the instant, a held row neither missing nor run early and retried from its minute, the whole-row read); each
+  fails on the old code or a broken 0104 (no file; the job without the condition; the column added with its default,
+  which would have held the whole list for 15 minutes).
 
 ### [2026-10-08 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RWC-OPT frozen before RW-C's first minute** (Davies: "RW-C…可以用目前所有最新的数据看看RW-C可不可以优化到最佳吗", "效果优先").

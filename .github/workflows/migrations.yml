@@ -43,9 +43,14 @@ on:
       - 'supabase/migrations/**'
       - '.github/workflows/migrations.yml'
 
+# A run in flight is never cancelled (review D1, 2026-10-08). Cancelled, `db push` stops wherever it is: the file it was
+# applying rolls back, those before it stay, and the rest wait for the next run, at a time no one chose, beside a
+# deploy of the same push that may already expect them. Not cancelled, each run applies what it found to its end and a
+# newer push's run waits for it; GitHub keeps one waiting run a group, the newest, and `db push --include-all` applies
+# everything not yet applied, so a waiting run it replaces loses nothing.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read

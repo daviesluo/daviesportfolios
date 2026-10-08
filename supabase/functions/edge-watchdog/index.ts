@@ -19,6 +19,9 @@
 //     table); the two that read a market's book for the minute it is in, RW's and RW-C's paper engines, are `retry`
 //     false: their frozen specs say a minute whose book was not read quotes nothing, and a book read 13 s late would be
 //     filled by prints from before it was read. A due call with `retry` false and no beat is recorded `excluded`.
+//   * Only what the job sent. A row the job holds back until its `active_from` (0104: a call added in the same push as
+//     the code it calls waits 15 minutes for the deploy) is not due here either, so it is never missing, and never run
+//     again on code that may not know it yet.
 //   * Only a few. More than `MAX_RETRIES` due calls with no beat is far likelier to be beats not being written (a deploy
 //     in flight, the table refusing them) than workers not starting (the five failures the ledger recorded on 2026-10-01
 //     fell in five different minutes): nothing is run again, and it is reported.
@@ -61,8 +64,14 @@ export const MAX_RETRIES = 4;
 /** A call whose retry answered and wrote no beat is not run again for this long. */
 export const HOLD_MS = 10 * 60_000;
 
-/** A row of `edge_calls`, as the job reads it. */
-export type EdgeCall = { path: string; timeout_ms: number; every_minutes: number; last_utc_hour: number; enabled: boolean; retry: boolean };
+/**
+ * A row of `edge_calls`, as the job reads it. `active_from` (0104): the job makes the call from that instant; null, or
+ * absent while 0104 is not yet applied, is always.
+ */
+export type EdgeCall = {
+  path: string; timeout_ms: number; every_minutes: number; last_utc_hour: number; enabled: boolean; retry: boolean;
+  active_from?: string | null;
+};
 /**
  * What became of a call with no beat. `ok`: its retry answered 2xx. `failed`: its retry answered otherwise, or not at all
  * and wrote no beat. `running`: its retry did not answer within the call's timeout, but its beat shows it started.
@@ -97,10 +106,23 @@ const enc = encodeURIComponent;
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
 const isOk = (status: number) => status >= 200 && status < 300;
 
-/** Is the call due in the minute that starts at `minuteMs`? The job's own filter (0075), row for row. */
+/**
+ * Is the call due in the minute that starts at `minuteMs`? The job's own filter (0075), row for row, and from 0104 not
+ * before the row's `active_from`. The job compares it with its own `now()`, a fraction of a second into the minute; this
+ * with the minute's start, so a row is due here from the first minute that begins at or after it: never a minute the
+ * job held the call back (a row added in the same push as its function, held 15 minutes for the deploy), at most its
+ * first minute counted out when its instant falls in that fraction. An instant that cannot be read is not yet due.
+ */
 export function isDue(c: EdgeCall, minuteMs: number): boolean {
   const at = new Date(minuteMs);
-  return c.enabled && at.getUTCMinutes() % c.every_minutes === 0 && at.getUTCHours() <= c.last_utc_hour;
+  return c.enabled && activeBy(c, minuteMs) && at.getUTCMinutes() % c.every_minutes === 0 && at.getUTCHours() <= c.last_utc_hour;
+}
+
+/** Whether the job makes the call by `ms`: from its `active_from` on, and always when it has none (0104). */
+export function activeBy(c: EdgeCall, ms: number): boolean {
+  if (c.active_from === null || c.active_from === undefined) return true;
+  const from = Date.parse(c.active_from);
+  return Number.isFinite(from) && from <= ms;
 }
 
 /** The minute's due calls with no beat: those to run again, and those the list says not to. Never the watchdog. */
@@ -168,7 +190,9 @@ export async function runWatchdog(d: WatchdogDeps): Promise<WatchdogReport> {
   let calls: EdgeCall[], beats: string[];
   try {
     [calls, beats] = await Promise.all([
-      d.rest.select<EdgeCall>(LIST_TABLE, "select=path,timeout_ms,every_minutes,last_utc_hour,enabled,retry&order=id.asc"),
+      // Every column, not a list: a column named that the table does not have yet is PostgREST's 400, and this function
+      // and the migration that adds one (0104's `active_from`) land in either order.
+      d.rest.select<EdgeCall>(LIST_TABLE, "select=*&order=id.asc"),
       d.rest.select<{ path: string }>(BEAT_TABLE, `minute=eq.${enc(minuteIso)}&select=path`).then((rows) => rows.map((r) => r.path)),
     ]);
   } catch (e) {

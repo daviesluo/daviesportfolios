@@ -4,7 +4,7 @@
 // keys, columns and the outcome CHECK, and refuses what PostgREST would (`Rest`).
 import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  AFTER_ARRIVAL_MS, CHECK_AT_MS, checkAt, classify, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS, makeCall, makeRest, MAX_RETRIES, plan,
+  activeBy, AFTER_ARRIVAL_MS, CHECK_AT_MS, checkAt, classify, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS, makeCall, makeRest, MAX_RETRIES, plan,
   type Rest, retryUrl, runWatchdog, WATCHDOG_PATH, type WatchdogDeps, type WatchdogReport,
 } from "./index.ts";
 import { beatKeyOfPath, minuteOf } from "../_shared/beats.ts";
@@ -28,7 +28,7 @@ const dueKeys = (minuteMs: number, calls = LIST) => calls.filter((c) => c.path !
 
 type Row = Record<string, unknown>;
 const COLS: Record<string, string[]> = {
-  edge_calls: ["id", "path", "timeout_ms", "every_minutes", "last_utc_hour", "enabled", "retry"],
+  edge_calls: ["id", "path", "timeout_ms", "every_minutes", "last_utc_hour", "enabled", "retry", "active_from"],
   edge_call_beats: ["minute", "path", "ts"],
   edge_call_retries: ["minute", "path", "claimed_at", "outcome", "status", "ms", "detail"],
 };
@@ -53,7 +53,8 @@ function fakeDb(calls: EdgeCall[] = LIST) {
     let select: string[] | null = null, order: string | null = null, limit = Infinity;
     for (const part of query.split("&")) {
       const i = part.indexOf("="), k = part.slice(0, i), v = part.slice(i + 1);
-      if (k === "select") { select = v.split(","); select.forEach((c) => col(name, c)); }
+      if (k === "select" && v === "*") select = null;                // every column the table has, as PostgREST
+      else if (k === "select") { select = v.split(","); select.forEach((c) => col(name, c)); }
       else if (k === "order") { order = v.split(".")[0]; col(name, order); }
       else if (k === "limit") limit = Number(v);
       else { col(name, k); const j = v.indexOf("."); filters.push({ c: k, op: v.slice(0, j), v: decodeURIComponent(v.slice(j + 1)) }); }
@@ -151,6 +152,58 @@ Deno.test("plan — the due calls with no beat, those the list keeps from a retr
   assertEquals(plan(LIST, [], MINUTE).retry.some((c) => c.path === WATCHDOG_PATH), false);
   // A five-minute call with no beat in a minute it is not due: nothing.
   assertEquals(plan(LIST, all, MINUTE).retry.length, 0);
+});
+
+Deno.test("isDue — not before the row's active_from (0104): absent or null always, from the first minute that begins at or after it", () => {
+  const [tick] = LIST;
+  assert(isDue(tick, MINUTE));                                                              // absent: 0104 not applied yet
+  assert(isDue({ ...tick, active_from: null }, MINUTE));                                    // every row before 0104
+  assert(isDue({ ...tick, active_from: "2026-10-01T14:46:00.123456+00:00" }, MINUTE));      // past, as PostgREST writes it
+  assert(isDue({ ...tick, active_from: "2026-10-01T15:01:00+00:00" }, MINUTE));             // the minute's own start
+  assert(!isDue({ ...tick, active_from: "2026-10-01T15:01:00.25+00:00" }, MINUTE));         // inside it: from the next
+  assert(isDue({ ...tick, active_from: "2026-10-01T15:01:00.25+00:00" }, MINUTE + 60_000));
+  assert(!isDue({ ...tick, active_from: "2026-10-01T15:16:00+00:00" }, MINUTE));            // a new row's 15 minutes
+  assert(!isDue({ ...tick, active_from: "not an instant" }, MINUTE));                       // unreadable: not yet
+  assertEquals([activeBy({ ...tick, active_from: "2026-10-01T15:01:00Z" }, MINUTE - 1), activeBy({ ...tick, active_from: "2026-10-01T15:01:00Z" }, MINUTE)], [false, true]);
+});
+
+/** A call a migration added in the same push as its code: the job makes it from 15 minutes after its row was written. */
+const ADDED_AT = T("2026-10-01T14:47:20Z");
+const ADDED: EdgeCall = {
+  path: "agents?action=newcall", timeout_ms: 55_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: true,
+  active_from: new Date(ADDED_AT + 15 * 60_000).toISOString(),                             // 15:02:20
+};
+
+Deno.test("a row the job holds back (0104) is not due: its missing beat is not missing, and nothing runs it early", async () => {
+  // 15:01, the minute before its instant: the job did not call it, so no beat, and the watchdog must not either.
+  const w = world({ at: MINUTE + 300, db: fakeDb([...LIST, ADDED]) });
+  const r = await runWatchdog(w.d);
+  assertEquals([r.due, r.missing, w.sent, w.db.t.edge_call_retries, w.reports], [13, [], [], [], []]);
+  assertEquals(plan([...LIST, ADDED], [], MINUTE).retry.some((c) => c.path === ADDED.path), false);
+  // 15:02: the job's now() is a fraction of a second in, before 15:02:20, so the job holds it back again, and so does this.
+  const at = MINUTE + 60_000;
+  const w2 = world({ at: at + 300, db: fakeDb([...LIST, ADDED]) });
+  const r2 = await runWatchdog(w2.d);
+  assertEquals([r2.due, r2.missing, w2.sent], [13, [], []]);
+  // 15:03, the first minute that begins after it: due, and with no beat, run again like any call.
+  const on = MINUTE + 120_000;
+  const w3 = world({ at: on + 300, db: fakeDb([...LIST, ADDED]) });
+  const r3 = await runWatchdog(w3.d);
+  assertEquals([r3.due, r3.missing, w3.sent.map((s) => [s.path, s.timeoutMs])], [14, ["agents?action=newcall"], [["agents?action=newcall", 55_000]]]);
+});
+
+Deno.test("the list is read whole (select=*), so this function and the migration adding a column land in either order", async () => {
+  const w = world({ at: MINUTE + 300 });
+  const queries: string[] = [];
+  const read = w.d.rest.select;
+  w.d.rest = { ...w.d.rest, select: (table, query) => { if (table === "edge_calls") queries.push(query); return read(table, query); } };
+  await runWatchdog(w.d);
+  assertEquals(queries, ["select=*&order=id.asc"]);
+  // A table as it was before 0104, with no active_from at all: read, and every row due by the job's filter.
+  const before = fakeDb(LIST);
+  for (const r of before.t.edge_calls) delete r.active_from;
+  const w2 = world({ at: MINUTE + 300, db: before, beats: dueKeys(MINUTE).filter((k) => k !== "agents?action=tick") });
+  assertEquals((await runWatchdog(w2.d)).retried.map((x) => [x.path, x.outcome]), [["agents?action=tick", "ok"]]);
 });
 
 Deno.test("checkAt — 13 s into the minute, and 12 s after a watchdog that started a few seconds late", () => {
