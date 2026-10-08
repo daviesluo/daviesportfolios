@@ -1,6 +1,33 @@
 // Pin the pure helpers of overnight-fetch.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { parseTickers, groupRows, paginateRows } from "./index.ts";
+import { parseTickers, groupRows, paginateRows, handle } from "./index.ts";
+
+// The gate (review M6, 2026-10-08): anonymous callers learned which US holdings have overnight points.
+Deno.test("handle: no app token or a bad one is a 401 before the table is read; a valid one gets the points", async () => {
+  const reads: string[][] = [];
+  const deps = {
+    verify: async (t: string) => (t === "good" ? { role: "ro" } : null),
+    read: async (tickers: string[]) => {
+      reads.push(tickers);
+      return [{ ticker: "NVDA", bucket_time: "2026-05-29T01:00:00.000Z", price: "175.25" }];
+    },
+    now: Date.parse("2026-05-29T02:00:00Z"),
+  };
+  const get = (headers: Record<string, string> = {}) =>
+    new Request("https://x.test/functions/v1/overnight-fetch?tickers=NVDA", { headers });
+  const none = await handle(get(), deps);
+  assertEquals([none.status, await none.json()], [401, { error: "invalid token" }]);
+  assertEquals((await handle(get({ "x-app-token": "forged" }), deps)).status, 401);
+  assertEquals(reads, []);
+  const ok = await handle(get({ "x-app-token": "good" }), deps);
+  assertEquals(ok.status, 200);
+  assertEquals(await ok.json(), { NVDA: [{ date: "2026-05-29T01:00", close: 175.25, volume: 0 }] });
+  assertEquals(reads, [["NVDA"]]);
+  // The preflight needs no token, and the CORS answer still lets the page send one.
+  const pre = await handle(new Request("https://x.test/functions/v1/overnight-fetch", { method: "OPTIONS" }), deps);
+  assertEquals(pre.status, 200);
+  assertEquals(/x-app-token/.test(pre.headers.get("Access-Control-Allow-Headers") ?? ""), true);
+});
 
 Deno.test("parseTickers: splits, trims, dedupes, validates charset", () => {
   assertEquals(parseTickers("NVDA,AAPL, GOOG"), ["NVDA", "AAPL", "GOOG"]);

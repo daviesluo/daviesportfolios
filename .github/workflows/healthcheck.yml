@@ -123,9 +123,9 @@ jobs:
             fi
           fi
 
-          # 2) Edge Functions. Two shapes:
-          #      check_anon        — expects 200 (anon-readable, matches
-          #                          the app's own client-side calls).
+          # 2) Edge Functions, one shape since overnight-fetch took the token
+          #    too (2026-10-08, review M6; check_anon, which expected 200
+          #    of an anon-readable function, went with it):
           #      check_token_gated — expects 401 with NO X-App-Token sent.
           #      `data` and `trading212` call verifyToken(x-app-token)
           #      BEFORE touching board_data / T212 upstream (see
@@ -142,7 +142,8 @@ jobs:
           #      - trading212      (fires in the very first doRefresh
           #                        right after portfolio load resolves)
           #      - overnight-fetch (fires post-load outside regular
-          #                        market hours)
+          #                        market hours; token-gated since
+          #                        2026-10-08, review M6)
           #    NOT pinged: auth (would need real/fake login attempts — no
           #    warming benefit, some lockout risk), overnight-record
           #    (already self-warms via its own pg_cron 5-min schedule —
@@ -150,14 +151,6 @@ jobs:
           #    doesn't belong in this anon-only workflow), ops-error
           #    (write-only sink, nothing to warm for).
           if [ -n "$ANON" ]; then
-            check_anon() {   # $1=name  $2=path+query -- expects 200
-              local name="$1" path="$2" code
-              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
-                -H "apikey: $ANON" -H "Authorization: Bearer $ANON" \
-                "$SB_URL/functions/v1/$path" || echo 000)
-              echo "$name Edge Function -> $code"
-              [ "$code" = "200" ] || fails="${fails}- $name Edge Function returned $code"$'\n'
-            }
             check_token_gated() {  # $1=name  $2=path+query -- no app token sent, expects 401
               local name="$1" path="$2" code
               code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 \
@@ -174,7 +167,7 @@ jobs:
             check_token_gated prices           "prices?tickers=AAPL"
             check_token_gated chart            "chart?tickers=AAPL"
             check_token_gated fundamentals     "fundamentals?tickers=AAPL"
-            check_anon        overnight-fetch  "overnight-fetch?tickers=AAPL"
+            check_token_gated overnight-fetch  "overnight-fetch?tickers=AAPL"
             check_token_gated data             "data?action=load"
             check_token_gated trading212       "trading212"
           fi

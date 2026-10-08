@@ -9,32 +9,29 @@
 // Reply: { "NVDA": [{date:'YYYY-MM-DDTHH:MM', close, volume:0}, …],
 //          "AAPL": [ … ], … }   // oldest-first, last ~26h only
 //
-// `tickers` is required and capped (defensive — anon endpoint). Each
-// ticker's points are the rows within the last ~26h (today's
-// overnight session + buffer for a cron-missed firing). Empty array
-// for a ticker with no recorded points.
+// `tickers` is required and capped. Each ticker's points are the rows
+// within the last ~26h (today's overnight session + buffer for a
+// cron-missed firing). Empty array for a ticker with no recorded points.
 //
-// Auth: anon-readable (the Supabase apikey gate is enough). The function
-// reads the table with the SERVICE-ROLE key, so migration 0018 — which
-// revoked direct anon SELECT on the table to close the holdings-
-// ENUMERATION leak (`?select=ticker` over PostgREST) — doesn't affect it.
-// Enumeration is the real risk; this endpoint requires the caller to
-// already KNOW the tickers to ask about, so it can't list the book.
+// Auth: the app token (`x-app-token`), as `prices`, `chart` and
+// `fundamentals` (review M6, 2026-10-08). Anonymous until then: the anon
+// key ships in the public bundle, and a caller holding it could ask about
+// 100 tickers a call and learn which US holdings have overnight points,
+// the book's outline. The function reads the table with the SERVICE-ROLE
+// key (migration 0018 revoked anon's direct SELECT for the same reason).
 //
-// NOTE: a `x-app-token` gate was added here in PR #176 but it regressed
-// the overnight line for the legitimate user, so it was reverted. The
-// enumeration fix (migration 0018) stands; only the read-side gate is
-// gone. (See _shared/token.ts if re-attempting — verify APP_AUTH_SECRET
-// resolves AND the CORS preflight passes the JWT gate before relying on it.)
+// A gate here once regressed the overnight line (PR #176) and was taken
+// out. This one follows the order that works for `prices`: the CORS
+// allow-list has carried `x-app-token` all along, the page sends the token
+// since the commit before this one, and the check is the same
+// `verifyToken` over the project-wide APP_AUTH_SECRET. The Supabase JWT
+// gate stays on (the page sends the anon key as its bearer).
+
+import { verifyToken } from "../_shared/token.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  // `x-app-token` stays in the allow-list even though the handler now
-  // ignores it: clients still on the previously-deployed (PR #176) bundle
-  // keep sending it, and dropping it from the preflight allow-list would
-  // fail their CORS check and strand them on the single-dot fallback
-  // until the SW updates. A header the server ignores is harmless to allow.
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-app-token",
 };
 
@@ -151,24 +148,40 @@ async function readPoints(
 
 // ---------------- Server ----------------
 
-if (import.meta.main) {
-  Deno.serve(async (req) => {
-    if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
-    const url = new URL(req.url);
-    const tickers = parseTickers(url.searchParams.get("tickers"));
-    // 26h: today's overnight session + buffer for a cron-missed tick.
-    const cutoff = new Date(Date.now() - 26 * 3_600_000).toISOString();
-    let rows: Array<{ ticker: string; bucket_time: string; price: number | string }> = [];
-    try { rows = await readPoints(tickers, cutoff); }
-    catch { rows = []; }
-    const body = groupRows(rows);
-    return new Response(JSON.stringify(body), {
-      status: 200,
-      headers: {
-        ...CORS,
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-      },
+type Row = { ticker: string; bucket_time: string; price: number | string };
+
+/**
+ * One request: the preflight answered as it is, anything else only with a valid app token (checked before the table is
+ * read, so a refused call costs nothing), then the points. Its parts are injectable so the gate is pinned.
+ */
+export async function handle(req: Request, deps: {
+  verify: (token: string) => Promise<unknown>;
+  read: (tickers: string[], cutoff: string) => Promise<Row[]>;
+  now?: number;
+} = { verify: (t) => verifyToken(t), read: readPoints }): Promise<Response> {
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (!(await deps.verify(req.headers.get("x-app-token") ?? ""))) {
+    return new Response(JSON.stringify({ error: "invalid token" }), {
+      status: 401, headers: { ...CORS, "Content-Type": "application/json" },
     });
+  }
+  const url = new URL(req.url);
+  const tickers = parseTickers(url.searchParams.get("tickers"));
+  // 26h: today's overnight session + buffer for a cron-missed tick.
+  const cutoff = new Date((deps.now ?? Date.now()) - 26 * 3_600_000).toISOString();
+  let rows: Row[] = [];
+  try { rows = await deps.read(tickers, cutoff); }
+  catch { rows = []; }
+  return new Response(JSON.stringify(groupRows(rows)), {
+    status: 200,
+    headers: {
+      ...CORS,
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+    },
   });
+}
+
+if (import.meta.main) {
+  Deno.serve((req) => handle(req));
 }

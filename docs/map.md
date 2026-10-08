@@ -939,8 +939,8 @@ The Edge Functions hold:
 The browser carries:
 1. The Supabase **anon** key (safe: it is the public key from the
    dashboard, and every function that serves the portfolio or a paid
-   upstream also checks the app's own token; `overnight-fetch`, which
-   serves recorded market quotes, is anon-readable).
+   upstream also checks the app's own token, `overnight-fetch` among
+   them since 2026-10-08).
 2. A short-lived HMAC token in sessionStorage.
 
 ---

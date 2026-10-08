@@ -234,9 +234,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      failure since 10-04 green again); eight worktrees under `.claude/worktrees/` and three detached ones with a commit
      not in main (history 17:25); the position cards and FORMATION VALUE still drawn at 1:1 FX in the first moment of a
      first visit (the scoreboard waits with a dash); `refreshPrices` still asks for sold-out holdings' quotes.
-   - **Batch 4's deploy order:** `overnight-fetch` starts requiring the app token one commit after the page starts
-     sending it; push that commit once the page's bundle is live, or accept that an older open tab gets no new
-     overnight points until it reloads. The `_shared/token.ts` commit redeploys every function (unchanged code).
+   - **Batch 4's deploy order, kept:** `overnight-fetch` requires the app token from the commit after the page's
+     bundle that sends it went live (app-1b24810b.js, 2026-10-08 ~17:50 UTC); an older tab still open gets no new
+     overnight points until it reloads.
    - **M7 (the site's own fonts) reverted, to redo:** CI's Chromium drew the sweep with Inter for the first time (the
      sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed (history
      17:45). Redo it with the layouts that fail fixed for Inter at both widths, proved on CI's browser, not this one.
