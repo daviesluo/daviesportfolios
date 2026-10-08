@@ -30,7 +30,7 @@ import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, perfRowFilter, fi
 import { refreshPriceSnapshots, rangeStartMs } from './price_snapshots.js';
 import {
   RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh,
-  hasAnyNumericField, announceChartsUpdated,
+  hasAnyNumericField, announceChartsUpdated, markRangeSettled,
 } from './cache.js';
 import { isDailyOnly, isCrypto } from './ticker_class.js';
 import { priceDividedByTtmEps } from '../charts/indicators.js';
@@ -157,13 +157,24 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   // one synchronous block), so two near-simultaneous range
   // resolutions can't interleave their localStorage writes.
   await Promise.all(rangeMeta.map(async (meta) => {
-    if (meta.stale.length === 0) return;
+    // A range this pass has answered is settled for Top Movers, which
+    // waits on a name with no stored rows only until then: a name still
+    // without rows after an answer has none to give. A failed call (the
+    // 8 s timeout, the Edge Function down and no proxy with data) does not
+    // settle it — those names may simply not have arrived, and ranking the
+    // rest of the book without them is the bug it waits to avoid.
+    const settle = () => { markRangeSettled(meta.perfKey); announceChartsUpdated(); };
+    if (meta.stale.length === 0) { settle(); return; }
     const ixStale  = meta.stale.filter(s => !dailyOnlySet.has(s));
     const dlyStale = meta.stale.filter(s =>  dailyOnlySet.has(s));
     // Assigned in the try below; every read is downstream of that
     // assignment (the catch returns), so no initializer.
     /** @type {Record<string, any[]>} */
     let batch;
+    /** @type {{ answered?: boolean }} */
+    const ixRep = {};
+    /** @type {{ answered?: boolean }} */
+    const dlyRep = {};
     // The rows' `ts` is when they were ASKED for, read before the requests go out, never when the answer lands: the
     // performance panel's refresh trusts a row younger than its TTL, and an answer asked for before a gap (a phone
     // locked with this prefetch in flight) would otherwise count as new after it. The browser sweep found it
@@ -173,10 +184,10 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     try {
       const [ixBatch, dlyBatch] = await Promise.all([
         ixStale.length > 0
-          ? fetchHistoricalBatch(ixStale, meta.params.yahooRange, meta.params.interval, meta.params.includePrePost)
+          ? fetchHistoricalBatch(ixStale, meta.params.yahooRange, meta.params.interval, meta.params.includePrePost, ixRep)
           : Promise.resolve(/** @type {Record<string, any[]>} */ ({})),
         dlyStale.length > 0
-          ? fetchHistoricalBatch(dlyStale, meta.params.yahooRange, '1d', false)
+          ? fetchHistoricalBatch(dlyStale, meta.params.yahooRange, '1d', false, dlyRep)
           : Promise.resolve(/** @type {Record<string, any[]>} */ ({})),
       ]);
       batch = { ...ixBatch, ...dlyBatch };
@@ -213,7 +224,8 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
     // range just landed. Per-range, matching the per-range writes: the
     // window the user is looking at fills the moment ITS range
     // resolves, not when the slowest one does.
-    announceChartsUpdated();
+    if ((ixStale.length === 0 || ixRep.answered) && (dlyStale.length === 0 || dlyRep.answered)) settle();
+    else announceChartsUpdated();
   }));
 
   // ---- Moving-average history prefetch (writes to MaStore /

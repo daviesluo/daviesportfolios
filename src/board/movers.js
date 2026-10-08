@@ -108,6 +108,58 @@ export function dayMoveOf(player) {
 }
 
 /**
+ * Whether a name can rank at all: never cash, never a CN fund (its quote
+ * is a NAV published after its own close — a real number about a
+ * different day). The same on every window and in both measures.
+ * @param {any} p
+ */
+function isRankable(p) {
+  return !!p && !p.isCash && p.ticker !== 'CASH' && !isCnFund(p.ticker);
+}
+
+/**
+ * Whether a longer window must show its loading state instead of a
+ * ranking: true while a name that can rank has no stored history for the
+ * window yet and the session has not asked for it.
+ *
+ * A name with no history is not missing from `computeAt`'s answer — it
+ * counts FLAT on every lot it held before the window, which is right for
+ * a holding that genuinely has none, and wrong for one whose rows have
+ * simply not arrived. On a first visit, and on every visit until the
+ * stored rows had loaded, every holding but the auto-DCA ETFs read flat:
+ * their buys INSIDE the window still moved, so the card ranked those two
+ * alone, with no losers (Davies, 2026-10-08: "VUAA +0.16 %, SAEM +0.02 %",
+ * then the whole list a few seconds later). A ranking of part of the book
+ * is a wrong number on screen, so the card waits for the whole of it.
+ *
+ * It waits for two things, and never for longer than one pass of the
+ * background prefetch: the chart store's rows to load from IndexedDB
+ * (`storesReady`), and a row for every name that can rank (`known`). Once
+ * the session's prefetch has answered this window (`settled`), a name
+ * still without rows genuinely has none — or was added since — and ranks
+ * as it always did, so no holding can hold the card on loading for good.
+ * TODAY never waits: it is metrics.js's day move and needs no history.
+ *
+ * @param {any[]} players
+ * @param {{
+ *   window: string,
+ *   known?: Set<string> | null,
+ *   settled?: boolean,
+ *   storesReady?: boolean,
+ * }} opts
+ * @returns {boolean}
+ */
+export function moversPending(players, opts) {
+  const { window, known, settled = false, storesReady = false } = opts;
+  if (rangeKeyForWindow(window) === null || settled) return false;
+  if (!storesReady) return true;
+  for (const p of players || []) {
+    if (isRankable(p) && !(known && known.has(p.ticker))) return true;
+  }
+  return false;
+}
+
+/**
  * Rank one window into two columns and the shared bar scale.
  *
  * Eligibility is the same on every window and in both measures: never
@@ -137,7 +189,7 @@ export function rankMovers(players, opts) {
   /** @type {any[]} */
   const rows = [];
   for (const p of players || []) {
-    if (!p || p.isCash || p.ticker === 'CASH' || isCnFund(p.ticker)) continue;
+    if (!isRankable(p)) continue;
     const move = isToday ? dayMoveOf(p) : (moveOf ? moveOf(p) : null);
     if (!move || pctIsFlat(move.pct)) continue;
     rows.push({ ...p, movePct: move.pct, moveUsd: move.usd });

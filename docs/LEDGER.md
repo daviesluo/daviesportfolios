@@ -812,6 +812,27 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
   … "好的"), sub-agents run it, commit and hand back; the main session rebases the batch onto `origin/main`, runs the
   full gates once and pushes. Urgent fixes still run the full gates alone. In CLAUDE.md's git workflow and the skill.
 
+### [2026-10-08 03:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **TOP MOVERS no longer ranks part of the book while a window's history loads** (Davies, 10-08, screenshot: on every
+  open, under REFRESHING, 1M showed VUAA +0.16 % and SAEM +0.02 % with no losers, then the whole list). Cause, measured:
+  `holdingMoveOver` → `computeAt` counts a holding with no window history FLAT on its pre-window lots, so with the
+  rows not yet there only in-window buys (the auto-DCA ETFs) moved and ranked alone; the rows were not there because
+  the chart store hydrates from IndexedDB after the first paint and nothing re-read it (the card's only trigger was
+  the prefetch's `CHARTS_UPDATED_EVENT`, which fires after the live refresh and a range's fetch). Fix: `moversPending`
+  (`board/movers.js`) holds a longer window on "loading…" until the stores have loaded and every rankable name has
+  rows, or until this session's prefetch has had an ANSWER for the window (`markRangeSettled` in `prices/prefetch.js`;
+  `fetchHistoricalBatch`'s new `report.answered` says the Edge Function or a proxy answered), so a name with no
+  history never blocks for good, while a failed call (the 8 s timeout, the gates run found it) settles nothing; the
+  card re-reads when hydration ends. TODAY unchanged. Sweep part `movers-load` (1M, %, VUAA.L with one in-window buy;
+  `chart` answers gated cold, every answer gated on a warm reload, each gate opened by the check, not a timer):
+  origin/main's bundle paints `1M: VUAA +1.27% | —` on both visits (4 FAIL, both widths); the new one paints only
+  loading → the whole list, and on the warm visit the whole list from the 20 stored 1M rows before any answer (the
+  loading frame lasted ~170 ms after first paint, measured once on desktop). Pins: `movers.test.js` (moversPending,
+  the partial list closed-form), `header_sidebar.test.jsx` (2 of 3 new cases fail on the old component),
+  `prefetch.test.js` (settled on an answer; not on a failed call, which fails with an always-settle prefetch).
+  Full gates green on `fb57f4f8` (the run at ~03:00); rebased onto `c7a9fbeb`, `--quick` green, handed back unpushed
+  under that commit's rule: the landing run is the main session's.
+
 ### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C merged into "Reward quotes" (Davies, 2026-10-08: "合并进 Reward quotes"): from RW-C's first minute,
   2026-10-09 00:00 UTC, every Reward quotes row reads RW-C's run, and there is no "Reward quotes confirmation" row, now

@@ -512,6 +512,10 @@ four decimals, and indices and futures no currency sign.
   move doesn't pad the list, and a side with no movers shows a dash.
   Over 1W to 3M the move covers only the time the position has been
   held: a stock bought two days ago shows two days on the 1M list.
+  Those windows rank only once every holding's price history for the
+  window is there; until then the list reads "loading…" rather than
+  ranking part of the book. On a return visit it draws from the
+  history this device kept from the last one, so it is there at once.
   TODAY is measured from yesterday's close for everything, as on the
   heat map. Both choices are remembered.
 - **Formation Value.** Each position's share of the portfolio as a bar,

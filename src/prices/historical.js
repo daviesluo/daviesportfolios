@@ -316,7 +316,19 @@ export async function fetchHistorical(symbol, range = "ytd", interval = "1d", in
 //      yet, or specific symbols that Yahoo refused), fall back to per-symbol
 //      fetchHistorical via the CORS proxy chain.
 // Returns { ticker: [{date,close}, …], … } — failed tickers are simply absent.
-export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1d", includePrePost = false) {
+// `report.answered` tells the two apart: true when something answered — the
+// Edge Function, or a proxy with data — so a ticker absent from an answered
+// batch has no history to give, while one absent after a failed call may
+// simply not have arrived (the prefetch settles a window for Top Movers only
+// on an answer; prefetch.js).
+/**
+ * @param {string[]} symbols
+ * @param {string} [range]
+ * @param {string} [interval]
+ * @param {boolean} [includePrePost]
+ * @param {{ answered?: boolean }} [report]
+ */
+export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1d", includePrePost = false, report = {}) {
   const out = {};
   const list = Array.from(new Set(symbols.filter(Boolean)));
   if (list.length === 0) return out;
@@ -356,6 +368,7 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
     }
   } catch (_) { /* fall through to proxy-fallback */ }
 
+  if (edgeSucceeded) report.answered = true;
   const missing = list.filter((t) => !out[t]);
   if (missing.length === 0) return out;
 
@@ -382,6 +395,7 @@ export async function fetchHistoricalBatch(symbols, range = "ytd", interval = "1
       : fetchHistorical(s, range, interval, includePrePost, { skipIfAllDead })).catch(() => null);
     if (data && data.length > 0) out[s] = data;
   });
+  if (Object.keys(out).length > 0) report.answered = true;
   return out;
 }
 

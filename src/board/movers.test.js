@@ -3,7 +3,7 @@
 // value of the panel is that the three agree about the same name.
 import { describe, it, expect } from 'vitest';
 import {
-  MOVER_WINDOWS, rangeKeyForWindow, holdingMoveOver, dayMoveOf, rankMovers, barWidthPct,
+  MOVER_WINDOWS, rangeKeyForWindow, holdingMoveOver, dayMoveOf, rankMovers, barWidthPct, moversPending,
 } from './movers.js';
 import { buildTickerSeries } from '../charts/ytd.js';
 
@@ -231,5 +231,72 @@ describe('rankMovers — a longer window really is a different question', () => 
     const out = rankMovers(players, { window: 'TODAY', metric: 'pct', moveOf: wrong });
     expect(out.winners.map(r => r.movePct)).toEqual([5]);
     expect(out.losers).toEqual([]);
+  });
+});
+
+// Davies, 2026-10-08: every open showed TOP MOVERS · 1M with two winners —
+// the auto-DCA ETFs — and no losers, for a few seconds, then the whole
+// list. The case, closed-form: one month, every name at 100 when it opens.
+//   HELD    10 bought before the window,                now 120: +20.00 %
+//   DCA      5 bought before the window, 1 at 110 inside, now 120:
+//            with history 720 on 5 x 100 + 110 = 610,          +18.03 %;
+//            without it the five old shares read flat at 120 and only the
+//            inside buy moves: 720 on 600 + 110 = 710,          +1.41 %
+//   LOSER   10 bought before the window,                now  90: -10.00 %
+//   017731  a CN fund, never ranked;  CASH never ranked.
+describe('moversPending — never rank part of the book', () => {
+  const ANCHOR = '2026-08-18';
+  const TODAY = '2026-09-18';
+  const nowMs = Date.parse(`${TODAY}T12:00:00Z`);
+  const BOOK = [
+    { ticker: 'HELD', shares: 10, fx: 1, currency: 'USD', lastPrice: 120, dayPct: 1, dayChange: 10,
+      lots: [{ date: '2026-07-01', shares: 10, cost: 50 }] },
+    { ticker: 'DCA', shares: 6, fx: 1, currency: 'USD', lastPrice: 120, dayPct: 2, dayChange: 12,
+      lots: [{ date: '2026-07-01', shares: 5, cost: 50 }, { date: '2026-09-10', shares: 1, cost: 110 }] },
+    { ticker: 'LOSER', shares: 10, fx: 1, currency: 'USD', lastPrice: 90, dayPct: -1, dayChange: -9,
+      lots: [{ date: '2026-07-01', shares: 10, cost: 50 }] },
+    { ticker: '017731', shares: 100, fx: 0.14, currency: 'CNY', lastPrice: 2, dayPct: 9.9, dayChange: 2,
+      lots: [{ date: '2026-07-01', shares: 100, cost: 1 }] },
+    { ticker: 'CASH', isCash: true, shares: 1, lastPrice: 500 },
+  ];
+  const history = (tickers) => Object.fromEntries(tickers.map((t) => [t, [{ date: '2026-08-17', close: 100 }]]));
+  const rank = (tickers) => {
+    const ctx = { tickerSeries: buildTickerSeries(history(tickers), ANCHOR, '1M', {}, false, true),
+                  anchorDate: ANCHOR, todayDate: TODAY, nowMs };
+    const out = rankMovers(BOOK, { window: '1M', metric: 'pct', moveOf: (p) => holdingMoveOver(p, ctx) });
+    return [...out.winners, ...out.losers].map((r) => `${r.ticker} ${r.movePct.toFixed(2)}`);
+  };
+
+  it('the bug: with no history the ranking is the in-window buys alone', () => {
+    // What the card drew before the rows arrived — and why it may not.
+    expect(rank([])).toEqual(['DCA 1.41']);
+    expect(rank(['HELD', 'DCA', 'LOSER'])).toEqual(['HELD 20.00', 'DCA 18.03', 'LOSER -10.00']);
+  });
+
+  it('waits while the stored rows have not loaded', () => {
+    expect(moversPending(BOOK, { window: '1M', known: new Set(), storesReady: false })).toBe(true);
+    // Even with every row in hand: the store has not said it is done loading.
+    expect(moversPending(BOOK, { window: '1M', known: new Set(['HELD', 'DCA', 'LOSER']), storesReady: false })).toBe(true);
+  });
+
+  it('waits while any name that can rank has no rows', () => {
+    expect(moversPending(BOOK, { window: '1M', known: new Set(['DCA']), storesReady: true })).toBe(true);
+    expect(moversPending(BOOK, { window: '3M', known: new Set(['HELD', 'DCA']), storesReady: true })).toBe(true);
+  });
+
+  it('ranks once every name that can rank has rows; the CN fund and cash never hold it up', () => {
+    expect(moversPending(BOOK, { window: '1M', known: new Set(['HELD', 'DCA', 'LOSER']), storesReady: true })).toBe(false);
+  });
+
+  it('stops waiting once the session has answered the window, so no name holds it for good', () => {
+    // A name Yahoo has no history for is still missing after the answer: it
+    // ranks as it always did (flat before the window), not "loading…" forever.
+    expect(moversPending(BOOK, { window: '1M', known: new Set(['HELD']), storesReady: true, settled: true })).toBe(false);
+    expect(moversPending(BOOK, { window: '1M', known: new Set(), storesReady: false, settled: true })).toBe(false);
+  });
+
+  it('TODAY never waits: it is the day move and needs no history', () => {
+    expect(moversPending(BOOK, { window: 'TODAY', known: null, storesReady: false })).toBe(false);
+    expect(moversPending(BOOK, { window: 'TODAY' })).toBe(false);
   });
 });

@@ -26,7 +26,7 @@ vi.mock('../charts/perf_chart.jsx', () => ({
 
 import { Header, Sidebar, UpcomingEarnings, shortcutsHint } from './header_sidebar.jsx';
 import { YtdStore } from '../prices/chart_store.js';
-import { CHARTS_UPDATED_EVENT } from '../prices/cache.js';
+import { CHARTS_UPDATED_EVENT, markRangeSettled } from '../prices/cache.js';
 
 // marketData with the FX pairs the cycle conversion reads:
 //   GBPUSD=X = USD per GBP  → USD→GBP multiplier is 1/1.27
@@ -606,6 +606,58 @@ describe('Sidebar — Top Movers window', () => {
       window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT));
     });
     expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA']);
+  });
+
+  // Davies, 2026-10-08: on every open the 1M list showed only the auto-DCA
+  // ETFs for a few seconds, no losers, then the whole ranking. DCA below
+  // has one buy INSIDE the window (110, two days ago, now 120); with no
+  // history NVDA and BRIT.L read flat and DCA's +$10 on 1,310 would rank
+  // alone. The card must say loading until every name has its rows.
+  const DCA = { ticker: 'DCA', dayPct: 0.5, dayChange: 6, marketValue: 1320,
+    shares: 11, fx: 1, currency: 'USD', lastPrice: 120,
+    lots: [{ date: dAgo(60), shares: 10, cost: 50 }, { date: dAgo(2), shares: 1, cost: 110 }] };
+  const renderWithDca = () => {
+    localStorage.removeItem('dp.prefs');     // TODAY and %, whatever an earlier test picked
+    return render(<Sidebar metrics={metricsFor([...WINDOW_MOVERS, DCA])} source="live" portfolio={{}}
+      marketData={{}} extendedHours={false} phase="regular" hideValues={false} />);
+  };
+
+  it('ranks nothing while a holding\'s window history has not arrived', async () => {
+    seedMonthHistory({ DCA: 100 });          // the one name whose rows came first
+    const user = userEvent.setup();
+    renderWithDca();
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
+    expect(columnTickers('gain')).toEqual([]);
+    expect(columnTickers('loss')).toEqual([]);
+    expect(screen.getAllByText('loading…')).toHaveLength(2);
+    await act(async () => {
+      seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
+      window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT));
+    });
+    //   BRIT.L 1300 -> 1950 +50.00 %;  DCA 1000 + 110 -> 1320 +18.92 %;  NVDA 1000 -> 1050 +5.00 %
+    expect(columnTickers('gain')).toEqual(['BRIT', 'DCA', 'NVDA']);
+    expect(columnValues('gain')).toEqual(['+50.00%', '+18.92%', '+5.00%']);
+  });
+
+  it('TODAY ranks at once with no history at all', () => {
+    renderWithDca();
+    expect(columnTickers('gain')).toEqual(['NVDA', 'BRIT', 'DCA']);
+  });
+
+  it('a name with no history ranks once the session has answered the window', async () => {
+    // Last in this block: the settled set is the module's, for the session.
+    seedMonthHistory({ NVDA: 100, 'BRIT.L': 100 });
+    const user = userEvent.setup();
+    renderWithDca();
+    await user.click(screen.getByRole('tab', { name: /Rank movers over 1M/i }));
+    expect(screen.getAllByText('loading…')).toHaveLength(2);
+    await act(async () => {
+      markRangeSettled('1M:std');
+      window.dispatchEvent(new CustomEvent(CHARTS_UPDATED_EVENT));
+    });
+    // DCA has no rows: its ten old shares flat at 120, the inside buy +$10: 1,320 on 1,310.
+    expect(columnTickers('gain')).toEqual(['BRIT', 'NVDA', 'DCA']);
+    expect(columnValues('gain')).toEqual(['+50.00%', '+5.00%', '+0.76%']);
   });
 });
 

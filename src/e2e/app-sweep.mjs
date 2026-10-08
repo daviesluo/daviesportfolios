@@ -85,7 +85,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * does. A part leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the
  * same thing whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'banner-reload', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -845,6 +845,20 @@ let loadOverride = /** @type {any} */ (null);
 let saveFailures = 0, saveCalls = 0, loadCalls = 0, loadFails = false;
 let holdMs = 0;
 /**
+ * The Top Movers part (0c''): while set, the `chart` function's answers (`chartGate`), or every Edge answer
+ * (`edgeGate`), wait until the check opens the gate — never a timer, so a slow machine cannot let one through before the
+ * check has read the card — and how many have gone through since each was reset.
+ */
+let chartGate = /** @type {Promise<void> | null} */ (null), edgeGate = /** @type {Promise<void> | null} */ (null);
+let chartAnswered = 0, edgeAnswered = 0;
+/** A closed gate and the function that opens it. */
+const closedGate = () => {
+  /** @type {() => void} */
+  let open = () => {};
+  const p = new Promise((r) => { open = () => r(undefined); });
+  return { p: /** @type {Promise<void>} */ (p), open };
+};
+/**
  * The band's part (0f): tickers the price function leaves out of its answer, quotes it answers in place of `QUOTES`, what
  * the public proxies answer (a Yahoo chart body per symbol; a fund's JSONP for any fund while `PROXY_FUND` is set), and
  * whether the ops-error summary the errors badge polls is served from what the page reported.
@@ -1260,6 +1274,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     // reloaded has nowhere to go, and that is not the app's error.
     const held = holdMs;
     if (held > 0) await new Promise((r) => setTimeout(r, held));
+    if (edgeGate) await Promise.race([edgeGate, new Promise((r) => setTimeout(r, 7500))]);
+    edgeAnswered += 1;
     const json = (body) => {
       const done = route.fulfill({
         status: 200,
@@ -1341,6 +1357,10 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     }
     if (url.includes('/data?')) return json({ ok: true, version: 2 });
     if (url.includes('/chart?')) {
+      // Opened by the check, or 6 s after the call came in at the latest: the app gives a history call 8 s, and a
+      // call past that has failed and settles nothing (prices/prefetch.js), which is not what this part is about.
+      if (chartGate) await Promise.race([chartGate, new Promise((r) => setTimeout(r, 6000))]);
+      chartAnswered += 1;
       const u = new URL(url);
       const interval = u.searchParams.get('interval') || '1d';
       const daily = /^\d+(d|wk|mo)$/.test(interval);
@@ -1853,6 +1873,126 @@ async function run() {
     if (!answered) fail(S('steady'), `the held answers never landed inside the window (${heldAnswers.join(', ') || 'none'})`);
     else if (!moved) ok(S('steady'), `${seen.length} reads over 3.2 s, through the book and the quotes landing at 1.5 s: nothing moved, no "Computing…", no flat line`);
     else fail(S('steady'), `at ${moved.t} ms it read ${moved.pf} | ${moved.day} | ${moved.chart} | flat ${moved.flat} (was ${before.pf} | ${before.day} | ${before.chart})`);
+    await ctx.close();
+  }
+
+  // ---- 0c''. Top Movers never ranks a part of the book ----------------------
+  // Davies (2026-10-08): on every open, while the header said REFRESHING, TOP MOVERS on 1M listed two winners —
+  // VUAA +0.16 % and SAEM +0.02 % — and no losers, then the whole ranking came in. A window is priced from the range
+  // history the prefetch writes, and a holding with none yet was counted flat on its lots from before the window, so
+  // only the auto-DCA ETFs' buys INSIDE it moved and the card ranked them alone. Here VUAA.L carries such a buy, the
+  // card is on 1M and %, and the history is held back: first with nothing stored (a first visit, the `chart` answers
+  // alone held until the card has been read), then on a reload with the last visit's rows in IndexedDB and every
+  // answer held (a second visit, REFRESHING). Every frame the card draws on 1M must be the loading state or the whole
+  // ranking; on the second visit, the whole ranking before any answer. Each gate opens well inside the app's 8 s
+  // timeout on a history call: past it the call has failed, and a failed call settles nothing (prices/prefetch.js).
+  //
+  //   1M, closed form: the window opens 31 days back, every ticker at its `base` there.
+  //   BRIT.L  100 x (2.50 - 2.00) x 1.25                     = +$62.50 on $250     +25.00 %
+  //   ACME      6 x (240 - 200)                              = +$240   on $1,200   +20.00 %
+  //   NOVA      5 x (120 - 100)                              = +$100   on $500     +20.00 %
+  //   VUAA.L  3 bought at 80 thirty days back and 1 at 76 five days back, both inside the window, 4 at 80 now:
+  //           (320 - 316) x 1.25                             = +$5     on $395     +1.27 %
+  //   With no history ACME, NOVA and BRIT.L read flat, and VUAA.L's +1.27 % ranked alone: the bug.
+  //   TODAY is the day move (6b): BRIT.L +4.17 %, VUAA.L +1.27 %, ACME +0.84 %; it needs no history.
+  for (const vp of viewports('movers-load')) {
+    const S = (n) => `${vp.name}/movers-load/${n}`;
+    const vuaa = /** @type {any} */ (PORTFOLIO.holdings['VUAA.L']);
+    loadOverride = { ...PORTFOLIO, holdings: { ...PORTFOLIO.holdings,
+      'VUAA.L': { ...vuaa, shares: 4, cost: 79, lots: [...vuaa.lots, { date: dayAgo(5), shares: 1, cost: 76 }] } } };
+    const FULL = '1M: BRIT,ACME,NOVA,VUAA +25.00% +20.00% +20.00% +1.27% | —';
+    const LOADING = '1M: loading… | loading…';
+    const TODAY_LIST = 'TODAY: BRIT,VUAA,ACME +4.17% +1.27% +0.84% | —';
+    // Every state the card paints, from the first frame on, recorded in the page: a poll from outside would miss a
+    // paint that lasted less than its interval.
+    const recorder = () => {
+      /** @type {string[]} */
+      const seen = [];
+      /** @type {any} */ (window).__moversSeen = seen;
+      const col = (/** @type {Element} */ el) => {
+        const t = [...el.querySelectorAll('.mover-ticker')].map((e) => e.textContent).join(',');
+        const v = [...el.querySelectorAll('.mover-val')].map((e) => e.textContent).join(' ');
+        return t ? `${t} ${v}` : (el.querySelector('.mover-row.dim')?.textContent || '');
+      };
+      const tick = () => {
+        const grid = [...document.querySelectorAll('.movers-grid')].find((g) => g.getBoundingClientRect().width > 0);
+        if (grid && grid.children.length >= 2) {
+          const on = [...document.querySelectorAll('.movers-window .view-tab.is-on')]
+            .find((b) => b.getBoundingClientRect().width > 0)?.textContent || '';
+          const st = `${on}: ${col(grid.children[0])} | ${col(grid.children[1])}`;
+          if (seen[seen.length - 1] !== st) seen.push(st);
+        }
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
+    const prefs = JSON.stringify({ hideValues: false, moversMetric: 'pct', moversWindow: '1M' });
+    const chartHold = closedGate();
+    chartGate = chartHold.p;
+    chartAnswered = 0;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, {
+      blockServiceWorkers: true,
+      beforeGoto: async (pg) => {
+        await pg.addInitScript((p) => { localStorage.setItem('dp.prefs', p); }, prefs);
+        await pg.addInitScript(recorder);
+      },
+    });
+    const seenNow = () => page.evaluate(() => [.../** @type {any} */ (window).__moversSeen || []]);
+    const lastIs = (want, ms) => page.waitForFunction((w) => {
+      const s = /** @type {any} */ (window).__moversSeen || [];
+      return s[s.length - 1] === w;
+    }, want, { timeout: ms }).then(() => true, () => false);
+    // A first visit: nothing stored, the history still on its way. Read once the card has drawn its window.
+    await page.waitForFunction(() => (/** @type {any} */ (window).__moversSeen || []).some((x) => x.startsWith('1M:')),
+      null, { timeout: 6000 }).catch(() => {});
+    await page.locator('.movers-window .view-tab:visible:text-is("TODAY")').first().click();
+    const today = await lastIs(TODAY_LIST, 3000);
+    const heldAtToday = chartAnswered === 0;
+    if (today && heldAtToday) ok(S('today'), `TODAY ranks the whole book while the history is still held: ${TODAY_LIST}`);
+    else fail(S('today'), `TODAY read "${(await seenNow()).slice(-1)[0]}" with the history answered ${chartAnswered} times; wanted ${TODAY_LIST} before any`);
+    await page.locator('.movers-window .view-tab:visible:text-is("1M")').first().click();
+    chartGate = null;
+    chartHold.open();
+    const filled = await lastIs(FULL, 20_000);
+    const cold = (await seenNow()).filter((x) => x.startsWith('1M:'));
+    const coldWrong = cold.filter((x) => x !== FULL && x !== LOADING);
+    if (filled && coldWrong.length === 0 && cold.includes(LOADING)) {
+      ok(S('first-visit'), `with the history held the card read ${[...new Set(cold)].join(' → ')}, never a part of the book`);
+    } else {
+      fail(S('first-visit'), `1M painted ${cold.join(' → ')}${filled ? '' : ' (never the whole ranking)'}; wanted only "${LOADING}" and then "${FULL}"`);
+    }
+    // A second visit: the rows the first one wrote are in IndexedDB, the book and its prices in localStorage, and
+    // every answer is held, as it is while the header reads REFRESHING. Six minutes on, past the 24H rows' freshness.
+    const stored1M = () => page.evaluate(() => new Promise((res) => {
+      const rq = indexedDB.open('dp-charts');
+      rq.onsuccess = () => {
+        const db = rq.result;
+        if (![...db.objectStoreNames].includes('ytd')) { db.close(); res(0); return; }
+        const k = db.transaction('ytd').objectStore('ytd').getAllKeys();
+        k.onsuccess = () => { res(k.result.filter((x) => String(x).includes('|1M:std|')).length); db.close(); };
+      };
+      rq.onerror = () => res(0);
+    }));
+    for (let i = 0; i < 50 && /** @type {number} */ (await stored1M()) < 4; i++) await page.waitForTimeout(100);
+    const rows1M = await stored1M();
+    const edgeHold = closedGate();
+    edgeGate = edgeHold.p;
+    edgeAnswered = 0;
+    await page.clock.setFixedTime(new Date(NOW_MS + 6 * 60e3));
+    await page.reload({ waitUntil: 'commit' });
+    const warmFull = await lastIs(FULL, 7000);
+    const answeredBefore = edgeAnswered;
+    edgeGate = null;
+    edgeHold.open();
+    await page.waitForTimeout(3000);
+    const warm = (await seenNow()).filter((x) => x.startsWith('1M:'));
+    const warmWrong = warm.filter((x) => x !== FULL && x !== LOADING);
+    if (warmFull && answeredBefore === 0 && warmWrong.length === 0 && warm[warm.length - 1] === FULL) {
+      ok(S('second-visit'), `the ${rows1M} stored 1M rows drew the whole ranking before any answer: ${[...new Set(warm)].join(' → ')}`);
+    } else {
+      fail(S('second-visit'), `1M painted ${warm.join(' → ')} (${rows1M} 1M rows stored; whole ranking before any answer: ${warmFull && answeredBefore === 0}, ${answeredBefore} answered); wanted "${FULL}" from the stored rows`);
+    }
+    loadOverride = null;
     await ctx.close();
   }
 

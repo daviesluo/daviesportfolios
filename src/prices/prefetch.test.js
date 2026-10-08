@@ -182,3 +182,60 @@ describe('prefetchAllChartData stamps', () => {
     clock.mockRestore();
   });
 });
+
+describe('prefetchAllChartData settles each window for Top Movers', () => {
+  // Top Movers ranks a longer window only once every name it can rank has
+  // stored rows, or once this session's prefetch has answered the window
+  // (board/movers.js `moversPending`). The second half is what keeps a
+  // name with no history at all from holding the card on "loading…" for
+  // good, so a window is settled when its answer lands, and not before.
+  it('marks a range settled when its answer lands, not when it is asked for', async () => {
+    vi.resetModules();
+    /** @type {Array<() => void>} */
+    const held = [];
+    let holding = true;
+    /** @type {any} */ (globalThis.fetch).mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.includes('/functions/v1/chart')) {
+        if (holding) await new Promise((r) => { held.push(() => r(undefined)); });
+        // An answer without NOVA: Yahoo has no history for it. Settled all the same.
+        return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+      }
+      if (u.includes('/functions/v1/fundamentals')) return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+      return new Promise(() => {});
+    });
+    const { prefetchAllChartData } = await import('./prefetch.js');
+    const { rangeSettled, CHARTS_UPDATED_EVENT } = await import('./cache.js');
+    let announced = 0;
+    const onUpdate = () => { announced += 1; };
+    window.addEventListener(CHARTS_UPDATED_EVENT, onUpdate);
+    void prefetchAllChartData({ tickers: ['NOVA'], spSymbol: '^GSPC', extendedHours: false, phase: 'regular' });
+    await vi.waitFor(() => expect(held.length).toBe(6));
+    expect(['1W:std', '1M:std', '3M:std'].map(rangeSettled)).toEqual([false, false, false]);
+    expect(announced).toBe(0);
+    holding = false;
+    for (const release of held.splice(0)) release();
+    await vi.waitFor(() => expect(['1W:std', '1M:std', '3M:std'].map(rangeSettled)).toEqual([true, true, true]));
+    window.removeEventListener(CHARTS_UPDATED_EVENT, onUpdate);
+    expect(announced).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('prefetchAllChartData does not settle a window on a failed call', () => {
+  // The other half: names absent after a FAILED call (the Edge Function
+  // down, no proxy with data) may simply not have arrived, so Top Movers
+  // keeps waiting for them rather than ranking the rest of the book.
+  it('leaves the range unsettled when nothing answered', async () => {
+    vi.resetModules();
+    /** @type {any} */ (globalThis.fetch).mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.includes('/functions/v1/chart')) return /** @type {any} */ ({ ok: false, status: 503, json: async () => ({}) });
+      if (u.includes('/functions/v1/fundamentals')) return /** @type {any} */ ({ ok: true, json: async () => ({}) });
+      throw new TypeError('Failed to fetch');           // every public proxy
+    });
+    const { prefetchAllChartData } = await import('./prefetch.js');
+    const { rangeSettled } = await import('./cache.js');
+    await prefetchAllChartData({ tickers: ['NOVA'], spSymbol: '^GSPC', extendedHours: false, phase: 'regular' });
+    expect(['1W:std', '1M:std', '3M:std'].map(rangeSettled)).toEqual([false, false, false]);
+  });
+});

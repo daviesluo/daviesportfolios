@@ -151,6 +151,21 @@ export function saveRangeCache(year, rangeKey, entries) {
  */
 export const CHARTS_UPDATED_EVENT = 'dp:charts-updated';
 
+// The ranges this session's background prefetch has had an answer for —
+// fetched, or found fresh — by cache-variant key (`1M:std`); a failed call
+// does not count. Top Movers waits for a name's history only until its
+// window is in here: past that, a name still without rows genuinely has
+// none (or was added since), and the card must not sit on "loading…" for it.
+// In memory on purpose: it is about THIS session's fetches.
+/** @type {Set<string>} */
+const settledRanges = new Set();
+
+/** @param {string} rangeKey  the cache-variant key, e.g. `1M:std` */
+export function markRangeSettled(rangeKey) { settledRanges.add(rangeKey); }
+
+/** @param {string} rangeKey @returns {boolean} */
+export function rangeSettled(rangeKey) { return settledRanges.has(rangeKey); }
+
 /** Best-effort notify; silent where there is no DOM (tests, SSR). */
 export function announceChartsUpdated() {
   if (typeof window === 'undefined' || typeof CustomEvent !== 'function') return;

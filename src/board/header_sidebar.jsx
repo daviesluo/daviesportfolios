@@ -21,8 +21,9 @@ import { Storage } from '../app/storage.js';
 import { fetchFundamentals } from '../prices/yahoo_fetch.js';
 import { quoteDayMove } from '../portfolio/metrics.js';
 import { PerfPanel } from '../charts/perf_chart.jsx';
-import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveOver } from './movers.js';
-import { loadRangeCache, CHARTS_UPDATED_EVENT } from '../prices/cache.js';
+import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveOver, moversPending } from './movers.js';
+import { loadRangeCache, rangeSettled, CHARTS_UPDATED_EVENT } from '../prices/cache.js';
+import { chartStoresReady, hydrateAllChartStores } from '../prices/chart_store.js';
 import { buildTickerSeries, anchorDateFor } from '../charts/ytd.js';
 import { OpsErrorBadge, useIsDesktop } from '../app/ops_error_badge.jsx';
 import { SurfaceBoundary } from '../app/surface_boundary.jsx';
@@ -499,9 +500,15 @@ function TopMovers({ metrics, hideValues = false }) {
   // refresh happened to re-render the sidebar.
   const [cacheTick, setCacheTick] = React.useState(0);
   React.useEffect(() => {
-    const onUpdate = () => setCacheTick(t => t + 1);
+    let live = true;
+    const onUpdate = () => { if (live) setCacheTick(t => t + 1); };
     window.addEventListener(CHARTS_UPDATED_EVENT, onUpdate);
-    return () => window.removeEventListener(CHARTS_UPDATED_EVENT, onUpdate);
+    // The last visit's rows load from IndexedDB AFTER the first paint,
+    // and nothing announces it: without this the card waited for the
+    // prefetch's first answer (seconds, behind the live refresh) to
+    // read rows it already had.
+    if (!chartStoresReady()) hydrateAllChartStores().then(onUpdate, onUpdate);
+    return () => { live = false; window.removeEventListener(CHARTS_UPDATED_EVENT, onUpdate); };
   }, []);
 
   // How a longer window measures one holding, or null on TODAY (which
@@ -509,9 +516,14 @@ function TopMovers({ metrics, hideValues = false }) {
   // cache tick — NOT on `metrics`, which changes every refresh and
   // would otherwise rebuild every ticker's series four times a minute
   // for an answer that only moves when a new bar lands.
-  const moveOf = React.useMemo(() => {
+  //
+  // With it, what the card needs to know before it may rank the window
+  // at all (movers.js's `moversPending`): which names have rows, whether
+  // the stored rows have loaded, and whether the session's prefetch has
+  // answered the window yet.
+  const windowData = React.useMemo(() => {
     const rangeKey = rangeKeyForWindow(window_);
-    if (!rangeKey) return null;
+    if (!rangeKey) return { moveOf: null, known: null, settled: true, storesReady: true };
     const entries = loadRangeCache(new Date().getFullYear(), `${rangeKey}:std`);
     /** @type {Record<string, any[]>} */
     const hist = {};
@@ -522,19 +534,30 @@ function TopMovers({ metrics, hideValues = false }) {
     const tickerSeries = buildTickerSeries(hist, anchorDate, rangeKey, {}, false, true);
     const todayDate = new Date().toISOString().slice(0, 10);
     const ctx = { tickerSeries, anchorDate, todayDate };
-    return (/** @type {any} */ player) => holdingMoveOver(player, ctx);
+    return {
+      moveOf: (/** @type {any} */ player) => holdingMoveOver(player, ctx),
+      known: new Set(Object.keys(hist)),
+      settled: rangeSettled(`${rangeKey}:std`),
+      storesReady: chartStoresReady(),
+    };
   }, [window_, cacheTick]);
 
   // Memoised on metrics + the two controls so the per-tick refresh
   // churn (clock, flash) doesn't re-flatten every position's players
   // and re-sort the book on every render.
-  const { winners, losers, scale, priced } = React.useMemo(() => {
+  // A window whose history is not all here yet ranks nothing: a list
+  // built from the names that happen to be priced is part of the book
+  // presented as the whole of it.
+  const { winners, losers, scale, priced, pending } = React.useMemo(() => {
     const allPlayers = [];
     for (const pos of Object.values(metrics.positions)) {
       for (const p of /** @type {any} */ (pos).players) allPlayers.push(p);
     }
-    return rankMovers(allPlayers, { window: window_, metric, moveOf });
-  }, [metrics, metric, window_, moveOf]);
+    if (moversPending(allPlayers, { window: window_, ...windowData })) {
+      return { winners: [], losers: [], scale: 0, priced: 0, pending: true };
+    }
+    return { ...rankMovers(allPlayers, { window: window_, metric, moveOf: windowData.moveOf }), pending: false };
+  }, [metrics, metric, window_, windowData]);
 
   // Arrow keys move between tabs and take focus with them — with
   // `tabIndex={-1}` on every inactive tab (roving tabindex, so Tab
@@ -584,7 +607,7 @@ function TopMovers({ metrics, hideValues = false }) {
   // A window with no priced names at all is not the same as a window
   // where nothing moved, and saying so is the difference between "the
   // market was quiet" and "your cache is still filling".
-  const waiting = priced === 0 && rangeKeyForWindow(window_) !== null;
+  const waiting = pending || (priced === 0 && rangeKeyForWindow(window_) !== null);
 
   const column = (/** @type {any[]} */ rows, /** @type {'gain'|'loss'} */ side) => (
     <div>
