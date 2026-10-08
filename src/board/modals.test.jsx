@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { EditTickerModal, AddTickerModal, useConfirm } from './modals.jsx';
+import { EditTickerModal, AddTickerModal, useConfirm, PositionDrillModal } from './modals.jsx';
 
 const POSITIONS = {
   GK:  { label: 'GK',  subtitle: 'Cash',     role: 'GK',  tickers: ['CASH'] },
@@ -407,5 +407,34 @@ describe('EditTickerModal — saving can shrink the position', () => {
   it('stays quiet when the ledger matches the board', () => {
     renderModal();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+});
+
+describe('PositionDrillModal — waits for the exchange rates (review batch 5)', () => {
+  // Before the first market data a GBP holding is valued at 1:1: the position's totals and that holding's dollars wait
+  // with a dash, as its card on the board does; its native price, cost and percentages need no rate and stand.
+  const position = {
+    label: 'CB', subtitle: 'London', marketValue: 790, dayChange: 10, dayPct: 4.17, unrlGL: 50, unrlPct: 25,
+    players: [
+      { ticker: 'BRIT.L', currency: 'GBP', shares: 100, cost: 2, lastPrice: 2.5, fx: 1, fxMissing: true, marketValue: 250, dayChange: 10, dayPct: 4.17 },
+    ],
+  };
+  const renderDrill = (fxPending) => render(
+    <PositionDrillModal posKey="CB1" position={position} captainTicker={null} hotMoverTicker={null} flashTickers={{}}
+      editMode={false} isReadOnly onClose={vi.fn()} onEditTicker={vi.fn()} onViewChart={vi.fn()} onAddTicker={vi.fn()}
+      onRemoveTicker={vi.fn()} onUpdatePosition={vi.fn()} hideValues={false} fxPending={fxPending} />,
+  );
+
+  it('dashes the dollars while pending', () => {
+    renderDrill(true);
+    expect(document.querySelector('.modal-meta')?.textContent).toBe('— Value— (—) today— (—) G/L1 ticker');
+    const card = /** @type {HTMLElement} */ (document.querySelector('.player-card'));
+    expect([...card.querySelectorAll('.pc-row')].map((r) => r.textContent)).toEqual(['Shares100', 'AC£2.00', 'Cost—', 'Value—', 'G/L— (+25.00%)']);
+    expect(card.querySelector('.pc-day')?.textContent).toBe('— (+4.17%)');
+  });
+
+  it('shows them once the rates are in', () => {
+    renderDrill(false);
+    expect(document.querySelector('.modal-meta')?.textContent).toBe('$790.00 Value+$10.00 (+4.17%) today+$50.00 (+25.00%) G/L1 ticker');
   });
 });

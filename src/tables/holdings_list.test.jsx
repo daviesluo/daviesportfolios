@@ -143,3 +143,18 @@ describe('COMPANY_NAMES', () => {
     expect(COMPANY_NAMES['017731']).toBe('Harvest Global Industrial Upgrade Equity (QDII) C');
   });
 });
+
+describe('HoldingsListModal — waits for the exchange rates (review batch 5)', () => {
+  // Before the first market data a holding in another currency is valued at 1:1, and the book's total with it: every
+  // dollar figure and every share of the book waits with a dash, and nothing exports, until the rates are in.
+  beforeEach(() => cleanup());
+
+  it('dashes the dollars and the shares, keeps the holdings own percentages, and does not export', () => {
+    render(<HoldingsListModal metrics={METRICS} hideValues={false} onTickerClick={vi.fn()} onClose={vi.fn()} fxPending />);
+    const nvda = screen.getAllByRole('row').slice(1).find((r) => within(r).queryByText('NVDA'));
+    const cells = within(/** @type {HTMLElement} */ (nvda)).getAllByRole('cell').slice(1).map((c) => c.textContent);
+    expect(cells).toEqual(['—', '—', '—', '—+5.00%', '—+20.00%']);
+    expect(document.body.textContent).not.toContain('$6,000');
+    expect(screen.getByLabelText('Copy table including header')).toBeDisabled();
+  });
+});

@@ -105,7 +105,12 @@ export function sortSectorGroups(groups, key, dir) {
     .sort((a, b) => cmp(groupVal(a), groupVal(b)));
 }
 
-function SectorsListModal({ metrics, hideValues, onTickerClick, onClose }) {
+/**
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded and a holding is valued at 1:1: every
+ * dollar figure, every share of the book and a sector's own percentages (weighted by those values) wait with a dash,
+ * and nothing exports until then. A holding's own percentages need no rate and stand.
+ */
+function SectorsListModal({ metrics, hideValues, onTickerClick, onClose, fxPending = false }) {
   // Default: exposure %, high → low — at both the sector and holding level.
   const [sortKey, setSortKey] = React.useState('exposure');
   const [sortDir, setSortDir] = React.useState(/** @type {'asc'|'desc'} */ ('desc'));
@@ -123,12 +128,17 @@ function SectorsListModal({ metrics, hideValues, onTickerClick, onClose }) {
   };
   const arrow = (col) => (col.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '');
 
-  const money = (n, opts) => (hideValues ? maskDigits(fmtM(n, opts)) : fmtM(n, opts));
+  const money = (n, opts) => {
+    const s = fmtM(fxPending ? null : n, opts);
+    return hideValues ? maskDigits(s) : s;
+  };
+  const share = (/** @type {number} */ x) => (fxPending ? '—' : `${x.toFixed(2)}%`);
+  const sectorPct = (/** @type {number} */ x) => fmtPc(fxPending ? null : x);
 
   // Export mirrors the Holding list (real values; the hide-values mask is a
   // screen-only overlay) — a flat table with a leading Sector column so the
   // xlsx column-header autofilter works across the grouping.
-  const canExport = groups.length > 0;
+  const canExport = groups.length > 0 && !fxPending;
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -168,16 +178,16 @@ function SectorsListModal({ metrics, hideValues, onTickerClick, onClose }) {
                       <span className="hl-sector-pos mono">{g.label}</span>
                       {g.subtitle && <span className="hl-sector-sub"> · {g.subtitle}</span>}
                     </td>
-                    <td className="hl-right hl-strong">{g.agg.exposure.toFixed(2)}%</td>
+                    <td className="hl-right hl-strong">{share(g.agg.exposure)}</td>
                     <td className="hl-right">{money(g.agg.costBasis)}</td>
                     <td className="hl-right hl-strong">{money(g.agg.marketValue)}</td>
-                    <td className="hl-right" style={{ color: pctClr(g.agg.dayPct) }}>
+                    <td className="hl-right" style={{ color: fxPending ? undefined : pctClr(g.agg.dayPct) }}>
                       <div>{money(g.agg.dayChange, { signed: true })}</div>
-                      <div className="hl-sub">{fmtPc(g.agg.dayPct)}</div>
+                      <div className="hl-sub">{sectorPct(g.agg.dayPct)}</div>
                     </td>
-                    <td className="hl-right" style={{ color: pctClr(g.agg.unrlPct) }}>
+                    <td className="hl-right" style={{ color: fxPending ? undefined : pctClr(g.agg.unrlPct) }}>
                       <div>{money(g.agg.unrlGL, { signed: true })}</div>
-                      <div className="hl-sub">{fmtPc(g.agg.unrlPct)}</div>
+                      <div className="hl-sub">{sectorPct(g.agg.unrlPct)}</div>
                     </td>
                   </tr>
                   {g.rows.map(r => (
@@ -188,7 +198,7 @@ function SectorsListModal({ metrics, hideValues, onTickerClick, onClose }) {
                           <span className="hl-name">{r.name}</span>
                         </button>
                       </td>
-                      <td className="hl-right hl-strong">{r.exposure.toFixed(2)}%</td>
+                      <td className="hl-right hl-strong">{share(r.exposure)}</td>
                       <td className="hl-right">{money(r.costBasis)}</td>
                       <td className="hl-right hl-strong">{money(r.marketValue)}</td>
                       <td className="hl-right" style={{ color: pctClr(r.dayPct) }}>

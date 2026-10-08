@@ -54,7 +54,11 @@ theirs.
   under another currency's sign. On a first visit (or a week after the
   last), the three amounts and their percentages read `—` too until the
   exchange rates of the holdings priced in pounds or yuan have loaded,
-  rather than a total that counts them as dollars.
+  rather than a total that counts them as dollars. So does everything
+  else that needs those rates: a position card holding one, FORMATION
+  VALUE, Top Movers in dollars, the captain's armband, the heat map
+  (empty until then), the performance chart ("Loading…") and the
+  dollar figures of the position, holding and sector lists.
 - **Tactics board / heat map.** Switches the centre panel.
 - **Refresh.** Fetches prices now and re-warms every chart range in the
   background. Prices also refresh by themselves every 30 seconds through

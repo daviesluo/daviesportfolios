@@ -19,7 +19,7 @@ import { londonTimeParts, usMarketPhase, ukTzAbbr } from '../prices/market_hours
 import { isCnFund } from '../prices/ticker_class.js';
 import { Storage } from '../app/storage.js';
 import { fetchFundamentals } from '../prices/yahoo_fetch.js';
-import { quoteDayMove } from '../portfolio/metrics.js';
+import { quoteDayMove, fxPendingOf } from '../portfolio/metrics.js';
 import { PerfPanel } from '../charts/perf_chart.jsx';
 import { MOVER_WINDOWS, rangeKeyForWindow, rankMovers, barWidthPct, holdingMoveOver, moversPending } from './movers.js';
 import { loadRangeCache, rangeSettled, CHARTS_UPDATED_EVENT } from '../prices/cache.js';
@@ -216,8 +216,9 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   // the rates with a dash rather than show that total (review F13: the
   // browser sweep read $3,330 for a $3,182.50 book under load, its GBP
   // and CNY holdings at 1:1). Once the market data has landed, a pair
-  // still missing is the FX MISSING badge's, as before.
-  const fxPending = !marketDataReady && fxMissing.length > 0;
+  // still missing is the FX MISSING badge's, as before. The rule is
+  // metrics.js's `fxPendingOf`, which the rest of the board waits on too.
+  const fxPending = fxPendingOf(metrics, marketDataReady);
   /** Wraps the existing fmM() with the cycle's rate + symbol so the
    *  3 scoreboard numbers stay in lockstep without sprinkling the
    *  conversion at every call site. */
@@ -481,12 +482,17 @@ function HeaderMenu({ isReadOnly = false, onOpenHoldingsList, onOpenSectorsList,
  * strip stacked over the content would push the names — the thing the
  * panel is for — below the fold on a phone.
  *
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not
+ * loaded and a holding is valued at 1:1, so the dollar list waits as a
+ * window without its history does; the percentage list needs no rate.
+ *
  * @param {{
  *   metrics: any,
  *   hideValues?: boolean,
+ *   fxPending?: boolean,
  * }} props
  */
-function TopMovers({ metrics, hideValues = false }) {
+function TopMovers({ metrics, hideValues = false, fxPending = false }) {
   // Both controls persist in the same `dp.prefs` bag as hideValues: the
   // choice of question, and of window, is a preference rather than a
   // per-visit mode, and re-picking it on every reload is exactly the
@@ -567,11 +573,12 @@ function TopMovers({ metrics, hideValues = false }) {
     for (const pos of Object.values(metrics.positions)) {
       for (const p of /** @type {any} */ (pos).players) allPlayers.push(p);
     }
-    if (moversPending(allPlayers, { window: window_, ...windowData })) {
+    // In dollars, a holding at 1:1 would rank by a move it did not make: the list waits for the rates.
+    if ((fxPending && metric === 'usd') || moversPending(allPlayers, { window: window_, ...windowData })) {
       return { winners: [], losers: [], scale: 0, priced: 0, pending: true };
     }
     return { ...rankMovers(allPlayers, { window: window_, metric, moveOf: windowData.moveOf }), pending: false };
-  }, [metrics, metric, window_, windowData]);
+  }, [metrics, metric, window_, windowData, fxPending]);
 
   // Arrow keys move between tabs and take focus with them — with
   // `tabIndex={-1}` on every inactive tab (roving tabindex, so Tab
@@ -612,9 +619,11 @@ function TopMovers({ metrics, hideValues = false }) {
   // question each list leaves open — "+7.94 % of how much?" one way,
   // "+$462 off what move?" the other.
   const bothOf = (/** @type {any} */ p) => {
+    // A holding still at 1:1 has no dollar move yet (`fxPending`): a dash, as on the scoreboard.
+    const moveUsd = fxPending && p.fxMissing ? null : p.moveUsd;
     const usd = hideValues
-      ? mask(fmM(p.moveUsd, { signed: true, precision: 0 }))
-      : fmM(p.moveUsd, { signed: true, precision: 0 });
+      ? mask(fmM(moveUsd, { signed: true, precision: 0 }))
+      : fmM(moveUsd, { signed: true, precision: 0 });
     return `${displayTicker(p.ticker)} · ${fmP(p.movePct)} · ${usd} · ${window_}`;
   };
 
@@ -706,9 +715,12 @@ function TopMovers({ metrics, hideValues = false }) {
 
 /**
  * `refreshedAt` / `forceRefreshKey`: when the app's last refresh finished, and how many times its button has been
- * pressed, for the performance panel, which follows both (perf_chart.jsx).
+ * pressed, for the performance panel, which follows both (perf_chart.jsx). `fxPending` (metrics.js's `fxPendingOf`)
+ * holds FORMATION VALUE and Top Movers in dollars until the exchange rates have loaded; `marketDataReady` goes to the
+ * performance panel, which asks the same of every holding it values.
  * @param {{ metrics: any, source: any, portfolio: any, marketData: any, extendedHours: boolean, phase: string,
- *   hideValues: boolean, isReadOnly?: boolean, refreshedAt?: number, forceRefreshKey?: number }} props
+ *   hideValues: boolean, isReadOnly?: boolean, refreshedAt?: number, forceRefreshKey?: number,
+ *   fxPending?: boolean, marketDataReady?: boolean }} props
  */
 /**
  * The desktop foot's keyboard shortcuts, as the page's key handler takes them (app.jsx): a read-only viewer has no
@@ -720,43 +732,51 @@ export function shortcutsHint(isReadOnly) {
   return isReadOnly ? 'R (refresh) · X (extended)' : 'R (refresh) · E (edit) · X (extended)';
 }
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0 }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0, fxPending = false, marketDataReady = true }) {
   // The by-value position list. Memoised on metrics so the per-tick
   // refresh churn (clock, flash) doesn't re-sort the book on every
   // render. Top movers moved into TopMovers, which owns its own
   // ranking because the metric it ranks by is user state.
-  const positionList = React.useMemo(() => (
-    Object.entries(metrics.positions)
-      .filter(([_, p]) => /** @type {any} */ (p).players.length > 0)
-      .sort(([, a], [, b]) => /** @type {any} */ (b).marketValue - /** @type {any} */ (a).marketValue)
-  ), [metrics]);
+  // While the exchange rates are still loading (`fxPending`) every value,
+  // every share of the book and so the order itself would be the 1:1
+  // book's: the rows keep the board's order and wait with a dash.
+  const positionList = React.useMemo(() => {
+    const rows = Object.entries(metrics.positions)
+      .filter(([_, p]) => /** @type {any} */ (p).players.length > 0);
+    return fxPending ? rows
+      : rows.sort(([, a], [, b]) => /** @type {any} */ (b).marketValue - /** @type {any} */ (a).marketValue);
+  }, [metrics, fxPending]);
+  const money = (/** @type {number | null} */ n, /** @type {{signed?: boolean}} */ opts = {}) => {
+    const s = fmM(fxPending ? null : n, opts);
+    return hideValues ? mask(s) : s;
+  };
 
   return (
     <aside className="sidebar">
       {/* Top Movers and the phone's copy of the performance panel each have a boundary of their own, inside the
           sidebar's (app.jsx), so one of them failing leaves the rest of the sidebar drawn. */}
       <SurfaceBoundary name="movers" title="TOP MOVERS" resetKey={forceRefreshKey}>
-        <TopMovers metrics={metrics} hideValues={hideValues} />
+        <TopMovers metrics={metrics} hideValues={hideValues} fxPending={fxPending} />
       </SurfaceBoundary>
 
       <section className="panel">
         <h3 className="panel-title">FORMATION VALUE</h3>
         <div className="formation-list">
           {positionList.map(([k, p]) => {
-            const pct = metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
+            const pct = fxPending ? null : metrics.marketValue > 0 ? (p.marketValue / metrics.marketValue) * 100 : 0;
             return (
               <div key={k} className="formation-row">
                 <div className="fr-top">
                   <span className="fr-label">{p.label}{p.subtitle && <span className="fr-sub"> · {p.subtitle}</span>}</span>
-                  <span className="fr-val mono">{hideValues ? mask(fmM(p.marketValue)) : fmM(p.marketValue)}</span>
+                  <span className="fr-val mono">{money(p.marketValue)}</span>
                 </div>
                 <div className="fr-bar">
-                  <div className="fr-bar-fill" style={{ width: pct + "%" }} />
+                  <div className="fr-bar-fill" style={{ width: (pct ?? 0) + "%" }} />
                 </div>
                 <div className="fr-meta">
-                  <span className="mono dim">{pct.toFixed(1)}%</span>
-                  <span className="mono" style={{ color: pcC(p.unrlPct) }}>
-                    {hideValues ? mask(fmM(p.unrlGL, { signed: true })) : fmM(p.unrlGL, { signed: true })} ({fmP(p.unrlPct)})
+                  <span className="mono dim">{pct == null ? '—' : `${pct.toFixed(1)}%`}</span>
+                  <span className="mono" style={{ color: fxPending ? undefined : pcC(p.unrlPct) }}>
+                    {money(p.unrlGL, { signed: true })} ({fmP(fxPending ? null : p.unrlPct)})
                   </span>
                 </div>
               </div>
@@ -775,6 +795,7 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
           isReadOnly={isReadOnly}
           refreshedAt={refreshedAt}
           forceRefreshKey={forceRefreshKey}
+          marketDataReady={marketDataReady}
         />
       </SurfaceBoundary>
 

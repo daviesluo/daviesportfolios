@@ -122,29 +122,19 @@ function tileStyle(pct) {
   };
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-function Heatmap({ metrics, extendedHours, onTileClick }) {
-  const canvasRef = React.useRef(/** @type {HTMLDivElement | null} */ (null));
-  const [size, setSize] = React.useState({ w: 0, h: 0 });
-
-  React.useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      // Bail out of the state update (and the treemap recompute it
-      // triggers) when the box didn't actually change size — the
-      // observer fires on every layout pass, not just real resizes.
-      const w = el.clientWidth, h = el.clientHeight;
-      setSize((s) => (s.w === w && s.h === h ? s : { w, h }));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  // Collect non-cash players from every position
+/**
+ * The tiles' holdings, largest first: every non-cash player with a value. `fxPending` (metrics.js's `fxPendingOf`):
+ * the exchange rates have not loaded, and a tile's size is its share of the book, so one holding valued at 1:1 would
+ * draw every tile wrong: none until the rates land.
+ * @param {any} metrics
+ * @param {boolean} [fxPending]
+ * @returns {{ ticker: string, value: number, pct: number | null }[]}
+ */
+export function heatmapItems(metrics, fxPending = false) {
+  /** @type {{ ticker: string, value: number, pct: number | null }[]} */
   const items = [];
-  for (const pos of Object.values(metrics.positions)) {
-    for (const p of pos.players) {
+  for (const pos of fxPending ? [] : Object.values(metrics.positions)) {
+    for (const p of /** @type {any} */ (pos).players) {
       if (p.isCash || p.ticker === 'CASH') continue;
       const value = Math.max(0, p.marketValue ?? 0);
       if (value === 0) continue;
@@ -164,6 +154,30 @@ function Heatmap({ metrics, extendedHours, onTileClick }) {
     }
   }
   items.sort((a, b) => b.value - a.value);
+  return items;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+/** `fxPending`: see `heatmapItems`. */
+function Heatmap({ metrics, extendedHours, onTileClick, fxPending = false }) {
+  const canvasRef = React.useRef(/** @type {HTMLDivElement | null} */ (null));
+  const [size, setSize] = React.useState({ w: 0, h: 0 });
+
+  React.useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      // Bail out of the state update (and the treemap recompute it
+      // triggers) when the box didn't actually change size — the
+      // observer fires on every layout pass, not just real resizes.
+      const w = el.clientWidth, h = el.clientHeight;
+      setSize((s) => (s.w === w && s.h === h ? s : { w, h }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const items = heatmapItems(metrics, fxPending);
 
   const tiles =
     size.w > 0 && size.h > 0 && items.length > 0

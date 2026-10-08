@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr, foreignSessionIsOpen } from '../prices/market_hours.js';
-import { fxToUSD } from '../portfolio/fx.js';
+import { fxToUSD, fxRateToUSD } from '../portfolio/fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits, fmtDayMonth } from '../app/formatters.js';
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradingWeekOf } from '../prices/ticker_class.js';
@@ -37,7 +37,11 @@ import { COMPANY_NAMES } from '../tables/holdings_list.jsx';
 // meaningful data; .PVT placeholders aren't on Yahoo at all. Both
 // restrict the modal to daily buttons.
 
-export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue, hideValues }) {
+/**
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded, so the book's total, and this holding
+ * if it is priced in another currency, are at 1:1: its dollar figures and its share of the book wait with a dash.
+ */
+export function TickerChartModal({ ticker, holding, marketData, extendedHours, phase, onClose, portfolioTotalValue, hideValues, fxPending = false }) {
   const isCnFund = isCnFundT(ticker);
   const isPvt    = isPvtT(ticker);
   const dailyOnly = isDailyOnlyT(ticker);
@@ -777,7 +781,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
           {rangeKey !== 'PE' && holding && holding.shares != null && (() => {
             const hCur = holding.currency || 'USD';
             const hSym = SYMBOL_BY_CUR[hCur] || '$';
-            const fx        = fxToUSD(hCur, marketData);
+            // NaN while this holding's own rate is still loading (`fxPending`): its dollar figures read a dash.
+            const fx        = fxPending && fxRateToUSD(hCur, marketData).missing ? NaN : fxToUSD(hCur, marketData);
             // OTC ADR guard: Yahoo's bogus postMarketPrice for tickers
             // like SFTBY shows up as today's open and makes Value /
             // G/L lie. The chart's right edge already falls back to
@@ -796,8 +801,12 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             const valueUsd  = holding.shares * livePrice * fx;
             const costUsd   = holding.shares * holding.cost * fx;
             const glUsd     = valueUsd - costUsd;
-            const glPct     = costUsd > 0 ? (glUsd / costUsd) * 100 : 0;
-            const portShare = portfolioTotalValue > 0 ? (valueUsd / portfolioTotalValue) * 100 : null;
+            // The same ratio in the holding's own currency while its rate is loading (`fx` NaN): it needs none.
+            const glPct     = Number.isFinite(fx)
+              ? (costUsd > 0 ? (glUsd / costUsd) * 100 : 0)
+              : (holding.shares > 0 && holding.cost > 0 ? ((livePrice - holding.cost) / holding.cost) * 100 : 0);
+            // The book's total is the 1:1 book's while any rate is loading: no share until then.
+            const portShare = !fxPending && portfolioTotalValue > 0 && Number.isFinite(valueUsd) ? (valueUsd / portfolioTotalValue) * 100 : null;
             // Mask raw shares + dollar amounts under the privacy toggle —
             // matches what PlayerCard does for the same fields. Percentages
             // (G/L %, portfolio share) stay visible since they don't reveal

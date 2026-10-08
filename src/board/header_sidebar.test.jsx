@@ -715,3 +715,59 @@ describe('Sidebar foot — the keyboard shortcuts', () => {
     expect([shortcutsHint(false), shortcutsHint(true)]).toEqual(['R (refresh) · E (edit) · X (extended)', 'R (refresh) · X (extended)']);
   });
 });
+
+describe('Sidebar — FORMATION VALUE and Top Movers in dollars wait for the exchange rates (review batch 5)', () => {
+  // A first visit before the first market data: CB holds a GBP stock at 1:1 ($790 where $642.50 is right, the browser
+  // sweep's book). FORMATION VALUE's figures, its shares of the book and its order are all that book's, so the panel
+  // waits with dashes in the board's order; Top Movers in dollars waits as a window without its history does, while
+  // its percentages need no rate. Once the rates are in (`fxPending` false) both read as before.
+  const metricsWith = (cbValue) => ({
+    marketValue: cbValue + 1440,
+    fxMissingTickers: ['BRIT.L'],
+    positions: {
+      CB: { label: 'Centre back', subtitle: '', marketValue: cbValue, unrlGL: 100, unrlPct: 20,
+        players: [{ ticker: 'BRIT.L', dayPct: 4.17, dayChange: 10, marketValue: cbValue, fxMissing: true }] },
+      CM: { label: 'Midfield', subtitle: '', marketValue: 1440, unrlGL: 240, unrlPct: 20,
+        players: [{ ticker: 'ACME', dayPct: 0.84, dayChange: 12, marketValue: 1440, fxMissing: false }] },
+    },
+  });
+  const renderSidebar = (fxPending, metrics = metricsWith(790)) =>
+    render(<Sidebar metrics={metrics} source="live" portfolio={{}} marketData={{}} extendedHours={false} phase="regular"
+      hideValues={false} fxPending={fxPending} />);
+  const formation = () => [...document.querySelectorAll('.formation-row')].map((row) => [
+    row.querySelector('.fr-label')?.textContent, row.querySelector('.fr-val')?.textContent,
+    parseFloat(/** @type {HTMLElement} */ (row.querySelector('.fr-bar-fill')).style.width).toFixed(1),
+    row.querySelector('.fr-meta .dim')?.textContent, row.querySelectorAll('.fr-meta .mono')[1]?.textContent,
+  ]);
+  const movers = () => [...document.querySelectorAll('.movers-grid .mover-row')].map((el) => el.textContent);
+
+  beforeEach(() => { cleanup(); try { localStorage.clear(); } catch { /* ignore */ } });
+
+  it('waits with a dash in the board order, never the book at 1:1', () => {
+    renderSidebar(true);
+    expect(formation()).toEqual([
+      ['Centre back', '—', '0.0', '—', '— (—)'],
+      ['Midfield', '—', '0.0', '—', '— (—)'],
+    ]);
+    expect(document.body.textContent).not.toContain('$790');
+  });
+
+  it('reads the book once the rates are in, by value', () => {
+    renderSidebar(false, metricsWith(642.5));
+    expect(formation()).toEqual([
+      ['Midfield', '$1,440', '69.1', '69.1%', '+$240.00 (+20.00%)'],
+      ['Centre back', '$642.50', '30.9', '30.9%', '+$100.00 (+20.00%)'],
+    ]);
+  });
+
+  it('Top Movers in dollars waits for the rates; in percent it ranks at once', async () => {
+    const user = userEvent.setup();
+    renderSidebar(true);
+    expect(movers()).toEqual(['BRIT+4.17%', 'ACME+0.84%', '—']);
+    await user.click(screen.getByRole('tab', { name: /Rank by value change/i }));
+    expect(movers()).toEqual(['loading…', 'loading…']);
+    cleanup();
+    renderSidebar(false, metricsWith(642.5));                       // the preference stays $
+    expect(movers()).toEqual(['ACME+$12', 'BRIT+$10', '—']);
+  });
+});

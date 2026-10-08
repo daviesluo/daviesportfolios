@@ -9,7 +9,7 @@
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { fmtMoney as fmtM, fmtSharesFor as fmtShFor, pctColor as pctClr, maskDigits } from '../app/formatters.js';
-import { currencySymbol, fxRateToUSD } from '../portfolio/fx.js';
+import { currencySymbol, fxRateToUSD, fxPendingFor } from '../portfolio/fx.js';
 import { buildTransactionLog, totalRealizedUsd } from '../portfolio/transactions.js';
 import { withClosedFromFills } from '../portfolio/t212_fills.js';
 import { TableExportButtons } from './table_export.jsx';
@@ -137,7 +137,12 @@ export function nextSortState(sort, colId) {
   return null;
 }
 
-function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), dividends = /** @type {Record<string, any[]> | null} */ (null), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose }) {
+/**
+ * `marketDataReady`: whether the app's first market data has landed. Until then a ledger in another currency would
+ * convert at 1:1 (`fxPendingFor`, fx.js), so TOTAL REALIZED G/L (USD) waits with a dash; the rows, in each holding's
+ * own currency, need no rate.
+ */
+function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), dividends = /** @type {Record<string, any[]> | null} */ (null), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose, marketDataReady = true }) {
   // Closed positions are gone from the board but not from the record —
   // 41 tickers and ~950 executed trades on this book. See
   // `withClosedFromFills`.
@@ -153,8 +158,10 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
   const [sort, setSort] = React.useState(/** @type {any} */ (null));
   const rows = React.useMemo(() => sortTransactionRows(log, sort), [log, sort]);
   const realizedUsd = React.useMemo(
-    () => totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate, dividends),
-    [allHoldings, marketData, dividends],
+    () => (fxPendingFor(Object.values(allHoldings || {}), marketData, marketDataReady)
+      ? null
+      : totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate, dividends)),
+    [allHoldings, marketData, dividends, marketDataReady],
   );
   const m = (s) => (hideValues ? maskDigits(s) : s);
 

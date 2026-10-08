@@ -110,6 +110,25 @@ export function fxRateToUSD(currency, marketData) {
 }
 
 /**
+ * Whether a figure converted from `holdings` must wait for the exchange rates (the board's own rule is `fxPendingOf`
+ * in metrics.js, over the holdings on the board). Before the first market data has landed (a first visit, or a market
+ * cache over a week old) `fxRateToUSD` values a holding whose pair is missing at 1:1, a CNY fund at seven times its
+ * size; so while that is so for any of `holdings`, cash aside, the figure shows a dash or its waiting state. Once the
+ * market data has landed, a pair still missing is the FX MISSING badge's, as before. For what values more than the
+ * board: the performance panel (every holding of the book, sold ones included) and the transaction history's total.
+ * @param {Iterable<any>} holdings
+ * @param {Record<string, {lastPrice?: number}> | null | undefined} marketData
+ * @param {boolean} marketDataReady
+ */
+export function fxPendingFor(holdings, marketData, marketDataReady) {
+  if (marketDataReady) return false;
+  for (const h of holdings) {
+    if (h && !h.isCash && fxRateToUSD(h.currency, marketData).missing) return true;
+  }
+  return false;
+}
+
+/**
  * Back-compat shim — callers that only want the rate. Prefer
  * `fxRateToUSD` so you can detect the silent-fallback case.
  * @param {string | null | undefined} currency

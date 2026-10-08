@@ -1344,16 +1344,34 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   // A tab that died mid-edit: its unsaved board, which the app replays on mount and saves.
   if (opts.draft) await ctx.addInitScript((d) => { sessionStorage.setItem('dp.pendingSave', d); }, JSON.stringify(opts.draft));
   // Every figure the scoreboard's PORTFOLIO shows from the first paint on, in order (`window.__sbSeen`), so a check can
-  // ask what it showed on the way and not only at the end: a figure shown for one frame is still a figure shown.
+  // ask what it showed on the way and not only at the end: a figure shown for one frame is still a figure shown. The
+  // same for every position card's value (`window.__boardSeen.cards`, by its tickers) and every FORMATION VALUE row's
+  // (`.rows`, by its label), which the exchange rates convert as they do the total (review batch 5).
   if (opts.recordScoreboard) {
     await ctx.addInitScript(() => {
       /** @type {string[]} */
       const seen = [];
       /** @type {any} */ (window).__sbSeen = seen;
+      /** @type {{ cards: Record<string, string[]>, rows: Record<string, string[]> }} */
+      const board = { cards: {}, rows: {} };
+      /** @type {any} */ (window).__boardSeen = board;
+      const text = (/** @type {Element | null | undefined} */ el) => (el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : null);
+      const keep = (/** @type {Record<string, string[]>} */ into, /** @type {string} */ key, /** @type {string | null} */ t) => {
+        if (t === null) return;
+        const list = into[key] || (into[key] = []);
+        if (list[list.length - 1] !== t) list.push(t);
+      };
       const read = () => {
-        const el = document.querySelector('.scoreboard-cell-portfolio .sb-value-lg');
-        const t = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : null;
+        const t = text(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg'));
         if (t !== null && seen[seen.length - 1] !== t) seen.push(t);
+        for (const c of document.querySelectorAll('.pos-chip')) {
+          const key = [...c.querySelectorAll('.chip-ticker')].map((x) => text(x)).join(' ');
+          if (key) keep(board.cards, key, text(c.querySelector('.chip-mv')));
+        }
+        for (const r of document.querySelectorAll('.formation-row')) {
+          const key = text(r.querySelector('.fr-label'));
+          if (key) keep(board.rows, key, text(r.querySelector('.fr-val')));
+        }
       };
       const watch = new MutationObserver(read);
       watch.observe(document, { subtree: true, childList: true, characterData: true });
@@ -2686,6 +2704,26 @@ async function run() {
     const sbWrong = sbSeen.filter((t) => /\d/.test(t) && !near(money(t), TOTAL_USD));
     if (near(sb, TOTAL_USD) && sbWrong.length === 0) ok(S('scoreboard'), `$${sb} = arithmetic ${TOTAL_USD}, and nothing else on the way (${JSON.stringify(sbSeen)})`);
     else fail(S('scoreboard'), `reads ${sb}, arithmetic says ${TOTAL_USD} (FX applied?); on the way it showed ${JSON.stringify(sbSeen)}`);
+
+    // ---- 1b. the position cards and FORMATION VALUE: never the book at 1:1 either --------------------------------------
+    // Review batch 5: until the FX pairs land a GBP or CNY holding is valued at 1:1, and the scoreboard waits with a dash
+    // while the card holding BRIT.L, VUAA.L and the fund read $790.00 (250 + 240 + 300) for $642.50 (312.50 + 300 + 30),
+    // and FORMATION VALUE with it. Every value each card and each row showed from the first paint is read: a dash on the
+    // way, then its own figure, nothing else; the card holding BRIT.L ends on the arithmetic.
+    const boardSeen = await page.evaluate(() => /** @type {any} */ (window).__boardSeen || { cards: {}, rows: {} });
+    const britKey = Object.keys(boardSeen.cards).find((k) => k.split(' ').includes('BRIT')) ?? null;
+    const britWant = britKey ? 312.5 + (britKey.split(' ').includes('VUAA') ? 300 : 0) + (britKey.split(' ').includes('017731') ? 30 : 0) : NaN;
+    const offWay = (/** @type {Record<string, string[]>} */ seenBy) => Object.entries(seenBy).flatMap(([k, list]) => {
+      const last = list[list.length - 1];
+      return list.filter((t) => /\d/.test(t) && t !== last).map((t) => `${k}: ${t} before ${last}`);
+    });
+    const boardWrong = [...offWay(boardSeen.cards), ...offWay(boardSeen.rows)];
+    const britNow = britKey ? (boardSeen.cards[britKey] ?? []).at(-1) : null;
+    if (britKey && near(money(britNow), britWant, 0.006) && boardWrong.length === 0 && Object.keys(boardSeen.rows).length > 0) {
+      ok(S('first-paint'), `every card and FORMATION VALUE row showed a dash or its own figure, never another: BRIT.L's card (${britKey}) ${britNow} = arithmetic ${britWant.toFixed(2)}; ${Object.keys(boardSeen.cards).length} cards, ${Object.keys(boardSeen.rows).length} rows`);
+    } else {
+      fail(S('first-paint'), `BRIT.L's card (${britKey}) ${britNow}, arithmetic ${britWant}; shown on the way: ${JSON.stringify(boardWrong)}; rows ${JSON.stringify(boardSeen.rows)}`);
+    }
 
     // ---- 2. no horizontal overflow at this width --------------------
     const over = await page.evaluate(() =>

@@ -292,11 +292,18 @@ const DISCARD_CONFIRM = /** @type {const} */ ({
 // `maskDigits` is imported from formatters.js — single source of truth
 // shared across header_sidebar / modals / pitch.
 
-function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition, hideValues }) {
+/**
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded, so a holding priced in another
+ * currency is valued at 1:1. Its dollar figures, and the position's totals with them, wait with a dash, as the
+ * scoreboard and the position's card do.
+ */
+function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, flashTickers, editMode, isReadOnly, onClose, onEditTicker, onViewChart, onAddTicker, onRemoveTicker, onUpdatePosition, hideValues, fxPending = false }) {
   if (!position) return null;
 
   const sorted = [...position.players].sort((a, b) => b.marketValue - a.marketValue);
   const m = (s) => hideValues ? maskDigits(s) : s;
+  const waiting = fxPending && position.players.some((p) => p.fxMissing);
+  const w = (/** @type {number | null | undefined} */ v) => (waiting ? null : v);
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -308,9 +315,9 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
             {position.subtitle && <span className="modal-sub"> · {position.subtitle}</span>}
           </h2>
           <div className="modal-meta mono">
-            <span>{m(fmtMo(position.marketValue))} Value</span>
-            <span style={{ color: pctClo(position.dayPct) }}>{m(fmtMo(position.dayChange, { signed: true }))} ({fmtPe(position.dayPct)}) today</span>
-            <span style={{ color: pctClo(position.unrlPct) }}>{m(fmtMo(position.unrlGL, { signed: true }))} ({fmtPe(position.unrlPct)}) G/L</span>
+            <span>{m(fmtMo(w(position.marketValue)))} Value</span>
+            <span style={{ color: waiting ? undefined : pctClo(position.dayPct) }}>{m(fmtMo(w(position.dayChange), { signed: true }))} ({fmtPe(w(position.dayPct))}) today</span>
+            <span style={{ color: waiting ? undefined : pctClo(position.unrlPct) }}>{m(fmtMo(w(position.unrlGL), { signed: true }))} ({fmtPe(w(position.unrlPct))}) G/L</span>
             <span className="dim">{position.players.length} {position.players.length === 1 ? "ticker" : "tickers"}</span>
           </div>
         </div>
@@ -346,6 +353,7 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
                 onRemove={() => onRemoveTicker(p.ticker)}
                 showRemove={editMode && !isReadOnly}
                 hideValues={hideValues}
+                fxPending={fxPending && !!p.fxMissing}
               />
             ))}
           </div>
@@ -355,13 +363,14 @@ function PositionDrillModal({ posKey, position, captainTicker, hotMoverTicker, f
   );
 }
 
-function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRemove, hideValues }) {
+function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRemove, hideValues, fxPending = false }) {
   const pctC = pctClo(player.dayPct);
   // AC and live price stay in native currency (¥/£/$ — what the user typed/sees in their broker).
   // Cost / Value / G/L convert to USD using the per-player FX rate populated by computeMetrics,
-  // so the football-board total is always in one comparable currency.
+  // so the football-board total is always in one comparable currency. `fxPending`: that rate has
+  // not loaded yet (it would be 1:1), so the dollar figures wait with a dash; the native ones stand.
   const sym = curSym(player.currency);
-  const fx  = player.fx ?? 1;
+  const fx  = fxPending ? NaN : (player.fx ?? 1);
   const unrlPct   = player.cost > 0 ? ((player.lastPrice - player.cost) / player.cost) * 100 : 0;
   const unrlGlUSD = player.shares * (player.lastPrice - player.cost) * fx;
   const costUSD   = player.shares * player.cost * fx;
@@ -387,7 +396,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
       <div className="pc-top">
         <span className="pc-ticker mono">{player.ticker}</span>
         <span className="pc-day mono" style={{ color: pctC }}>
-          {m(fmtMo(player.dayChange ?? 0, { signed: true }))} ({fmtPe(player.dayPct)})
+          {m(fmtMo(fxPending ? null : (player.dayChange ?? 0), { signed: true }))} ({fmtPe(player.dayPct)})
         </span>
       </div>
       <div className="pc-price mono">{m(`${sym}${fmtPri(player.lastPrice)}`)}</div>
@@ -395,7 +404,7 @@ function PlayerCard({ player, isCaptain, isHot, flash, onClick, onRemove, showRe
         <div className="pc-row"><span className="dim">Shares</span><span className="mono">{m(fmtShFor(player.shares, player.ticker))}</span></div>
         <div className="pc-row"><span className="dim">AC</span><span className="mono">{m(`${sym}${fmtPri(player.cost)}`)}</span></div>
         <div className="pc-row"><span className="dim">Cost</span><span className="mono">{m(fmtMo(costUSD))}</span></div>
-        <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtMo(player.marketValue))}</span></div>
+        <div className="pc-row"><span className="dim">Value</span><span className="mono">{m(fmtMo(fxPending ? null : player.marketValue))}</span></div>
         <div className="pc-row"><span className="dim">G/L</span>
           <span className="mono" style={{ color: pctClo(unrlPct) }}>{m(fmtMo(unrlGlUSD, { signed: true }))} ({fmtPe(unrlPct)})</span>
         </div>

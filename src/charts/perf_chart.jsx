@@ -9,7 +9,7 @@
 // Public API: `<PerfPanel>` (default surface) and `<PerfChart>` (raw
 // chart) are both exported. Renderers in app.jsx import only PerfPanel.
 import React from 'react';
-import { fxToUSD } from '../portfolio/fx.js';
+import { fxToUSD, fxPendingFor } from '../portfolio/fx.js';
 import { fetchHistorical, fetchHistoricalBatch } from '../prices/historical.js';
 import { usMarketHoursUtc, fourHourSlots } from '../prices/market_hours.js';
 import { loadRangeCache, saveRangeCache } from '../prices/cache.js';
@@ -400,12 +400,17 @@ function barsOnHand(entries, rangeKey, spSymbol, symbols) {
  * `refreshedAt` is when the app's last refresh finished (its 30-second tick), in ms, and `forceRefreshKey` counts the
  * presses of its refresh button: the chart follows both (see the refresh effect below).
  *
+ * `marketDataReady`: whether the app's first market data has landed. Until it has, a holding whose FX pair is missing
+ * is valued at 1:1 (`fxPendingFor`, fx.js), and every point of the book with it, so the chart waits as it waits for its
+ * own history. It defaults to true for a caller that has no such moment.
+ *
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   rangeKey?: string|null, setRangeKey?: ((k: string) => void)|null,
  *   view?: 'sp'|'investment', hideValues?: boolean,
- *   t212Orders?: {rows: any[], complete: boolean}|null, refreshedAt?: number, forceRefreshKey?: number }} props
+ *   t212Orders?: {rows: any[], complete: boolean}|null, refreshedAt?: number, forceRefreshKey?: number,
+ *   marketDataReady?: boolean }} props
  */
-function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, view = 'sp', hideValues = false, t212Orders = null, refreshedAt = 0, forceRefreshKey = 0 }) {
+function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rangeKeyProp = null, setRangeKey: setRangeKeyProp = null, view = 'sp', hideValues = false, t212Orders = null, refreshedAt = 0, forceRefreshKey = 0, marketDataReady = true }) {
   // `rangeKey` can be CONTROLLED by PerfPanel (so the panel title can flip to
   // "S&P FUTURES" when the active range benchmarks against ES=F) or fall back
   // to internal state when PerfChart is rendered standalone (tests). The
@@ -880,6 +885,10 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
     /** @type {{deps: any[], val: {portYtd: any[], recordedFrom: number|null, dayBasis: number|null}}|null} */ (null));
 
   if (!portfolio) return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey, extendedHours);
+  // A holding of the book still valued at 1:1 (no rate yet, `fxPendingFor`): the whole series would be that book's.
+  if (fxPendingFor(Object.values(portfolio.holdings || {}), marketData, marketDataReady)) {
+    return renderShell(<div className="sparkline-empty dim mono">Loading…</div>, rangeKey, setRangeKey, extendedHours);
+  }
   if (loading)    return renderShell(<div className="sparkline-empty dim mono">Computing…</div>, rangeKey, setRangeKey, extendedHours);
   if (error)      return renderShell(<div className="sparkline-empty dim mono">Couldn't load history</div>, rangeKey, setRangeKey, extendedHours);
 
@@ -1688,9 +1697,9 @@ function PerfChart({ portfolio, marketData, extendedHours, phase, rangeKey: rang
  * @param {{ portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   className?: string, hideValues?: boolean,
  *   t212Orders?: {rows: any[], complete: boolean}|null, isReadOnly?: boolean,
- *   refreshedAt?: number, forceRefreshKey?: number }} props
+ *   refreshedAt?: number, forceRefreshKey?: number, marketDataReady?: boolean }} props
  */
-function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0 }) {
+function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hideValues = false, t212Orders = null, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0, marketDataReady = true }) {
   // Own the range here so the title can name the actual benchmark: ES=F
   // (ext-on 1D / 1W) → "S&P FUTURES", the cash index otherwise → "S&P 500".
   // The legend dot inside the chart flips the same way (spSymbolFor).
@@ -1762,6 +1771,7 @@ function PerfPanel({ portfolio, marketData, extendedHours, phase, className, hid
         t212Orders={t212Orders}
         refreshedAt={refreshedAt}
         forceRefreshKey={forceRefreshKey}
+        marketDataReady={marketDataReady}
       />
     </section>
   );

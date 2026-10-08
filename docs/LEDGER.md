@@ -248,8 +248,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      one frozen rate per currency (reported, not built: it changes the Deposited line and needs FX history by date that
      nothing stores; few deposits are in another currency than USD); #233 (the open `ci-failure` issue, every
      failure since 10-04 green again); eight worktrees under `.claude/worktrees/` and three detached ones with a commit
-     not in main (history 17:25); the position cards and FORMATION VALUE still drawn at 1:1 FX in the first moment of a
-     first visit (the scoreboard waits with a dash); `refreshPrices` still asks for sold-out holdings' quotes.
+     not in main (history 17:25); `refreshPrices` still asks for sold-out holdings' quotes.
    - **Batch 4's deploy order, kept:** `overnight-fetch` requires the app token from the commit after the page's
      bundle that sends it went live (app-1b24810b.js, 2026-10-08 ~17:50 UTC); an older tab still open gets no new
      overnight points until it reloads.
@@ -454,6 +453,21 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   is fine: monitor-deploy's last run (10-07 21:41 UTC) uploaded the Worker with `secrets.CLOUDFLARE_API_TOKEN`, so
   that secret holds a token with Workers Scripts edit, whichever of the account's tokens it is; a rotated one needs
   Pages and Workers Scripts both.
+
+### [2026-10-08 22:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Nothing on the board draws the book at 1:1 before the exchange rates load** (review batch 5, approved by Davies
+  2026-10-08: "以上内容都修"). Until the first market data lands, a holding whose FX pair is missing is valued at 1:1;
+  the scoreboard has waited with a dash since 0bbc0829, and now so does everything else that converts with that pair,
+  on one rule (`fxPendingOf` in `metrics.js`, and `fxPendingFor` in `fx.js` for what values the whole book): a position
+  card holding one (value and move), FORMATION VALUE (dashes, in the board's order), Top Movers in dollars ("loading…",
+  percent ranks at once), the captain's armband (none), the heat map (empty), the performance chart ("Loading…", sold
+  holdings counted), the position, holding and sector lists (their dollars, shares of the book and sector percentages;
+  export off), the ticker page's Cost/Value/G/L and share, and the history's realised total. Once the market data has
+  landed, a pair still missing is the FX MISSING badge's, as before. The sweep's main part records every card's and
+  FORMATION VALUE row's value from the first paint (`first-paint`, both widths): on main's bundle it caught
+  `BRIT VUAA: $490.00 before $612.50` and the fund's card `$300.00 before $30.00`; green on this one. Pins in
+  `metrics.test.js`, `pitch.test.jsx`, `header_sidebar.test.jsx`, `heatmap.test.js`, `perf_chart.test.jsx`,
+  `modals.test.jsx`, `holdings_list.test.jsx` and `sectors_list.test.jsx`: the eleven new waiting cases fail on main.
 
 ### [2026-10-08 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Batch 4 finished in production; the second, read-only review reported** (item 10 lists its findings). fc2e8209

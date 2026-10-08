@@ -51,6 +51,21 @@ function extPriceLooksReal(extPrice, lastPrice) {
  *   marketData?: Record<string, { lastPrice?: number }>,
  * }} [opts]
  */
+/**
+ * Whether the board's dollar figures wait for the exchange rates. Before the first market data has landed (a first
+ * visit, or a market cache over a week old) a holding whose FX pair is missing is valued at 1:1 USD (`fxRateToUSD`): a
+ * CNY fund at seven times its size, a GBP stock a fifth short, and every total and share of the book with them. Until
+ * then each surface that shows one waits with a dash or its own waiting state: the scoreboard (since 2026-10-08,
+ * review F13), the position cards, FORMATION VALUE, Top Movers in dollars, the heat map, the captain's armband and the
+ * board's modals. Once the market data has landed, a pair still missing is the FX MISSING badge's, as before. ONE rule:
+ * the scoreboard (header_sidebar.jsx) and app.jsx both ask it.
+ * @param {{ fxMissingTickers?: string[] } | null | undefined} metrics
+ * @param {boolean} marketDataReady
+ */
+export function fxPendingOf(metrics, marketDataReady) {
+  return !marketDataReady && (metrics?.fxMissingTickers?.length ?? 0) > 0;
+}
+
 export const computeMetrics = (portfolio, opts = {}) => {
   const ext = !!opts.extended;
   const marketData = opts.marketData || {};

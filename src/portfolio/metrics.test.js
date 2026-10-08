@@ -7,8 +7,8 @@
 
 import { pctIsFlat } from '../app/formatters.js';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { computeMetrics, previousCloseValue, quoteDayMove } from './metrics.js';
-import { fxRateToUSD, fxToUSD } from './fx.js';
+import { computeMetrics, previousCloseValue, quoteDayMove, fxPendingOf } from './metrics.js';
+import { fxRateToUSD, fxToUSD, fxPendingFor } from './fx.js';
 
 // --- fxRateToUSD --------------------------------------------------
 
@@ -687,5 +687,46 @@ describe('computeMetrics — UNREALIZED G/L %: cash is no part of it', () => {
   it('a cash-only book or position reads 0 %, never a division by nothing', () => {
     const m = computeMetrics({ holdings: { CASH: book.holdings.CASH }, positions: { GK: { role: 'GK', tickers: ['CASH'], label: 'GK' } } });
     expect([m.unrlGL, m.unrlPct, m.positions.GK.unrlPct]).toEqual([0, 0, 0]);
+  });
+});
+
+describe('fxPendingOf / fxPendingFor — dollar figures wait for the exchange rates on a first visit (review batch 5)', () => {
+  // A first visit: no market data yet, so a GBP and a CNY holding are valued at 1:1 (the board's position card read
+  // $790 for a $642.50 position in the browser sweep's book). Every surface that converts one waits until the first
+  // market data has landed; after it, a pair still missing is the FX MISSING badge's, as before.
+  const book = {
+    holdings: {
+      ACME: { shares: 6, cost: 200, lastPrice: 240, prevClose: 238, dayPct: 0.84, currency: 'USD' },
+      'BRIT.L': { shares: 100, cost: 2, lastPrice: 2.5, prevClose: 2.4, dayPct: 4.17, currency: 'GBP' },
+      '017731': { shares: 200, cost: 1, lastPrice: 1.5, prevClose: 1.365, dayPct: 9.9, currency: 'CNY' },
+      CASH: { shares: 1, cost: 0, lastPrice: 500, isCash: true },
+    },
+    positions: {
+      CM: { role: 'MID', tickers: ['ACME'], label: 'CM' },
+      CB: { role: 'DEF', tickers: ['BRIT.L', '017731'], label: 'CB' },
+      GK: { role: 'GK', tickers: ['CASH'], label: 'GK' },
+    },
+  };
+  const rates = { 'GBPUSD=X': { lastPrice: 1.25 }, 'USDCNY=X': { lastPrice: 10 } };
+
+  it('the board waits while its first market data is out and a pair is missing, and only then', () => {
+    const cold = computeMetrics(book, { marketData: {} });
+    expect(cold.positions.CB.marketValue).toBe(550);                 // the 1:1 book: 250 + 300, where 342.50 is right
+    expect(fxPendingOf(cold, false)).toBe(true);
+    expect(fxPendingOf(cold, true)).toBe(false);                     // landed and still missing: the FX MISSING badge's
+    const warm = computeMetrics(book, { marketData: rates });
+    expect(warm.positions.CB.marketValue).toBe(342.5);
+    expect(fxPendingOf(warm, false)).toBe(false);                    // a cached rate: nothing to wait for
+    const usdOnly = computeMetrics({ holdings: { ACME: book.holdings.ACME }, positions: { CM: book.positions.CM } }, { marketData: {} });
+    expect(fxPendingOf(usdOnly, false)).toBe(false);                 // a dollar book needs no rate
+    expect(fxPendingOf(null, false)).toBe(false);
+  });
+
+  it('a holding the board no longer shows still counts for what values the whole book (the chart, the history)', () => {
+    const sold = { ...book.holdings['017731'], shares: 0, closed: true };
+    expect(fxPendingFor([book.holdings.ACME, sold], {}, false)).toBe(true);
+    expect(fxPendingFor([book.holdings.ACME, sold], {}, true)).toBe(false);
+    expect(fxPendingFor([book.holdings.ACME, sold], rates, false)).toBe(false);
+    expect(fxPendingFor([book.holdings.ACME, book.holdings.CASH], {}, false)).toBe(false);
   });
 });

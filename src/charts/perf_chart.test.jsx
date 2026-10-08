@@ -123,6 +123,26 @@ describe('PerfChart — smoke render', () => {
   });
 });
 
+describe('PerfChart — waits for the exchange rates before valuing the book (review batch 5)', () => {
+  // Before the app's first market data lands, a holding priced in another currency is valued at 1:1, and every point
+  // of the book with it: the chart says Loading… until the rates are in, as for its own history. A holding the board
+  // no longer shows counts too: the chart values the whole book.
+  const gbpBook = { ...PORTFOLIO, holdings: { ...PORTFOLIO.holdings, 'BRIT.L': { shares: 0, cost: 2, lastPrice: 2.5, currency: 'GBP', closed: true } } };
+  const shown = (/** @type {Record<string, any>} */ marketData, /** @type {boolean} */ marketDataReady) => render(
+    <PerfChart portfolio={gbpBook} marketData={marketData} extendedHours={false} phase="regular" marketDataReady={marketDataReady} />,
+  ).container.querySelector('.sparkline-empty')?.textContent ?? null;
+
+  it('says Loading… while a rate is missing and the first market data is out', () => {
+    expect(shown(MARKET_DATA, false)).toBe('Loading…');
+  });
+
+  it('values the book once the market data has landed, or the rate is cached', () => {
+    expect(shown(MARKET_DATA, true)).not.toBe('Loading…');
+    cleanup();
+    expect(shown({ ...MARKET_DATA, 'GBPUSD=X': { lastPrice: 1.25 } }, false)).not.toBe('Loading…');
+  });
+});
+
 describe('liveEdgeDate — the 24H book reaches the current minute while the benchmark trades late', () => {
   // Davies (2026-09-28): the panel read about ten minutes behind the clock. Measured: Yahoo's newest ES=F minute bar
   // was 04:37:18 at 04:47:20 UTC, CME's delayed feed.

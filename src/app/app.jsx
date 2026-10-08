@@ -6,7 +6,7 @@ import { lazyPage } from './chunk_recovery.js';
 import { SurfaceBoundary, FailedPanel } from './surface_boundary.jsx';
 import { freezeDepositFxRates } from '../charts/deposit_series.js';
 import { createPortfolioEditHandlers } from '../portfolio/portfolio_edits.js';
-import { computeMetrics, detectFormation } from '../portfolio/metrics.js';
+import { computeMetrics, detectFormation, fxPendingOf } from '../portfolio/metrics.js';
 import { refreshPrices, fetchTickers } from '../prices/yahoo_fetch.js';
 import { createQuoteGuard, holdMessage } from '../prices/quote_band.js';
 import { loadRangeCache } from '../prices/cache.js';
@@ -1343,6 +1343,11 @@ function Board({ isReadOnly }) {
       : null),
     [shownPortfolio, extendedHours, currentPhase, marketData],
   );
+  // Whether the board's dollar figures wait for the exchange rates (metrics.js's `fxPendingOf`, the scoreboard's rule):
+  // before the first market data lands, a holding whose pair is missing is valued at 1:1, so the cards, FORMATION
+  // VALUE, Top Movers in dollars, the heat map, the captain and the board's modals wait with a dash or their own
+  // waiting state, never that book.
+  const fxPending = fxPendingOf(metrics, marketDataReady);
   // Keep what the page shows for the next reload — once a tick has
   // priced something; before that the prices on screen are the ones this
   // load started from, and keeping them would only copy them over
@@ -1452,16 +1457,18 @@ function Board({ isReadOnly }) {
     [portfolio],
   );
   // Captain = single largest position by USD market value (native →
-  // USD so a CNY / GBP holding ranks correctly against USD ones).
+  // USD so a CNY / GBP holding ranks correctly against USD ones). None
+  // while the rates are loading (`fxPending`): at 1:1 a CNY fund would
+  // wear the armband at seven times its size.
   const captainTicker = useMemo(() => {
-    if (!shownPortfolio) return null;
+    if (!shownPortfolio || fxPending) return null;
     let ticker = null, best = 0;
     for (const [t, h] of Object.entries(shownPortfolio.holdings)) {
       const mv = h.shares * h.lastPrice * fxToUSD(h.currency, marketData);
       if (mv > best) { best = mv; ticker = t; }
     }
     return ticker;
-  }, [shownPortfolio, marketData]);
+  }, [shownPortfolio, marketData, fxPending]);
   // Biggest individual mover by the day-change AS DISPLAYED — the
   // ext-adjusted per-player pct from `metrics` (the same value the tiles /
   // scoreboard / Top Movers show), so during extended hours the ball tracks
@@ -1639,6 +1646,7 @@ function Board({ isReadOnly }) {
             isReadOnly={isReadOnly}
             refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
             forceRefreshKey={chartForceKey}
+            marketDataReady={marketDataReady}
           />
           </SurfaceBoundary>
           {isDesktop && (
@@ -1668,6 +1676,7 @@ function Board({ isReadOnly }) {
             metrics={metrics}
             extendedHours={extendedHours && currentPhase !== "regular"}
             onTileClick={handleTileClick}
+            fxPending={fxPending}
           />
         ) : (
           <Pitch
@@ -1689,6 +1698,7 @@ function Board({ isReadOnly }) {
             onUpdatePosition={updatePosition}
             onSwapPositions={swapPositions}
             hideValues={hideValues}
+            fxPending={fxPending}
           />
         )}
         </SurfaceBoundary>
@@ -1708,6 +1718,8 @@ function Board({ isReadOnly }) {
           isReadOnly={isReadOnly}
           refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
           forceRefreshKey={chartForceKey}
+          fxPending={fxPending}
+          marketDataReady={marketDataReady}
         />
         </SurfaceBoundary>
         {/* Mobile-only Market Conditions strip — rendered as a separate
@@ -1756,6 +1768,7 @@ function Board({ isReadOnly }) {
           onRemoveTicker={async (t) => { if (isReadOnly) return; if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${t}?`, confirmLabel: 'Remove', danger: true })) removeHolding(t); }}
           onUpdatePosition={(patch) => updatePosition(drillPos, patch)}
           hideValues={hideValues}
+          fxPending={fxPending}
         />
         </ModalBoundary>
       )}
@@ -1777,6 +1790,7 @@ function Board({ isReadOnly }) {
             <HoldingsListModal
               metrics={metrics}
               hideValues={hideValues}
+              fxPending={fxPending}
               onTickerClick={(t) => setViewingTicker(t)}
               onClose={() => setShowHoldingsList(false)}
             />
@@ -1790,6 +1804,7 @@ function Board({ isReadOnly }) {
             <SectorsListModal
               metrics={metrics}
               hideValues={hideValues}
+              fxPending={fxPending}
               onTickerClick={(t) => setViewingTicker(t)}
               onClose={() => setShowSectorsList(false)}
             />
@@ -1803,6 +1818,7 @@ function Board({ isReadOnly }) {
             <TransactionHistoryModal
               holdings={shownPortfolio.holdings}
               marketData={marketData}
+              marketDataReady={marketDataReady}
               hideValues={hideValues}
               t212Orders={t212Orders}
               dividends={dividendEvents.byTicker}
@@ -1835,6 +1851,7 @@ function Board({ isReadOnly }) {
               phase={currentPhase}
               portfolioTotalValue={metrics.marketValue}
               hideValues={hideValues}
+              fxPending={fxPending}
               onClose={() => setViewingTicker(null)}
             />
           </React.Suspense>

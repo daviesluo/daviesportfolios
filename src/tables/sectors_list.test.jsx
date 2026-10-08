@@ -129,3 +129,18 @@ describe('SectorsListModal', () => {
     expect(screen.getByLabelText('Download as Excel')).toBeInTheDocument();
   });
 });
+
+describe('SectorsListModal — waits for the exchange rates (review batch 5)', () => {
+  // As the Holding list: the dollars, the shares of the book and a sector's own percentages (weighted by values still
+  // at 1:1) wait with a dash; a holding's own percentages need no rate.
+  beforeEach(() => cleanup());
+
+  it('dashes what needs a rate, and does not export', () => {
+    render(<SectorsListModal metrics={METRICS} hideValues={false} onTickerClick={vi.fn()} onClose={vi.fn()} fxPending />);
+    const rowOf = (name) => screen.getAllByRole('row').find((r) => within(r).queryByText(name));
+    const cellsOf = (name) => within(/** @type {HTMLElement} */ (rowOf(name))).getAllByRole('cell').slice(1).map((c) => c.textContent);
+    expect(cellsOf('CM')).toEqual(['—', '—', '—', '——', '——']);
+    expect(cellsOf('NVDA')).toEqual(['—', '—', '—', '—+5.00%', '—+20.00%']);
+    expect(screen.getByLabelText('Copy table including header')).toBeDisabled();
+  });
+});

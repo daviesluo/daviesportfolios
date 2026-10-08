@@ -11,7 +11,11 @@ import {
 } from '../app/formatters.js';
 import { POSITION_COORDS } from '../portfolio/positions.js';
 
-function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, hideValues }) {
+/**
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded, so a position holding something priced
+ * in another currency would show its 1:1 value; its card waits with a dash, as the scoreboard does.
+ */
+function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, onOpenPosition, onAddToPosition, onUpdatePosition, onSwapPositions, hideValues, fxPending = false }) {
   const coords = POSITION_COORDS;
 
   // Edit-mode drag-to-swap. Pointer Events (mouse + touch) rather than
@@ -110,6 +114,7 @@ function Pitch({ metrics, captainTicker, hotMoverTicker, hotMoverPosKey, flashTi
               onAdd={() => onAddToPosition(k)}
               onUpdatePosition={(patch) => onUpdatePosition(k, patch)}
               hideValues={hideValues}
+              fxPending={fxPending}
             />
           );
         })}
@@ -179,11 +184,14 @@ function PitchLines() {
   );
 }
 
-function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, hideValues }) {
+function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, flashTickers, editMode, isReadOnly, dragEnabled, onDragStart, clickGuardRef, onOpen, onAdd, onUpdatePosition, hideValues, fxPending = false }) {
   const hasPlayers = position.players.length > 0;
+  // A holding here still valued at 1:1 (`fxPending`): the value and the day's move, which weighs the holdings by it,
+  // wait with a dash and no colour, as the scoreboard's do.
+  const waiting = fxPending && position.players.some(p => p.fxMissing);
   // Same flat threshold as the heatmap tile and Top Movers, so a
   // sub-0.005 % move reads as "flat" on every surface at once.
-  const pctClass = pctIsFlat(position.dayPct) ? "flat" : position.dayPct > 0 ? "gain" : "loss";
+  const pctClass = waiting || pctIsFlat(position.dayPct) ? "flat" : position.dayPct > 0 ? "gain" : "loss";
 
   const hasCaptain = captainTicker && position.tickers.includes(captainTicker);
   const hasHot = posKey === hotMoverPosKey;
@@ -234,7 +242,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
       <div className="chip-inner">
         <div className="chip-label">
           <span className="chip-pos-code">{position.label}</span>
-          {hasPlayers && <span className={`chip-pct mono ${pctClass}`}>{fmtPc(position.dayPct)}</span>}
+          {hasPlayers && <span className={`chip-pct mono ${pctClass}`}>{fmtPc(waiting ? null : position.dayPct)}</span>}
         </div>
         {editingName ? (
           <input
@@ -268,7 +276,7 @@ function PositionChip({ posKey, position, coord, captainTicker, hotMoverPosKey, 
           </div>
         )}
         {hasPlayers && (
-          <div className="chip-mv mono">{hideValues ? maskDigits(fmtM(position.marketValue)) : fmtM(position.marketValue)}</div>
+          <div className="chip-mv mono">{hideValues ? maskDigits(fmtM(waiting ? null : position.marketValue)) : fmtM(waiting ? null : position.marketValue)}</div>
         )}
         {hasPlayers ? (
           <div className="chip-tickers">

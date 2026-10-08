@@ -134,7 +134,11 @@ export const COLUMNS = [
   { key: 'unrlGL',      label: 'Unrealized G/L',  numeric: true,  align: 'right' },
 ];
 
-function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
+/**
+ * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded and a holding is valued at 1:1, which
+ * puts every dollar figure and every share of the book wrong: they wait with a dash, and nothing exports until then.
+ */
+function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose, fxPending = false }) {
   // Default: exposure %, high → low.
   const [sortKey, setSortKey] = React.useState('exposure');
   const [sortDir, setSortDir] = React.useState(/** @type {'asc'|'desc'} */ ('desc'));
@@ -153,13 +157,17 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
   };
   const arrow = (col) => (col.key === sortKey ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '');
 
-  const money = (n, opts) => (hideValues ? maskDigits(fmtM(n, opts)) : fmtM(n, opts));
+  const money = (n, opts) => {
+    const s = fmtM(fxPending ? null : n, opts);
+    return hideValues ? maskDigits(s) : s;
+  };
+  const share = (/** @type {number} */ x) => (fxPending ? '—' : `${x.toFixed(2)}%`);
 
   // Copy / download export the table EXACTLY as displayed (header + every
   // row, current sort order) with real values — the hide-values mask is a
   // screen-only privacy overlay, not data. Shared with the Transaction
   // history modal via <TableExportButtons>; disabled when nothing to export.
-  const canExport = sorted.length > 0;
+  const canExport = sorted.length > 0 && !fxPending;
 
   return (
     <Modal onClose={onClose} size="lg">
@@ -200,7 +208,7 @@ function HoldingsListModal({ metrics, hideValues, onTickerClick, onClose }) {
                       <span className="hl-name">{r.name}</span>
                     </button>
                   </td>
-                  <td className="hl-right hl-strong">{r.exposure.toFixed(2)}%</td>
+                  <td className="hl-right hl-strong">{share(r.exposure)}</td>
                   <td className="hl-right">{money(r.costBasis)}</td>
                   <td className="hl-right hl-strong">{money(r.marketValue)}</td>
                   <td className="hl-right" style={{ color: pctClr(r.dayPct) }}>

@@ -5,7 +5,7 @@
 // change which instrument the click resolves.
 
 import { describe, it, expect } from 'vitest';
-import { displayTicker, fitTicker } from './heatmap.jsx';
+import { displayTicker, fitTicker, heatmapItems } from './heatmap.jsx';
 
 describe('displayTicker', () => {
   it('strips the exchange suffix from foreign-listed tickers', () => {
@@ -129,5 +129,22 @@ describe('fitTicker — a ticker fits its tile, or breaks in the middle', () => 
   it('never goes below 7px, however small the tile', () => {
     expect(fitTicker('LONGEST', 24, 22).fontSize).toBe(7);
     expect(fitTicker('', 24, 22).fontSize).toBeGreaterThanOrEqual(7);
+  });
+});
+
+describe('heatmapItems — no tile while the exchange rates are loading (review batch 5)', () => {
+  // A tile's size is its share of the book: before the first market data, one GBP holding at 1:1 sizes every tile
+  // wrong, so the map waits empty (its own empty state) until the rates land.
+  const metrics = { positions: {
+    CB: { players: [{ ticker: 'BRIT.L', marketValue: 250, dayPct: 4.17, fxMissing: true }] },
+    CM: { players: [{ ticker: 'ACME', marketValue: 1440, dayPct: 0.84 }, { ticker: 'CASH', isCash: true, marketValue: 500 }] },
+  } };
+
+  it('draws nothing while pending', () => {
+    expect(heatmapItems(metrics, true)).toEqual([]);
+  });
+
+  it('draws every non-cash holding, largest first, once the rates are in', () => {
+    expect(heatmapItems(metrics).map((i) => [i.ticker, i.value, i.pct])).toEqual([['ACME', 1440, 0.84], ['BRIT.L', 250, 4.17]]);
   });
 });
