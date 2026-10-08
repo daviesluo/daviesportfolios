@@ -765,6 +765,7 @@ before touching migration state.
 | `0083_cron_run_details_prune.sql` | A daily job keeping seven days of pg_cron's run history (`cron.job_run_details`), which nothing pruned before. |
 | `0084_pm_mid_order_path.sql` | Lets mid-pool's config leave dry-run and its orders be live, as mini-pool's always could, and adds a trigger on both Polymarket configs that refuses arming either while the other is armed: the two paths trade one account. |
 | `0085_pm_rw_x_rest_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take the two arms on x1 that move where the quotes rest (x4, x5). |
+| `0097_http_response_prune.sql` | Replaces 0093's truncate with a job deleting pg_net responses over ten minutes old at :05, :15, …, so it never locks the table while the one-minute batch writes to it. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
@@ -773,7 +774,7 @@ before touching migration state.
 | `0090_take50_from_now.sql` | Moves TAKE's start (`take50`'s `rules.take.from`) to 2026-10-04 16:00 UTC, its pre-registration's Addendum 1. |
 | `0091_pm_lp.sql` | "Reward quotes live-prep"'s tables, the path's and the layer's shapes as `pm_lp_*` and `pm_lpprep_*` with a band of $10 and over, $100 a market and no day stop, its config unarmed in dry-run, its two leases and two rows of the one-minute job; and the one-armed trigger on all three Polymarket configs. |
 | `0092_pm_book_recorder.sql` | The Polymarket book recorder's tables (its markets, its frames, its archive's index, its two state rows), its two leases, its two rows of the one-minute job (every minute and every fifth, both run again by the watchdog), and its hourly prune: data the archive has not taken in six hours dropped, frames' counts after seven days, markets a week after the listing dropped them. |
-| `0093_http_response_truncate.sql` | A job emptying pg_net's response table every ten minutes, whose own six-hour pruning leaves dead space no vacuum reclaims (the 10-07 stall). |
+| `0093_http_response_truncate.sql` | A job emptying pg_net's response table every ten minutes, whose own six-hour pruning leaves dead space no vacuum reclaims (the 10-07 stall); replaced by 0097. |
 | `0094_pm_prep_stress_days.sql` | The three paper layers' worst case at each UTC day's start, a row a layer and a day, with the accounts it sums and how it was made. |
 | `0095_t212_fill_currency_dividends.sql` | Each broker fill's trading currency (`t212_orders.currency`, GBX kept), and the dividends both accounts received with their walk's cursor (`t212_dividends`, `t212_dividends_sync`). |
 | `20260817034719_portfolio_snapshots_out_of_band.sql`, `20260818044126_t212_orders_out_of_band.sql`, `20260818044956_drop_aug17_fx_spike_snapshot.sql` | Empty records of changes applied outside CI, so `db push` keeps working. |

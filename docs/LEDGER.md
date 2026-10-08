@@ -30,15 +30,15 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      old code. Do not read the fills market by market before the verdict: a narrower variant (stop quoting once a
      temperature bucket is decided) needs its own pre-registration, frozen before anyone has.
    - **The one-minute job's batch runs a minute late at most `:X0` minutes, and that minute is not stored (found
-     2026-10-08 ~00:45; cause not established, `0093`'s `http-response-truncate` is the lead; nothing changed).** From
+     2026-10-08 ~00:45; `0093`'s `http-response-truncate` the lead, replaced by `0097` on Davies' word at ~01:15:
+     check that the `:X0` beats come back on time from then; if they do not, the truncate was not the cause).** From
      that job's first run, 20:50 on 10-07, the `tick` beat (`edge_call_beats`) is missing at 18 of 24 `:X0` minutes and
      at none of 208 other minutes, and every call of the batch goes with it: RW stored 1,436 / 1,439 / 1,436 minutes on
      10-04 / 05 / 06 and 1,240 on 10-07 (the stall), and on 10-08 has not stored 00:00, 00:10, 00:30 and 00:40 of its
      first 41 due. The Edge log shows two requests of one call in the minute after (`tick`: 14 of the 18), so the batch
      is late, not skipped; the truncate waited its full 30 s and gave up at 22:50 and 23:40, and those two batches were
      on time. It reaches RW's last day, the live loop, PR5 and RW-C, whose first judged minute (10-09 00:00) is a `:X0`
-     one. A fix is a migration (`src/cron_jobs.test.js` pins the job's schedule), not made by the session that found
-     it. At RW's verdict name the shortfall as a deviation of RW's last day (RW-NEXT Part 2, "The one-minute job"),
+     one. At RW's verdict name the shortfall as a deviation of RW's last day (RW-NEXT Part 2, "The one-minute job"),
      with minutes stored against due; RW's bar is unchanged.
    - **The verdict**, once `pm_rw_days` has the row for 2026-10-08, written up as
      `docs/agents/reviews/2026-10-09-polymarket-rw-paper-result.md`, reference §3.x and this ledger:
@@ -805,6 +805,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- `0097_http_response_prune.sql`, on Davies' word ("推 0097"): `http-response-truncate` is unscheduled and
+  `http-response-prune` deletes pg_net responses over ten minutes old at :05, :15, … A DELETE takes row locks only,
+  so pg_net's inserts of the one-minute batch's responses never wait on it, and it runs off the `:X0` minutes the
+  truncate shared with that batch. Deletes from an ordinary backend reach the statistics, so autovacuum reclaims what
+  `0093` was written for. Table at 01:00: 68 rows, 280 kB, `postgres` holds DELETE. Pinned in `src/cron_jobs.test.js`
+  (no job may truncate the table again). The cause is still a lead, not proven: item 2's bullet says what to check.
 
 ### [2026-10-08 00:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-NEXT's slip check, run at 00:33 UTC (the wake `trig_01SY2TY9HuSQY5C7EEB9LD7y`, item 5a.3): RW-C is WARM. No slip;

@@ -470,6 +470,20 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  it('prunes pg_net\'s response table with a DELETE off the batch\'s :X0 minutes, never a TRUNCATE (0097)', () => {
+    // 10-08: the TRUNCATE's exclusive lock at :X0 put the one-minute batch a minute late at 18 of 24 :X0 minutes.
+    const T = '0097_http_response_prune.sql';
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect(jobsAfter.has('http-response-truncate')).toBe(false);
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['http-response-prune']);
+    const job = jobsAfter.get('http-response-prune');
+    expect(job.schedule).toBe('5-59/10 * * * *');
+    expect(job.command).toContain("delete from net._http_response where created < now() - interval '10 minutes';");
+    // No job may take the table's exclusive lock again: pg_net's worker inserts every minute's responses into it.
+    for (const [, j] of jobsAfter) expect(j.command.toLowerCase()).not.toMatch(/truncate\s+net\._http_response/);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
