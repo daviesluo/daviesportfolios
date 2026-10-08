@@ -809,7 +809,7 @@ before touching migration state.
 | `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once, the bundle's freshness among them. |
 | `bin/edge-changed.sh` | The functions a push to main deploys: those changed since the deploy workflow's last successful run. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
-| `bin/hooks/pre-commit` | The ledger's commit hook. |
+| `bin/hooks/pre-commit` | The ledger's commit hook: the ledger moves with the work, a history section opens with a source header, and the ledger stays under 80 KiB. |
 | `.github/workflows/check.yml` | On every push: type-check, lint, tests, a build that must reproduce the committed bundle byte for byte, both browser tests and the size budget on that committed bundle, dead code, the audit, as parallel jobs. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed since its last successful run. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |

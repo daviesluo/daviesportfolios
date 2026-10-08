@@ -118,4 +118,27 @@ if [ -n "$(git diff --cached --name-only -- "$LEDGER")" ]; then
   fi
 fi
 
+# Gate 3: the ledger stays small (review F15, 2026-10-08). Every session on
+# every platform reads it whole on every resume, and by 2026-10-08 it had
+# grown to 373 KB, about 93,000 tokens a wake, while it called itself small.
+# A commit that leaves it over the budget is refused with the move to make:
+# closed history sections, word for word, into the archive. Only a commit
+# that stages the ledger is weighed (one that does not cannot grow it), and
+# the size is the staged blob's, what the commit would record.
+# LEDGER_BUDGET_OK=1 commits anyway, for a commit that cannot wait for it.
+LEDGER_BUDGET=81920
+if [ -z "$LEDGER_BUDGET_OK" ] && [ -n "$(git diff --cached --name-only -- "$LEDGER")" ]; then
+  size=$(git cat-file -s ":$LEDGER" 2>/dev/null || echo 0)
+  if [ "$size" -gt "$LEDGER_BUDGET" ]; then
+    echo
+    echo "commit stopped: $LEDGER would be $size bytes, over its budget of"
+    echo "$LEDGER_BUDGET (80 KiB). Every resume reads it whole. Move closed"
+    echo "history sections, word for word, into the archive the ledger's"
+    echo "history introduction names, leave one line recording the move,"
+    echo "and commit again. A commit that cannot wait for that:"
+    echo "  LEDGER_BUDGET_OK=1 git commit"
+    exit 1
+  fi
+fi
+
 exit 0

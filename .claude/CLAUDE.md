@@ -149,8 +149,11 @@ The session that plans to write it later is the session a usage limit
 cuts off first.
 
 **The hook enforces it.** `bin/hooks/pre-commit`, reached through
-`core.hooksPath`, refuses a commit whose ledger is two behind, and
-refuses a new history section that does not open with a source header.
+`core.hooksPath`, refuses a commit whose ledger is two behind, refuses
+a new history section that does not open with a source header, and
+refuses a ledger over 80 KiB (2026-10-08: it had reached 373 KB): move
+closed history sections into the archive, or `LEDGER_BUDGET_OK=1` for
+a commit that cannot wait.
 Both are per-clone config a rebuilt container loses — the commands are
 in the ledger's machine-setup section (`sh bin/setup.sh`). The escape hatch is
 `LEDGER_OK=1 git commit`, for the three cases the refusal names; reach
