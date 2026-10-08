@@ -29,17 +29,13 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      frozen); a bug fix is allowed only as a recorded deviation (spec, reference, ledger) with a pin that fails on the
      old code. Do not read the fills market by market before the verdict: a narrower variant (stop quoting once a
      temperature bucket is decided) needs its own pre-registration, frozen before anyone has.
-   - **The one-minute job's batch runs a minute late at most `:X0` minutes, and that minute is not stored (found
-     2026-10-08 ~00:45; `0093`'s `http-response-truncate` the lead, replaced by `0097` on Davies' word at ~01:15:
-     check that the `:X0` beats come back on time from then; if they do not, the truncate was not the cause).** From
-     that job's first run, 20:50 on 10-07, the `tick` beat (`edge_call_beats`) is missing at 18 of 24 `:X0` minutes and
-     at none of 208 other minutes, and every call of the batch goes with it: RW stored 1,436 / 1,439 / 1,436 minutes on
-     10-04 / 05 / 06 and 1,240 on 10-07 (the stall), and on 10-08 has not stored 00:00, 00:10, 00:30 and 00:40 of its
-     first 41 due. The Edge log shows two requests of one call in the minute after (`tick`: 14 of the 18), so the batch
-     is late, not skipped; the truncate waited its full 30 s and gave up at 22:50 and 23:40, and those two batches were
-     on time. It reaches RW's last day, the live loop, PR5 and RW-C, whose first judged minute (10-09 00:00) is a `:X0`
-     one. At RW's verdict name the shortfall as a deviation of RW's last day (RW-NEXT Part 2, "The one-minute job"),
-     with minutes stored against due; RW's bar is unchanged.
+   - **The one-minute job's lost `:X0` minutes: fixed by `0097` and the cause confirmed (2026-10-08 01:36).** `0093`'s
+     TRUNCATE of `net._http_response` at :00, :10, … put the one-minute batch a minute late at 18 of 24 `:X0` minutes
+     from 10-07 20:50 (`edge_call_beats`). After `0097` (DELETE at :05, :15, …): 01:00 and 01:10 had 1 beat each and
+     27 the minute after (before the fix), 01:20 and 01:30 had all 27 at :00 (after). The prune ran 01:15 / 01:25 /
+     01:35, deleting 0 / 136 / 194 rows. RW lost 00:00, 00:10, 00:30, 00:40, 00:50, 01:00 and 01:10 of 10-08, its
+     last judged day: at RW's verdict name the shortfall as a deviation of that day (RW-NEXT Part 2, "The one-minute
+     job"), with minutes stored against due; RW's bar is unchanged.
    - **The verdict**, once `pm_rw_days` has the row for 2026-10-08, written up as
      `docs/agents/reviews/2026-10-09-polymarket-rw-paper-result.md`, reference §3.x and this ledger:
      a. The bar, exactly as the spec words it, from `pm_rw_days` (the fourteen run rows, 09-25 … 10-08): each day's
