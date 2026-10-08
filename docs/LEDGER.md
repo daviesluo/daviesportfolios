@@ -271,7 +271,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
      `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
      D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys); A3; A4; A6. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
+     `agents` function redeploys); A3; A4; A6; A7. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
      digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
      stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
      residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
@@ -430,6 +430,24 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A live Polymarket buy being cancelled counts toward the caps until its cancel is read back** (review A7, batch 5;
+  `agents/pm_live.ts`). The caps run before the turn's cancels and counted every buy the turn would cancel as gone; a
+  cancel the venue takes and never carries out leaves it resting beside the new buys that used its room. In live mode
+  such a buy now counts until its read-back: in full where its slot is withdrawn, and as the larger of the old and new
+  order where it is re-priced (the new one waits for the read-back, so they never rest together). In a live turn: none
+  of the three paths is live (all dry-run), so nothing today; once live, a turn that withdraws buys and wants new ones
+  with a cap binding (a day's new selection replacing yesterday's markets) sends the new ones a turn later, after the
+  read-back, and a frozen cancel no longer leaves the book past its cap. Dry-run is unchanged (its cancels are the
+  database's and always land), so the dry-run windows and live-prep's recorded `committed` read as before. Pinned in
+  `pm_live.test.ts`: A and B resting 24.34 USD under a $30 cap, the next day A and C selected and B's cancels lost;
+  the old count left 43.94 USD resting, the new keeps C's buys back and stays under 30, and the same day in dry-run
+  places C's buys at once. Every Polymarket test file, the frozen-instance comparisons among them: 171 passed, and 176
+  rebased on the payouts-per-path change (869ba644), with which this and A6 merge cleanly. With A6 and this,
+  `pm_live.ts` moves from `57f4b1d7…` (named in live-prep's Addendum 4 and mid-pool's Addendum 5) to `e933f28c…`;
+  `pm_lp.ts` and `pm_mid.ts`, which the pre-registrations' tests pin, are unchanged. An addendum naming the new hash
+  is the coordinator's call.
 
 ### [2026-10-08 23:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Polymarket order paths book a buy before a sell matched in the same second** (review A6, batch 5;

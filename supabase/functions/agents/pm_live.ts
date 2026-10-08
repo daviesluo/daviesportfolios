@@ -1845,13 +1845,26 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     if (Math.abs(Number(o.price) - w.price) < 1e-9 && Math.abs(Number(o.size) - w.size) < 1e-9 && Number(o.expiration) - PM_GTD_EARLY_S - nowS > PM_LIVE_REFRESH_S) keptAsIs.set(slotKey(o), o);
   }
   for (const o of keptAsIs.values()) if (o.side === "BUY") pusdLeft -= Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched));
+  // A live buy this turn cancels (its slot withdrawn or re-priced) rests until the cancel is read back, after these caps
+  // (section 5), and a cancel the venue never carries out leaves it there (review A7). So the caps count it until then: in
+  // full where its slot is withdrawn, and where the slot is re-priced the larger of the old and the new order, which never
+  // rest together (the new one waits for the read-back). A dry-run's cancels are the database's own and always land.
+  const leaving = new Map<string, number>();
+  if (mode === "live") {
+    for (const o of open) {
+      if (o.mode !== mode || o.side !== "BUY" || o.state !== "live" || untouchable(o) || keptAsIs.has(slotKey(o))) continue;
+      const usd = Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched));
+      leaving.set(slotKey(o), usd);
+      commit(o.cond, usd);
+    }
+  }
   for (const [slot, w] of [...wants.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
     if (w.side !== "BUY") continue;
-    const usd = w.price * w.size;
-    if (committed + usd > lim.capTotal + 1e-9) { wants.delete(slot); withhold(slot, "cap_total", `${(committed + usd).toFixed(2)} USD would pass the cap of ${lim.capTotal}`); continue; }
-    if ((byMarket.get(w.cond) ?? 0) + usd > lim.capMarket + 1e-9) { wants.delete(slot); withhold(slot, "cap_market", `${((byMarket.get(w.cond) ?? 0) + usd).toFixed(2)} USD in one market would pass ${lim.capMarket}`); continue; }
+    const usd = w.price * w.size, more = Math.max(0, usd - (leaving.get(slot) ?? 0));   // what the caps count it beyond its slot's old buy
+    if (committed + more > lim.capTotal + 1e-9) { wants.delete(slot); withhold(slot, "cap_total", `${(committed + more).toFixed(2)} USD would pass the cap of ${lim.capTotal}`); continue; }
+    if ((byMarket.get(w.cond) ?? 0) + more > lim.capMarket + 1e-9) { wants.delete(slot); withhold(slot, "cap_market", `${((byMarket.get(w.cond) ?? 0) + more).toFixed(2)} USD in one market would pass ${lim.capMarket}`); continue; }
     if (mode === "live" && !keptAsIs.has(slot) && usd > pusdLeft + 1e-9) { wants.delete(slot); withhold(slot, "collateral", pusd === null ? "the pUSD balance could not be read" : `${usd.toFixed(2)} USD more than the ${Math.max(0, pusdLeft).toFixed(2)} of pUSD the resting buys leave`); continue; }
-    commit(w.cond, usd);
+    commit(w.cond, more);
     if (!keptAsIs.has(slot)) pusdLeft -= usd;
   }
 

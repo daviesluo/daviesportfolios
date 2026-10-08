@@ -1246,6 +1246,29 @@ Deno.test("inventory: holdings that cannot be read open nothing and sell nothing
 
 // ------------------------------------------------------------------ caps, collateral, stops and the governor
 
+Deno.test("caps, live: a buy the turn cancels counts until its cancel is read back, so a cancel that never lands leaves the book within its cap (A7)", async () => {
+  // 10-02 23:58: A and B selected, the four opening buys rest (24.34 USD) under a total cap of $30. 10-03 00:00: B's book is
+  // one-sided, so the day's selection is A and C; B's two buys (19.44) are withdrawn and C's are wanted. The venue takes B's
+  // cancels and never carries them out. Counted as gone, C's buys went out beside B's still resting, past the cap; counted
+  // until read back, they wait, withheld on the total cap, and what rests stays under it.
+  const w = makeWorld({ live: true, config: { cap_total_usd: 30 } });
+  await w.turn(Date.parse("2026-10-02T23:58:30Z"));
+  assertEquals(sides(w), OPENING);
+  w.B.ask = 1.2;
+  w.pm.cancelMode = "lost";
+  const r = await w.turn(Date.parse("2026-10-03T00:00:30Z"));
+  const resting = () => w.open("live").filter((o) => o.side === "BUY").reduce((a, o) => a + Number(o.price) * (Number(o.size) - Number(o.size_matched ?? 0)), 0);
+  assert(resting() <= 30 + 1e-9, `${resting()} USD resting: ${sides(w).join("; ")}`);
+  assertEquals(w.open("live").filter((o) => o.cond === cond(7)).length, 0);
+  assert(r.withheld.some((x) => x.gate === "cap_total" && String(x.slot).startsWith(cond(7))), JSON.stringify(r.withheld));
+  // Dry-run's cancels always land, so its caps count as before: the same day there places C's buys at once.
+  const d = makeWorld({ config: { cap_total_usd: 30 } });
+  await d.turn(Date.parse("2026-10-02T23:58:30Z"));
+  d.B.ask = 1.2;
+  await d.turn(Date.parse("2026-10-03T00:00:30Z"));
+  assertEquals(d.open("dry_run").filter((o) => o.cond === cond(7) && o.side === "BUY").length, 2);
+});
+
 Deno.test("caps: buys' collateral (N × b, N × (1 − a)) and the holdings' cost stay under the market cap and the total cap; an order that would pass one is withheld", async () => {
   // Market cap $3: A's YES bid (5 × 0.45 = 2.25) fits; its NO bid (5 × 0.53) would make 4.90; B's bids (4.02, 15.42) do not fit at all.
   const m = makeWorld({ config: { cap_market_usd: 3 } });
