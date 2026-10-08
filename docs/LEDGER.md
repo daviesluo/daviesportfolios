@@ -101,8 +101,11 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      variant-2/-3/-4 rows read RW-C's replay** (`pm_rwc_x_*`; `RWX_PAGE_SWITCH`, 2026-10-08 on Davies' word of 10-07):
      they start again from zero there, one replay at a time; before RW-C's replay has a state (quiet until 00:02) they
      say they start at 10-09 00:00. **To confirm after 00:05:** the dashboard's `rwx` entries carry `source` "RW-C",
-     `startedAt` 2026-10-09T00:00:00.000Z and `notStarted` false. Variant-1 (RW-E) still reads RW's replay and is
-     finished from 10-09; moving it to `pm_rwc_e_*` too is Davies' call.
+     `startedAt` 2026-10-09T00:00:00.000Z and `notStarted` false. **"Reward quotes" and variant-1 (RW-E) move at the same
+     instant** (2026-10-08, Davies chose "合并进 Reward quotes"; variant-1's move is the main session's call, told him):
+     `rw` reads RW-C's engine run and `rwe` RW-E's `pm_rwc_e_*` replay (`readRwPage`, `RW_PAGE_SWITCH`); **to confirm
+     after 00:05** that the dashboard's `rw.source` and `rwe.source` are "RW-C", `rw.startedAt` 2026-10-09T00:00:00.000Z
+     with `notStarted` false, `rwe.notStarted` false once `pm_rwc_e_state` exists, and that it sends no `rwc`.
    - **Intraday re-selection every 2 h (S2; a dropped market goes close-only): backtested 2026-10-07 on the pm-rec
      archive, 10-05 00:00 → 10-07 21:59 UTC, read-only, no paper arm** (scratch scripts, not committed): against S2's
      daily selection, −$62.36 at R = 1 (day-block bootstrap p5 −120.60 / p95 −4.12, P(> 0) 0.03) and −$14.92 at R = 0.40
@@ -114,9 +117,10 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      `main` since 2026-09-28 04:39 UTC** (`3682b557` engine + `0069`, `17728e3c` page; history 00:38 and 05:12).
      `pmrw.ts` as a second instance (`RWC_INSTANCE`) into `pm_rwc_*` (RW's eleven tables, renamed), leases `pmrwc*`,
      warm-up 10-08 00:00 by constant; RW-E and x1–x3 replayed on its minutes with every "from" at 10-09 00:00
-     (`pmrwc-e`, `pmrwc-x`), and x4 and x5 since `0085` (an addendum to RW-NEXT Part 2, in their pre-registration). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **Its page row
-     "Reward quotes confirmation" appears by itself at its warm-up, 10-08 00:00 UTC** (Davies, 2026-09-28: off the page
-     until then; the dashboard reads nothing of it before), "starts 9 Oct 01:00 BST" until its first minute. RW-NEXT
+     (`pmrwc-e`, `pmrwc-x`), and x4 and x5 since `0085` (an addendum to RW-NEXT Part 2, in their pre-registration). `0069_pm_rwc.sql` adds the tables and four rows of `edge-calls-every-minute`. **It has no page row of its own**
+     (Davies, 2026-10-08: it is RW's rule's round 2, "合并进 Reward quotes"; the "Reward quotes confirmation" row it had
+     from 10-08 00:00 is gone): from 10-09 00:00 UTC "Reward quotes" and its variants read its run, starting from zero,
+     "starts 9 Oct 01:00 BST" until its first minute is decided. RW-NEXT
      is frozen (item 5a.3). The four calls return "before its warm-up" / "before RW-C's first minute is decided" (no
      database read) until 10-08 00:00 / 10-09 00:02. **Checked 10-08 00:33–00:43 UTC: WARM** (RW-NEXT's slip check
      true, item 5a.3; `pm_rwc_state.last_minute` 00:41:00 at 00:43:16, no `last_error`). **Next:** after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
@@ -801,6 +805,30 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RW-C merged into "Reward quotes" (Davies, 2026-10-08: "合并进 Reward quotes"): from RW-C's first minute,
+  2026-10-09 00:00 UTC, every Reward quotes row reads RW-C's run, and there is no "Reward quotes confirmation" row, now
+  or later.** RW-C is RW's own rule on fresh days (RW-NEXT Part 2), so it is the row's round 2. `readRwPage` (agents
+  `index.ts`) picks the run by the clock (`RW_PAGE_SWITCH` = `RWC_RUN_START`, `rwPageRun`, `rwePageReplay`,
+  `rwxPageReplay`): before it `rw`, `rwe` and `rwx` are RW's engine run and its replays, read from `pm_rw_*` alone; from
+  it RW-C's (`rwcSummary`, `pm_rwc_e_*` for variant-1, `pm_rwc_x_*`), read from `pm_rwc_*` alone, each starting from
+  zero. Variant-1's move is the main session's call (told Davies), kept a separable part: `rweArmSummary` / `rweSummary`
+  take the replay, with an empty-but-running row until `pmrwc-e` writes its first state (not running from 00:12). The
+  dashboard sends no `rwc`; the page builds TESTING's tests in one function, `paperTestRows`, which adds no row for an
+  `rwc` a stale payload carries, so the scoreboard and the Polymarket card add Reward quotes once (RW-C alone after the
+  switch). Reward quotes' page says "Round 1: RW's own fourteen days from 25 Sep 01:00 BST. From 9 Oct 01:00 BST it
+  reads round 2, …" / "Round 2: RW's rule on fresh days since 9 Oct 01:00 BST. Round 1's figures are not in it."
+  (`rwRoundText`); variant-1's page prints `rwxSourceText` as the other variants do. RW's day rows, the verdict scripts,
+  the routines reading `pm_rw_*` / `pm_rwc_*` and every frozen file are untouched. **Evidence:** `pmrwc_view.test.ts`
+  (pinned clock: both rows before and after the switch, each touching its own run's tables only; 00:01 / 00:02 / 00:13
+  empty-but-running; with the switch removed from `readRwPage` the two after-switch tests fail); `agents.test.js`
+  (`paperTestRows` with and without a stale `rwc`: 2 tests, $2,000); the sweep's `rwc-running` (Reward quotes and
+  variant-1 read RW-C's, no confirmation row, 15 rows, scoreboard and card move by RW-C's figures less RW's) and
+  `rwc-warmup` (a payload carrying `rwc` adds no row), and the normal mode's round and source lines. Counterfactual:
+  the new sweep against origin/main's bundle fails 10 of these checks (round/source lines, the stale-`rwc` row, the
+  round-2 page line, variant-1's source line), plus one timing check, "dashboard requests stayed at 3 after a minute",
+  that passes on the new bundle. Docs: guide (two rounds, no figures), reference §4 item 36, map row of `pmrw_view.ts`.
 
 ### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `bin/gates.sh` takes a machine-wide `flock` (`/tmp/daviesportfolios-gates.lock`, `GATES_LOCK` overrides): a second

@@ -450,6 +450,8 @@ const AGENTS_RW = (dayStartMs) => {
   return {
     phase: 'run', runStart: iso(runStart), runEnd: iso(runStart + 14 * D), dayOfRun: 3, startedAt: iso(runStart - 5 * 3600e3),
     lastMinute: iso(NOW_MS - 2 * 60e3), lagMinutes: 2, lastError: null, running: true, finished: false,
+    // The run it reads (`readRwPage`): RW's, round 1, until RW-C's first minute, and RW-C's from it (Davies, 2026-10-08).
+    source: 'RW', sourceNext: { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' },
     capitalUsd: 296, fundedUsd: 1000, totalUsd: 41, stressUsd: 17.2, rewardUsd: 41.6, fillsPnlUsd: -0.6, realisedUsd: 42, unrealisedUsd: -1, mismatchUsd: 0,
     // What its quotes resting now tie up (`quotedUsd`, RW's own capital for a quote): A, B and C each quote N 20 at a
     // 2¢ spread, a bid at b and an ask's No at 1 − a, 20 × 0.98 = 19.60 a market, 58.80; D is held, not quoted.
@@ -538,9 +540,9 @@ const AGENTS_RWX_RWC = (dayStartMs) => AGENTS_RWX(dayStartMs).map((x) => ({
 
 /**
  * RW-C (`0069`), RW's engine run again on 2026-10-09 → 10-23 UTC, as `rwcSummary` returns it in its warm-up before its
- * engine has a state: its fourteen days' dates, its $1,000, nothing of its own, and when it starts. Before the warm-up
- * (2026-10-08 00:00 UTC; the pinned clock is before it) the dashboard sends no `rwc` at all (Davies, 2026-09-28), so this
- * is served only in the `rwc-warmup` mode.
+ * engine has a state: its fourteen days' dates, its $1,000, nothing of its own, and when it starts. The dashboard sends
+ * no `rwc` at all since RW-C became "Reward quotes"' round 2 (Davies, 2026-10-08); a function deployed before that sent
+ * this in RW-C's warm-up, so the `rwc-warmup` mode serves it to prove the page adds no row for it.
  */
 const AGENTS_RWC_WAITING = () => ({
   phase: 'warm-up', runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z', dayOfRun: null,
@@ -558,6 +560,17 @@ const AGENTS_RWC_RUNNING = (dayStartMs) => {
   const e = AGENTS_RWE(dayStartMs);
   return { ...e, startedAt: e.runStart, lastMinute: new Date(NOW_MS - 2 * 60e3).toISOString(), lagMinutes: 2, running: true };
 };
+/**
+ * "Reward quotes" and "Reward quotes variant-1" from RW-C's first minute (Davies, 2026-10-08: RW-C is RW's rule's round 2,
+ * "合并进 Reward quotes"), as `readRwPage` sends them then: the dashboard's `rw` is RW-C's own engine run (here RW-C's
+ * running figures, AGENTS_RWC_RUNNING) and its `rwe` RW-E's replay of RW-C's run (the same figures), each against RW-C's
+ * fourteen days from 2026-10-09 00:00 UTC, saying it reads RW-C's and nothing about a later move. There is no `rwc`.
+ */
+const AGENTS_RW_RWC = (dayStartMs) => ({
+  ...AGENTS_RWC_RUNNING(dayStartMs), runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z', startedAt: '2026-10-09T00:00:00.000Z',
+  source: 'RW-C', sourceNext: null,
+});
+const AGENTS_RWE_RWC = (dayStartMs) => ({ ...AGENTS_RW_RWC(dayStartMs), lastMinute: new Date(NOW_MS - 4 * 60e3).toISOString(), lagMinutes: 4 });
 
 /**
  * The Agents dashboard as the Edge Function shapes it (`dashboard()`): the
@@ -811,8 +824,8 @@ const AGENTS_NOT_READY = {
  * function fell over: a 500 with the server's envelope), `paused` (the
  * dashboard with a global pause set and a venue reporting a fault),
  * `live` / `live-unarmed` (a row trading real money, armed or not), and
- * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (RW-C in its warm-up, saying when it
- * starts), `rwc-running` (RW-C inside its fourteen days) and `quotesv` (the quote test's variant beside it).
+ * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
+ * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
 let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp'} */ ('ok');
 /**
@@ -1275,7 +1288,11 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'rwx-waiting') return json(AGENTS_RWX_WAITING());
       if (agentsMode === 'rwc-warmup') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_WAITING() });
       // RW-C inside its fourteen days: its own row, and the variant rows reading RW-C's replay in place of RW's.
-      if (agentsMode === 'rwc-running') return json({ ...AGENTS_DASHBOARD, rwc: AGENTS_RWC_RUNNING(Math.floor(NOW_MS / 86400_000) * 86400_000), rwx: AGENTS_RWX_RWC(Math.floor(NOW_MS / 86400_000) * 86400_000) });
+      // From RW-C's first minute: every Reward quotes row reads RW-C's run, and there is no `rwc` (Davies, 2026-10-08).
+      if (agentsMode === 'rwc-running') {
+        const day = Math.floor(NOW_MS / 86400_000) * 86400_000;
+        return json({ ...AGENTS_DASHBOARD, rw: AGENTS_RW_RWC(day), rwe: AGENTS_RWE_RWC(day), rwx: AGENTS_RWX_RWC(day) });
+      }
       if (agentsMode === 'quotesv') return json({ ...AGENTS_DASHBOARD, quotesVariant: AGENTS_QUOTESV(AGENTS_DASHBOARD.at), quotesRuled: AGENTS_QUOTESD(AGENTS_DASHBOARD.at) });
       if (agentsMode === 'prep') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output });
       if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
@@ -2860,8 +2877,8 @@ async function run() {
       // Plus the realistic twins of the live executor (Davies, 2026-10-02: in place of the quote test, its variant and
       // rule D; one a spec row since 0088), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three
       // of its variants (variant-2 since 2026-09-27; variant-3 and -4, TB1's two on x1, since 2026-10-07, Davies).
-      // RW-C (0069) is not a row before its warm-up begins, 2026-10-08 (Davies, 2026-09-28).
-      if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, RW, RW-E and three variants; no RW-C before its warm-up, the deleted ones absent`);
+      // RW-C (0069) is no row of its own: it is RW's rule's round 2, read by "Reward quotes" from 2026-10-09 (Davies, 2026-10-08).
+      if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, RW, RW-E and three variants; no RW-C row, the deleted ones absent`);
       else fail(S('agents'), `expected ${TESTING.rows} rows (six strategies, ${TW.n} twins, RW, RW-E and three variants), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
@@ -3208,6 +3225,11 @@ async function run() {
         && !/WITHOUT SAME-DAY|same-day markets|pre-registered as RW-E/i.test(await page.locator('.ag-rw-detail').innerText().catch(() => ''));
       if (eGone) ok(S('agents'), "RW's page has no RW-E section and no word of it");
       else fail(S('agents'), "RW's page still shows the RW-E section");
+      // Which round of RW's rule it reads (Davies, 2026-10-08): RW's own fourteen days until RW-C's first minute, then RW-C's.
+      const rRound = (await page.locator('.ag-rw-detail .ag-rw-round').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|');
+      if (rRound === "Round 1: RW's own fourteen days from 15 Sep 01:00 BST. From 9 Oct 01:00 BST it reads round 2, RW's rule on fresh days, and starts again from zero.") {
+        ok(S('agents'), "RW's page says it reads round 1, RW's own fourteen days, and moves to round 2 at 9 Oct 01:00 BST, starting again from zero");
+      } else fail(S('agents'), `RW page round line "${rRound}"`);
       const rHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (rHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the reward page has the same refresh button beside close');
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
@@ -3235,6 +3257,10 @@ async function run() {
         && eMarkets === 3 && eFills === 3 && eWarn === 0) {
         ok(S('agents'), "RW-E's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills");
       } else fail(S('agents'), `RW-E page: title "${eTitle}", labels ${eLabels.join(',')}, split ${eSplit.join('|')}, sections ${eSections.join(',')}, days ${eDays.join(' | ')} (first "${eFirstDay}"), markets ${eMarkets}, fills ${eFills}, warnings ${eWarn}`);
+      const eSource = (await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|');
+      if (eSource === "On RW's minutes since 15 Sep 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.") {
+        ok(S('agents'), "RW-E's page says it reads RW's minutes and moves to RW-C's at 9 Oct 01:00 BST, as the other variants do");
+      } else fail(S('agents'), `RW-E page source line "${eSource}"`);
       await page.locator('.ag-detail-close').click().catch(() => {});
       await page.waitForTimeout(300);
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW-E page returns to the list');
@@ -3712,7 +3738,7 @@ async function run() {
       const barText = (p) => p.tabs.map((t) => `${t.label} ${t.count} ${t.text} ${t.tone}`).join(' / ');
       // RW-E (Davies, 2026-09-26) adds its fixture's figures to TESTING: 5.60 deployed, +7.50 today, −1.20 unrealised, +23.60
       // realised; and each Reward quotes row is funded $1,000 (the same day). The three variants on the page (x1 since
-      // 2026-09-27, tb1-skip and tb1-back since 2026-10-07) add RW-E's figures three times more; RW-C is not a row before its warm-up.
+      // 2026-09-27, tb1-skip and tb1-back since 2026-10-07) add RW-E's figures three times more; RW-C is no row of its own.
       // The realistic twins (2026-10-02) are the live fixture's book at 1.32 each: funded their capital ($1,584, $792 and
       // $2,376), deployed $1,318.86, today +$0.29978, unrealised -$0.17550 on a cost of $791.04, realised -$0.04555, fees
       // $0.23721. TESTING's scoreboard adds them to the rest (TESTING): deployed is every dollar at work (Davies,
@@ -4153,88 +4179,65 @@ async function run() {
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
-      // RW-C (0069) in its warm-up (from 2026-10-08 00:00 UTC; before it the dashboard sends none, Davies 2026-09-28): the
-      // last row, RW's engine again on 2026-10-09 → 10-23 UTC. Before its first minute it has nothing of its own
-      // (AGENTS_RWC_WAITING), so its row is its $1,000 cap and when it starts — NEXT "9 Oct 01:00 BST", two lines at most,
-      // beside a grey dot that says so — and its name fits its row: two lines on a desktop's table, one on a phone's card.
+      // RW-C (0069) is no row of its own (Davies, 2026-10-08: it is RW's rule's round 2, "合并进 Reward quotes"), not even in
+      // its warm-up: a dashboard that still sends `rwc` (a function deployed before the switch was built, or a kept copy)
+      // adds no "Reward quotes confirmation" row, and "Reward quotes" keeps reading RW's run.
       agentsMode = 'rwc-warmup';
       await openAgentsPage(page);
-      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes confirmation') }).count()) === 1);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
       await page.waitForTimeout(150);
-      const rwcRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes confirmation') });
-      const rwcText = (await rwcRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const rwcName = await nameGeometry(rwcRowEl.first());
-      const rwcDot = await rwcRowEl.first().locator('.ag-dot').first().evaluate((d) => ({ title: d.getAttribute('title') || '', grey: d.classList.contains('ag-dot-paused') }))
-        .catch(() => ({ title: '', grey: false }));
-      const rwcNext = await rwcRowEl.first().locator('.ag-next').first().evaluate((n) => {
-        const range = document.createRange();
-        range.selectNodeContents(n);
-        return {
-          text: (n.textContent || '').trim(), lines: new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size,
-          fits: n.scrollWidth <= n.clientWidth + 1 && n.getBoundingClientRect().right <= (n.closest('td, .ag-row')?.getBoundingClientRect().right ?? 0) + 1,
-        };
-      }).catch(() => ({ text: '', lines: 0, fits: false }));
-      const lastName = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim()).at(-1);
-      await rwcRowEl.first().scrollIntoViewIfNeeded().catch(() => {});
-      await shot(page, 'agents-rwc-row');
-      if (await rwcRowEl.count() === 1 && lastName === 'Reward quotes confirmation' && await rwcRowEl.first().locator('.ag-venue-polymarket').count() === 1
-        && /0 open · \$1,000 cap/.test(rwcText) && rwcName.fits && rwcName.qual === 0 && rwcName.lines === (narrow ? 1 : 2)
-        && rwcNext.text === '9 Oct 01:00 BST' && rwcNext.lines >= 1 && rwcNext.lines <= 2 && rwcNext.fits
-        && rwcDot.grey && rwcDot.title === 'starts 9 Oct 01:00 BST' && !/every minute/.test(rwcText)) {
-        ok(T('rwc-warmup'), `RW-C is the last testing row: "Reward quotes confirmation" (${rwcName.lines} line${rwcName.lines === 1 ? '' : 's'}, inside its ${narrow ? 'card' : 'cell'}), Polymarket, 0 open of its $1,000 cap, NEXT "9 Oct 01:00 BST" on a grey dot that says it starts then`);
-      } else fail(T('rwc-warmup'), `RW-C row "${rwcText}" (last "${lastName}"), name ${JSON.stringify(rwcName)}, dot ${JSON.stringify(rwcDot)}, next ${JSON.stringify(rwcNext)}`);
-      // Its page is RW's page read from its own summary: its title, the same scoreboard on its $1,000, the same sections,
-      // and each table saying when it starts; no warning, nothing wider than the page.
-      await rwcRowEl.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
-      const cTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
-      const cLabels = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-name').allTextContents()).map((t) => t.trim());
-      const cFunded = ((await page.locator('.ag-rw-detail .ag-sb-cell-funded .sb-value').textContent().catch(() => '')) || '').trim();
-      const cSections = (await page.locator('.ag-rw-detail .ag-section-title').allTextContents()).map((t) => t.trim());
-      const cEmpty = (await page.locator('.ag-rw-detail .hl-empty').allTextContents()).map((t) => t.trim());
-      const cWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
-      const cOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
-      // Its title reads whole: 8 px too wide for a 390 px phone's title line, it breaks between its words there instead of
-      // losing "on" to the ellipsis, and stays one line on a desktop.
-      const cTitleFit = await page.locator('.modal .modal-title').last().evaluate((el) => {
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        return { clipped: el.scrollWidth > el.clientWidth + 1, lines: new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size };
-      }).catch(() => ({ clipped: true, lines: 0 }));
-      const cTested = await page.locator('.ag-rw-detail .ag-detail-head .ag-tested').count();
-      if (cTested === 0) ok(T('rwc-warmup'), "RW-C's page says no test time before its fourteen days begin");
-      else fail(T('rwc-warmup'), `RW-C's page shows ${cTested} test time(s) before its fourteen days begin`);
-      await shot(page, 'agents-rwc');
-      if (cTitle === 'Reward quotes confirmation' && !cTitleFit.clipped && cTitleFit.lines === (narrow ? 2 : 1)
-        && cLabels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && cFunded === '$1,000'
-        && cSections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && cEmpty.join('|') === Array(3).fill('Starts 9 Oct 01:00 BST.').join('|') && cWarn === 0
-        && cOverflow >= 0 && cOverflow <= 1) {
-        ok(T('rwc-warmup'), `RW-C's page before its first minute: its own title, whole (${cTitleFit.lines} line${cTitleFit.lines === 1 ? '' : 's'}), FUNDED $1,000, STATUS, DAYS, QUOTES and FILLS each saying it starts 9 Oct 01:00 BST, no warning`);
-      } else fail(T('rwc-warmup'), `RW-C page: title "${cTitle}" ${JSON.stringify(cTitleFit)}, labels ${cLabels.join(',')}, funded "${cFunded}", sections ${cSections.join(',')}, empty ${JSON.stringify(cEmpty)}, warnings ${cWarn}, overflow ${cOverflow}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
-      if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows + 1) ok(T('rwc-warmup'), "closing RW-C's page returns to the list");
-      else fail(T('rwc-warmup'), "RW-C's page did not close back to the list");
+      const cwConf = await page.locator('.ag-row', { has: page.locator('.ag-name-btn', { hasText: /confirmation/ }) }).count();
+      const cwRows = await page.locator('.ag-strategies .ag-row').count();
+      const cwRw = (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      if (cwConf === 0 && cwRows === TESTING.rows && /\+\$12\.50 \(\+1\.25%\)/.test(cwRw) && /\+\$42 \(\+4\.20%\)/.test(cwRw)) {
+        ok(T('rwc-warmup'), `a dashboard still sending RW-C in its warm-up adds no "Reward quotes confirmation" row: ${TESTING.rows} rows, "Reward quotes" still RW's (+$12.50 today, +$42 realised)`);
+      } else fail(T('rwc-warmup'), `confirmation rows ${cwConf}, rows ${cwRows} (want ${TESTING.rows}), Reward quotes row "${cwRw}"`);
       agentsMode = 'ok';
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
 
-      // RW-C inside its fourteen days (AGENTS_RWC_RUNNING, RW-E's fixture figures from RW-C's own summary): its row reads
-      // them in RW's cells on its $1,000, every minute on a green dot, and its page is RW's page with its days only —
-      // today and two closed days, no warm-up.
+      // From RW-C's first minute (Davies, 2026-10-08) every Reward quotes row reads RW-C's run, as `readRwPage` sends it
+      // then: "Reward quotes" RW-C's engine run (AGENTS_RW_RWC), variant-1 RW-E's replay of it (AGENTS_RWE_RWC), the other
+      // variants RW-C's replay of theirs (AGENTS_RWX_RWC). There is no "Reward quotes confirmation" row and no more rows
+      // than before, and TESTING's scoreboard and the Polymarket card move by RW-C's figures less RW's in the two rows that
+      // changed, never by RW-C's on top of RW's: each row is one run, added once.
+      agentsMode = 'ok';
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
+      await page.waitForTimeout(150);
+      const rcBefore = await readAgentsPanel(page);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
       agentsMode = 'rwc-running';
       await openAgentsPage(page);
-      const rcRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes confirmation') });
-      await waitFor(async () => /every minute/.test((await rcRow.first().innerText().catch(() => '')) || ''));
+      const rcRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') });
+      await waitFor(async () => /\+\$7\.50 \(\+0\.75%\)/.test((await rcRow.first().innerText().catch(() => '')) || ''));
       await page.waitForTimeout(150);
       const rcText = (await rcRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rcGreen = await rcRow.first().locator('.ag-dot-running').count();
+      const rcN = await rcRow.count();
+      const rcConf = await page.locator('.ag-row', { has: page.locator('.ag-name-btn', { hasText: /confirmation/ }) }).count();
+      const rcTotal = await page.locator('.ag-strategies .ag-row').count();
+      const rcNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).filter((n) => /^Reward quotes/.test(n));
+      const rcAfter = await readAgentsPanel(page);
       // Deployed: D's No held, $5.60, and B's and C's quotes, $39.20 (Davies, 2026-10-01: every dollar at work).
-      if (/3 open · \$1,000 cap/.test(rcText) && / \$44\.80 /.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
-        && /every minute/.test(rcText) && !/9 Oct/.test(rcText) && rcGreen === 1) {
-        ok(T('rwc-running'), 'RW-C running: 3 open of its $1,000 cap, deployed $44.80, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green');
-      } else fail(T('rwc-running'), `RW-C row "${rcText}", green dots ${rcGreen}`);
+      if (rcN === 1 && /3 open · \$1,000 cap/.test(rcText) && / \$44\.80 /.test(rcText) && /\+\$7\.50 \(\+0\.75%\)/.test(rcText) && /-\$1\.20 \(-17\.65%\)/.test(rcText) && /\+\$23\.60 \(\+2\.36%\)/.test(rcText)
+        && /every minute/.test(rcText) && !/9 Oct/.test(rcText) && rcGreen === 1 && rcConf === 0 && rcTotal === TESTING.rows
+        && rcNames.slice(0, 5).join('|') === 'Reward quotes|Reward quotes variant-1|Reward quotes variant-2|Reward quotes variant-3|Reward quotes variant-4') {
+        ok(T('rwc-running'), `"Reward quotes" reads RW-C's run: 3 open of its $1,000 cap, deployed $44.80, today +$7.50 (+0.75%), unrealised -$1.20 (-17.65%), realised +$23.60 (+2.36%), every minute, green; no "Reward quotes confirmation" row, ${TESTING.rows} rows as before`);
+      } else fail(T('rwc-running'), `Reward quotes row "${rcText}" (${rcN}), green dots ${rcGreen}, confirmation rows ${rcConf}, rows ${rcTotal} (want ${TESTING.rows}), names ${rcNames.join(' | ')}`);
+      // What the switch moves, read off the page before and after: RW's figures leave "Reward quotes" and RW-C's come in
+      // (deployed 44.80 − 73.20, today 7.50 − 12.50, unrealised −1.20 − (−1), realised 23.60 − 42: rewards 23.20 − 41.60,
+      // orders 0.40 − 0.40), funded unchanged; variant-1 and the variants already carried these figures in the fixture.
+      const rcAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
+      const rcCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
+      const rcSbDiff = ['FUNDED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((rcAmount(rcCell(rcAfter, k)) - rcAmount(rcCell(rcBefore, k))) * 100) / 100);
+      const rcPmB = rcBefore.venues.find((v) => v.id === 'polymarket'), rcPmA = rcAfter.venues.find((v) => v.id === 'polymarket');
+      const rcCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((rcAmount(rcPmA?.pairs[k]) - rcAmount(rcPmB?.pairs[k])) * 100) / 100);
+      const rcBar = (/** @type {any} */ p) => p.tabs.map((/** @type {any} */ t) => `${t.label} ${t.count}`).join(' / ');
+      if (rcSbDiff.join(',') === '0,-5,-0.2,-18.4' && rcCardDiff.join(',') === '0,-28.4,-5,-0.2,-18.4,-18.4,0' && rcPmA?.meta === rcPmB?.meta && rcBar(rcAfter) === rcBar(rcBefore)) {
+        ok(T('rwc-running'), `TESTING's scoreboard and the Polymarket card swap RW's figures for RW-C's once: funded unchanged, today -$5, unrealised -$0.20, realised -$18.40 (rewards -$18.40, orders 0), deployed -$28.40 on the card; the card's count ("${rcPmA?.meta}") and the tab's as before`);
+      } else fail(T('rwc-running'), `scoreboard moves ${rcSbDiff.join(',')}, card moves ${rcCardDiff.join(',')} (meta "${rcPmB?.meta}" -> "${rcPmA?.meta}"), bar ${rcBar(rcBefore)} -> ${rcBar(rcAfter)}`);
       await rcRow.first().click().catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
       await page.waitForTimeout(300);
@@ -4244,14 +4247,31 @@ async function run() {
       const rcMarkets = await page.locator('.ag-rw-markets tbody tr').count();
       const rcFills = await page.locator('.ag-rw-fills tbody tr').count();
       const rcWarn = await page.locator('.ag-rw-detail .ag-warn-line').count();
+      const rcRound = (await page.locator('.ag-rw-detail .ag-rw-round').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|');
       const rcOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
-      await shot(page, 'agents-rwc-running');
-      if (rcTitle === 'Reward quotes confirmation' && rcSplit.join('|') === 'rewards +$23.20|orders +$0.40' && rcDays.length === 3 && /· today$/.test(rcDays[0])
-        && !rcDays.some((d) => /warm-up/.test(d)) && rcMarkets === 3 && rcFills === 3 && rcWarn === 0 && rcOverflow >= 0 && rcOverflow <= 1) {
-        ok(T('rwc-running'), "its page: its own title, realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills, no warning");
-      } else fail(T('rwc-running'), `RW-C page: title "${rcTitle}", split ${rcSplit.join('|')}, days ${rcDays.join(' | ')}, markets ${rcMarkets}, fills ${rcFills}, warnings ${rcWarn}, overflow ${rcOverflow}`);
-      // From RW-C's first minute the variant rows read RW-C's replay (AGENTS_RWX_RWC): still one row each, not RW's beside
-      // RW-C's, in RW's cells with their RW-C figures, and each page says it reads RW-C's minutes since 9 Oct 01:00 BST.
+      await shot(page, 'agents-rw-round2');
+      if (rcTitle === 'Reward quotes' && rcSplit.join('|') === 'rewards +$23.20|orders +$0.40' && rcDays.length === 3 && /· today$/.test(rcDays[0])
+        && !rcDays.some((d) => /warm-up/.test(d)) && rcMarkets === 3 && rcFills === 3 && rcWarn === 0 && rcOverflow >= 0 && rcOverflow <= 1
+        && rcRound === "Round 2: RW's rule on fresh days since 9 Oct 01:00 BST. Round 1's figures are not in it.") {
+        ok(T('rwc-running'), "its page is RW-C's: \"Reward quotes\", realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills, no warning, and \"Round 2: RW's rule on fresh days since 9 Oct 01:00 BST\"");
+      } else fail(T('rwc-running'), `Reward quotes page: title "${rcTitle}", split ${rcSplit.join('|')}, days ${rcDays.join(' | ')}, markets ${rcMarkets}, fills ${rcFills}, warnings ${rcWarn}, overflow ${rcOverflow}, round "${rcRound}"`);
+      await page.locator('.ag-detail-close').last().click().catch(() => {});
+      await page.waitForTimeout(300);
+      // Variant-1 reads RW-E's replay of RW-C's run: its row RW-C's figures, its page saying so.
+      const rceRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-1') });
+      const rceText = (await rceRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const rceN = await rceRow.count();
+      await rceRow.first().click().catch(() => {});
+      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const rceTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
+      const rceSource = (await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|');
+      if (rceN === 1 && /3 open · \$1,000 cap/.test(rceText) && /\+\$7\.50 \(\+0\.75%\)/.test(rceText) && /\+\$23\.60 \(\+2\.36%\)/.test(rceText) && /every minute/.test(rceText)
+        && rceTitle === 'Reward quotes variant-1' && rceSource === "On RW-C's minutes since 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it.") {
+        ok(T('rwc-running'), "variant-1 reads RW-E's replay of RW-C's run: one row, its RW-C figures, and a page that says \"On RW-C's minutes since 9 Oct 01:00 BST\"");
+      } else fail(T('rwc-running'), `variant-1 on RW-C: row "${rceText}" (${rceN}), title "${rceTitle}", source "${rceSource}"`);
+      // The other variant rows read RW-C's replay (AGENTS_RWX_RWC): still one row each, in RW's cells with their RW-C
+      // figures, and each page says it reads RW-C's minutes since 9 Oct 01:00 BST.
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);
       const rcxRows = [];
@@ -4268,10 +4288,10 @@ async function run() {
       const rcxOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       await shot(page, 'agents-rwx-rwc');
       if (rcxRows.every((x) => x.n === 1 && /3 open · \$1,000 cap/.test(x.text) && /\+\$7\.50 \(\+0\.75%\)/.test(x.text) && /\+\$23\.60 \(\+2\.36%\)/.test(x.text) && /every minute/.test(x.text))
-        && rcxTotal === TESTING.rows + 1 && rcxTitle === 'Reward quotes variant-3'
+        && rcxTotal === TESTING.rows && rcxTitle === 'Reward quotes variant-3'
         && rcxSource === "On RW-C's minutes since 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it." && rcxOverflow >= 0 && rcxOverflow <= 1) {
-        ok(T('rwc-running'), "from RW-C's first minute the variant rows read RW-C's replay: one row each (RW-C's own row the only one added), their RW-C figures, and a page that says \"On RW-C's minutes since 9 Oct 01:00 BST\"");
-      } else fail(T('rwc-running'), `variant rows on RW-C ${JSON.stringify(rcxRows)}, rows ${rcxTotal} (want ${TESTING.rows + 1}), title "${rcxTitle}", source "${rcxSource}", overflow ${rcxOverflow}`);
+        ok(T('rwc-running'), "from RW-C's first minute the variant rows read RW-C's replay: one row each (no row added), their RW-C figures, and a page that says \"On RW-C's minutes since 9 Oct 01:00 BST\"");
+      } else fail(T('rwc-running'), `variant rows on RW-C ${JSON.stringify(rcxRows)}, rows ${rcxTotal} (want ${TESTING.rows}), title "${rcxTitle}", source "${rcxSource}", overflow ${rcxOverflow}`);
       agentsMode = 'ok';
       await page.locator('.ag-detail-close').last().click().catch(() => {});
       await page.waitForTimeout(300);

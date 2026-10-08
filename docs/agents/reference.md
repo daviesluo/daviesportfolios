@@ -3467,11 +3467,35 @@ every script re-run byte-identical by the coordinating session).
       until 00:02) the three rows are there, empty, saying they start at 10-09 00:00, and read as not running 12 minutes
       after that. Each entry carries `source` (`RW` / `RW-C`) and, on RW's, `sourceNext`; the page prints which replay and
       since when (`rwxSourceText`), and the replay's check warning names RW-C's days on RW-C's. **Totals:** every row of
-      TESTING is one arm of one run, each added once: RW-C's own row ("Reward quotes confirmation") is RW's rule on RW-C's
-      minutes (the replay's `rw` arm, never a page row), the variant rows are its other arms, and RW's and RW-E's rows stay
-      RW's (finished from 10-09). Nothing of the replays changed; pinned in `pmrwc_view.test.ts` with a pinned clock on
+      TESTING is one arm of one run, each added once: RW-C's own row ("Reward quotes confirmation", since merged into
+      "Reward quotes", below) is RW's rule on RW-C's minutes (the replay's `rw` arm, never a page row), the variant rows
+      are its other arms, and RW's and RW-E's rows stay RW's (finished from 10-09; superseded the same day, below). Nothing of the replays changed; pinned in `pmrwc_view.test.ts` with a pinned clock on
       both sides of the switch (the old reader, RW's replay at any hour, fails three of its four tests) and in the sweep's
       `rwc-running` mode.
+      **RW-C is merged into "Reward quotes" (Davies, 2026-10-08: "合并进 Reward quotes"): from the same minute
+      (`RW_PAGE_SWITCH` = `RWX_PAGE_SWITCH` = `RWC_RUN_START`, 2026-10-09 00:00 UTC) every row of the family reads RW-C's
+      run, and RW-C is no row of its own, before or after.** RW-C is not a separate strategy but RW's own rule re-run on
+      fresh days, RW-NEXT Part 2, so its rows are round 2 of RW's: `readRwPage` (agents `index.ts`) picks the run by the
+      clock — "Reward quotes" (`rw`) is RW's engine run before the switch and RW-C's (`rwcSummary`) from it
+      (`rwPageRun`); "Reward quotes variant-1" (`rwe`, RW-E) is RW's `pm_rw_e_*` replay before and RW-C's `pm_rwc_e_*`
+      (`RWCE_REPLAY`, `pmrwc-e`) from it (`rwePageReplay`; `rweArmSummary` and `rweSummary` take the replay); the other
+      variants as above. Every read after the switch is RW-C's tables alone, and every one before it RW's alone. At the
+      switch each row's figures, days, quotes and fills start again at zero; until RW-C's engine has decided its first
+      minute (00:02) "Reward quotes" says it starts at 10-09 00:00 and reads as running while the engine's warm-up minutes
+      are fresh, and until the `pmrwc-e` replay writes its first state variant-1 does the same, reading as not running from
+      00:12, ten minutes after it could first run. `rw` and `rwe` carry `source` / `sourceNext` (`rwPageSource`); the page prints "Round 1: RW's
+      own fourteen days …" / "Round 2: RW's rule on fresh days since 9 Oct 01:00 BST" (`rwRoundText`) on Reward quotes'
+      page and `rwxSourceText` on variant-1's, and RW-E's check warning names RW-C's days on RW-C's. The dashboard sends
+      no `rwc` any more, and the page adds no row for one a stale payload carries (`paperTestRows`). **Totals:** TESTING's
+      scoreboard and the Polymarket card add each row once — after the switch "Reward quotes" is RW-C's run alone, never
+      RW-C beside RW, never RW-C twice; RW's round 1 stays in `pm_rw_*` for RW's verdict and is in no row. RW's own day
+      rows, the verdict scripts and the routines that read `pm_rw_*` and `pm_rwc_*` are untouched. Pinned in
+      `pmrwc_view.test.ts` (both rows before and after the switch, each read from its own run's tables alone, and the
+      empty-but-running state at 00:01, 00:02 and 00:13; with the switch removed the two after-switch tests fail), in
+      `agents.test.js` (`paperTestRows` with and without a stale `rwc`: two tests, $2,000 funded) and in the sweep
+      (`rwc-running`: Reward quotes and variant-1 read RW-C's, no confirmation row, 15 rows, the scoreboard and card move
+      by RW-C's figures less RW's; `rwc-warmup`: a payload still carrying `rwc` adds no row; the normal mode's round and
+      source lines).
     - **RW-NEXT is frozen (2026-09-28, `reviews/2026-09-28-rw-next-prereg.md`) and amends what follows the three
       verdicts above, nothing else in their files:** the five arms are read together by its Part 1, which fixes before
       10-09 which one is the candidate (RW-E if it passes; a variant only under its 1.3; RW only if RW-E does not pass),
@@ -3492,8 +3516,8 @@ every script re-run byte-identical by the coordinating session).
       states, before any figure is. Each replay's `rw` arm must equal `pm_rwc_days` to under a cent, or the result is
       void. RW's instance is pinned to exactly the names and dates the engine had (`pmrwc.test.ts`), and RW's engine
       and replays before and after the change made the same database calls, requests and tables over three windows
-      (its warm-up into day 1, a midnight inside the fourteen days, its end). On the Agents page it is the last row of
-      TESTING, "Reward quotes confirmation" on Polymarket, with RW's page and RW's $1,000 cap, from its warm-up only
+      (its warm-up into day 1, a midnight inside the fourteen days, its end). On the Agents page it was the last row of
+      TESTING until 2026-10-08, when Davies merged it into "Reward quotes" (its round 2, above): "Reward quotes confirmation" on Polymarket, with RW's page and RW's $1,000 cap, from its warm-up only
       (Davies, 2026-09-28: off the page for now, online when its time comes): before 10-08 00:00 UTC the dashboard reads none of its tables
       and sends no row; from then until 10-09 01:00 BST it says when it starts and shows nothing. The queries below run on its tables with `pm_rwc_` for `pm_rw_`.
 

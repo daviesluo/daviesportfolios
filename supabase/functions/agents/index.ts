@@ -185,10 +185,10 @@ import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCap
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
-import { rwcSummary, rweArmSummary, rweSummary, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
+import { rwcSummary, rweArmSummary, rweSummary, rwPageRun, rwPageSource, rwePageReplay, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
-import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, RWX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
+import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -1852,59 +1852,17 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
-  // RW-C (`0069`): RW's engine run again, forward, into tables of its own (2026-10-09 → 10-23 UTC), the last row of
-  // TESTING, with RW's page; read beside RW's. Off the page until its warm-up begins, 2026-10-08 00:00 UTC (Davies,
-  // 2026-09-28), with nothing read before then; from then the row is there, saying when its fourteen days start.
-  // Its engine run's records are read once: RW-C's row and, from RW-C's first minute, the variant rows read them.
-  const rwcRun = now < (RWC_INSTANCE.quietUntil ?? RWC_INSTANCE.runStart) ? Promise.resolve(null) : readRwRun(d, RWC_INSTANCE, dayStartMs).catch(() => null);
-  const rwcRead = (async () => {
-    const run = await rwcRun;
-    if (!run) return null;
-    try {
-      const { st, selection, days, fills, latest } = run;
-      return rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now });
-    } catch { return null; }
-  })();
-  // The variant rows (x1, tb1-skip, tb1-back) read RW's replay until RW-C's first minute and RW-C's from it
-  // (`rwxPageReplay`): one replay at a time, so a row's figures are one run's, never RW's and RW-C's added together.
-  const rwxReplay = rwxPageReplay(now);
-  // RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES with a page of its own.
-  // Its own tables; missing ones (before the migration) or no state yet leave it off the page. RW-E, the replay's other
-  // arm (`0056`), is a row of its own beside it (Davies, 2026-09-26), read from the same records.
-  const { rw, rwe, rwx } = await (async () => {
-    try {
-      const { st, selection, days, fills, first, latest } = await readRwRun(d, RW_INSTANCE, dayStartMs);
-      const out = rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now });
-      // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
-      const reads = await (async () => {
-        try {
-          return await Promise.all([
-            d.select<RweStateRow>("pm_rw_e_state", "id=eq.1&select=state,last_minute,last_error,updated_at"),
-            d.select<RweDaysRow>("pm_rw_e_days", "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
-            // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
-            d.select<RweSelRow>("pm_rw_selection", "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
-          ]);
-        } catch { return null; }
-      })();
-      const e = reads ? rweSummary({ state: reads[0][0] ?? null, days: reads[1], selection, nowMs: now }) : null;
-      const arm = reads
-        ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now })
-        : null;
-      // RW-E's variants (`0064`): rows of their own after it (Davies, 2026-09-27), read from their replay's own tables
-      // while that replay is RW's; from RW-C's first minute they are read below, from RW-C's.
-      const rwx = !reads || rwxReplay !== RWX_REPLAY ? [] : await readRwxRows(d, now, RWX_REPLAY, { st, selection, latest, fills }, reads[2]);
-      return { rw: out && { ...out, e }, rwe: arm && { ...arm, e }, rwx };
-    } catch { return { rw: null, rwe: null, rwx: [] }; }
-  })();
+  // RW's paper test on Polymarket (`0053`, reference §4 item 36), "Reward quotes": a row of TESTING STRATEGIES with a page
+  // of its own, with RW-E ("variant-1", `0056`) and its variants after it, all read by `readRwPage`. From RW-C's first
+  // minute, 2026-10-09 00:00 UTC, every one of them reads RW-C's run, round 2 of RW's rule (Davies, 2026-10-08: "合并进
+  // Reward quotes"), and RW-C is no row of its own, before or after (`RW_PAGE_SWITCH`).
+  const { rw, rwe, rwx } = await readRwPage(d, now, dayStartMs);
   // "Reward quotes small-pool" (`0077`) and "Reward quotes mid-pool" (`0081`): an order path's dry-run filled on paper,
   // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
   const prep = await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs);
   const prepMid = await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs);
   // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
   const prepLp = await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs);
-  const rwc = await rwcRead;
-  // From RW-C's first minute the variant rows are RW-C's replay's arms, read against RW-C's own engine run.
-  const rwxRows = rwxReplay === RWX_REPLAY ? rwx : await readRwxRows(d, now, rwxReplay, await rwcRun);
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -1935,13 +1893,16 @@ async function dashboard(now: number) {
      * live executor's shape (`quotesLiveSummary`, its `detail`) with `twin`; a twin not yet loaded is null.
      */
     quotesTwins: await quotesTwinsRead,
-    /** RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36); null until it has a state. */
+    /**
+     * "Reward quotes": RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36), and from
+     * RW-C's first minute RW-C's run of the same rule, its round 2 (`rwPageRun`); null until it has a state. RW-C sends no
+     * row of its own (Davies, 2026-10-08).
+     */
     rw,
+    /** "Reward quotes variant-1": RW-E's replay on RW's run, from RW-C's first minute on RW-C's (`rwePageReplay`). */
     rwe,
     /** RW-E's variants on the page (x1, tb1-skip, tb1-back): RW's replay's arms, from RW-C's first minute RW-C's (`rwxPageReplay`). */
-    rwx: rwxRows,
-    /** RW-C, the same quotes forward on 2026-10-09 → 10-23 (`0069`); null until its tables exist. */
-    rwc,
+    rwx,
     /** "Reward quotes small-pool", the order path's dry-run filled on paper (`0077`); null until it has a state. */
     prep,
     /** "Reward quotes mid-pool", the path again on $10–$50 pools, filled on paper the same way (`0081`); likewise. */
@@ -1969,6 +1930,43 @@ async function readRwRun(d: Db, inst: RwInstance, dayStartMs: number) {
   const last = st[0]?.last_minute;
   const latest = last ? await d.select<RwMinuteRow>(T.minutes, `minute=eq.${encodeURIComponent(last)}&select=cond,minute,tick,b,a,m,ours,others,qb,qa,bb,ba`) : [];
   return { st, selection, days, fills, first, latest };
+}
+
+/**
+ * Every row of RW's family on the page at `now` (Davies, 2026-10-08: RW-C is RW's rule's round 2, "合并进 Reward quotes"):
+ * "Reward quotes" (`rw`), "Reward quotes variant-1" (`rwe`, RW-E) and the other variants (`rwx`), each read from the run
+ * the clock picks — RW's engine run and its replays (`pm_rw_*`, `pm_rw_e_*`, `pm_rw_x_*`) before RW-C's first minute,
+ * RW-C's (`pm_rwc_*`, `pm_rwc_e_*`, `pm_rwc_x_*`) from it — and never from both, so every row is one run's and TESTING's
+ * totals add each run once. Each of `rw` and `rwe` says which run it reads (`rwPageSource`). Missing tables (before a
+ * migration) or no state leave `rw` off the page, as before; from the switch, until RW-C's engine and RW-E's replay of it
+ * write their first state, the rows are there, empty, saying when they start (`rwcSummary`, `rweArmSummary`).
+ */
+export async function readRwPage(d: Db, now: number, dayStartMs: number) {
+  const inst = rwPageRun(now), eReplay = rwePageReplay(now), xReplay = rwxPageReplay(now), src = rwPageSource(inst);
+  try {
+    const { st, selection, days, fills, first, latest } = await readRwRun(d, inst, dayStartMs);
+    const out = inst === RW_INSTANCE
+      ? rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now })
+      : rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now });
+    // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
+    const reads = await (async () => {
+      try {
+        return await Promise.all([
+          d.select<RweStateRow>(eReplay.tables.state, "id=eq.1&select=state,last_minute,last_error,updated_at"),
+          d.select<RweDaysRow>(eReplay.tables.days, "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
+          // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
+          d.select<RweSelRow>(inst.tables.selection, "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
+        ]);
+      } catch { return null; }
+    })();
+    const e = reads ? rweSummary({ state: reads[0][0] ?? null, days: reads[1], selection, nowMs: now, replay: eReplay }) : null;
+    const arm = reads
+      ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now, replay: eReplay })
+      : null;
+    // RW-E's variants (`0064`): rows of their own after it (Davies, 2026-09-27), read from the same run's replay of the arms.
+    const rwx = !reads ? [] : await readRwxRows(d, now, xReplay, { st, selection, latest, fills }, reads[2]);
+    return { rw: out && { ...out, ...src, e }, rwe: arm && { ...arm, ...src, e }, rwx };
+  } catch { return { rw: null, rwe: null, rwx: [] as Awaited<ReturnType<typeof readRwxRows>> }; }
 }
 
 /**

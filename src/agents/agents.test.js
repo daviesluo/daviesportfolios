@@ -4,7 +4,7 @@ import {
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, RWC_ROW_ID, rwcRow, rwNotRunningText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
+  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1127,36 +1127,60 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
       expect(rwView(r2)?.stoppedText).toBe('catching up: replayed to 27 Sep 12:59 BST');
     }
   });
-  it("RW-C is a row of its own, the last (0069): RW's row read from its own summary, under its own id and name", () => {
-    const c = rwcRow(r);
-    expect([c?.id, c?.name, c?.venueId, c?.venue, c?.mode, c?.nextText]).toEqual([RWC_ROW_ID, 'Reward quotes confirmation', 'polymarket', 'Polymarket', 'paper', 'every minute']);
-    // Every cell is RW's function of the same summary: one implementation, read from a second run of the engine.
-    expect({ ...c, id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(r));
-    expect(new Set([RWC_ROW_ID, RW_ROW_ID, RWE_ROW_ID]).size).toBe(3);
-    expect(RWC_ROW_ID.startsWith(RWX_ROW_PREFIX)).toBe(false);
-    expect(rwcRow(null)).toBe(null);
-    // Before 2026-10-09 00:00 UTC it has no record of its own (the dashboard's summary before its state, or in its
-    // warm-up): NEXT is its start in UK time, on a grey dot that says so, on the same $1,000 and nothing else.
+  it("from RW-C's first minute \"Reward quotes\" is RW-C's run, round 2 of RW's rule (Davies, 2026-10-08): RW's row, its own id and name", () => {
+    // The dashboard's `rw` from 2026-10-09 00:00 UTC is RW-C's summary (`readRwPage`); the row is RW's, read from it.
+    const c = rwRow({ ...r, source: 'RW-C', sourceNext: null, runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z', startedAt: '2026-10-09T00:00:00.000Z' });
+    expect([c?.id, c?.name, c?.venueId, c?.venue, c?.mode, c?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
+    // Before its first minute is decided (00:00–00:02 UTC on 10-09) it has no record of its own: NEXT is its start in UK
+    // time, on a grey dot that says so, on the same $1,000 and nothing else.
     const waiting = {
-      ...r, notStarted: true, startsAt: '2026-10-09T00:00:00.000Z', startedAt: null, running: true, lastMinute: null, lagMinutes: null, phase: 'warm-up', dayOfRun: null,
+      ...r, source: 'RW-C', sourceNext: null, notStarted: true, startsAt: '2026-10-09T00:00:00.000Z', startedAt: null, running: true, lastMinute: '2026-10-08T23:59:00.000Z', lagMinutes: 2, phase: 'warm-up', dayOfRun: null,
       runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z',
       capitalUsd: 0, totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
       markets: [], days: [], recent: [],
     };
-    const w = rwcRow(waiting);
+    const w = rwRow(waiting);
     expect([w?.nextText, w?.status.tone, w?.status.running, w?.status.detail]).toEqual(['9 Oct 01:00 BST', 'paused', false, 'starts 9 Oct 01:00 BST']);
     expect([w?.capitalUsd, w?.valueUsd, w?.todayUsd, w?.unrealisedUsd, w?.realisedUsd, w?.openPositions, w?.unrealisedPct]).toEqual([1000, 0, 0, 0, 0, 0, null]);
     expect(rwView(waiting)?.stoppedText).toBe('');
-    expect(rwTodayRow(waiting, '2026-10-01T09:00:00.000Z')).toBe(null);
-    // Its warm-up begun and no state written: stopped, in words that do not invent a minute it decided.
-    const none = { ...waiting, running: false };
-    expect([rwcRow(none)?.status.tone, rwcRow(none)?.status.detail, rwView(none)?.stoppedText]).toEqual(['stale', 'not running: it has decided no minute yet', 'not running: it has decided no minute yet']);
+    expect(rwTodayRow(waiting, '2026-10-09T00:01:00.000Z')).toBe(null);
+    // RW-C's engine with no state at all once it should have one: stopped, in words that do not invent a minute it decided.
+    const none = { ...waiting, running: false, lastMinute: null, lagMinutes: null };
+    expect([rwRow(none)?.status.tone, rwRow(none)?.status.detail, rwView(none)?.stoppedText]).toEqual(['stale', 'not running: it has decided no minute yet', 'not running: it has decided no minute yet']);
     expect(rwNotRunningText({ lastMinute: '2026-10-09T10:00:00.000Z', lagMinutes: 7 })).toBe('not running: its last decided minute is 7 min old');
-    // After its fourteen days: finished, as RW's row is after its own.
-    expect(rwcRow({ ...r, finished: true, running: false, phase: 'after' })).toMatchObject({ nextText: 'finished', status: { tone: 'paused', detail: 'the fourteen days are over' } });
-    // A sixth test on Polymarket: its card sums it with the others, its $1,000 funded beside theirs.
-    const pm = venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r), rweRow(r), w]).find((x) => x.id === 'polymarket');
-    expect([pm?.tests, pm?.capitalUsd, pm?.valueUsd, pm?.realisedUsd]).toEqual([3, 3000, 80, 122]);
+  });
+  it("\"Reward quotes\" says which round it reads and since when: round 1, RW's, until 9 Oct 01:00 BST, round 2, RW-C's, from it", () => {
+    const next = { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' };
+    expect(rwRoundText({ ...r, source: 'RW', sourceNext: next }))
+      .toBe("Round 1: RW's own fourteen days from 25 Sep 01:00 BST. From 9 Oct 01:00 BST it reads round 2, RW's rule on fresh days, and starts again from zero.");
+    expect(rwRoundText({ ...r, source: 'RW-C', sourceNext: null, startedAt: '2026-10-09T00:00:00.000Z' }))
+      .toBe("Round 2: RW's rule on fresh days since 9 Oct 01:00 BST. Round 1's figures are not in it.");
+    expect(rwRoundText({ ...r, source: 'RW-C', sourceNext: null, startedAt: null, startsAt: '2026-10-09T00:00:00.000Z', notStarted: true }))
+      .toBe("Round 2: RW's rule on fresh days from 9 Oct 01:00 BST. Round 1's figures are not in it.");
+    // A payload from before the switch was built says nothing.
+    expect([rwRoundText(r), rwRoundText(null)]).toEqual([null, null]);
+  });
+  it("TESTING adds each Reward quotes row once: from RW-C's first minute RW-C's figures are \"Reward quotes\", never also a row of their own", () => {
+    // RW's round 1 and RW-C's round 2 as two different summaries: a total that held both, or RW-C twice, would differ.
+    const rwc = { ...r, source: 'RW-C', sourceNext: null, totalUsd: 0.7, rewardUsd: 0.7, fillsPnlUsd: 0, realisedUsd: 0.7, unrealisedUsd: 0, todayUsd: 0.3, heldUsd: 0, markets: [] };
+    const e = { ...rwc, todayUsd: 0.2, realisedUsd: 0.3 };
+    // After the switch the dashboard sends `rw` (RW-C's run) and no `rwc`; one from before this change, still sending
+    // RW-C as `rwc` (a cached payload, or the function deployed after the page), adds nothing for it either.
+    for (const dash of [{ strategies: [], venues: [], rw: rwc, rwe: e }, { strategies: [], venues: [], rw: rwc, rwe: e, rwc }]) {
+      const tests = paperTestRows(dash);
+      expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [RWE_ROW_ID, 'Reward quotes variant-1']]);
+      const sb = scoreboardView(dash, 'testing', tests);
+      expect([sb.tests, sb.capitalUsd]).toEqual([2, 2000]);
+      expect(sb.todayUsd).toBeCloseTo(0.5, 12);
+      expect(sb.realisedUsd).toBeCloseTo(1, 12);
+      const pm = venueRows(dash, 'testing', tests).find((x) => x.id === 'polymarket');
+      expect([pm?.tests, pm?.capitalUsd]).toEqual([2, 2000]);
+      expect(pm?.realisedUsd).toBeCloseTo(1, 12);
+    }
+    // In the page's order: the twins, Reward quotes, variant-1, the other variants, then mini-pool, mid-pool and live-prep.
+    const order = paperTestRows({ rw: r, rwe: r, rwx: [{ ...r, id: 'x1', name: 'Reward quotes variant-2' }], rwc: r });
+    expect(order.map((t) => t.id)).toEqual([RW_ROW_ID, RWE_ROW_ID, `${RWX_ROW_PREFIX}x1`]);
+    expect(paperTestRows(null)).toEqual([]);
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
@@ -1353,6 +1377,9 @@ describe('rweCheckWarn: what is left of RW-E on the page besides its own row', (
   it('names the gap once the replay differs from RW', () => {
     expect(rweCheckWarn({ ...e, check: { days: 2, maxUsd: 0.03, ok: false } }))
       .toBe("The replay differs from RW's own days by $0.03, so these figures are not RW's rule on RW's data.");
+    // From RW-C's first minute (2026-10-09) the replay is of RW-C's run, and its check is against RW-C's own days.
+    expect(rweCheckWarn({ ...e, source: 'RW-C', check: { days: 1, maxUsd: 0.02, ok: false } }))
+      .toBe("The replay differs from RW-C's own days by $0.02, so these figures are not RW's rule on RW-C's data.");
   });
 });
 

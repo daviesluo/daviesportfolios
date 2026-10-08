@@ -7,8 +7,8 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
-import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RW_RUN_END, RW_RUN_START, RWC_INSTANCE, RWC_RUN_START, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
-import { excludedByDay, metaFor, RWE_CHECK_USD, RWE_START, type RweSelRow, type RweState } from "./pmrw_e.ts";
+import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RWC_INSTANCE, RWC_RUN_START, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
+import { excludedByDay, metaFor, RWCE_REPLAY, RWE_CHECK_USD, RWE_REPLAY, type RweReplay, type RweSelRow, type RweState } from "./pmrw_e.ts";
 import { backTicks, isTight, leanTicks, RWCX_REPLAY, RWX_NAMES, RWX_REPLAY, rwxArmStart, wideTicks, type RwxArmState, type RwxReplay, type RwxStored } from "./pmrw_x.ts";
 
 const DAY = 86400e3, M = 60e3;
@@ -29,6 +29,31 @@ export const RW_CATCHUP_WRITE_MINUTES = 3;
  * `capitalUsd`, which the days table shows and the verdict reads (the spec's capital). Nothing here changes a decision.
  */
 export const RW_FUNDED_USD = 1000;
+
+/**
+ * The instant every Reward quotes row of RW's family moves from RW's run to RW-C's: RW-C's first minute, 2026-10-09
+ * 00:00 UTC, the minute RW's fourteen days end. Davies (2026-10-08) made RW-C no strategy of its own but round 2 of RW's
+ * rule, on fresh days ("合并进 Reward quotes"): from this instant "Reward quotes" reads RW-C's engine run (`rwPageRun`),
+ * "Reward quotes variant-1" RW-E's replay on RW-C's minutes (`rwePageReplay`, `pm_rwc_e_*`) and the other variants
+ * RW-C's replay of the arms (`rwxPageReplay`), and there is no "Reward quotes confirmation" row at all, before or after.
+ *
+ * A row reads ONE run at a time, never a sum: RW-C's engine starts flat at its first minute, so at this instant each row
+ * starts again from zero, and TESTING's scoreboard and the Polymarket card add each row once, so they never hold RW's
+ * figures and RW-C's together. RW's first round stays in `pm_rw_*` for RW's verdict. Each row says which run it reads and
+ * since when (`rwPageSource`).
+ */
+export const RW_PAGE_SWITCH = RWC_RUN_START;
+/** The engine run "Reward quotes" reads at `nowMs`: RW's (round 1) before `RW_PAGE_SWITCH`, RW-C's (round 2) from it. */
+export const rwPageRun = (nowMs: number): RwInstance => (nowMs >= RW_PAGE_SWITCH ? RWC_INSTANCE : RW_INSTANCE);
+/** The replay "Reward quotes variant-1" (RW-E) reads at `nowMs`: RW's (`pm_rw_e_*`) before the switch, RW-C's from it. */
+export const rwePageReplay = (nowMs: number): RweReplay => (nowMs >= RW_PAGE_SWITCH ? RWCE_REPLAY : RWE_REPLAY);
+/**
+ * Which run a row of the family reads (`source`, "RW" or "RW-C"), and, on RW's, that it moves to RW-C's at the switch
+ * (`sourceNext`), for the page's line that says so.
+ */
+export function rwPageSource(inst: RwInstance) {
+  return { source: inst.name, sourceNext: inst === RW_INSTANCE ? { source: RWC_INSTANCE.name, at: new Date(RW_PAGE_SWITCH).toISOString() } : null };
+}
 
 export type RwStateRow = { state: unknown; last_minute: string | null; last_error: string | null; updated_at?: string | null };
 export type RwSelRow = { day: string; cond: string; rank: number; rate: number | string; v: number | string; min_size: number | string; capital: number | string; q: string | null; cat: string | null; end_date: string | null };
@@ -279,11 +304,13 @@ export const RWE_STALE_MINUTES = RW_STALE_MINUTES + 3;
  * replay, so the pair is always read at the same minute. `excludedToday` is today's selection's markets that end today.
  * `check` is the largest gap between the replay's rw arm and RW's own closed days: under a cent, or the replay is not one.
  */
-export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[]; selection: RwSelRow[]; nowMs: number }) {
+export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[]; selection: RwSelRow[]; nowMs: number; replay?: RweReplay }) {
+  // RW's replay unless another is named: from RW-C's first minute the page reads RW-E's replay on RW-C's (`rwePageReplay`).
+  const replay = input.replay ?? RWE_REPLAY;
   const st = input.state?.state as RweState | undefined;
   if (!st || typeof st !== "object" || !("arms" in st) || !input.state?.last_minute) return null;
-  const base = new Map(input.days.filter((d) => String(d.day).slice(0, 10) === new Date(RWE_START - DAY).toISOString().slice(0, 10)).map((d) => [d.arm, d]));
-  const started = st.lastDecided >= RWE_START;
+  const base = new Map(input.days.filter((d) => String(d.day).slice(0, 10) === new Date(replay.from - DAY).toISOString().slice(0, 10)).map((d) => [d.arm, d]));
+  const started = st.lastDecided >= replay.from;
   const arm = (k: "rw" | "e") => {
     const a = st.arms[k];
     const now = snapshot({ acc: a.acc } as unknown as RwState, a.dayActive);
@@ -301,8 +328,8 @@ export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[
   const checked = input.days.filter((d) => d.arm === "rw" && d.detail?.check);
   const lagMinutes = Math.round((input.nowMs - Date.parse(input.state.last_minute)) / M);
   return {
-    since: new Date(RWE_START).toISOString(), started, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
-    running: st.dayOf < RW_RUN_END && lagMinutes <= RWE_STALE_MINUTES,
+    since: new Date(replay.from).toISOString(), started, lastMinute: input.state.last_minute, lagMinutes, lastError: input.state.last_error,
+    running: st.dayOf < replay.source.runEnd && lagMinutes <= RWE_STALE_MINUTES, source: replay.source.name,
     rw: arm("rw"), e: arm("e"),
     excludedToday, diverged: st.diverged.length,
     check: { days: checked.length, maxUsd: st.checkMaxUsd, ok: checked.length > 0 && st.checkMaxUsd < RWE_CHECK_USD },
@@ -320,14 +347,37 @@ export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[
 export function rweArmSummary(input: {
   rwState: RwStateRow | null; eState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
   days: RweDaysRow[]; fills: RwFillRow[]; nowMs: number;
+  /**
+   * The replay the records are: RW's (`RWE_REPLAY`, the default) or RW-E's on RW-C's minutes (`RWCE_REPLAY`), whose engine
+   * run and fourteen days the row is read against. The dashboard picks it by the clock (`rwePageReplay`); every input
+   * above is that replay's and its engine run's, never a mix.
+   */
+  replay?: RweReplay;
 }) {
+  const replay = input.replay ?? RWE_REPLAY, inst = replay.source;
   const st = input.eState?.state as RweState | undefined;
-  if (!st || typeof st !== "object" || !("arms" in st) || !input.eState?.last_minute) return null;
+  if (!st || typeof st !== "object" || !("arms" in st) || !input.eState?.last_minute) {
+    // RW's replay with no state leaves the row off, as it always has. RW-C's has none until RW-C's first minute is decided
+    // (it is quiet until then): from the switch the row is there, empty, saying when it starts, as the other rows of the
+    // family are, and read as not running once that state is `RWC_FIRST_STATE_MINUTES` late.
+    if (inst === RW_INSTANCE || input.nowMs < RW_PAGE_SWITCH) return null;
+    const at = (ms: number) => new Date(ms).toISOString();
+    return {
+      phase: rwPhase(input.nowMs, inst), runStart: at(inst.runStart), runEnd: at(inst.runEnd), dayOfRun: null,
+      lastMinute: null, lagMinutes: null, lastError: input.eState?.last_error ?? null,
+      running: input.nowMs < (replay.quietUntil ?? inst.runStart) + RWC_FIRST_STATE_MINUTES * M, finished: input.nowMs >= inst.runEnd, fundedUsd: RW_FUNDED_USD,
+      catchingUp: false, notStarted: true, startsAt: at(replay.from), startedAt: null,
+      capitalUsd: 0, totalUsd: 0, stressUsd: 0, rewardUsd: 0, fillsPnlUsd: 0, realisedUsd: 0, unrealisedUsd: 0, mismatchUsd: 0,
+      todayUsd: 0, heldUsd: 0, quotedUsd: 0, open: 0, fills: 0, quoting: 0, bestMarketUsd: null,
+      markets: [] as Array<Record<string, unknown>>, days: [] as ReturnType<typeof rwDayRows>, recent: [] as ReturnType<typeof rwRecent>,
+    };
+  }
   const excluded = excludedByDay(input.selectionAll);
   const dayOf = (minute: string) => new Date(Math.floor(Date.parse(minute) / DAY) * DAY).toISOString().slice(0, 10);
   const diverged = new Set(st.diverged);
-  // RW-E's rule from its twelve days' first minute: before them it is RW (its pre-registration, replay version 2).
-  const firstDay = new Date(RWE_START).toISOString().slice(0, 10);
+  // RW-E's rule from its first minute (RW's twelve days', or RW-C's first): before them it is RW (its pre-registration,
+  // replay version 2).
+  const firstDay = new Date(replay.from).toISOString().slice(0, 10);
   const out = (cond: string, day: string) => day >= firstDay && (excluded.get(day)?.has(cond) ?? false);
   const today = new Date(Math.floor(st.dayOf / DAY) * DAY).toISOString().slice(0, 10);
   const rw = input.rwState?.state as RwState | undefined;
@@ -343,9 +393,10 @@ export function rweArmSummary(input: {
       markets: d.markets ?? 0, detail: null,
     })),
     fills: input.fills.filter((f) => !diverged.has(f.cond) && !out(f.cond, dayOf(f.minute))),
-    // Only what RW-E did under its own rule: from its twelve days' first minute, against what it held as it began.
-    firstMinute: new Date(RW_RUN_START).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
-    since: { ms: RWE_START, base: st.base },
+    // Only what RW-E did under its own rule: from its first minute, against what it held as it began.
+    firstMinute: new Date(inst.runStart).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
+    since: { ms: replay.from, base: st.base },
+    inst,
   });
 }
 
@@ -369,11 +420,11 @@ export const RWX_OFF_PAGE = new Set(["x2", "x3", "x4", "x5"]);
  *
  * A row reads ONE replay at a time, never a sum of the two: RW-C's is a different run of the engine on other minutes,
  * and its arms start flat at its first minute, so from this instant each row's figures, days, quotes and fills begin
- * again at zero, as RW-C's own row ("Reward quotes confirmation") does. What the arms did on RW's minutes stays in
+ * again at zero, as "Reward quotes" itself does from then (`RW_PAGE_SWITCH`). What the arms did on RW's minutes stays in
  * `pm_rw_x_days` for the verdicts. Each row says which replay it reads and since when (`source`, `startedAt`), and before
  * this instant that it moves to RW-C's here (`sourceNext`).
  */
-export const RWX_PAGE_SWITCH = RWC_RUN_START;
+export const RWX_PAGE_SWITCH = RW_PAGE_SWITCH;
 /** The replay the page's variant rows read at `nowMs`: RW's before `RWX_PAGE_SWITCH`, RW-C's from it. */
 export const rwxPageReplay = (nowMs: number): RwxReplay => (nowMs >= RWX_PAGE_SWITCH ? RWCX_REPLAY : RWX_REPLAY);
 
@@ -402,7 +453,7 @@ export function rwxArmSummaries(input: {
   const replay = input.replay ?? RWX_REPLAY, inst = replay.source;
   const offPage = input.offPage ?? RWX_OFF_PAGE;
   // Which replay each row reads, and, on RW's, that the rows move to RW-C's at its first minute (and start again there).
-  const source = { source: inst.name, sourceNext: inst === RW_INSTANCE ? { source: RWCX_REPLAY.source.name, at: new Date(RWX_PAGE_SWITCH).toISOString() } : null };
+  const source = rwPageSource(inst);
   const st = input.xState?.state as RwxStored | undefined;
   if (!st || typeof st !== "object" || !("arms" in st) || !input.xState?.last_minute) {
     // RW's replay with no state leaves the rows off, as it always has. RW-C's has none until its first minute is decided

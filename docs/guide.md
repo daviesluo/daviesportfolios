@@ -266,6 +266,17 @@ places stay when the number is not whole.
   Polymarket's published formula against the book as it stood, so they
   are an upper bound: only an account that quotes shows what Polymarket
   actually pays. The first day was a warm-up that counts nowhere.
+  Reward quotes runs in two rounds. Round 1 is its first fourteen days,
+  25 September to 9 October. From 9 October 01:00 UK time the row and
+  its page read round 2: the same rule run again on fresh days, 9 to 23
+  October, to see whether what it did in round 1 holds on days nobody had
+  seen. At that minute the row starts again from nothing: its figures,
+  days, quotes and fills are round 2's alone, never added to round 1's,
+  and until round 2 has worked out its first minute the row says when it
+  starts. The page says which round it is reading and since when. Round 2
+  is not a separate row, and TESTING's totals and the Polymarket card count
+  Reward quotes once, whichever round it is reading. After 23 October it is
+  finished.
 - **Reward quotes variant-1 to variant-4.** The four rows after it: the
   same quotes, each with a rule changed, so they can be compared side by
   side with Reward quotes; which rule each changes is not on the site (it
@@ -290,22 +301,13 @@ places stay when the number is not whole.
   of the first rules, and the two that were variant-3 and variant-4 until
   7 October (resting the quotes further out, and leaning against what is
   held), which keep running for their own tests.
-  Variant-2, variant-3 and variant-4 are worked out on Reward quotes' own
-  order books and trades until 9 October 01:00 UK time, when its fourteen
-  days end, and from then on Reward quotes confirmation's, the new days
-  their real test is on. At that minute each of the three starts again
-  from nothing: its figures, days, quotes and fills are the confirmation
-  days' alone, never added to what it made before, and until its first
-  minute there is worked out the row says when it starts. Each page says
-  which days it is reading and since when.
-- **Reward quotes confirmation.** From 8 October, the row after the variants: Reward
-  quotes' own rule run again, forward, for fourteen more days, 9 to 23
-  October, to see whether what it did in its first fourteen holds on days
-  nobody has seen. It is not on the page before then. It keeps its own
-  positions and records, on its own cap of $1,000, and its page is Reward
-  quotes' page. 8 October is a warm-up that counts nowhere; until
-  9 October 01:00 UK time its row and its page say when it starts and show
-  nothing else, and after 23 October it is finished.
+  All four variants are worked out on Reward quotes' round 1 order books
+  and trades until 9 October 01:00 UK time, and from then on round 2's,
+  the fresh days, at the same minute as Reward quotes itself. At that
+  minute each starts again from nothing: its figures, days, quotes and
+  fills are round 2's alone, never added to what it made before, and
+  until its first minute there is worked out the row says when it starts.
+  Each page says which days it is reading and since when.
 - **Reward quotes mini-pool.** On Polymarket, two rows before the last: a
   paper test, before real money, of exactly what the account that will
   quote on Polymarket would do (until 2 October it was called small-pool,

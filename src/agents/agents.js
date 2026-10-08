@@ -1576,7 +1576,29 @@ export function rwInventoryCost(markets) {
 export function rweCheckWarn(e) {
   const days = Number(e?.check?.days) || 0;
   if (days === 0 || e.check.ok) return null;
-  return `The replay differs from RW's own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}, so these figures are not RW's rule on RW's data.`;
+  // From RW-C's first minute (2026-10-09) RW-E's replay is of RW-C's run, and its check is against RW-C's own days.
+  const src = e?.source === 'RW-C' ? 'RW-C' : 'RW';
+  return `The replay differs from ${src}'s own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}, so these figures are not RW's rule on ${src}'s data.`;
+}
+
+/**
+ * Which round of RW's rule "Reward quotes" reads, and since when, for its page (Davies, 2026-10-08: RW-C is no strategy
+ * of its own but RW's rule on fresh days, "合并进 Reward quotes"). Round 1 is RW's own fourteen days, until RW-C's first
+ * minute, 2026-10-09 00:00 UTC; round 2 is RW-C's run from it. One round at a time: at the switch the row starts again
+ * from zero and never adds the two together, and round 1's figures stay where RW's verdict reads them. null for a payload
+ * that does not say (one from before the switch was built).
+ * @param {any} r  the dashboard's `rw`
+ */
+export function rwRoundText(r) {
+  const src = r?.source;
+  if (src === 'RW') {
+    const head = `Round 1: RW's own fourteen days${r.runStart ? ` from ${rwStartStamp(r.runStart)}` : ''}.`;
+    const at = r.sourceNext?.at;
+    return at ? `${head} From ${rwStartStamp(at)} it reads round 2, RW's rule on fresh days, and starts again from zero.` : head;
+  }
+  if (src !== 'RW-C') return null;
+  const since = r.startedAt ?? r.startsAt;
+  return `Round 2: RW's rule on fresh days${since ? ` ${r.startedAt ? 'since' : 'from'} ${rwStartStamp(since)}` : ''}. Round 1's figures are not in it.`;
 }
 
 /**
@@ -1696,23 +1718,6 @@ export function rwNotRunningText(r) {
   return r?.lastMinute ? `not running: its last decided minute is ${r.lagMinutes} min old` : 'not running: it has decided no minute yet';
 }
 
-/** RW-C's id among the table's rows. */
-export const RWC_ROW_ID = '__rwc';
-
-/**
- * RW-C as a row of TESTING STRATEGIES (`0069`; the RW-NEXT pre-registration's part 2, built on Davies' word 2026-09-27):
- * RW's rule run again, forward, on 2026-10-09 → 10-23 UTC, by a second instance of RW's engine with tables of its own.
- * The dashboard's `rwc` has `rw`'s shape, made by RW's own summary from that instance's records, so its row and its page
- * are RW's, in RW's cells, on the same $1,000. The dashboard sends none before its warm-up begins, 2026-10-08 00:00 UTC
- * (Davies, 2026-09-28: off the page until then). Its warm-up counts nowhere: until its first minute the row says when it
- * starts (a grey dot, NEXT "9 Oct 01:00 BST") and holds nothing. null keeps it off the table.
- * @param {any} r  the dashboard's `rwc`
- */
-export function rwcRow(r) {
-  const row = rwRow(r);
-  return row && { ...row, id: RWC_ROW_ID, name: 'Reward quotes confirmation' };
-}
-
 /**
  * "Reward quotes mini-pool"'s id among the table's rows (the row was named small-pool, and before that live-prep, until
  * 2026-10-02; that first name is the third instance's own row today, `LP_ROW_ID`, read from its own tables).
@@ -1829,7 +1834,7 @@ export function rweRow(r) {
  * dashboard's `rwx` is a list in `rw`'s shape, one entry per variant on the page, each with its `id` (x1 as variant-2, and
  * tb1-skip and tb1-back as variant-3 and -4 since 2026-10-07; x4 and x5 had those names from 2026-10-02 and left the page
  * then), its `name`, the replay's `checks` and the replay it reads (`source`: RW's until RW-C's first minute, 2026-10-09
- * 00:00 UTC, RW-C's from it); the server names them and leaves the others off. A row's id is `__rwx-` and the variant's.
+ * 00:00 UTC, RW-C's from it, as "Reward quotes" and variant-1 do); the server names them and leaves the others off. A row's id is `__rwx-` and the variant's.
  * An empty or absent list adds no row.
  * @param {any} list  the dashboard's `rwx`
  */
@@ -1843,6 +1848,22 @@ export function rwxRows(list) {
 
 /** The prefix of RW-E's variants' ids among the table's rows. */
 export const RWX_ROW_PREFIX = '__rwx-';
+
+/**
+ * TESTING's paper tests, the rows its scoreboard and venue cards add after its strategies, in the page's order: the
+ * realistic twins, "Reward quotes", its variant-1 and the other variants, then mini-pool, mid-pool and live-prep. Each is
+ * one run's row, added once. From RW-C's first minute "Reward quotes" IS RW-C's run (the dashboard's `rw`), and RW-C is
+ * no row of its own (Davies, 2026-10-08), so a dashboard that still carries an `rwc` adds nothing for it: the totals
+ * never hold RW-C's figures beside RW's, or twice.
+ * @param {any} dash
+ */
+export function paperTestRows(dash) {
+  const one = (/** @type {any} */ row) => (row ? [row] : []);
+  return [
+    ...quotesTwinRows(dash), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
+    ...one(prepRow(dash?.prep)), ...one(midRow(dash?.prepMid)), ...one(lpRow(dash?.prepLp)),
+  ];
+}
 
 /**
  * A warning on a variant's page when its replay no longer reproduces RW's own days or RW-E's: its figures come from
@@ -1863,7 +1884,7 @@ export function rwxCheckWarn(r) {
 /**
  * Which replay a variant's row reads and since when, for its page (2026-10-08). The rows read RW's replay until RW-C's
  * first minute, 2026-10-09 00:00 UTC, and RW-C's from it, TB1's test (Davies, 2026-10-07): one at a time, so at the switch
- * a row starts again from zero, as RW-C's own row does, and never adds the two runs together. On RW's it says when it
+ * a row starts again from zero, as "Reward quotes" does, and never adds the two runs together. On RW's it says when it
  * moves. null for a payload that does not say (one from before the switch was built).
  * @param {any} r  one entry of the dashboard's `rwx`
  */
