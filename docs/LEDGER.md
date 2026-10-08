@@ -267,6 +267,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      L4 the SW keeps the board in "data-api"; B1 no off-site database copy, B2 the `pm-rec` bucket unbacked
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
+   - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
+     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1.
 
 ## Machine and platform setup
 
@@ -441,6 +443,19 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   `reviews/2026-10-09-rwc-optimised-arms-prereg.md`, read after 10-23 00:05 on RW-C's record (item 2). RW-C's engine,
   selection, replays and every frozen pre-registration are unchanged; RW's 10-04 → 10-08 inputs are committed gzipped
   (3.3 MB) beside the scripts.
+
+### [2026-10-08 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **No unit test reaches the network** (review T1, batch 5). Four performance-chart test files left the recorded
+  snapshots and the overnight points unmocked: each Vitest run sent production's Edge Functions 25 GETs with the anon
+  key (28 on this branch before this commit, measured with a preload that records and blocks every fetch), about 560 a
+  day from local gates and CI. The four files now mock `refreshPriceSnapshots` (answering as a failed read does) and
+  `fetchOvernightSeries` (nothing), and `src/test_setup.js` refuses any fetch beyond this machine: it rejects as a
+  network failure does, and the test that made it fails when it ends, naming the URL. Under the same preload the whole
+  run (74 files) now sends nothing beyond a loopback probe of the guard's own test. Pinned in `network_guard.test.js`
+  (refused and recorded, loopback through, a stub gives way and the guard returns, and a swallowed refusal still fails
+  its test); on main all four fail (no guard: the `.invalid` fetches fail on their name instead, and nothing records them).
+  `test_setup.js` counts in the build stamp (`build_stamp.js` leaves out only tests, `e2e/` and notes), so the bundle is
+  rebuilt with it; only its stamp moves.
 
 ### [2026-10-08 22:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Cloudflare and Supabase settings from the second review, done by Davies' other tool and checked from outside.**

@@ -55,6 +55,11 @@ vi.mock('../prices/chart_store.js', () => {
   };
 });
 vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
+// Nor the overnight points (review T1, 2026-10-08: this file sent its GETs to production's Edge Functions).
+vi.mock('../prices/overnight_intraday.js', async () => {
+  const actual = /** @type {any} */ (await vi.importActual('../prices/overnight_intraday.js'));
+  return { ...actual, fetchOvernightSeries: vi.fn(() => Promise.resolve(null)) };
+});
 
 import { PerfChart, perfBarsIncomplete, perfSeedFrom, perfSeedSignature, _resetPerfSeedMemo } from './perf_chart.jsx';
 import { refreshPriceSnapshots } from '../prices/price_snapshots.js';

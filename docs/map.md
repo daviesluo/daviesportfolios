@@ -495,7 +495,7 @@ The npm project's own files (`package.json` and the rest are under "Build, CI an
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
 | `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp (a hash of the source, so a build is reproducible), and Vitest's settings. |
 | `build_stamp.js` | The build's stamp: a hash of the app's source as git would commit it, never the clock, so a commit's bundle rebuilds byte for byte. |
-| `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers. |
+| `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers and refuses any fetch beyond this machine. |
 
 #### `app/` — the shell
 

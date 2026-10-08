@@ -43,6 +43,16 @@ vi.mock('../prices/chart_store.js', () => {
 });
 
 vi.mock('../app/ops_error.js', () => ({ reportError: vi.fn() }));
+// No test here reaches the network (review T1, 2026-10-08: this file sent its GETs to production's Edge Functions): the
+// recorded snapshots answer as a failed read does, from the cache or with nothing, and the overnight points not at all.
+vi.mock('../prices/price_snapshots.js', async () => {
+  const actual = /** @type {any} */ (await vi.importActual('../prices/price_snapshots.js'));
+  return { ...actual, refreshPriceSnapshots: vi.fn((rangeKey) => Promise.resolve(actual.readCachedPriceSnapshots(rangeKey) || [])) };
+});
+vi.mock('../prices/overnight_intraday.js', async () => {
+  const actual = /** @type {any} */ (await vi.importActual('../prices/overnight_intraday.js'));
+  return { ...actual, fetchOvernightSeries: vi.fn(() => Promise.resolve(null)) };
+});
 
 // Count the valuations without changing any of them: the spy delegates
 // to the real implementation, so every number this chart draws is still
