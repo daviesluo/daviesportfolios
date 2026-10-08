@@ -283,6 +283,7 @@ function readPanel() {
   const footer = card ? [...card.querySelectorAll('.mc-footer span')] : [];
   return {
     tabOn: panel.querySelector('.view-tab.is-on')?.textContent || '',
+    range: panel.querySelector('.perf-range-btn.on')?.getAttribute('data-range') || '',
     empty: !!panel.querySelector('.sparkline-empty'),
     labels: [...panel.querySelectorAll('.perf-lbl')].map((e) => e.textContent),
     values: [...panel.querySelectorAll('.perf-val')].map((e) => e.textContent),
@@ -292,6 +293,40 @@ function readPanel() {
     mcTicker: card ? txt(card.querySelector('.mc-card-ticker')) : null,
     mcSp: footer.length > 1 ? txt(footer[1]) : null,
   };
+}
+
+/**
+ * The page's requests off this server not yet answered (the mocked Edge Functions, anything aborted), for
+ * `settledPanel`: a panel drawn from what it had, with a fetch still out, is not yet what it will show.
+ * @param {import('playwright').Page} page
+ */
+function trackInflight(page) {
+  /** @type {Set<import('playwright').Request>} */
+  const inflight = new Set();
+  page.on('request', (r) => { if (!r.url().startsWith(`http://localhost:${PORT}`)) inflight.add(r); });
+  page.on('requestfinished', (r) => inflight.delete(r));
+  page.on('requestfailed', (r) => inflight.delete(r));
+  return inflight;
+}
+
+/**
+ * Reads the panel until `ready` accepts it, drawn, and it has stood still for 150 ms with nothing in flight, or `ms`
+ * runs out; the last read either way, for the checks to fail on. It replaces the fixed sleeps after each click (review
+ * F13, 2026-10-08: 400 ms after every range click, 60 times a run, too long on a fast machine and a guess on a loaded
+ * one).
+ * @param {import('playwright').Page} page @param {Set<unknown>} inflight @param {(r: any) => boolean} ready
+ */
+async function settledPanel(page, inflight, ready, ms = 8000) {
+  const by = Date.now() + ms;
+  let key = '', since = Date.now();
+  for (;;) {
+    const r = await page.evaluate(readPanel);
+    const k = JSON.stringify(r);
+    if (k !== key || inflight.size > 0) { key = k; since = Date.now(); }
+    if (r && !r.empty && ready(r) && Date.now() - since >= 150) return r;
+    if (Date.now() >= by) return r;
+    await page.waitForTimeout(25);
+  }
 }
 
 /** "(+7.41%)" or "+7.41%" → "+7.41%", for comparing the header's figures with the legend's. */
@@ -452,6 +487,7 @@ async function runSessions(browser) {
     const ctx = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
     await ctx.addInitScript(([t]) => { sessionStorage.setItem('dp.token', t); }, [token]);
     const page = await ctx.newPage();
+    const inflight = trackInflight(page);
     await page.clock.setFixedTime(clock);
     await page.route('**/functions/v1/**', async (route) => {
       const url = route.request().url();
@@ -493,24 +529,15 @@ async function runSessions(browser) {
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('.left-col .perf-chart-wrap svg', { timeout: 20_000 });
 
-    /** Read the panel until `ready` accepts it, or 8 s; the last read either way. */
-    const settle = async (/** @type {(r: any) => boolean} */ ready) => {
-      let r = null;
-      for (let i = 0; i < 40; i++) {
-        r = await page.evaluate(readPanel);
-        if (r && !r.empty && ready(r)) break;
-        await page.waitForTimeout(200);
-      }
-      return r;
-    };
+    /** Read the panel until `ready` accepts it and it is still (`settledPanel`), or 8 s; the last read either way. */
+    const settle = (/** @type {(r: any) => boolean} */ ready) => settledPanel(page, inflight, ready);
     for (const ext of [false, true]) {
       if (ext) {
         await page.locator('.ext-switch:visible').first().click();
-        await page.waitForTimeout(300);
+        await page.waitForFunction(() => [...document.querySelectorAll('.ext-switch .ext-checkbox')].every((i) => /** @type {HTMLInputElement} */ (i).checked), null, { timeout: 5_000 }).catch(() => {});
       }
       for (const view of ['sp', 'investment']) {
         await page.click(view === 'sp' ? '.left-col #perf-tab-sp' : '.left-col #perf-tab-inv');
-        await page.waitForTimeout(150);
         const r = await settle((x) => (view === 'investment'
           ? x.labels?.[0] === 'VALUE'
           : x.labels?.[1] === (ext ? 'S&P 500 FUTURES' : 'S&P 500')));
@@ -580,6 +607,7 @@ async function run() {
       sessionStorage.setItem('dp.token', token);
     }, [TOKEN]);
     const page = await ctx.newPage();
+    const inflight = trackInflight(page);
     // Timers still run, so refreshes and polls behave normally; only
     // "what time is it" is fixed.
     await page.clock.setFixedTime(CLOCK);
@@ -638,14 +666,12 @@ async function run() {
     await page.waitForSelector('.perf-chart-wrap svg', { timeout: 20_000 });
 
     for (const view of ['sp', 'investment']) {
-      if (view === 'investment') {
-        await page.click('.left-col #perf-tab-inv');
-        await page.waitForTimeout(150);
-      }
+      if (view === 'investment') await page.click('.left-col #perf-tab-inv');
       for (const rangeKey of RANGES) {
         await page.click(`.left-col .perf-range-btn[data-range="${rangeKey}"]`);
-        await page.waitForTimeout(400);
-        const read = await page.evaluate(readPanel);
+        // This view and this range, drawn and still; a panel that never gets there fails below on what it last read.
+        const tabIs = view === 'investment' ? /INVESTMENT/ : /VS S&P/;
+        const read = await settledPanel(page, inflight, (r) => r.range === rangeKey && tabIs.test(r.tabOn) && r.paths.length >= 2);
         const row = { book: bk.name, snapshotMode, view, rangeKey, ...read };
         results.push(row);
 
@@ -689,10 +715,6 @@ async function run() {
             if (Math.abs(firstY[0] - firstY[1]) > 0.2) fail(`lines start apart: ${firstY[0]} vs ${firstY[1]}`);
           }
         }
-      }
-      if (view === 'investment') {
-        await page.click('.left-col #perf-tab-sp');
-        await page.waitForTimeout(150);
       }
     }
     await ctx.close();

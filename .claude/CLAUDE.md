@@ -348,6 +348,12 @@ from anywhere in the repository (`--full`: every one).
   whole.
   Every bug it has caught was live while `npm test` and the Edge suite
   were green, because each was an integration failure.
+  Both browser tests wait on what they check (`readUntil`, `settled`,
+  `closeBy`, `atRest` in the sweep, `settledPanel` in the matrix), never
+  on a bare `waitForTimeout`: `src/e2e_waits.test.js` refuses one outside
+  a polling loop unless the comment above it starts "a fixed wait:" and
+  says why, and caps how many of those there are (2026-10-08: 164 fixed
+  sleeps had made CI flake under load).
 - `npm run verify:perf` — the performance-panel matrix in
   `src/e2e/perf-matrix.mjs`: 60 cases (two views × five ranges ×
   three recorded-data states × two books) plus 16 session cases (24H

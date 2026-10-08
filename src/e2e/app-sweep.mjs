@@ -903,22 +903,132 @@ const SHOTS_DIR = process.env.SWEEP_SHOTS || '';
 async function shot(page, name) {
   if (!SHOTS_DIR) return;
   // A modal rises in over 0.22 s (`modal-in`): taken at once, a page opened over another shows the one beneath it.
-  await page.waitForTimeout(300);
+  await atRest(page);
   const w = page.viewportSize()?.width ?? 0;
   await page.screenshot({ path: `${SHOTS_DIR}/${w}-${name}.png`, fullPage: true }).catch(() => {});
 }
-/** Opens the Agents page from the menu and waits for its tab bar, and for the page to finish rising in. */
-async function openAgentsPage(page) {
+/**
+ * Does something that closes a modal or an Agents detail (its close button, Escape) and waits until one has gone, not
+ * for a fixed time (review F13, 2026-10-08: the sweep's fixed sleeps were too long on a fast machine and too short on
+ * a loaded one, and two CI runs flaked on them). With nothing open it returns at once; with something open that does
+ * not close it gives up after `ms` and says so by returning false, as the old sleep never did.
+ * @param {import('playwright').Page} page @param {() => Promise<unknown>} act
+ */
+async function closeBy(page, act, ms = 5_000) {
+  const open = () => page.evaluate(() => document.querySelectorAll('.modal, .ag-detail').length).catch(() => 0);
+  const before = await open();
+  await act();
+  if (before === 0) return true;
+  const by = Date.now() + ms;
+  while (Date.now() < by) { if ((await open()) < before) return true; await page.waitForTimeout(25); }
+  return false;
+}
+/** Opens the header's menu and waits for its items to show, not for a fixed time (review F13). */
+async function openMenu(page) {
   await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-  await page.waitForTimeout(200);
+  await page.locator('.header-menu-item').first().waitFor({ timeout: 5_000 }).catch(() => {});
+}
+/**
+ * Waits for `sel` to show and then to stop changing: its markup the same over three reads 50 ms apart, with no modal
+ * still rising in and nothing asked for still out (review F13: a fixed 300 ms after the selector was a guess at when a
+ * page had finished drawing, too short under load). Gives up after `ms` and returns false.
+ * @param {import('playwright').Page} page @param {string} sel
+ */
+async function settled(page, sel, ms = 5_000) {
+  const by = Date.now() + ms;
+  if (!(await page.waitForSelector(sel, { timeout: ms }).then(() => true).catch(() => false))) return false;
+  /** @type {Set<unknown> | undefined} */
+  const inflight = /** @type {any} */ (page).__inflight;
+  let last = null, same = 0;
+  while (Date.now() < by) {
+    const now = await page.evaluate((s) => {
+      const el = document.querySelector(s);
+      const rising = [...document.querySelectorAll('.modal')].some((m) => m.getAnimations().length > 0);
+      return el && !rising ? el.innerHTML : null;
+    }, sel).catch(() => null);
+    if (now !== null && now === last && (inflight?.size ?? 0) === 0) { if (++same >= 2) return true; } else same = 0;
+    last = now;
+    await page.waitForTimeout(50);
+  }
+  return false;
+}
+/**
+ * Reads `read()` until `ok` holds of what it returns, or `ms` runs out, and returns the last read either way (review
+ * F13): the wait ends the moment the page shows what the check asks for, and a page that never does fails the check with
+ * what it last showed, as the old sleep's one read did. `steady` (ms) also asks the read to have stood still that long
+ * with nothing in flight off the page's own server, for a panel that draws what it has at once and then what a fetch
+ * brings.
+ * @template T
+ * @param {import('playwright').Page} page @param {() => Promise<T>} read @param {(v: T | undefined) => boolean} ok
+ * @param {{ ms?: number, steady?: number }} [o]
+ * @returns {Promise<T | undefined>}
+ */
+async function readUntil(page, read, ok, { ms = 5_000, steady = 0 } = {}) {
+  const by = Date.now() + ms;
+  /** @type {Set<unknown> | undefined} */
+  const inflight = /** @type {any} */ (page).__inflight;
+  /** @type {T | undefined} */
+  let got;
+  let key = '', since = Date.now();
+  for (;;) {
+    got = await read().catch(() => undefined);
+    const k = JSON.stringify(got ?? null);
+    if (k !== key || (steady > 0 && (inflight?.size ?? 0) > 0)) { key = k; since = Date.now(); }
+    if (ok(got) && (steady === 0 || Date.now() - since >= steady)) return got;
+    if (Date.now() >= by) return got;
+    await page.waitForTimeout(steady > 0 ? 25 : 50);
+  }
+}
+/**
+ * Waits for no modal to be rising in (`modal-in`, 0.22 s, a transform) or its backdrop fading in (0.16 s): a position,
+ * a height or a screenshot read during the rise is off by up to 12 px. Those are the only animations on a `.modal` or
+ * its backdrop (a phone's have none), so none running is the page at rest; the board's own endless pulses are on other
+ * elements and never hold it up.
+ * @param {import('playwright').Page} page
+ */
+async function atRest(page, ms = 5_000) {
+  return page.waitForFunction(() => [...document.querySelectorAll('.modal, .modal-backdrop')].every((m) => m.getAnimations().length === 0), null, { timeout: ms })
+    .then(() => true, () => false);
+}
+/**
+ * Presses the eye (hide values, or show them again) and waits until it has turned, by its own label, not for a fixed
+ * 200 ms (review F13): the mask and the label change in the one render.
+ * @param {import('playwright').Page} page
+ */
+async function toggleHidden(page) {
+  const eye = page.locator('.hide-eye').first();
+  const before = await eye.getAttribute('aria-label').catch(() => null);
+  await eye.click();
+  await page.waitForFunction((b) => document.querySelector('.hide-eye')?.getAttribute('aria-label') !== b, before, { timeout: 5_000 }).catch(() => {});
+}
+/**
+ * Waits until the EXTENDED HOURS switch reads `on`, each copy of it (the header's and a phone's), and the page has
+ * settled on it: nothing it asked for still out and nothing moving for 150 ms (review F13: was 700–900 ms fixed).
+ * @param {import('playwright').Page} page @param {boolean} on
+ */
+async function extSwitchIs(page, on) {
+  return readUntil(page, () => page.evaluate(() => [...document.querySelectorAll('.ext-switch .ext-checkbox')].map((i) => /** @type {HTMLInputElement} */ (i).checked)),
+    (x) => !!x && x.length > 0 && x.every((c) => c === on), { steady: 150 });
+}
+/**
+ * Opens the Agents page from the menu and waits for its tab bar, for the dashboard it asks for on opening to be drawn,
+ * and for the page to finish rising in.
+ */
+async function openAgentsPage(page) {
+  const answered = () => /** @type {any} */ (page).__dashAnswered ?? 0;
+  const before = answered();
+  await openMenu(page);
   await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
   await page.waitForSelector('.ag-modebar', { timeout: 10_000 }).catch(() => {});
-  await page.waitForTimeout(150);
+  // The page opens on the copy it last had, which here is the last section's payload, and then asks for its own (review
+  // F13): a read 150 ms after the tab bar, as this was, took the last section's figures whenever that answer was slower.
+  // Waited for: an answer asked for since the click, nothing else in flight, the page still for 150 ms.
+  await readUntil(page, () => page.evaluate(() => document.querySelector('.ag-modepanel')?.textContent ?? ''), () => answered() > before, { ms: 10_000, steady: 150 });
   // A desktop modal rises in over 0.22 s (`modal-in`, a transform), and a position read before the rise ends is up to
   // 12 px low. `tabs/none` compares the venue cards' positions read before and after a tab round trip: it failed once
   // with a full gate run beside it (2026-10-01), and fails every time with the rise slowed to 2 s, its first read 9 px
-  // low. The rise is the only animation on a `.modal` itself (a phone's has none), so none running is the page at rest.
-  await page.waitForFunction(() => [...document.querySelectorAll('.modal')].every((m) => m.getAnimations().length === 0), null, { timeout: 5_000 }).catch(() => {});
+  // low.
+  await atRest(page);
 }
 /**
  * What the Agents page shows right now, read out of the DOM as text: the tab bar, and the open tab's scoreboard,
@@ -1262,6 +1372,19 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   const requested = [];
   page.on('request', (r) => requested.push(r.url()));
   /** @type {any} */ (page).__requested = requested;
+  // The calls off this server (the Edge Functions, the proxies) asked for and not yet answered, for a wait that asks for
+  // the page to be at rest (`readUntil`'s `steady`): a panel drawn from what it had, with its fetch still out, is not yet
+  // what it will show.
+  /** @type {Set<import('playwright').Request>} */
+  const inflight = new Set();
+  page.on('request', (r) => { if (!r.url().startsWith(`http://localhost:${PORT}`)) inflight.add(r); });
+  page.on('requestfinished', (r) => inflight.delete(r));
+  page.on('requestfailed', (r) => inflight.delete(r));
+  /** @type {any} */ (page).__inflight = inflight;
+  // The Agents page's dashboard answers, counted as they land: the page opens on the copy it last had and then asks
+  // again, so a check of what a payload shows waits for an answer asked for after it opened (`openAgentsPage`).
+  /** @type {any} */ (page).__dashAnswered = 0;
+  page.on('requestfinished', (r) => { if (/\/agents\?.*action=dashboard/.test(r.url())) /** @type {any} */ (page).__dashAnswered += 1; });
   /** @type {any} */ (page).__reported = [];
   /** Every report's kind and symbol, as the ops-error function would store it. @type {{ kind: string, symbol: string, message: string }[]} */
   /** @type {any} */ (page).__reports = [];
@@ -1490,8 +1613,7 @@ async function run() {
       await page.route('**/assets/agents-*.js', async (route) => { await codeHeld; await route.continue(); });
     };
     const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: hold });
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(100);
+    await openMenu(page);
     const agentsBtn = page.locator('.header-menu-item:text-is("Agents (beta)")');
     if (await agentsBtn.count()) {
       await agentsBtn.first().click();
@@ -1534,16 +1656,14 @@ async function run() {
     };
     const { ctx, page } = await newPage(browser, { width: 1400, height: 1000 }, errors, tokenMisses, { beforeGoto: poison, allowModuleErrors: true });
     const reloaded = page.waitForEvent('load', { timeout: 8_000 }).then(() => true).catch(() => false);
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(150);
+    await openMenu(page);
     await page.locator('.header-menu-item:text-is("Holding list")').first().click();
     const didReload = await reloaded;
     const crashScreens = await page.locator('text=RENDER ERROR').count().catch(() => 0);
     if (didReload && poisonedOnce && crashScreens === 0) ok('desktop/recovery', 'a chunk answered with HTML makes the app heal and reload once, with no RENDER ERROR screen');
     else fail('desktop/recovery', `poisoned ${poisonedOnce}, reloaded ${didReload}, crash screens ${crashScreens}`);
     await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(150);
+    await openMenu(page);
     await page.locator('.header-menu-item:text-is("Holding list")').first().click().catch(() => {});
     const opened = await page.locator('.modal .modal-title:text-is("Holding list")').first().waitFor({ timeout: 10_000 }).then(() => true).catch(() => false);
     const rowsAfter = await page.locator('.modal .hl-table tbody tr').first().waitFor({ timeout: 8_000 }).then(() => page.locator('.modal .hl-table tbody tr').count()).catch(() => 0);
@@ -1667,6 +1787,8 @@ async function run() {
     const draftLeft = await page.evaluate(() => sessionStorage.getItem('dp.pendingSave'));
     const reported = /** @type {any} */ (page).__reported.filter((k) => k === 'data.save.failed').length;
     await page.clock.fastForward(60_000);
+    // a fixed wait: "nothing more is sent" is a thing not happening, and only time tells it; 300 ms for a save the minute
+    // fast-forwarded past to reach the route.
     await page.waitForTimeout(300);
     // Reported once: the ops client folds a kind's repeats within a minute (ops_error.js, COOLDOWN_MS).
     if (saveCalls === 3 && (await page.locator('.save-failing-banner').count()) === 0 && draftLeft === null && reported === 1) {
@@ -1679,6 +1801,8 @@ async function run() {
     const loadsBefore = loadCalls;
     await page.evaluate(() => { const bc = new BroadcastChannel('dp.portfolio'); bc.postMessage({ kind: 'portfolio-saved', sender: 'another tab', ts: Date.now() }); bc.close(); });
     await waitFor(async () => loadCalls > loadsBefore);
+    // a fixed wait: "no demo book" is a thing not happening, and only time tells it; 600 ms for the refused load's answer
+    // to be taken and drawn, if the page were to draw one.
     await page.waitForTimeout(600);
     const demo = await page.locator('.demo-banner', { hasText: 'DEMO DATA' }).count();
     loadFails = false;
@@ -1702,7 +1826,7 @@ async function run() {
     await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
     await page.locator('#perf-tab-sp:visible').first().click().catch(() => {});
     await page.locator('.ext-switch:visible').first().click().catch(() => {});
-    await page.waitForTimeout(900);
+    await extSwitchIs(page, true);
     await page.locator('.perf-range-btn:visible[data-range="1D"]').first().click().catch(() => {});
     const spLegend = () => page.evaluate(() => {
       const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
@@ -1737,22 +1861,23 @@ async function run() {
       };
       return { book: book.length, bench: bench.length, last: toScreen(book[book.length - 1] || [0, 0]), prev: toScreen(book[book.length - 2] || [0, 0]) };
     });
-    // Hover a point and read the crosshair: its time, and whether the benchmark has a chip there.
-    const hoverAt = async ([x, y]) => {
+    // Hover a point and read the crosshair: its time, and whether the benchmark has a chip there. Read once it shows the
+    // time the check asks for (review F13: 120 ms after the move, which a loaded machine could outrun); a crosshair that
+    // never does fails with what it last read.
+    const hoverAt = async ([x, y], /** @type {string} */ time) => {
       await page.mouse.move(x, y);
-      await page.waitForTimeout(120);
-      return page.evaluate(() => {
+      return readUntil(page, () => page.evaluate(() => {
         const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
         const g = [...(wrap?.querySelectorAll('svg g') || [])].find((n) => n.querySelector('line[stroke-dasharray="2,2"]') && n.querySelectorAll('text').length === 3);
         if (!g) return null;
         const [date, book, bench] = [...g.querySelectorAll('text')];
         return { time: (date.textContent || '').trim(), book: (book.textContent || '').trim(), bench: bench.style.display === 'none' ? null : (bench.textContent || '').trim() };
-      });
+      }), (r) => !!r && r.time.endsWith(time), { ms: 3_000 });
     };
     const clockAt = (ms) => page.evaluate((t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }), ms);
-    const atEdge = geo ? await hoverAt(geo.last) : null;
-    const atPrint = geo ? await hoverAt(geo.prev) : null;
     const [nowLabel, printLabel] = [await clockAt(NOW_MS), await clockAt(NOW_MS - 10 * 60e3)];
+    const atEdge = geo ? await hoverAt(geo.last, nowLabel) : null;
+    const atPrint = geo ? await hoverAt(geo.prev, printLabel) : null;
     if (/FUTURES/.test(first || '') && first?.endsWith('+4.00%') && geo && geo.book === geo.bench + 1) {
       ok(S('points'), `the book has one point more than the futures (${geo.book} and ${geo.bench}): its own, at the current minute`);
     } else fail(S('points'), `legend "${first}", points ${JSON.stringify(geo && { book: geo.book, bench: geo.bench })}`);
@@ -1774,8 +1899,7 @@ async function run() {
     // futures asked for again after a minute, not after its fifteen.
     await page.locator('.perf-range-btn:visible:text-is("1W")').first().click().catch(() => {});
     const weekFirst = await legendEnds('+5.04%');
-    await page.waitForTimeout(300);
-    const wGeo = await page.evaluate(() => {
+    const wGeo = await readUntil(page, () => page.evaluate(() => {
       const wrap = [...document.querySelectorAll('.perf-chart-wrap')].find((w) => w.getBoundingClientRect().width > 0);
       const svg = wrap?.querySelector('svg');
       if (!svg) return null;
@@ -1790,10 +1914,10 @@ async function run() {
         return [r.x, r.y];
       };
       return { book: book.length, bench: bench.length, last: toScreen(book[book.length - 1] || [0, 0]), prev: toScreen(book[book.length - 2] || [0, 0]) };
-    });
-    const wEdge = wGeo ? await hoverAt(wGeo.last) : null;
-    const wPrint = wGeo ? await hoverAt(wGeo.prev) : null;
+    }), (g) => !!g && g.book === g.bench + 1, { steady: 150 });
     const wNow = await clockAt(NOW_MS + 90e3);
+    const wEdge = wGeo ? await hoverAt(wGeo.last, wNow) : null;
+    const wPrint = wGeo ? await hoverAt(wGeo.prev, printLabel) : null;
     if (weekFirst?.endsWith('+5.04%') && wGeo && wGeo.book === wGeo.bench + 1 && wEdge && wEdge.time.endsWith(wNow) && wEdge.bench === null
       && wPrint && wPrint.time.endsWith(printLabel) && wPrint.bench === '+5.04%') {
       ok(S('1W'), `1W too: ${wGeo.book} points to the futures' ${wGeo.bench}, the right edge "${wEdge.time}" with no futures chip, a step left "${wPrint.time}" at +5.04%`);
@@ -1844,7 +1968,21 @@ async function run() {
     });
     await page.waitForFunction((want) => (document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.]/g, '') !== '' && Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
     await page.waitForSelector('.perf-legend-item:visible', { state: 'visible', timeout: 15_000 }).catch(() => {});
-    await page.waitForTimeout(2500);
+    // The page at rest before it is reloaded, not after a fixed 2.5 s, which under load could end before the chart was
+    // drawn or its rows kept (review F13): the chart drawn and not flat, the 24H window's rows in IndexedDB, the prices
+    // on screen kept for the next paint, and nothing asked for still out or moving for 300 ms.
+    const rows24h = () => page.evaluate(() => new Promise((res) => {
+      const rq = indexedDB.open('dp-charts');
+      rq.onsuccess = () => {
+        const db = rq.result;
+        if (![...db.objectStoreNames].includes('ytd')) { db.close(); res(0); return; }
+        const k = db.transaction('ytd').objectStore('ytd').getAllKeys();
+        k.onsuccess = () => { res(k.result.filter((x) => String(x).includes('|1D:')).length); db.close(); };
+      };
+      rq.onerror = () => res(0);
+    }));
+    await readUntil(page, async () => ({ ...(await read()), rows: await rows24h(), kept: await page.evaluate(() => localStorage.getItem('dp.lastPrices') !== null) }),
+      (x) => !!x && !!x.chart && !x.chart.startsWith('[') && x.flat === false && Number(x.rows) > 0 && x.kept, { ms: 15_000, steady: 300 });
     const before = await read();
     const stores = await page.evaluate(() => new Promise((res) => {
       const rq = indexedDB.open('dp-charts');
@@ -2002,7 +2140,9 @@ async function run() {
     const answeredBefore = edgeAnswered;
     edgeGate = null;
     edgeHold.open();
-    await page.waitForTimeout(3000);
+    // The held answers let go: read once every one has landed and the card has painted nothing new for half a second,
+    // not after a fixed 3 s (review F13). Every paint on the way is in the recorder, so a wrong one is still caught.
+    await readUntil(page, seenNow, (x) => !!x && x[x.length - 1] === FULL, { ms: 10_000, steady: 500 });
     const warm = (await seenNow()).filter((x) => x.startsWith('1M:'));
     const warmWrong = warm.filter((x) => x !== FULL && x !== LOADING);
     if (warmFull && answeredBefore === 0 && warmWrong.length === 0 && warm[warm.length - 1] === FULL) {
@@ -2050,7 +2190,10 @@ async function run() {
       }
       return false;
     }).catch(() => false);
-    await page.waitForTimeout(2500);
+    // At rest before the new deploy, as 0c (review F13: was a fixed 2.5 s): the chart drawn, the prices on screen kept,
+    // and nothing asked for still out or moving for 300 ms.
+    await readUntil(page, async () => ({ ...(await read()), kept: await page.evaluate(() => localStorage.getItem('dp.lastPrices') !== null) }),
+      (x) => !!x && !!x.chart && !x.chart.startsWith('[') && x.kept, { ms: 15_000, steady: 300 });
     const prefs = JSON.stringify({ hideValues: false, moversMetric: 'usd' });
     await page.evaluate((p) => { localStorage.setItem('dp.prefs', p); (/** @type {any} */ (window)).__beforeBanner = true; }, prefs);
     const before = await read();
@@ -2125,14 +2268,14 @@ async function run() {
     page.on('requestfinished', (r) => { if (chunk.test(r.url())) chunks.done.add(r.url()); });
     await openAgents();
     await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
-    await page.waitForTimeout(800);
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    // The page kept for the next reload (dp.agentsCache), with nothing it asked for still out: the reload below is to be
+    // drawn from that copy. Waited for, not a fixed 800 ms (review F13).
+    await readUntil(page, () => page.evaluate(() => (localStorage.getItem('dp.agentsCache') || '').length), (n) => Number(n) > 0, { steady: 150 });
+    await closeBy(page, () => page.keyboard.press('Escape'));
 
     for (const hidden of [false, true]) {
       if (hidden) {
-        await page.locator('.hide-eye').first().click();
-        await page.waitForTimeout(200);
+        await toggleHidden(page);
       }
       holdMs = 1500;
       heldAnswers.length = 0;
@@ -2146,6 +2289,8 @@ async function run() {
       // the code itself gets the page's frame, and section 0 pins that frame.
       const codeBy = Date.now() + 5000;
       while (Date.now() < codeBy && !(chunks.started.size > 0 && [...chunks.started].every((u) => chunks.done.has(u)))) await page.waitForTimeout(10);
+      // a fixed wait: the chunk's bytes have landed and its code runs next; nothing outside the page says when, and the
+      // check is that a page opened this early is drawn at once.
       await page.waitForTimeout(50);
       await openAgents();
       const t0 = Date.now();
@@ -2169,8 +2314,7 @@ async function run() {
           ok(S('hidden'), `with values hidden the kept copy is drawn masked from the first read (${first.usd.slice(0, 2).join(', ')})`);
         } else fail(S('hidden'), `first read ${JSON.stringify(first)}; undrawn/loading ${JSON.stringify(bad)}; reads with digits ${digits.length}`);
       }
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
     }
     await page.locator('.hide-eye').first().click().catch(() => {});
     await ctx.close();
@@ -2261,8 +2405,7 @@ async function run() {
     await waitBoard(page, (x) => ALL.every((k) => present(x, k)));
     const setFail = (names) => page.evaluate((n) => { /** @type {any} */ (window).__dpSweepFail = n; }, names);
     const menu = async (item) => {
-      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-      await page.waitForTimeout(150);
+      await openMenu(page);
       await page.locator(`.header-menu-item:text-is("${item}")`).first().click({ timeout: 5_000 }).catch(() => {});
     };
     /** The top modal's title and whether it says its page failed, and the board behind it. */
@@ -2376,8 +2519,7 @@ async function run() {
         await pg.route('**/assets/sectors_list-*.js', (route) => route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: '<!DOCTYPE html><html><body>the app shell</body></html>' }));
       },
     });
-    await p2.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await p2.waitForTimeout(150);
+    await openMenu(p2);
     await p2.locator('.header-menu-item:text-is("Sectors list")').first().click({ timeout: 5_000 }).catch(() => {});
     const chunkFrame = await p2.locator('.modal .modal-failed').first().waitFor({ timeout: 8_000 }).then(() => p2.locator('.modal .modal-failed').first().textContent()).catch(() => '');
     const chunkTitle = ((await p2.locator('.modal .modal-title').first().textContent().catch(() => '')) || '').trim();
@@ -2429,10 +2571,9 @@ async function run() {
     /** Presses Refresh and waits until the total reads `want` (or 8 s); returns what it read. */
     const refreshTo = async (want) => {
       await page.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
-      const by = Date.now() + 8000;
-      let got = await totalNow();
-      while (!near(got, want) && Date.now() < by) { await page.waitForTimeout(100); got = await totalNow(); }
-      await page.waitForTimeout(300);
+      // The total at `want` and holding there for 300 ms with nothing still out (review F13: a fixed 300 ms after it got
+      // there, whatever was still in flight).
+      await readUntil(page, totalNow, (got) => near(got, want), { ms: 8000, steady: 300 });
       return totalNow();
     };
     const reports = () => /** @type {any} */ (page).__reports.filter((r) => r.kind === 'quote.held');
@@ -2513,7 +2654,9 @@ async function run() {
       await p2.locator('button[title="Refresh prices"]').first().click({ timeout: 5_000 }).catch(() => {});
       const by = Date.now() + 8000;
       while (Date.now() < by && /** @type {any} */ (p2).__requested.filter((u) => u.includes('/functions/v1/prices')).length <= n) await p2.waitForTimeout(50);
-      await p2.waitForTimeout(1200);
+      // The refresh's answers landed and the fund's background fetch asked of the proxies and answered, with nothing still
+      // out for 150 ms; not a fixed 1.2 s (review F13).
+      await readUntil(p2, async () => /** @type {any} */ (p2).__requested.filter((u) => u.includes('fundgz.1234567.com.cn')).length, (k) => Number(k) > 0, { ms: 8000, steady: 150 });
     }
     const by = Date.now() + 5000;
     while (Date.now() < by && fundReports().length === 0) await p2.waitForTimeout(100);
@@ -2565,9 +2708,13 @@ async function run() {
 
       const onBefore = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
       await page.locator('#perf-tab-inv:visible').first().click();
-      await page.waitForTimeout(400);
-      const onAfter = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
-      const legend = await page.locator('.perf-lbl:visible').allTextContents();
+      // Until the tab and the legend read what the check asks, not a fixed 400 ms (review F13).
+      const switched = await readUntil(page, async () => ({
+        on: (await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent()) || '',
+        legend: await page.locator('.perf-lbl:visible').allTextContents(),
+      }), (x) => !!x && /INVESTMENT/.test(x.on) && x.legend.slice(0, 2).join(',') === 'VALUE,DEPOSITED');
+      const onAfter = switched?.on ?? '';
+      const legend = switched?.legend ?? [];
       if (/INVESTMENT/.test(onAfter || '') && legend.slice(0, 2).join(',') === 'VALUE,DEPOSITED') {
         ok(S('view-tabs'), `switch marks "${onAfter}" and draws ${legend.slice(0, 2)}`);
       } else {
@@ -2589,8 +2736,7 @@ async function run() {
       // Keyboard: arrows move between them (roving tabindex).
       await page.locator('#perf-tab-inv:visible').first().focus();
       await page.keyboard.press('ArrowLeft');
-      await page.waitForTimeout(300);
-      const onKb = await page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent();
+      const onKb = await readUntil(page, () => page.locator(`${perfTabs} .view-tab.is-on:visible`).first().textContent(), (t) => /VS S&P/.test(t || ''));
       if (/VS S&P/.test(onKb || '')) ok(S('view-tabs'), 'ArrowLeft returns to vs-S&P');
       else fail(S('view-tabs'), `ArrowLeft left it on "${onKb}" (was "${onBefore}")`);
     } else fail(S('view-tabs'), `found ${tabCount} tabs`);
@@ -2599,7 +2745,6 @@ async function run() {
     const seen = { sp: {}, investment: {} };
     for (const view of ['sp', 'investment']) {
       await page.locator(view === 'sp' ? '#perf-tab-sp:visible' : '#perf-tab-inv:visible').first().click();
-      await page.waitForTimeout(250);
       for (const label of ['1D', '1W', '1M', '3M', 'YTD']) {
         const btn = page.locator(`.perf-range-btn:visible[data-range="${label}"]`).first();
         // The shortest window is a day with extended hours off (Davies, 2026-10-07: "24H改为1D").
@@ -2609,8 +2754,11 @@ async function run() {
           else fail(S(`range-label/${view}`), `with extended hours off the shortest window reads "${text}", want 1D`);
         }
         await btn.click();
-        await page.waitForTimeout(350);
-        const state = await page.evaluate(() => {
+        // Read once the panel shows this view and this range, drawn, with nothing it asked for still out and nothing
+        // moving for 150 ms; not after a fixed 350 ms, which under load read the window before (review F13). A panel that
+        // never draws fails below with what it last showed.
+        const wantTab = view === 'sp' ? /VS S&P/ : /INVESTMENT/;
+        const state = /** @type {{ empty: boolean, lines: number, pts: number, vals: (string | null)[], range: string, tab: string }} */ (await readUntil(page, () => page.evaluate(() => {
           // The VISIBLE panel — the left column on desktop, the sidebar
           // copy on phone. Reading the hidden one gives a chart that
           // was never laid out, so every path has zero width.
@@ -2622,8 +2770,11 @@ async function run() {
             lines: paths.length,
             pts: Math.max(0, ...paths.map((p) => (p.getAttribute('d') || '').split(/[ML]/).length - 1)),
             vals: [...(panel?.querySelectorAll('.perf-val') || [])].map((e) => e.textContent),
+            range: panel?.querySelector('.perf-range-btn.on')?.getAttribute('data-range') || '',
+            tab: panel?.querySelector('.view-tab.is-on')?.textContent || '',
           };
-        });
+        }), (x) => !!x && x.range === label && wantTab.test(x.tab) && !x.empty && x.lines >= 2, { steady: 150 })
+          ?? { empty: true, lines: 0, pts: 0, vals: [], range: '', tab: '' });
         if (state.empty) fail(S(`range/${view}/${label}`), 'Insufficient data');
         else if (state.lines < 2) fail(S(`range/${view}/${label}`), `${state.lines} line(s)`);
         else ok(S(`range/${view}/${label}`), `${state.lines} lines, ${state.pts} pts, legend ${state.vals.join(' / ')}`);
@@ -2703,37 +2854,37 @@ async function run() {
     // that held Friday's last hour of futures (Davies' screenshot).
     await page.locator('#perf-tab-sp:visible').first().click();
     await page.locator('.ext-switch:visible').first().click();
-    await page.waitForTimeout(900);
     const extBtn = page.locator('.perf-range-btn:visible[data-range="1D"]').first();
-    const extText = (await extBtn.textContent())?.trim();
+    const extText = (await readUntil(page, () => extBtn.textContent(), (t) => t?.trim() === '24H'))?.trim();
     if (extText === '24H') ok(S('range-label/ext'), 'with extended hours on the shortest window reads 24H');
     else fail(S('range-label/ext'), `with extended hours on the shortest window reads "${extText}", want 24H`);
     await extBtn.click();
-    await page.waitForTimeout(500);
-    const marks = await page.evaluate(() => {
+    // The futures window drawn and still, then read: whether OPEN is on it is only worth asking of the whole window.
+    const marks = (await readUntil(page, () => page.evaluate(() => {
       const panel = [...document.querySelectorAll('.perf-chart-wrap')]
         .find((w) => w.getBoundingClientRect().width > 0)?.closest('.panel');
       return {
         futures: /FUT/.test(panel?.querySelector('.view-tab.is-on')?.textContent || ''),
+        range: panel?.querySelector('.perf-range-btn.on')?.getAttribute('data-range') || '',
+        drawn: !panel?.querySelector('.sparkline-empty') && (panel?.querySelectorAll('svg path[d^="M"]').length ?? 0) >= 2,
         texts: [...(panel?.querySelectorAll('svg text') || [])].map((t) => (t.textContent || '').trim()),
       };
-    });
+    }), (x) => !!x && x.futures && x.range === '1D' && x.drawn, { steady: 150 })) ?? { futures: false, range: '', drawn: false, texts: [] };
     if (!marks.futures) fail(S('markers/24H-ext'), 'extended hours did not switch the panel to the futures view');
     else if (marks.texts.includes('OPEN')) fail(S('markers/24H-ext'), `"OPEN" drawn in a window that starts after the open (${marks.texts.join(' ')})`);
     else ok(S('markers/24H-ext'), 'no OPEN in a futures window that starts after the open');
     await page.locator('.ext-switch:visible').first().click();
-    await page.waitForTimeout(700);
+    await extSwitchIs(page, false);
 
     // ---- 5. heat map, with extended hours off and then on -----------
     await page.locator('.view-toggle .view-switch:visible').first().click();
-    await page.waitForTimeout(700);
     const readTiles = () => page.evaluate(() =>
       [...document.querySelectorAll('.hm-tile')].map((t) => ({
         ticker: t.querySelector('.hm-ticker')?.textContent || '',
         pct: t.querySelector('.hm-pct')?.textContent || '',
       })));
 
-    const hm = await readTiles();
+    const hm = (await readUntil(page, readTiles, (x) => (x?.length ?? 0) >= 5, { steady: 150 })) ?? [];
     if (hm.length >= 5) ok(S('heatmap'), `${hm.length} tiles`);
     else fail(S('heatmap'), `only ${hm.length} tiles`);
     if (hm.some((x) => x.ticker === '017731')) {
@@ -2759,8 +2910,9 @@ async function run() {
     //                                  because "nobody knows yet" is
     //                                  not the same fact as "unchanged".
     await page.locator('.ext-switch:visible').first().click();
-    await page.waitForTimeout(900);
-    const hmExt = await readTiles();
+    await extSwitchIs(page, true);
+    const hmExt = (await readUntil(page, readTiles, (x) => !!x?.find((t) => t.ticker === 'ACME' && /\+3\.00%/.test(t.pct))
+      && x.find((t) => t.ticker === 'NOVA')?.pct === '—', { steady: 150 })) ?? [];
     const allFlat = hmExt.length > 0
       && hmExt.every((t) => !t.pct || /^[+-]?0\.00%$/.test(t.pct));
     if (!allFlat) ok(S('heatmap/ext'), `tiles ${hmExt.map((t) => `${t.ticker} ${t.pct}`).join(', ')}`);
@@ -2778,11 +2930,13 @@ async function run() {
       fail(S('heatmap/ext'), `NOVA reads "${novaExt.pct}" with no ext data (want —)`);
     }
     await page.locator('.ext-switch:visible').first().click();
-    await page.waitForTimeout(700);
+    await extSwitchIs(page, false);
 
     // Back to the tactics board.
     await page.locator('.view-toggle .view-switch:visible').first().click();
-    await page.waitForTimeout(500);
+    await readUntil(page, () => page.evaluate(() => ({ tiles: document.querySelectorAll('.hm-tile').length,
+      movers: [...document.querySelectorAll('.mover-row')].map((r) => r.textContent || '').join('|') })),
+    (x) => x?.tiles === 0 && x.movers !== '', { steady: 150 });
 
     // ---- 6. Top Movers agrees with that same threshold --------------
     const movers = await page.evaluate(() =>
@@ -2821,8 +2975,7 @@ async function run() {
     } else fail(S('top-movers'), `% ranks ${byPct.tickers.join(',')} (want BRIT,VUAA,ACME)`);
 
     await page.locator('#movers-tab-usd:visible').first().click();
-    await page.waitForTimeout(350);
-    const byUsd = await readMovers();
+    const byUsd = (await readUntil(page, readMovers, (m) => m?.tickers.join(',') === 'BRIT,ACME,VUAA', { steady: 150 })) ?? { tickers: [], vals: [], bars: [] };
     if (byUsd.tickers.join(',') === 'BRIT,ACME,VUAA') {
       ok(S('top-movers'), `$ ranks ${byUsd.tickers.join(' > ')} (${byUsd.vals.join(' ')})`);
     } else fail(S('top-movers'), `$ ranks ${byUsd.tickers.join(',')} (want BRIT,ACME,VUAA)`);
@@ -2866,8 +3019,8 @@ async function run() {
     });
     const chartRangeBefore = await activeChartRange();
     await page.locator('.movers-window .view-tab:visible:text-is("1M")').first().click();
-    await page.waitForTimeout(500);
-    const overMonth = await readMovers();
+    const overMonth = (await readUntil(page, readMovers, (m) => m?.tickers.join(',') === 'ACME,NOVA,BRIT' && m.vals.join(' ') === '+$240 +$100 +$63', { steady: 150 }))
+      ?? { tickers: [], vals: [], bars: [] };
 
 
     if (overMonth.tickers.join(',') === 'ACME,NOVA,BRIT'
@@ -2894,9 +3047,8 @@ async function run() {
 
     // Back to TODAY / % so the rest of the run sees the default state.
     await page.locator('.movers-window .view-tab:visible:text-is("TODAY")').first().click();
-    await page.waitForTimeout(250);
     await page.locator('#movers-tab-pct:visible').first().click();
-    await page.waitForTimeout(250);
+    await readUntil(page, readMovers, (m) => m?.tickers.join(',') === 'BRIT,VUAA,ACME', { steady: 150 });
 
     // ---- 6c. the split modal chunks are PREFETCHED, not fetched on click
     // The four modals live in their own chunks so the main bundle stays
@@ -2914,8 +3066,7 @@ async function run() {
     else fail(S('chunks'), `not prefetched: ${missing.join(', ')}`);
 
     // ---- 7. transaction history -------------------------------------
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(200);
+    await openMenu(page);
     const histBtn = page.locator('.header-menu-item:text-is("Transaction history")');
     if (await histBtn.count()) {
       await histBtn.first().click();
@@ -2995,18 +3146,19 @@ async function run() {
         : page.locator('.txn-sort-chip:visible');
       const n = await hdrs.count();
       let sortFails = 0;
+      // Each click is read once the control itself says where the cycle is (▼, ▲, then nothing), not 120 ms after it
+      // (review F13): the rows and the arrow change in the one render.
+      const rowsNow = () => page.evaluate(() => [...document.querySelectorAll('.txn-row')].map((r) => r.textContent).join('|'));
+      const clickTo = async (/** @type {number} */ i, /** @type {RegExp} */ mark) => {
+        await hdrs.nth(i).click();
+        await readUntil(page, async () => ((await hdrs.nth(i).textContent()) || '').trim(), (t) => mark.test(t || ''));
+        return rowsNow();
+      };
       for (let i = 0; i < n; i++) {
-        const before = await page.evaluate(() =>
-          [...document.querySelectorAll('.txn-row')].map((r) => r.textContent).join('|'));
-        await hdrs.nth(i).click(); await page.waitForTimeout(120);
-        const desc = await page.evaluate(() =>
-          [...document.querySelectorAll('.txn-row')].map((r) => r.textContent).join('|'));
-        await hdrs.nth(i).click(); await page.waitForTimeout(120);
-        const asc = await page.evaluate(() =>
-          [...document.querySelectorAll('.txn-row')].map((r) => r.textContent).join('|'));
-        await hdrs.nth(i).click(); await page.waitForTimeout(120);
-        const back = await page.evaluate(() =>
-          [...document.querySelectorAll('.txn-row')].map((r) => r.textContent).join('|'));
+        const before = await rowsNow();
+        const desc = await clickTo(i, /▼$/);
+        const asc = await clickTo(i, /▲$/);
+        const back = await clickTo(i, /[^▼▲]$/);
         if (back !== before) { sortFails++; fail(S('history'), `header ${i} did not return to default order`); }
         if (desc === asc && desc === before) { sortFails++; fail(S('history'), `header ${i} never reordered anything`); }
       }
@@ -3016,7 +3168,8 @@ async function run() {
       const acme = page.locator('.txn-sym-btn:visible:text-is("ACME")');
       if (await acme.count()) {
         await acme.first().click();
-        await page.waitForTimeout(800);
+        // The ticker's own page, by its title, not after a fixed 800 ms (review F13).
+        await readUntil(page, () => page.evaluate(() => [...document.querySelectorAll('.modal-title')].map((t) => t.textContent || '').join('|')), (t) => /ACME/.test(t || ''));
         const modal = await page.locator('.modal-title').first().textContent().catch(() => '');
         if (/ACME/.test(modal || '')) ok(S('history'), 'symbol opens the ticker modal');
         else fail(S('history'), `symbol click left modal title "${modal}"`);
@@ -3025,11 +3178,9 @@ async function run() {
         const meta = ((await page.locator('.modal-meta', { hasText: 'shares' }).first().textContent({ timeout: 3000 }).catch(() => '')) || '').replace(/\s+/g, ' ');
         if (/AC \$198\.00/.test(meta) && /Cost \$1,188/.test(meta)) ok(S('dividends'), `ACME's AC is net of its dividend: ${meta.slice(0, 60)}`);
         else fail(S('dividends'), `ACME's ticker modal reads "${meta}" (want AC $198.00, Cost $1,188)`);
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await closeBy(page, () => page.keyboard.press('Escape'));
       } else fail(S('history'), 'ACME symbol is not clickable');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
     } else fail(S('history'), 'Transaction history menu item not found');
 
     // ---- 8. agents ----------------------------------------------------
@@ -3038,8 +3189,7 @@ async function run() {
     // row must open the detail with the position and the decision the
     // fixture carries. The mask toggle is not exercised here; it reuses
     // maskDigits, which the transaction history already proves.
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(200);
+    await openMenu(page);
     const agentsBtn = page.locator('.header-menu-item:text-is("Agents (beta)")');
     if (await agentsBtn.count()) {
       await agentsBtn.first().click();
@@ -3245,8 +3395,7 @@ async function run() {
       // Its page is the live executor's page (Davies, 2026-10-02), PAPER, on its simulated account: the same figures as the
       // live fixture's page (the pr5-page checks work them by hand), and a line saying what it is.
       await twinRow.first().click();
-      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-quotes-twin-detail');
       const tp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       await shot(page, 'agents-quotes-twin');
       const TWIN_DAYS = ['17 Sep · today | 18 | 3 | 2 · 50 % won | -£0.0633', '16 Sep | 6 | 2 | 1 · 100 % won | +£0.0288'];
@@ -3266,14 +3415,12 @@ async function run() {
       const qHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the twin page has the same refresh button beside close');
       else fail(S('agents'), `twin page actions ${qHeads.join(',')}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       // Rule D's twin ("variant-3" since 2026-10-03; its name is its spec row's): its own title on two lines, nine rungs a
       // side, £1,800 and its loss stop of 1 % of it, £18.
       const dName = TWINS.find((t) => t.twin.engine === 'ruled-d')?.twin.name ?? 'rule D';
       await twinRowOf(dName).first().click();
-      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-quotes-twin-detail');
       const tdp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       await shot(page, 'agents-quotes-twin-d');
       const RULED_LADDER = ['0.03 % | idle | idle', '0.05 % | idle | idle', '0.075 % | idle | idle', '0.1 % | £0.7569 | £0.7585', '0.125 % | idle | idle', '0.15 % | idle | idle',
@@ -3284,8 +3431,7 @@ async function run() {
         && tdp.cards.length === 2 && tdp.cards.every((c) => c.ladder.length === 9) && tdp.cards[0].ladder.join(' / ') === RULED_LADDER.join(' / ') && tdp.overflow <= 1) {
         ok(S('agents'), `rule D's twin's page: "${dName}", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs`);
       } else fail(S('agents'), `rule D twin page ${JSON.stringify(tdp && { ...tdp, cards: tdp.cards.map((c) => c.ladder.join(' / ')) })}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       // Every twin's page, from its row: the same page (the live executor's, PAPER, running), its own title, how long it
       // has been tested, its scoreboard on its own capital with its loss stop of 1 % of it, its line (its rungs a side and
       // their size), two books of its rungs, and the sections of PR5's twin's page; each closes back to the list. The
@@ -3293,16 +3439,14 @@ async function run() {
       const twinPageBad = [];
       for (const [i, p] of TW.pages.entries()) {
         await twinRowOf(p.title).first().click();
-        await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
-        await page.waitForTimeout(300);
+        await settled(page, '.ag-quotes-twin-detail');
         const x = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
         await shot(page, `agents-quotes-twin-${TWINS[i].twin.id}`);
         const pageOk = !!x && x.title === p.title && x.modals === 2 && x.head === 'PAPER Revolut X' && x.status === 'running' && x.tested === p.tested && x.livePages === 0
           && x.scoreboard === p.scoreboard && x.twinLines.join(' / ') === p.line && x.warns.length === 0
           && x.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && x.cards.length === 2 && x.cards.every((c) => c.ladder.length === p.rungs) && x.overflow <= 1;
         if (!pageOk) twinPageBad.push(`${p.title}: ${JSON.stringify(x && { ...x, cards: x.cards.map((c) => c.ladder.join(' / ')) })}`);
-        await page.locator('.ag-detail-close').click().catch(() => {});
-        await page.waitForTimeout(300);
+        await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
         if (await page.locator('.ag-quotes-twin-detail').count() !== 0 || await page.locator('.ag-strategies .ag-row').count() !== TESTING.rows) twinPageBad.push(`${p.title}: did not close back to the list`);
       }
       if (twinPageBad.length === 0) {
@@ -3415,8 +3559,7 @@ async function run() {
       const rHeads = await page.locator('.modal').last().locator('.modal-head-actions button').evaluateAll((els) => els.map((el) => el.getAttribute('aria-label')));
       if (rHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the reward page has the same refresh button beside close');
       else fail(S('agents'), `reward page actions ${rHeads.join(',')}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW page returns to the list');
       else fail(S('agents'), 'the RW page did not close back to the list');
       // RW-E's page is RW's page read from the replay's arm: its title, the same scoreboard and sections, today and its two
@@ -3443,8 +3586,7 @@ async function run() {
       if (eSource === "On RW's minutes since 15 Sep 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.") {
         ok(S('agents'), "RW-E's page says it reads RW's minutes and moves to RW-C's at 9 Oct 01:00 BST, as the other variants do");
       } else fail(S('agents'), `RW-E page source line "${eSource}"`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the RW-E page returns to the list');
       else fail(S('agents'), 'the RW-E page did not close back to the list');
       // RW-E's variants (Davies, 2026-09-27), the last rows (x1, tb1-skip and tb1-back since 2026-10-07): RW's cells read from each
@@ -3483,8 +3625,7 @@ async function run() {
         && xMarkets === 3 && xFills === 3 && xWarn === 0 && xOverflow >= 0 && xOverflow <= 1) {
         ok(S('agents'), "a variant's page is RW's page read from its arm: its own title, realised = rewards +$23.20 + orders +$0.40, 3 markets, 3 fills, no warning");
       } else fail(S('agents'), `variant page: title "${xTitle}", split ${xSplit.join('|')}, sections ${xSections.join(',')}, markets ${xMarkets}, fills ${xFills}, warnings ${xWarn}, overflow ${xOverflow}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       if (await page.locator('.ag-rw-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), "closing a variant's page returns to the list");
       else fail(S('agents'), "a variant's page did not close back to the list");
       // The menu entry was found above by its exact text, "Agents (beta)"; the page's own title must say the same.
@@ -3803,22 +3944,18 @@ async function run() {
       if (asked('action=dashboard') > dash1) ok(S('agents'), 'a minute on the strategy page refreshes it again');
       else fail(S('agents'), `dashboard requests stayed at ${dash1} after a minute on the strategy page`);
       await page.clock.setFixedTime(CLOCK);
-      await page.locator('.ag-detail-close').click();
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click());
       const listBack = await page.locator('.ag-strategies .ag-row').count();
       if (listBack === rows) ok(S('agents'), 'closing the detail returns to the list as it was');
       else fail(S('agents'), `after close: ${listBack} rows`);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // ---- hide values, on the agents page -------------------------
       // The mask is a privacy overlay for showing the screen to someone
       // else, so a POSITION SIZE has to go under it too: a size beside an
       // unmasked mark one column over is the value spelled out.
-      await page.locator('.hide-eye').first().click();
-      await page.waitForTimeout(200);
-      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-      await page.waitForTimeout(200);
+      await toggleHidden(page);
+      await openMenu(page);
       await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-scoreboard', { timeout: 10_000 });
       await page.locator('.ag-row', { has: nameBtn(page, 'Trend 4h') }).filter({ has: page.locator('.ag-venue-revx') }).first().click();
@@ -3830,8 +3967,7 @@ async function run() {
       if (!hasDigits(sizeCell) && !hasDigits(costCell) && orderSizes.length > 0 && !orderSizes.some(hasDigits)) {
         ok(S('agents'), `hide-values masks the position size as well as the money (size reads "${sizeCell}")`);
       } else fail(S('agents'), `under the mask: size "${sizeCell}", avg cost "${costCell}", order sizes ${orderSizes.join(' | ')}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});        // the strategy page closes to the list
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));        // the strategy page closes to the list
       // RW's page under the mask: what is held, every amount and every price, in the markets and the fills.
       await page.locator('.ag-row', { has: nameBtn(page, 'Reward quotes') }).first().click({ timeout: 5_000 }).catch(() => {});
       await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
@@ -3841,20 +3977,16 @@ async function run() {
       if (rwCells.length === 4 && !rwCells.some(hasDigits) && !rwFillCells.some(hasDigits) && rwSb.length === 3 && !rwSb.some(hasDigits)) {
         ok(S('agents'), `hide-values masks RW's holdings, amounts and prices (held reads "${rwCells[0]}", a fill's price "${rwFillCells[0]}")`);
       } else fail(S('agents'), `RW under the mask: market cells ${rwCells.join(' | ')}, fill cells ${rwFillCells.join(' | ')}, scoreboard ${rwSb.join(' | ')}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(200);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
-      await page.locator('.hide-eye').first().click();                       // back to values shown for everything after this
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);                       // back to values shown for everything after this
 
       // ---- the same page before the migration has run ------------
       // `runDashboard` answers 200 with `{ notReady, reason }` while the
       // agents tables do not exist. That has to be a designed state, not
       // an error: a fresh database is the normal first minute of a deploy.
       agentsMode = 'notReady';
-      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-      await page.waitForTimeout(200);
+      await openMenu(page);
       await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-notready', { timeout: 10_000 }).catch(() => {});
       const nr = await page.locator('.ag-notready').textContent().catch(() => '');
@@ -3864,16 +3996,14 @@ async function run() {
         ok(S('agents'), 'a notReady dashboard renders the designed empty state, not an error');
       } else fail(S('agents'), `not-ready state: errors ${nrErrors}, tables ${nrTables}, text "${(nr || '').trim().slice(0, 80)}"`);
       agentsMode = 'ok';
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // ---- the function falling over ------------------------------
       // A 500 is words, a retry and a fold — never the raw envelope in
       // the body of the page. The retry is proven: the stub recovers and
       // the table appears without leaving the modal.
       agentsMode = 'error';
-      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-      await page.waitForTimeout(200);
+      await openMenu(page);
       await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-errorcard', { timeout: 10_000 }).catch(() => {});
       const ecTitle = await page.locator('.ag-errorcard-title').textContent().catch(() => '');
@@ -3889,13 +4019,11 @@ async function run() {
       const recovered = await page.waitForSelector('.ag-scoreboard', { timeout: 5_000 }).then(() => true).catch(() => false);
       if (recovered) ok(S('agents'), 'Try again reloads the dashboard in place');
       else fail(S('agents'), 'Try again did not bring the table back');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // ---- a global pause and a venue fault --------------------------
       agentsMode = 'paused';
-      await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-      await page.waitForTimeout(200);
+      await openMenu(page);
       await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click();
       await page.waitForSelector('.ag-alert', { timeout: 10_000 }).catch(() => {});
       const stopBanner = await page.locator('.ag-alert.is-stop .ag-alert-label').textContent().catch(() => '');
@@ -3905,14 +4033,13 @@ async function run() {
       else fail(S('agents'), `banners: stop "${stopBanner}", fault "${faultLabel}: ${faultBanner}"`);
       // A banner is on the tabs it concerns: the pause holds both; Binance's fault is TESTING's, where its rows are.
       await page.locator('#ag-modetab-live').click().catch(() => {});
-      await page.waitForTimeout(200);
-      const pausedLive = await readAgentsPanel(page);
+      // LIVE open, by its own tab, not after a fixed 200 ms (review F13).
+      const pausedLive = /** @type {Awaited<ReturnType<typeof readAgentsPanel>>} */ (await readUntil(page, () => readAgentsPanel(page), (p) => !!p?.tabs.find((t) => t.id === 'live' && t.on)));
       if (pausedLive.alerts.map((a) => a.label).join('|') === 'Global pause' && /Nothing is live/.test(pausedLive.empty) && pausedLive.tabs[0]?.text === 'Nothing is live') {
         ok(S('agents'), 'on LIVE the global pause is still said and Binance\'s fault is not: Binance has no live row');
       } else fail(S('agents'), `LIVE under the pause: banners ${JSON.stringify(pausedLive.alerts)}, empty "${pausedLive.empty}", tab "${pausedLive.tabs[0]?.text}"`);
       agentsMode = 'ok';
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // ---- LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) --------------------------------------
       // Three payloads: nothing live (the list above), a live row armed, and the same row awaiting arming. What each
@@ -3928,7 +4055,7 @@ async function run() {
       const clickTab = async (id) => {
         await page.locator(`#ag-modetab-${id}`).click();
         await waitFor(async () => (await page.locator(`#ag-modetab-${id}`).getAttribute('aria-selected')) === 'true');
-        await page.waitForTimeout(100);
+        await atRest(page);
       };
       const opened = (p) => p.tabs.find((t) => t.on)?.id;
       const sbText = (p) => p.scoreboard.map((c) => `${c.name}${c.asides.length ? ` [${c.asides.join('; ')}]` : ''}=${c.value}`).join(' | ');
@@ -3976,8 +4103,7 @@ async function run() {
       else fail(T('tags'), `the list's tag heights ${listTags.join(',')}`);
       for (const [name, venue, sel] of [['Trend 4h', 'revx', '.ag-detail'], ...TW.names.map((n) => [n, 'revx', '.ag-quotes-twin-detail']), ['Reward quotes', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-1', 'polymarket', '.ag-rw-detail'], ['Reward quotes variant-3', 'polymarket', '.ag-rw-detail']]) {
         await page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) }).first().click();
-        await page.waitForSelector(sel, { timeout: 5_000 }).catch(() => {});
-        await page.waitForTimeout(350);
+        await settled(page, sel);
         const h = await topModalHeight();
         if (h === winH) ok(T('size'), `${name}'s page opens in the same window, ${h}px`);
         else fail(T('size'), `${name}'s page is ${h}px tall, the list ${winH}px`);
@@ -3998,16 +4124,14 @@ async function run() {
         const tagH = await page.evaluate((scope) => [...document.querySelectorAll(`${scope} .ag-badge, ${scope} .ag-venue`)].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0).map((r) => Math.round(r.height * 10) / 10), sel);
         if (tagH.length >= 2 && Math.max(...tagH) - Math.min(...tagH) <= 0.5) ok(T('tags'), `${name}'s page: its ${tagH.length} mode and venue tags are all ${tagH[0]}px tall`);
         else fail(T('tags'), `${name}'s page: tag heights ${tagH.join(',')}`);
-        await page.locator('.ag-detail-close').last().click().catch(() => {});
-        await page.waitForTimeout(300);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       }
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       agentsMode = 'live';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
-      await page.waitForTimeout(150);
+      await atRest(page);
       const a0 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-live-armed');
       if (opened(a0) === 'live' && barText(a0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}`) ok(T('armed'), `a live row opens the page on LIVE (${barText(a0)})`);
@@ -4070,14 +4194,13 @@ async function run() {
       else fail(T('armed'), `bar ${barText(a0)} → ${barText(a1)}; as of "${a0.updated}" → "${a1.updated}"; window ${a0.modalHeight} → ${a1.modalHeight}`);
       await page.locator('#ag-modetab-testing').focus();
       await page.keyboard.press('ArrowLeft');
-      await page.waitForTimeout(150);
+      await waitFor(async () => (await page.locator('#ag-modetab-live').getAttribute('aria-selected')) === 'true');
       const keyed = await readAgentsPanel(page);
       const focused = await page.evaluate(() => document.activeElement?.id || '');
       if (opened(keyed) === 'live' && focused === 'ag-modetab-live' && sbText(keyed) === LIVE_SB) ok(T('armed'), 'ArrowLeft on TESTING selects and focuses LIVE');
       else fail(T('armed'), `after ArrowLeft: open ${opened(keyed)}, focus "${focused}"`);
       await page.locator('.ag-modepanel .ag-row').first().click();
-      await page.waitForSelector('.ag-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(350);
+      await settled(page, '.ag-detail');
       const dTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const dMode = ((await page.locator('.ag-detail .ag-detail-head .ag-badge').first().textContent().catch(() => '')) || '').trim();
       const dTested = ((await page.locator('.ag-detail .ag-detail-head .ag-tested').first().textContent().catch(() => '')) || '').trim();
@@ -4090,18 +4213,16 @@ async function run() {
       if (dTitle === 'Trend 4h' && dMode === 'LIVE' && dSb.join(' | ') === '$50 | $12.50(25%) | +$0.20(+0.40%) | +$0.50(+4.17%) | +$0.30(+0.60%)' && dCard === 'ETH/USD' && dH === a0.modalHeight) {
         ok(T('armed'), 'the live row opens its own page, titled without " · live", in the same window: LIVE, FUNDED $50, the same figures as its row and LIVE\'s scoreboard, its ETH position');
       } else fail(T('armed'), `live detail: title "${dTitle}", mode "${dMode}", scoreboard ${dSb.join(' | ')}, card "${dCard}", window ${dH} of ${a0.modalHeight}`);
-      await page.locator('.ag-detail-close').click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       const back = await readAgentsPanel(page);
       if (opened(back) === 'live' && back.rows.length === 1 && sbText(back) === LIVE_SB) ok(T('armed'), 'closing that page returns to LIVE as it was');
       else fail(T('armed'), `after closing: open ${opened(back)}, rows ${back.rows.length}`);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       agentsMode = 'live-unarmed';
       await openAgentsPage(page);
       await waitFor(async () => /selling what it holds/.test((await page.locator('#ag-modetab-live .ag-modetab-text').textContent()) || ''));
-      await page.waitForTimeout(150);
+      await atRest(page);
       const u0 = await readAgentsPanel(page);
       await shot(page, 'agents-tabs-live-unarmed');
       // In plain words, and amber: not a fault (Davies, 2026-09-24). Unarmed stops buys only, and this row holds ETH, which
@@ -4113,8 +4234,7 @@ async function run() {
       const u1 = await readAgentsPanel(page);
       if (u1.alerts.length === 0 && sbText(u1) === PAPER_SB && u1.rows.length === TESTING.rows) ok(T('unarmed'), 'TESTING carries no banner either');
       else fail(T('unarmed'), `TESTING banners ${JSON.stringify(u1.alerts)}, scoreboard ${sbText(u1)}`);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // ---- RW's parts add up to the total printed beside them (the ops read, 2026-09-24) ----------------------
       // AGENTS_RW_CENTS: figures whose parts, each rounded alone, missed their total by a cent.
@@ -4123,7 +4243,7 @@ async function run() {
       agentsMode = 'pr5-live';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
-      await page.waitForTimeout(150);
+      await atRest(page);
       const p0 = await readAgentsPanel(page);
       const pNames = (await page.locator('.ag-strategies-live .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const sb0 = sbText(p0);
@@ -4142,8 +4262,7 @@ async function run() {
       const liveRowEl = page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
       const liveRowGl = p0.rows[0]?.gl ?? [];
       await liveRowEl.first().click();
-      await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-quotes-live-detail');
       const lp = await readLivePage();
       await shot(page, 'agents-quotes-live');
       // Its round trips and exits, then its entries, scrolled into view (a modal scrolls inside itself).
@@ -4228,14 +4347,12 @@ async function run() {
         && lp.subs === 1 && lp.subsOff === 0 && (phoneView || lp.tableOverflow <= 1)) {
         ok(T('pr5-page'), `EXIT ORDERS (B's and E's resting exits) above ENTRY ORDERS (8: no closed trip's order, no empty cancel, no conversion), a resting order "open", each side buy or sell alone and no wider than the other columns (${JSON.stringify(lp.colWidths[1])}); Size shown in both and in ROUND TRIPS, all three inside the screen; the refusal's reason under it; nothing wider than the page${phoneView ? '' : ' or than its table\'s box'}`);
       } else fail(T('pr5-page'), `exits ${JSON.stringify(lp?.exits)}, entries ${lp?.entries.length} first "${lp?.entries[0]}" has 114 ${lp?.entries.includes(order114)}, sides ${JSON.stringify([...new Set(orderSides)])}, size shown ${lp?.sizeShown}, trips and orders past their boxes by ${lp?.liveTablesOverflow}px, widths ${JSON.stringify(lp?.colWidths)}, foot "${lp?.foot}", overflow ${lp?.overflow}, tables ${lp?.tableOverflow}, reasons ${lp?.subs} (${lp?.subsOff} off screen)`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       if (await page.locator('.ag-quotes-live-detail').count() === 0 && await page.locator('.ag-strategies-live .ag-row').count() === 1) ok(T('pr5-page'), 'closing it returns to LIVE');
       else fail(T('pr5-page'), 'the live page did not close back to LIVE');
       // With no exit order among its newest, the page has no EXIT ORDERS at all: ENTRY ORDERS follows ROUND TRIPS.
       agentsMode = 'pr5-live-noexit';
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
       await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
@@ -4246,8 +4363,7 @@ async function run() {
         ok(T('pr5-page'), 'with no exit order, no EXIT ORDERS: its entries alone, under ROUND TRIPS');
       } else fail(T('pr5-page'), `no exits: sections ${ln?.sections.join(',')}, exits ${ln?.exits.length}, entries ${ln?.entries.length}`);
       agentsMode = 'pr5-live';
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
 
       await clickTab('testing');
       const p1 = await readAgentsPanel(page);
@@ -4256,26 +4372,21 @@ async function run() {
       // TESTING's "Stablecoin quotes" opens its twin's page (Davies, 2026-10-02), never the live executor's: PAPER, its
       // own container, its line, its two books of three rungs and the fixture's three round trips.
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
-      await page.waitForSelector('.ag-quotes-twin-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-quotes-twin-detail');
       const pp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       if (pp && pp.livePages === 0 && pp.twinPages === 1 && pp.head === 'PAPER Revolut X' && pp.cards.map((c) => c.head).join(',') === 'USDC/GBP,USDT/GBP' && pp.cards.every((c) => c.ladder.length === 3)
         && pp.trips.length === 3 && pp.twinLines.length === 0) {
         ok(T('pr5-page'), "TESTING's Stablecoin quotes opens its twin's page, not the live executor's: PAPER, its two books of three rungs, 3 round trips, and its line");
       } else fail(T('pr5-page'), `TESTING's Stablecoin quotes: ${JSON.stringify(pp && { live: pp.livePages, twin: pp.twinPages, head: pp.head, books: pp.cards.map((c) => c.head), trips: pp.trips.length, lines: pp.twinLines })}`);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // Under hide-values, every money figure, price and size on the live page is masked; its counts and times are not.
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
-      await page.locator('.hide-eye').first().click();
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
       await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
-      await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-quotes-live-detail');
       const hp = await readLivePage();
       const digits = (/** @type {string} */ t) => /\d/.test(t);
       const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
@@ -4287,22 +4398,18 @@ async function run() {
         && hp.days.length === 2 && cellsAt(hp.days, [1]).join(',') === '18,6';
       if (hiddenOk) ok(T('pr5-page'), "hide-values masks the live page's money, prices and sizes, the loss stop in its scoreboard included, and keeps its counts and times");
       else fail(T('pr5-page'), `under the mask: scoreboard "${hp?.scoreboard}", ladder ${JSON.stringify(hp?.cards?.[0]?.ladder)}, balances ${JSON.stringify(hp?.balances)}, days ${JSON.stringify(hp?.days)}, trip ${JSON.stringify(hp?.trips?.[0])}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(200);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
-      await page.locator('.hide-eye').first().click();                       // values shown again for everything after this
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);                       // values shown again for everything after this
 
       agentsMode = 'rw-cents';
       await openAgentsPage(page);
       const rwRowC = page.locator('.ag-modepanel .ag-row', { has: nameBtn(page, 'Reward quotes') });
       await waitFor(async () => /55\.7/.test((await rwRowC.first().innerText()) || ''));
-      await page.waitForTimeout(150);
+      await atRest(page);
       const rowGl = (await rwRowC.first().locator('.ag-gl').allTextContents()).map((t) => t.trim().split(' (')[0]);
       await rwRowC.first().click();
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const rc = await page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
         const d = document.querySelector('.ag-rw-detail');
@@ -4324,10 +4431,8 @@ async function run() {
         ok(T('rw-cents'), `realised ${rc.realised} = ${rc.realisedSplit.join(' ')}; a market ${rc.market[0]} ${rc.market[1]} = ${rc.market[2]}; the row reads the page's`);
       } else fail(T('rw-cents'), `RW parts: ${JSON.stringify(rc)}, row ${rowGl.join(' | ')}`);
       agentsMode = 'ok';
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // RW-E's variants before 2026-09-28 00:00 UTC (AGENTS_RWX_WAITING): a row with nothing of its own yet has its start,
       // in UK time, where "every minute" was — two lines at most in the table's column — on a grey dot whose words say
@@ -4335,7 +4440,7 @@ async function run() {
       agentsMode = 'rwx-waiting';
       await openAgentsPage(page);
       await waitFor(async () => /8 Oct 01:00 BST/.test((await page.locator('.ag-strategies-testing').first().innerText().catch(() => '')) || ''));
-      await page.waitForTimeout(150);
+      await atRest(page);
       const waitRows = [];
       const STARTS = { 'Reward quotes variant-2': '28 Sep 01:00 BST', 'Reward quotes variant-3': '8 Oct 01:00 BST', 'Reward quotes variant-4': '8 Oct 01:00 BST' };
       for (const name of Object.keys(STARTS)) {
@@ -4362,8 +4467,7 @@ async function run() {
         ok(T('rwx-waiting'), 'a variant before its first minute has NEXT its start ("28 Sep 01:00 BST" for variant-2, "8 Oct 01:00 BST" for variant-3 and -4; two lines at most) on a grey dot that says "starts …", none of RW-E\'s figures, and fits its row');
       } else fail(T('rwx-waiting'), `waiting rows ${JSON.stringify(waitRows)}`);
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-3') }).first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const wEmpty = (await page.locator('.ag-rw-detail .hl-empty').allTextContents()).map((t) => t.trim());
       const wOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
       await shot(page, 'agents-rwx-waiting-page');
@@ -4371,10 +4475,8 @@ async function run() {
         ok(T('rwx-waiting'), "its page's days, quotes and fills each say when it starts, and nothing else");
       } else fail(T('rwx-waiting'), `waiting page: empty rows ${JSON.stringify(wEmpty)}, overflow ${wOverflow}`);
       agentsMode = 'ok';
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // RW-C (0069) is no row of its own (Davies, 2026-10-08: it is RW's rule's round 2, "合并进 Reward quotes"), not even in
       // its warm-up: a dashboard that still sends `rwc` (a function deployed before the switch was built, or a kept copy)
@@ -4382,7 +4484,7 @@ async function run() {
       agentsMode = 'rwc-warmup';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const cwConf = await page.locator('.ag-row', { has: page.locator('.ag-name-btn', { hasText: /confirmation/ }) }).count();
       const cwRows = await page.locator('.ag-strategies .ag-row').count();
       const cwRw = (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().innerText().catch(() => '')).replace(/\s+/g, ' ');
@@ -4390,8 +4492,7 @@ async function run() {
         ok(T('rwc-warmup'), `a dashboard still sending RW-C in its warm-up adds no "Reward quotes confirmation" row: ${TESTING.rows} rows, "Reward quotes" still RW's (+$12.50 today, +$42 realised)`);
       } else fail(T('rwc-warmup'), `confirmation rows ${cwConf}, rows ${cwRows} (want ${TESTING.rows}), Reward quotes row "${cwRw}"`);
       agentsMode = 'ok';
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // From RW-C's first minute (Davies, 2026-10-08) every Reward quotes row reads RW-C's run, as `readRwPage` sends it
       // then: "Reward quotes" RW-C's engine run (AGENTS_RW_RWC), variant-1 RW-E's replay of it (AGENTS_RWE_RWC), the other
@@ -4401,15 +4502,14 @@ async function run() {
       agentsMode = 'ok';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const rcBefore = await readAgentsPanel(page);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'rwc-running';
       await openAgentsPage(page);
       const rcRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') });
       await waitFor(async () => /\+\$7\.50 \(\+0\.75%\)/.test((await rcRow.first().innerText().catch(() => '')) || ''));
-      await page.waitForTimeout(150);
+      await atRest(page);
       const rcText = (await rcRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rcGreen = await rcRow.first().locator('.ag-dot-running').count();
       const rcN = await rcRow.count();
@@ -4436,8 +4536,7 @@ async function run() {
         ok(T('rwc-running'), `TESTING's scoreboard and the Polymarket card swap RW's figures for RW-C's once: funded unchanged, today -$5, unrealised -$0.20, realised -$18.40 (rewards -$18.40, orders 0), deployed -$28.40 on the card; the card's count ("${rcPmA?.meta}") and the tab's as before`);
       } else fail(T('rwc-running'), `scoreboard moves ${rcSbDiff.join(',')}, card moves ${rcCardDiff.join(',')} (meta "${rcPmB?.meta}" -> "${rcPmA?.meta}"), bar ${rcBar(rcBefore)} -> ${rcBar(rcAfter)}`);
       await rcRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const rcTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const rcSplit = (await page.locator('.ag-rw-detail .ag-scoreboard-sm .ag-sb-split-line').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const rcDays = (await page.locator('.ag-rw-days tbody tr td:first-child').allTextContents()).map((t) => t.trim());
@@ -4452,15 +4551,13 @@ async function run() {
         && rcRound === "Round 2: RW's rule on fresh days since 9 Oct 01:00 BST. Round 1's figures are not in it.") {
         ok(T('rwc-running'), "its page is RW-C's: \"Reward quotes\", realised = rewards +$23.20 + orders +$0.40, today and two closed days (no warm-up), 3 markets, 3 fills, no warning, and \"Round 2: RW's rule on fresh days since 9 Oct 01:00 BST\"");
       } else fail(T('rwc-running'), `Reward quotes page: title "${rcTitle}", split ${rcSplit.join('|')}, days ${rcDays.join(' | ')}, markets ${rcMarkets}, fills ${rcFills}, warnings ${rcWarn}, overflow ${rcOverflow}, round "${rcRound}"`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       // Variant-1 reads RW-E's replay of RW-C's run: its row RW-C's figures, its page saying so.
       const rceRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-1') });
       const rceText = (await rceRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const rceN = await rceRow.count();
       await rceRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const rceTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const rceSource = (await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|');
       if (rceN === 1 && /3 open · \$1,000 cap/.test(rceText) && /\+\$7\.50 \(\+0\.75%\)/.test(rceText) && /\+\$23\.60 \(\+2\.36%\)/.test(rceText) && /every minute/.test(rceText)
@@ -4469,8 +4566,7 @@ async function run() {
       } else fail(T('rwc-running'), `variant-1 on RW-C: row "${rceText}" (${rceN}), title "${rceTitle}", source "${rceSource}"`);
       // The other variant rows read RW-C's replay (AGENTS_RWX_RWC): still one row each, in RW's cells with their RW-C
       // figures, and each page says it reads RW-C's minutes since 9 Oct 01:00 BST.
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       const rcxRows = [];
       for (const name of ['Reward quotes variant-2', 'Reward quotes variant-3', 'Reward quotes variant-4']) {
         const el = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
@@ -4478,8 +4574,7 @@ async function run() {
       }
       const rcxTotal = await page.locator('.ag-strategies .ag-row').count();
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes variant-3') }).first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const rcxTitle = ((await page.locator('.modal .modal-title').last().textContent().catch(() => '')) || '').trim();
       const rcxSource = ((await page.locator('.ag-rw-detail .ag-rwx-source').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim())).join('|');
       const rcxOverflow = await page.locator('.ag-rw-detail').evaluate((el) => el.scrollWidth - el.clientWidth).catch(() => -1);
@@ -4490,10 +4585,8 @@ async function run() {
         ok(T('rwc-running'), "from RW-C's first minute the variant rows read RW-C's replay: one row each (no row added), their RW-C figures, and a page that says \"On RW-C's minutes since 9 Oct 01:00 BST\"");
       } else fail(T('rwc-running'), `variant rows on RW-C ${JSON.stringify(rcxRows)}, rows ${rcxTotal} (want ${TESTING.rows}), title "${rcxTitle}", source "${rcxSource}", overflow ${rcxOverflow}`);
       agentsMode = 'ok';
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
 
       // "Reward quotes mini-pool" (0077; Davies, 2026-10-01; named small-pool, and live-prep before that, until 2026-10-02:
       // that first name is the third instance's own row since 0091, served only in the `lp` mode below): the order path's own
@@ -4503,15 +4596,14 @@ async function run() {
       agentsMode = 'ok';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const prepBefore = await readAgentsPanel(page);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'prep';
       await openAgentsPage(page);
       const prRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') });
       await waitFor(async () => (await prRow.count()) === 1);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const prText = (await prRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const prGreen = await prRow.first().locator('.ag-dot-running').count();
       const prNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
@@ -4536,8 +4628,7 @@ async function run() {
         ok(T('prep'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; ${prSbDeployed} more on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6`);
       } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
       await prRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       // Its page is RW's (Davies, 2026-10-01: "the same as the other Reward quotes pages"), read the way RW's is.
       const prRead = () => page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
@@ -4578,17 +4669,13 @@ async function run() {
         && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {
         ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, their worst cases +$0.36 (today, live) and +$0.64 adding up to the +$1; each market's share, holdings by token and parts adding up; the four fills newest first");
       } else fail(T('prep'), `mini-pool page: ${JSON.stringify(prp)}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       // Under hide-values every amount, price and holding on its page is masked; counts, shares, days and times are not.
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
-      await page.locator('.hide-eye').first().click();
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);
       await openAgentsPage(page);
       await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') }).first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const prh = await prRead();
       const prDig = (/** @type {string} */ t) => /\d/.test(t);
       const prMasked = prh.sb.length > 0 && !prh.sb.some((t) => /\$\d/.test(t))
@@ -4598,12 +4685,9 @@ async function run() {
         && prh.fills.length === 4 && !prh.fills.some((r) => r.slice(3).some(prDig)) && prh.fills.every((r) => prDig(r[0]));
       if (prMasked) ok(T('prep'), `hide-values masks its page's amounts, prices and holdings and keeps its days, counts, shares and times (held reads "${prh.markets[0]?.[4]}")`);
       else fail(T('prep'), `under the mask: ${JSON.stringify(prh)}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(200);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(200);
-      await page.locator('.hide-eye').first().click();                       // values shown again for everything after this
-      await page.waitForTimeout(200);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);                       // values shown again for everything after this
       agentsMode = 'ok';
 
       // "Reward quotes mid-pool" (0081; Davies, 2026-10-02): the order path again on $10–$50 pools, filled on paper by the
@@ -4613,15 +4697,14 @@ async function run() {
       agentsMode = 'prep';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') }).count()) === 1);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const midBefore = await readAgentsPanel(page);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'mid';
       await openAgentsPage(page);
       const mdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') });
       await waitFor(async () => (await mdRow.count()) === 1);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const mdText = (await mdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const mdGreen = await mdRow.first().locator('.ag-dot-running').count();
       const mdNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
@@ -4645,8 +4728,7 @@ async function run() {
         ok(T('mid'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; ${mdSbDeployed} more on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7`);
       } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
       await mdRow.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const mdp = await page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
         const d = document.querySelector('.ag-rw-detail');
@@ -4685,10 +4767,8 @@ async function run() {
         && mdDayOk && mdMktOk && mdFillOk && mdp.warn === 0 && mdp.overflow >= 0 && mdp.overflow <= 1 && mdp.docOverflow <= 0) {
         ok(T('mid'), "its page is RW's, as mini-pool's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total, their worst cases +$1.90 (today, live) and +$2.30 adding up to the +$4.20; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
       } else fail(T('mid'), `mid-pool page: ${JSON.stringify(mdp)}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'ok';
 
       // "Reward quotes live-prep" (0091; Davies, 2026-10-04: the lead candidate to go live): the order path on every pool of
@@ -4698,15 +4778,14 @@ async function run() {
       agentsMode = 'mid';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).count()) === 1);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const lpBefore = await readAgentsPanel(page);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'lp';
       await openAgentsPage(page);
       const lpRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') });
       await waitFor(async () => (await lpRowEl.count()) === 1);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const lpText = (await lpRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
       const lpGreen = await lpRowEl.first().locator('.ag-dot-running').count();
       const lpNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
@@ -4727,8 +4806,7 @@ async function run() {
         ok(T('lp'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $32.10 (${lpSbDeployed} more on the scoreboard, shown to the dollar), today +$4.90, unrealised +$0.10, realised +$9.60 (rewards +$9.00, orders +$0.60); the card counts 8`);
       } else fail(T('lp'), `scoreboard adds ${lpSbDiff.join(',')}, card adds ${lpCardDiff.join(',')} (meta "${lpPmA?.meta}")`);
       await lpRowEl.first().click().catch(() => {});
-      await page.waitForSelector('.ag-rw-detail', { timeout: 5_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await settled(page, '.ag-rw-detail');
       const lpp = await page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
         const d = document.querySelector('.ag-rw-detail');
@@ -4753,10 +4831,8 @@ async function run() {
         && /^WORST CASE=\+\$4\.80$/.test(lpp.tiles[0] ?? '') && lpDayOk && lpFillOk && lpMktOk && lpp.overflow >= 0 && lpp.overflow <= 1 && lpp.docOverflow <= 0) {
         ok(T('lp'), "its page is RW's, as the other layers': realised = rewards +$9 + orders +$0.60; worst case +$4.80, by day today +$2.50 (live) and 16 Sep +$2.30; its three fills newest first, the sell of the YES it held at 43¢ first; F's pool of $120 a day; nothing wider than the screen");
       } else fail(T('lp'), `live-prep page: ${JSON.stringify(lpp)}`);
-      await page.locator('.ag-detail-close').last().click().catch(() => {});
-      await page.waitForTimeout(300);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'ok';
 
       // The paper tests the twins replaced keep running and the payload still carries them (`quotes`, `quotesVariant`,
@@ -4768,7 +4844,7 @@ async function run() {
       agentsMode = 'quotesv';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === TESTING.rows);
-      await page.waitForTimeout(150);
+      await atRest(page);
       const qvNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const qvPanel = await readAgentsPanel(page);
       const qvRevx = qvPanel.venues.find((v) => v.id === 'revx');
@@ -4780,8 +4856,7 @@ async function run() {
         ok(T('quotesv'), `with the paper tests in the payload, TESTING still has the twins alone (${TW.names.map((n) => `"${n}"`).join(', ')}), "variant-2" ${v2(TW.names)} time(s) as the twins name it, and its Revolut X card counts the twins (${qvWant[0]} funded, ${qvWant[1]} deployed)`);
       } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}, wanted ${qvWant.join(', ')}`);
       agentsMode = 'ok';
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
     } else fail(S('agents'), 'Agents menu item not found');
 
     // A phone subpage is ordinary flow, as tall as the screen, not a fixed
@@ -4821,7 +4896,8 @@ async function run() {
         if (pageFlow) ok(S('modal'), `${title} fills the screen in page flow and its title stays on it`);
         else fail(S('modal'), `${title} anchor ${JSON.stringify(anchored)}`);
         const tag = await page.addStyleTag({ content: '.modal-backdrop{height:940px!important;min-height:940px!important;bottom:auto!important;}' });
-        await page.waitForTimeout(80);
+        // Two frames for the new rule to be laid out and painted, not a fixed 80 ms (review F13).
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null)))));
         const geom = await page.evaluate(() => {
           const bds = [...document.querySelectorAll('.modal-backdrop')];
           const bd = bds[bds.length - 1];
@@ -4843,11 +4919,10 @@ async function run() {
         else fail(S('modal'), `${title} ${JSON.stringify(geom)}`);
       };
       const openMenuItem = async (item, title) => {
-        await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-        await page.waitForTimeout(200);
+        await openMenu(page);
         await page.locator(`.header-menu-item:text-is("${item}")`).first().click();
         await page.locator(`.modal .modal-title:text-is("${title}")`).first().waitFor({ timeout: 10_000 });
-        await page.waitForTimeout(350);
+        await atRest(page);
       };
       await openMenuItem('Holding list', 'Holding list');
       await phoneFills('Holding list');
@@ -4856,18 +4931,15 @@ async function run() {
         const ticker = ((await tickerBtn.locator('.hl-ticker').textContent()) || '').trim();
         await tickerBtn.click();
         await page.locator('.modal .modal-title').last().waitFor({ timeout: 8_000 }).catch(() => {});
-        await page.waitForTimeout(350);
+        await atRest(page);
         await phoneFills(ticker || 'ticker');
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await closeBy(page, () => page.keyboard.press('Escape'));
       } else fail(S('modal'), 'Holding list has no ticker to open');
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(300);
+      await closeBy(page, () => page.keyboard.press('Escape'));
       for (const item of ['Sectors list', 'Transaction history', 'Agents (beta)']) {
         await openMenuItem(item, item);
         await phoneFills(item);
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await closeBy(page, () => page.keyboard.press('Escape'));
       }
     }
 
@@ -4892,8 +4964,7 @@ async function run() {
     if (badge === 1 && invTabs === 0 && /^PERFORMANCE VS S&P/.test(title) && legend.length > 0 && !legend.some((l) => /VALUE|DEPOSITED/.test(l))) {
       ok(S('perf'), `VIEWER badge; the panel is "${title}" alone, legend ${JSON.stringify(legend.slice(0, 2))}, no Investment tab`);
     } else fail(S('perf'), `badge ${badge}, Investment tabs ${invTabs}, title "${title}", legend ${JSON.stringify(legend)}`);
-    await page.locator('.header-menu-btn, .header-menu button').first().click().catch(() => {});
-    await page.waitForTimeout(200);
+    await openMenu(page);
     const items = (await page.locator('.header-menu-item').allTextContents()).map((t) => t.trim());
     if (JSON.stringify(items) === JSON.stringify(['Holding list', 'Sectors list', 'Agents (beta)'])) ok(S('menu'), `menu ${JSON.stringify(items)}: no Transaction history`);
     else fail(S('menu'), `menu ${JSON.stringify(items)}`);

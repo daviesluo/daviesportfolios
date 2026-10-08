@@ -821,6 +821,30 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 16:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The browser tests wait on what they check, not on fixed sleeps** (review F13, approved by Davies 2026-10-08; the
+  scoreboard flake it named was the app's, fixed by the scoreboard's dash, below). The sweep had 163 `waitForTimeout`
+  calls, 143 of them fixed sleeps outside any polling loop, and the perf matrix 6: long on an idle machine and a guess
+  on a loaded one, where CI flaked (runs 37704688114 and 37711889690).
+  - **The sweep** (`src/e2e/app-sweep.mjs`): `readUntil` reads until the check's own condition holds (with `steady`,
+    also unchanged and nothing in flight off the page's server for that long); `closeBy` waits for a modal or detail to
+    be gone, `openMenu` for the menu's items, `settled` for a page to stop changing, `atRest` for no modal rising in,
+    `toggleHidden` for the eye's own label, `extSwitchIs` for the switch. `openAgentsPage` now waits for the dashboard
+    the page asks for on opening: it opens on the copy it last had, the previous section's payload, and the old 150 ms
+    after the tab bar read that copy whenever the answer was slower. Counterfactual: with the dashboard answered 1.2 s
+    late, the old sweep's `main` (desktop) fails 5 checks (`tabs/none`, `tabs/pr5-live`, two `tabs/pr5-page`,
+    `tabs/prep`), the new one none; at 400 ms both pass. The reload sections wait for the chart drawn, its 24H rows in
+    IndexedDB and the shown prices kept, not 2.5 s. Three fixed waits remain, each with its reason above it: two
+    things that must not happen (nothing more sent, no demo book) and a chunk's code running.
+  - **The perf matrix**: `settledPanel` (this view and range, drawn, still for 150 ms with nothing in flight) replaces
+    the 400 ms after each of the 60 range clicks and the other five sleeps.
+  - **The gate**: `src/e2e_waits.test.js` fails on a `waitForTimeout` outside a polling loop unless the comment above
+    it starts "a fixed wait:", and pins how many (3 and 0); on the old files the same rule finds 143 and 5 unsaid.
+  - Measured on this 4-core container, same bundle, all green both ways: alone, `main` desktop 83.0 → 52.4 s, phone
+    72.1 → 25.8 s, perf matrix 41.1 → 24.6 s; the bundle line's six readers at once (four shards, perf, size)
+    104 → 88 s (644 checks); two such sets at once (load ~23) 203 → 197 s, with no failure either way. CLAUDE.md's
+    testing notes say how the tests wait.
+
 ### [2026-10-08 16:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CI tests the committed bundle, requires it to be the commit's own build, and the deploy waits for CI** (review F7,
   approved by Davies 2026-10-08; the committed-bundle model kept). Until now the build stamp was the build's UTC minute,
