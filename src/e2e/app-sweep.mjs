@@ -740,8 +740,9 @@ const AGENTS_DASHBOARD = (() => {
     totals,
     venues: [
       { id: 'revx', canTrade: true, feeBps: { maker: 0, taker: 9 }, balances: { USD: 100 }, note: null, marks: { 'BTC/USD': 86000 } },
-      // Binance holds money and executes nothing: the dashboard reads its account, read-only, for this card (`binanceCard`).
-      { id: 'binance', canTrade: true, feeBps: { maker: 10, taker: 10 }, balances: { USDT: 50, BNB: 0.012 }, note: null, marks: {} },
+      // Binance as the dashboard sends it since its paper venue (`binancePaperVenue`, `0049`): paper rows only, no key, so
+      // no account is read and nothing can trade there. Its card is its rows' book alone.
+      { id: 'binance', canTrade: false, feeBps: { maker: 10, taker: 10 }, balances: null, note: null, marks: {} },
     ],
     strategies, openOrders: [], jev24h: { calls: 24, costUsd: 0.00044, avgLatencyMs: 480, providers: { openrouter: 24 } },
     // PR5's quotes on paper (`0051`): a row of TESTING STRATEGIES since 2026-09-23, with a page of its own. Consistent
@@ -1171,7 +1172,8 @@ const AGENTS_PAUSED = () => ({
   ...AGENTS_DASHBOARD,
   risk: { ...AGENTS_DASHBOARD.risk, global_pause: true },
   // Binance's likeliest fault: a dashboard call routed to a US region is refused by address (the page pins London).
-  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'binance' ? { ...v, canTrade: false, balances: null, note: 'account 451: 0 Service unavailable from a restricted location' } : v)),
+  // A venue fault as the dashboard words one now: Binance's public quotes refused from a restricted region.
+  venues: AGENTS_DASHBOARD.venues.map((v) => (v.id === 'binance' ? { ...v, note: 'quotes: binance /api/v3/ticker/bookTicker 451: Service unavailable from a restricted location' } : v)),
 });
 /**
  * The dashboard the day a row goes live: the six paper rows above, plus the go-live draft's `trend-4h-live`

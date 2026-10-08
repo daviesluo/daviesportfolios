@@ -24,7 +24,7 @@ export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
-/** The region the dashboard runs in: London, where Binance answers and the database lives. */
+/** The region the dashboard runs in: London, where the database lives (and where Binance answers, for a Binance row). */
 export const DASHBOARD_REGION = 'eu-west-2';
 /** @param {string} kind */
 export const kindLabel = (kind) => KIND_LABELS[kind] ?? kind;
@@ -108,8 +108,10 @@ function agentsFetchError(scope, status, text) {
 export async function fetchAgentsDashboard(fetchImpl = fetch) {
   const seq = dashGuard.start();
   const request = (async () => {
-    // Pinned to London: the dashboard reads the Binance account, and Binance refuses the US regions a call routed by
-    // distance could land in (451). A query parameter, not the `x-region` header, so the CORS preflight is unchanged.
+    // Pinned to London, beside the database it reads. It once read the Binance account too, which refuses the US
+    // regions a call routed by distance could land in (451); since `0065` it holds no Binance key and asks Binance only
+    // for the marks of a Binance row, and there is none. A query parameter, not the `x-region` header, so the CORS
+    // preflight is unchanged.
     const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=dashboard&forceFunctionRegion=${DASHBOARD_REGION}`, { headers: headers() });
     const text = await res.text();
     if (!res.ok) throw agentsFetchError('dashboard', res.status, text);

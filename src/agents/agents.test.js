@@ -107,7 +107,7 @@ describe('fetchAgentsDashboard', () => {
   it('sends the app token and surfaces the server message on failure', async () => {
     sessionStorage.setItem('dp.token', 'tok.sig');
     const fetchImpl = vi.fn(async (url, init) => {
-      // Pinned to London: the dashboard reads the Binance account, and Binance refuses a US region (451).
+      // Pinned to London, beside the database (and Binance, which refuses a US region with 451, for a Binance row).
       expect(String(url)).toMatch(/\/functions\/v1\/agents\?action=dashboard&forceFunctionRegion=eu-west-2$/);
       expect(init.headers['X-App-Token']).toBe('tok.sig');
       return new Response(JSON.stringify({ at: 'x', strategies: [] }), { status: 200 });

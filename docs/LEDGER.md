@@ -821,6 +821,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The sweep's Binance venue is the one the dashboard sends, and the London pin says why it stays** (review M2,
+  approved by Davies 2026-10-08). The fixture's Binance venue read an account (`canTrade: true`, USDT and BNB
+  balances) that the dashboard has not read since Binance became a keyless paper venue (`binancePaperVenue`, `0049`):
+  it is now `canTrade: false`, no balances, and the paused fixture's fault is worded as the dashboard words one now
+  (`quotes: binance … 451`). The three Binance paper rows `0065` deleted STAY in the fixture: its comment says why (a
+  venue with rows of its own beside Revolut X, and Binance's card, stay tested), and a venue with no row getting no
+  card is pinned in `agents.test.js`; my finding missed that comment. `agents.js` and its test: the dashboard stays
+  pinned to London, beside the database; Binance's 451 to US regions is now the reason only for a Binance row. Sweep
+  `main` 242 and 250 green on the rebuilt bundle; agents unit tests 129 pass.
+
 ### [2026-10-08 17:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Trading 212 cash-movement walk is gone from `trading212`** (review M1, approved by Davies 2026-10-08):
   `?action=history-sync`, `?action=transactions`, the walk, its page fetcher, shaper and cursor helpers, about 400
