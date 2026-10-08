@@ -131,7 +131,7 @@ import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
 import { extPriceIsRealAh } from '../charts/indicators.js';
 import { isUsEquity } from '../prices/ticker_class.js';
-import { fetchTrading212Holdings, fetchTrading212Orders, fetchTrading212Dividends, syncTrading212History, applyTrading212, applyTrading212NightPrice } from '../portfolio/trading212.js';
+import { fetchTrading212Holdings, fetchTrading212Orders, fetchTrading212Dividends, syncTrading212History, applyTrading212Answer, applyTrading212NightPrice, stripClosedFromPositions } from '../portfolio/trading212.js';
 import { applyFillLedgers, dividendEventsByTicker, fillCurrencyConflicts, withClosedFromFills, withDividendCosts } from '../portfolio/t212_fills.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 
@@ -436,6 +436,27 @@ function Board({ isReadOnly }) {
   // A dividend not yet converted is only reported once it is two days old;
   // the next sync normally converts it.
   const currencyReportedRef = useRef('');
+  // A Trading 212 slice the broker no longer reports but the sync could not take off (`settleSoldOutSlices`): reported
+  // to the errors box once it has stood for ten minutes, since a sale's fill reaches `t212_orders` a few minutes after
+  // the position leaves the broker's answer, and once per distinct set a session. Idempotent, so the state updater that
+  // calls it may run twice.
+  const heldSinceRef = useRef(/** @type {Map<string, number>} */ (new Map()));
+  const heldReportedRef = useRef('');
+  const noteHeldSlices = useCallback((/** @type {Array<{ ticker: string, reason: string }>} */ held) => {
+    const now = Date.now();
+    const keys = new Set(held.map((x) => `${x.ticker}|${x.reason}`));
+    for (const k of [...heldSinceRef.current.keys()]) if (!keys.has(k)) heldSinceRef.current.delete(k);
+    for (const k of keys) if (!heldSinceRef.current.has(k)) heldSinceRef.current.set(k, now);
+    const due = held.filter((x) => now - (heldSinceRef.current.get(`${x.ticker}|${x.reason}`) ?? now) >= 10 * 60e3);
+    if (due.length === 0) return;
+    const key = JSON.stringify(due);
+    if (key === heldReportedRef.current) return;
+    heldReportedRef.current = key;
+    reportError('t212.slice', {
+      message: `Trading 212 no longer reports ${due.map((x) => x.ticker).join(', ')}, and the board was left as it is: ${due.map((x) => `${x.ticker}: ${x.reason}`).join('; ')}`,
+      context: { held: due },
+    });
+  }, []);
   useEffect(() => {
     if (!portfolio?.holdings) return;
     const fills = fillCurrencyConflicts(t212Orders, portfolio.holdings);
@@ -1000,7 +1021,12 @@ function Board({ isReadOnly }) {
       //      after-hours keep the original Yahoo logic untouched.
       // When the API key isn't set or the upstream errored,
       // t212Holdings is null → both calls no-op.
-      applyTrading212(next.holdings, t212Holdings?.holdings, t212Holdings?.prices);
+      //   3. A tagged slice the answer no longer reports is taken off
+      //      only when the answer read every account and the stored
+      //      fills net it to zero (`settleSoldOutSlices`): a sale made
+      //      in full at Trading 212 used to stay on the board for good.
+      //      Anything less is held back and reported, never guessed.
+      noteHeldSlices(applyTrading212Answer(next.holdings, t212Holdings, t212OrderRows).held);
       // Then give each synced holding the broker's own trade history in
       // place of whatever stood in for it. The board carried ONE lot of
       // `59 @ 144.31` for SPCX — T212's average price, not a trade that
@@ -1072,7 +1098,9 @@ function Board({ isReadOnly }) {
         if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
         flashTimerRef.current = setTimeout(() => setFlashTickers({}), 1200);
       }
-      return next;
+      // A position the sync closed (a slice sold out above, or an allow-list ETF at zero) leaves the board as a sale
+      // typed into the lot editor does, and returns to its slot if it is bought again (`t212PositionKey`).
+      return stripClosedFromPositions(next);
     });
     // Make sure the overnight cache write has landed before we mark
     // the refresh "done" — so a user who clicks a tile right after
@@ -1128,7 +1156,7 @@ function Board({ isReadOnly }) {
       // Always clear the spinner, success or throw.
       setIsRefreshing(false);
     }
-  }, [portfolio, extendedHours, quoteGuard]);
+  }, [portfolio, extendedHours, quoteGuard, noteHeldSlices]);
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);

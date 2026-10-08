@@ -813,6 +813,21 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A position sold out in full at Trading 212 now leaves the board** (review F1, approved by Davies 2026-10-08).
+  `/equity/positions` drops a ticker sold in full, and the function sent explicit zeros only for the two allow-list
+  ETFs, so a tagged slice was never taken off: the board kept the shares at the live price for good and the lot
+  editor read "pending" for ever (repro in the review: a 50-share board with a 20-share T212 slice still read 50 after
+  the 20 were sold). The `trading212` answer now says whether it read every account (`complete`, `everyAccountRead`;
+  stored with the cache row, false for a fallback or an older row), and `settleSoldOutSlices` takes a tagged slice the
+  answer no longer reports to zero by the settled delta rule only when the answer is complete AND the stored fills
+  net to zero; the other platform's shares stay. Otherwise the board is left as it is and, once it has stood ten
+  minutes, the errors box gets a `t212.slice` row naming the holding and why. A position closed this way leaves its
+  slot (`stripClosedFromPositions`, tested but never wired until now; no closed holding is on the board today).
+  Pins: six vitest cases in `trading212.test.js` (four fail with the fix reverted), `unpackCache` and
+  `everyAccountRead` in the function's Deno tests (72 pass). The function redeploys with it; an old client ignores the
+  new field, and a new client before the deploy only warns. Guide, map rows and the skill's T212 section updated.
+
 ### [2026-10-08 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Item 3's $150 step (wake `trig_01THvHcphx5gngXugfwwy788`): read-only checks by a sub-agent, the decision kept in
   the main session. Three conditions pass and the money is there (USD 120.00), but CW-5 names the live row once (the

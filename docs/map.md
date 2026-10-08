@@ -528,7 +528,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `portfolio/lots.js` | Cleans and sums the buy lots the editor collects. |
 | `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys, sells and dividends. |
 | `portfolio/fx.js` | Which currency a ticker trades in, and its rate to USD. |
-| `portfolio/trading212.js` | The client half of the broker sync: positions, live prices, the fill history in each fill's own currency and the dividends, applied without touching shares held at another platform. |
+| `portfolio/trading212.js` | The client half of the broker sync: positions, live prices, the fill history in each fill's own currency and the dividends, applied without touching shares held at another platform; a slice sold out at the broker comes off only when every account answered and its fills net to zero. |
 | `portfolio/t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere; turns its dividends into the ledger's events and the average cost the site shows. |
 
 #### `prices/` — prices, history and the caches
@@ -600,7 +600,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `prices` | Live quotes for every holding and market card from Yahoo, and Chinese funds from Eastmoney. |
 | `chart` | Price bars for the charts, from Yahoo or Eastmoney. |
 | `fundamentals` | P/E, P/S, EPS history and market cap from Yahoo, Finnhub and Alpha Vantage, cached; one file per source (`_yahoo.ts`, `_finnhub.ts`, `_alphavantage.ts`) plus `_caches.ts`, `_math.ts` and `_shared.ts`. |
-| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit, its fill history with each fill's currency, and the dividends both accounts received. |
+| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit and saying whether every account answered, its fill history with each fill's currency, and the dividends both accounts received. |
 | `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker, in the board's units (a price 100 times the board's own is never written). |
 | `overnight-record` | Run by pg_cron through the US overnight session: records Trading 212's overnight quotes. |
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |

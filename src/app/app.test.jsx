@@ -65,8 +65,9 @@ vi.mock('../portfolio/trading212.js', () => ({
   fetchTrading212Orders: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
   fetchTrading212Dividends: vi.fn(() => Promise.resolve({ rows: [], complete: false })),
   syncTrading212History: vi.fn(() => Promise.resolve(null)),
-  applyTrading212: (h) => h,
+  applyTrading212Answer: () => ({ zeroed: [], held: [] }),
   applyTrading212NightPrice: (h) => h,
+  stripClosedFromPositions: (p) => p,
 }));
 vi.mock('../portfolio/portfolio_remote.js', () => ({
   loadPortfolioRemote: vi.fn(() => Promise.resolve(null)),

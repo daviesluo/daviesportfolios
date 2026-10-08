@@ -9,12 +9,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   applyTrading212,
+  applyTrading212Answer,
   applyTrading212NightPrice,
   clearTrading212OrdersCache,
   fetchTrading212Orders,
   lotsFromOrders,
+  settleSoldOutSlices,
   stripClosedFromPositions,
 } from './trading212.js';
+import { applyFillLedgers, ledgerProvenance } from './t212_fills.js';
+import { computeMetrics } from './metrics.js';
 
 describe('applyTrading212', () => {
   it('syncs the T212 slice without replacing the user ledger; leaves other tickers alone', () => {
@@ -599,5 +603,86 @@ describe('the broker-priced listings', () => {
     const board = setIn('src/portfolio/trading212.js', 'T212_LIVE_PRICE_TICKERS');
     expect(board).toEqual(['SAEM.L', 'VUAA.L']);
     expect(setIn('supabase/functions/snapshot-record/index.ts', 'BOARD_T212_PRICED')).toEqual(board);
+  });
+});
+
+// A position sold out in full at Trading 212 leaves `/equity/positions`, so its row is simply missing from the answer.
+// Until 2026-10-08 nothing took its tagged slice off: the board kept the shares at the live price for good, and the lot
+// editor said "pending" for ever, because the fills, sold to zero, no longer netted to the board. Synthetic book only.
+describe('applyTrading212Answer — a slice sold out at the broker', () => {
+  const fill = (side, shares, at) => ({ ticker: 'ACME', executed_at: at, side, shares, price: side === 'sell' ? 130 : 100, account: 'invest', currency: 'USD' });
+  // 50 shares: 30 held at another platform (their own lot), 20 the Trading 212 slice (tagged).
+  const mixed = () => ({
+    ACME: {
+      shares: 50, cost: 100, t212Shares: 20, t212Cost: 100, lastPrice: 120, prevClose: 120, currency: 'USD',
+      lots: [{ date: '2026-01-02', shares: 30, cost: 100, src: 'other' }, { date: '2026-02-01', shares: 20, cost: 100, ts: Date.parse('2026-02-01T15:00:00Z') }],
+      sells: [],
+    },
+  });
+  const soldOut = [fill('buy', 20, '2026-02-01T15:00:00Z'), fill('sell', 20, '2026-10-06T15:00:00Z')];
+
+  it('takes the slice off when every account was read and its fills net to zero; the other platform\'s shares stay', () => {
+    const holdings = mixed();
+    const out = applyTrading212Answer(holdings, { holdings: {}, prices: {}, complete: true }, soldOut, '2026-10-08');
+    expect(out).toEqual({ zeroed: ['ACME'], held: [] });
+    expect(holdings.ACME.shares).toBe(30);
+    expect(holdings.ACME.t212Shares).toBe(0);
+    expect(holdings.ACME.closed).toBeUndefined();
+    // The ledger then rebuilds from the fills plus the other platform's lot, and nets to the board.
+    expect(applyFillLedgers(holdings, soldOut)).toEqual(['ACME']);
+    expect(holdings.ACME.lots.filter((l) => l.src === 'other')).toHaveLength(1);
+    expect(holdings.ACME.sells).toHaveLength(1);
+    expect(ledgerProvenance(holdings.ACME, soldOut, 'ACME', true).state).toBe('synced');
+    // And the book values 30 shares, not 50.
+    expect(computeMetrics({ holdings, positions: { A: { role: 'FWD', tickers: ['ACME'] } } }).marketValue).toBe(30 * 120);
+  });
+
+  it('closes a position held only at Trading 212, and it leaves the board', () => {
+    const holdings = { ACME: { shares: 20, cost: 100, t212Shares: 20, t212Cost: 100, lastPrice: 120, prevClose: 120, currency: 'USD',
+      lots: [{ date: '2026-02-01', shares: 20, cost: 100, ts: Date.parse('2026-02-01T15:00:00Z') }], sells: [] } };
+    expect(applyTrading212Answer(holdings, { holdings: {}, prices: {}, complete: true }, soldOut).zeroed).toEqual(['ACME']);
+    expect(holdings.ACME.shares).toBe(0);
+    expect(holdings.ACME.closed).toBe(true);
+    applyFillLedgers(holdings, soldOut);
+    expect(ledgerProvenance(holdings.ACME, soldOut, 'ACME', true).state).toBe('synced');
+    const portfolio = stripClosedFromPositions({ holdings, positions: { A: { role: 'FWD', tickers: ['ACME'] } } });
+    expect(portfolio.positions.A.tickers).toEqual([]);
+    expect(computeMetrics(portfolio).marketValue).toBe(0);
+  });
+
+  it('holds the board as it is when the answer did not read every account', () => {
+    const holdings = mixed();
+    const out = applyTrading212Answer(holdings, { holdings: {}, prices: {}, complete: false }, soldOut);
+    expect(out.zeroed).toEqual([]);
+    expect(out.held).toEqual([{ ticker: 'ACME', reason: "the broker's answer did not cover every account" }]);
+    expect(holdings.ACME.shares).toBe(50);
+    expect(holdings.ACME.t212Shares).toBe(20);
+    // An answer from before the flag existed is the same as an incomplete one.
+    expect(applyTrading212Answer(holdings, { holdings: {}, prices: {} }, soldOut).held).toHaveLength(1);
+  });
+
+  it('holds when the stored fills do not net to zero (the sale has not reached them yet), or there are none', () => {
+    const holdings = mixed();
+    const onlyBuy = [fill('buy', 20, '2026-02-01T15:00:00Z')];
+    expect(applyTrading212Answer(holdings, { holdings: {}, prices: {}, complete: true }, onlyBuy).held)
+      .toEqual([{ ticker: 'ACME', reason: 'its stored fills net to 20 shares, not zero' }]);
+    expect(applyTrading212Answer(holdings, { holdings: {}, prices: {}, complete: true }, []).held)
+      .toEqual([{ ticker: 'ACME', reason: 'no stored fill shows the sale yet' }]);
+    expect(holdings.ACME.shares).toBe(50);
+  });
+
+  it('leaves a slice the answer still reports to the delta rule, and never touches an untagged holding', () => {
+    const holdings = { ...mixed(), HAND: { shares: 7, cost: 10, lastPrice: 12, currency: 'USD', lots: [{ date: '2026-01-02', shares: 7, cost: 10 }], sells: [] } };
+    const out = applyTrading212Answer(holdings, { holdings: { ACME: { shares: 15, cost: 100 } }, prices: {}, complete: true }, soldOut);
+    expect(out).toEqual({ zeroed: [], held: [] });
+    expect(holdings.ACME.shares).toBe(45);       // 30 elsewhere + the 15 still reported
+    expect(holdings.HAND.shares).toBe(7);        // no tag: not the broker's
+  });
+
+  it('changes nothing without an answer', () => {
+    const holdings = mixed();
+    expect(applyTrading212Answer(holdings, null, soldOut)).toEqual({ zeroed: [], held: [] });
+    expect(settleSoldOutSlices(holdings, null, soldOut, { complete: true })).toEqual({ zeroed: [], held: [] });
+    expect(holdings.ACME.shares).toBe(50);
   });
 });

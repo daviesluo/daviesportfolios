@@ -13,6 +13,7 @@
 //   GET /functions/v1/trading212
 //     →  { holdings: { 'VUAA.L': { shares, cost }, 'SAEM.L': { ... } },
 //          prices:   { 'VUAA.L': 98.4, 'AAPL': 234.5, ... },
+//          complete: boolean,   // the map is every account's answer (`everyAccountRead`)
 //          updatedAt: ISO-string,
 //          source: 'cache' | 'live' | 'stale' | 'disabled' }
 //
@@ -861,12 +862,24 @@ export function shapeT212Portfolio(
  */
 export function unpackCache(
   data: unknown,
-): { holdings: Record<string, unknown>; prices: Record<string, number> } {
+): { holdings: Record<string, unknown>; prices: Record<string, number>; complete: boolean } {
   if (data && typeof data === "object" && !Array.isArray(data) && "holdings" in (data as object)) {
-    const d = data as { holdings?: Record<string, unknown>; prices?: Record<string, number> };
-    return { holdings: d.holdings ?? {}, prices: d.prices ?? {} };
+    const d = data as { holdings?: Record<string, unknown>; prices?: Record<string, number>; complete?: unknown };
+    return { holdings: d.holdings ?? {}, prices: d.prices ?? {}, complete: d.complete === true };
   }
-  return { holdings: (data as Record<string, unknown>) ?? {}, prices: {} };
+  return { holdings: (data as Record<string, unknown>) ?? {}, prices: {}, complete: false };
+}
+
+/**
+ * Whether one positions answer covers every account the function reads: the Invest account (read, or the call threw
+ * before getting here) and, when an ISA key is set, an ISA answer that parsed. When the ISA read fails,
+ * `mergeShapedWithFallback` answers with the previous combined map, which is not this minute's account; so the answer
+ * says it is not complete, and the client then never takes a ticker's absence as the broker's word that it was sold.
+ * Stored with the cache row, so a cached answer says what the call that wrote it read. A row written before this flag
+ * existed reads false. Pure, for testing.
+ */
+export function everyAccountRead(isaRequired: boolean, isaShaped: unknown): boolean {
+  return !isaRequired || isaShaped != null;
 }
 
 /**
@@ -2152,10 +2165,11 @@ if (import.meta.main) {
       const now = Date.now();
       const cached = await readCacheRow();
       if (cached && cacheIsFresh(cached.updated_at, now, CACHE_TTL_MS)) {
-        const { holdings, prices } = unpackCache(cached.data);
+        const { holdings, prices, complete } = unpackCache(cached.data);
         return new Response(JSON.stringify({
           holdings,
           prices,
+          complete,
           updatedAt: cached.updated_at,
           source: "cache",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -2171,10 +2185,11 @@ if (import.meta.main) {
         const refreshed = await readCacheRow();
         const row = refreshed || cached;
         if (row) {
-          const { holdings, prices } = unpackCache(row.data);
+          const { holdings, prices, complete } = unpackCache(row.data);
           return new Response(JSON.stringify({
             holdings,
             prices,
+            complete,
             updatedAt: row.updated_at,
             source: "cache",
           }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -2182,6 +2197,7 @@ if (import.meta.main) {
         return new Response(JSON.stringify({
           holdings: {},
           prices: {},
+          complete: false,
           updatedAt: new Date().toISOString(),
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -2227,11 +2243,15 @@ if (import.meta.main) {
             merged.holdings as Record<string, T212HoldingSlice>,
             previous?.holdings,
           ),
+          // Whether this map is every account's answer of this call (`everyAccountRead`): the one thing that lets the
+          // client read a tagged ticker's absence as a sale.
+          complete: everyAccountRead(!!T212_ISA_API_KEY, isaShaped),
         };
         await writeCacheRow(shaped);
         return new Response(JSON.stringify({
           holdings: shaped.holdings,
           prices: shaped.prices,
+          complete: shaped.complete,
           updatedAt: new Date().toISOString(),
           source: "live",
         }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -2242,10 +2262,11 @@ if (import.meta.main) {
         // blank the lots out client-side.
         console.error("T212 upstream error:", e instanceof Error ? e.message : e);
         if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
-          const { holdings, prices } = unpackCache(cached.data);
+          const { holdings, prices, complete } = unpackCache(cached.data);
           return new Response(JSON.stringify({
             holdings,
             prices,
+            complete,
             updatedAt: cached.updated_at,
             source: "stale",
           }), { headers: { ...CORS, "content-type": "application/json" } });
@@ -2253,6 +2274,7 @@ if (import.meta.main) {
         return new Response(JSON.stringify({
           holdings: {},
           prices: {},
+          complete: false,
           updatedAt: new Date().toISOString(),
           source: "stale",
         }), { headers: { ...CORS, "content-type": "application/json" } });

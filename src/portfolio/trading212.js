@@ -35,12 +35,14 @@ import { detectCurrency } from './fx.js';
 /**
  * Fetch the current T212 snapshot. Returns null on any failure
  * (network, non-2xx, malformed JSON, T212 disabled), otherwise
- * `{ holdings, prices }`:
+ * `{ holdings, prices, complete }`:
  *   - `holdings`: `{ ticker: { shares, cost } }` for the allow-list.
  *     `cost` is per-share AC (same convention as `lot.cost` / `h.cost`
  *     — multiplied by shares to get total cost).
  *   - `prices`: `{ ticker: currentPrice }` (USD) for every recognised
  *     T212 holding — the broker's live quote, used for overnight pricing.
+ *   - `complete`: true when the map is every account's answer of the call
+ *     that produced it; false for a fallback or an older cache row.
  *
  * Sends the same `x-app-token` the `data` function uses — the T212
  * function 401s anonymous callers so holdings aren't leaked via the
@@ -54,6 +56,7 @@ import { detectCurrency } from './fx.js';
  *     previousCost?: number,
  *   }>,
  *   prices: Record<string, number>,
+ *   complete: boolean,
  * } | null>}
  */
 export async function fetchTrading212Holdings() {
@@ -115,7 +118,9 @@ export async function fetchTrading212Holdings() {
       }
     }
 
-    return { holdings, prices };
+    // Whether the map is every account's answer (the function's `everyAccountRead`): only then may a ticker missing
+    // from it be read as sold (`settleSoldOutSlices`). An answer from before the flag existed reads false.
+    return { holdings, prices, complete: json.complete === true };
   } catch {
     return null;
   }
@@ -507,6 +512,81 @@ export function applyTrading212(holdings, t212Holdings, prices, today, orders) {
   // Replacing their ledger was the production data-loss bug.
   void orders;
   return holdings;
+}
+
+/** Shares below this are float dust, not a position. */
+const SLICE_EPS = 1e-6;
+
+/**
+ * A Trading 212 slice the broker no longer reports: sold out there, or not.
+ *
+ * `/equity/positions` lists what is held, so a position sold out at Trading 212 simply leaves the answer, and nothing
+ * in `applyTrading212` (which walks the answer's rows) ever took its tagged slice off the board: the shares stayed,
+ * valued at the live price, for good, and the lot editor called the ledger "pending" forever because the fills, sold to
+ * zero, no longer netted to the board's count. A missing row is not evidence on its own, though: an answer that read one
+ * account of two, or a stale fallback, misses rows too, and a sync that deletes shares on a guess is how this book
+ * lost them before. So a tagged slice is taken off only when BOTH say it is gone:
+ *   - the answer is every account's (`complete`, the function's `everyAccountRead`), and
+ *   - the stored fills for the ticker (both accounts, `t212_orders`) exist and net to zero shares.
+ * Then the settled rule applies as for any other change: only the slice's delta moves, here down to zero
+ * (`applyTrading212` with a zero row), so the shares held at another platform stay exactly as they were. Anything else
+ * is held, with its reason, for the caller to report; the board is not touched.
+ *
+ * @param {Record<string, any>} holdings  live portfolio map (mutated)
+ * @param {Record<string, any> | null | undefined} t212Holdings  the answer's `holdings` map
+ * @param {Array<any> | null | undefined} orders  the stored fills (`fetchTrading212Orders` rows)
+ * @param {{ complete?: boolean, today?: string }} [opts]
+ * @returns {{ zeroed: string[], held: Array<{ ticker: string, reason: string }> }}
+ */
+export function settleSoldOutSlices(holdings, t212Holdings, orders, opts = {}) {
+  /** @type {string[]} */ const zeroed = [];
+  /** @type {Array<{ ticker: string, reason: string }>} */ const held = [];
+  if (!holdings || !t212Holdings || typeof t212Holdings !== 'object') return { zeroed, held };
+  const rows = Array.isArray(orders) ? orders : [];
+  for (const [t, h] of Object.entries(holdings)) {
+    if (!h || h.isCash || !(Number(h.t212Shares) > SLICE_EPS)) continue;
+    if (Object.prototype.hasOwnProperty.call(t212Holdings, t)) continue;
+    if (opts.complete !== true) {
+      held.push({ ticker: t, reason: "the broker's answer did not cover every account" });
+      continue;
+    }
+    let fills = 0, net = 0;
+    for (const o of rows) {
+      if (o?.ticker !== t) continue;
+      const n = Math.abs(Number(o.shares));
+      if (!Number.isFinite(n) || n <= 0) continue;
+      fills++;
+      net += o.side === 'sell' ? -n : n;
+    }
+    if (fills === 0) {
+      held.push({ ticker: t, reason: 'no stored fill shows the sale yet' });
+      continue;
+    }
+    if (Math.abs(net) > SLICE_EPS) {
+      held.push({ ticker: t, reason: `its stored fills net to ${Number(net.toFixed(6))} shares, not zero` });
+      continue;
+    }
+    applyTrading212(holdings, { [t]: { shares: 0, cost: 0 } }, null, opts.today);
+    zeroed.push(t);
+  }
+  return { zeroed, held };
+}
+
+/**
+ * One positions answer applied to the book: each reported slice's delta (`applyTrading212`), then each tagged slice the
+ * answer no longer reports (`settleSoldOutSlices`). Mutates `holdings`; returns what was held back, for the caller to
+ * report. A null answer (the sync failed or is off) changes nothing.
+ *
+ * @param {Record<string, any>} holdings
+ * @param {{ holdings?: Record<string, any>, prices?: Record<string, number>, complete?: boolean } | null | undefined} answer
+ * @param {Array<any> | null | undefined} orders
+ * @param {string} [today]
+ * @returns {{ zeroed: string[], held: Array<{ ticker: string, reason: string }> }}
+ */
+export function applyTrading212Answer(holdings, answer, orders, today) {
+  if (!answer) return { zeroed: [], held: [] };
+  applyTrading212(holdings, answer.holdings, answer.prices, today);
+  return settleSoldOutSlices(holdings, answer.holdings, orders, { complete: answer.complete === true, today });
 }
 
 /**

@@ -396,6 +396,14 @@ Changing any of these means re-opening a decision he has already made.
   fills for the ticker, ticks the ones the ledger already has, and
   folds the rest in only when he clicks. Every data loss in this repo
   came from a sync deciding it knew better.
+- **A slice sold out at the broker comes off only on two signals**
+  (2026-10-08). `/equity/positions` drops a ticker sold in full, and
+  until then nothing took its tagged slice off: the board kept the
+  shares for good. Now the slice goes to zero by the delta rule (other
+  platforms' shares stay) only when the answer read every account
+  (`complete`, the function's `everyAccountRead`) AND the stored fills
+  net to zero (`settleSoldOutSlices`); anything less is reported, never
+  guessed. A missing row alone is not the broker's word.
 
 - **Only `VUAA.L` / `SAEM.L` may take the broker's quote as
   `lastPrice`.** Their Yahoo feed lags 15-20 min; every other holding's

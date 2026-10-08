@@ -41,6 +41,7 @@ import {
   ordersItemsOf,
   t212TickerToYahoo,
   unpackCache,
+  everyAccountRead,
   mergeShaped,
   mergeShapedWithFallback,
   attachPreviousHoldingSlices,
@@ -263,13 +264,25 @@ Deno.test("shapeT212Portfolio — malformed nested instrument is skipped (not th
 
 Deno.test("unpackCache — new {holdings, prices} shape passes through", () => {
   const data = { holdings: { "VUAA.L": { shares: 1, cost: 90 } }, prices: { "AAPL": 234 } };
-  assertEquals(unpackCache(data), data);
+  // A row written before the `complete` flag existed reads as not complete.
+  assertEquals(unpackCache(data), { ...data, complete: false });
+  assertEquals(unpackCache({ ...data, complete: true }), { ...data, complete: true });
+  assertEquals(unpackCache({ ...data, complete: "yes" }).complete, false);
 });
 
 Deno.test("unpackCache — legacy holdings-map shape is treated as holdings with empty prices", () => {
   // Pre-this-version cache rows stored the holdings map directly.
   const legacy = { "VUAA.L": { shares: 1, cost: 90 } };
-  assertEquals(unpackCache(legacy), { holdings: legacy, prices: {} });
+  assertEquals(unpackCache(legacy), { holdings: legacy, prices: {}, complete: false });
+});
+
+Deno.test("everyAccountRead — an answer is the broker's whole word only when every account it reads was read", () => {
+  // No ISA key: the Invest answer is every account.
+  assertEquals(everyAccountRead(false, null), true);
+  // An ISA key and an ISA answer that parsed.
+  assertEquals(everyAccountRead(true, { holdings: {}, prices: {}, valid: true }), true);
+  // An ISA key and no usable ISA answer: mergeShapedWithFallback answered with an older map.
+  assertEquals(everyAccountRead(true, null), false);
 });
 
 Deno.test("cacheIsFresh — within TTL is fresh", () => {

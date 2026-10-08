@@ -112,6 +112,12 @@ Tap a tile to open its chart.
   listings trade in dollars and some in pence, and pence are booked as
   pounds. If the broker ever disagrees with what the board expects, the
   errors box says so.
+- **Sold at Trading 212.** When you sell a position in full at Trading
+  212, the board takes those shares off at the next refresh once both
+  accounts answered and the sale is in the broker's fill history; shares
+  you hold at another platform stay. If it cannot confirm the sale, the
+  board is left as it is and, after ten minutes, the errors box says
+  which holding and why.
 - **Export.** Each table has two buttons by its title: copy
   (tab-separated, pastes into Excel or Sheets) and download (an `.xlsx`
   with filters on the headings). Both export the table in its current
