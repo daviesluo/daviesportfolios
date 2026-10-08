@@ -12,7 +12,9 @@ import {
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
+  deadmanBeatAt, DEADMAN_BEAT_KEY,
 } from "./index.ts";
+import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
 import { specFromRow, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
@@ -1309,4 +1311,18 @@ Deno.test("liveDays: a twin's orders a day are its driver's count, the live acco
 Deno.test("the twins' call waits until 38 s into its minute: PR5's call has decided the minute just closed by then", () => {
   const m = Date.parse("2026-10-02T21:00:00Z");
   assertEquals([twinsDelayMs(m), twinsDelayMs(m + 10e3), twinsDelayMs(m + TWINS_START_MS), twinsDelayMs(m + 50e3)], [38e3, 28e3, 0, 0]);
+});
+
+Deno.test("deadmanBeatAt reads the dead-man call's newest beat, the key the monitor function writes; none stored is null", async () => {
+  // The key the monitor function writes for the Worker's dead-man call (monitor/index.ts, beatKeyOfRequest).
+  assertEquals(DEADMAN_BEAT_KEY, beatKeyOfRequest("monitor", "https://x.supabase.co/functions/v1/monitor?action=deadman"));
+  assertEquals(DEADMAN_BEAT_KEY, "monitor?action=deadman");
+  const mem = memDb({ edge_call_beats: [
+    { path: "monitor?action=deadman", minute: "2026-10-08T10:03:00.000Z" },
+    { path: "monitor?action=deadman", minute: "2026-10-08T10:04:00.000Z" },
+    { path: "monitor?action=health", minute: "2026-10-08T10:09:00.000Z" },
+    { path: "agents?action=tick", minute: "2026-10-08T10:09:00.000Z" },
+  ] }, { now: () => Date.parse("2026-10-08T10:10:00Z") });
+  assertEquals(await deadmanBeatAt(mem.db), Date.parse("2026-10-08T10:04:00.000Z"));
+  assertEquals(await deadmanBeatAt(memDb({ edge_call_beats: [] }, { now: () => 0 }).db), null);
 });

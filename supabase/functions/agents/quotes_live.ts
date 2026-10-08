@@ -155,6 +155,26 @@ export const QUOTE_LIVE_429_WAIT_MS = 1_000;
  * read-back is read again after these pauses before its rung is frozen: about a second in all, at most twice per cancel.
  */
 export const QUOTE_LIVE_CANCEL_REREAD_MS = [300, 700] as const;
+/**
+ * The dead-man switch (`monitor/deadman.ts`) runs from the monitor Worker every minute, outside Supabase, and is what
+ * cancels this account's resting orders when this executor stops. Nothing watched the Worker itself (review F5,
+ * 2026-10-08): had it stopped, the executor would have gone on quoting with its kill path silently gone. So the live
+ * account's turn reads the dead-man's newest beat (`edge_call_beats`, key `monitor?action=deadman`, stamped by the
+ * database each minute it runs) and quotes no new entry while that beat is older than this, or missing: exits and the
+ * 24-hour stops stay armed, as under every other guard, and the first such turn writes an error for the errors box.
+ * Five minutes is a few missed runs of a once-a-minute clock, not one late one.
+ */
+export const QUOTE_LIVE_DEADMAN_WATCH_MS = 5 * M;
+/** How every guard reason the dead-man watch writes begins, so a turn can tell whether the last one carried it. */
+export const DEADMAN_WATCH_REASON = "the dead-man switch";
+
+/** The guard reason for the dead-man's newest beat (epoch ms, or null when none is stored), or null while it is fresh. */
+export function deadmanWatchReason(beatAt: number | null, now: number): string | null {
+  if (beatAt != null && Number.isFinite(beatAt) && now - beatAt <= QUOTE_LIVE_DEADMAN_WATCH_MS) return null;
+  return beatAt != null && Number.isFinite(beatAt)
+    ? `${DEADMAN_WATCH_REASON} has not run since ${iso(beatAt).slice(0, 16).replace("T", " ")} UTC: no entries until it does`
+    : `${DEADMAN_WATCH_REASON} has never run: no entries until it does`;
+}
 
 export type LiveMode = "dry_run" | "live";
 export type LiveLeg = "entry" | "exit" | "stop" | "convert";
@@ -538,6 +558,12 @@ export type QuoteLiveDeps = {
   instance?: QuoteLiveInstance;
   /** An instance with `take`: the recorder's read of a book a take decides on (step 2); `recordedBookAt` on `db` when left out. */
   recordedBook?: (book: QuoteBook, at: number) => Promise<RecordedRead | null>;
+  /**
+   * When the dead-man switch last ran (its newest beat, epoch ms; null when none is stored). Given only for the live
+   * account (`quotesLiveDeps` in index.ts): a stale or missing beat withdraws its entries (`QUOTE_LIVE_DEADMAN_WATCH_MS`).
+   * Left out, nothing is watched: the realistic twins and the frozen-copy comparison run as they did.
+   */
+  deadmanBeatAt?: () => Promise<number | null>;
 };
 
 export type QuoteLiveReport = {
@@ -1027,8 +1053,16 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
 
   // ── 3. what each book may quote ──────────────────────────────────────────────────────────────────────────────────
   const staleBook = (b: QuoteBook) => !caughtUp || !inputs[b] || inputs[b]!.usdHourEnd == null || T! - inputs[b]!.usdHourEnd! > QUOTE_LIVE_USD_STALE_MS;
+  // The dead-man switch's own clock (`QUOTE_LIVE_DEADMAN_WATCH_MS`): a beat that could not be READ is not a stopped
+  // Worker, so it costs nothing this turn but its note; a stale or missing one withdraws the entries.
+  let deadmanReason: string | null = null;
+  if (d.deadmanBeatAt) {
+    try { deadmanReason = deadmanWatchReason(await d.deadmanBeatAt(), d.now); }
+    catch (e) { report.errors.push(`the dead-man switch's beat is unreadable (${msg(e)}): entries go on this turn`); }
+  }
   for (const b of QUOTE_BOOKS) {
     const reasons: string[] = [];
+    if (deadmanReason) reasons.push(deadmanReason);
     if (!caughtUp) reasons.push(`the paper engine's last minute is ${T != null ? iso(T) : "none"}, not ${iso(nowMinute - M)}: stale inputs`);
     if (T != null && inputs[b]) reasons.push(...entryGuards(T, inputs[b]!, lastPrintPx(b)));
     if (!pairs[LIVE_SYMBOL[b]]) reasons.push("no pair config this turn");
@@ -1324,6 +1358,10 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   }
   try {
     const prev = (await d.db.select<{ state: { guards?: Record<string, string[]> } }>(inst.state, "id=eq.1&select=state"))[0]?.state ?? {};
+    // The errors box hears of a stopped dead-man switch once, on the turn its guard first appears; the guard's own
+    // events below record when it came and went.
+    const hadDeadman = Object.values(prev.guards ?? {}).some((rs) => Array.isArray(rs) && rs.some((r) => String(r).startsWith(DEADMAN_WATCH_REASON)));
+    if (deadmanReason && !hadDeadman) report.errors.push(`DEAD-MAN SWITCH NOT RUNNING: ${deadmanReason}; exits and the 24-hour stops stay armed. Check the monitor Worker (workers/monitor).`);
     for (const b of QUOTE_BOOKS) {
       if (JSON.stringify(prev.guards?.[b] ?? []) === JSON.stringify(report.guards[b])) continue;
       await d.db.upsert(inst.events, [{ mode: entry.book ?? (cfg.dry_run ? "dry_run" : "live"), minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "guard",

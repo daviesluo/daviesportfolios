@@ -261,7 +261,10 @@ site, Supabase's minute loop (the `monitor` function's read-only health
 action) and PR5's dead-man switch; a check failing two minutes running
 alerts, and again on recovery, as an `ops_errors` row (`monitor.*`, the
 site's errors box) and through `monitor-alert.yml` as the issue labelled
-`monitor`. `monitor-deploy.yml` deploys it on a change to
+`monitor`. The Worker is watched back from inside Supabase: PR5's live
+executor reads the dead-man call's newest beat each turn and quotes no
+entry while it is over five minutes old (`QUOTE_LIVE_DEADMAN_WATCH_MS`),
+writing one error when that starts. `monitor-deploy.yml` deploys it on a change to
 `workers/monitor/`; its `CLOUDFLARE_API_TOKEN` needs Account → Workers
 Scripts → Edit as well as Pages, and without it the run deploys nothing
 and says so in a warning. `MONITOR_SECRET` (the Worker and the `monitor`

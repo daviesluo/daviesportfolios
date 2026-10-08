@@ -548,7 +548,11 @@ as `monitor.alert`, named by the check (`site`, `loop` or `pr5`), and
 the stablecoin quotes' executor stopped turning and every order it had
 resting on the exchange was cancelled; it quotes again by itself when it
 comes back. The same alerts open, or add to, a GitHub issue labelled
-`monitor`.
+`monitor`. The executor watches the monitor in turn: when the dead-man
+check has not run for five minutes, it quotes no new entries (its exits
+and stops stay on) and the errors badge shows an `agents.quotes_live`
+row beginning DEAD-MAN SWITCH NOT RUNNING, once; it quotes again by
+itself once the monitor runs.
 
 `agents.pm_rec` is the Polymarket recorder, which keeps the rewarded
 markets' order books, reward terms and trades for research: a read it

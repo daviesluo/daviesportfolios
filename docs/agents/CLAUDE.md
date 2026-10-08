@@ -343,7 +343,10 @@ that follow from that evidence, in short:
   "读不到时看上次"; the Worker remembers that read in a Durable Object), the
   `monitor` function, called every minute by the monitor Worker, cancels
   every resting order on the `_2` account and reads each back; the next
-  turn quotes the paper's decisions again; reference §4 item 35). Its asks hold coin bought by `quotes-convert`
+  turn quotes the paper's decisions again; reference §4 item 35; and since
+  2026-10-08 the executor watches the switch back: no entry while the
+  dead-man call's newest beat is over five minutes old or missing, exits and
+  stops armed, one error when it starts, `QUOTE_LIVE_DEADMAN_WATCH_MS`). Its asks hold coin bought by `quotes-convert`
   (£30 of each, 16:31–16:32 UTC), topped up by the executor itself since
   2026-10-02 when an ask runs short (a maker conversion at the bid, at most £5
   a book a day, `planTopUps`). It went live with `update

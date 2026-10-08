@@ -17,6 +17,7 @@ import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
+  deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS,
 } from "./quotes_live.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
@@ -81,8 +82,13 @@ function makeWorld(o: Opts = {}) {
     live(t: number, at = t + M + 30e3) {
       clock.now = at;
       const pause = (ms: number) => { pauses.taken.push(ms); if (pauses.advance) clock.now += ms; return Promise.resolve(); };
-      return runQuotesLive({ db: executorDb, now: at, holder: `h${at}`, uuid: () => crypto.randomUUID(), account, accountNote: account ? null : "no key", fetch: rx.fetch, pause, clock: () => clock.now });
+      return runQuotesLive({
+        db: executorDb, now: at, holder: `h${at}`, uuid: () => crypto.randomUUID(), account, accountNote: account ? null : "no key", fetch: rx.fetch, pause, clock: () => clock.now,
+        ...(w.deadmanBeatAt ? { deadmanBeatAt: w.deadmanBeatAt } : {}),
+      });
     },
+    /** The dead-man switch's newest beat, as `quotesLiveDeps` reads it for the live account; unset, nothing is watched. */
+    deadmanBeatAt: undefined as undefined | (() => Promise<number | null>),
     async step(t: number, prints: Partial<Record<QuoteBook, Print[]>> = {}) { await w.paperStep(t, prints); return await w.live(t); },
     async run(from: number, to: number) { let r; for (let t = from; t <= to; t += M) r = await w.step(t); return r!; },
     orders: () => mem.tables.agent_quote_live_orders as Row[],
@@ -929,6 +935,62 @@ Deno.test("the de-peg guard: a book quotes no entry while its USD book's last ho
   assert(r2.guards["USDT-GBP"].some((g) => g.startsWith("de-peg: the GBP book")), JSON.stringify(r2.guards));
   assertEquals(w.rx.resting().length, 0);
   assert(w.events().some((e) => e.kind === "guard" && e.book === "USDT-GBP"));
+});
+
+Deno.test("deadmanWatchReason: fresh within five minutes; older, or never, is a reason that names the last run", () => {
+  assertEquals(QUOTE_LIVE_DEADMAN_WATCH_MS, 5 * M);
+  assertEquals(deadmanWatchReason(T0, T0 + 5 * M), null);
+  assertEquals(deadmanWatchReason(T0, T0 + 5 * M + 1), "the dead-man switch has not run since 2026-09-24 10:00 UTC: no entries until it does");
+  assertEquals(deadmanWatchReason(null, T0), "the dead-man switch has never run: no entries until it does");
+  // A beat stamped ahead of this clock is fresh: the database stamps it, and the function's clock can trail it.
+  assertEquals(deadmanWatchReason(T0 + M, T0), null);
+});
+
+Deno.test("the dead-man watch: a stale or missing beat of the dead-man switch withdraws every live entry while the exit stays armed; the errors box hears once; a fresh beat quotes again", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  let beat: number | null = T0;                              // the Worker's last run of the dead-man
+  w.deadmanBeatAt = () => Promise.resolve(beat);
+  const r0 = await w.step(T0);                               // the beat is 90 s old at the turn: fresh
+  assertEquals([r0.guards["USDC-GBP"], r0.guards["USDT-GBP"]], [[], []]);
+  assert(w.open("live").filter((o) => o.leg === "entry").length > 0);
+  // A long on USDC, so an exit is due, as the kill switch's test holds one.
+  await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", price: 0.7546, base_size: 5, filled_base: 5, avg_fill_price: 0.7546, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  const q = w.rx.resting("USDC/GBP").find((o) => o.price === "0.7546")!;
+  w.rx.orders.get(q.id)!.status = "cancelled";
+  w.orders().find((o) => o.venue_order_id === q.id)!.state = "cancelled";
+  for (let t = T0 + M; t <= T0 + 3 * M; t += M) {
+    const r = await w.step(t);                               // 150 s, 210 s, 270 s old: still fresh
+    assertEquals(r.errors.filter((e) => e.startsWith("DEAD-MAN")).length, 0);
+  }
+  const r1 = await w.step(T0 + 4 * M);                       // 330 s old: stale
+  for (const b of ["USDC-GBP", "USDT-GBP"] as const) assertEquals(r1.guards[b][0], "the dead-man switch has not run since 2026-09-24 10:00 UTC: no entries until it does");
+  assertEquals(r1.errors.filter((e) => e.startsWith("DEAD-MAN SWITCH NOT RUNNING")).length, 1);
+  assertEquals(w.open("live").filter((o) => o.leg === "entry").length, 0);              // every entry withdrawn
+  assertEquals(w.rx.resting().map((o) => [o.side, o.price]), [["sell", "0.7555"]]);     // the exit stays armed
+  assertEquals(w.events().filter((e) => e.kind === "guard" && Date.parse(String(e.minute)) === T0 + 5 * M).length, 2);
+  const r2 = await w.step(T0 + 5 * M);                       // still stale: no second alert
+  assertEquals(r2.errors.filter((e) => e.startsWith("DEAD-MAN")).length, 0);
+  assertEquals(w.open("live").filter((o) => o.leg === "entry").length, 0);
+  beat = T0 + 6 * M;                                         // the Worker runs again
+  const r3 = await w.step(T0 + 6 * M);
+  assertEquals(r3.guards["USDC-GBP"], []);
+  assert(w.open("live").filter((o) => o.leg === "entry").length > 0);                   // the paper's entries quote again
+  beat = null;                                               // no beat stored at all is a switch that never ran
+  const r4 = await w.step(T0 + 7 * M);
+  assertEquals(r4.guards["USDT-GBP"][0], "the dead-man switch has never run: no entries until it does");
+});
+
+Deno.test("the dead-man watch: a beat that cannot be READ costs this turn a note, not its entries; without the watch (the twins) nothing is read", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 } });
+  w.deadmanBeatAt = () => Promise.reject(new Error("Signal timed out."));
+  const r = await w.step(T0);
+  assertEquals(r.guards["USDC-GBP"], []);
+  assert(r.errors.includes("the dead-man switch's beat is unreadable (Signal timed out.): entries go on this turn"));
+  assert(w.open("live").filter((o) => o.leg === "entry").length > 0);
+  const v = makeWorld({ live: true, armed: true, balances: { GBP: 50 } });
+  const rv = await v.step(T0);
+  assertEquals(rv.guards["USDC-GBP"], []);
+  assertEquals(rv.errors.filter((e) => e.includes("dead-man")).length, 0);
 });
 
 Deno.test("stale inputs: no entries while the paper engine is behind or the USD book's hours are stale; a resting exit keeps its price", async () => {

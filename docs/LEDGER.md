@@ -813,6 +813,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5's live executor watches the dead-man switch back** (review F5, approved by Davies 2026-10-08). The switch
+  runs from the monitor Worker, and nothing watched the Worker: had it stopped, the live account would have kept
+  quoting with its kill path gone and no alert. Each turn of the live account now reads the dead-man call's newest
+  beat (`deadmanBeatAt` in `agents/index.ts`, key `monitor?action=deadman`, the one the `monitor` function writes)
+  and, while it is over five minutes old or missing (`QUOTE_LIVE_DEADMAN_WATCH_MS`), guards both books: entries
+  withdrawn, exits and 24-hour stops armed; the first such turn writes one `agents.quotes_live` error starting
+  "DEAD-MAN SWITCH NOT RUNNING". An unreadable beat is a note only. The twins pass no `deadmanBeatAt`, so their
+  decisions are unchanged (`quotes_live_instance`, `quotes_twin` and `quotes_take` tests pass, 161 in the files run).
+  Pins: three in `quotes_live.test.ts` (the stale-beat case fails with the guard removed) and the key in
+  `index.test.ts`. `agents` redeploys with it; production read 60 dead-man beats in the hour before, so the guard
+  does not fire on landing. CLAUDE.md's monitor section, `docs/agents/CLAUDE.md`, reference §4 item 35, the guide's
+  errors-badge paragraph and the map row say so.
+
 ### [2026-10-08 14:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A position sold out in full at Trading 212 now leaves the board** (review F1, approved by Davies 2026-10-08).
   `/equity/positions` drops a ticker sold in full, and the function sent explicit zeros only for the two allow-list

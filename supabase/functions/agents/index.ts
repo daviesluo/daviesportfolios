@@ -151,7 +151,7 @@
 // rather than stopping the loop.
 
 import { reportServerError } from "../_shared/ops.ts";
-import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
+import { BEAT_TABLE, beatKey, beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { askJev, type JevEnv, type JevResult, type Questions } from "../_shared/jev.ts";
 import { activeOrders, balances, candles, historicalOrders, loadPrivateKey, pairs, publicTickers, REVX_REGION, revxVenue, type RevxEnv } from "../_shared/revx.ts";
@@ -470,11 +470,23 @@ async function runQuotesTwinsAction(wait: boolean) {
 /** The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise. */
 async function quotesLiveDeps(): Promise<QuoteLiveDeps> {
   const rx2 = await loadRevx("revx2");
+  const d = db();
   return {
-    db: db(), now: Date.now(), holder: crypto.randomUUID(), uuid: () => crypto.randomUUID(),
+    db: d, now: Date.now(), holder: crypto.randomUUID(), uuid: () => crypto.randomUUID(),
     account: "error" in rx2 ? null : revxVenue(rx2.env), accountNote: "error" in rx2 ? rx2.error : null,
+    // The dead-man switch's newest beat: the live account quotes no entry while it is stale (QUOTE_LIVE_DEADMAN_WATCH_MS).
+    deadmanBeatAt: () => deadmanBeatAt(d),
   };
 }
+
+/** When the dead-man switch (the monitor Worker's `monitor?action=deadman`) last ran, from its newest beat; null with none. */
+export async function deadmanBeatAt(d: Db): Promise<number | null> {
+  const rows = await d.select<{ minute: string }>(BEAT_TABLE, `path=eq.${encodeURIComponent(DEADMAN_BEAT_KEY)}&select=minute&order=minute.desc&limit=1`);
+  const t = rows[0] ? Date.parse(rows[0].minute) : NaN;
+  return Number.isFinite(t) ? t : null;
+}
+/** The dead-man call's beat key (`_shared/beats.ts`): what the `monitor` function writes each minute the Worker calls it. */
+export const DEADMAN_BEAT_KEY = beatKey("monitor", "deadman");
 
 /**
  * Polymarket's order path, one minute (`pm_live.ts`, 0074 and 0076). It reads the L2 credentials, the two addresses and
