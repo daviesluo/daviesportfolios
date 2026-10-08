@@ -1,13 +1,11 @@
-// Shared HMAC app-token verification for the Edge Functions.
+// Shared HMAC app-token verification for the Edge Functions: the one copy.
 //
-// This is the canonical copy of the token-verify helpers that `data`,
-// `trading212`, and `ops-error` each carry inline today (and which have
-// already drifted — ops-error parses the dot with indexOf, the others
-// with split). New consumers (e.g. `overnight-fetch`) import from here so
-// they don't add a fourth copy. Migrating the three existing critical
-// functions onto this module is a deliberate, separate follow-up — their
-// inline verify is on the load/save hot path and shouldn't be swapped
-// blind, so this PR only introduces the shared module + a new consumer.
+// Every function that checks the app token imports `verifyToken` from here
+// (`data`, `trading212`, `ops-error`, `prices`, `chart`, `fundamentals`,
+// `agents`, `overnight-fetch`), `auth` and `snapshot-record` sign with
+// `sign`/`b64url`, and the cron-bearer checks use `constantTimeEqual`. The
+// inline copies `data`, `trading212` and `ops-error` once carried, which
+// had drifted apart, are gone; don't add another.
 //
 // Token format (issued by the `auth` function): `<b64url(payload)>.<b64url(sig)>`
 // where payload is `{ role: "admin" | "ro", exp: <ms> }`, signed
@@ -36,9 +34,10 @@ export async function sign(payload: string, secret: string): Promise<string> {
 
 export type Verified = { role: "admin" | "ro"; exp: number };
 
-// Constant-time string equality — see the data function's copy for the
-// timing-side-channel rationale. Length mismatch short-circuits only the
-// length check (already-leaked information), not the per-byte content.
+// Constant-time string equality: a secret compared byte by byte with an
+// early exit tells a caller, by how long the answer takes, how much of a
+// guess was right. A length mismatch short-circuits only the length check
+// (already-leaked information), not the per-byte content.
 export function constantTimeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;

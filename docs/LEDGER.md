@@ -821,6 +821,25 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`_shared/token.ts` says what is true of it** (review M3, approved by Davies 2026-10-08): its header described the
+  inline token checks `data`, `trading212` and `ops-error` carried and a migration still to come; all three, and
+  `prices`, `chart`, `fundamentals`, `agents` and `overnight-fetch`, import `verifyToken` from it, and the
+  constant-time comparison's rationale pointed at a copy in `data` that is gone. Comments only. **A change under
+  `_shared/` redeploys every function** (`bin/edge-changed.sh`), so this commit alone of the batch redeploys `agents`
+  and the rest with the code they run unchanged: land it when a redeploy of every function is acceptable, or hold it.
+
+### [2026-10-08 17:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`overnight-fetch` requires the app token** (review M6, second half; approved by Davies 2026-10-08). The handler is
+  now `handle()`: the preflight as before, then `verifyToken` on `x-app-token` (any valid role) before the table is
+  read, a 401 `{"error":"invalid token"}` otherwise; the Supabase JWT gate stays on. The health check probes it with
+  `check_token_gated` (401 is healthy), and its unused `check_anon` went. Deno pin in `overnight-fetch/index.test.ts`
+  (no token and a forged one refused before any read, a valid one served, the preflight free and still allowing
+  `x-app-token`); 9 pass. **Deploy order:** the function deploys minutes after a push, the page only once
+  `check.yml` has passed, so a tab still on a bundle older than the commit before this one gets no new overnight
+  points until it reloads (it keeps its cached ones). Push this commit after that bundle is live, or accept that.
+  A health-check run in the minutes between this push and the deploy reads 200 and would open an issue.
+
 ### [2026-10-08 17:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The page sends its app token to `overnight-fetch` too** (review M6, first half; approved by Davies 2026-10-08).
   The function is anonymous: anyone with the public anon key could ask it about up to 100 tickers a call and learn
