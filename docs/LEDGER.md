@@ -240,9 +240,18 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **M7 (the site's own fonts) reverted, to redo:** CI's Chromium drew the sweep with Inter for the first time (the
      sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed (history
      17:45). Redo it with the layouts that fail fixed for Inter at both widths, proved on CI's browser, not this one.
-   - **Next:** the second, read-only review: the Deno suite, the perf matrix and the whole sweep; the live site without
-     a login; backups and PITR; Cloudflare's settings, read-only; a line-by-line audit of the order arithmetic in
-     `tick.ts`, `quotes_live.ts` and `pm_live.ts`. Findings reported, not fixed, without his word.
+   - **Second review done (2026-10-08 ~18:30 UTC), read-only; awaiting Davies' pick, nothing fixed:**
+     T1 vitest reaches production (four perf_chart test files leave `price_snapshots.js` / `overnight_intraday.js`
+     unmocked; ~560 GETs a day; fix: fail any non-localhost fetch in `test_setup.js`); T2 CI's sweep runs the
+     headless shell, which alone fails Inter's layouts (full Chrome 141/153 green; launch `channel: 'chromium'`, then
+     M7 returns unchanged); D1 migration vs deploy order (`edge_calls.active_from`, `cancel-in-progress: false` in
+     migrations.yml); A1 `applyFill` leaves float residue on a sell (round as quotes_live.ts:373; check the frozen
+     preps' outputs), A2–A4 and A6–A7 low (one-turn double count, two unsettled buys, PR5 429 counted once,
+     Polymarket same-second fill order, caps before cancels read back); A5 PR5 stops-only from 20:36 on 10-07;
+     L1 Bot Fight Mode's script blocked by our CSP, L2 Cloudflare overrides `max-age=0` on js/css (Browser Cache TTL),
+     L4 the SW keeps the board in "data-api"; B1 no off-site database copy, B2 the `pm-rec` bucket unbacked
+     (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
+     paths in the reviewer's scratchpad.
 
 ## Machine and platform setup
 
@@ -360,6 +369,13 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-08 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Batch 4 finished in production; the second, read-only review reported** (item 10 lists its findings). fc2e8209
+  pushed once the page that sends the token was live (e7f0cafe, app-1b24810b.js): overnight-fetch v39 answers the anon
+  key alone with 401 `invalid token`. Checked by hand from the report: `applyFill` subtracts a sell unrounded
+  (`_shared/agents_strategy.ts:100`), and `perf_chart.test.jsx` mocks neither `price_snapshots.js` nor
+  `overnight_intraday.js`, which is how vitest reaches production.
 
 ### [2026-10-08 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Review batch 4 landed less M7, which is reverted; `overnight-fetch`'s token check waits for a green main.** Batch
