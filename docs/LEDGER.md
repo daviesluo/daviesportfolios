@@ -821,6 +821,25 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The fonts are the site's own files, and nothing third-party holds the first paint** (review M7, approved by Davies
+  2026-10-08). `index.html` loaded Inter and JetBrains Mono through a Google Fonts stylesheet in `<head>`, which the
+  browser must fetch from a third party before it paints. The same 13 woff2 files Google served today (one variable
+  file a family and subset, weights 400-700; 300 KB in all, of which a page uses the two Latin ones, 80 KB) are in
+  `src/app/fonts/` with their OFL licences, and `src/app/fonts.css` is Google's own 52 rules with only the URL
+  changed. `index.html` preloads the two Latin files; Vite hashes them into `dist/assets/` (the smallest subset,
+  1.6 KB, is inlined as a `data:` URL). CSP: `font-src 'self' data:`, `style-src` without Google. The worker caches
+  the font files cache-first, 200s only (Google's two runtime caches went). The browser tests serve `.woff2` as
+  `font/woff2`, so the sweep now draws with the real fonts (it had aborted Google's and drawn fallbacks): all 644
+  checks green, perf 76, size ok. Evidence: with Google answering 2 s late, first contentful paint 2,096, 2,100 and
+  2,096 ms on the old bundle, 120, 116 and 104 ms on this one; the sweep's 28 desktop screenshots, drawn with Google's
+  stylesheet and fonts (answered with these bytes) on the old bundle and with these files on the new, are identical
+  but for the pulsing status dots' phase (at most 2,361 pixels, all in the dot column). Pins: `src/fonts.test.js`
+  (no Google in the page or the CSP, the preloads, the 52 rules and their files; two of its four fail on the old page
+  and headers), and no `.map` committed. **Source maps were never published:** `*.js.map` is ignored, the deploy
+  uploads the committed `dist/`, and the live site answers `app-dd113a14.js.map`, `ops_error-8fda3738.js.map` and
+  `sw.js.map` with its 404 page (fetched with a cache-busting query); my finding read the local build directory.
+
 ### [2026-10-08 17:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The stated test counts are today's** (review M4, approved by Davies 2026-10-08). The docs said 603 sweep checks
   (CLAUDE.md, README) and 300 (the map), over 1,150 unit and over 950 Edge tests, and 60 perf cases. Counted on this

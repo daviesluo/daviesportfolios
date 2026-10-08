@@ -104,6 +104,7 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.webmanifest': 'application/manifest+json',
+  '.woff2': 'font/woff2',   // the site's own fonts since 2026-10-08, as Cloudflare types them
 };
 
 /**

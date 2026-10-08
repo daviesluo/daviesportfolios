@@ -491,7 +491,7 @@ The npm project's own files (`package.json` and the rest are under "Build, CI an
 
 | File | What it does |
 |---|---|
-| `index.html` | The page Vite builds from; it loads `app/main.jsx`. |
+| `index.html` | The page Vite builds from; it loads `app/main.jsx` and preloads the two Latin font files. |
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
 | `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp (a hash of the source, so a build is reproducible), and Vitest's settings. |
 | `build_stamp.js` | The build's stamp: a hash of the app's source as git would commit it, never the clock, so a commit's bundle rebuilds byte for byte. |
@@ -515,6 +515,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `app/version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
 | `app/types.d.ts`, `app/ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |
 | `app/styles.css` | Every style, in one sheet. |
+| `app/fonts.css` | The two typefaces, Inter and JetBrains Mono, served from this site out of `app/fonts/` (with their licences), not from Google Fonts. |
 | `app/formatters.js` | Money, percent, price and share formats, the one month table, and the names shown for tickers. |
 | `app/icons.jsx` | The small inline icons. |
 
