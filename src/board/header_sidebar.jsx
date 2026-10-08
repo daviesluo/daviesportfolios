@@ -203,12 +203,27 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   }, []);
   const ccyRate   = usdToCcyRate(ccy, marketData);
   const ccySym    = CCY_SYMBOL[ccy];
+  // FX badge — surface any holding whose native-USD conversion fell
+  // back to 1:1 this tick (the FX pair for its currency was missing
+  // from marketData). Without this badge a GBP holding silently
+  // values at 1:1 USD and the portfolio undercounts by ~20%.
+  /** @type {string[]} */
+  const fxMissing = (metrics && /** @type {any} */ (metrics).fxMissingTickers) || [];
+  // Before the first market data has landed (a first visit, or a market
+  // cache over a week old), every holding whose FX pair is missing is
+  // valued at 1:1 USD: a CNY fund at seven times its size, a GBP stock
+  // a quarter short. The three figures and their percentages wait for
+  // the rates with a dash rather than show that total (review F13: the
+  // browser sweep read $3,330 for a $3,182.50 book under load, its GBP
+  // and CNY holdings at 1:1). Once the market data has landed, a pair
+  // still missing is the FX MISSING badge's, as before.
+  const fxPending = !marketDataReady && fxMissing.length > 0;
   /** Wraps the existing fmM() with the cycle's rate + symbol so the
    *  3 scoreboard numbers stay in lockstep without sprinkling the
    *  conversion at every call site. */
   const fmCcy = React.useCallback(
     /** @param {number | null | undefined} n @param {{signed?: boolean, precision?: number}} [opts] */
-    (n, opts) => (ccyRate == null ? CCY_PENDING : fmM(typeof n === 'number' ? n * ccyRate : n, {
+    (n, opts) => (ccyRate == null || fxPending ? CCY_PENDING : fmM(typeof n === 'number' ? n * ccyRate : n, {
       ...opts, symbol: ccySym,
       // `compact: false` — the scoreboard expands M/B/T to full
       // digits so e.g. a $159 K portfolio doesn't read as "¥1.08M"
@@ -218,8 +233,12 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
       // overflow.
       compact: false,
     })),
-    [ccyRate, ccySym],
+    [ccyRate, ccySym, fxPending],
   );
+  /** A percentage of the book, a dash while its FX is pending (see `fxPending`). */
+  const fmPct = (/** @type {number | null | undefined} */ v) => (fxPending ? CCY_PENDING : fmP(v));
+  /** Its colour, none while pending: the sign of a 1:1 book is not the book's. */
+  const pctColor = (/** @type {number | null | undefined} */ v) => (fxPending ? undefined : pcC(v));
 
   // Mobile scoreboard gap auto-tunes to the DAY CHANGE amount's digit
   // count (the cell whose width swings most — and the ext-hours toggle
@@ -262,13 +281,6 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   React.useEffect(() => () => {
     if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
   }, []);
-
-  // FX badge — surface any holding whose native-USD conversion fell
-  // back to 1:1 this tick (the FX pair for its currency was missing
-  // from marketData). Without this badge a GBP holding silently
-  // values at 1:1 USD and the portfolio undercounts by ~20%.
-  /** @type {string[]} */
-  const fxMissing = (metrics && /** @type {any} */ (metrics).fxMissingTickers) || [];
 
   return (
     <header className="header">
@@ -328,17 +340,17 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">DAY CHANGE</div>
-          <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pcC(metrics.dayPct) }}>
+          <div className={`sb-value mono sb-change-row${sbFlash.day ? " sb-flash-" + sbFlash.day : ""}`} style={{ color: pctColor(metrics.dayPct) }}>
             <span>{hideValues ? mask(fmCcy(metrics.dayChange, { signed: true, precision: dayPrec })) : fmCcy(metrics.dayChange, { signed: true, precision: dayPrec })}</span>
-            <span className="sb-pct">({fmP(metrics.dayPct)})</span>
+            <span className="sb-pct">({fmPct(metrics.dayPct)})</span>
           </div>
         </div>
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
-          <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pcC(metrics.unrlPct) }}>
+          <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pctColor(metrics.unrlPct) }}>
             <span>{hideValues ? mask(fmCcy(metrics.unrlGL, { signed: true })) : fmCcy(metrics.unrlGL, { signed: true })}</span>
-            <span className="sb-pct">({fmP(metrics.unrlPct)})</span>
+            <span className="sb-pct">({fmPct(metrics.unrlPct)})</span>
           </div>
         </div>
       </div>

@@ -124,6 +124,28 @@ describe('Header scoreboard — currency cycle', () => {
     await user.click(screen.getByRole('button', { name: /Currency: CNY/i }));
     expect(screen.getByText(/^\$100,000$/)).toBeInTheDocument();                      // USD needs no rate
   });
+
+  it('waits with a dash, never the book at 1:1, until the first market data lands (review F13)', () => {
+    // A first visit: no market data yet, so a GBP or CNY holding is valued at 1:1 USD (the sweep's book read $3,330,
+    // not $3,182.50). The three figures and their percentages wait; no FX MISSING badge yet, nor any colour.
+    const pending = { ...METRICS, fxMissingTickers: ['BRIT.L', '017731'] };
+    const { container, rerender } = renderHeader({ metrics: pending, marketData: {}, marketDataReady: false });
+    const shown = () => [container.querySelector('.sb-value-lg'), ...container.querySelectorAll('.sb-change-row > span:first-child'),
+      ...container.querySelectorAll('.sb-change-row .sb-pct')].map((el) => el?.textContent);
+    expect(shown()).toEqual(['—', '—', '—', '(—)', '(—)']);
+    expect([...container.querySelectorAll('.sb-change-row')].map((el) => /** @type {HTMLElement} */ (el).style.color)).toEqual(['', '']);
+    expect(screen.queryByText('FX MISSING')).toBeNull();
+    // The market data has landed and the pair is still missing: the 1:1 book is shown, under the FX MISSING badge.
+    const props = { metrics: pending, marketData: {}, marketDataReady: true, source: 'live', lastUpdated: new Date(), isRefreshing: false, onRefresh: vi.fn(),
+      editMode: false, setEditMode: vi.fn(), isReadOnly: false, extendedHours: false, onToggleExtended: vi.fn(), viewMode: 'pitch', onToggleView: vi.fn(),
+      hideValues: false, onToggleHideValues: vi.fn(), onOpenHoldingsList: vi.fn(), onOpenSectorsList: vi.fn(), onOpenTransactionHistory: vi.fn(), onOpenAgents: vi.fn() };
+    rerender(<Header {...props} />);
+    expect(shown()).toEqual(['$100,000', '+$1,500', '+$25,000', '(+1.52%)', '(+33.30%)']);
+    expect(screen.getByText('FX MISSING')).toBeInTheDocument();
+    // Nothing missing: the figures at once, whether or not the market data has landed (a USD book, or a cached one).
+    rerender(<Header {...props} metrics={METRICS} marketDataReady={false} />);
+    expect(shown()).toEqual(['$100,000', '+$1,500', '+$25,000', '(+1.52%)', '(+33.30%)']);
+  });
 });
 
 describe('Header scoreboard — hide-values eye', () => {

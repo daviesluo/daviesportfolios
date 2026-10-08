@@ -821,6 +821,22 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The scoreboard never shows the book at 1:1 while the exchange rates load: the sweep's `scoreboard` flake was a real
+  bug** (review F13, Davies via the coordinator 2026-10-08: "if the APP shows a wrong total transiently, that is a real
+  bug"). Under load the main part's `[desktop/scoreboard]` and `[phone/scoreboard]` read "3330, arithmetic says
+  3182.5" (10-07 22:30 and again landing batch 1). 3,330 is the fixture's book with its GBP and CNY holdings at 1:1:
+  before the first market data lands, `fxRateToUSD` values a holding whose pair is missing at 1:1 (BRIT.L 250 for
+  312.50, VUAA.L 240 for 300, the CNY fund 300 for 30: +147.50), and the check read the scoreboard after a fixed
+  1.2 s. Recorded frame by frame on the bundle before this fix, the scoreboard showed `["$3,330","$3,183"]` even unloaded:
+  the wrong total was always shown first, the sleep only usually outlasted it. Now the header's three amounts and their
+  percentages read `—` while the market data has not landed and a pair is missing (`fxPending`; after it lands, a
+  pair still missing is the FX MISSING badge's, as before). The sweep waits for the total instead of sleeping and
+  records every figure the scoreboard shows from its first paint (`recordScoreboard`, a MutationObserver): it fails on
+  the old bundle (`["$3,330","$3,183"]`) and passes on the new at both viewports (`["—","$3,183"]`). Pin in
+  `header_sidebar.test.jsx`, failing with the dash removed. The position cards and FORMATION VALUE still show the 1:1
+  values for that moment on a first visit (noted for Davies). Guide's Currency bullet.
+
 ### [2026-10-08 15:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The order paths' dry-run record keeps 14 days, their ended-orders read is indexed, and the database's size is
   watched** (review F4, approved by Davies 2026-10-08). `0101_pm_paths_retention.sql`:

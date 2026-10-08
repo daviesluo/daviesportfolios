@@ -51,7 +51,10 @@ theirs.
 - **Currency (💱).** Shows the scoreboard's three amounts in dollars,
   pounds or yuan at the live rate, starting in dollars on every visit.
   Until that rate has loaded they read `—`, never the dollar figure
-  under another currency's sign.
+  under another currency's sign. On a first visit (or a week after the
+  last), the three amounts and their percentages read `—` too until the
+  exchange rates of the holdings priced in pounds or yuan have loaded,
+  rather than a total that counts them as dollars.
 - **Tactics board / heat map.** Switches the centre panel.
 - **Refresh.** Fetches prices now and re-warms every chart range in the
   background. Prices also refresh by themselves every 30 seconds through

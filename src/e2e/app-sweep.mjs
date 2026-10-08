@@ -1231,6 +1231,23 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   if (opts.failSurfaces) await ctx.addInitScript((names) => { /** @type {any} */ (window).__dpSweepFail = names; }, opts.failSurfaces);
   // A tab that died mid-edit: its unsaved board, which the app replays on mount and saves.
   if (opts.draft) await ctx.addInitScript((d) => { sessionStorage.setItem('dp.pendingSave', d); }, JSON.stringify(opts.draft));
+  // Every figure the scoreboard's PORTFOLIO shows from the first paint on, in order (`window.__sbSeen`), so a check can
+  // ask what it showed on the way and not only at the end: a figure shown for one frame is still a figure shown.
+  if (opts.recordScoreboard) {
+    await ctx.addInitScript(() => {
+      /** @type {string[]} */
+      const seen = [];
+      /** @type {any} */ (window).__sbSeen = seen;
+      const read = () => {
+        const el = document.querySelector('.scoreboard-cell-portfolio .sb-value-lg');
+        const t = el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : null;
+        if (t !== null && seen[seen.length - 1] !== t) seen.push(t);
+      };
+      const watch = new MutationObserver(read);
+      watch.observe(document, { subtree: true, childList: true, characterData: true });
+      setTimeout(() => watch.disconnect(), 30_000);
+    });
+  }
   const page = await ctx.newPage();
   // Freeze `Date` for the page at the same instant the fixture's bars
   // were generated for. Timers still run, so the app's 30 s refresh and
@@ -2510,14 +2527,20 @@ async function run() {
   }
 
   for (const vp of viewports('main')) {
-    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses);
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { recordScoreboard: true });
     const S = (n) => `${vp.name}/${n}`;
 
     // ---- 1. scoreboard totals the book, with FX applied -------------
-    await page.waitForTimeout(1200);
+    // Waited for, not slept on (review F13): the FX pairs come with the first refresh, which under load landed after
+    // the 1.2 s this used to wait, and the board read $3,330 (10-07 and 10-08, both viewports): the GBP and CNY
+    // holdings at 1:1. And every figure it showed from its first paint is read, not only the last: until the pairs
+    // land it shows a dash, never the book at 1:1 (header_sidebar.jsx, `fxPending`).
+    await page.waitForFunction((want) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
     const sb = money(await page.textContent('.scoreboard-cell-portfolio .sb-value-lg'));
-    if (near(sb, TOTAL_USD)) ok(S('scoreboard'), `$${sb} = arithmetic ${TOTAL_USD}`);
-    else fail(S('scoreboard'), `reads ${sb}, arithmetic says ${TOTAL_USD} (FX applied?)`);
+    const sbSeen = await page.evaluate(() => /** @type {string[]} */ (/** @type {any} */ (window).__sbSeen || []));
+    const sbWrong = sbSeen.filter((t) => /\d/.test(t) && !near(money(t), TOTAL_USD));
+    if (near(sb, TOTAL_USD) && sbWrong.length === 0) ok(S('scoreboard'), `$${sb} = arithmetic ${TOTAL_USD}, and nothing else on the way (${JSON.stringify(sbSeen)})`);
+    else fail(S('scoreboard'), `reads ${sb}, arithmetic says ${TOTAL_USD} (FX applied?); on the way it showed ${JSON.stringify(sbSeen)}`);
 
     // ---- 2. no horizontal overflow at this width --------------------
     const over = await page.evaluate(() =>
