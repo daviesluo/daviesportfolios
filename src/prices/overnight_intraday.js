@@ -13,7 +13,7 @@
 // actual overnight trend; this module surfaces it in the modal.
 
 import { SB_URL } from '../app/supabase_config.js';
-import { EDGE_ANON_KEY } from './yahoo_fetch.js';
+import { edgeHeaders } from './yahoo_fetch.js';
 import { hasOvernightSession } from './ticker_class.js';
 
 const STORAGE_KEY = 'dp.overnight.cache';
@@ -59,8 +59,11 @@ export async function fetchOvernightSeries(tickers, fetcher = fetch) {
   if (list.length === 0) return null;
   try {
     const url = `${FETCH_URL}?tickers=${encodeURIComponent(list.join(','))}`;
+    // The app token as well as the anon key, as every Edge call carries (`edgeHeaders`): the anon key ships in the
+    // bundle and gates nothing, and a function that lists which US holdings have overnight points is the book's
+    // outline (review M6, 2026-10-08). Sent before the function requires it, so no open tab is refused.
     const res = await fetcher(url, {
-      headers: { Authorization: `Bearer ${EDGE_ANON_KEY}`, apikey: EDGE_ANON_KEY },
+      headers: edgeHeaders(),
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;

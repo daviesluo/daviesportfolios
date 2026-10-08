@@ -821,6 +821,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The page sends its app token to `overnight-fetch` too** (review M6, first half; approved by Davies 2026-10-08).
+  The function is anonymous: anyone with the public anon key could ask it about up to 100 tickers a call and learn
+  which US holdings have overnight points. Its callers, found: the page (`fetchOvernightSeries`, from `app.jsx` and
+  the ticker chart's data hook), the health check (`healthcheck.yml`, anonymous, expects 200), and the two browser
+  tests' mocks; nothing in `workers/`, no job. This commit is the client half, so that no open tab is refused when
+  the function starts requiring the token: `edgeHeaders()` (now exported from `yahoo_fetch.js`, the one copy) on the
+  call, and `/overnight-fetch` among the sweep's token-required functions. Pins: `overnight_intraday.test.js` (the
+  header; fails on the old client), and the sweep's `token` check, which on the previous bundle fails "calls without
+  X-App-Token: /overnight-fetch" and on this one passes (desktop `main` 242). The function and the health check
+  change in the next commit.
+
 ### [2026-10-08 17:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The sweep's Binance venue is the one the dashboard sends, and the London pin says why it stays** (review M2,
   approved by Davies 2026-10-08). The fixture's Binance venue read an account (`canTrade: true`, USDT and BNB

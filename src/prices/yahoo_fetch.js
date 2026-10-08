@@ -648,4 +648,4 @@ export async function fetchFundamentals(symbols, opts = {}) {
 
 // Exported for historical.js so it can build the Edge `/chart` URL
 // off the same base + anon key without duplicating constants.
-export { EDGE_PRICES_URL, EDGE_ANON_KEY };
+export { EDGE_PRICES_URL, EDGE_ANON_KEY, edgeHeaders };

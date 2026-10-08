@@ -47,6 +47,17 @@ describe('fetchOvernightSeries — cache write + event', () => {
     expect(getOvernightSeries('NVDA')).toEqual([PT('2026-05-29T01:00', 99)]);
   });
 
+  it('sends the app token beside the anon key (review M6: the function requires it)', async () => {
+    sessionStorage.setItem('dp.token', 'a-token');
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ NVDA: [] }) });
+    await fetchOvernightSeries(['NVDA'], /** @type {any} */ (mockFetch));
+    const headers = mockFetch.mock.calls[0][1].headers;
+    expect(headers['X-App-Token']).toBe('a-token');
+    expect(headers.apikey).toBeTruthy();
+    expect(headers.Authorization).toMatch(/^Bearer /);
+    sessionStorage.removeItem('dp.token');
+  });
+
   it('no-ops (null) on an empty ticker list — no fetch call', async () => {
     const mockFetch = vi.fn();
     expect(await fetchOvernightSeries([], /** @type {any} */ (mockFetch))).toBeNull();
