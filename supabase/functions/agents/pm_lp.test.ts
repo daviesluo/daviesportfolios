@@ -13,10 +13,11 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, effectiveLimits, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
-  runPmLive, rwQuotes, type PmBookNow, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  runPmLive, rwQuotes, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
@@ -81,13 +82,23 @@ function randomBook(r: () => number): { market: PmMarketRow; book: PmBookNow } {
   return { market, book };
 }
 
+/** Whether a book's raw touch, as RW's `summarize` reads it, is at most TB1's one tick (Addendum 2). */
+const tightBook = (market: PmMarketRow, book: PmBookNow) =>
+  isTight(summarize(book.levels.bids, book.levels.asks, Number(market.max_spread), Number(market.min_size)), Number(book.tick), PM_LP_TIGHT.maxTicks);
+
 Deno.test("lpQuotes: with nothing held it is rwQuotes; held, a side sells first at the same price in the one book; a side stops at 5N, not RW's 3N", () => {
   const r = rng(20261004);
-  let quoted = 0, sells = 0;
+  let quoted = 0, sells = 0, tight = 0;
   for (let i = 0; i < 400; i++) {
     const { market, book } = randomBook(r);
     const N = sizeN(Number(market.min_size));
     const rw = rwQuotes({ market, book, held: { yes: 0, no: 0 } });
+    // TB1's skip (Addendum 2): a one-tick touch rests nothing, whatever is held; its own test is below.
+    if (tightBook(market, book)) {
+      tight++;
+      for (const held of [{ yes: 0, no: 0 }, { yes: N, no: 0 }, { yes: 0, no: N }, { yes: 5 * N, no: 0 }]) assertEquals(lpQuotes({ market, book, held }), [], `world ${i}`);
+      continue;
+    }
     assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 0 } }), rw, `world ${i}`);
     if (rw.length !== 2) continue;
     quoted++;
@@ -112,7 +123,39 @@ Deno.test("lpQuotes: with nothing held it is rwQuotes; held, a side sells first 
     assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 5 * N } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL"]);
     sells += 2;
   }
-  assert(quoted > 200 && sells > 400, `${quoted} worlds quoted`);
+  assert(quoted > 150 && sells > 300 && tight > 50, `${quoted} worlds quoted, ${tight} tight`);
+});
+
+Deno.test("TB1's skip (Addendum 2): where the raw touch is one tick, live-prep rests nothing, buys and sells alike; two ticks, RW's quote", () => {
+  assertEquals(PM_LP_TIGHT, { maxTicks: 1 });
+  for (const tick of ["0.01", "0.001"] as const) {
+    const t = Number(tick);
+    const mk = (spreadTicks: number) => {
+      const bb = onTick(0.5 - t * Math.floor(spreadTicks / 2), tick), ba = onTick(bb + spreadTicks * t, tick);
+      const bids: Array<[number, number]> = [[bb, 50], [onTick(bb - t, tick), 50], [onTick(bb - 2 * t, tick), 50]];
+      const asks: Array<[number, number]> = [[ba, 50], [onTick(ba + t, tick), 50], [onTick(ba + 2 * t, tick), 50]];
+      const market = { day: "2026-10-09", kind: "standard", cond: cond(1), yes_token: "1", no_token: "2", neg_risk: false, tick: t, min_size: 20, reward_rate: 50, rank: 1, question: "q", max_spread: 4.5 } as PmMarketRow;
+      const book = { bestBid: bb, bestAsk: ba, tick, minSize: 5, negRisk: false, at: null, hash: null, levels: { bids, asks } } as PmBookNow;
+      return { market, book };
+    };
+    const one = mk(1), two = mk(2);
+    // Without the rule a one-tick book is quoted on both sides (RW's join), so this fails on the old code.
+    assertEquals(rwQuotes({ ...one, held: { yes: 0, no: 0 } }).length, 2, tick);
+    assert(tightBook(one.market, one.book) && !tightBook(two.market, two.book), tick);
+    for (const held of [{ yes: 0, no: 0 }, { yes: 20, no: 0 }, { yes: 0, no: 20 }, { yes: 100, no: 0 }]) assertEquals(lpQuotes({ ...one, held }), [], `${tick} ${JSON.stringify(held)}`);
+    assertEquals(lpQuotes({ ...two, held: { yes: 0, no: 0 } }), rwQuotes({ ...two, held: { yes: 0, no: 0 } }), tick);
+    assertEquals(lpQuotes({ ...two, held: { yes: 0, no: 0 } }).length, 2, tick);
+    // Our own resting orders are not the touch: a three-tick book whose touch is one tick only by our own two orders is
+    // quoted, and the same levels with no order of ours are skipped.
+    const three = mk(3), tb = three.book.levels.bids[0][0];
+    const ownBb = onTick(tb + t, tick), ownBa = onTick(tb + 2 * t, tick);
+    const withOwn = { ...three.book, levels: { bids: [[ownBb, 20], ...three.book.levels.bids] as Array<[number, number]>, asks: [[ownBa, 20], ...three.book.levels.asks] as Array<[number, number]> } };
+    const own: PmIntent[] = [{ outcome: "yes", side: "BUY", price: ownBb, size: 20 }, { outcome: "no", side: "BUY", price: onTick(1 - ownBa, tick), size: 20 }];
+    assertEquals(lpQuotes({ market: three.market, book: withOwn, held: { yes: 0, no: 0 }, own }).length, 2, `${tick} own`);
+    assertEquals(lpQuotes({ market: three.market, book: withOwn, held: { yes: 0, no: 0 } }), [], `${tick} not own`);
+  }
+  // Mini-pool and mid-pool carry no such rule: their rule is rwQuotes, which quotes a one-tick book.
+  for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp, undefined);
 });
 
 Deno.test("pauseAfterJump is x2's rule: 15 ¢ or more between two minutes pauses that minute and the 59 after; a jump inside restarts it; no mid records nothing", () => {

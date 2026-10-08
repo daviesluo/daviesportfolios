@@ -250,3 +250,18 @@ from the hash named here.
 The simulator's imports (`supabase/functions/agents/pmrw.ts`, `pmrw_x.ts` and theirs, and
 `supabase/functions/_shared/polymarket_public.ts`) are read at the freezing commit. At the freeze, `pmrw.ts` is
 `f2bb5943dacb094d2c90cea91893cc5ec7e301874ebe6f420c9a7fb8278dd7f2` and `pmrw_x.ts` is `c145e8078e106a0666171b7f944229983cb0a4488022ffb58a499653411daea9`.
+
+## Addendum 1 (2026-10-08): live-prep adopts TB1's skip; C1 measures what it adds
+
+Davies adopted TB1's skip on live-prep on 2026-10-08: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单". It
+is recorded in live-prep's pre-registration as its Addendum 2.
+
+C1's reading is unchanged: its arms, data, bar and date are as frozen above. What a pass or a fail means follows from
+live-prep's rule now carrying the skip:
+
+- C1 against S2, on RW-C's fourteen days, becomes the out-of-sample measure of what the skip adds to live-prep's rules
+  on fresh days.
+- A fail is reported to Davies as evidence against the rule live-prep now runs. Removing it, like adopting it, is his
+  word and a pre-registration's addendum.
+
+Nothing of this file's scripts changes.

@@ -267,3 +267,72 @@ In English: count only the day's change. What changes, and what it does here:
 - **The payouts patch (P3)** applies to `pm_live.ts` and is rebuilt on this code
   (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`); applying it is still Davies' call and its own
   addendum's.
+
+## Addendum 2 (2026-10-08): TB1's skip on live-prep, on Davies' word
+
+This addendum was written after d1 (2026-10-05) and before the deploy it records. Under "The window", a change to
+`pm_lp.ts` deployed after d1 is a deviation that an addendum records.
+
+Davies, 2026-10-08, verbatim:
+
+> 给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单 … live-prep 还是最好的吗不是和现有策略比，是和本身比（可以用所有策略和记录订单簿的所有数据inform），确保live-prep各方面都做到最好，然后最好上线准备
+
+In English: give live-prep TB1's variant-3 rule, resting no order when the touch is only one tick wide; and make every
+part of live-prep the best it can be, measured against itself, informed by all strategies and all recorded books, then
+prepare it to go live. Arming is not part of this; only he arms, in the conversation where he says go.
+
+**The change.** In a minute whose raw touch is at most one tick wide, nothing rests in that market: no buy and no sell.
+The raw touch is the best ask less the best bid of the book without our orders, as RW's `summarize` reads it. The rule
+is `PM_LP_TIGHT = { maxTicks: 1 }` in `lpQuotes`, judged by `pmrw_x.ts`'s own `isTight`. That is TB1's `tb1-skip`
+(`2026-10-07-polymarket-rw-tb1-prereg.md`, page name "Reward quotes variant-3") at its frozen threshold.
+
+- It applies to selected markets and to the close-only sells of carried markets.
+- Every other minute is unchanged.
+- In dry-run, the paper layer classes such a minute `dark`: nothing rested, no fill, no reward.
+- Mini-pool and mid-pool carry no `lp` options, so they are unchanged.
+- `pm_live.ts`, `pm_prep.ts` and 0091 are unchanged. The code it deploys: `pm_lp.ts` sha256
+  `c404d510c0fdeea529c4edba7a314867d6943d18e4bc1e49e82842ef4fcf5eb4` (frozen above: `bfe38d1c…c3da`). `pm_live.ts` and
+  `pm_prep.ts` are as Addendum 1 names them.
+- **Pinned** in `agents/pm_lp.test.ts`, "TB1's skip (Addendum 2)": a one-tick book that `rwQuotes` quotes on both
+  sides rests nothing under `lpQuotes`, with or without holdings, at both tick sizes, which fails on the old code. A
+  two-tick book is RW's quote. Our own resting orders do not make a touch tight. Every world of the existing `lpQuotes`
+  test with a one-tick touch rests nothing.
+
+**The evidence** was read before this addendum and is not blind. It comes from RWC-OPT's search
+(`2026-10-09-rwc-optimised-arms-prereg.md`, `docs/agents/backtests/rwc_opt/`). That search ran live-prep's own Phase A
+simulator, plus TB1's option, on RW's record of 2026-09-25 00:00 → 10-08 23:10 UTC. On that record the simulator
+reproduces RW's day rows to $1.6e-12.
+
+The specification as frozen above (S2) against S2 with this rule:
+
+| | S2 | S2 + TB1 skip | difference |
+|---|---|---|---|
+| R = 0.40, strict fills | $468.88 | $537.73 | +$68.85 (10 days of 14 ahead) |
+| R = 0.40, a print at our price fills us too | $363.03 | $504.22 | +$141.19 (13 of 14) |
+| R = 1, strict fills | $1,367.55 | $1,345.03 | −$22.51 |
+| worst day at R = 0.40, strict / at-price | −$27.79 / −$55.31 | −$5.64 / −$37.52 | |
+
+- The paired day bootstrap at R = 0.40 (`random.Random(20261023)`, 2,000 draws, index 100) is +$13.43 under strict
+  fills and +$82.00 at-price.
+- Across 35 changes to S2, the reality check of the best one over all of them gives p = 0.78 (strict) and 0.28
+  (at-price) at R = 0.40. This rule is not significant after the correction.
+- A walk-forward that picked each test day's change from the days before chose it on 6 of 8 days, +$42.26 over S2 on
+  those 8 days.
+- The rule trades about a tenth of the rewards for fewer adverse fills. It loses if Polymarket pays more than about
+  0.85 of the formula (strict fills), and never under at-price fills.
+- **Against it:** live-prep's own forward fills of 2026-10-04 → 10-08 (a wider universe than RW's) marked out at 60
+  minutes better in one-tick minutes than in others: −1.56 cents a share against −2.24 (65 and 383 fills).
+
+**What it does to this file's checks:**
+
+- The day-1 check (`lp_check.sql`, run 2026-10-07 on d1) stands as read. It judged the rule as frozen, and its
+  statement is unchanged.
+- P2–P5, live-prep's go-time statement (step 8lp) and the live readout (`lp_readout.sql`, unchanged) read the path
+  with this rule from its first deployed minute.
+- The paper record before that minute is the old rule's. Any comparison across the deploy says so.
+- The window's fourteen-day readout at 14 live days compares the measured fills and R with the record's figures above
+  (the S2 + TB1 skip column), not with the frozen specification's.
+
+**Its forward test:** RWC-OPT's C1 (S2 + TB1 skip against S2 on RW-C's fourteen days, read on or after 2026-10-23
+00:05 UTC) is the out-of-sample measure of what this rule adds. Live-prep's own dry-run, and later its live path,
+measure the rule as it runs.

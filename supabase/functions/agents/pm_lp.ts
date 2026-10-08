@@ -22,6 +22,9 @@
 //     bid is a SELL of NO at 1 − b while NO is held ≥ N, else a BUY of YES at b; the ask a SELL of YES at a while YES
 //     is held ≥ N, else a BUY of NO at 1 − a); a side stops at 5N of inventory its way (RW's 3N held capital that a
 //     sell frees); x2's pause after a jump of 15 ¢ in the adjusted mid, for 60 minutes (`pauseAfterJump`).
+//   - TB1's skip (Davies, 2026-10-08: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"; the pre-registration's
+//     Addendum 2): in a minute whose raw touch, the book without our orders, is at most one tick wide, nothing rests in
+//     that market, buys and sells alike (`PM_LP_TIGHT`, `pmrw_x.ts`'s own `isTight`).
 //   - A market held from an earlier day and not selected rests only the sells of what it holds, at the rule's prices.
 //   - Caps: $320 in all and $100 a market (holdings at cost and resting buys); a total stop of −$75 on the fills plus what
 //     was paid (live: the readout's payouts; in dry-run: its paper's closed days at R = 0.40); no day stop.
@@ -37,6 +40,7 @@
 import { onTick, othersLevels, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteRule } from "./pm_live.ts";
 import { bookReplies } from "./pm_mid.ts";
 import { quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
+import { isTight } from "./pmrw_x.ts";
 import type { PrepInstance } from "./pm_prep.ts";
 
 /** Its band of total daily reward rates: RW's floor ($10, `RW_MIN_RATE`) and no ceiling. */
@@ -51,6 +55,12 @@ export const PM_LP_INV_CAP = 5;
 export const PM_LP_CAP_MARKET_USD = 100;
 /** x2's pause, frozen 2026-09-27: 15 ¢ between two minutes, 60 minutes. */
 export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;
+/**
+ * TB1's skip (`reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, arm tb1-skip; adopted for live-prep by Davies on
+ * 2026-10-08, the pre-registration's Addendum 2): a market whose raw touch (best ask less best bid of the book without
+ * our orders, RW's `summarize`) is at most this many ticks wide rests nothing that minute.
+ */
+export const PM_LP_TIGHT = { maxTicks: 1 } as const;
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };
 
@@ -59,13 +69,15 @@ export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFee
  * `sizeN`; then each side rests a sell of what is held before a buy: the bid (b in the one book) is a SELL of NO at
  * 1 − b while NO is held ≥ N, else a BUY of YES at b; the ask (a) a SELL of YES at a while YES is held ≥ N, else a BUY of
  * NO at 1 − a. A side stops at `PM_LP_INV_CAP` × N of inventory its way, the inventory being YES held less NO held as
- * RW's `net` counts it. With nothing held it is `rwQuotes` exactly (pinned in pm_lp.test.ts).
+ * RW's `net` counts it. With nothing held it is `rwQuotes` exactly (pinned in pm_lp.test.ts), but where the raw touch is
+ * at most `PM_LP_TIGHT.maxTicks` ticks wide: there it rests nothing (TB1's skip, Addendum 2).
  */
 export const lpQuotes: PmQuoteRule = ({ market, book, held, own }) => {
   const v = Number(market.max_spread), minSize = Number(market.min_size);
   if (!(v > 0) || !(minSize >= 0)) return [];
   const o = othersLevels(book.levels, own ?? []);
   const row = summarize(o.bids, o.asks, v, minSize);
+  if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];
   const q = row ? quote(row, Number(book.tick)) : null;
   if (!q) return [];
   const N = sizeN(minSize), net = held.yes - held.no, out: PmIntent[] = [];

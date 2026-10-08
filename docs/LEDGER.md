@@ -82,7 +82,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (`pm_live`, `0074`/`0076`/`0080`, `reviews/2026-10-01-polymarket-live-calibration.md`): every check window closed
      by Addendum 7 (2026-10-04); not a go-live candidate; off TESTING, and `pmlive` and `pmprep` off, when `0103`
      applies (Davies, 2026-10-08: "按你说的停掉mini-pool的两个调用"); config row untouched (nothing arms). **live-prep (S2)**, the lead
-     candidate (`0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`): P1 checked 2026-10-07 20:22
+     candidate, with TB1's skip of a one-tick touch since its Addendum 2 (2026-10-08, Davies' word; pinned in
+     `pm_lp.test.ts`, deployed with the next push of `agents`) (`0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`): P1 checked 2026-10-07 20:22
      UTC with `backtests/pmlp/lp_check.sql` (sha256 `7e94b042…0a57`): (a)–(e) and (g) PASS, (f) FAIL on funding alone.
      Before Davies' go, in order: P2 pUSD ≥ $81 in the account; P3 the payouts-per-path patch
      (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`) applied with an addendum, his call; P4 mini-pool
@@ -402,6 +403,15 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep takes TB1's skip** (Davies: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"): `lpQuotes` rests
+  nothing in a market whose raw touch (the book without our orders) is at most one tick (`PM_LP_TIGHT`, `isTight`);
+  `pm_lp.ts` only, mini-pool and mid-pool unchanged. Its pre-registration's Addendum 2 records the word, the evidence
+  (S2 → S2 + skip on RW's 14 days: +$68.85 strict, +$141.19 at-price at R = 0.40; −$22.51 at R = 1; p 0.78 / 0.28 after
+  35 changes) and that P2–P5 read the new rule from its first deployed minute; RWC-OPT's Addendum 1 makes C1 the
+  out-of-sample measure of it. After the deploy: read `pm_lp_state.last_error` and that `pm_lp_minutes` has a row every
+  minute. Not armed; only Davies arms.
 
 ### [2026-10-08 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RWC-OPT frozen before RW-C's first minute** (Davies: "RW-C…可以用目前所有最新的数据看看RW-C可不可以优化到最佳吗", "效果优先").

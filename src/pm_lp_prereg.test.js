@@ -95,7 +95,21 @@ describe('the live-prep pre-registration', () => {
     for (const f of ['pm_live.ts', 'pm_prep.ts']) expect(add1).toMatch(new RegExp('`' + f.replace('.', '\\.') + '` sha256 `[0-9a-f]{64}`'));
     // Its own instance and migration are the bytes frozen above.
     const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
-    expect(sha('supabase/functions/agents/pm_lp.ts')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(DOC)?.[1]);
+    // Its migration is the bytes frozen above; its instance the bytes Addendum 2 deploys (TB1's skip, 2026-10-08).
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(DOC)?.[1]).toBe('bfe38d1c94026641755ed6515b1ae0c91a00c11b4ea80dae3a2f6d6df4d7c3da');
     expect(src('supabase/functions/agents/pm_live.ts')).toContain('const dayOpen = !inst.dayStopOnCost && Number.isFinite(lim.lossDay)');
+  });
+
+  // Addendum 2 (2026-10-08, Davies: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"): TB1's skip at one tick,
+  // in live-prep's rule alone (supabase/functions/agents/pm_lp.test.ts pins the rule).
+  it("records TB1's skip in its Addendum 2, in Davies' words, and the instance is the bytes it names", () => {
+    const add2 = DOC.slice(DOC.indexOf('## Addendum 2'));
+    expect(add2.length).toBeGreaterThan(100);
+    expect(add2).toContain('> 给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单');
+    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1];
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
+    const lp = src('supabase/functions/agents/pm_lp.ts');
+    expect(lp).toContain('export const PM_LP_TIGHT = { maxTicks: 1 } as const;');
+    expect(lp).toContain('if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
   });
 });

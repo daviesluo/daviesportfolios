@@ -3810,7 +3810,7 @@ eu-west-1, without a current attestation, or while mini-pool or mid-pool is arme
 and five balances (`backtests/pmlp/results/lp_live_check_out.txt`). Before its go (its pre-registration's P1–P5): the
 day-1 check passed, the $400 account funded (pUSD ≥ $81), the payouts-per-path patch applied (rebuilt on this code,
 `docs/agents/pending/`), mini-pool and mid-pool unarmed, and the probe's read of the conditional-token allowances its
-sells need. Once live its orders rest in the books RW and RW-C read on paper.
+sells need. Once live its orders rest in the books RW and RW-C read on paper. **Addendum 2 (2026-10-08, Davies: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单")**: in a minute whose raw touch (the book without our orders) is at most one tick wide, nothing rests in the market (`PM_LP_TIGHT`, `pmrw_x.ts`'s `isTight`); on RW's record 09-25 → 10-08 S2 with it made +$68.85 at R = 0.40 with strict fills and +$141.19 with at-price fills over S2, −$22.51 at R = 1, its worst day −$5.64 against −$27.79 (`backtests/rwc_opt/`); not significant after a reality check over 35 changes (p 0.78 / 0.28); RWC-OPT's C1 measures it on RW-C's days.
 
 55. **Polymarket's rewarded markets are recorded for research: their books, reward terms, metadata and prints
 (2026-10-04, migration `0092`, `agents/pm_book_rec.ts`, `backtests/pmrec/`).** Davies: "把polymarket的所有有reward的市场详细价格与
