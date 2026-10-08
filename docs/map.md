@@ -520,7 +520,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 |---|---|
 | `portfolio/data.js` | A demo portfolio with made-up share counts, shown only when the real one cannot load. |
 | `portfolio/portfolio_remote.js` | Loads and saves the portfolio through the `data` function, and upgrades older saved shapes. |
-| `portfolio/portfolio_saver.js` | Sends the board's saves one at a time, counts a change saved only when the server takes it, and retries a failed save with a bounded backoff. |
+| `portfolio/portfolio_saver.js` | Sends the board's saves one at a time, counts a change saved only when the server takes it, retries a failed save with a bounded backoff, and decides whether a reload replays an unsaved draft or raises the conflict bar. |
 | `portfolio/shown_prices.js` | The prices each holding last showed, drawn over the book after a reload until the live quotes land, and never saved. |
 | `portfolio/portfolio_edits.js` | The board's edits: change, add, move or remove a holding, swap two positions, rename one. |
 | `portfolio/positions.js` | Where the 11 positions sit on the pitch. |

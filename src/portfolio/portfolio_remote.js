@@ -64,6 +64,17 @@ function dataHeaders() {
 let lastKnownVersion = null;
 
 /**
+ * The server version this tab's board builds on: the one its next save sends as `If-Match` (null until a load has
+ * answered with one). app.jsx stamps it on the pending-save draft, so that after a reload a draft is replayed only onto
+ * the version it was made against (`pendingDraftAction` in portfolio_saver.js, review F20).
+ *
+ * @returns {number | null}
+ */
+export function knownPortfolioVersion() {
+  return lastKnownVersion;
+}
+
+/**
  * Test hook — lets the per-callsite tests assert that loadPortfolioRemote
  * / savePortfolioRemote behave correctly against a stubbed version
  * without exposing the module-private state to production code.

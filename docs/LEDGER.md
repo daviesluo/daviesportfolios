@@ -813,6 +813,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A reload replays an unsaved edit only onto the version it was made against** (review F20, approved by Davies
+  2026-10-08). The draft a tab keeps in sessionStorage (`dp.pendingSave`, for a tab that dies or is signed out before
+  the server takes its edit) was replayed after the reload onto whatever the server then held, and its save went out
+  against that newer version and was taken: a change saved from another tab or device in between was overwritten
+  without a word. The draft now carries `baseVersion`, the `If-Match` its save would have sent
+  (`knownPortfolioVersion`); a newer edit's draft moves to the version a save makes (`draftAfterSave`). On a reload,
+  `pendingDraftAction` replays it when the server is still on that version, and otherwise ends where the save's 412
+  would have left the tab: the draft on the board, nothing saved, the CONFLICT bar's choice. A draft from the earlier
+  bundle (no version) replays as before. Pins: seven in `portfolio_saver.test.js` and two in `app.test.jsx` (a draft
+  made against version 6, server on 7: the bar comes up and nothing is saved); the app pin fails on the old replay and
+  the rebase pin with the rebase removed. The sweep's save-retry draft now carries the loaded version (both viewports
+  green on the rebuilt bundle; with an older version the bundle sends no save). Guide updated.
+
 ### [2026-10-08 14:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Only the newest refresh's answer reaches the board** (review F18, approved by Davies 2026-10-08). `doRefresh`
   had no in-flight guard: the 30 s tick, the Refresh button, the return to the tab and the real load's catch-up can

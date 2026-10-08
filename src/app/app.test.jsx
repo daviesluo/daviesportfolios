@@ -73,6 +73,7 @@ vi.mock('../portfolio/portfolio_remote.js', () => ({
   loadPortfolioRemote: vi.fn(() => Promise.resolve(null)),
   savePortfolioRemote: vi.fn(() => Promise.resolve({ ok: true })),
   portfolioUserFingerprint: vi.fn(() => 'fingerprint'),
+  knownPortfolioVersion: vi.fn(() => null),
   PORTFOLIO_BROADCAST_CHANNEL: 'dp.portfolio',
 }));
 vi.mock('../prices/prefetch.js', () => ({ prefetchAllChartData: vi.fn() }));
@@ -111,7 +112,7 @@ import { refreshPrices } from '../prices/yahoo_fetch.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 import { fetchTodayRegularClose } from '../prices/historical.js';
-import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint } from '../portfolio/portfolio_remote.js';
+import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, knownPortfolioVersion } from '../portfolio/portfolio_remote.js';
 
 beforeEach(() => {
   cleanup();
@@ -478,5 +479,68 @@ describe('App — overlapping refreshes', () => {
     await new Promise((r) => setTimeout(r, 50));
     expect(header().metrics.marketValue).toBe(1500);
     expect(header().isRefreshing).toBe(false);
+  }, 10000);
+});
+
+// A tab that reloads with an edit the server never took (it died, or its sign-in lapsed, before the save went through):
+// until 2026-10-08 the edit was put back and saved over whatever the server held by then, so a change saved from
+// another tab or device in between was overwritten without a word (review F20).
+describe('App — an unsaved edit left by a tab that reloaded', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  const SERVER_PORTFOLIO = {
+    holdings: { NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] } },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  // The edit: 12 shares, not 10.
+  const draftBoard = () => {
+    const d = structuredClone(SERVER_PORTFOLIO);
+    d.holdings.NVDA.shares = 12;
+    d.holdings.NVDA.lots = [{ date: '2025-01-01', shares: 12, cost: 100 }];
+    return d;
+  };
+  const leaveDraft = (baseVersion) => sessionStorage.setItem('dp.pendingSave', JSON.stringify({ fp: 'shares-12', portfolio: draftBoard(), baseVersion, ts: Date.now() }));
+  const header = () => /** @type {any} */ (globalThis).__headerProps;
+
+  beforeEach(() => {
+    // The price an earlier test's board last showed would be drawn instead of the row's own (`dp.lastPrices`).
+    localStorage.removeItem('dp.lastPrices');
+    vi.mocked(portfolioUserFingerprint).mockImplementation((p) => `shares-${/** @type {any} */ (p)?.holdings?.NVDA?.shares}`);
+  });
+  afterEach(() => {
+    vi.mocked(portfolioUserFingerprint).mockImplementation(() => 'fingerprint');
+    vi.mocked(knownPortfolioVersion).mockReturnValue(null);
+    localStorage.removeItem('dp.lastPrices');
+    delete /** @type {any} */ (globalThis).__headerProps;
+  });
+
+  it('another tab or device saved since: the edit is shown under the CONFLICT bar, and nothing is saved over theirs', async () => {
+    setAdminToken();
+    leaveDraft(6);
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+    vi.mocked(knownPortfolioVersion).mockReturnValue(7);
+
+    const { findByText } = render(<App />);
+    await findByText(/CONFLICT — another tab or device saved newer changes/, undefined, { timeout: 3000 });
+    await waitFor(() => expect(header().metrics.marketValue).toBe(1440));   // the edit's 12 shares, as the tab left them
+    await new Promise((r) => setTimeout(r, 1000));                          // past the save's 600 ms debounce
+    expect(savePortfolioRemote).not.toHaveBeenCalled();
+    expect(JSON.parse(sessionStorage.getItem('dp.pendingSave') || '{}').baseVersion).toBe(6);   // kept for the bar's choice
+  }, 10000);
+
+  it('nothing saved since: the edit is put back and saved, and its draft cleared', async () => {
+    setAdminToken();
+    leaveDraft(7);
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+    vi.mocked(knownPortfolioVersion).mockReturnValue(7);
+
+    const { queryByText } = render(<App />);
+    await waitFor(() => expect(savePortfolioRemote).toHaveBeenCalled(), { timeout: 3000 });
+    expect(/** @type {any} */ (vi.mocked(savePortfolioRemote).mock.calls[0][0]).holdings.NVDA.shares).toBe(12);
+    await waitFor(() => expect(sessionStorage.getItem('dp.pendingSave')).toBeNull());
+    expect(queryByText(/CONFLICT/)).toBeNull();
   }, 10000);
 });

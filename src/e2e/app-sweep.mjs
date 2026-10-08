@@ -1620,14 +1620,15 @@ async function run() {
   // Improvement plan items 4 and 5 (2026-09-30). The save effect marked a change saved before its request resolved and
   // dropped a failed one without a word, so the board looked saved while the server never had the change; and the
   // cross-tab reload took whatever the load answered, which on a failed load is the demo book. The change here arrives
-  // as it does after a tab died mid-edit: a draft in sessionStorage, replayed on mount and saved.
+  // as it does after a tab died mid-edit: a draft in sessionStorage, made against the version the load answers (1), so
+  // replayed on mount and saved (a draft made against an older version raises the conflict bar instead, review F20).
   for (const vp of viewports('save-retry')) {
     const S = (n) => `${vp.name}/save-retry/${n}`;
     const draft = JSON.parse(JSON.stringify(PORTFOLIO));
     draft.holdings.NOVA.shares = 6;
     draft.holdings.NOVA.lots = [{ date: dayAgo(55), shares: 6, cost: 100 }];
     saveCalls = 0; loadCalls = 0; saveFailures = 2; loadFails = false;
-    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { draft: { fp: 'a draft', portfolio: draft, ts: NOW_MS } });
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { draft: { fp: 'a draft', portfolio: draft, baseVersion: 1, ts: NOW_MS } });
     const waitFor = async (fn, ms = 8000) => {
       const by = Date.now() + ms;
       while (Date.now() < by) { if (await fn().catch(() => false)) return true; await page.waitForTimeout(50); }

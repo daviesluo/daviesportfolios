@@ -16,8 +16,8 @@ import { Storage } from './storage.js';
 import { POSITION_COORDS } from '../portfolio/positions.js';
 import { INITIAL_PORTFOLIO } from '../portfolio/data.js';
 import { consumeUrlPassword, decodeAppToken, getAppToken, authenticate, onSignOut, signOut } from './auth.js';
-import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from '../portfolio/portfolio_remote.js';
-import { createPortfolioSaver } from '../portfolio/portfolio_saver.js';
+import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, knownPortfolioVersion, PORTFOLIO_BROADCAST_CHANNEL, TAB_ID } from '../portfolio/portfolio_remote.js';
+import { createPortfolioSaver, draftAfterSave, pendingDraftAction } from '../portfolio/portfolio_saver.js';
 import { shownPricesOf, withShownPrices, withoutPriced } from '../portfolio/shown_prices.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { hydrateAllChartStores } from '../prices/chart_store.js';
@@ -662,11 +662,13 @@ function Board({ isReadOnly }) {
       save: savePortfolioRemote,
       onSaved: (fp) => {
         lastSavedFingerprintRef.current = fp;
-        // Clear the draft mirror only when it holds this change: a newer edit's draft stays until that one is saved.
+        // Clear the draft mirror only when it holds this change: a newer edit's draft stays until that one is saved, and
+        // now builds on the version this save made (`draftAfterSave`), which its own save will go out against.
         try {
           const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
-          const pending = raw ? JSON.parse(raw) : null;
-          if (!pending || pending.fp === fp) sessionStorage.removeItem(PENDING_SAVE_KEY);
+          const kept = draftAfterSave(raw ? JSON.parse(raw) : null, fp, knownPortfolioVersion());
+          if (kept) sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(kept));
+          else sessionStorage.removeItem(PENDING_SAVE_KEY);
         } catch { /* private mode etc. */ }
       },
       // Another tab or device saved in between. Not tried again: the banner lets the user choose.
@@ -722,20 +724,31 @@ function Board({ isReadOnly }) {
     if (lastSavedFingerprintRef.current === null) {
       lastSavedFingerprintRef.current = fp;
       // Cold-mount: if a previous tab crashed mid-edit (or the
-      // browser killed the tab in the 600ms debounce window), the
-      // pending draft is still in sessionStorage. Replay it now so
-      // the user sees their unsaved changes instead of the
-      // server's last-saved blob.
+      // browser killed the tab in the 600ms debounce window, or the
+      // sign-in lapsed before the save went through), the pending
+      // draft is still in sessionStorage. Replay it now so the user
+      // sees their unsaved changes instead of the server's last-saved
+      // blob, but only onto the version it was made against
+      // (`pendingDraftAction`, review F20).
       try {
         const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
         if (raw) {
           const pending = JSON.parse(raw);
-          if (pending && pending.fp && pending.fp !== fp && pending.portfolio) {
+          const action = pendingDraftAction(pending, fp, knownPortfolioVersion());
+          if (action === 'replay') {
             setPortfolio(pending.portfolio);
             // setPortfolio will re-fire this effect on the next render,
             // at which point fp will differ from
             // lastSavedFingerprintRef and the normal debounce + save
             // path will pick up the draft.
+          } else if (action === 'conflict') {
+            // Another tab or device has saved since the draft was made: its save would have met a 412. End where that
+            // would have left the tab (the saver's onConflict above): the draft on the board, its fingerprint marked so
+            // nothing is sent, and the conflict bar's choice, Reload (the server's board) or Keep editing (the next
+            // edit's save replaces the server's board).
+            lastSavedFingerprintRef.current = portfolioUserFingerprint(pending.portfolio);
+            setPortfolio(pending.portfolio);
+            setSaveConflict(true);
           }
         }
       } catch { /* private mode etc. */ }
@@ -749,9 +762,11 @@ function Board({ isReadOnly }) {
     // window the next cold mount replays it; if the save succeeds
     // the .then() below clears the mirror so the next cold mount
     // sees nothing pending. Per-tab (sessionStorage) so two tabs
-    // can't accidentally replay each other's drafts.
+    // can't accidentally replay each other's drafts. `baseVersion`
+    // is the version its save will go out against, so a reload
+    // replays it only onto that one (review F20).
     try {
-      sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify({ fp, portfolio, ts: Date.now() }));
+      sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify({ fp, portfolio, baseVersion: knownPortfolioVersion(), ts: Date.now() }));
     } catch { /* swallow — best-effort */ }
     // The marker moves when the server answers, not here: a failed save used to be marked saved first and then dropped
     // without a word. A conflict keeps the draft mirror; the banner decides (Reload, or Keep editing and the next edit's

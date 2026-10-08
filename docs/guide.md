@@ -15,7 +15,8 @@ The signed token then lasts for the browser session, so a reload or an
 update doesn't ask again. It ends 24 hours after signing in, or when the
 tab or app is closed; when it ends, the page goes back to the password
 prompt by itself, with any unsaved edit kept and saved after the next
-sign-in.
+sign-in (unless another tab or device has saved in the meantime: then
+the CONFLICT bar below asks first).
 If the server does not answer the check, the page says SERVER UNAVAILABLE
 and the password was not judged: try again in a minute. Only a password
 the server refuses reads "Incorrect password".
@@ -25,7 +26,11 @@ it, a **NOT SAVED** bar says so and the page tries again by itself, after
 5 s, then 15 s, and longer, for about eight minutes; **Retry now** sends it
 at once. The change stays in the tab meanwhile, and a newer edit is saved
 in its place. If another tab or device saved first, a **CONFLICT** bar
-lets you reload their version or keep editing.
+lets you reload their version or keep editing. The same bar comes up
+when the page reloads holding an edit it never saved and another tab or
+device has saved since: your edit is shown, nothing is saved over theirs
+until you choose, and keep editing means your next edit's save replaces
+theirs.
 
 ## The header
 

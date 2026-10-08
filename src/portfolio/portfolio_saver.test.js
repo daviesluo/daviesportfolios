@@ -1,7 +1,7 @@
 // The board's saves (portfolio_saver.js): a change is saved only when the server says so, a failed save is said and
 // tried again with a bounded backoff, a conflict is never retried, and one request is in flight at a time.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createPortfolioSaver, SAVE_RETRY_DELAYS_MS } from './portfolio_saver.js';
+import { createPortfolioSaver, draftAfterSave, pendingDraftAction, SAVE_RETRY_DELAYS_MS } from './portfolio_saver.js';
 
 /** A server whose answers the test hands out one at a time, and which records the boards it was sent. */
 function server() {
@@ -167,5 +167,53 @@ describe('createPortfolioSaver', () => {
     await vi.advanceTimersByTimeAsync(3600e3);
     expect(w.s.calls).toHaveLength(2);
     expect(w.failing.at(-1)).toBe(null);
+  });
+});
+
+// The pending-save draft after a reload (review F20): until 2026-10-08 it was replayed onto whatever the server then
+// held, and its save was taken against that newer version, so another device's change in between was lost.
+describe('pendingDraftAction', () => {
+  const board = { holdings: { ACME: { shares: 12 } } };
+  const draft = (/** @type {any} */ extra) => ({ fp: 'fp-draft', portfolio: board, ts: 1, ...extra });
+
+  it('replays a draft onto the version it was made against', () => {
+    expect(pendingDraftAction(draft({ baseVersion: 7 }), 'fp-server', 7)).toBe('replay');
+  });
+
+  it('never replays a draft onto a newer version: its save would have met a conflict', () => {
+    expect(pendingDraftAction(draft({ baseVersion: 6 }), 'fp-server', 7)).toBe('conflict');
+    expect(pendingDraftAction(draft({ baseVersion: 0 }), 'fp-server', 1)).toBe('conflict');
+  });
+
+  it('has nothing to do when the server already holds the draft, or there is no whole draft', () => {
+    expect(pendingDraftAction(draft({ baseVersion: 6 }), 'fp-draft', 7)).toBe('none');
+    expect(pendingDraftAction(null, 'fp-server', 7)).toBe('none');
+    expect(pendingDraftAction({ fp: 'fp-draft', ts: 1, baseVersion: 7 }, 'fp-server', 7)).toBe('none');
+    expect(pendingDraftAction({ portfolio: board, ts: 1, baseVersion: 7 }, 'fp-server', 7)).toBe('none');
+  });
+
+  it('replays, as before, a draft with no version (written by the earlier bundle) or from a server that sends none', () => {
+    expect(pendingDraftAction(draft({}), 'fp-server', 7)).toBe('replay');
+    expect(pendingDraftAction(draft({ baseVersion: null }), 'fp-server', 7)).toBe('replay');
+    expect(pendingDraftAction(draft({ baseVersion: 6 }), 'fp-server', null)).toBe('replay');
+  });
+});
+
+describe('draftAfterSave', () => {
+  it('removes the draft that held the change just saved', () => {
+    expect(draftAfterSave({ fp: 'fpA', portfolio: {}, baseVersion: 6 }, 'fpA', 7)).toBe(null);
+    expect(draftAfterSave(null, 'fpA', 7)).toBe(null);
+  });
+
+  it('keeps a newer edit\'s draft, now on the version that save made: no conflict when it is replayed onto it', () => {
+    // Edit B was drafted while A's save was in flight, so against A's base; A's save made version 7, which B builds on.
+    const kept = draftAfterSave({ fp: 'fpB', portfolio: { n: 2 }, baseVersion: 6, ts: 5 }, 'fpA', 7);
+    expect(kept).toEqual({ fp: 'fpB', portfolio: { n: 2 }, baseVersion: 7, ts: 5 });
+    expect(pendingDraftAction(kept, 'fpA', 7)).toBe('replay');
+  });
+
+  it('leaves the draft\'s version alone when the save gave none', () => {
+    const pending = { fp: 'fpB', portfolio: {}, baseVersion: 6 };
+    expect(draftAfterSave(pending, 'fpA', null)).toBe(pending);
   });
 });
