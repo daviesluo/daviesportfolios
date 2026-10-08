@@ -39,6 +39,10 @@ lets you reload their version or keep editing.
 - **Hide values (the eye).** Replaces every digit of money, price and
   share count with `•`, so the page can be shown or screenshotted.
   Percentages stay. The setting is remembered.
+- **Currency (💱).** Shows the scoreboard's three amounts in dollars,
+  pounds or yuan at the live rate, starting in dollars on every visit.
+  Until that rate has loaded they read `—`, never the dollar figure
+  under another currency's sign.
 - **Tactics board / heat map.** Switches the centre panel.
 - **Refresh.** Fetches prices now and re-warms every chart range in the
   background. Prices also refresh by themselves every 30 seconds through

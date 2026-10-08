@@ -813,6 +813,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The scoreboard's currency cycle no longer prints dollars under £ or ¥** (review F10, approved by Davies
+  2026-10-08). With the GBP or CNY rate not yet in `marketData`, `usdToCcyRate` fell back to 1 and PORTFOLIO, DAY
+  CHANGE and UNREALIZED G/L read the dollar figures with the other currency's sign; a test pinned that as the
+  intended behaviour. Now the rate is null and the three amounts read `—` until it lands (the percentages and USD are
+  unaffected). The old pin is replaced by one that fails on the old code (`header_sidebar.test.jsx`, 36 pass). The
+  guide's header section names the button.
+
 ### [2026-10-08 14:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The portfolio keeps its earlier versions** (review F9, approved by Davies 2026-10-08). `board_data` is one row
   that every save overwrites, so a save that lost shares could only be undone from the platform's backups.

@@ -155,29 +155,31 @@ const CCY_SYMBOL = { USD: '$', GBP: '£', CNY: '¥' };
  *
  * Sourced from the same `marketData` map the Market Conditions cards
  * read, so the scoreboard never disagrees with the FX cards visible
- * lower in the page. Falls back to 1 (USD identity) on any missing
- * pair — the cycle button keeps cycling but the displayed digits
- * stay USD-numerically until the next FX refresh lands. The
- * SYMBOL still follows the cycle so the user has a clear visual
- * cue that the rate didn't land yet.
+ * lower in the page. Null when the pair is missing: the scoreboard
+ * then shows a dash in that currency (`CCY_PENDING`) until the rate
+ * lands. It used to fall back to 1 and print the dollar digits under
+ * a £ or ¥ (review F10, 2026-10-08): a number with the wrong unit.
  *
  * @param {'USD'|'GBP'|'CNY'} ccy
  * @param {Record<string, {lastPrice?: number}>} marketData
+ * @returns {number | null}
  */
 function usdToCcyRate(ccy, marketData) {
   if (ccy === 'USD') return 1;
   if (ccy === 'GBP') {
     // GBPUSD=X = "how many USD per 1 GBP" → invert for USD→GBP.
     const gbpusd = marketData?.['GBPUSD=X']?.lastPrice;
-    return (typeof gbpusd === 'number' && gbpusd > 0) ? 1 / gbpusd : 1;
+    return (typeof gbpusd === 'number' && gbpusd > 0) ? 1 / gbpusd : null;
   }
   if (ccy === 'CNY') {
     // USDCNY=X = "how many CNY per 1 USD" → direct multiplier.
     const usdcny = marketData?.['USDCNY=X']?.lastPrice;
-    return (typeof usdcny === 'number' && usdcny > 0) ? usdcny : 1;
+    return (typeof usdcny === 'number' && usdcny > 0) ? usdcny : null;
   }
   return 1;
 }
+/** What a money cell of the scoreboard shows in a currency whose rate has not landed. */
+const CCY_PENDING = '—';
 
 function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
@@ -206,7 +208,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
    *  conversion at every call site. */
   const fmCcy = React.useCallback(
     /** @param {number | null | undefined} n @param {{signed?: boolean, precision?: number}} [opts] */
-    (n, opts) => fmM(typeof n === 'number' ? n * ccyRate : n, {
+    (n, opts) => (ccyRate == null ? CCY_PENDING : fmM(typeof n === 'number' ? n * ccyRate : n, {
       ...opts, symbol: ccySym,
       // `compact: false` — the scoreboard expands M/B/T to full
       // digits so e.g. a $159 K portfolio doesn't read as "¥1.08M"
@@ -215,7 +217,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
       // cards / modal) where the smaller font would otherwise
       // overflow.
       compact: false,
-    }),
+    })),
     [ccyRate, ccySym],
   );
 
@@ -226,7 +228,7 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   // a CNY cycle makes the number ~7× bigger. Buckets → CSS picks the
   // gap via `[data-daygap]` inside the mobile media query (desktop is
   // unaffected). <100 → 15px, 100-999 → 12px, ≥1000 → 10px.
-  const dayChangeShown = Math.abs((metrics.dayChange || 0) * ccyRate);
+  const dayChangeShown = Math.abs((metrics.dayChange || 0) * (ccyRate ?? 1));
   const dayDigits = dayChangeShown >= 1 ? Math.floor(Math.log10(dayChangeShown)) + 1 : 1;
   const dayGapBucket = dayDigits >= 4 ? 'lg' : dayDigits === 3 ? 'md' : 'sm';
 

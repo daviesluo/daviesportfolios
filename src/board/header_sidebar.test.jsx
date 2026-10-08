@@ -108,14 +108,21 @@ describe('Header scoreboard — currency cycle', () => {
     expect(screen.getByText(/^\$100,000$/)).toBeInTheDocument();
   });
 
-  it('falls back to USD-identity (£ symbol, unconverted digits) when the FX pair is missing', async () => {
+  it('shows a dash, never the dollar digits under £ or ¥, while the FX pair is missing (review F10)', async () => {
     const user = userEvent.setup();
-    renderHeader({ marketData: {} }); // no GBPUSD=X
+    const { container } = renderHeader({ marketData: {} }); // no GBPUSD=X, no USDCNY=X
     await user.click(screen.getByRole('button', { name: /Currency: USD/i }));
-    // Symbol cycles to £ but the multiplier fell back to 1, so the
-    // digits stay the USD figure — the documented missing-rate
-    // behaviour (symbol cues the cycle, value waits for the rate).
-    expect(screen.getByText(/^£100,000$/)).toBeInTheDocument();
+    // Until 2026-10-08 the multiplier fell back to 1 and the cell read "£100,000": the dollar figure in pounds.
+    expect(screen.queryByText(/^£100,000$/)).toBeNull();
+    // PORTFOLIO, then DAY CHANGE's and UNREALIZED G/L's amounts (each beside its percentage).
+    const money = () => [container.querySelector('.sb-value-lg'), ...container.querySelectorAll('.sb-change-row > span:first-child')].map((el) => el?.textContent);
+    expect(money()).toEqual(['—', '—', '—']);
+    // The percentages do not depend on the currency, and stay.
+    expect([...container.querySelectorAll('.sb-change-row .sb-pct')].map((el) => el.textContent)).toEqual(['(+1.52%)', '(+33.30%)']);
+    await user.click(screen.getByRole('button', { name: /Currency: GBP/i }));
+    expect(money()).toEqual(['—', '—', '—']);                                          // CNY: the same
+    await user.click(screen.getByRole('button', { name: /Currency: CNY/i }));
+    expect(screen.getByText(/^\$100,000$/)).toBeInTheDocument();                      // USD needs no rate
   });
 });
 
