@@ -219,9 +219,10 @@ jobs:
         # apt install on every run.
         run: npx --no-install playwright install chromium
 
-      - name: Performance panel matrix (the committed bundle, 60 cases)
+      - name: Performance panel matrix (the committed bundle, 76 cases)
         # Both performance views x five ranges x three recorded-data states
-        # x two books (buys only; sold down), each read back from the page
+        # x two books (buys only; sold down), 60 cases, and 24H at four
+        # instants, extended hours off and on, both tabs (16), each read back from the page
         # and compared with an answer worked out by hand. It caught the
         # 24H reading +14.81 % where the book moved +16.00 % while the unit
         # tests agreed with themselves. By hand for months because it read

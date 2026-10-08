@@ -821,6 +821,16 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The stated test counts are today's** (review M4, approved by Davies 2026-10-08). The docs said 603 sweep checks
+  (CLAUDE.md, README) and 300 (the map), over 1,150 unit and over 950 Edge tests, and 60 perf cases. Counted on this
+  branch: the sweep 644 (322 at each width: `main` 242 and 250, the rest 80 and 72), Vitest 71 files and 1,336 tests,
+  Deno 1,081 (and 12 steps), the perf matrix 76 cases (60 and 16 of 24H). CLAUDE.md now says 644 on its date, the
+  README and the map "over 640", "over 1,300", "over 1,000" and 76, so they stay true as tests are added; the perf
+  step in `check.yml` is named with 76. The ledger's history keeps the counts of its day. **Review M5 needed nothing
+  more:** F7 already took the build out of the sweep's job, so its "serves the COMMITTED bundle" is true, and
+  `build_stamp.test.js` pins that neither bundle job builds.
+
 ### [2026-10-08 17:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`_shared/token.ts` says what is true of it** (review M3, approved by Davies 2026-10-08): its header described the
   inline token checks `data`, `trading212` and `ops-error` carried and a migration still to come; all three, and

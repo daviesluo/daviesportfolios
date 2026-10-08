@@ -795,7 +795,7 @@ before touching migration state.
 | `src/package.json` | The web app's npm project: scripts, dependencies, and the knip and size-limit settings. Every npm command runs in `src/`. |
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
-| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, 300 checks. |
+| `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, over 640 checks. |
 | `src/e2e/prep_fixture.json` | "Reward quotes mini-pool"'s page as the dashboard serves it for a record worked out by hand: the browser test shows it, and the view's test proves it is that function's own answer. |
 | `src/e2e/mid_fixture.json` | "Reward quotes mid-pool"'s page the same way, for a record of its $10–$50 band worked out by hand. |
 | `src/e2e/lp_fixture.json` | "Reward quotes live-prep"'s page the same way, for a record of its own with a $120 pool and a sell of what its paper held. |

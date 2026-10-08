@@ -322,7 +322,7 @@ from anywhere in the repository (`--full`: every one).
   not a formatter: errors on `react-hooks/rules-of-hooks`, warns on
   `exhaustive-deps` (a few effects intentionally narrow their deps). Runs
   in CI between typecheck and test.
-- `npm test` — vitest. Over 1,150 cases covering: YTD chart math, fetch /
+- `npm test` — vitest. Over 1,300 cases covering: YTD chart math, fetch /
   proxy strategy, ticker-shape predicates, cache TTL + LRU, per-proxy
   backoff, market-cache + legacy fallback, SW banner suppression
   window, ops-badge desktop gate, portfolio user-fingerprint diffing,
@@ -336,7 +336,8 @@ from anywhere in the repository (`--full`: every one).
   Cloudflare Pages serves only that directory).
 - `npm run verify:browser` — the whole-app browser sweep in
   `src/e2e/app-sweep.mjs`: serves the COMMITTED bundle over http and
-  drives it in real Chromium at both breakpoints (603 checks). A hard CI
+  drives it in real Chromium at both breakpoints (644 checks on
+  2026-10-08: 322 at each width). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
   `npx playwright install chromium` once per machine; a container that
