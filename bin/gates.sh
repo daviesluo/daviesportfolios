@@ -30,6 +30,18 @@ ROOT="$(git rev-parse --show-toplevel)"
 LOGS="$(mktemp -d)"
 trap 'rm -rf "$LOGS"' EXIT
 
+# One run at a time on a machine (Davies, 2026-10-08: "gates怎么又run的这么慢了"). Each run already fills the machine
+# (four sweep shards, the perf matrix, the unit and Edge tests at once); with four worktrees' runs on four cores the
+# load reached 48, every run took longer than queuing would have, and checks that wait on a page timed out at random.
+# Every clone and worktree shares the one lock file, so a second run waits for the first and says so.
+if command -v flock > /dev/null 2>&1; then
+  exec 9> "${GATES_LOCK:-/tmp/daviesportfolios-gates.lock}"
+  if ! flock -n 9; then
+    echo "gates: another gate run holds this machine; waiting for it"
+    w0=$(date +%s); flock 9; echo "gates: waited $(( $(date +%s) - w0 )) s"
+  fi
+fi
+
 # The ledger hook moved from hooks/ to bin/hooks on 2026-09-23. A clone that still points at the old folder runs no
 # hook at all, and git says nothing.
 case "$(git -C "$ROOT" config core.hooksPath)" in

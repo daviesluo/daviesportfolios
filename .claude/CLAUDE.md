@@ -212,7 +212,10 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   read the source beside the bundle's line — built, then the browser
   sweep in shards (each a viewport and a group of its parts,
   `SWEEP_PART`), the perf matrix and the size budget together, each on a
-  port the system has free. Each step prints its seconds.
+  port the system has free. Each step prints its seconds. One run at a
+  time per machine: a second run (another worktree's) waits on a shared
+  lock and says so, since two at once on four cores took longer than both
+  queued and timed out page checks.
   `--full` forces every gate. CI runs every gate on every push either
   way.
 - Cloudflare Pages Git builds (watch paths `dist/*` when set in the

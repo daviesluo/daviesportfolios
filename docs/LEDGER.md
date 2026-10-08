@@ -802,6 +802,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- `bin/gates.sh` takes a machine-wide `flock` (`/tmp/daviesportfolios-gates.lock`, `GATES_LOCK` overrides): a second
+  run waits and prints how long (Davies: "gates怎么又run的这么慢了"). Four worktrees' runs at once on four cores had
+  the load at 48; each run took longer than queuing, and page checks timed out at random. Measured and not done:
+  `deno test --parallel` cuts the Edge tests from 2 min 46 s to 1 min 26 s, but `pm_live.test.ts`'s "a full day
+  through the real client sends nothing but GETs" fails under it (Deno.env is one per process, so files that set it
+  collide); the unit tests run every file under jsdom, and the ones that need no DOM could run in node.
+
 ### [2026-10-08 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `0097_http_response_prune.sql`, on Davies' word ("推 0097"): `http-response-truncate` is unscheduled and
   `http-response-prune` deletes pg_net responses over ten minutes old at :05, :15, … A DELETE takes row locks only,
