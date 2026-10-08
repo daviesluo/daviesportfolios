@@ -1,0 +1,34 @@
+run RW, 2026-09-25T00:00:00.000Z -> 2026-10-08T23:10:00.000Z, 14 days: 2026-09-25, 2026-09-26, 2026-09-27, 2026-09-28, 2026-09-29, 2026-09-30, 2026-10-01, 2026-10-02, 2026-10-03, 2026-10-04, 2026-10-05, 2026-10-06, 2026-10-07, 2026-10-08
+C1 strict  : sum D     68.85  bootstrap index 100     13.43 >0  market-days 147, sum less best     46.30 >0  days arm>base 10/14
+      beside, R=1.0: sum D    -22.51  bootstrap index 100   -113.11  market-days less best    -44.25
+      beside, R=0.2: sum D     99.30  bootstrap index 100     50.63  market-days less best     76.48
+      C1 S2+tb1-skip | strict                R=1   1345.03  R=0.4    537.73  R=0.2    268.63  stress    560.31  rewards   1345.50  fills 15402  worst day R=0.4    -5.64
+      S2 | strict                            R=1   1367.55  R=0.4    468.88  R=0.2    169.33  stress    486.51  rewards   1497.77  fills 15766  worst day R=0.4   -27.79
+C1 at-price: sum D    141.19  bootstrap index 100     82.00 >0  market-days 154, sum less best    107.28 >0  days arm>base 13/14
+      beside, R=1.0: sum D    105.17  bootstrap index 100      9.26  market-days less best     72.92
+      beside, R=0.2: sum D    153.19  bootstrap index 100    100.69  market-days less best    118.73
+      C1 S2+tb1-skip | at-price              R=1   1308.45  R=0.4    504.22  R=0.2    236.14  stress    498.33  rewards   1340.39  fills 18313  worst day R=0.4   -37.52
+      S2 | at-price                          R=1   1203.28  R=0.4    363.03  R=0.2     82.95  stress    310.82  rewards   1400.42  fills 21724  worst day R=0.4   -55.31
+C1: PASS (all four conditions)
+
+C3 strict  : sum D    222.70  bootstrap index 100     70.36 >0  market-days 363, sum less best    184.66 >0  days arm>base 10/14
+      beside, R=1.0: sum D    133.21  bootstrap index 100    -61.71  market-days less best     84.91
+      beside, R=0.2: sum D    252.53  bootstrap index 100    110.35  market-days less best    214.49
+      C3 x1+pause+tb1-skip | strict          R=1   1395.46  R=0.4    618.85  R=0.2    359.98  stress    575.70  rewards   1294.35  fills 1105  worst day R=0.4     5.92
+      x1 | strict                            R=1   1262.25  R=0.4    396.15  R=0.2    107.44  stress    326.86  rewards   1443.50  fills 1345  worst day R=0.4   -43.04
+C3 at-price: sum D    380.10  bootstrap index 100    180.63 >0  market-days 363, sum less best    317.64 >0  days arm>base 11/14
+      beside, R=1.0: sum D    351.17  bootstrap index 100    128.03  market-days less best    288.71
+      beside, R=0.2: sum D    389.74  bootstrap index 100    194.92  market-days less best    327.28
+      C3 x1+pause+tb1-skip | at-price        R=1   1343.70  R=0.4    562.88  R=0.2    302.60  stress    479.66  rewards   1301.37  fills 1354  worst day R=0.4   -23.69
+      x1 | at-price                          R=1    992.53  R=0.4    182.78  R=0.2    -87.14  stress    -24.21  rewards   1349.59  fills 1950  worst day R=0.4   -59.57
+C3: PASS (all four conditions)
+
+C2, reported only:
+  C2 S2 exitCarried | strict             R=1    925.18  R=0.4    343.63  R=0.2    149.78  stress    301.74
+  C2 C1 exitCarried | strict             R=1    982.01  R=0.4    450.92  R=0.2    273.89  stress    412.13
+  S2 | strict                            R=1   1367.55  R=0.4    468.88  R=0.2    169.33  stress    486.51
+  C1 S2+tb1-skip | strict                R=1   1345.03  R=0.4    537.73  R=0.2    268.63  stress    560.31
+  C2 S2 exitCarried | at-price           R=1    662.55  R=0.4    277.40  R=0.2    149.01  stress    208.00
+  C2 C1 exitCarried | at-price           R=1    988.00  R=0.4    500.40  R=0.2    337.86  stress    441.01
+  S2 | at-price                          R=1   1203.28  R=0.4    363.03  R=0.2     82.95  stress    310.82
+  C1 S2+tb1-skip | at-price              R=1   1308.45  R=0.4    504.22  R=0.2    236.14  stress    498.33

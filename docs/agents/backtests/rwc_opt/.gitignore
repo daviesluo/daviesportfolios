@@ -1,0 +1,3 @@
+# Unpacked copies of the committed .json.gz inputs and results (gunzip -k); the .gz files are the record.
+data/*.json
+results/*.json

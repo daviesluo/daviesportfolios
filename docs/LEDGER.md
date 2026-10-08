@@ -60,6 +60,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (`detail.rewardByMarket`); void if either arm carries a `start` in
      `pm_rwc_x_state` or a day row is missing. TB1's health: both arms in `pm_rwc_x_state.state.arms`, `base` {}, no
      `start` after 10-09 00:05; x4 and x5 still written in both replays.
+   - **RWC-OPT** (`reviews/2026-10-09-rwc-optimised-arms-prereg.md`, frozen 2026-10-08 before RW-C's first minute;
+     scripts `backtests/rwc_opt/`, pinned by `src/rwc_opt_prereg.test.js`): offline replays of RW-C's record, C1 = live-prep's
+     S2 + TB1's skip against S2 (primary), C3 = x1 + x2's pause + TB1's skip against x1, C2's exits reported. **Read on or
+     after 2026-10-23 00:05 UTC beside RW-C's verdict**: pull `pm_rwc_*` with `sql/*.sql`, `check.ts rwc` (must PASS),
+     `run.ts rwc`, `bar.py results/rwc_arms.json` (`random.Random(20261023)`, 2,000 draws, index 100 > 0 under both fill
+     models, market-days less the best > 0), at the freezing commit; commit the output and report to Davies. A pass is a
+     candidate for live-prep's rules only (his word and its own pre-registration). It changes nothing that runs.
    - **After the verdicts:** POOLAGE (reference §3.44) only if RW or RW-E passes: read RW's `others` by minute of day
      from `pm_rw_minutes`; build no recorder before that read and Davies' word; drop it if both fail. An exit rule
      (selling a fill at once, priced 2026-10-04, loses): once a path is live, read its first 20–50 fills' next books
@@ -369,6 +376,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-08 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RWC-OPT frozen before RW-C's first minute** (Davies: "RW-C…可以用目前所有最新的数据看看RW-C可不可以优化到最佳吗", "效果优先").
+  A read-only search on RW's record 09-25 00:00 → 10-08 23:10 UTC (65 arms, strict and at-price fills, R 1 / 0.4 / 0.2,
+  walk-forward, reality check) with live-prep's Phase A simulator plus TB1's option, which reproduces `pm_rw_days` to
+  $1.6e-12 and TB1's 10-03 figures to the cent. Nothing beats S2 after the correction (p 0.78 strict, 0.28 at-price at
+  R = 0.4); S2 + TB1 skip was the walk-forward's pick on 6 of 8 days (+$68.85 strict, +$141.19 at-price over 14 days, in
+  sample). Frozen as C1 (primary), C2 (exits, reported) and C3 (x3 + TB1) in
+  `reviews/2026-10-09-rwc-optimised-arms-prereg.md`, read after 10-23 00:05 on RW-C's record (item 2). RW-C's engine,
+  selection, replays and every frozen pre-registration are unchanged; RW's 10-04 → 10-08 inputs are committed gzipped
+  (3.3 MB) beside the scripts.
 
 ### [2026-10-08 22:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Cloudflare and Supabase settings from the second review, done by Davies' other tool and checked from outside.**

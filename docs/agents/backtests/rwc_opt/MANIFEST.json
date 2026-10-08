@@ -1,0 +1,54 @@
+{
+ "study": "RWC-OPT (2026-10-08, frozen before RW-C's first minute): live-prep's Phase A simulator with TB1's tight-touch option, a 65-arm search on RW's record 2026-09-25 00:00 -> 10-08 23:10 UTC (both fill models, R 1 / 0.4 / 0.2, walk-forward and a reality check), and the frozen arms C1 (S2 + TB1 skip), C2 (exits, reported) and C3 (x1 + pause + TB1 skip), read on RW-C's record 10-09 -> 10-23 after 10-23 00:05 UTC",
+ "write_up": "docs/agents/reviews/2026-10-09-rwc-optimised-arms-prereg.md",
+ "inputs": {
+  "data/rw_min_YYYY-MM-DD.json.gz": "RW's stored minutes of 2026-10-04 -> 10-08 (10-08 to 23:10 UTC), sql/pull_minutes.sql on pm_rw_minutes through the Supabase connector, read-only, 2026-10-08 22:5x-23:13 UTC; 09-25 -> 10-03 are live-prep's committed ../pmlp/data/min_*.json.gz",
+  "data/rw_record.json.gz": "RW's selections, settlements, day rows, prints and fills, sql/pull_record.sql on pm_rw (plus the replays' day rows), read-only, 2026-10-08 23:13 UTC",
+  "data/rwc_*": "not here: RW-C's record, pulled by the same statements on pm_rwc after 2026-10-23 00:05 UTC"
+ },
+ "run": [
+  "cd docs/agents/backtests/rwc_opt  # every script reads data/ and results/ relative to this folder, and .json.gz when the .json is absent",
+  "npx --yes deno@1.46.3 run --allow-read --no-check scripts/check.ts rw > results/rw_check.txt  # the simulator reproduces pm_rw_days",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --no-check scripts/run.ts rw  # results/rw_arms.json",
+  "python3 -I scripts/bar.py results/rw_arms.json > results/rw_bar.txt  # the bar's code on RW's record, in sample",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --no-check scripts/grid.ts [--at-price]  # results/rw_grid[_atprice].json, the search",
+  "python3 -I scripts/analyse.py results/rw_grid.json 0.4 6 > results/rw_grid_r04.txt  # and 1.0, 0.2; results/rw_grid_atprice.json 0.4 6",
+  "at the reading: pull RW-C with sql/*.sql (pm_rwc), scripts/grab*.py into data/rwc_*, then check.ts rwc, run.ts rwc, bar.py results/rwc_arms.json"
+ ],
+ "reproduced": "run from the gzipped inputs alone on 2026-10-08: check.ts rw PASS (gap 1.59e-12), and bar.py's output identical to results/rw_bar.txt",
+ "imports_at_freeze": {
+  "supabase/functions/agents/pmrw.ts": "f2bb5943dacb094d2c90cea91893cc5ec7e301874ebe6f420c9a7fb8278dd7f2",
+  "supabase/functions/agents/pmrw_x.ts": "c145e8078e106a0666171b7f944229983cb0a4488022ffb58a499653411daea9",
+  "supabase/functions/_shared/polymarket_public.ts": "dd33e9805bc90f8435f77fea9d0982b94f7b29da8688c3f234768bebecc76b80"
+ },
+ "sha256": {
+  ".gitignore": "ae99c36b93bbc0547c9868124d310cc179d576ae79d4671b6f64d76644e6178c",
+  "data/rw_min_2026-10-04.json.gz": "48d6e27d666ad9cdf76b8d92850aba02a5808f73a73e8cbb815a48d08a6e9917",
+  "data/rw_min_2026-10-05.json.gz": "54574e0f16c989ecddbecde02af41cdd999f55eab2cf8b6db75795befdae82cb",
+  "data/rw_min_2026-10-06.json.gz": "154d083a4afe1693e85557a53a1626adae169fff92d899ef2a2a7f9d8b249cd3",
+  "data/rw_min_2026-10-07.json.gz": "aec098c294fd27dac28262b0485e1ba0548a3e0b32d42388632cc451446533d1",
+  "data/rw_min_2026-10-08.json.gz": "bcb513128c5936a1e4445bac71db195a47954e9c17fa240c808bffb72ec65b62",
+  "data/rw_record.json.gz": "86f921e5d7ddad48ed91f29f3e4011d0d9a95105513229f06064a4049df7291a",
+  "results/rw_arms.json.gz": "36167b180d221c8380c99a58e778fb496221b9850adaff24050f8c747b96d89e",
+  "results/rw_bar.txt": "ac7bbdee9d2eda26b93f86890971827f32612826caaf093dc6ebcf7e2adcbddf",
+  "results/rw_check.txt": "b7b83f7d3409a5408180efa297de020c914cad8b02023d8e5c0ef896b78c081a",
+  "results/rw_grid.json.gz": "e2764121c3f6d2851bfb1ee629d337194ffd668db5ff758f543a59047da7917b",
+  "results/rw_grid_atprice.json.gz": "c754f59cb501f4fcc5056983dd734754c4fb92bfe03ec82788e2c118c6562e4b",
+  "results/rw_grid_atprice_r04.txt": "8e90262a6cdb4e708bc9f6dd0efdad7148b10bfb0ea415b57838c73a14bae3a3",
+  "results/rw_grid_r02.txt": "3108f64fd2bbdaa75e32dbddb442cf8fe17d3315958f418c12d949f9c349996d",
+  "results/rw_grid_r04.txt": "ca44bef7af80e1f51c48cabd3241c3a64b81f471bca4c8cbbd2b2366502d1e3d",
+  "results/rw_grid_r1.txt": "1af9ca4a037ba2bd305b4d3adc039f6fa1bd5df0c93a1234669d73d5bc0a975f",
+  "scripts/analyse.py": "6299e362d2d70ff5683fa18553882ebeb799d9274ad8ee8d6efab071d94fa0fa",
+  "scripts/arms.ts": "9adefe4c419976c2ca60affee10c65fd120fee2cf1f4be0bc597a5173307e1a0",
+  "scripts/bar.py": "a93c09bf086da7ce8710d3d93040be6fd1cc4adef34c282f599ced2f7788aec2",
+  "scripts/check.ts": "90ae9e6379db52e20582c92dc12b50e8cdd2cd4378e3f56b8d75996e38a4c0a5",
+  "scripts/grab.py": "95d381fe51014be245a45853a5898faf855f8bea972b6deb3db0a49b4d4189b8",
+  "scripts/grab_payload.py": "0cc6063510f0647a28a07f1cbc1947c8a1da2782ebc9cfea09ce4d887cf36f20",
+  "scripts/grid.ts": "3bf98db4e2cb547229c04dff1667095af6b6007ebbcf5db1eea263feb8cf84fe",
+  "scripts/rec.ts": "cb702d16cc131f93c2932ddb60250795d0ff844f13513ac1116b91eeb73dafcf",
+  "scripts/run.ts": "f55b08b2ce6b50344fb963a902c432fb7b8dd2da072ad3bb586814b176a8f489",
+  "scripts/sim.ts": "f6581e2ad7f464d9e07892280c6c77bd218d802e07d2ae8d746b90f5295b6027",
+  "sql/pull_minutes.sql": "f666bbaae0fca7101b8b23537dccee4fc907143bde5ec047d39f9d121202e7ca",
+  "sql/pull_record.sql": "70a9388ec01e7439c60f7fd07d95b84f93b273eea5543e72db8a388dd4834bf1"
+ }
+}
