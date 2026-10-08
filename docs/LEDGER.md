@@ -821,6 +821,17 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 16:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Review batch 2 verified in production; batch 3 (F7, F12, F13, F14) landed as the reviewer committed it**,
+  fast-forward on 1bcf9079 with the same hashes; a rebuild at the head leaves dist/ unchanged (F7's stamp).
+  - Batch 2's runs all succeeded: agents v149, trading212 v75, monitor v4; 0098–0101's jobs present.
+  - **A deploy-order hazard, seen once**: 0100's `trading212?action=orders-sync` row went live with migrations.yml
+    before edge-functions.yml finished trading212 v75 (15:50:34 UTC), so the 15:50:13 call and the watchdog's retry
+    met v74, which refused every POST (405, one `edge-watchdog.retry` row). From 16:00 it works: POST 200 on v75,
+    about 10 s, its beat written. The walk resumes, so nothing was lost. A migration adding an `edge_calls` row for an
+    action its function learns in the same push can meet the old function once; harmless when the call is
+    resumable, otherwise land the function first.
+
 ### [2026-10-08 16:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The browser tests wait on what they check, not on fixed sleeps** (review F13, approved by Davies 2026-10-08; the
   scoreboard flake it named was the app's, fixed by the scoreboard's dash, below). The sweep had 163 `waitForTimeout`
