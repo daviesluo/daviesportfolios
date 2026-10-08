@@ -1116,7 +1116,7 @@ const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fi
  * sweep's clock (`prep_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its
  * `input`): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
  * unrealised +$0.42, realised +$1.95 = rewards +$1.70 + orders +$0.25; the fills' P&L +$0.67; RW's worst case +$1.00.
- * Served only in the `prep` mode.
+ * Served in the `prep`, `mid` and `lp` modes, where the page draws nothing for it since 0103 (mini-pool left TESTING).
  */
 const PREP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./prep_fixture.json', import.meta.url), 'utf8'));
 /**
@@ -4590,49 +4590,72 @@ async function run() {
       await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       await closeBy(page, () => page.keyboard.press('Escape'));
 
-      // "Reward quotes mini-pool" (0077; Davies, 2026-10-01; named small-pool, and live-prep before that, until 2026-10-02:
-      // that first name is the third instance's own row since 0091, served only in the `lp` mode below): the order path's own
-      // dry-run filled on paper, the last row of
-      // TESTING, on the Polymarket card, with a page of its own (PREP_FIXTURE: its figures worked out by hand). TESTING's
-      // scoreboard and the Polymarket card add exactly its figures to what they read without it.
+      // "Reward quotes mini-pool" (0077) left TESTING with 0103 (Davies, 2026-10-08: its check windows closed by its
+      // pre-registration's Addendum 7, and it is no go-live candidate), and its two calls stopped with it. The dashboard
+      // still carries its `prep`, its last record (served in the `prep`, `mid` and `lp` modes): the page draws no row for
+      // it, and TESTING's rows, scoreboard and venue cards read exactly what they read without it.
       agentsMode = 'ok';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
       await atRest(page);
+      const prRows = async () => (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const prCards = (/** @type {any} */ p) => JSON.stringify({ sb: p.scoreboard, venues: p.venues.map((/** @type {any} */ v) => ({ id: v.id, meta: v.meta, pairs: v.pairs })) });
+      const prNamesBefore = await prRows();
       const prepBefore = await readAgentsPanel(page);
       await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'prep';
       await openAgentsPage(page);
-      const prRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') });
-      await waitFor(async () => (await prRow.count()) === 1);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
       await atRest(page);
-      const prText = (await prRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const prGreen = await prRow.first().locator('.ag-dot-running').count();
-      const prNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const prNames = await prRows();
       const prAfter = await readAgentsPanel(page);
-      // Today is the change since 16 Sep's close, as RW's: the total 2.37 less that day's 0.90, +$1.47, 0.46 % of $320.
-      if (prNames.at(-1) === 'Reward quotes mini-pool' && !prNames.some((n) => /live-prep|small-pool/.test(n)) && /Polymarket/.test(prText) && /2 open · \$320 cap/.test(prText) && /\+\$1\.47 \(\+0\.46%\)/.test(prText)
-        && /\+\$0\.42 \(\+5\.03%\)/.test(prText) && /\+\$1\.95 \(\+0\.61%\)/.test(prText) && /every minute/.test(prText) && prGreen === 1) {
-        ok(T('prep'), 'the last testing row is "Reward quotes mini-pool" (no row named live-prep or small-pool) on Polymarket: 2 open of its $320 cap, today +$1.47 (+0.46%), unrealised +$0.42 (+5.03%), realised +$1.95 (+0.61%), every minute, green');
-      } else fail(T('prep'), `mini-pool row "${prText}" (last of ${prNames.join(' | ')}), green dots ${prGreen}`);
-      // What it adds, read off the page with and without it: exactly its own figures, on the scoreboard and on the card.
-      const prAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
-      const prCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
-      const prSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((prAmount(prCell(prAfter, k)) - prAmount(prCell(prepBefore, k))) * 100) / 100);
-      const pmB = prepBefore.venues.find((v) => v.id === 'polymarket'), pmA = prAfter.venues.find((v) => v.id === 'polymarket');
-      const prCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((prAmount(pmA?.pairs[k]) - prAmount(pmB?.pairs[k])) * 100) / 100);
-      // Its deployed is what it holds, $8.77, and what its quotes tie up, $24.34 (Davies, 2026-10-01): $33.11. The
-      // scoreboard's DEPLOYED is shown to the dollar from $1,000, so it moves by the whole dollars TESTING's deployed crosses
-      // (with the three twins $4,230.49 + $33.11 = $4,263.60 reads $4,230 then $4,264, 34 more). The card, under $1,000,
-      // adds $33.11.
-      const prSbDeployed = Math.round(TESTING.deployed + 33.11) - Math.round(TESTING.deployed);
-      if (prSbDiff.join(',') === `320,${prSbDeployed},1.47,0.42,1.95` && prCardDiff.join(',') === '320,33.11,1.47,0.42,1.95,1.7,0.25' && pmA?.meta === '6 strategies') {
-        ok(T('prep'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $33.11 ($8.77 held and $24.34 its quotes tie up; ${prSbDeployed} more on the scoreboard, shown to the dollar), today +$1.47, unrealised +$0.42, realised +$1.95 (rewards +$1.70, orders +$0.25); the card counts 6`);
-      } else fail(T('prep'), `scoreboard adds ${prSbDiff.join(',')}, card adds ${prCardDiff.join(',')} (meta "${pmA?.meta}")`);
-      await prRow.first().click().catch(() => {});
+      const prMini = await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') }).count();
+      if (prMini === 0 && !prNames.some((n) => /mini-pool|small-pool|live-prep/.test(n)) && prNames.join(' | ') === prNamesBefore.join(' | ')
+        && prCards(prAfter) === prCards(prepBefore) && prNames.length === TESTING.rows) {
+        ok(T('prep'), `a dashboard carrying mini-pool's \`prep\` draws no row for it (0103): TESTING's ${prNames.length} rows, its scoreboard and its venue cards read exactly as without it`);
+      } else fail(T('prep'), `with \`prep\` served: ${prMini} mini-pool row(s), rows ${prNames.join(' | ')} (without: ${prNamesBefore.join(' | ')}); scoreboard and cards the same: ${prCards(prAfter) === prCards(prepBefore)}`);
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      agentsMode = 'ok';
+
+      // "Reward quotes mid-pool" (0081; Davies, 2026-10-02): the order path again on $10–$50 pools, filled on paper by the
+      // same layer, the last row of TESTING, on the Polymarket card, with RW's page (MID_FIXTURE: its figures worked out by
+      // hand). What it adds to TESTING's scoreboard and the card is read against the page with mini-pool's `prep` alone,
+      // which draws nothing since 0103.
+      agentsMode = 'prep';
+      await openAgentsPage(page);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) > 0);
+      await atRest(page);
+      const midBefore = await readAgentsPanel(page);
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      agentsMode = 'mid';
+      await openAgentsPage(page);
+      const mdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') });
+      await waitFor(async () => (await mdRow.count()) === 1);
+      await atRest(page);
+      const mdText = (await mdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
+      const mdGreen = await mdRow.first().locator('.ag-dot-running').count();
+      const mdNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
+      const mdAfter = await readAgentsPanel(page);
+      // Today is the change since 16 Sep's close: 9.40 less 4.80, +$4.60, 1.44 % of $320; unrealised +$0.40 on its $10.80
+      // of cost, 3.70 %; realised its rewards, $9.00, 2.81 % of $320, shown as whole dollars are, +$9.
+      if (mdNames.at(-1) === 'Reward quotes mid-pool' && !mdNames.some((n) => /mini-pool/.test(n)) && /Polymarket/.test(mdText) && /2 open · \$320 cap/.test(mdText)
+        && /\+\$4\.60 \(\+1\.44%\)/.test(mdText) && /\+\$0\.40 \(\+3\.70%\)/.test(mdText) && /\+\$9 \(\+2\.81%\)/.test(mdText) && /every minute/.test(mdText) && mdGreen === 1) {
+        ok(T('mid'), 'the last testing row is "Reward quotes mid-pool" (no mini-pool row), on Polymarket: 2 open of its $320 cap, today +$4.60 (+1.44%), unrealised +$0.40 (+3.70%), realised +$9 (+2.81%), every minute, green');
+      } else fail(T('mid'), `mid-pool row "${mdText}" (rows ${mdNames.join(' | ')}), green dots ${mdGreen}`);
+      const mdCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
+      const mdAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
+      const mdSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((mdAmount(mdCell(mdAfter, k)) - mdAmount(mdCell(midBefore, k))) * 100) / 100);
+      const mdPmB = midBefore.venues.find((v) => v.id === 'polymarket'), mdPmA = mdAfter.venues.find((v) => v.id === 'polymarket');
+      const mdCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((mdAmount(mdPmA?.pairs[k]) - mdAmount(mdPmB?.pairs[k])) * 100) / 100);
+      // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000 (with
+      // the three twins $4,230.49 reads $4,230, and $4,270.89 with mid-pool $4,271, 41 more); the card adds $40.40.
+      const mdSbDeployed = Math.round(TESTING.deployed + 40.4) - Math.round(TESTING.deployed);
+      if (mdSbDiff.join(',') === `320,${mdSbDeployed},4.6,0.4,9` && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '6 strategies') {
+        ok(T('mid'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; ${mdSbDeployed} more on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 6`);
+      } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
+      await mdRow.first().click().catch(() => {});
       await settled(page, '.ag-rw-detail');
-      // Its page is RW's (Davies, 2026-10-01: "the same as the other Reward quotes pages"), read the way RW's is.
-      const prRead = () => page.evaluate(() => {
+      const mdRead = () => page.evaluate(() => {
         const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
         const d = document.querySelector('.ag-rw-detail');
         const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
@@ -4648,107 +4671,10 @@ async function run() {
           days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
           warn: d?.querySelectorAll('.ag-warn-line').length ?? -1,
           overflow: d ? d.scrollWidth - d.clientWidth : -1,
-        };
-      });
-      const prp = await prRead();
-      await shot(page, 'agents-prep');
-      // Days: today 4.90 + 19.44 of quotes, two fills, +$0.50 of rewards and +$1.47 in all; 16 Sep 4.90 + 19.40, two fills,
-      // +$1.20 and +$0.90 (its fills −$0.30). The worst case by day (0094, Davies 2026-10-07: the column was empty): 16 Sep
-      // its close's 0.64 less its start's 0, +$0.64, and today, live, the running 1.00 less today's start, +$0.36.
-      const prDayOk = prp.days.length === 2 && /· today$/.test(prp.days[0][0]) && prp.days[0].slice(1).join('|') === '$24.34|2|+$0.36|+$0.50|+$1.47'
-        && /^16 Sep/.test(prp.days[1][0]) && prp.days[1].slice(1).join('|') === '$24.30|2|+$0.64|+$1.20|+$0.90';
-      // Quotes: each market's pool, RW's bid / ask, its share of the pool at the last minute, what it holds by token, and
-      // its rewards and orders adding up to its total: A 1.00 + 0.39 = 1.39, B 0.70 + 0.28 = 0.98.
-      const prMktOk = prp.markets.map((r) => r.join('|')).join(' / ')
-        === 'Will A happen?|$8|46¢ / 48¢|4 %|5 Yes · 4 No|+$1|+$0.39|+$1.39 / Will B happen?|$7|20.1¢ / 22.9¢|3 %|20 Yes|+$0.70|+$0.28|+$0.98';
-      const prFillOk = prp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will A happen?|sold Yes|5|50¢ / Will B happen?|bought Yes|20|20.1¢ / Will A happen?|bought No|4|52¢ / Will A happen?|bought Yes|10|45¢';
-      // DEPLOYED: $8.77 held and $24.34 its quotes tie up, $33.11, 10.35 % of its $320 (Davies, 2026-10-01). STATUS: RW's
-      // worst case on the two accounts, +$1.00; the best market's share of the total, 1.39 / 2.37 = 59 %.
-      if (prp.title === 'Reward quotes mini-pool' && prp.labels.join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L' && /^\$320/.test(prp.funded)
-        && prp.deployed === '$33.11(10.35%)'
-        && prp.split.join('|') === 'rewards +$1.70|orders +$0.25' && prp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
-        && prp.tiles.join('|') === 'WORST CASE=+$1|TOP SHARE=59 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
-        && prDayOk && prMktOk && prFillOk && prp.warn === 0 && prp.overflow >= 0 && prp.overflow <= 1) {
-        ok(T('prep'), "its page is RW's: FUNDED $320, realised = rewards +$1.70 + orders +$0.25; STATUS worst case +$1, top share 59 %, 2 quoting, 2 held; today +$1.47 and 16 Sep +$0.90 adding up to the total, their worst cases +$0.36 (today, live) and +$0.64 adding up to the +$1; each market's share, holdings by token and parts adding up; the four fills newest first");
-      } else fail(T('prep'), `mini-pool page: ${JSON.stringify(prp)}`);
-      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
-      // Under hide-values every amount, price and holding on its page is masked; counts, shares, days and times are not.
-      await closeBy(page, () => page.keyboard.press('Escape'));
-      await toggleHidden(page);
-      await openAgentsPage(page);
-      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') }).first().click().catch(() => {});
-      await settled(page, '.ag-rw-detail');
-      const prh = await prRead();
-      const prDig = (/** @type {string} */ t) => /\d/.test(t);
-      const prMasked = prh.sb.length > 0 && !prh.sb.some((t) => /\$\d/.test(t))
-        && prh.tiles.length === 4 && /^WORST CASE=/.test(prh.tiles[0]) && !prDig(prh.tiles[0]) && prh.tiles.slice(1).every((t) => prDig(t.split('=')[1] ?? ''))
-        && prh.days.length === 2 && prh.days.every((r) => prDig(r[0]) && !prDig(r[1]) && prDig(r[2]) && !r.slice(3).some(prDig))
-        && prh.markets.length === 2 && !prh.markets.some((r) => r.filter((_, i) => i !== 3).slice(1).some(prDig)) && prh.markets.every((r) => prDig(r[3]))
-        && prh.fills.length === 4 && !prh.fills.some((r) => r.slice(3).some(prDig)) && prh.fills.every((r) => prDig(r[0]));
-      if (prMasked) ok(T('prep'), `hide-values masks its page's amounts, prices and holdings and keeps its days, counts, shares and times (held reads "${prh.markets[0]?.[4]}")`);
-      else fail(T('prep'), `under the mask: ${JSON.stringify(prh)}`);
-      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
-      await closeBy(page, () => page.keyboard.press('Escape'));
-      await toggleHidden(page);                       // values shown again for everything after this
-      agentsMode = 'ok';
-
-      // "Reward quotes mid-pool" (0081; Davies, 2026-10-02): the order path again on $10–$50 pools, filled on paper by the
-      // same layer, the last row of TESTING right after mini-pool's, on the Polymarket card, with RW's page (MID_FIXTURE:
-      // its figures worked out by hand). What it adds to TESTING's scoreboard and the card is read against the page with
-      // mini-pool alone.
-      agentsMode = 'prep';
-      await openAgentsPage(page);
-      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mini-pool') }).count()) === 1);
-      await atRest(page);
-      const midBefore = await readAgentsPanel(page);
-      await closeBy(page, () => page.keyboard.press('Escape'));
-      agentsMode = 'mid';
-      await openAgentsPage(page);
-      const mdRow = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') });
-      await waitFor(async () => (await mdRow.count()) === 1);
-      await atRest(page);
-      const mdText = (await mdRow.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const mdGreen = await mdRow.first().locator('.ag-dot-running').count();
-      const mdNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
-      const mdAfter = await readAgentsPanel(page);
-      // Today is the change since 16 Sep's close: 9.40 less 4.80, +$4.60, 1.44 % of $320; unrealised +$0.40 on its $10.80
-      // of cost, 3.70 %; realised its rewards, $9.00, 2.81 % of $320, shown as whole dollars are, +$9.
-      if (mdNames.slice(-2).join(' | ') === 'Reward quotes mini-pool | Reward quotes mid-pool' && /Polymarket/.test(mdText) && /2 open · \$320 cap/.test(mdText)
-        && /\+\$4\.60 \(\+1\.44%\)/.test(mdText) && /\+\$0\.40 \(\+3\.70%\)/.test(mdText) && /\+\$9 \(\+2\.81%\)/.test(mdText) && /every minute/.test(mdText) && mdGreen === 1) {
-        ok(T('mid'), 'the last two testing rows are "Reward quotes mini-pool" then "Reward quotes mid-pool", on Polymarket: 2 open of its $320 cap, today +$4.60 (+1.44%), unrealised +$0.40 (+3.70%), realised +$9 (+2.81%), every minute, green');
-      } else fail(T('mid'), `mid-pool row "${mdText}" (rows ${mdNames.join(' | ')}), green dots ${mdGreen}`);
-      const mdCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
-      const mdAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
-      const mdSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((mdAmount(mdCell(mdAfter, k)) - mdAmount(mdCell(midBefore, k))) * 100) / 100);
-      const mdPmB = midBefore.venues.find((v) => v.id === 'polymarket'), mdPmA = mdAfter.venues.find((v) => v.id === 'polymarket');
-      const mdCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((mdAmount(mdPmA?.pairs[k]) - mdAmount(mdPmB?.pairs[k])) * 100) / 100);
-      // Deployed: $11.20 held and $29.20 its quotes tie up, $40.40. The scoreboard shows it to the dollar from $1,000 (with
-      // the three twins $4,263.60 with mini-pool reads $4,264, and $4,304.00 with mid-pool $4,304, 40 more); the card adds
-      // $40.40.
-      const mdSbDeployed = Math.round(TESTING.deployed + 33.11 + 40.4) - Math.round(TESTING.deployed + 33.11);
-      if (mdSbDiff.join(',') === `320,${mdSbDeployed},4.6,0.4,9` && mdCardDiff.join(',') === '320,40.4,4.6,0.4,9,9,0' && mdPmA?.meta === '7 strategies') {
-        ok(T('mid'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $40.40 ($11.20 held and $29.20 its quotes tie up; ${mdSbDeployed} more on the scoreboard, shown to the dollar), today +$4.60, unrealised +$0.40, realised +$9.00 (rewards +$9.00, orders $0); the card counts 7`);
-      } else fail(T('mid'), `scoreboard adds ${mdSbDiff.join(',')}, card adds ${mdCardDiff.join(',')} (meta "${mdPmA?.meta}")`);
-      await mdRow.first().click().catch(() => {});
-      await settled(page, '.ag-rw-detail');
-      const mdp = await page.evaluate(() => {
-        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-        const d = document.querySelector('.ag-rw-detail');
-        const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
-        return {
-          title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
-          labels: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-name') ?? [])].map(txt),
-          funded: txt(d?.querySelector('.ag-scoreboard-sm .sb-value')),
-          deployed: txt(d?.querySelector('.ag-scoreboard-sm .ag-sb-cell-deployed .sb-value')),
-          split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
-          sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
-          tiles: [...(d?.querySelectorAll('.ag-rw-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`),
-          days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
-          warn: d?.querySelectorAll('.ag-warn-line').length ?? -1,
-          overflow: d ? d.scrollWidth - d.clientWidth : -1,
           docOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
       });
+      const mdp = await mdRead();
       await shot(page, 'agents-mid');
       // Days: today $29.20 of quotes, one fill, +$4 of rewards and +$4.60 in all; 16 Sep $29.20, one fill, +$5 and +$4.80
       // (its fills −$0.20). The worst case by day: 16 Sep +$2.30 (its close's less its start's 0), today, live, +$1.90
@@ -4767,16 +4693,35 @@ async function run() {
         && mdp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS'
         && mdp.tiles.join('|') === 'WORST CASE=+$4.20|TOP SHARE=60 %|QUOTING TODAY=2|POSITIONS STILL HELD=2'
         && mdDayOk && mdMktOk && mdFillOk && mdp.warn === 0 && mdp.overflow >= 0 && mdp.overflow <= 1 && mdp.docOverflow <= 0) {
-        ok(T('mid'), "its page is RW's, as mini-pool's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total, their worst cases +$1.90 (today, live) and +$2.30 adding up to the +$4.20; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
+        ok(T('mid'), "its page is RW's: FUNDED $320, DEPLOYED $40.40 (12.63%), realised = rewards +$9 + orders $0; STATUS worst case +$4.20, top share 60 %, 2 quoting, 2 held; today +$4.60 and 16 Sep +$4.80 adding up to the total, their worst cases +$1.90 (today, live) and +$2.30 adding up to the +$4.20; each market's share, holdings by token and parts adding up; its two fills newest first; nothing wider than the screen");
       } else fail(T('mid'), `mid-pool page: ${JSON.stringify(mdp)}`);
       await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      // Under hide-values every amount, price and holding on its page is masked; counts, shares, days and times are not
+      // (the paper layers' page check, mini-pool's until 0103 took its row off).
       await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);
+      await openAgentsPage(page);
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).first().click().catch(() => {});
+      await settled(page, '.ag-rw-detail');
+      const mdh = await mdRead();
+      const mdDig = (/** @type {string} */ t) => /\d/.test(t);
+      const mdMasked = mdh.sb.length > 0 && !mdh.sb.some((t) => /\$\d/.test(t))
+        && mdh.tiles.length === 4 && /^WORST CASE=/.test(mdh.tiles[0]) && !mdDig(mdh.tiles[0]) && mdh.tiles.slice(1).every((t) => mdDig(t.split('=')[1] ?? ''))
+        && mdh.days.length === 2 && mdh.days.every((r) => mdDig(r[0]) && !mdDig(r[1]) && mdDig(r[2]) && !r.slice(3).some(mdDig))
+        && mdh.markets.length === 2 && !mdh.markets.some((r) => r.filter((_, i) => i !== 3).slice(1).some(mdDig)) && mdh.markets.every((r) => mdDig(r[3]))
+        && mdh.fills.length === 2 && !mdh.fills.some((r) => r.slice(3).some(mdDig)) && mdh.fills.every((r) => mdDig(r[0]));
+      if (mdMasked) ok(T('mid'), `hide-values masks its page's amounts, prices and holdings and keeps its days, counts, shares and times (held reads "${mdh.markets[0]?.[4]}")`);
+      else fail(T('mid'), `under the mask: ${JSON.stringify(mdh)}`);
+      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      await closeBy(page, () => page.keyboard.press('Escape'));
+      await toggleHidden(page);                       // values shown again for everything after this
       agentsMode = 'ok';
 
       // "Reward quotes live-prep" (0091; Davies, 2026-10-04: the lead candidate to go live): the order path on every pool of
       // $10 a day and over with live-prep's rules, filled on paper by the same layer, the last row of TESTING after
-      // mid-pool's, on the Polymarket card, with RW's page (LP_FIXTURE). The name is this row's alone: mini-pool's row keeps
-      // its own beside it. What it adds to TESTING's scoreboard and the card is read against the page with mid-pool's.
+      // mid-pool's, on the Polymarket card, with RW's page (LP_FIXTURE). The name is this row's alone (mini-pool's row carried
+      // it until 2026-10-02, and mini-pool has no row since 0103). What it adds to TESTING's scoreboard and the card is read
+      // against the page with mid-pool's.
       agentsMode = 'mid';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).count()) === 1);
@@ -4793,9 +4738,9 @@ async function run() {
       const lpNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const lpAfter = await readAgentsPanel(page);
       // Today +$4.90, 1.53 % of $320; one position open (F's 10 NO; E's 20 YES were sold).
-      if (lpNames.slice(-3).join(' | ') === 'Reward quotes mini-pool | Reward quotes mid-pool | Reward quotes live-prep' && lpNames.filter((n) => /live-prep/.test(n)).length === 1
+      if (lpNames.slice(-2).join(' | ') === 'Reward quotes mid-pool | Reward quotes live-prep' && !lpNames.some((n) => /mini-pool/.test(n)) && lpNames.filter((n) => /live-prep/.test(n)).length === 1
         && /Polymarket/.test(lpText) && /2 open · \$320 cap/.test(lpText) && /\+\$4\.90 \(\+1\.53%\)/.test(lpText) && /every minute/.test(lpText) && lpGreen === 1) {
-        ok(T('lp'), 'the last three testing rows are "Reward quotes mini-pool", "Reward quotes mid-pool" and "Reward quotes live-prep", one row of that name, on Polymarket: 2 open of its $320 cap, today +$4.90 (+1.53%), every minute, green');
+        ok(T('lp'), 'the last two testing rows are "Reward quotes mid-pool" and "Reward quotes live-prep" (no mini-pool row), one row of that name, on Polymarket: 2 open of its $320 cap, today +$4.90 (+1.53%), every minute, green');
       } else fail(T('lp'), `live-prep row "${lpText}" (rows ${lpNames.join(' | ')}), green dots ${lpGreen}`);
       const lpCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
       const lpAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
@@ -4803,9 +4748,9 @@ async function run() {
       const lpPmB = lpBefore.venues.find((v) => v.id === 'polymarket'), lpPmA = lpAfter.venues.find((v) => v.id === 'polymarket');
       const lpCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((lpAmount(lpPmA?.pairs[k]) - lpAmount(lpPmB?.pairs[k])) * 100) / 100);
       // Deployed: $2.90 held and $29.20 its quotes tie up, $32.10; the scoreboard shows it to the dollar from $1,000.
-      const lpSbDeployed = Math.round(TESTING.deployed + 33.11 + 40.4 + 32.1) - Math.round(TESTING.deployed + 33.11 + 40.4);
-      if (lpSbDiff.join(',') === `320,${lpSbDeployed},4.9,0.1,9.6` && lpCardDiff.join(',') === '320,32.1,4.9,0.1,9.6,9,0.6' && lpPmA?.meta === '8 strategies') {
-        ok(T('lp'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $32.10 (${lpSbDeployed} more on the scoreboard, shown to the dollar), today +$4.90, unrealised +$0.10, realised +$9.60 (rewards +$9.00, orders +$0.60); the card counts 8`);
+      const lpSbDeployed = Math.round(TESTING.deployed + 40.4 + 32.1) - Math.round(TESTING.deployed + 40.4);
+      if (lpSbDiff.join(',') === `320,${lpSbDeployed},4.9,0.1,9.6` && lpCardDiff.join(',') === '320,32.1,4.9,0.1,9.6,9,0.6' && lpPmA?.meta === '7 strategies') {
+        ok(T('lp'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $32.10 (${lpSbDeployed} more on the scoreboard, shown to the dollar), today +$4.90, unrealised +$0.10, realised +$9.60 (rewards +$9.00, orders +$0.60); the card counts 7`);
       } else fail(T('lp'), `scoreboard adds ${lpSbDiff.join(',')}, card adds ${lpCardDiff.join(',')} (meta "${lpPmA?.meta}")`);
       await lpRowEl.first().click().catch(() => {});
       await settled(page, '.ag-rw-detail');

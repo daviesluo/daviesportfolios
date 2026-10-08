@@ -3863,6 +3863,23 @@ read with SQL and never committed. `backtests/pmrec/scripts/read.ts` decodes an 
 `readFrames`; Python's `gzip.open` reads every member, the Web `DecompressionStream` only the first. The open hour is in
 `pm_rec_frames.data` (`\x` hex of the gzip).
 
+56. **What RW's round 1 leaves running, and what it stops (2026-10-08, migration `0103`).** Davies, as RW's fourteen days
+ended: "按你说的停掉mini-pool的两个调用 … 把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉". Only the `edge_calls` row goes
+(`enabled = false`); every table stays. Mini-pool's `pmlive` and `pmprep` go when the migration applies, on his word. Its
+cost, which he accepted (2026-10-09): mid-pool's frozen readout (`mid_readout.sql`, at or after 10-17 00:10 UTC) sets
+mini-pool's paper day beside mid-pool's for 10-03 → 10-16, and from the day this lands mini-pool's column is empty
+(missing, never zero); the readout names it as a deviation. RW's go only when no reading still to run needs another
+minute: `pmrw` and `pmrw-select` once `pm_rw_days` holds 2026-10-08 (this is step (e) of RW's verdict, done ahead of it),
+RW-E's `pmrw-e` and the variants' `pmrw-x` once their replays of RW's minutes hold 2026-10-08 on every arm;
+`public.retire_after_rw()` checks every five minutes and its job unschedules itself when all four are off. About 7,490
+calls a day fewer from 10-09. Mini-pool's row left TESTING the same day (its payload `prep` stays, its last record); its
+config row is untouched, so nothing arms. Kept, each for a reading still to run: `tick` and `quotes` (live); RW-C's four (to 10-23, with x4/x5's
+Test 2, TB1 and RWC-OPT); `quotesv` and `quotesd` (PR5V and rule D, 10-28); `quotestwins` (twins' readouts 10-21 and
+10-28, TAKE to 11-02); `books` (QUEUE's and PR5-W's freeze line); `pmmid`, `pmmidprep` (readout 10-17, audit 10-23, a
+go-live candidate); `pmlp`, `pmlpprep` (live-prep, the lead candidate); `views`, `pmrec`, `pmrec-meta` (recorders whose
+study or horizon is Davies'); `trend-1h` (MX-1 judges its exits) and `momentum-1d` (no reading, no Edge call of its own:
+its retirement is Davies' call) as rows of the tick. No weather call is recurring.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

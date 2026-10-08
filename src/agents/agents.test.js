@@ -1178,10 +1178,24 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
       expect([pm?.tests, pm?.capitalUsd]).toEqual([2, 2000]);
       expect(pm?.realisedUsd).toBeCloseTo(1, 12);
     }
-    // In the page's order: the twins, Reward quotes, variant-1, the other variants, then mini-pool, mid-pool and live-prep.
+    // In the page's order: the twins, Reward quotes, variant-1, the other variants, then mid-pool and live-prep.
     const order = paperTestRows({ rw: r, rwe: r, rwx: [{ ...r, id: 'x1', name: 'Reward quotes variant-2' }], rwc: r });
     expect(order.map((t) => t.id)).toEqual([RW_ROW_ID, RWE_ROW_ID, `${RWX_ROW_PREFIX}x1`]);
     expect(paperTestRows(null)).toEqual([]);
+  });
+  it("adds no row for mini-pool since 0103 (Davies, 2026-10-08), though the dashboard still carries its `prep`", () => {
+    // Its two calls stopped with 0103, and the payload still carries `prep` (its last record); TESTING's rows, scoreboard
+    // and Polymarket card are what they are without it.
+    const p = { capUsd: 320, heldUsd: 10, quotedUsd: 20, costUsd: 9, todayUsd: 1.5, unrealisedUsd: 1, realisedUsd: 2, rewardUsd: 1.5, realisedFillsUsd: 0.5, running: true, lagMinutes: 1, quoting: 2, markets: [] };
+    const without = { strategies: [], venues: [], rw: r, prepMid: p, prepLp: p };
+    const dash = { ...without, prep: p };
+    const tests = paperTestRows(dash);
+    expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [MID_ROW_ID, 'Reward quotes mid-pool'], [LP_ROW_ID, 'Reward quotes live-prep']]);
+    expect(tests.some((t) => t.id === PREP_ROW_ID || /mini-pool/.test(t.name))).toBe(false);
+    expect(scoreboardView(dash, 'testing', tests)).toEqual(scoreboardView(without, 'testing', paperTestRows(without)));
+    expect(venueRows(dash, 'testing', tests)).toEqual(venueRows(without, 'testing', paperTestRows(without)));
+    // Alone, it adds nothing at all.
+    expect(paperTestRows({ prep: p })).toEqual([]);
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });

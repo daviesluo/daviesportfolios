@@ -338,50 +338,39 @@ places stay when the number is not whole.
   fills are round 2's alone, never added to what it made before, and
   until its first minute there is worked out the row says when it starts.
   Each page says which days it is reading and since when.
-- **Reward quotes mini-pool.** On Polymarket, two rows before the last: a
+- **Reward quotes mid-pool.** On Polymarket, the row before the last: a
   paper test, before real money, of exactly what the account that will
-  quote on Polymarket would do (until 2 October it was called small-pool,
-  and live-prep before that; that name is the last row's now). That account is built and runs every minute
-  without sending anything: it picks the day's markets (rewards of $6 to
-  under $10 a day), works out its bid and ask in each, and writes down
-  every order it would send. It quotes up to eight markets a day, the
-  size the account will go live at, and it goes live only when Davies
-  says so. This row fills those very orders on paper
-  from the trades the public sees, two minutes behind the clock, and keeps
-  what they would hold, at the mid, and what they would have made. Its cap
-  is the account's own limit; deployed is what its resting quotes tie up
-  and what it holds, as on Reward quotes. Its page is Reward quotes' page:
-  the same scoreboard and status; the days, each with what its markets'
-  quotes need, its fills, its rewards and what it made, adding up to the
-  total; today's markets, each with the bid and ask the account had
-  resting (or why there were none of the rule's), its share of the pool,
-  what it holds, and what its rewards and orders made; and the latest
-  fills, as the account trades them: it buys No where Reward quotes sells
-  Yes, so it can hold both. Each day has its worst case too, as on Reward
-  quotes: today's is live, the worst case in its status less where it
-  stood at midnight UTC, and the days add up to it. A day whose start was
-  never recorded shows a dash rather than a guess. If the account's
-  own loss limit would have been hit, its dot turns amber and says so:
-  from then on, as the real account would, it only sells what it holds.
-  The limit for one day counts only that day's change: what it holds
-  starts each day at its price at midnight UTC (a change of 7 October), so a
-  loss carried from an earlier day counts only toward the overall limit.
-  From 4 October its rewards are worked out with its own quotes in the
-  market's order book, as Polymarket works them out, and from 5 October
-  it prefers markets whose order book has depth: on each side, at least
-  two prices within 10 cents of the best one, each holding the reward's
-  minimum size. It takes a thinner market only when too few have it.
-- **Reward quotes mid-pool.** The row after mini-pool, on Polymarket: the same test
-  on bigger pools, markets paying $10 to under $50 a day in rewards, for
-  fourteen days. It is the same code as mini-pool, at the same size
-  (up to eight markets a day, a $320 cap), and the same real order
-  path: like mini-pool it only writes down what it would send, and this
-  row fills those orders on paper the same way, until Davies says go.
-  Both use the same Polymarket account, so only one of the two can ever
-  be live. It never picks a market that the other Reward quotes tests
-  quote, and leaves out the ones close to them too. Its row and its
-  page read exactly like mini-pool's, and from 4 October its rewards are
-  worked out the same way.
+  quote on Polymarket would do, on markets paying $10 to under $50 a day
+  in rewards. That account is built and runs every minute without
+  sending anything: it picks the day's markets, works out its bid and ask
+  in each, and writes down every order it would send. It quotes up to
+  eight markets a day with a $320 cap, the size it would go live at, and
+  it goes live only when Davies says so. This row fills those very orders
+  on paper from the trades the public sees, two minutes behind the clock,
+  and keeps what they would hold, at the mid, and what they would have
+  made. Deployed is what its resting quotes tie up and what it holds, as
+  on Reward quotes. Its page is Reward quotes' page: the same scoreboard
+  and status; the days, each with what its markets' quotes need, its
+  fills, its rewards and what it made, adding up to the total; today's
+  markets, each with the bid and ask the account had resting (or why
+  there were none of the rule's), its share of the pool, what it holds,
+  and what its rewards and orders made; and the latest fills, as the
+  account trades them: it buys No where Reward quotes sells Yes, so it can
+  hold both. Each day has its worst case too, as on Reward quotes: today's
+  is live, the worst case in its status less where it stood at midnight
+  UTC, and the days add up to it. A day whose start was never recorded
+  shows a dash rather than a guess. If the account's own loss limit would
+  have been hit, its dot turns amber and says so: from then on, as the
+  real account would, it only sells what it holds. The limit for one day
+  counts only that day's change: what it holds starts each day at its
+  price at midnight UTC (a change of 7 October), so a loss carried from an
+  earlier day counts only toward the overall limit. Its rewards are worked
+  out with its own quotes in the market's order book, as Polymarket works
+  them out. It never picks a market that the other Reward quotes tests
+  quote, and leaves out the ones close to them too.
+- **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
+  first test of that account) left the list and stopped on 8 October: its
+  checks had closed and it is not a candidate to go live.
 - **Reward quotes live-prep.** The last row, on Polymarket: the strategy
   the study of 4 October found best on everything recorded, and since
   that day the lead candidate to go live. It is the same account and
@@ -395,8 +384,9 @@ places stay when the number is not whole.
   orders' result plus what Polymarket paid falls to −$75. Until Davies
   says go it only writes down what it would send, deciding as if it held
   what this row's paper holds, and this row fills those orders on paper
-  the same way as the rows above. Only one of the three can ever be live.
-  Its row and page read like mini-pool's.
+  the same way as the row above. The account's three order paths (this
+  one, mid-pool's and mini-pool's) share it, so only one can ever be live.
+  Its row and page read like mid-pool's.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

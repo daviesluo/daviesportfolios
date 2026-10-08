@@ -555,6 +555,64 @@ describe('pg_cron jobs', () => {
     expect([...cronJobs(FILES.filter((f) => f <= T))]).toEqual([...cronJobs(FILES.filter((f) => f < T))]);
   });
 
+  // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
+  // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
+  // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last
+  // day). Never deleted; checked on PGlite in the ledger's entry.
+  it("turns mini-pool's two calls off at once and RW's four once their last read day is closed, by a job that calls nothing (0103)", () => {
+    const T = FILES.find((f) => /^\d{4}_retire_after_rw\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    // The file's own statements turn mini-pool's two rows off and change nothing else: RW's go by the function.
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const MINI = ['agents?action=pmlive&forceFunctionRegion=eu-west-1', 'agents?action=pmprep'];
+    expect(MINI.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual([true, true]);
+    expect(listAfter).toEqual(listBefore.map((r) => (MINI.includes(r.path) ? { ...r, enabled: false } : r)));
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['edge-calls-retire-after-rw']);
+    const job = jobsAfter.get('edge-calls-retire-after-rw');
+    expect([job.schedule, job.command.trim()]).toEqual(['2-57/5 * * * *', 'select public.retire_after_rw();']);
+    // Every five minutes, never on the one-minute batch's :X0 or the response prune's :X5.
+    const [from, to] = job.schedule.split(' ')[0].split('/')[0].split('-').map(Number);
+    const minutes = Array.from({ length: Math.floor((to - from) / 5) + 1 }, (_, i) => from + 5 * i);
+    expect(minutes.length).toBe(12);
+    expect(minutes.every((m) => m % 5 !== 0)).toBe(true);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const body = norm(/\$fn\$([\s\S]*?)\$fn\$/.exec(sql)?.[1] ?? '');
+    // It writes nothing but `enabled = false` on the list: no insert, delete, truncate or other update, no other table.
+    expect(body).not.toMatch(/\b(insert|delete|truncate|drop|alter)\b/);
+    const updates = [...body.matchAll(/update ([\w.]+) set ([^;]*?) where enabled and path in \(([^)]*)\);/g)];
+    expect(updates.length).toBe(count(body, 'update '));
+    expect(updates.every((u) => u[1] === 'public.edge_calls' && u[2] === 'enabled = false')).toBe(true);
+    const groups = updates.map((u) => [...u[3].matchAll(/'([^']+)'/g)].map((p) => p[1]));
+    expect(groups).toEqual([
+      ['agents?action=pmrw', 'agents?action=pmrw-select'],
+      ['agents?action=pmrw-e'],
+      ['agents?action=pmrw-x'],
+    ]);
+    // Each is a row of the list, on until now; nothing live, RW-C's, mid-pool's, live-prep's or PR5's is named.
+    for (const p of groups.flat()) expect([p, listAfter.find((r) => r.path === p)?.enabled]).toEqual([p, true]);
+    expect(groups.flat().some((p) => /tick|quotes|pmrwc|pmmid|pmlp|pmrec|views|books/.test(p))).toBe(false);
+    // Each group only when its last read day is closed: RW's 10-08 day row first, the replays' after it on every arm
+    // that has 10-07. Mini-pool's two are not the function's: no condition, no date holds them back.
+    expect(body).toContain("rw_done boolean := exists (select 1 from public.pm_rw_days where day = date '2026-10-08');");
+    for (const t of ['pm_rw_e_days', 'pm_rw_x_days']) {
+      expect(body).toContain(`exists (select 1 from public.${t} where day = date '2026-10-08') and not exists (select 1 from public.${t} a where a.day = date '2026-10-07' and not exists (select 1 from public.${t} b where b.day = date '2026-10-08' and b.arm = a.arm));`);
+    }
+    expect(body).not.toMatch(/pm_prep_days|pmlive|pmprep|mini_done/);
+    expect(sql).not.toMatch(/2026-10-1[67]/);
+    const guards = [...body.matchAll(/if ([a-z_ ]+?) then update/g)].map((m) => m[1]);
+    expect(guards).toEqual(['rw_done', 'rw_done and rwe_done', 'rw_done and rwx_done']);
+    // Once RW's four are off it unschedules its own job and no other; it runs once at apply time too.
+    expect(body).toContain("perform cron.unschedule(j.jobid) from cron.job j where j.jobname = 'edge-calls-retire-after-rw';");
+    expect(count(body, 'cron.unschedule')).toBe(1);
+    expect(norm(sql)).toMatch(/\$\$ select public\.retire_after_rw\(\); \$\$ \); select public\.retire_after_rw\(\); reset lock_timeout;$/);
+    expect(sql).toMatch(/revoke all on function public\.retire_after_rw\(\) from public, anon, authenticated;/);
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
+  });
+
   it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {
     // review F4 (2026-10-08): what each delete removes and why it is safe is in the migration's header; checked on PGlite.
     const T = FILES.find((f) => /^\d{4}_pm_paths_retention\.sql$/.test(f)) ?? '';

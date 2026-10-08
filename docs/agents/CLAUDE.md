@@ -450,7 +450,8 @@ that follow from that evidence, in short:
   2026-10-02, and first "live-prep", the name the third instance carries
   since `0091`; mini-pool's check windows were closed on 2026-10-04 by
   its pre-registration's Addendum 7, so it is no longer a go-live
-  candidate and keeps its dry-run as a comparison); since `0080` its dry-run runs at the go-live size, eight
+  candidate; since `0103`, 2026-10-08, its row is off the page and its two calls are off, on Davies' word, its config row
+  untouched, so mid-pool's readout finds its column empty from 10-09); since `0080` its dry-run runs at the go-live size, eight
   markets and $160 of first quotes, and only Davies' word in the
   conversation arms it: no routine runs the go-time statement ("什么时候
   上线我说了算不自动转了"). **Since 2026-10-04** (its pre-registration's Addendum 6) each minute's formula scores our quotes in
@@ -519,8 +520,8 @@ that follow from that evidence, in short:
   minutes, so a read that must be current carries a parameter no earlier
   read carried; and an Edge request gets 2 s of CPU, so the selection asks
   Gamma only about the markets it takes. After 10-09 both calls do nothing;
-  the verdict's migration takes them (and `pmrw-e`, `pmrw-x`) out of
-  `edge-calls-every-minute`. On the Agents page it is
+  `0103` (written 2026-10-08, ahead of the verdict) takes them out of the list once `pm_rw_days` holds 10-08, and
+  `pmrw-e`, `pmrw-x` once their replays hold it on every arm (`public.retire_after_rw()`, every five minutes). On the Agents page it is
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
   page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's
   scoreboard includes it, on the Polymarket card rather than Revolut X's.

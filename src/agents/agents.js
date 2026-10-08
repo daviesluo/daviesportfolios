@@ -1758,7 +1758,8 @@ export function prepStopText(r) {
  * "Reward quotes mini-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
  * before it goes live; renamed small-pool on 2026-10-02 beside mid-pool, then mini-pool; its first name went to the third
  * instance in 2026-10-04's `0091`, whose row is `lpRow`) as a row of TESTING
- * STRATEGIES on the Polymarket card, in the cells a strategy's row has.
+ * STRATEGIES on the Polymarket card, in the cells a strategy's row has. Since 0103 (2026-10-08) mini-pool is no row of the
+ * page (`paperTestRows`); this is the shape mid-pool's and live-prep's rows are made in (`midRow`, `lpRow`).
  * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
  * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
  * what it cost; realised is the rewards at the formula and what closing trades made, split on the row for the page and
@@ -1801,8 +1802,9 @@ export function prepRow(r) {
 /**
  * "Reward quotes mid-pool" (`0081`; Davies, 2026-10-02: "再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
  * quotes，也是400美元funded测试"): the order path again on pools of $10 to under $50 a day, a dry-run filled on paper by
- * the same layer, right after mini-pool's row. The dashboard's `prepMid` is made by the same `prepSummary` from its own
- * tables, so its row and its page are mini-pool's, on its own $320 cap. null keeps it off the table.
+ * the same layer, after the variants' rows (mini-pool's, before it, left the page with 0103). The dashboard's `prepMid`
+ * is made by the same `prepSummary` from its own tables, so its row and its page are made as mini-pool's were, on its own
+ * $320 cap. null keeps it off the table.
  * @param {any} r  the dashboard's `prepMid`
  */
 export function midRow(r) {
@@ -1862,17 +1864,22 @@ export const RWX_ROW_PREFIX = '__rwx-';
 
 /**
  * TESTING's paper tests, the rows its scoreboard and venue cards add after its strategies, in the page's order: the
- * realistic twins, "Reward quotes", its variant-1 and the other variants, then mini-pool, mid-pool and live-prep. Each is
- * one run's row, added once. From RW-C's first minute "Reward quotes" IS RW-C's run (the dashboard's `rw`), and RW-C is
- * no row of its own (Davies, 2026-10-08), so a dashboard that still carries an `rwc` adds nothing for it: the totals
- * never hold RW-C's figures beside RW's, or twice.
+ * realistic twins, "Reward quotes", its variant-1 and the other variants, then mid-pool and live-prep. Each is one run's
+ * row, added once. From RW-C's first minute "Reward quotes" IS RW-C's run (the dashboard's `rw`), and RW-C is no row of
+ * its own (Davies, 2026-10-08), so a dashboard that still carries an `rwc` adds nothing for it: the totals never hold
+ * RW-C's figures beside RW's, or twice.
+ *
+ * "Reward quotes mini-pool" (the dashboard's `prep`) is no row since 0103 (Davies, 2026-10-08: "按你说的停掉mini-pool的两个
+ * 调用 … 把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"): its check windows closed with its pre-registration's
+ * Addendum 7 and it is no go-live candidate. Its two calls stop with the same migration; the dashboard still carries
+ * `prep` (its last record) and adds nothing for it, as one carrying PR5V's or rule D's run adds nothing for them.
  * @param {any} dash
  */
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     ...quotesTwinRows(dash), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
-    ...one(prepRow(dash?.prep)), ...one(midRow(dash?.prepMid)), ...one(lpRow(dash?.prepLp)),
+    ...one(midRow(dash?.prepMid)), ...one(lpRow(dash?.prepLp)),
   ];
 }
 

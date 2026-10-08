@@ -35,9 +35,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      from `pm_rw_e_days`, after arm `rw` equals `pm_rw_days`; (d2) RW-X1–X3 by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`
      from `pm_rw_x_days`, after its two checks; (d3) RW-X4/X5's Test 1 by `reviews/2026-10-02-polymarket-rw-rest-prereg.md`
      (10-03 → 10-08 from the 10-02 rows, seed 20261009, × 365 / 6, the seventh condition against x1), after the same
-     checks and that their 10-01 rows equal x1's; (e) one migration sets `enabled = false` on the `edge_calls` rows
-     `pmrw`, `pmrw-select`, `pmrw-e` and `pmrw-x` (RW-C's four `pmrwc*` rows untouched; the tables and page rows stay
-     until Davies says); (f) report to Davies in Chinese; (g) RW-NEXT Part 1 (`reviews/2026-09-28-rw-next-prereg.md`)
+     checks and that their 10-01 rows equal x1's; (e) written ahead as `0103` (history 2026-10-08 23:52 UTC): once
+     landed, `public.retire_after_rw()` (job `edge-calls-retire-after-rw`, every five minutes at :02, :07 …) turns
+     `pmrw`/`pmrw-select` off once `pm_rw_days` holds 10-08 and `pmrw-e`/`pmrw-x` once their replays hold it on every
+     arm; the verdict confirms it fired (`select path, enabled from edge_calls where path like 'agents?action=pmrw%'`;
+     `cron.job_run_details` for the job), and writes no second migration (RW-C's four `pmrwc*` rows untouched; the
+     tables and page rows stay until Davies says); (f) report to Davies in Chinese; (g) RW-NEXT Part 1 (`reviews/2026-09-28-rw-next-prereg.md`)
      names the candidate, which goes to RW-C before any live design. Name as a deviation of 10-08 that RW lost seven
      `:X0` minutes that day (00:00, 00:10, 00:30, 00:40, 00:50, 01:00, 01:10; fixed by `0097`), minutes stored against
      due; the bar is unchanged. Until then, daily health as the archive lists it (both states' `last_error` and
@@ -77,7 +80,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **The three order paths, each in dry-run with its config row the lock** (`dry_run` true, `live_confirmed_at`
      null; a trigger refuses arming two at once; one account, unfunded: pUSD $0.04 at the last read). **mini-pool**
      (`pm_live`, `0074`/`0076`/`0080`, `reviews/2026-10-01-polymarket-live-calibration.md`): every check window closed
-     by Addendum 7 (2026-10-04); not a go-live candidate; dry-runs for comparison. **live-prep (S2)**, the lead
+     by Addendum 7 (2026-10-04); not a go-live candidate; off TESTING, and `pmlive` and `pmprep` off, when `0103`
+     applies (Davies, 2026-10-08: "按你说的停掉mini-pool的两个调用"); config row untouched (nothing arms). **live-prep (S2)**, the lead
      candidate (`0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`): P1 checked 2026-10-07 20:22
      UTC with `backtests/pmlp/lp_check.sql` (sha256 `7e94b042…0a57`): (a)–(e) and (g) PASS, (f) FAIL on funding alone.
      Before Davies' go, in order: P2 pUSD ≥ $81 in the account; P3 the payouts-per-path patch
@@ -86,7 +90,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      for `pm_lp_state` (neither built); then step 8lp, only where he says go. Not measured: the selection's CPU over about
      1,379 markets. **mid-pool** (`0081`/`0084`, `agents/pm_mid.ts`, `reviews/2026-10-02-polymarket-mid-pool-prereg.md`;
      day-1 check PASS 10-04): run `backtests/pmlive/mid_readout.sql` once at or after **2026-10-17 00:10 UTC** (wake
-     `trig_01XwUUNT5yXL3pzHoyH4JLaG`), naming deviations 1 and 2, and the overlap audit `mid_audit.sql` no earlier than
+     `trig_01XwUUNT5yXL3pzHoyH4JLaG`), naming deviations 1 and 2 and, as a deviation on Davies' word (2026-10-09), that
+     mini-pool's (small-pool's) column is empty from the day `0103` landed (its calls stopped; the days missing, never
+     zero), and the overlap audit `mid_audit.sql` no earlier than
      **2026-10-23 00:05 UTC** (the 10-23 wake), read-only, every row reported to Davies (both sha256 pinned by
      `src/pm_mid_prereg.test.js`). The payouts patch deployed before 10-17 is a deviation of the readout, from 10-17
      none. His go-live waits for the RW-X arms (report whether x4 or x5 should change mid-pool's rule; a changed rule
@@ -223,7 +229,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
 9. **Supabase, after the tests:**
    - After PR5's verdict (10-21): `quotes.ts` re-upserts its inputs every minute (`agent_quote_inputs`); write only new
-     rows then. After RW's verdict (10-09): RW's tables (134 MB) can go with the verdict's migration. `pm_view_books`
+     rows then. RW's tables (134 MB) stay past RW's verdict: `mid_audit.sql` reads `pm_rw_selection` on or after 10-23 and POOLAGE
+     would read `pm_rw_minutes`; dropping them is Davies' call after 10-23. `pm_view_books`
      grows ~12 MB a day until its study. Since `0101` (2026-10-08) the order paths' dry-run record keeps 14 days (from
      10-15) and `db-size-watch` reports past 4 GB. Still read whole each minute, for a later change: the recorder's
      market list and the twins' filled orders (frozen with TAKE to 11-02). Davies' call: the instance (Micro, 1 GB; the
@@ -376,6 +383,25 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-08 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **What RW's round 1 leaves running: `0103` and mini-pool off TESTING** (Davies, 10-08: "按你说的停掉mini-pool的两个调用 …
+  把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"; a sub-agent's branch `retire-after-rw`, not pushed). Each of the 27
+  `edge_calls` rows (read 10-08 23:31 UTC) was set against the readings still to run (reference §4 item 56). Off at
+  apply, on Davies' word: `pmlive`, `pmprep` (mini-pool; the cost he accepted: mid-pool's readout finds mini-pool's
+  column empty from 10-09, a deviation it names). Off only once the last day its reading reads is closed: `pmrw`,
+  `pmrw-select` (RW's 10-08 day row), `pmrw-e`, `pmrw-x` (their replays' 10-08 rows on every arm), by one function,
+  `retire_after_rw()`, run every five minutes by a job that unschedules itself and once at apply, so a push at any hour
+  is safe; `enabled = false` only, no table touched. Checked on PGlite 16 (scratchpad `pgl/check2.mjs`): applied with
+  days to 10-07 it turns off mini-pool's two and nothing of RW's; RW's day closed with one replay arm missing turns off
+  only `pmrw`/`pmrw-select`; each replay goes once its last arm lands, and the job then unschedules itself; applied
+  after RW closed it acts at once and leaves no job; applied twice it changes nothing more. `src/cron_jobs.test.js`
+  pins the list after it (mini-pool's two off, nothing else), the four RW paths, three guards and the schedule (fails
+  on the deferred version, with a guard dropped or a `pmrwc*` path added). Saves ~7,490 Edge calls a day from 10-09. Mini-pool's row and page left
+  TESTING (`paperTestRows`; its `prep` still in the payload, adding nothing); the sweep checks a dashboard carrying it
+  draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
+  reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
+  word), the views and book recorders (their horizon is his).
 
 ### [2026-10-08 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RWC-OPT frozen before RW-C's first minute** (Davies: "RW-C…可以用目前所有最新的数据看看RW-C可不可以优化到最佳吗", "效果优先").
