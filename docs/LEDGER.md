@@ -806,6 +806,12 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- `sh bin/gates.sh --quick`: the gates by what changed less the bundle's line (build, sweep, perf, size), ending
+  "quick gates green", which is not leave to push. On Davies' word ("如果不同agent都要跑所有gates的话可以一起就跑一个吗"
+  … "好的"), sub-agents run it, commit and hand back; the main session rebases the batch onto `origin/main`, runs the
+  full gates once and pushes. Urgent fixes still run the full gates alone. In CLAUDE.md's git workflow and the skill.
+
 ### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C merged into "Reward quotes" (Davies, 2026-10-08: "合并进 Reward quotes"): from RW-C's first minute,
   2026-10-09 00:00 UTC, every Reward quotes row reads RW-C's run, and there is no "Reward quotes confirmation" row, now

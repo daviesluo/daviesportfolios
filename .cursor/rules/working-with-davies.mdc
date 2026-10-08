@@ -116,6 +116,15 @@ background agent still running, a resumed one included. With three
 running, a fourth piece of work waits for one to finish, goes to an
 agent that is already running, or is done in the main session.
 
+**Sub-agents hand back commits; the main session lands them in one
+gate run.** "如果不同agent都要跑所有gates的话可以一起就跑一个吗"
+(2026-10-08, when four agents' full gate runs at once had four cores at
+a load of 48 and page checks timing out). An agent runs `sh bin/gates.sh
+--quick` (no bundle, sweep, perf or size), commits on its worktree and
+does not push; the main session rebases the batch onto `origin/main`,
+runs the full gates once and pushes. Brief every agent that way. Only an
+urgent fix runs the full gates alone and pushes at once.
+
 **A pin test for every bug fixed.** A fix without a test that fails on
 the old code is not finished.
 

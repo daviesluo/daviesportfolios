@@ -218,6 +218,16 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   queued and timed out page checks.
   `--full` forces every gate. CI runs every gate on every push either
   way.
+- **Sub-agents run `sh bin/gates.sh --quick` and do not push** (Davies,
+  2026-10-08: "如果不同agent都要跑所有gates的话可以一起就跑一个吗"). The
+  quick run is the same gates less the bundle's line (build, sweep, perf,
+  size); the agent commits on its own worktree and hands back. The main
+  session lands the batch: rebases every handed-back commit onto
+  `origin/main`, runs `sh bin/gates.sh` once on the combined tree, and
+  pushes on `all gates green`; a failure names its check, and an
+  unattributable one is bisected by dropping commits. An urgent fix (a
+  production incident, a deadline) still runs the full gates alone and
+  pushes at once.
 - Cloudflare Pages Git builds (watch paths `dist/*` when set in the
   dashboard) and `.github/workflows/pages-deploy.yml` (Wrangler Direct
   Upload of the committed `dist/`) publish a `dist/` change. The Action

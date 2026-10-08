@@ -15,6 +15,11 @@
 #   * anything else (bin/, .github/, the root's config) every gate
 # `--full` runs every gate whatever changed. CI runs every gate on every push either way.
 #
+# `--quick` is a sub-agent's run (Davies, 2026-10-08: "如果不同agent都要跑所有gates的话可以一起就跑一个吗"): the same
+# gates by what changed, less the bundle's line (build, browser sweep, perf matrix, size), the slow half. It ends
+# "quick gates green", which is not leave to push: the agent commits and hands back, and the session landing a batch
+# rebases every commit onto origin/main and runs this script once, without a flag, on the combined tree.
+#
 # Everything at once, each step's time printed (Davies, 2026-09-27: still slow; five and a half minutes before this):
 # the checks that read the source, beside the bundle's own line — built, then everything that reads it at once: the
 # browser sweep in shards, the perf matrix and the size budget. Nothing that reads the source reads dist/.
@@ -49,6 +54,8 @@ case "$(git -C "$ROOT" config core.hooksPath)" in
   *) echo "warning: the ledger hook is off in this clone; run: sh bin/setup.sh" >&2 ;;
 esac
 
+quick=0
+[ "$1" = "--quick" ] && { quick=1; shift; }
 web=0 edge=0 unit=0 deno=0
 if [ "$1" = "--full" ]; then
   web=1 edge=1
@@ -74,7 +81,7 @@ EOF
 fi
 [ "$web" = 1 ] && unit=0          # the web gates run the unit tests themselves
 [ "$edge" = 1 ] && deno=0         # the Edge gates run the Edge tests themselves
-echo "gates: web=$web edge=$edge unit=$unit edge-tests=$deno ($( [ "$1" = "--full" ] && echo "--full" || echo "by what changed; --full runs every gate"))"
+echo "gates: web=$web edge=$edge unit=$unit edge-tests=$deno ($( [ "$1" = "--full" ] && echo "--full" || echo "by what changed; --full runs every gate"))$( [ "$quick" = 1 ] && echo " --quick: no bundle, sweep, perf or size")"
 
 # Runs its steps at once, each "name|command" from src/, and fails if any fails, printing that step's output. Each
 # step's seconds are printed beside it, so the slowest one is plain.
@@ -130,7 +137,8 @@ EOF
 
 T0=$(date +%s)
 set -- "unit|npm test"
-[ "$web" = 1 ] && set -- "$@" "bundle|bundle" "typecheck|npm run typecheck" "lint|npm run lint" "knip|npx knip" \
+[ "$web" = 1 ] && [ "$quick" = 0 ] && set -- "$@" "bundle|bundle"
+[ "$web" = 1 ] && set -- "$@" "typecheck|npm run typecheck" "lint|npm run lint" "knip|npx knip" \
   "audit|npm audit --audit-level=high --omit=dev"
 [ "$edge" = 1 ] && set -- "$@" "$EDGE_CHECK" "$EDGE_TEST" "knip-edge|sh ../bin/knip-edge.sh"
 [ "$deno" = 1 ] && set -- "$@" "$EDGE_TEST"
@@ -138,4 +146,8 @@ set -- "unit|npm test"
 case "$*" in *deno@*) npx --yes deno@1.46.3 --version > /dev/null ;; esac
 together "$@"
 
-echo "all gates green ($(( $(date +%s) - T0 )) s)"
+if [ "$quick" = 1 ]; then
+  echo "quick gates green ($(( $(date +%s) - T0 )) s): not leave to push; the landing run is sh bin/gates.sh on the batch"
+else
+  echo "all gates green ($(( $(date +%s) - T0 )) s)"
+fi
