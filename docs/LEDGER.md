@@ -431,6 +431,13 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
 
+### [2026-10-08 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The size budget measures the gzipped size alone** (batch 5's size item). `@size-limit/preset-app` is
+  `@size-limit/file` plus a time plugin that ran the bundle in a headless Chrome (16 s on CI, through estimo and
+  puppeteer) for figures nothing gated; `@size-limit/file` alone measures the same gzipped bytes against the same
+  122 kB (120,646 before and after the swap on the same bundle) in 0.6 s, and 80 packages leave the lockfile, no
+  remaining one changing version. The bundle is rebuilt for the new stamp (`package.json` is a bundle input).
+
 ### [2026-10-08 23:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A live Polymarket buy being cancelled counts toward the caps until its cancel is read back** (review A7, batch 5;
   `agents/pm_live.ts`). The caps run before the turn's cancels and counted every buy the turn would cancel as gone; a

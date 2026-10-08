@@ -200,7 +200,8 @@ jobs:
         run: npm run verify:browser
 
   # The bundle's two other checks: the perf matrix, and the size budget,
-  # whose time plugin runs the bundle in a headless Chrome (16 s of it).
+  # the gzipped size alone (`@size-limit/file`; the preset's time plugin,
+  # which ran the bundle in a headless Chrome for 16 s, went on 2026-10-08).
   perf-and-size:
     runs-on: ubuntu-latest
     defaults:
