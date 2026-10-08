@@ -107,6 +107,7 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json',
   '.webmanifest': 'application/manifest+json',
+  '.woff2': 'font/woff2',   // the site's own fonts since 2026-10-08, as Cloudflare types them
 };
 
 /**
@@ -2722,6 +2723,27 @@ async function run() {
     } else {
       fail(S('first-paint'), `BRIT.L's card (${britKey}) ${britNow}, arithmetic ${britWant}; shown on the way: ${JSON.stringify(boardWrong)}; rows ${JSON.stringify(boardSeen.rows)}`);
     }
+
+    // ---- 1c. every layout below is drawn in the site's own Inter and JetBrains Mono ------------------------------------
+    // Review M7 and batch 5: the sweep aborts every third-party host, so while the fonts came from Google it drew every
+    // layout it checks in a fallback, never in the Inter people see. They are the site's own files now, served from the
+    // bundle: both Latin faces must have loaded, none failed, and the page and its figures be set in them; a font that
+    // stopped loading would leave the layout checks drawn in a fallback again, as green as before.
+    const fontsRead = () => page.evaluate(() => {
+      const faces = [...document.fonts];
+      const latin = (/** @type {string} */ family) => faces.some((f) => f.family.replace(/["']/g, '') === family
+        && f.status === 'loaded' && /^U\+0+-0*FF\b/i.test(f.unicodeRange.trim()));
+      const first = (/** @type {Element | null} */ el) => (el ? getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g, '').trim() : '');
+      return {
+        inter: latin('Inter'), mono: latin('JetBrains Mono'),
+        failed: faces.filter((f) => f.status === 'error').map((f) => `${f.family} ${f.weight}`),
+        body: first(document.body), figure: first(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')),
+      };
+    });
+    const fonts = await readUntil(page, fontsRead, (x) => !!x && x.inter && x.mono);
+    if (fonts && fonts.inter && fonts.mono && fonts.failed.length === 0 && fonts.body === 'Inter' && fonts.figure === 'JetBrains Mono') {
+      ok(S('fonts'), `drawn in the site's own fonts: Inter and JetBrains Mono (Latin) loaded, none failed; the page in ${fonts.body}, the book's total in ${fonts.figure}`);
+    } else fail(S('fonts'), `fonts ${JSON.stringify(fonts)}`);
 
     // ---- 2. no horizontal overflow at this width --------------------
     const over = await page.evaluate(() =>

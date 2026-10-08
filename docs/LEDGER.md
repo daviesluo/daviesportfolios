@@ -252,9 +252,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 4's deploy order, kept:** `overnight-fetch` requires the app token from the commit after the page's
      bundle that sends it went live (app-1b24810b.js, 2026-10-08 ~17:50 UTC); an older tab still open gets no new
      overnight points until it reloads.
-   - **M7 (the site's own fonts) reverted, to redo:** CI's Chromium drew the sweep with Inter for the first time (the
-     sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed (history
-     17:45). Redo it with the layouts that fail fixed for Inter at both widths, proved on CI's browser, not this one.
+   - **M7 (the site's own fonts) reverted, redone in batch 5:** CI's Chromium drew the sweep with Inter for the first
+     time (the sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed
+     (history 17:45). They fail in the headless shell alone; CI launches the full Chromium from T2 (history 23:06, 23:16).
    - **Second review done (2026-10-08 ~18:30 UTC), read-only; awaiting Davies' pick, nothing fixed:**
      T1 vitest reaches production (four perf_chart test files leave `price_snapshots.js` / `overnight_intraday.js`
      unmocked; ~560 GETs a day; fix: fail any non-localhost fetch in `test_setup.js`); T2 CI's sweep runs the
@@ -268,7 +268,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
-     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI).
+     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again.
 
 ## Machine and platform setup
 
@@ -444,6 +444,21 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   `reviews/2026-10-09-rwc-optimised-arms-prereg.md`, read after 10-23 00:05 on RW-C's record (item 2). RW-C's engine,
   selection, replays and every frozen pre-registration are unchanged; RW's 10-04 → 10-08 inputs are committed gzipped
   (3.3 MB) beside the scripts.
+
+### [2026-10-08 23:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The site's own fonts are back (M7 redone), and the sweep checks it draws in them** (review batch 5). 6e8d7544
+  cherry-picked as it was (Inter and JetBrains Mono from `src/app/fonts/`, Google's files and rules but for the URL,
+  preloaded; the CSP and the worker without Google; its evidence is in 6e8d7544's own ledger lines, which the revert
+  e7f0cafe took out) and the bundle rebuilt here: its stylesheet and the 12 font files hash as M7's did. New sweep
+  check `fonts` (both widths): both families' Latin faces loaded, none failed, the page set in Inter and the book's
+  total in JetBrains Mono. On the bundle before this commit it fails (`inter: false, mono: false`: Google's stylesheet
+  is aborted, so no face exists) and the other 243 desktop checks of the main part pass. The whole sweep (648 checks)
+  and the perf matrix (76) on this bundle: CI's browser after T2 (Chrome for Testing 153.0.8010.12, found by
+  Playwright's own lookup with no shell installed) and this container's full Chromium 141 all green; the headless
+  shell (141 and 153) green but for the four layout checks it alone failed before, unchanged: `desktop/agents` the
+  RW-E row and the variant rows (each name on two lines), `desktop/tabs/rwx-waiting` (NEXT on three lines),
+  `phone/tabs/pr5-page` (ROUND TRIPS and the orders 6 px past their boxes). Nothing launches the shell now, so CI
+  should be green; its first run on the landed commit is the proof.
 
 ### [2026-10-08 23:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The browser checks run in Playwright's full Chromium, not its headless shell** (review T2, batch 5). Asked for a

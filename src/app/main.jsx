@@ -3,6 +3,7 @@
 // bridge (setup.js, side-effect imports) is gone.
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import './fonts.css';
 import './styles.css';
 import App from './app.jsx';
 import { reportError } from './ops_error.js';
