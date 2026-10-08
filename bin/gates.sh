@@ -4,7 +4,8 @@
 # clock: vite.config.js), and check.yml builds each commit and refuses it unless the build reproduces the committed
 # dist/ byte for byte; so does the bundle line here, after its build (`git status -- dist` must be clean), before the
 # sweep, the perf matrix and the size budget read it. Commit the dist/ the build writes with the change that needs it.
-# The browser checks need Chromium: CI installs it; a container that ships its own sets PLAYWRIGHT_CHROMIUM_PATH.
+# The browser checks need Playwright's full Chromium, not its headless shell (src/e2e/browser.mjs): CI installs it
+# (`playwright install --no-shell chromium`); a container that ships its own sets PLAYWRIGHT_CHROMIUM_PATH.
 #
 # It runs the gates the change can break, not every gate every time (Davies, 2026-09-27: the full run had grown to
 # twelve minutes). The change is everything against origin/main: commits not yet pushed, edits and new files.

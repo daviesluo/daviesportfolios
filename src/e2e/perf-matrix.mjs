@@ -44,13 +44,14 @@
 //   npm run build && npm run verify:perf
 //
 // Usage: node e2e/perf-matrix.mjs [path to dist/]; the default is the
-// repository's dist/. Chromium comes from Playwright, or from
-// PLAYWRIGHT_CHROMIUM_PATH, as in app-sweep.mjs.
+// repository's dist/. Chromium is Playwright's full one, or the one
+// PLAYWRIGHT_CHROMIUM_PATH names, as in app-sweep.mjs (e2e/browser.mjs).
 
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { launchOptions } from './browser.mjs';
 
 // ---- the clock ------------------------------------------------------
 //
@@ -590,12 +591,7 @@ async function run() {
   }
   await new Promise((r) => server.listen(PORT, r));
   PORT = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
-  const browser = await chromium.launch({
-    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
-      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
-      : {}),
-    args: ['--no-sandbox'],
-  });
+  const browser = await chromium.launch(launchOptions());
   const results = [];
   let failures = 0;
 

@@ -45,8 +45,10 @@
 //
 //   npm run build && npm run verify:browser
 //
-// It needs Chromium once per machine (`npx playwright install chromium`);
-// a container that ships its own can set PLAYWRIGHT_CHROMIUM_PATH instead.
+// It needs Playwright's full Chromium once per machine (`npx playwright
+// install --no-shell chromium`), not its headless shell, which lays text
+// out differently (e2e/browser.mjs); a container that ships its own can
+// set PLAYWRIGHT_CHROMIUM_PATH instead.
 //
 // `bin/gates.sh` runs it in shards at once instead: each process takes one
 // viewport (`SWEEP_VIEWPORT`) and some of the sweep's parts (`SWEEP_PART`,
@@ -58,6 +60,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { launchOptions } from './browser.mjs';
 
 // Absolute, always: the path-traversal guard on line ~69 compares the
 // resolved file against ROOT with `startsWith`, so a relative ROOT like
@@ -1603,17 +1606,12 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
 async function run() {
   await new Promise((r) => server.listen(PORT, r));
   PORT = /** @type {import('node:net').AddressInfo} */ (server.address()).port;
-  // Let Playwright resolve its own browser (what CI does after
-  // `playwright install chromium`). A container that ships a prebuilt
-  // Chromium instead can point at it with PLAYWRIGHT_CHROMIUM_PATH —
-  // hardcoding one container's path here made this unrunnable anywhere
-  // else, which is part of why it lived in `scraps/` and ran by hand.
-  const browser = await chromium.launch({
-    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
-      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
-      : {}),
-    args: ['--no-sandbox'],
-  });
+  // Playwright's full Chromium (what CI installs), or the one a container
+  // names with PLAYWRIGHT_CHROMIUM_PATH: e2e/browser.mjs says why not the
+  // headless shell. Hardcoding one container's path here made this
+  // unrunnable anywhere else, which is part of why it lived in `scraps/`
+  // and ran by hand.
+  const browser = await chromium.launch(launchOptions());
 
   const errors = [];
   const tokenMisses = [];

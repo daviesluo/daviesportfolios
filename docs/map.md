@@ -798,6 +798,7 @@ before touching migration state.
 | `src/tsconfig.json` | Type-checks the JavaScript through JSDoc (`checkJs`, `strictNullChecks`). |
 | `src/.nvmrc` | Node 22. |
 | `src/e2e/app-sweep.mjs` | The browser test CI runs: the real bundle in Chromium at desktop and phone widths, every network call faked, the clock pinned, over 640 checks. |
+| `src/e2e/browser.mjs` | Which Chromium both browser tests launch: Playwright's full one, never its headless shell, or the one `PLAYWRIGHT_CHROMIUM_PATH` names. |
 | `src/e2e/prep_fixture.json` | "Reward quotes mini-pool"'s page as the dashboard serves it for a record worked out by hand: the browser test shows it, and the view's test proves it is that function's own answer. |
 | `src/e2e/mid_fixture.json` | "Reward quotes mid-pool"'s page the same way, for a record of its $10–$50 band worked out by hand. |
 | `src/e2e/lp_fixture.json` | "Reward quotes live-prep"'s page the same way, for a record of its own with a $120 pool and a sell of what its paper held. |
@@ -966,8 +967,9 @@ npm test                 # Vitest: unit and component tests (jsdom)
 npm run typecheck        # tsc --noEmit with checkJs + strictNullChecks
 npm run lint             # ESLint (react-hooks bug rules)
 npm run build            # production bundle into dist/
-npm run verify:browser   # browser sweep of the built bundle (needs Chromium)
-npm run verify:perf      # the performance panel's 60-case matrix (needs Chromium)
+npx playwright install --no-shell chromium   # once: the full Chromium the two below launch
+npm run verify:browser   # browser sweep of the built bundle
+npm run verify:perf      # the performance panel's 60-case matrix
 npx knip                 # dead code and unused exports, the web app
 sh ../bin/knip-edge.sh   # the same for the Edge Functions
 npx size-limit           # gzipped main-bundle budget

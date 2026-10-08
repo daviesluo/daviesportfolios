@@ -172,10 +172,14 @@ jobs:
       - run: npm ci
 
       - name: Install Chromium for the browser sweep
-        # Browsers only, no system deps: ubuntu-latest already carries
-        # what headless Chromium needs, and `--with-deps` costs a sudo
-        # apt install on every run.
-        run: npx --no-install playwright install chromium
+        # Playwright's full Chromium (Chrome for Testing), which the sweep
+        # launches with `channel: 'chromium'` (src/e2e/browser.mjs): its
+        # headless shell lays text out differently from the Chrome people
+        # run, and nothing launches it, so `--no-shell` skips its download.
+        # Browsers only, no system deps: ubuntu-latest carries Google
+        # Chrome and so its libraries, and `--with-deps` costs a sudo apt
+        # install on every run.
+        run: npx --no-install playwright install --no-shell chromium
 
       - name: Browser sweep (the committed bundle, driven in a real browser)
         # Promoted from a by-hand script in `scraps/` to a gate. Every
@@ -214,10 +218,8 @@ jobs:
       - run: npm ci
 
       - name: Install Chromium for the perf matrix
-        # Browsers only, no system deps: ubuntu-latest already carries
-        # what headless Chromium needs, and `--with-deps` costs a sudo
-        # apt install on every run.
-        run: npx --no-install playwright install chromium
+        # The full Chromium and not the headless shell, as for the sweep.
+        run: npx --no-install playwright install --no-shell chromium
 
       - name: Performance panel matrix (the committed bundle, 76 cases)
         # Both performance views x five ranges x three recorded-data states

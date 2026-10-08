@@ -268,7 +268,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
-     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1.
+     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI).
 
 ## Machine and platform setup
 
@@ -337,7 +337,8 @@ Facts a fresh session would otherwise rediscover:
 
         cd src && PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run verify:browser
 
-  CI runs `npx playwright install chromium` and needs no such variable.
+  CI runs `npx playwright install --no-shell chromium` (the full Chromium, which the checks launch with
+  `channel: 'chromium'`; never the headless shell) and needs no such variable.
   The performance matrix is a gate too since 2026-09-23:
   `npm run verify:perf` (same Chromium variable). Its clock is pinned;
   `PERF_MATRIX_CLOCK=<instant>` moves it, and an instant its fixture
@@ -443,6 +444,21 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   `reviews/2026-10-09-rwc-optimised-arms-prereg.md`, read after 10-23 00:05 on RW-C's record (item 2). RW-C's engine,
   selection, replays and every frozen pre-registration are unchanged; RW's 10-04 → 10-08 inputs are committed gzipped
   (3.3 MB) beside the scripts.
+
+### [2026-10-08 23:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The browser checks run in Playwright's full Chromium, not its headless shell** (review T2, batch 5). Asked for a
+  headless Chromium with no channel, Playwright 1.63 launches `chromium-headless-shell` (its source: `getExecutableName`
+  returns the shell when `headless` and no channel), which alone failed four layout checks with the site's own Inter
+  that full Chrome 141 and 153 pass. Both checks now launch with `src/e2e/browser.mjs`'s options: `channel: 'chromium'`
+  (Playwright's documented switch to its full Chromium in the new headless mode), or the browser
+  `PLAYWRIGHT_CHROMIUM_PATH` names, which wins. check.yml installs with `playwright install --no-shell chromium`: Chrome
+  for Testing 153.0.8010.12 (`chromium-1243`, cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-linux64.zip)
+  and FFmpeg 1011, no longer the headless shell 1243 (`--dry-run` lists both; nothing else launches the shell: the size
+  budget's timer finds the runner's own Chrome). Proved through Playwright's own lookup with a registry of CI's two
+  builds: the old options launch `chromium_headless_shell-1243`, the new `chromium-1243`; with the shell absent, as CI
+  installs now, the old options fail ("Executable doesn't exist") and the new launch. The whole sweep (646 checks) and
+  the perf matrix (76) are green that way on this bundle. Pinned in `e2e_browser.test.js`: the options, both scripts
+  launching with them alone, and CI's two installs; each fails against the old scripts, check.yml or options.
 
 ### [2026-10-08 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **No unit test reaches the network** (review T1, batch 5). Four performance-chart test files left the recorded
