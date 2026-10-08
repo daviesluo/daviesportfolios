@@ -318,7 +318,14 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
    it up — the probe read USD 120.00 total and available, nothing reserved, no coin (request 117164, 2026-10-01
    15:04:56 UTC)**, so the money condition is met (the tick does not check USD before a buy; a refused buy is
    recorded rejected and not re-sent). Otherwise keep $60 and tell him what is missing. AVAX stays (his word); re-read its
-   book before any raise of the capital. **Never trade by hand in
+   book before any raise of the capital. **Checked 2026-10-08 06:23–06:26 UTC: held at $60, Davies' call.** CW-1/1b
+   (172 decisions = 4 × 43 bars, max lag 64 s), CW-2/3 (no live order all week), CW-4 (0), CW-6/7 and CW-9 clean;
+   AVAX's 30-day median $51,165 against $31,007; probe 305844 USD 120.00 total and available. Not literally clean:
+   CW-5's tick row 583 (10-02 12:19:44) names the live row in the 10-02 stall's platform-wide "Signal timed out",
+   and CW-8 has 28 "job startup timeout" runs in the 10-07 stall (run history before 10-02 15:40 truncated). No live
+   entry in the week, so it proved nothing about two concurrent positions (pinned in `agents/tick.test.ts`); four
+   slots double the drawdown (16.7 % of $100 in window A on both tapes against 7.3–7.5 % at one). Raise only on his
+   word: `update public.agent_risk set max_exposure_usd = 150, updated_at = now() where id = 1;`, then read it back. **Never trade by hand in
    that account.** Rows, caps and the order path: `.claude/CLAUDE.md`'s Agents section, `docs/agents/go-live.md`,
    reference §3.31 and §4 items 32–34.
 
@@ -805,6 +812,13 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Item 3's $150 step (wake `trig_01THvHcphx5gngXugfwwy788`): read-only checks by a sub-agent, the decision kept in
+  the main session. Three conditions pass and the money is there (USD 120.00), but CW-5 names the live row once (the
+  10-02 stall's timeout) and CW-8 holds the 10-07 stall's 28 startup timeouts, and the week had no live entry. The
+  wake's rule is all-or-nothing on live money, so the cap stays $60 and the step waits on Davies; item 3 has the
+  statement. `agent_risk` read back unchanged: 60, updated 2026-10-01 02:24:51.
 
 ### [2026-10-08 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `sh bin/gates.sh --quick`: the gates by what changed less the bundle's line (build, sweep, perf, size), ending
