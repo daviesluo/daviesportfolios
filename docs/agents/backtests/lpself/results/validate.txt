@@ -1,0 +1,17 @@
+loaded 5476 minutes in 3050 ms
+L0 exitCarried 1480 ms, fills 327 10-05 R1 83.0 rew 89.3 R.4 29.4 | 10-06 R1 124.8 rew 157.3 R.4 30.3 | 10-07 R1 121.9 rew 66.6 R.4 82.0 | 10-08 R1 3.8 rew 80.9 R.4 -44.7
+  2026-10-05: chosen 10, live-prep's own 10, both 2
+  2026-10-06: chosen 10, live-prep's own 10, both 2
+  2026-10-07: chosen 10, live-prep's own 10, both 9
+  2026-10-08: chosen 10, live-prep's own 10, both 7
+L0 passive 1356 ms, fills 3685 10-05 R1 83.0 rew 89.3 R.4 29.4 | 10-06 R1 121.6 rew 158.6 R.4 26.5 | 10-07 R1 125.6 rew 80.9 R.4 77.0 | 10-08 R1 5.1 rew 104.8 R.4 -57.8
+  2026-10-05: chosen 10, live-prep's own 10, both 2
+  2026-10-06: chosen 10, live-prep's own 10, both 2
+  2026-10-07: chosen 10, live-prep's own 10, both 9
+  2026-10-08: chosen 10, live-prep's own 10, both 7
+L1 exitCarried+tb1 1686 ms, fills 297 10-05 R1 83.7 rew 88.7 R.4 30.4 | 10-06 R1 133.3 rew 151.9 R.4 42.1 | 10-07 R1 93.7 rew 45.3 R.4 66.5 | 10-08 R1 15.4 rew 66.1 R.4 -24.3
+  2026-10-05: chosen 10, live-prep's own 10, both 2
+  2026-10-06: chosen 10, live-prep's own 10, both 2
+  2026-10-07: chosen 10, live-prep's own 10, both 9
+  2026-10-08: chosen 10, live-prep's own 10, both 7
+live-prep's paper (page definition) R1 10-05 63.97 | 10-06 103.90 | 10-07 150.26 | 10-08 ~131.8 to 22:47; rewards 82.92 / 157.37 / 76.64 / 185.49

@@ -1,0 +1,39 @@
+{
+ "study": "LPSELF (2026-10-08): live-prep against itself, every change to its rule (S2 + TB1's skip, L1) on RW's record (14 days) and on a full-universe record built from the pm-rec archive (10-05 -> 10-08 22:59 UTC), both fill models, R 0.2 / 0.4 / 1, a fixed adoption rule, a walk-forward and a reality check; nothing adopted",
+ "write_up": "docs/agents/reviews/2026-10-04-polymarket-lp-prereg.md, Addendum 3",
+ "inputs": {
+  "data/pmrec/ (not committed)": "every pm-rec archive object (books, universe, prints, markets; 305 objects, 1.3 GB), downloaded by scripts/fetch.py from the signed URLs sql/archive_urls.sql reads, each checked against pm_rec_archive.sha256; data/pmrec_index.json lists them without URLs",
+  "data/aux.json.gz": "sql/aux.sql: every paper record's settlements, live-prep's selections and paper days (no RW-C table)",
+  "data/pr_record.json (not committed, 99 MB)": "scripts/build.ts on data/pmrec and data/aux.json; sha256 c855d12c588aff726034a8690428c3f7793c2a31bd9d6c52b5995cc31eaf2de9",
+  "../rwc_opt/data, ../pmlp/data": "RW's record, as RWC-OPT committed it"
+ },
+ "run": [
+  "cd docs/agents/backtests/lpself; gunzip -k data/aux.json.gz",
+  "python3 -I scripts/fetch.py <saved reply of sql/archive_urls.sql> data/pmrec",
+  "npx --yes deno@1.46.3 run --v8-flags=--max-old-space-size=12000 --allow-read --allow-write --no-check scripts/build.ts data/pmrec data/aux.json data/pr_record.json",
+  "npx --yes deno@1.46.3 run --v8-flags=--max-old-space-size=6000 --allow-read --allow-write --no-check scripts/lpgrid.ts rw|pr [--at-price]  # results/lp_*.json",
+  "python3 -I scripts/lpanalyse.py > results/lp_analysis.txt",
+  "npx --yes deno@1.46.3 run --allow-read --no-check scripts/validate.ts > results/validate.txt"
+ ],
+ "reproduced": "lpgrid.ts rw and pr re-run from this folder gave results/lp_rw.json and lp_pr.json byte for byte, and lpanalyse.py results/lp_analysis.txt",
+ "sha256": {
+  ".gitignore": "931d60251895b04b9232907429cd10b86cad3a1e31a6203673ae454bc4fdb013",
+  "data/aux.json.gz": "ed0482487b7d9d8a737398b656947c0ca40822082013c92cfa1b9e954b0a8a8e",
+  "data/pmrec_index.json": "8e9c0f9912f0898e824659e8c6d7ec1a19059e8fc14a9371d46ece7c0154f1e7",
+  "results/lp_analysis.txt": "52d84c8bcdfb142d156d28a9739f55da0e2d6ed2a4e2e78c4d8177bddc0a35e3",
+  "results/lp_pr.json": "961984f4c542f5dcbf84c16111747be08631743fa20d2585b0752bb91c1e8592",
+  "results/lp_pr_atprice.json": "5e96127b5e6149bfec97130695dce92587f6d5d08b10a3fc05620cde8df767bc",
+  "results/lp_rw.json": "b748354011ba6c0e7f238fecd96804887e9a0a1aa4abbb46457995aaec17a72d",
+  "results/lp_rw_atprice.json": "afb12d2503869832a09d4ec920087893a94f6e8bd6935f3d251cff81c136d685",
+  "results/validate.txt": "03d4d899a9640119f1174aac6ee2c5332974996e7fed0527aa33becf2e048f69",
+  "scripts/build.ts": "904daa170232ca87c37223c60ed8fe6c6f71fb323260d4452b8813ce1769fe5f",
+  "scripts/fetch.py": "705c3860f9581fa51b5fbfcccff82ba4ba02cfa1c1fb2e0d4f74a80e21bc71d9",
+  "scripts/lpanalyse.py": "0a2d9fcd55c5acb3e8187a418f4ead52ba913d6d2d27ca27bdb41e1a57a8580b",
+  "scripts/lpgrid.ts": "be5477d5fe831f344944f37c7974a0f8a0d562e287b47632362f968a3399eb2f",
+  "scripts/rec.ts": "050559756aa7065a3b3349efaaf070e46fccf870c8ea3babe1649a0571d3fd02",
+  "scripts/sim2.ts": "2a3482c972faa4f5d0e52fd65ddeb5c5464b5361edf7d2e64877d39f8c087662",
+  "scripts/validate.ts": "90122e72d122324177da9532a7b4179b96a441e0d5a5ca86c09dcccb24d1152e",
+  "sql/archive_urls.sql": "67843c0beeb33941daea2e5573cafe5143f4e24aeec78b3f92a32f4b870005ce",
+  "sql/aux.sql": "c63688432fb8a3b6276920c35f34b0312f21f2d1c9eb90fade5ad0a2feb19351"
+ }
+}

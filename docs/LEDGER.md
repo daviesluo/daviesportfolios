@@ -385,6 +385,15 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-08 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep against itself: nothing further adopted** (live-prep's Addendum 3, `backtests/lpself/`). Every change to
+  S2 + TB1's skip (selection size and cadence, quotes, inventory, exits, pause, stops, caps, horizon, fill cooldown,
+  book imbalance) on RW's 14 days and on a full-universe record built from the pm-rec archive (10-05 → 10-08, 1,373
+  markets, 1.73 million book minutes); the adoption rule (at-price, R = 0.40, ahead on RW's first and last seven days
+  and on the full universe, worst day no worse) passed none; reality check p 0.99. Worth a forward test: re-selection
+  every 6 h (+$57 at-price on the full universe, untestable on RW's record), 8N, skip at two ticks. The pm-rec
+  archive's signed URLs are read into a padded reply, never shown or committed.
+
 ### [2026-10-08 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **What RW's round 1 leaves running: `0103` and mini-pool off TESTING** (Davies, 10-08: "按你说的停掉mini-pool的两个调用 …
   把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"; a sub-agent's branch `retire-after-rw`, not pushed). Each of the 27

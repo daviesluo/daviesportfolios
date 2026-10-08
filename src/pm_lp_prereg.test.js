@@ -112,4 +112,15 @@ describe('the live-prep pre-registration', () => {
     expect(lp).toContain('export const PM_LP_TIGHT = { maxTicks: 1 } as const;');
     expect(lp).toContain('if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
   });
+
+  // Addendum 3 (2026-10-08): live-prep against itself; nothing further adopted, the rule the bytes Addendum 2 named.
+  it("records the study of live-prep against itself in its Addendum 3: no change adopted, the instance unchanged since Addendum 2", () => {
+    const add3 = DOC.slice(DOC.indexOf('## Addendum 3'));
+    expect(add3.length).toBeGreaterThan(100);
+    expect(add3).toContain('**Nothing passes.**');
+    expect(add3).toContain('`docs/agents/backtests/lpself/`');
+    const add2 = DOC.slice(DOC.indexOf('## Addendum 2'), DOC.indexOf('## Addendum 3'));
+    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1];
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
+  });
 });

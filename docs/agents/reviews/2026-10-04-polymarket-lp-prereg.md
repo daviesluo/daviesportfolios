@@ -336,3 +336,79 @@ The specification as frozen above (S2) against S2 with this rule:
 **Its forward test:** RWC-OPT's C1 (S2 + TB1 skip against S2 on RW-C's fourteen days, read on or after 2026-10-23
 00:05 UTC) is the out-of-sample measure of what this rule adds. Live-prep's own dry-run, and later its live path,
 measure the rule as it runs.
+
+## Addendum 3 (2026-10-08, about 23:55 UTC): live-prep against itself; no further change is adopted
+
+This addendum answers the second half of Davies' word in Addendum 2: make every part of live-prep the best it can be,
+judged against itself and informed by every record. It changes no rule. `pm_lp.ts` is the bytes Addendum 2 names.
+
+**The study** is `docs/agents/backtests/lpself/`, run read-only. It used two records:
+
+- **RW's record**, 2026-09-25 00:00 → 10-08 23:10 UTC (fourteen days, RW's own selection), through RWC-OPT's simulator.
+- **A full-universe record** built from the pm-rec recorder's archive, 2026-10-05 00:00 → 10-08 22:59 UTC (5,476
+  minutes).
+  - Every two hours, every candidate live-prep's rules admit was scored by RW's `firstScore` on that minute's book: about
+    100–470 candidates a slot, 1,373 markets kept in all.
+  - The record holds 1.73 million book minutes and 26,192 prints.
+  - On that record live-prep's selection is computed, its carried markets have books, and its exits are its own
+    close-only quotes.
+  - **Its check:** replaying the frozen rule, the simulator chose 2, 2, 9 and 7 of the ten markets live-prep's own path
+    chose on 10-05 → 10-08 (`results/validate.txt`). The formula rewards came within about 15% of the paper's on the
+    first three days, and were less than half on 10-08.
+
+**The current rule (L1)** is S2 with TB1's skip.
+
+| Record | R = 0.40, strict | R = 0.40, at-price |
+|---|---|---|
+| RW, 14 days | $537.73 | $504.22 |
+| Full universe, 4 days | $114.81 | $71.05 |
+
+The worst at-price day at R = 0.40 is −$37.52 on RW's record and −$72.46 on the full universe (10-08).
+
+**The adoption rule, fixed before the results were read.** A change is adopted only if all of these hold:
+
+- at R = 0.40 with at-price fills, it is ahead of L1 on RW's first seven days, where it would have been chosen;
+- and on RW's last seven, out of sample;
+- and on the full-universe days, out of sample;
+- and its worst at-price day is no worse than L1's on either record.
+
+**Nothing passes.** A walk-forward over every change at R = 0.40 with at-price fills chose arms that made $81.39 less
+than L1 on RW's last eight days. The reality check of the best change over 35 gives p = 0.99 (at-price) and 0.89
+(strict). Every change and its figures are in `results/lp_analysis.txt`.
+
+Differences against L1 at R = 0.40 (at-price unless marked):
+
+| change | RW, 14 days | RW h1 / h2 | full universe | why not adopted |
+|---|---|---|---|---|
+| 8N inventory cap | +29.99 | +2.46 / +27.53 | +51.44 | RW's worst day worse (−42.27) |
+| skip at two ticks | +21.81 | −8.31 / +30.11 | +49.80 | behind on RW's first half; −$95.85 at R = 1 |
+| re-select every 6 h | — | — | +57.06 (strict +56.30) | one record of four days; −$48.74 at R = 1; RW's record cannot test it |
+| re-select every 2 h | — | — | −48.04 | behind |
+| 12 / 15 / 20 markets | −2.24 | −2.24 / 0 | +9.78 / +6.68 / −3.25 | behind on RW's record |
+| 6 / 8 markets | −66.98 / −20.53 | | −13.26 / −39.03 | behind |
+| no TB1 (Addendum 2's rule removed) | −141.19 | −58.54 / −82.65 | +4.42 | behind on RW's record |
+| fill cooldown 5 / 15 / 30 min | −24.84 / −52.59 / −126.40 | | +5.73 / +28.74 / +32.42 | behind on RW's record |
+| book-imbalance filter .15–.85 / .25–.75 | −68.56 / −117.62 | | +29.57 / +32.22 | behind on RW's record |
+| 3N cap; buy-only; size 2N | −94.84; −321.26; −194.50 | | −24.25; +29.13; +10.99 | behind |
+| no pause; 8 ¢/30; 25 ¢/60 | −18.81; −29.51; −8.61 | | +8.06; −1.34; +0.33 | behind on RW's record |
+| wide.9; lean; one tick back | −11.43; −95.71; −63.72 | | +23.70; +3.26; +0.10 | behind on RW's record |
+| end horizon 48 h; rate ≥ $50; formula ≥ $5; mid .10–.90 | −123.69; −27.98; −12.84; −81.90 | | −75.16; −25.68; 0; −34.58 | behind |
+| $60 a market; late cut 24 h | −21.06; −41.25 | | −6.96; +10.43 | behind |
+| no change on either record | | | | rate ≥ $20; $150 a market; stop $50 or none; late cut 6 h; mid .05–.95 (within $3.53) |
+
+**Reported, not rules:**
+
+- **Exits.** On RW's record, close-only exits (the rule as it runs) against Phase A's passive model are −$86.82 strict
+  and −$3.82 at-price. On the full universe, with every carried book recorded, the passive model is −$1.96 at-price.
+- **The reward share.** R is not measured, and no record can measure it.
+- **TB1 on the full universe:** +$17.87 at R = 0.40 with strict fills, −$4.42 at-price, and −$7.44 at R = 1. TB1's
+  forward test is RWC-OPT's C1.
+
+**Worth a forward test** (not adopted, and none needs anything before the go):
+
+- **Re-selecting every six hours.** It is the only change ahead on its record under both fill models, with a better
+  worst day, but there is one record of four days. A dry-run instance or a replay on RW-C's days would test it.
+- **The 8N cap.**
+- **The skip at two ticks.**
+
+Any of them would be its own addendum on Davies' word.

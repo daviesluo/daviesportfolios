@@ -1,0 +1,5 @@
+# Built or downloaded locally, never committed: the pm-rec archive objects (data/pmrec/), the record built from them
+# (data/pr_record.json, ~99 MB) and the unpacked aux.json.
+data/pmrec/
+data/pr_record.json
+data/aux.json
