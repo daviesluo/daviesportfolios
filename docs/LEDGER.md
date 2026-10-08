@@ -271,7 +271,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
      `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
      D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys); A3. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
+     `agents` function redeploys); A3; A4. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
      digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
      stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
      residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
@@ -430,6 +430,19 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5's governor counts a rate-limit retry as the second POST it is** (review A4, batch 5; `agents/quotes_live.ts`).
+  An order the venue turned away with a 429 goes once more (same order, same client id), but the governor counted one
+  POST, and a row taken the second time kept no mark of it, so later turns' recounts from the rows counted one too. The
+  retry now counts where it is sent, the row keeps `retriedAfter429` whatever the second answer was, and every recount
+  (the turn's, and the conversion's check) counts such a row twice (`postsOf`). In a live turn: no order, price or size
+  changes; the day's POST count is higher by the number of retries, so on a day with N of them no-entries (900) and
+  stops-only (950) come N POSTs sooner, at the venue's own count. How often it happens is not known: of 3,064 live rows
+  since 10-01 none was turned away twice, and one taken on its retry left no trace until now. Pinned in
+  `quotes_live.test.ts`: six orders with one retried read seven POSTs that turn and the next (the old code: six), and
+  `postsOf`'s cases. PR5's instance test beside its frozen copy, the twins and the simulator: 85 passed (the simulator
+  never answers 429, so the twins' counts cannot move).
 
 ### [2026-10-08 23:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A buy booked from the account with another of its coin unbooked takes only its own coins** (review A3, batch 5;

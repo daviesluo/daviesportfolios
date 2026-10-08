@@ -433,6 +433,16 @@ export function wasSent(o: { response?: unknown }): boolean {
   return (o.response as { wouldBeRefused?: unknown } | null | undefined)?.wouldBeRefused !== true;
 }
 
+/**
+ * How many POSTs a row cost the governor (review A4): none when it was refused at the book it met (`wasSent`), two when the
+ * rate limit turned the first away and the same order went again (`retriedAfter429`, kept on the row whatever the second
+ * answered), and one otherwise.
+ */
+export function postsOf(o: { response?: unknown }): number {
+  if (!wasSent(o)) return 0;
+  return (o.response as { retriedAfter429?: unknown } | null | undefined)?.retriedAfter429 === true ? 2 : 1;
+}
+
 /** The paper engine's last print as an exit row records it (`request.paperLastPrint`): what a refused exit waits on. */
 export type SeenPrint = { id: string; ticks: number; side: Print["side"] };
 export const seenPrint = (p: Print | null | undefined): SeenPrint | null => (p ? { id: p.id, ticks: p.ticks, side: p.side } : null);
@@ -668,14 +678,18 @@ async function placeOrder(ctx: Ctx, o: {
   try {
     placed = await send();
     // A 429 is the rate limit turning the order away before the book saw it: the same order, same client id, once more.
-    if (!placed.ok && placed.status === 429) { retriedAfter429 = true; await ctx.pause(QUOTE_LIVE_429_WAIT_MS); placed = await send(); }
+    // It is a second POST, and the governor counts it as one (A4).
+    if (!placed.ok && placed.status === 429) {
+      retriedAfter429 = true; ctx.posts[o.mode]++; countKey(ctx, o.mode, o.book, o.rungSide);
+      await ctx.pause(QUOTE_LIVE_429_WAIT_MS); placed = await send();
+    }
   } catch (e) {
     report.errors.push(`${label}: placement of ${clientOrderId} has no reply (${msg(e)}); left pending for the next turn to reconcile by client id`);
     done("pending");
     return row;
   }
   if (!placed.ok && !(placed.status >= 400 && placed.status < 500)) {
-    await patchRow(ctx, row, { response: { status: placed.status, error: placed.error, response: placed.response, outcome: "unknown" } });
+    await patchRow(ctx, row, { response: { status: placed.status, error: placed.error, response: placed.response, outcome: "unknown", ...(retriedAfter429 ? { retriedAfter429 } : {}) } });
     report.errors.push(`${label}: the venue answered ${placed.status} ${placed.error}: outcome unknown; ${clientOrderId} stays pending for the next turn to reconcile`);
     done("pending");
     return row;
@@ -687,7 +701,7 @@ async function placeOrder(ctx: Ctx, o: {
     return row;
   }
   const replied = placed.response && typeof placed.response === "object" ? placed.response as Record<string, unknown> : { raw: placed.response };
-  await patchRow(ctx, row, { state: "new", venue_order_id: placed.venueOrderId, response: { ...replied, placedState: placed.state } });
+  await patchRow(ctx, row, { state: "new", venue_order_id: placed.venueOrderId, response: { ...replied, placedState: placed.state, ...(retriedAfter429 ? { retriedAfter429 } : {}) } });
   done("new");
   return row;
 }
@@ -1022,7 +1036,10 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   const fills = await d.db.selectAll<LiveOrderRow>(inst.orders, "mode=eq.live&state=in.(filled,partially_filled)&select=*&order=id.asc");
   const recent = await d.db.selectAll<Pick<LiveOrderRow, "id" | "ts" | "mode" | "book" | "rung_side" | "k" | "leg" | "state" | "paper_oid" | "paper_live" | "response">>(
     inst.orders, `ts=gte.${enc(iso(d.now - 25 * H))}&select=id,ts,mode,book,rung_side,k,leg,state,paper_oid,paper_live,response&order=id.asc`);
-  for (const r of recent) if (Date.parse(r.ts) >= dayStart && wasSent(r)) { report.posts[r.mode]++; countKey(ctx, r.mode, r.book, r.rung_side); }
+  for (const r of recent) {
+    if (Date.parse(r.ts) < dayStart) continue;
+    for (let n = postsOf(r); n > 0; n--) { report.posts[r.mode]++; countKey(ctx, r.mode, r.book, r.rung_side); }
+  }
   const lastPrintPx = (b: QuoteBook) => paper?.books?.[b]?.lastPrint?.ticks != null ? paper.books[b].lastPrint!.ticks * QUOTE_TICK : null;
   const rungs: RungNow[] = [];
   for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as Side[]) for (const k of inst.rungs) {
@@ -1463,7 +1480,8 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const today = (await d.db.selectAll<{ id: number; response: unknown; book?: QuoteBook; rung_side?: Side | null }>(inst.orders,
     `mode=eq.live&ts=gte.${enc(iso(Math.floor(d.now / DAY) * DAY))}&select=id,response${multiKey ? ",book,rung_side" : ""}&order=id.asc`))
     .filter(wasSent).filter((r) => !multiKey || inst.govKey(r.book!, r.rung_side ?? null) === convKey);
-  if (governorLevel(today.length) !== "all") return { error: `the governor has closed entries: ${today.length} POSTs today` };
+  const postsToday = today.reduce((a, r) => a + postsOf(r), 0);
+  if (governorLevel(postsToday) !== "all") return { error: `the governor has closed entries: ${postsToday} POSTs today` };
   const order = {
     book, side: "buy", base, limit: price.toFixed(4), timeInForce: taker ? "ioc" : "gtc", postOnly: !taker, fair, bestBid: seen.bestBid, bestAsk: seen.bestAsk,
     coinBeyondLongs: beyond, asksNeed,

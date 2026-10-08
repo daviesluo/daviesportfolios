@@ -14,7 +14,7 @@ import {
   exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
-  bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
+  bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
   deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS,
@@ -1059,6 +1059,19 @@ Deno.test("live: a POST the rate limit turns away (429) is not a refusal — sen
   assertEquals(entryRows(w.orders()).map((o) => o.state), Array(6).fill("new"));
   assertEquals([w.posts(), w.rx.rateLimited, w.rx.resting().length], [7, 1, 6]);
   assert(w.pauses.taken.includes(QUOTE_LIVE_429_WAIT_MS));
+});
+
+Deno.test("live: the governor counts a 429's retry as the POST it is, that turn and every recount after (A4)", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  w.rx.rateLimitNext = 1;
+  const r0 = await w.step(T0);
+  assertEquals([w.posts(), r0.posts.live], [7, 7]);                   // six orders, one sent twice: seven POSTs, seven counted
+  const retried = entryRows(w.orders()).filter((o) => (o.response as { retriedAfter429?: boolean }).retriedAfter429 === true);
+  assertEquals(retried.map((o) => o.state), ["new"]);                  // taken the second time, and the row says it went twice
+  const r1 = await w.step(T0 + M);                                     // the next turn counts the day's POSTs from the rows
+  assertEquals([w.posts(), r1.posts.live], [7, 7]);
+  assertEquals([postsOf({ response: { placedState: "new" } }), postsOf({ response: { placedState: "new", retriedAfter429: true } }),
+    postsOf({ response: { status: 429, retriedAfter429: true } }), postsOf({ response: { wouldBeRefused: true } }), postsOf({ response: null })], [1, 2, 2, 0, 1]);
 });
 
 Deno.test("live: turned away twice, the order is recorded as rate-limited and its decision sent again next turn — the one refusal that is re-sent", async () => {
