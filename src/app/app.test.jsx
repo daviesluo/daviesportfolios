@@ -112,7 +112,7 @@ import { noteAuthStatus } from './auth.js';
 import { refreshPrices } from '../prices/yahoo_fetch.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
-import { fetchTodayRegularClose } from '../prices/historical.js';
+import { fetchHistoricalBatch, fetchTodayRegularClose } from '../prices/historical.js';
 import { syncTrading212History } from '../portfolio/trading212.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, knownPortfolioVersion } from '../portfolio/portfolio_remote.js';
 
@@ -581,5 +581,51 @@ describe('App — the Trading 212 history walk', () => {
     visibility = 'visible';
     await vi.advanceTimersByTimeAsync(2 * 60_000);
     expect(syncTrading212History).toHaveBeenCalledTimes(1);
+  }, 20000);
+});
+
+// Outside the regular session each refresh asked for every US holding's 1d/5m bars again, every 30 s, sold-out
+// holdings included (review F12). The 30 s tick now reuses them for two minutes; the first refresh and a Refresh by
+// hand ask again; a holding with no shares is never asked for.
+describe('App — the extended-hours bars outside the session', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  const SERVER_PORTFOLIO = {
+    holdings: {
+      NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] },
+      // Sold out: kept for its history, nothing to check a quote against.
+      AMD: { shares: 0, cost: 0, lastPrice: 100, prevClose: 99, currency: 'USD', lots: [{ date: '2025-01-01', shares: 5, cost: 90 }], sells: [{ date: '2025-03-01', shares: 5, price: 110 }] },
+    },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  const extCalls = () => vi.mocked(fetchHistoricalBatch).mock.calls.filter((c) => c[1] === '1d' && c[2] === '5m');
+  const header = () => /** @type {any} */ (globalThis).__headerProps;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.mocked(fetchHistoricalBatch).mockResolvedValue({});
+    delete /** @type {any} */ (globalThis).__headerProps;
+  });
+
+  it('the 30 s tick reuses the bars for two minutes, a Refresh by hand asks again, and a sold-out holding is never asked for', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    setAdminToken();
+    vi.mocked(fetchHistoricalBatch).mockResolvedValue({ NVDA: [{ t: Date.now() - 300e3, close: 120 }, { t: Date.now(), close: 121 }] });
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+    render(<App />);
+    await waitFor(() => expect(extCalls().length).toBe(1));
+    expect(extCalls()[0][0]).toEqual(['NVDA']);
+    await vi.advanceTimersByTimeAsync(30_000);                    // a tick: the bars of the first refresh
+    await vi.advanceTimersByTimeAsync(30_000);                    // and the next
+    expect(vi.mocked(refreshPrices).mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(extCalls().length).toBe(1);
+    await vi.advanceTimersByTimeAsync(90_000);                    // past two minutes: asked again
+    await waitFor(() => expect(extCalls().length).toBe(2));
+    await act(async () => { header().onRefresh(); });             // by hand: at once
+    await waitFor(() => expect(extCalls().length).toBe(3));
+    expect(extCalls().every((c) => JSON.stringify(c[0]) === '["NVDA"]')).toBe(true);
   }, 20000);
 });

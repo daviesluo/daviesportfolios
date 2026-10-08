@@ -821,6 +821,19 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The 30 s tick no longer asks for every US holding's 1d/5m bars again** (review F12, approved by Davies 2026-10-08).
+  Outside the regular session each refresh fetched the extended-hours bars of every US holding (one chart call, which
+  asks Yahoo once a ticker), every 30 s on every weekday hour, sold-out holdings included, though the bars are five
+  minutes wide. Now the tick reuses bars under two minutes old for the same holdings (`EXT_SERIES_TTL_MS`); the first
+  refresh, a Refresh by hand or the R key, and a change of holdings ask at once; an empty answer is asked again on the
+  next tick; and a holding with no shares is not asked for (nor preloaded for the overnight line). The quote check
+  against the tape reads bars at most two minutes older than before. The cadence comment no longer says the overnight
+  ticks every five minutes. Pin in `app.test.jsx` (fake clock: one ask, two ticks reusing it, a third past two minutes
+  asking, a Refresh asking, never the sold-out AMD); it fails with the reuse removed and, separately, with the filter
+  removed. `refreshPrices` still quotes sold-out holdings each tick: left as it was, since what reads a sold-out
+  holding's quote was not traced.
+
 ### [2026-10-08 15:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Vitest runs under Node unless a test asks for a DOM** (review F14, approved by Davies 2026-10-08). Every one of the
   69 files ran in jsdom, whose set-up took more of the workers' time than the tests. Now `environment: 'node'`, and the

@@ -175,6 +175,11 @@ class ErrorBoundary extends React.Component {
 // budget on round-trips with nothing fresh to show.
 const REFRESH_MS = 30 * 1000;
 const REFRESH_MS_WEEKEND = 5 * 60 * 1000;
+// The US holdings' extended-hours bars (1d/5m with pre/post), which outside the regular session check each quote
+// against the tape: reused for two minutes by the 30 s tick instead of asked for again (review F12, 2026-10-08). Each
+// ask is one chart call that fetches every US holding from Yahoo, and the bars are five minutes wide, so a tick asked
+// for the same bars ten times over. A Refresh by hand, or a change of holdings, asks again at once.
+const EXT_SERIES_TTL_MS = 2 * 60 * 1000;
 
 // USDCNY=X / USDHKD=X / EURUSD=X are hidden FX fetches used only for
 // holding currency→USD conversion (not shown in the market-conditions
@@ -820,6 +825,8 @@ function Board({ isReadOnly }) {
 
   /** The newest refresh's number: `doRefresh` applies an answer only while it is still the newest. */
   const refreshSeqRef = useRef(0);
+  /** The extended-hours bars last fetched, for which holdings and when (EXT_SERIES_TTL_MS). */
+  const extSeriesRef = useRef(/** @type {{ ts: number, key: string, data: Record<string, any> }} */ ({ ts: 0, key: '', data: {} }));
   // Price refresh loop
   // `doRefresh(opts)` always fetches the live-prices snapshot. The
   // optional opts.prefetch flag (default true) controls whether we ALSO
@@ -869,11 +876,18 @@ function Board({ isReadOnly }) {
     //     extra fetch costs network but never affects display.
     const refreshPhase = usMarketPhase(new Date());
     const wantsExtSeries = refreshPhase !== "regular";
+    // Held ones only: a holding sold out (no shares) has no quote to check.
     const extHoldingTickers = wantsExtSeries
       ? Object.keys(portfolio.holdings).filter(
-          (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t),
+          (t) => t !== "CASH" && !portfolio.holdings[t]?.isCash && isUsEquity(t) && Number(portfolio.holdings[t]?.shares) > 0,
         )
       : [];
+    // The 30 s tick reuses bars under two minutes old for the same holdings (EXT_SERIES_TTL_MS); the first refresh and
+    // a Refresh by hand (`shouldPrefetch`) always ask.
+    const extKey = [...extHoldingTickers].sort().join(',');
+    const extKept = extSeriesRef.current;
+    const extReuse = !shouldPrefetch && extHoldingTickers.length > 0 && extKept.key === extKey
+      && Date.now() - extKept.ts < EXT_SERIES_TTL_MS;
     // Overnight intraday line — warm the server-recorded 5-min points
     // for the US-equity holdings BEFORE setLastUpdated fires, so by
     // the time the user sees "Last updated" the cache is hot and the
@@ -909,9 +923,9 @@ function Board({ isReadOnly }) {
       refreshPrices(portfolio, { confirm: quoteGuard.pending() }),
       fetchTickers(MC_TICKERS),
       wantTodayCloses ? fetchTodayRegularClose(MC_TICKERS) : Promise.resolve(null),
-      extHoldingTickers.length > 0
-        ? fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({}))
-        : Promise.resolve({}),
+      extHoldingTickers.length === 0 ? Promise.resolve({})
+        : extReuse ? Promise.resolve(extKept.data)
+        : fetchHistoricalBatch(extHoldingTickers, "1d", "5m", true).catch(() => ({})),
       // Trading 212 sync. Server-cached at 30 s (in lockstep with the
       // regular-hours auto-refresh) and gated by an atomic Postgres
       // claim so multi-device refreshes share a single upstream call —
@@ -929,6 +943,10 @@ function Board({ isReadOnly }) {
     ]);
     // A newer refresh began while this one waited: its answer is the one to show, and it clears the spinner.
     if (seq !== refreshSeqRef.current) return;
+    // Bars that came back are kept for the next ticks; an empty answer (a failed fetch) is asked for again.
+    if (!extReuse && extHoldingTickers.length > 0 && Object.keys(extSeries).length > 0) {
+      extSeriesRef.current = { ts: Date.now(), key: extKey, data: extSeries };
+    }
     // The dividends, cached like the fills; not awaited with the prices, so
     // a slow read never holds the board.
     fetchTrading212Dividends().then((d) => { if (Array.isArray(d?.rows)) setT212Dividends(d.rows); });
@@ -1216,8 +1234,9 @@ function Board({ isReadOnly }) {
     // not { prefetch: false } so the default applies).
     //
     // Self-rearming setTimeout (not setInterval) so the cadence can
-    // adapt to the market phase each cycle — 30 s during the trading
-    // day, 5 min through the overnight / weekend dead window. Tick at
+    // adapt to the market phase each cycle — 30 s through the trading
+    // week, overnight sessions included, and 5 min through the weekend
+    // dead window (REFRESH_MS / REFRESH_MS_WEEKEND). Tick at
     // the current phase's interval; phase transitions take effect on
     // the next tick (good enough; no precise edge-trigger needed).
     doRefreshRef.current();
