@@ -413,8 +413,9 @@ How the less obvious parts work, and why they are built the way they are.
   the sweep's four shards and the perf matrix with the size budget run as
   jobs at once),
   `edge-functions.yml` (`deno check` + `deno test`, then on push to main
-  an auto-deploy of every function whose folder changed, or of all of them
-  when `supabase/functions/_shared/` changed),
+  an auto-deploy of every function whose folder changed since the
+  workflow's last successful run, or of all of them when
+  `supabase/functions/_shared/` changed),
   `migrations.yml` (PR-time SQL lint; on main, `supabase db push` applies
   any new migration against production's `schema_migrations`),
   `pages-deploy.yml` (on a `dist/` change to `main`, or by hand: Wrangler
@@ -799,10 +800,11 @@ before touching migration state.
 | `dist/` | The built site, committed and published as it is. |
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
 | `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once. |
+| `bin/edge-changed.sh` | The functions a push to main deploys: those changed since the deploy workflow's last successful run. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
 | `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit, as parallel jobs. |
-| `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed. |
+| `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed since its last successful run. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Asks for every 10 minutes (GitHub runs it when it can): pings the functions to keep them warm and checks the live site's code; opens an issue when something is down. |
 | `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
@@ -1018,8 +1020,9 @@ Two options:
   PAT from `https://supabase.com/dashboard/account/tokens`) and
   `SUPABASE_PROJECT_REF` (the project's ref id) as repo secrets. The
   `edge-functions.yml` workflow deploys every function whose folder
-  changed (all of them when `_shared/` changed) on every push to `main`,
-  after `deno check` and `deno test` pass.
+  changed since its last successful run (all of them when `_shared/`
+  changed) on every push to `main`, after `deno check` and `deno test`
+  pass, so a run cancelled by a newer push loses nothing.
 - **Manual** — for each directory under `supabase/functions/*`, copy
   the contents into a new function in Supabase dashboard → Edge
   Functions, then Deploy. Use this for the first-time bootstrap or

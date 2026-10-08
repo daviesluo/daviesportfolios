@@ -41,6 +41,8 @@ concurrency:
 # + SUPABASE_PROJECT_REF.
 permissions:
   contents: read
+  # The detect step reads this workflow's own runs, to diff from the last one that deployed.
+  actions: read
 
 jobs:
   test-and-deploy:
@@ -108,55 +110,22 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: changed
         env:
-          # Diff the entire push, not just the tip commit — otherwise a
-          # push of multiple commits where only the LAST one doesn't
-          # touch `<fn>/index.ts` would silently skip deploying earlier
-          # changes (CI green, production stuck on the old version).
-          # `github.event.before` is the prior tip; `00..0` is GitHub's
-          # sentinel for "branch creation, no prior commit".
+          # Diff from the commit the last successful run of this workflow deployed, not from the push's own `before`
+          # (review F8, 2026-10-08): `cancel-in-progress` above cancels a run when a newer push starts one, and a run
+          # can fail before its deploy, so diffing from `before` left the cancelled or failed push's functions on
+          # their old version, CI green. The whole push is still covered, every commit of it: `before` is the
+          # fallback, and `00..0` is GitHub's sentinel for "branch creation, no prior commit". The rules (shared
+          # modules, a function's own sibling files, test files and notes aside) are bin/edge-changed.sh's.
           BEFORE: ${{ github.event.before }}
           AFTER:  ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          # `_`-prefixed entries (e.g. `_shared/`) are NOT functions — they
-          # hold modules sibling functions import, so they must never be
-          # passed to `supabase functions deploy`.
-          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-            echo "No previous tip (branch creation) — deploying every function."
-            CHANGED=$(ls supabase/functions/ | grep -v '^_')
-          elif git diff --name-only "$BEFORE" "$AFTER" | grep -q '^supabase/functions/_'; then
-            # A shared module under `supabase/functions/_shared/` changed.
-            # Every function bundles its imports at deploy time, so the
-            # per-index.ts diff below would MISS the consumers and ship a
-            # stale shared helper. Redeploy all functions to be safe.
-            # (Matches only the top-level `_shared/`, not a function's own
-            # `_`-files like fundamentals/_yahoo.ts.)
-            echo "Shared module changed — deploying every function."
-            CHANGED=$(ls supabase/functions/ | grep -v '^_')
-          else
-            # ANY file inside a function's own directory, not just its
-            # index.ts. A function may keep sibling modules next to it
-            # (`fundamentals/_shared.ts`, `fundamentals/_yahoo.ts`) that
-            # index.ts imports and the deploy bundles; matching only
-            # index.ts skipped those silently — CI green, production
-            # left on the previous version. That is exactly how a CORS
-            # header added to `fundamentals/_shared.ts` shipped
-            # everywhere except the function that serves it.
-            # `.test.ts` is excluded so a test-only edit still deploys
-            # nothing, and so is `.md`: a note beside the code, such as
-            # `agents/CLAUDE.md`, is not bundled, and adding one started a
-            # redeploy of the agents function for nothing inside a
-            # pre-registered window on 2026-10-03 (cancelled before its
-            # deploy step). `[^_]` skips the top-level `_shared/`, already
-            # handled by the branch above.
-            # `|| true` so a push touching supabase/functions/** with no
-            # deployable file doesn't trip bash's pipefail.
-            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" \
-              | { grep '^supabase/functions/[^_][^/]*/' || true; } \
-              | { grep -v '\.test\.ts$' || true; } \
-              | { grep -v '\.md$' || true; } \
-              | awk -F/ '{print $3}' \
-              | sort -u)
-          fi
+          # The newest successful push run on main; this run is still in progress, so it is never its own base. An
+          # answer that fails leaves LAST empty, and the script falls back to `before` with a warning.
+          LAST=$(gh api "repos/$REPO/actions/workflows/edge-functions.yml/runs?branch=main&event=push&status=success&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // empty' || true)
+          CHANGED=$(LAST="$LAST" sh bin/edge-changed.sh)
           if [ -z "$CHANGED" ]; then
             echo "No deployable Edge Function changes; nothing to deploy."
             echo "functions=" >> "$GITHUB_OUTPUT"

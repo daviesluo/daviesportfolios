@@ -813,6 +813,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Edge deploy no longer drops a cancelled run's functions** (review F8, approved by Davies 2026-10-08).
+  `edge-functions.yml` cancels a run in progress when a newer push starts one, and diffed each run from its own push's
+  `before`, so a function changed by a push whose run was cancelled, or failed before its deploy, stayed on the old
+  version with CI green until a later push touched it (5 cancelled runs in the 100 before; none lost anything so far).
+  The detect step now diffs from the commit the workflow's last successful push run on main deployed (`gh api` on its
+  own runs, `actions: read`), through the new `bin/edge-changed.sh`; `before` stays the fallback, with a warning, when
+  no such run is found or the clone does not hold it or it is not behind this commit. The script also no longer names a
+  deleted function. Pins: `src/edge_changed.test.js`, 8 cases on a scratch repository; the cancelled-push case fails
+  with the old base. Checked read-only against the real repository: the query answers `3c419ab1` (an ancestor of
+  main), and batch 1's commits would deploy `agents` and `trading212`. CLAUDE.md's deploy section and the map say so.
+
 ### [2026-10-08 15:04 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A reload replays an unsaved edit only onto the version it was made against** (review F20, approved by Davies
   2026-10-08). The draft a tab keeps in sessionStorage (`dp.pendingSave`, for a tab that dies or is signed out before

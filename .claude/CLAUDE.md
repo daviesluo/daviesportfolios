@@ -281,7 +281,10 @@ freshness belongs among the health readings (`monitor/health.ts`).
 
 `.github/workflows/edge-functions.yml` auto-deploys every changed
 `supabase/functions/<name>/index.ts` on push to `main`, gated by
-`deno test supabase/functions/`. Requires repo secrets
+`deno test supabase/functions/`. "Changed" is counted from the commit its
+last successful run deployed (`bin/edge-changed.sh`), so the functions of a
+run cancelled by a newer push, or failed before its deploy, go out with the
+next run. Requires repo secrets
 `SUPABASE_ACCESS_TOKEN` (account PAT) and `SUPABASE_PROJECT_REF`
 (project ref id). When a commit changes an Edge Function:
 
