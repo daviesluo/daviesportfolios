@@ -42,6 +42,9 @@ import {
   t212TickerToYahoo,
   unpackCache,
   everyAccountRead,
+  t212FaultKey,
+  t212FaultReportDue,
+  T212_FAULT_REPORT_EVERY_MS,
   mergeShaped,
   mergeShapedWithFallback,
   attachPreviousHoldingSlices,
@@ -283,6 +286,30 @@ Deno.test("everyAccountRead — an answer is the broker's whole word only when e
   assertEquals(everyAccountRead(true, { holdings: {}, prices: {}, valid: true }), true);
   // An ISA key and no usable ISA answer: mergeShapedWithFallback answered with an older map.
   assertEquals(everyAccountRead(true, null), false);
+});
+
+// Trading 212's failures reach the errors box (review F16): once an hour while a fault lasts, at once when it changes.
+Deno.test("t212FaultReportDue — a fault the last hour's rows already report is not reported again", () => {
+  const msg = (why: string) => `The positions read failed, so the page was sent the cache, under five minutes old: ${why}`;
+  const tooMany = msg('T212 429 Too Many Requests :: {"code":"BusinessException","traceId":"a1f3"}');
+  // Nothing reported in the last hour: due.
+  assertEquals(t212FaultReportDue([], tooMany), true);
+  // The same fault, whatever Trading 212's body said this time (an id, a time): not due.
+  assertEquals(t212FaultReportDue([{ message: msg('T212 429 Too Many Requests :: {"traceId":"77b0"}') }], tooMany), false);
+  // A different fault is reported at once: an expired key after the rate limit, or the cache aged out.
+  assertEquals(t212FaultReportDue([{ message: tooMany }], msg("T212 401 Unauthorized :: {}")), true);
+  assertEquals(t212FaultReportDue([{ message: tooMany }], tooMany.replace("the cache, under five minutes old", "no holdings")), true);
+  // The table unread (null, an error object): reported, a row too many rather than none.
+  assertEquals(t212FaultReportDue(null, tooMany), true);
+  assertEquals(t212FaultReportDue({ message: "permission denied" }, tooMany), true);
+  // A row with no message is no match.
+  assertEquals(t212FaultReportDue([{ message: null }], tooMany), true);
+  assertEquals(T212_FAULT_REPORT_EVERY_MS, 3_600_000);
+});
+
+Deno.test("t212FaultKey — the status stays in a fault's identity, Trading 212's body does not", () => {
+  assertEquals(t212FaultKey("x: T212 503 Service Unavailable :: <html>2026-10-08</html>"), "x: T212 503 Service Unavailable");
+  assertEquals(t212FaultKey("x: Signal timed out."), "x: Signal timed out.");
 });
 
 Deno.test("cacheIsFresh — within TTL is fresh", () => {

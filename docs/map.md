@@ -601,7 +601,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `prices` | Live quotes for every holding and market card from Yahoo, and Chinese funds from Eastmoney. |
 | `chart` | Price bars for the charts, from Yahoo or Eastmoney. |
 | `fundamentals` | P/E, P/S, EPS history and market cap from Yahoo, Finnhub and Alpha Vantage, cached; one file per source (`_yahoo.ts`, `_finnhub.ts`, `_alphavantage.ts`) plus `_caches.ts`, `_math.ts` and `_shared.ts`. |
-| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit and saying whether every account answered, its fill history with each fill's currency, and the dividends both accounts received. |
+| `trading212` | The broker's positions and prices, cached to respect its one-call-a-second limit and saying whether every account answered (its refusals reach the errors box), its fill history with each fill's currency, and the dividends both accounts received. |
 | `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker, in the board's units (a price 100 times the board's own is never written). |
 | `overnight-record` | Run by pg_cron through the US overnight session: records Trading 212's overnight quotes. |
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |

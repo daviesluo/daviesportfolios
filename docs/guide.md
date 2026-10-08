@@ -574,6 +574,13 @@ not running. It shows once, then at most hourly while the fault lasts.
 Nothing on the page and no strategy reads the record, so it never stops
 a strategy.
 
+`trading212.upstream` means Trading 212 refused, or did not answer, the
+board's read of its positions: the board keeps the shares it had, and the
+row says what the broker answered. `trading212.isa` means only the ISA's
+read failed: the board takes nothing from that answer as a sale. Each
+shows once, then at most hourly while the fault lasts, and again at once
+when it changes (a rate limit becoming an expired key, say).
+
 Every live price is checked before the board takes it. One that cannot
 be the holding's — a hundred times off (pence read as pounds), another
 stock's or fund's price relayed by a public proxy, or not a number at all

@@ -813,6 +813,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Trading 212's own failures reach the errors box** (review F16, approved by Davies 2026-10-08). A refused or
+  timed-out positions read, or an answer of the wrong shape, went only to the function's logs; the page went on with
+  the cache, then with nothing, and the client's read returns null without a word, so the sync could stop unnoticed.
+  The live path now files `trading212.upstream` (the invest account's read failed: what the page was sent, and what
+  Trading 212 said) or `trading212.isa` (only the ISA's read failed, so the answer is not `complete`). The cache lives
+  a second, so every open tab's refresh reaches the broker: a row is written only when none of its kind in the last
+  hour reports the same fault (`t212FaultReportDue`; the fault is the message before Trading 212's body, so a trace id
+  does not make it new, and the status does), and it is sent while the answer goes out (`EdgeRuntime.waitUntil`), not
+  before it, since the read may have spent 8 s of the page's 10. Pins: two Deno tests (74 pass in the function); the
+  wiring is read, not tested, as it sits in the served entry point. Redeploys `trading212`. Guide and map row.
+
 ### [2026-10-08 15:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Edge deploy no longer drops a cancelled run's functions** (review F8, approved by Davies 2026-10-08).
   `edge-functions.yml` cancels a run in progress when a newer push starts one, and diffed each run from its own push's

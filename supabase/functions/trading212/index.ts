@@ -2019,6 +2019,49 @@ async function syncHistoryPerAccount(): Promise<Record<string, unknown>[]> {
 // 500. Best-effort: never throws.
 // reportServerError now lives in ../_shared/ops.ts (imported above).
 
+// Trading 212's own failures, reported (review F16, 2026-10-08). Until then a refused or timed-out positions read, or
+// an answer of the wrong shape, reached only the function's logs: the page went on with the cache, then with nothing,
+// and the client's read returns null without a word, so the sync could stop for days unnoticed. Now each becomes an
+// `ops_errors` row, the errors box's: `trading212.upstream` when the invest account's read fails (the refresh fails,
+// the board keeps what it had), `trading212.isa` when only the ISA's does (the answer is the invest account's alone,
+// and not `complete`). The table is read first, so a fault that lasts is reported once an hour, not once a request
+// (the cache lives a second, so every open tab's 30 s refresh reaches Trading 212), and a different fault at once.
+
+/** How often a fault that lasts is reported again. */
+export const T212_FAULT_REPORT_EVERY_MS = 60 * 60_000;
+/** A fault's identity: its message without what Trading 212's answer said (after ` :: `), which can carry an id or a
+ *  time that would make every request's fault a new one. The status stays: a 401 is not the 429 reported before it. */
+export function t212FaultKey(message: string): string {
+  return message.split(" :: ")[0].slice(0, 300);
+}
+/** Whether a fault is due a row: none of its kind's rows of the last hour (`recent`) reports the same fault. */
+export function t212FaultReportDue(recent: unknown, message: string): boolean {
+  if (!Array.isArray(recent)) return true;
+  const key = t212FaultKey(message);
+  return !recent.some((r) => typeof r?.message === "string" && t212FaultKey(r.message) === key);
+}
+/** Reports a fault unless its kind's rows of the last hour already say it. Best-effort: never throws. */
+async function reportT212Fault(kind: "trading212.upstream" | "trading212.isa", message: string): Promise<void> {
+  let recent: unknown = null;
+  try {
+    const since = new Date(Date.now() - T212_FAULT_REPORT_EVERY_MS).toISOString();
+    const res = await fetch(
+      `${SB_URL}/rest/v1/ops_errors?kind=eq.${kind}&created_at=gte.${encodeURIComponent(since)}&select=message&order=created_at.desc&limit=20`,
+      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" }, signal: AbortSignal.timeout(3_000) },
+    );
+    if (res.ok) recent = await res.json();
+  } catch { /* the table unread: report anyway, a row too many rather than none */ }
+  if (!t212FaultReportDue(recent, message)) return;
+  await reportServerError(kind, { message, context: { at: new Date().toISOString() } });
+}
+/** A fault reported while the answer goes out, not before it: `EdgeRuntime.waitUntil` keeps the worker until the
+ *  report is done. The positions read may already have spent its 8 s, and the page gives up at 10. */
+function reportInBackground(p: Promise<unknown>): void {
+  const work = p.catch(() => {});
+  const rt = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  try { rt?.waitUntil?.(work); } catch { /* the report still runs; without the runtime's hold it may be cut short */ }
+}
+
 if (import.meta.main) {
   // Missing-secret check: verifyToken fails closed (every request 401s)
   // when APP_AUTH_SECRET is unset — safe, but silent. Log loudly so the
@@ -2218,8 +2261,9 @@ if (import.meta.main) {
         ]);
         if (investResult.status === "rejected") throw investResult.reason;
         if (isaResult.status === "rejected") {
-          console.error("T212 ISA fetch failed (using invest-only):",
-            isaResult.reason instanceof Error ? isaResult.reason.message : isaResult.reason);
+          const why = isaResult.reason instanceof Error ? isaResult.reason.message : String(isaResult.reason);
+          console.error("T212 ISA fetch failed (using invest-only):", why);
+          reportInBackground(reportT212Fault("trading212.isa", `The ISA's positions read failed, so the answer is the invest account's alone: ${why}`));
         }
         const investShaped = shapeT212Portfolio(investResult.value);
         if (!investShaped.valid) throw new Error("T212 invest positions returned an invalid shape");
@@ -2228,6 +2272,7 @@ if (import.meta.main) {
           : null;
         if (isaShaped && !isaShaped.valid) {
           console.error("T212 ISA positions returned an invalid shape; preserving cached combined holdings");
+          reportInBackground(reportT212Fault("trading212.isa", "The ISA's positions answered in a shape this function does not read, so its holdings are the cache's"));
           isaShaped = null;
         }
         const previous = cached ? unpackCache(cached.data) : null;
@@ -2260,7 +2305,10 @@ if (import.meta.main) {
         // Supabase Functions logs for forensics, then serve stale
         // cache (within 5 min grace) so a transient 429 / 500 doesn't
         // blank the lots out client-side.
-        console.error("T212 upstream error:", e instanceof Error ? e.message : e);
+        const why = e instanceof Error ? e.message : String(e);
+        console.error("T212 upstream error:", why);
+        const served = cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS) ? "the cache, under five minutes old" : "no holdings";
+        reportInBackground(reportT212Fault("trading212.upstream", `The positions read failed, so the page was sent ${served}: ${why}`));
         if (cached && cacheIsFresh(cached.updated_at, now, STALE_OK_MS)) {
           const { holdings, prices, complete } = unpackCache(cached.data);
           return new Response(JSON.stringify({
