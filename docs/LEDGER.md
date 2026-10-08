@@ -850,6 +850,31 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
   `origin/main`'s code and bundle. On production data in a scratchpad: 95 dividend rows became 75, TOTAL REALIZED
   unchanged, every merged row's Avg Cost equal to the old walk's after its last event.
   Handed back unpushed under the sub-agent rule (`sh bin/gates.sh --quick`); the landing run is the main session's.
+### [2026-10-08 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The sweep's agents-detail reds (`after Load full history: button 1, rows 3`; `strategy actions Refresh,Close,
+  dashboard 2→3, chart 25→25`) had two causes: checks that read after fixed sleeps, and one app race, now fixed.**
+  Measured with latency injected into the sweep's own routes (a scratch copy of `app-sweep.mjs`, desktop `main`):
+  the log's answer held 400 ms fails the old 300 ms read with exactly CI's "button 1, rows 3" every time, and the
+  button goes once the answer lands — the app is right, the check read early. The dashboard's answer held 600 ms
+  leaves the chart unasked at the old 400 ms read (25 → 25) and asked at 3.4 s — read early again. But the chart
+  request the BTC tab sent just before Refresh, held 5 s, is JOINED by the click's refresh (`fetchAgentsChart`'s
+  in-flight join): no chart request follows the click at all, 25 → 25 at 3.4 s. That is the app: the dashboard's own
+  rule is "a click asks anew; anything else joins", and the chart did not follow it. Fix: a click's dashboard answer
+  bumps `clicks` (agents.jsx), and the open chart then calls `fetchAgentsChart(..., fresh = true)`, which never
+  joins; only the newest request for a pair writes the chart cache (`chartSeq`), so the overtaken one answering last
+  cannot put its older chart back. Pin in `agents.test.js` (fails on the old `agents.js`: one request, not two). The
+  sweep's tab swap, Load full history, Refresh and minute checks now wait for the state they assert (bounded 8 s)
+  instead of 200–400 ms sleeps and a 2 s click; the share bar's squeeze and pinch waits go from 2 s to 8 s (2 of 32
+  loaded shards timed out there while the read straight after found the slice right: "95%", one line, 19.9 px in 48).
+  Counterfactuals with injected latency: old bundle + new checks, log 400 ms: green (the check waits, the app is
+  right); old bundle + new checks, BTC chart 5 s: Refresh FAILS 25 → 25 (the join); new bundle, same: green; new
+  bundle, dashboard 600 ms: green. Stress, 4 `main` shards at once (2 desktop, 2 phone) beside other sessions' sweeps,
+  load average 20–50 on 4 cores: before, 3 of 32 runs red in the agents detail (chart 25 → 25 once; the tab click
+  timing out at 2 s, then the `.ag-more` click crashing the run once; the minute's dashboard read at 200 ms once;
+  CI's "button 1" itself never came up unprovoked); after (the squeeze bound not yet widened), 0 of 32 in those
+  checks, 2 of 32 on the squeeze alone. Gates: the bundle line green before the rebase (four shards 240 / 77 / 248 /
+  69, perf, size); on the rebased tree `--quick` green and the two `main` shards 240 / 248. Committed on the agent's
+  worktree and handed back unpushed (the sub-agent rule of 2026-10-08), for the landing run on the batch.
 
 ### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `bin/gates.sh` takes a machine-wide `flock` (`/tmp/daviesportfolios-gates.lock`, `GATES_LOCK` overrides): a second

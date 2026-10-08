@@ -3366,7 +3366,9 @@ async function run() {
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
       // A slice squeezed narrower than its name drops the name. The old cutoff still painted "Revolut X 89%" at 48px.
       const squeeze = await page.addStyleTag({ content: '.ag-share-revx{width:48px!important;max-width:48px!important;flex:0 0 48px!important;}' });
-      const squeezed = await page.waitForFunction((want) => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === want, `${revxShare}%`, { timeout: 2000 }).then(() => true).catch(() => false);
+      // 8 s, not 2: under load the slice's re-label can land later than 2 s, and the read straight after the timeout then
+      // found it right ("95%", one line, 19.9 px in 48; 2 of 32 shards under four at once, 2026-10-08).
+      const squeezed = await page.waitForFunction((want) => (document.querySelector('.ag-share-revx')?.textContent || '').trim() === want, `${revxShare}%`, { timeout: 8000 }).then(() => true).catch(() => false);
       const squeezedFit = await page.locator('.ag-share-revx').evaluate((el) => {
         const range = document.createRange();
         range.selectNodeContents(el);
@@ -3378,7 +3380,7 @@ async function run() {
       else fail(S('agents'), `squeezed share ${JSON.stringify(squeezedFit)}`);
       // A slice too narrow even for its percent paints nothing, and its title still gives it.
       const pinch = await page.addStyleTag({ content: '.ag-share-polymarket{width:6px!important;max-width:6px!important;flex:0 0 6px!important;}' });
-      const pinched = await page.waitForFunction(() => (document.querySelector('.ag-share-polymarket')?.textContent || '').trim() === '', { timeout: 2000 }).then(() => true).catch(() => false);
+      const pinched = await page.waitForFunction(() => (document.querySelector('.ag-share-polymarket')?.textContent || '').trim() === '', { timeout: 8000 }).then(() => true).catch(() => false);
       const pinchedTitle = await page.locator('.ag-share-polymarket').getAttribute('title').catch(() => '');
       await pinch.evaluate((el) => el.remove());
       if (pinched && pinchedTitle === `Polymarket: ${pmShare}% of deployed value`) ok(S('agents'), `a slice too narrow for its percent paints nothing, and its title still says Polymarket: ${pmShare}%`);
@@ -3580,25 +3582,36 @@ async function run() {
       const desc = await page.locator('.ag-desc').count();
       if (desc === 0) ok(S('agents'), 'no description paragraph on the detail');
       else fail(S('agents'), `${desc} description paragraphs`);
+      // Each check below waits for the state it asserts, up to a bound, instead of reading it after a fixed sleep. A
+      // click, a request and its answer through the harness's route take tens of milliseconds on an idle machine and
+      // seconds on a loaded one (measured 2026-10-08 with four shards and other sweeps on four cores: a click alone
+      // 128 ms to 3.1 s), and "button 1, rows 3" was a 300 ms sleep ending before the log's answer did: held 400 ms,
+      // the log's answer fails the old read every time, and the button still goes the moment it lands.
+      const until = async (/** @type {() => Promise<boolean>} */ fn, ms = 8_000) => {
+        const by = Date.now() + ms;
+        while (Date.now() < by) { if (await fn().catch(() => false)) return true; await page.waitForTimeout(50); }
+        return fn().catch(() => false);
+      };
       // A second pair swaps the chart without leaving the detail.
-      await page.locator('.ag-sym-tab').nth(1).click({ timeout: 2_000 }).catch(() => {});
-      await page.waitForTimeout(400);
+      await page.locator('.ag-sym-tab').nth(1).click({ timeout: 8_000 }).catch(() => {});
+      await until(async () => /ETH\/USD/.test((await page.locator('.ag-chart-sym').textContent()) || ''));
       const swapped = await page.locator('.ag-chart-sym').textContent().catch(() => '');
       if (/ETH\/USD/.test(swapped || '')) ok(S('agents'), 'a tab swaps the pair the chart draws');
       else fail(S('agents'), `after the tab click the chart reads "${swapped}"`);
-      await page.locator('.ag-detail .ag-more').waitFor({ timeout: 5_000 }).catch(() => {});
+      await page.locator('.ag-detail .ag-more').waitFor({ timeout: 8_000 }).catch(() => {});
       const moreOnEth = ((await page.locator('.ag-detail .ag-more').textContent().catch(() => '')) || '').trim();
       const ethOrders = await page.locator('.ag-fills tbody tr').count();
       if (moreOnEth === 'Load full history' && ethOrders === 3) ok(S('agents'), 'Load full history appears when the chart says this pair has older orders');
       else fail(S('agents'), `ETH history button "${moreOnEth}", order rows ${ethOrders}`);
-      await page.locator('.ag-detail .ag-more').click();
-      await page.waitForTimeout(300);
+      await page.locator('.ag-detail .ag-more').click({ timeout: 8_000 }).catch(() => {});
+      // The log's answer takes the button away; until then it reads "Loading…".
+      await until(async () => (await page.locator('.ag-detail .ag-more').count()) === 0);
       const afterMore = await page.locator('.ag-detail .ag-more').count();
       const afterRows = await page.locator('.ag-fills tbody tr').count();
       if (afterMore === 0 && afterRows === 3) ok(S('agents'), 'once the log is loaded the button goes, and a log with nothing new adds no row');
       else fail(S('agents'), `after Load full history: button ${afterMore}, rows ${afterRows}`);
-      await page.locator('.ag-sym-tab').first().click({ timeout: 2_000 }).catch(() => {});
-      await page.waitForTimeout(300);
+      await page.locator('.ag-sym-tab').first().click({ timeout: 8_000 }).catch(() => {});
+      await until(async () => /BTC\/USD/.test((await page.locator('.ag-chart-sym').textContent()) || ''));
 
       const btN = await page.locator('.ag-detail .ag-section-title:text-is("BACKTEST")').count();
       if (btN === 0) ok(S('agents'), 'no backtest section on a strategy page');
@@ -3613,14 +3626,16 @@ async function run() {
       const dash0 = asked('action=dashboard');
       const chart0 = asked('action=chart');
       await page.locator('.modal').last().locator('button[aria-label="Refresh"]').click();
-      await page.waitForTimeout(400);
+      // The chart is asked once the dashboard has answered, so both counts are waited for. The chart's request a tab
+      // sent just before may still be out: a click asks anew rather than joining it (`fetchAgentsChart`'s `fresh`).
+      await until(async () => asked('action=dashboard') > dash0 && asked('action=chart') > chart0);
       const clicked = dHeads.join(',') === 'Refresh,Close' && asked('action=dashboard') > dash0 && asked('action=chart') > chart0;
       if (clicked) ok(S('agents'), 'the strategy page refreshes from the button beside close: the dashboard and the open chart are asked again');
       else fail(S('agents'), `strategy actions ${dHeads.join(',')}, dashboard ${dash0}→${asked('action=dashboard')}, chart ${chart0}→${asked('action=chart')}`);
       // The minute keeps running on the page that is open, not only on the list underneath.
       const dash1 = asked('action=dashboard');
       await page.clock.fastForward(61_000);
-      await page.waitForTimeout(200);
+      await until(async () => asked('action=dashboard') > dash1);
       if (asked('action=dashboard') > dash1) ok(S('agents'), 'a minute on the strategy page refreshes it again');
       else fail(S('agents'), `dashboard requests stayed at ${dash1} after a minute on the strategy page`);
       await page.clock.setFixedTime(CLOCK);

@@ -1112,7 +1112,7 @@ function SymbolOrders({ chart, more, symbol, m, venue }) {
 }
 
 /** The chart card: symbol tabs, the chart for the one selected, and its fills. */
-function SymbolChart({ s, symbol, onSelect, m, nowMs, at, gen, more, loadingMore, onLoadMore }) {
+function SymbolChart({ s, symbol, onSelect, m, nowMs, at, gen, clicks, more, loadingMore, onLoadMore }) {
   const [chart, setChart] = React.useState(/** @type {any} */ (() => readChartCache(s.id, symbol)?.chart ?? null));
   const [error, setError] = React.useState(/** @type {string | null} */ (null));
   const [loading, setLoading] = React.useState(() => !readChartCache(s.id, symbol));
@@ -1123,12 +1123,16 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at, gen, more, loadingMore
   // frame, the way a live chart should. `at` alone is not enough: two
   // answers can share a timestamp, and a click must still redraw.
   React.useEffect(() => { const c = readChartCache(s.id, symbol); setChart(c?.chart ?? null); setError(null); setLoading(!c); }, [s.id, symbol]);
+  // The click count this card last fetched for: a run of the effect that finds it moved is a click's refresh.
+  const clicksSeen = React.useRef(clicks);
   React.useEffect(() => {
     if (!symbol) return undefined;
     let alive = true;
+    const fresh = clicks !== clicksSeen.current;
+    clicksSeen.current = clicks;
     (async () => {
       try {
-        const c = await fetchAgentsChart(s.id, symbol);
+        const c = await fetchAgentsChart(s.id, symbol, undefined, fresh);
         if (!alive) return;
         if (c?.error) { setError(String(c.error)); setChart(null); } else { setChart(c); setError(null); }
       } catch (e) {
@@ -1138,7 +1142,7 @@ function SymbolChart({ s, symbol, onSelect, m, nowMs, at, gen, more, loadingMore
       }
     })();
     return () => { alive = false; };
-  }, [s.id, symbol, at, gen]);
+  }, [s.id, symbol, at, gen, clicks]);
 
   // The row's own venue, like its badge: the candles are Kraken's, but Kraken is not a venue on the page any more.
   const hue = venueHue(chart?.venue ?? s.venue);
@@ -1332,7 +1336,7 @@ function Countdown({ at, label }) {
   );
 }
 
-function Detail({ s, dash, m, nowMs, gen }) {
+function Detail({ s, dash, m, nowMs, gen, clicks }) {
   const [more, setMore] = React.useState(/** @type {{ decisions: any[], orders: any[] } | null} */ (null));
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [symbol, setSymbol] = React.useState(() => defaultChartSymbol(s));
@@ -1354,7 +1358,7 @@ function Detail({ s, dash, m, nowMs, gen }) {
       <StrategyScoreboard s={s} m={m} />
       <PositionTiles s={s} m={m} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
       <LiveState s={s} nowMs={nowMs} selected={symbol} onSelect={setSymbol} />
-      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} gen={gen} more={more} loadingMore={loadingMore} onLoadMore={loadMore} />
+      <SymbolChart s={s} symbol={symbol} onSelect={setSymbol} m={m} nowMs={nowMs} at={dash?.at} gen={gen} clicks={clicks} more={more} loadingMore={loadingMore} onLoadMore={loadMore} />
     </div>
   );
 }
@@ -1383,6 +1387,9 @@ function AgentsModal({ hideValues, onClose }) {
   // Bumps on every dashboard answer, including one whose `at` did not move,
   // so the open chart refetches with the rest of the page.
   const [gen, setGen] = React.useState(0);
+  // Bumps with `gen` when the answer is a click's: the open chart then asks anew rather than joining a request of its
+  // pair already on its way (`fetchAgentsChart`'s `fresh`).
+  const [clicks, setClicks] = React.useState(0);
   const m = React.useCallback((s) => (hideValues ? maskDigits(s) : s), [hideValues]);
 
   // Two refreshes can be in flight together (the minute's interval and a click): only the NEWEST request's answer is
@@ -1400,6 +1407,7 @@ function AgentsModal({ hideValues, onClose }) {
       const next = await ((!manual && dashboardInFlight()) || fetchAgentsDashboard());
       if (!alive.current || !guard.current.isLatest(seq)) return;
       setDash(next); setError(null); setGen((g) => g + 1);
+      if (manual) setClicks((c) => c + 1);
     } catch (e) {
       if (!alive.current || !guard.current.isLatest(seq)) return;
       setError(e instanceof Error ? e.message : String(e));
@@ -1538,7 +1546,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PageGuard gen={gen}><Detail s={current} dash={dash} m={m} nowMs={now} gen={gen} /></PageGuard>
+          <PageGuard gen={gen}><Detail s={current} dash={dash} m={m} nowMs={now} gen={gen} clicks={clicks} /></PageGuard>
         </div>
       </Modal>
     )}

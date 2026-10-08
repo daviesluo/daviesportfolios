@@ -205,7 +205,7 @@ export function readAgentsCache() { readKept(); return agentsCache; }
 /** @param {string} strategyId @param {string} symbol */
 export function readChartCache(strategyId, symbol) { readKept(); return chartCache.get(chartKey(strategyId, symbol)) ?? null; }
 /** Test hook: forget memory and read the kept copy again, as a reload would. */
-export function _reloadAgentsCache() { agentsCache = null; chartCache.clear(); keptRead = false; dashInFlight = null; chartsInFlight.clear(); }
+export function _reloadAgentsCache() { agentsCache = null; chartCache.clear(); keptRead = false; dashInFlight = null; chartsInFlight.clear(); chartSeq.clear(); }
 
 /**
  * Warm the page: the dashboard, then one chart per strategy 250 ms apart.
@@ -270,12 +270,18 @@ export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch)
  * @param {string} strategyId
  * @param {string} symbol
  * @param {typeof fetch} [fetchImpl]
+ * @param {boolean} [fresh] a click on the page's refresh: ask anew, never join a request sent before the click
  */
-export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
+export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch, fresh = false) {
   const key = chartKey(strategyId, symbol);
-  // The same pair already on its way (the prefetch, or last minute's refresh) is joined, not asked again.
-  const pending = chartsInFlight.get(key);
+  // The same pair already on its way (the prefetch, a tab's first draw, or last minute's refresh) is joined, not asked
+  // again — except by a click, which asks anew, as the dashboard's does (`load(true)` in agents.jsx). Joining there
+  // answered the click with a request sent before it, and asked the server nothing (2026-10-08: the sweep's refresh
+  // check read "chart 25→25" whenever the chart a tab had asked for was still on its way when the dashboard answered).
+  const pending = fresh ? null : chartsInFlight.get(key);
   if (pending) return pending;
+  const seq = (chartSeq.get(key) ?? 0) + 1;
+  chartSeq.set(key, seq);
   const request = (async () => {
     const res = await fetchImpl(
       `${EDGE_AGENTS_URL}?action=chart&strategy=${encodeURIComponent(strategyId)}&symbol=${encodeURIComponent(symbol)}`,
@@ -283,7 +289,8 @@ export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
     const text = await res.text();
     if (!res.ok) throw agentsFetchError('chart', res.status, text);
     const chart = JSON.parse(text);
-    if (chart && !chart.error) { chartCache.set(key, { at: Date.now(), chart }); keepPage(); }
+    // Only the newest request for the pair writes the cache: the one a click overtook may answer after it.
+    if (chart && !chart.error && chartSeq.get(key) === seq) { chartCache.set(key, { at: Date.now(), chart }); keepPage(); }
     return chart;
   })();
   chartsInFlight.set(key, request);
@@ -291,6 +298,8 @@ export async function fetchAgentsChart(strategyId, symbol, fetchImpl = fetch) {
 }
 /** @type {Map<string, Promise<any>>} */
 const chartsInFlight = new Map();
+/** The newest request sent for each pair, by count. @type {Map<string, number>} */
+const chartSeq = new Map();
 
 /** What each class of failure is called and what it means, in one plain sentence each. */
 const ERROR_WORDS = {

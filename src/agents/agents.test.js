@@ -1362,6 +1362,34 @@ describe('the Agents page kept across a reload', () => {
     ]);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  // A click on the page's refresh asks the chart anew, as it asks the dashboard anew. Joining answered the click with a
+  // request sent before it and asked the server nothing (2026-10-08, the sweep's "chart 25→25"). The request it overtook
+  // may answer last, and must not then put its older chart in the cache over the click's.
+  it('a click asks a chart anew rather than joining the one on its way, and the newer answer keeps the cache', async () => {
+    _reloadAgentsCache();
+    /** @type {((v?: unknown) => void)[]} */
+    const gates = [];
+    let n = 0;
+    const fetchImpl = vi.fn(async () => {
+      const mine = ++n;
+      await new Promise((r) => { gates.push(r); });
+      return new Response(JSON.stringify({ symbol: 'BTC/USD', answer: mine }), { status: 200 });
+    });
+    const before = fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (fetchImpl));         // a tab's first draw
+    const joined = fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (fetchImpl));         // the minute's: joins it
+    await settle(0);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const click = fetchAgentsChart('s1', 'BTC/USD', /** @type {any} */ (fetchImpl), true);    // the refresh button's
+    await settle(0);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    gates[1]();                                     // the click's answer lands first …
+    expect((await click).answer).toBe(2);
+    gates[0]();                                     // … and the request it overtook after it
+    expect((await before).answer).toBe(1);
+    expect((await joined).answer).toBe(1);
+    expect(readChartCache('s1', 'BTC/USD')?.chart.answer).toBe(2);
+  });
 });
 
 describe('rweCheckWarn: what is left of RW-E on the page besides its own row', () => {
