@@ -12,7 +12,7 @@ import {
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
-  deadmanBeatAt, DEADMAN_BEAT_KEY,
+  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive,
 } from "./index.ts";
 import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
@@ -1325,4 +1325,23 @@ Deno.test("deadmanBeatAt reads the dead-man call's newest beat, the key the moni
   ] }, { now: () => Date.parse("2026-10-08T10:10:00Z") });
   assertEquals(await deadmanBeatAt(mem.db), Date.parse("2026-10-08T10:04:00.000Z"));
   assertEquals(await deadmanBeatAt(memDb({ edge_call_beats: [] }, { now: () => 0 }).db), null);
+});
+
+// The two selections wait 55 s in the one-minute job (0099, review F6); one that runs longer goes on to its end, the
+// runtime asked to keep the worker for it before anything is awaited.
+Deno.test("runSelectKeptAlive hands the selection to the runtime's keep-alive before awaiting it, and answers its report", async () => {
+  const kept: Promise<unknown>[] = [];
+  let finish: (r: { day: string }) => void = () => {};
+  const run = () => new Promise<{ day: string }>((r) => { finish = r; }) as unknown as ReturnType<Parameters<typeof runSelectKeptAlive>[0]>;
+  const answer = runSelectKeptAlive(run, (p) => kept.push(p));
+  // Kept at once, while the selection is still running: a caller that stops waiting does not end it.
+  assertEquals(kept.length, 1);
+  finish({ day: "2026-10-09" });
+  assertEquals((await answer).day, "2026-10-09");
+  // The kept promise never rejects, whatever the selection does (a rejected keep-alive would be an unhandled error).
+  const failing = runSelectKeptAlive(() => Promise.reject(new Error("venue down")), (p) => kept.push(p));
+  let threw = "";
+  try { await failing; } catch (e) { threw = (e as Error).message; }
+  assertEquals(threw, "venue down");
+  assertEquals(await kept[1], undefined);
 });

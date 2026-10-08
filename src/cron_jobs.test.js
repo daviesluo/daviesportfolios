@@ -80,6 +80,14 @@ function replayList(sqls) {
         }
         continue;
       }
+      m = /^update public\.edge_calls set timeout_ms = (\d+) where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
+      if (m) {
+        for (const p of m[2].matchAll(/'([^']+)'/g)) {
+          if (!rows.has(p[1])) throw new Error(`${name}: updates '${p[1]}', which public.edge_calls does not hold`);
+          rows.get(p[1]).timeout = Number(m[1]);
+        }
+        continue;
+      }
       m = /^delete from public\.edge_calls where path in \(('[^']+'(?:, '[^']+')*)\)$/.exec(s);
       if (m) {
         for (const p of m[1].matchAll(/'([^']+)'/g)) {
@@ -499,6 +507,25 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
   });
 
+  it('waits 55 s for the two daily selections (0099), every other row as it was, and no row of the list past its minute', () => {
+    // review F6 (2026-10-08): pg_net runs a batch until its slowest call answers, so a 290 s wait could hold every later
+    // minute's calls, the live executors' among them. The selections themselves are kept running past it (agents/index.ts).
+    const T = FILES.find((f) => /^\d{4}_edge_calls_select_timeout\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const SEL = ['agents?action=pmrw-select', 'agents?action=pmrwc-select'];
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(before.filter((r) => SEL.includes(r.path)).map((r) => r.timeout)).toEqual([290000, 290000]);
+    expect(after.filter((r) => SEL.includes(r.path)).map((r) => r.timeout)).toEqual([55000, 55000]);
+    const rest = (rows) => rows.map((r) => (SEL.includes(r.path) ? { ...r, timeout: null } : r));
+    expect(rest(after)).toEqual(rest(before));
+    // Every row the migrations leave waits under a minute, so no minute's batch holds the next minute's calls.
+    for (const r of replayList(sqlsOf(FILES))) expect(r.timeout, r.path).toBeLessThan(60000);
+    expect([...cronJobs(FILES.filter((f) => f <= T))]).toEqual([...cronJobs(FILES.filter((f) => f < T))]);
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runSelectKeptAlive(() => runPmrwSelect(');
+    expect(src).toContain('if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runSelectKeptAlive(() => runPmrwSelect(');
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
@@ -506,6 +533,7 @@ describe('pg_cron jobs', () => {
     // The verdict migrations' shape: rows out of the job, kept as a record.
     expect(replayList([['seed', seed], ['off', "update public.edge_calls set enabled = false where path in ('b');"]]).map((r) => r.enabled)).toEqual([true, false]);
     expect(replayList([['seed', seed], ['gone', "delete from public.edge_calls where path in ('a?action=x');"]]).map((r) => r.path)).toEqual(['b']);
+    expect(replayList([['seed', seed], ['wait', "update public.edge_calls set timeout_ms = 55000 where path in ('b');"]]).map((r) => r.timeout)).toEqual([1000, 55000]);
     expect(() => replayList([['seed', seed], ['x', "update public.edge_calls set timeout_ms = 1 where path = 'b';"]])).toThrow(/cannot replay/);
     expect(() => replayList([['seed', seed], ['x', "update public.edge_calls set enabled = false where path in ('zz');"]])).toThrow(/does not hold/);
     expect(() => replayList([['x', "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a', 1, 1, 23, true), ('b', 1, 1, 23) on conflict (path) do nothing;"]])).toThrow(/cannot read/);

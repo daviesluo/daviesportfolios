@@ -768,6 +768,7 @@ before touching migration state.
 | `0085_pm_rw_x_rest_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take the two arms on x1 that move where the quotes rest (x4, x5). |
 | `0097_http_response_prune.sql` | Replaces 0093's truncate with a job deleting pg_net responses over ten minutes old at :05, :15, …, so it never locks the table while the one-minute batch writes to it. |
 | `0098_board_data_history.sql` | Keeps the portfolio's earlier versions: each change to `board_data` first copies the version it replaces into `board_data_history` (service role only), pruned at 90 days. |
+| `0099_edge_calls_select_timeout.sql` | The two daily Polymarket selections wait 55 s in the one-minute job instead of 290 s, so no minute's pg_net batch holds the next minute's calls. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

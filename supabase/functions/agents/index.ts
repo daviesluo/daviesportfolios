@@ -184,7 +184,7 @@ import {
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
-import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance } from "./pmrw.ts";
+import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance, type RwSelectReport } from "./pmrw.ts";
 import { rwcSummary, rweArmSummary, rweSummary, rwPageRun, rwPageSource, rwePageReplay, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
@@ -2433,6 +2433,27 @@ export async function serveRequest(req: Request, deps: ServeDeps): Promise<Respo
   }
 }
 
+/** `EdgeRuntime.waitUntil` where the runtime has it: the worker is kept until the promise settles. */
+function keepAlive(p: Promise<unknown>): void {
+  const rt = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  try { rt?.waitUntil?.(p); } catch { /* without it the request itself waits */ }
+}
+
+/**
+ * A day's selection, kept running past its caller (review F6, 2026-10-08). The one-minute job's pg_net batch lasts as
+ * long as its slowest call, and the two selections waited 290 s, so one that ran long held every later minute's calls,
+ * the live executors' among them, for up to five minutes. Their rows now wait 55 s (0099). A selection still running
+ * then goes on to its end, the runtime asked to keep the worker for it, under its 290 s lease (`RW_SELECT_LEASE_MS`),
+ * and writes its day in one request as before. The longest in the edge logs read on 2026-10-08: 40.2 s (RW's, 10-01).
+ */
+export async function runSelectKeptAlive(
+  run: () => Promise<RwSelectReport>, keep: (p: Promise<unknown>) => void = keepAlive,
+): Promise<RwSelectReport> {
+  const work = run();
+  keep(work.catch(() => {}));
+  return await work;
+}
+
 /** The actions, by `?action=`: what each one is, and who may call it, is in this file's header. */
 async function route(req: Request, who: Exclude<Who, null>, url: URL, action: string): Promise<Response> {
   const operator = who === "cron" || who === "admin";
@@ -2446,12 +2467,12 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "quotestwins" && req.method === "POST" && operator) return json(200, await runQuotesTwinsAction(url.searchParams.get("wait") !== "0"));
   // RW's paper test (pmrw.ts, 0053): keyless public reads of Polymarket only, from its own cron jobs.
   if (action === "pmrw" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
-  if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
+  if (action === "pmrw-select" && req.method === "POST" && operator) return json(200, await runSelectKeptAlive(() => runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID() })));
   if (action === "pmrw-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
   if (action === "pmrw-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID() }));
   // RW-C (0069): the same engine and replays on RW-C's instance and tables; before its warm-up each returns at once.
   if (action === "pmrwc" && req.method === "POST" && operator) return json(200, await runPmrw({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
-  if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE }));
+  if (action === "pmrwc-select" && req.method === "POST" && operator) return json(200, await runSelectKeptAlive(() => runPmrwSelect({ db: db(), now: Date.now(), holder: crypto.randomUUID(), inst: RWC_INSTANCE })));
   if (action === "pmrwc-e" && req.method === "POST" && operator) return json(200, await runPmrwE({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCE_REPLAY }));
   if (action === "pmrwc-x" && req.method === "POST" && operator) return json(200, await runPmrwX({ db: db(), now: Date.now(), holder: crypto.randomUUID(), replay: RWCX_REPLAY }));
   // RW-E's variants (pmrw_x.ts): their arms over RW's days before RW-E's twelve, never past them. Reads only.

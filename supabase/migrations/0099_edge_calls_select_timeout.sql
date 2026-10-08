@@ -1,0 +1,19 @@
+-- 0099: the two daily selections wait 55 s in the one-minute job, not 290 s.
+--
+-- Why (review F6, approved by Davies 2026-10-08). pg_net 0.20 runs a batch until every request in it has answered, and
+-- only then reads its queue again (docs/agents/CLAUDE.md, "Every recurring Edge call is a row of ONE cron job").
+-- `agents?action=pmrw-select` and `agents?action=pmrwc-select` waited 290 s (0075), so a selection that ran long would
+-- have held every later minute's calls for up to five minutes: the live executors' turns among them, past the three
+-- minutes after which the dead-man switch cancels PR5's orders, and with the crypto row's stops waiting. Every other row
+-- of the list waits 50 to 59 s, inside its minute. No incident is recorded.
+--
+-- How long a selection runs, from the edge logs (`function_edge_logs`, read 2026-10-08): RW's selection of 2026-10-01,
+-- the first call after 00:00 UTC, took 40.2 s (status 200), the longest read; in the 24 hours to 2026-10-08 15:00 UTC
+-- every call of both ended within 11.2 s (p99 7.4 s for RW's, 3.1 s for RW-C's). A day already selected answers in about
+-- a second.
+--
+-- What a selection does past 55 s now: pg_net stops waiting, and the function goes on to its end, the runtime asked to
+-- keep its worker for it (`runSelectKeptAlive` in agents/index.ts, `EdgeRuntime.waitUntil`), still under its 290 s
+-- lease (`RW_SELECT_LEASE_MS`, unchanged), and writes its day in one request as before. A selection that fails is tried
+-- again five minutes later, as before. Neither selection's rule changes, so RW's and RW-C's specs read the same days.
+update public.edge_calls set timeout_ms = 55000 where path in ('agents?action=pmrw-select', 'agents?action=pmrwc-select');

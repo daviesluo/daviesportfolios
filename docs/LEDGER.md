@@ -813,6 +813,20 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 15:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **No call of the one-minute job can hold the next minute's batch** (review F6, approved by Davies 2026-10-08).
+  pg_net runs a batch until its slowest call answers, and `pmrw-select` and `pmrwc-select` waited 290 s, so one that
+  ran long would have held every later minute's calls, the live executors' turns among them, for up to five minutes.
+  `0099_edge_calls_select_timeout.sql` makes both wait 55 s; the selection itself goes on past that, the runtime asked
+  to keep its worker (`runSelectKeptAlive` in `agents/index.ts`, `EdgeRuntime.waitUntil`), under its unchanged 290 s
+  lease, and still writes its day in one request, so neither spec's rule or days change. How it was checked: the edge
+  logs (`function_edge_logs`) put RW's 2026-10-01 selection at 40.2 s, the longest read, and every call of both in the
+  24 hours to 10-08 15:00 UTC within 11.2 s; 0099 applied on PGlite to 0075's table (both rows 290000 → 55000, the list's
+  largest wait 59000, applying it twice changes nothing); production's two rows read 290000 before (SELECT). Pins:
+  `cron_jobs.test.js` (replays the new `timeout_ms` update, both rows 55000, every other row as it was, every row of
+  the list under 60 s; fails with 0099's update removed) and `runSelectKeptAlive` in `agents/index.test.ts`.
+  Redeploys `agents`; 0099 applies on push. `docs/agents/CLAUDE.md` and reference item 39 say so.
+
 ### [2026-10-08 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Trading 212's own failures reach the errors box** (review F16, approved by Davies 2026-10-08). A refused or
   timed-out positions read, or an answer of the wrong shape, went only to the function's logs; the page went on with

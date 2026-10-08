@@ -598,7 +598,10 @@ that follow from that evidence, in short:
   change that removes it switches the call on (`update public.edge_calls
   set retry = true where path in (…)`). A call fired by hand through
   pg_net waits for the batch in flight and holds the next minute's for as
-  long as it runs past the minute.
+  long as it runs past the minute. **Every row waits under a minute**
+  (`0099`, review F6: the two selections' 290 s became 55 s; a selection
+  still running goes on under its lease, `runSelectKeptAlive`), and a new
+  row's `timeout_ms` stays under 60,000, which the test checks.
 - **The interview showcase mirrors this section** (Davies, 2026-09-30):
   `showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
   repository explains every strategy for his interviews, with no figure from
