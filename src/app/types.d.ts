@@ -133,7 +133,10 @@ export interface PortfolioMetrics {
   dayChange: number;
   dayPct: number;
   unrlGL: number;
+  /** `unrlGL` over the holdings' cost alone (`investedCost`): cash is no part of it (2026-10-08). */
   unrlPct: number;
+  /** What the holdings on the board cost, in USD, cash left out. */
+  investedCost?: number;
   tickerCount: number;
   positions: Record<string, PositionMetrics>;
 }
@@ -143,6 +146,7 @@ export interface PositionMetrics {
   subtitle?: string;
   marketValue: number;
   unrlGL: number;
+  /** The position's G/L over its holdings' cost, any cash in it left out. */
   unrlPct: number;
   dayChange: number;
   dayPct: number;

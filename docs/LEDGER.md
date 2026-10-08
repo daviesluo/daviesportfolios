@@ -813,6 +813,16 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **UNREALIZED G/L's percentage leaves cash out** (review F19, narrowed by Davies 2026-10-08: "cash is NOT counted";
+  the cost-at-today's-FX half stays as it is). `computeMetrics` divided the G/L by a cost that carried cash at its
+  value, so the percentage read smaller the more cash the book held, and a position card mixing cash and a stock
+  disagreed with the sectors list, which already left cash out. Now the book and every position read Σ unrealised ÷
+  Σ cost of the holdings (`investedCost`); the G/L amount, PORTFOLIO and DAY CHANGE % are unchanged. Every place the
+  figure shows was checked: the scoreboard, the sidebar's position cards and the drill modal read this function; the
+  holding and sectors lists (and their exports) already excluded cash. Pins: three in `metrics.test.js` (a book with
+  cash reads 10 %, not 5 %; a mixed position 20 %, not 8 %), two failing on the old code. Guide and skill updated.
+
 ### [2026-10-08 14:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The scoreboard's currency cycle no longer prints dollars under £ or ¥** (review F10, approved by Davies
   2026-10-08). With the GBP or CNY rate not yet in `marketData`, `usdToCcyRate` fell back to 1 and PORTFOLIO, DAY

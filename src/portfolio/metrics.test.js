@@ -651,3 +651,41 @@ describe('quoteDayMove — what a Market Conditions card reads', () => {
     expect(quoteDayMove(undefined, '^GSPC', false)).toEqual({ price: null, anchor: null, pct: null });
   });
 });
+
+// UNREALIZED G/L's percentage is the holdings' gain over what they cost, cash left out (Davies, 2026-10-08). Until then
+// cash sat in the denominator at its own value: the gain read smaller the more cash the book held.
+describe('computeMetrics — UNREALIZED G/L %: cash is no part of it', () => {
+  // ACME: 10 at a cost of 100, now 120 → +200 on 1,000. NOVA: 5 at 100, now 90 → −50 on 500. Cash 1,500.
+  const book = {
+    holdings: {
+      ACME: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD' },
+      NOVA: { shares: 5, cost: 100, lastPrice: 90, prevClose: 91, currency: 'USD' },
+      CASH: { isCash: true, shares: 1, cost: 1500, lastPrice: 1500, prevClose: 1500, currency: 'USD' },
+    },
+    positions: {
+      // A position holding cash beside a stock, as the board allows.
+      A: { role: 'FWD', tickers: ['ACME', 'CASH'], label: 'A' },
+      B: { role: 'MID', tickers: ['NOVA'], label: 'B' },
+    },
+  };
+
+  it('the scoreboard\'s percentage is Σ unrealised ÷ Σ cost of the positions alone', () => {
+    const m = computeMetrics(book);
+    expect(m.unrlGL).toBeCloseTo(200 - 50, 9);                       // cash adds nothing to the gain
+    expect(m.unrlPct).toBeCloseTo(((200 - 50) / (1000 + 500)) * 100, 9);   // 10 %, not 150 / 3,000 = 5 %
+    expect(m.investedCost).toBeCloseTo(1500, 9);
+    expect(m.marketValue).toBeCloseTo(1200 + 450 + 1500, 9);          // the value still counts the cash
+  });
+
+  it('each position card reads its own holdings the same way', () => {
+    const m = computeMetrics(book);
+    expect(m.positions.A.unrlGL).toBeCloseTo(200, 9);
+    expect(m.positions.A.unrlPct).toBeCloseTo(20, 9);               // 200 / 1,000, not 200 / 2,500
+    expect(m.positions.B.unrlPct).toBeCloseTo(-10, 9);
+  });
+
+  it('a cash-only book or position reads 0 %, never a division by nothing', () => {
+    const m = computeMetrics({ holdings: { CASH: book.holdings.CASH }, positions: { GK: { role: 'GK', tickers: ['CASH'], label: 'GK' } } });
+    expect([m.unrlGL, m.unrlPct, m.positions.GK.unrlPct]).toEqual([0, 0, 0]);
+  });
+});

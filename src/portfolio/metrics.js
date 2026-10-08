@@ -54,7 +54,9 @@ function extPriceLooksReal(extPrice, lastPrice) {
 export const computeMetrics = (portfolio, opts = {}) => {
   const ext = !!opts.extended;
   const marketData = opts.marketData || {};
-  let marketValue = 0, totalCost = 0, dayChange = 0;
+  // `totalCost` carries cash at its value, so cash adds nothing to the G/L; `investedCost` is the holdings' cost alone,
+  // the base of every UNREALIZED G/L percentage (Davies, 2026-10-08: cash is no part of that percentage).
+  let marketValue = 0, totalCost = 0, investedCost = 0, dayChange = 0;
   /** @type {string[]} tickers whose FX pair couldn't be read live this tick */
   const fxMissingTickers = [];
   // Distinct non-cash tickers actually ON THE BOARD (referenced by a
@@ -68,7 +70,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
   const countedTickers = new Set();
   const positionsOut = {};
   for (const [posKey, pos] of Object.entries(portfolio.positions)) {
-    let posMV = 0, posPrev = 0, posCost = 0;
+    let posMV = 0, posPrev = 0, posCost = 0, posInvested = 0;
     const players = [];
     for (const t of pos.tickers) {
       const h = portfolio.holdings[t];
@@ -187,6 +189,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
       const prevMV = isCash ? mv : h.shares * baselinePrice * fx;
       const costUSD = isCash ? mv : h.shares * h.cost * fx;
       posMV += mv; posPrev += prevMV; posCost += costUSD;
+      if (!isCash) posInvested += costUSD;
       if (fxMissing) fxMissingTickers.push(t);
       // Player object: marketValue / dayChange / cost in USD; lastPrice
       // stays native so modals can render it with the correct currency
@@ -203,7 +206,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
         dayPctUnknown: pctUnknown,
       });
     }
-    marketValue += posMV; totalCost += posCost;
+    marketValue += posMV; totalCost += posCost; investedCost += posInvested;
     const dayDelta = posMV - posPrev;
     dayChange += dayDelta;
     positionsOut[posKey] = {
@@ -212,7 +215,7 @@ export const computeMetrics = (portfolio, opts = {}) => {
       dayChange: dayDelta,
       dayPct: posPrev > 0 ? (dayDelta / posPrev) * 100 : 0,
       unrlGL: posMV - posCost,
-      unrlPct: posCost > 0 ? ((posMV - posCost) / posCost) * 100 : 0,
+      unrlPct: posInvested > 0 ? ((posMV - posCost) / posInvested) * 100 : 0,
       players,
     };
   }
@@ -221,8 +224,9 @@ export const computeMetrics = (portfolio, opts = {}) => {
     totalCost,
     dayChange,
     dayPct: (marketValue - dayChange) > 0 ? (dayChange / (marketValue - dayChange)) * 100 : 0,
+    investedCost,
     unrlGL: marketValue - totalCost,
-    unrlPct: totalCost > 0 ? ((marketValue - totalCost) / totalCost) * 100 : 0,
+    unrlPct: investedCost > 0 ? ((marketValue - totalCost) / investedCost) * 100 : 0,
     tickerCount: countedTickers.size,
     positions: positionsOut,
     // Tickers whose native-currency → USD rate had to fall back to

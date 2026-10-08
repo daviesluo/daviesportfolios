@@ -426,6 +426,12 @@ Changing any of these means re-opening a decision he has already made.
   print.
 - Quantity inputs: typing `.5` becomes `0.5`. Don't eat the leading
   dot.
+- **UNREALIZED G/L's percentage leaves cash out** (Davies, 2026-10-08):
+  Σ unrealised ÷ Σ cost of the holdings (`investedCost` in
+  `computeMetrics`), on the scoreboard and every position card, as the
+  holding and sectors lists already read. Cash still counts in PORTFOLIO
+  and in DAY CHANGE %; a cost still converts at today's rate (his call
+  the same day: that half stays).
 - Heatmap layout: never produce skinny vertical strips. Do **not**
   treat "three tiles" as a reason to force a horizontal stack — he
   reverted that. Fix the strip in front of you, not a general layout

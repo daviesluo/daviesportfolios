@@ -39,6 +39,10 @@ lets you reload their version or keep editing.
 - **Hide values (the eye).** Replaces every digit of money, price and
   share count with `•`, so the page can be shown or screenshotted.
   Percentages stay. The setting is remembered.
+- **UNREALIZED G/L.** What the holdings on the board would gain if sold
+  now, against what they cost; its percentage is that gain over their
+  cost, with cash left out (cash still counts in PORTFOLIO and in the
+  day's change). Each position card reads its own holdings the same way.
 - **Currency (💱).** Shows the scoreboard's three amounts in dollars,
   pounds or yuan at the live rate, starting in dollars on every visit.
   Until that rate has loaded they read `—`, never the dollar figure
