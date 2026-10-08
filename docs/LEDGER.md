@@ -370,6 +370,18 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-08 22:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Cloudflare and Supabase settings from the second review, done by Davies' other tool and checked from outside.**
+  L1: Bot Fight Mode was on and is off, and the zone's separate `enable_js` (JavaScript Detections, which the Free
+  plan's dashboard does not show; read by API) is now false: the home page and an unknown path carry no
+  `/cdn-cgi/challenge-platform/` script (checked 22:46 and 22:50 UTC). L2: Browser Cache TTL is "Respect Existing
+  Headers"; `sw.js`, `robots.txt` and the CSS now answer `max-age=0, must-revalidate`; no Cache or Page Rule. The
+  token `daviesportfolios-pages-deploy` gained Bot Management write and Zone read on daviesluo.com only. PITR is OFF
+  (the add-on is not enabled): the off-site copy (B1/B2) waits on Davies' choice of where. The monitor's deploy token
+  is fine: monitor-deploy's last run (10-07 21:41 UTC) uploaded the Worker with `secrets.CLOUDFLARE_API_TOKEN`, so
+  that secret holds a token with Workers Scripts edit, whichever of the account's tokens it is; a rotated one needs
+  Pages and Workers Scripts both.
+
 ### [2026-10-08 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Batch 4 finished in production; the second, read-only review reported** (item 10 lists its findings). fc2e8209
   pushed once the page that sends the token was live (e7f0cafe, app-1b24810b.js): overnight-fetch v39 answers the anon
