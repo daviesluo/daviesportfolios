@@ -29,6 +29,17 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      frozen); a bug fix is allowed only as a recorded deviation (spec, reference, ledger) with a pin that fails on the
      old code. Do not read the fills market by market before the verdict: a narrower variant (stop quoting once a
      temperature bucket is decided) needs its own pre-registration, frozen before anyone has.
+   - **The one-minute job's batch runs a minute late at most `:X0` minutes, and that minute is not stored (found
+     2026-10-08 ~00:45; cause not established, `0093`'s `http-response-truncate` is the lead; nothing changed).** From
+     that job's first run, 20:50 on 10-07, the `tick` beat (`edge_call_beats`) is missing at 18 of 24 `:X0` minutes and
+     at none of 208 other minutes, and every call of the batch goes with it: RW stored 1,436 / 1,439 / 1,436 minutes on
+     10-04 / 05 / 06 and 1,240 on 10-07 (the stall), and on 10-08 has not stored 00:00, 00:10, 00:30 and 00:40 of its
+     first 41 due. The Edge log shows two requests of one call in the minute after (`tick`: 14 of the 18), so the batch
+     is late, not skipped; the truncate waited its full 30 s and gave up at 22:50 and 23:40, and those two batches were
+     on time. It reaches RW's last day, the live loop, PR5 and RW-C, whose first judged minute (10-09 00:00) is a `:X0`
+     one. A fix is a migration (`src/cron_jobs.test.js` pins the job's schedule), not made by the session that found
+     it. At RW's verdict name the shortfall as a deviation of RW's last day (RW-NEXT Part 2, "The one-minute job"),
+     with minutes stored against due; RW's bar is unchanged.
    - **The verdict**, once `pm_rw_days` has the row for 2026-10-08, written up as
      `docs/agents/reviews/2026-10-09-polymarket-rw-paper-result.md`, reference §3.x and this ledger:
      a. The bar, exactly as the spec words it, from `pm_rw_days` (the fourteen run rows, 09-25 … 10-08): each day's
@@ -111,8 +122,8 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
      "Reward quotes confirmation" appears by itself at its warm-up, 10-08 00:00 UTC** (Davies, 2026-09-28: off the page
      until then; the dashboard reads nothing of it before), "starts 9 Oct 01:00 BST" until its first minute. RW-NEXT
      is frozen (item 5a.3). The four calls return "before its warm-up" / "before RW-C's first minute is decided" (no
-     database read) until 10-08 00:00 / 10-09 00:02. **Check after 10-08 00:10 UTC**: first RW-NEXT's slip-rule check
-     (item 5a.3, its exact query), then `pm_rwc_state.last_minute` within ~3 min and no `last_error`; after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
+     database read) until 10-08 00:00 / 10-09 00:02. **Checked 10-08 00:33–00:43 UTC: WARM** (RW-NEXT's slip check
+     true, item 5a.3; `pm_rwc_state.last_minute` 00:41:00 at 00:43:16, no `last_error`). **Next:** after 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` `warm-up`; after 10-10 00:05,
      both replays' `checkMaxUsd` (and the x replay's `checkEMaxUsd` over `checkEDays`) under $0.01, read as scalars.
      Nothing else of `pm_rwc_*` before its verdict (RW-NEXT's no-peek list). **Its verdict** on or after 2026-10-23
      00:05 UTC by the frozen RW-NEXT (the primary its part 1 names, from `pm_rwc_days` or the replays' day rows after
@@ -483,15 +494,12 @@ dated before 2026-10-01 refers to that list. The app's own plan is `docs/improve
       checks in its §6. **Pulls:** 10-05, 6 windows (probes 22–27, all `trend-1h`, 4 BTC and 2 ETH), none failed, 179 UK
       prints; B empty (every probe's `o15` and `o60` recorded); C 3 exits and 3 entries.
    3. **RW-NEXT: frozen 2026-09-28 05:36 UTC** (`reviews/2026-09-28-rw-next-prereg.md`); RW-C on `main` since 04:39
-      (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). Its slip rule turns on one check at
-      **2026-10-08 00:10 UTC**, which the first session on or after then runs before anything else (or a one-shot
-      Routine, if Davies grants it the database connector): `select exists (select 1 from public.pm_rwc_selection
-      where day = date '2026-10-08' and selected_at <= timestamptz '2026-10-08 00:10:00+00')`, the command of
-      `edge-calls-every-minute` and the Edge Function version deployed then; the answer goes here. If RW-C is not warm,
-      its dates move by whole days in a commit deployed before 10-09 00:00 (the file's slip rule). Owner since
-      2026-09-30: the session under "Scheduled wakes", woken at 10-08 00:32 UTC by `trig_01SY2TY9HuSQY5C7EEB9LD7y`
-      (the helper session and its Routine went with the previous account). It writes the answer here and makes the
-      slip commit itself if RW-C is not warm; any session after 00:10 checks it did.
+      (`3682b557`, `17728e3c`; its page row off until the warm-up, `5a8423a9`). **Its slip check was run on 2026-10-08
+      at 00:33 UTC (the wake `trig_01SY2TY9HuSQY5C7EEB9LD7y`): RW-C was WARM, so there is no slip and `RWC_RUN_START` /
+      `RWC_RUN_END` stay 10-09 00:00 / 10-23 00:00.** The file's `select exists (…)` returned `true`; the four `pmrwc*`
+      rows of `edge-calls-every-minute` (`public.edge_calls` ids 9, 10, 11, 15) were enabled; `agents` v145 answered
+      them at 00:00 and at 00:10 (statements, numbers and the version in the history section of 2026-10-08 00:46).
+      Nothing of this item is left open but RW-C's own checks and its verdict (item 2).
    4. **QUEUE: frozen 2026-09-28 06:22 UTC** (`reviews/2026-09-28-queue-prereg.md`); window 2026-10-04 → 11-01.
       **Freeze line:** until the export is taken, none of `agents/books.ts`, the table `agent_book_levels`, its prune
       job `agents-books-prune`, `stepMinute` in `agents/quotes.ts` or its minute record (`agent_quote_minutes`)
@@ -797,6 +805,46 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
+
+### [2026-10-08 00:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RW-NEXT's slip check, run at 00:33 UTC (the wake `trig_01SY2TY9HuSQY5C7EEB9LD7y`, item 5a.3): RW-C is WARM. No slip;
+  `RWC_RUN_START` 10-09 00:00 and `RWC_RUN_END` 10-23 00:00 stand, and no commit was made for it.** Read-only through the
+  Supabase connector, on the database's clock (00:33:17 UTC at the first statement):
+  - `select exists (select 1 from public.pm_rwc_selection where day = date '2026-10-08' and selected_at <=
+    timestamptz '2026-10-08 00:10:00+00')` → `true` (run once, as written; no other column of the table read).
+  - The command of `edge-calls-every-minute` (cron job 27, `* * * * *`, active) queues one `net.http_post` per due row
+    of `public.edge_calls` that is `enabled`. The four RW-C rows are `agents?action=pmrwc` (id 9, retry false),
+    `pmrwc-e` (10), `pmrwc-x` (11) and `pmrwc-select` (15, every 5 minutes): all enabled, `last_utc_hour` 23. Their beats
+    (`edge_call_beats`) reach the function every minute from 23:51 on, bar the `:X0` minutes below.
+  - The Edge Function: `agents` v145, deployed 2026-10-07 23:17:07 UTC (`edge-functions` run 395, commit `a5c60ea2`;
+    its `index.ts` lines 2416–2419 hold the four routes), answered every RW-C call until 00:26:02 (the Edge log's
+    `deployment_id` `…_145`), so it was the version at 00:00 and at 00:10. v146 (run 398, `592111de`, 00:26:43) answers
+    from 00:27:01; no `agents` deploy came between the two.
+  - `pm_rwc_state` (its `state` never read): `last_minute` 00:33:00 at 00:35:30 (2 min 31 s behind) and 00:41:00 at
+    00:43:16, `updated_at` 00:43:00.6, `last_error` null; `pm_rwc_minutes` held 39 distinct minutes of 10-08 at 00:43.
+- **Daily health of RW, RW-E and RW-X (item 2), scalars only, read 00:35–00:44; no market-level figure was read.**
+  `last_error` null on all three. `last_minute`: RW 00:37 at 00:40:06 (186 s: the 00:40 batch was late, below) and 00:41
+  at 00:43; RW-E and RW-X 00:36 at 00:40:06. Today's `pm_rw_selection` present (15 rows, stored 00:01:00.8); `pm_rw_days`
+  14 rows, 09-24 … 10-07, 10-07 closed 00:02:00.5. RW-E: version 3, `checkMaxUsd` 0, `diverged` 0. RW-X: version 2,
+  `checkMaxUsd` 0, `checkEMaxUsd` 0 over 13 days; arms e, rw, tb1-back, tb1-skip, x1–x5, none with a `start`, tb1's `base`
+  {}; `diverged` markets e 0, rw 0, x1 0, tb1-skip 3, tb1-back 4, x2 18, x3 15, x4 15, x5 27 (counts only).
+  `net._http_response` holds ten minutes at most (empty at 00:42), so the 546/5xx read is the Edge log's, 24 h to 00:44:
+  no 546 on any `pmrw*` / `pmrwc*` call; `pmrw-select` 245 × 200 (slowest 11.5 s), 1 × 500 (10-07 20:17:40) and 2 × 503
+  (last 16:45); `pmrwc-select` 251 × 200, nothing else; the last 5xx on any of them was a 503 on `pmrw-e` at 23:31:10.
+  `ops_errors`: no row after 10-07 20:47. NOT checked: the page's "fills and total differ" line (its figure comes from
+  per-market accounts, which this read leaves alone; the replays' check fields above stand in for it).
+- **Found while reading the beats, not fixed: the `:X0` minutes (item 2's bullet).** From the first run of `0093`'s
+  `http-response-truncate` (`*/10`, 20:50 on 10-07) to 00:41, the `tick` beat is missing at 18 of the 24 `:X0` minutes
+  (21:10 … 21:50, 22:10 … 22:40, 23:00 … 23:30, 23:50, 00:00, 00:10, 00:30, 00:40) and at none of the 208 others; from
+  10-06 01:00 (the start of what was read) to 10-07 02:53 none was missing, and the stall of 02:55 → 20:47 lost
+  scattered minutes. At 00:00 and 00:10 not one of the batch's ~26 calls has a beat, and all of them beat at 00:01 and
+  00:11 (0.4–2 s into the minute); `cron.job_run_details` has job 27 starting on time (00:00:00.19, 26 rows, 0.06 s), so
+  the delay is downstream of it, in pg_net. The truncate took 0.05–0.18 s at the 17 lost minutes through 00:30 and at
+  four of the six on-time `:X0` ones (20:50, 21:00, 22:00, 00:20); it waited its full 30 s and gave up at the other
+  two, 22:50 and 23:40. No other cron job runs at a `:X0` minute in those hours. That the truncate is the cause is a
+  lead, not a finding: the next step is a test with it moved or replaced. Queries: `edge_call_beats` by minute,
+  `cron.job_run_details` of jobs 27 and 37, and the Edge log's requests per minute (`function_edge_logs`, grouped by
+  `toStartOfMinute(timestamp)`).
 
 ### [2026-10-08 00:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The page's variant-2/-3/-4 rows (x1, tb1-skip, tb1-back) read RW-C's replay from RW-C's first minute** (Davies,
