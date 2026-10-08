@@ -813,6 +813,18 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The portfolio keeps its earlier versions** (review F9, approved by Davies 2026-10-08). `board_data` is one row
+  that every save overwrites, so a save that lost shares could only be undone from the platform's backups.
+  `0098_board_data_history.sql`: an AFTER UPDATE OR DELETE trigger copies the version being replaced into
+  `board_data_history` (RLS on, no grant to anon or authenticated, `search_path` empty) when `data` changes, and
+  `board-data-history-prune` (SQL only, 10:55 UTC daily) keeps 90 days. About 25 kB a version and a few saves a
+  day: a few MB. Restoring is by hand, one statement in the migration's header. Checked on PGlite 16 with 0009 and
+  0013 (`board_history_check.mjs` in the session's scratchpad): a changing save keeps one row, an unchanged one and a
+  refused one keep none, a delete keeps one, a restore keeps the version it replaces; without 0098 nothing is kept.
+  Pinned in `src/cron_jobs.test.js` (the job, its command, the trigger, RLS, no grant). Applies on push
+  (`migrations.yml`); nothing in the app reads the table.
+
 ### [2026-10-08 14:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's live executor watches the dead-man switch back** (review F5, approved by Davies 2026-10-08). The switch
   runs from the monitor Worker, and nothing watched the Worker: had it stopped, the live account would have kept

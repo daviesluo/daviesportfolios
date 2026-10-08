@@ -484,6 +484,21 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  it('keeps the portfolio\'s earlier versions 90 days, pruned by a job that calls nothing (0098)', () => {
+    // review F9 (2026-10-08): every change to board_data copies the version it replaces first; checked on PGlite in the
+    // review's evidence (a save that changes the data keeps one row, one that does not keeps none, a delete keeps one).
+    const T = '0098_board_data_history.sql';
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['board-data-history-prune']);
+    const job = jobsAfter.get('board-data-history-prune');
+    expect(job.command.trim()).toBe("delete from public.board_data_history where replaced_at < now() - interval '90 days';");
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).toMatch(/after update or delete on public\.board_data\s+for each row execute function public\.board_data_keep_history\(\)/);
+    expect(sql).toMatch(/alter table public\.board_data_history enable row level security/);
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
+  });
+
   it('refuses a statement on the list it cannot replay, so a later change to the list must be taught here', () => {
     const seed = "insert into public.edge_calls (path, timeout_ms, every_minutes, last_utc_hour, retry) values ('a?action=x', 1000, 1, 23, true), ('b', 2000, 5, 9, false) on conflict (path) do nothing;";
     expect(replayList([['seed', seed]]).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.enabled, r.retry]))
