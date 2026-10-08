@@ -407,19 +407,21 @@ How the less obvious parts work, and why they are built the way they are.
 - **Build / CI** — Vite production bundle; Vitest for unit and component
   tests (`jsdom` + `@testing-library/react`); `tsc --noEmit` for
   type-checking; ESLint; knip; size-limit; Playwright for the browser
-  sweep. Seven GitHub Actions workflows: `check.yml` (every push: bundle
-  freshness, type-check, lint, unit tests, build, browser sweep,
-  bundle-size budget, dead-code scan, dependency audit; the source checks,
-  the sweep's four shards and the perf matrix with the size budget run as
-  jobs at once),
+  sweep. Seven GitHub Actions workflows: `check.yml` (every push:
+  type-check, lint, unit tests, a build that must reproduce the committed
+  `dist/` byte for byte, dead-code scan, dependency audit, and on that
+  committed bundle the browser sweep, the perf matrix and the size budget;
+  the source checks, the sweep's four shards and the perf matrix with the
+  size budget run as jobs at once),
   `edge-functions.yml` (`deno check` + `deno test`, then on push to main
   an auto-deploy of every function whose folder changed since the
   workflow's last successful run, or of all of them when
   `supabase/functions/_shared/` changed),
   `migrations.yml` (PR-time SQL lint; on main, `supabase db push` applies
   any new migration against production's `schema_migrations`),
-  `pages-deploy.yml` (on a `dist/` change to `main`, or by hand: Wrangler
-  Direct Upload of the committed `dist/`, no Pages Git clone),
+  `pages-deploy.yml` (on a `dist/` change to `main` once `check.yml` has
+  passed on that commit, or by hand: Wrangler Direct Upload of the
+  committed `dist/`, no Pages Git clone),
   `healthcheck.yml` (asks for every 10 minutes, which GitHub's scheduler
   treats as best effort: pings the production functions and checks the live
   site's shell and chunks), `monitor-deploy.yml` (on a change to
@@ -491,7 +493,8 @@ The npm project's own files (`package.json` and the rest are under "Build, CI an
 |---|---|
 | `index.html` | The page Vite builds from; it loads `app/main.jsx`. |
 | `public/_headers`, `public/robots.txt` | Copied into `dist/` as they are: Cloudflare's cache and security headers, and a site-wide noindex. |
-| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp, and Vitest's settings. |
+| `vite.config.js` | The build: React, the PWA service worker, output to `dist/`, the build stamp (a hash of the source, so a build is reproducible), and Vitest's settings. |
+| `build_stamp.js` | The build's stamp: a hash of the app's source as git would commit it, never the clock, so a commit's bundle rebuilds byte for byte. |
 | `eslint.config.js`, `test_setup.js` | The lint rules for `src/`, and the Vitest setup that adds the DOM matchers. |
 
 #### `app/` — the shell
@@ -802,15 +805,15 @@ before touching migration state.
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
-| `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once. |
+| `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once, the bundle's freshness among them. |
 | `bin/edge-changed.sh` | The functions a push to main deploys: those changed since the deploy workflow's last successful run. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook. |
-| `.github/workflows/check.yml` | On every push: bundle freshness, type-check, lint, tests, build, both browser tests, bundle size, dead code, the audit, as parallel jobs. |
+| `.github/workflows/check.yml` | On every push: type-check, lint, tests, a build that must reproduce the committed bundle byte for byte, both browser tests and the size budget on that committed bundle, dead code, the audit, as parallel jobs. |
 | `.github/workflows/edge-functions.yml` | Checks and tests the functions, and deploys the ones that changed since its last successful run. |
 | `.github/workflows/migrations.yml` | Lints migrations, and applies new ones on `main`. |
 | `.github/workflows/healthcheck.yml` | Asks for every 10 minutes (GitHub runs it when it can): pings the functions to keep them warm and checks the live site's code; opens an issue when something is down. |
-| `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
+| `.github/workflows/pages-deploy.yml` | On a `dist/` change to `main`, once `check.yml` has passed on that commit, or by hand: uploads the committed `dist/` to Cloudflare Pages with Wrangler (no Git clone on their builders). |
 | `.github/workflows/monitor-deploy.yml` | On a change to `workers/monitor/`, or by hand: tests and deploys the monitor Worker with a pinned wrangler, and sets `MONITOR_SECRET` on the Worker and in Supabase when asked or missing. |
 | `.github/workflows/monitor-alert.yml` | Started by the monitor Worker: opens the one issue labelled `monitor`, or comments on it. |
 | `workers/monitor/wrangler.jsonc` | The monitor Worker's configuration: its one-minute cron, its KV namespace, the dead-man's memory (a Durable Object), the public addresses it checks. |
@@ -1100,9 +1103,12 @@ A push that changes `dist/` is published two ways, until one is turned
 off: Cloudflare's Git-connected builder (set its Build watch paths
 Include to `dist/*` so a non-site push builds nothing there; a `dist/`
 push still clones the repository) and `.github/workflows/pages-deploy.yml`,
-which Direct-Uploads the committed folder with Wrangler and does not
-clone. Disconnect the Git integration later if both publishing the same
-bundle is waste; the workflow does not change that dashboard setting.
+which waits for `check.yml` to pass on the commit, then Direct-Uploads the
+committed folder with Wrangler and does not clone. The Git-connected
+builder waits for nothing: while it is connected, a `dist/` push reaches
+the site whether or not CI passed. Disconnecting it makes the workflow the
+only publisher, and so a red commit never published; the workflow does not
+change that dashboard setting.
 
 ### 6. Visit
 
@@ -1122,8 +1128,8 @@ changes a function's folder (all of them when `_shared/` changes), gated
 by `deno test`; manual paste-into-dashboard is only needed when the
 deploy secrets are missing. The committed `dist/` is Direct-Uploaded by
 `.github/workflows/pages-deploy.yml` when that folder (or `wrangler.jsonc`)
-changes on `main`; it needs `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+changes on `main` and `check.yml` has passed on the commit; it needs
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
 
 When a PR is open, its description is maintained with the branch: every
 push that changes the diff rewrites the summary in the same step, and

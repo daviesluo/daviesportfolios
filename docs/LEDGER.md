@@ -821,6 +821,28 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 16:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CI tests the committed bundle, requires it to be the commit's own build, and the deploy waits for CI** (review F7,
+  approved by Davies 2026-10-08; the committed-bundle model kept). Until now the build stamp was the build's UTC minute,
+  so two builds of a commit differed in all nine hashed chunks; CI built its own bundle and tested that; the freshness
+  gate only asked that a push touching `src/` touch `dist/`; and `pages-deploy` ran beside `check` (run 37697762469
+  published `dd2e979e`, whose check failed its freshness step).
+  - **Deterministic build.** `src/build_stamp.js`: the stamp is `src.` and 12 hex digits of a SHA-256 over the app's
+    files as git would commit them (tracked or new, not ignored; tests, `e2e/` and `.md` left out). Two builds a minute
+    apart were identical but for the ignored `sw.js.map` (a temp path); a second build leaves `dist/` as committed.
+    `git log -S<stamp> --oneline -- dist` finds a report's commit. `APP_VERSION` overrides; without git, the old minute.
+  - **check.yml.** The source job builds and fails unless `git status --porcelain -- dist` is empty (no change, removal
+    or addition); the sweep shards and the perf-and-size job build nothing and read `dist/` as checked out.
+  - **pages-deploy.yml.** A push waits (up to 40 minutes) for `check.yml`'s run of the same commit: success publishes,
+    failure or cancellation publishes nothing with a warning; a run by hand does not wait. The query, read-only on the
+    real repository: `completed success` for main's head, `completed failure` for `dd2e979e`.
+  - **bin/gates.sh.** The bundle line checks the same freshness right after its build.
+  Cloudflare's Git-connected builder, if still connected (`dist/*` watch path), publishes a `dist/` push without waiting
+  for anything: disconnecting it is Davies' dashboard step, written in the map. Pins: `src/build_stamp.test.js` (a
+  scratch repository: the same source at two hours, tests/notes/ignored files not moving it, the source moving it, an
+  untracked new file moving it, the override, the fallback; and the workflows and gates as written); three fail on the
+  old clock stamp. CLAUDE.md (the build and the deploy), map rows, version.js and ops_error.js comments.
+
 ### [2026-10-08 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The 30 s tick no longer asks for every US holding's 1d/5m bars again** (review F12, approved by Davies 2026-10-08).
   Outside the regular session each refresh fetched the extended-hours bars of every US holding (one chart call, which

@@ -6,24 +6,11 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { buildStamp } from './build_stamp.js';
 
-// Build-time CalVer with minute-precision timestamp → `YYYY.M.D.HHMM`.
-// Deliberately SHA-less: Cloudflare Pages serves the committed `dist/`
-// as-is (no build at deploy time), so the build SHA we'd bake in would
-// be the parent commit's SHA, not
-// the commit that actually ships the bundle (chicken-and-egg: writing
-// the bundle into git changes the SHA the bundle references). After
-// squash-merge the PR-commit SHA also disappears from main entirely.
-// A minute-precision UTC timestamp side-steps both: every rebuild
-// produces a unique stamp, and `ops_error.ver` → git log around that
-// UTC minute → commit is a 30-second triage path.
-function computeAppVersion() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}.` +
-         `${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}`;
-}
-const APP_VERSION = computeAppVersion();
+// The build's stamp (`ops_error.ver`): a hash of the source, never the clock, so a commit's bundle can be rebuilt
+// byte for byte (review F7). build_stamp.js has the rule and its reasons.
+const APP_VERSION = buildStamp(fileURLToPath(new URL('.', import.meta.url)));
 
 // This file lives in `src/`, the web app's npm project, where Vite and
 // Vitest look for it, and the root is its own folder rather than a path

@@ -79,11 +79,14 @@ Non-obvious caveats:
 - **`npm run build` writes the bundle to `dist/`**, and that committed
   bundle is served as-is by Cloudflare Pages (`wrangler.jsonc`'s
   `pages_build_output_dir` makes `dist/` the only directory it
-  publishes). Running a build dirties the working tree; if you did not
-  intend to ship a bundle, restore with `git checkout -- dist/` and
-  `git clean -fdq dist/`. Per the CI "bundle freshness" gate, any change
-  to `src/*.{js,jsx,css}` MUST be committed together with a rebuilt
-  bundle or CI goes red.
+  publishes). The build is deterministic (2026-10-08, review F7): its
+  stamp is a hash of the source, not the clock, so building unchanged
+  source changes nothing in `dist/`. CI builds every commit and goes red
+  unless the result is the committed `dist/` byte for byte, then tests
+  that committed bundle: a change to `src/` (anything but tests, `e2e/`
+  and notes) MUST be committed together with the `dist/` its build
+  wrote. A build that did change `dist/` when you meant to ship nothing
+  is undone with `git checkout -- dist/` and `git clean -fdq dist/`.
 
 ## Documentation
 
@@ -232,7 +235,9 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   dashboard) and `.github/workflows/pages-deploy.yml` (Wrangler Direct
   Upload of the committed `dist/`) publish a `dist/` change. The Action
   is the path that does not clone the whole repository on Cloudflare's
-  builders. `check.yml` still runs on every push. If a push leaves
+  builders, and it publishes a push only once `check.yml` has passed on
+  the same commit (a run by hand does not wait). `check.yml` still runs
+  on every push. If a push leaves
   `main` red, fix-up commit on `main` is the next priority — don't
   move on to new features while CI is broken.
 - Never force-push `main` and never bypass hooks (`--no-verify`)

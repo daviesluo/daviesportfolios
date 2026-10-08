@@ -1,8 +1,10 @@
 #!/bin/sh
 # Every gate CI runs, stopping at the first failure: check.yml's, then the Edge Function checks from
-# edge-functions.yml. Run it before every push. check.yml also refuses a push that changes src/ without the rebuilt
-# dist/, so commit the dist/ this build writes along with the change. The browser checks need Chromium: CI installs
-# it; a container that ships its own sets PLAYWRIGHT_CHROMIUM_PATH.
+# edge-functions.yml. Run it before every push. The build is deterministic (the stamp comes from the source, not the
+# clock: vite.config.js), and check.yml builds each commit and refuses it unless the build reproduces the committed
+# dist/ byte for byte; so does the bundle line here, after its build (`git status -- dist` must be clean), before the
+# sweep, the perf matrix and the size budget read it. Commit the dist/ the build writes with the change that needs it.
+# The browser checks need Chromium: CI installs it; a container that ships its own sets PLAYWRIGHT_CHROMIUM_PATH.
 #
 # It runs the gates the change can break, not every gate every time (Davies, 2026-09-27: the full run had grown to
 # twelve minutes). The change is everything against origin/main: commits not yet pushed, edits and new files.
@@ -125,6 +127,15 @@ bundle() {
   t=$(date +%s)
   npm run build > "$LOGS/build.log" 2>&1 || { echo "FAIL build"; cat "$LOGS/build.log"; return 1; }
   echo "ok   build ($(( $(date +%s) - t )) s)"
+  # The bundle's freshness, as check.yml asks it (review F7): this source's build is the committed dist/, byte for
+  # byte. A dist/ the build changed is either uncommitted or stale, and either way not what a push would publish.
+  if [ -n "$(git -C "$ROOT" status --porcelain -- dist)" ]; then
+    echo "FAIL bundle freshness: dist/ is not the build of the committed source (git status -- dist):"
+    git -C "$ROOT" status --short -- dist | head -20
+    echo "  commit the dist/ this build wrote, with the change it belongs to"
+    return 1
+  fi
+  echo "ok   bundle freshness (the build reproduced the committed dist/)"
   # Two shards a viewport, by each part's seconds on an idle 4-core machine (2026-10-01): `main`, sections 1–8 on one
   # page, ~65 s at either width, and the rest ~35 s.
   shards="$(sweep_shards desktop main; sweep_shards phone main)"

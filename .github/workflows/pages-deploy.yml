@@ -1,8 +1,12 @@
 # Publish the committed dist/ to Cloudflare Pages via Wrangler Direct
 # Upload. This is NOT Cloudflare's Git-connected builder: that path
 # clones the whole repository (study data under docs/, full history)
-# to publish one folder. check.yml already gates bundle freshness;
-# this workflow uploads that committed folder and does not run npm.
+# to publish one folder. It does not run npm: it uploads the committed
+# folder, and only once check.yml has passed on the same commit (review
+# F7, 2026-10-08) — that workflow builds the commit and requires the
+# committed dist/ byte for byte, then tests that very bundle. Until then
+# the two ran side by side, and run 37697762469 published dd2e979e while
+# its check failed the bundle-freshness step.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN   Cloudflare API token
@@ -41,11 +45,14 @@ concurrency:
 permissions:
   contents: read
   deployments: write
+  # The wait step reads check.yml's runs of this commit.
+  actions: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Most of it is waiting for check.yml (about five minutes; at most 40).
+    timeout-minutes: 50
     steps:
       # Actions SHA-pinned (mutable tags can be silently re-pointed by
       # a compromised maintainer to run arbitrary code against the
@@ -58,6 +65,31 @@ jobs:
 
       - name: Require committed bundle
         run: test -f dist/index.html
+
+      - name: Wait for check.yml on this commit
+        # A push publishes only a commit check.yml passed. A check that
+        # failed or was cancelled (a newer push) means this commit is not
+        # published, said as a warning: check's own red run is the alarm.
+        # A run by hand (workflow_dispatch) is the owner's call and does
+        # not wait.
+        id: checked
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          for i in $(seq 1 80); do
+            run=$(gh api "repos/$REPO/actions/workflows/check.yml/runs?head_sha=$SHA&event=push&per_page=1" \
+              --jq '.workflow_runs[0] | "\(.status) \(.conclusion)"' 2>/dev/null || true)
+            case "$run" in
+              "completed success") echo "check passed on $SHA"; echo "ok=1" >> "$GITHUB_OUTPUT"; exit 0 ;;
+              completed*) echo "::warning::check ended '${run#completed }' on $SHA, so it is not published."; echo "ok=0" >> "$GITHUB_OUTPUT"; exit 0 ;;
+            esac
+            sleep 30
+          done
+          echo "::error::check did not finish on $SHA within 40 minutes, so it is not published."
+          exit 1
 
       - name: Check Cloudflare secrets
         id: creds
@@ -73,7 +105,7 @@ jobs:
           fi
 
       - name: Deploy committed dist/
-        if: steps.creds.outputs.ready == '1'
+        if: steps.creds.outputs.ready == '1' && (github.event_name != 'push' || steps.checked.outputs.ok == '1')
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
