@@ -821,6 +821,16 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 17:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Trading 212 cash-movement walk is gone from `trading212`** (review M1, approved by Davies 2026-10-08):
+  `?action=history-sync`, `?action=transactions`, the walk, its page fetcher, shaper and cursor helpers, about 400
+  lines and their 8 tests. Dead since the 2026-08-18 rollback: no client or job calls either action (the function's
+  log for the last 24 h has only `orders`, `orders-sync`, `dividends` and the holdings read), and
+  `t212_transactions_sync` was last written 2026-08-18. **The tables `t212_transactions` and
+  `t212_transactions_sync` stay** (nothing written to either since 2026-08-18): no migration drops them, and a
+  later reader of the cash history starts from them. `orders-sync` answers as before less its always-false
+  `transactionsComplete`, which nothing read. Deno: 67 pass.
+
 ### [2026-10-08 16:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Review batch 2 verified in production; batch 3 (F7, F12, F13, F14) landed as the reviewer committed it**,
   fast-forward on 1bcf9079 with the same hashes; a rebuild at the head leaves dist/ unchanged (F7's stamp).

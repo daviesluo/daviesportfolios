@@ -106,7 +106,6 @@ export { t212TickerToYahoo };
 // guessing. Rate limited far harder than positions, so it's backfilled
 // one page at a time into `t212_orders` and read from there afterwards.
 export const T212_ORDERS_URL = "https://live.trading212.com/api/v0/equity/history/orders";
-export const T212_TRANSACTIONS_URL = "https://live.trading212.com/api/v0/equity/history/transactions";
 
 /**
  * Normalise one row of T212's order history into a lot-shaped record.
@@ -466,10 +465,10 @@ export function dailyCloseAt(timestamps: number[], closes: (number | null)[], at
  * The `nextPagePath` T212 returned, or null at the end of the history.
  *
  * T212's own pagination rule is to request that path as-is. Orders
- * historically stored only the `cursor=` query value; transactions
- * require `cursorId` *and* `time` together, so stripping the path
- * down to `cursor=` 400s the next page ("Both or none of cursorId
- * and time must be provided") after the first 50 rows.
+ * historically stored only the `cursor=` query value; the cash-movement
+ * pages (read here until 2026-10-08) required `cursorId` *and* `time`
+ * together, and stripping their path down to `cursor=` 400'd the next
+ * page ("Both or none of cursorId and time must be provided").
  */
 export function nextPagePathOf(body: unknown): string | null {
   if (!body || typeof body !== "object") return null;
@@ -495,45 +494,6 @@ export function nextOrdersCursor(body: unknown): string | null {
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-/** Store the whole transactions nextPagePath — cursorId and time travel together. */
-export function nextTransactionsCursor(body: unknown): string | null {
-  return nextPagePathOf(body);
-}
-
-/**
- * URL for one transactions page. A leftover bare `cursor=` token from
- * the orders shaper is ignored: sending it without `time` is the 400
- * that parked both accounts after the first page.
- */
-export function transactionsPageUrl(stored: string | null, limit = 50): string {
-  const s = (stored || "").trim();
-  if (s.startsWith("http://") || s.startsWith("https://")) return s;
-  if (s.startsWith("/")) return `https://live.trading212.com${s}`;
-  if (s.startsWith("?")) return `${T212_TRANSACTIONS_URL}${s}`;
-  // Production also returns JUST the query string (no leading "?"):
-  // `limit=50&cursor=…&time=…`. Treat it as a page path only when the
-  // required cursor + time pair is present. The previous code mistook
-  // it for a legacy bare token, silently requested page one again, and
-  // incremented `fetched` forever while the stored row count stayed 50.
-  if (s.includes("=")) {
-    const params = new URLSearchParams(s);
-    const hasCursor = params.has("cursor") || params.has("cursorId");
-    if (hasCursor && params.has("time")) {
-      return `${T212_TRANSACTIONS_URL}?${s}`;
-    }
-  }
-  const url = new URL(T212_TRANSACTIONS_URL);
-  url.searchParams.set("limit", String(limit));
-  return url.toString();
-}
-
-export function transactionCursorAdvanced(
-  current: string | null,
-  next: string | null,
-): boolean {
-  if (!next || !current) return true;
-  return transactionsPageUrl(current) !== transactionsPageUrl(next);
-}
 
 /** The `items` array, whatever the envelope calls it. */
 export function ordersItemsOf(body: unknown): unknown[] {
@@ -546,56 +506,6 @@ export function ordersItemsOf(body: unknown): unknown[] {
   return [];
 }
 
-/**
- * One cash-movement row from `/equity/history/transactions`.
- *
- * Published fields are `amount`, `currency`, `dateTime`, `reference`,
- * `type` (DEPOSIT / WITHDRAW / FEE / TRANSFER / INTEREST_ON_FREE_CASH /
- * LENDING_INTEREST). Defensive about aliases the same way the order
- * shaper is: a silently-dropped deposit is a hole in "money paid in".
- * Unknown types are stored, not dropped — the deposit line ignores
- * everything except deposit/withdraw, and a later reading can use the
- * rest without re-fetching.
- */
-export function shapeT212Transaction(raw: unknown, account: string): {
-  id: string;
-  account: string;
-  type: string;
-  amount: number;
-  currency: string;
-  occurred_at: string;
-} | null {
-  if (!raw || typeof raw !== "object") return null;
-  const o = raw as Record<string, unknown>;
-  const num = (v: unknown): number | null =>
-    (typeof v === "number" && isFinite(v)) ? v
-      : (typeof v === "string" && v.trim() !== "" && isFinite(Number(v)) ? Number(v) : null);
-
-  const typeRaw = typeof o.type === "string" ? o.type
-    : (typeof o.transactionType === "string" ? o.transactionType : "");
-  const type = typeRaw.trim().toLowerCase();
-  if (!type) return null;
-
-  const amount = num(o.amount);
-  if (amount == null || amount === 0) return null;
-
-  const currencyRaw = typeof o.currency === "string" ? o.currency.trim() : "";
-  const currency = (currencyRaw || "USD").toUpperCase();
-
-  const when = [o.dateTime, o.time, o.date, o.createdAt]
-    .find((d) => typeof d === "string" && !isNaN(Date.parse(d as string)));
-  if (!when) return null;
-
-  const reference = String(o.reference ?? o.id ?? `${type}:${when}:${amount}`);
-  return {
-    id: `${account}:${reference}`,
-    account,
-    type,
-    amount,
-    currency,
-    occurred_at: new Date(when as string).toISOString(),
-  };
-}
 
 /**
  * The read-only probe's summary of one orders page: which currency fields T212 sends on a fill, and what they say, per
@@ -1189,34 +1099,6 @@ async function fetchT212OrdersPage(
   return { ok: true, body: got.body };
 }
 
-/**
- * One page of cash movements for one account. Same auth dance and 403
- * distinction as the orders page — History: transactions is a separate
- * T212 scope, but a key that already reads orders almost always has it.
- */
-async function fetchT212TransactionsPage(
-  apiKey: string,
-  apiSecret: string,
-  cursor: string | null,
-  limit = 50,
-): Promise<{ ok: true; body: unknown } | { ok: false; status: number; message: string }> {
-  const url = transactionsPageUrl(cursor, limit);
-  const attempts = apiSecret ? [basicAuthHeader(apiKey, apiSecret), apiKey] : [apiKey];
-  const got = await historyPageRequest(url.toString(), attempts);
-  if (!got.ok) return got;
-  const res = got.res;
-  if (!res.ok) {
-    const snippet = (await res.text().catch(() => "")).slice(0, 200);
-    const hint = res.status === 403
-      ? " — the API key authenticates but is not permitted to read transactions. " +
-        "Regenerate it in Trading 212 with History: transactions enabled."
-      : res.status === 429
-      ? " — rate limited; this endpoint allows only a few calls a minute. Try again shortly."
-      : "";
-    return { ok: false, status: res.status, message: `T212 ${res.status} ${res.statusText}${hint} :: ${snippet}` };
-  }
-  return { ok: true, body: got.body };
-}
 
 /** Upsert a batch of shaped fills. Idempotent on the fill id; a fill without a currency leaves the stored one alone. */
 async function writeOrders(rows: NonNullable<ReturnType<typeof shapeT212Order>>[]): Promise<boolean> {
@@ -1738,95 +1620,6 @@ async function syncOrdersOnce(
   };
 }
 
-async function writeTransactions(rows: unknown[]): Promise<boolean> {
-  if (rows.length === 0) return true;
-  try {
-    const res = await fetch(`${SB_URL}/rest/v1/t212_transactions`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        authorization: `Bearer ${SERVICE_KEY}`,
-        "content-type": "application/json",
-        prefer: "resolution=merge-duplicates",
-      },
-      body: JSON.stringify(rows),
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!res.ok) {
-      const snippet = (await res.text().catch(() => "")).slice(0, 200);
-      const hint = snippet.includes("42P01")
-        ? " — apply migration 0025 (t212_transactions) via supabase db push."
-        : "";
-      console.error(`T212 transactions write ${res.status}: ${snippet}${hint}`);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error("T212 transactions write error:", e instanceof Error ? e.message : e);
-    return false;
-  }
-}
-
-async function readTransactionsSync(account: string): Promise<Record<string, unknown> | null> {
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/t212_transactions_sync?account=eq.${encodeURIComponent(account)}&select=*`,
-      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
-        signal: AbortSignal.timeout(5_000) },
-    );
-    if (!res.ok) return null;
-    const arr = await res.json();
-    return Array.isArray(arr) && arr[0] ? arr[0] : null;
-  } catch {
-    return null;
-  }
-}
-
-async function writeTransactionsSync(row: Record<string, unknown>): Promise<void> {
-  try {
-    await fetch(`${SB_URL}/rest/v1/t212_transactions_sync`, {
-      method: "POST",
-      headers: {
-        apikey: SERVICE_KEY,
-        authorization: `Bearer ${SERVICE_KEY}`,
-        "content-type": "application/json",
-        prefer: "resolution=merge-duplicates",
-      },
-      body: JSON.stringify({ ...row, updated_at: new Date().toISOString() }),
-      signal: AbortSignal.timeout(5_000),
-    });
-  } catch (e) {
-    console.error("T212 transactions sync-state write error:", e instanceof Error ? e.message : e);
-  }
-}
-
-async function readTransactions(): Promise<unknown[]> {
-  try {
-    const res = await fetch(
-      `${SB_URL}/rest/v1/t212_transactions?select=type,amount,currency,occurred_at,account&order=occurred_at.asc&limit=5000`,
-      { headers: { apikey: SERVICE_KEY, authorization: `Bearer ${SERVICE_KEY}`, accept: "application/json" },
-        signal: AbortSignal.timeout(8_000) },
-    );
-    if (!res.ok) {
-      const snippet = (await res.text().catch(() => "")).slice(0, 200);
-      console.error(`T212 transactions read ${res.status}: ${snippet}`);
-      return [];
-    }
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function transactionsSyncComplete(): Promise<boolean> {
-  const invest = await readTransactionsSync("invest");
-  if (invest?.complete !== true) return false;
-  if (T212_ISA_API_KEY) {
-    const isa = await readTransactionsSync("isa");
-    if (isa?.complete !== true) return false;
-  }
-  return true;
-}
 
 async function ordersSyncComplete(): Promise<boolean> {
   const invest = await readOrdersSync("invest");
@@ -1838,126 +1631,6 @@ async function ordersSyncComplete(): Promise<boolean> {
   return true;
 }
 
-async function syncTransactionsOnce(
-  account: string,
-  apiKey: string,
-  apiSecret: string,
-): Promise<Record<string, unknown>> {
-  const state = await readTransactionsSync(account);
-  const done = state?.complete === true;
-  const cursor = done ? null : (typeof state?.cursor === "string" ? state.cursor : null);
-  const page = await fetchT212TransactionsPage(apiKey, apiSecret, cursor);
-  if (!page.ok) {
-    await writeTransactionsSync({ account, cursor, complete: done, fetched: state?.fetched ?? 0, last_error: page.message });
-    return {
-      account, error: page.message, status: page.status,
-      complete: done, added: 0, scopeDenied: page.status === 403,
-    };
-  }
-  const items = ordersItemsOf(page.body);
-  if (!ordersPageEnvelopeRecognized(page.body)) {
-    const msg = "shape mismatch: unrecognised page envelope";
-    await writeTransactionsSync({
-      account, cursor, complete: false,
-      fetched: state?.fetched ?? 0, last_error: msg,
-    });
-    return {
-      account, added: 0, skipped: 0,
-      fetched: state?.fetched ?? 0, complete: false, error: msg,
-    };
-  }
-  const rows = items
-    .map((it) => shapeT212Transaction(it, account))
-    .filter((r): r is NonNullable<ReturnType<typeof shapeT212Transaction>> => r !== null);
-  const recognized = items.filter((it) => {
-    if (!it || typeof it !== "object") return false;
-    const o = it as Record<string, unknown>;
-    return typeof o.type === "string" || typeof o.amount === "number"
-      || typeof o.dateTime === "string";
-  }).length;
-  if (ordersPageShapeMismatch(items.length, rows.length, recognized)) {
-    const sampleKeys = items[0] && typeof items[0] === "object"
-      ? Object.keys(items[0] as object).sort().join(",")
-      : "";
-    const msg = `shape mismatch: ${items.length} items, ${rows.length} parsed`
-      + (sampleKeys ? ` (top-level keys: ${sampleKeys})` : "");
-    console.error(`T212 transactions ${account}: ${msg}`);
-    await writeTransactionsSync({
-      account, cursor, complete: false,
-      fetched: state?.fetched ?? 0, last_error: msg,
-    });
-    return {
-      account, added: 0, skipped: items.length,
-      fetched: state?.fetched ?? 0, complete: false, error: msg,
-    };
-  }
-  const wrote = await writeTransactions(rows);
-  const next = nextTransactionsCursor(page.body);
-  if (!done && wrote && next && !transactionCursorAdvanced(cursor, next)) {
-    const msg = "pagination cursor did not advance";
-    await writeTransactionsSync({
-      account,
-      cursor,
-      complete: false,
-      fetched: state?.fetched ?? 0,
-      last_error: msg,
-    });
-    return {
-      account,
-      added: 0,
-      skipped: items.length,
-      fetched: state?.fetched ?? 0,
-      complete: false,
-      error: msg,
-    };
-  }
-  const complete = done || (wrote && next === null);
-  const fetched = done
-    ? (typeof state?.fetched === "number" ? state.fetched : rows.length)
-    : (typeof state?.fetched === "number" ? state.fetched : 0) + rows.length;
-  await writeTransactionsSync({
-    account,
-    cursor: done ? null : next,
-    complete,
-    fetched,
-    last_error: wrote ? null : "storage write failed",
-  });
-  return {
-    account,
-    added: rows.length,
-    skipped: items.length - rows.length,
-    fetched,
-    complete,
-    ...(wrote ? {} : { error: "storage write failed — apply migration 0025" }),
-  };
-}
-
-/**
- * What this account should do on this history-sync tick.
- *
- * Orders still go first *for that account* — cash history must not
- * replace the deposit line until fills are in, or ISA lots get counted
- * twice. A finished account does not steal the rate-limit slot while
- * another account is still backfilling (that was parking cash history
- * behind ISA cancelled-order pages, and topping up invest page one
- * every 20 s).
- */
-export function nextHistoryKind(
-  ordersComplete: boolean,
-  txComplete: boolean,
-  anyBackfillOpen: boolean,
-): "orders" | "transactions" | "skip" | "topup" {
-  if (!ordersComplete) return "orders";
-  if (!txComplete) return "transactions";
-  if (anyBackfillOpen) return "skip";
-  return "topup";
-}
-
-export function pickAccountTopUp(ordersUpdatedAt: unknown, txUpdatedAt: unknown): "orders" | "transactions" {
-  const oAt = Date.parse(String(ordersUpdatedAt || 0)) || 0;
-  const tAt = Date.parse(String(txUpdatedAt || 0)) || 0;
-  return oAt <= tAt ? "orders" : "transactions";
-}
 
 function t212HistoryAccounts(): Array<[string, string, string]> {
   const accounts: Array<[string, string, string]> = [["invest", T212_API_KEY, T212_API_SECRET]];
@@ -1965,54 +1638,15 @@ function t212HistoryAccounts(): Array<[string, string, string]> {
   return accounts;
 }
 
-async function syncHistoryAccounts(
-  kind: "orders" | "transactions",
-): Promise<Record<string, unknown>[]> {
+/** One page of fills per account, in turn: two accounts on one endpoint already sit on its 6/min ceiling. */
+async function syncHistoryAccounts(): Promise<Record<string, unknown>[]> {
   const results: Record<string, unknown>[] = [];
   for (const [name, key, secret] of t212HistoryAccounts()) {
-    results.push({
-      ...(kind === "orders"
-        ? await syncOrdersOnce(name, key, secret)
-        : await syncTransactionsOnce(name, key, secret)),
-      stream: kind,
-    });
+    results.push({ ...(await syncOrdersOnce(name, key, secret)), stream: "orders" });
   }
   return results;
 }
 
-async function syncHistoryPerAccount(): Promise<Record<string, unknown>[]> {
-  const accounts = t212HistoryAccounts();
-  const states: Array<{
-    name: string; key: string; secret: string;
-    oDone: boolean; tDone: boolean;
-    oAt: unknown; tAt: unknown;
-  }> = [];
-  for (const [name, key, secret] of accounts) {
-    const o = await readOrdersSync(name);
-    const t = await readTransactionsSync(name);
-    states.push({
-      name, key, secret,
-      oDone: o?.complete === true,
-      tDone: t?.complete === true,
-      oAt: o?.updated_at, tAt: t?.updated_at,
-    });
-  }
-  const anyOpen = states.some((s) => !s.oDone || !s.tDone);
-  const results: Record<string, unknown>[] = [];
-  for (const s of states) {
-    const kind = nextHistoryKind(s.oDone, s.tDone, anyOpen);
-    if (kind === "skip") {
-      results.push({ account: s.name, stream: "skip", complete: true, added: 0 });
-      continue;
-    }
-    const stream = kind === "topup" ? pickAccountTopUp(s.oAt, s.tAt) : kind;
-    const row = stream === "orders"
-      ? await syncOrdersOnce(s.name, s.key, s.secret)
-      : await syncTransactionsOnce(s.name, s.key, s.secret);
-    results.push({ ...row, stream });
-  }
-  return results;
-}
 
 // Direct insert into public.ops_errors via the service-role key (RLS
 // denies anon). Used by the outer try/catch wrap so a runtime crash
@@ -2021,44 +1655,25 @@ async function syncHistoryPerAccount(): Promise<Record<string, unknown>[]> {
 // reportServerError now lives in ../_shared/ops.ts (imported above).
 
 /**
- * One step of the history walk (`orders-sync`: fills, then dividends and the two backfills; `history-sync`: fills and
- * cash movements per account) and its answer. The admin page's GET runs it, and since 0100 the one-minute job's POST
- * does too (`handleCronPost`), every ten minutes, so the fills reach the database without a page open (review F17).
+ * One step of the history walk (`orders-sync`: fills, then dividends and the two backfills) and its answer. The admin
+ * page's GET runs it, and since 0100 the one-minute job's POST does too (`handleCronPost`), every ten minutes, so the
+ * fills reach the database without a page open (review F17). The cash-movement walk (`history-sync`, `transactions`)
+ * left on 2026-10-08 (review M1): nothing had called it since the 2026-08-18 rollback, and nothing reads its table.
  */
-async function historySyncResponse(action: "orders-sync" | "history-sync"): Promise<Response> {
-  // Sequential, not parallel: two accounts on one endpoint already
-  // sit on the 6/min ceiling. history-sync picks the next page
-  // *per account* so a finished invest walk can start cash
-  // history while ISA is still chewing cancelled orders.
-  const results = action === "history-sync"
-    ? await syncHistoryPerAccount()
-    : await syncHistoryAccounts("orders");
+async function historySyncResponse(): Promise<Response> {
+  const results = await syncHistoryAccounts();
   // The dividends walk rides on the same call, one page per account (its own endpoint, its own rate limit),
   // then the two backfills that fill in what a page could not: fill currencies from the instrument metadata,
   // and dividends paid in another currency than the holding's at that day's close.
-  const dividends = action === "orders-sync"
-    ? await Promise.all(t212HistoryAccounts().map(([name, key, secret]) => syncDividendsOnce(name, key, secret)))
-    : [];
-  const currencyBackfill = action === "orders-sync" ? await backfillOrderCurrencies(T212_API_KEY, T212_API_SECRET) : null;
-  const dividendFx = action === "orders-sync" ? await fillDividendFx() : null;
-  const ordersStateComplete = await ordersSyncComplete();
-  const ordersComplete = action === "orders-sync"
-    ? ordersStateComplete && results.every((row) => row.complete === true && !row.error)
-    : ordersStateComplete;
-  const transactionsComplete = action === "history-sync"
-    ? await transactionsSyncComplete()
-    : false;
-  const bothComplete = action === "history-sync"
-    ? (ordersComplete && transactionsComplete)
-    : results.every((r) => r.complete === true);
-  const stream = results.find((r) => r.stream && r.stream !== "skip")?.stream
-    ?? (action === "history-sync" ? "none" : "orders");
+  const dividends = await Promise.all(t212HistoryAccounts().map(([name, key, secret]) => syncDividendsOnce(name, key, secret)));
+  const currencyBackfill = await backfillOrderCurrencies(T212_API_KEY, T212_API_SECRET);
+  const dividendFx = await fillDividendFx();
+  const ordersComplete = (await ordersSyncComplete()) && results.every((row) => row.complete === true && !row.error);
   return new Response(JSON.stringify({
-    stream,
+    stream: "orders",
     accounts: results,
-    complete: bothComplete,
+    complete: results.every((r) => r.complete === true),
     ordersComplete,
-    transactionsComplete,
     dividends,
     dividendsComplete: dividends.length > 0 ? dividends.every((d) => d.complete === true) : undefined,
     currencyBackfill,
@@ -2148,7 +1763,7 @@ if (import.meta.main) {
           cronSecret: Deno.env.get("CRON_SECRET") ?? "",
           beat: (key) => writeBeat(key),
           run: async () => T212_API_KEY
-            ? await historySyncResponse("orders-sync")
+            ? await historySyncResponse()
             : new Response(JSON.stringify({ source: "disabled" }), { headers: { ...CORS, "content-type": "application/json" } }),
         });
       }
@@ -2202,16 +1817,10 @@ if (import.meta.main) {
 
       const action = new URL(req.url).searchParams.get("action") ?? "";
 
-      // History backfill. `orders` / `transactions` are plain reads of
-      // what's been stored; `orders-sync` / `history-sync` advance a
-      // page and are admin-only (they write, and they spend a
-      // rate-limited upstream budget a viewer has no business spending).
-      //
-      // `history-sync` walks each account independently: that account's
-      // orders first, then its cash movements. A finished account does
-      // not consume a rate-limit slot while another is still
-      // backfilling. After both walks latch, a later session tops up
-      // the staler stream.
+      // History backfill. `orders` / `dividends` are plain reads of
+      // what's been stored; `orders-sync` advances a page and is
+      // admin-only (it writes, and it spends a rate-limited upstream
+      // budget a viewer has no business spending).
       if (action === "orders") {
         const snapshot = await readStableOrders();
         return new Response(JSON.stringify({
@@ -2227,20 +1836,13 @@ if (import.meta.main) {
           headers: { ...CORS, "content-type": "application/json" },
         });
       }
-      if (action === "transactions") {
-        const rows = await readTransactions();
-        return new Response(JSON.stringify({
-          transactions: rows,
-          complete: await transactionsSyncComplete(),
-        }), { headers: { ...CORS, "content-type": "application/json" } });
-      }
-      if (action === "orders-sync" || action === "history-sync") {
+      if (action === "orders-sync") {
         if (verified.role !== "admin") {
           return new Response(JSON.stringify({ error: "admin only" }), {
             status: 403, headers: { ...CORS, "content-type": "application/json" },
           });
         }
-        return await historySyncResponse(action);
+        return await historySyncResponse();
       }
 
       const now = Date.now();

@@ -709,7 +709,7 @@ before touching migration state.
 | `0022_portfolio_snapshots.sql` | Recorded portfolio values; replaced by recorded prices in `0029`. |
 | `0023_t212_orders.sql` | The broker's executed fills, and the backfill cursor. |
 | `0024_reset_t212_orders_sync.sql` | Restarts that backfill after a parser fix. |
-| `0025_t212_transactions.sql` | The broker's cash movements, archived and deliberately not charted. |
+| `0025_t212_transactions.sql` | The broker's cash movements, walked until 2026-08-18 and never charted; nothing reads or writes the table since 2026-10-08, and it stays. |
 | `0026_snapshot_record_cron.sql` | Schedules the five-minute recorder, and thins old rows by age instead of deleting them. |
 | `0028_restore_pltr_position.sql` | One-off repair: restores a position a bug deleted. |
 | `0029_price_snapshots.sql` | Records prices instead of values, thinned the same way. |

@@ -24,20 +24,13 @@ import {
   metadataCurrencies,
   bearerIsCron,
   shapeT212Order,
-  shapeT212Transaction,
   flattenT212OrderItem,
   t212FillEnvelope,
   t212MalformedFillEnvelope,
   t212OrderItemRecognized,
   ordersPageShapeMismatch,
   ordersPageEnvelopeRecognized,
-  nextHistoryKind,
-  pickAccountTopUp,
   nextOrdersCursor,
-  nextTransactionsCursor,
-  transactionsPageUrl,
-  transactionCursorAdvanced,
-  T212_TRANSACTIONS_URL,
   ordersItemsOf,
   t212TickerToYahoo,
   unpackCache,
@@ -675,20 +668,6 @@ Deno.test("ordersPageShapeMismatch — recognised order-only skips must advance"
   assertEquals(ordersPageShapeMismatch(2, 1, 1), true);
 });
 
-Deno.test("nextHistoryKind — a finished account yields the slot while another is still walking", () => {
-  // Invest orders are done; ISA is not. Invest must start cash history
-  // rather than re-read page one of fills, and must not wait for ISA.
-  assertEquals(nextHistoryKind(false, false, true), "orders");
-  assertEquals(nextHistoryKind(true, false, true), "transactions");
-  assertEquals(nextHistoryKind(true, true, true), "skip");
-  assertEquals(nextHistoryKind(true, true, false), "topup");
-});
-
-Deno.test("pickAccountTopUp — the staler stream goes next", () => {
-  assertEquals(pickAccountTopUp("2026-08-18T00:00:00Z", "2026-08-18T01:00:00Z"), "orders");
-  assertEquals(pickAccountTopUp("2026-08-18T02:00:00Z", "2026-08-18T01:00:00Z"), "transactions");
-});
-
 Deno.test("nextOrdersCursor — pulls the cursor out of the path T212 returns", () => {
   assertEquals(
     nextOrdersCursor({ nextPagePath: "/api/v0/equity/history/orders?cursor=abc123&limit=50" }),
@@ -708,83 +687,6 @@ Deno.test("ordersItemsOf — tolerates the envelope names wrappers use", () => {
   assertEquals(ordersItemsOf([4, 5]), [4, 5]);
   assertEquals(ordersItemsOf({}), []);
   assertEquals(ordersItemsOf(null), []);
-});
-
-Deno.test("shapeT212Transaction — published deposit/withdraw rows round-trip", () => {
-  const dep = shapeT212Transaction({
-    amount: 1000, currency: "GBP", dateTime: "2025-04-01T12:00:00Z",
-    reference: "dep-1", type: "DEPOSIT",
-  }, "invest");
-  assertEquals(dep?.id, "invest:dep-1");
-  assertEquals(dep?.type, "deposit");
-  assertEquals(dep?.amount, 1000);
-  assertEquals(dep?.currency, "GBP");
-  assertEquals(dep?.occurred_at, "2025-04-01T12:00:00.000Z");
-
-  const wd = shapeT212Transaction({
-    amount: 250, currency: "USD", dateTime: "2025-05-01T08:00:00Z",
-    reference: "wd-1", type: "WITHDRAW",
-  }, "isa");
-  assertEquals(wd?.type, "withdraw");
-  assertEquals(wd?.id, "isa:wd-1");
-  assertEquals(wd?.amount, 250);
-});
-
-Deno.test("shapeT212Transaction — keeps fee/interest/transfer rather than dropping them", () => {
-  // The deposit line ignores these, but dropping them at ingest would
-  // mean a later reading has to re-walk the history.
-  const fee = shapeT212Transaction({
-    amount: 1.5, currency: "USD", dateTime: "2025-04-02T00:00:00Z",
-    reference: "fee-1", type: "FEE",
-  }, "invest");
-  assertEquals(fee?.type, "fee");
-  const interest = shapeT212Transaction({
-    amount: 0.4, currency: "USD", dateTime: "2025-04-03T00:00:00Z",
-    reference: "int-1", type: "INTEREST_ON_FREE_CASH",
-  }, "invest");
-  assertEquals(interest?.type, "interest_on_free_cash");
-});
-
-Deno.test("shapeT212Transaction — drops rows that never moved any money", () => {
-  const base = { amount: 10, currency: "USD", dateTime: "2025-01-01T00:00:00Z", reference: "x", type: "DEPOSIT" };
-  assertEquals(shapeT212Transaction({ ...base, amount: 0 }, "invest"), null);
-  assertEquals(shapeT212Transaction({ ...base, type: "" }, "invest"), null);
-  assertEquals(shapeT212Transaction({ ...base, dateTime: "not a date" }, "invest"), null);
-  assertEquals(shapeT212Transaction(null, "invest"), null);
-});
-
-Deno.test("nextTransactionsCursor — keeps cursorId and time together", () => {
-  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z&limit=50";
-  assertEquals(nextTransactionsCursor({ nextPagePath: path }), path);
-  assertEquals(nextTransactionsCursor({ items: [] }), null);
-});
-
-Deno.test("transactionsPageUrl — full path passes through; a bare leftover cursor starts at page one", () => {
-  const path = "/api/v0/equity/history/transactions?cursorId=abc&time=2025-01-01T00:00:00Z";
-  assertEquals(transactionsPageUrl(path), `https://live.trading212.com${path}`);
-  // The orders shaper stored only `cursor=`. Replaying that is the 400
-  // "Both or none of cursorId and time must be provided".
-  const first = transactionsPageUrl("tx99");
-  assertEquals(first.startsWith(T212_TRANSACTIONS_URL), true);
-  assertEquals(first.includes("cursor="), false);
-  assertEquals(first.includes("cursorId="), false);
-  assertEquals(transactionsPageUrl(null).includes("limit=50"), true);
-});
-
-Deno.test("transactionsPageUrl — production query-only nextPagePath advances", () => {
-  const path = "limit=50&cursor=next-2&time=2026-05-05T02:22:55.231Z";
-  assertEquals(
-    transactionsPageUrl(path),
-    `${T212_TRANSACTIONS_URL}?${path}`,
-  );
-  assertEquals(
-    transactionCursorAdvanced(
-      "limit=50&cursor=page-1&time=2026-08-10T13:22:15.261Z",
-      path,
-    ),
-    true,
-  );
-  assertEquals(transactionCursorAdvanced(path, path), false);
 });
 
 Deno.test("shapeT212Order — a dropped item names the field it was missing", () => {
@@ -1007,7 +909,7 @@ Deno.test("handleCronPost — the cron bearer, then the beat, then the sync; any
   steps.length = 0;
   assertEquals((await handleCronPost(post(url, "Bearer nope"), deps)).status, 405);
   assertEquals((await handleCronPost(post(url, "Bearer s3cret"), { ...deps, cronSecret: "" })).status, 405);
-  assertEquals((await handleCronPost(post(url.replace("orders-sync", "history-sync"), "Bearer s3cret"), deps)).status, 405);
+  assertEquals((await handleCronPost(post(url.replace("orders-sync", "orders"), "Bearer s3cret"), deps)).status, 405);
   assertEquals((await handleCronPost(post(url.replace("?action=orders-sync", ""), "Bearer s3cret"), deps)).status, 405);
   assertEquals(steps, []);
   // A beat the database refuses stops nothing: the sync still runs.
