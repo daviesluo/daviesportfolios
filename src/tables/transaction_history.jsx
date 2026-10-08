@@ -17,9 +17,12 @@ import { TableExportButtons } from './table_export.jsx';
 /** @param {number} n  native amount → 2dp with thousands separators (no symbol) */
 const amt2 = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** The Type column's word for a row: BUY, SELL or DIVIDEND, the same on screen and in an export. */
+/**
+ * The Type column's word for a row: BUY, SELL or DIVS (Davies, 2026-10-08: "type的dividends改为DIVS"), the same on
+ * screen and in an export, and as short as the other two so the badges line up.
+ */
 export function typeLabel(/** @type {string} */ kind) {
-  return kind === 'buy' ? 'BUY' : kind === 'sell' ? 'SELL' : 'DIVIDEND';
+  return kind === 'buy' ? 'BUY' : kind === 'sell' ? 'SELL' : 'DIVS';
 }
 
 /** What a row moved in cash, in its holding's currency: a dividend's net amount received, else shares × price. */
@@ -142,8 +145,9 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
     () => withClosedFromFills(holdings, t212Orders),
     [holdings, t212Orders],
   );
-  // Each dividend received is a row of its own, and comes off the average
-  // cost of the rows after it (`annotateLedger`).
+  // Each dividend payment is a row of its own (both accounts' shares of it
+  // in one), and comes off the average cost of the rows after it
+  // (`annotateLedger`).
   const log = React.useMemo(() => buildTransactionLog(allHoldings, dividends), [allHoldings, dividends]);
   /** @type {[{col: string, dir: 'desc'|'asc'} | null, Function]} */
   const [sort, setSort] = React.useState(/** @type {any} */ (null));

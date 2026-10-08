@@ -95,8 +95,12 @@ Tap a tile to open its chart.
   what came back less what it cost, plus every dividend it paid, in the
   currency the listing trades in, converted at today's rate.
 - **Dividends.** Each dividend Trading 212 paid is a row of its own,
-  marked DIVIDEND: the shares it was paid on, the cash received (after
-  any tax withheld) in the holding's currency, and the Avg Cost after it.
+  marked DIVS: the shares it was paid on, the cash received (after any
+  tax withheld) in the holding's currency, and the Avg Cost after it.
+  One payment is one row: when a company pays both accounts on the same
+  day (or pays a dividend and a return of capital together), the row
+  adds their shares and their cash, and its Avg Cost is the one after
+  all of it. Totals and every other row read the same either way.
   It realises nothing while you hold the shares; it lowers what they
   cost instead. A dividend paid in another currency than the holding's
   (the ISA pays in pounds on a dollar stock) is converted at that day's

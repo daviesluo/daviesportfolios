@@ -292,6 +292,35 @@ export function annotateLedger(lots, sells, divs = null) {
   return out;
 }
 
+/**
+ * One payment, one row (Davies, 2026-10-08: "一个公司同一批分红合在一起显示"). Trading 212 pays each account its own
+ * dividend, the ISA and the Invest account minutes apart, and books one distribution as a dividend and a return of
+ * capital a minute apart; the history shows each such run as ONE row: the amounts and the shares summed, the price their
+ * quotient. Only dividends of one date that sit next to each other in the walk merge, so no trade lies between them,
+ * and the walk itself is untouched: the merged row's Avg Cost is the walk's after the last of them, its gain the sum of
+ * theirs (all null while shares are held, since a dividend does not change the shares held), and every other row, the
+ * headline included, reads what it read before. A row paid on an unknown quantity makes the run's shares unknown.
+ * @template {{kind: string, date: string, amount: number, shares: number, price: number, ts?: number,
+ *             acAfter: number, gain: number | null, gainPct: number | null}} R
+ * @param {R[]} walk  one holding's `annotateLedger`, in its order
+ * @returns {R[]}
+ */
+function mergeSameDayDividends(walk) {
+  /** @type {R[]} */
+  const out = [];
+  for (const t of walk) {
+    const prev = out[out.length - 1];
+    if (t.kind !== 'div' || prev?.kind !== 'div' || prev.date !== t.date) { out.push(t); continue; }
+    const amount = prev.amount + t.amount;
+    const shares = prev.shares > 0 && t.shares > 0 ? prev.shares + t.shares : 0;
+    out[out.length - 1] = {
+      ...t, amount, shares, price: shares > 0 ? amount / shares : 0, ts: t.ts ?? prev.ts,
+      gain: prev.gain == null && t.gain == null ? null : (prev.gain ?? 0) + (t.gain ?? 0), gainPct: null,
+    };
+  }
+  return out;
+}
+
 /** Same-day rows without a time, newest first: dividends, then sales, then buys. */
 const KIND_ORDER = { div: 0, sell: 1, buy: 2 };
 
@@ -309,8 +338,8 @@ export function buildTransactionLog(holdings, divsByTicker = null) {
     const currency = h.currency || 'USD';
     // `annotateLedger` walks this holding in order, so each row arrives
     // knowing what it did to the position: a sale's banked gain, a
-    // purchase's resulting average cost.
-    for (const t of annotateLedger(h.lots, h.sells, divsByTicker?.[ticker])) {
+    // purchase's resulting average cost. One payment's dividends are one row.
+    for (const t of mergeSameDayDividends(annotateLedger(h.lots, h.sells, divsByTicker?.[ticker]))) {
       rows.push({
         ticker, kind: t.kind, date: t.date, shares: t.shares, price: t.price, amount: t.amount,
         currency, ts: t.ts, acAfter: t.acAfter, gain: t.gain, gainPct: t.gainPct,

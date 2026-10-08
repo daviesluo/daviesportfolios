@@ -835,6 +835,21 @@ under "LEDGER.md, archived 2026-10-01"; each oldest first.
   the new sweep against origin/main's bundle fails 10 of these checks (round/source lines, the stale-`rwc` row, the
   round-2 page line, variant-1's source line), plus one timing check, "dashboard requests stayed at 3 after a minute",
   that passes on the new bundle. Docs: guide (two rounds, no figures), reference §4 item 36, map row of `pmrw_view.ts`.
+### [2026-10-08 02:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Transaction history, on Davies' word ("type的dividends改为DIVS，并且一个公司同一批分红合在一起显示，目前是分账户分开的多行
+  显示"): a dividend row's Type reads `DIVS` (as wide as SELL; the phone card's type column back to 46 px), and one
+  company's payment is ONE row, not one per Trading 212 account. `buildTransactionLog` folds a holding's same-date
+  dividends that sit next to each other in the walk (`mergeSameDayDividends`, transactions.js): amounts and shares summed,
+  the price their quotient, the walk's Avg Cost after the last, gains summed. Display only: the events, `annotateLedger`,
+  `realizedGain`, `withDividendCosts` and the headline are untouched, so no figure moves; a trade between two same-day
+  dividends keeps them apart. A dividend and a return of capital paid the same day merge too (one distribution, both
+  booked alike; the table never showed the type). Exports follow the rows; hide-values masks as before. Pins: 7 vitest
+  cases in `transactions.test.js` (2,000-ledger property: a payment split across two accounts reads as the payment
+  whole) + 1 in `transaction_history.test.jsx`; the sweep's ACME dividend is now two accounts' rows read as one DIVS row
+  on both widths, its badge as wide as SELL. Counterfactuals: 8 vitest cases and 2 sweep checks per width fail on
+  `origin/main`'s code and bundle. On production data in a scratchpad: 95 dividend rows became 75, TOTAL REALIZED
+  unchanged, every merged row's Avg Cost equal to the old walk's after its last event.
+  Handed back unpushed under the sub-agent rule (`sh bin/gates.sh --quick`); the landing run is the main session's.
 
 ### [2026-10-08 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - `bin/gates.sh` takes a machine-wide `flock` (`/tmp/daviesportfolios-gates.lock`, `GATES_LOCK` overrides): a second

@@ -489,8 +489,15 @@ Changing any of these means re-opening a decision he has already made.
   `shownPortfolio`, display only: the stored `cost` stays dividend-free so
   no sync compounds it), and the Transaction history walks the same
   events, so a position rebuilt from its fills reads one Avg Cost on the
-  card, the ticker page and its latest row. Each dividend is its own
-  DIVIDEND row. A holding with no dividends reads exactly as before.
+  card, the ticker page and its latest row. Each payment is ONE row of
+  its own, typed DIVS (2026-10-08: "type的dividends改为DIVS，并且一个公司同一
+  批分红合在一起显示"): Trading 212 pays the ISA and Invest accounts
+  separately, and a distribution can come as a dividend and a return of
+  capital a minute apart, so `buildTransactionLog` folds a holding's
+  same-date dividends that sit next to each other in the walk into one
+  row (amounts and shares summed, the walk's Avg Cost after the last).
+  Display only: the events and every figure stay what the walk gives. A
+  holding with no dividends reads exactly as before.
 
 ### Security / Edge
 

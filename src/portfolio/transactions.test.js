@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { cleanSells, netPosition, realizedGain, buildTransactionLog, totalRealizedUsd,
          toLedgerRows, fromLedgerRows, annotateLedger } from './transactions.js';
-import { withClosedFromFills } from './t212_fills.js';
+import { withClosedFromFills, dividendEventsByTicker } from './t212_fills.js';
 import { cleanLots } from './lots.js';
 
 describe('cleanSells', () => {
@@ -548,4 +548,143 @@ describe('the headline is the sum of the rows, same-day trades in the order they
     expect(realizedGain(lots, sells)).toBeCloseTo(700, 9);
     expect(annotateLedger(lots, sells).reduce((s, r) => s + (r.gain ?? 0), 0)).toBeCloseTo(700, 9);
   });
+});
+
+// ---- One payment, one row (Davies, 2026-10-08: "一个公司同一批分红合在一起显示，目前是分账户分开的多行显示") ----
+// Trading 212 pays the ISA and the Invest account their own dividend, minutes apart. Synthetic numbers only.
+describe('one payment\'s dividends are one row of the history', () => {
+  const at = (/** @type {string} */ iso) => Date.parse(iso);
+  // 6 shares in one account, 4 in the other; 10 sold later.
+  const holdings = {
+    ABC: {
+      currency: 'USD',
+      lots: [{ date: '2026-01-05', shares: 6, cost: 100, ts: at('2026-01-05T15:00:00Z') },
+        { date: '2026-01-06', shares: 4, cost: 100, ts: at('2026-01-06T15:00:00Z') }],
+      sells: [{ date: '2026-03-01', shares: 10, price: 110, ts: at('2026-03-01T15:00:00Z') }],
+    },
+  };
+  // What `t212_dividends` stores: one row per account, plus a later payment to one account alone.
+  const stored = [
+    { id: 'invest:1', account: 'invest', ticker: 'ABC', paid_on: '2026-02-01T12:00:00Z', quantity: 6, amount_holding: 12, holding_currency: 'USD', type: 'DIVIDEND' },
+    { id: 'isa:1', account: 'isa', ticker: 'ABC', paid_on: '2026-02-01T12:04:00Z', quantity: 4, amount_holding: 8, holding_currency: 'USD', type: 'DIVIDEND' },
+    { id: 'invest:2', account: 'invest', ticker: 'ABC', paid_on: '2026-02-15T12:00:00Z', quantity: 6, amount_holding: 3, holding_currency: 'USD', type: 'DIVIDEND' },
+  ];
+  const divs = dividendEventsByTicker(stored, holdings).byTicker;
+
+  it('the two accounts\' same-day rows are one: amounts and shares summed, the Avg Cost the walk gives after both', () => {
+    const log = buildTransactionLog(holdings, divs);
+    expect(log.map((r) => `${r.kind}:${r.date}`)).toEqual([
+      'sell:2026-03-01', 'div:2026-02-15', 'div:2026-02-01', 'buy:2026-01-06', 'buy:2026-01-05',
+    ]);
+    const paid = log[2];
+    expect(paid).toMatchObject({ amount: 20, shares: 10, price: 2, gain: null, ts: at('2026-02-01T12:04:00Z') });
+    // (1,000 − 12 − 8) / 10 = 98.00: the walk after BOTH events.
+    expect(paid.acAfter).toBeCloseTo(98, 9);
+    const walk = annotateLedger(holdings.ABC.lots, holdings.ABC.sells, divs.ABC);
+    expect(walk.filter((r) => r.kind === 'div').map((r) => r.acAfter)).toEqual([98.8, 98, 97.7]);
+    expect(paid.acAfter).toBe(walk[3].acAfter);
+    // The later payment to one account stays a row of its own.
+    expect(log[1]).toMatchObject({ amount: 3, shares: 6, price: 0.5 });
+    expect(log[1].acAfter).toBeCloseTo(97.7, 9);
+  });
+
+  it('changes no figure: every buy and sale row, the rows\' total and the headline are what the unmerged walk gives', () => {
+    const log = buildTransactionLog(holdings, divs);
+    const walk = annotateLedger(holdings.ABC.lots, holdings.ABC.sells, divs.ABC);
+    const strip = (/** @type {any} */ r) => ({ kind: r.kind, date: r.date, shares: r.shares, price: r.price, acAfter: r.acAfter, gain: r.gain });
+    expect(log.filter((r) => r.kind !== 'div').map(strip)).toEqual(walk.filter((r) => r.kind !== 'div').reverse().map(strip));
+    // 10 × (110 − 97.70) = +123.00 = proceeds − cost + dividends.
+    const rowsTotal = log.reduce((s, r) => s + (r.gain ?? 0), 0);
+    expect(rowsTotal).toBeCloseTo(1100 - 1000 + 23, 9);
+    expect(rowsTotal).toBe(walk.reduce((s, r) => s + (r.gain ?? 0), 0));
+    expect(totalRealizedUsd(holdings, () => 1, divs)).toBe(realizedGain(holdings.ABC.lots, holdings.ABC.sells, divs.ABC));
+    expect(totalRealizedUsd(holdings, () => 1, divs)).toBeCloseTo(123, 9);
+  });
+
+  it('dividends paid while nothing is held merge too, their realized amounts summed', () => {
+    const closed = { ABC: { ...holdings.ABC, sells: [{ date: '2026-01-20', shares: 10, price: 105 }] } };
+    const log = buildTransactionLog(closed, divs);
+    const paid = log.find((r) => r.kind === 'div' && r.date === '2026-02-01');
+    expect(paid).toMatchObject({ amount: 20, gain: 20, acAfter: 0 });
+    expect(log.filter((r) => r.kind === 'div')).toHaveLength(2);
+    expect(log.reduce((s, r) => s + (r.gain ?? 0), 0)).toBeCloseTo(50 + 23, 9);
+    expect(totalRealizedUsd(closed, () => 1, divs)).toBeCloseTo(50 + 23, 9);
+  });
+
+  it('a dividend and a return of capital paid the same day are one payment and one row', () => {
+    const roc = [
+      { id: 'invest:r', account: 'invest', ticker: 'ABC', paid_on: '2026-02-01T12:00:00Z', quantity: 10, amount_holding: 5, holding_currency: 'USD', type: 'RETURN_OF_CAPITAL' },
+      { id: 'invest:d', account: 'invest', ticker: 'ABC', paid_on: '2026-02-01T12:01:00Z', quantity: 10, amount_holding: 15, holding_currency: 'USD', type: 'DIVIDEND' },
+    ];
+    const log = buildTransactionLog(holdings, dividendEventsByTicker(roc, holdings).byTicker);
+    expect(log.filter((r) => r.kind === 'div')).toHaveLength(1);
+    expect(log.find((r) => r.kind === 'div')).toMatchObject({ amount: 20, shares: 20, price: 1, acAfter: 98 });
+  });
+
+  it('different days stay apart, and so do same-day dividends with a trade between them', () => {
+    const between = {
+      ABC: { ...holdings.ABC, sells: [{ date: '2026-02-01', shares: 5, price: 110, ts: at('2026-02-01T12:02:00Z') }] },
+    };
+    const log = buildTransactionLog(between, divs);
+    expect(log.map((r) => `${r.kind}:${r.date}`)).toEqual([
+      'div:2026-02-15', 'div:2026-02-01', 'sell:2026-02-01', 'div:2026-02-01', 'buy:2026-01-06', 'buy:2026-01-05',
+    ]);
+    // The sale is measured after the first account's dividend only: 5 × (110 − 98.80).
+    expect(log[2].gain).toBeCloseTo(5 * (110 - 98.8), 9);
+  });
+
+  it('a payment whose quantity one account did not state shows its shares and price as unknown', () => {
+    const partial = { ABC: [{ date: '2026-02-01', amount: 12, shares: 6, ts: 1 }, { date: '2026-02-01', amount: 8, ts: 2 }] };
+    const row = buildTransactionLog(holdings, partial).find((r) => r.kind === 'div');
+    expect(row).toMatchObject({ amount: 20, shares: 0, price: 0 });
+  });
+
+  it('on 2,000 random ledgers, a payment split across two accounts reads exactly as the payment whole', () => {
+    const rng = (/** @type {number} */ seed) => () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+    const r = rng(20261008);
+    let split = 0;
+    for (let n = 0; n < 2000; n++) {
+      const lots = [], sells = [], whole = [], halves = [];
+      let held = 0, day = 1;
+      const steps = 2 + Math.floor(r() * 12);
+      for (let i = 0; i < steps; i++) {
+        const date = `2026-01-${String(Math.min(28, day)).padStart(2, '0')}`;
+        const ts = Date.parse(`${date}T00:00:00Z`) + i * 60_000;
+        if (r() >= 0.25) day += 1;
+        const price = Math.round((5 + r() * 200) * 100) / 100;
+        const roll = r();
+        if (roll < 0.25) {
+          const amount = Math.round((r() < 0.1 ? -1 : 1) * (0.02 + r() * 30) * 100) / 100;
+          const shares = held > 0 ? held : undefined;
+          whole.push({ date, ts, amount, shares });
+          const part = Math.round(amount * (0.2 + r() * 0.6) * 100) / 100;
+          const sa = shares ? Math.round(shares * 0.6 * 1e4) / 1e4 : undefined;
+          halves.push({ date, ts, amount: part, shares: sa }, { date, ts: ts + 1, amount: amount - part, shares: shares && sa ? shares - sa : undefined });
+          split++;
+        } else if (held > 1e-6 && roll < 0.55) {
+          const sh = Math.round(held * (0.1 + r() * 0.9) * 1e4) / 1e4;
+          if (sh <= 0) continue;
+          sells.push({ date, ts, shares: sh, price }); held -= sh;
+        } else {
+          const sh = Math.round((0.01 + r() * 20) * 1e4) / 1e4;
+          lots.push({ date, ts, shares: sh, cost: price }); held += sh;
+        }
+      }
+      const book = { X: { currency: 'USD', lots, sells } };
+      const a = buildTransactionLog(book, { X: halves.filter((d) => d.amount !== 0) });
+      const b = buildTransactionLog(book, { X: whole });
+      const tol = 1e-6;
+      expect(a.map((x) => `${x.kind}:${x.date}`)).toEqual(b.map((x) => `${x.kind}:${x.date}`));
+      a.forEach((x, i) => {
+        const y = b[i];
+        for (const k of ['amount', 'shares', 'price', 'acAfter']) expect(Math.abs(x[k] - y[k])).toBeLessThan(tol);
+        expect(x.gain == null).toBe(y.gain == null);
+        if (x.gain != null) expect(Math.abs(x.gain - /** @type {number} */ (y.gain))).toBeLessThan(tol);
+      });
+      const total = realizedGain(lots, sells, halves);
+      expect(Math.abs(a.reduce((s, x) => s + (x.gain ?? 0), 0) - total)).toBeLessThan(tol);
+      expect(Math.abs(total - realizedGain(lots, sells, whole))).toBeLessThan(tol);
+    }
+    expect(split).toBeGreaterThan(1000);
+  }, 60_000);
 });

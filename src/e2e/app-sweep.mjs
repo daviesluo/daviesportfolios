@@ -218,13 +218,18 @@ const T212_ORDERS = [
   { ticker: 'ACME', side: 'buy', shares: 10, price: 200, executed_at: `${dayAgo(60)}T14:30:00Z` },
 ];
 
-// One dividend on ACME, after its sale, on the 6 shares left: $12.00 net, in dollars as the holding is. The board's
-// average cost takes it off (200 − 12 / 6 = $198.00 on the card), and the Transaction history shows it as a row of its
-// own: DIVIDEND, $12.00, the net-cash average after it ((2,000 − 920 − 12) / 6 = $178.00), no Realised G/L, and the
-// headline unchanged (it was received while held, so it lowers a cost instead of being realized).
+// One dividend on ACME, after its sale, on the 6 shares left: $12.00 net, in dollars as the holding is, paid as Trading
+// 212 pays it, to each account its own share minutes apart (4 shares in one, 2 in the other: $8.00 + $4.00). The
+// board's average cost takes it off (200 − 12 / 6 = $198.00 on the card), and the Transaction history shows the payment
+// as ONE row (Davies, 2026-10-08): DIVS, 6 shares, $2.00, $12.00, the net-cash average after both ((2,000 − 920 − 12) /
+// 6 = $178.00), no Realised G/L, and the headline unchanged (it was received while held, so it lowers a cost instead of
+// being realized).
 const T212_DIVIDENDS = [
-  { id: 'invest:d1', account: 'invest', ticker: 'ACME', paid_on: `${dayAgo(20)}T15:00:00Z`, quantity: 6, amount: 12,
-    currency: 'USD', instrument_currency: 'USD', gross_per_share: 2.35, type: 'DIVIDEND', amount_holding: 12,
+  { id: 'invest:d1', account: 'invest', ticker: 'ACME', paid_on: `${dayAgo(20)}T15:00:00Z`, quantity: 4, amount: 8,
+    currency: 'USD', instrument_currency: 'USD', gross_per_share: 2.35, type: 'DIVIDEND', amount_holding: 8,
+    holding_currency: 'USD', fx_rate: 1, fx_source: 'same' },
+  { id: 'isa:d1', account: 'isa', ticker: 'ACME', paid_on: `${dayAgo(20)}T15:04:00Z`, quantity: 2, amount: 4,
+    currency: 'USD', instrument_currency: 'USD', gross_per_share: 2.35, type: 'DIVIDEND', amount_holding: 4,
     holding_currency: 'USD', fx_rate: 1, fx_source: 'same' },
 ];
 
@@ -2769,9 +2774,10 @@ async function run() {
       else fail(S('history'), 'ACME missing');
       // Realised G/L belongs to sells only.
       await shot(page, 'transaction-history');
-      // The dividend is a row of its own, laid out like the others at this width.
+      // The two accounts' dividend is ONE row of its own, laid out like the others at this width.
       const divRow = await page.evaluate(() => {
-        const r = document.querySelector('.txn-row-div');
+        const all = document.querySelectorAll('.txn-row-div');
+        const r = all[0];
         if (!r) return null;
         const cell = (c) => r.querySelector(`[data-col="${c}"]`);
         const badge = r.querySelector('.txn-badge');
@@ -2782,18 +2788,30 @@ async function run() {
         const overlap = rects.some((a, i) => rects.some((b, j) => j > i
           && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
         const outside = rects.some((a) => a.left < box.left - 1 || a.right > box.right + 1);
+        // DIVS is as wide as SELL, and sits inside its column: the badges line up down the Type column.
+        const typeCell = cell('type')?.getBoundingClientRect();
+        const bb = badge?.getBoundingClientRect();
+        const sellBadge = document.querySelector('.txn-row-sell .txn-badge')?.getBoundingClientRect();
         return {
-          badge: badge?.textContent?.trim(), badgeClass: badge?.className, symbol: cell('symbol')?.textContent?.trim(),
+          rows: all.length, badge: badge?.textContent?.trim(), badgeClass: badge?.className, symbol: cell('symbol')?.textContent?.trim(),
+          shares: cell('shares')?.textContent?.trim(), price: cell('price')?.textContent?.trim(),
           amount: cell('amount')?.textContent?.trim(), avgcost: cell('avgcost')?.textContent?.trim(),
           gain: cell('gain')?.textContent?.trim(), overlap, outside,
+          badgeW: bb ? Math.round(bb.width * 10) / 10 : null, sellW: sellBadge ? Math.round(sellBadge.width * 10) / 10 : null,
+          inCell: !!(bb && typeCell && bb.left >= typeCell.left - 1 && bb.right <= typeCell.right + 1),
+          oneLine: !!(bb && bb.height < 20),
         };
       });
-      if (divRow && divRow.badge === 'DIVIDEND' && /txn-div/.test(divRow.badgeClass || '') && divRow.symbol === 'ACME'
+      if (divRow && divRow.rows === 1 && divRow.badge === 'DIVS' && /txn-div/.test(divRow.badgeClass || '') && divRow.symbol === 'ACME'
+          && divRow.shares === '6' && divRow.price === '$2.00'
           && divRow.amount === '$12.00' && /\$178\.00$/.test(divRow.avgcost || '') && divRow.gain === '') {
-        ok(S('history'), `ACME's dividend is its own row: ${divRow.badge} ${divRow.amount}, Avg Cost ${divRow.avgcost}, no Realised G/L`);
+        ok(S('history'), `ACME's dividend, paid to two accounts, is one row: ${divRow.badge} ${divRow.shares} @ ${divRow.price} = ${divRow.amount}, Avg Cost ${divRow.avgcost}, no Realised G/L`);
       } else fail(S('history'), `dividend row ${JSON.stringify(divRow)}`);
       if (divRow && !divRow.overlap && !divRow.outside) ok(S('history'), 'the dividend row\'s cells neither overlap nor leave the row');
       else fail(S('history'), `dividend row layout: overlap ${divRow?.overlap}, outside ${divRow?.outside}`);
+      if (divRow && divRow.inCell && divRow.oneLine && divRow.sellW != null && Math.abs(/** @type {number} */ (divRow.badgeW) - divRow.sellW) <= 1) {
+        ok(S('history'), `the DIVS badge sits on one line inside its column, as wide as SELL (${divRow.badgeW} / ${divRow.sellW} px)`);
+      } else fail(S('history'), `DIVS badge: in its cell ${divRow?.inCell}, one line ${divRow?.oneLine}, ${divRow?.badgeW} px against SELL's ${divRow?.sellW}`);
       const headline = await page.locator('.txn-realized-val').first().textContent().catch(() => '');
       if (headline === '+$240.00') ok(S('history'), 'TOTAL REALIZED is unchanged by a dividend received while held (+$240.00)');
       else fail(S('history'), `TOTAL REALIZED reads "${headline}" (want +$240.00)`);

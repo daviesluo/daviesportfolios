@@ -248,11 +248,11 @@ describe('dividend rows', () => {
   };
   const DIVS = { ABC: [{ date: '2026-02-01', amount: 20, shares: 10, ts: Date.parse('2026-02-01T12:00:00Z') }] };
 
-  it('a DIVIDEND badge, the cash received, the Avg Cost after it, no Realised G/L; the sale it lowers checks by hand', () => {
+  it('a DIVS badge, the cash received, the Avg Cost after it, no Realised G/L; the sale it lowers checks by hand', () => {
     const matrix = transactionRowsToMatrix(buildTransactionLog(BOOK, DIVS));
     expect(matrix.slice(1)).toEqual([
       ['SELL', '2026-03-01', 'ABC', '10', '$110.00', '$1,100.00', '$98.00', '+$120.00 (+12.24%)'],
-      ['DIVIDEND', '2026-02-01', 'ABC', '10', '$2.00', '$20.00', '$98.00', ''],
+      ['DIVS', '2026-02-01', 'ABC', '10', '$2.00', '$20.00', '$98.00', ''],
       ['BUY', '2026-01-05', 'ABC', '10', '$100.00', '$1,000.00', '$100.00', ''],
     ]);
   });
@@ -261,7 +261,7 @@ describe('dividend rows', () => {
     render(<TransactionHistoryModal holdings={BOOK} dividends={DIVS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
     expect(screen.getByText('+$120.00')).toBeInTheDocument();
     const div = /** @type {HTMLElement} */ (document.querySelector('.txn-row-div'));
-    expect(within(div).getByText('DIVIDEND')).toHaveClass('txn-badge', 'txn-div');
+    expect(within(div).getByText('DIVS')).toHaveClass('txn-badge', 'txn-div');
     expect(within(div).getByText('$20.00')).toBeInTheDocument();
     cleanup();
     render(<TransactionHistoryModal holdings={BOOK} dividends={DIVS} marketData={MARKET} hideValues onClose={vi.fn()} />);
@@ -275,8 +275,31 @@ describe('dividend rows', () => {
     expect(rows.map((r) => r.kind)).toEqual(['div', 'buy', 'sell']);
   });
 
+  // Davies, 2026-10-08: one payment is one row, not one per Trading 212 account.
+  const TWO_ACCOUNTS = { ABC: [
+    { date: '2026-02-01', amount: 12, shares: 6, ts: Date.parse('2026-02-01T12:00:00Z') },
+    { date: '2026-02-01', amount: 8, shares: 4, ts: Date.parse('2026-02-01T12:04:00Z') },
+  ] };
+
+  it('two accounts\' payment on one day is one DIVS row on screen and in the export, the headline unchanged', () => {
+    const matrix = transactionRowsToMatrix(buildTransactionLog(BOOK, TWO_ACCOUNTS));
+    expect(matrix.slice(1)).toEqual([
+      ['SELL', '2026-03-01', 'ABC', '10', '$110.00', '$1,100.00', '$98.00', '+$120.00 (+12.24%)'],
+      ['DIVS', '2026-02-01', 'ABC', '10', '$2.00', '$20.00', '$98.00', ''],
+      ['BUY', '2026-01-05', 'ABC', '10', '$100.00', '$1,000.00', '$100.00', ''],
+    ]);
+    render(<TransactionHistoryModal holdings={BOOK} dividends={TWO_ACCOUNTS} marketData={MARKET} hideValues={false} onClose={vi.fn()} />);
+    expect(document.querySelectorAll('.txn-row-div')).toHaveLength(1);
+    expect(screen.getByText('+$120.00')).toBeInTheDocument();
+    cleanup();
+    render(<TransactionHistoryModal holdings={BOOK} dividends={TWO_ACCOUNTS} marketData={MARKET} hideValues onClose={vi.fn()} />);
+    const row = /** @type {HTMLElement} */ (document.querySelector('.txn-row-div'));
+    expect(within(row).getByText('DIVS')).toBeInTheDocument();
+    expect(row.querySelector('[data-col="amount"]')?.textContent).not.toMatch(/\d/);
+  });
+
   it('a dividend paid on an unknown quantity shows dashes for shares and price, and its amount', () => {
     const matrix = transactionRowsToMatrix(buildTransactionLog(BOOK, { ABC: [{ date: '2026-02-01', amount: 20 }] }));
-    expect(matrix.find((r) => r[0] === 'DIVIDEND')?.slice(3, 6)).toEqual(['—', '—', '$20.00']);
+    expect(matrix.find((r) => r[0] === 'DIVS')?.slice(3, 6)).toEqual(['—', '—', '$20.00']);
   });
 });

@@ -1359,8 +1359,8 @@ body {
   .txn-table thead { display: none; }
   .txn-table .txn-row {
     display: grid;
-    /* Wide enough for the DIVIDEND badge, the longest of the three. */
-    grid-template-columns: 62px 1fr auto;
+    /* Wide enough for the SELL and DIVS badges, the longest of the three. */
+    grid-template-columns: 46px 1fr auto;
     grid-template-areas:
       "type    symbol  amount"
       "date    shares  price"
