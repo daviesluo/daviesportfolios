@@ -813,6 +813,15 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", and the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01"; each oldest first.
 
+### [2026-10-08 14:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Only the newest refresh's answer reaches the board** (review F18, approved by Davies 2026-10-08). `doRefresh`
+  had no in-flight guard: the 30 s tick, the Refresh button, the return to the tab and the real load's catch-up can
+  overlap, and an older refresh answering after a newer one began wrote its older prices over the newer ones and
+  cleared the newer one's spinner. Each refresh now takes a number (`refreshSeqRef`); an answer that is no longer the
+  newest is dropped before it is screened or applied, and only the newest clears the spinner. Pin in `app.test.jsx`
+  (the load's refresh answers last with an older price: the board keeps the newer one), failing with the guard
+  removed.
+
 ### [2026-10-08 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **UNREALIZED G/L's percentage leaves cash out** (review F19, narrowed by Davies 2026-10-08: "cash is NOT counted";
   the cost-at-today's-FX half stays as it is). `computeMetrics` divided the G/L by a cost that carried cash at its

@@ -803,6 +803,8 @@ function Board({ isReadOnly }) {
     };
   }, []);
 
+  /** The newest refresh's number: `doRefresh` applies an answer only while it is still the newest. */
+  const refreshSeqRef = useRef(0);
   // Price refresh loop
   // `doRefresh(opts)` always fetches the live-prices snapshot. The
   // optional opts.prefetch flag (default true) controls whether we ALSO
@@ -811,6 +813,10 @@ function Board({ isReadOnly }) {
   // the same fetches well inside each range's TTL.
   const doRefresh = useCallback(async (opts) => {
     if (!portfolio) return;
+    // This refresh's number (`refreshSeqRef`): the 30 s tick, the Refresh button, the return to the tab and the real
+    // load's catch-up can overlap, and an older one answering after a newer one began used to write its older prices
+    // over the newer ones, and clear the newer one's spinner (review F18). Only the newest refresh's answer is applied.
+    const seq = ++refreshSeqRef.current;
     // Defaults to true so the manual Refresh button (which forwards a
     // click event as the first arg, not an opts object) still triggers
     // the prefetch.
@@ -906,6 +912,8 @@ function Board({ isReadOnly }) {
       // page lands.
       fetchTrading212Orders(),
     ]);
+    // A newer refresh began while this one waited: its answer is the one to show, and it clears the spinner.
+    if (seq !== refreshSeqRef.current) return;
     // The dividends, cached like the fills; not awaited with the prices, so
     // a slow read never holds the board.
     fetchTrading212Dividends().then((d) => { if (Array.isArray(d?.rows)) setT212Dividends(d.rows); });
@@ -1153,8 +1161,8 @@ function Board({ isReadOnly }) {
       errorRetryTimerRef.current = setTimeout(() => doRefreshRef.current(), 3000);
     }
     } finally {
-      // Always clear the spinner, success or throw.
-      setIsRefreshing(false);
+      // Clear the spinner, success or throw, unless a newer refresh is still running: that one clears it.
+      if (seq === refreshSeqRef.current) setIsRefreshing(false);
     }
   }, [portfolio, extendedHours, quoteGuard, noteHeldSlices]);
 

@@ -433,3 +433,50 @@ describe('App — signed out', () => {
     expect(sessionStorage.getItem('dp.token')).toBeNull();
   });
 });
+
+// Two refreshes in flight at once (the 30 s tick and the Refresh button, say): until 2026-10-08 the one that answered
+// LAST won, so an older answer arriving late wrote its older prices over the newer ones (review F18).
+describe('App — overlapping refreshes', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  const SERVER_PORTFOLIO = {
+    holdings: { NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] } },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  const answer = (lastPrice) => ({ updates: { NVDA: { lastPrice, prevClose: 118, dayPct: 0, extPrice: null, currency: 'USD' } }, source: 'live' });
+  const header = () => /** @type {any} */ (globalThis).__headerProps;
+
+  afterEach(() => {
+    delete /** @type {any} */ (globalThis).__headerProps;
+    vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
+  });
+
+  it('an older refresh that answers after a newer one began is dropped: the newer prices stay, and so does the spinner until it ends', async () => {
+    setAdminToken();
+    /** @type {(v: any) => void} */ let answerFirst = () => {};
+    /** @type {(v: any) => void} */ let answerSecond = () => {};
+    vi.mocked(refreshPrices)
+      .mockImplementationOnce(() => new Promise((r) => { answerFirst = r; }))
+      .mockImplementationOnce(() => new Promise((r) => { answerSecond = r; }));
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));
+
+    render(<App />);
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalledTimes(1));     // the load's refresh, still waiting
+    await act(async () => { header().onRefresh(); });                       // the button: a second, newer refresh
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalledTimes(2));
+    expect(header().isRefreshing).toBe(true);
+
+    await act(async () => { answerSecond(answer(150)); });
+    await waitFor(() => expect(header().metrics.marketValue).toBe(1500));
+    expect(header().isRefreshing).toBe(false);
+
+    // The first refresh's answer lands now, older than what the page shows.
+    await act(async () => { answerFirst(answer(130)); });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(header().metrics.marketValue).toBe(1500);
+    expect(header().isRefreshing).toBe(false);
+  }, 10000);
+});
