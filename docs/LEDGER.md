@@ -271,7 +271,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
      `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
      D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys); A3; A4. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
+     `agents` function redeploys); A3; A4; A6. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
      digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
      stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
      residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
@@ -430,6 +430,20 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
   reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
   word), the views and book recorders (their horizon is his).
+
+### [2026-10-08 23:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Polymarket order paths book a buy before a sell matched in the same second** (review A6, batch 5;
+  `agents/pm_live.ts`, the live branch of the turn's fill read). `match_time` is to the second and CONFIRMED fills were
+  read in `trade_id` order, so a sell matched in the same second as the buy it sells could be counted first, find
+  nothing held, and leave the buy standing as a holding: marked at its market, a phantom position, its loss in the day
+  and total stops. The fills are now ordered buy first at a tie (as the loop's `positionFromFills`), and `tokenBooks`
+  and `sinceOpenPnl`, unchanged, keep that order (their sort is stable). Not in those two functions: the frozen paper
+  layers (`pm_prep_frozen.ts`, `pm_prep_mid_frozen.ts`) import `tokenBooks` and book their paper fills in print order,
+  which stays. In a live turn: nothing today, as every path is in dry-run and there are no live fills (0 rows in
+  `pm_live_fills`, `pm_mid_fills`, `pm_lp_fills`); once live, a same-second buy and sell are booked in that order.
+  Pinned in `pm_daystop.test.ts`: 100 YES bought at 0.80 and sold at 0.85 in one second, the sell's trade id first, read
+  `{ day: 5, total: 5 }` and the path open; the old order read −40 and tripped the $25 day stop. The Polymarket suites
+  with the frozen-instance comparisons: 92 passed.
 
 ### [2026-10-08 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's governor counts a rate-limit retry as the second POST it is** (review A4, batch 5; `agents/quotes_live.ts`).

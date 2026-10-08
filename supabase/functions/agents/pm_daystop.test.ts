@@ -111,16 +111,24 @@ const CONFIG = {
   cap_total_usd: 320, cap_market_usd: 60, loss_day_usd: 25, loss_total_usd: 75, max_posts_day: 6000, gtd_lifetime_s: 600, max_markets: 2, select_budget_usd: 40,
 };
 
+/** A filled live order of X's YES: by default the buy of 100 at 0.80 the path holds. */
+const boughtX = (hash: string, X: { cond: string; yes: string }, o: Row = {}): Row => ({
+  id: 1, ts: "2026-10-02T12:00:00.000Z", mode: "live", cond: X.cond, token: X.yes, outcome: "yes", side: "BUY", price: 0.8, size: 100, order_type: "GTD",
+  post_only: true, expiration: 1, neg_risk: false, hash, state: "filled", size_matched: 100, gate: "open", reason: "new", book_seen: null, request: null,
+  response: null, cancel_requested_at: null, cancel_gate: null, cancel_reason: null, filled_at: "2026-10-02T12:00:05.000Z", cancelled_at: null, updated_at: "2026-10-02T12:00:05.000Z",
+  ...o,
+});
+
 /**
  * A live path holding 100 YES of X, bought at 0.80 on 10-02 (CONFIRMED), not selected again (X pays no reward): read,
  * marked and never quoted. A ($8 a day, 0.45 / 0.47) is the day's market.
  */
-function pathWorld(inst: PmLiveInstance) {
+function pathWorld(inst: PmLiveInstance, over: { orders?: (hash: string, x: { cond: string; yes: string }) => Row[]; fills?: (hash: string, x: { cond: string; yes: string }) => Row[]; held?: number } = {}) {
   const clock = { now: at("2026-10-02T23:59:30Z") };
   const pm = new FakePolymarket(() => clock.now);
   const A = pm.addMarket({ cond: cond(1), yes: tok(1, "yes"), no: tok(1, "no"), rate: 8, bid: 0.45, ask: 0.47, minSize: 5, depth: [[0, 5]] });
   const X = pm.addMarket({ cond: cond(2), yes: tok(2, "yes"), no: tok(2, "no"), rate: null, bid: 0.39, ask: 0.41, minSize: 5, depth: [[0, 50]] });
-  pm.tokens.set(X.yes, 100);
+  pm.tokens.set(X.yes, over.held ?? 100);
   pm.pusd = 300;
   const hash = `0x${"ab".repeat(32)}`;
   const mem = memDb({
@@ -132,12 +140,8 @@ function pathWorld(inst: PmLiveInstance) {
       question: null, detail: {}, selected_at: "2026-10-02T00:00:30.000Z", max_spread: 4.5, n_size: 5, per_dollar_day: null, capital: null, formula_day: null,
       end_date: null, game_start: null,
     }],
-    pm_live_orders: [{
-      id: 1, ts: "2026-10-02T12:00:00.000Z", mode: "live", cond: X.cond, token: X.yes, outcome: "yes", side: "BUY", price: 0.8, size: 100, order_type: "GTD",
-      post_only: true, expiration: 1, neg_risk: false, hash, state: "filled", size_matched: 100, gate: "open", reason: "new", book_seen: null, request: null,
-      response: null, cancel_requested_at: null, cancel_gate: null, cancel_reason: null, filled_at: "2026-10-02T12:00:05.000Z", cancelled_at: null, updated_at: "2026-10-02T12:00:05.000Z",
-    }],
-    pm_live_fills: [{
+    pm_live_orders: over.orders?.(hash, X) ?? [boughtX(hash, X)],
+    pm_live_fills: over.fills?.(hash, X) ?? [{
       trade_id: "t-1", hash, cond: X.cond, token: X.yes, side: "BUY", price: 0.8, size: 100, status: "CONFIRMED", match_time: "2026-10-02T12:00:05.000Z",
       tx_hash: null, detail: {}, updated_at: "2026-10-02T12:00:05.000Z",
     }],
@@ -323,3 +327,23 @@ Deno.test("the paper layer, the counterfactual: on the frozen rule the carried â
   ]);
   assertEquals(w.state().open, undefined);
 });
+
+Deno.test("a sell matched in the same second as the buy it sells is booked after it: no phantom holding, and its gain is realised (A6)", async () => {
+  // 100 YES of X bought at 0.80 and sold at 0.85, both matched at 12:00:05 (`match_time` is to the second). The rows come in
+  // `trade_id` order, and the sell's id sorts first: counted first, it found nothing held, and the buy then stood as 100 YES
+  // marked at 0.40, âˆ’40, which tripped the $25 day stop. Booked buy first, the path holds nothing and has made $5.
+  const sellHash = `0x${"cd".repeat(32)}`;
+  const fill = (trade: string, hash: string, side: string, price: number) => ({
+    trade_id: trade, hash, cond: "", token: "", side, price, size: 100, status: "CONFIRMED", match_time: "2026-10-02T12:00:05.000Z", tx_hash: null, detail: {},
+    updated_at: "2026-10-02T12:00:05.000Z",
+  });
+  const w = pathWorld(PM_LIVE_INSTANCE, {
+    held: 0,
+    orders: (hash, X) => [boughtX(hash, X), boughtX(sellHash, X, { id: 2, side: "SELL", price: 0.85 })],
+    fills: (hash, X) => [{ ...fill("t-2", hash, "BUY", 0.8), cond: X.cond, token: X.yes }, { ...fill("t-1", sellHash, "SELL", 0.85), cond: X.cond, token: X.yes }],
+  });
+  const r = await w.turn(at("2026-10-02T23:59:30Z"));
+  assertEquals([r.pnl, r.gates?.open], [{ day: 5, total: 5 }, true]);
+  assertEquals(w.stops(), []);
+});
+

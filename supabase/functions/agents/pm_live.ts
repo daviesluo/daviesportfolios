@@ -1442,7 +1442,11 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       return { rows, tb: tokenBooks(all, dayStart), all };
     }
     const rows = await db.selectAll<FillRow>(T.fills, "status=eq.CONFIRMED&select=*&order=trade_id.asc,hash.asc");
-    const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }));
+    // `match_time` is to the second and the rows come in `trade_id` order, so a sell matched in the same second as the buy it
+    // sells could be counted first, find nothing held, and leave the buy standing as a holding (review A6). A buy goes first
+    // at a tie, as the loop's `positionFromFills` orders them; `tokenBooks` and `sinceOpenPnl` keep it (their sort is stable).
+    const fills = rows.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now }))
+      .sort((a, b) => a.ts - b.ts || (a.side === b.side ? 0 : a.side === "BUY" ? -1 : 1));
     const all = [...fills, ...settlementFills([...settlements, ...extra])];
     return { rows, tb: tokenBooks(all, dayStart), all };
   };
