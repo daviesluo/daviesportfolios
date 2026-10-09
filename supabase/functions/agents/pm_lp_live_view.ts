@@ -17,10 +17,13 @@
 //   realised   what its sells and settlements realised, plus the rewards Polymarket paid (native and sponsored) and the
 //              maker rebates, as its readout booked them (`pm_lp_reward_days`, live rows). The formula's rewards are
 //              shown apart and counted nowhere.
-//   fees       none: every order is post-only, a maker's, and Polymarket's CLOB charges the taker.
+//   fees       what each CONFIRMED trade's own record says we paid (`pmLiveFillFee`: a taker's `fee_rate_bps` by the docs'
+//              formula, a maker's nothing); every order is post-only, so every fill so far is a maker's and pays nothing.
+//              Taken off realised, as a fee is. The maker rebates Polymarket paid are the readout's own (`rebate_usd`).
 //   the stop   −$75 on the fills' total plus what was paid (rebates not), exactly as the path judges it each turn.
 
 import { bookPnl, settlementFills, tokenBooks, type PmFill, type PmSettlement } from "./pm_live.ts";
+import { pmLiveFillFee } from "./pm_fees.ts";
 
 const M = 60e3, DAY = 86400e3;
 /** The newest fills the page lists. */
@@ -38,6 +41,8 @@ export type LpLiveOrderRow = {
 export type LpLiveFillRow = {
   trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; status: string;
   match_time: string | null;
+  /** The trade record's side for us and its fee rate (`detail.trade`), when the read asks for them. */
+  trader_side?: string | null; fee_rate_bps?: string | number | null;
 };
 export type LpLiveRewardDayRow = {
   day: string; cond: string; minutes: number | string | null; minutes_scored: number | string | null; formula_usd: number | string | null;
@@ -54,7 +59,7 @@ export type LpLiveStopRow = { minute: string; detail: unknown };
 
 /** The columns each read takes. */
 export const LP_LIVE_ORDER_COLUMNS = "id,ts,cond,token,outcome,side,price,size,state,size_matched,gate,reason,cancel_reason,filled_at,cancelled_at";
-export const LP_LIVE_FILL_COLUMNS = "trade_id,hash,cond,token,side,price,size,status,match_time";
+export const LP_LIVE_FILL_COLUMNS = "trade_id,hash,cond,token,side,price,size,status,match_time,trader_side:detail->trade->>trader_side,fee_rate_bps:detail->trade->>fee_rate_bps";
 export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_usd,actual_usd,actual_sponsored_usd,rebate_usd";
 export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank";
 export const LP_LIVE_MINUTE_COLUMNS = "cond,rate,formula_usd";
@@ -117,6 +122,7 @@ export function lpLiveSummary(input: {
     .sort((a, b) => a.ts - b.ts || (a.side === b.side ? 0 : a.side === "BUY" ? -1 : 1));
   const books = tokenBooks([...fills, ...settlementFills(input.settlements)], todayStart);
   const pnl = bookPnl(books, marks);
+  const fees = confirmed.reduce((s, f) => s + pmLiveFillFee(num(f.size), num(f.price), f.trader_side, f.fee_rate_bps), 0);
   let realisedFills = 0, heldCost = 0, heldValue = 0;
   const condOfToken = new Map<string, string>();
   for (const m of market.values()) { condOfToken.set(m.yes_token, m.cond); condOfToken.set(m.no_token, m.cond); }
@@ -230,8 +236,8 @@ export function lpLiveSummary(input: {
     valueUsd: r6(restingBuys + heldCost), restingBuysUsd: r6(restingBuys), costUsd: r6(heldCost), heldValueUsd: r6(heldValue),
     todayUsd: r6(pnl.day + paidToday),
     unrealisedUsd: r6(pnl.total - realisedFills),
-    realisedUsd: r6(realisedFills + paid + rebates), realisedFillsUsd: r6(realisedFills), paidUsd: r6(paid), rebateUsd: r6(rebates),
-    totalUsd: r6(pnl.total + paid + rebates), feesUsd: 0,
+    realisedUsd: r6(realisedFills + paid + rebates - fees), realisedFillsUsd: r6(realisedFills - fees), paidUsd: r6(paid), rebateUsd: r6(rebates),
+    totalUsd: r6(pnl.total + paid + rebates - fees), feesUsd: r6(fees),
     // R, the actual over the formula on the live days whose payout has been read; null before the first is.
     formulaUsd: r6(formula), r: formula > 0 ? r6(paid / formula) : null,
     // The TESTING page's STATUS tiles, but R (ACTUAL) for its worst case: the largest market's part (TOP SHARE is it over
@@ -246,6 +252,6 @@ export function lpLiveSummary(input: {
       ? { mode: st.mode ?? null, armed: !!st.armed, verdicts: st.gates, openBlockedBy: st.openBlockedBy ?? null, reduceBlockedBy: st.reduceBlockedBy ?? null }
       : null,
     openOrders: input.open.length, markets: marketsAtWork.size, fills: confirmed.length,
-    quotes, recentFills, held, days,
+    quotes, recentFills, days,
   };
 }

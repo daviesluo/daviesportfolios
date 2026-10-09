@@ -46,7 +46,8 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   near(out.formulaUsd, 5, "the formula, apart"); near(out.r!, 0.44, "R = 2.20 / 5.00"); assertEquals(out.feesUsd, 0);
   assertEquals([out.stop.basisUsd, out.stop.roomUsd, out.stop.limitUsd, out.stop.trippedAt], [3, 78, 75, null]);
   assertEquals([out.openOrders, out.markets, out.fills, out.armed, out.running, out.lagMinutes, out.liveSince], [5, 3, 4, true, true, 1, "2026-09-16T01:32:21.000Z"]);
-  assertEquals(out.held.map((h) => [h.q, h.outcome, h.shares, h.avgCost, h.mark, h.unrealisedUsd]), [["Will H happen?", "no", 10, 0.28, 0.29, 0.1], ["Will J happen?", "yes", 10, 0.3, 0.31, 0.1]]);
+  // What it holds is QUOTES' held column (its HELD table went, 2026-10-09): H 10 NO, J 10 YES.
+  assertEquals(out.quotes.map((x) => [x.q, x.yes, x.no, x.mark]), [["Will G happen?", 0, 0, 0.45], ["Will H happen?", 0, 10, 0.71], ["Will J happen?", 10, 0, 0.31]]);
   assertEquals(out.days.map((d) => [d.day, d.markets, d.formulaUsd, d.paidUsd, d.r, d.rebateUsd]), [["2026-09-16", 2, 5, 2.2, 0.44, 0.05]]);
   // Newest first, everywhere; the MATCHED fill listed and not counted.
   assertEquals(out.quotes.map((x) => [x.q, x.quoting, x.ratePerDay, x.bid, x.ask, x.share, x.yes, x.no, x.rewardUsd, x.fillsPnlUsd, x.totalUsd]), [
@@ -90,11 +91,11 @@ Deno.test("live-prep's live stop: tripped by its event, and a settlement realise
   const J = F.input.markets.find((m: { question: string }) => m.question === "Will J happen?");
   const settled = lpLiveSummary({ ...F.input, settlements: [{ cond: J.cond, yes_token: J.yes_token, no_token: J.no_token, payout: 0, settled_at: "2026-09-17T22:00:00.000Z" }] })!;
   near(settled.realisedFillsUsd, 0.6 - 3, "G's +0.60 and J's −3.00"); near(settled.costUsd, 2.8, "H alone"); near(settled.unrealisedUsd, 0.1, "H's");
-  assertEquals(settled.held.map((h) => h.q), ["Will H happen?"]);
+  assertEquals(settled.quotes.map((x) => [x.q, x.yes, x.no]), [["Will G happen?", 0, 0], ["Will H happen?", 0, 10], ["Will J happen?", 0, 0]]);
   near(settled.stop.basisUsd, 0.6 - 3 + 0.1 + 2.2, "the stop moves with it");
   // A held token whose market the last turn did not read is held at cost: no unrealised, never a guess.
   const unread = lpLiveSummary({ ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, markets: [] } } })!;
-  assertEquals([unread.unrealisedUsd, unread.costUsd, unread.held.map((h) => h.mark)], [0, 5.8, [null, null]]);
+  assertEquals([unread.unrealisedUsd, unread.costUsd, unread.quotes.map((x) => x.mark)], [0, 5.8, [null, null, null]]);
 });
 
 Deno.test("the dashboard reads live-prep's live book from its live rows only: no dry-run row, no paper layer, nothing written", async () => {
@@ -107,7 +108,8 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
     [T.config]: [{ id: 1, ...I.config }],
     [T.state]: [{ id: 1, ...I.state }],
     [T.orders]: [{ ...dryOrder, mode: "dry_run" }, { ...I.open[0], id: 60, ts: I.firstLive, mode: "live", state: "cancelled" }, ...I.open.map((o: Record<string, unknown>) => ({ mode: "live", ...o }))],
-    [T.fills]: I.fills,
+    // Each fill as the table holds it: its trade record's side for us and fee rate inside `detail.trade`.
+    [T.fills]: I.fills.map(({ trader_side, fee_rate_bps, ...f }: Record<string, unknown>) => ({ ...f, detail: { trade: { trader_side, fee_rate_bps } } })),
     [T.settlements]: I.settlements,
     [T.rewardDays]: [...I.rewardDays.map((r: Record<string, unknown>) => ({ mode: "live", ...r })), { mode: "dry_run", day: "2026-09-16", cond: I.rewardDays[0].cond, minutes: 1, minutes_scored: 1, formula_usd: 500, actual_usd: null, actual_sponsored_usd: null, rebate_usd: null }],
     [T.markets]: [...I.markets, { ...I.markets[0], day: "2026-09-15", question: "dry-run only" }],
@@ -127,4 +129,14 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
   // A read that fails leaves the row off, never the page.
   const broken: typeof mem.db = { ...mem.db, select: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.select(t, q)) };
   assertEquals(await readLpLive(broken, I.nowMs), null);
+});
+
+Deno.test("a live fill's fee is its trade record's: a taker pays its rate by the docs' formula, a maker nothing", () => {
+  // Every fill so far is a maker's (post-only): no fee, nothing off realised.
+  assertEquals(lpLiveSummary(F.input)!.feesUsd, 0);
+  // Were G's sell of 20 YES at 0.43 a taker's at 400 bps: 20 × 0.04 × 0.43 × 0.57 = 0.19608, off realised and the total.
+  const taker = lpLiveSummary({ ...F.input, fills: F.input.fills.map((f: { trade_id: string }) => (f.trade_id === "t-3" ? { ...f, trader_side: "TAKER", fee_rate_bps: "400" } : f)) })!;
+  near(taker.feesUsd, 0.19608, "the taker's fee");
+  near(taker.realisedUsd, 2.85 - 0.19608, "realised, less the fee"); near(taker.totalUsd, 3.05 - 0.19608, "the total too");
+  near(taker.realisedUsd + taker.unrealisedUsd, taker.totalUsd, "still adding up");
 });

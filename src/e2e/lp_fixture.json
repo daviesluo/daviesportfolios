@@ -223,7 +223,11 @@
     "day": "2026-09-17",
     "stress": 2.3
    }
-  ]
+  ],
+  "feeTypes": {
+   "0x00000000000000000000000000000000000000000000000000000000000000e5": "economics_fees",
+   "0x00000000000000000000000000000000000000000000000000000000000000f6": "tech_fees"
+  }
  },
  "output": {
   "lastMinute": "2026-09-17T22:58:00.000Z",
@@ -348,6 +352,13 @@
     "capitalUsd": 29.2,
     "stop": false
    }
-  ]
+  ],
+  "fees": {
+   "feesUsd": 0,
+   "rebatesEstUsd": 0.141435,
+   "makerFills": 3,
+   "takerFills": 0,
+   "unknownFills": 0
+  }
  }
 }

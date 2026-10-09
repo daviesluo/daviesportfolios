@@ -837,7 +837,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
  * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'rq-fees'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -1158,6 +1158,23 @@ const LP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_fixture.json', impor
  */
 const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
+/**
+ * Every Reward quotes row on TESTING with its fees (2026-10-09, Davies: "testing页面中VENUES里的polymarket中应该也像live一样加入
+ * fees行，每个Reward quotes子页面的scoreboard里也一样", "按照实际情况估算"), as the dashboard sends them since (`pm_fees.ts`): RW's,
+ * RW-E's and each variant's a hand-set estimate of what their maker fills would earn back, mid-pool's and live-prep's their
+ * fixtures' own (+$0.06 and +$0.141435); every paper fill is a maker's, so every fee is $0 and the Polymarket card's fees
+ * line is their sum, $0. Live-prep's live book is on LIVE beside PR5's (its actual fees, $0), so LIVE's card has it too.
+ */
+const RQ_REBATES = { rw: 0.31, rwe: 0.12, rwx: 0.05 };
+const AGENTS_RQ_FEES = () => {
+  const d = AGENTS_LP_LIVE('output');
+  const fees = (/** @type {number} */ rebatesEstUsd) => ({ feesUsd: 0, rebatesEstUsd, makerFills: 10, takerFills: 0, unknownFills: 0 });
+  return {
+    ...d, prepMid: MID_FIXTURE.output, prepLp: LP_FIXTURE.output,
+    rw: { ...d.rw, fees: fees(RQ_REBATES.rw) }, rwe: { ...d.rwe, fees: fees(RQ_REBATES.rwe) },
+    rwx: d.rwx.map((/** @type {any} */ x) => ({ ...x, fees: fees(RQ_REBATES.rwx) })),
+  };
+};
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
   return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
@@ -1516,6 +1533,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'prep') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output });
       if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
       if (agentsMode === 'lp') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output, prepLp: LP_FIXTURE.output });
+      if (agentsMode === 'rq-fees') return json(AGENTS_RQ_FEES());
       if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off' || agentsMode === 'lp-live-nopay') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live' ? 'output' : agentsMode === 'lp-live-nopay' ? 'noPayout' : false));
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
@@ -4705,7 +4723,7 @@ async function run() {
         await settled(page, '.ag-lp-live-detail');
         const lv = await readLpLivePage();
         await shot(page, 'agents-lp-live-page');
-        for (const [sel, name] of [['.ag-lpl-held', 'agents-lp-live-held'], ['.ag-rw-markets', 'agents-lp-live-quotes'], ['.ag-rw-fills', 'agents-lp-live-fills']]) {
+        for (const [sel, name] of [['.ag-lpl-days', 'agents-lp-live-days'], ['.ag-rw-markets', 'agents-lp-live-quotes'], ['.ag-rw-fills', 'agents-lp-live-fills']]) {
           await page.locator(`.ag-lp-live-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
           await shot(page, name);
         }
@@ -4716,10 +4734,10 @@ async function run() {
           ok(LT('page'), `its row opens its own page over the list, with a refresh button: LIVE Polymarket, running · ${lv.tested}; its scoreboard is the row's (${lv.scoreboard}), realised split into rewards paid and orders`);
         } else fail(LT('page'), `page ${JSON.stringify(lv && { title: lv.title, modals: lv.modals, refresh: lv.refresh, head: lv.head, status: lv.status, tested: lv.tested, paper: lv.paperPage, sb: lv.scoreboard, split: lv.split })}, wanted ${PAGE_SB}`);
         const WANT = {
-          sections: 'STATUS,DAYS,STOP AND GATES,HELD,QUOTES,FILLS',
+          // HELD went too (Davies: "新live页里held表也可以删了，QUOTES表里已经有了"): QUOTES' Held column is what it holds of each token.
+          sections: 'STATUS,DAYS,STOP AND GATES,QUOTES,FILLS',
           tiles: 'R (ACTUAL)=0.44 | TOP SHARE=54 % | QUOTING TODAY=3 | POSITIONS STILL HELD=2',
           stop: 'Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.',
-          held: ['Will H happen? | No | 10 | 28¢ | 29¢ | +$0.10', 'Will J happen? | Yes | 10 | 30¢ | 31¢ | +$0.10'],
           days: ['16 Sep | 2 | $5 | +$2.20 | 0.44 | $0.05'],
           // TESTING's QUOTES from the live book: each market's pool, the quote its live orders rest at in YES's book, our share
           // at the last live minute, what it holds, and what Polymarket paid for it and its orders made, adding up to its total.
@@ -4731,11 +4749,11 @@ async function run() {
         };
         if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && lv.stop === WANT.stop
           && lv.gates.length === 10 && lv.gates.every((g) => g.endsWith(':is-pass')) && lv.gatesSum === 'every gate open'
-          && JSON.stringify(lv.held) === JSON.stringify(WANT.held) && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
+          && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); the stop and ten gates open; 2 held; TESTING's QUOTES (3 markets) and FILLS (5, one not confirmed)`);
-        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop "${lv?.stop}", gates ${JSON.stringify(lv?.gates)} "${lv?.gatesSum}", held ${JSON.stringify(lv?.held)}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); the stop and ten gates open; no HELD; TESTING's QUOTES (3 markets, H's 10 No and J's 10 Yes in Held) and FILLS (5, one not confirmed)`);
+        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop "${lv?.stop}", gates ${JSON.stringify(lv?.gates)} "${lv?.gatesSum}", held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1)) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'})`);
         } else fail(LT('width'), `page overflow ${lv?.overflow}, document ${lv?.pageOverflow}, boxes outside ${lv?.off}, tables ${lv?.tableOverflow}`);
@@ -4771,13 +4789,74 @@ async function run() {
         const hRow = hq.rows.find((r) => r.name === 'Reward quotes');
         const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && !/\$\d/.test(hv.stop) && hv.tiles === WANT.tiles
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
-          && !cellsAt(hv.held, [2, 3, 4, 5]).some(digits) && !cellsAt(hv.quotes, [1, 2, 4, 5, 6, 7]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
+          && !cellsAt(hv.quotes, [1, 2, 4, 5, 6, 7]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
           && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && cellsAt(hv.quotes, [3]).join(',') === '36 %,2 %,—' && hv.fills.length === 5;
-        if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, holdings, quotes, pools, payouts, prices and sizes; its counts, shares, R and times stay");
-        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", stop "${hv?.stop}", held ${JSON.stringify(hv?.held)}, quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
+        if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, quotes, holdings, pools, payouts, prices and sizes; its counts, shares, R and times stay");
+        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", stop "${hv?.stop}", quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         await toggleHidden(page);                       // values shown again for everything after this
+      }
+
+      // ---- Reward quotes' fees on TESTING (Davies, 2026-10-09: "像live一样加入fees行"; "按照实际情况估算") --------------
+      // The Polymarket card's fees line is the rows' fees summed, in cents; every Reward quotes page's REALIZED reads, as
+      // LIVE's does, "(incl. fees $0)", and beside it the maker rebates estimated, not counted; hide-values masks both.
+      {
+        const FT = (n) => S(`rq-fees/${n}`);
+        const cents = (/** @type {string | undefined} */ t) => { const x = /([+-]?)[$£]([\d,]+(?:\.\d+)?)/.exec(t ?? ''); return x ? Math.round(Number(`${x[1]}${x[2].replace(/,/g, '')}`) * 100) : NaN; };
+        agentsMode = 'rq-fees';
+        await openAgentsPage(page);
+        await clickTab('testing');
+        const f0 = await readAgentsPanel(page);
+        const pmCard = f0.venues.find((v) => v.id === 'polymarket');
+        const rowFees = [0, 0, 0, 0, 0, MID_FIXTURE.output.fees.feesUsd, LP_FIXTURE.output.fees.feesUsd];
+        if (pmCard && pmCard.pairs.fees === '$0' && cents(pmCard.pairs.fees) === Math.round(rowFees.reduce((a, x) => a + x, 0) * 100) && pmCard.subs.some((x) => x.startsWith('fees+'))) {
+          ok(FT('card'), `TESTING's Polymarket card has its fees line, the Reward quotes rows' fees summed: ${pmCard.pairs.fees} (every paper fill a maker's)`);
+        } else fail(FT('card'), `Polymarket card ${JSON.stringify(pmCard?.pairs)}, subs ${JSON.stringify(pmCard?.subs)}`);
+        // Each Reward quotes page, opened from TESTING: its REALIZED's lines, in LIVE's design.
+        const RQ_PAGES = [
+          ['Reward quotes', RQ_REBATES.rw], ['Reward quotes variant-1', RQ_REBATES.rwe],
+          ...AGENTS_DASHBOARD.rwx.map((/** @type {any} */ x) => [x.name, RQ_REBATES.rwx]),
+          ['Reward quotes mid-pool', MID_FIXTURE.output.fees.rebatesEstUsd], ['Reward quotes live-prep', LP_FIXTURE.output.fees.rebatesEstUsd],
+        ];
+        const readRealised = () => page.evaluate(() => {
+          const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+          const root = document.querySelector('.ag-rw-detail');
+          const cell = root && [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].find((c) => txt(c.querySelector('.ag-sb-name')) === 'REALIZED G/L');
+          const vw = document.documentElement.clientWidth;
+          return root ? {
+            asides: [...(cell?.querySelectorAll('.ag-sb-aside') ?? [])].map(txt),
+            off: [...root.querySelectorAll('.ag-sb-aside, .ag-scoreboard')].map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && (r.left < -1 || r.right > vw + 1)).length,
+            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          } : null;
+        });
+        const bad = [];
+        for (const [name, rebate] of RQ_PAGES) {
+          await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, String(name)) }).first().click();
+          await settled(page, '.ag-rw-detail');
+          const got = await readRealised();
+          const want = ['(incl. fees $0)', `(est. maker rebates ${TW.money(Number(rebate), '$', true)}, not counted)`];
+          if (!got || JSON.stringify(got.asides) !== JSON.stringify(want) || got.off > 0 || got.overflow > 1) bad.push(`${name}: ${JSON.stringify(got)} wanted ${JSON.stringify(want)}`);
+          if (name === 'Reward quotes live-prep') await shot(page, 'agents-rq-fees-page');
+          await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        }
+        if (bad.length === 0) ok(FT('pages'), `every Reward quotes page (${RQ_PAGES.length}) reads "(incl. fees $0)" and its estimated maker rebates beside REALIZED, inside the screen`);
+        else fail(FT('pages'), bad.join(' / '));
+        // Under hide-values the fee and the rebate are masked; the card's too.
+        await closeBy(page, () => page.keyboard.press('Escape'));
+        await toggleHidden(page);
+        await openAgentsPage(page);
+        await clickTab('testing');
+        const fh = await readAgentsPanel(page);
+        await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click();
+        await settled(page, '.ag-rw-detail');
+        const hr = await readRealised();
+        const hpm = fh.venues.find((v) => v.id === 'polymarket');
+        if (hr && hr.asides.length === 2 && !hr.asides.some((t) => /\$\d/.test(t)) && hpm && !/\d/.test(hpm.pairs.fees ?? '1')) ok(FT('hidden'), `hide-values masks the fees and the rebates: ${hr.asides.join(' ')}; the card's fees ${hpm.pairs.fees}`);
+        else fail(FT('hidden'), `under the mask: ${JSON.stringify(hr)}, card ${JSON.stringify(hpm?.pairs)}`);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+        await toggleHidden(page);
       }
 
       agentsMode = 'rw-cents';

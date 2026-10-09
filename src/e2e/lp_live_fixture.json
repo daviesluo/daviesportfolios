@@ -155,7 +155,9 @@
     "price": 0.4,
     "size": 20,
     "status": "CONFIRMED",
-    "match_time": "2026-09-16T10:00:00.000Z"
+    "match_time": "2026-09-16T10:00:00.000Z",
+    "trader_side": "MAKER",
+    "fee_rate_bps": "0"
    },
    {
     "trade_id": "t-2",
@@ -166,7 +168,9 @@
     "price": 0.28,
     "size": 10,
     "status": "CONFIRMED",
-    "match_time": "2026-09-16T12:00:00.000Z"
+    "match_time": "2026-09-16T12:00:00.000Z",
+    "trader_side": "MAKER",
+    "fee_rate_bps": "0"
    },
    {
     "trade_id": "t-3",
@@ -177,7 +181,9 @@
     "price": 0.43,
     "size": 20,
     "status": "CONFIRMED",
-    "match_time": "2026-09-17T09:00:00.000Z"
+    "match_time": "2026-09-17T09:00:00.000Z",
+    "trader_side": "MAKER",
+    "fee_rate_bps": "0"
    },
    {
     "trade_id": "t-4",
@@ -188,7 +194,9 @@
     "price": 0.3,
     "size": 10,
     "status": "CONFIRMED",
-    "match_time": "2026-09-17T14:00:00.000Z"
+    "match_time": "2026-09-17T14:00:00.000Z",
+    "trader_side": "MAKER",
+    "fee_rate_bps": "0"
    },
    {
     "trade_id": "t-5",
@@ -199,7 +207,9 @@
     "price": 0.3,
     "size": 5,
     "status": "MATCHED",
-    "match_time": "2026-09-17T22:58:00.000Z"
+    "match_time": "2026-09-17T22:58:00.000Z",
+    "trader_side": "MAKER",
+    "fee_rate_bps": "0"
    }
   ],
   "settlements": [],
@@ -480,30 +490,6 @@
     "counted": true
    }
   ],
-  "held": [
-   {
-    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-    "q": "Will H happen?",
-    "outcome": "no",
-    "shares": 10,
-    "avgCost": 0.28,
-    "mark": 0.29,
-    "costUsd": 2.8,
-    "valueUsd": 2.9,
-    "unrealisedUsd": 0.1
-   },
-   {
-    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
-    "q": "Will J happen?",
-    "outcome": "yes",
-    "shares": 10,
-    "avgCost": 0.3,
-    "mark": 0.31,
-    "costUsd": 3,
-    "valueUsd": 3.1,
-    "unrealisedUsd": 0.1
-   }
-  ],
   "days": [
    {
     "day": "2026-09-16",
@@ -703,30 +689,6 @@
     "tokenPrice": 0.4,
     "status": "CONFIRMED",
     "counted": true
-   }
-  ],
-  "held": [
-   {
-    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-    "q": "Will H happen?",
-    "outcome": "no",
-    "shares": 10,
-    "avgCost": 0.28,
-    "mark": 0.29,
-    "costUsd": 2.8,
-    "valueUsd": 2.9,
-    "unrealisedUsd": 0.1
-   },
-   {
-    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
-    "q": "Will J happen?",
-    "outcome": "yes",
-    "shares": 10,
-    "avgCost": 0.3,
-    "mark": 0.31,
-    "costUsd": 3,
-    "valueUsd": 3.1,
-    "unrealisedUsd": 0.1
    }
   ],
   "days": []

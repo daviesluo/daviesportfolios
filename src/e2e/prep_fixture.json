@@ -236,7 +236,11 @@
     "day": "2026-09-17",
     "stress": 0.64
    }
-  ]
+  ],
+  "feeTypes": {
+   "0x00000000000000000000000000000000000000000000000000000000000000a1": "politics_fees",
+   "0x00000000000000000000000000000000000000000000000000000000000000b2": "sports_fees_v3"
+  }
  },
  "output": {
   "lastMinute": "2026-09-17T22:58:00.000Z",
@@ -374,6 +378,13 @@
     "capitalUsd": 24.3,
     "stop": false
    }
-  ]
+  ],
+  "fees": {
+   "feesUsd": 0,
+   "rebatesEstUsd": 0.071324,
+   "makerFills": 4,
+   "takerFills": 0,
+   "unknownFills": 0
+  }
  }
 }

@@ -25,7 +25,7 @@ import fixture from "../../../src/e2e/prep_fixture.json" with { type: "json" };
 import midFixture from "../../../src/e2e/mid_fixture.json" with { type: "json" };
 import lpFixture from "../../../src/e2e/lp_fixture.json" with { type: "json" };
 import { PREP_STALE_MINUTES, prepSummary } from "./pm_prep_view.ts";
-import { readPrepSummary } from "./index.ts";
+import { PM_REC_MARKETS, readPrepSummary } from "./index.ts";
 import { PREP_INSTANCE, type PrepInstance } from "./pm_prep.ts";
 import { PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PREP_LP_INSTANCE } from "./pm_lp.ts";
@@ -155,7 +155,13 @@ Deno.test("live-prep's page figures for its record: the fixture the sweep serves
   near(out.heldUsd, 2.9, "held at the mid"); near(out.costUsd, 2.8, "cost"); near(out.unrealisedUsd, 0.1, "unrealised");
   near(out.rewardUsd, 9, "rewards"); near(out.realisedFillsUsd, 0.6, "E's 20 YES sold at 0.43, bought at 0.40"); near(out.realisedUsd, 9.6, "realised");
   near(out.totalUsd, 9.7, "total"); near(out.todayUsd, 4.9, "today: 9.70 − 4.80");
-  near(out.stressUsd, 4.8, "the worst case: 1.95 + 2.65"); near(out.days[0].stressUsd!, 2.3, "16 Sep's"); near(out.todayStressUsd!, 2.5, "today's: 4.80 − 2.30");
+  near(out.stressUsd, 4.8, "the worst case: 1.95 + 2.65");
+  // Its fees (pm_fees.ts): all three fills are a maker's, so none; the maker rebate estimated, E economics (0.05, 25 %)
+  // 0.25 × 0.05 × (20 × 0.40 × 0.60 + 20 × 0.43 × 0.57) = 0.121275 and F tech (0.04, 25 %) 0.25 × 0.04 × 10 × 0.28 × 0.72
+  // = 0.02016: 0.141435.
+  assertEquals(out.fees, { feesUsd: 0, rebatesEstUsd: 0.141435, makerFills: 3, takerFills: 0, unknownFills: 0 });
+  assertEquals(prepSummary({ ...LF.input, feeTypes: undefined })!.fees, undefined);
+  assertEquals(prepSummary({ ...LF.input, feeTypes: {} })!.fees, { feesUsd: 0, rebatesEstUsd: 0, makerFills: 3, takerFills: 0, unknownFills: 3 }); near(out.days[0].stressUsd!, 2.3, "16 Sep's"); near(out.todayStressUsd!, 2.5, "today's: 4.80 − 2.30");
   assertEquals(out.markets.map((m) => [m.q, m.ratePerDay, m.yes, m.no, m.share, m.totalUsd]), [["Will E happen?", 20, 0, 0, 0.18, 4.1], ["Will F happen?", 120, 0, 10, 0.072, 5.6]]);
   assertEquals(out.recent.map((f) => [f.q, f.tokenSide, f.outcome, f.size, f.tokenPrice]), [["Will E happen?", "SELL", "yes", 20, 0.43], ["Will F happen?", "BUY", "no", 10, 0.28], ["Will E happen?", "BUY", "yes", 20, 0.4]]);
   assertEquals([out.open, out.quoting, out.running, out.lagMinutes, out.fills, out.capUsd], [1, 2, true, 2, 3, 320]);
@@ -181,14 +187,19 @@ Deno.test("the dashboard reads each paper layer from its own instance's tables: 
   // deno-lint-ignore no-explicit-any
   const startsOf = (input: any, inst: PrepInstance) => input.stressDays.map((r: { day: string; stress: number }) => ({ layer: inst.lock, ...r, parts: {}, source: "recorded" }));
   const stressDays = [...startsOf(F.input, PREP_INSTANCE), ...startsOf(MF.input, PREP_MID_INSTANCE), ...startsOf(LF.input, PREP_LP_INSTANCE)];
+  // Each fixture's markets' fee types, as the book recorder holds them (one table for every path).
+  // deno-lint-ignore no-explicit-any
+  const recOf = (input: any) => Object.entries(input.feeTypes as Record<string, string | null>).map(([cond, fee_type]) => ({ cond, fee_type }));
   const mem = memDb({
     ...rowsOf(F.input, PREP_INSTANCE, 320), ...rowsOf(MF.input, PREP_MID_INSTANCE, 320), ...rowsOf(LF.input, PREP_LP_INSTANCE, 320), [PREP_STRESS_TABLE]: stressDays,
+    [PM_REC_MARKETS]: [...recOf(F.input), ...recOf(MF.input), ...recOf(LF.input)],
   }, { now: () => F.input.nowMs });
   const dayStart = Date.parse("2026-09-17T00:00:00Z");
   // Live-prep's from 0091's: its own tables, never mini-pool's.
   for (const [inst, fixture] of [[PREP_INSTANCE, F], [PREP_MID_INSTANCE, MF], [PREP_LP_INSTANCE, LF]] as const) {
     const reads = [
       inst.tables.state, inst.tables.days, inst.tables.minutes, inst.tables.fills, inst.tables.settlements, inst.reads.minutes, inst.reads.markets, inst.reads.config, PREP_STRESS_TABLE,
+      PM_REC_MARKETS,
     ];
     const db = onlyTables(mem.db, reads, { readOnly: reads });
     const out = await readPrepSummary(db, inst, fixture.input.nowMs, dayStart);

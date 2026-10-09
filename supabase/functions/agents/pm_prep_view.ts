@@ -12,6 +12,7 @@
 import { bookPnl, type PmSettlement } from "./pm_live.ts";
 import { paperPnl, type PrepFill, type PrepState } from "./pm_prep.ts";
 import { accStress } from "./pmrw.ts";
+import { pmFeeSchedule, pmPaperFees } from "./pm_fees.ts";
 
 const M = 60e3, DAY = 86400e3;
 /** The newest fills the page lists. */
@@ -61,6 +62,8 @@ const dayOf = (d: string) => String(d).slice(0, 10);
 export function prepSummary(input: {
   state: PrepStateRow | null; days: PrepDayRow[]; latest: PrepMinuteRow[]; rates: PrepRateRow[]; fills: PrepFillRow[]; settlements: PmSettlement[];
   markets: PrepMarketRow[]; stressDays?: PrepStressDayRow[]; capUsd: number; nowMs: number;
+  /** Each filled market's fee type (`pm_rec_markets.fee_type`): given, the summary carries `fees` (`pm_fees.ts`). */
+  feeTypes?: Record<string, string | null>;
 }) {
   const st = input.state?.state as PrepState | undefined;
   if (!st || typeof st !== "object" || st.version !== 1 || !input.state?.last_minute) return null;
@@ -187,5 +190,11 @@ export function prepSummary(input: {
     // A day stop holds for its own UTC day only, as the path reads it.
     stopDay: st.stopDay === today ? st.stopDay : null, stopTotal: st.stopTotal, open, quoting: todays.length,
     markets, recent, days,
+    // Every paper fill is a resting quote a print went through: a maker's, which Polymarket never charges; what it would
+    // earn back is the maker rebate, estimated at the token's price and counted in no figure (`pmPaperFees`).
+    ...(input.feeTypes ? {
+      fees: pmPaperFees(fills.map((f) => ({ cond: f.cond, price: f.tokenPrice, size: f.size, taker: false })),
+        (cond) => (cond in input.feeTypes! ? pmFeeSchedule(input.feeTypes![cond]) : null)),
+    } : {}),
   };
 }

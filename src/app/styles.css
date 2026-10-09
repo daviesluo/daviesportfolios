@@ -2417,3 +2417,7 @@ body {
 .ag-lpl-gate.is-fail { color: var(--loss); border-color: var(--loss); }
 .ag-lpl-gate.is-na { color: var(--chalk-mute); }
 .ag-lpl-gates-sum { font-size: 11px; margin-top: 6px; }
+/* A Reward quotes page's estimated maker rebates under REALIZED's name (2026-10-09): a line of its own that wraps, so
+   a phone keeps it inside its cell; the fees stay beside the name as on every other page. */
+.ag-sb-realised .sb-label.ag-sb-label:has(.ag-sb-note) { flex-wrap: wrap; row-gap: 1px; }
+.ag-sb-note { flex: 1 0 100%; white-space: normal; overflow-wrap: anywhere; }

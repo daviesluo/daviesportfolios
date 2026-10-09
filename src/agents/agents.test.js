@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStatus, lpLiveStopText,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStatus, lpLiveStopText, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1039,7 +1039,7 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     expect(rwRow({ ...r, fundedUsd: undefined })?.capitalUsd).toBe(296);
     expect(rwInventoryCost(r.markets)).toBeCloseTo(40, 12);
     expect(row?.unrealisedPct).toBeCloseTo((-1 / 40) * 100, 12);
-    expect(row?.unrealisedOf).toBeUndefined();
+    expect(/** @type {any} */ (row)?.unrealisedOf).toBeUndefined();
     const shortNo = rwInventoryCost([{ net: -20, avgCost: 0.66 }]);
     expect(shortNo).toBeCloseTo(20 * 0.34, 12);
     expect(rwRow({ ...r, markets: [{ net: -20, avgCost: 0.66 }], heldUsd: 14.4 })?.unrealisedPct).toBeCloseTo((-1 / shortNo) * 100, 12);
@@ -1846,5 +1846,29 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(lpLiveStatus(l)).toEqual({ phase: 'run', rText: '0.44', bestShareText: '54 %', quoting: 3, open: 2 });
     expect(lpLiveStatus(lpLiveFixture.noPayout)).toEqual({ phase: 'run', rText: '—', bestShareText: '75 %', quoting: 3, open: 2 });
     expect(lpLiveStatus({ ...l, totalUsd: 0 }).bestShareText).toBe('—');
+  });
+});
+
+describe('Reward quotes fees, in LIVE\'s design on every page and card (2026-10-09)', () => {
+  it("a paper row's fees are its summary's: a maker's $0 by Polymarket's rule, its maker rebates estimated apart", () => {
+    // live-prep's paper fixture: three maker fills, none charged; rebates 0.121275 + 0.02016 (pm_prep_view.test.ts).
+    const row = /** @type {any} */ (lpRow(lpFixture.output));
+    expect([row.feesUsd, row.rebatesEstUsd, row.unpricedFills]).toEqual([0, 0.141435, 0]);
+    expect(rwFeeAsides(row)).toEqual(['(incl. fees $0)', '(est. maker rebates +$0.14, not counted)']);
+    expect(rwFeeAsides({ ...row, unpricedFills: 2 })[1]).toBe('(est. maker rebates +$0.14, not counted; 2 fills unpriced)');
+    expect(rwFeeAsides(row, (s) => s.replace(/\d/g, '•')).some((t) => /\d/.test(t))).toBe(false);
+    // A payload without fees says nothing, rather than a made-up $0.
+    expect(rwFeeCells({})).toEqual({ feesUsd: null, rebatesEstUsd: null, unpricedFills: 0 });
+    expect(rwFeeAsides(rwRow({ totalUsd: 0, markets: [] }))).toEqual([]);
+    // LIVE's row: its actual fees, no estimate.
+    expect(rwFeeAsides(lpLiveRow(lpLiveFixture.output))).toEqual(['(incl. fees $0)']);
+  });
+  it("TESTING's Polymarket card carries a fees line, the rows' fees summed, and none while no row says", () => {
+    const withFees = { ...lpFixture.output, fees: { feesUsd: 0.12345, rebatesEstUsd: 0, unknownFills: 0 } };
+    const tests = [/** @type {any} */ (midRow(midFixture.output)), /** @type {any} */ (lpRow(withFees))];
+    const card = venueRows({ strategies: [] }, 'testing', tests).find((c) => c.id === 'polymarket');
+    expect(card?.feesUsd).toBeCloseTo(0 + 0.12345, 12);
+    const none = venueRows({ strategies: [] }, 'testing', [/** @type {any} */ (rwRow({ totalUsd: 0, markets: [], fundedUsd: 1000 }))]).find((c) => c.id === 'polymarket');
+    expect(none?.feesUsd).toBe(null);
   });
 });

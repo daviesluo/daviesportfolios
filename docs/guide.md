@@ -384,17 +384,26 @@ places stay when the number is not whole.
   its cap, the most it may commit; deployed is what its resting buys tie up
   plus what it holds at cost; today, unrealised and realised come from its
   confirmed fills at the last minute's mid prices, and realised also counts
-  the rewards and rebates Polymarket actually paid. Tap it for a page of its
-  own: the same scoreboard, then STATUS as on the TESTING pages, except that
-  its first tile is R (ACTUAL), what Polymarket paid over what the reward
-  formula gave on the days a payout has been read (a dash until the first);
-  then DAYS, each of those days with the formula, what was paid, R and the
-  rebates; STOP AND GATES, where its −$75 total stop stands and each check of
-  its last minute; HELD, what it holds at cost and at the mid; and the
-  TESTING pages' QUOTES (each market's pool, the prices its live orders rest
-  at, our share of the pool, what it holds, and what it has made) and FILLS
-  (a fill Polymarket has not confirmed yet is marked and counted nowhere).
-  Hide values masks every amount on it.
+  the rewards and rebates Polymarket actually paid, less any fee its trade
+  records show (none so far: its orders only ever rest, and Polymarket
+  charges only the side that takes). Tap it for a page of its own: the same
+  scoreboard, then STATUS as on the TESTING pages, except that its first
+  tile is R (ACTUAL), what Polymarket paid over what the reward formula gave
+  on the days a payout has been read (a dash until the first); then DAYS,
+  each of those days with the formula, what was paid, R and the rebates;
+  STOP AND GATES, where its −$75 total stop stands and each check of its
+  last minute; and the TESTING pages' QUOTES (each market's pool, the prices
+  its live orders rest at, our share of the pool, what it holds of each
+  token, and what it has made) and FILLS (a fill Polymarket has not confirmed
+  yet is marked and counted nowhere). Hide values masks every amount on it.
+- **Fees on the Reward quotes pages.** Every Reward quotes page shows,
+  beside REALIZED, the fees its fills paid, as the LIVE page does, and on a
+  paper test, under it, the maker rebates Polymarket would pay back for
+  them, estimated and not counted in any figure. A paper fill is always a
+  resting quote that a trade went through, and Polymarket never charges that
+  side, so a paper test's fees read $0; the rebate is the share of each
+  market's taker fees Polymarket gives its makers, by the market's fee type.
+  TESTING's Polymarket card has the same fees line, the rows' fees added up.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.

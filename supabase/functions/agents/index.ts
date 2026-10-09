@@ -186,7 +186,7 @@ import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCap
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
 import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance, type RwSelectReport } from "./pmrw.ts";
-import { rwcSummary, rweArmSummary, rweSummary, rwPageRun, rwPageSource, rwePageReplay, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
+import { rwcSummary, rweArmSummary, rwFeeTypes, rweSummary, rwPageRun, rwPageSource, rwePageReplay, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
 import type { RweSelRow } from "./pmrw_e.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
@@ -1610,6 +1610,23 @@ export function dayOpensFrom(rows: { venue: string; symbol: string; open: number
  * has decided nothing yet, or a read that fails, is no row; but for the worst case's days, whose failed read leaves them
  * a dash.
  */
+/** The recorder's table of rewarded markets, read for each market's fee type (`fee_type`, Gamma's `feeType`). */
+export const PM_REC_MARKETS = "pm_rec_markets";
+/**
+ * Each condition's fee type as the book recorder holds it, read forty conditions to a request (a condition id is 66
+ * characters, and a URL of hundreds of them is past what a gateway takes). A condition it does not hold is left out:
+ * its fills are unknown, never guessed.
+ */
+export async function readFeeTypes(d: Db, conds: string[]): Promise<Record<string, string | null>> {
+  const out: Record<string, string | null> = {};
+  for (let i = 0; i < conds.length; i += 40) {
+    const part = conds.slice(i, i + 40);
+    const rows = await d.select<{ cond: string; fee_type: string | null }>(PM_REC_MARKETS, `cond=in.(${part.map(encodeURIComponent).join(",")})&select=cond,fee_type&order=cond.asc`);
+    for (const r of rows) out[r.cond] = r.fee_type ?? null;
+  }
+  return out;
+}
+
 export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, dayStartMs: number) {
   const T = inst.tables, R = inst.reads;
   try {
@@ -1630,7 +1647,11 @@ export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, da
       // Its worst case at each day's start (0094): a read that fails (the table not there yet) leaves the days without one.
       d.select<PrepStressDayRow>(PREP_STRESS_TABLE, `layer=eq.${encodeURIComponent(stressLayer(inst))}&select=day,stress&order=day.asc&limit=400`).catch(() => []),
     ]);
-    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, stressDays, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now });
+    // Each filled market's fee type, as the book recorder holds it (`pm_rec_markets`, which records every market a Reward
+    // quotes path quotes): what the fills paid and would earn back as a maker (`pm_fees.ts`). A read that fails leaves
+    // them unknown, never the row off.
+    const feeTypes = await readFeeTypes(d, [...new Set(fills.map((f) => f.cond))]).catch(() => ({}));
+    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, stressDays, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now, feeTypes });
   } catch { return null; }
 }
 
@@ -1998,9 +2019,6 @@ export async function readRwPage(d: Db, now: number, dayStartMs: number) {
   const inst = rwPageRun(now), eReplay = rwePageReplay(now), xReplay = rwxPageReplay(now), src = rwPageSource(inst);
   try {
     const { st, selection, days, fills, first, latest } = await readRwRun(d, inst, dayStartMs);
-    const out = inst === RW_INSTANCE
-      ? rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now })
-      : rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now });
     // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
     const reads = await (async () => {
       try {
@@ -2012,9 +2030,15 @@ export async function readRwPage(d: Db, now: number, dayStartMs: number) {
         ]);
       } catch { return null; }
     })();
+    // Each market's fee type from every day's portfolio (today's alone when that read failed): what each row's fills paid
+    // and would earn back as a maker (`pm_fees.ts`), shown beside its realised.
+    const feeTypes = rwFeeTypes(reads?.[2] ?? selection);
+    const out = inst === RW_INSTANCE
+      ? rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now, feeTypes })
+      : rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now, feeTypes });
     const e = reads ? rweSummary({ state: reads[0][0] ?? null, days: reads[1], selection, nowMs: now, replay: eReplay }) : null;
     const arm = reads
-      ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now, replay: eReplay })
+      ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now, replay: eReplay, withFees: true })
       : null;
     // RW-E's variants (`0064`): rows of their own after it (Davies, 2026-09-27), read from the same run's replay of the arms.
     const rwx = !reads ? [] : await readRwxRows(d, now, xReplay, { st, selection, latest, fills }, reads[2]);
@@ -2042,7 +2066,7 @@ export async function readRwxRows(
     ]);
     return rwxArmSummaries({
       rwState: run?.st[0] ?? null, xState: xs[0] ?? null, selectionAll: all, today: run?.selection ?? [], latest: run?.latest ?? [], days: xdays,
-      fills: run?.fills ?? [], nowMs: now, replay,
+      fills: run?.fills ?? [], nowMs: now, replay, withFees: true,
     });
   } catch { return []; }
 }

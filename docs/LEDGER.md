@@ -391,6 +391,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09"; each oldest first.
 
+### [2026-10-09 02:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Fees on every Reward quotes page and the Polymarket card** (Davies: "像live一样加入fees行"; "按照实际情况估算"), and HELD
+  off LIVE's page ("QUOTES表里已经有了"). `agents/pm_fees.ts`: fee = C × rate × (p(1−p))^e, 5 dp, makers never charged
+  (docs trading/fees; clob-client-v2 `calculatePlatformFee`); maker rebate estimated as rebateRate × own fee-equivalent
+  (docs maker-rebates), shown apart, counted nowhere. Paper fills are all makers' → fees $0; fee types from RW's `cat`
+  and `pm_rec_markets.fee_type`. LIVE: each trade record's `trader_side`/`fee_rate_bps` (all MAKER, $0). Not pushed.
+
 ### [2026-10-09 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's live-prep row is "Reward quotes", its page below the scoreboard reshaped** (Davies, three messages: rename;
   "STATUS里WORST CASE部分改为实际R值"; "表格部分还是用现在的live页里的设计…RECENT ORDERS表删了，DAYS表放在所有表最上面";

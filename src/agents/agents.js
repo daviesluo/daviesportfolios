@@ -970,7 +970,8 @@ export function venueRows(dash, tab = null, tests = []) {
     cards.push({
       id, label: venueLabel(id), test, paper: live.length === 0,
       capitalUsd: capital, valueUsd: value, costUsd: live.reduce((a, t) => a + (Number(t.costUsd) || 0), 0), unrealisedUsd: unrealised, realisedUsd: realised,
-      feesUsd: live.length ? live.reduce((a, t) => a + (Number(t.feesUsd) || 0), 0) : null,
+      // Its fees line, as LIVE's card has it, once any row on it says what its fills paid: the rows' fees summed.
+      feesUsd: ts.some((t) => t?.feesUsd != null) ? sum((t) => t.feesUsd) : null,
       unrealisedPct: ts.length === 1 ? ts[0].unrealisedPct ?? null : pct(unrealised, base), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
       deployedPct: pct(value, capital),
       unrealisedOf: ts[0]?.unrealisedOf ?? 'deployed',
@@ -1775,6 +1776,39 @@ export function rwView(r) {
 export const rwQuoteRows = (r) => (Array.isArray(r?.markets) ? r.markets.length : 0);
 
 /**
+ * A Reward quotes paper row's fees, as LIVE's "Reward quotes" shows its own (Davies, 2026-10-09: "每个Reward quotes子页面的
+ * scoreboard里也一样（同步live页面中的加上fees的设计）", then "按照实际情况估算"): the dashboard's `fees`, Polymarket's own rule on
+ * the row's fills (`pm_fees.ts`). Every paper fill is a resting quote a print went through, a maker's, which Polymarket
+ * never charges, so its fees are $0 by that rule, not by default; what it would earn back as a maker is estimated beside
+ * them (`rebatesEstUsd`) and counted in no figure; `unpriced` fills are of markets no record gives a fee type. A payload
+ * without `fees` (one from before them) has none, and its page shows no line rather than a made-up $0.
+ * @param {any} r  a Reward quotes summary
+ * @returns {{ feesUsd: number | null, rebatesEstUsd: number | null, unpricedFills: number }}
+ */
+export function rwFeeCells(r) {
+  const f = r?.fees;
+  if (!f) return { feesUsd: null, rebatesEstUsd: null, unpricedFills: 0 };
+  return { feesUsd: Number(f.feesUsd) || 0, rebatesEstUsd: Number(f.rebatesEstUsd) || 0, unpricedFills: Number(f.unknownFills) || 0 };
+}
+
+/**
+ * What a Reward quotes page's REALIZED says beside its figure, in LIVE's design: "(incl. fees $0.00)" and, for a paper
+ * row, its estimated maker rebates, not counted. None for a row without fees.
+ * @param {any} row  `rwRow`, `prepRow` or `lpLiveRow`'s
+ * @param {(s: string) => string} [m]
+ * @returns {string[]}
+ */
+export function rwFeeAsides(row, m = (s) => s) {
+  if (row?.feesUsd == null) return [];
+  const out = [`(incl. fees ${m(fmtUsd(row.feesUsd))})`];
+  if (row.rebatesEstUsd != null) {
+    const unpriced = Number(row.unpricedFills) || 0;
+    out.push(`(est. maker rebates ${m(fmtUsd(row.rebatesEstUsd, true))}, not counted${unpriced ? `; ${unpriced} fill${unpriced === 1 ? '' : 's'} unpriced` : ''})`);
+  }
+  return out;
+}
+
+/**
  * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is the $1,000
  * it is funded with (the dashboard's `fundedUsd`; Davies, 2026-09-26: a cap like every other strategy's), the base of
  * its today and realised percents; what its markets have at work each day (each market's first quote and its largest
@@ -1809,6 +1843,7 @@ export function rwRow(r) {
     realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
     rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
     orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
+    ...rwFeeCells(r),
     // Before its first minute, NEXT is when it starts: the date and time alone, two lines at most in the table's column.
     // A replay working through a backlog (a new replay version replays from RW's start) is catching up, not stopped.
     nextText: r.finished ? 'finished' : r.catchingUp ? 'catching up' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
@@ -1918,6 +1953,7 @@ export function prepRow(r) {
     realisedUsd: Number(r.realisedUsd) || 0, realisedPct: pct(Number(r.realisedUsd) || 0, capital),
     rewards: { realisedUsd: Number(r.rewardUsd) || 0, unrealisedUsd: 0 },
     orders: { realisedUsd: Number(r.realisedFillsUsd) || 0, unrealisedUsd: Number(r.unrealisedUsd) || 0 },
+    ...rwFeeCells(r),
     nextText: 'every minute',
     openPositions: rwQuoteRows(r),
     status: !r.running

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpLiveStatus, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStopText, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStopText, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -110,13 +110,15 @@ function Money({ v, signed = true, m }) {
  * A scoreboard cell's label: its name, then each aside on a line of its own —
  * what its percent is of, what else it holds — so it never breaks into two
  * ragged columns on a phone.
- * @param {{ label: string, asides?: Array<string | null | false | undefined> }} props
+ * @param {{ label: string, asides?: Array<string | null | false | undefined>, notes?: Array<string | null | false | undefined> }} props
  */
-function SbLabel({ label, asides = [] }) {
+function SbLabel({ label, asides = [], notes = [] }) {
   return (
     <div className="sb-label ag-sb-label">
       <span className="ag-sb-name">{label}</span>
       {asides.filter(Boolean).map((a, i) => <span key={i} className="ag-sb-aside">{a}</span>)}
+      {/* A longer line (a Reward quotes page's estimated rebates) goes under the name and wraps, inside the cell. */}
+      {notes.filter(Boolean).map((a, i) => <span key={`n${i}`} className="ag-sb-aside ag-sb-note">{a}</span>)}
     </div>
   );
 }
@@ -127,13 +129,15 @@ function SbLabel({ label, asides = [] }) {
  * the number beside the dollars is enough. `split` is what the figure is made of, each part on its own line under it
  * (Davies, 2026-09-25): one running line wrapped through the amount.
  * `ccy` is the figure's currency: dollars, or pounds on the stablecoin quotes' pages (Davies, 2026-10-01).
- * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | null, split?: Array<[string, number]> | null, cls?: string, ccy?: string }} props
+ * `aside` may be several: the first beside the name, the rest each a line of its own under it (a Reward quotes page's fees,
+ * then its estimated rebates).
+ * @param {{ label: string, usd: number, pct: number | null, m: (s: string) => string, aside?: string | string[] | null, split?: Array<[string, number]> | null, cls?: string, ccy?: string }} props
  */
 function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '', ccy = 'USD' }) {
   const hasPct = pct != null && Number.isFinite(pct);
   return (
     <div className={`ag-sb-cell ${cls}`}>
-      <SbLabel label={label} asides={[aside]} />
+      <SbLabel label={label} asides={Array.isArray(aside) ? aside.slice(0, 1) : [aside]} notes={Array.isArray(aside) ? aside.slice(1) : []} />
       <div className="sb-value mono sb-change-row" style={{ color: pctColor(usd) }}>
         <span className="ag-sb-usd">{m(fmtIn(usd ?? 0, ccy, true))}</span>
         {hasPct ? <span className="sb-pct">({fmtPctSigned(pct, 2)})</span> : null}
@@ -604,8 +608,9 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
  * as PR5's live executor's page is (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上线"). Its scoreboard is its LIVE
  * row's own (`lpLiveRow`), so the two read the same figures. Under it, the TESTING page's STATUS (`RwBar`), R (ACTUAL) in
  * place of the worst case; then the live page's own tables, DAYS first: the days Polymarket has paid against the formula
- * (R), its total stop and the gates of its last turn, and what it holds; then the TESTING page's QUOTES (each market's
- * quote, share, holdings and part of the total) and FILLS (an unconfirmed one listed, marked and not counted). Everything is the dashboard's `lpLive`, read from the order path's live rows alone
+ * (R), and its total stop and the gates of its last turn; then the TESTING page's QUOTES (each market's quote, share,
+ * what it holds of each token, and its part of the total; its HELD table went, Davies 2026-10-09: "QUOTES表里已经有了") and
+ * FILLS (an unconfirmed one listed, marked and not counted). Everything is the dashboard's `lpLive`, read from the order path's live rows alone
  * (`pm_lp_live_view.ts`); none of its paper layer's record is here.
  * @param {{ l: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
@@ -615,7 +620,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
   const gates = lpLiveGates(l);
   /** @param {number | null | undefined} x */
   const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  const fills = l.recentFills ?? [], held = l.held ?? [], days = l.days ?? [];
+  const fills = l.recentFills ?? [], days = l.days ?? [];
   const status = lpLiveStatus(l);
   return (
     <div className="ag-detail ag-lp-live-detail">
@@ -684,30 +689,6 @@ function LpLiveDetail({ l, m, at, nowMs }) {
             </div>
           </>
         ) : <div className="ag-empty dim">Its last turn's gates are not in this answer.</div>}
-      </section>
-      <section className="ag-section ag-lpl-held ag-ql-tables">
-        <div className="ag-section-title mono">HELD</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Market</th><th className="hl-th">Token</th><th className="hl-th">Shares</th><th className="hl-th">Cost</th>
-              <th className="hl-th">Mark</th><th className="hl-th">Unrealised</th>
-            </tr></thead>
-            <tbody>
-              {held.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>Nothing held.</td></tr>}
-              {held.map((h) => (
-                <tr key={`${h.cond}|${h.outcome}`}>
-                  <td className="hl-strong"><span className="ag-rw-q" title={h.q}>{marketName(h.q)}</span></td>
-                  <td>{h.outcome === 'yes' ? 'Yes' : h.outcome === 'no' ? 'No' : '?'}</td>
-                  <td>{m(rwShareText(h.shares))}</td>
-                  <td>{m(fmtCents(h.avgCost))}</td>
-                  <td>{h.mark == null ? '—' : m(fmtCents(h.mark))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(h.unrealisedUsd) }}>{usd(h.unrealisedUsd)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </section>
       {/* QUOTES and FILLS are the TESTING page's tables, from the live book (Davies, 2026-10-09: "RESTING ORDERS表格还是改为
           testing页的QUOTES表格吧，fills也一样"). */}
@@ -867,7 +848,9 @@ function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
         <div className="ag-sb-divider" />
         <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
         <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m}
+        {/* Its fees in LIVE's design, "(incl. fees …)", and its estimated maker rebates (Davies, 2026-10-09: "同步live页面中的加上fees的
+            设计", "按照实际情况估算"; `rwFeeAsides`). */}
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls={row.feesUsd != null ? 'ag-sb-realised' : ''} aside={rwFeeAsides(row, m)}
           split={[['rewards', row.rewards.realisedUsd], ['orders', row.orders.realisedUsd]]} />
       </div>
       {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}

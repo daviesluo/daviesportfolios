@@ -7,6 +7,7 @@
 // marked at; `rwFillBook` makes it from the market's fills by average cost, and the two parts must sum to the engine's
 // figure (`mismatchUsd` says by how much they do not, and the page shows it when they do not).
 
+import { pmFeeSchedule, pmPaperFees } from "./pm_fees.ts";
 import { accCapital, accTotal, RW_INSTANCE, RW_INV_CAP, RWC_INSTANCE, RWC_RUN_START, rwPhase, scoreS, sizeN, snapshot, type Acc, type RwInstance, type RwState } from "./pmrw.ts";
 import { excludedByDay, metaFor, RWCE_REPLAY, RWE_CHECK_USD, RWE_REPLAY, type RweReplay, type RweSelRow, type RweState } from "./pmrw_e.ts";
 import { backTicks, isTight, leanTicks, RWCX_REPLAY, RWX_NAMES, RWX_REPLAY, rwxArmStart, wideTicks, type RwxArmState, type RwxReplay, type RwxStored } from "./pmrw_x.ts";
@@ -119,6 +120,11 @@ export function rwSummary(input: {
   approx?: ReadonlySet<string>;
   since?: { ms: number; base: Record<string, Acc> | undefined };
   inst?: RwInstance;
+  /**
+   * Each market's fee type (its selection's `cat`), to estimate what its fills paid and earned back (`pm_fees.ts`): given,
+   * the summary carries `fees`; absent, as every replay's pins have it, nothing about fees.
+   */
+  feeTypes?: Record<string, string | null>;
 }) {
   const st = input.state?.state as RwState | undefined;
   if (!st || typeof st !== "object" || !("acc" in st) || !input.state?.last_minute) return null;
@@ -221,7 +227,21 @@ export function rwSummary(input: {
     todayUsd: snap.total - baseline, heldUsd: held, quotedUsd: quoted, open, fills: snap.fills - was.fills, quoting: input.selection.length,
     bestMarketUsd: Number.isFinite(best) ? best : null,
     markets, days, recent,
+    // Every fill on the page is a resting quote a print went through: a maker's, which Polymarket never charges; what
+    // it would earn back is the maker rebate, estimated and counted in no figure (`pmPaperFees`).
+    ...(input.feeTypes ? { fees: rwPaperFees([...byCond.values()].flat(), input.feeTypes) } : {}),
   };
+}
+
+/** RW's paper fills priced by their markets' fee types: every one a maker's. A market with no type on record is unknown. */
+export function rwPaperFees(fills: Array<{ cond: string; price: number | string; size: number | string }>, feeTypes: Record<string, string | null>) {
+  return pmPaperFees(fills.map((f) => ({ cond: f.cond, price: Number(f.price), size: Number(f.size), taker: false })),
+    (cond) => (cond in feeTypes ? pmFeeSchedule(feeTypes[cond]) : null));
+}
+
+/** Each market's fee type from every day's selection (`cat`), the newest day's where they differ. */
+export function rwFeeTypes(selection: Array<{ cond: string; cat?: string | null }>): Record<string, string | null> {
+  return Object.fromEntries(selection.map((x) => [x.cond, x.cat ?? null]));
 }
 
 /**
@@ -268,7 +288,7 @@ export const RWC_FIRST_STATE_MINUTES = RW_STALE_MINUTES + 5;
  * 00:00 UTC) there is no summary and no row. In the warm-up, before the engine has a state, the summary is made from
  * the constants; a state still missing `RWC_FIRST_STATE_MINUTES` into the warm-up reads as not running.
  */
-export function rwcSummary(input: { state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[]; nowMs: number }) {
+export function rwcSummary(input: { state: RwStateRow | null; selection: RwSelRow[]; latest: RwMinuteRow[]; days: RwDayRow[]; fills: RwFillRow[]; nowMs: number; feeTypes?: Record<string, string | null> }) {
   const inst = RWC_INSTANCE;
   // Off the page until its warm-up begins (Davies, 2026-09-28: "delete it for now, put it online when it is time"): a
   // row that only said when it would start was a strategy on the page that was not running. From 2026-10-08 00:00 UTC
@@ -347,6 +367,8 @@ export function rweSummary(input: { state: RweStateRow | null; days: RweDaysRow[
 export function rweArmSummary(input: {
   rwState: RwStateRow | null; eState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
   days: RweDaysRow[]; fills: RwFillRow[]; nowMs: number;
+  /** Estimate its fills' fees and rebates from every day's selection's fee types (`rwSummary`'s `feeTypes`). */
+  withFees?: boolean;
   /**
    * The replay the records are: RW's (`RWE_REPLAY`, the default) or RW-E's on RW-C's minutes (`RWCE_REPLAY`), whose engine
    * run and fourteen days the row is read against. The dashboard picks it by the clock (`rwePageReplay`); every input
@@ -397,6 +419,7 @@ export function rweArmSummary(input: {
     firstMinute: new Date(inst.runStart).toISOString(), nowMs: input.nowMs, staleMinutes: RWE_STALE_MINUTES, approx: diverged,
     since: { ms: replay.from, base: st.base },
     inst,
+    ...(input.withFees ? { feeTypes: rwFeeTypes(input.selectionAll) } : {}),
   });
 }
 
@@ -441,6 +464,8 @@ export type RwxDaysRow ={ day: string; arm: string; total: number | string; stre
 export function rwxArmSummaries(input: {
   rwState: RwStateRow | null; xState: RweStateRow | null; selectionAll: RweSelRow[]; today: RwSelRow[]; latest: RwMinuteRow[];
   days: RwxDaysRow[]; fills: RwFillRow[]; nowMs: number;
+  /** Estimate each arm's fills' fees and rebates from every day's selection's fee types (`rwSummary`'s `feeTypes`). */
+  withFees?: boolean;
   /** The arms left off the page: `RWX_OFF_PAGE` unless a test puts one back to pin how its row reads. */
   offPage?: ReadonlySet<string>;
   /**
@@ -548,6 +573,7 @@ export function rwxArmSummaries(input: {
       // Only what the variant did under its own rules: from its first minute, against what it held as that began.
       since: { ms: a.start ?? rwxArmStart(spec), base: a.base },
       inst,
+      ...(input.withFees ? { feeTypes: rwFeeTypes(input.selectionAll) } : {}),
     });
     if (summary) out.push({ ...summary, id: spec.id, name: RWX_NAMES[spec.id], checks, ...source });
   }
