@@ -1,0 +1,3160 @@
+{
+ "abs_mid_gap_max": 0.14,
+ "abs_mid_gap_median": 0.005,
+ "abs_mid_gap_p90": 0.04,
+ "at": "2026-10-09T16:49:06.991317+00:00",
+ "best_cross_cost_median": 1.0384,
+ "best_cross_cost_min": 1.0069,
+ "cross_under_1": 0,
+ "games": [
+  {
+   "kalshi_event": "KXNFLGAME-26OCT19WASSF",
+   "matched": false,
+   "outcomes": [
+    "Commanders",
+    "49ers"
+   ],
+   "pm_slug": "nfl-was-sf-2026-10-20",
+   "titles": [
+    "Washington",
+    "San Francisco"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18DALGB",
+   "matched": false,
+   "outcomes": [
+    "Cowboys",
+    "Packers"
+   ],
+   "pm_slug": "nfl-dal-gb-2026-10-19",
+   "titles": [
+    "Green Bay",
+    "Dallas"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18LACKC",
+   "matched": false,
+   "outcomes": [
+    "Chargers",
+    "Chiefs"
+   ],
+   "pm_slug": "nfl-lac-kc-2026-10-18",
+   "titles": [
+    "Los Angeles C",
+    "Kansas City"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18BUFLV",
+   "matched": false,
+   "outcomes": [
+    "Bills",
+    "Raiders"
+   ],
+   "pm_slug": "nfl-buf-lv-2026-10-18",
+   "titles": [
+    "Las Vegas",
+    "Buffalo"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18ARILAR",
+   "matched": false,
+   "outcomes": [
+    "Cardinals",
+    "Rams"
+   ],
+   "pm_slug": "nfl-ari-la-2026-10-18",
+   "titles": [
+    "Los Angeles R",
+    "Arizona"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18PITTB",
+   "matched": false,
+   "outcomes": [
+    "Steelers",
+    "Buccaneers"
+   ],
+   "pm_slug": "nfl-pit-tb-2026-10-18",
+   "titles": [
+    "Tampa Bay",
+    "Pittsburgh"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18CARPHI",
+   "matched": false,
+   "outcomes": [
+    "Panthers",
+    "Eagles"
+   ],
+   "pm_slug": "nfl-car-phi-2026-10-18",
+   "titles": [
+    "Philadelphia",
+    "Carolina"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18NONYG",
+   "matched": false,
+   "outcomes": [
+    "Saints",
+    "Giants"
+   ],
+   "pm_slug": "nfl-no-nyg-2026-10-18",
+   "titles": [
+    "New York G",
+    "New Orleans"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18NYJNE",
+   "matched": false,
+   "outcomes": [
+    "Jets",
+    "Patriots"
+   ],
+   "pm_slug": "nfl-nyj-ne-2026-10-18",
+   "titles": [
+    "New York J",
+    "New England"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18TENIND",
+   "matched": false,
+   "outcomes": [
+    "Titans",
+    "Colts"
+   ],
+   "pm_slug": "nfl-ten-ind-2026-10-18",
+   "titles": [
+    "Tennessee",
+    "Indianapolis"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18BALCLE",
+   "matched": false,
+   "outcomes": [
+    "Ravens",
+    "Browns"
+   ],
+   "pm_slug": "nfl-bal-cle-2026-10-18",
+   "titles": [
+    "Cleveland",
+    "Baltimore"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18CHIATL",
+   "matched": false,
+   "outcomes": [
+    "Bears",
+    "Falcons"
+   ],
+   "pm_slug": "nfl-chi-atl-2026-10-18",
+   "titles": [
+    "Chicago",
+    "Atlanta"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT18HOUJAC",
+   "matched": false,
+   "outcomes": [
+    "Texans",
+    "Jaguars"
+   ],
+   "pm_slug": "nfl-hou-jax-2026-10-18",
+   "titles": [
+    "Jacksonville",
+    "Houston"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT15SEADEN",
+   "matched": false,
+   "outcomes": [
+    "Seahawks",
+    "Broncos"
+   ],
+   "pm_slug": "nfl-sea-den-2026-10-16",
+   "titles": [
+    "Seattle",
+    "Denver"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT12BUFLAR",
+   "matched": false,
+   "outcomes": [
+    "Bills",
+    "Rams"
+   ],
+   "pm_slug": "nfl-buf-la-2026-10-13",
+   "titles": [
+    "Los Angeles R",
+    "Buffalo"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11BALATL",
+   "matched": false,
+   "outcomes": [
+    "Ravens",
+    "Falcons"
+   ],
+   "pm_slug": "nfl-bal-atl-2026-10-12",
+   "titles": [
+    "Baltimore",
+    "Atlanta"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11CHIGB",
+   "matched": false,
+   "outcomes": [
+    "Bears",
+    "Packers"
+   ],
+   "pm_slug": "nfl-chi-gb-2026-10-11",
+   "titles": [
+    "Green Bay",
+    "Chicago"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11SFSEA",
+   "matched": false,
+   "outcomes": [
+    "49ers",
+    "Seahawks"
+   ],
+   "pm_slug": "nfl-sf-sea-2026-10-11",
+   "titles": [
+    "San Francisco",
+    "Seattle"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11DETARI",
+   "matched": false,
+   "outcomes": [
+    "Lions",
+    "Cardinals"
+   ],
+   "pm_slug": "nfl-det-ari-2026-10-11",
+   "titles": [
+    "Detroit",
+    "Arizona"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11DENLAC",
+   "matched": false,
+   "outcomes": [
+    "Broncos",
+    "Chargers"
+   ],
+   "pm_slug": "nfl-den-lac-2026-10-11",
+   "titles": [
+    "Los Angeles C",
+    "Denver"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11NYGWAS",
+   "matched": false,
+   "outcomes": [
+    "Giants",
+    "Commanders"
+   ],
+   "pm_slug": "nfl-nyg-was-2026-10-11",
+   "titles": [
+    "Washington",
+    "New York G"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11INDPIT",
+   "matched": false,
+   "outcomes": [
+    "Colts",
+    "Steelers"
+   ],
+   "pm_slug": "nfl-ind-pit-2026-10-11",
+   "titles": [
+    "Pittsburgh",
+    "Indianapolis"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11CLENYJ",
+   "matched": false,
+   "outcomes": [
+    "Browns",
+    "Jets"
+   ],
+   "pm_slug": "nfl-cle-nyj-2026-10-11",
+   "titles": [
+    "New York J",
+    "Cleveland"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11LVNE",
+   "matched": false,
+   "outcomes": [
+    "Raiders",
+    "Patriots"
+   ],
+   "pm_slug": "nfl-lv-ne-2026-10-11",
+   "titles": [
+    "New England",
+    "Las Vegas"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11CINMIA",
+   "matched": false,
+   "outcomes": [
+    "Bengals",
+    "Dolphins"
+   ],
+   "pm_slug": "nfl-cin-mia-2026-10-11",
+   "titles": [
+    "Miami",
+    "Cincinnati"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11HOUTEN",
+   "matched": false,
+   "outcomes": [
+    "Texans",
+    "Titans"
+   ],
+   "pm_slug": "nfl-hou-ten-2026-10-11",
+   "titles": [
+    "Tennessee",
+    "Houston"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11MINNO",
+   "matched": false,
+   "outcomes": [
+    "Vikings",
+    "Saints"
+   ],
+   "pm_slug": "nfl-min-no-2026-10-11",
+   "titles": [
+    "New Orleans",
+    "Minnesota"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNFLGAME-26OCT11PHIJAC",
+   "matched": false,
+   "outcomes": [
+    "Eagles",
+    "Jaguars"
+   ],
+   "pm_slug": "nfl-phi-jax-2026-10-11",
+   "titles": [
+    "Philadelphia",
+    "Jacksonville"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXMLBGAME-26OCT102000CWSCLE",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXMLBGAME-26OCT152000MILLAD",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXMLBGAME-26OCT142000MILLAD",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXMLBGAME-26OCT122000LADMIL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXMLBGAME-26OCT112000LADMIL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15CGYVGK",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15UTAEDM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15SJNSH",
+   "matched": false,
+   "outcomes": [
+    "Sharks",
+    "Predators"
+   ],
+   "pm_slug": "nhl-sj-nsh-2026-10-15",
+   "titles": [
+    "San Jose",
+    "Nashville"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15STLMIN",
+   "matched": false,
+   "outcomes": [
+    "Blues",
+    "Wild"
+   ],
+   "pm_slug": "nhl-stl-min-2026-10-15",
+   "titles": [
+    "St. Louis",
+    "Minnesota"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15WPGCHI",
+   "matched": false,
+   "outcomes": [
+    "Jets",
+    "Blackhawks"
+   ],
+   "pm_slug": "nhl-wpg-chi-2026-10-15",
+   "titles": [
+    "Winnipeg",
+    "Chicago"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15VANFLA",
+   "matched": false,
+   "outcomes": [
+    "Canucks",
+    "Panthers"
+   ],
+   "pm_slug": "nhl-van-fla-2026-10-15",
+   "titles": [
+    "Vancouver",
+    "Florida"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15NYRNJ",
+   "matched": false,
+   "outcomes": [
+    "Rangers",
+    "Devils"
+   ],
+   "pm_slug": "nhl-nyr-nj-2026-10-15",
+   "titles": [
+    "New York R",
+    "New Jersey"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15PHIDET",
+   "matched": false,
+   "outcomes": [
+    "Flyers",
+    "Red Wings"
+   ],
+   "pm_slug": "nhl-phi-det-2026-10-15",
+   "titles": [
+    "Philadelphia",
+    "Detroit"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15NYIOTT",
+   "matched": false,
+   "outcomes": [
+    "Islanders",
+    "Senators"
+   ],
+   "pm_slug": "nhl-nyi-ott-2026-10-15",
+   "titles": [
+    "Ottawa",
+    "New York I"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15SEATB",
+   "matched": false,
+   "outcomes": [
+    "Kraken",
+    "Lightning"
+   ],
+   "pm_slug": "nhl-sea-tb-2026-10-15",
+   "titles": [
+    "Tampa Bay",
+    "Seattle"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT15BUFTOR",
+   "matched": false,
+   "outcomes": [
+    "Sabres",
+    "Maple Leafs"
+   ],
+   "pm_slug": "nhl-buf-tor-2026-10-15",
+   "titles": [
+    "Toronto",
+    "Buffalo"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT14DALCOL",
+   "matched": false,
+   "outcomes": [
+    "Stars",
+    "Avalanche"
+   ],
+   "pm_slug": "nhl-dal-col-2026-10-14",
+   "titles": [
+    "Dallas",
+    "Colorado"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT14MTLWSH",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13BOSSJ",
+   "matched": false,
+   "outcomes": [
+    "Bruins",
+    "Sharks"
+   ],
+   "pm_slug": "nhl-bos-sj-2026-10-13",
+   "titles": [
+    "San Jose",
+    "Boston"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13EDMLA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13CGYANA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13TORUTA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13VGKNSH",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13COLDAL",
+   "matched": false,
+   "outcomes": [
+    "Avalanche",
+    "Stars"
+   ],
+   "pm_slug": "nhl-col-dal-2026-10-13",
+   "titles": [
+    "Dallas",
+    "Colorado"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13MINWPG",
+   "matched": false,
+   "outcomes": [
+    "Wild",
+    "Jets"
+   ],
+   "pm_slug": "nhl-min-wpg-2026-10-13",
+   "titles": [
+    "Winnipeg",
+    "Minnesota"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13PITCHI",
+   "matched": false,
+   "outcomes": [
+    "Penguins",
+    "Blackhawks"
+   ],
+   "pm_slug": "nhl-pit-chi-2026-10-13",
+   "titles": [
+    "Pittsburgh",
+    "Chicago"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13VANNYI",
+   "matched": false,
+   "outcomes": [
+    "Canucks",
+    "Islanders"
+   ],
+   "pm_slug": "nhl-van-nyi-2026-10-13",
+   "titles": [
+    "Vancouver",
+    "New York I"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13STLOTT",
+   "matched": false,
+   "outcomes": [
+    "Blues",
+    "Senators"
+   ],
+   "pm_slug": "nhl-stl-ott-2026-10-13",
+   "titles": [
+    "St. Louis",
+    "Ottawa"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13TBNYR",
+   "matched": false,
+   "outcomes": [
+    "Lightning",
+    "Rangers"
+   ],
+   "pm_slug": "nhl-tb-nyr-2026-10-13",
+   "titles": [
+    "Tampa Bay",
+    "New York R"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13SEAPHI",
+   "matched": false,
+   "outcomes": [
+    "Kraken",
+    "Flyers"
+   ],
+   "pm_slug": "nhl-sea-phi-2026-10-13",
+   "titles": [
+    "Seattle",
+    "Philadelphia"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13WSHCAR",
+   "matched": false,
+   "outcomes": [
+    "Capitals",
+    "Hurricanes"
+   ],
+   "pm_slug": "nhl-wsh-car-2026-10-13",
+   "titles": [
+    "Washington",
+    "Carolina"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13BUFMTL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13FLACBJ",
+   "matched": false,
+   "outcomes": [
+    "Panthers",
+    "Blue Jackets"
+   ],
+   "pm_slug": "nhl-fla-cbj-2026-10-13",
+   "titles": [
+    "Florida",
+    "Columbus"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT13NJDET",
+   "matched": false,
+   "outcomes": [
+    "Devils",
+    "Red Wings"
+   ],
+   "pm_slug": "nhl-nj-det-2026-10-13",
+   "titles": [
+    "New Jersey",
+    "Detroit"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT12VGKMIN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT12OTTNJ",
+   "matched": false,
+   "outcomes": [
+    "Senators",
+    "Devils"
+   ],
+   "pm_slug": "nhl-ott-nj-2026-10-12",
+   "titles": [
+    "Ottawa",
+    "New Jersey"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT12FLABUF",
+   "matched": false,
+   "outcomes": [
+    "Panthers",
+    "Sabres"
+   ],
+   "pm_slug": "nhl-fla-buf-2026-10-12",
+   "titles": [
+    "Florida",
+    "Buffalo"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT11CARPHI",
+   "matched": false,
+   "outcomes": [
+    "Hurricanes",
+    "Flyers"
+   ],
+   "pm_slug": "nhl-car-phi-2026-10-11",
+   "titles": [
+    "Philadelphia",
+    "Carolina"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT11VANNYR",
+   "matched": false,
+   "outcomes": [
+    "Canucks",
+    "Rangers"
+   ],
+   "pm_slug": "nhl-van-nyr-2026-10-11",
+   "titles": [
+    "Vancouver",
+    "New York R"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT11SEAWSH",
+   "matched": false,
+   "outcomes": [
+    "Kraken",
+    "Capitals"
+   ],
+   "pm_slug": "nhl-sea-wsh-2026-10-11",
+   "titles": [
+    "Washington",
+    "Seattle"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10LAVGK",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10ANACGY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10TBNYI",
+   "matched": false,
+   "outcomes": [
+    "Lightning",
+    "Islanders"
+   ],
+   "pm_slug": "nhl-tb-nyi-2026-10-10",
+   "titles": [
+    "Tampa Bay",
+    "New York I"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10TORCOL",
+   "matched": false,
+   "outcomes": [
+    "Maple Leafs",
+    "Avalanche"
+   ],
+   "pm_slug": "nhl-tor-col-2026-10-10",
+   "titles": [
+    "Toronto",
+    "Colorado"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10DALPIT",
+   "matched": false,
+   "outcomes": [
+    "Stars",
+    "Penguins"
+   ],
+   "pm_slug": "nhl-dal-pit-2026-10-10",
+   "titles": [
+    "Pittsburgh",
+    "Dallas"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10DETMTL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10UTABUF",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10NSHOTT",
+   "matched": false,
+   "outcomes": [
+    "Predators",
+    "Senators"
+   ],
+   "pm_slug": "nhl-nsh-ott-2026-10-10",
+   "titles": [
+    "Ottawa",
+    "Nashville"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10CARCHI",
+   "matched": false,
+   "outcomes": [
+    "Hurricanes",
+    "Blackhawks"
+   ],
+   "pm_slug": "nhl-car-chi-2026-10-10",
+   "titles": [
+    "Chicago",
+    "Carolina"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10CBJSTL",
+   "matched": false,
+   "outcomes": [
+    "Blue Jackets",
+    "Blues"
+   ],
+   "pm_slug": "nhl-cbj-stl-2026-10-10",
+   "titles": [
+    "St. Louis",
+    "Columbus"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10MINFLA",
+   "matched": false,
+   "outcomes": [
+    "Wild",
+    "Panthers"
+   ],
+   "pm_slug": "nhl-min-fla-2026-10-10",
+   "titles": [
+    "Minnesota",
+    "Florida"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10EDMSJ",
+   "matched": false,
+   "outcomes": [
+    "Oilers",
+    "Sharks"
+   ],
+   "pm_slug": "nhl-edm-sj-2026-10-10",
+   "titles": [
+    "San Jose",
+    "Edmonton"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10VANNJ",
+   "matched": false,
+   "outcomes": [
+    "Canucks",
+    "Devils"
+   ],
+   "pm_slug": "nhl-van-nj-2026-10-10",
+   "titles": [
+    "Vancouver",
+    "New Jersey"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT10PHIBOS",
+   "matched": false,
+   "outcomes": [
+    "Flyers",
+    "Bruins"
+   ],
+   "pm_slug": "nhl-phi-bos-2026-10-10",
+   "titles": [
+    "Philadelphia",
+    "Boston"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT09ANAWPG",
+   "matched": false,
+   "outcomes": [
+    "Ducks",
+    "Jets"
+   ],
+   "pm_slug": "nhl-ana-wpg-2026-10-09",
+   "titles": [
+    "Winnipeg",
+    "Anaheim"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT09SEADET",
+   "matched": false,
+   "outcomes": [
+    "Kraken",
+    "Red Wings"
+   ],
+   "pm_slug": "nhl-sea-det-2026-10-09",
+   "titles": [
+    "Seattle",
+    "Detroit"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT09PITCBJ",
+   "matched": false,
+   "outcomes": [
+    "Penguins",
+    "Blue Jackets"
+   ],
+   "pm_slug": "nhl-pit-cbj-2026-10-09",
+   "titles": [
+    "Pittsburgh",
+    "Columbus"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNHLGAME-26OCT09NYRWSH",
+   "matched": false,
+   "outcomes": [
+    "Rangers",
+    "Capitals"
+   ],
+   "pm_slug": "nhl-nyr-wsh-2026-10-09",
+   "titles": [
+    "Washington",
+    "New York R"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT22ECUMEM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT22JMUAPP",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT22LIBKENN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT21NMSUSHSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT20USAMRSH",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT20MTUFIU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT20MOSUDEL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17OSUIND",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17KUKSU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "ND@k + BYU@p",
+    "cost": 1.0582,
+    "depth": 130.22
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17NDBYU",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-nd-byu-2026-10-17",
+   "teams": {
+    "BYU": {
+     "k_ask": [
+      0.18999999999999995,
+      765.1
+     ],
+     "k_bid": [
+      0.18,
+      44.05
+     ],
+     "k_mid": 0.18499999999999997,
+     "p_ask": [
+      0.21,
+      1760.0
+     ],
+     "p_bid": [
+      0.14,
+      286.0
+     ],
+     "p_mid": 0.175,
+     "pm_outcome": "BYU"
+    },
+    "ND": {
+     "k_ask": [
+      0.83,
+      130.22
+     ],
+     "k_bid": [
+      0.82,
+      203.2
+     ],
+     "k_mid": 0.825,
+     "p_ask": [
+      0.86,
+      286.0
+     ],
+     "p_bid": [
+      0.79,
+      1760.0
+     ],
+     "p_mid": 0.825,
+     "pm_outcome": "Notre Dame"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17FSUMIA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17UNCDUKE",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "TENN@k + ALA@p",
+    "cost": 1.0662,
+    "depth": 75.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17ALATENN",
+   "matched": true,
+   "mid_gap": -0.01,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-ala-tenn-2026-10-17",
+   "teams": {
+    "ALA": {
+     "k_ask": [
+      0.6799999999999999,
+      596.62
+     ],
+     "k_bid": [
+      0.65,
+      804.24
+     ],
+     "k_mid": 0.665,
+     "p_ask": [
+      0.7,
+      75.0
+     ],
+     "p_bid": [
+      0.61,
+      3525.0
+     ],
+     "p_mid": 0.655,
+     "pm_outcome": "Alabama"
+    },
+    "TENN": {
+     "k_ask": [
+      0.33999999999999997,
+      3514.73
+     ],
+     "k_bid": [
+      0.33,
+      16.0
+     ],
+     "k_mid": 0.33499999999999996,
+     "p_ask": [
+      0.39,
+      3525.0
+     ],
+     "p_bid": [
+      0.3,
+      75.0
+     ],
+     "p_mid": 0.345,
+     "pm_outcome": "Tennessee"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17AUBUGA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17FRESSDSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17UCDSUU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17CPUNCO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17CARKTARL",
+   "matched": false,
+   "outcomes": [
+    "Central Arkansas",
+    "Tarleton State"
+   ],
+   "pm_slug": "cfb-cark-tarl-2026-10-17",
+   "titles": [
+    "Tarleton St.",
+    "Central Arkansas"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17UTRGVIW",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17ETAMHCU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MERSAM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17ACUNA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17PRSTNAU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MTSTEWU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MORGTNST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17UNIYSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17LIUWAG",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17LAMSELA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17SDAKMURR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17SFANICH",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "VALP@k + USD@p",
+    "cost": 1.5094,
+    "depth": 50.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17VALPUSD",
+   "matched": true,
+   "mid_gap": -0.005,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-valp-usd-2026-10-17",
+   "teams": {
+    "USD": {
+     "k_ask": [
+      0.88,
+      2317.0
+     ],
+     "k_bid": [
+      0.5,
+      50.0
+     ],
+     "k_mid": 0.69,
+     "p_ask": [
+      0.96,
+      2000.0
+     ],
+     "p_bid": [
+      0.37,
+      143.24
+     ],
+     "p_mid": 0.665,
+     "pm_outcome": "San Diego"
+    },
+    "VALP": {
+     "k_ask": [
+      0.53,
+      50.0
+     ],
+     "k_bid": [
+      0.13,
+      1153.85
+     ],
+     "k_mid": 0.33,
+     "p_ask": [
+      0.63,
+      143.24
+     ],
+     "p_bid": [
+      0.04,
+      2000.0
+     ],
+     "p_mid": 0.335,
+     "pm_outcome": "Valparaiso"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17VILLFOR",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "TOWS@p + CAMP@k",
+    "cost": 1.8297,
+    "depth": 11.15
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17TOWSCAMP",
+   "matched": true,
+   "mid_gap": -0.005,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-tows-camp-2026-10-17",
+   "teams": {
+    "CAMP": {
+     "k_ask": [
+      0.92,
+      11.15
+     ],
+     "k_bid": [
+      0.14,
+      10.85
+     ],
+     "k_mid": 0.53,
+     "p_ask": [
+      0.95,
+      255.0
+     ],
+     "p_bid": [
+      0.1,
+      3500.0
+     ],
+     "p_mid": 0.525,
+     "pm_outcome": "Campbell"
+    },
+    "TOWS": {
+     "k_ask": [
+      0.87,
+      3215.85
+     ],
+     "k_bid": [
+      0.07,
+      373.15
+     ],
+     "k_mid": 0.47,
+     "p_ask": [
+      0.9,
+      3500.0
+     ],
+     "p_bid": [
+      0.05,
+      255.0
+     ],
+     "p_mid": 0.47500000000000003,
+     "pm_outcome": "Towson"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17SJSUUTEP",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "STAN@k + ELON@p",
+    "cost": 1.0349,
+    "depth": 767.22
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17ELONSTAN",
+   "matched": true,
+   "mid_gap": null,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-elon-stan-2026-10-17",
+   "teams": {
+    "ELON": {
+     "k_ask": [
+      0.040000000000000036,
+      99380.71
+     ],
+     "k_bid": [
+      0.03,
+      642.01
+     ],
+     "k_mid": 0.03500000000000002,
+     "p_ask": [
+      0.06,
+      2000.0
+     ],
+     "p_bid": null,
+     "p_mid": null,
+     "pm_outcome": "Elon"
+    },
+    "STAN": {
+     "k_ask": [
+      0.97,
+      767.22
+     ],
+     "k_bid": [
+      0.96,
+      98961.0
+     ],
+     "k_mid": 0.965,
+     "p_ask": null,
+     "p_bid": [
+      0.94,
+      2000.0
+     ],
+     "p_mid": null,
+     "pm_outcome": "Stanford"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17NEVNDSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17WSUORST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17TOLEMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17NIUWYO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17UNLVAFA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17LAFBUCK",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17FAMUJKST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17ALCNPV",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17GRAMAAMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17WIUSEMO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17WEBBUTM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17LINWEIU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17COOKMVSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17ALSTARPB",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17IDSTWEB",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17IDHOMONT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17ALBYSTON",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17EKYTNTC",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17PRESTET",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17LEHCOR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17PEAYUWGA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17SDSTUND",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17VMIWOF",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "DAY@k + BUT@p",
+    "cost": 1.4929,
+    "depth": 50.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17DAYBUT",
+   "matched": true,
+   "mid_gap": -0.04,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-day-but-2026-10-17",
+   "teams": {
+    "BUT": {
+     "k_ask": [
+      0.8200000000000001,
+      1909.0
+     ],
+     "k_bid": [
+      0.33,
+      50.0
+     ],
+     "k_mid": 0.5750000000000001,
+     "p_ask": [
+      0.85,
+      3500.0
+     ],
+     "p_bid": [
+      0.27,
+      100.0
+     ],
+     "p_mid": 0.56,
+     "pm_outcome": "Butler"
+    },
+    "DAY": {
+     "k_ask": [
+      0.62,
+      50.0
+     ],
+     "k_bid": [
+      0.18,
+      1609.0
+     ],
+     "k_mid": 0.4,
+     "p_ask": [
+      0.73,
+      100.0
+     ],
+     "p_bid": [
+      0.15,
+      3500.0
+     ],
+     "p_mid": 0.44,
+     "pm_outcome": "Dayton"
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "GTWN@k + COLG@p",
+    "cost": 1.4197,
+    "depth": 50.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17GTWNCOLG",
+   "matched": true,
+   "mid_gap": -0.02,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-gtwn-colg-2026-10-17",
+   "teams": {
+    "COLG": {
+     "k_ask": [
+      0.9299999999999999,
+      300.0
+     ],
+     "k_bid": [
+      0.55,
+      40.0
+     ],
+     "k_mid": 0.74,
+     "p_ask": [
+      0.95,
+      1750.0
+     ],
+     "p_bid": [
+      0.49,
+      5.0
+     ],
+     "p_mid": 0.72,
+     "pm_outcome": "Colgate"
+    },
+    "GTWN": {
+     "k_ask": [
+      0.44999999999999996,
+      50.0
+     ],
+     "k_bid": [
+      0.07,
+      300.0
+     ],
+     "k_mid": 0.26,
+     "p_ask": [
+      0.51,
+      5.0
+     ],
+     "p_bid": [
+      0.05,
+      1750.0
+     ],
+     "p_mid": 0.28,
+     "pm_outcome": "Georgetown"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MONMUNH",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17BRYME",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MRMKDART",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MOREDAV",
+   "matched": false,
+   "outcomes": [
+    "Morehead State",
+    "Davidson"
+   ],
+   "pm_slug": "cfb-more-dav-2026-10-17",
+   "titles": [
+    "Morehead St.",
+    "Davidson"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17HCHARV",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MCNSNWST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17MRSTDRKE",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17CITTXAM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17NHCRMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17CCSUMHU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "STNH@p + DUQ@k",
+    "cost": 1.2555,
+    "depth": 35.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT17DUQSTNH",
+   "matched": true,
+   "mid_gap": -0.005,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-duq-stnh-2026-10-17",
+   "teams": {
+    "DUQ": {
+     "k_ask": [
+      0.43999999999999995,
+      35.0
+     ],
+     "k_bid": [
+      0.28,
+      50.0
+     ],
+     "k_mid": 0.36,
+     "p_ask": [
+      0.57,
+      37.2
+     ],
+     "p_bid": [
+      0.21,
+      100.0
+     ],
+     "p_mid": 0.38999999999999996,
+     "pm_outcome": "Duquesne"
+    },
+    "STNH": {
+     "k_ask": [
+      0.69,
+      50.0
+     ],
+     "k_bid": [
+      0.52,
+      35.0
+     ],
+     "k_mid": 0.605,
+     "p_ask": [
+      0.79,
+      100.0
+     ],
+     "p_bid": [
+      0.43,
+      37.2
+     ],
+     "p_mid": 0.61,
+     "pm_outcome": "Stonehill"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17BRWNPRIN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17URIYALE",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17HAMPSHU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17CHSNCAT",
+   "matched": false,
+   "outcomes": [
+    "Chicago State",
+    "North Carolina A&T"
+   ],
+   "pm_slug": "cfb-chs-ncat-2026-10-17",
+   "titles": [
+    "North Carolina A&T",
+    "Chicago St."
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT17FAUARMY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16ILSTSIU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "PENN@p + CLMB@k",
+    "cost": 1.57,
+    "depth": 50.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT16CLMBPENN",
+   "matched": true,
+   "mid_gap": 0.035,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-clmb-penn-2026-10-16",
+   "teams": {
+    "CLMB": {
+     "k_ask": [
+      0.63,
+      50.0
+     ],
+     "k_bid": [
+      0.08,
+      7050.0
+     ],
+     "k_mid": 0.355,
+     "p_ask": [
+      0.74,
+      100.0
+     ],
+     "p_bid": [
+      0.08,
+      316.0
+     ],
+     "p_mid": 0.41,
+     "pm_outcome": "Columbia"
+    },
+    "PENN": {
+     "k_ask": [
+      0.9,
+      50.0
+     ],
+     "k_bid": [
+      0.35,
+      12.0
+     ],
+     "k_mid": 0.625,
+     "p_ask": [
+      0.92,
+      316.0
+     ],
+     "p_bid": [
+      0.26,
+      100.0
+     ],
+     "p_mid": 0.5900000000000001,
+     "pm_outcome": "Penn"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16APPCCAR",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "WASH@k + PUR@p",
+    "cost": 1.0681,
+    "depth": 317.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT16WASHPUR",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-wash-pur-2026-10-16",
+   "teams": {
+    "PUR": {
+     "k_ask": [
+      0.4,
+      1097.62
+     ],
+     "k_bid": [
+      0.35,
+      295.0
+     ],
+     "k_mid": 0.375,
+     "p_ask": [
+      0.4,
+      317.0
+     ],
+     "p_bid": [
+      0.36,
+      317.0
+     ],
+     "p_mid": 0.38,
+     "pm_outcome": "Purdue"
+    },
+    "WASH": {
+     "k_ask": [
+      0.64,
+      1000.0
+     ],
+     "k_bid": [
+      0.6,
+      1000.0
+     ],
+     "k_mid": 0.62,
+     "p_ask": [
+      0.64,
+      317.0
+     ],
+     "p_bid": [
+      0.6,
+      317.0
+     ],
+     "p_mid": 0.62,
+     "pm_outcome": "Washington"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16LTULM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16OHIOSAC",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16WMUCMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16MASSBUFF",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16BALLBGSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16ARSTUSM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16TROYULL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16GASTJMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16UNMHAW",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16WISUCLA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16NWMSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16RUTGMD",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16CHSOCLEM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16UVASMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16LOUSYR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16GTVT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16WAKECAL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16PITTBC",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16TCUBAY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16OKSTHOU",
+   "matched": false,
+   "outcomes": [
+    "Oklahoma State",
+    "Houston"
+   ],
+   "pm_slug": "cfb-okst-hou-2026-10-17",
+   "titles": [
+    "Oklahoma St.",
+    "Houston"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16UTAHCOLO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16CINWVU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16ASUTTU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16ARKVAN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16FLATEX",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16UKOKLA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16MIZZMISS",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16MSSTLSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16KENTUSF",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16TLSARICE",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "UTSA@p + NAVY@k",
+    "cost": 1.3768,
+    "depth": 18.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT16NAVYUTSA",
+   "matched": true,
+   "mid_gap": 0.14,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-navy-utsa-2026-10-17",
+   "teams": {
+    "NAVY": {
+     "k_ask": [
+      0.37,
+      18.0
+     ],
+     "k_bid": [
+      0.11,
+      4.23
+     ],
+     "k_mid": 0.24,
+     "p_ask": [
+      0.76,
+      20.0
+     ],
+     "p_bid": [
+      0.01,
+      800.0
+     ],
+     "p_mid": 0.385,
+     "pm_outcome": "Navy"
+    },
+    "UTSA": {
+     "k_ask": [
+      0.9,
+      2.02
+     ],
+     "k_bid": [
+      0.61,
+      1000.0
+     ],
+     "k_mid": 0.755,
+     "p_ask": [
+      0.99,
+      800.0
+     ],
+     "p_bid": [
+      0.24,
+      20.0
+     ],
+     "p_mid": 0.615,
+     "pm_outcome": "UTSA"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16CHARTEM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT16MEMTULN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT15CSUTXST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT15GASOODU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT15ECUUAB",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT14WKUSHSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT14KENNMOSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT13FIUJVST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT13DELMTU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10BSUFRES",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SELAUTRGV",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CARKAC",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10AFANIU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10USCPSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10COOKAAMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UNCOEWU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10NDSUUNLV",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10TARLPEAY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UWGAEKY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SDSUORST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CPIDST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SCSTCHSO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10DAVPRE",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UNDUNI",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MONTNAU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10JKSTGRAM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10STONTOWS",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10IWLAM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UTUPRST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10FAMUALST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CMUOHIO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10FURTNTC",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UTMTNST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10TLSANAVY",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10TEXOKLA",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "STAN@k + ND@p",
+    "cost": 1.0069,
+    "depth": 6785.88
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10STANND",
+   "matched": true,
+   "mid_gap": null,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-stan-nd-2026-10-10",
+   "teams": {
+    "ND": {
+     "k_ask": null,
+     "k_bid": [
+      0.99,
+      367435.67
+     ],
+     "k_mid": null,
+     "p_ask": [
+      0.996,
+      6785.88
+     ],
+     "p_bid": [
+      0.991,
+      42.0
+     ],
+     "p_mid": 0.9935,
+     "pm_outcome": "Notre Dame"
+    },
+    "STAN": {
+     "k_ask": [
+      0.010000000000000009,
+      1679267.6
+     ],
+     "k_bid": null,
+     "k_mid": null,
+     "p_ask": [
+      0.009,
+      42.0
+     ],
+     "p_bid": [
+      0.004,
+      6785.88
+     ],
+     "p_mid": 0.0065,
+     "pm_outcome": "Stanford"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10EMUAKR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10RICHFOR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10EIUWEBB",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10IDHOWEB",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SOUPV",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MVSUTXSO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10WCUMER",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10STETUST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10ETSUCIT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SEMOLINW",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10WOFELON",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10DRKEVALP",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SIUSDAK",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SAMCHAT",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "TENN@k + ARK@p",
+    "cost": 1.0273,
+    "depth": 5914.87
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10TENNARK",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-tenn-ark-2026-10-10",
+   "teams": {
+    "ARK": {
+     "k_ask": [
+      0.18000000000000005,
+      170760.67
+     ],
+     "k_bid": [
+      0.17,
+      10.0
+     ],
+     "k_mid": 0.17500000000000004,
+     "p_ask": [
+      0.18,
+      9490.04
+     ],
+     "p_bid": [
+      0.17,
+      1030.68
+     ],
+     "p_mid": 0.175,
+     "pm_outcome": "Arkansas"
+    },
+    "TENN": {
+     "k_ask": [
+      0.83,
+      5914.87
+     ],
+     "k_bid": [
+      0.82,
+      56572.1
+     ],
+     "k_mid": 0.825,
+     "p_ask": [
+      0.83,
+      1030.68
+     ],
+     "p_bid": [
+      0.82,
+      9490.04
+     ],
+     "p_mid": 0.825,
+     "pm_outcome": "Tennessee"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CONNTEM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UABMEM",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MINNPUR",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UGAALA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10HOWPENN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10BUFFTOL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10ULLLT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MISSVAN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SYRUVA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MOHMASS",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10WAKENCST",
+   "matched": false,
+   "outcomes": [
+    "Wake Forest",
+    "NC State"
+   ],
+   "pm_slug": "cfb-wake-ncst-2026-10-10",
+   "titles": [
+    "Wake Forest",
+    "NC St."
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UNCPITT",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "UCLA@p + ORE@k",
+    "cost": 1.0295,
+    "depth": 5429.5
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10UCLAORE",
+   "matched": true,
+   "mid_gap": -0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-ucla-ore-2026-10-10",
+   "teams": {
+    "ORE": {
+     "k_ask": [
+      0.8,
+      46393.89
+     ],
+     "k_bid": [
+      0.79,
+      40215.19
+     ],
+     "k_mid": 0.795,
+     "p_ask": [
+      0.8,
+      3029.19
+     ],
+     "p_bid": [
+      0.79,
+      5429.5
+     ],
+     "p_mid": 0.795,
+     "pm_outcome": "Oregon"
+    },
+    "UCLA": {
+     "k_ask": [
+      0.20999999999999996,
+      1539865.4
+     ],
+     "k_bid": [
+      0.2,
+      67717.59
+     ],
+     "k_mid": 0.205,
+     "p_ask": [
+      0.21,
+      5429.5
+     ],
+     "p_bid": [
+      0.2,
+      3029.19
+     ],
+     "p_mid": 0.20500000000000002,
+     "pm_outcome": "UCLA"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10YSUINST",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10ODUAPP",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "HARV@p + COR@k",
+    "cost": 1.0345,
+    "depth": 443.87
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10HARVCOR",
+   "matched": true,
+   "mid_gap": 0.005,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-harv-cor-2026-10-10",
+   "teams": {
+    "COR": {
+     "k_ask": [
+      0.29000000000000004,
+      1408.0
+     ],
+     "k_bid": [
+      0.28,
+      50.0
+     ],
+     "k_mid": 0.28500000000000003,
+     "p_ask": [
+      0.3,
+      465.07
+     ],
+     "p_bid": [
+      0.28,
+      443.87
+     ],
+     "p_mid": 0.29000000000000004,
+     "pm_outcome": "Cornell"
+    },
+    "HARV": {
+     "k_ask": [
+      0.72,
+      2078.0
+     ],
+     "k_bid": [
+      0.71,
+      2.82
+     ],
+     "k_mid": 0.715,
+     "p_ask": [
+      0.72,
+      443.87
+     ],
+     "p_bid": [
+      0.7,
+      465.07
+     ],
+     "p_mid": 0.71,
+     "pm_outcome": "Harvard"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MDOSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CHARUNT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10LIUDUQ",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10JMUGASO",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10HAWASU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10KUUTAH",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10DUKEGT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10CCARMRSH",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "UK@p + LSU@k",
+    "cost": 1.0327,
+    "depth": 22200.89
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10LSUUK",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-lsu-uk-2026-10-10",
+   "teams": {
+    "LSU": {
+     "k_ask": [
+      0.75,
+      22200.89
+     ],
+     "k_bid": [
+      0.74,
+      74808.57
+     ],
+     "k_mid": 0.745,
+     "p_ask": [
+      0.75,
+      459.15
+     ],
+     "p_bid": [
+      0.74,
+      37231.47
+     ],
+     "p_mid": 0.745,
+     "pm_outcome": "LSU"
+    },
+    "UK": {
+     "k_ask": [
+      0.26,
+      1714510.82
+     ],
+     "k_bid": [
+      0.25,
+      5861.0
+     ],
+     "k_mid": 0.255,
+     "p_ask": [
+      0.26,
+      37231.47
+     ],
+     "p_bid": [
+      0.25,
+      459.15
+     ],
+     "p_mid": 0.255,
+     "pm_outcome": "Kentucky"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10KENTWMU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10ILLMSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10HOUKSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10WMNCCU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10VTCAL",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10NEVUTEP",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SCARFLA",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10RICEECU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UCFOKST",
+   "matched": false,
+   "outcomes": [
+    "UCF",
+    "Oklahoma State"
+   ],
+   "pm_slug": "cfb-ucf-okst-2026-10-10",
+   "titles": [
+    "UCF",
+    "Oklahoma St."
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10BALLNW",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10ARIZWVU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "USD@k + BUT@p",
+    "cost": 1.0384,
+    "depth": 68.0
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10USDBUT",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-usd-but-2026-10-10",
+   "teams": {
+    "BUT": {
+     "k_ask": [
+      0.39,
+      4482.69
+     ],
+     "k_bid": [
+      0.38,
+      426.0
+     ],
+     "k_mid": 0.385,
+     "p_ask": [
+      0.39,
+      68.0
+     ],
+     "p_bid": [
+      0.38,
+      427.04
+     ],
+     "p_mid": 0.385,
+     "pm_outcome": "Butler"
+    },
+    "USD": {
+     "k_ask": [
+      0.62,
+      12715.58
+     ],
+     "k_bid": [
+      0.61,
+      2100.0
+     ],
+     "k_mid": 0.615,
+     "p_ask": [
+      0.62,
+      427.04
+     ],
+     "p_bid": [
+      0.61,
+      68.0
+     ],
+     "p_mid": 0.615,
+     "pm_outcome": "San Diego"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10TXAMMIZZ",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10SACBGSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10INDNEB",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "GTWN@k + BUCK@p",
+    "cost": 1.0296,
+    "depth": 23.59
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10BUCKGTWN",
+   "matched": true,
+   "mid_gap": -0.015,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-buck-gtwn-2026-10-10",
+   "teams": {
+    "BUCK": {
+     "k_ask": [
+      0.45999999999999996,
+      893.0
+     ],
+     "k_bid": [
+      0.44,
+      169.0
+     ],
+     "k_mid": 0.44999999999999996,
+     "p_ask": [
+      0.44,
+      23.59
+     ],
+     "p_bid": [
+      0.43,
+      1583.66
+     ],
+     "p_mid": 0.435,
+     "pm_outcome": "Bucknell"
+    },
+    "GTWN": {
+     "k_ask": [
+      0.56,
+      5828.73
+     ],
+     "k_bid": [
+      0.54,
+      298.59
+     ],
+     "k_mid": 0.55,
+     "p_ask": [
+      0.57,
+      1583.66
+     ],
+     "p_bid": [
+      0.56,
+      23.59
+     ],
+     "p_mid": 0.565,
+     "pm_outcome": "Georgetown"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10UNHNCAT",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10MOREDAY",
+   "matched": false,
+   "outcomes": [
+    "Morehead State",
+    "Dayton"
+   ],
+   "pm_slug": "cfb-more-day-2026-10-10",
+   "titles": [
+    "Morehead St.",
+    "Dayton"
+   ],
+   "why": "names"
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10PRINWAG",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10RMUMORG",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10STNHSHU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10BRYBRWN",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT10TULNARMY",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "YALE@k + DART@p",
+    "cost": 1.0363,
+    "depth": 66.21
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT10DARTYALE",
+   "matched": true,
+   "mid_gap": -0.005,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-dart-yale-2026-10-10",
+   "teams": {
+    "DART": {
+     "k_ask": [
+      0.32999999999999996,
+      1827.55
+     ],
+     "k_bid": [
+      0.32,
+      214.0
+     ],
+     "k_mid": 0.32499999999999996,
+     "p_ask": [
+      0.33,
+      66.21
+     ],
+     "p_bid": [
+      0.31,
+      498.9
+     ],
+     "p_mid": 0.32,
+     "pm_outcome": "Dartmouth"
+    },
+    "YALE": {
+     "k_ask": [
+      0.6799999999999999,
+      12037.0
+     ],
+     "k_bid": [
+      0.67,
+      155.0
+     ],
+     "k_mid": 0.675,
+     "p_ask": [
+      0.69,
+      498.9
+     ],
+     "p_bid": [
+      0.67,
+      66.21
+     ],
+     "p_mid": 0.6799999999999999,
+     "pm_outcome": "Yale"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT09ISUBYU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT09WSUUSU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "WASH@k + IOWA@p",
+    "cost": 1.0294,
+    "depth": 29681.14
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT09IOWAWASH",
+   "matched": true,
+   "mid_gap": -0.01,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-iowa-wash-2026-10-09",
+   "teams": {
+    "IOWA": {
+     "k_ask": [
+      0.43999999999999995,
+      1310762.94
+     ],
+     "k_bid": [
+      0.43,
+      131968.81
+     ],
+     "k_mid": 0.43499999999999994,
+     "p_ask": [
+      0.43,
+      29681.14
+     ],
+     "p_bid": [
+      0.42,
+      93311.8
+     ],
+     "p_mid": 0.425,
+     "pm_outcome": "Iowa"
+    },
+    "WASH": {
+     "k_ask": [
+      0.5700000000000001,
+      150806.18
+     ],
+     "k_bid": [
+      0.56,
+      54032.83
+     ],
+     "k_mid": 0.5650000000000001,
+     "p_ask": [
+      0.58,
+      93311.8
+     ],
+     "p_bid": [
+      0.57,
+      29681.14
+     ],
+     "p_mid": 0.575,
+     "pm_outcome": "Washington"
+    }
+   }
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT09WYOSJSU",
+   "matched": false
+  },
+  {
+   "kalshi_event": "KXNCAAFGAME-26OCT09FSULOU",
+   "matched": false
+  },
+  {
+   "best_cross": {
+    "buy": "MRST@k + CLMB@p",
+    "cost": 1.0381,
+    "depth": 32.69
+   },
+   "kalshi_event": "KXNCAAFGAME-26OCT09CLMBMRST",
+   "matched": true,
+   "mid_gap": 0.0,
+   "pm_fee_schedule": {
+    "exponent": 1,
+    "rate": 0.03,
+    "rebateRate": 0.15,
+    "takerOnly": true
+   },
+   "pm_slug": "cfb-clmb-mrst-2026-10-09",
+   "teams": {
+    "CLMB": {
+     "k_ask": [
+      0.63,
+      15272.29
+     ],
+     "k_bid": [
+      0.62,
+      5071.5
+     ],
+     "k_mid": 0.625,
+     "p_ask": [
+      0.63,
+      32.69
+     ],
+     "p_bid": [
+      0.62,
+      5493.91
+     ],
+     "p_mid": 0.625,
+     "pm_outcome": "Columbia"
+    },
+    "MRST": {
+     "k_ask": [
+      0.38,
+      37954.37
+     ],
+     "k_bid": [
+      0.37,
+      250.0
+     ],
+     "k_mid": 0.375,
+     "p_ask": [
+      0.38,
+      5493.91
+     ],
+     "p_bid": [
+      0.37,
+      32.69
+     ],
+     "p_mid": 0.375,
+     "pm_outcome": "Marist"
+    }
+   }
+  }
+ ],
+ "kalshi_events_two_sided": 303,
+ "matched": 21
+}

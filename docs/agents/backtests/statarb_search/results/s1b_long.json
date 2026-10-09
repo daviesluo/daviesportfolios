@@ -1,0 +1,352 @@
+{
+ "books": {
+  "coinbase USDC-EUR": {
+   "abs_dev_bps_median": 1.16,
+   "abs_dev_bps_p90": 2.87,
+   "best_day_share": 0.218,
+   "by_month": {
+    "2026-08": 0.385,
+    "2026-09": 8.073,
+    "2026-10": -0.016
+   },
+   "days_negative": 3,
+   "days_positive": 15,
+   "pct_per_year_on_capital": 9.7,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 1.7173,
+     "stops": 0,
+     "trips": 25
+    },
+    "ask20": {
+     "pnl_usd": 0.8658,
+     "stops": 0,
+     "trips": 6
+    },
+    "ask30": {
+     "pnl_usd": 0.9043,
+     "stops": 0,
+     "trips": 3
+    },
+    "bid10": {
+     "pnl_usd": 1.2563,
+     "stops": 0,
+     "trips": 17
+    },
+    "bid20": {
+     "pnl_usd": 1.58,
+     "stops": 0,
+     "trips": 8
+    },
+    "bid30": {
+     "pnl_usd": 2.1202,
+     "stops": 0,
+     "trips": 7
+    }
+   },
+   "pnl_usd": 8.44,
+   "pnl_usd_per_day": 0.159,
+   "share_of_volume_ge_bps": {
+    "10": 0.0,
+    "20": 0.0,
+    "30": 0.0
+   },
+   "stops": 0,
+   "trips": 66,
+   "usd_per_day_at_1000_per_rung": 1.56,
+   "usd_per_day_before_08_24": 0.0,
+   "usd_per_day_from_08_24": 0.216,
+   "usd_volume_per_day_fx_minutes": 24717194
+  },
+  "coinbase USDC-GBP": {
+   "abs_dev_bps_median": 1.17,
+   "abs_dev_bps_p90": 2.8,
+   "best_day_share": 0.15,
+   "by_month": {
+    "2026-08": 0.315,
+    "2026-09": 12.328
+   },
+   "days_negative": 1,
+   "days_positive": 22,
+   "pct_per_year_on_capital": 14.5,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 0.9056,
+     "stops": 0,
+     "trips": 26
+    },
+    "ask20": {
+     "pnl_usd": 1.178,
+     "stops": 0,
+     "trips": 9
+    },
+    "ask30": {
+     "pnl_usd": 0.8908,
+     "stops": 0,
+     "trips": 4
+    },
+    "bid10": {
+     "pnl_usd": 2.5728,
+     "stops": 0,
+     "trips": 30
+    },
+    "bid20": {
+     "pnl_usd": 3.8777,
+     "stops": 0,
+     "trips": 20
+    },
+    "bid30": {
+     "pnl_usd": 3.2168,
+     "stops": 0,
+     "trips": 11
+    }
+   },
+   "pnl_usd": 12.64,
+   "pnl_usd_per_day": 0.238,
+   "share_of_volume_ge_bps": {
+    "10": 0.003,
+    "20": 0.002,
+    "30": 0.001
+   },
+   "stops": 0,
+   "trips": 100,
+   "usd_per_day_at_1000_per_rung": 2.188,
+   "usd_per_day_before_08_24": 0.01,
+   "usd_per_day_from_08_24": 0.321,
+   "usd_volume_per_day_fx_minutes": 2822277
+  },
+  "coinbase USDT-GBP": {
+   "abs_dev_bps_median": 1.82,
+   "abs_dev_bps_p90": 3.87,
+   "best_day_share": 0.334,
+   "by_month": {
+    "2026-08": 2.55,
+    "2026-09": -0.415
+   },
+   "days_negative": 7,
+   "days_positive": 14,
+   "pct_per_year_on_capital": 2.4,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 0.7017,
+     "stops": 0,
+     "trips": 24
+    },
+    "ask20": {
+     "pnl_usd": 0.491,
+     "stops": 0,
+     "trips": 6
+    },
+    "ask30": {
+     "pnl_usd": -0.0031,
+     "stops": 0,
+     "trips": 1
+    },
+    "bid10": {
+     "pnl_usd": 0.9468,
+     "stops": 0,
+     "trips": 17
+    },
+    "bid20": {
+     "pnl_usd": 0.0,
+     "stops": 0,
+     "trips": 0
+    },
+    "bid30": {
+     "pnl_usd": 0.0,
+     "stops": 0,
+     "trips": 0
+    }
+   },
+   "pnl_usd": 2.14,
+   "pnl_usd_per_day": 0.04,
+   "share_of_volume_ge_bps": {
+    "10": 0.007,
+    "20": 0.002,
+    "30": 0.001
+   },
+   "stops": 0,
+   "trips": 48,
+   "usd_per_day_at_1000_per_rung": 0.445,
+   "usd_per_day_before_08_24": 0.167,
+   "usd_per_day_from_08_24": -0.005,
+   "usd_volume_per_day_fx_minutes": 2064660
+  },
+  "revx EEA USDC-EUR": {
+   "abs_dev_bps_median": 8.9,
+   "abs_dev_bps_p90": 18.12,
+   "best_day_share": 0.074,
+   "by_month": {
+    "2026-08": 23.236,
+    "2026-09": 18.908,
+    "2026-10": 0.435
+   },
+   "days_negative": 1,
+   "days_positive": 44,
+   "pct_per_year_on_capital": 48.8,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 13.7069,
+     "stops": 0,
+     "trips": 207
+    },
+    "ask20": {
+     "pnl_usd": 0.861,
+     "stops": 0,
+     "trips": 5
+    },
+    "ask30": {
+     "pnl_usd": 0.0,
+     "stops": 0,
+     "trips": 0
+    },
+    "bid10": {
+     "pnl_usd": 19.0712,
+     "stops": 1,
+     "trips": 239
+    },
+    "bid20": {
+     "pnl_usd": 8.4863,
+     "stops": 1,
+     "trips": 48
+    },
+    "bid30": {
+     "pnl_usd": 0.4519,
+     "stops": 0,
+     "trips": 1
+    }
+   },
+   "pnl_usd": 42.58,
+   "pnl_usd_per_day": 0.803,
+   "share_of_volume_ge_bps": {
+    "10": 0.609,
+    "20": 0.068,
+    "30": 0.002
+   },
+   "stops": 2,
+   "trips": 500,
+   "usd_per_day_at_1000_per_rung": 4.071,
+   "usd_per_day_before_08_24": 1.002,
+   "usd_per_day_from_08_24": 0.732,
+   "usd_volume_per_day_fx_minutes": 243629
+  },
+  "revx UK USDC-GBP": {
+   "abs_dev_bps_median": 4.68,
+   "abs_dev_bps_p90": 15.18,
+   "best_day_share": 0.087,
+   "by_month": {
+    "2026-08": 7.49,
+    "2026-09": 7.318,
+    "2026-10": 0.493
+   },
+   "days_negative": 2,
+   "days_positive": 38,
+   "pct_per_year_on_capital": 17.6,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 3.3484,
+     "stops": 0,
+     "trips": 49
+    },
+    "ask20": {
+     "pnl_usd": 0.0,
+     "stops": 0,
+     "trips": 0
+    },
+    "ask30": {
+     "pnl_usd": 0.0,
+     "stops": 0,
+     "trips": 0
+    },
+    "bid10": {
+     "pnl_usd": 6.9311,
+     "stops": 3,
+     "trips": 92
+    },
+    "bid20": {
+     "pnl_usd": 4.769,
+     "stops": 1,
+     "trips": 27
+    },
+    "bid30": {
+     "pnl_usd": 0.2496,
+     "stops": 0,
+     "trips": 1
+    }
+   },
+   "pnl_usd": 15.3,
+   "pnl_usd_per_day": 0.289,
+   "share_of_volume_ge_bps": {
+    "10": 0.461,
+    "20": 0.309,
+    "30": 0.02
+   },
+   "stops": 4,
+   "trips": 169,
+   "usd_per_day_at_1000_per_rung": 1.83,
+   "usd_per_day_before_08_24": 0.345,
+   "usd_per_day_from_08_24": 0.269,
+   "usd_volume_per_day_fx_minutes": 71239
+  },
+  "revx UK USDT-GBP": {
+   "abs_dev_bps_median": 4.11,
+   "abs_dev_bps_p90": 23.74,
+   "best_day_share": 0.137,
+   "by_month": {
+    "2026-08": 51.347,
+    "2026-09": 16.481,
+    "2026-10": 1.44
+   },
+   "days_negative": 0,
+   "days_positive": 41,
+   "pct_per_year_on_capital": 79.5,
+   "per_rung": {
+    "ask10": {
+     "pnl_usd": 9.9745,
+     "stops": 1,
+     "trips": 122
+    },
+    "ask20": {
+     "pnl_usd": 11.7427,
+     "stops": 1,
+     "trips": 76
+    },
+    "ask30": {
+     "pnl_usd": 7.9501,
+     "stops": 1,
+     "trips": 33
+    },
+    "bid10": {
+     "pnl_usd": 12.7048,
+     "stops": 0,
+     "trips": 145
+    },
+    "bid20": {
+     "pnl_usd": 14.7972,
+     "stops": 0,
+     "trips": 86
+    },
+    "bid30": {
+     "pnl_usd": 12.0956,
+     "stops": 0,
+     "trips": 46
+    }
+   },
+   "pnl_usd": 69.26,
+   "pnl_usd_per_day": 1.307,
+   "share_of_volume_ge_bps": {
+    "10": 0.32,
+    "20": 0.194,
+    "30": 0.06
+   },
+   "stops": 3,
+   "trips": 508,
+   "usd_per_day_at_1000_per_rung": 7.542,
+   "usd_per_day_before_08_24": 3.151,
+   "usd_per_day_from_08_24": 0.645,
+   "usd_volume_per_day_fx_minutes": 102393
+  }
+ },
+ "fx": "FXCM 1-minute bid/ask mid",
+ "window": "2026-08-10T00:00Z -> 2026-10-02T00:00Z (FXCM has no 2026 weeks 26-31)"
+}

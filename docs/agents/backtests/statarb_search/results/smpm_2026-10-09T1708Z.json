@@ -1,0 +1,123 @@
+{
+ "abs_mid_gaps": [],
+ "at": "2026-10-09T17:08:50.856476+00:00",
+ "cross_costs": [],
+ "games": [
+  {
+   "matched": false,
+   "smarkets": "Philadelphia Eagles at Jacksonville Jaguars"
+  },
+  {
+   "matched": false,
+   "smarkets": "Houston Texans at Jacksonville Jaguars"
+  },
+  {
+   "matched": false,
+   "smarkets": "Cincinnati Bengals at Miami Dolphins"
+  },
+  {
+   "matched": false,
+   "smarkets": "Las Vegas Raiders at New England Patriots"
+  },
+  {
+   "matched": false,
+   "smarkets": "Minnesota Vikings at New Orleans Saints"
+  },
+  {
+   "matched": false,
+   "smarkets": "Cleveland Browns at New York Jets"
+  },
+  {
+   "matched": false,
+   "smarkets": "Indianapolis Colts at Pittsburgh Steelers"
+  },
+  {
+   "matched": false,
+   "smarkets": "Houston Texans at Tennessee Titans"
+  },
+  {
+   "matched": false,
+   "smarkets": "New York Giants at Washington Commanders"
+  },
+  {
+   "matched": false,
+   "smarkets": "Denver Broncos at Los Angeles Chargers"
+  },
+  {
+   "matched": false,
+   "smarkets": "Detroit Lions at Arizona Cardinals"
+  },
+  {
+   "matched": false,
+   "smarkets": "Chicago Bears at Green Bay Packers"
+  },
+  {
+   "matched": false,
+   "smarkets": "San Francisco 49ers at Seattle Seahawks"
+  },
+  {
+   "matched": false,
+   "smarkets": "Baltimore Ravens at Atlanta Falcons"
+  },
+  {
+   "matched": false,
+   "smarkets": "Buffalo Bills at Los Angeles Rams"
+  },
+  {
+   "matched": false,
+   "smarkets": "Seattle Seahawks at Denver Broncos"
+  },
+  {
+   "matched": false,
+   "smarkets": "Carolina Panthers at Philadelphia Eagles"
+  },
+  {
+   "matched": false,
+   "smarkets": "Baltimore Ravens at Cleveland Browns"
+  },
+  {
+   "matched": false,
+   "smarkets": "Tennessee Titans at Indianapolis Colts"
+  },
+  {
+   "matched": false,
+   "smarkets": "Chicago Bears at Atlanta Falcons"
+  },
+  {
+   "matched": false,
+   "smarkets": "New Orleans Saints at New York Giants"
+  },
+  {
+   "matched": false,
+   "smarkets": "New York Jets at New England Patriots"
+  },
+  {
+   "matched": false,
+   "smarkets": "Pittsburgh Steelers at Tampa Bay Buccaneers"
+  },
+  {
+   "matched": false,
+   "smarkets": "Arizona Cardinals at Los Angeles Rams"
+  },
+  {
+   "matched": false,
+   "smarkets": "Los Angeles Chargers at Kansas City Chiefs"
+  },
+  {
+   "matched": false,
+   "smarkets": "Buffalo Bills at Las Vegas Raiders"
+  },
+  {
+   "matched": false,
+   "smarkets": "Dallas Cowboys at Green Bay Packers"
+  },
+  {
+   "matched": false,
+   "smarkets": "Washington Commanders at San Francisco 49ers"
+  }
+ ],
+ "matched": 0,
+ "quote_hedge_costs": [],
+ "smarkets_games_14d": 28,
+ "smarkets_spreads": []
+}

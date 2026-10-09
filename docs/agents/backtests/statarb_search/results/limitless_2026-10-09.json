@@ -1,0 +1,56 @@
+{
+ "active_markets": 598,
+ "dailyReward_sum_raw": 0.0,
+ "effectiveDailyReward_sum_raw": 0.0,
+ "markets_with_positive_dailyReward": 0,
+ "pulled_at": "2026-10-09T17:13:30.048745+00:00",
+ "rebateRate_counts": {
+  "0": 311,
+  "0.3": 10,
+  "1": 22
+ },
+ "rewardable": 343,
+ "top_dailyReward": [
+  [
+   0.0,
+   "yunchaokete-bu-vs-casper-ruud-1791482406258"
+  ],
+  [
+   0.0,
+   "xrp-up-or-down-hourly-p-1791554722774"
+  ],
+  [
+   0.0,
+   "xrp-up-or-down-daily-p-1791551132490"
+  ],
+  [
+   0.0,
+   "xi-jinping-out-before-2027-1787659720504"
+  ],
+  [
+   0.0,
+   "will-zywoo-reach-36-hltv-mvp-awards-by-december-31-2026-1778"
+  ],
+  [
+   0.0,
+   "will-wintrust-financial-wtfc-beat-quarterly-earnings-1791399"
+  ],
+  [
+   0.0,
+   "will-wells-fargo-wfc-beat-quarterly-earnings-1790930136037"
+  ],
+  [
+   0.0,
+   "will-wd-40-wdfc-beat-quarterly-earnings-1791401731319"
+  ],
+  [
+   0.0,
+   "will-us-bancorp-usb-beat-quarterly-earnings-1791399935435"
+  ],
+  [
+   0.0,
+   "will-unity-bancorp-unty-beat-quarterly-earnings-179093011849"
+  ]
+ ],
+ "volume_sum_usd_formatted": 559815.01
+}

@@ -1,0 +1,83 @@
+{
+ "active": 6455,
+ "active_markets": 6455,
+ "discount_factor_bps": {
+  "4000": 15,
+  "5000": 6417,
+  "9000": 23
+ },
+ "programs": 299158,
+ "pulled_at": "2026-10-09T17:53:44.873969+00:00",
+ "reward_per_day_raw_units_by_type": {
+  "liquidity": 3849676201
+ },
+ "reward_per_day_usd_if_centicents": {
+  "liquidity": 384967.62
+ },
+ "reward_per_day_usd_if_cents": {
+  "liquidity": 38496762.01
+ },
+ "target_size_median": 1000.0,
+ "top_series_usd_per_day_if_centicents": [
+  [
+   "KXTEMPMIAH",
+   106699.64
+  ],
+  [
+   "KXRT",
+   21380.63
+  ],
+  [
+   "KXCRYPTOLEAD15M",
+   9600.0
+  ],
+  [
+   "KXCRITICSCHOICENOM",
+   8998.96
+  ],
+  [
+   "KXAAAGASDOH",
+   6926.02
+  ],
+  [
+   "KXTRUMPAPPROVE",
+   5400.0
+  ],
+  [
+   "KXUSDJPY15M",
+   4800.0
+  ],
+  [
+   "KXGBPUSD15M",
+   4800.0
+  ],
+  [
+   "KXEURUSD15M",
+   4800.0
+  ],
+  [
+   "KXAAAGASDIN",
+   4533.4
+  ],
+  [
+   "KXAAAGASDMI",
+   4527.97
+  ],
+  [
+   "KX10YRRATEH",
+   3661.02
+  ],
+  [
+   "KX5YRRATEH",
+   3661.02
+  ],
+  [
+   "KX30YRRATEH",
+   3661.02
+  ],
+  [
+   "KX2YRRATEH",
+   3661.02
+  ]
+ ]
+}

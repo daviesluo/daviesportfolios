@@ -1,0 +1,149 @@
+{
+ "at": "2026-10-09T17:15:34.827415+00:00",
+ "games": 28,
+ "max_gbp": 6078,
+ "median_gbp": 132,
+ "rows": [
+  {
+   "game": "Philadelphia Eagles at Jacksonville Jaguars",
+   "start": "2026-10-11T13:30:00Z",
+   "volume_gbp": 6078
+  },
+  {
+   "game": "Houston Texans at Jacksonville Jaguars",
+   "start": "2026-10-18T13:30:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Cincinnati Bengals at Miami Dolphins",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 1615
+  },
+  {
+   "game": "Las Vegas Raiders at New England Patriots",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 968
+  },
+  {
+   "game": "Minnesota Vikings at New Orleans Saints",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 568
+  },
+  {
+   "game": "Cleveland Browns at New York Jets",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 268
+  },
+  {
+   "game": "Indianapolis Colts at Pittsburgh Steelers",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 132
+  },
+  {
+   "game": "Houston Texans at Tennessee Titans",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 1388
+  },
+  {
+   "game": "New York Giants at Washington Commanders",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 179
+  },
+  {
+   "game": "Denver Broncos at Los Angeles Chargers",
+   "start": "2026-10-11T20:05:00Z",
+   "volume_gbp": 489
+  },
+  {
+   "game": "Detroit Lions at Arizona Cardinals",
+   "start": "2026-10-11T20:25:00Z",
+   "volume_gbp": 169
+  },
+  {
+   "game": "Chicago Bears at Green Bay Packers",
+   "start": "2026-10-11T17:00:00Z",
+   "volume_gbp": 1202
+  },
+  {
+   "game": "San Francisco 49ers at Seattle Seahawks",
+   "start": "2026-10-11T20:25:00Z",
+   "volume_gbp": 468
+  },
+  {
+   "game": "Baltimore Ravens at Atlanta Falcons",
+   "start": "2026-10-12T00:20:00Z",
+   "volume_gbp": 534
+  },
+  {
+   "game": "Buffalo Bills at Los Angeles Rams",
+   "start": "2026-10-13T00:15:00Z",
+   "volume_gbp": 254
+  },
+  {
+   "game": "Seattle Seahawks at Denver Broncos",
+   "start": "2026-10-16T00:15:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Carolina Panthers at Philadelphia Eagles",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Baltimore Ravens at Cleveland Browns",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Tennessee Titans at Indianapolis Colts",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Chicago Bears at Atlanta Falcons",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "New Orleans Saints at New York Giants",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "New York Jets at New England Patriots",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Pittsburgh Steelers at Tampa Bay Buccaneers",
+   "start": "2026-10-18T17:00:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Arizona Cardinals at Los Angeles Rams",
+   "start": "2026-10-18T20:05:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Los Angeles Chargers at Kansas City Chiefs",
+   "start": "2026-10-18T20:25:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Buffalo Bills at Las Vegas Raiders",
+   "start": "2026-10-18T20:25:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Dallas Cowboys at Green Bay Packers",
+   "start": "2026-10-19T00:20:00Z",
+   "volume_gbp": 0
+  },
+  {
+   "game": "Washington Commanders at San Francisco 49ers",
+   "start": "2026-10-20T00:15:00Z",
+   "volume_gbp": 0
+  }
+ ],
+ "total_gbp": 14312
+}

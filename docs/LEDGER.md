@@ -404,6 +404,22 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 17:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **STATARB, the stat-arb search** (Davies: "…还有没有其他有statistical arbitrage的策略，其他平台也可以，并先不考虑合规问题"; then
+  "我开不了Kalshi的账户，Kalshi平台可以rule out"): `reviews/2026-10-09-stat-arb-search.md`, evidence
+  `backtests/statarb_search/` (map row). Keyless public data only; nothing traded, opened or signed up for; no production
+  read; nothing frozen.
+- **Ranked:**
+  1. **PR5-EUR**: PR5's rule on Revolut X's EEA USDC/EUR. Screen $0.80/day on $600 over 08-10 → 10-02, 44 of 45 days
+     positive; 1.6–3.8× the UK books per dollar. A live version needs an EEA account, which by Revolut's help pages
+     closes the UK account.
+  2. **CJ5**: the same rule on CoinJar UK's GBP books (0 % maker, 1.9× per dollar, $36k/day of books). Recorder first.
+  3. **CBSWEEP**: deep 0 % bids on Coinbase's `fx_stablecoin` books. Lumpy, September only; history test first.
+- **Dropped:** Kalshi (both the cross and its ~$385k/day incentive program), Smarkets (£14k matched on 28 NFL games),
+  Limitless (pools $0), DeFi stable LPs (0.58 %/yr), HLP (4.06 %), stETH queue (~1 bp), Kraken (0.20 % maker on
+  stable/FX books), Bitstamp.
+- The three paper-test drafts and what each needs from Davies are the review's §5–§6.
+
 ### [2026-10-09 17:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **F3 validated by a full replay: one tick beyond fair is NOT robust** (Davies: `"F3 卖出价可以再挂远一个 tick"完整验证一下`).
   `backtests/scq_f3/` (map row): the twins' own code (quotes_twin/quotes_live/revx_sim, patched copies at run time, nothing in

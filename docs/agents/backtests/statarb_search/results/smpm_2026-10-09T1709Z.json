@@ -1,0 +1,1023 @@
+{
+ "abs_mid_gaps": [
+  0.0013,
+  0.0016,
+  0.0025,
+  0.0025,
+  0.0026,
+  0.004,
+  0.0046,
+  0.005,
+  0.0054,
+  0.0065,
+  0.0085,
+  0.0086,
+  0.0099,
+  0.0103,
+  0.0105,
+  0.011,
+  0.0111,
+  0.0119,
+  0.0123,
+  0.0143,
+  0.0145,
+  0.0162,
+  0.0186,
+  0.0229,
+  0.0241,
+  0.0269,
+  0.0276,
+  0.0377
+ ],
+ "at": "2026-10-09T17:09:47.315810+00:00",
+ "cross_costs": [
+  1.0117,
+  1.0133,
+  1.0193,
+  1.0252,
+  1.027,
+  1.0296,
+  1.0317,
+  1.0364,
+  1.0372,
+  1.0374,
+  1.0374,
+  1.0405,
+  1.0411,
+  1.0435,
+  1.0438,
+  1.0457,
+  1.0516,
+  1.0539,
+  1.0586,
+  1.0599,
+  1.0643,
+  1.0662,
+  1.0673,
+  1.0716,
+  1.0737,
+  1.0773,
+  1.0778,
+  1.0798
+ ],
+ "games": [
+  {
+   "best_cross": {
+    "buy": "Jaguars@smarkets 0.7692 + Eagles@pm 0.24",
+    "cost": 1.0193
+   },
+   "matched": true,
+   "mid_gap": -0.005,
+   "pm_slug": "nfl-phi-jax-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0038,
+    "hedge": "Jaguars@smarkets offer 0.7692",
+    "rest": "Eagles@pm bid 0.23"
+   },
+   "smarkets": "Philadelphia Eagles at Jacksonville Jaguars",
+   "smarkets_spread": 0.0053,
+   "teams": {
+    "Eagles": {
+     "p_ask": 0.24,
+     "p_bid": 0.23,
+     "s_bid": 0.2273,
+     "s_offer": 0.2326,
+     "s_offer_payout_gbp": 154.7721
+    },
+    "Jaguars": {
+     "p_ask": 0.77,
+     "p_bid": 0.76,
+     "s_bid": 0.7634,
+     "s_offer": 0.7692,
+     "s_offer_payout_gbp": 40.1715
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Jaguars@smarkets 0.6494 + Texans@pm 0.41",
+    "cost": 1.0737
+   },
+   "matched": true,
+   "mid_gap": 0.0085,
+   "pm_slug": "nfl-hou-jax-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0164,
+    "hedge": "Jaguars@smarkets offer 0.6494",
+    "rest": "Texans@pm bid 0.36"
+   },
+   "smarkets": "Houston Texans at Jacksonville Jaguars",
+   "smarkets_spread": 0.0827,
+   "teams": {
+    "Jaguars": {
+     "p_ask": 0.64,
+     "p_bid": 0.59,
+     "s_bid": 0.565,
+     "s_offer": 0.6494,
+     "s_offer_payout_gbp": 577.5821
+    },
+    "Texans": {
+     "p_ask": 0.41,
+     "p_bid": 0.36,
+     "s_bid": 0.3521,
+     "s_offer": 0.4348,
+     "s_offer_payout_gbp": 358.2805
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Bengals@smarkets 0.7407 + Dolphins@pm 0.26",
+    "cost": 1.0117
+   },
+   "matched": true,
+   "mid_gap": -0.0123,
+   "pm_slug": "nfl-cin-mia-2026-10-11",
+   "quote_hedge": {
+    "cost": 0.9959,
+    "hedge": "Bengals@smarkets offer 0.7407",
+    "rest": "Dolphins@pm bid 0.25"
+   },
+   "smarkets": "Cincinnati Bengals at Miami Dolphins",
+   "smarkets_spread": 0.0161,
+   "teams": {
+    "Bengals": {
+     "p_ask": 0.75,
+     "p_bid": 0.74,
+     "s_bid": 0.7246,
+     "s_offer": 0.7407,
+     "s_offer_payout_gbp": 25.7729
+    },
+    "Dolphins": {
+     "p_ask": 0.26,
+     "p_bid": 0.25,
+     "s_bid": 0.2326,
+     "s_offer": 0.2778,
+     "s_offer_payout_gbp": 988.9
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Patriots@smarkets 0.641 + Raiders@pm 0.37",
+    "cost": 1.0252
+   },
+   "matched": true,
+   "mid_gap": 0.0111,
+   "pm_slug": "nfl-lv-ne-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0082,
+    "hedge": "Patriots@smarkets offer 0.641",
+    "rest": "Raiders@pm bid 0.36"
+   },
+   "smarkets": "Las Vegas Raiders at New England Patriots",
+   "smarkets_spread": 0.0479,
+   "teams": {
+    "Patriots": {
+     "p_ask": 0.64,
+     "p_bid": 0.63,
+     "s_bid": 0.5988,
+     "s_offer": 0.641,
+     "s_offer_payout_gbp": 1989.65
+    },
+    "Raiders": {
+     "p_ask": 0.37,
+     "p_bid": 0.36,
+     "s_bid": 0.3521,
+     "s_offer": 0.4,
+     "s_offer_payout_gbp": 337.5001
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Vikings@smarkets 0.5882 + Saints@pm 0.44",
+    "cost": 1.0438
+   },
+   "matched": true,
+   "mid_gap": -0.0105,
+   "pm_slug": "nfl-min-no-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0264,
+    "hedge": "Vikings@smarkets offer 0.5882",
+    "rest": "Saints@pm bid 0.43"
+   },
+   "smarkets": "Minnesota Vikings at New Orleans Saints",
+   "smarkets_spread": 0.0674,
+   "teams": {
+    "Saints": {
+     "p_ask": 0.44,
+     "p_bid": 0.43,
+     "s_bid": 0.4167,
+     "s_offer": 0.4762,
+     "s_offer_payout_gbp": 1003.21
+    },
+    "Vikings": {
+     "p_ask": 0.57,
+     "p_bid": 0.56,
+     "s_bid": 0.5208,
+     "s_offer": 0.5882,
+     "s_offer_payout_gbp": 642.34
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Browns@smarkets 0.463 + Jets@pm 0.56",
+    "cost": 1.0411
+   },
+   "matched": true,
+   "mid_gap": -0.0086,
+   "pm_slug": "nfl-cle-nyj-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0237,
+    "hedge": "Browns@smarkets offer 0.463",
+    "rest": "Jets@pm bid 0.55"
+   },
+   "smarkets": "Cleveland Browns at New York Jets",
+   "smarkets_spread": 0.0532,
+   "teams": {
+    "Browns": {
+     "p_ask": 0.45,
+     "p_bid": 0.44,
+     "s_bid": 0.4098,
+     "s_offer": 0.463,
+     "s_offer_payout_gbp": 401.7
+    },
+    "Jets": {
+     "p_ask": 0.56,
+     "p_bid": 0.55,
+     "s_bid": 0.5102,
+     "s_offer": 0.5882,
+     "s_offer_payout_gbp": 874.48
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Steelers@smarkets 0.6135 + Colts@pm 0.43",
+    "cost": 1.0586
+   },
+   "matched": true,
+   "mid_gap": 0.0025,
+   "pm_slug": "nfl-ind-pit-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0412,
+    "hedge": "Steelers@smarkets offer 0.6135",
+    "rest": "Colts@pm bid 0.42"
+   },
+   "smarkets": "Indianapolis Colts at Pittsburgh Steelers",
+   "smarkets_spread": 0.0797,
+   "teams": {
+    "Colts": {
+     "p_ask": 0.43,
+     "p_bid": 0.42,
+     "s_bid": 0.3876,
+     "s_offer": 0.4673,
+     "s_offer_payout_gbp": 380.1394
+    },
+    "Steelers": {
+     "p_ask": 0.58,
+     "p_bid": 0.57,
+     "s_bid": 0.5319,
+     "s_offer": 0.6135,
+     "s_offer_payout_gbp": 523.9338
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Texans@smarkets 0.7874 + Titans@pm 0.23",
+    "cost": 1.027
+   },
+   "matched": true,
+   "mid_gap": -0.0054,
+   "pm_slug": "nfl-hou-ten-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0117,
+    "hedge": "Texans@smarkets offer 0.7874",
+    "rest": "Titans@pm bid 0.22"
+   },
+   "smarkets": "Houston Texans at Tennessee Titans",
+   "smarkets_spread": 0.0355,
+   "teams": {
+    "Texans": {
+     "p_ask": 0.78,
+     "p_bid": 0.77,
+     "s_bid": 0.7519,
+     "s_offer": 0.7874,
+     "s_offer_payout_gbp": 846.46
+    },
+    "Titans": {
+     "p_ask": 0.23,
+     "p_bid": 0.22,
+     "s_bid": 0.2128,
+     "s_offer": 0.2326,
+     "s_offer_payout_gbp": 13.9724
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Commanders@smarkets 0.6289 + Giants@pm 0.37",
+    "cost": 1.0133
+   },
+   "matched": true,
+   "mid_gap": -0.0119,
+   "pm_slug": "nfl-nyg-was-2026-10-11",
+   "quote_hedge": {
+    "cost": 0.9963,
+    "hedge": "Commanders@smarkets offer 0.6289",
+    "rest": "Giants@pm bid 0.36"
+   },
+   "smarkets": "New York Giants at Washington Commanders",
+   "smarkets_spread": 0.0812,
+   "teams": {
+    "Commanders": {
+     "p_ask": 0.64,
+     "p_bid": 0.63,
+     "s_bid": 0.6024,
+     "s_offer": 0.6289,
+     "s_offer_payout_gbp": 14.4379
+    },
+    "Giants": {
+     "p_ask": 0.37,
+     "p_bid": 0.36,
+     "s_bid": 0.3125,
+     "s_offer": 0.3937,
+     "s_offer_payout_gbp": 1178.11
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Broncos@smarkets 0.6494 + Chargers@pm 0.38",
+    "cost": 1.0435
+   },
+   "matched": true,
+   "mid_gap": 0.0046,
+   "pm_slug": "nfl-den-lac-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0264,
+    "hedge": "Broncos@smarkets offer 0.6494",
+    "rest": "Chargers@pm bid 0.37"
+   },
+   "smarkets": "Denver Broncos at Los Angeles Chargers",
+   "smarkets_spread": 0.0396,
+   "teams": {
+    "Broncos": {
+     "p_ask": 0.63,
+     "p_bid": 0.62,
+     "s_bid": 0.6098,
+     "s_offer": 0.6494,
+     "s_offer_payout_gbp": 747.35
+    },
+    "Chargers": {
+     "p_ask": 0.38,
+     "p_bid": 0.37,
+     "s_bid": 0.3333,
+     "s_offer": 0.4132,
+     "s_offer_payout_gbp": 1042.66
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Lions@smarkets 0.7143 + Cardinals@pm 0.31",
+    "cost": 1.0364
+   },
+   "matched": true,
+   "mid_gap": -0.011,
+   "pm_slug": "nfl-det-ari-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.02,
+    "hedge": "Lions@smarkets offer 0.7143",
+    "rest": "Cardinals@pm bid 0.3"
+   },
+   "smarkets": "Detroit Lions at Arizona Cardinals",
+   "smarkets_spread": 0.0607,
+   "teams": {
+    "Cardinals": {
+     "p_ask": 0.31,
+     "p_bid": 0.3,
+     "s_bid": 0.2632,
+     "s_offer": 0.3175,
+     "s_offer_payout_gbp": 369.88
+    },
+    "Lions": {
+     "p_ask": 0.7,
+     "p_bid": 0.69,
+     "s_bid": 0.6536,
+     "s_offer": 0.7143,
+     "s_offer_payout_gbp": 13.5797
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Bears@smarkets 0.5405 + Packers@pm 0.48",
+    "cost": 1.0372
+   },
+   "matched": true,
+   "mid_gap": -0.0143,
+   "pm_slug": "nfl-chi-gb-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0197,
+    "hedge": "Bears@smarkets offer 0.5405",
+    "rest": "Packers@pm bid 0.47"
+   },
+   "smarkets": "Chicago Bears at Green Bay Packers",
+   "smarkets_spread": 0.0597,
+   "teams": {
+    "Bears": {
+     "p_ask": 0.53,
+     "p_bid": 0.52,
+     "s_bid": 0.4808,
+     "s_offer": 0.5405,
+     "s_offer_payout_gbp": 16.7067
+    },
+    "Packers": {
+     "p_ask": 0.48,
+     "p_bid": 0.47,
+     "s_bid": 0.4348,
+     "s_offer": 0.5181,
+     "s_offer_payout_gbp": 420.2124
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Seahawks@smarkets 0.6329 + 49ers@pm 0.39",
+    "cost": 1.0374
+   },
+   "matched": true,
+   "mid_gap": 0.0162,
+   "pm_slug": "nfl-sf-sea-2026-10-11",
+   "quote_hedge": {
+    "cost": 1.0202,
+    "hedge": "Seahawks@smarkets offer 0.6329",
+    "rest": "49ers@pm bid 0.38"
+   },
+   "smarkets": "San Francisco 49ers at Seattle Seahawks",
+   "smarkets_spread": 0.0672,
+   "teams": {
+    "49ers": {
+     "p_ask": 0.39,
+     "p_bid": 0.38,
+     "s_bid": 0.3676,
+     "s_offer": 0.4348,
+     "s_offer_payout_gbp": 1263.55
+    },
+    "Seahawks": {
+     "p_ask": 0.62,
+     "p_bid": 0.61,
+     "s_bid": 0.5618,
+     "s_offer": 0.6329,
+     "s_offer_payout_gbp": 1237.4319
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Falcons@smarkets 0.625 + Ravens@pm 0.39",
+    "cost": 1.0296
+   },
+   "matched": true,
+   "mid_gap": -0.0025,
+   "pm_slug": "nfl-bal-atl-2026-10-12",
+   "quote_hedge": {
+    "cost": 1.0125,
+    "hedge": "Falcons@smarkets offer 0.625",
+    "rest": "Ravens@pm bid 0.38"
+   },
+   "smarkets": "Baltimore Ravens at Atlanta Falcons",
+   "smarkets_spread": 0.0754,
+   "teams": {
+    "Falcons": {
+     "p_ask": 0.62,
+     "p_bid": 0.61,
+     "s_bid": 0.6024,
+     "s_offer": 0.625,
+     "s_offer_payout_gbp": 15.008
+    },
+    "Ravens": {
+     "p_ask": 0.39,
+     "p_bid": 0.38,
+     "s_bid": 0.3448,
+     "s_offer": 0.4202,
+     "s_offer_payout_gbp": 1077.11
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Rams@smarkets 0.6329 + Bills@pm 0.39",
+    "cost": 1.0374
+   },
+   "matched": true,
+   "mid_gap": 0.0241,
+   "pm_slug": "nfl-buf-la-2026-10-13",
+   "quote_hedge": {
+    "cost": 1.0202,
+    "hedge": "Rams@smarkets offer 0.6329",
+    "rest": "Bills@pm bid 0.38"
+   },
+   "smarkets": "Buffalo Bills at Los Angeles Rams",
+   "smarkets_spread": 0.0829,
+   "teams": {
+    "Bills": {
+     "p_ask": 0.39,
+     "p_bid": 0.38,
+     "s_bid": 0.3676,
+     "s_offer": 0.4505,
+     "s_offer_payout_gbp": 368.5171
+    },
+    "Rams": {
+     "p_ask": 0.62,
+     "p_bid": 0.61,
+     "s_bid": 0.5495,
+     "s_offer": 0.6329,
+     "s_offer_payout_gbp": 551.6219
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Seahawks@smarkets 0.5917 + Broncos@pm 0.47",
+    "cost": 1.0773
+   },
+   "matched": true,
+   "mid_gap": -0.0016,
+   "pm_slug": "nfl-sea-den-2026-10-16",
+   "quote_hedge": {
+    "cost": 1.0299,
+    "hedge": "Seahawks@smarkets offer 0.5917",
+    "rest": "Broncos@pm bid 0.43"
+   },
+   "smarkets": "Seattle Seahawks at Denver Broncos",
+   "smarkets_spread": 0.0866,
+   "teams": {
+    "Broncos": {
+     "p_ask": 0.47,
+     "p_bid": 0.43,
+     "s_bid": 0.4098,
+     "s_offer": 0.495,
+     "s_offer_payout_gbp": 400.9904
+    },
+    "Seahawks": {
+     "p_ask": 0.57,
+     "p_bid": 0.53,
+     "s_bid": 0.5051,
+     "s_offer": 0.5917,
+     "s_offer_payout_gbp": 495.9597
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Panthers@smarkets 0.5025 + Eagles@pm 0.54",
+    "cost": 1.0599
+   },
+   "matched": true,
+   "mid_gap": -0.0186,
+   "pm_slug": "nfl-car-phi-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0124,
+    "hedge": "Panthers@smarkets offer 0.5025",
+    "rest": "Eagles@pm bid 0.5"
+   },
+   "smarkets": "Carolina Panthers at Philadelphia Eagles",
+   "smarkets_spread": 0.0823,
+   "teams": {
+    "Eagles": {
+     "p_ask": 0.54,
+     "p_bid": 0.5,
+     "s_bid": 0.495,
+     "s_offer": 0.578,
+     "s_offer_payout_gbp": 479.8587
+    },
+    "Panthers": {
+     "p_ask": 0.5,
+     "p_bid": 0.46,
+     "s_bid": 0.4202,
+     "s_offer": 0.5025,
+     "s_offer_payout_gbp": 407.0356
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Ravens@smarkets 0.6623 + Browns@pm 0.39",
+    "cost": 1.0662
+   },
+   "matched": true,
+   "mid_gap": -0.0099,
+   "pm_slug": "nfl-bal-cle-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0191,
+    "hedge": "Ravens@smarkets offer 0.6623",
+    "rest": "Browns@pm bid 0.35"
+   },
+   "smarkets": "Baltimore Ravens at Cleveland Browns",
+   "smarkets_spread": 0.0843,
+   "teams": {
+    "Browns": {
+     "p_ask": 0.39,
+     "p_bid": 0.35,
+     "s_bid": 0.3378,
+     "s_offer": 0.4202,
+     "s_offer_payout_gbp": 349.2583
+    },
+    "Ravens": {
+     "p_ask": 0.65,
+     "p_bid": 0.61,
+     "s_bid": 0.578,
+     "s_offer": 0.6623,
+     "s_offer_payout_gbp": 599.6446
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Colts@smarkets 0.7634 + Titans@pm 0.29",
+    "cost": 1.0643
+   },
+   "matched": true,
+   "mid_gap": 0.0103,
+   "pm_slug": "nfl-ten-ind-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0181,
+    "hedge": "Colts@smarkets offer 0.7634",
+    "rest": "Titans@pm bid 0.25"
+   },
+   "smarkets": "Tennessee Titans at Indianapolis Colts",
+   "smarkets_spread": 0.0845,
+   "teams": {
+    "Colts": {
+     "p_ask": 0.75,
+     "p_bid": 0.71,
+     "s_bid": 0.6757,
+     "s_offer": 0.7634,
+     "s_offer_payout_gbp": 855.877
+    },
+    "Titans": {
+     "p_ask": 0.29,
+     "p_bid": 0.25,
+     "s_bid": 0.2381,
+     "s_offer": 0.3226,
+     "s_offer_payout_gbp": 298.9374
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Bears@smarkets 0.5848 + Falcons@pm 0.44",
+    "cost": 1.0405
+   },
+   "matched": true,
+   "mid_gap": -0.0276,
+   "pm_slug": "nfl-chi-atl-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0131,
+    "hedge": "Bears@smarkets offer 0.5848",
+    "rest": "Falcons@pm bid 0.42"
+   },
+   "smarkets": "Chicago Bears at Atlanta Falcons",
+   "smarkets_spread": 0.0848,
+   "teams": {
+    "Bears": {
+     "p_ask": 0.58,
+     "p_bid": 0.56,
+     "s_bid": 0.5,
+     "s_offer": 0.5848,
+     "s_offer_payout_gbp": 487.7173
+    },
+    "Falcons": {
+     "p_ask": 0.44,
+     "p_bid": 0.42,
+     "s_bid": 0.4167,
+     "s_offer": 0.5,
+     "s_offer_payout_gbp": 405.0
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Giants@smarkets 0.5208 + Saints@pm 0.54",
+    "cost": 1.0778
+   },
+   "matched": true,
+   "mid_gap": 0.0013,
+   "pm_slug": "nfl-no-nyg-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0304,
+    "hedge": "Giants@smarkets offer 0.5208",
+    "rest": "Saints@pm bid 0.5"
+   },
+   "smarkets": "New Orleans Saints at New York Giants",
+   "smarkets_spread": 0.081,
+   "teams": {
+    "Giants": {
+     "p_ask": 0.5,
+     "p_bid": 0.46,
+     "s_bid": 0.4386,
+     "s_offer": 0.5208,
+     "s_offer_payout_gbp": 422.5799
+    },
+    "Saints": {
+     "p_ask": 0.54,
+     "p_bid": 0.5,
+     "s_bid": 0.4808,
+     "s_offer": 0.5618,
+     "s_offer_payout_gbp": 462.1178
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Patriots@smarkets 0.7812 + Jets@pm 0.28",
+    "cost": 1.0716
+   },
+   "matched": true,
+   "mid_gap": 0.0026,
+   "pm_slug": "nfl-nyj-ne-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0256,
+    "hedge": "Patriots@smarkets offer 0.7812",
+    "rest": "Jets@pm bid 0.24"
+   },
+   "smarkets": "New York Jets at New England Patriots",
+   "smarkets_spread": 0.0808,
+   "teams": {
+    "Jets": {
+     "p_ask": 0.28,
+     "p_bid": 0.24,
+     "s_bid": 0.2222,
+     "s_offer": 0.303,
+     "s_offer_payout_gbp": 290.5308
+    },
+    "Patriots": {
+     "p_ask": 0.76,
+     "p_bid": 0.72,
+     "s_bid": 0.6944,
+     "s_offer": 0.7812,
+     "s_offer_payout_gbp": 925.5067
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Steelers@smarkets 0.5917 + Buccaneers@pm 0.46",
+    "cost": 1.0673
+   },
+   "matched": true,
+   "mid_gap": -0.004,
+   "pm_slug": "nfl-pit-tb-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0299,
+    "hedge": "Steelers@smarkets offer 0.5917",
+    "rest": "Buccaneers@pm bid 0.43"
+   },
+   "smarkets": "Pittsburgh Steelers at Tampa Bay Buccaneers",
+   "smarkets_spread": 0.0815,
+   "teams": {
+    "Buccaneers": {
+     "p_ask": 0.46,
+     "p_bid": 0.43,
+     "s_bid": 0.4065,
+     "s_offer": 0.4902,
+     "s_offer_payout_gbp": 397.2152
+    },
+    "Steelers": {
+     "p_ask": 0.57,
+     "p_bid": 0.54,
+     "s_bid": 0.5102,
+     "s_offer": 0.5917,
+     "s_offer_payout_gbp": 495.9599
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Rams@smarkets 0.8772 + Cardinals@pm 0.17",
+    "cost": 1.0539
+   },
+   "matched": true,
+   "mid_gap": 0.0145,
+   "pm_slug": "nfl-ari-la-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.0097,
+    "hedge": "Rams@smarkets offer 0.8772",
+    "rest": "Cardinals@pm bid 0.13"
+   },
+   "smarkets": "Arizona Cardinals at Los Angeles Rams",
+   "smarkets_spread": 0.0791,
+   "teams": {
+    "Cardinals": {
+     "p_ask": 0.17,
+     "p_bid": 0.13,
+     "s_bid": 0.125,
+     "s_offer": 0.2041,
+     "s_offer_payout_gbp": 254.4291
+    },
+    "Rams": {
+     "p_ask": 0.87,
+     "p_bid": 0.83,
+     "s_bid": 0.7937,
+     "s_offer": 0.8772,
+     "s_offer_payout_gbp": 1649.0311
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Chiefs@smarkets 0.813 + Chargers@pm 0.21",
+    "cost": 1.0317
+   },
+   "matched": true,
+   "mid_gap": 0.0377,
+   "pm_slug": "nfl-lac-kc-2026-10-18",
+   "quote_hedge": {
+    "cost": 0.9867,
+    "hedge": "Chiefs@smarkets offer 0.813",
+    "rest": "Chargers@pm bid 0.17"
+   },
+   "smarkets": "Los Angeles Chargers at Kansas City Chiefs",
+   "smarkets_spread": 0.078,
+   "teams": {
+    "Chargers": {
+     "p_ask": 0.21,
+     "p_bid": 0.17,
+     "s_bid": 0.1887,
+     "s_offer": 0.2667,
+     "s_offer_payout_gbp": 276.149
+    },
+    "Chiefs": {
+     "p_ask": 0.82,
+     "p_bid": 0.78,
+     "s_bid": 0.7299,
+     "s_offer": 0.813,
+     "s_offer_payout_gbp": 1082.8877
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Bills@smarkets 0.7092 + Raiders@pm 0.33",
+    "cost": 1.0516
+   },
+   "matched": true,
+   "mid_gap": -0.0229,
+   "pm_slug": "nfl-buf-lv-2026-10-18",
+   "quote_hedge": {
+    "cost": 1.005,
+    "hedge": "Bills@smarkets offer 0.7092",
+    "rest": "Raiders@pm bid 0.29"
+   },
+   "smarkets": "Buffalo Bills at Las Vegas Raiders",
+   "smarkets_spread": 0.0842,
+   "teams": {
+    "Bills": {
+     "p_ask": 0.71,
+     "p_bid": 0.67,
+     "s_bid": 0.625,
+     "s_offer": 0.7092,
+     "s_offer_payout_gbp": 696.3555
+    },
+    "Raiders": {
+     "p_ask": 0.33,
+     "p_bid": 0.29,
+     "s_bid": 0.2941,
+     "s_offer": 0.3731,
+     "s_offer_payout_gbp": 323.0181
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "Packers@smarkets 0.5025 + Cowboys@pm 0.56",
+    "cost": 1.0798
+   },
+   "matched": true,
+   "mid_gap": 0.0065,
+   "pm_slug": "nfl-dal-gb-2026-10-19",
+   "quote_hedge": {
+    "cost": 1.0124,
+    "hedge": "Packers@smarkets offer 0.5025",
+    "rest": "Cowboys@pm bid 0.5"
+   },
+   "smarkets": "Dallas Cowboys at Green Bay Packers",
+   "smarkets_spread": 0.083,
+   "teams": {
+    "Cowboys": {
+     "p_ask": 0.56,
+     "p_bid": 0.5,
+     "s_bid": 0.495,
+     "s_offer": 0.578,
+     "s_offer_payout_gbp": 479.8585
+    },
+    "Packers": {
+     "p_ask": 0.5,
+     "p_bid": 0.44,
+     "s_bid": 0.4202,
+     "s_offer": 0.5025,
+     "s_offer_payout_gbp": 407.0356
+    }
+   }
+  },
+  {
+   "best_cross": {
+    "buy": "49ers@smarkets 0.8065 + Commanders@pm 0.23",
+    "cost": 1.0457
+   },
+   "matched": true,
+   "mid_gap": 0.0269,
+   "pm_slug": "nfl-was-sf-2026-10-20",
+   "quote_hedge": {
+    "cost": 1.0004,
+    "hedge": "49ers@smarkets offer 0.8065",
+    "rest": "Commanders@pm bid 0.19"
+   },
+   "smarkets": "Washington Commanders at San Francisco 49ers",
+   "smarkets_spread": 0.0817,
+   "teams": {
+    "49ers": {
+     "p_ask": 0.81,
+     "p_bid": 0.77,
+     "s_bid": 0.7194,
+     "s_offer": 0.8065,
+     "s_offer_payout_gbp": 1046.5143
+    },
+    "Commanders": {
+     "p_ask": 0.23,
+     "p_bid": 0.19,
+     "s_bid": 0.1961,
+     "s_offer": 0.2778,
+     "s_offer_payout_gbp": 280.3934
+    }
+   }
+  }
+ ],
+ "matched": 28,
+ "quote_hedge_costs": [
+  0.9867,
+  0.9959,
+  0.9963,
+  1.0004,
+  1.0038,
+  1.005,
+  1.0082,
+  1.0097,
+  1.0117,
+  1.0124,
+  1.0124,
+  1.0125,
+  1.0131,
+  1.0164,
+  1.0181,
+  1.0191,
+  1.0197,
+  1.02,
+  1.0202,
+  1.0202,
+  1.0237,
+  1.0256,
+  1.0264,
+  1.0264,
+  1.0299,
+  1.0299,
+  1.0304,
+  1.0412
+ ],
+ "smarkets_games_14d": 28,
+ "smarkets_spreads": [
+  0.0053,
+  0.0161,
+  0.0355,
+  0.0396,
+  0.0479,
+  0.0532,
+  0.0597,
+  0.0607,
+  0.0672,
+  0.0674,
+  0.0754,
+  0.078,
+  0.0791,
+  0.0797,
+  0.0808,
+  0.081,
+  0.0812,
+  0.0815,
+  0.0817,
+  0.0823,
+  0.0827,
+  0.0829,
+  0.083,
+  0.0842,
+  0.0843,
+  0.0845,
+  0.0848,
+  0.0866
+ ]
+}

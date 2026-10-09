@@ -1,0 +1,339 @@
+{
+ "files": {
+  "inputs/defi/stable_pools_2026-10-09.json.gz": {
+   "bytes": 380241,
+   "sha256": "bc595ca5ef2c20ea533a15674524acd9f8c2b5d0f449a5fdb799ee246cfea9f9"
+  },
+  "inputs/fiat_stable/bitstamp_usdceur.json.gz": {
+   "bytes": 94283,
+   "sha256": "b57e2bbcf051b4f95d1c8926658f3f3eea93c9afa5b0ecb2ed4ffd3c0e9368a5"
+  },
+  "inputs/fiat_stable/bitstamp_usdteur.json.gz": {
+   "bytes": 102480,
+   "sha256": "48af3afdae3c484bf67a72560d52969f2a887098f29a91ab3a2f045d3655336d"
+  },
+  "inputs/fiat_stable/coinbase_EURC-USDC.json.gz": {
+   "bytes": 76162,
+   "sha256": "d6c0346de3b81ea82db785edd43f23dcf801637a552369d86cb67882576320ee"
+  },
+  "inputs/fiat_stable/coinbase_TGBP-USDC.json.gz": {
+   "bytes": 1671,
+   "sha256": "0e591b3acacad47bfe67fa36ea227d0c57b35952b1c23a3a5fec83d32ab5c099"
+  },
+  "inputs/fiat_stable/coinbase_USDC-AUD.json.gz": {
+   "bytes": 2009,
+   "sha256": "bd98f3acef7f98b51e2e6135e4df3948675b36a8e8c6fd8423d567621cb184af"
+  },
+  "inputs/fiat_stable/coinbase_USDC-CAD.json.gz": {
+   "bytes": 4019,
+   "sha256": "ace4c67a6ca5c11fb662a37df5597e21767c06ed694bbe0ea31ad5e4e5e3ff76"
+  },
+  "inputs/fiat_stable/coinbase_USDC-EUR.json.gz": {
+   "bytes": 98657,
+   "sha256": "e82a0e94a13e66fd86e938a2647c118a4b91c962b2d97cd2ce5c368828b27887"
+  },
+  "inputs/fiat_stable/coinbase_USDC-GBP.json.gz": {
+   "bytes": 72251,
+   "sha256": "66a1eac682adb13fb37b70f9fb0bac8a515832b0433c86ab105c05bfe9d04601"
+  },
+  "inputs/fiat_stable/coinbase_USDC-SGD.json.gz": {
+   "bytes": 2954,
+   "sha256": "75016e9c0eccc5cd7b39cdbc7a2c191de1a7c418bf8662da68a4c636483a8493"
+  },
+  "inputs/fiat_stable/coinbase_USDT-EUR.json.gz": {
+   "bytes": 79171,
+   "sha256": "694cea9aee8f62640556dab7ef6f0a265b6dbfe0ef211de2b2c9106c76fae490"
+  },
+  "inputs/fiat_stable/coinbase_USDT-GBP.json.gz": {
+   "bytes": 48719,
+   "sha256": "18b770f09fa20bcd6e3db49b08132498c07c290f225a6fd5921b227d11eefe34"
+  },
+  "inputs/fiat_stable/coinbase_USDT-USD.json.gz": {
+   "bytes": 107987,
+   "sha256": "b1186bc1e0971b89f668c77845ff0f05ba8d2c29377e878de94adf7491ea0fc6"
+  },
+  "inputs/fiat_stable/coinjar_USDCAUD.json.gz": {
+   "bytes": 8354,
+   "sha256": "b05ce648b75b2614a7ae4fca047b5507ec4cfb6352f4d45db6702ae4a46f9ab6"
+  },
+  "inputs/fiat_stable/coinjar_USDCGBP.json.gz": {
+   "bytes": 10196,
+   "sha256": "298cab80ab4781323348fc74e873c363651c7a5e2daf02b5f525297fc5181fbe"
+  },
+  "inputs/fiat_stable/coinjar_USDTAUD.json.gz": {
+   "bytes": 8528,
+   "sha256": "ad5029e447792b96b8add4b6dfdddfeb5d72b0aaece54ff3cdd1f8382f3257ad"
+  },
+  "inputs/fiat_stable/coinjar_USDTGBP.json.gz": {
+   "bytes": 9571,
+   "sha256": "6306bbeb67b30e09581955db2df320301466e5824a969e82e5d7f399537a66e0"
+  },
+  "inputs/fiat_stable/revx_USDC-EUR.json.gz": {
+   "bytes": 110068,
+   "sha256": "c34af02f0f2c80314bbd42adee170fefa2159ce96d1e0d70ef5ca614be9e1264"
+  },
+  "inputs/fiat_stable/revx_USDC-GBP.json.gz": {
+   "bytes": 14739,
+   "sha256": "5c7aa8316002c5892aee82f7ce6c56f775c948028d24d90b06d27b3ac47ef534"
+  },
+  "inputs/fiat_stable/revx_USDT-EUR.json.gz": {
+   "bytes": 47,
+   "sha256": "18a86825706e72e3a048df43cc3c23dba97f20d3350ee89915dd7b533c674a39"
+  },
+  "inputs/fiat_stable/revx_USDT-GBP.json.gz": {
+   "bytes": 44037,
+   "sha256": "b8f8bbf2f6be5646ced82eaa1609e496bebf06fb253389e0f352b2c0676bc166"
+  },
+  "inputs/fiat_stable/yahoo_AUDUSDX.json.gz": {
+   "bytes": 36310,
+   "sha256": "c95b10c7796eeaffcf50b00bcc0f718eebbb66ccb08701ebbcb3c295d5bd0201"
+  },
+  "inputs/fiat_stable/yahoo_CADX.json.gz": {
+   "bytes": 61408,
+   "sha256": "4d5db8eba4f528626b012f65b07aecd2b7b159069dac92aa2d7a6a436db7992b"
+  },
+  "inputs/fiat_stable/yahoo_EURUSDX.json.gz": {
+   "bytes": 37480,
+   "sha256": "a6c9c1e81ce31658c0220e8282215bffdfecaf6a2d5c705c3cdce728e537950c"
+  },
+  "inputs/fiat_stable/yahoo_GBPUSDX.json.gz": {
+   "bytes": 55161,
+   "sha256": "d3b6a0bd6c9bbc0494f2a6bd35dda4905c901496ec350dbcddd42042c4915216"
+  },
+  "inputs/fiat_stable/yahoo_SGDX.json.gz": {
+   "bytes": 54472,
+   "sha256": "8408e072091669c441131a3d81871f84f58db23dc4c44f82386762de018a75f8"
+  },
+  "inputs/kalshi/incentive_programs_2026-10-09.json.gz": {
+   "bytes": 336783,
+   "sha256": "4b8cb402f1cb1191a346716c93184c56b50a8f209500194790b53aa3931fe59b"
+  },
+  "inputs/limitless/active_2026-10-09.json.gz": {
+   "bytes": 29344,
+   "sha256": "b0e3a9d8bcd1142c65be197b98cfccd2453f5d5fbf7af6e0229c7e16f66219f2"
+  },
+  "inputs/long/coinbase_USDC-EUR.json.gz": {
+   "bytes": 1152794,
+   "sha256": "04b73d583eb4858bd59f3cd30fc73789df1b0fca3c8f1d25bae5c556edd3c1dd"
+  },
+  "inputs/long/coinbase_USDC-GBP.json.gz": {
+   "bytes": 833034,
+   "sha256": "dae950d3cc5b56cfe667b2a7f475ab3c19b8a7bf135dd7d62a27d09606386133"
+  },
+  "inputs/long/coinbase_USDT-GBP.json.gz": {
+   "bytes": 566630,
+   "sha256": "a2d3b68315114afb751737688d54e0459106a2a3436dce66a9366926cd6419dd"
+  },
+  "inputs/long/coinbase_USDT-USD.json.gz": {
+   "bytes": 1402001,
+   "sha256": "c9faf562e3b4de6222b3d91e7df398a78736bd906afcd3cf6464964c2781969e"
+  },
+  "inputs/long/fxcm_EURUSD_2026_32.csv.gz": {
+   "bytes": 90528,
+   "sha256": "82180c57ad10aaa492d72e03f920fecafe9693582908083b69b3d7ec151d9de8"
+  },
+  "inputs/long/fxcm_EURUSD_2026_33.csv.gz": {
+   "bytes": 95158,
+   "sha256": "c1cbc100a7abf7e28913e47ad34da5eb11992d6201853be00a7989d3bb4cea2e"
+  },
+  "inputs/long/fxcm_EURUSD_2026_34.csv.gz": {
+   "bytes": 91187,
+   "sha256": "41d57aa28984a0729a03fce3c8410cab78e85ebf0664fb3add018c505e579295"
+  },
+  "inputs/long/fxcm_EURUSD_2026_35.csv.gz": {
+   "bytes": 93228,
+   "sha256": "11488b19699edb6e1caa661332aec834c3bed4df1ea4a8a0ed4e973998729937"
+  },
+  "inputs/long/fxcm_EURUSD_2026_36.csv.gz": {
+   "bytes": 92451,
+   "sha256": "0e66e8f1c26e6b4d287401be5eeb01efdce554fd5362e4ea5c8fcd0297780969"
+  },
+  "inputs/long/fxcm_EURUSD_2026_37.csv.gz": {
+   "bytes": 94161,
+   "sha256": "021e5e1f66e7989539698b4536eb8d3cc433fb35edb9d514b697ca07f4cefe19"
+  },
+  "inputs/long/fxcm_EURUSD_2026_38.csv.gz": {
+   "bytes": 95692,
+   "sha256": "07021ee534800582e1edfab40e890243e0775370a8add4641fd9c5509067118a"
+  },
+  "inputs/long/fxcm_EURUSD_2026_39.csv.gz": {
+   "bytes": 99498,
+   "sha256": "f16a516180e48828c32a16927015645a117ab4bf11a45e0298aa75455f8a9a1c"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_32.csv.gz": {
+   "bytes": 96981,
+   "sha256": "1a0dda9e1ef8b9b7acec733a1848a10b5bc60dfa749d7001c01a75a03249864e"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_33.csv.gz": {
+   "bytes": 100844,
+   "sha256": "664def0e938a404a44b95d902c6b36644d640dfe5c0f7269bed7cf0d0cb56e23"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_34.csv.gz": {
+   "bytes": 97880,
+   "sha256": "8716f44ca0d3fb5296f1e7c3dfd593046d1620950279c7db5304755bb7b0da5a"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_35.csv.gz": {
+   "bytes": 99261,
+   "sha256": "fb6a970c4ecafc29fd4d2b58a1ffe8e2de66822f148dfcb4ebbcfbcb8b7a8368"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_36.csv.gz": {
+   "bytes": 97484,
+   "sha256": "547d4a7e207aaf36e58a8fdfa557da7f4ef33e094fd787ec897f5da3b6a4b227"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_37.csv.gz": {
+   "bytes": 100151,
+   "sha256": "f52cbe2a5083109eefb9a2d6881e1451100025ecae628d819032bf351c22959a"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_38.csv.gz": {
+   "bytes": 100688,
+   "sha256": "1ab3b1e7a3b66f7b2198ea95867f2c4c671191175384c400f9c3d93aae3d1af8"
+  },
+  "inputs/long/fxcm_GBPUSD_2026_39.csv.gz": {
+   "bytes": 103714,
+   "sha256": "119045f4cfd252623d8b98f49dfec37dc23245b40b608cd61f9368618a1b7a0d"
+  },
+  "inputs/long/revx_USDC-EUR.json.gz": {
+   "bytes": 1254478,
+   "sha256": "4f8b9a2305cba6afddc4a15ba5d92a0d35dc74337b8de82b76ff1121c02ba6c7"
+  },
+  "inputs/long/revx_USDC-GBP.json.gz": {
+   "bytes": 160676,
+   "sha256": "81bf7cb25e5ed9e44b23bf39725474488e01d9d2be6fc470e99fd10a9cc0875a"
+  },
+  "inputs/long/revx_USDT-GBP.json.gz": {
+   "bytes": 474657,
+   "sha256": "b4af90d683966b8d56b43c97c30f6f4c0012cbff3ef9cb41e58c1858bd66a65f"
+  },
+  "inputs/pmk/2026-10-09T1649Z.json.gz": {
+   "bytes": 105835,
+   "sha256": "6e249027e097230af74e8e5387e5993c023f5d259168a4aade74298a7f3d5b8a"
+  },
+  "inputs/pmk/2026-10-09T1657Z.json.gz": {
+   "bytes": 105538,
+   "sha256": "53ef7fcc44a15e101822a5b6d0805829c58aee64981f142bf10ca7ba3e93fa73"
+  },
+  "inputs/smpm/2026-10-09T1708Z.json.gz": {
+   "bytes": 102,
+   "sha256": "46d23dd233df25ac43eec00b3d7d7772ec6dd1db963f3d97329931d04a021e58"
+  },
+  "inputs/smpm/2026-10-09T1709Z.json.gz": {
+   "bytes": 22663,
+   "sha256": "ff67539a9f9433ba293d75994482c34d8f8264cbd8c8679c67bcd5ac35286a88"
+  },
+  "results/defi_stable_2026-10-09.json": {
+   "bytes": 9669,
+   "sha256": "c0901920f5c873f67adbb3ee35f783b8353187600984cc18adf76d0dd74ce54c"
+  },
+  "results/kalshi_lip_2026-10-09.json": {
+   "bytes": 1038,
+   "sha256": "f513811504bd092195587fe3731ae9cff4df9b74c2c2eecf612f354c30e59485"
+  },
+  "results/limitless_2026-10-09.json": {
+   "bytes": 1066,
+   "sha256": "201f4478ba703aa819f8206f88d82f3cc4e425d638f8af279e2a1a2d7622b367"
+  },
+  "results/pmk_2026-10-09T1649Z.json": {
+   "bytes": 54414,
+   "sha256": "caf6072af62fff58bf1e2ed656d8c86808f24781164751e5e5fd452cf62ae60f"
+  },
+  "results/pmk_2026-10-09T1657Z.json": {
+   "bytes": 122117,
+   "sha256": "dd5b86486d957cbc3879aed1fc6711bede08918c86c477cf23907039ff481914"
+  },
+  "results/s1_fiat_stable.json": {
+   "bytes": 18692,
+   "sha256": "974a5d2c3de0b96f627e896f12fa3af6f06832b07546c5651a93eafbed6675fe"
+  },
+  "results/s1b_long.json": {
+   "bytes": 6759,
+   "sha256": "5601aa5362bcd2d93ade8f6485651c632c732c43d007fcad3e390d8df78242e3"
+  },
+  "results/smarkets_nfl_volumes_2026-10-09.json": {
+   "bytes": 3423,
+   "sha256": "61c00abe4783892cfae8a6e39ee59b0f5bc08107a0f7255e8ab6429b013fc938"
+  },
+  "results/smpm_2026-10-09T1708Z.json": {
+   "bytes": 2585,
+   "sha256": "8ed77733f4d034a842ce6bd61527466d8ffd5b16ee22ff4799501d2b347e9b3b"
+  },
+  "results/smpm_2026-10-09T1709Z.json": {
+   "bytes": 21135,
+   "sha256": "541df9ddab6ff4f674c6d8ef470b725fb0ac76290d3e407ff51c143929a56a09"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 2142,
+   "sha256": "0493154e10aafef4acf166b5577626ff6d6255b27118f5365e012d29b79840d3"
+  },
+  "scripts/netget.py": {
+   "bytes": 949,
+   "sha256": "3e1f74ece0d6c10576baa971897e760f206e1b51c7c9a91896c1531b63a554ec"
+  },
+  "scripts/pm_kalshi_match.py": {
+   "bytes": 9901,
+   "sha256": "1ad98acc4a4daf09d8122b6ca871816589fd66db45c8ad7c1d2af9c3e71e39b2"
+  },
+  "scripts/pull_defi_yields.py": {
+   "bytes": 3385,
+   "sha256": "bd0b5ccbec7677aa2e14d5c86ce79385717e0780e81a43c9102251f6a93d24ad"
+  },
+  "scripts/pull_fiat_stable.py": {
+   "bytes": 4345,
+   "sha256": "9e49c7a524614459bc3d8673c687cfd476e039e20a72bc8f42687ad4d3ae21f3"
+  },
+  "scripts/pull_kalshi_lip.py": {
+   "bytes": 3131,
+   "sha256": "793392be29ce1c213e1b130e0a981b8522405069e3a334f36e580fd56bcdf042"
+  },
+  "scripts/pull_limitless.py": {
+   "bytes": 2784,
+   "sha256": "bb2a85af44de4fad1282ed53fe1a24a358a12d81693c51f0ccd87dd07699f009"
+  },
+  "scripts/pull_long.py": {
+   "bytes": 1824,
+   "sha256": "91739df401a4b86ded8ebf668984fbd27b2d45d06d806cc6a53c78134cb042fe"
+  },
+  "scripts/s1_fiat_stable_sim.py": {
+   "bytes": 12498,
+   "sha256": "8e21511f399bd290dbca773bca5dfa3680c7ad1e50debd7ebfde9be197e70874"
+  },
+  "scripts/s1b_long_sim.py": {
+   "bytes": 4103,
+   "sha256": "4ed74fb8a5c1c18826256bd8834a40f4e8665fae2c5fe6f23f501c5d24e05274"
+  },
+  "scripts/smarkets_pm_match.py": {
+   "bytes": 6741,
+   "sha256": "fc2b8641c09f990d1a81cf3b464dd9038b87a5d33966dfbed96c3cc6141e8941"
+  },
+  "scripts/smarkets_volumes.py": {
+   "bytes": 1961,
+   "sha256": "d9a6c146219b5be34c123344c390eb045bffc32262d76ce8ae5f4e0dc9ee5645"
+  }
+ },
+ "keyless_sources": [
+  "revx.revolut.com public trades",
+  "api.exchange.coinbase.com candles/products/book",
+  "bitstamp.net ohlc",
+  "data.exchange.coinjar.com trades",
+  "query1.finance.yahoo.com 1m FX",
+  "candledata.fxcorporate.com 1m FX",
+  "api.elections.kalshi.com markets/orderbook/incentive_programs",
+  "gamma-api.polymarket.com",
+  "clob.polymarket.com/book",
+  "api.smarkets.com v3",
+  "api.limitless.exchange",
+  "yields.llama.fi",
+  "api.paraswap.io",
+  "wq-api.lido.fi",
+  "api.hyperliquid.xyz/info"
+ ],
+ "run": [
+  "cd scripts; python3 -I pull_fiat_stable.py   # live pull (keyless) -> inputs/fiat_stable/",
+  "cd scripts; python3 -I s1_fiat_stable_sim.py   # -> results/s1_fiat_stable.json, byte-identical on re-run",
+  "cd scripts; python3 -I pull_long.py   # live pull (keyless) -> inputs/long/",
+  "cd scripts; python3 -I s1b_long_sim.py   # -> results/s1b_long.json, byte-identical on re-run",
+  "cd scripts; python3 -I pm_kalshi_match.py | smarkets_pm_match.py | smarkets_volumes.py | pull_kalshi_lip.py | pull_limitless.py | pull_defi_yields.py   # live snapshots, each writes a dated file",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "STATARB: the stat-arb search of 2026-10-09 (other strategies with PR5's or RW's structure, any platform)",
+ "write_up": "docs/agents/reviews/2026-10-09-stat-arb-search.md"
+}

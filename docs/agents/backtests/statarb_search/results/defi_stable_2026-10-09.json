@@ -1,0 +1,437 @@
+{
+ "all_pools": 16689,
+ "lp_top15_by_apyBase": [
+  {
+   "apyBase": 14.81249,
+   "apyMean30d": 15.13049,
+   "apyReward": 0.318,
+   "chain": "Aptos",
+   "project": "hyperion",
+   "symbol": "USDT-USDC",
+   "tvlUsd": 6286828
+  },
+  {
+   "apyBase": 12.67,
+   "apyMean30d": 8.34707,
+   "apyReward": 0,
+   "chain": "Ethereum",
+   "project": "curve-dex",
+   "symbol": "APYUSD-APXUSD",
+   "tvlUsd": 16858054
+  },
+  {
+   "apyBase": 5.6499,
+   "apyMean30d": 5.93194,
+   "apyReward": 0,
+   "chain": "Ethereum",
+   "project": "yearn-finance",
+   "symbol": "DOLA-SUSDE",
+   "tvlUsd": 12936315
+  },
+  {
+   "apyBase": 5.43,
+   "apyMean30d": 6.6612,
+   "apyReward": 1.30344,
+   "chain": "Ethereum",
+   "project": "curve-dex",
+   "symbol": "SCRVUSD-SDOLA",
+   "tvlUsd": 5242100
+  },
+  {
+   "apyBase": 5.39262,
+   "apyMean30d": 2.36675,
+   "apyReward": null,
+   "chain": "Ethereum",
+   "project": "uniswap-v4",
+   "symbol": "USDC-USDT",
+   "tvlUsd": 5216933
+  },
+  {
+   "apyBase": 5.32,
+   "apyMean30d": 6.83134,
+   "apyReward": 1.46554,
+   "chain": "Ethereum",
+   "project": "stake-dao-yield",
+   "symbol": "SCRVUSD-SDOLA",
+   "tvlUsd": 5089038
+  },
+  {
+   "apyBase": 3.78,
+   "apyMean30d": 0.59368,
+   "apyReward": 1e-05,
+   "chain": "Ethereum",
+   "project": "curve-dex",
+   "symbol": "USDC-FXUSD",
+   "tvlUsd": 9854714
+  },
+  {
+   "apyBase": 3.78,
+   "apyMean30d": 0.59525,
+   "apyReward": 0.00013,
+   "chain": "Ethereum",
+   "project": "convex-finance",
+   "symbol": "USDC-FXUSD",
+   "tvlUsd": 9853961
+  },
+  {
+   "apyBase": 2.60457,
+   "apyMean30d": 1.77161,
+   "apyReward": 0,
+   "chain": "Solana",
+   "project": "orca-dex",
+   "symbol": "PYUSD-USDG",
+   "tvlUsd": 5004063
+  },
+  {
+   "apyBase": 2.47,
+   "apyMean30d": 3.20793,
+   "apyReward": 0.75865,
+   "chain": "Ethereum",
+   "project": "curve-dex",
+   "symbol": "SFRXUSD-FRXUSD",
+   "tvlUsd": 11895242
+  },
+  {
+   "apyBase": 2.47,
+   "apyMean30d": 3.65202,
+   "apyReward": 1.1781,
+   "chain": "Ethereum",
+   "project": "convex-finance",
+   "symbol": "SFRXUSD-FRXUSD",
+   "tvlUsd": 11895221
+  },
+  {
+   "apyBase": 1.69642,
+   "apyMean30d": 14.93828,
+   "apyReward": null,
+   "chain": "Ethereum",
+   "project": "uniswap-v4",
+   "symbol": "APXUSD-USDC",
+   "tvlUsd": 10165368
+  },
+  {
+   "apyBase": 1.61,
+   "apyMean30d": 10.28943,
+   "apyReward": 8.15758,
+   "chain": "Ethereum",
+   "project": "curve-dex",
+   "symbol": "REUSD-SDOLA",
+   "tvlUsd": 5697792
+  },
+  {
+   "apyBase": 1.48238,
+   "apyMean30d": 0.45101,
+   "apyReward": null,
+   "chain": "Ethereum",
+   "project": "uniswap-v3",
+   "symbol": "EUROC-EURCV",
+   "tvlUsd": 5622289
+  },
+  {
+   "apyBase": 1.43705,
+   "apyMean30d": 1.03725,
+   "apyReward": 0,
+   "chain": "Solana",
+   "project": "orca-dex",
+   "symbol": "CASH-USDC",
+   "tvlUsd": 6973171
+  }
+ ],
+ "lp_top25_by_apyMean30d": [
+  {
+   "apyBase": 0.85,
+   "apyMean30d": 15.87124,
+   "apyReward": 14.41175,
+   "chain": "Ethereum",
+   "pool": "321b0f91-21ca-438b-966e-78946e275589",
+   "poolMeta": "Curve",
+   "project": "stake-dao-yield",
+   "symbol": "REUSD-SCRVUSD",
+   "tvlUsd": 7636323
+  },
+  {
+   "apyBase": 0.79,
+   "apyMean30d": 15.58554,
+   "apyReward": 14.93204,
+   "chain": "Ethereum",
+   "pool": "1971c939-46e4-4b86-87d9-78308de47af7",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "REUSD-SCRVUSD",
+   "tvlUsd": 8824850
+  },
+  {
+   "apyBase": 14.81249,
+   "apyMean30d": 15.13049,
+   "apyReward": 0.318,
+   "chain": "Aptos",
+   "pool": "a34c8a80-0001-4fc3-9402-7d6ac3e5234a",
+   "poolMeta": "0.01%",
+   "project": "hyperion",
+   "symbol": "USDT-USDC",
+   "tvlUsd": 6286828
+  },
+  {
+   "apyBase": 1.69642,
+   "apyMean30d": 14.93828,
+   "apyReward": null,
+   "chain": "Ethereum",
+   "pool": "02d27f9f-e63d-497f-bbd9-826261b0d976",
+   "poolMeta": "0.05%",
+   "project": "uniswap-v4",
+   "symbol": "APXUSD-USDC",
+   "tvlUsd": 10165368
+  },
+  {
+   "apyBase": 1.61,
+   "apyMean30d": 10.28943,
+   "apyReward": 8.15758,
+   "chain": "Ethereum",
+   "pool": "c69a5fa3-0948-428e-9a01-34057a08fde4",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "REUSD-SDOLA",
+   "tvlUsd": 5697792
+  },
+  {
+   "apyBase": 0.79,
+   "apyMean30d": 8.62942,
+   "apyReward": 7.64225,
+   "chain": "Ethereum",
+   "pool": "5c4940c7-c193-440d-b95e-9148d017e12c",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "REUSD-SCRVUSD",
+   "tvlUsd": 15024707
+  },
+  {
+   "apyBase": 12.67,
+   "apyMean30d": 8.34707,
+   "apyReward": 0,
+   "chain": "Ethereum",
+   "pool": "7b3e4cca-a90e-4a45-95ac-a6b637a850b2",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "APYUSD-APXUSD",
+   "tvlUsd": 16858054
+  },
+  {
+   "apyBase": 5.32,
+   "apyMean30d": 6.83134,
+   "apyReward": 1.46554,
+   "chain": "Ethereum",
+   "pool": "54c9a039-42a2-4756-896a-50b81b239ba9",
+   "poolMeta": "Curve",
+   "project": "stake-dao-yield",
+   "symbol": "SCRVUSD-SDOLA",
+   "tvlUsd": 5089038
+  },
+  {
+   "apyBase": 5.43,
+   "apyMean30d": 6.6612,
+   "apyReward": 1.30344,
+   "chain": "Ethereum",
+   "pool": "6ba003eb-fb87-4771-a542-e41d352e7c82",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "SCRVUSD-SDOLA",
+   "tvlUsd": 5242100
+  },
+  {
+   "apyBase": 0.59,
+   "apyMean30d": 6.18885,
+   "apyReward": 7.66449,
+   "chain": "Ethereum",
+   "pool": "54a73b0a-d1f0-4a82-9e9f-2a6520351527",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "FRXUSD-MSUSD",
+   "tvlUsd": 6246153
+  },
+  {
+   "apyBase": 0.65,
+   "apyMean30d": 6.15554,
+   "apyReward": 4.66431,
+   "chain": "Ethereum",
+   "pool": "a3ffd3fe-b21c-44eb-94d5-22c80057a600",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "USDT-CRVUSD",
+   "tvlUsd": 9806470
+  },
+  {
+   "apyBase": 0.81,
+   "apyMean30d": 6.14194,
+   "apyReward": 6.41087,
+   "chain": "Ethereum",
+   "pool": "755fcec6-f4fd-4150-9184-60f099206694",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "USDC-CRVUSD",
+   "tvlUsd": 8665761
+  },
+  {
+   "apyBase": 0.28,
+   "apyMean30d": 6.04178,
+   "apyReward": 5.64383,
+   "chain": "Ethereum",
+   "pool": "22a20de7-791a-48f2-8765-537db17b7f9e",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "FRXUSD-CRVUSD",
+   "tvlUsd": 12550994
+  },
+  {
+   "apyBase": 5.6499,
+   "apyMean30d": 5.93194,
+   "apyReward": 0,
+   "chain": "Ethereum",
+   "pool": "77a6c1f4-fc04-47ff-aa62-090bcb20e3db",
+   "poolMeta": null,
+   "project": "yearn-finance",
+   "symbol": "DOLA-SUSDE",
+   "tvlUsd": 12936315
+  },
+  {
+   "apyBase": 0.99,
+   "apyMean30d": 5.78091,
+   "apyReward": 5.05261,
+   "chain": "Ethereum",
+   "pool": "51f9c038-feed-4666-8866-30efc92e0566",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "DOLA-SUSDS",
+   "tvlUsd": 5825714
+  },
+  {
+   "apyBase": 1.34,
+   "apyMean30d": 5.60613,
+   "apyReward": 4.71982,
+   "chain": "Ethereum",
+   "pool": "85407c01-6f16-4cef-9ef2-1b2bf2556183",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "DOLA-SUSDE",
+   "tvlUsd": 52663546
+  },
+  {
+   "apyBase": 0.14,
+   "apyMean30d": 4.80779,
+   "apyReward": 4.00451,
+   "chain": "Ethereum",
+   "pool": "e91e23af-9099-45d9-8ba5-ea5b4638e453",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "USDC-RLUSD",
+   "tvlUsd": 55341230
+  },
+  {
+   "apyBase": 0.33,
+   "apyMean30d": 4.28183,
+   "apyReward": 2.98658,
+   "chain": "Ethereum",
+   "pool": "14681aee-05c9-4733-acd0-7b2c84616209",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "PYUSD-USDC",
+   "tvlUsd": 16877427
+  },
+  {
+   "apyBase": 1.34,
+   "apyMean30d": 4.1563,
+   "apyReward": 2.72471,
+   "chain": "Ethereum",
+   "pool": "8a3a7995-73b3-4e25-8b5c-82a8841bf720",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "DOLA-SUSDE",
+   "tvlUsd": 65743883
+  },
+  {
+   "apyBase": 0,
+   "apyMean30d": 4.11177,
+   "apyReward": 3.91411,
+   "chain": "Ethereum",
+   "pool": "5fac4a47-5360-49b7-8b61-66f88a3d939f",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "FRAX-USDE",
+   "tvlUsd": 33931525
+  },
+  {
+   "apyBase": 0.99,
+   "apyMean30d": 4.07584,
+   "apyReward": 3.02619,
+   "chain": "Ethereum",
+   "pool": "b36c0e1b-792f-4fee-8160-a0002c23e1d1",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "DOLA-SUSDS",
+   "tvlUsd": 6961226
+  },
+  {
+   "apyBase": 2.47,
+   "apyMean30d": 3.65202,
+   "apyReward": 1.1781,
+   "chain": "Ethereum",
+   "pool": "956bda67-d4b0-41bf-92da-ea01f4622dda",
+   "poolMeta": null,
+   "project": "convex-finance",
+   "symbol": "SFRXUSD-FRXUSD",
+   "tvlUsd": 11895221
+  },
+  {
+   "apyBase": 0.28,
+   "apyMean30d": 3.60754,
+   "apyReward": 3.15719,
+   "chain": "Ethereum",
+   "pool": "cfa46afc-eb9c-4ff5-8e35-e6e1feaea974",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "FRXUSD-CRVUSD",
+   "tvlUsd": 16754297
+  },
+  {
+   "apyBase": 0.81,
+   "apyMean30d": 3.58304,
+   "apyReward": 3.0622,
+   "chain": "Ethereum",
+   "pool": "5faf730e-2c79-45a2-9459-fbcd185abf18",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "USDC-CRVUSD",
+   "tvlUsd": 12832751
+  },
+  {
+   "apyBase": 0.65,
+   "apyMean30d": 3.54388,
+   "apyReward": 2.64547,
+   "chain": "Ethereum",
+   "pool": "90a3e412-e3be-47e1-a233-fd3760f4a794",
+   "poolMeta": null,
+   "project": "curve-dex",
+   "symbol": "USDT-CRVUSD",
+   "tvlUsd": 36672125
+  }
+ ],
+ "lp_two_sided_tvl5m": {
+  "apyBase_median": 0.58,
+  "apyMean30d_median": 0.65,
+  "apyReward_median": 0.0,
+  "n": 76,
+  "share_mean30d_over_cash+4": 0.092,
+  "tvl_usd_m": 1487,
+  "tvl_weighted_apyBase": 0.81
+ },
+ "pulled_at": "2026-10-09T16:46:28.379038+00:00",
+ "single_sided_tvl5m": {
+  "apyBase_median": 3.64,
+  "apyMean30d_median": 4.27,
+  "apyReward_median": 0.0,
+  "n": 414,
+  "share_mean30d_over_cash+4": 0.13,
+  "tvl_usd_m": 40628,
+  "tvl_weighted_apyBase": 27.54
+ },
+ "stable_noIL": 2970
+}
