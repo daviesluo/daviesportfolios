@@ -1,0 +1,282 @@
+{
+ "study": "F3 of the 2026-10-09 stablecoin quotes review, validated (Davies, 2026-10-09: '\"F3 卖出价可以再挂远一个 tick\"完整验证一下'): PR5's rule carried out by its realistic twin (the production code: quotes_twin.ts, quotes_live.ts, revx_sim.ts) over the whole recorded history, 2026-09-23 15:09 -> 2026-10-09 16:00 UTC, at £100, £50 and £10 a rung, with the exit at fair, one and two ticks beyond it, and one tick falling back to fair after 60 minutes, under two fill assumptions. A measurement, not a test with a verdict; not blind (no no-peek rule since 2026-10-04).",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-09 16:26-16:30 UTC (sql/pull.sql), and the Revolut X public trade tape, keyless (scripts/fetch_tape.py)",
+ "run": [
+  "python3 -I scripts/grab.py <saved connector reply> data/raw   # each payload of sql/pull.sql, md5-checked; then gzip -n -9 data/raw/*.txt",
+  "python3 -I scripts/build_inputs.py   # -> data/inputs.json.gz (the committed twins inputs + the delta + beats + gaps)",
+  "SSL_CERT_FILE=<proxy CA, if any> python3 -I scripts/fetch_tape.py   # -> data/tape.txt.gz, results/tape_check.json",
+  "sh scripts/run_all.sh <gen dir>   # scripts/patch.py writes the patched copies there; every arm through scripts/replay.ts -> results/runs/",
+  "python3 -I scripts/compare.py pr5_o0_through pr5; python3 -I scripts/compare.py p50_o0_through p50   # -> results/baseline_check_*.json",
+  "python3 -I scripts/analyze.py   # -> results/summary.json",
+  "python3 -I scripts/manifest.py"
+ ],
+ "findings": [
+  "Baseline (exit at fair, the twins own fill rule) reproduces production: pr5 76 trips, 66 won, 3 stops, +£8.6076 and p50 87, 75, 3, +£5.2830, the page figures to the penny; 167 of 168 (pr5) and 188 of 189 (p50) fills identical, the other the same 24-hour stop booked one turn earlier (10-08 02:57 against 02:58); the unfilled orders differ only on 10-07 and early 10-08, the dead-man storm, where production beats are partly gone (results/baseline_check_*.json).",
+  "The stored prints equal the public tape: 3,849 UK prints from 2026-09-23 15:00, none missing or different (results/tape_check.json).",
+  "Through-only fills (the twins): one tick beyond fair pr5 +£0.652 (+7.6 %, both halves up, bootstrap 5th pct +£0.0108 a day), p50 +£0.244 (+4.6 %, second half +£0.007, 5th pct -£0.014), s10 -£0.014. At-price fills too: pr5 -£0.702, p50 -£0.198, s10 -£0.047. LIVE filled 22 of its 44 maker exits with no print through them (results/live_fills.json), and LIVE trips median 24 min against 29 (at) and 50 (through) for its size replayed: the at-price assumption is the nearer one for exits at fair.",
+  "One tick costs inventory and time: hold p90 pr5 429 -> 609 min, p50 386 -> 891 min (through); time-weighted positions pr5 £45.7 -> £57.4, p50 £26.0 -> £33.7; GBP/USD sigma 0.32 % a day. Two ticks and the 60-minute fallback are no better on both assumptions.",
+  "Not recommended for LIVE. The p50x1 twin, run on the through-only simulator, can only see the side of the trade that favours it: its bar should not be read as evidence for LIVE without an at-price reading (results/summary.json)."
+ ],
+ "files": [
+  {
+   "path": "sql/pull.sql",
+   "bytes": 6129,
+   "sha256": "99f8051124d96bc6dc464259837f7dc8dad433b625e5fb62b10af305211d7345"
+  },
+  {
+   "path": "scripts/analyze.py",
+   "bytes": 8639,
+   "sha256": "a40a9b2561cd541af873c02eb7cd7a0dcf1dad5ebfe4e54bc83b4811d75fe1e2"
+  },
+  {
+   "path": "scripts/build_inputs.py",
+   "bytes": 5822,
+   "sha256": "8158676b9d84d5934f3577abd95490d44844b59b520b4d22cfcbc560030b67bf"
+  },
+  {
+   "path": "scripts/compare.py",
+   "bytes": 3902,
+   "sha256": "7934b433cd03dc932c9a3caa23ce73ff3bcaebe5f1166af4a4958506788a9f0d"
+  },
+  {
+   "path": "scripts/fetch_tape.py",
+   "bytes": 3273,
+   "sha256": "dc05647d3a5f6a0252ee8021656ebc4addf5db30498db04a734536a3edcedde9"
+  },
+  {
+   "path": "scripts/grab.py",
+   "bytes": 1181,
+   "sha256": "601eef348d5c7d031c6ccde62c46ab90496c36522cfea0734736d32018909b47"
+  },
+  {
+   "path": "scripts/live_fills.py",
+   "bytes": 2339,
+   "sha256": "136ead52a362956a3dbf06e369aadda53809fd65e4da1b63d00c3f6061162dc9"
+  },
+  {
+   "path": "scripts/manifest.py",
+   "bytes": 3974,
+   "sha256": "623cbdf14873d3037af0e786c4c1323bec902d04a3cd484781ee1f14cd756ecc"
+  },
+  {
+   "path": "scripts/patch.py",
+   "bytes": 4734,
+   "sha256": "12236813c4a2216de18b429685afd9508970c0acf085ba45c8b8475e077a05ed"
+  },
+  {
+   "path": "scripts/replay.ts",
+   "bytes": 9468,
+   "sha256": "5af2244132aa29f4dac99a3c949a3e801e356e068f8234f8b3024392ab75c2ad"
+  },
+  {
+   "path": "scripts/run_all.sh",
+   "bytes": 1156,
+   "sha256": "65cbf1329ccb87a2a040005aeafbf170a5c34029e663a03f23fe25e1493d40e0"
+  },
+  {
+   "path": "results/baseline_check_p50.json",
+   "bytes": 58201,
+   "sha256": "d0f52b224f7f5cf54e89c134a2993d4ed41457e51fb72ccbedf3a85ea22efc3f"
+  },
+  {
+   "path": "results/baseline_check_pr5.json",
+   "bytes": 36626,
+   "sha256": "ecde15292fc29722afdbf18090732ef795ce46cfe5a06a8db290ba5515c169d4"
+  },
+  {
+   "path": "results/live_fills.json",
+   "bytes": 22489,
+   "sha256": "27d5e8c482fc373d1524aeeda757dfe9c0d3cec1c0e530a2a3bd3fb3086dc4e3"
+  },
+  {
+   "path": "results/summary.json",
+   "bytes": 38880,
+   "sha256": "7cea62088e2bb64658fb642df3de4062f113f3f91cb19b9cf0b29cc24455d8d5"
+  },
+  {
+   "path": "results/tape_check.json",
+   "bytes": 172,
+   "sha256": "e886d96bcc8fbc5958531088da46d2312d853f55877257a9523974aaf135c7ff"
+  },
+  {
+   "path": "results/runs/p50_o0_at.json.gz",
+   "bytes": 85066,
+   "sha256": "b1564d2828e0b6330a98ea11d9dd2ba05c66dd3459692e95c63493f910293871"
+  },
+  {
+   "path": "results/runs/p50_o0_through.json.gz",
+   "bytes": 81796,
+   "sha256": "8e352a1880c64952234171e8a4b6f48aeab4fc49f62b3c0cfa6c2276b72eae24"
+  },
+  {
+   "path": "results/runs/p50_o1_at.json.gz",
+   "bytes": 85060,
+   "sha256": "89e4fd842430322f3a856d8ea4b4073b853f4cc2711384be130e9d06f45722d7"
+  },
+  {
+   "path": "results/runs/p50_o1_through.json.gz",
+   "bytes": 81733,
+   "sha256": "b893f2d8bf96962e53eff92be8284ee82c5eb367b9d851faafa213a22f698010"
+  },
+  {
+   "path": "results/runs/p50_o1fb60_at.json.gz",
+   "bytes": 86554,
+   "sha256": "0d4dfbdec319b3ad4347a35dcee31d29ce93130aa605dd1e4433c0b900b03bd6"
+  },
+  {
+   "path": "results/runs/p50_o1fb60_through.json.gz",
+   "bytes": 80785,
+   "sha256": "fe52e28deed99a89734c33ec4a6684f99a9dc5c47ed20009fb7a38c20943c181"
+  },
+  {
+   "path": "results/runs/p50_o2_at.json.gz",
+   "bytes": 83825,
+   "sha256": "6a41e8afde57e01528370fb91180120a22a7db831526f554af89ae20d4c3c21e"
+  },
+  {
+   "path": "results/runs/p50_o2_through.json.gz",
+   "bytes": 80906,
+   "sha256": "262261c6126d40cf5ca1811920a0589b3cb9a5de57bd72cd96a3405c3bd67497"
+  },
+  {
+   "path": "results/runs/pr5_o0_at.json.gz",
+   "bytes": 83945,
+   "sha256": "c5ef1a134d0f123694cff90ae6bf31c5cd005e34d633f5616eaf83d8077bb0c6"
+  },
+  {
+   "path": "results/runs/pr5_o0_through.json.gz",
+   "bytes": 78826,
+   "sha256": "7cea21a53b8041d80704d3f7337d0c803d51289cd5548f8b2a41944428723933"
+  },
+  {
+   "path": "results/runs/pr5_o1_at.json.gz",
+   "bytes": 82784,
+   "sha256": "4963b9718e73f81c93c15371a9d07a404349bd40b39365b8bfb55642d2ba9227"
+  },
+  {
+   "path": "results/runs/pr5_o1_through.json.gz",
+   "bytes": 78965,
+   "sha256": "8ae89d52dcad1dd5b04497b122ef4dc47d683cdbd91d7d7f9550c10c16b5504d"
+  },
+  {
+   "path": "results/runs/pr5_o1fb60_at.json.gz",
+   "bytes": 86328,
+   "sha256": "b0eccc6e55018450aa724bcbe107368bd00a0fdb8d4225e5e68b5ca74af106d7"
+  },
+  {
+   "path": "results/runs/pr5_o1fb60_through.json.gz",
+   "bytes": 81637,
+   "sha256": "23e3316edf78d25a71c384c4b56a25de8203fddc7f1eb8faff9db45ff199d36b"
+  },
+  {
+   "path": "results/runs/pr5_o2_at.json.gz",
+   "bytes": 84025,
+   "sha256": "758cd899b691c47427c70e5c75ef09f26965e108d545f353bd39df71ddfc046c"
+  },
+  {
+   "path": "results/runs/pr5_o2_through.json.gz",
+   "bytes": 78108,
+   "sha256": "ebad0219c56c2e73fc49bbb0da98038d6be046e70554ff96a522650a3d9ebcc5"
+  },
+  {
+   "path": "results/runs/s10_o0_at.json.gz",
+   "bytes": 84091,
+   "sha256": "373d52fca1d3c4ae6d04df872e0cfc50b3658e1dcade65556b6c83d04e759e0d"
+  },
+  {
+   "path": "results/runs/s10_o0_through.json.gz",
+   "bytes": 82697,
+   "sha256": "5dfc366dac3b5bade631f57f092cf1564f1e0d92e674ef5a5fe4a88bb379c255"
+  },
+  {
+   "path": "results/runs/s10_o1_at.json.gz",
+   "bytes": 85835,
+   "sha256": "599a551155650f7f19fb186d18b4d122a2525d66e088a211f225ccd341a4aaaf"
+  },
+  {
+   "path": "results/runs/s10_o1_through.json.gz",
+   "bytes": 79744,
+   "sha256": "2bc649127efff4c7c191ebaca9c28b8182476fa7a66a6f55262fc633c25d4a59"
+  },
+  {
+   "path": "results/runs/s10_o1fb60_at.json.gz",
+   "bytes": 87256,
+   "sha256": "07d7ebdb616d8509296c0de3f52d674403a113a3cae096ae55c0cd2a228ffef3"
+  },
+  {
+   "path": "results/runs/s10_o1fb60_through.json.gz",
+   "bytes": 84764,
+   "sha256": "c6b195ae29824be06780f429296fb321327e33d6fe4662336ae9d07debe705a9"
+  },
+  {
+   "path": "results/runs/s10_o2_at.json.gz",
+   "bytes": 83565,
+   "sha256": "babf8178d57982856fda88bb947eeb436dc1942646a4f6a4c6cfbddc85c062ea"
+  },
+  {
+   "path": "results/runs/s10_o2_through.json.gz",
+   "bytes": 79248,
+   "sha256": "d80655663c7fb91c4a1d408cdec31896337bacd79042c3dc97409bc555e3d75e"
+  },
+  {
+   "path": "data/inputs.json.gz",
+   "bytes": 1083589,
+   "sha256": "c511e0c94c77287b786f3f720b4500336602e3433a5724065485cd27caa6c333"
+  },
+  {
+   "path": "data/tape.txt.gz",
+   "bytes": 135620,
+   "sha256": "dad39fab53257f152632a829945996249c971097c2520d2663e99961be81a444"
+  },
+  {
+   "path": "data/raw/beats.txt.gz",
+   "bytes": 43831,
+   "sha256": "a871b51ac23a138a7cee09b902e4a28ce5cfe380f7d3da22381ff8cad86c5806"
+  },
+  {
+   "path": "data/raw/events.txt.gz",
+   "bytes": 74024,
+   "sha256": "79e795d6a144287841c630fb4038dfd82a91b135843d2142896c8f0732d0c0aa"
+  },
+  {
+   "path": "data/raw/inputs.txt.gz",
+   "bytes": 56751,
+   "sha256": "e5b2c787650e9626e9fd743b5d72db4c6daa34bdb7cb952035579ded95947ace"
+  },
+  {
+   "path": "data/raw/minutes.txt.gz",
+   "bytes": 235258,
+   "sha256": "65c66a3cf1efb9daf7b2c4bdaabbcacf927014814f1066c84333806b3adc6a3b"
+  },
+  {
+   "path": "data/raw/orders_p50.txt.gz",
+   "bytes": 171141,
+   "sha256": "4048a018537014deefc5c873a8067837da7e3922d08bbb722307d745bdc6350d"
+  },
+  {
+   "path": "data/raw/orders_pr5.txt.gz",
+   "bytes": 167088,
+   "sha256": "212ba7a22469537b38c6f4a1e045f8e9af93d7878f50cc967fd803bd6f050152"
+  },
+  {
+   "path": "data/raw/prints.txt.gz",
+   "bytes": 62382,
+   "sha256": "cc8a817ae3b026730089b7efb6d9f89c56f4a8bda7cd52cb873267bd2b7ddb44"
+  },
+  {
+   "path": "data/raw/twin_events_p50.txt.gz",
+   "bytes": 1960,
+   "sha256": "fe139be0295f337d8be3ed62ef1fbdbd0b9c40efcef2dc8061a02227110f890c"
+  },
+  {
+   "path": "data/raw/twin_events_pr5.txt.gz",
+   "bytes": 2143,
+   "sha256": "5df3b2486260b3469b785d245d77da6c6292f61d64f2710b47192e23ecad4d9c"
+  },
+  {
+   "path": "data/raw/twin_sims.txt.gz",
+   "bytes": 1804,
+   "sha256": "f03804888f6ef2447f76d549b33375179c3f17d582dfec15460318ccc2a998ff"
+  }
+ ]
+}

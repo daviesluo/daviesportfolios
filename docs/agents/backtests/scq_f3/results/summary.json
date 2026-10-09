@@ -1,0 +1,1867 @@
+{
+ "fxDailySigma": 0.003203,
+ "days": [
+  "2026-09-23",
+  "2026-09-24",
+  "2026-09-25",
+  "2026-09-26",
+  "2026-09-27",
+  "2026-09-28",
+  "2026-09-29",
+  "2026-09-30",
+  "2026-10-01",
+  "2026-10-02",
+  "2026-10-03",
+  "2026-10-04",
+  "2026-10-05",
+  "2026-10-06",
+  "2026-10-07",
+  "2026-10-08",
+  "2026-10-09"
+ ],
+ "halves": {
+  "H1": [
+   "2026-09-23",
+   "2026-10-01"
+  ],
+  "H2": [
+   "2026-10-02",
+   "2026-10-09"
+  ]
+ },
+ "arms": {
+  "p50_o0_at": {
+   "twin": "p50",
+   "offset": 0,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 111,
+   "won": 96,
+   "stops": 2,
+   "realisedGbp": 6.8273,
+   "tripsPnlGbp": 6.8273,
+   "exitsSent": 482,
+   "exitsFilled": 121,
+   "exitsFilledWhole": 103,
+   "exitFillRate": 0.251,
+   "tripsClosedByExit": 109,
+   "holdMinutes": {
+    "median": 49.0,
+    "p75": 142.0,
+    "p90": 345.0,
+    "mean": 136.0
+   },
+   "coinGbpTimeWeighted": 305.8,
+   "positionsGbpTimeWeighted": 27.04,
+   "positionsGbpPeak": 200.88,
+   "coinMarkRiskGbpPerDay": 0.9795,
+   "positionsMarkRiskGbpPerDay": 0.0866,
+   "openAtEnd": 1,
+   "openAtEndGbp": 49.99,
+   "openAtEndMarkGbp": 0.0132,
+   "postsPerDay": {
+    "mean": 359.8,
+    "max": 721
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o0_through": {
+   "twin": "p50",
+   "offset": 0,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 87,
+   "won": 75,
+   "stops": 3,
+   "realisedGbp": 5.283,
+   "tripsPnlGbp": 5.283,
+   "exitsSent": 438,
+   "exitsFilled": 93,
+   "exitsFilledWhole": 80,
+   "exitFillRate": 0.2123,
+   "tripsClosedByExit": 84,
+   "holdMinutes": {
+    "median": 66.0,
+    "p75": 171.0,
+    "p90": 386.0,
+    "mean": 167.4
+   },
+   "coinGbpTimeWeighted": 302.95,
+   "positionsGbpTimeWeighted": 25.99,
+   "positionsGbpPeak": 250.74,
+   "coinMarkRiskGbpPerDay": 0.9703,
+   "positionsMarkRiskGbpPerDay": 0.0832,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 360.1,
+    "max": 718
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o1_at": {
+   "twin": "p50",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 104,
+   "won": 90,
+   "stops": 3,
+   "realisedGbp": 6.6295,
+   "tripsPnlGbp": 6.6295,
+   "exitsSent": 569,
+   "exitsFilled": 111,
+   "exitsFilledWhole": 95,
+   "exitFillRate": 0.1951,
+   "tripsClosedByExit": 101,
+   "holdMinutes": {
+    "median": 66.0,
+    "p75": 203.0,
+    "p90": 422.0,
+    "mean": 181.2
+   },
+   "coinGbpTimeWeighted": 307.03,
+   "positionsGbpTimeWeighted": 34.06,
+   "positionsGbpPeak": 250.74,
+   "coinMarkRiskGbpPerDay": 0.9834,
+   "positionsMarkRiskGbpPerDay": 0.1091,
+   "openAtEnd": 1,
+   "openAtEndGbp": 49.99,
+   "openAtEndMarkGbp": 0.0132,
+   "postsPerDay": {
+    "mean": 361.8,
+    "max": 721
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o1_through": {
+   "twin": "p50",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 86,
+   "won": 73,
+   "stops": 3,
+   "realisedGbp": 5.5267,
+   "tripsPnlGbp": 5.5267,
+   "exitsSent": 521,
+   "exitsFilled": 92,
+   "exitsFilledWhole": 79,
+   "exitFillRate": 0.1766,
+   "tripsClosedByExit": 83,
+   "holdMinutes": {
+    "median": 67.0,
+    "p75": 229.0,
+    "p90": 891.0,
+    "mean": 232.4
+   },
+   "coinGbpTimeWeighted": 303.49,
+   "positionsGbpTimeWeighted": 33.71,
+   "positionsGbpPeak": 250.75,
+   "coinMarkRiskGbpPerDay": 0.9721,
+   "positionsMarkRiskGbpPerDay": 0.108,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 358.1,
+    "max": 714
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o1fb60_at": {
+   "twin": "p50",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": 60,
+   "trips": 106,
+   "won": 92,
+   "stops": 2,
+   "realisedGbp": 6.5524,
+   "tripsPnlGbp": 6.5524,
+   "exitsSent": 561,
+   "exitsFilled": 117,
+   "exitsFilledWhole": 99,
+   "exitFillRate": 0.2086,
+   "tripsClosedByExit": 104,
+   "holdMinutes": {
+    "median": 78.0,
+    "p75": 171.0,
+    "p90": 345.0,
+    "mean": 143.4
+   },
+   "coinGbpTimeWeighted": 304.08,
+   "positionsGbpTimeWeighted": 27.15,
+   "positionsGbpPeak": 200.9,
+   "coinMarkRiskGbpPerDay": 0.974,
+   "positionsMarkRiskGbpPerDay": 0.0869,
+   "openAtEnd": 1,
+   "openAtEndGbp": 49.99,
+   "openAtEndMarkGbp": 0.0132,
+   "postsPerDay": {
+    "mean": 363.2,
+    "max": 725
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o1fb60_through": {
+   "twin": "p50",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": 60,
+   "trips": 85,
+   "won": 73,
+   "stops": 3,
+   "realisedGbp": 5.1703,
+   "tripsPnlGbp": 5.1703,
+   "exitsSent": 468,
+   "exitsFilled": 93,
+   "exitsFilledWhole": 78,
+   "exitFillRate": 0.1987,
+   "tripsClosedByExit": 82,
+   "holdMinutes": {
+    "median": 79.0,
+    "p75": 171.0,
+    "p90": 323.0,
+    "mean": 159.1
+   },
+   "coinGbpTimeWeighted": 300.63,
+   "positionsGbpTimeWeighted": 23.33,
+   "positionsGbpPeak": 200.65,
+   "coinMarkRiskGbpPerDay": 0.9629,
+   "positionsMarkRiskGbpPerDay": 0.0747,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 349.7,
+    "max": 678
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o2_at": {
+   "twin": "p50",
+   "offset": 2,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 99,
+   "won": 87,
+   "stops": 3,
+   "realisedGbp": 6.8152,
+   "tripsPnlGbp": 6.825,
+   "exitsSent": 634,
+   "exitsFilled": 112,
+   "exitsFilledWhole": 91,
+   "exitFillRate": 0.1767,
+   "tripsClosedByExit": 96,
+   "holdMinutes": {
+    "median": 85.0,
+    "p75": 251.0,
+    "p90": 635.0,
+    "mean": 223.7
+   },
+   "coinGbpTimeWeighted": 306.42,
+   "positionsGbpTimeWeighted": 38.86,
+   "positionsGbpPeak": 250.74,
+   "coinMarkRiskGbpPerDay": 0.9815,
+   "positionsMarkRiskGbpPerDay": 0.1245,
+   "openAtEnd": 1,
+   "openAtEndGbp": 49.99,
+   "openAtEndMarkGbp": 0.0132,
+   "postsPerDay": {
+    "mean": 357,
+    "max": 679
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "p50_o2_through": {
+   "twin": "p50",
+   "offset": 2,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 77,
+   "won": 66,
+   "stops": 4,
+   "realisedGbp": 5.7631,
+   "tripsPnlGbp": 5.7631,
+   "exitsSent": 549,
+   "exitsFilled": 82,
+   "exitsFilledWhole": 72,
+   "exitFillRate": 0.1494,
+   "tripsClosedByExit": 73,
+   "holdMinutes": {
+    "median": 116.0,
+    "p75": 310.0,
+    "p90": 976.0,
+    "mean": 267.3
+   },
+   "coinGbpTimeWeighted": 303.11,
+   "positionsGbpTimeWeighted": 34.7,
+   "positionsGbpPeak": 250.72,
+   "coinMarkRiskGbpPerDay": 0.9709,
+   "positionsMarkRiskGbpPerDay": 0.1112,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 357.7,
+    "max": 715
+   },
+   "deadmen": 19,
+   "turns": 22747
+  },
+  "pr5_o0_at": {
+   "twin": "pr5",
+   "offset": 0,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 103,
+   "won": 88,
+   "stops": 1,
+   "realisedGbp": 11.7462,
+   "tripsPnlGbp": 11.7462,
+   "exitsSent": 462,
+   "exitsFilled": 125,
+   "exitsFilledWhole": 97,
+   "exitFillRate": 0.2706,
+   "tripsClosedByExit": 102,
+   "holdMinutes": {
+    "median": 53.0,
+    "p75": 131.0,
+    "p90": 345.0,
+    "mean": 146.9
+   },
+   "coinGbpTimeWeighted": 595.48,
+   "positionsGbpTimeWeighted": 42.85,
+   "positionsGbpPeak": 401.79,
+   "coinMarkRiskGbpPerDay": 1.9073,
+   "positionsMarkRiskGbpPerDay": 0.1372,
+   "openAtEnd": 1,
+   "openAtEndGbp": 99.98,
+   "openAtEndMarkGbp": 0.0265,
+   "postsPerDay": {
+    "mean": 346.7,
+    "max": 691
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o0_through": {
+   "twin": "pr5",
+   "offset": 0,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 76,
+   "won": 66,
+   "stops": 3,
+   "realisedGbp": 8.6076,
+   "tripsPnlGbp": 8.6076,
+   "exitsSent": 471,
+   "exitsFilled": 84,
+   "exitsFilledWhole": 70,
+   "exitFillRate": 0.1783,
+   "tripsClosedByExit": 73,
+   "holdMinutes": {
+    "median": 66.0,
+    "p75": 174.0,
+    "p90": 429.0,
+    "mean": 181.4
+   },
+   "coinGbpTimeWeighted": 588.03,
+   "positionsGbpTimeWeighted": 45.67,
+   "positionsGbpPeak": 401.29,
+   "coinMarkRiskGbpPerDay": 1.8834,
+   "positionsMarkRiskGbpPerDay": 0.1463,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 347.2,
+    "max": 818
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o1_at": {
+   "twin": "pr5",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 89,
+   "won": 75,
+   "stops": 3,
+   "realisedGbp": 11.0437,
+   "tripsPnlGbp": 11.0437,
+   "exitsSent": 596,
+   "exitsFilled": 108,
+   "exitsFilledWhole": 84,
+   "exitFillRate": 0.1812,
+   "tripsClosedByExit": 86,
+   "holdMinutes": {
+    "median": 71.0,
+    "p75": 203.0,
+    "p90": 445.0,
+    "mean": 192.1
+   },
+   "coinGbpTimeWeighted": 600.47,
+   "positionsGbpTimeWeighted": 52.88,
+   "positionsGbpPeak": 416.15,
+   "coinMarkRiskGbpPerDay": 1.9233,
+   "positionsMarkRiskGbpPerDay": 0.1694,
+   "openAtEnd": 1,
+   "openAtEndGbp": 99.97,
+   "openAtEndMarkGbp": 0.0265,
+   "postsPerDay": {
+    "mean": 352.9,
+    "max": 817
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o1_through": {
+   "twin": "pr5",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 77,
+   "won": 66,
+   "stops": 3,
+   "realisedGbp": 9.2596,
+   "tripsPnlGbp": 9.2596,
+   "exitsSent": 517,
+   "exitsFilled": 84,
+   "exitsFilledWhole": 71,
+   "exitFillRate": 0.1625,
+   "tripsClosedByExit": 74,
+   "holdMinutes": {
+    "median": 72.0,
+    "p75": 203.0,
+    "p90": 609.0,
+    "mean": 224.9
+   },
+   "coinGbpTimeWeighted": 580.89,
+   "positionsGbpTimeWeighted": 57.4,
+   "positionsGbpPeak": 401.31,
+   "coinMarkRiskGbpPerDay": 1.8605,
+   "positionsMarkRiskGbpPerDay": 0.1838,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 346.8,
+    "max": 818
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o1fb60_at": {
+   "twin": "pr5",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": 60,
+   "trips": 96,
+   "won": 81,
+   "stops": 2,
+   "realisedGbp": 11.191,
+   "tripsPnlGbp": 11.191,
+   "exitsSent": 631,
+   "exitsFilled": 122,
+   "exitsFilledWhole": 93,
+   "exitFillRate": 0.1933,
+   "tripsClosedByExit": 94,
+   "holdMinutes": {
+    "median": 87.0,
+    "p75": 215.0,
+    "p90": 374.0,
+    "mean": 171.6
+   },
+   "coinGbpTimeWeighted": 601.74,
+   "positionsGbpTimeWeighted": 53.55,
+   "positionsGbpPeak": 401.79,
+   "coinMarkRiskGbpPerDay": 1.9274,
+   "positionsMarkRiskGbpPerDay": 0.1715,
+   "openAtEnd": 1,
+   "openAtEndGbp": 99.97,
+   "openAtEndMarkGbp": 0.0265,
+   "postsPerDay": {
+    "mean": 356.9,
+    "max": 774
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o1fb60_through": {
+   "twin": "pr5",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": 60,
+   "trips": 80,
+   "won": 70,
+   "stops": 3,
+   "realisedGbp": 9.3952,
+   "tripsPnlGbp": 9.3952,
+   "exitsSent": 540,
+   "exitsFilled": 94,
+   "exitsFilledWhole": 74,
+   "exitFillRate": 0.1741,
+   "tripsClosedByExit": 77,
+   "holdMinutes": {
+    "median": 87.0,
+    "p75": 180.0,
+    "p90": 417.0,
+    "mean": 182.2
+   },
+   "coinGbpTimeWeighted": 583.71,
+   "positionsGbpTimeWeighted": 45.92,
+   "positionsGbpPeak": 401.29,
+   "coinMarkRiskGbpPerDay": 1.8696,
+   "positionsMarkRiskGbpPerDay": 0.1471,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 352.5,
+    "max": 822
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o2_at": {
+   "twin": "pr5",
+   "offset": 2,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 93,
+   "won": 80,
+   "stops": 3,
+   "realisedGbp": 12.3392,
+   "tripsPnlGbp": 12.3392,
+   "exitsSent": 712,
+   "exitsFilled": 109,
+   "exitsFilledWhole": 85,
+   "exitFillRate": 0.1531,
+   "tripsClosedByExit": 90,
+   "holdMinutes": {
+    "median": 85.0,
+    "p75": 310.0,
+    "p90": 819.0,
+    "mean": 255.3
+   },
+   "coinGbpTimeWeighted": 607.54,
+   "positionsGbpTimeWeighted": 73.21,
+   "positionsGbpPeak": 415.99,
+   "coinMarkRiskGbpPerDay": 1.9459,
+   "positionsMarkRiskGbpPerDay": 0.2345,
+   "openAtEnd": 1,
+   "openAtEndGbp": 99.98,
+   "openAtEndMarkGbp": 0.0265,
+   "postsPerDay": {
+    "mean": 358.9,
+    "max": 842
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "pr5_o2_through": {
+   "twin": "pr5",
+   "offset": 2,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 66,
+   "won": 58,
+   "stops": 3,
+   "realisedGbp": 8.9666,
+   "tripsPnlGbp": 8.9666,
+   "exitsSent": 496,
+   "exitsFilled": 78,
+   "exitsFilledWhole": 62,
+   "exitFillRate": 0.1573,
+   "tripsClosedByExit": 63,
+   "holdMinutes": {
+    "median": 119.0,
+    "p75": 323.0,
+    "p90": 609.0,
+    "mean": 262.4
+   },
+   "coinGbpTimeWeighted": 580.71,
+   "positionsGbpTimeWeighted": 59.74,
+   "positionsGbpPeak": 401.3,
+   "coinMarkRiskGbpPerDay": 1.86,
+   "positionsMarkRiskGbpPerDay": 0.1913,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 341.7,
+    "max": 760
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o0_at": {
+   "twin": "s10",
+   "offset": 0,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 118,
+   "won": 101,
+   "stops": 0,
+   "realisedGbp": 1.5131,
+   "tripsPnlGbp": 1.5131,
+   "exitsSent": 407,
+   "exitsFilled": 124,
+   "exitsFilledWhole": 112,
+   "exitFillRate": 0.3047,
+   "tripsClosedByExit": 118,
+   "holdMinutes": {
+    "median": 53.0,
+    "p75": 116.0,
+    "p90": 221.0,
+    "mean": 100.6
+   },
+   "coinGbpTimeWeighted": 59.84,
+   "positionsGbpTimeWeighted": 4.75,
+   "positionsGbpPeak": 40.19,
+   "coinMarkRiskGbpPerDay": 0.1917,
+   "positionsMarkRiskGbpPerDay": 0.0152,
+   "openAtEnd": 1,
+   "openAtEndGbp": 10.01,
+   "openAtEndMarkGbp": 0.0026,
+   "postsPerDay": {
+    "mean": 360.3,
+    "max": 722
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o0_through": {
+   "twin": "s10",
+   "offset": 0,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 93,
+   "won": 80,
+   "stops": 3,
+   "realisedGbp": 1.0718,
+   "tripsPnlGbp": 1.0718,
+   "exitsSent": 504,
+   "exitsFilled": 91,
+   "exitsFilledWhole": 86,
+   "exitFillRate": 0.1806,
+   "tripsClosedByExit": 90,
+   "holdMinutes": {
+    "median": 59.0,
+    "p75": 144.0,
+    "p90": 359.0,
+    "mean": 153.5
+   },
+   "coinGbpTimeWeighted": 60.79,
+   "positionsGbpTimeWeighted": 5.71,
+   "positionsGbpPeak": 50.16,
+   "coinMarkRiskGbpPerDay": 0.1947,
+   "positionsMarkRiskGbpPerDay": 0.0183,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 371.3,
+    "max": 819
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o1_at": {
+   "twin": "s10",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 111,
+   "won": 97,
+   "stops": 3,
+   "realisedGbp": 1.4663,
+   "tripsPnlGbp": 1.4663,
+   "exitsSent": 643,
+   "exitsFilled": 109,
+   "exitsFilledWhole": 102,
+   "exitFillRate": 0.1695,
+   "tripsClosedByExit": 108,
+   "holdMinutes": {
+    "median": 55.0,
+    "p75": 171.0,
+    "p90": 386.0,
+    "mean": 167.1
+   },
+   "coinGbpTimeWeighted": 61.71,
+   "positionsGbpTimeWeighted": 7.78,
+   "positionsGbpPeak": 50.17,
+   "coinMarkRiskGbpPerDay": 0.1976,
+   "positionsMarkRiskGbpPerDay": 0.0249,
+   "openAtEnd": 1,
+   "openAtEndGbp": 10.0,
+   "openAtEndMarkGbp": 0.0026,
+   "postsPerDay": {
+    "mean": 373.5,
+    "max": 817
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o1_through": {
+   "twin": "s10",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 88,
+   "won": 76,
+   "stops": 3,
+   "realisedGbp": 1.0574,
+   "tripsPnlGbp": 1.0574,
+   "exitsSent": 534,
+   "exitsFilled": 87,
+   "exitsFilledWhole": 80,
+   "exitFillRate": 0.1629,
+   "tripsClosedByExit": 85,
+   "holdMinutes": {
+    "median": 61.0,
+    "p75": 172.0,
+    "p90": 510.0,
+    "mean": 182.5
+   },
+   "coinGbpTimeWeighted": 60.32,
+   "positionsGbpTimeWeighted": 6.6,
+   "positionsGbpPeak": 50.17,
+   "coinMarkRiskGbpPerDay": 0.1932,
+   "positionsMarkRiskGbpPerDay": 0.0211,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 359.1,
+    "max": 818
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o1fb60_at": {
+   "twin": "s10",
+   "offset": 1,
+   "fill": "at",
+   "fallbackMin": 60,
+   "trips": 113,
+   "won": 98,
+   "stops": 2,
+   "realisedGbp": 1.4617,
+   "tripsPnlGbp": 1.4617,
+   "exitsSent": 623,
+   "exitsFilled": 115,
+   "exitsFilledWhole": 105,
+   "exitFillRate": 0.1846,
+   "tripsClosedByExit": 111,
+   "holdMinutes": {
+    "median": 66.0,
+    "p75": 144.0,
+    "p90": 323.0,
+    "mean": 131.9
+   },
+   "coinGbpTimeWeighted": 60.65,
+   "positionsGbpTimeWeighted": 5.73,
+   "positionsGbpPeak": 40.18,
+   "coinMarkRiskGbpPerDay": 0.1943,
+   "positionsMarkRiskGbpPerDay": 0.0184,
+   "openAtEnd": 1,
+   "openAtEndGbp": 10.0,
+   "openAtEndMarkGbp": 0.0026,
+   "postsPerDay": {
+    "mean": 373.6,
+    "max": 777
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o1fb60_through": {
+   "twin": "s10",
+   "offset": 1,
+   "fill": "through",
+   "fallbackMin": 60,
+   "trips": 95,
+   "won": 82,
+   "stops": 3,
+   "realisedGbp": 1.129,
+   "tripsPnlGbp": 1.129,
+   "exitsSent": 566,
+   "exitsFilled": 94,
+   "exitsFilledWhole": 87,
+   "exitFillRate": 0.1661,
+   "tripsClosedByExit": 92,
+   "holdMinutes": {
+    "median": 72.0,
+    "p75": 160.0,
+    "p90": 323.0,
+    "mean": 152.4
+   },
+   "coinGbpTimeWeighted": 60.56,
+   "positionsGbpTimeWeighted": 5.7,
+   "positionsGbpPeak": 40.14,
+   "coinMarkRiskGbpPerDay": 0.194,
+   "positionsMarkRiskGbpPerDay": 0.0183,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 374.9,
+    "max": 823
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o2_at": {
+   "twin": "s10",
+   "offset": 2,
+   "fill": "at",
+   "fallbackMin": null,
+   "trips": 108,
+   "won": 93,
+   "stops": 3,
+   "realisedGbp": 1.4072,
+   "tripsPnlGbp": 1.4072,
+   "exitsSent": 673,
+   "exitsFilled": 107,
+   "exitsFilledWhole": 95,
+   "exitFillRate": 0.159,
+   "tripsClosedByExit": 105,
+   "holdMinutes": {
+    "median": 67.0,
+    "p75": 218.0,
+    "p90": 510.0,
+    "mean": 184.3
+   },
+   "coinGbpTimeWeighted": 61.33,
+   "positionsGbpTimeWeighted": 8.23,
+   "positionsGbpPeak": 50.16,
+   "coinMarkRiskGbpPerDay": 0.1964,
+   "positionsMarkRiskGbpPerDay": 0.0264,
+   "openAtEnd": 1,
+   "openAtEndGbp": 10.0,
+   "openAtEndMarkGbp": 0.0026,
+   "postsPerDay": {
+    "mean": 359.3,
+    "max": 776
+   },
+   "deadmen": 36,
+   "turns": 22726
+  },
+  "s10_o2_through": {
+   "twin": "s10",
+   "offset": 2,
+   "fill": "through",
+   "fallbackMin": null,
+   "trips": 80,
+   "won": 66,
+   "stops": 4,
+   "realisedGbp": 1.0081,
+   "tripsPnlGbp": 1.0081,
+   "exitsSent": 584,
+   "exitsFilled": 77,
+   "exitsFilledWhole": 70,
+   "exitFillRate": 0.1318,
+   "tripsClosedByExit": 76,
+   "holdMinutes": {
+    "median": 88.0,
+    "p75": 328.0,
+    "p90": 610.0,
+    "mean": 240.6
+   },
+   "coinGbpTimeWeighted": 61.38,
+   "positionsGbpTimeWeighted": 7.86,
+   "positionsGbpPeak": 50.14,
+   "coinMarkRiskGbpPerDay": 0.1966,
+   "positionsMarkRiskGbpPerDay": 0.0252,
+   "openAtEnd": 0,
+   "openAtEndGbp": 0,
+   "openAtEndMarkGbp": 0,
+   "postsPerDay": {
+    "mean": 358,
+    "max": 823
+   },
+   "deadmen": 36,
+   "turns": 22726
+  }
+ },
+ "paired": {
+  "p50_o1_at": {
+   "against": "p50_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.1977,
+    "armGbp": 6.6295,
+    "baseGbp": 6.8273,
+    "daysAhead": 7,
+    "daysBehind": 7
+   },
+   "H1": {
+    "sumDiffGbp": -0.079,
+    "armGbp": 4.4007,
+    "baseGbp": 4.4797,
+    "daysAhead": 3,
+    "daysBehind": 4
+   },
+   "H2": {
+    "sumDiffGbp": -0.1187,
+    "armGbp": 2.2288,
+    "baseGbp": 2.3475,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": -0.01163,
+    "p5_index100": -0.04995,
+    "p95_index1899": 0.02631,
+    "share_above_0": 0.31
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.1325,
+    "2026-09-25": 0.165,
+    "2026-09-26": -0.0023,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.1974,
+    "2026-09-29": 0.1348,
+    "2026-09-30": -0.0709,
+    "2026-10-01": 0.0243,
+    "2026-10-02": 0.0446,
+    "2026-10-03": 0.0027,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0067,
+    "2026-10-06": -0.1521,
+    "2026-10-07": -0.0063,
+    "2026-10-08": -0.1111,
+    "2026-10-09": 0.0969
+   }
+  },
+  "p50_o1_through": {
+   "against": "p50_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.2437,
+    "armGbp": 5.5267,
+    "baseGbp": 5.283,
+    "daysAhead": 12,
+    "daysBehind": 1
+   },
+   "H1": {
+    "sumDiffGbp": 0.237,
+    "armGbp": 3.8364,
+    "baseGbp": 3.5994,
+    "daysAhead": 7,
+    "daysBehind": 0
+   },
+   "H2": {
+    "sumDiffGbp": 0.0066,
+    "armGbp": 1.6902,
+    "baseGbp": 1.6836,
+    "daysAhead": 5,
+    "daysBehind": 1
+   },
+   "bootstrap": {
+    "mean": 0.01433,
+    "p5_index100": -0.01414,
+    "p95_index1899": 0.03704,
+    "share_above_0": 0.8205
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0202,
+    "2026-09-25": 0.0293,
+    "2026-09-26": 0.0017,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.0741,
+    "2026-09-29": 0.0687,
+    "2026-09-30": 0.0413,
+    "2026-10-01": 0.0018,
+    "2026-10-02": 0.0725,
+    "2026-10-03": 0.0066,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": -0.226,
+    "2026-10-07": 0.0972,
+    "2026-10-08": 0.0305,
+    "2026-10-09": 0.0259
+   }
+  },
+  "p50_o1fb60_at": {
+   "against": "p50_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.2749,
+    "armGbp": 6.5524,
+    "baseGbp": 6.8273,
+    "daysAhead": 6,
+    "daysBehind": 8
+   },
+   "H1": {
+    "sumDiffGbp": -0.2642,
+    "armGbp": 4.2155,
+    "baseGbp": 4.4797,
+    "daysAhead": 2,
+    "daysBehind": 5
+   },
+   "H2": {
+    "sumDiffGbp": -0.0107,
+    "armGbp": 2.3368,
+    "baseGbp": 2.3475,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": -0.01617,
+    "p5_index100": -0.04106,
+    "p95_index1899": 0.00955,
+    "share_above_0": 0.137
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0108,
+    "2026-09-25": -0.0337,
+    "2026-09-26": 0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.1041,
+    "2026-09-29": -0.0463,
+    "2026-09-30": -0.0908,
+    "2026-10-01": -0.0,
+    "2026-10-02": 0.0265,
+    "2026-10-03": -0.0079,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0927,
+    "2026-10-06": -0.0587,
+    "2026-10-07": 0.0,
+    "2026-10-08": -0.1618,
+    "2026-10-09": 0.0986
+   }
+  },
+  "p50_o1fb60_through": {
+   "against": "p50_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.1127,
+    "armGbp": 5.1703,
+    "baseGbp": 5.283,
+    "daysAhead": 6,
+    "daysBehind": 7
+   },
+   "H1": {
+    "sumDiffGbp": -0.0171,
+    "armGbp": 3.5823,
+    "baseGbp": 3.5994,
+    "daysAhead": 3,
+    "daysBehind": 4
+   },
+   "H2": {
+    "sumDiffGbp": -0.0955,
+    "armGbp": 1.588,
+    "baseGbp": 1.6836,
+    "daysAhead": 3,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": -0.00663,
+    "p5_index100": -0.04011,
+    "p95_index1899": 0.02662,
+    "share_above_0": 0.3635
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0108,
+    "2026-09-25": 0.0458,
+    "2026-09-26": -0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.2069,
+    "2026-09-29": -0.0502,
+    "2026-09-30": -0.0,
+    "2026-10-01": -0.2304,
+    "2026-10-02": 0.0132,
+    "2026-10-03": -0.0132,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": -0.1293,
+    "2026-10-07": 0.0,
+    "2026-10-08": 0.0339,
+    "2026-10-09": -0.0002
+   }
+  },
+  "p50_o2_at": {
+   "against": "p50_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.0022,
+    "armGbp": 6.825,
+    "baseGbp": 6.8273,
+    "daysAhead": 9,
+    "daysBehind": 5
+   },
+   "H1": {
+    "sumDiffGbp": -0.1351,
+    "armGbp": 4.3446,
+    "baseGbp": 4.4797,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "H2": {
+    "sumDiffGbp": 0.1329,
+    "armGbp": 2.4804,
+    "baseGbp": 2.3475,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": -0.00013,
+    "p5_index100": -0.05008,
+    "p95_index1899": 0.04954,
+    "share_above_0": 0.4965
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.1122,
+    "2026-09-25": 0.2045,
+    "2026-09-26": 0.0043,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.1189,
+    "2026-09-29": 0.1076,
+    "2026-09-30": 0.0372,
+    "2026-10-01": -0.2576,
+    "2026-10-02": 0.1105,
+    "2026-10-03": 0.0053,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0994,
+    "2026-10-06": -0.2198,
+    "2026-10-07": 0.1716,
+    "2026-10-08": 0.0192,
+    "2026-10-09": -0.0534
+   }
+  },
+  "p50_o2_through": {
+   "against": "p50_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.4801,
+    "armGbp": 5.7631,
+    "baseGbp": 5.283,
+    "daysAhead": 9,
+    "daysBehind": 5
+   },
+   "H1": {
+    "sumDiffGbp": 0.2232,
+    "armGbp": 3.8226,
+    "baseGbp": 3.5994,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "H2": {
+    "sumDiffGbp": 0.257,
+    "armGbp": 1.9406,
+    "baseGbp": 1.6836,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": 0.02824,
+    "p5_index100": -0.00497,
+    "p95_index1899": 0.05916,
+    "share_above_0": 0.921
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.125,
+    "2026-09-25": 0.1314,
+    "2026-09-26": 0.083,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.0376,
+    "2026-09-29": 0.1175,
+    "2026-09-30": 0.0853,
+    "2026-10-01": -0.0313,
+    "2026-10-02": 0.0328,
+    "2026-10-03": 0.0595,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0728,
+    "2026-10-06": -0.0892,
+    "2026-10-07": 0.1733,
+    "2026-10-08": -0.0399,
+    "2026-10-09": 0.0475
+   }
+  },
+  "pr5_o1_at": {
+   "against": "pr5_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.7024,
+    "armGbp": 11.0437,
+    "baseGbp": 11.7462,
+    "daysAhead": 8,
+    "daysBehind": 6
+   },
+   "H1": {
+    "sumDiffGbp": -0.5642,
+    "armGbp": 7.0916,
+    "baseGbp": 7.6558,
+    "daysAhead": 3,
+    "daysBehind": 4
+   },
+   "H2": {
+    "sumDiffGbp": -0.1382,
+    "armGbp": 3.9521,
+    "baseGbp": 4.0904,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": -0.04132,
+    "p5_index100": -0.13846,
+    "p95_index1899": 0.04852,
+    "share_above_0": 0.2355
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.4604,
+    "2026-09-25": 0.4269,
+    "2026-09-26": 0.0017,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.609,
+    "2026-09-29": 0.2664,
+    "2026-09-30": -0.1062,
+    "2026-10-01": -0.0836,
+    "2026-10-02": 0.062,
+    "2026-10-03": 0.0027,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0133,
+    "2026-10-06": 0.0642,
+    "2026-10-07": -0.2417,
+    "2026-10-08": 0.0143,
+    "2026-10-09": -0.053
+   }
+  },
+  "pr5_o1_through": {
+   "against": "pr5_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.652,
+    "armGbp": 9.2596,
+    "baseGbp": 8.6076,
+    "daysAhead": 10,
+    "daysBehind": 2
+   },
+   "H1": {
+    "sumDiffGbp": 0.4351,
+    "armGbp": 5.8596,
+    "baseGbp": 5.4245,
+    "daysAhead": 5,
+    "daysBehind": 1
+   },
+   "H2": {
+    "sumDiffGbp": 0.217,
+    "armGbp": 3.4001,
+    "baseGbp": 3.1831,
+    "daysAhead": 5,
+    "daysBehind": 1
+   },
+   "bootstrap": {
+    "mean": 0.03835,
+    "p5_index100": 0.01081,
+    "p95_index1899": 0.06842,
+    "share_above_0": 0.989
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0168,
+    "2026-09-25": -0.027,
+    "2026-09-26": 0.0017,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.225,
+    "2026-09-29": 0.1308,
+    "2026-09-30": 0.0877,
+    "2026-10-01": 0.0,
+    "2026-10-02": 0.1312,
+    "2026-10-03": 0.0132,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": 0.0656,
+    "2026-10-07": -0.1056,
+    "2026-10-08": 0.0629,
+    "2026-10-09": 0.0495
+   }
+  },
+  "pr5_o1fb60_at": {
+   "against": "pr5_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.5552,
+    "armGbp": 11.191,
+    "baseGbp": 11.7462,
+    "daysAhead": 4,
+    "daysBehind": 10
+   },
+   "H1": {
+    "sumDiffGbp": -0.4686,
+    "armGbp": 7.1872,
+    "baseGbp": 7.6558,
+    "daysAhead": 2,
+    "daysBehind": 5
+   },
+   "H2": {
+    "sumDiffGbp": -0.0866,
+    "armGbp": 4.0037,
+    "baseGbp": 4.0904,
+    "daysAhead": 2,
+    "daysBehind": 5
+   },
+   "bootstrap": {
+    "mean": -0.03266,
+    "p5_index100": -0.06035,
+    "p95_index1899": -0.0004,
+    "share_above_0": 0.0485
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0108,
+    "2026-09-25": -0.0868,
+    "2026-09-26": 0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.1125,
+    "2026-09-29": -0.0877,
+    "2026-09-30": -0.146,
+    "2026-10-01": -0.0464,
+    "2026-10-02": 0.053,
+    "2026-10-03": -0.0079,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.1853,
+    "2026-10-06": -0.0484,
+    "2026-10-07": -0.1471,
+    "2026-10-08": -0.0606,
+    "2026-10-09": -0.0609
+   }
+  },
+  "pr5_o1fb60_through": {
+   "against": "pr5_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.7875,
+    "armGbp": 9.3952,
+    "baseGbp": 8.6076,
+    "daysAhead": 8,
+    "daysBehind": 3
+   },
+   "H1": {
+    "sumDiffGbp": 0.7886,
+    "armGbp": 6.2131,
+    "baseGbp": 5.4245,
+    "daysAhead": 5,
+    "daysBehind": 1
+   },
+   "H2": {
+    "sumDiffGbp": -0.001,
+    "armGbp": 3.1821,
+    "baseGbp": 3.1831,
+    "daysAhead": 3,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": 0.04633,
+    "p5_index100": -0.01121,
+    "p95_index1899": 0.13943,
+    "share_above_0": 0.813
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0108,
+    "2026-09-25": 0.0289,
+    "2026-09-26": 0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.7959,
+    "2026-09-29": -0.0964,
+    "2026-09-30": 0.0099,
+    "2026-10-01": 0.0395,
+    "2026-10-02": 0.0126,
+    "2026-10-03": -0.0265,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": 0.0099,
+    "2026-10-07": 0.0,
+    "2026-10-08": 0.0831,
+    "2026-10-09": -0.0802
+   }
+  },
+  "pr5_o2_at": {
+   "against": "pr5_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.593,
+    "armGbp": 12.3392,
+    "baseGbp": 11.7462,
+    "daysAhead": 9,
+    "daysBehind": 5
+   },
+   "H1": {
+    "sumDiffGbp": -0.2147,
+    "armGbp": 7.4411,
+    "baseGbp": 7.6558,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "H2": {
+    "sumDiffGbp": 0.8077,
+    "armGbp": 4.8981,
+    "baseGbp": 4.0904,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": 0.03488,
+    "p5_index100": -0.08048,
+    "p95_index1899": 0.14232,
+    "share_above_0": 0.697
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.4436,
+    "2026-09-25": 0.4797,
+    "2026-09-26": 0.0034,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.6505,
+    "2026-09-29": 0.4199,
+    "2026-09-30": 0.0282,
+    "2026-10-01": -0.0518,
+    "2026-10-02": 0.223,
+    "2026-10-03": 0.0053,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.1986,
+    "2026-10-06": -0.1262,
+    "2026-10-07": 0.3673,
+    "2026-10-08": 0.2029,
+    "2026-10-09": -0.0632
+   }
+  },
+  "pr5_o2_through": {
+   "against": "pr5_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.359,
+    "armGbp": 8.9666,
+    "baseGbp": 8.6076,
+    "daysAhead": 8,
+    "daysBehind": 4
+   },
+   "H1": {
+    "sumDiffGbp": 0.5189,
+    "armGbp": 5.9434,
+    "baseGbp": 5.4245,
+    "daysAhead": 5,
+    "daysBehind": 1
+   },
+   "H2": {
+    "sumDiffGbp": -0.1599,
+    "armGbp": 3.0232,
+    "baseGbp": 3.1831,
+    "daysAhead": 3,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": 0.02112,
+    "p5_index100": -0.01872,
+    "p95_index1899": 0.06438,
+    "share_above_0": 0.807
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.0855,
+    "2026-09-25": 0.1247,
+    "2026-09-26": 0.0034,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.0233,
+    "2026-09-29": 0.2878,
+    "2026-09-30": 0.165,
+    "2026-10-01": 0.0,
+    "2026-10-02": 0.0056,
+    "2026-10-03": 0.119,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": 0.0144,
+    "2026-10-07": -0.1454,
+    "2026-10-08": -0.1108,
+    "2026-10-09": -0.0427
+   }
+  },
+  "s10_o1_at": {
+   "against": "s10_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.0469,
+    "armGbp": 1.4663,
+    "baseGbp": 1.5131,
+    "daysAhead": 8,
+    "daysBehind": 6
+   },
+   "H1": {
+    "sumDiffGbp": -0.049,
+    "armGbp": 0.9874,
+    "baseGbp": 1.0364,
+    "daysAhead": 3,
+    "daysBehind": 4
+   },
+   "H2": {
+    "sumDiffGbp": 0.0021,
+    "armGbp": 0.4788,
+    "baseGbp": 0.4767,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": -0.00276,
+    "p5_index100": -0.01396,
+    "p95_index1899": 0.00797,
+    "share_above_0": 0.3565
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0053,
+    "2026-09-25": 0.0027,
+    "2026-09-26": -0.0106,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.0646,
+    "2026-09-29": 0.0289,
+    "2026-09-30": -0.0054,
+    "2026-10-01": -0.0053,
+    "2026-10-02": 0.0172,
+    "2026-10-03": 0.0013,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0014,
+    "2026-10-06": -0.0335,
+    "2026-10-07": -0.0585,
+    "2026-10-08": 0.0459,
+    "2026-10-09": 0.0284
+   }
+  },
+  "s10_o1_through": {
+   "against": "s10_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.0144,
+    "armGbp": 1.0574,
+    "baseGbp": 1.0718,
+    "daysAhead": 10,
+    "daysBehind": 3
+   },
+   "H1": {
+    "sumDiffGbp": -0.0087,
+    "armGbp": 0.8086,
+    "baseGbp": 0.8173,
+    "daysAhead": 6,
+    "daysBehind": 1
+   },
+   "H2": {
+    "sumDiffGbp": -0.0057,
+    "armGbp": 0.2488,
+    "baseGbp": 0.2545,
+    "daysAhead": 4,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": -0.00085,
+    "p5_index100": -0.00729,
+    "p95_index1899": 0.00469,
+    "share_above_0": 0.4475
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0053,
+    "2026-09-25": 0.0053,
+    "2026-09-26": 0.0013,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.0098,
+    "2026-09-29": 0.0158,
+    "2026-09-30": 0.0054,
+    "2026-10-01": -0.0516,
+    "2026-10-02": 0.0144,
+    "2026-10-03": 0.0013,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": -0.0238,
+    "2026-10-07": -0.0105,
+    "2026-10-08": 0.0071,
+    "2026-10-09": 0.0058
+   }
+  },
+  "s10_o1fb60_at": {
+   "against": "s10_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.0514,
+    "armGbp": 1.4617,
+    "baseGbp": 1.5131,
+    "daysAhead": 7,
+    "daysBehind": 7
+   },
+   "H1": {
+    "sumDiffGbp": -0.0634,
+    "armGbp": 0.973,
+    "baseGbp": 1.0364,
+    "daysAhead": 3,
+    "daysBehind": 4
+   },
+   "H2": {
+    "sumDiffGbp": 0.0119,
+    "armGbp": 0.4887,
+    "baseGbp": 0.4767,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": -0.00302,
+    "p5_index100": -0.01018,
+    "p95_index1899": 0.00352,
+    "share_above_0": 0.2485
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.004,
+    "2026-09-25": -0.0066,
+    "2026-09-26": 0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.0434,
+    "2026-09-29": -0.0093,
+    "2026-09-30": -0.0094,
+    "2026-10-01": 0.0013,
+    "2026-10-02": 0.0053,
+    "2026-10-03": -0.004,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0186,
+    "2026-10-06": -0.0097,
+    "2026-10-07": -0.0426,
+    "2026-10-08": 0.0203,
+    "2026-10-09": 0.0241
+   }
+  },
+  "s10_o1fb60_through": {
+   "against": "s10_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": 0.0572,
+    "armGbp": 1.129,
+    "baseGbp": 1.0718,
+    "daysAhead": 9,
+    "daysBehind": 4
+   },
+   "H1": {
+    "sumDiffGbp": 0.0433,
+    "armGbp": 0.8606,
+    "baseGbp": 0.8173,
+    "daysAhead": 5,
+    "daysBehind": 2
+   },
+   "H2": {
+    "sumDiffGbp": 0.0139,
+    "armGbp": 0.2684,
+    "baseGbp": 0.2545,
+    "daysAhead": 4,
+    "daysBehind": 2
+   },
+   "bootstrap": {
+    "mean": 0.00337,
+    "p5_index100": -0.00144,
+    "p95_index1899": 0.00947,
+    "share_above_0": 0.847
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.004,
+    "2026-09-25": 0.0067,
+    "2026-09-26": 0.0,
+    "2026-09-27": 0.0,
+    "2026-09-28": 0.0484,
+    "2026-09-29": -0.0132,
+    "2026-09-30": 0.0014,
+    "2026-10-01": -0.0039,
+    "2026-10-02": 0.0026,
+    "2026-10-03": -0.0027,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": 0.0067,
+    "2026-10-07": 0.0,
+    "2026-10-08": 0.0222,
+    "2026-10-09": -0.0149
+   }
+  },
+  "s10_o2_at": {
+   "against": "s10_o0_at",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.106,
+    "armGbp": 1.4072,
+    "baseGbp": 1.5131,
+    "daysAhead": 8,
+    "daysBehind": 6
+   },
+   "H1": {
+    "sumDiffGbp": -0.0476,
+    "armGbp": 0.9888,
+    "baseGbp": 1.0364,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "H2": {
+    "sumDiffGbp": -0.0584,
+    "armGbp": 0.4184,
+    "baseGbp": 0.4767,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "bootstrap": {
+    "mean": -0.00623,
+    "p5_index100": -0.01968,
+    "p95_index1899": 0.00683,
+    "share_above_0": 0.2415
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": 0.0107,
+    "2026-09-25": 0.008,
+    "2026-09-26": -0.0093,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.0408,
+    "2026-09-29": 0.0274,
+    "2026-09-30": 0.0198,
+    "2026-10-01": -0.0635,
+    "2026-10-02": 0.0303,
+    "2026-10-03": 0.0026,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0026,
+    "2026-10-06": -0.0201,
+    "2026-10-07": -0.0823,
+    "2026-10-08": 0.0487,
+    "2026-10-09": -0.0404
+   }
+  },
+  "s10_o2_through": {
+   "against": "s10_o0_through",
+   "days": 17,
+   "all": {
+    "sumDiffGbp": -0.0637,
+    "armGbp": 1.0081,
+    "baseGbp": 1.0718,
+    "daysAhead": 6,
+    "daysBehind": 7
+   },
+   "H1": {
+    "sumDiffGbp": -0.0274,
+    "armGbp": 0.7898,
+    "baseGbp": 0.8173,
+    "daysAhead": 4,
+    "daysBehind": 3
+   },
+   "H2": {
+    "sumDiffGbp": -0.0363,
+    "armGbp": 0.2183,
+    "baseGbp": 0.2545,
+    "daysAhead": 2,
+    "daysBehind": 4
+   },
+   "bootstrap": {
+    "mean": -0.00375,
+    "p5_index100": -0.01448,
+    "p95_index1899": 0.00713,
+    "share_above_0": 0.2895
+   },
+   "daily": {
+    "2026-09-23": 0.0,
+    "2026-09-24": -0.0543,
+    "2026-09-25": 0.0557,
+    "2026-09-26": 0.0186,
+    "2026-09-27": 0.0,
+    "2026-09-28": -0.0352,
+    "2026-09-29": 0.0287,
+    "2026-09-30": 0.0106,
+    "2026-10-01": -0.0516,
+    "2026-10-02": 0.0065,
+    "2026-10-03": 0.0119,
+    "2026-10-04": 0.0,
+    "2026-10-05": 0.0,
+    "2026-10-06": -0.0185,
+    "2026-10-07": -0.0145,
+    "2026-10-08": -0.0088,
+    "2026-10-09": -0.0128
+   }
+  }
+ },
+ "liveBeside": {
+  "from": "2026-10-01T16:29:53Z",
+  "to": "2026-10-09T15:57:57.062226+00:00",
+  "LIVE": {
+   "trips": 42,
+   "won": 30,
+   "stops": 3,
+   "pnlGbp": 0.2126,
+   "holdMinutesMedian": 24.0139
+  },
+  "s10_o0_at": {
+   "trips": 52,
+   "won": 41,
+   "stops": 0,
+   "pnlGbp": 0.4938,
+   "holdMinutesMedian": 29.0
+  },
+  "s10_o0_through": {
+   "trips": 39,
+   "won": 30,
+   "stops": 3,
+   "pnlGbp": 0.2624,
+   "holdMinutesMedian": 50.0
+  },
+  "s10_o1_at": {
+   "trips": 50,
+   "won": 41,
+   "stops": 3,
+   "pnlGbp": 0.488,
+   "holdMinutesMedian": 50.0
+  },
+  "s10_o1_through": {
+   "trips": 35,
+   "won": 26,
+   "stops": 3,
+   "pnlGbp": 0.2488,
+   "holdMinutesMedian": 61.0
+  },
+  "s10_o1fb60_at": {
+   "trips": 49,
+   "won": 41,
+   "stops": 2,
+   "pnlGbp": 0.5071,
+   "holdMinutesMedian": 50.0
+  },
+  "s10_o1fb60_through": {
+   "trips": 39,
+   "won": 30,
+   "stops": 3,
+   "pnlGbp": 0.2724,
+   "holdMinutesMedian": 80.0
+  },
+  "s10_o2_at": {
+   "trips": 49,
+   "won": 38,
+   "stops": 3,
+   "pnlGbp": 0.4184,
+   "holdMinutesMedian": 61.0
+  },
+  "s10_o2_through": {
+   "trips": 30,
+   "won": 20,
+   "stops": 4,
+   "pnlGbp": 0.2183,
+   "holdMinutesMedian": 93.0
+  }
+ }
+}

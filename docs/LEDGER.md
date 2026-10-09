@@ -404,6 +404,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 17:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **F3 validated by a full replay: one tick beyond fair is NOT robust** (Davies: `"F3 卖出价可以再挂远一个 tick"完整验证一下`).
+  `backtests/scq_f3/` (map row): the twins' own code (quotes_twin/quotes_live/revx_sim, patched copies at run time, nothing in
+  `supabase/functions` edited) over 09-23 15:09 → 10-09 16:00 UTC, read-only pulls. Baseline reproduces the twins to the
+  penny (pr5 76 trips +£8.6076, p50 87 +£5.2830; 167/168 and 188/189 fills identical, one stop a turn early); stored prints
+  = public tape (3,849). Through-only fills: +1 tick pr5 +£0.65 (+7.6 %), p50 +£0.24 (H2 ≈ 0), £10 −£0.01. At-price fills:
+  pr5 −£0.70, p50 −£0.20, £10 −£0.05; LIVE filled 22 of 44 exits with no print through them, so at-price is the nearer
+  model. Not for LIVE; `p50x1`'s bar on the through-only twin would read the favourable side only. Not blind; no reading.
+
 ### [2026-10-09 17:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"Stablecoin quotes variant-3" = `p50x1`, rule D's twin renamed "variant-4"** (Davies: "新增 TESTING "variant-4"（p50x1），
   但和目前的variant-3换位置"): `0108` (rename first, names are unique; row at order 35; tables), rule extension
