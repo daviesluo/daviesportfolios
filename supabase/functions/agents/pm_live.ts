@@ -100,6 +100,13 @@ export const PM_LIVE_CAP_MARKET_USD = 60;
 export const PM_LIVE_LOSS_DAY_USD = 25;
 export const PM_LIVE_LOSS_TOTAL_USD = 75;
 export const PM_LIVE_MAX_POSTS_DAY = 6000;
+/**
+ * Live-prep's own ceiling on its POSTs a UTC day (`lpLimits`), in place of `PM_LIVE_MAX_POSTS_DAY`: Davies, 2026-10-09,
+ * "同意提到 12000". Live from 01:32 UTC it posted about 400 an hour (its markets re-price most minutes, and every order is
+ * refreshed before its expiry), about 9,100 a day, so 6,000 would have stopped its quoting near 16:15 UTC. Polymarket's
+ * own limits are per 10 s (reference §2d), far above it. Mini-pool and mid-pool keep 6,000.
+ */
+export const PM_LP_MAX_POSTS_DAY = 12000;
 /** The most markets a day the config may ask for. */
 export const PM_LIVE_MAX_MARKETS = 12;
 /**
@@ -379,11 +386,15 @@ export function effectiveLimits(c: PmLiveConfig) {
 /**
  * Live-prep's limits (`PmLpOptions`): `effectiveLimits`, with its own per-market ceiling in place of the default's, and
  * no day stop at all (`lossDay` Infinity, so no day's P&L ever reaches it; its config's day limit is null, which
- * `effectiveLimits` would read as 0). The other instances' are `effectiveLimits` itself, untouched.
+ * `effectiveLimits` would read as 0), and since 2026-10-09 its own ceiling on POSTs a day (`PM_LP_MAX_POSTS_DAY`). The
+ * other instances' are `effectiveLimits` itself, untouched.
  */
 export function lpLimits(c: PmLiveConfig, lp: Pick<PmLpOptions, "capMarketCeiling">): ReturnType<typeof effectiveLimits> {
-  const n = Number(c.cap_market_usd);
-  return { ...effectiveLimits(c), capMarket: Number.isFinite(n) && n >= 0 ? Math.min(n, lp.capMarketCeiling) : lp.capMarketCeiling, lossDay: Infinity };
+  const n = Number(c.cap_market_usd), p = Number(c.max_posts_day);
+  return {
+    ...effectiveLimits(c), capMarket: Number.isFinite(n) && n >= 0 ? Math.min(n, lp.capMarketCeiling) : lp.capMarketCeiling, lossDay: Infinity,
+    maxPosts: Math.floor(Number.isFinite(p) && p >= 0 ? Math.min(p, PM_LP_MAX_POSTS_DAY) : PM_LP_MAX_POSTS_DAY),
+  };
 }
 
 /**

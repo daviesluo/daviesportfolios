@@ -16,7 +16,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
-  candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
+  candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   runPmLive, rwQuotes, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -646,4 +646,46 @@ Deno.test("armed, U1: a sell of what is held keeps resting, and its side never f
   };
   const gross = await day(false), net = await day(true);
   assertEquals(net, gross);                                                        // the same orders sent either way
+});
+
+// ------------------------------------------------------------------ the governor: 12,000 POSTs a day for live-prep (2026-10-09)
+
+Deno.test("lpLimits: live-prep's POSTs a day go to 12,000 by its config, never past; mini-pool's and mid-pool's stay at 6,000", () => {
+  assertEquals([PM_LP_MAX_POSTS_DAY, PM_LIVE_MAX_POSTS_DAY], [12000, 6000]);
+  const at = (max_posts_day: unknown) => lpLimits({ ...LP_CONFIG, max_posts_day } as unknown as PmLiveConfig, PM_LP_INSTANCE.lp!).maxPosts;
+  assertEquals([at(12000), at(6000), at(99999), at(9000.7), at(0)], [12000, 6000, 12000, 9000, 0]);
+  // The other instances' limits are effectiveLimits, which a config of 12,000 cannot lift past 6,000.
+  assertEquals(effectiveLimits({ ...LP_CONFIG, max_posts_day: 12000 } as unknown as PmLiveConfig).maxPosts, 6000);
+  for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp, undefined);
+  // Every other field of live-prep's limits is as it was.
+  const { maxPosts: _a, ...now } = lpLimits({ ...LP_CONFIG, max_posts_day: 12000 } as unknown as PmLiveConfig, PM_LP_INSTANCE.lp!);
+  const { maxPosts: _b, ...was } = lpLimits({ ...LP_CONFIG, max_posts_day: 6000 } as unknown as PmLiveConfig, PM_LP_INSTANCE.lp!);
+  assertEquals(now, was);
+});
+
+Deno.test("armed, the governor: with its config at 12,000 live-prep still posts after 6,001 POSTs today and stops at 12,000; at 6,000 it stops at 6,000", async () => {
+  const live = { dry_run: false, live_confirmed_at: "2026-10-05T09:00:00.000Z" };
+  /** A live day that has already sent `n` POSTs (ended orders in a market of nobody's), then one turn. */
+  const day = async (n: number, max_posts_day: number) => {
+    const w = world({ config: { ...live, max_posts_day } });
+    const rows = w.rows("pm_lp_orders");
+    for (let i = 0; i < n; i++) {
+      rows.push({
+        id: 1_000_000 + i, ts: "2026-10-05T00:00:01.000Z", mode: "live", cond: cond(99), token: tok(99, "yes"), outcome: "yes", side: "BUY", price: 0.4, size: 5,
+        order_type: "GTD", post_only: true, expiration: 1, neg_risk: false, hash: `0x${(1_000_000 + i).toString(16).padStart(64, "0")}`, state: "cancelled",
+        size_matched: 0, gate: "open", reason: "new", book_seen: null, request: null, response: null, cancel_requested_at: null, cancel_gate: null,
+        cancel_reason: null, filled_at: null, cancelled_at: "2026-10-05T00:00:02.000Z", updated_at: "2026-10-05T00:00:02.000Z",
+      });
+    }
+    const r = await w.turn(T0);
+    return { posted: r.posts, governed: r.withheld.filter((x) => x.gate === "governor").length, limit: (w.rows("pm_lp_state")[0].state as any).limits.maxPosts };
+  };
+  const a = await day(6001, 12000);
+  assert(a.posted > 0 && a.governed === 0, JSON.stringify(a));
+  assertEquals(a.limit, 12000);
+  const b = await day(12000, 12000);
+  assert(b.posted === 0 && b.governed > 0, JSON.stringify(b));
+  const c = await day(6000, 6000);
+  assert(c.posted === 0 && c.governed > 0, JSON.stringify(c));
+  assertEquals(c.limit, 6000);
 });

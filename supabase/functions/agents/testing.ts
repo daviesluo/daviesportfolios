@@ -610,7 +610,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? notNull(["dry_run", "cap_total_usd", "cap_market_usd", ...(lp ? [] : ["loss_day_usd"]), "loss_total_usd", "max_posts_day", "gtd_lifetime_s"])
         ?? check("cap_total_usd", within("cap_total_usd", 0, 320)) ?? check("cap_market_usd", within("cap_market_usd", 0, lp ? 100 : 60))
         ?? check("loss_day_usd", lp ? r.loss_day_usd == null : within("loss_day_usd", 0, 25)) ?? check("loss_total_usd", within("loss_total_usd", 0, 75))
-        ?? check("max_posts_day", within("max_posts_day", 0, 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
+        // Live-prep's from 0105 (2026-10-09): up to 12,000; mini-pool's and mid-pool's 6,000, as 0074 and 0081 have it.
+        ?? check("max_posts_day", within("max_posts_day", 0, lp ? 12000 : 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }

@@ -437,3 +437,22 @@ run mid-pool through today's path beside the path this file froze, minute by min
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 6.
+
+## Addendum 7 (2026-10-09, about 01:55 UTC): deviation 7, live-prep's 12,000 POSTs a day
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 7 is live-prep's daily POST governor raised to 12,000** (Davies, 2026-10-09: "同意提到 12000"; live-prep's
+pre-registration, Addendum 6, gives the evidence). It changes the shared `pm_live.ts`: after it, `pm_live.ts` sha256
+`8920e0c25306b85784a9255840bb2144045a78404020370a0d3e83ec4100466a`, where Addendum 6 above named `a208878b…2703`. The
+one change is that live-prep's limits (`lpLimits`) take their own ceiling, `PM_LP_MAX_POSTS_DAY`, 12,000.
+`0105_pm_lp_posts_12000.sql` writes only `pm_lp_config`.
+
+**Mid-pool's governor stays at 6,000.** Its limits are `effectiveLimits`, whose ceiling `PM_LIVE_MAX_POSTS_DAY` is
+unchanged, and its config and CHECK are untouched. `agents/pm_mid.test.ts` pins a live mid-pool turn at 6,000 POSTs that
+places nothing. No dry-run decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts`
+run it beside the path this file froze, minute by minute, and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 7.

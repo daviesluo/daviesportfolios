@@ -780,6 +780,7 @@ before touching migration state.
 | `0101_pm_paths_retention.sql` | Keeps the three Polymarket order paths' dry-run minutes and ended dry-run orders, and their paper layers' minutes, 14 days (`pm_paths_prune`, daily); indexes the paper layers' ended-orders read; the database's size for the monitor and a daily watch past 4 GB. |
 | `0103_retire_after_rw.sql` | Takes mini-pool's two calls (`pmlive`, `pmprep`) off the one-minute job at once, and RW's four (`pmrw`, `pmrw-select`, `pmrw-e`, `pmrw-x`) once the last day their readings read is closed (`retire_after_rw`, run every five minutes by a job that then unschedules itself); nothing deleted. |
 | `0104_edge_calls_active_from.sql` | A call the one-minute job gains is first made 15 minutes after its row is written (`edge_calls.active_from`), so its function's deploy lands first; the job and the watchdog read the instant. |
+| `0105_pm_lp_posts_12000.sql` | Lets live-prep's config allow 12,000 POSTs a UTC day and sets its row there; mini-pool's and mid-pool's stay at 6,000. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

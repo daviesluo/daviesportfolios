@@ -444,3 +444,20 @@ Deno.test("mid-pool's kill switches reach the venue through its wire: unarmed, i
     assert(w.open("dry_run").length > 0);
   });
 });
+
+Deno.test("the governor stays at 6,000 for mid-pool, live: live-prep's 12,000 (2026-10-09) is its own", async () => {
+  const w = world({ config: { dry_run: false, live_confirmed_at: "2026-10-02T00:00:00.000Z" } });
+  const rows = w.mem.tables.pm_mid_orders as Row[];
+  for (let i = 0; i < 6000; i++) {
+    rows.push({
+      id: 1_000_000 + i, ts: "2026-10-02T00:00:01.000Z", mode: "live", cond: cond(999), token: tok(999, "yes"), outcome: "yes", side: "BUY", price: 0.4, size: 20,
+      order_type: "GTD", post_only: true, expiration: 1, neg_risk: false, hash: `0x${(1_000_000 + i).toString(16).padStart(64, "0")}`, state: "cancelled",
+      size_matched: 0, gate: "open", reason: "new", book_seen: null, request: null, response: null, cancel_requested_at: null, cancel_gate: null,
+      cancel_reason: null, filled_at: null, cancelled_at: "2026-10-02T00:00:02.000Z", updated_at: "2026-10-02T00:00:02.000Z",
+    });
+  }
+  const r = await w.turn(T0);
+  assertEquals(r.posts, 0);
+  assert(r.withheld.some((x) => x.gate === "governor"), JSON.stringify(r.withheld.slice(0, 3)));
+  assertEquals(w.state().limits.maxPosts, 6000);
+});

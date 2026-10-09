@@ -500,3 +500,45 @@ the change.
 **What it does to this file's checks:** P1 stands as read. P2, P4 and the go-time statement are unchanged. P5 is now
 read by the probe (`conditional.sellsApproved`), and the live turn enforces it. `lp_readout.sql` reads the path with
 these changes from its first live minute.
+
+## Addendum 6 (2026-10-09, about 01:55 UTC): 12,000 POSTs a day, live
+
+This addendum was written while live-prep is live (armed by step 8lp at 01:32:21 UTC on 2026-10-09) and before the
+deploy it records. Under "The window", a change to `pm_live.ts` deployed after d1 is a deviation an addendum records.
+Davies, 2026-10-09, verbatim:
+
+> 同意提到 12000
+
+In English: agreed, raise it to 12,000. "It" is live-prep's daily governor on POSTs, which "The account" above gave as
+6,000 a day.
+
+**The evidence.** Live from 01:33:04 UTC, the path sent 98 POSTs by 01:48:05 UTC, about 392 an hour: 75 replacements
+and 23 new orders. Most of its markets re-price in most minutes, and every order is refreshed before its GTD expiry.
+At that rate a UTC day is about 9,100 to 9,400 POSTs. The 6,000 governor would have withheld every order from about
+16:15 to 16:50 UTC, and with nothing refreshed every quote would have expired within ten minutes after. Polymarket's
+own limits are per 10 seconds, 9,000 in 10 s on the CLOB (reference §2d), so 12,000 a day is far inside them.
+
+**What changes.**
+
+- `pm_live.ts` sha256 `8920e0c25306b85784a9255840bb2144045a78404020370a0d3e83ec4100466a`, where Addendum 5 named
+  `a208878b…2703`. Live-prep's limits (`lpLimits`) take its own ceiling, `PM_LP_MAX_POSTS_DAY` = 12,000, in place of
+  `PM_LIVE_MAX_POSTS_DAY` (6,000). Nothing else in the file changes.
+- `0105_pm_lp_posts_12000.sql` lets `pm_lp_config.max_posts_day` reach 12,000 (its CHECK, 0091's 6,000) and sets
+  live-prep's row to 12,000. It writes no other column. The turn uses the lower of the config and the code's ceiling,
+  so either deploy alone leaves 6,000, and only both together raise it.
+- `pm_lp.ts`, `pm_prep.ts`, 0091, `lp_check.sql` and `lp_readout.sql` are unchanged.
+
+**In a live turn:** only the governor's threshold. A turn that has sent 6,000 POSTs that UTC day keeps placing and
+replacing orders, up to 12,000, where the governor withholds every order as before. No rule, cap, stop, gate or quote
+changes. **No dry-run decision changes** either: the dry-run never reached 6,000 (4,525 to 5,165 a day on 10-05 to
+10-08), and its limits differ only in the threshold.
+
+**Pinned:**
+
+- `pm_lp.test.ts`: `lpLimits` gives 12,000 from a config of 12,000, never more, and every other field as before.
+  An armed day that has sent 6,001 POSTs still posts with the config at 12,000, is withheld at 12,000, and is withheld
+  at 6,000 with the config at 6,000.
+- `pm_live.test.ts` and `pm_mid.test.ts`: mini-pool's and mid-pool's governors stop at 6,000.
+- `src/pm_live_hash.test.js`: the bytes and the chain of addenda.
+
+All `pm_*` and `polymarket*` Deno tests pass.

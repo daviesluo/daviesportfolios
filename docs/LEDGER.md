@@ -391,6 +391,21 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09"; each oldest first.
 
+### [2026-10-09 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep may send 12,000 POSTs a UTC day, up from 6,000** (Davies: "同意提到 12000"; branch `lp-governor-12k`, not
+  pushed). Live it posted 98 between 01:33:04 and 01:48:05 UTC (about 392 an hour, 9,100 to 9,400 a day): the 6,000
+  governor would have stopped every order between about 16:15 and 16:50 UTC.
+  - Code: `lpLimits` takes live-prep's own ceiling `PM_LP_MAX_POSTS_DAY` = 12,000; `PM_LIVE_MAX_POSTS_DAY` stays 6,000,
+    so mini-pool and mid-pool are exactly as they were. `pm_live.ts` sha256 `8920e0c2…466a` (from `a208878b…`).
+  - `0105_pm_lp_posts_12000.sql`: `pm_lp_config`'s CHECK admits 12,000 and its row is set there; no other column. The
+    turn uses min(config, code), so either deploy alone keeps 6,000; `lock_timeout` 3 s, safe while live.
+  - Live-prep's Addendum 6 and mid-pool's Addendum 7 (deviation 7); a dated note on the design doc's "POSTs a day" row.
+  - Pins: `pm_lp.test.ts` (lpLimits; an armed day at 6,001 posts on, withheld at 12,000, and at 6,000 with the config
+    at 6,000), `pm_live.test.ts`/`pm_mid.test.ts` (mini-pool's and mid-pool's governors stop at 6,000),
+    `src/pm_live_hash.test.js` (the bytes and the addenda chain). 221 `pm_*`/`polymarket*` Deno tests pass.
+  - After deploy: `select max_posts_day from public.pm_lp_config;` reads 12000 and
+    `select state->'limits'->>'maxPosts' from public.pm_lp_state;` reads 12000 once both have landed.
+
 ### [2026-10-09 01:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Reward quotes live-prep is LIVE since 2026-10-09 01:32:21 UTC** (Davies: "可以按原计划上线 … 期间你再验证一下所有系统和
   下单等所有上线会用到的细节都确保没有问题", then "live-prep等代理修好后你再审核一遍，确定所有都没问题了再上线，并且上线后派个便宜
