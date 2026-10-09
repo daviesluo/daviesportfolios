@@ -1,0 +1,16 @@
+sql/checks.sql, read 2026-10-09 ~00:48 UTC (the connector's reply, as rows):
+edge_calls  agents?action=pmrw          enabled false
+edge_calls  agents?action=pmrw-select   enabled false
+edge_calls  agents?action=pmrw-e        enabled false
+edge_calls  agents?action=pmrw-x        enabled false
+edge_calls  agents?action=pmrwc         enabled true
+edge_calls  agents?action=pmrwc-e       enabled true
+edge_calls  agents?action=pmrwc-x       enabled true
+edge_calls  agents?action=pmrwc-select  enabled true
+cron.job    edge-calls-every-minute     * * * * *   active true
+cron.job    edge-calls-retire-after-rw  (none: unscheduled itself; no run history remains under a job id)
+tick beats last 60 minutes: 60, 2026-10-08 23:48 -> 2026-10-09 00:47
+pm_rwc_days 2026-10-08: detail->>'phase' = warm-up, closed 2026-10-09 00:02:00.8 UTC
+RW's minutes stored against 1,440 due: 09-25 1440, 09-26 1439, 09-27 1438, 09-28 1436, 09-29 1434, 09-30 1440,
+10-01 1438, 10-02 1319, 10-03 1436, 10-04 1436, 10-05 1439, 10-06 1436, 10-07 1240, 10-08 1429; 19,800 of 20,160
+10-08's missing minutes (from data/rw_min_2026-10-08.json): 00:00 00:10 00:30 00:40 00:50 01:00 01:10 02:37 05:52 20:00 20:52

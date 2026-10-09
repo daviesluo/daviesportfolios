@@ -1,0 +1,92 @@
+run_market beside stepRw, 204 quoted markets: fills equal to pm_rw_fills in 132, rewards within $0.01 of pm_rw_minutes' in 116
+markets where they differ (run_market quotes each market under its first selection's programme and holds its 3N across days; it decides nothing):
+  0x001dbe01b0 'Will Mistral Large 4 debut at a score of at least ': run_market fills 17 rewards 38.3838 | record fills 16 rewards 34.9471
+  0x02b456eaeb 'Will the lowest temperature in Seoul (Incheon) be ': run_market fills 7 rewards 0.9986 | record fills 8 rewards 1.1569
+  0x058f717827 'Will the highest temperature in Seattle be between': run_market fills 4 rewards 0.3027 | record fills 12 rewards 0.5664
+  0x06ca2b6117 'Will the highest temperature in Jinan be 26°C or h': run_market fills 6 rewards 4.1990 | record fills 7 rewards 4.4966
+  0x06cb013079 "Will MrBeast's next video get between 70 and 80 mi": run_market fills 62 rewards 27.5494 | record fills 72 rewards 25.7920
+  0x08c90e15f1 'Will the median home value in Miami be between $80': run_market fills 6 rewards 11.8574 | record fills 6 rewards 12.3437
+  0x093eb8fc0e 'Will the lowest temperature in Hong Kong be 27°C o': run_market fills 13 rewards 35.5777 | record fills 14 rewards 34.8428
+  0x0aa8d6f5ca 'Will the highest temperature in Wellington be 15°C': run_market fills 32 rewards 2.4335 | record fills 59 rewards 5.3027
+  0x0e4d7e1187 'Will the lowest temperature in Paris be 15°C on Se': run_market fills 5 rewards 1.9882 | record fills 6 rewards 2.0016
+  0x104d2f669d 'Will the lowest temperature in Hong Kong be 28°C o': run_market fills 111 rewards 13.7075 | record fills 112 rewards 13.7372
+  0x12d2f97bbc 'Will the lowest temperature in Paris be 14°C on Se': run_market fills 4 rewards 6.8298 | record fills 5 rewards 6.8520
+  0x12f62fed8b 'Will JiJieHao qualify to PGL Major Singapore 2026?': run_market fills 1 rewards 17.6458 | record fills 1 rewards 14.2240
+  0x1471f957af 'Will the highest temperature in Wellington be 15°C': run_market fills 40 rewards 3.2555 | record fills 45 rewards 3.2716
+  0x1a79f92665 'Will the highest temperature in Singapore be 30°C ': run_market fills 40 rewards 4.0138 | record fills 43 rewards 4.0939
+  0x1cf92cd0c9 'Will the lowest temperature in New York City be be': run_market fills 2 rewards 1.1927 | record fills 2 rewards 0.9564
+  0x1d81e5007f 'Will the lowest temperature in London be 13°C on O': run_market fills 8 rewards 17.3608 | record fills 12 rewards 13.8356
+  0x20458ef6bd "Will MrBeast's next video get 100 million or more ": run_market fills 89 rewards 31.6475 | record fills 95 rewards 31.8632
+  0x24802a9892 'Will "Patient Zero" hit 45m first week streams?': run_market fills 12 rewards 15.6865 | record fills 11 rewards 17.0543
+  0x251caae983 'Will the next Claude Sonnet model be released on S': run_market fills 67 rewards 27.6085 | record fills 71 rewards 27.6197
+  0x26150fa0b6 'SPY (SPY) Up or Down on October 1?': run_market fills 130 rewards 9.9911 | record fills 131 rewards 10.0986
+  0x27daefcec9 'Will the lowest temperature in Seoul (Incheon) be ': run_market fills 24 rewards 31.0566 | record fills 24 rewards 31.2539
+  0x282f344569 'Will Maura Higgins be eliminated in week 4 of Danc': run_market fills 55 rewards 6.2377 | record fills 72 rewards 24.1696
+  0x2ccb453eae 'S&P 500 (SPX) Up or Down on October 8?': run_market fills 78 rewards 2.2341 | record fills 89 rewards 3.0468
+  0x2f2abc1007 'Will Ronaldo post about Messi by October 7?': run_market fills 41 rewards 9.9410 | record fills 47 rewards 9.2806
+  0x32397f6683 'Will the lowest temperature in Hong Kong be 27°C o': run_market fills 58 rewards 4.7991 | record fills 65 rewards 5.2573
+  0x340319a8af 'Shipping targeted in Hormuz on October 4, 2026?': run_market fills 3 rewards 16.3463 | record fills 5 rewards 15.3486
+  0x3666203dea "Will MrBeast's next video get 147 million or more ": run_market fills 11 rewards 15.2533 | record fills 20 rewards 17.0925
+  0x3b3b965c70 'Will the highest temperature in Seoul (Incheon) be': run_market fills 77 rewards 7.9010 | record fills 83 rewards 8.4138
+  0x4544bd652f 'Will the highest temperature in Wellington be 16°C': run_market fills 28 rewards 4.3949 | record fills 33 rewards 4.4166
+  0x470355663a 'Will the highest temperature in Wellington be 18°C': run_market fills 30 rewards 1.9283 | record fills 38 rewards 2.0027
+  0x48e81dfc76 'WTI Crude Oil (WTI) closes above $86 on October 7?': run_market fills 0 rewards 11.4533 | record fills 1 rewards 9.2467
+  0x4921e1e179 'Will the highest temperature in Seattle be between': run_market fills 4 rewards 1.2425 | record fills 9 rewards 1.3089
+  0x49f9103ae5 'Will the announcers say "Fumble" or "Fumbles" duri': run_market fills 3 rewards 3.1699 | record fills 3 rewards 3.0024
+  0x4a6d4c72d8 'Will 20-24 ships transit the Strait of Hormuz betw': run_market fills 12 rewards 4.6134 | record fills 17 rewards 4.7138
+  0x50ab1fc7eb 'Will the lowest temperature in Shanghai be 23°C on': run_market fills 7 rewards 16.4840 | record fills 8 rewards 16.4944
+  0x50f44d99d1 'Will the lowest temperature in Paris be 13°C on Se': run_market fills 2 rewards 3.6117 | record fills 3 rewards 4.5475
+  0x52b22b88d6 'Will “The Fate of Ophelia” by Taylor Swift win Bes': run_market fills 1 rewards 0.1865 | record fills 2 rewards 0.2426
+  0x5766b0fe1e 'Will the highest temperature in Wellington be 16°C': run_market fills 29 rewards 3.6082 | record fills 33 rewards 4.0909
+  0x586397f464 'Will the lowest temperature in Shanghai be 22°C on': run_market fills 13 rewards 13.5118 | record fills 13 rewards 12.9709
+  0x5cfb7551e8 'Will Ezra Frech be eliminated in week 4 of Dancing': run_market fills 60 rewards 17.1761 | record fills 84 rewards 34.6130
+  0x5d4e21ca96 "Will MrBeast Gaming's next video get between 29.5 ": run_market fills 28 rewards 15.6151 | record fills 36 rewards 16.7711
+  0x649f567baf 'Will Amber Glenn be eliminated in week 4 of Dancin': run_market fills 21 rewards 6.2370 | record fills 27 rewards 8.0816
+  0x690a6b7962 'Will the lowest temperature in Shanghai be 16°C on': run_market fills 16 rewards 5.8396 | record fills 15 rewards 4.6600
+  0x6bfca3af65 'Will the highest temperature in Chongqing be 20°C ': run_market fills 43 rewards 4.7657 | record fills 75 rewards 6.4109
+  0x712984a62e 'Will the highest temperature in Qingdao be 22°C on': run_market fills 15 rewards 10.5599 | record fills 26 rewards 11.0632
+  0x7409f201ce 'Will South Korea ETF (EWY) hit (LOW) $182 Week of ': run_market fills 4 rewards 5.1794 | record fills 5 rewards 4.1045
+  0x770afa4933 'Next Fable Model (5.2+) released by October 10, 20': run_market fills 46 rewards 21.5378 | record fills 46 rewards 21.8158
+  0x7a3873a469 "Will MrBeast's next video get 176 million or more ": run_market fills 20 rewards 4.3352 | record fills 29 rewards 14.6230
+  0x7bfc4ff349 'Will the highest temperature in Lucknow be 25°C on': run_market fills 21 rewards 3.0719 | record fills 26 rewards 3.1644
+  0x80731d4943 'Will the lowest temperature in Paris be 13°C on Se': run_market fills 3 rewards 1.0157 | record fills 3 rewards 1.1942
+  0x80a235b51a 'Will Manuel Enrique Vera Paredes win the next Areq': run_market fills 9 rewards 4.2828 | record fills 9 rewards 3.8374
+  0x8231a375f3 'WTI Crude Oil (WTI) Up or Down on October 8?': run_market fills 39 rewards 23.4556 | record fills 36 rewards 17.7242
+  0x832efb5f9a 'Will the lowest temperature in Hong Kong be 24°C o': run_market fills 38 rewards 5.1394 | record fills 39 rewards 5.2711
+  0x8af96adee9 'SPY (SPY) Up or Down on September 29?': run_market fills 46 rewards 5.7750 | record fills 50 rewards 5.8593
+  0x8c55653015 'Will Jynxzi, Ron or Los be eliminated by an explos': run_market fills 5 rewards 23.7966 | record fills 5 rewards 23.4109
+  0x93ddd4c58e 'Will the highest temperature in Wellington be 14°C': run_market fills 7 rewards 0.7526 | record fills 20 rewards 1.0610
+  0x97450fbe0f 'Will the highest temperature in Madrid be 27°C on ': run_market fills 24 rewards 9.8148 | record fills 28 rewards 10.3803
+  0x987c38eab9 "Will MrBeast's next video get between 145 and 147 ": run_market fills 12 rewards 13.9541 | record fills 19 rewards 11.7080
+  0x9989cada9c 'Will South Korea ETF (EWY) hit (LOW) $178 Week of ': run_market fills 3 rewards 0.1405 | record fills 3 rewards 0.1100
+  0x9c0ba9df53 'Will the lowest temperature in New York City be be': run_market fills 4 rewards 4.4486 | record fills 6 rewards 6.1056
+  0x9dc60ea2d1 'Will the highest temperature in Qingdao be 27°C on': run_market fills 30 rewards 7.7379 | record fills 31 rewards 7.7752
+  0xa476fad551 'Will Harry Shum Jr. be eliminated in week 4 of Dan': run_market fills 60 rewards 17.1033 | record fills 164 rewards 16.3373
+  0xa58aee28c1 'Will the highest temperature in Lucknow be 33°C on': run_market fills 17 rewards 7.1803 | record fills 17 rewards 7.2180
+  0xa85b2baf46 'Will the highest temperature in Beijing be 27°C on': run_market fills 34 rewards 4.4408 | record fills 46 rewards 4.4931
+  0xaa18ed40e8 'Will the highest temperature in San Francisco be b': run_market fills 3 rewards 0.2063 | record fills 18 rewards 0.2236
+  0xafe162fc6b "Will MrBeast Gaming's next video get between 31.5 ": run_market fills 46 rewards 19.9724 | record fills 52 rewards 18.7444
+  0xb06e2cdf09 'Will Ronaldo Caiado finish in fourth place in the ': run_market fills 71 rewards 14.3659 | record fills 73 rewards 14.3270
+  0xb3312bbe90 "Will MrBeast Gaming's next video get between 24 an": run_market fills 44 rewards 14.0918 | record fills 59 rewards 16.1379
+  0xb5f008d6e1 'Will the lowest temperature in Paris be 12°C on Se': run_market fills 2 rewards 3.4741 | record fills 4 rewards 4.0508
+  0xb68b0f25f8 'Will the lowest temperature in Paris be 16°C on Se': run_market fills 15 rewards 13.3191 | record fills 15 rewards 12.1437
+  0xba6b08cb1d 'Will the highest temperature in Chongqing be 27°C ': run_market fills 33 rewards 10.5562 | record fills 34 rewards 10.5562
+  0xbe08e56a48 'WTI Crude Oil (WTI) Up or Down on October 7?': run_market fills 35 rewards 18.4407 | record fills 35 rewards 17.4768
+  0xc23ea77727 'Will the highest temperature in Beijing be 28°C on': run_market fills 36 rewards 7.2723 | record fills 43 rewards 7.3508
+  0xc8a44cee25 'Will the highest temperature in Beijing be 28°C on': run_market fills 32 rewards 9.1438 | record fills 52 rewards 9.7271
+  0xc994dc58c5 'Over $15M committed to the Jumper public sale?': run_market fills 3 rewards 0.1750 | record fills 6 rewards 0.3510
+  0xd233ee97ec 'Will Zelenskyy post 100-119 posts from October 2 t': run_market fills 11 rewards 16.0123 | record fills 14 rewards 13.9416
+  0xd36a35255f 'Will the highest temperature in Madrid be 26°C on ': run_market fills 38 rewards 13.1663 | record fills 48 rewards 13.8917
+  0xd39c70b229 'Will it rain in Houston, TX on October 5?': run_market fills 8 rewards 8.8296 | record fills 8 rewards 9.3174
+  0xd4fd7163d0 'Will the highest temperature in Busan be 25°C on O': run_market fills 39 rewards 5.4555 | record fills 47 rewards 5.9380
+  0xd65c558815 'Will it rain in Phoenix, AZ on September 29?': run_market fills 5 rewards 12.0718 | record fills 6 rewards 10.5909
+  0xdc1938b47e 'Will WTI Crude Oil (WTI) hit (LOW) $90 Week of Oct': run_market fills 3 rewards 0.9857 | record fills 3 rewards 0.9601
+  0xdd9cbf8a9e 'Will the biggest earthquake on October 1, 2026 be ': run_market fills 1 rewards 8.9154 | record fills 10 rewards 26.0362
+  0xe0de4f1a92 'Will the lowest temperature in New York City be be': run_market fills 4 rewards 2.2875 | record fills 5 rewards 2.2980
+  0xe1b7b21832 'Will the lowest temperature in Seoul (Incheon) be ': run_market fills 16 rewards 16.2450 | record fills 18 rewards 16.2999
+  0xe222eee011 'Will the highest temperature in Tokyo be 24°C on S': run_market fills 29 rewards 2.5777 | record fills 31 rewards 2.5777
+  0xe5a42eb19b 'Will Airbnb, Inc. (ABNB) hit (LOW) $152 Week of Se': run_market fills 3 rewards 17.3144 | record fills 4 rewards 13.3421
+  0xef6d6c4805 'Will the highest temperature in Jinan be 25°C on S': run_market fills 2 rewards 1.6253 | record fills 2 rewards 1.6980
+  0xf01d29bbc8 'S&P 500 (SPX) Opens Up or Down on October 5?': run_market fills 34 rewards 6.0012 | record fills 35 rewards 6.0367
+  0xf2c9821a7b 'Will the highest temperature in Wellington be 15°C': run_market fills 3 rewards 0.4985 | record fills 12 rewards 0.5753
+  0xf960a96f3f 'Rain during the Bahrain Grand Prix?': run_market fills 20 rewards 26.3753 | record fills 20 rewards 17.0991

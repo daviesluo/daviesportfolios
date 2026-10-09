@@ -1,0 +1,41 @@
+{
+ "study": "RW verdict of 2026-10-09: RW, RW-E, RW-X1-X3 bars, RW-X4/X5 Test 1, steps b (stepRw replay) and c (prints re-pulled), RW-NEXT Part 1",
+ "write_up": "docs/agents/reviews/2026-10-09-polymarket-rw-paper-result.md",
+ "inputs": {
+  "data/rw_min_2026-10-08.json.gz": "sql/pull_minutes.sql on pm_rw_minutes for 2026-10-08, read 2026-10-09 00:42 UTC; 09-25 -> 10-07 are ../pmlp/data and ../rwc_opt/data",
+  "data/rw_record.json.gz": "sql/pull_record.sql on pm_rw, 2026-10-09 00:42 UTC",
+  "data/days.json.gz": "sql/days.sql, 2026-10-09 00:42 UTC",
+  "data/prints_full.json.gz": "scripts/pull_prints.ts, /v2/trades re-pulled 2026-10-09 ~00:45 UTC"
+ },
+ "run": [
+  "cd docs/agents/backtests/rwverdict",
+  "python3 -I scripts/verdict.py data/days.json > results/verdict.txt  # (gunzip -k data/days.json.gz first, or it reads the .gz)",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --no-check scripts/replay.ts --out results/replay_record.json",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-net --no-check scripts/pull_prints.ts > results/prints_check_out.txt",
+  "python3 -I scripts/rwtest_beside.py > results/rwtest_beside.txt"
+ ],
+ "sha256": {
+  ".gitignore": "c30780ff43d1a75826e69cba0ee24b861f64ba295ab530fab619408a12c0cd64",
+  "data/days.json.gz": "c80c5e89211285905f6b671f33d3204fb41b0f0b20adc22bea80db4e75b7af57",
+  "data/prints_full.json.gz": "77910743135640e8ae4d4b7279a158f1b1e4528dc34218eb0c71a9685d14033f",
+  "data/rw_min_2026-10-08.json.gz": "957a2a3bf5afe550e3ec94714f403fe3f16c69e92c058590bf033f04f00baad4",
+  "data/rw_record.json.gz": "8b409c6ba077e587d4a0eb8245a3bac899f7ae0e07d0668b0b4ff9c46e4941ef",
+  "results/checks_out.txt": "081fae6534dbded5de3299b9d1166f4370b56ca16195727d5bed5529fb640525",
+  "results/prints_check.json": "66ca625b98ea44e45c9f83b67a5b9d69df75745fbca7613f3357a6387e73e8be",
+  "results/prints_check_out.txt": "d00d4e6a4f9c53b801bf4c0e1677400c99057c44f0471699fdfef31713798bd6",
+  "results/prints_pull_log.txt": "4e430f3ecc3287a55741f937c0621d7d03ac69ba68e2b21f1213bd208a21c548",
+  "results/replay_record.json": "5098cc52cf54f68ada3029ceeaaa6d57b0bff947e35a26601540657d3e3dd959",
+  "results/rwtest_beside.txt": "802168c3e99a9e548b9949376132177db365e35cb651f5d3459b0a711c0d40ba",
+  "results/verdict.txt": "9f4453be7d1f4c50ae6dff89653f29cf851430136e36c7dd380012cfc9f72661",
+  "scripts/grab.py": "95d381fe51014be245a45853a5898faf855f8bea972b6deb3db0a49b4d4189b8",
+  "scripts/grab_payload.py": "0cc6063510f0647a28a07f1cbc1947c8a1da2782ebc9cfea09ce4d887cf36f20",
+  "scripts/pull_prints.ts": "cb9c50f19fccd50c8c1949d11aaba1a97fae37441b8b4f75f7e857a5e8fb18b6",
+  "scripts/replay.ts": "92ecdf83a7d5629861ff941215cb735896fd640ebd2a6bb59ecf96b8dc3f7d5b",
+  "scripts/rwtest_beside.py": "9b356d5653be57870e59ba44749da58dbc1095bad85effb46e7e6b7c4684e191",
+  "scripts/verdict.py": "0a028536225cd3c851888d0622687bec8b5a182c78d8abd8ad727268fb349fca",
+  "sql/checks.sql": "1abc24cdb35ec2f0b37465ff6136ca0d1d4dc8950e1018ac19fc296a8c7e77f6",
+  "sql/days.sql": "a9dfbec393481bc1381a061e662007acca90e42775c589f80074c26f7af87267",
+  "sql/pull_minutes.sql": "f666bbaae0fca7101b8b23537dccee4fc907143bde5ec047d39f9d121202e7ca",
+  "sql/pull_record.sql": "70a9388ec01e7439c60f7fd07d95b84f93b273eea5543e72db8a388dd4834bf1"
+ }
+}

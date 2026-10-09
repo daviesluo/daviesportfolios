@@ -3205,6 +3205,31 @@ every script re-run byte-identical by the coordinating session).
 - **Closed.** It reopens only on a binding closing event at NAV on a name this account can buy, or a coin hedge open
   to UK retail.
 
+### 3.46 RW's paper verdict: RW, RW-E and RW-X1–X3 pass, RW-X4/X5's Test 1 is void, and RW-NEXT names RW-E (2026-10-09)
+
+Read once after `pm_rw_days` closed 10-08 (`reviews/2026-10-09-polymarket-rw-paper-result.md`,
+`backtests/rwverdict/`; not blind). **The checks:**
+
+- `stepRw` over the 19,800 stored minutes reproduces all 4,116 fills, and every day to $1.6e-12.
+- Every quoted market's prints, pulled again from `/v2/trades`, are the 13,634 stored, none missed.
+- RW-E's and RW-X's replays equal `pm_rw_days` and `pm_rw_e_days` to $0.
+
+**The bars:**
+
+- **RW: 6 of 6.** Fourteen days, total +$1,981.72, stress +$94.79, 4,116 fills, best market 4.6 %, bootstrap +$1,272.08,
+  capital $2,609.68.
+- **RW-E: 7 of 7.** Twelve days, total +$1,167.04, stress +$289.96 against RW's +$123.31, 1,502 fills, bootstrap +$780.15.
+- **x1, x2, x3: each 7 of 7.** Eleven days; totals +$1,097.83, +$1,170.90 and +$1,124.91; stress +$405.61, +$397.90 and
+  +$438.96 against RW-E's +$365.72.
+- **RW-NEXT Part 1.** None beats RW-E in the paired bootstrap at index 33 (−$54.10, −$58.03, −$51.15). **The candidate is
+  RW-E**, to RW-C, with Part 3's bar on or after 10-23.
+- **RW-X4/X5's Test 1 is void.** Its Addendum 1's copy check reads 10-01 rows that never existed: the arms joined on
+  10-02 at 18:23 UTC. Its slip rule held.
+  - Descriptively, both would fail condition 7 against x1 (stress −$22.51 and −$25.25) and pass the other six.
+  - Neither points to a change in mid-pool's rule.
+- **Deviation named in advance:** RW stored 1,429 of 10-08's 1,440 minutes (the seven `:X0` minutes and four more), and
+  19,800 of 20,160 in all.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
@@ -3667,6 +3692,7 @@ every script re-run byte-identical by the coordinating session).
       −$9.94. x4 equals x1 by design: at a 1¢ tick one tick out keeps a median 0.57 of the share, so its 0.9 keep never
       binds (it moved only in 0.1¢-tick markets on 10-02); x5 trails x1 by $8.72 since the 10-02 row (rewards −12.84, fills
       +4.12). Neither pool has chosen a post-count or view-count market. No exclusion is proposed.
+    - **The verdict, 2026-10-09 (§3.46):** RW passes 6 of 6, RW-E 7 of 7 and x1–x3 7 of 7; RW-NEXT's candidate is RW-E, which goes to RW-C; x4/x5's Test 1 is void.
 
 37. **Revolut X's four stablecoin books are recorded from 2026-09-26 (migration `0057`, `agents/books.ts`).** The fp5 review (`reviews/2026-09-26-fp5-review.md`) found that on a pegged book a resting quote is filled by its place in the queue far more often than by the price moving through it, and that nothing on record said how long the queue was: PR5's paper fills count only prints strictly through a quote. `agents?action=books` reads the top five levels a side (price, quantity, orders) of USDC-USD, USDT-USD, USDC-GBP and USDT-GBP once a minute from the keyless public book (`/api/2.0/public/order-book/{SYM}?region=UK&limit=5`) and stores a book only when it changed; a daily job prunes what is older than 35 days. Nothing reads the table but a study, and the queue model it is for must be pre-registered before any of it is read (the ledger's fp5 item). **Its first version read the four books at once at :00 and lost three to 429 every minute** (18:16–18:20 UTC: the public bucket is about a token a second, and the tick reads it from :00); from migration `0058` it reads 40 s into the minute, after the tick's reads and PR5's (from :25), one book every 1.25 s in an order that turns each minute, and stops at the first 429. A row's `ts` is the instant its reading arrived, `seen_until` the last reading that found the same book and `reads` how many did, so a book that stood still is told apart from one nobody read.
 

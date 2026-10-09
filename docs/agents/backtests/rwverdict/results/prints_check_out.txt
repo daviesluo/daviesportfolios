@@ -1,0 +1,10 @@
+{
+ "pulledAt": "2026-10-09T00:45:19.293Z",
+ "markets": 204,
+ "inQuoted": 13634,
+ "stored": 13634,
+ "missed": 0,
+ "extra": 0,
+ "incomplete": 0,
+ "perMarket": {}
+}

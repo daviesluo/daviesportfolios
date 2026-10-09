@@ -1,0 +1,1847 @@
+{
+ "pulledAt": "2026-10-09T00:45:19.293Z",
+ "markets": 204,
+ "inQuoted": 13634,
+ "stored": 13634,
+ "missed": 0,
+ "extra": 0,
+ "incomplete": 0,
+ "perMarket": {
+  "0x001dbe01b0efec60aa43f777b3d7dbf7605f59fd7895ba9aee7a136405b53047": {
+   "quotedMinutes": 1418,
+   "pulled": 69,
+   "inQuoted": 67,
+   "stored": 67,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x02b456eaebb4fa56b3104ea3989f3c7b18327663c20cdbb444ae83bca50edf33": {
+   "quotedMinutes": 880,
+   "pulled": 30,
+   "inQuoted": 28,
+   "stored": 28,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x04dd18f13bf58d67099bfba9e04f5bd5362e57b3b868fb2005f3abeec3eaa218": {
+   "quotedMinutes": 1435,
+   "pulled": 236,
+   "inQuoted": 42,
+   "stored": 42,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x04fc3028e4915d0e137a54bbc5fd667c5fb2d763b66442edffb0137acab09b00": {
+   "quotedMinutes": 1438,
+   "pulled": 89,
+   "inQuoted": 45,
+   "stored": 45,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x051ddc65cb9fab1200c14f0a24d7d5aec5cb969ed296d8a6e9ce1aba8afff6d7": {
+   "quotedMinutes": 1438,
+   "pulled": 333,
+   "inQuoted": 81,
+   "stored": 81,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x058f7178275918a26a6808fd6e10cad66b2a6ded0024665581b9213a8b9dbe75": {
+   "quotedMinutes": 61,
+   "pulled": 55,
+   "inQuoted": 29,
+   "stored": 29,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x06c9a9e868fc03015b1209504853d55f2669f3975988345c5dc1a35dae12f1ee": {
+   "quotedMinutes": 177,
+   "pulled": 102,
+   "inQuoted": 67,
+   "stored": 67,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x06ca2b61177c3192c9a08884afffddac59b6aa60d53e8483f78352f1c15fb14f": {
+   "quotedMinutes": 284,
+   "pulled": 20,
+   "inQuoted": 18,
+   "stored": 18,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x06cb0130791e73595d2d22cceb1baaa9cae7dddfac52968dca7ca403c8cd3cc4": {
+   "quotedMinutes": 750,
+   "pulled": 197,
+   "inQuoted": 185,
+   "stored": 185,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x08c90e15f164e0cc677923fb6a8b7eae14886f4f3afeab0d3bf758bbeaea3fa1": {
+   "quotedMinutes": 2870,
+   "pulled": 99,
+   "inQuoted": 13,
+   "stored": 13,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x093eb8fc0e4822654cb3ec74230ef4b88786a14259dce732ea6144e221dc760b": {
+   "quotedMinutes": 880,
+   "pulled": 58,
+   "inQuoted": 49,
+   "stored": 49,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0947264cf061021fc8c4fbdf29d74c8b39acfc60fe7d322f388d49563037a052": {
+   "quotedMinutes": 1435,
+   "pulled": 78,
+   "inQuoted": 70,
+   "stored": 70,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x09d228140baff44da077b22a58e20fd40902de705ec9ca3bd02cf012a6965797": {
+   "quotedMinutes": 51,
+   "pulled": 16,
+   "inQuoted": 11,
+   "stored": 11,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0aa8d6f5ca93d5a16d74da7cf037b662c6dd8d05d001cffcfbf98f0c6b74126b": {
+   "quotedMinutes": 464,
+   "pulled": 222,
+   "inQuoted": 209,
+   "stored": 209,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0b26809bba4bc81cd4e77cb4d509f59049fb8abad1d683ce692e9ca5406ff858": {
+   "quotedMinutes": 1439,
+   "pulled": 292,
+   "inQuoted": 175,
+   "stored": 175,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0d06ee85e73db423682291fbc00b0b269ed3e317b0a06235b6a676156015e47a": {
+   "quotedMinutes": 1193,
+   "pulled": 96,
+   "inQuoted": 94,
+   "stored": 94,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0e4d7e11878c607dab0d400c9c183f51b963063851d01c3971aa67dd86c326e2": {
+   "quotedMinutes": 213,
+   "pulled": 17,
+   "inQuoted": 14,
+   "stored": 14,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x0edb2842978e65dc8ab149c7c5f2a86899ea895ada224f37a7024210f7504818": {
+   "quotedMinutes": 1426,
+   "pulled": 40,
+   "inQuoted": 40,
+   "stored": 40,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x104d2f669d765dd6b152d027ce28eedffee51989d35dc28b89ff056b0608565f": {
+   "quotedMinutes": 1433,
+   "pulled": 265,
+   "inQuoted": 223,
+   "stored": 223,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1179fd5bb270afd89cef8a32d5d9be016b53815d227af34f20e100a73ff6ef94": {
+   "quotedMinutes": 354,
+   "pulled": 7,
+   "inQuoted": 5,
+   "stored": 5,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x12d2f97bbcd0ca24a9ac18b168ee3da747854735378ec7186b67951c4b7516f8": {
+   "quotedMinutes": 243,
+   "pulled": 21,
+   "inQuoted": 16,
+   "stored": 16,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x12f62fed8b7d9dbce2b4169b7c2a8196c30a771bc99b008960eee238699d9260": {
+   "quotedMinutes": 1318,
+   "pulled": 4,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1471f957af1a53d8958e21b97b8b7b80904f1ddcecaca87ec156e23f90f29dff": {
+   "quotedMinutes": 321,
+   "pulled": 234,
+   "inQuoted": 206,
+   "stored": 206,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x15f4ce0f4d6fb1a1af9411d0ae249fe4129cd6b733ece8124ce45bf05b9a1f71": {
+   "quotedMinutes": 1439,
+   "pulled": 1,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x190b35a2f84a724339fcd20ae62f54f6f096b4db8d4a7ace1517062dc4525b61": {
+   "quotedMinutes": 127,
+   "pulled": 4,
+   "inQuoted": 3,
+   "stored": 3,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1a79f92665c9c453c537f9cd3264304949fcdb823bb417f37bc0490b790ac10a": {
+   "quotedMinutes": 438,
+   "pulled": 159,
+   "inQuoted": 138,
+   "stored": 138,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1c082e809bdd713dd5b5115a3a83bf4dcb3a7674bed089e384c42bf0805086ea": {
+   "quotedMinutes": 1435,
+   "pulled": 40,
+   "inQuoted": 20,
+   "stored": 20,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1cf92cd0c9e053d8c5a2e97dff6df2f2749fdc841b8e45d2f9014de46cd2a8a7": {
+   "quotedMinutes": 87,
+   "pulled": 4,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1d0bef76edd42feadd797b3f2bf86046df818134167a4c9e6514df298f73670c": {
+   "quotedMinutes": 1434,
+   "pulled": 77,
+   "inQuoted": 77,
+   "stored": 77,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1d81e5007f2c9483df49f2116e0c0c94e585506a1040e1520c1cbbd921b80479": {
+   "quotedMinutes": 1371,
+   "pulled": 40,
+   "inQuoted": 38,
+   "stored": 38,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x1e6b21ebd7b7740b6ea6a1553013586f6afd85f41eae68922d2eeb352ff8312e": {
+   "quotedMinutes": 1437,
+   "pulled": 50,
+   "inQuoted": 14,
+   "stored": 14,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x20458ef6bdaeb4ea2e5c77e885d54ca1400be9b13a949dd732b09e0350ec10d9": {
+   "quotedMinutes": 825,
+   "pulled": 214,
+   "inQuoted": 207,
+   "stored": 207,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x23070ac725260b5a78f7e3b8f2e3f3557bf42a72e139c490524656745536f3f9": {
+   "quotedMinutes": 1435,
+   "pulled": 24,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x242e95ad01b8317b1514da563a24b9f7b1187957820301508a86f5ce4a6155df": {
+   "quotedMinutes": 1438,
+   "pulled": 149,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x24802a989202611ceac29aaa18a74e1f207d7bfef88ce64c0d9c426b3c9216f6": {
+   "quotedMinutes": 2876,
+   "pulled": 31,
+   "inQuoted": 23,
+   "stored": 23,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x251caae983a3f50c832c2c02e38043c445c8175f2c0faff2e5926b86632b5488": {
+   "quotedMinutes": 1077,
+   "pulled": 181,
+   "inQuoted": 170,
+   "stored": 170,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x26150fa0b6e11be51544d69cce2fe8b03893e5aa9188d4bb3d1cb4843c87c39a": {
+   "quotedMinutes": 1198,
+   "pulled": 682,
+   "inQuoted": 681,
+   "stored": 681,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2733b8f437b913c81239fb8699e9e7901b375558e3519992c4df84cb0a0f2034": {
+   "quotedMinutes": 1433,
+   "pulled": 54,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x27daefcec97deadf6e419e94afe86570b8c9661425e2ba476f081da4bde58723": {
+   "quotedMinutes": 844,
+   "pulled": 57,
+   "inQuoted": 52,
+   "stored": 52,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x282a94fe878e665992131c77e04583d413203425de086980b6489bf905a74b2d": {
+   "quotedMinutes": 1439,
+   "pulled": 55,
+   "inQuoted": 17,
+   "stored": 17,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x282f3445692740b3e4dd4ba87ef82197abd1f2d47d40c880799ccd702006c951": {
+   "quotedMinutes": 1318,
+   "pulled": 98,
+   "inQuoted": 94,
+   "stored": 94,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x29cb352dd52a65118d3d91c929ce09aeefb6205c0e35e6e9334adae347e3afc1": {
+   "quotedMinutes": 1435,
+   "pulled": 56,
+   "inQuoted": 48,
+   "stored": 48,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2a7dc2dc77f3c0754f90992bf665e2e4e6a981c7926406c09ea69ee4dc4d2286": {
+   "quotedMinutes": 1438,
+   "pulled": 187,
+   "inQuoted": 27,
+   "stored": 27,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2b9931e13d436ee68b2870d31400f5bed8f5f13ad321355d0fd1048f706bba6a": {
+   "quotedMinutes": 1433,
+   "pulled": 191,
+   "inQuoted": 15,
+   "stored": 15,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2c8d321c54ea7c4b488059173ebbd0d6f31856fbf5355d2b0d5f1b10863898c0": {
+   "quotedMinutes": 1432,
+   "pulled": 85,
+   "inQuoted": 62,
+   "stored": 62,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2ccb453eae5df3e516e635ecdd22da9a3e0913f93f8b856ea5099e7fc4190a28": {
+   "quotedMinutes": 1177,
+   "pulled": 446,
+   "inQuoted": 441,
+   "stored": 441,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2e1fdf82f795c03a2e81102298b2f49f982e5baa8ba2ff847fe949cc24f2747d": {
+   "quotedMinutes": 233,
+   "pulled": 52,
+   "inQuoted": 41,
+   "stored": 41,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x2f2abc10076463216a712075bbd8405069f7c28bdc178553f83f5f09f11ba5aa": {
+   "quotedMinutes": 1191,
+   "pulled": 169,
+   "inQuoted": 136,
+   "stored": 136,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x32397f66834e82b310df9bd31070de7e33b279729ab3e8d4ff590b467b5ba289": {
+   "quotedMinutes": 1315,
+   "pulled": 200,
+   "inQuoted": 181,
+   "stored": 181,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x340319a8af184a2f2f149241919dbc8c8669a718726e51eeaaca308d5eafa734": {
+   "quotedMinutes": 1435,
+   "pulled": 8,
+   "inQuoted": 7,
+   "stored": 7,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3666203deab4c0bb0e479cafdf24eb8296056be28855dd4ab5c16c89dd03b4a0": {
+   "quotedMinutes": 446,
+   "pulled": 42,
+   "inQuoted": 40,
+   "stored": 40,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x38728ef5066697f2d9826d654244f80ce2a4e0151055a8b8826f558adaa96e3f": {
+   "quotedMinutes": 1294,
+   "pulled": 38,
+   "inQuoted": 38,
+   "stored": 38,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3899bb40e67c147e4142b303302c9b8816eaf245faa6ffae1d369bffdaf3f8ee": {
+   "quotedMinutes": 1438,
+   "pulled": 44,
+   "inQuoted": 15,
+   "stored": 15,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3b3b965c70bb91e026e1ac28b924327f449eb61a3f901df8fd135425bf6bf73e": {
+   "quotedMinutes": 441,
+   "pulled": 258,
+   "inQuoted": 247,
+   "stored": 247,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3c81e534502a5a23eecbc215aa82abfcded94bc563b2e0763dd09d7a4edb0bac": {
+   "quotedMinutes": 324,
+   "pulled": 99,
+   "inQuoted": 60,
+   "stored": 60,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3d2ee0a920b3a8315a8d0a4ec9baa0fe1be88441e33663c6a42980635e7b2771": {
+   "quotedMinutes": 1435,
+   "pulled": 137,
+   "inQuoted": 56,
+   "stored": 56,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x3de234337378bd42c3ef119bfc64c4dd88857186cbee092fa717220ccf7b2fe0": {
+   "quotedMinutes": 2674,
+   "pulled": 31,
+   "inQuoted": 9,
+   "stored": 9,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x43d0086640187cb08fffe4a5e6229ad352a9e7d20e455931f3ca16eadb102748": {
+   "quotedMinutes": 940,
+   "pulled": 16,
+   "inQuoted": 15,
+   "stored": 15,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x447914c97dc57f60f3b43bd1895b1df6736bac2d57c63abe7023c7f25429986c": {
+   "quotedMinutes": 1428,
+   "pulled": 32,
+   "inQuoted": 29,
+   "stored": 29,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4544bd652f26e97e2f00efc26068dfe1958f8cb362e92a2465f8c261a49ed990": {
+   "quotedMinutes": 309,
+   "pulled": 201,
+   "inQuoted": 170,
+   "stored": 170,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4611b382e5bea764589d1b889b8ce238b8fa4fbe2c4ab47a88b981f81c476b3a": {
+   "quotedMinutes": 1437,
+   "pulled": 104,
+   "inQuoted": 18,
+   "stored": 18,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x470355663a563b25661f918c334f1625bd3168cccd1f4b84a0bd1706e6b4d802": {
+   "quotedMinutes": 251,
+   "pulled": 210,
+   "inQuoted": 191,
+   "stored": 191,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x47c12965718ea95634333937704d3c7d18551f21fcd4fda317652c438b64fdcb": {
+   "quotedMinutes": 1428,
+   "pulled": 91,
+   "inQuoted": 82,
+   "stored": 82,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x47f0bf9bd71bbf7ea3243cd31a4fdfdc3a1c796d7242025b759546b954031a5b": {
+   "quotedMinutes": 876,
+   "pulled": 61,
+   "inQuoted": 59,
+   "stored": 59,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4884f80c878afd91ee3695e075442c57372c8f88e6940e71f65adfd7993c5052": {
+   "quotedMinutes": 1239,
+   "pulled": 125,
+   "inQuoted": 86,
+   "stored": 86,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x48e81dfc76fe39f0709f27c40b968d31d2941f3db6930694ac65bae0fdef2d47": {
+   "quotedMinutes": 1105,
+   "pulled": 2,
+   "inQuoted": 2,
+   "stored": 2,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4921e1e179073a0d8a5635d2a1bf942b6b417f6aa6aca6e26a87d3a162f648e1": {
+   "quotedMinutes": 56,
+   "pulled": 31,
+   "inQuoted": 19,
+   "stored": 19,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x49f9103ae5a9a4f161ac763fca548da812175255d4aa8bcdcece304ab83920ea": {
+   "quotedMinutes": 64,
+   "pulled": 5,
+   "inQuoted": 3,
+   "stored": 3,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4a6d4c72d86663a536102eccaa422e573b3df66b7e6afa12225778b39991212f": {
+   "quotedMinutes": 772,
+   "pulled": 23,
+   "inQuoted": 23,
+   "stored": 23,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4c5677ce981dea8766136b84bbe3594174eda19768f9c954692ea907e672132f": {
+   "quotedMinutes": 824,
+   "pulled": 209,
+   "inQuoted": 197,
+   "stored": 197,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4ca77416832460774146d32497a727358aa02d17a2bf9cd2e2c8babfeb872197": {
+   "quotedMinutes": 1435,
+   "pulled": 6,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4d0b90fb40e4e4e06e37ff63b1a00e4d22c2347c9eead42b8aaeb71ab8f631b9": {
+   "quotedMinutes": 1432,
+   "pulled": 856,
+   "inQuoted": 88,
+   "stored": 88,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x4fe2ad1ce65930f3e8ead4bb9952386373dde56fcb2535c20160c7c92d4ac8e7": {
+   "quotedMinutes": 1439,
+   "pulled": 2,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x50ab1fc7eb5d3c048ad35c25ad9af67c6e5f55d8b2f41def8aa536d99b6654e1": {
+   "quotedMinutes": 364,
+   "pulled": 27,
+   "inQuoted": 20,
+   "stored": 20,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x50f44d99d1453bb238b3e0bddd8bcc5d0745cb0908d2a4a990730d4e9ab0837d": {
+   "quotedMinutes": 830,
+   "pulled": 23,
+   "inQuoted": 17,
+   "stored": 17,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x51d382284c97e5a93def6454d8e06d2d6078f30d7c6753ba5f65140217976e7c": {
+   "quotedMinutes": 733,
+   "pulled": 97,
+   "inQuoted": 53,
+   "stored": 53,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x52b22b88d62d8b2aeed3b92b2b16bd696e7439e08f06afc62314da5126ef7088": {
+   "quotedMinutes": 10,
+   "pulled": 4,
+   "inQuoted": 2,
+   "stored": 2,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x543dfe914a5cfeca992bce871c4705578a3402fcfe44528a35be47efd5981ab7": {
+   "quotedMinutes": 1435,
+   "pulled": 7,
+   "inQuoted": 5,
+   "stored": 5,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x548cdc3863776a86689b6817db809f22c534cc06dd1acd8ce067e1a2a65be900": {
+   "quotedMinutes": 579,
+   "pulled": 56,
+   "inQuoted": 50,
+   "stored": 50,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x55977409f1bea658f96f0654d1491f3c1dc2ab66b976c1f120841efd5e0397d6": {
+   "quotedMinutes": 1439,
+   "pulled": 51,
+   "inQuoted": 26,
+   "stored": 26,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x5766b0fe1e1386e08fc05c73de8d9f2338879dc4ba87e9200c816d47b5ba3122": {
+   "quotedMinutes": 336,
+   "pulled": 145,
+   "inQuoted": 138,
+   "stored": 138,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x586397f46436c7b49aa6a5962ea0be0092365b06ed80ad270bdf728529583161": {
+   "quotedMinutes": 944,
+   "pulled": 31,
+   "inQuoted": 26,
+   "stored": 26,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x58be9f46ec37ab8204493dea74bcb76d4950f470f6e3a580300e6f860f583731": {
+   "quotedMinutes": 1439,
+   "pulled": 128,
+   "inQuoted": 40,
+   "stored": 40,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x5a7baba88a3d9cef6c3d1c6ac961118bae3ec9129e5ef773e7a3ca16caed7274": {
+   "quotedMinutes": 892,
+   "pulled": 79,
+   "inQuoted": 73,
+   "stored": 73,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x5cfb7551e856eb2d1fd0f420d3159838c834d512cec7629aa02e8149879099cb": {
+   "quotedMinutes": 1318,
+   "pulled": 130,
+   "inQuoted": 119,
+   "stored": 119,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x5d4e21ca964c4c74985a0835700125f96b65ae2466ed2475ceebca7246f76e92": {
+   "quotedMinutes": 874,
+   "pulled": 100,
+   "inQuoted": 99,
+   "stored": 99,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x6057f740dc5702d62b7a8eca36dc22681d41c19e8cbffc9c93913def0265b8d0": {
+   "quotedMinutes": 963,
+   "pulled": 134,
+   "inQuoted": 118,
+   "stored": 118,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x62bb9d57d8340148046e4e6380c7c3b9f84b6124d8765cde264fb5bd7e28fe4b": {
+   "quotedMinutes": 1439,
+   "pulled": 167,
+   "inQuoted": 31,
+   "stored": 31,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x649f567bafba8a8fac3e65de5580e8124245844e04d63347f8497065a5373291": {
+   "quotedMinutes": 1318,
+   "pulled": 39,
+   "inQuoted": 35,
+   "stored": 35,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x690a6b79626b8356a6f8fd38280fb84df1273e34fea14bde2058d27f365280ba": {
+   "quotedMinutes": 933,
+   "pulled": 27,
+   "inQuoted": 22,
+   "stored": 22,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x6bfca3af651101fdcf2604eff36a736e1677de2699ff48dd023717320ff3a96a": {
+   "quotedMinutes": 659,
+   "pulled": 249,
+   "inQuoted": 232,
+   "stored": 232,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x6f1f43eab592a7644e3550266fc971bae315aa4666148611e42d1656272b3bae": {
+   "quotedMinutes": 1432,
+   "pulled": 478,
+   "inQuoted": 104,
+   "stored": 104,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x712984a62e770c52cc971dba7b6acc472e84664d8e36ceab5d1e959a93d08911": {
+   "quotedMinutes": 499,
+   "pulled": 263,
+   "inQuoted": 250,
+   "stored": 250,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x73cc17c7fde880b47cff7b8dc63740416296f536a0f3ea067efe1e00bdd91bcd": {
+   "quotedMinutes": 1438,
+   "pulled": 85,
+   "inQuoted": 7,
+   "stored": 7,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7409f201ce92a7f89e2a086347569b39226d019b84a2f1b0945959ebf5c8a1a1": {
+   "quotedMinutes": 801,
+   "pulled": 12,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x75b67ccde036790bdb5aedb3c4efdbaed5b906c873a8855157ba863011ec904d": {
+   "quotedMinutes": 1438,
+   "pulled": 294,
+   "inQuoted": 97,
+   "stored": 97,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x770afa4933a736ec4585adeed9edb5c4ecb48f2407dff3dd131e4bccd4b1417e": {
+   "quotedMinutes": 2863,
+   "pulled": 573,
+   "inQuoted": 297,
+   "stored": 297,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7943abb489e859972d32a57e9e9d31fa7da7a4a0ef837f0222024f82ea671027": {
+   "quotedMinutes": 1439,
+   "pulled": 65,
+   "inQuoted": 39,
+   "stored": 39,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x796c320ce22d16c53b34a8355f4f87085c2748f22db2d69bfb35a7f11243e261": {
+   "quotedMinutes": 1435,
+   "pulled": 560,
+   "inQuoted": 125,
+   "stored": 125,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7989873aeb336d445685d8bc85e8b7a8ec65a5ca948ee94393f5eee012f487d9": {
+   "quotedMinutes": 1435,
+   "pulled": 36,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7a3873a4693bd84933d8f90719c0c8a09142bf89186f5e805c2eddeedb55de9b": {
+   "quotedMinutes": 721,
+   "pulled": 109,
+   "inQuoted": 102,
+   "stored": 102,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7b439e61fb3f3efec80f8a5ca6e76d65d2920af211aa6ce37832ca9438727abe": {
+   "quotedMinutes": 1433,
+   "pulled": 15,
+   "inQuoted": 8,
+   "stored": 8,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7bcbb513e81184a0650e0989397ac8632c1088c776e60d466077c323de27d561": {
+   "quotedMinutes": 1435,
+   "pulled": 34,
+   "inQuoted": 23,
+   "stored": 23,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7bfc4ff349bcda2155cc789019efc3f6596daa40477d3564808794626c374ea8": {
+   "quotedMinutes": 706,
+   "pulled": 119,
+   "inQuoted": 95,
+   "stored": 95,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7c68d0a1699ffc12d44bf91329f0e4cfe5da7a55cff95b527fb71eaf389b3cd8": {
+   "quotedMinutes": 1439,
+   "pulled": 176,
+   "inQuoted": 13,
+   "stored": 13,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7d23bb65fccfb3726b9a148120fcd033e9511dd98910398e112f86bedd7cbf8e": {
+   "quotedMinutes": 1438,
+   "pulled": 95,
+   "inQuoted": 9,
+   "stored": 9,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x7f988cdcad6f0364ee9008c0f70dc30f66b00680c768d7d41c9daccd2e89fb64": {
+   "quotedMinutes": 1437,
+   "pulled": 24,
+   "inQuoted": 22,
+   "stored": 22,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x80731d4943dd482634c41c32b65a2e931d4698e0ae84714e03e4147ac27327b2": {
+   "quotedMinutes": 258,
+   "pulled": 20,
+   "inQuoted": 15,
+   "stored": 15,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x80a235b51a1253b7086e9e02cfee532b21c417eb7213471b93e48920ea04e65f": {
+   "quotedMinutes": 1438,
+   "pulled": 20,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x817db91aa08b018e8ac7e2727bce15e63b29c1f193316c1fc74bf6760e7277e2": {
+   "quotedMinutes": 1318,
+   "pulled": 6,
+   "inQuoted": 1,
+   "stored": 1,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x8231a375f344c5174dae29e53e1cca5a85d153ecf1d0c06a14d24ec2431fb74f": {
+   "quotedMinutes": 1183,
+   "pulled": 167,
+   "inQuoted": 163,
+   "stored": 163,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x832efb5f9a6fbcc0366773f877645742a23efdb9224ad8c3b2603637fcea0385": {
+   "quotedMinutes": 979,
+   "pulled": 95,
+   "inQuoted": 91,
+   "stored": 91,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x854c97414ac821f4f5452c42cf941c00319fd4a6be8fcf844a255361ee450486": {
+   "quotedMinutes": 1438,
+   "pulled": 105,
+   "inQuoted": 16,
+   "stored": 16,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x87c58fb2b75618a57c39092fb14ab43e0c1e470d4f8559b88e9a1750a478488c": {
+   "quotedMinutes": 1088,
+   "pulled": 81,
+   "inQuoted": 41,
+   "stored": 41,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x890c45f928e86bb7aa0969274ec60025a17716c91953c64e4b40e43d1cd30b09": {
+   "quotedMinutes": 1437,
+   "pulled": 86,
+   "inQuoted": 34,
+   "stored": 34,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x8af96adee9578e75f9901245c47e664284d5973ea9a4f886a168b445092d8964": {
+   "quotedMinutes": 1193,
+   "pulled": 237,
+   "inQuoted": 233,
+   "stored": 233,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x8c5565301597baef080f6504de17d47da9e4cf56e662260409279b038c78b2ed": {
+   "quotedMinutes": 973,
+   "pulled": 12,
+   "inQuoted": 8,
+   "stored": 8,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x8da7a868cb48ed8f4c46f906949e6cbb0f3c14baf66727f86ad5234dd31da424": {
+   "quotedMinutes": 1438,
+   "pulled": 178,
+   "inQuoted": 42,
+   "stored": 42,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x8f04448130664d765e669828639dfcd65de06ea92ef94ead0569e892b2d9c1be": {
+   "quotedMinutes": 159,
+   "pulled": 7,
+   "inQuoted": 5,
+   "stored": 5,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9286ce99c568e808602dd1c999522a2b7a65c61493befd8de056296ad3d421a6": {
+   "quotedMinutes": 1435,
+   "pulled": 93,
+   "inQuoted": 63,
+   "stored": 63,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x93ddd4c58ece88b740e73524273af47b3beae775d949c9d4b586e23ddcffecf4": {
+   "quotedMinutes": 313,
+   "pulled": 181,
+   "inQuoted": 168,
+   "stored": 168,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9461dbc409767b885be8b9ed4d0df91313dbf333a08ce8cca8ebf215d7cc51a7": {
+   "quotedMinutes": 257,
+   "pulled": 21,
+   "inQuoted": 21,
+   "stored": 21,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x94f0e18c6ca9505893f01c3e3232f2cd8d9f2c5fe5e72f9c0d1c5e9bbee585d5": {
+   "quotedMinutes": 1435,
+   "pulled": 10,
+   "inQuoted": 2,
+   "stored": 2,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x97450fbe0f624ad5499e26ae07fa510470cc2ca68e868b99e3ccaa412628bc93": {
+   "quotedMinutes": 772,
+   "pulled": 93,
+   "inQuoted": 76,
+   "stored": 76,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x987c38eab92dcc5f3cfb938334dc72a0fcfd0030fda5709ce2460d999189c182": {
+   "quotedMinutes": 451,
+   "pulled": 28,
+   "inQuoted": 27,
+   "stored": 27,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x98887aa511498dfc64298c5f73d364066a6d5aaa790569803b63e9065418d833": {
+   "quotedMinutes": 1435,
+   "pulled": 46,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9989cada9c76ad8e9841f3424b91f6d916fe068a97a1d53cedd7fa6415fe5f55": {
+   "quotedMinutes": 996,
+   "pulled": 11,
+   "inQuoted": 8,
+   "stored": 8,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9a491cfeafea1e4fbc18d550e6dffb5b1e5091be3b7acf991170ee02a177cf78": {
+   "quotedMinutes": 1435,
+   "pulled": 8,
+   "inQuoted": 1,
+   "stored": 1,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9a7d1ab78641950ef9662d8cee3e6dcdf6df2b3f157b5a96287cd0c9335dbd55": {
+   "quotedMinutes": 1300,
+   "pulled": 22,
+   "inQuoted": 20,
+   "stored": 20,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9aaea7da9b706b5e4079a50311b78e84bd4fc168bce1f07f8b7c6c26fcd286ea": {
+   "quotedMinutes": 1428,
+   "pulled": 14,
+   "inQuoted": 14,
+   "stored": 14,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9c0ba9df5303cb4e983afc687249a1290893ed843c8077f6b4cb3be60d70dc50": {
+   "quotedMinutes": 257,
+   "pulled": 14,
+   "inQuoted": 11,
+   "stored": 11,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9dc60ea2d17067dfaf6ec35c67d79a2fe256577880a9bab9eb4aafedc60deff8": {
+   "quotedMinutes": 551,
+   "pulled": 313,
+   "inQuoted": 308,
+   "stored": 308,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9dc7080d88c50d87b43b6fdf22e5c6f05f5421a00a243222a7dfa5e3876bf621": {
+   "quotedMinutes": 1432,
+   "pulled": 160,
+   "inQuoted": 42,
+   "stored": 42,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9e0b2abcb79f380deef306da7aedb6d0694dfd08dcf2df10b8278532ba2cfb4e": {
+   "quotedMinutes": 850,
+   "pulled": 21,
+   "inQuoted": 21,
+   "stored": 21,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0x9f63c0c0a7240ea7e0bc305cddc25e8173d67a662030b10af5b7047b83f181e8": {
+   "quotedMinutes": 1439,
+   "pulled": 24,
+   "inQuoted": 5,
+   "stored": 5,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa2911a6afaf73e1dd2089aa9e6fde91f04bc2b2b33a836d63090e2727847a171": {
+   "quotedMinutes": 1318,
+   "pulled": 39,
+   "inQuoted": 21,
+   "stored": 21,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa476fad5511829d53a9cd97a185f9d1383470251929bfbc6e319888310424b51": {
+   "quotedMinutes": 1318,
+   "pulled": 193,
+   "inQuoted": 180,
+   "stored": 180,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa504582e49ed3f2b51e5e64e86f3cf08df4224d1d89a72371737293f96de0b06": {
+   "quotedMinutes": 815,
+   "pulled": 50,
+   "inQuoted": 49,
+   "stored": 49,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa58aee28c14e4f807de38fa9b1ea3dcc4797c03572337888676cac646d9fdd52": {
+   "quotedMinutes": 485,
+   "pulled": 87,
+   "inQuoted": 58,
+   "stored": 58,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa6cd188c244d5cf9fbc5704c04d800a1c445f704194d9b92e39bf244c02b908e": {
+   "quotedMinutes": 1439,
+   "pulled": 6,
+   "inQuoted": 3,
+   "stored": 3,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa85b2baf463671f91cfbb66d04befeac7a6948ba0916a967c9f80dbeaca9359f": {
+   "quotedMinutes": 516,
+   "pulled": 191,
+   "inQuoted": 172,
+   "stored": 172,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xa9fc2e4c7288cc56e95e441ec22bfc5f7e346ba4527c0a9454c1a3e236e834f7": {
+   "quotedMinutes": 1435,
+   "pulled": 41,
+   "inQuoted": 5,
+   "stored": 5,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xaa18ed40e846f4d90f6fd392f51080e9f0928aa02686df62cb11b119b1f175ab": {
+   "quotedMinutes": 98,
+   "pulled": 44,
+   "inQuoted": 37,
+   "stored": 37,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xab449b45ddb6c2682ec7e931dfb18705cf611cddf42ae35aa300c79453913dca": {
+   "quotedMinutes": 1435,
+   "pulled": 112,
+   "inQuoted": 64,
+   "stored": 64,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xac9f1902b2cb0fef6c8034b8ca8390781b305743c4249d6911abbec606f2bd44": {
+   "quotedMinutes": 1435,
+   "pulled": 181,
+   "inQuoted": 60,
+   "stored": 60,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xafdcf414ead7f8a4c68cc495cbb207ac876a7cd385d72ca8dab31e0b8edf0f5c": {
+   "quotedMinutes": 1435,
+   "pulled": 50,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xafe162fc6bc65adee13a97c86d0139cea60ccad9cc124c2140f89954d7cc516f": {
+   "quotedMinutes": 841,
+   "pulled": 130,
+   "inQuoted": 119,
+   "stored": 119,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb06e2cdf097d9b5385424dcf1a9f42d90bafbe14e49facae61bd64b2c4735c2f": {
+   "quotedMinutes": 1435,
+   "pulled": 204,
+   "inQuoted": 196,
+   "stored": 196,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb3312bbe901c54bd82448443d1f2bb477af1fad7329b7f6d8b522198cd232934": {
+   "quotedMinutes": 826,
+   "pulled": 150,
+   "inQuoted": 149,
+   "stored": 149,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb3d40e0b18da15c14b18d91dcb066d1ae3b5967ab8491e5b2700fd1e52411519": {
+   "quotedMinutes": 1439,
+   "pulled": 132,
+   "inQuoted": 91,
+   "stored": 91,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb4813fb29711f6447b2a9c4dca90cd21f91be8dfc74361020ebf731af4603751": {
+   "quotedMinutes": 1438,
+   "pulled": 167,
+   "inQuoted": 66,
+   "stored": 66,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb5f008d6e1fb6fb09102334085db75916ca0bd03862113b624d633369e5f3e3f": {
+   "quotedMinutes": 533,
+   "pulled": 37,
+   "inQuoted": 29,
+   "stored": 29,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb64922cdb39b89d19b494ded7324f547e48b04f866bdbb71586acdc2982a4beb": {
+   "quotedMinutes": 1435,
+   "pulled": 53,
+   "inQuoted": 27,
+   "stored": 27,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xb68b0f25f873b80f82e85b7e9b86a93af9aa1f0e8a0e3adee8a95889b63c3afe": {
+   "quotedMinutes": 794,
+   "pulled": 26,
+   "inQuoted": 24,
+   "stored": 24,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xba6b08cb1dd0237b23b76c36a6391e2da4d88b08ac909f4a93e9068994c441c3": {
+   "quotedMinutes": 544,
+   "pulled": 267,
+   "inQuoted": 253,
+   "stored": 253,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xbb6cada2deaf3d502a193d0b872f6487544e4775e1c7781c6985393befc20692": {
+   "quotedMinutes": 1438,
+   "pulled": 32,
+   "inQuoted": 13,
+   "stored": 13,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xbccbfd9f9e0094acdac536126ffaddb3fc148b026c41ba300ae6a626562f6b9c": {
+   "quotedMinutes": 55,
+   "pulled": 39,
+   "inQuoted": 29,
+   "stored": 29,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xbd7144a36ed9aff7e0af7816ca9482288212667f63c77ac4231c775cca331253": {
+   "quotedMinutes": 1437,
+   "pulled": 36,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xbe08e56a4849b371174afc70fe2fa6702f4342c08d52dbc67aa7cedd8a9bbbe7": {
+   "quotedMinutes": 1119,
+   "pulled": 129,
+   "inQuoted": 105,
+   "stored": 105,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xbf3fec0b59a67fa4cf71bc23233c78774674ac2517c6933c1d9848852893c460": {
+   "quotedMinutes": 851,
+   "pulled": 0,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc1b94b18c8f0d158b7080e2830f28c98e4c9136702df0dce87ae4f92fa260798": {
+   "quotedMinutes": 1438,
+   "pulled": 1,
+   "inQuoted": 1,
+   "stored": 1,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc23ea77727a83dafd102e1e712a3f354821130ae2fb8a22c245095c43becc063": {
+   "quotedMinutes": 498,
+   "pulled": 175,
+   "inQuoted": 161,
+   "stored": 161,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc2b2d14fbd858110d28be61ccba473e0354edfbe4351c0e43ec7f084b586e6c2": {
+   "quotedMinutes": 1239,
+   "pulled": 2,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc444783d54aab62f4679cf9874bbc8a0165ea6dc78cdb8051faf7c693702934a": {
+   "quotedMinutes": 1318,
+   "pulled": 6,
+   "inQuoted": 3,
+   "stored": 3,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc8a44cee25e593fdc5cd43390a54418be69362fafae39905b694ef98aed3ab6f": {
+   "quotedMinutes": 534,
+   "pulled": 323,
+   "inQuoted": 298,
+   "stored": 298,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc90894254e1f804e3087e89288d192b529287b7de6e3f5230c06868f7777661d": {
+   "quotedMinutes": 1437,
+   "pulled": 2193,
+   "inQuoted": 606,
+   "stored": 606,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xc994dc58c520b73434929716f0098cb572afa0fa1828c568f47616df8fc40f7a": {
+   "quotedMinutes": 1234,
+   "pulled": 18,
+   "inQuoted": 18,
+   "stored": 18,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xcab9a3b3c831342ff8fb98db824b6a2bcccec22242fd068dc9708a4dff8b1196": {
+   "quotedMinutes": 238,
+   "pulled": 23,
+   "inQuoted": 19,
+   "stored": 19,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd1b6170c1d3f5a3cdbb1d1178b4a8622e15927c66b0a8a3b5bb68d5b022e5935": {
+   "quotedMinutes": 1439,
+   "pulled": 16,
+   "inQuoted": 1,
+   "stored": 1,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd233ee97ec6b856a27b801147086ad2ca573edcf89ccce42d321b0e1b933bd47": {
+   "quotedMinutes": 1428,
+   "pulled": 26,
+   "inQuoted": 26,
+   "stored": 26,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd36a35255f379ab6b26db1128575fc9de0e5fa775f780784bdb64dca0fd56fb1": {
+   "quotedMinutes": 786,
+   "pulled": 187,
+   "inQuoted": 158,
+   "stored": 158,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd39c70b2298e047c4e881a7d408e03d4514963ce90ea0556ba40c4bd6150ece7": {
+   "quotedMinutes": 1438,
+   "pulled": 15,
+   "inQuoted": 13,
+   "stored": 13,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd4fd7163d0122548631b4ae6db13c3e675ec6d8345ff147a90847ae5330d004c": {
+   "quotedMinutes": 431,
+   "pulled": 193,
+   "inQuoted": 146,
+   "stored": 146,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd65c558815e88918a5785583ee20412d96d584479c927107987e8560ee153738": {
+   "quotedMinutes": 1433,
+   "pulled": 12,
+   "inQuoted": 10,
+   "stored": 10,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd69024f30e74bb29eede55a88d03346cd5a30f9b6496900e1d45b3aa01bd2778": {
+   "quotedMinutes": 1432,
+   "pulled": 18,
+   "inQuoted": 10,
+   "stored": 10,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd6f75e5779e98d1fb5f738f4fa0351ed8b01591c8ab9ab502d3b3bdbe4946fb5": {
+   "quotedMinutes": 1435,
+   "pulled": 404,
+   "inQuoted": 9,
+   "stored": 9,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xd8bd277dd829345e7f1861672bd5abcbc46b77c7c0afc1469b880af09724357c": {
+   "quotedMinutes": 1428,
+   "pulled": 6,
+   "inQuoted": 6,
+   "stored": 6,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xda530f0df7b2d46084e9f96d1a60e18f7a07a6190845a3e4d54216d218ba46d8": {
+   "quotedMinutes": 849,
+   "pulled": 5,
+   "inQuoted": 1,
+   "stored": 1,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xda67aa9d45d5dcfd5f4e7a2b002dbf5d91bd84b1db64381a85ddb341e39a350b": {
+   "quotedMinutes": 1435,
+   "pulled": 77,
+   "inQuoted": 30,
+   "stored": 30,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xdc1938b47ef8308322d1247b28697a81c95d9a6e14dfafbcf9a253b8805e5cf0": {
+   "quotedMinutes": 124,
+   "pulled": 6,
+   "inQuoted": 6,
+   "stored": 6,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xdc45cab391d78a2aa951f788daf342b3fd32f7fe00f3c7d2619d5da001f4f7df": {
+   "quotedMinutes": 1433,
+   "pulled": 16,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xdd9cbf8a9ee8ef55b1af27293877f4df121f184c0ce37b5fe9e06c26fa2fda11": {
+   "quotedMinutes": 967,
+   "pulled": 17,
+   "inQuoted": 17,
+   "stored": 17,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xde7d227cd6685a06a052f82cd3a15022d8f5a5874f7c5d2b2a4ac8ac8c25037b": {
+   "quotedMinutes": 1437,
+   "pulled": 159,
+   "inQuoted": 111,
+   "stored": 111,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xdf94d169170051ddc46b1f1d4b8b2c1d61a9262d52a569e6a8c041b8520f907a": {
+   "quotedMinutes": 1437,
+   "pulled": 18,
+   "inQuoted": 0,
+   "stored": 0,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xdffa8b3b9651d7c90d3efaaadfb7ceef69373fbeb8f99e289d8d76f9beb7b1a6": {
+   "quotedMinutes": 1433,
+   "pulled": 58,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xe0de4f1a92efc17857c258f54c00cd588197d7d8624e934f339f2f9aa9b53167": {
+   "quotedMinutes": 472,
+   "pulled": 36,
+   "inQuoted": 24,
+   "stored": 24,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xe1b7b21832ea5edaefc2f3df062beca135b94d57eafb0f71c89c669f9a4133c6": {
+   "quotedMinutes": 809,
+   "pulled": 51,
+   "inQuoted": 41,
+   "stored": 41,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xe222eee01143ca593fe891a9e05a0787aa53d59171911ba5e3888d2fa8ddb79f": {
+   "quotedMinutes": 154,
+   "pulled": 129,
+   "inQuoted": 99,
+   "stored": 99,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xe50af0f2a196ec216438aaed3884c58eab5c92e86707b0dcea997bcdf6fd0081": {
+   "quotedMinutes": 1435,
+   "pulled": 11,
+   "inQuoted": 4,
+   "stored": 4,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xe5a42eb19b99fac892b02c981d876717ecaac0e0f18925081c170090895cf3f7": {
+   "quotedMinutes": 1437,
+   "pulled": 11,
+   "inQuoted": 8,
+   "stored": 8,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xec8b96d42ea940a5990d11f37c67df475db44142b336b256ce7f67f929fa79b6": {
+   "quotedMinutes": 1437,
+   "pulled": 55,
+   "inQuoted": 8,
+   "stored": 8,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xef6d6c48056e2edcda41e1b2189a3182525bb78aa824a8350f5ee7e47936583a": {
+   "quotedMinutes": 181,
+   "pulled": 10,
+   "inQuoted": 9,
+   "stored": 9,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf01d29bbc867825fec99fd51b71922a2206cae633bca5517019645d08e2aca3f": {
+   "quotedMinutes": 809,
+   "pulled": 107,
+   "inQuoted": 103,
+   "stored": 103,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf107eae97889ed39a3e2d1aae7049f733e81f672410091b6e6c0eb29b6805a44": {
+   "quotedMinutes": 1439,
+   "pulled": 82,
+   "inQuoted": 11,
+   "stored": 11,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf2c9821a7be8567fa2ac0b24de74b8d563b0aa2432f40d673b5121d692048ce9": {
+   "quotedMinutes": 277,
+   "pulled": 134,
+   "inQuoted": 127,
+   "stored": 127,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf359ccdf71840b7d0e04bdf9cdc297d32b60c23c1a8a79c384ab13b0a07bebb3": {
+   "quotedMinutes": 1438,
+   "pulled": 131,
+   "inQuoted": 113,
+   "stored": 113,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf4dbd649366905f4ed69512d1413704973bbb597999ab7e331f7d35c77d68dab": {
+   "quotedMinutes": 1239,
+   "pulled": 17,
+   "inQuoted": 11,
+   "stored": 11,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf50050f4845b2b46fb33f37cb3c73bf05fb4741df6be86ed994a86fc2d224934": {
+   "quotedMinutes": 1435,
+   "pulled": 81,
+   "inQuoted": 7,
+   "stored": 7,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf72096d3fd3da83090bcba789967f8efd0764f30106b5edaf94c084ca1c12ca5": {
+   "quotedMinutes": 1433,
+   "pulled": 40,
+   "inQuoted": 7,
+   "stored": 7,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf828d652fd9d3512e92d00b2a563ba77f1a67ee177d2e95af34a811ae2d11841": {
+   "quotedMinutes": 108,
+   "pulled": 31,
+   "inQuoted": 18,
+   "stored": 18,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf861300bb19cc3899f55383a4e1318e29ae18daaf68e74831675ff8742844114": {
+   "quotedMinutes": 1439,
+   "pulled": 131,
+   "inQuoted": 76,
+   "stored": 76,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf960a96f3f14dc195e06c1669b01dd15143cc39ead4c4bfb81f421dd1aad515f": {
+   "quotedMinutes": 1424,
+   "pulled": 49,
+   "inQuoted": 45,
+   "stored": 45,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xf994a121c3091ebae554694d55037e297bb90aba124de5c25d2b98b94b31ae59": {
+   "quotedMinutes": 1439,
+   "pulled": 232,
+   "inQuoted": 12,
+   "stored": 12,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  },
+  "0xff52a556121bec3b9cc540e62a2fba90982da04a2b165637994da2f1e544e48b": {
+   "quotedMinutes": 1438,
+   "pulled": 188,
+   "inQuoted": 60,
+   "stored": 60,
+   "missed": 0,
+   "extra": 0,
+   "complete": true
+  }
+ }
+}

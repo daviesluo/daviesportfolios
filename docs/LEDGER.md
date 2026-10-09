@@ -26,26 +26,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **RW's verdict, on or after 2026-10-09 00:05 UTC** once `pm_rw_days` has its 10-08 row (wake
-     `trig_01THWfdRa6aKk2mZg8N8DUzC`, 10-09 00:40): steps a–g of the archived item 2, written up as
-     `reviews/2026-10-09-polymarket-rw-paper-result.md`, reference §3.x and this ledger. (a) the spec's six conditions
-     from `pm_rw_days` (seed `random.Random(20261009)`, the script committed with its output); (b) replay
-     `pm_rw_minutes` with `pm_rw_prints` through the frozen rule and reproduce the fills and rewards; (c) re-pull every
-     quoted market's prints from `/v2/trades` (cache-busted) against `pm_rw_prints`; (d) RW-E by its pre-registration
-     from `pm_rw_e_days`, after arm `rw` equals `pm_rw_days`; (d2) RW-X1–X3 by `reviews/2026-09-27-polymarket-rw-variants-prereg.md`
-     from `pm_rw_x_days`, after its two checks; (d3) RW-X4/X5's Test 1 by `reviews/2026-10-02-polymarket-rw-rest-prereg.md`
-     (10-03 → 10-08 from the 10-02 rows, seed 20261009, × 365 / 6, the seventh condition against x1), after the same
-     checks and that their 10-01 rows equal x1's; (e) written ahead as `0103` (history 2026-10-08 23:52 UTC): once
-     landed, `public.retire_after_rw()` (job `edge-calls-retire-after-rw`, every five minutes at :02, :07 …) turns
-     `pmrw`/`pmrw-select` off once `pm_rw_days` holds 10-08 and `pmrw-e`/`pmrw-x` once their replays hold it on every
-     arm; the verdict confirms it fired (`select path, enabled from edge_calls where path like 'agents?action=pmrw%'`;
-     `cron.job_run_details` for the job), and writes no second migration (RW-C's four `pmrwc*` rows untouched; the
-     tables and page rows stay until Davies says); (f) report to Davies in Chinese; (g) RW-NEXT Part 1 (`reviews/2026-09-28-rw-next-prereg.md`)
-     names the candidate, which goes to RW-C before any live design. Name as a deviation of 10-08 that RW lost seven
-     `:X0` minutes that day (00:00, 00:10, 00:30, 00:40, 00:50, 01:00, 01:10; fixed by `0097`), minutes stored against
-     due; the bar is unchanged. Until then, daily health as the archive lists it (both states' `last_error` and
-     clocks, today's selection by ~00:05, a day row a day, no 546/5xx for `pmrw-select`, each arm's `diverged`, the
-     checks under $0.01). Do NOT change `agents/pmrw.ts`'s rule.
+   - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
+     §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
+     prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
+     00:05); no variant replaces it (index 33 below zero for each). **RW-X4/X5's Test 1 is VOID**: Addendum 1's copy check
+     reads 10-01 rows that never existed (the arms joined 10-02 18:23 UTC); descriptively both fail condition 7 against
+     x1; neither points to a change in mid-pool's rule; their Test 2 still runs on RW-C. Step e was done ahead by `0103`
+     (checked: four `pmrw*` rows off, `edge-calls-every-minute` on, tick 60/60 beats). RW-C's 10-08 row is `warm-up`.
+     Deviation named: RW stored 1,429 of 10-08's 1,440 minutes (19,800 of 20,160 in all). **Open:** step f, the report to
+     Davies in Chinese, with the question the result file puts to him (live-prep now or after RW-C's 10-23 verdict).
    - **10-09 after 00:05, the page switch to confirm:** "Reward quotes", variant-1 and variants 2–4 read RW-C's run and
      replays from 10-09 00:00 (`RW_PAGE_SWITCH`, `RWX_PAGE_SWITCH`); the dashboard's `rw.source`, `rwe.source` and each
      `rwx` entry's `source` are "RW-C", `startedAt` 2026-10-09T00:00:00.000Z, `notStarted` false (`rwe` once
@@ -394,6 +383,13 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-09 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7
+  (twelve days +$1,167.04, stress +$289.96 against RW's +$123.31), x1–x3 7 of 7; RW-NEXT Part 1 names **RW-E**, which
+  goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
+  Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
+  outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
 
 ### [2026-10-09 00:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Review batch 5 landed** (approved by Davies 2026-10-08, "以上内容都修"; each commit's own section below): first-paint

@@ -1,0 +1,107 @@
+rows read 2026-10-09T00:42:42.267583+00:00; RW's last minute 2026-10-08T23:59:00+00:00, RW-E's 2026-10-08T23:59:00+00:00, the replay's 2026-10-08T23:59:00+00:00
+pm_rw_days rows: 2026-09-24(warm-up), 2026-09-25(run), 2026-09-26(run), 2026-09-27(run), 2026-09-28(run), 2026-09-29(run), 2026-09-30(run), 2026-10-01(run), 2026-10-02(run), 2026-10-03(run), 2026-10-04(run), 2026-10-05(run), 2026-10-06(run), 2026-10-07(run), 2026-10-08(run)
+
+=== (a) RW, by its spec ===
+
+RW: PASS (6 of 6)
+  days 2026-09-25 -> 2026-10-08 from zero; day totals [148.09, 71.63, -27.81, 259.86, -50.5, 310.35, 283.19, 165.76, 146.76, 186.95, 221.35, 78.07, 202.21, -14.2]
+  ok   1 total > 0: 1981.72
+  ok   2 stress total > 0: 94.79
+  ok   3 at least 100 fills: 4116
+  ok   4 no market over 50 % and the total without the best > 0: best 91.37 (4.6 % of the total), without it 1890.34
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 14 days): 1272.08
+  ok   6 total on capital x 365 / 14 > 4 %: capital 2609.68, 1979.8 % a year
+
+=== (d) RW-E, by its pre-registration ===
+  check RW-E's replay, arm rw = pm_rw_days, 09-25 -> 10-08: largest gap over 14 days $0.00e+00: ok
+
+RW-E (arm e): PASS (7 of 7)
+  days 2026-09-27 -> 2026-10-08 from 2026-09-26; day totals [15.96, 161.17, 19.8, 236.06, 198.15, 40.59, 62.16, 132.29, 48.71, 63.68, 115.11, 73.36]
+  ok   1 total > 0: 1167.04
+  ok   2 stress total > 0: 289.96
+  ok   3 at least 100 fills: 1502
+  ok   4 no market over 50 % and the total without the best > 0: best 72.35 (6.2 % of the total), without it 1094.68
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 12 days): 780.15
+  ok   6 total on capital x 365 / 12 > 4 %: capital 1931.32, 1838.0 % a year
+  ok   7 stress above RW's over the same days: 289.96 against 123.31
+
+=== (d2) RW-X1 to X3, by their pre-registration ===
+  check RW-X's replay, arm rw = pm_rw_days, 09-25 -> 10-08: largest gap over 14 days $0.00e+00: ok
+  check RW-X's replay, arm e = pm_rw_e_days arm e, 09-25 -> 10-08: largest gap over 14 days $0.00e+00: ok
+
+RW-X x1: PASS (7 of 7)
+  days 2026-09-28 -> 2026-10-08 from 2026-09-27; day totals [161.17, 9.27, 267.75, 203.19, 40.99, 58.69, 108.74, 44.63, 61.65, 93.97, 47.78]
+  ok   1 total > 0: 1097.83
+  ok   2 stress total > 0: 405.61
+  ok   3 at least 100 fills: 1109
+  ok   4 no market over 50 % and the total without the best > 0: best 72.35 (6.6 % of the total), without it 1025.48
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 11 days): 686.95
+  ok   6 total on capital x 365 / 11 > 4 %: capital 1739.14, 2094.6 % a year
+  ok   7 stress above RW-E's over the same days: 405.61 against 365.72
+
+RW-X x2: PASS (7 of 7)
+  days 2026-09-28 -> 2026-10-08 from 2026-09-27; day totals [161.17, 14.06, 213.64, 190.26, 90.92, 63.75, 136.8, 56.22, 64.67, 104.45, 74.94]
+  ok   1 total > 0: 1170.90
+  ok   2 stress total > 0: 397.90
+  ok   3 at least 100 fills: 1285
+  ok   4 no market over 50 % and the total without the best > 0: best 78.29 (6.7 % of the total), without it 1092.60
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 11 days): 837.28
+  ok   6 total on capital x 365 / 11 > 4 %: capital 1858.73, 2090.3 % a year
+  ok   7 stress above RW-E's over the same days: 397.90 against 365.72
+
+RW-X x3: PASS (7 of 7)
+  days 2026-09-28 -> 2026-10-08 from 2026-09-27; day totals [161.17, 7.14, 247.83, 195.51, 91.34, 60.28, 113.25, 52.94, 61.04, 83.32, 51.09]
+  ok   1 total > 0: 1124.91
+  ok   2 stress total > 0: 438.96
+  ok   3 at least 100 fills: 1005
+  ok   4 no market over 50 % and the total without the best > 0: best 78.29 (7.0 % of the total), without it 1046.62
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 11 days): 755.27
+  ok   6 total on capital x 365 / 11 > 4 %: capital 1666.56, 2239.7 % a year
+  ok   7 stress above RW-E's over the same days: 438.96 against 365.72
+
+=== (d3) RW-X4 and X5, Test 1, by their pre-registration with its Addendum 1 ===
+  copy check x4: 10-01 row missing
+  copy check x5: 10-01 row missing
+  their arms in pm_rw_x_state now: {"x4": {"start": null, "diverged": 20, "baseEmpty": false}, "x5": {"start": null, "diverged": 30, "baseEmpty": false}} (no `start`; the slip rule's own facts are read from the record of 10-02, see the result file)
+x4: VOID (a check failed)
+x5: VOID (a check failed)
+
+  Beside the void test, DESCRIPTIVE ONLY and not a verdict: the same seven conditions computed on the rows there are
+
+  (descriptive) RW-X x4, Test 1's arithmetic: FAIL (6 of 7)
+  days 2026-10-03 -> 2026-10-08 from 2026-10-02; day totals [58.69, 108.74, 36.4, 62.02, 96.66, 23.94]
+  ok   1 total > 0: 386.44
+  ok   2 stress total > 0: 106.00
+  ok   3 at least 100 fills: 324
+  ok   4 no market over 50 % and the total without the best > 0: best 62.49 (16.2 % of the total), without it 323.95
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 6 days): 267.01
+  ok   6 total on capital x 365 / 6 > 4 %: capital 1755.10, 1339.4 % a year
+  FAIL 7 stress above x1's over the same days: 106.00 against 128.51
+
+  (descriptive) RW-X x5, Test 1's arithmetic: FAIL (6 of 7)
+  days 2026-10-03 -> 2026-10-08 from 2026-10-02; day totals [46.92, 107.45, 38.25, 53.64, 53.41, 68.78]
+  ok   1 total > 0: 368.46
+  ok   2 stress total > 0: 103.26
+  ok   3 at least 100 fills: 345
+  ok   4 no market over 50 % and the total without the best > 0: best 51.86 (14.1 % of the total), without it 316.60
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 6 days): 286.05
+  ok   6 total on capital x 365 / 6 > 4 %: capital 1646.03, 1361.7 % a year
+  FAIL 7 stress above x1's over the same days: 103.26 against 128.51
+  x1 over the same six days, for comparison:
+
+  (descriptive) RW-X x1 over 10-03 -> 10-08: PASS (6 of 6)
+  days 2026-10-03 -> 2026-10-08 from 2026-10-02; day totals [58.69, 108.74, 44.63, 61.65, 93.97, 47.78]
+  ok   1 total > 0: 415.46
+  ok   2 stress total > 0: 128.51
+  ok   3 at least 100 fills: 391
+  ok   4 no market over 50 % and the total without the best > 0: best 63.32 (15.2 % of the total), without it 352.14
+  ok   5 bootstrap index 100 > 0 (seed 20261009, 6 days): 322.18
+  ok   6 total on capital x 365 / 6 > 4 %: capital 1739.14, 1453.2 % a year
+
+=== (g) RW-NEXT Part 1: the candidate ===
+  RW-E passes all seven: True; RW passes all six: True; the candidate: RW-E
+  x1: passes its own seven True; paired stress against RW-E (09-28 -> 10-08): differences [0.0, 17.39, 42.7, 3.73, 0.12, 9.86, -13.27, 0.32, -4.0, -10.68, -6.27], 1 zero, sum 39.90, index 33 -54.10: does not beat
+  x2: passes its own seven True; paired stress against RW-E (09-28 -> 10-08): differences [0.0, -2.05, -14.36, -8.74, 43.29, 10.39, 1.55, 11.51, 1.85, -11.21, -0.06], 1 zero, sum 32.19, index 33 -58.03: does not beat
+  x3: passes its own seven True; paired stress against RW-E (09-28 -> 10-08): differences [0.0, 16.5, 30.84, -4.85, 43.41, 20.26, -11.72, 11.52, -5.36, -21.89, -5.46], 1 zero, sum 73.25, index 33 -51.15: does not beat
+
+RW-NEXT's candidate: RW-E
