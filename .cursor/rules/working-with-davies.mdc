@@ -545,7 +545,10 @@ Changing any of these means re-opening a decision he has already made.
   a second run in its minute changes nothing the first did (a lease, a
   unique claim, rows upserted on their keys), false only when a late run
   would change the result (RW's and RW-C's engines read the book at `t`),
-  with the reason in a comment as 0075's table gives it. Its function
+  with the reason in a comment as 0075's table gives it. A new row waits
+  fifteen minutes before the job calls it (`edge_calls.active_from`,
+  `0104`, 2026-10-09), so the function it calls deploys first; an insert
+  never names `active_from`. Its function
   writes its beat before its work, or the watchdog runs it twice a minute;
   `src/cron_jobs.test.js` checks the beat and that `retry` is stated. When
   a call's reason for `false` goes away, the change that removes it sets

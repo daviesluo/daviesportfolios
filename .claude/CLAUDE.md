@@ -332,7 +332,9 @@ from anywhere in the repository (`--full`: every one).
   T212 sync application, and the chart-modal indicator math (MA /
   VWAP / TTM-EPS-P/E / extended-hours-bar detection). Add a pin
   test whenever a regression is fixed so the bug can't quietly come
-  back. Tests run under Node; one that needs a DOM (every component
+  back. A unit test that fetches anything but localhost fails
+  (`src/test_setup.js`, 2026-10-09: four chart tests had been calling
+  production on every run). Tests run under Node; one that needs a DOM (every component
   test) starts with `// @vitest-environment jsdom`, which made the
   run 24 s instead of 36 s (2026-10-08).
 - `npm run build` — Vite production bundle, output to `dist/` (committed;
@@ -343,8 +345,11 @@ from anywhere in the repository (`--full`: every one).
   2026-10-08: 322 at each width). A hard CI
   gate since 2026-09-17. Its clock is pinned, so it gives the same answer
   at any hour — do not replace `CLOCK` with a live `Date`. Needs
-  `npx playwright install chromium` once per machine; a container that
-  ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` instead.
+  `npx playwright install --no-shell chromium` once per machine; a
+  container that ships its own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH`
+  instead (the full browser, never `chromium_headless_shell-*`: the shell
+  lays text out differently from the Chrome people use, 2026-10-09).
+  Both browser scripts launch through `src/e2e/browser.mjs`.
   `sh bin/gates.sh` runs it in shards at once, each a viewport
   (`SWEEP_VIEWPORT`) and some of its parts (`SWEEP_PART`) on a free port
   (`SWEEP_PORT=0`), and CI the same four shards as jobs of their own

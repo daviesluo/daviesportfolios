@@ -611,7 +611,11 @@ that follow from that evidence, in short:
   long as it runs past the minute. **Every row waits under a minute**
   (`0099`, review F6: the two selections' 290 s became 55 s; a selection
   still running goes on under its lease, `runSelectKeptAlive`), and a new
-  row's `timeout_ms` stays under 60,000, which the test checks.
+  row's `timeout_ms` stays under 60,000, which the test checks. **A new row waits fifteen minutes** (`0104`, 2026-10-09,
+  review D1: 0100's row first called `trading212` 21 s before its new code
+  deployed): `edge_calls.active_from` defaults to `now() + 15 minutes`, the
+  minute job and `edge-watchdog` skip a row until then, and an insert never
+  names it, which the test checks.
 - **The interview showcase mirrors this section** (Davies, 2026-09-30):
   `showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
   repository explains every strategy for his interviews, with no figure from

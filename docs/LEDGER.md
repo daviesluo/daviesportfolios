@@ -395,6 +395,19 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-09 00:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Review batch 5 landed** (approved by Davies 2026-10-08, "以上内容都修"; each commit's own section below): first-paint
+  FX, T1 (unit tests off the network), T2 (browser checks on Playwright's full Chromium; CI installs `--no-shell`), M7
+  restored, D1 (`0104`, `edge_calls.active_from`, migrations.yml no longer cancels a running push), A2, A3 (a
+  different fix from the review's, see its section), A4, A6, A7, the size budget (3.58 kB of headroom). Still with the
+  reviewer: A1 by the snap (no frozen output moves), an addendum for `pm_live.ts`'s new hash (`e933f28c…`, A6/A7) with
+  a pin, and tick.ts booking the fill of a live order reconciled from history as cancelled after a partial fill.
+  `.claude/CLAUDE.md`, `docs/agents/CLAUDE.md` and the working-with-davies skill (and its Cursor copies) now say the
+  `--no-shell` install, the network guard and the fifteen-minute wait of a new `edge_calls` row.
+- **Polymarket wallet:** Davies funded it for a test; `pm_lp_state` read pUSD $4.996673 at 00:25 UTC, eu-west-1, IE,
+  attested, keyed, every gate true, dry-run. A real order has not been sent: the smoke test (one post-only 5-share
+  buy at 1¢, read back, scoring read, cancel, read back, allowances read) waits on his word.
+
 ### [2026-10-09 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's go preparation, everything short of arming** (Davies: "…然后最好上线准备"). P3 met in code: the payouts-per-path
   change (pending since 10-04) applied as it stood (`pm_live.ts` `4032d6c0…` → `57f4b1d7…`, `pm_mid.ts` comments,
