@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwCostOf, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1825,11 +1825,16 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
     expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')?.paper).toBe(true);
   });
-  it("LIVE's QUOTES lists the average price paid for what each market still holds, YES then NO, a dash for none", () => {
-    expect(lpLiveFixture.output.quotes.map((/** @type {any} */ x) => rwCostOf(x))).toEqual(['—', '28¢', '30¢']);
-    expect(rwCostOf({ yes: 46, no: 20, yesCost: 0.5866667, noCost: 0.40 })).toBe('58.7¢ · 40¢');
-    // A cost with nothing held is not shown: what was sold out of is gone.
-    expect(rwCostOf({ yes: 0, no: 0, yesCost: 0.4, noCost: null })).toBe('—');
+  it("LIVE's QUOTES has Rewards (est.) and Total (est.): what was paid plus the unread days at each market's point R, adding up to the cent", () => {
+    const q = /** @type {any[]} */ (lpLiveFixture.output.quotes);
+    expect(q.map((x) => [x.q, x.rewardEstUsd, x.fillsPnlUsd, x.totalEstUsd])).toEqual([
+      ['Will G happen?', 1.327491, 0.6, 1.927491], ['Will H happen?', 1.3288, 0.1, 1.4288], ['Will J happen?', 0, 0.1, 0.1]]);
+    for (const x of q) {
+      const s = splitCents(x.totalEstUsd, [x.rewardEstUsd, x.fillsPnlUsd]);
+      expect(Math.round((s.parts[0] + s.parts[1]) * 100)).toBe(Math.round(s.total * 100));
+    }
+    // No average cost any more.
+    expect(q.some((x) => 'yesCost' in x || 'noCost' in x)).toBe(false);
   });
   it("LIVE's QUOTES lists only the markets with an order resting or a token held", () => {
     const q = lpLiveFixture.output.quotes;
@@ -1854,13 +1859,13 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect([s.phase, s.rText, s.quoting, s.open, 'bestShareText' in s]).toEqual(['run', '0.44', 3, 2, false]);
     expect(s.est).toEqual({ lowUsd: 0.181699, highUsd: 0.908493, dayLowUsd: 0, dayHighUsd: 1.393023, rBand: '0.20–0.99', rDays: 1 });
     const id = (/** @type {string} */ x) => x;
-    expect(lpEstimateTexts(s.est, id)).toEqual({ text: '$0.18 – $0.91', note: 'day $0 – $1.39 · R 0.20–0.99' });
+    expect(lpEstimateTexts(s.est, id)).toEqual({ text: '$0.18 – $0.91', color: 'var(--gain)' });
     const np = lpLiveStatus(lpLiveFixture.noPayout);
-    expect([np.rText, lpEstimateTexts(np.est, id)]).toEqual(['—', { text: '$0.18 – $0.90', note: 'day $0 – $1.38 · R 0.20–1.00 (prior)' }]);
-    // Hidden values: every dollar goes through the mask, R does not.
+    expect([np.rText, lpEstimateTexts(np.est, id)]).toEqual(['—', { text: '$0.18 – $0.90', color: 'var(--gain)' }]);
+    // Hidden values: every dollar goes through the mask.
     const mask = (/** @type {string} */ x) => x.replace(/[\d.,]/g, '•');
-    expect(lpEstimateTexts(s.est, mask)).toEqual({ text: '$•••• – $••••', note: 'day $• – $•••• · R 0.20–0.99' });
-    expect(lpEstimateTexts(null, id)).toEqual({ text: '—', note: null });
+    expect(lpEstimateTexts(s.est, mask)).toEqual({ text: '$•••• – $••••', color: 'var(--gain)' });
+    expect(lpEstimateTexts(null, id)).toEqual({ text: '—', color: null });
     expect(lpLiveStatus({ ...l, estimate: undefined }).est).toBe(null);
   });
 });

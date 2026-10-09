@@ -174,13 +174,22 @@ export function lpLiveSummary(input: {
   const restingBuys = input.open.filter((o) => o.side === "BUY").reduce((s, o) => s + num(o.price) * Math.max(0, num(o.size) - num(o.size_matched)), 0);
   // Each market's part, as the TESTING page splits it: what Polymarket paid for it (rewards and rebates) and what its two
   // tokens made at the marks; the parts add up to the total.
+  // Today's rewards, estimated, and each market's rewards not yet read at its point R (`lpRewardEstimate`).
+  const estimate = lpRewardEstimate({ rewardDays: input.rewardDays, hours: input.hours ?? [], nowMs: input.nowMs });
   const partOf = (cond: string) => {
     const m = market.get(cond);
     const own: typeof books = {};
     for (const t of m ? [m.yes_token, m.no_token] : []) if (books[t]) own[t] = books[t];
     const fillsPnl = m ? bookPnl(own, { [m.yes_token]: marks[m.yes_token] ?? null, [m.no_token]: marks[m.no_token] ?? null }).total : 0;
     const rewardUsd = input.rewardDays.filter((r) => r.cond === cond).reduce((s, r) => s + num(r.actual_usd) + num(r.actual_sponsored_usd) + num(r.rebate_usd), 0);
-    return { rewardUsd: r6(rewardUsd), fillsPnlUsd: r6(fillsPnl), totalUsd: r6(rewardUsd + fillsPnl) };
+    // LIVE's QUOTES (Davies, 2026-10-09: "avg cost列删了，换成Rewards(est.)…之后的Total也改成Total(est.)"): what was paid
+    // plus what the days not yet read have earned at the market's point R, and the total with it. Shown there only: every
+    // other figure, the scoreboard's included, counts what was paid.
+    const rewardEst = rewardUsd + (estimate.markets[cond]?.estUsd ?? 0);
+    return {
+      rewardUsd: r6(rewardUsd), fillsPnlUsd: r6(fillsPnl), totalUsd: r6(rewardUsd + fillsPnl),
+      rewardEstUsd: r6(rewardEst), totalEstUsd: r6(rewardEst + fillsPnl),
+    };
   };
   let best = -Infinity;
   for (const cond of new Set([...input.rewardDays.map((r) => r.cond), ...Object.keys(books).map((t) => condOfToken.get(t) ?? t)])) best = Math.max(best, partOf(cond).totalUsd);
@@ -198,16 +207,12 @@ export function lpLiveSummary(input: {
     return { bid, ask };
   };
   const minute = new Map((input.minutes ?? []).map((x) => [x.cond, x]));
-  // What it holds of each token, and the average price it paid for what it still holds (null for a token it does not hold):
-  // QUOTES' Held and Avg cost on LIVE (Davies, 2026-10-09: "可以在适当位置加一个投入的价格列").
+  // What it holds of each token: QUOTES' Held (its Avg cost column went the same day for Rewards (est.)).
   const heldOf = (cond: string) => {
     const m = market.get(cond);
-    if (!m) return { yes: 0, no: 0, yesCost: null, noCost: null };
+    if (!m) return { yes: 0, no: 0 };
     const y = books[m.yes_token], n = books[m.no_token];
-    return {
-      yes: r6(y?.held ?? 0), no: r6(n?.held ?? 0),
-      yesCost: y && y.held > 0 ? r6(y.avgCost) : null, noCost: n && n.held > 0 ? r6(n.avgCost) : null,
-    };
+    return { yes: r6(y?.held ?? 0), no: r6(n?.held ?? 0) };
   };
   const quotes: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
@@ -262,7 +267,7 @@ export function lpLiveSummary(input: {
     // the total), the markets chosen today, and the markets still holding tokens.
     status: { bestMarketUsd: Number.isFinite(best) ? r6(best) : null, quoting: quotingToday, held: quotes.filter((x) => Number(x.yes) + Number(x.no) > 0).length },
     // Today's rewards, estimated (STATUS' last tile on LIVE, Davies 2026-10-09: "预估今日rewards收益…给个范围（最低-最优）").
-    estimate: lpRewardEstimate({ rewardDays: input.rewardDays, hours: input.hours ?? [], nowMs: input.nowMs }),
+    estimate,
     stop: {
       limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
       trippedAt: input.stop?.minute ?? null,
@@ -381,6 +386,21 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
   }
   // Nothing recorded yet today (the first minutes after 00:00): the day is the projection alone, at the overall band.
   if (!conds.length) { const b = band(mu); dayLow = restLow * b.low >= LP_EST_MIN_PAYOUT_USD ? restLow * b.low : 0; dayHigh = restHigh * b.high; }
+  // Each market's rewards not yet read (QUOTES' Rewards (est.), Davies 2026-10-09: "用最新数据的最合理r来估算"): its formula
+  // on every day the readout has not yet booked (today, and yesterday until its payout is read: a day is read once any live
+  // row of it is), times its point R, exp of its shrunk mean. Read days are what was paid, counted elsewhere.
+  const readDays = new Set(input.rewardDays.map((r) => dayOf(r.day)));
+  const unread = new Map<string, number>();
+  for (const h of input.hours) {
+    const t = Date.parse(h.hour);
+    if (!(t <= input.nowMs) || readDays.has(iso(Math.floor(t / DAY) * DAY).slice(0, 10))) continue;
+    unread.set(h.cond, (unread.get(h.cond) ?? 0) + num(h.formula_usd));
+  }
+  const markets: Record<string, { r: number; unreadFormulaUsd: number; estUsd: number }> = {};
+  for (const c of [...unread.keys()].sort()) {
+    const r = Math.exp(muOf(c)), f = unread.get(c)!;
+    markets[c] = { r: r6(r), unreadFormulaUsd: r6(f), estUsd: r6(f * r) };
+  }
   const r6n = (x: number | null) => (x === null ? null : r6(x));
   const all = band(mu);
   return {
@@ -389,5 +409,6 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
     fullDay: { formulaLowUsd: r6(soFar + restLow), formulaHighUsd: r6(soFar + restHigh), lowUsd: r6(dayLow), highUsd: r6(dayHigh) },
     r: { point: r6(Math.exp(mu)), low: r6(all.low), high: r6(all.high), days: n, basis: n ? "live" as const : "prior" as const },
     rates: { recent: r6n(rates.recent), today: r6n(rates.today), days: r6n(rates.days) },
+    markets,
   };
 }

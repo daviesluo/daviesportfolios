@@ -392,19 +392,23 @@ places stay when the number is not whole.
   scoreboard, then STATUS: R (ACTUAL), what Polymarket paid over what the
   reward formula gave on the days a payout has been read (a dash until the
   first); the markets quoting today; the positions still held; and REWARDS
-  TODAY (EST.), what today's quotes have earned since midnight UTC as a
-  range from low to best, with the whole day's range and the band of R it
-  uses under it. It moves every minute, starts again from nothing at
-  midnight UTC, and its band of R comes from the days Polymarket has paid
-  (until the first, from the studies' 0.2 to 1), so each payout read
-  narrows it by itself. Then DAYS,
+  TODAY (EST.), in green, what today's quotes have earned since midnight
+  UTC as a range from low to best. It moves every minute, starts again
+  from nothing at midnight UTC, and its band of R comes from the days
+  Polymarket has paid (until the first, from the studies' 0.2 to 1), so
+  each payout read narrows it by itself. Then DAYS,
   each of those days with the formula, what was paid, R and the rebates;
-  and QUOTES, the TESTING pages' table less its share and rewards columns
-  (each market with an order resting now or a token held, the day's
-  first, then any held from an earlier day: its pool, the prices its live
-  orders rest at, a dash on a side with nothing resting, what it holds of each token and the average price it paid for it,
-  what its orders have made, and its total with what Polymarket paid for it)
-  and FILLS (a fill Polymarket has not confirmed
+  and QUOTES, the TESTING pages' table less its share column (each
+  market with an order resting now or a token held, the day's first, then
+  any held from an earlier day: its pool, the prices its live orders rest
+  at, a dash on a side with nothing resting, what it holds of each token;
+  Rewards (est.), what Polymarket has paid for the market plus, for each
+  day whose payout has not been read yet, the reward formula's figure for
+  it times the market's best estimate of R, which every payout read
+  refines; what its orders have made; and Total (est.), the two added up,
+  all moving every minute). The estimates are on this table and the
+  STATUS tile only: the scoreboard counts only money actually paid. Then
+  FILLS (a fill Polymarket has not confirmed
   yet is marked and counted nowhere). Should its −$75 total stop ever trip,
   a red line under the scoreboard says so. Hide values masks every amount on it.
 - **Fees on the Reward quotes pages.** Every Reward quotes page shows,

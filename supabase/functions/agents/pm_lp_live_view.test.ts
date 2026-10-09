@@ -58,9 +58,11 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   assertEquals([out.openOrders, out.markets, out.fills, out.armed, out.running, out.lagMinutes, out.liveSince], [5, 3, 4, true, true, 1, "2026-09-16T01:32:21.000Z"]);
   // What it holds is QUOTES' held column (its HELD table went, 2026-10-09): H 10 NO, J 10 YES.
   assertEquals(out.quotes.map((x) => [x.q, x.yes, x.no, x.mark]), [["Will G happen?", 0, 0, 0.45], ["Will H happen?", 0, 10, 0.71], ["Will J happen?", 10, 0, 0.31]]);
-  // And the average price paid for what it still holds (LIVE's Avg cost column): H's NO at 0.28, J's YES at 0.30; G sold
-  // all it bought, so none.
-  assertEquals(out.quotes.map((x) => [x.q, x.yesCost, x.noCost]), [["Will G happen?", null, null], ["Will H happen?", null, 0.28], ["Will J happen?", 0.3, null]]);
+  // LIVE's Rewards (est.) and Total (est.) (Davies, 2026-10-09, in place of Avg cost): what was paid plus today's formula,
+  // not yet read, at each market's point R: G 1.05 + 0.60 × exp(−0.771142) = 1.05 + 0.277491; H 1.20 + 0.30 ×
+  // exp(−0.845524) = 1.20 + 0.128800; J nothing paid and no formula. Total (est.) adds the orders: 1.927491, 1.428800, 0.10.
+  assertEquals(out.quotes.map((x) => [x.q, x.rewardEstUsd, x.totalEstUsd]), [["Will G happen?", 1.327491, 1.927491], ["Will H happen?", 1.3288, 1.4288], ["Will J happen?", 0, 0.1]]);
+  assertEquals(out.quotes.map((x) => "yesCost" in x || "noCost" in x), [false, false, false]);
   assertEquals(out.days.map((d) => [d.day, d.markets, d.formulaUsd, d.paidUsd, d.r, d.rebateUsd]), [["2026-09-16", 2, 5, 2.2, 0.44, 0.05]]);
   // Newest first, everywhere; the MATCHED fill listed and not counted.
   assertEquals(out.quotes.map((x) => [x.q, x.quoting, x.ratePerDay, x.bid, x.ask, x.share, x.yes, x.no, x.rewardUsd, x.fillsPnlUsd, x.totalUsd]), [
@@ -230,4 +232,27 @@ Deno.test("a payout read moves R's band by itself: none, one day, two days, as t
   const g = lpRewardEstimate({ rewardDays: mixed, hours, nowMs: now }).soFar;
   const h = lpRewardEstimate({ rewardDays: mixed, hours: hours.map((x) => ({ ...x, cond: H })), nowMs: now }).soFar;
   assert(g.lowUsd > h.lowUsd && g.highUsd > h.highUsd, JSON.stringify({ g, h }));
+});
+
+Deno.test("QUOTES' Rewards (est.): paid plus the unread days' formula at the market's point R; grows in a day, carries yesterday over 00:00 until it is read", () => {
+  const C = "2026-10-10T", h = (hour: string, f: number, cond = G): LpLiveHourRow => ({ hour: `${hour}:00:00.000Z`, cond, minutes: 60, formula_usd: f });
+  const read8 = [paid("2026-10-08", 5, 2.2, G)];                                // one day read, G at 0.44
+  // 10-09 not read yet: its 10 of formula and today's count at G's point R, exp((2 μ + ln 0.44) / 3) with μ the overall
+  // shrunk mean (2 ln √0.2 + ln 0.44) / 3 = −0.810139 → G's (2 × −0.810139 + ln 0.44) / 3 = −0.813753, R 0.443192.
+  const at = (now: string, hours: LpLiveHourRow[], days = read8) => lpRewardEstimate({ rewardDays: days, hours, nowMs: Date.parse(now) }).markets[G];
+  const y = [h("2026-10-09T10", 4), h("2026-10-09T20", 6)];
+  const a = at(`${C}06:30:00Z`, [...y, h(`${C}05`, 1)]), b = at(`${C}09:30:00Z`, [...y, h(`${C}05`, 1), h(`${C}08`, 2)]);
+  assertAlmostEquals(a.r, 0.443192, 1e-6);
+  near(a.unreadFormulaUsd, 11, "yesterday's 10 and today's 1"); assertAlmostEquals(a.estUsd, 11 * 0.443192, 1e-5);
+  assert(b.estUsd > a.estUsd, "it grows as the day's formula does");
+  // 00:00 UTC on 10-11: 10-10 rolls into the unread days beside 10-09; nothing of 10-11 yet.
+  const c = at("2026-10-11T00:00:00Z", [...y, h(`${C}05`, 1), h(`${C}08`, 2)]);
+  near(c.unreadFormulaUsd, 13, "10-09 and 10-10, both unread");
+  // 10-09's payout read (paid 3.00 of 10): it leaves the estimate, its money now paid; G's R moves with it.
+  const d = lpRewardEstimate({ rewardDays: [...read8, paid("2026-10-09", 10, 3, G)], hours: [...y, h(`${C}05`, 1), h(`${C}08`, 2)], nowMs: Date.parse("2026-10-11T01:30:00Z") }).markets[G];
+  near(d.unreadFormulaUsd, 3, "10-10 alone");
+  assert(d.r < a.r, `R falls with a day at 0.30: ${d.r} after ${a.r}`);
+  // In the summary: Rewards (est.) = what was paid + this, Total (est.) = that + the orders.
+  const q = lpLiveSummary(F.input)!.quotes[0];
+  near(Number(q.rewardEstUsd), Number(q.rewardUsd) + 0.277491, "G"); near(Number(q.totalEstUsd), Number(q.rewardEstUsd) + Number(q.fillsPnlUsd), "adds up");
 });

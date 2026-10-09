@@ -1364,17 +1364,14 @@ export function lpLiveStatus(l) {
 }
 
 /**
- * The REWARDS TODAY (EST.) tile's two lines, every dollar through `m` (the hide-values mask): "$a – $b" so far today, and
- * "day $c – $d · R x–y" ("prior" while no payout has been read). A dash without an estimate.
+ * The REWARDS TODAY (EST.) tile's value, every dollar through `m` (the hide-values mask): "$a – $b" so far today, in the
+ * page's gain colour; a dash without an estimate. Nothing under it (Davies, 2026-10-09: "数字的字体改成绿色的，底下"day …"删掉不显示").
  * @param {ReturnType<typeof lpLiveStatus>['est']} est @param {(s: string) => string} m
  */
 export function lpEstimateTexts(est, m) {
-  if (!est || est.lowUsd == null || est.highUsd == null) return { text: '—', note: null };
+  if (!est || est.lowUsd == null || est.highUsd == null) return { text: '—', color: null };
   const usd = (/** @type {number | null} */ x) => m(fmtUsd(x ?? 0));
-  return {
-    text: `${usd(est.lowUsd)} – ${usd(est.highUsd)}`,
-    note: `day ${usd(est.dayLowUsd)} – ${usd(est.dayHighUsd)} · R ${est.rBand}${est.rDays ? '' : ' (prior)'}`,
-  };
+  return { text: `${usd(est.lowUsd)} – ${usd(est.highUsd)}`, color: 'var(--gain)' };
 }
 
 /**
@@ -1666,19 +1663,6 @@ export function rwHeldOf(x) {
  */
 export function lpLiveQuoteRows(quotes) {
   return (quotes ?? []).filter((x) => x.bid != null || x.ask != null || (Number(x.yes) || 0) > 0 || (Number(x.no) || 0) > 0);
-}
-
-/**
- * The average price paid for what a market still holds, as LIVE's QUOTES lists it beside Held (Davies, 2026-10-09:
- * "可以在适当位置加一个投入的价格列"): each held token's, YES then NO, as Held lists them; a dash when it holds nothing.
- * @param {{ yes?: number | string | null, no?: number | string | null, yesCost?: number | null, noCost?: number | null }} x
- */
-export function rwCostOf(x) {
-  const parts = [
-    ...((Number(x.yes) || 0) > 0 && x.yesCost != null ? [fmtCents(x.yesCost)] : []),
-    ...((Number(x.no) || 0) > 0 && x.noCost != null ? [fmtCents(x.noCost)] : []),
-  ];
-  return parts.length ? parts.join(' · ') : '—';
 }
 
 /**

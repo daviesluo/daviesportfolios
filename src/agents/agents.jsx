@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpEstimateTexts, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwCostOf, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpEstimateTexts, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -684,18 +684,18 @@ function LpLiveDetail({ l, m, at, nowMs }) {
  * RW's status: the pessimistic total, the largest market's share of it, how many markets are being quoted today,
  * and how many positions are still held. No line under the titles (Davies, 2026-09-25).
  * A real-money book's (LIVE's "Reward quotes") opens on its actual R (`rText`) where a paper test's opens on its worst case.
- * LIVE's has no TOP SHARE and ends on today's rewards, estimated (`est`, `lpEstimateTexts`: the range so far, and a note).
- * @param {{ v: { phase: string, bestShareText?: string }, r: any, usd: (x: number | null | undefined) => string, rText?: string | null, est?: { text: string, note: string | null } | null }} props
+ * LIVE's has no TOP SHARE and ends on today's rewards, estimated (`est`, `lpEstimateTexts`: the range so far, in green).
+ * @param {{ v: { phase: string, bestShareText?: string }, r: any, usd: (x: number | null | undefined) => string, rText?: string | null, est?: { text: string, color: string | null } | null }} props
  */
 function RwBar({ v, r, usd, rText = null, est = null }) {
   const quoting = Number(r.quoting) || 0;
   const open = Number(r.open) || 0;
   // A real-money book's first tile is its actual R (`rText`, LIVE's "Reward quotes"); a paper test's, its worst case.
   const live = rText != null;
-  /** @type {Record<string, { text: string, color?: string, note?: string | null }>} */
+  /** @type {Record<string, { text: string, color?: string }>} */
   const tiles = {
     'R (ACTUAL)': { text: rText ?? '—' },
-    'REWARDS TODAY (EST.)': { text: est?.text ?? '—', note: est?.note ?? null },
+    'REWARDS TODAY (EST.)': { text: est?.text ?? '—', color: est?.color ?? undefined },
     'WORST CASE': { text: usd(r.stressUsd), color: pctColor(r.stressUsd) },
     'TOP SHARE': { text: v.bestShareText ?? '—' },
     'QUOTING TODAY': { text: String(quoting) },
@@ -709,7 +709,6 @@ function RwBar({ v, r, usd, rText = null, est = null }) {
           <div key={k} className="ag-rw-tile">
             <div className="ag-rw-tile-k mono">{k}</div>
             <div className="ag-rw-tile-v mono" style={tiles[k].color ? { color: tiles[k].color } : undefined}>{tiles[k].text}</div>
-            {tiles[k].note && <div className="ag-rw-tile-note dim mono">{tiles[k].note}</div>}
           </div>
         ))}
       </div>
@@ -721,9 +720,9 @@ function RwBar({ v, r, usd, rText = null, est = null }) {
  * The Reward quotes pages' QUOTES: each market quoted today, then each still held from an earlier day, with its pool, its
  * quote, our share of the pool, what it holds and what it has made, its rewards and its orders adding up to its total to
  * the cent. TESTING's pages draw it from their paper; LIVE's "Reward quotes" from its live book (Davies, 2026-10-09:
- * "RESTING ORDERS表格还是改为testing页的QUOTES表格吧"). LIVE's (`live`) shows no Share and no Rewards and, after Held, the
- * average price paid for what it holds (Davies, 2026-10-09: "shares列和rewards列也删了，可以在适当位置加一个投入的价格列"); its
- * Total still counts what Polymarket paid.
+ * "RESTING ORDERS表格还是改为testing页的QUOTES表格吧"). LIVE's (`live`) shows no Share; its Rewards (est.) is what Polymarket
+ * paid plus the days not yet read at each market's point R, and its Total (est.) that plus the orders (Davies, 2026-10-09:
+ * "avg cost列删了，换成Rewards(est.)，用最新数据的最合理r来估算…之后的Total也改成Total(est.)"). The scoreboard counts paid money only.
  * @param {{ markets: any[], m: (s: string) => string, usd: (x: number | null | undefined) => string, waiting?: string | null, live?: boolean }} props
  */
 function RwQuotesTable({ markets, m, usd, waiting = null, live = false }) {
@@ -734,12 +733,16 @@ function RwQuotesTable({ markets, m, usd, waiting = null, live = false }) {
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
             <th className="hl-th">Market</th><th className="hl-th">Pool/day</th><th className="hl-th">Quote</th>{!live && <th className="hl-th">Share</th>}
-            <th className="hl-th">Held</th>{live ? <th className="hl-th">Avg cost</th> : <th className="hl-th">Rewards</th>}<th className="hl-th">Orders</th><th className="hl-th">Total</th>
+            <th className="hl-th">Held</th><th className="hl-th">{live ? 'Rewards (est.)' : 'Rewards'}</th><th className="hl-th">Orders</th><th className="hl-th">{live ? 'Total (est.)' : 'Total'}</th>
           </tr></thead>
           <tbody>
             {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={live ? 7 : 8}>{waiting ?? 'No market chosen today yet.'}</td></tr>}
             {markets.map((x) => {
-              const s = splitCents(Number(x.totalUsd) || 0, [Number(x.rewardUsd) || 0, Number(x.fillsPnlUsd) || 0]);
+              // LIVE's: what was paid plus the days not yet read at the market's point R, and the total with it (Davies,
+              // 2026-10-09: "avg cost列删了，换成Rewards(est.)…之后的Total也改成Total(est.)"); TESTING's: its paper's own.
+              const s = live
+                ? splitCents(Number(x.totalEstUsd) || 0, [Number(x.rewardEstUsd) || 0, Number(x.fillsPnlUsd) || 0])
+                : splitCents(Number(x.totalUsd) || 0, [Number(x.rewardUsd) || 0, Number(x.fillsPnlUsd) || 0]);
               const c = { total: s.total, a: s.parts[0], b: s.parts[1] };
               return (
                 <tr key={x.cond}>
@@ -749,7 +752,7 @@ function RwQuotesTable({ markets, m, usd, waiting = null, live = false }) {
                   <td>{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
                   {!live && <td>{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>}
                   <td>{m(rwHeldOf(x))}</td>
-                  {live ? <td>{m(rwCostOf(x))}</td> : <td className="ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>}
+                  <td className="ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>
                   <td className="ag-gl" style={{ color: pctColor(c.b) }}>{usd(c.b)}</td>
                   <td className="ag-gl" style={{ color: pctColor(c.total) }}>{usd(c.total)}</td>
                 </tr>

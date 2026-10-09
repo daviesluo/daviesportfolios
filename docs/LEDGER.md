@@ -392,6 +392,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 15:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- LIVE's "Reward quotes" (Davies: "数字的字体改成绿色的，底下"day …"删掉不显示。…avg cost列删了，换成Rewards(est.)，用最新数据的最合理r
+  来估算（每次自动校准后更新），之后的Total也改成Total(est.)算上预估的实时rewards，都实时更新"): REWARDS TODAY (EST.) in green,
+  its note gone. QUOTES: Market | Pool/day | Quote | Held | Rewards (est.) | Orders | Total (est.). Rewards (est.) = paid
+  + each unread day's formula (today, and yesterday until read) x the market's point R (`lpRewardEstimate().markets`,
+  exp of its shrunk log mean); Total (est.) adds the orders, to the cent. Avg cost, `yesCost`/`noCost` and `rwCostOf`
+  removed. The scoreboard stays on paid money (guide says so). Fixture regenerated; sweep, unit and view tests updated.
+
 ### [2026-10-09 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - LIVE's "Reward quotes" STATUS: TOP SHARE out, QUOTING TODAY and POSITIONS STILL HELD one left, and REWARDS TODAY
   (EST.) last (Davies: "TOP SHARE这个框删了…最右边的那个空余的框显示预估今日rewards收益…（最低-最优）", then "实时更新…自动优化
