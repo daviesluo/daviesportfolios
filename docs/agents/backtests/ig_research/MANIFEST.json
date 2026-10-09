@@ -1,0 +1,288 @@
+{
+ "files": {
+  "inputs/cboe/BXM.csv.gz": {
+   "bytes": 33917,
+   "sha256": "61e53964067cd2efb8debff35c569ebe71a924feef84ba7ec450c5799cab7db0"
+  },
+  "inputs/cboe/CNDR.csv.gz": {
+   "bytes": 51096,
+   "sha256": "63339f1d2fe4a2b93fe29a04c5a1e96604ac796daa6e36b5e974a2ea9decdca1"
+  },
+  "inputs/cboe/PUT.csv.gz": {
+   "bytes": 27957,
+   "sha256": "26cd56eac67c71a985276f0343df93cc01ab3a2d3c00a6a589a9ae4f2678a0e3"
+  },
+  "inputs/cboe/VIX.csv.gz": {
+   "bytes": 105648,
+   "sha256": "d0fb1265f31aed3ade523bcf614c4c590ec57ebc9eff9aa5b9a5603c8af36e29"
+  },
+  "inputs/cboe/VIX1D.csv.gz": {
+   "bytes": 12762,
+   "sha256": "150d4b28e71e25c3a9dff7601e2a27c6a7bb2b9fe2f0b403d7d7033f0f42fcf8"
+  },
+  "inputs/cboe/VIX3M.csv.gz": {
+   "bytes": 49095,
+   "sha256": "f85c3916fa52f813cbbbaf2c7d5e91eba8be51d0cf245b82caa3083ed1899e45"
+  },
+  "inputs/cboe/VIX9D.csv.gz": {
+   "bytes": 44329,
+   "sha256": "20763e3a81916f118019d60e12a1a7369db5768eac65d31f8465c4fe5fae8930"
+  },
+  "inputs/cboe/VX_monthly.csv.gz": {
+   "bytes": 451416,
+   "sha256": "5430c181f6d3f95c76bd7bfae91141ec682c0314cf90f80df1d174d712e64a25"
+  },
+  "inputs/cboe/WPUT.csv.gz": {
+   "bytes": 25193,
+   "sha256": "5a209e14c531fdbcdc1e5c8d4c8246df1e81b3ccd3de774477f750f2aa30c691"
+  },
+  "inputs/fomc_dates.json": {
+   "bytes": 3885,
+   "sha256": "0c519931ee8b90d17d97a0a01046280113bf0ee2b68c83354d5c53fb60e8fd93"
+  },
+  "inputs/fred/DFF.csv.gz": {
+   "bytes": 76710,
+   "sha256": "0523e08e71cd5505598f04db8547d4e1b79d8eeb861965bc35990702d11cce45"
+  },
+  "inputs/fred/DTB3.csv.gz": {
+   "bytes": 67923,
+   "sha256": "f2663d9e20b9d1d418bba107918b38644121849e7e0b39e784f4b605c5f81846"
+  },
+  "inputs/fred/ECBDFR.csv.gz": {
+   "bytes": 21786,
+   "sha256": "91baec70c2d84c6588609b85a8620976a33d02277699ab9cb5d72ef61762d68f"
+  },
+  "inputs/fred/IUDSOIA.csv.gz": {
+   "bytes": 35623,
+   "sha256": "dddfe7bcb030ddc096b36cec37f716d9f232407514a60d777f47c81bb68e6626"
+  },
+  "inputs/fred/SOFR.csv.gz": {
+   "bytes": 6661,
+   "sha256": "9cd4b87fba237d315f17f876ac78f964850703768af50ad993ce212d0a154bba"
+  },
+  "inputs/ig_pages/fca_cfd_restrictions_2019.txt.gz": {
+   "bytes": 3579,
+   "sha256": "2b9e37d9db3684b96f31620e8c88ff20b2e802840de0e2d348c7c4c6cb32bfe5"
+  },
+  "inputs/ig_pages/fca_crypto_derivatives_ban.txt.gz": {
+   "bytes": 3452,
+   "sha256": "5919687a25f3720ffc4527686d72c285e6516862f98923c9247e7cbe93407108"
+  },
+  "inputs/ig_pages/hmrc_bim22020.txt.gz": {
+   "bytes": 1677,
+   "sha256": "b8393409c446725569c1354c8d56952517bccf437d821a68beb9c69b861f7a69"
+  },
+  "inputs/ig_pages/hmrc_cg56100.txt.gz": {
+   "bytes": 3175,
+   "sha256": "3bac77f3c5799a68a69f754fb1b62344998d4801d21f071e4b234b7f6944a37c"
+  },
+  "inputs/ig_pages/hmrc_cg56105.txt.gz": {
+   "bytes": 1909,
+   "sha256": "a1c24b4afcda26a3813a7d7eb5c186b794bbed5f04babc29f98eb4c593335d62"
+  },
+  "inputs/ig_pages/ig_charges.txt.gz": {
+   "bytes": 5595,
+   "sha256": "fc969b592c76ef2388ebda564542622cbb8ea7390299dc9914bd7be85d1da850"
+  },
+  "inputs/ig_pages/ig_overnight_funding.txt.gz": {
+   "bytes": 5665,
+   "sha256": "4fc44be2893143c5873e151ddb1e30d7bf5da21801b4de4be4d5f698582a7163"
+  },
+  "inputs/ig_pages/ig_sb_customer_agreement_jul2023.txt.gz": {
+   "bytes": 68577,
+   "sha256": "21ee522f861fc3550f532d2c50f9fcfec4a8d7d427159113b169e035273f7f10"
+  },
+  "inputs/ig_pages/ig_sb_forex.txt.gz": {
+   "bytes": 5381,
+   "sha256": "70191a87ea3c8ebb9ae3dfe3de1ba88378711729a042c6811213b39714bbf088"
+  },
+  "inputs/ig_pages/ig_sb_indices.txt.gz": {
+   "bytes": 9136,
+   "sha256": "53fb6af95366de993e3ec44e02a7aaa940856de9a5801e38c5a46f57491846ff"
+  },
+  "inputs/ig_pages/ig_sb_options.txt.gz": {
+   "bytes": 4860,
+   "sha256": "49defab563929dabfa4300da598f5e21a36083a1fac7fd9e7be4aacb951922a1"
+  },
+  "inputs/ig_pages/ig_weekend_trading.txt.gz": {
+   "bytes": 5803,
+   "sha256": "858db8df70544aea6e0ffb00d27bfab87ef20e5ecf8f5ba0ff4804037910e7f3"
+  },
+  "inputs/ig_pages/index.json": {
+   "bytes": 7619,
+   "sha256": "0dfe3934fabf5442045a85b11e14a394b804aaa0f43f41e701d94c5a32d47c62"
+  },
+  "inputs/ig_pages/labs_faq.txt.gz": {
+   "bytes": 2009,
+   "sha256": "13d62d9da9b9691f96baef9641eda0909a82c384e6b66856ff7b03edb5683db5"
+  },
+  "inputs/ig_pages/labs_getting_started.txt.gz": {
+   "bytes": 1060,
+   "sha256": "a1370025c6d9c42b8f77cbe90fa204f4e589281a767c9847540527e0154901c9"
+  },
+  "inputs/ig_pages/labs_order_types.txt.gz": {
+   "bytes": 2265,
+   "sha256": "dfd8476f32d0fca94f4833aab0c13ae782cc93010782c83d83afc69fe1f743c6"
+  },
+  "inputs/ig_pages/labs_ref_accounts.txt.gz": {
+   "bytes": 1921,
+   "sha256": "6839ec858354b46980664f0070351c09a690a7478ee8c702bc00c1002e44bbfe"
+  },
+  "inputs/ig_pages/labs_ref_markets_epic.txt.gz": {
+   "bytes": 4039,
+   "sha256": "18e892e26998f4ddd17a70244ed0e4b28d1abd6687d24f3c1846733c0ee156dd"
+  },
+  "inputs/ig_pages/labs_ref_positions_otc.txt.gz": {
+   "bytes": 2936,
+   "sha256": "0ecfdd5bc85b31ce73135053b3ad0493d26d600a5fbaa227ff6c90b3edf84f80"
+  },
+  "inputs/ig_pages/labs_ref_prices_epic.txt.gz": {
+   "bytes": 2633,
+   "sha256": "cdb322ef0ec0c5d3c9b17bd1eef7ab834a280599e33fffffaea2a418a59361a1"
+  },
+  "inputs/ig_pages/labs_ref_working_orders_otc.txt.gz": {
+   "bytes": 2377,
+   "sha256": "6756b7a9e109d731b5e67f21a527afa2461db0a10d465343fa6d6a3b771b269b"
+  },
+  "inputs/ig_pages/labs_rest_guide.txt.gz": {
+   "bytes": 2509,
+   "sha256": "445a540752cb6dbf959c135d2a4b5a1d2fce0d8cfe12c49ce540a5e67f9e6424"
+  },
+  "inputs/ig_pages/labs_rest_reference.txt.gz": {
+   "bytes": 1667,
+   "sha256": "c82d3f32494b98fdb7fba467a4e53214f50dccd35c759dd7528776cc2fab7b15"
+  },
+  "inputs/ig_pages/labs_streaming_guide.txt.gz": {
+   "bytes": 2215,
+   "sha256": "5e1d3a971bb0951cf56ab742b023a5123d74d3178b40e186d7faba250d34eaca"
+  },
+  "inputs/ig_pages/tcga1992_s51.txt.gz": {
+   "bytes": 3217,
+   "sha256": "064396073375fa3d32a64ff22ad848599ed7108001f4dffafcf1db94c7ebd5cd"
+  },
+  "inputs/pull_log.json": {
+   "bytes": 1626,
+   "sha256": "0647dd83f52b4ce1ec50e0d72f2e9de72017933d77d45c55ad31a5eed1602bf4"
+  },
+  "inputs/yahoo_1h/ES=F.csv.gz": {
+   "bytes": 205455,
+   "sha256": "3ac5e5bafee43a44008beb5f840136b8981d70eb25e96849493af484cb888c9b"
+  },
+  "inputs/yahoo_d/ES=F.csv.gz": {
+   "bytes": 114040,
+   "sha256": "4be0a23c16ccb6b7cd5612c4f924fb55b80639e97211fe9e0217b5e6cc68c4b8"
+  },
+  "inputs/yahoo_d/ISF.L.csv.gz": {
+   "bytes": 111010,
+   "sha256": "52a2669ca912d71c0b9740408a691125006151251cce6dc87607225b4cddca23"
+  },
+  "inputs/yahoo_d/QQQ.csv.gz": {
+   "bytes": 184647,
+   "sha256": "7b7825fe8e7948a4128c0a2a82f6ec10bc04296f68158cdb363755ae9285086c"
+  },
+  "inputs/yahoo_d/SPY.csv.gz": {
+   "bytes": 222086,
+   "sha256": "91455ede320b5780e1b136182ed7d4fd3f7ee2022af06c1cff1d060f9cedac4d"
+  },
+  "inputs/yahoo_d/_FTSE.csv.gz": {
+   "bytes": 196092,
+   "sha256": "4d51a74c164c259d803cc332f27edae3fc7283d5f8f09737e68a4c94c86e3a03"
+  },
+  "inputs/yahoo_d/_GDAXI.csv.gz": {
+   "bytes": 214370,
+   "sha256": "1becd01601238ef83758d6a9983498f175a80bdfe7bd4c92446bbb5b05cd380d"
+  },
+  "inputs/yahoo_d/_GSPC.csv.gz": {
+   "bytes": 381486,
+   "sha256": "ae5bae88a7ec50d5e1fa56844642a64686758cdf8382f0798c0ff5577ff1e8f2"
+  },
+  "inputs/yahoo_d/_NDX.csv.gz": {
+   "bytes": 230987,
+   "sha256": "32497f7e86dfbe287e894848ba33302d3e49c4c270c5e8a1d8814500730d35e3"
+  },
+  "inputs/yahoo_d/_VIX.csv.gz": {
+   "bytes": 142376,
+   "sha256": "df35f82e6218e7422c63164345f8080804aa6adb7add5b8225520b757a636497"
+  },
+  "results/es_sunday.json": {
+   "bytes": 1390,
+   "sha256": "6c6421c93c4fe7c8cf26188256a46a3a017cb1e4e288c0900b49c4756ea88392"
+  },
+  "results/fxw_ig.json": {
+   "bytes": 2287,
+   "sha256": "0abb1c63812bb97c3c39cdc34ab713ba4c3b83e4c98e49569733069e4756a8e5"
+  },
+  "results/idx_calendar.json": {
+   "bytes": 151544,
+   "sha256": "8b5b2d138b29e8feafc04dd8e60465f4feb54a656ab85c71bfcaf324b8396897"
+  },
+  "results/summary.json": {
+   "bytes": 5668,
+   "sha256": "ea06530af898c473bbffc8a5c28fa4bd7e9c03caca5f3c623c4428f6693bd0e0"
+  },
+  "results/vrp.json": {
+   "bytes": 34729,
+   "sha256": "7f679b894a05c8d29ef517eca59e3862a9688da351f63745e9138424ba8753c6"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 2412,
+   "sha256": "60909ded6c38a4b6104aedfcd42f074508f24ef3abce7db7a57c652ab5b55ef4"
+  },
+  "scripts/common.py": {
+   "bytes": 5268,
+   "sha256": "e4dfe9626091858ee53cb323951a30c822b1e68039b21983ef1ee3961cbb46c6"
+  },
+  "scripts/es_sunday.py": {
+   "bytes": 4081,
+   "sha256": "a06350082742302a5258164ffefcca9cd844fb9e0dfd98f1454518bcd94c21c7"
+  },
+  "scripts/fxw_ig.py": {
+   "bytes": 4076,
+   "sha256": "d8961b6bcdbac8e57f909be37fc21c2643d848b3d7b7f4c86b53cf2aa210eabc"
+  },
+  "scripts/idx_calendar.py": {
+   "bytes": 8342,
+   "sha256": "e6e6ba34f559d972bde610e58efb787f701d3dee17c8ba78dcbc3ce47e747196"
+  },
+  "scripts/netget.py": {
+   "bytes": 949,
+   "sha256": "3e1f74ece0d6c10576baa971897e760f206e1b51c7c9a91896c1531b63a554ec"
+  },
+  "scripts/pull_public.py": {
+   "bytes": 8785,
+   "sha256": "27fcfb1cb62a55c501129aee17e5fef76f9414f9090ba7e85bbd68eb83c32acf"
+  },
+  "scripts/summary.py": {
+   "bytes": 3970,
+   "sha256": "202aeafc5a2656ffec006a77c43ea773b1cba594083dac3e3ca2e24be59f11bc"
+  },
+  "scripts/vrp.py": {
+   "bytes": 11993,
+   "sha256": "84b291d112038fae1c7c634a127dfa0f49c42cd1d99bd231c1df11a84f239dfc"
+  }
+ },
+ "inputs_ig_pages": "inputs/ig_pages/: text of each IG, HMRC, legislation.gov.uk and FCA page quoted, as served 2026-10-09, with the raw page's sha256 in index.json (nothing behind a login; no key)",
+ "keyless_sources": [
+  "query1.finance.yahoo.com v8 chart",
+  "cdn-api.cboe.com daily index histories",
+  "cdn.cboe.com VX futures settlements",
+  "fred.stlouisfed.org fredgraph.csv",
+  "www.federalreserve.gov FOMC calendars",
+  "labs.ig.com",
+  "www.ig.com/uk help centre",
+  "www.gov.uk HMRC manuals",
+  "www.legislation.gov.uk",
+  "www.fca.org.uk"
+ ],
+ "run": [
+  "cd scripts; python3 -I pull_public.py        # keyless -> inputs/{yahoo_d,yahoo_1h,cboe,fred}/, fomc_dates.json (a re-run reads later data; stages: yahoo cboe vx fred fomc)",
+  "cd scripts; python3 -I idx_calendar.py       # IDX -> results/idx_calendar.json, byte-identical on re-run",
+  "cd scripts; python3 -I es_sunday.py          # ESG -> results/es_sunday.json, byte-identical",
+  "cd scripts; python3 -I vrp.py                # VAR, BENCH, STRAD, VXS -> results/vrp.json, byte-identical",
+  "cd scripts; python3 -I fxw_ig.py             # FXW-IG (reads ../statarb_search2/inputs/fx/) -> results/fxw_ig.json",
+  "cd scripts; python3 -I summary.py            # the ranked table -> results/summary.json",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "IG: what IG's API, products and costs allow a UK retail spread-bettor, and which IG-tradable edges survive IG's spreads and funding (2026-10-09)",
+ "write_up": "docs/agents/reviews/2026-10-09-ig-opportunities.md"
+}

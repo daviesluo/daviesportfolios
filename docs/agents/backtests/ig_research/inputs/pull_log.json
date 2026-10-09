@@ -1,0 +1,113 @@
+{
+ "ES=F": {
+  "interval": "1d",
+  "rows": 6579,
+  "tz": "America/New_York"
+ },
+ "ES=F 1h": {
+  "interval": "1h",
+  "rows": 13700,
+  "tz": "America/New_York"
+ },
+ "ISF.L": {
+  "interval": "1d",
+  "rows": 4488,
+  "tz": "Europe/London"
+ },
+ "QQQ": {
+  "interval": "1d",
+  "rows": 6939,
+  "tz": "America/New_York"
+ },
+ "SPY": {
+  "interval": "1d",
+  "rows": 8481,
+  "tz": "America/New_York"
+ },
+ "^FTSE": {
+  "interval": "1d",
+  "rows": 10804,
+  "tz": "Europe/London"
+ },
+ "^GDAXI": {
+  "interval": "1d",
+  "rows": 9806,
+  "tz": "Europe/Berlin"
+ },
+ "^GSPC": {
+  "interval": "1d",
+  "rows": 24810,
+  "tz": "America/New_York"
+ },
+ "^NDX": {
+  "interval": "1d",
+  "rows": 10335,
+  "tz": "America/New_York"
+ },
+ "^VIX": {
+  "interval": "1d",
+  "rows": 9262,
+  "tz": "America/Chicago"
+ },
+ "cboe BXM": {
+  "bytes": 139059,
+  "status": 200
+ },
+ "cboe CNDR": {
+  "bytes": 223088,
+  "status": 200
+ },
+ "cboe PUT": {
+  "bytes": 113675,
+  "status": 200
+ },
+ "cboe VIX": {
+  "bytes": 473533,
+  "status": 200
+ },
+ "cboe VIX1D": {
+  "bytes": 55092,
+  "status": 200
+ },
+ "cboe VIX3M": {
+  "bytes": 218815,
+  "status": 200
+ },
+ "cboe VIX9D": {
+  "bytes": 201356,
+  "status": 200
+ },
+ "cboe VX monthly": {
+  "contracts": 168,
+  "rows": 29720
+ },
+ "cboe WPUT": {
+  "bytes": 114389,
+  "status": 200
+ },
+ "fomc": {
+  "first": "1994-02-04",
+  "last": "2027-12-08",
+  "n": 269
+ },
+ "fred DFF": {
+  "bytes": 424203,
+  "status": 0
+ },
+ "fred DTB3": {
+  "bytes": 301285,
+  "status": 0
+ },
+ "fred ECBDFR": {
+  "bytes": 165296,
+  "status": 0
+ },
+ "fred IUDSOIA": {
+  "bytes": 138331,
+  "status": 0
+ },
+ "fred SOFR": {
+  "bytes": 35210,
+  "status": 0
+ }
+}

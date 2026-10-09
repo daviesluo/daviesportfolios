@@ -1,0 +1,73 @@
+{
+ "ESG_0.25_x1": {
+  "annual_bps": 37.5,
+  "annual_sharpe": 0.1,
+  "hit": 0.55,
+  "max_dd_bps": -669.0,
+  "mean_bps": 1.96,
+  "n": 40,
+  "per_year": 19.15,
+  "sd_bps": 87.8,
+  "t": 0.14,
+  "total_bps": 78.0
+ },
+ "ESG_0.25_x2": {
+  "annual_bps": 240.1,
+  "annual_sharpe": 0.47,
+  "hit": 0.575,
+  "max_dd_bps": -486.0,
+  "mean_bps": 12.54,
+  "n": 40,
+  "per_year": 19.15,
+  "sd_bps": 116.5,
+  "t": 0.68,
+  "total_bps": 502.0
+ },
+ "ESG_0.5_x1": {
+  "annual_bps": 86.4,
+  "annual_sharpe": 0.27,
+  "hit": 0.611,
+  "max_dd_bps": -317.0,
+  "mean_bps": 10.03,
+  "n": 18,
+  "per_year": 8.62,
+  "sd_bps": 109.6,
+  "t": 0.39,
+  "total_bps": 181.0
+ },
+ "ESG_0.5_x2": {
+  "annual_bps": 432.7,
+  "annual_sharpe": 1.09,
+  "hit": 0.722,
+  "max_dd_bps": -212.0,
+  "mean_bps": 50.21,
+  "n": 18,
+  "per_year": 8.62,
+  "sd_bps": 135.6,
+  "t": 1.57,
+  "total_bps": 904.0
+ },
+ "abs_gap_bps": {
+  "max": 188.6,
+  "median": 14.3,
+  "p25": 6.5,
+  "p75": 34.9,
+  "p90": 72.5
+ },
+ "cost_bps_round_trip": 1.22,
+ "first": "2024-05-19T18:00:00-04:00",
+ "last": "2026-10-04T18:00:00-04:00",
+ "share_of_ES_gaps_above_half_that_spread": {
+  "Weekend Germany 40": 0.862,
+  "Weekend UK 100": 0.807,
+  "Weekend US Tech 100": 0.862
+ },
+ "slope_x1_on_gap": -0.022,
+ "slope_x2_on_gap": -0.408,
+ "weekend_spread_bps": {
+  "Weekend Germany 40": 5.64,
+  "Weekend UK 100": 7.66,
+  "Weekend US Tech 100": 5.21
+ },
+ "weekends": 109
+}

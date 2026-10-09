@@ -1,0 +1,128 @@
+{
+ "E0_from_mid_gross": {
+  "hit": 0.871,
+  "max_dd_bps": -151.0,
+  "mean_bps": 26.88,
+  "n": 85,
+  "sd_bps": 36.1,
+  "t": 6.87,
+  "total_bps": 2285.0
+ },
+ "E0_spread_12": {
+  "annual_bps": 149.8,
+  "annual_sharpe": 1.47,
+  "hit": 0.847,
+  "max_dd_bps": -167.0,
+  "mean_bps": 18.88,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 4.82,
+  "total_bps": 1605.0
+ },
+ "E0_spread_16": {
+  "annual_bps": 133.9,
+  "annual_sharpe": 1.32,
+  "hit": 0.847,
+  "max_dd_bps": -171.0,
+  "mean_bps": 16.88,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 4.31,
+  "total_bps": 1435.0
+ },
+ "E0_spread_20": {
+  "annual_bps": 118.1,
+  "annual_sharpe": 1.16,
+  "hit": 0.835,
+  "max_dd_bps": -175.0,
+  "mean_bps": 14.88,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 3.8,
+  "total_bps": 1265.0
+ },
+ "E0_spread_30": {
+  "annual_bps": 78.4,
+  "annual_sharpe": 0.77,
+  "hit": 0.812,
+  "max_dd_bps": -185.0,
+  "mean_bps": 9.88,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 2.52,
+  "total_bps": 840.0
+ },
+ "E0_spread_40": {
+  "annual_bps": 38.8,
+  "annual_sharpe": 0.38,
+  "hit": 0.682,
+  "max_dd_bps": -230.0,
+  "mean_bps": 4.89,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 1.25,
+  "total_bps": 415.0
+ },
+ "E0_spread_8.35": {
+  "annual_bps": 164.3,
+  "annual_sharpe": 1.62,
+  "hit": 0.847,
+  "max_dd_bps": -163.0,
+  "mean_bps": 20.7,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 5.29,
+  "total_bps": 1760.0
+ },
+ "E0_spread_fxcm": {
+  "annual_bps": 165.4,
+  "annual_sharpe": 1.63,
+  "hit": 0.847,
+  "max_dd_bps": -167.0,
+  "mean_bps": 20.84,
+  "n": 85,
+  "per_year": 7.93,
+  "sd_bps": 36.1,
+  "t": 5.32,
+  "total_bps": 1771.0
+ },
+ "E1_from_1h_mid_gross": {
+  "hit": 0.553,
+  "max_dd_bps": -447.0,
+  "mean_bps": 10.09,
+  "n": 85,
+  "sd_bps": 67.0,
+  "t": 1.39,
+  "total_bps": 857.0
+ },
+ "fxcm_first_minute_uk_time": {
+  "00:4x UK": 1,
+  "08:0x UK": 1,
+  "21:0x UK": 36,
+  "21:1x UK": 1,
+  "22:0x UK": 449,
+  "22:1x UK": 16,
+  "22:2x UK": 10,
+  "22:3x UK": 8,
+  "22:5x UK": 1,
+  "23:1x UK": 1
+ },
+ "per_year": 7.93,
+ "source": "../statarb_search2/inputs/fx/fxcm_AUDUSD_weekends.csv.gz",
+ "take_profit_within": {
+  "1440min": 0.753,
+  "15min": 0.035,
+  "1min": 0.012,
+  "240min": 0.4,
+  "5min": 0.012,
+  "60min": 0.106
+ },
+ "trades": 85,
+ "weekends": 524
+}

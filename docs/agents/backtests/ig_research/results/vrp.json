@@ -1,0 +1,1766 @@
+{
+ "BENCH": {
+  "2006-02_on": {
+   "BXM": {
+    "ann_return_pct": 6.33,
+    "ann_vol_pct": 12.91,
+    "from": "2006-02-01",
+    "max_dd_pct": -40.1,
+    "sharpe": 0.35,
+    "to": "2026-10-05",
+    "worst_step_pct": -13.2
+   },
+   "CNDR": {
+    "ann_return_pct": 1.4,
+    "ann_vol_pct": 7.43,
+    "from": "2006-02-01",
+    "max_dd_pct": -19.5,
+    "sharpe": -0.04,
+    "to": "2026-10-05",
+    "worst_step_pct": -8.5
+   },
+   "PUT": {
+    "ann_return_pct": 7.26,
+    "ann_vol_pct": 12.79,
+    "from": "2007-01-03",
+    "max_dd_pct": -37.1,
+    "sharpe": 0.43,
+    "to": "2026-10-05",
+    "worst_step_pct": -12.6
+   },
+   "SPX_TR(SPY)": {
+    "ann_return_pct": 11.1,
+    "ann_vol_pct": 18.54,
+    "from": "2006-02-01",
+    "max_dd_pct": -54.8,
+    "sharpe": 0.48,
+    "to": "2026-10-05",
+    "worst_step_pct": -15.0
+   },
+   "WPUT": {
+    "ann_return_pct": 4.82,
+    "ann_vol_pct": 11.45,
+    "from": "2006-02-01",
+    "max_dd_pct": -28.5,
+    "sharpe": 0.26,
+    "to": "2026-10-05",
+    "worst_step_pct": -10.5
+   }
+  },
+  "2011on": {
+   "BXM": {
+    "ann_return_pct": 7.56,
+    "ann_vol_pct": 11.98,
+    "from": "2011-01-03",
+    "max_dd_pct": -30.2,
+    "sharpe": 0.48,
+    "to": "2026-10-05",
+    "worst_step_pct": -13.2
+   },
+   "CNDR": {
+    "ann_return_pct": 0.71,
+    "ann_vol_pct": 6.94,
+    "from": "2011-01-03",
+    "max_dd_pct": -19.3,
+    "sharpe": -0.12,
+    "to": "2026-10-05",
+    "worst_step_pct": -6.4
+   },
+   "PUT": {
+    "ann_return_pct": 8.21,
+    "ann_vol_pct": 11.58,
+    "from": "2011-01-03",
+    "max_dd_pct": -28.9,
+    "sharpe": 0.55,
+    "to": "2026-10-05",
+    "worst_step_pct": -12.6
+   },
+   "SPX_TR(SPY)": {
+    "ann_return_pct": 14.14,
+    "ann_vol_pct": 16.89,
+    "from": "2011-01-03",
+    "max_dd_pct": -33.4,
+    "sharpe": 0.69,
+    "to": "2026-10-05",
+    "worst_step_pct": -12.8
+   },
+   "WPUT": {
+    "ann_return_pct": 4.66,
+    "ann_vol_pct": 10.92,
+    "from": "2011-01-03",
+    "max_dd_pct": -25.8,
+    "sharpe": 0.27,
+    "to": "2026-10-05",
+    "worst_step_pct": -10.5
+   }
+  },
+  "2016on": {
+   "BXM": {
+    "ann_return_pct": 7.97,
+    "ann_vol_pct": 11.78,
+    "from": "2016-01-04",
+    "max_dd_pct": -30.2,
+    "sharpe": 0.46,
+    "to": "2026-10-05",
+    "worst_step_pct": -13.2
+   },
+   "CNDR": {
+    "ann_return_pct": 0.8,
+    "ann_vol_pct": 6.87,
+    "from": "2016-01-04",
+    "max_dd_pct": -19.3,
+    "sharpe": -0.21,
+    "to": "2026-10-05",
+    "worst_step_pct": -5.7
+   },
+   "PUT": {
+    "ann_return_pct": 8.48,
+    "ann_vol_pct": 11.42,
+    "from": "2016-01-04",
+    "max_dd_pct": -28.9,
+    "sharpe": 0.52,
+    "to": "2026-10-05",
+    "worst_step_pct": -12.6
+   },
+   "SPX_TR(SPY)": {
+    "ann_return_pct": 15.21,
+    "ann_vol_pct": 17.12,
+    "from": "2016-01-04",
+    "max_dd_pct": -33.4,
+    "sharpe": 0.7,
+    "to": "2026-10-05",
+    "worst_step_pct": -12.5
+   },
+   "WPUT": {
+    "ann_return_pct": 4.19,
+    "ann_vol_pct": 10.93,
+    "from": "2016-01-04",
+    "max_dd_pct": -25.8,
+    "sharpe": 0.17,
+    "to": "2026-10-05",
+    "worst_step_pct": -10.2
+   }
+  },
+  "last5y": {
+   "BXM": {
+    "ann_return_pct": 8.89,
+    "ann_vol_pct": 10.73,
+    "from": "2021-10-11",
+    "max_dd_pct": -17.3,
+    "sharpe": 0.44,
+    "to": "2026-10-05",
+    "worst_step_pct": -8.4
+   },
+   "CNDR": {
+    "ann_return_pct": 3.57,
+    "ann_vol_pct": 6.92,
+    "from": "2021-10-11",
+    "max_dd_pct": -9.8,
+    "sharpe": -0.03,
+    "to": "2026-10-05",
+    "worst_step_pct": -4.5
+   },
+   "PUT": {
+    "ann_return_pct": 9.67,
+    "ann_vol_pct": 10.25,
+    "from": "2021-10-11",
+    "max_dd_pct": -14.7,
+    "sharpe": 0.54,
+    "to": "2026-10-05",
+    "worst_step_pct": -8.4
+   },
+   "SPX_TR(SPY)": {
+    "ann_return_pct": 13.82,
+    "ann_vol_pct": 16.52,
+    "from": "2021-10-11",
+    "max_dd_pct": -23.8,
+    "sharpe": 0.56,
+    "to": "2026-10-05",
+    "worst_step_pct": -9.8
+   },
+   "WPUT": {
+    "ann_return_pct": 5.09,
+    "ann_vol_pct": 9.9,
+    "from": "2021-10-11",
+    "max_dd_pct": -18.9,
+    "sharpe": 0.12,
+    "to": "2026-10-05",
+    "worst_step_pct": -8.5
+   }
+  }
+ },
+ "IG_overlay": {
+  "BXM": {
+   "pct_of_spx_a_year": [
+    0.062,
+    0.155
+   ]
+  },
+  "CNDR": {
+   "pct_of_collateral_a_year": [
+    6.2,
+    15.5
+   ],
+   "pct_of_spx_a_year": [
+    0.247,
+    0.618
+   ],
+   "wing_points_est": 309.6
+  },
+  "PUT": {
+   "pct_of_spx_a_year": [
+    0.062,
+    0.155
+   ]
+  },
+  "WPUT": {
+   "pct_of_spx_a_year": [
+    0.268,
+    0.67
+   ]
+  }
+ },
+ "STRAD": {
+  "daily_VIX1D_k0.8": {
+   "by_year_bps": {
+    "2022": -4136.0,
+    "2023": -1733.0,
+    "2024": -2714.0,
+    "2025": -2417.0,
+    "2026": -1176.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -2769.0,
+     "annual_sharpe": -2.49,
+     "hit": 0.496,
+     "max_dd_bps": -12331.0,
+     "mean_bps": -11.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.1,
+     "t": -5.23,
+     "total_bps": -12175.0
+    },
+    "all": {
+     "annual_bps": -2769.0,
+     "annual_sharpe": -2.49,
+     "hit": 0.496,
+     "max_dd_bps": -12331.0,
+     "mean_bps": -11.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.1,
+     "t": -5.23,
+     "total_bps": -12175.0
+    },
+    "last5y": {
+     "annual_bps": -2769.0,
+     "annual_sharpe": -2.49,
+     "hit": 0.496,
+     "max_dd_bps": -12331.0,
+     "mean_bps": -11.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.1,
+     "t": -5.23,
+     "total_bps": -12175.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -11.8,
+   "net_low_cost": {
+    "annual_bps": -2769.0,
+    "annual_sharpe": -2.49,
+    "hit": 0.496,
+    "max_dd_bps": -12331.0,
+    "mean_bps": -11.03,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 70.1,
+    "t": -5.23,
+    "total_bps": -12175.0
+   },
+   "worst_bps": -664.0
+  },
+  "daily_VIX1D_k0.8_cap1.5": {
+   "by_year_bps": {
+    "2022": -2631.0,
+    "2023": -715.0,
+    "2024": -1637.0,
+    "2025": -911.0,
+    "2026": -477.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -1449.1,
+     "annual_sharpe": -1.61,
+     "hit": 0.496,
+     "max_dd_bps": -6527.0,
+     "mean_bps": -5.77,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 56.8,
+     "t": -3.38,
+     "total_bps": -6372.0
+    },
+    "all": {
+     "annual_bps": -1449.1,
+     "annual_sharpe": -1.61,
+     "hit": 0.496,
+     "max_dd_bps": -6527.0,
+     "mean_bps": -5.77,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 56.8,
+     "t": -3.38,
+     "total_bps": -6372.0
+    },
+    "last5y": {
+     "annual_bps": -1449.1,
+     "annual_sharpe": -1.61,
+     "hit": 0.496,
+     "max_dd_bps": -6527.0,
+     "mean_bps": -5.77,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 56.8,
+     "t": -3.38,
+     "total_bps": -6372.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -6.54,
+   "net_low_cost": {
+    "annual_bps": -1449.1,
+    "annual_sharpe": -1.61,
+    "hit": 0.496,
+    "max_dd_bps": -6527.0,
+    "mean_bps": -5.77,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 56.8,
+    "t": -3.38,
+    "total_bps": -6372.0
+   },
+   "worst_bps": -369.0
+  },
+  "daily_VIX1D_k0.8_cap3.0": {
+   "by_year_bps": {
+    "2022": -3992.0,
+    "2023": -1651.0,
+    "2024": -2470.0,
+    "2025": -1962.0,
+    "2026": -997.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -2518.0,
+     "annual_sharpe": -2.38,
+     "hit": 0.496,
+     "max_dd_bps": -11228.0,
+     "mean_bps": -10.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 66.8,
+     "t": -4.99,
+     "total_bps": -11072.0
+    },
+    "all": {
+     "annual_bps": -2518.0,
+     "annual_sharpe": -2.38,
+     "hit": 0.496,
+     "max_dd_bps": -11228.0,
+     "mean_bps": -10.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 66.8,
+     "t": -4.99,
+     "total_bps": -11072.0
+    },
+    "last5y": {
+     "annual_bps": -2518.0,
+     "annual_sharpe": -2.38,
+     "hit": 0.496,
+     "max_dd_bps": -11228.0,
+     "mean_bps": -10.03,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 66.8,
+     "t": -4.99,
+     "total_bps": -11072.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -10.8,
+   "net_low_cost": {
+    "annual_bps": -2518.0,
+    "annual_sharpe": -2.38,
+    "hit": 0.496,
+    "max_dd_bps": -11228.0,
+    "mean_bps": -10.03,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 66.8,
+    "t": -4.99,
+    "total_bps": -11072.0
+   },
+   "worst_bps": -664.0
+  },
+  "daily_VIX1D_k0.9": {
+   "by_year_bps": {
+    "2022": -2263.0,
+    "2023": 88.0,
+    "2024": -1165.0,
+    "2025": -409.0,
+    "2026": 202.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -806.4,
+     "annual_sharpe": -0.72,
+     "hit": 0.551,
+     "max_dd_bps": -5061.0,
+     "mean_bps": -3.21,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.9,
+     "t": -1.5,
+     "total_bps": -3546.0
+    },
+    "all": {
+     "annual_bps": -806.4,
+     "annual_sharpe": -0.72,
+     "hit": 0.551,
+     "max_dd_bps": -5061.0,
+     "mean_bps": -3.21,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.9,
+     "t": -1.5,
+     "total_bps": -3546.0
+    },
+    "last5y": {
+     "annual_bps": -806.4,
+     "annual_sharpe": -0.72,
+     "hit": 0.551,
+     "max_dd_bps": -5061.0,
+     "mean_bps": -3.21,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.9,
+     "t": -1.5,
+     "total_bps": -3546.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -3.98,
+   "net_low_cost": {
+    "annual_bps": -806.4,
+    "annual_sharpe": -0.72,
+    "hit": 0.551,
+    "max_dd_bps": -5061.0,
+    "mean_bps": -3.21,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 70.9,
+    "t": -1.5,
+    "total_bps": -3546.0
+   },
+   "worst_bps": -633.0
+  },
+  "daily_VIX1D_k0.9_cap1.5": {
+   "by_year_bps": {
+    "2022": -1246.0,
+    "2023": 697.0,
+    "2024": -409.0,
+    "2025": 756.0,
+    "2026": 699.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 113.3,
+     "annual_sharpe": 0.12,
+     "hit": 0.551,
+     "max_dd_bps": -1828.0,
+     "mean_bps": 0.45,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 60.7,
+     "t": 0.25,
+     "total_bps": 498.0
+    },
+    "all": {
+     "annual_bps": 113.3,
+     "annual_sharpe": 0.12,
+     "hit": 0.551,
+     "max_dd_bps": -1828.0,
+     "mean_bps": 0.45,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 60.7,
+     "t": 0.25,
+     "total_bps": 498.0
+    },
+    "last5y": {
+     "annual_bps": 113.3,
+     "annual_sharpe": 0.12,
+     "hit": 0.551,
+     "max_dd_bps": -1828.0,
+     "mean_bps": 0.45,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 60.7,
+     "t": 0.25,
+     "total_bps": 498.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -0.32,
+   "net_low_cost": {
+    "annual_bps": 113.3,
+    "annual_sharpe": 0.12,
+    "hit": 0.551,
+    "max_dd_bps": -1828.0,
+    "mean_bps": 0.45,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 60.7,
+    "t": 0.25,
+    "total_bps": 498.0
+   },
+   "worst_bps": -415.0
+  },
+  "daily_VIX1D_k0.9_cap3.0": {
+   "by_year_bps": {
+    "2022": -2222.0,
+    "2023": 115.0,
+    "2024": -1001.0,
+    "2025": -98.0,
+    "2026": 347.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -650.1,
+     "annual_sharpe": -0.6,
+     "hit": 0.551,
+     "max_dd_bps": -4622.0,
+     "mean_bps": -2.59,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 68.8,
+     "t": -1.25,
+     "total_bps": -2859.0
+    },
+    "all": {
+     "annual_bps": -650.1,
+     "annual_sharpe": -0.6,
+     "hit": 0.551,
+     "max_dd_bps": -4622.0,
+     "mean_bps": -2.59,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 68.8,
+     "t": -1.25,
+     "total_bps": -2859.0
+    },
+    "last5y": {
+     "annual_bps": -650.1,
+     "annual_sharpe": -0.6,
+     "hit": 0.551,
+     "max_dd_bps": -4622.0,
+     "mean_bps": -2.59,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 68.8,
+     "t": -1.25,
+     "total_bps": -2859.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -3.36,
+   "net_low_cost": {
+    "annual_bps": -650.1,
+    "annual_sharpe": -0.6,
+    "hit": 0.551,
+    "max_dd_bps": -4622.0,
+    "mean_bps": -2.59,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 68.8,
+    "t": -1.25,
+    "total_bps": -2859.0
+   },
+   "worst_bps": -633.0
+  },
+  "daily_VIX1D_k1.0": {
+   "by_year_bps": {
+    "2022": -390.0,
+    "2023": 1909.0,
+    "2024": 384.0,
+    "2025": 1599.0,
+    "2026": 1581.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1156.2,
+     "annual_sharpe": 1.01,
+     "hit": 0.587,
+     "max_dd_bps": -1118.0,
+     "mean_bps": 4.6,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 72.0,
+     "t": 2.12,
+     "total_bps": 5084.0
+    },
+    "all": {
+     "annual_bps": 1156.2,
+     "annual_sharpe": 1.01,
+     "hit": 0.587,
+     "max_dd_bps": -1118.0,
+     "mean_bps": 4.6,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 72.0,
+     "t": 2.12,
+     "total_bps": 5084.0
+    },
+    "last5y": {
+     "annual_bps": 1156.2,
+     "annual_sharpe": 1.01,
+     "hit": 0.587,
+     "max_dd_bps": -1118.0,
+     "mean_bps": 4.6,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 72.0,
+     "t": 2.12,
+     "total_bps": 5084.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 3.83,
+   "net_low_cost": {
+    "annual_bps": 1156.2,
+    "annual_sharpe": 1.01,
+    "hit": 0.587,
+    "max_dd_bps": -1118.0,
+    "mean_bps": 4.6,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 72.0,
+    "t": 2.12,
+    "total_bps": 5084.0
+   },
+   "worst_bps": -602.0
+  },
+  "daily_VIX1D_k1.0_cap1.5": {
+   "by_year_bps": {
+    "2022": 322.0,
+    "2023": 2285.0,
+    "2024": 931.0,
+    "2025": 2527.0,
+    "2026": 1946.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1821.8,
+     "annual_sharpe": 1.79,
+     "hit": 0.587,
+     "max_dd_bps": -734.0,
+     "mean_bps": 7.26,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 64.2,
+     "t": 3.75,
+     "total_bps": 8011.0
+    },
+    "all": {
+     "annual_bps": 1821.8,
+     "annual_sharpe": 1.79,
+     "hit": 0.587,
+     "max_dd_bps": -734.0,
+     "mean_bps": 7.26,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 64.2,
+     "t": 3.75,
+     "total_bps": 8011.0
+    },
+    "last5y": {
+     "annual_bps": 1821.8,
+     "annual_sharpe": 1.79,
+     "hit": 0.587,
+     "max_dd_bps": -734.0,
+     "mean_bps": 7.26,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 64.2,
+     "t": 3.75,
+     "total_bps": 8011.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 6.48,
+   "net_low_cost": {
+    "annual_bps": 1821.8,
+    "annual_sharpe": 1.79,
+    "hit": 0.587,
+    "max_dd_bps": -734.0,
+    "mean_bps": 7.26,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 64.2,
+    "t": 3.75,
+    "total_bps": 8011.0
+   },
+   "worst_bps": -461.0
+  },
+  "daily_VIX1D_k1.0_cap3.0": {
+   "by_year_bps": {
+    "2022": -390.0,
+    "2023": 1912.0,
+    "2024": 495.0,
+    "2025": 1786.0,
+    "2026": 1692.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1249.7,
+     "annual_sharpe": 1.11,
+     "hit": 0.587,
+     "max_dd_bps": -1016.0,
+     "mean_bps": 4.98,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.8,
+     "t": 2.34,
+     "total_bps": 5495.0
+    },
+    "all": {
+     "annual_bps": 1249.7,
+     "annual_sharpe": 1.11,
+     "hit": 0.587,
+     "max_dd_bps": -1016.0,
+     "mean_bps": 4.98,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.8,
+     "t": 2.34,
+     "total_bps": 5495.0
+    },
+    "last5y": {
+     "annual_bps": 1249.7,
+     "annual_sharpe": 1.11,
+     "hit": 0.587,
+     "max_dd_bps": -1016.0,
+     "mean_bps": 4.98,
+     "n": 1104,
+     "per_year": 251.08,
+     "sd_bps": 70.8,
+     "t": 2.34,
+     "total_bps": 5495.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 4.2,
+   "net_low_cost": {
+    "annual_bps": 1249.7,
+    "annual_sharpe": 1.11,
+    "hit": 0.587,
+    "max_dd_bps": -1016.0,
+    "mean_bps": 4.98,
+    "n": 1104,
+    "per_year": 251.08,
+    "sd_bps": 70.8,
+    "t": 2.34,
+    "total_bps": 5495.0
+   },
+   "worst_bps": -602.0
+  },
+  "weekly_VIX9D_k0.8": {
+   "by_year_bps": {
+    "2011": -824.0,
+    "2012": 854.0,
+    "2013": -39.0,
+    "2014": -82.0,
+    "2015": -436.0,
+    "2016": 496.0,
+    "2017": 846.0,
+    "2018": -2743.0,
+    "2019": -265.0,
+    "2020": -2302.0,
+    "2021": 360.0,
+    "2022": -2547.0,
+    "2023": -903.0,
+    "2024": -1070.0,
+    "2025": -1087.0,
+    "2026": 685.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -576.3,
+     "annual_sharpe": -0.62,
+     "hit": 0.54,
+     "max_dd_bps": -10914.0,
+     "mean_bps": -11.78,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 133.7,
+     "t": -2.44,
+     "total_bps": -9056.0
+    },
+    "all": {
+     "annual_bps": -576.3,
+     "annual_sharpe": -0.62,
+     "hit": 0.54,
+     "max_dd_bps": -10914.0,
+     "mean_bps": -11.78,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 133.7,
+     "t": -2.44,
+     "total_bps": -9056.0
+    },
+    "last5y": {
+     "annual_bps": -1018.5,
+     "annual_sharpe": -1.12,
+     "hit": 0.492,
+     "max_dd_bps": -6255.0,
+     "mean_bps": -20.96,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 130.9,
+     "t": -2.49,
+     "total_bps": -5072.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -13.32,
+   "net_low_cost": {
+    "annual_bps": -576.3,
+    "annual_sharpe": -0.62,
+    "hit": 0.54,
+    "max_dd_bps": -10914.0,
+    "mean_bps": -11.78,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 133.7,
+    "t": -2.44,
+    "total_bps": -9056.0
+   },
+   "worst_bps": -1082.0
+  },
+  "weekly_VIX9D_k0.8_cap1.5": {
+   "by_year_bps": {
+    "2011": -674.0,
+    "2012": 854.0,
+    "2013": -37.0,
+    "2014": 77.0,
+    "2015": 82.0,
+    "2016": 540.0,
+    "2017": 846.0,
+    "2018": -1799.0,
+    "2019": -194.0,
+    "2020": -1308.0,
+    "2021": 360.0,
+    "2022": -2317.0,
+    "2023": -712.0,
+    "2024": -921.0,
+    "2025": -583.0,
+    "2026": 830.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -315.3,
+     "annual_sharpe": -0.39,
+     "hit": 0.54,
+     "max_dd_bps": -7820.0,
+     "mean_bps": -6.44,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 116.8,
+     "t": -1.53,
+     "total_bps": -4954.0
+    },
+    "all": {
+     "annual_bps": -315.3,
+     "annual_sharpe": -0.39,
+     "hit": 0.54,
+     "max_dd_bps": -7820.0,
+     "mean_bps": -6.44,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 116.8,
+     "t": -1.53,
+     "total_bps": -4954.0
+    },
+    "last5y": {
+     "annual_bps": -773.9,
+     "annual_sharpe": -0.95,
+     "hit": 0.492,
+     "max_dd_bps": -5385.0,
+     "mean_bps": -15.93,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 116.4,
+     "t": -2.13,
+     "total_bps": -3854.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -7.99,
+   "net_low_cost": {
+    "annual_bps": -315.3,
+    "annual_sharpe": -0.39,
+    "hit": 0.54,
+    "max_dd_bps": -7820.0,
+    "mean_bps": -6.44,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 116.8,
+    "t": -1.53,
+    "total_bps": -4954.0
+   },
+   "worst_bps": -927.0
+  },
+  "weekly_VIX9D_k0.8_cap3.0": {
+   "by_year_bps": {
+    "2011": -824.0,
+    "2012": 854.0,
+    "2013": -39.0,
+    "2014": -82.0,
+    "2015": -258.0,
+    "2016": 496.0,
+    "2017": 846.0,
+    "2018": -2634.0,
+    "2019": -265.0,
+    "2020": -1639.0,
+    "2021": 360.0,
+    "2022": -2547.0,
+    "2023": -903.0,
+    "2024": -1070.0,
+    "2025": -937.0,
+    "2026": 685.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": -506.3,
+     "annual_sharpe": -0.57,
+     "hit": 0.54,
+     "max_dd_bps": -9981.0,
+     "mean_bps": -10.35,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 126.7,
+     "t": -2.27,
+     "total_bps": -7957.0
+    },
+    "all": {
+     "annual_bps": -506.3,
+     "annual_sharpe": -0.57,
+     "hit": 0.54,
+     "max_dd_bps": -9981.0,
+     "mean_bps": -10.35,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 126.7,
+     "t": -2.27,
+     "total_bps": -7957.0
+    },
+    "last5y": {
+     "annual_bps": -988.4,
+     "annual_sharpe": -1.11,
+     "hit": 0.492,
+     "max_dd_bps": -6106.0,
+     "mean_bps": -20.34,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 127.7,
+     "t": -2.48,
+     "total_bps": -4922.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": -11.89,
+   "net_low_cost": {
+    "annual_bps": -506.3,
+    "annual_sharpe": -0.57,
+    "hit": 0.54,
+    "max_dd_bps": -9981.0,
+    "mean_bps": -10.35,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 126.7,
+    "t": -2.27,
+    "total_bps": -7957.0
+   },
+   "worst_bps": -1006.0
+  },
+  "weekly_VIX9D_k0.9": {
+   "by_year_bps": {
+    "2011": 485.0,
+    "2012": 1771.0,
+    "2013": 704.0,
+    "2014": 631.0,
+    "2015": 377.0,
+    "2016": 1295.0,
+    "2017": 1372.0,
+    "2018": -1891.0,
+    "2019": 521.0,
+    "2020": -904.0,
+    "2021": 1222.0,
+    "2022": -1208.0,
+    "2023": -44.0,
+    "2024": -310.0,
+    "2025": -185.0,
+    "2026": 1272.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 325.1,
+     "annual_sharpe": 0.35,
+     "hit": 0.593,
+     "max_dd_bps": -3674.0,
+     "mean_bps": 6.64,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 133.0,
+     "t": 1.39,
+     "total_bps": 5109.0
+    },
+    "all": {
+     "annual_bps": 325.1,
+     "annual_sharpe": 0.35,
+     "hit": 0.593,
+     "max_dd_bps": -3674.0,
+     "mean_bps": 6.64,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 133.0,
+     "t": 1.39,
+     "total_bps": 5109.0
+    },
+    "last5y": {
+     "annual_bps": -87.8,
+     "annual_sharpe": -0.1,
+     "hit": 0.558,
+     "max_dd_bps": -3230.0,
+     "mean_bps": -1.81,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 130.4,
+     "t": -0.22,
+     "total_bps": -437.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 5.1,
+   "net_low_cost": {
+    "annual_bps": 325.1,
+    "annual_sharpe": 0.35,
+    "hit": 0.593,
+    "max_dd_bps": -3674.0,
+    "mean_bps": 6.64,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 133.0,
+    "t": 1.39,
+    "total_bps": 5109.0
+   },
+   "worst_bps": -1065.0
+  },
+  "weekly_VIX9D_k0.9_cap1.5": {
+   "by_year_bps": {
+    "2011": 485.0,
+    "2012": 1771.0,
+    "2013": 704.0,
+    "2014": 723.0,
+    "2015": 783.0,
+    "2016": 1311.0,
+    "2017": 1372.0,
+    "2018": -1223.0,
+    "2019": 549.0,
+    "2020": -76.0,
+    "2021": 1222.0,
+    "2022": -1054.0,
+    "2023": 17.0,
+    "2024": -196.0,
+    "2025": 203.0,
+    "2026": 1335.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 504.5,
+     "annual_sharpe": 0.6,
+     "hit": 0.593,
+     "max_dd_bps": -2667.0,
+     "mean_bps": 10.31,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 120.1,
+     "t": 2.38,
+     "total_bps": 7929.0
+    },
+    "all": {
+     "annual_bps": 504.5,
+     "annual_sharpe": 0.6,
+     "hit": 0.593,
+     "max_dd_bps": -2667.0,
+     "mean_bps": 10.31,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 120.1,
+     "t": 2.38,
+     "total_bps": 7929.0
+    },
+    "last5y": {
+     "annual_bps": 69.2,
+     "annual_sharpe": 0.08,
+     "hit": 0.558,
+     "max_dd_bps": -2667.0,
+     "mean_bps": 1.42,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 119.8,
+     "t": 0.18,
+     "total_bps": 344.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 8.77,
+   "net_low_cost": {
+    "annual_bps": 504.5,
+    "annual_sharpe": 0.6,
+    "hit": 0.593,
+    "max_dd_bps": -2667.0,
+    "mean_bps": 10.31,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 120.1,
+    "t": 2.38,
+    "total_bps": 7929.0
+   },
+   "worst_bps": -929.0
+  },
+  "weekly_VIX9D_k0.9_cap3.0": {
+   "by_year_bps": {
+    "2011": 485.0,
+    "2012": 1771.0,
+    "2013": 704.0,
+    "2014": 631.0,
+    "2015": 503.0,
+    "2016": 1295.0,
+    "2017": 1372.0,
+    "2018": -1871.0,
+    "2019": 521.0,
+    "2020": -311.0,
+    "2021": 1222.0,
+    "2022": -1208.0,
+    "2023": -44.0,
+    "2024": -310.0,
+    "2025": -135.0,
+    "2026": 1272.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 375.3,
+     "annual_sharpe": 0.42,
+     "hit": 0.593,
+     "max_dd_bps": -3180.0,
+     "mean_bps": 7.67,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 127.5,
+     "t": 1.67,
+     "total_bps": 5898.0
+    },
+    "all": {
+     "annual_bps": 375.3,
+     "annual_sharpe": 0.42,
+     "hit": 0.593,
+     "max_dd_bps": -3180.0,
+     "mean_bps": 7.67,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 127.5,
+     "t": 1.67,
+     "total_bps": 5898.0
+    },
+    "last5y": {
+     "annual_bps": -77.8,
+     "annual_sharpe": -0.09,
+     "hit": 0.558,
+     "max_dd_bps": -3180.0,
+     "mean_bps": -1.6,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 129.3,
+     "t": -0.19,
+     "total_bps": -388.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 6.12,
+   "net_low_cost": {
+    "annual_bps": 375.3,
+    "annual_sharpe": 0.42,
+    "hit": 0.593,
+    "max_dd_bps": -3180.0,
+    "mean_bps": 7.67,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 127.5,
+    "t": 1.67,
+    "total_bps": 5898.0
+   },
+   "worst_bps": -929.0
+  },
+  "weekly_VIX9D_k1.0": {
+   "by_year_bps": {
+    "2011": 1794.0,
+    "2012": 2689.0,
+    "2013": 1448.0,
+    "2014": 1344.0,
+    "2015": 1191.0,
+    "2016": 2094.0,
+    "2017": 1898.0,
+    "2018": -1039.0,
+    "2019": 1306.0,
+    "2020": 494.0,
+    "2021": 2084.0,
+    "2022": 131.0,
+    "2023": 814.0,
+    "2024": 451.0,
+    "2025": 717.0,
+    "2026": 1858.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1226.5,
+     "annual_sharpe": 1.32,
+     "hit": 0.657,
+     "max_dd_bps": -2040.0,
+     "mean_bps": 25.06,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 132.9,
+     "t": 5.23,
+     "total_bps": 19275.0
+    },
+    "all": {
+     "annual_bps": 1226.5,
+     "annual_sharpe": 1.32,
+     "hit": 0.657,
+     "max_dd_bps": -2040.0,
+     "mean_bps": 25.06,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 132.9,
+     "t": 5.23,
+     "total_bps": 19275.0
+    },
+    "last5y": {
+     "annual_bps": 842.9,
+     "annual_sharpe": 0.93,
+     "hit": 0.612,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 17.35,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 130.3,
+     "t": 2.07,
+     "total_bps": 4198.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 23.52,
+   "net_low_cost": {
+    "annual_bps": 1226.5,
+    "annual_sharpe": 1.32,
+    "hit": 0.657,
+    "max_dd_bps": -2040.0,
+    "mean_bps": 25.06,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 132.9,
+    "t": 5.23,
+    "total_bps": 19275.0
+   },
+   "worst_bps": -1047.0
+  },
+  "weekly_VIX9D_k1.0_cap1.5": {
+   "by_year_bps": {
+    "2011": 1794.0,
+    "2012": 2689.0,
+    "2013": 1448.0,
+    "2014": 1406.0,
+    "2015": 1491.0,
+    "2016": 2094.0,
+    "2017": 1898.0,
+    "2018": -595.0,
+    "2019": 1306.0,
+    "2020": 1279.0,
+    "2021": 2084.0,
+    "2022": 237.0,
+    "2023": 814.0,
+    "2024": 528.0,
+    "2025": 1042.0,
+    "2026": 1858.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1360.2,
+     "annual_sharpe": 1.59,
+     "hit": 0.657,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 27.8,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 122.1,
+     "t": 6.31,
+     "total_bps": 21376.0
+    },
+    "all": {
+     "annual_bps": 1360.2,
+     "annual_sharpe": 1.59,
+     "hit": 0.657,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 27.8,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 122.1,
+     "t": 6.31,
+     "total_bps": 21376.0
+    },
+    "last5y": {
+     "annual_bps": 945.3,
+     "annual_sharpe": 1.11,
+     "hit": 0.612,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 19.45,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 122.4,
+     "t": 2.47,
+     "total_bps": 4708.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 26.25,
+   "net_low_cost": {
+    "annual_bps": 1360.2,
+    "annual_sharpe": 1.59,
+    "hit": 0.657,
+    "max_dd_bps": -1721.0,
+    "mean_bps": 27.8,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 122.1,
+    "t": 6.31,
+    "total_bps": 21376.0
+   },
+   "worst_bps": -852.0
+  },
+  "weekly_VIX9D_k1.0_cap3.0": {
+   "by_year_bps": {
+    "2011": 1794.0,
+    "2012": 2689.0,
+    "2013": 1448.0,
+    "2014": 1344.0,
+    "2015": 1265.0,
+    "2016": 2094.0,
+    "2017": 1898.0,
+    "2018": -1039.0,
+    "2019": 1306.0,
+    "2020": 1017.0,
+    "2021": 2084.0,
+    "2022": 131.0,
+    "2023": 814.0,
+    "2024": 451.0,
+    "2025": 717.0,
+    "2026": 1858.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 1264.5,
+     "annual_sharpe": 1.41,
+     "hit": 0.657,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 25.84,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 128.3,
+     "t": 5.58,
+     "total_bps": 19872.0
+    },
+    "all": {
+     "annual_bps": 1264.5,
+     "annual_sharpe": 1.41,
+     "hit": 0.657,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 25.84,
+     "n": 769,
+     "per_year": 48.93,
+     "sd_bps": 128.3,
+     "t": 5.58,
+     "total_bps": 19872.0
+    },
+    "last5y": {
+     "annual_bps": 842.9,
+     "annual_sharpe": 0.93,
+     "hit": 0.612,
+     "max_dd_bps": -1721.0,
+     "mean_bps": 17.35,
+     "n": 242,
+     "per_year": 48.59,
+     "sd_bps": 130.3,
+     "t": 2.07,
+     "total_bps": 4198.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "net_high_cost_mean_bps": 24.3,
+   "net_low_cost": {
+    "annual_bps": 1264.5,
+    "annual_sharpe": 1.41,
+    "hit": 0.657,
+    "max_dd_bps": -1721.0,
+    "mean_bps": 25.84,
+    "n": 769,
+    "per_year": 48.93,
+    "sd_bps": 128.3,
+    "t": 5.58,
+    "total_bps": 19872.0
+   },
+   "worst_bps": -852.0
+  }
+ },
+ "VAR": {
+  "by_year_mean_vol_points": {
+   "1990": 7.15,
+   "1991": 4.27,
+   "1992": 6.14,
+   "1993": 4.07,
+   "1994": 4.9,
+   "1995": 4.6,
+   "1996": 4.75,
+   "1997": 5.16,
+   "1998": 6.83,
+   "1999": 6.54,
+   "2000": 0.73,
+   "2001": 5.55,
+   "2002": 2.09,
+   "2003": 6.45,
+   "2004": 4.56,
+   "2005": 2.77,
+   "2006": 2.96,
+   "2007": 2.14,
+   "2008": -4.34,
+   "2009": 8.74,
+   "2010": 6.61,
+   "2011": 3.03,
+   "2012": 6.08,
+   "2013": 4.14,
+   "2014": 3.73,
+   "2015": 2.3,
+   "2016": 3.47,
+   "2017": 4.32,
+   "2018": 0.15,
+   "2019": 4.69,
+   "2020": 2.21,
+   "2021": 8.18,
+   "2022": 1.05,
+   "2023": 3.41,
+   "2024": 3.65,
+   "2025": 3.62,
+   "2026": 4.83
+  },
+  "from": "1990-01-02",
+  "months": 441,
+  "to": "2026-09-01",
+  "vol_points": {
+   "2011on": {
+    "mean": 3.66,
+    "share_positive": 0.831,
+    "worst": -60.6
+   },
+   "all": {
+    "mean": 4.09,
+    "share_positive": 0.839,
+    "worst": -60.6
+   },
+   "last5y": {
+    "mean": 3.41,
+    "share_positive": 0.797,
+    "worst": -26.2
+   },
+   "to2010": {
+    "mean": 4.41,
+    "share_positive": 0.845,
+    "worst": -43.5
+   }
+  }
+ },
+ "VXS": {
+  "VXS": {
+   "by_year_pct": {
+    "2013": 33.9,
+    "2014": -9.0,
+    "2015": 19.4,
+    "2016": 84.9,
+    "2017": 112.3,
+    "2018": -125.8,
+    "2019": 94.5,
+    "2020": -103.2,
+    "2021": 121.1,
+    "2022": 2.5,
+    "2023": 115.2,
+    "2024": 34.5,
+    "2025": 37.3,
+    "2026": 32.3
+   },
+   "daily_pct_of_notional": {
+    "annual_bps": 3365.6,
+    "annual_sharpe": 0.34,
+    "hit": 0.574,
+    "max_dd_bps": -30819.0,
+    "mean_bps": 13.36,
+    "n": 3366,
+    "per_year": 251.83,
+    "sd_bps": 619.3,
+    "t": 1.25,
+    "total_bps": 44985.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 3365.6,
+     "annual_sharpe": 0.34,
+     "hit": 0.574,
+     "max_dd_bps": -30819.0,
+     "mean_bps": 13.36,
+     "n": 3366,
+     "per_year": 251.83,
+     "sd_bps": 619.3,
+     "t": 1.25,
+     "total_bps": 44985.0
+    },
+    "all": {
+     "annual_bps": 3365.6,
+     "annual_sharpe": 0.34,
+     "hit": 0.574,
+     "max_dd_bps": -30819.0,
+     "mean_bps": 13.36,
+     "n": 3366,
+     "per_year": 251.83,
+     "sd_bps": 619.3,
+     "t": 1.25,
+     "total_bps": 44985.0
+    },
+    "last5y": {
+     "annual_bps": 5025.4,
+     "annual_sharpe": 0.57,
+     "hit": 0.588,
+     "max_dd_bps": -12770.0,
+     "mean_bps": 20.01,
+     "n": 1250,
+     "per_year": 251.13,
+     "sd_bps": 559.8,
+     "t": 1.26,
+     "total_bps": 25014.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "first": "2013-05-20",
+   "last": "2026-10-01",
+   "worst_day_pct": -149.5
+  },
+  "VXS_stop30": {
+   "by_year_pct": {
+    "2013": 33.9,
+    "2014": -26.0,
+    "2015": 57.1,
+    "2016": -22.1,
+    "2017": 112.3,
+    "2018": -83.5,
+    "2019": 81.0,
+    "2020": -18.1,
+    "2021": 43.4,
+    "2022": -17.0,
+    "2023": 106.3,
+    "2024": -30.4,
+    "2025": 45.5,
+    "2026": 22.1
+   },
+   "daily_pct_of_notional": {
+    "annual_bps": 2278.6,
+    "annual_sharpe": 0.33,
+    "hit": 0.566,
+    "max_dd_bps": -15052.0,
+    "mean_bps": 9.59,
+    "n": 3176,
+    "per_year": 237.61,
+    "sd_bps": 442.8,
+    "t": 1.22,
+    "total_bps": 30456.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 2278.6,
+     "annual_sharpe": 0.33,
+     "hit": 0.566,
+     "max_dd_bps": -15052.0,
+     "mean_bps": 9.59,
+     "n": 3176,
+     "per_year": 237.61,
+     "sd_bps": 442.8,
+     "t": 1.22,
+     "total_bps": 30456.0
+    },
+    "all": {
+     "annual_bps": 2278.6,
+     "annual_sharpe": 0.33,
+     "hit": 0.566,
+     "max_dd_bps": -15052.0,
+     "mean_bps": 9.59,
+     "n": 3176,
+     "per_year": 237.61,
+     "sd_bps": 442.8,
+     "t": 1.22,
+     "total_bps": 30456.0
+    },
+    "last5y": {
+     "annual_bps": 2306.1,
+     "annual_sharpe": 0.35,
+     "hit": 0.582,
+     "max_dd_bps": -15052.0,
+     "mean_bps": 9.72,
+     "n": 1181,
+     "per_year": 237.27,
+     "sd_bps": 431.7,
+     "t": 0.77,
+     "total_bps": 11479.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "first": "2013-05-20",
+   "last": "2026-10-01",
+   "worst_day_pct": -39.1
+  },
+  "VXS_stop50": {
+   "by_year_pct": {
+    "2013": 33.9,
+    "2014": 4.8,
+    "2015": 37.1,
+    "2016": 17.7,
+    "2017": 112.3,
+    "2018": -78.6,
+    "2019": 80.8,
+    "2020": 0.2,
+    "2021": 121.1,
+    "2022": -48.9,
+    "2023": 115.2,
+    "2024": -2.2,
+    "2025": 1.2,
+    "2026": 2.1
+   },
+   "daily_pct_of_notional": {
+    "annual_bps": 2969.0,
+    "annual_sharpe": 0.4,
+    "hit": 0.57,
+    "max_dd_bps": -16652.0,
+    "mean_bps": 12.07,
+    "n": 3288,
+    "per_year": 245.99,
+    "sd_bps": 477.2,
+    "t": 1.45,
+    "total_bps": 39684.0
+   },
+   "eras": {
+    "2011on": {
+     "annual_bps": 2969.0,
+     "annual_sharpe": 0.4,
+     "hit": 0.57,
+     "max_dd_bps": -16652.0,
+     "mean_bps": 12.07,
+     "n": 3288,
+     "per_year": 245.99,
+     "sd_bps": 477.2,
+     "t": 1.45,
+     "total_bps": 39684.0
+    },
+    "all": {
+     "annual_bps": 2969.0,
+     "annual_sharpe": 0.4,
+     "hit": 0.57,
+     "max_dd_bps": -16652.0,
+     "mean_bps": 12.07,
+     "n": 3288,
+     "per_year": 245.99,
+     "sd_bps": 477.2,
+     "t": 1.45,
+     "total_bps": 39684.0
+    },
+    "last5y": {
+     "annual_bps": 1925.6,
+     "annual_sharpe": 0.26,
+     "hit": 0.582,
+     "max_dd_bps": -16652.0,
+     "mean_bps": 7.84,
+     "n": 1223,
+     "per_year": 245.71,
+     "sd_bps": 471.4,
+     "t": 0.58,
+     "total_bps": 9584.0
+    },
+    "to2010": {
+     "n": 0
+    }
+   },
+   "first": "2013-05-20",
+   "last": "2026-10-01",
+   "worst_day_pct": -52.4
+  }
+ }
+}

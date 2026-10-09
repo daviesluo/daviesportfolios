@@ -1,0 +1,173 @@
+{
+ "note": "Text extracted from each page as served on 2026-10-09 (navigation included); the raw page is not committed, its size and sha256 are.",
+ "pages": {
+  "fca_cfd_restrictions_2019": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 175390,
+   "raw_sha256": "ea6ecacad33caccbbec8b6d1dd16043836ab6083b293cc88caa302285836bfea",
+   "text": "fca_cfd_restrictions_2019.txt.gz",
+   "url": "https://www.fca.org.uk/news/press-releases/fca-confirms-permanent-restrictions-sale-cfds-and-cfd-options-retail-consumers"
+  },
+  "fca_crypto_derivatives_ban": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 174113,
+   "raw_sha256": "0d32ddcfa9377916797b355410e6e668c9ffe4035fcbd57dfa6d3f37b1e67328",
+   "text": "fca_crypto_derivatives_ban.txt.gz",
+   "url": "https://www.fca.org.uk/news/press-releases/fca-bans-sale-crypto-derivatives-retail-consumers"
+  },
+  "hmrc_bim22020": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 61862,
+   "raw_sha256": "78a5a284ca445c1235e14dd84f8a70bb43b7f08dbced6d1beaa6d9bca0a18bae",
+   "text": "hmrc_bim22020.txt.gz",
+   "url": "https://www.gov.uk/hmrc-internal-manuals/business-income-manual/bim22020"
+  },
+  "hmrc_cg56100": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 65910,
+   "raw_sha256": "6f00aa69d0e4c00aa00cbc7d86af0e0c1cea2b17601c25e651aa9c3d19875f2a",
+   "text": "hmrc_cg56100.txt.gz",
+   "url": "https://www.gov.uk/hmrc-internal-manuals/capital-gains-manual/cg56100"
+  },
+  "hmrc_cg56105": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 62259,
+   "raw_sha256": "c008d0fd41281d73b28ac9c8d4f923e2e840c7bce74a90ae78ac532eeb421df8",
+   "text": "hmrc_cg56105.txt.gz",
+   "url": "https://www.gov.uk/hmrc-internal-manuals/capital-gains-manual/cg56105"
+  },
+  "ig_charges": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 762617,
+   "raw_sha256": "06fab7128840d5e4ac71fc148972f92340cc15ba1af06a9580c7a589a19bc5a7",
+   "text": "ig_charges.txt.gz",
+   "url": "https://www.ig.com/uk/charges"
+  },
+  "ig_overnight_funding": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 168637,
+   "raw_sha256": "a5a7f4c45b5957e8e5cba7561ea321fa92a6652cebdada3a260d0727e706acd1",
+   "text": "ig_overnight_funding.txt.gz",
+   "url": "https://www.ig.com/uk/help-and-support/spread-betting-and-cfds-5064504a/fees-and-costs-efcb88d2/what-is-overnight-funding-how-is-it-charged-and-how-is-65e16fa6"
+  },
+  "ig_sb_customer_agreement_jul2023": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 659235,
+   "raw_sha256": "fa648df015cc86769c8fa47c644ed75c6af58607789f206efbd3a092602dbf88",
+   "text": "ig_sb_customer_agreement_jul2023.txt.gz",
+   "url": "https://www.ig.com/usermanagement/customeragreements?igCompany=iggb&agreementType=customer_agreement&productCode=IGFSB&locale=en_GB"
+  },
+  "ig_sb_forex": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 536736,
+   "raw_sha256": "dce1674442b3bfb1e521ff4e26715a0b50097621ea4eb8c69652fbd3b0af9c96",
+   "text": "ig_sb_forex.txt.gz",
+   "url": "https://www.ig.com/uk/help-and-support/spread-betting-and-cfds-5064504a/products-markets-and-trading-hours-008e7240/forex-spread-betting-product-details-3134d533"
+  },
+  "ig_sb_indices": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 533122,
+   "raw_sha256": "1c4398feff695b21f73fffdfa053096e463406ea6d265936f39fd9fc2eacfe41",
+   "text": "ig_sb_indices.txt.gz",
+   "url": "https://www.ig.com/uk/help-and-support/spread-betting-and-cfds-5064504a/products-markets-and-trading-hours-008e7240/spread-bet-indices-product-details-1b3f8f8c"
+  },
+  "ig_sb_options": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 301155,
+   "raw_sha256": "f3ae52b7fc89ad190a2f167f669a938abbcb44fe2f6f58396e461a5cc7aef0d8",
+   "text": "ig_sb_options.txt.gz",
+   "url": "https://www.ig.com/uk/help-and-support/spread-betting-and-cfds-5064504a/products-markets-and-trading-hours-008e7240/options-spread-bet-product-details-be6b789d"
+  },
+  "ig_weekend_trading": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 761776,
+   "raw_sha256": "edee44090cb82b50331f5d35ce326a3eb8bc25c9024672a97c1ae9343bd5bbbb",
+   "text": "ig_weekend_trading.txt.gz",
+   "url": "https://www.ig.com/uk/weekend-trading"
+  },
+  "labs_faq": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 46537,
+   "raw_sha256": "3066a1d0dada7bcae916fce6b0414fbb46d61ab0f2cb3d8f77780d6c339c421a",
+   "text": "labs_faq.txt.gz",
+   "url": "https://labs.ig.com/faq.html"
+  },
+  "labs_getting_started": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 45747,
+   "raw_sha256": "8715bd6842f026ef9b1d6ee457cb99e91df1975b82cd686ee9bdda1a7b216f28",
+   "text": "labs_getting_started.txt.gz",
+   "url": "https://labs.ig.com/getting-started.html"
+  },
+  "labs_order_types": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 57709,
+   "raw_sha256": "f733dde634dd09ebc34a4cf56cb2076190521593b99108c7d4237225f0f49d02",
+   "text": "labs_order_types.txt.gz",
+   "url": "https://labs.ig.com/api-order-types.html"
+  },
+  "labs_ref_accounts": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 72975,
+   "raw_sha256": "373a55a3a97c59c8fb29338440f3e5908a2bd685c672d5b2e5a8acc65ec0d6e3",
+   "text": "labs_ref_accounts.txt.gz",
+   "url": "https://labs.ig.com/reference/accounts.html"
+  },
+  "labs_ref_markets_epic": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 530006,
+   "raw_sha256": "7a9a0bd4e933f3e08d36a47b7329cd0e7021699a042b94deff3519452eae3bb9",
+   "text": "labs_ref_markets_epic.txt.gz",
+   "url": "https://labs.ig.com/reference/markets-epic.html"
+  },
+  "labs_ref_positions_otc": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 151088,
+   "raw_sha256": "f1f0db818896f462827cf7d840a9b92fcc1d3cea58835f0bcd1f4507acb759eb",
+   "text": "labs_ref_positions_otc.txt.gz",
+   "url": "https://labs.ig.com/reference/positions-otc.html"
+  },
+  "labs_ref_prices_epic": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 94362,
+   "raw_sha256": "dfbb393f7094ec3d365219d28d4191fb5769e588826b1a687a100b8b7cff0636",
+   "text": "labs_ref_prices_epic.txt.gz",
+   "url": "https://labs.ig.com/reference/prices-epic.html"
+  },
+  "labs_ref_working_orders_otc": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 119590,
+   "raw_sha256": "7fa8454d16d95444e8a013fb1631b3f448426916265c197160311502565743b7",
+   "text": "labs_ref_working_orders_otc.txt.gz",
+   "url": "https://labs.ig.com/reference/working-orders-otc.html"
+  },
+  "labs_rest_guide": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 48129,
+   "raw_sha256": "3cb40b96b8236d20c9ed5f9b4a5205c0e590b10cdfb905f868f649729bec7626",
+   "text": "labs_rest_guide.txt.gz",
+   "url": "https://labs.ig.com/rest-trading-api-guide.html"
+  },
+  "labs_rest_reference": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 107864,
+   "raw_sha256": "79d4b91aea0e00bdea5a72e7d2d151b46ef6781ce94477b4048959267cce523c",
+   "text": "labs_rest_reference.txt.gz",
+   "url": "https://labs.ig.com/rest-trading-api-reference.html"
+  },
+  "labs_streaming_guide": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 48918,
+   "raw_sha256": "9b2dd73363eb875c694d2c0b370edc4fe141f4dc69d20339b49000a517dc6658",
+   "text": "labs_streaming_guide.txt.gz",
+   "url": "https://labs.ig.com/streaming-api-guide.html"
+  },
+  "tcga1992_s51": {
+   "fetched_utc": "2026-10-09 21:55-22:15",
+   "raw_bytes": 37883,
+   "raw_sha256": "4e14f2759f5a178e74fcd4fd0741877114232309dfbba6f7c9b1db21cdda3a5f",
+   "text": "tcga1992_s51.txt.gz",
+   "url": "https://www.legislation.gov.uk/ukpga/1992/12/section/51"
+  }
+ }
+}
