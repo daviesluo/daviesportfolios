@@ -1926,3 +1926,23 @@ Deno.test("a refusal of the order's version is reported once an hour, not every 
   await d.turn(T0);
   assertEquals("versionMismatchAt" in d.state(), false);
 });
+
+Deno.test("dry_run on: a live order whose cancel froze its slot is asked again on the switch, not left to its expiry (F5)", async () => {
+  const w = makeWorld({ live: true });
+  await w.turn(T0);
+  // A re-price whose cancel the venue takes and never carries out: frozen, still resting.
+  w.pm.cancelMode = "lost";
+  w.A.bid = 0.46;
+  await w.turn(T0 + M);
+  const frozen = w.open("live").filter((o) => o.cancel_requested_at);
+  assert(frozen.length > 0, "a slot froze");
+  // The kill switch: back to dry-run. The venue carries cancels out again; every live order is gone that turn.
+  w.pm.cancelMode = "ok";
+  w.setConfig({ dry_run: true });
+  const deletes = w.pm.calls.filter((c) => c.startsWith("DELETE")).length;
+  const r = await w.turn(T0 + 2 * M);
+  assertEquals(w.open("live").length, 0);
+  for (const f of frozen) assert(r.cancelled.some((c) => c.mode === "live" && c.outcome === "cancelled" && c.slot.endsWith(`|${f.outcome}|${f.side}`)), JSON.stringify(r.cancelled));
+  assert(w.pm.calls.filter((c) => c.startsWith("DELETE")).length >= deletes + frozen.length);
+  assert([...w.pm.orders.values()].every((o) => o.status !== "LIVE"), "nothing rests at the venue");
+});

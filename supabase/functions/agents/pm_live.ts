@@ -2080,8 +2080,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }
   } else {
     // Rows of the other mode: the dry-run's give way to a live path; a live path that went back to dry-run cancels its own.
+    // A cancel asked on an earlier turn and not yet carried out (a frozen slot) is asked again too (the go-live audit's
+    // F5): on the switch back to dry-run nothing else would ever ask it, and the order would rest until its expiry.
     for (const o of open.filter((x) => x.mode !== mode)) {
-      try { if (!untouchable(o)) await cancel(o, "mode", `the path is ${mode === "live" ? "live" : "in dry-run"}`); } catch (e) { report.errors.push(`${slotLabel(o)}: ${msg(e)}`); }
+      try { if (o.state !== "pending" && !unreadable.has(o.id)) await cancel(o, "mode", `the path is ${mode === "live" ? "live" : "in dry-run"}`); } catch (e) { report.errors.push(`${slotLabel(o)}: ${msg(e)}`); }
     }
     const mine = open.filter((x) => x.mode === mode && isOpenRow(x));
     const replace: Want[] = [];

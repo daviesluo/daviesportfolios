@@ -408,6 +408,10 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     any protocol (`bookProtocol`), so the selection passes it over and a selected market whose book turns V2 is withdrawn,
     recorded as the condition "a Polymarket Protocol v2 book: unquotable here". None of 10-09's ten books names one, and
     the CLOB's `GET /version` read 2. A refusal "order_version_mismatch" is reported once an hour (`state.versionMismatchAt`,
+    kept only once one is). Pinned in `pm_live.test.ts` (three tests).
+  - **F5, the dry-run kill switch re-asks a frozen cancel.** On a mode switch, a live order whose earlier cancel the
+    venue never carried out is cancelled again (only pending and unread rows wait); before, it rested to its GTD expiry.
+    Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code. Platform: Claude Code | Model: not recorded (session policy)
     kept only once one is). Pinned in `pm_live.test.ts` (three tests). Platform: Claude Code | Model: not recorded (session policy)
     read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)". Platform: Claude Code | Model: not recorded (session policy)
     is not. Pinned in `pm_lp.test.ts` and `index.test.ts`. Platform: Claude Code | Model: not recorded (session policy)
