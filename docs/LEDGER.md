@@ -411,6 +411,10 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     kept only once one is). Pinned in `pm_live.test.ts` (three tests).
   - **F5, the dry-run kill switch re-asks a frozen cancel.** On a mode switch, a live order whose earlier cancel the
     venue never carried out is cancelled again (only pending and unread rows wait); before, it rested to its GTD expiry.
+    Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code.
+  - The frozen-export checks (`pm_instance`, `pm_mid_formula`, `pm_payouts` tests) list `gates` (F1) and `bookNow` (F4)
+    as changed; they fail on F1 and F4 alone until this commit. The minute-by-minute dry-run comparisons with the frozen
+    code are unchanged and pass. Platform: Claude Code | Model: not recorded (session policy)
     Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code. Platform: Claude Code | Model: not recorded (session policy)
     kept only once one is). Pinned in `pm_live.test.ts` (three tests). Platform: Claude Code | Model: not recorded (session policy)
     read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)". Platform: Claude Code | Model: not recorded (session policy)

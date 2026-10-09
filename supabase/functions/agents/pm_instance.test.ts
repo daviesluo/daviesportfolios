@@ -303,7 +303,10 @@ Deno.test("every export of the frozen code is today's, text for text and value f
   // The path: the universe and the candidate take the instance's band, the selection its band and exclusion, the turn its
   // tables, lease and migrations; and (2026-10-04) the formula scores against the venue's book with our quotes in it, the
   // turn records what rests after it, and the selection ranks by an instance's book-quality rule (the default has none).
-  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["inUniverse", "candidateOf", "selectMarkets", "runPmLive", "minuteFormula"]);
+  // And (2026-10-09, the go-live audit) `gates` lists live-prep's approval gate only when its live turn gives one (F1), and
+  // `bookNow` refuses a book that names a protocol (F4, a Polymarket Protocol V2 book; no CTF book does). Neither changes
+  // a dry-run decision: the minute-by-minute comparisons below run today's code beside the frozen code and find them equal.
+  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["inUniverse", "candidateOf", "selectMarkets", "runPmLive", "minuteFormula", "gates", "bookNow"]);
   // The layer: its run takes the instance's tables and lease; and (2026-10-04) a matched minute is paid the path's figure.
   check(FrozenPrep as Record<string, unknown>, Prep as Record<string, unknown>, ["runPmPrep", "decideMinute"]);
   // The default instances are the names the code had: its tables, its lease, its band.

@@ -292,7 +292,9 @@ Deno.test("mid-pool through today's path is mid-pool through the path its pre-re
 });
 
 Deno.test("every export of the path mid-pool's pre-registration froze is today's, text for text and value for value, but the two the formula fix changed: this change is inside the turn and its readout", () => {
-  const fixed = ["minuteFormula", "selectMarkets"];                                    // 2026-10-04, pm_mid_formula.test.ts
+  // 2026-10-04 (pm_mid_formula.test.ts); and 2026-10-09, the go-live audit: `gates` (F1, live-prep's live turn only) and
+  // `bookNow` (F4, a book that names a protocol).
+  const fixed = ["minuteFormula", "selectMarkets", "gates", "bookNow"];
   for (const [k, v] of Object.entries(Frozen)) {
     const now = (Path as Record<string, unknown>)[k];
     assert(k in Path, `${k} is still exported`);

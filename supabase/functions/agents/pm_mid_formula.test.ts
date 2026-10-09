@@ -262,7 +262,10 @@ Deno.test("every export of the code mid-pool froze is today's, text for text and
   };
   // The path: the formula takes the venue's book (`minuteFormula`), and the selection an instance's book-quality rule
   // (`selectMarkets`; mid-pool's instance has none). The turn's record of `detail.after` is inside `runPmLive`'s turn.
-  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["minuteFormula", "selectMarkets"]);
+  // And (2026-10-09, the go-live audit) `gates` lists live-prep's approval gate only when its live turn gives one (F1), and
+  // `bookNow` refuses a book that names a protocol (F4, a Polymarket Protocol V2 book; no CTF book does). Mid-pool's
+  // dry-run minutes beside the frozen code's (above) are what shows its decisions unchanged.
+  check(Frozen as Record<string, unknown>, Path as Record<string, unknown>, ["minuteFormula", "selectMarkets", "gates", "bookNow"]);
   // The layer: a matched minute is paid the path's figure (`decideMinute`).
   check(FrozenPrep as Record<string, unknown>, Prep as Record<string, unknown>, ["decideMinute"]);
   // The frozen layer's book-keeping, from today's pm_live.ts, is the frozen path's own.
