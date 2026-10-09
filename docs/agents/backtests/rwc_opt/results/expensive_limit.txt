@@ -1,0 +1,443 @@
+EXPENSIVE-LIMIT (2026-10-09): the best limit on live-prep's buys of near-certain tokens, as a share of its capital
+=================================================================================================================
+Asked by Davies, 2026-10-09, verbatim: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值". In English:
+add it, but first research the best setting for how much it may buy, and make it a proportion of the holdings/capital,
+not a fixed dollar figure. "It" is EXPENSIVE-SIDE's recommendation (results/expensive_side.txt, commit 7aaaf0f6): a cap on
+live-prep BUYING a token priced >= 0.95, there "$25 at cost a market". Not blind: every record below had been read before.
+
+THE FORM, AND WHY
+- A BUY of a token whose buy price is >= thr rests only while that token's holding in the market AT THE MINUTE'S MARK plus
+  the order at its price stays <= f x C, with C the path's capital: its total cap as the order path reads it each turn
+  (lpLimits' capTotal: pm_lp_config.cap_total_usd under the code's ceiling, $320 today). Sells are never limited.
+- Of C, not of the per-market cap: the per-market cap has a code ceiling of $100 that does not move with the account, and
+  what a single loss means is its size against the whole account (and against the -$75 stop's room). f x C reads "no
+  market's near-certain buys can put more than f of the capital at risk" and grows with C whatever raises it (reinvested
+  rewards, deposits).
+- At the mark, not at cost: what can still be lost is what the holding is worth now, and the rule has the mark (RW's
+  adjusted mid) on every turn without the fills' cost. (At cost was swept too; it is no better, section 2.)
+- Shares as a multiple of N do not scale with capital (N is the market's reward minimum, <= 20), and a dollar figure does
+  not either; a share of C does both jobs.
+
+WHAT WAS RUN (read-only; exp_sim.ts as committed in 7aaaf0f6, untouched)
+- scripts/explim_run.ts: exp_sim.ts's `usd X mark` arm with X = f x C. f in {3, 4.5, 6.25, 8, 10, 12.5, 15, 20, 25} % x thr
+  in {0.93, 0.95, 0.97} at C = $320 (L1's caps: $100 a market, $200 / 10 markets, -$75 stop), cost basis at three f, and at
+  C = $640 / $1,000 / $2,000 with f in {3, 6.25, 8, 10, 12.5, 20} % at 0.95, "scaled" (market cap, budget, market count and
+  stop grow with C) and "total" (the total cap alone grows), each against the same C with no limit. On RW's record (09-25 ->
+  10-08 23:10 UTC, 14 days, passive exits) and LPSELF's full-universe record (10-05 -> 10-08 22:59, 4 days, close-only exits;
+  data/pr_record.json not committed, sha256 c855d12c...eaf2de9 checked before the run), strict and at-price fills.
+  L1 and EXPENSIVE-SIDE's "usd 50 mark 0.95" reproduce results/exp_*.json day for day on all four cells (section 1).
+- Live-prep's own paper (pm_lpprep_minutes 10-04 17:55 -> 10-09 01:32 UTC): sql/explim_paper.sql, Supabase connector,
+  read-only, 2026-10-09 ~14:50 UTC, results/explim_paper.json(.gz). A first-order replay: the minutes the limit would have
+  stopped the expensive buy and the formula reward they paid (the holdings are the paper's own, so an upper bound).
+- The live path's own near-certain buys since it was armed (pm_lp_fills / pm_lp_orders, mode live, 01:32 -> 14:47 UTC,
+  13.25 h): 101.34 NO bought at 0.955-0.972 on one market (0xecc209a6, Iran), 80 of them in 21 minutes (03:11:37 ->
+  03:32:29), over 194 minutes of resting near-certain bids there; two other markets rested such bids 264 and 140 minutes
+  and filled none; 60 NO sold at 0.966-0.976. That is ~7.6 shares an hour against RW strict's ~0.8 (279 in 14 days).
+- The tail: EXPENSIVE-SIDE's calibration (5,766 markets, hourly prices; hist.jsonl sha256 2cbc491f...12f60b, checked), by
+  its jump model on each arm's simulated holdings and, because the simulation fills near-certain bids ~10x slower than
+  live did, by a live-speed model: one near-certain market holding the most the limit allows (f x C, at most 5N x 0.97 or
+  $100) four 7-day holdings a month, lost at the calibration's rate for its band with 3-14 days left.
+
+THE OBJECTIVE (per 30 days, R = 0.40, each f against L1 = no limit)
+  U(lambda, rate) = E[P&L] - (1 + lambda) x E[near-certain loss at the live speed] - lambda x E[loss from single events
+  >= 5 % of C on the simulated holdings]
+  E[P&L] = the mean of five records: the four simulated cells and the paper replay. lambda = 1 counts a dollar lost in one
+  hit twice, as the loss and as the room it takes of the -$75 total stop that halts the whole path (the source of the
+  rewards); lambda = 0 is risk-neutral and 3 risk-averse. The rate: the calibration's 0.97-0.99 favourites with 3-14 days
+  left, 1.39 % per 7-day holding pooled by hour [0.99, 1.87], 3.35 % with each market weighted once, 2.65 % for 0.95-0.99.
+  Neither lambda nor the true rate is known, and the per-scenario optimum moves with them (0.125 at the pooled rate and
+  lambda <= 1; 0.10 at lambda 3 or the per-market rate; 0.08 / 0.0625 at the per-market rate and lambda 1 / 3). So the
+  choice is the f whose largest shortfall from the best arm over all nine scenarios is smallest (minimax regret). That rule
+  was picked after seeing that the scenario optima disagree; it was not written down before the runs.
+
+ANSWER: f = 8 % of capital, at 0.95 ($25.60 at $320). Its largest shortfall from the best arm in any scenario is $1.85 a
+month (0.10: $2.15; 0.125: $5.50; 0.0625: $4.82; 0.15: $9.70). No limit (L1) is $8.83 / $13.11 / $21.68 a month behind
+8 % at the pooled rate and lambda 0 / 1 / 3.
+- Reward cost at C = $320, R = 0.40, against L1 (boot = index 100 of 2,000 paired day draws, P(> 0)):
+    RW strict -1.72 (boot -7.65, P 0.31); RW at-price +1.36 (-5.66, 0.65); full universe strict +2.24 (-0.03, 0.68),
+    at-price +2.19 (-0.05, 0.68); paper replay: 494 minutes stopped, $3.09 of $152.74 near-certain formula reward in 4.3 days
+    (-$8.59 a month at R = 0.40), the one place 8 % visibly costs (partial fills of 7-19 shares leave the market one-sided:
+    see the caveat). At 10 % the paper loses $0.20; the simulations cannot tell 8 % and 10 % apart.
+- What it bounds: a market's near-certain buys stop at $25.60 at the mark, 8 % of capital and 34 % of the stop's room,
+  where today one market reached $78 (24 %) in 21 minutes and the old cap allowed $97 (30 %). At the live speed the
+  expected near-certain loss falls from $5.41 to $1.43 a month (pooled rate), and the loss when it comes from 30 % of C
+  to at most 8 %.
+- The threshold: 0.95. At 8 %, 0.93 costs more on RW (-2.11 / -5.00) and the paper (-$3.17 formula), and 0.97 costs
+  -$10.38 / -$7.68 on RW (it lets 0.95-0.97 buys through, whose holdings then block the >= 0.97 buys of the same token);
+  0.95 is ahead of both at every f >= 6.25 % in section 7.
+- At larger capital: 8 % costs nothing measurable at $640, $1,000 or $2,000 (largest cost -1.28, pr at-price, $640 scaled)
+  and stops binding at about $1,250 (8 % of C passes the $100 a market cap, which takes over). Below about $240 to $250
+  (8 % x C under 20 x 0.95-0.99) no first order of N = 20 fits and the near-certain side rests nothing (as "no buy", -$7.49 on RW
+  strict): the share follows the capital down too.
+
+CONFIDENCE: moderate on the band, low on the exact point. Every f from 8 % to 12.5 % is within $5.50 a month of the best
+in all nine scenarios and within $2 at the pooled rate; the differences are smaller than the bootstrap's spread (index 100
+at -$3 to -$8 over 14 days). What the choice rests on: a calibration from a year of other markets (not live-prep's own),
+13 hours of live fills on one market for the speed, and a paper replay that is first order. Caveat: a partial fill of
+7-19 shares of a 20-share near-certain bid leaves that side unable to rest (neither the buy, over the limit, nor a sell,
+under N) until the price leaves 0.95+, the holding is sold off as a carried market, or the day's reselection; the paper
+replay counts that cost, the live path may meet it more often than its paper did.
+
+Machine output follows: scripts/explim_analyse.py <calib dir>.
+-------------------------------------------------------------------------------------------------------------------------
+
+== 1. the copy reproduces EXPENSIVE-SIDE (day changes in total, rewards and stress, exact float equality)
+   rw          L1                vs exp_rw.json: identical
+   rw          usd 50 mark 0.95  vs exp_rw.json: identical
+   rw_atprice  L1                vs exp_rw_atprice.json: identical
+   rw_atprice  usd 50 mark 0.95  vs exp_rw_atprice.json: identical
+   pr          L1                vs exp_pr.json: identical
+   pr          usd 50 mark 0.95  vs exp_pr.json: identical
+   pr_atprice  L1                vs exp_pr_atprice.json: identical
+   pr_atprice  usd 50 mark 0.95  vs exp_pr_atprice.json: identical
+   all identical: True
+
+   jump model: 833794 favourite-hours at >= 0.90; 0.90-0.95 q 0.271 %/h, 350 jumps; 0.95-0.97 q 0.194 %/h, 178 jumps; 0.97-0.99 q 0.162 %/h, 287 jumps; 0.99-1.00 q 0.017 %/h, 70 jumps
+   loss rate of a favourite with 3-14 days left (pooled hours): 0.90-0.95 10.06 %, 0.95-0.97 4.90 %, 0.97-0.99 1.39 %, 0.99-1.00 0.67 %
+   mean 24 h drift of its value: 0.90-0.95 -0.964 %/day, 0.95-0.97 -0.556 %/day, 0.97-0.99 -0.182 %/day, 0.99-1.00 -0.043 %/day
+
+== 2./3. each f x thr at C = $320 against L1, R = 0.40 (diff = arm less L1 over the record; boot = index 100 of 2,000 paired day
+   draws, P = share > 0; one = the largest one-market holding at the mark in tokens >= 0.90, one>=50 = minutes with >= $50 of it;
+   tail per 30 days from the jump model: E jump = expected jump loss, E big = expected loss from single events >= $16 (5 % of C),
+   P5 / P10 = chance of one event >= 5 % / 10 % of C)
+
+   -- rw (13.97 days): L1 total 537.73, reward 1345.50, one 115.16, one>=50 1083
+   arm              $ limit |    diff  boot100   P>0 |     one one>=50 |  E jump   E big     P5    P10
+   L1                     - |   +0.00    +0.00       |  115.16    1083 |    6.77    4.52 14.04%  4.12%
+   f 0.03 0.93         9.60 |  -20.46   -56.32  0.09 |  115.05     708 |    5.25    3.29 10.34%  3.42%
+   f 0.045 0.93       14.40 |  -20.46   -56.32  0.09 |  115.05     708 |    5.25    3.29 10.34%  3.42%
+   f 0.0625 0.93      20.00 |   -5.36   -15.67  0.17 |  115.05     708 |    6.63    3.29 10.34%  3.42%
+   f 0.08 0.93        25.60 |   -2.11    -8.33  0.28 |  115.05     708 |    6.73    3.40 10.81%  3.42%
+   f 0.1 0.93         32.00 |   -2.08    -8.31  0.29 |  115.05     708 |    6.73    3.40 10.81%  3.42%
+   f 0.125 0.93       40.00 |   +0.53    -4.26  0.56 |  115.05     714 |    6.57    3.82 11.81%  4.11%
+   f 0.15 0.93        48.00 |   +0.53    -4.25  0.56 |  115.05     714 |    6.57    3.82 11.81%  4.11%
+   f 0.2 0.93         64.00 |   +1.00    -2.40  0.58 |  115.05    1083 |    6.76    4.51 14.03%  4.12%
+   f 0.25 0.93        80.00 |   +2.17    -0.17  0.64 |  115.05    1083 |    6.76    4.51 14.04%  4.12%
+
+   f 0.03 0.95         9.60 |   -7.49   -21.55  0.16 |  115.05     708 |    5.49    3.29 10.34%  3.42%
+   f 0.045 0.95       14.40 |   -7.49   -21.55  0.16 |  115.05     708 |    5.49    3.29 10.34%  3.42%
+   f 0.0625 0.95      20.00 |   -4.69   -14.39  0.19 |  115.05     708 |    6.64    3.29 10.34%  3.42%
+   f 0.08 0.95        25.60 |   -1.72    -7.65  0.31 |  115.05     708 |    6.74    3.40 10.81%  3.42%
+   f 0.1 0.95         32.00 |   -1.72    -7.65  0.31 |  115.05     708 |    6.74    3.40 10.81%  3.42%
+   f 0.125 0.95       40.00 |   +0.81    -3.82  0.61 |  115.05     714 |    6.57    3.82 11.81%  4.11%
+   f 0.15 0.95        48.00 |   +0.81    -3.82  0.61 |  115.05     714 |    6.57    3.82 11.81%  4.11%
+   f 0.2 0.95         64.00 |   +1.17    -2.16  0.65 |  115.05    1083 |    6.76    4.51 14.03%  4.12%
+   f 0.25 0.95        80.00 |   +2.19    -0.12  0.64 |  115.05    1083 |    6.76    4.51 14.04%  4.12%
+
+   f 0.03 0.97         9.60 |  -12.17   -35.25  0.11 |  115.05     747 |    6.20    3.92 12.22%  3.92%
+   f 0.045 0.97       14.40 |  -12.17   -35.25  0.11 |  115.05     747 |    6.20    3.92 12.22%  3.92%
+   f 0.0625 0.97      20.00 |  -11.74   -34.29  0.13 |  115.05     747 |    6.25    3.92 12.22%  3.92%
+   f 0.08 0.97        25.60 |  -10.38   -30.21  0.13 |  115.05     747 |    6.25    3.92 12.22%  3.92%
+   f 0.1 0.97         32.00 |   -9.85   -28.61  0.13 |  115.05     747 |    6.25    3.92 12.22%  3.92%
+   f 0.125 0.97       40.00 |   -9.22   -29.52  0.24 |  115.05     747 |    6.50    4.23 13.12%  4.11%
+   f 0.15 0.97        48.00 |   -7.21   -23.48  0.24 |  115.05     747 |    6.50    4.23 13.12%  4.11%
+   f 0.2 0.97         64.00 |   +0.48    -1.11  0.61 |  115.05    1083 |    6.76    4.51 14.04%  4.12%
+   f 0.25 0.97        80.00 |   +0.98    -0.12  0.64 |  115.05    1083 |    6.76    4.51 14.04%  4.12%
+
+   fcost 0.0625 0.95   20.00 |   -4.69   -14.38  0.19 |  115.05     708 |   (at cost, not the mark)
+   fcost 0.1 0.95     32.00 |   -1.27    -6.43  0.35 |  115.05     708 |   (at cost, not the mark)
+   fcost 0.125 0.95   40.00 |   -0.43    -4.09  0.44 |  115.05     714 |   (at cost, not the mark)
+
+   -- rw_atprice (13.97 days): L1 total 504.22, reward 1340.39, one 113.71, one>=50 996
+   arm              $ limit |    diff  boot100   P>0 |     one one>=50 |  E jump   E big     P5    P10
+   L1                     - |   +0.00    +0.00       |  113.71     996 |    8.55    3.53  9.91%  3.24%
+   f 0.03 0.93         9.60 |  -16.65   -51.63  0.22 |  113.54     557 |    6.42    2.28  6.02%  2.54%
+   f 0.045 0.93       14.40 |  -16.65   -51.63  0.22 |  113.54     557 |    6.42    2.28  6.02%  2.54%
+   f 0.0625 0.93      20.00 |   -9.89   -33.53  0.27 |  113.54     557 |    7.31    2.28  6.02%  2.54%
+   f 0.08 0.93        25.60 |   -5.00   -22.94  0.34 |  113.54     557 |    8.52    3.15 10.76%  2.54%
+   f 0.1 0.93         32.00 |   -4.97   -22.91  0.34 |  113.54     557 |    8.52    3.15 10.76%  2.54%
+   f 0.125 0.93       40.00 |   +1.28    -2.69  0.66 |  113.54     563 |    8.34    2.92  8.16%  3.23%
+   f 0.15 0.93        48.00 |   +1.50    -2.64  0.68 |  113.54     563 |    8.34    2.92  8.16%  3.23%
+   f 0.2 0.93         64.00 |   +1.13    -2.20  0.65 |  113.54     932 |    8.54    3.52  9.90%  3.23%
+   f 0.25 0.93        80.00 |   +2.17    -0.17  0.64 |  113.54     936 |    8.54    3.53  9.91%  3.24%
+
+   f 0.03 0.95         9.60 |   -4.63   -16.99  0.27 |  113.54     557 |    7.27    2.28  6.02%  2.54%
+   f 0.045 0.95       14.40 |   -4.63   -16.99  0.27 |  113.54     557 |    7.27    2.28  6.02%  2.54%
+   f 0.0625 0.95      20.00 |   -3.30   -13.68  0.30 |  113.54     557 |    7.32    2.28  6.02%  2.54%
+   f 0.08 0.95        25.60 |   +1.36    -5.66  0.65 |  113.54     557 |    8.53    3.16 10.76%  2.54%
+   f 0.1 0.95         32.00 |   +1.36    -5.66  0.65 |  113.54     557 |    8.53    3.16 10.76%  2.54%
+   f 0.125 0.95       40.00 |   +1.26    -2.74  0.67 |  113.54     563 |    8.34    2.93  8.17%  3.23%
+   f 0.15 0.95        48.00 |   +1.48    -2.52  0.69 |  113.54     563 |    8.34    2.93  8.17%  3.23%
+   f 0.2 0.95         64.00 |   +1.17    -2.11  0.65 |  113.54     932 |    8.54    3.52  9.91%  3.23%
+   f 0.25 0.95        80.00 |   +2.19    -0.12  0.64 |  113.54     936 |    8.54    3.53  9.91%  3.24%
+
+   f 0.03 0.97         9.60 |   -9.51   -30.55  0.26 |  113.54     596 |    7.98    2.93  8.00%  3.04%
+   f 0.045 0.97       14.40 |   -9.51   -30.55  0.26 |  113.54     596 |    7.98    2.93  8.00%  3.04%
+   f 0.0625 0.97      20.00 |   -9.44   -30.57  0.28 |  113.54     596 |    8.03    2.93  8.00%  3.04%
+   f 0.08 0.97        25.60 |   -7.68   -27.11  0.30 |  113.54     596 |    8.03    2.93  8.00%  3.04%
+   f 0.1 0.97         32.00 |   -7.15   -25.51  0.30 |  113.54     596 |    8.03    2.93  8.00%  3.04%
+   f 0.125 0.97       40.00 |   -8.77   -28.03  0.24 |  113.54     596 |    8.28    3.23  8.95%  3.23%
+   f 0.15 0.97        48.00 |   -8.76   -28.03  0.24 |  113.54     596 |    8.28    3.23  8.95%  3.23%
+   f 0.2 0.97         64.00 |   +0.47    -1.08  0.64 |  113.54     932 |    8.54    3.52  9.91%  3.23%
+   f 0.25 0.97        80.00 |   +0.98    -0.12  0.64 |  113.54     936 |    8.54    3.53  9.91%  3.24%
+
+   fcost 0.0625 0.95   20.00 |   -3.30   -13.68  0.30 |  113.54     557 |   (at cost, not the mark)
+   fcost 0.1 0.95     32.00 |   +0.13    -5.87  0.53 |  113.54     557 |   (at cost, not the mark)
+   fcost 0.125 0.95   40.00 |   +0.25    -2.64  0.57 |  113.54     563 |   (at cost, not the mark)
+
+   -- pr (3.96 days): L1 total 114.81, reward 352.04, one 115.16, one>=50 308
+   arm              $ limit |    diff  boot100   P>0 |     one one>=50 |  E jump   E big     P5    P10
+   L1                     - |   +0.00    +0.00       |  115.16     308 |   17.01   12.14 43.69%  2.21%
+   f 0.03 0.93         9.60 |  -11.71   -22.97  0.02 |  115.05     308 |    6.04    3.61 11.28%  2.20%
+   f 0.045 0.93       14.40 |  -11.71   -22.97  0.02 |  115.05     308 |    6.04    3.61 11.28%  2.20%
+   f 0.0625 0.93      20.00 |   +2.16    -0.19  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.08 0.93        25.60 |   +2.16    -0.19  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.1 0.93         32.00 |   +2.16    -0.19  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.125 0.93       40.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.15 0.93        48.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.2 0.93         64.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.25 0.93        80.00 |   +2.25    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+
+   f 0.03 0.95         9.60 |   +0.82    -2.69  0.58 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.045 0.95       14.40 |   +0.82    -2.69  0.58 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.0625 0.95      20.00 |   +2.24    -0.03  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.08 0.95        25.60 |   +2.24    -0.03  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.1 0.95         32.00 |   +2.24    -0.03  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.125 0.95       40.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.15 0.95        48.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.2 0.95         64.00 |   +2.24    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.25 0.95        80.00 |   +2.25    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+
+   f 0.03 0.97         9.60 |   +0.99    -0.10  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.045 0.97       14.40 |   +0.99    -0.10  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.0625 0.97      20.00 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.08 0.97        25.60 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.1 0.97         32.00 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.125 0.97       40.00 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.15 0.97        48.00 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.2 0.97         64.00 |   +1.03    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+   f 0.25 0.97        80.00 |   +1.04    -0.02  0.68 |  115.05     308 |   17.00   12.12 43.69%  2.20%
+
+   fcost 0.0625 0.95   20.00 |   +2.24    -0.03  0.68 |  115.05     308 |   (at cost, not the mark)
+   fcost 0.1 0.95     32.00 |   +1.01    -0.03  0.68 |  115.05     308 |   (at cost, not the mark)
+   fcost 0.125 0.95   40.00 |   +1.02    -0.02  0.68 |  115.05     308 |   (at cost, not the mark)
+
+   -- pr_atprice (3.96 days): L1 total 71.05, reward 333.25, one 113.71, one>=50 308
+   arm              $ limit |    diff  boot100   P>0 |     one one>=50 |  E jump   E big     P5    P10
+   L1                     - |   +0.00    +0.00       |  113.71     308 |    5.04    3.23  9.49%  2.21%
+   f 0.03 0.93         9.60 |   -2.43   -10.80  0.32 |  113.54     244 |    4.99    3.11  9.01%  2.18%
+   f 0.045 0.93       14.40 |   -2.43   -10.80  0.32 |  113.54     244 |    4.99    3.11  9.01%  2.18%
+   f 0.0625 0.93      20.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.08 0.93        25.60 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.1 0.93         32.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.125 0.93       40.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.15 0.93        48.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.2 0.93         64.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.25 0.93        80.00 |   +2.24    -0.03  0.68 |  113.54     248 |    5.02    3.21  9.48%  2.20%
+
+   f 0.03 0.95         9.60 |   +0.77    -2.69  0.58 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.045 0.95       14.40 |   +0.77    -2.69  0.58 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.0625 0.95      20.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.08 0.95        25.60 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.1 0.95         32.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.125 0.95       40.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.15 0.95        48.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.2 0.95         64.00 |   +2.19    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.25 0.95        80.00 |   +2.24    -0.03  0.68 |  113.54     248 |    5.02    3.21  9.48%  2.20%
+
+   f 0.03 0.97         9.60 |   +0.94    -0.12  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.045 0.97       14.40 |   +0.94    -0.12  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.0625 0.97      20.00 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.08 0.97        25.60 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.1 0.97         32.00 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.125 0.97       40.00 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.15 0.97        48.00 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.2 0.97         64.00 |   +0.98    -0.05  0.68 |  113.54     244 |    5.01    3.20  9.46%  2.18%
+   f 0.25 0.97        80.00 |   +1.03    -0.03  0.68 |  113.54     248 |    5.02    3.21  9.48%  2.20%
+
+   fcost 0.0625 0.95   20.00 |   +2.19    -0.05  0.68 |  113.54     244 |   (at cost, not the mark)
+   fcost 0.1 0.95     32.00 |   +0.96    -0.05  0.68 |  113.54     244 |   (at cost, not the mark)
+   fcost 0.125 0.95   40.00 |   +0.96    -0.05  0.68 |  113.54     244 |   (at cost, not the mark)
+
+== 4. the objective per 30 days, R = 0.40, C = $320: U(lambda) = E[P&L] - E[jump loss] - lambda x E[loss from single events >= 5 % of C],
+   each arm less L1; the four cells, then their mean (RW 14 days and the full universe 4 days weighted alike)
+   arm              |                      rw |              rw_atprice |                      pr |              pr_atprice | mean U0     U1     U3
+                    |      U0      U1      U3 |      U0      U1      U3 |      U0      U1      U3 |      U0      U1      U3 |
+   f 0.03 0.93      |  -42.43  -41.20  -38.74 |  -33.64  -32.39  -29.89 |  -77.78  -69.25  -52.19 |  -18.34  -18.22  -17.98 | -43.05 -40.26 -34.70
+   f 0.045 0.93     |  -42.43  -41.20  -38.74 |  -33.64  -32.39  -29.89 |  -77.78  -69.25  -52.19 |  -18.34  -18.22  -17.98 | -43.05 -40.26 -34.70
+   f 0.0625 0.93    |  -11.36  -10.13   -7.67 |  -20.02  -18.77  -16.27 |  +16.40  +16.42  +16.45 |  +16.63  +16.66  +16.72 |  +0.41  +1.05  +2.31
+   f 0.08 0.93      |   -4.49   -3.37   -1.14 |  -10.70  -10.32   -9.57 |  +16.40  +16.42  +16.45 |  +16.63  +16.66  +16.72 |  +4.46  +4.85  +5.61
+   f 0.1 0.93       |   -4.43   -3.31   -1.08 |  -10.65  -10.27   -9.52 |  +16.40  +16.42  +16.45 |  +16.63  +16.66  +16.72 |  +4.49  +4.87  +5.64
+   f 0.125 0.93     |   +1.33   +2.02   +3.41 |   +2.95   +3.55   +4.76 |  +17.03  +17.04  +17.08 |  +16.63  +16.66  +16.72 |  +9.48  +9.82 +10.49
+   f 0.15 0.93      |   +1.34   +2.04   +3.42 |   +3.44   +4.04   +5.25 |  +17.03  +17.04  +17.08 |  +16.63  +16.66  +16.72 |  +9.61  +9.95 +10.62
+   f 0.2 0.93       |   +2.16   +2.17   +2.19 |   +2.43   +2.44   +2.47 |  +17.03  +17.04  +17.08 |  +16.65  +16.67  +16.73 |  +9.57  +9.58  +9.62
+   f 0.25 0.93      |   +4.66   +4.67   +4.67 |   +4.66   +4.67   +4.68 |  +17.04  +17.06  +17.09 |  +16.97  +16.99  +17.02 | +10.83 +10.84 +10.87
+
+   f 0.03 0.95      |  -14.82  -13.59  -11.12 |   -8.66   -7.41   -4.91 |   +6.22   +6.23   +6.27 |   +5.85   +5.88   +5.94 |  -2.85  -2.22  -0.96
+   f 0.045 0.95     |  -14.82  -13.59  -11.12 |   -8.66   -7.41   -4.91 |   +6.22   +6.23   +6.27 |   +5.85   +5.88   +5.94 |  -2.85  -2.22  -0.96
+   f 0.0625 0.95    |   -9.95   -8.72   -6.25 |   -5.87   -4.62   -2.12 |  +17.00  +17.02  +17.05 |  +16.63  +16.66  +16.72 |  +4.45  +5.09  +6.35
+   f 0.08 0.95      |   -3.66   -2.55   -0.31 |   +2.94   +3.31   +4.04 |  +17.00  +17.02  +17.05 |  +16.63  +16.66  +16.72 |  +8.23  +8.61  +9.38
+   f 0.1 0.95       |   -3.66   -2.55   -0.31 |   +2.94   +3.31   +4.04 |  +17.00  +17.02  +17.05 |  +16.63  +16.66  +16.72 |  +8.23  +8.61  +9.38
+   f 0.125 0.95     |   +1.94   +2.63   +4.02 |   +2.91   +3.52   +4.72 |  +17.03  +17.04  +17.08 |  +16.63  +16.66  +16.72 |  +9.63  +9.96 +10.63
+   f 0.15 0.95      |   +1.94   +2.63   +4.02 |   +3.39   +4.00   +5.20 |  +17.03  +17.04  +17.08 |  +16.63  +16.66  +16.72 |  +9.75 +10.08 +10.75
+   f 0.2 0.95       |   +2.53   +2.54   +2.55 |   +2.53   +2.54   +2.56 |  +17.03  +17.04  +17.08 |  +16.65  +16.67  +16.73 |  +9.68  +9.70  +9.73
+   f 0.25 0.95      |   +4.72   +4.72   +4.73 |   +4.72   +4.72   +4.73 |  +17.04  +17.06  +17.09 |  +16.97  +16.99  +17.02 | +10.86 +10.87 +10.89
+
+   f 0.03 0.97      |  -25.57  -24.97  -23.77 |  -19.87  -19.27  -18.07 |   +7.53   +7.55   +7.58 |   +7.16   +7.19   +7.25 |  -7.69  -7.38  -6.75
+   f 0.045 0.97     |  -25.57  -24.97  -23.77 |  -19.87  -19.27  -18.07 |   +7.53   +7.55   +7.58 |   +7.16   +7.19   +7.25 |  -7.69  -7.38  -6.75
+   f 0.0625 0.97    |  -24.70  -24.10  -22.90 |  -19.76  -19.16  -17.96 |   +7.85   +7.87   +7.90 |   +7.46   +7.49   +7.54 |  -7.29  -6.98  -6.36
+   f 0.08 0.97      |  -21.79  -21.19  -19.99 |  -15.98  -15.38  -14.18 |   +7.85   +7.87   +7.90 |   +7.46   +7.49   +7.54 |  -5.62  -5.30  -4.68
+   f 0.1 0.97       |  -20.64  -20.04  -18.84 |  -14.84  -14.23  -13.03 |   +7.85   +7.87   +7.90 |   +7.46   +7.49   +7.54 |  -5.04  -4.73  -4.11
+   f 0.125 0.97     |  -19.54  -19.25  -18.66 |  -18.57  -18.27  -17.68 |   +7.85   +7.87   +7.90 |   +7.46   +7.49   +7.54 |  -5.70  -5.54  -5.23
+   f 0.15 0.97      |  -15.22  -14.93  -14.34 |  -18.56  -18.26  -17.67 |   +7.85   +7.87   +7.90 |   +7.46   +7.49   +7.54 |  -4.62  -4.46  -4.14
+   f 0.2 0.97       |   +1.04   +1.04   +1.06 |   +1.02   +1.03   +1.05 |   +7.85   +7.87   +7.90 |   +7.47   +7.50   +7.55 |  +4.34  +4.36  +4.39
+   f 0.25 0.97      |   +2.11   +2.11   +2.12 |   +2.11   +2.11   +2.12 |   +7.86   +7.88   +7.91 |   +7.79   +7.81   +7.85 |  +4.97  +4.98  +5.00
+
+== 5. at the live path's speed: one near-certain market whose expensive buy fills whenever it rests (live, 10-09: 101.34 NO at
+   0.955-0.972 in 13 h on one market, 80 of them in 21 minutes), held to the limit for the 7 days before it closes; the most it
+   can hold is the limit, 5N x p and the $100 market cap, whichever is least (N = 20, p = 0.97). Loss chance per 7-day holding:
+   the calibration's pooled rate for its band with 3-14 days left. A month = four such holdings in a row.
+   C = $320:
+     no limit   limit $     inf: holds $ 97.00 (30.31 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes 30.31 % of C, 129.3 % of the stop's room
+     f 0.03     limit $    9.60: holds $  0.00 ( 0.00 % of C); a month: P(a loss)  5.5 %, E loss $ 0.00 (drift -0.00), the loss if it comes  0.00 % of C,   0.0 % of the stop's room
+     f 0.045    limit $   14.40: holds $  0.00 ( 0.00 % of C); a month: P(a loss)  5.5 %, E loss $ 0.00 (drift -0.00), the loss if it comes  0.00 % of C,   0.0 % of the stop's room
+     f 0.0625   limit $   20.00: holds $ 19.40 ( 6.06 % of C); a month: P(a loss)  5.5 %, E loss $ 1.08 (drift -1.06), the loss if it comes  6.06 % of C,  25.9 % of the stop's room
+     f 0.08     limit $   25.60: holds $ 19.40 ( 6.06 % of C); a month: P(a loss)  5.5 %, E loss $ 1.08 (drift -1.06), the loss if it comes  6.06 % of C,  25.9 % of the stop's room
+     f 0.1      limit $   32.00: holds $ 19.40 ( 6.06 % of C); a month: P(a loss)  5.5 %, E loss $ 1.08 (drift -1.06), the loss if it comes  6.06 % of C,  25.9 % of the stop's room
+     f 0.125    limit $   40.00: holds $ 38.80 (12.12 % of C); a month: P(a loss)  5.5 %, E loss $ 2.16 (drift -2.11), the loss if it comes 12.12 % of C,  51.7 % of the stop's room
+     f 0.15     limit $   48.00: holds $ 38.80 (12.12 % of C); a month: P(a loss)  5.5 %, E loss $ 2.16 (drift -2.11), the loss if it comes 12.12 % of C,  51.7 % of the stop's room
+     f 0.2      limit $   64.00: holds $ 58.20 (18.19 % of C); a month: P(a loss)  5.5 %, E loss $ 3.24 (drift -3.17), the loss if it comes 18.19 % of C,  77.6 % of the stop's room
+     f 0.25     limit $   80.00: holds $ 77.60 (24.25 % of C); a month: P(a loss)  5.5 %, E loss $ 4.33 (drift -4.23), the loss if it comes 24.25 % of C, 103.5 % of the stop's room
+   C = $640:
+     no limit   limit $     inf: holds $ 97.00 (15.16 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes 15.16 % of C,  64.7 % of the stop's room
+     f 0.03     limit $   19.20: holds $  0.00 ( 0.00 % of C); a month: P(a loss)  5.5 %, E loss $ 0.00 (drift -0.00), the loss if it comes  0.00 % of C,   0.0 % of the stop's room
+     f 0.045    limit $   28.80: holds $ 19.40 ( 3.03 % of C); a month: P(a loss)  5.5 %, E loss $ 1.08 (drift -1.06), the loss if it comes  3.03 % of C,  12.9 % of the stop's room
+     f 0.0625   limit $   40.00: holds $ 38.80 ( 6.06 % of C); a month: P(a loss)  5.5 %, E loss $ 2.16 (drift -2.11), the loss if it comes  6.06 % of C,  25.9 % of the stop's room
+     f 0.08     limit $   51.20: holds $ 38.80 ( 6.06 % of C); a month: P(a loss)  5.5 %, E loss $ 2.16 (drift -2.11), the loss if it comes  6.06 % of C,  25.9 % of the stop's room
+     f 0.1      limit $   64.00: holds $ 58.20 ( 9.09 % of C); a month: P(a loss)  5.5 %, E loss $ 3.24 (drift -3.17), the loss if it comes  9.09 % of C,  38.8 % of the stop's room
+     f 0.125    limit $   80.00: holds $ 77.60 (12.12 % of C); a month: P(a loss)  5.5 %, E loss $ 4.33 (drift -4.23), the loss if it comes 12.12 % of C,  51.7 % of the stop's room
+     f 0.15     limit $   96.00: holds $ 77.60 (12.12 % of C); a month: P(a loss)  5.5 %, E loss $ 4.33 (drift -4.23), the loss if it comes 12.12 % of C,  51.7 % of the stop's room
+     f 0.2      limit $  128.00: holds $ 97.00 (15.16 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes 15.16 % of C,  64.7 % of the stop's room
+     f 0.25     limit $  160.00: holds $ 97.00 (15.16 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes 15.16 % of C,  64.7 % of the stop's room
+   C = $1000:
+     no limit   limit $     inf: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+     f 0.03     limit $   30.00: holds $ 19.40 ( 1.94 % of C); a month: P(a loss)  5.5 %, E loss $ 1.08 (drift -1.06), the loss if it comes  1.94 % of C,   8.3 % of the stop's room
+     f 0.045    limit $   45.00: holds $ 38.80 ( 3.88 % of C); a month: P(a loss)  5.5 %, E loss $ 2.16 (drift -2.11), the loss if it comes  3.88 % of C,  16.6 % of the stop's room
+     f 0.0625   limit $   62.50: holds $ 58.20 ( 5.82 % of C); a month: P(a loss)  5.5 %, E loss $ 3.24 (drift -3.17), the loss if it comes  5.82 % of C,  24.8 % of the stop's room
+     f 0.08     limit $   80.00: holds $ 77.60 ( 7.76 % of C); a month: P(a loss)  5.5 %, E loss $ 4.33 (drift -4.23), the loss if it comes  7.76 % of C,  33.1 % of the stop's room
+     f 0.1      limit $  100.00: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+     f 0.125    limit $  125.00: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+     f 0.15     limit $  150.00: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+     f 0.2      limit $  200.00: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+     f 0.25     limit $  250.00: holds $ 97.00 ( 9.70 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  9.70 % of C,  41.4 % of the stop's room
+   C = $2000:
+     no limit   limit $     inf: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.03     limit $   60.00: holds $ 58.20 ( 2.91 % of C); a month: P(a loss)  5.5 %, E loss $ 3.24 (drift -3.17), the loss if it comes  2.91 % of C,  12.4 % of the stop's room
+     f 0.045    limit $   90.00: holds $ 77.60 ( 3.88 % of C); a month: P(a loss)  5.5 %, E loss $ 4.33 (drift -4.23), the loss if it comes  3.88 % of C,  16.6 % of the stop's room
+     f 0.0625   limit $  125.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.08     limit $  160.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.1      limit $  200.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.125    limit $  250.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.15     limit $  300.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.2      limit $  400.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+     f 0.25     limit $  500.00: holds $ 97.00 ( 4.85 % of C); a month: P(a loss)  5.5 %, E loss $ 5.41 (drift -5.29), the loss if it comes  4.85 % of C,  20.7 % of the stop's room
+
+== 6. larger capital (threshold 0.95): each f against the same C with no limit; scaled = the market cap, budget, market count and
+   stop grow with C; total = the total cap alone grows. diff at R = 0.40 over the record; tail as in 3 with C the account's capital
+   -- rw
+   C   640 scaled base total   552.94 one 115.16 P5  4.11% | f 0.03:  -7.52 one 115.05 P5 3.43% | f 0.0625:  -0.14 one 115.05 P5 4.08% | f 0.08:  +0.02 one 115.05 P5 4.08% | f 0.1:  +1.17 one 115.05 P5 4.11% | f 0.125:  +2.19 one 115.05 P5 4.11% | f 0.2:  +0.00 one 115.16 P5 4.11% |
+   C   640 total  base total   537.53 one 115.16 P5  4.12% | f 0.03:  -6.61 one 115.05 P5 3.42% | f 0.0625:  +0.81 one 115.05 P5 4.11% | f 0.08:  +0.81 one 115.05 P5 4.11% | f 0.1:  +1.17 one 115.05 P5 4.12% | f 0.125:  +2.19 one 115.05 P5 4.12% | f 0.2:  +0.00 one 115.16 P5 4.12% |
+   C  1000 scaled base total   552.94 one 115.16 P5  1.72% | f 0.03:  -2.96 one 115.05 P5 1.36% | f 0.0625:  +1.17 one 115.05 P5 1.72% | f 0.08:  +2.19 one 115.05 P5 1.72% | f 0.1:  +2.26 one 115.05 P5 1.72% | f 0.125:  +0.00 one 115.16 P5 1.72% | f 0.2:  +0.00 one 115.16 P5 1.72% |
+   C  1000 total  base total   537.53 one 115.16 P5  1.71% | f 0.03:  -2.04 one 115.05 P5 1.35% | f 0.0625:  +1.17 one 115.05 P5 1.71% | f 0.08:  +2.19 one 115.05 P5 1.71% | f 0.1:  +2.26 one 115.05 P5 1.71% | f 0.125:  +0.00 one 115.16 P5 1.71% | f 0.2:  +0.00 one 115.16 P5 1.71% |
+   C  2000 scaled base total   552.94 one 115.16 P5  0.32% | f 0.03:  +1.17 one 115.05 P5 0.32% | f 0.0625:  +0.00 one 115.16 P5 0.32% | f 0.08:  +0.00 one 115.16 P5 0.32% | f 0.1:  +0.00 one 115.16 P5 0.32% | f 0.125:  +0.00 one 115.16 P5 0.32% | f 0.2:  +0.00 one 115.16 P5 0.32% |
+   C  2000 total  base total   537.53 one 115.16 P5  0.18% | f 0.03:  +1.17 one 115.05 P5 0.18% | f 0.0625:  +0.00 one 115.16 P5 0.18% | f 0.08:  +0.00 one 115.16 P5 0.18% | f 0.1:  +0.00 one 115.16 P5 0.18% | f 0.125:  +0.00 one 115.16 P5 0.18% | f 0.2:  +0.00 one 115.16 P5 0.18% |
+   -- rw_atprice
+   C   640 scaled base total   508.71 one 114.07 P5  3.23% | f 0.03:  -7.40 one 114.07 P5 2.54% | f 0.0625:  -0.20 one 114.07 P5 3.19% | f 0.08:  +0.18 one 114.07 P5 3.19% | f 0.1:  +1.12 one 114.07 P5 3.23% | f 0.125:  +2.19 one 114.07 P5 3.23% | f 0.2:  +0.00 one 114.07 P5 3.23% |
+   C   640 total  base total   508.21 one 113.71 P5  3.24% | f 0.03:  -6.48 one 113.54 P5 2.54% | f 0.0625:  +0.75 one 113.54 P5 3.23% | f 0.08:  +0.97 one 113.54 P5 3.23% | f 0.1:  +1.12 one 113.54 P5 3.23% | f 0.125:  +2.19 one 113.54 P5 3.24% | f 0.2:  +0.00 one 113.71 P5 3.24% |
+   C  1000 scaled base total   508.71 one 114.07 P5  1.64% | f 0.03:  -2.34 one 114.07 P5 1.27% | f 0.0625:  +1.12 one 114.07 P5 1.63% | f 0.08:  +2.19 one 114.07 P5 1.63% | f 0.1:  +2.26 one 114.07 P5 1.64% | f 0.125:  +0.00 one 114.07 P5 1.64% | f 0.2:  +0.00 one 114.07 P5 1.64% |
+   C  1000 total  base total   508.21 one 113.71 P5  1.63% | f 0.03:  -1.43 one 113.54 P5 1.27% | f 0.0625:  +1.12 one 113.54 P5 1.62% | f 0.08:  +2.19 one 113.54 P5 1.63% | f 0.1:  +2.26 one 113.54 P5 1.63% | f 0.125:  +0.00 one 113.71 P5 1.63% | f 0.2:  +0.00 one 113.71 P5 1.63% |
+   C  2000 scaled base total   508.71 one 114.07 P5  0.32% | f 0.03:  +1.12 one 114.07 P5 0.32% | f 0.0625:  +0.00 one 114.07 P5 0.32% | f 0.08:  +0.00 one 114.07 P5 0.32% | f 0.1:  +0.00 one 114.07 P5 0.32% | f 0.125:  +0.00 one 114.07 P5 0.32% | f 0.2:  +0.00 one 114.07 P5 0.32% |
+   C  2000 total  base total   508.21 one 113.71 P5  0.18% | f 0.03:  +1.12 one 113.54 P5 0.18% | f 0.0625:  +0.00 one 113.71 P5 0.18% | f 0.08:  +0.00 one 113.71 P5 0.18% | f 0.1:  +0.00 one 113.71 P5 0.18% | f 0.125:  +0.00 one 113.71 P5 0.18% | f 0.2:  +0.00 one 113.71 P5 0.18% |
+   -- pr
+   C   640 scaled base total   122.35 one 115.16 P5  3.82% | f 0.03:  +8.38 one 115.05 P5 3.80% | f 0.0625:  +2.21 one 115.05 P5 3.81% | f 0.08:  +2.21 one 115.05 P5 3.81% | f 0.1:  +2.21 one 115.05 P5 3.81% | f 0.125:  +2.21 one 115.05 P5 3.81% | f 0.2:  +0.00 one 115.16 P5 3.82% |
+   C   640 total  base total    88.71 one 115.16 P5  2.21% | f 0.03:  +2.08 one 115.05 P5 2.20% | f 0.0625:  +2.19 one 115.05 P5 2.20% | f 0.08:  +2.19 one 115.05 P5 2.20% | f 0.1:  +2.19 one 115.05 P5 2.20% | f 0.125:  +2.19 one 115.05 P5 2.20% | f 0.2:  +0.00 one 115.16 P5 2.21% |
+   C  1000 scaled base total   126.94 one 115.16 P5  2.53% | f 0.03:  +2.00 one 115.05 P5 2.53% | f 0.0625:  +2.22 one 115.05 P5 2.53% | f 0.08:  +2.22 one 115.05 P5 2.53% | f 0.1:  +8.76 one 115.05 P5 2.53% | f 0.125:  +0.00 one 115.16 P5 2.53% | f 0.2:  +0.00 one 115.16 P5 2.53% |
+   C  1000 total  base total    88.71 one 115.16 P5  1.99% | f 0.03:  +2.18 one 115.05 P5 1.98% | f 0.0625:  +2.19 one 115.05 P5 1.98% | f 0.08:  +2.19 one 115.05 P5 1.98% | f 0.1:  +2.25 one 115.05 P5 1.99% | f 0.125:  +0.00 one 115.16 P5 1.99% | f 0.2:  +0.00 one 115.16 P5 1.99% |
+   C  2000 scaled base total    98.25 one 115.16 P5  0.63% | f 0.03:  +1.96 one 115.05 P5 0.63% | f 0.0625:  +0.00 one 115.16 P5 0.63% | f 0.08:  +0.00 one 115.16 P5 0.63% | f 0.1:  +0.00 one 115.16 P5 0.63% | f 0.125:  +0.00 one 115.16 P5 0.63% | f 0.2:  +0.00 one 115.16 P5 0.63% |
+   C  2000 total  base total    88.71 one 115.16 P5  0.63% | f 0.03:  +2.19 one 115.05 P5 0.63% | f 0.0625:  +0.00 one 115.16 P5 0.63% | f 0.08:  +0.00 one 115.16 P5 0.63% | f 0.1:  +0.00 one 115.16 P5 0.63% | f 0.125:  +0.00 one 115.16 P5 0.63% | f 0.2:  +0.00 one 115.16 P5 0.63% |
+   -- pr_atprice
+   C   640 scaled base total    77.13 one 113.71 P5  2.84% | f 0.03:  -7.48 one 113.54 P5 2.81% | f 0.0625:  -1.28 one 113.54 P5 2.81% | f 0.08:  -1.28 one 113.54 P5 2.81% | f 0.1:  -1.28 one 113.54 P5 2.81% | f 0.125:  -1.23 one 113.54 P5 2.83% | f 0.2:  +0.00 one 113.71 P5 2.84% |
+   C   640 total  base total    49.84 one 113.71 P5  2.21% | f 0.03:  +2.03 one 113.54 P5 2.18% | f 0.0625:  +2.13 one 113.54 P5 2.18% | f 0.08:  +2.13 one 113.54 P5 2.18% | f 0.1:  +2.13 one 113.54 P5 2.18% | f 0.125:  +2.19 one 113.54 P5 2.20% | f 0.2:  +0.00 one 113.71 P5 2.21% |
+   C  1000 scaled base total    77.91 one 113.71 P5  2.52% | f 0.03:  +4.20 one 113.54 P5 2.48% | f 0.0625:  +3.07 one 113.54 P5 2.48% | f 0.08:  +3.11 one 113.54 P5 2.50% | f 0.1:  +3.17 one 113.54 P5 2.52% | f 0.125:  +0.00 one 113.71 P5 2.52% | f 0.2:  +0.00 one 113.71 P5 2.52% |
+   C  1000 total  base total    49.84 one 113.71 P5  1.98% | f 0.03:  +2.13 one 113.54 P5 1.94% | f 0.0625:  +2.13 one 113.54 P5 1.94% | f 0.08:  +2.19 one 113.54 P5 1.95% | f 0.1:  +2.25 one 113.54 P5 1.97% | f 0.125:  +0.00 one 113.71 P5 1.98% | f 0.2:  +0.00 one 113.71 P5 1.98% |
+   C  2000 scaled base total    13.71 one 113.71 P5  0.63% | f 0.03:  +2.15 one 113.54 P5 0.63% | f 0.0625:  +0.00 one 113.71 P5 0.63% | f 0.08:  +0.00 one 113.71 P5 0.63% | f 0.1:  +0.00 one 113.71 P5 0.63% | f 0.125:  +0.00 one 113.71 P5 0.63% | f 0.2:  +0.00 one 113.71 P5 0.63% |
+   C  2000 total  base total    49.84 one 113.71 P5  0.63% | f 0.03:  +2.13 one 113.54 P5 0.63% | f 0.0625:  +0.00 one 113.71 P5 0.63% | f 0.08:  +0.00 one 113.71 P5 0.63% | f 0.1:  +0.00 one 113.71 P5 0.63% | f 0.125:  +0.00 one 113.71 P5 0.63% | f 0.2:  +0.00 one 113.71 P5 0.63% |
+
+== 7. the choice. Objective per 30 days at C = $320, R = 0.40, each f against L1 (no limit):
+   U(lambda) = E[P&L] - (1 + lambda) x E[near-certain loss at the live speed] - lambda x E[loss from single events >= 5 % of C on the
+   simulated holdings], where E[P&L] is the mean over five records: the four simulated cells (section 2) and live-prep's paper,
+   replayed to first order (results/explim_paper.json: the formula reward of the minutes the limit would have stopped, x 0.40);
+   the live-speed term holds the most the limit allows (f x C, at most 5N x 0.97 = $97 or the $100 market cap) four 7-day
+   holdings a month at the calibration's pooled loss rate for 0.97-0.99 with 3-14 days left (section 5). lambda = 1 counts a
+   dollar lost in one hit twice: as the loss, and as the room it uses of the -$75 total stop that halts the whole path.
+   arm              | sim mean   paper  E[P&L] | live H live E |      U0      U1      U3
+   f 0.03 0.93      |   -46.71  -34.18  -44.21 |   9.60   0.54 |  -39.34  -32.24  -18.04
+   f 0.045 0.93     |   -46.71  -34.18  -44.21 |  14.40   0.80 |  -39.60  -32.77  -19.11
+   f 0.0625 0.93    |    +0.06   -9.78   -1.91 |  20.00   1.11 |   +2.38   +7.18  +16.77
+   f 0.08 0.93      |    +4.43   -8.81   +1.79 |  25.60   1.43 |   +5.77  +10.05  +18.63
+   f 0.1 0.93       |    +4.46   -0.78   +3.41 |  32.00   1.78 |   +7.04  +10.97  +18.83
+   f 0.125 0.93     |    +9.37   -0.75   +7.35 |  40.00   2.23 |  +10.52  +13.97  +20.86
+   f 0.15 0.93      |    +9.50   -0.75   +7.45 |  48.00   2.68 |  +10.18  +13.18  +19.18
+   f 0.2 0.93       |    +9.55   -0.64   +7.51 |  64.00   3.57 |   +9.35  +11.20  +14.91
+   f 0.25 0.93      |   +10.82   -0.47   +8.56 |  80.00   4.46 |   +9.51  +10.47  +12.38
+
+   f 0.03 0.95      |    -3.50  -15.51   -5.90 |   9.60   0.54 |   -1.03   +4.35  +15.10
+   f 0.045 0.95     |    -3.50  -15.51   -5.90 |  14.40   0.80 |   -1.30   +3.81  +14.03
+   f 0.0625 0.95    |    +4.10   -8.59   +1.57 |  20.00   1.11 |   +5.86  +10.65  +20.25
+   f 0.08 0.95      |    +8.20   -8.59   +4.85 |  25.60   1.43 |   +8.83  +13.11  +21.68
+   f 0.1 0.95       |    +8.20   -0.56   +6.45 |  32.00   1.78 |  +10.07  +14.00  +21.86
+   f 0.125 0.95     |    +9.52   -0.56   +7.50 |  40.00   2.23 |  +10.68  +14.12  +21.01
+   f 0.15 0.95      |    +9.64   -0.56   +7.60 |  48.00   2.68 |  +10.33  +13.33  +19.33
+   f 0.2 0.95       |    +9.67   -0.44   +7.64 |  64.00   3.57 |   +9.48  +11.34  +15.04
+   f 0.25 0.95      |   +10.85   -0.44   +8.59 |  80.00   4.46 |   +9.54  +10.50  +12.41
+
+   f 0.03 0.97      |    -7.98   -8.70   -8.12 |   9.60   0.54 |   -3.25   +1.87  +12.11
+   f 0.045 0.97     |    -7.98   -8.70   -8.12 |  14.40   0.80 |   -3.52   +1.33  +11.04
+   f 0.0625 0.97    |    -7.56   -8.17   -7.68 |  20.00   1.11 |   -3.39   +1.15  +10.23
+   f 0.08 0.97      |    -5.88   -8.17   -6.34 |  25.60   1.43 |   -2.36   +1.87  +10.32
+   f 0.1 0.97       |    -5.31   -0.14   -4.28 |  32.00   1.78 |   -0.65   +3.22  +10.96
+   f 0.125 0.97     |    -5.84   -0.14   -4.70 |  40.00   2.23 |   -1.53   +1.78   +8.38
+   f 0.15 0.97      |    -4.76   -0.14   -3.84 |  48.00   2.68 |   -1.11   +1.75   +7.47
+   f 0.2 0.97       |    +4.33   -0.00   +3.46 |  64.00   3.57 |   +5.30   +7.15  +10.86
+   f 0.25 0.97      |    +4.96   -0.00   +3.97 |  80.00   4.46 |   +4.91   +5.87   +7.78
+
+   L1: live H 97.00, live E 5.41 a month
+   best at lambda = 0: f 0.125 0.95 (+10.68 a month against L1)
+   best at lambda = 1: f 0.125 0.95 (+14.12 a month against L1)
+   best at lambda = 3: f 0.1 0.95 (+21.86 a month against L1)
+
+   sensitivity: the live-speed loss rate per 7-day holding 1.39 % (pooled hours) -> 3.35 % (each market once):
+   rate 1.39 %: lambda 0: f 0.125 0.95 (+10.68); lambda 1: f 0.125 0.95 (+14.12); lambda 3: f 0.1 0.95 (+21.86)
+   rate 3.35 %: lambda 0: f 0.1 0.95 (+15.17); lambda 1: f 0.08 0.95 (+24.30); lambda 3: f 0.0625 0.95 (+44.39)
+
+   minimax regret: each arm's shortfall from the best arm of each scenario (loss rate x lambda), $ a month; the largest of them
+   arm              |  mkt.97-.99/0  mkt.97-.99/1  mkt.97-.99/3 pool.95-.99/0 pool.95-.99/1 pool.95-.99/3 pool.97-.99/0 pool.97-.99/1 pool.97-.99/3 |   max
+   f 0.03 0.93      |         47.65         42.84         35.03         48.48         43.99         36.51         50.01         46.36         39.90 |  50.01
+   f 0.045 0.93     |         48.30         44.13         37.60         48.99         45.01         38.54         50.28         46.90         40.98 |  50.28
+   f 0.0625 0.93    |          6.75          5.05          3.47          7.29          5.62          3.78          8.30          6.94          5.09 |   8.30
+   f 0.08 0.93      |          3.81          3.06          3.38          4.19          3.31          3.06          4.91          4.07          3.24 |   4.91
+   f 0.1 0.93       |          3.04          3.15          5.18          3.24          3.04          4.14          3.64          3.16          3.03 |   5.18
+   f 0.125 0.93     |          0.18          1.40          5.66          0.15          0.84          3.72          0.15          0.15          1.00 |   5.66
+   f 0.15 0.93      |          1.15          3.44          9.85          0.90          2.44          7.01          0.50          0.95          2.69 |   9.85
+   f 0.2 0.93       |          3.23          7.93         19.13          2.54          6.02         14.50          1.33          2.92          6.95 |  19.13
+   f 0.25 0.93      |          4.33         11.17         26.68          3.18          8.37         20.25          1.17          3.66          9.48 |  26.68
+   f 0.03 0.95      |          9.35          6.26          1.89         10.18          7.40          3.36         11.71          9.78          6.76 |  11.71
+   f 0.045 0.95     |          9.99          7.54          4.46         10.69          8.42          5.40         11.98         10.31          7.83 |  11.98
+   f 0.0625 0.95    |          3.28          1.58          0.00          3.82          2.14          0.31          4.82          3.47          1.62 |   4.82
+   f 0.08 0.95      |          0.75          0.00          0.32          1.13          0.25          0.00          1.85          1.01          0.18 |   1.85
+   f 0.1 0.95       |          0.00          0.11          2.15          0.20          0.00          1.11          0.60          0.12          0.00 |   2.15
+   f 0.125 0.95     |          0.02          1.25          5.50          0.00          0.69          3.57          0.00          0.00          0.85 |   5.50
+   f 0.15 0.95      |          1.00          3.30          9.70          0.75          2.29          6.86          0.35          0.80          2.54 |   9.70
+   f 0.2 0.95       |          3.10          7.80         19.00          2.40          5.89         14.37          1.19          2.79          6.82 |  19.00
+   f 0.25 0.95      |          4.30         11.14         26.65          3.15          8.34         20.22          1.14          3.63          9.45 |  26.65
+   f 0.03 0.97      |         11.57          8.74          4.88         12.40          9.88          6.35         13.93         12.26          9.75 |  13.93
+   f 0.045 0.97     |         12.22         10.02          7.45         12.91         10.90          8.39         14.20         12.79         10.82 |  14.20
+   f 0.0625 0.97    |         12.53         11.08         10.02         13.06         11.65         10.32         14.07         12.97         11.63 |  14.07
+   f 0.08 0.97      |         11.94         11.24         11.68         12.32         11.49         11.36         13.04         12.26         11.54 |  13.04
+   f 0.1 0.97       |         10.73         10.90         13.05         10.93         10.79         12.01         11.33         10.91         10.90 |  13.05
+   f 0.125 0.97     |         12.23         13.59         18.13         12.20         13.03         16.20         12.20         12.35         13.48 |  18.13
+   f 0.15 0.97      |         12.43         14.87         21.56         12.19         13.86         18.72         11.78         12.37         14.40 |  21.56
+   f 0.2 0.97       |          7.28         11.98         23.19          6.58         10.07         18.55          5.38          6.97         11.01 |  23.19
+   f 0.25 0.97      |          8.92         15.77         31.28          7.78         12.96         24.85          5.77          8.25         14.08 |  31.28
+   rates: pool.97-.99 1.39 %, mkt.97-.99 3.35 %, pool.95-.99 2.65 %
+   chosen (smallest largest regret): f 0.08 0.95, at most 1.85 a month short of the best arm in any scenario
