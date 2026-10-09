@@ -5,7 +5,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   applyFill, atrAt, buildSnapshot, ceilToStep, combineDecision, DEFAULT_TREND, FLAT, floorToStep, JEV_ENTER_MIN, JEV_QUESTION_VERSION, jevQuestions,
-  jevQuestionsV1, jevQuestionsV2, paperFill, positionFromFills, priorRange, realisedVol, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
+  jevQuestionsV1, jevQuestionsV2, paperFill, positionFromFills, priorRange, realisedVol, RESIDUE, riskGate, ruleDecision, sizeBase, sma, stepDecimals, unrealisedUsd,
   type Candle, type Position, type Snapshot,
 } from "../_shared/agents_strategy.ts";
 // The real model's replies to the loop's own question (v2), every trend entry state five times — the measurement the
@@ -65,6 +65,22 @@ Deno.test("applyFill — buys average in, sells realise against the average", ()
   assertEquals(p.avgCost, 0);
   assertEquals(p.openedAt, null);
   assertEquals(Math.round(p.realisedUsd * 100) / 100, 9.85); // + (100 − 110)
+});
+
+Deno.test("applyFill — a sell that leaves only float residue closes the position; a real remainder stays (A1)", () => {
+  const f = (side: "buy" | "sell", base: number, ts: number) => ({ ts, side, base, price: 100, feeUsd: 0 });
+  // Two sells: 0.206612 − 0.206 is 0.0006120000000000014, and selling the 0.000612 left 1.4e-18, read as long for good.
+  const twoSells = positionFromFills([f("buy", 0.206612, 1), f("sell", 0.206, 2), f("sell", 0.000612, 3)]);
+  assertEquals([twoSells.base, twoSells.avgCost, twoSells.openedAt, twoSells.highWater], [0, 0, null, null]);
+  // Two buys closed by one sell: 0.1 + 0.2 is 0.30000000000000004, and selling 0.3 left 5.6e-17.
+  const twoBuys = positionFromFills([f("buy", 0.1, 1), f("buy", 0.2, 2), f("sell", 0.3, 3)]);
+  assertEquals([twoBuys.base, twoBuys.openedAt], [0, null]);
+  // A real remainder is kept, whatever float it carries: 0.000612 of a coin is still held, at its cost, since its buy.
+  const dust = positionFromFills([f("buy", 0.206612, 1), f("sell", 0.206, 2)]);
+  assertEquals([dust.base > 0.0006119, dust.base < 0.0006121, Math.abs(dust.avgCost - 100) < 1e-9, dust.openedAt], [true, true, true, 1]);
+  // At the edge: a remainder of exactly RESIDUE of the sizes closes, one just over it does not.
+  assertEquals(applyFill({ ...FLAT, base: 1, avgCost: 100, openedAt: 1 }, { ts: 2, side: "sell", base: 1 - RESIDUE, price: 100, feeUsd: 0 }).base, 0);
+  assert(applyFill({ ...FLAT, base: 1, avgCost: 100, openedAt: 1 }, { ts: 2, side: "sell", base: 1 - 4 * RESIDUE, price: 100, feeUsd: 0 }).base > 0);
 });
 
 Deno.test("positionFromFills — order-independent, and unrealised marks against avgCost", () => {

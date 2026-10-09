@@ -264,14 +264,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      L4 the SW keeps the board in "data-api"; B1 no off-site database copy, B2 the `pm-rec` bucket unbacked
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
-   - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
-     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again; D1
-     (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys); A3; A4; A6; A7; the size budget (`@size-limit/file`; 3.58 kB of headroom). **A1 not
-     done, stopped as the batch said:** rounding `applyFill`'s base to 12 digits moves `backtest.ts`'s `run` (ret,
-     drawdown, fees, realised in all 24 runs of four coins × three kinds × two stop rules, at most 8.4e-10 relative),
-     because a buy from flat (`cash / price`) carries 17 digits; a snap of a residue under 1e-12 of the sizes to flat
-     moves nothing tested. The choice is Davies'.
+   - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): landed
+     2026-10-09 (history 00:45): the board's first paint at 1:1 FX, T1, T2, M7 again, D1 (`0104`), A2, A3, A4, A6, A7,
+     the size budget. Follow-ups on `review-fixes`, not yet landed: A1 by the snap (history 00:46).
 
 ## Machine and platform setup
 
@@ -463,6 +458,23 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
   Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
   outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
+
+### [2026-10-09 00:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A sell that leaves only float residue closes the position** (review A1 by the snap, batch 5's follow-up;
+  `applyFill` in `_shared/agents_strategy.ts`). A sell's remainder no larger than `RESIDUE` (1e-12) of the sizes is
+  flat: 0.206612 − 0.206 − 0.000612 left 1.4e-18, and 0.1 + 0.2 − 0.3 left 5.6e-17, and either read as long for good
+  (the rule never entered the coin again; the floor asked every minute to sell what cannot be sold). In a live turn: a
+  position sold in two pieces, or bought in two and sold in one, reads flat after its last sell; nothing else moves.
+  (The review's rounding of every base moved `run()` in all 24 runs, by up to 8.4e-10, and was stopped.)
+  Byte-identical before and after (scratchpad `a1v/`): `backtest.ts`'s `run()` at full precision, four coins × three
+  kinds × two stop rules; `cap_study.json`, `cap_revx.json`, `golive50/replay.json` and the three scripts' output;
+  `backtest_ideas`' `ideas.json` less `ran_at`; the books of production's 30 `agent_orders` rows (read 10-08 ~23:20
+  UTC); the frozen preps' tests, 7 passed (they book through `pmrw_e.ts`'s own `applyFill`). **Not run, as this
+  container has no Kraken or Binance tape:** fp6's `trend_ls` / `score_trend_ls`, `btc_regime`, mx1's
+  `cstar/decisions.ts`, and `backtest_binance`, `_set2`, `_tape`, `_sui`, `_xsmom`, `_xsrev`, `_maker`, `_sizing`,
+  `_fill`, `_testingset`, `_kraken` (that one lacks the other coins' Coinbase data). Pinned in `strategy.test.ts`:
+  both residue cases close (old code: base 1.4e-18, `openedAt` kept), a real 0.000612 remainder stays, and at the edge
+  exactly 1e-12 closes while 4e-12 stays.
 
 ### [2026-10-09 00:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Review batch 5 landed** (approved by Davies 2026-10-08, "以上内容都修"; each commit's own section below): first-paint

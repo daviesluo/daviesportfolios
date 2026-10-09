@@ -83,6 +83,15 @@ export const FLAT: Position = { base: 0, avgCost: 0, realisedUsd: 0, feesUsd: 0,
 
 export type Fill = { ts: number; side: "buy" | "sell"; base: number; price: number; feeUsd: number };
 
+/**
+ * What a sell may leave and still be a whole one (review A1, 2026-10-08): a remainder no larger than this share of the
+ * sizes is the float arithmetic's own. 0.206612 − 0.206 − 0.000612 leaves 1.4e-18, and 0.1 + 0.2 − 0.3 leaves 5.6e-17;
+ * kept, either read as a holding for good, so the rule never entered the coin again and the floor asked every minute to
+ * sell what cannot be sold. A real remainder is never that small (0.000612 of 0.206612 is 3e-3 of it). Not a rounding of
+ * every base: rounding a buy from flat moved the backtester's own figures at the 1e-10 level, and this moves none.
+ */
+export const RESIDUE = 1e-12;
+
 /** Apply a fill to a position. Sells realise (price − avgCost) × base − fee; buys average in. */
 export function applyFill(p: Position, f: Fill): Position {
   if (f.base <= 0 || f.price <= 0) return p;
@@ -97,7 +106,8 @@ export function applyFill(p: Position, f: Fill): Position {
       highWater: p.base > 0 ? Math.max(p.highWater ?? f.price, f.price) : f.price,
     };
   }
-  const base = Math.max(0, p.base - f.base);
+  const left = p.base - f.base;
+  const base = left > RESIDUE * Math.max(p.base, f.base) ? left : 0;
   const sold = Math.min(p.base, f.base);
   const realised = sold * (f.price - p.avgCost) - f.feeUsd;
   return {
