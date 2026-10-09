@@ -456,3 +456,22 @@ run it beside the path this file froze, minute by minute, and find every decisio
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 7.
+
+## Addendum 8 (2026-10-09, about 15:00 UTC): deviation 8, the rule's input carries the path's capital
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 8 is a field added to the quoting rule's input for live-prep's limit on near-certain buys.** Davies,
+2026-10-09: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值". Live-prep's pre-registration, Addendum 7,
+gives the rule and its evidence. It changes the shared `pm_live.ts`: after it, `pm_live.ts` sha256
+`749bfcdb2b9170ddc455f18c4a5b691c89450c3bd9c8fd9784ada3d9ef2def09`, where Addendum 7 above named `8920e0c2…466a`. The
+one change is that the rule's input (`PmQuoteInput`) carries `capital`, the turn's total cap (`capTotal`), in both of the
+turn's calls of the rule. Live-prep's `lpQuotes` reads it; `rwQuotes` does not.
+
+**Mid-pool is unchanged.** Its rule is `rwQuotes`, whose output does not depend on the new field. Its limits, config,
+tables and every dry-run decision are untouched. `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it
+beside the path this file froze, minute by minute, and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 8.

@@ -4,7 +4,7 @@
 //
 // What is pinned: the instance's names, tables, band and rules, and that mini-pool and mid-pool carry none of them; each
 // rule alone, against the code it extends (`lpQuotes` is `rwQuotes` with nothing held, a sell of what is held at the same
-// price in the one book, 5N; `pauseAfterJump` is x2's; `lpCandidateOf` keeps what the end horizon alone passed over and
+// price in the one book, 5N, no near-certain buy past 8 % of the capital; `pauseAfterJump` is x2's; `lpCandidateOf` keeps what the end horizon alone passed over and
 // nothing RW-E's rule or the game's start passes over, and no weather market; `lpLimits` is `effectiveLimits` but its two
 // fields; `stepSides` is stepRw's fills; `decideLp` books each fill by its own order and sells no more than is held;
 // `classifyLp` takes what the path rests); and simulated days of the path and its layer together: the selection, the
@@ -13,7 +13,7 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpQuotes, nearCertainBuyOk, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
@@ -156,6 +156,68 @@ Deno.test("TB1's skip (Addendum 2): where the raw touch is one tick, live-prep r
   }
   // Mini-pool and mid-pool carry no such rule: their rule is rwQuotes, which quotes a one-tick book.
   for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp, undefined);
+});
+
+/** A near-certain market: YES at 0.96 / 0.98 (N = 20), or its mirror with NO the near-certain token (YES at 0.02 / 0.04). */
+function nearCertain(expensive: "yes" | "no"): { market: PmMarketRow; book: PmBookNow } {
+  const bids: Array<[number, number]> = expensive === "yes" ? [[0.96, 50], [0.95, 50], [0.94, 50]] : [[0.02, 50], [0.01, 50]];
+  const asks: Array<[number, number]> = expensive === "yes" ? [[0.98, 50], [0.99, 50]] : [[0.04, 50], [0.05, 50], [0.06, 50]];
+  const market = { day: "2026-10-09", kind: "standard", cond: cond(1), yes_token: "1", no_token: "2", neg_risk: false, tick: 0.01, min_size: 20, reward_rate: 200, rank: 1, question: "q", max_spread: 4.5 } as PmMarketRow;
+  const book = { bestBid: bids[0][0], bestAsk: asks[0][0], tick: "0.01", minSize: 20, negRisk: false, at: null, hash: null, levels: { bids, asks } } as PmBookNow;
+  return { market, book };
+}
+const legs = (xs: PmIntent[]) => xs.map((x) => `${x.outcome} ${x.side} ${x.price}`);
+
+Deno.test("the near-certain limit (Addendum 7): a buy of a token at 0.95 or more rests only within 8 % of the path's capital, at the mark", () => {
+  assertEquals(PM_LP_NEAR_CERTAIN, { minPrice: 0.95, share: 0.08 });
+  // Under 0.95 a buy is never limited, whatever is held and whatever the capital, even none.
+  assertEquals([nearCertainBuyOk(0.949, 20, 1000, 0.95, 320), nearCertainBuyOk(0.5, 20, 0, 0.5, undefined)], [true, true]);
+  // At 0.95 it is: 20 × 0.95 = $19 fits 8 % of $320 ($25.60) with nothing held, and not 8 % of $200 ($16).
+  assertEquals([nearCertainBuyOk(0.95, 20, 0, 0.95, 320), nearCertainBuyOk(0.95, 20, 0, 0.95, 200)], [true, false]);
+  // No readable capital, no near-certain buy.
+  for (const c of [undefined, 0, -1, NaN]) assertEquals(nearCertainBuyOk(0.96, 20, 0, 0.97, c), false, String(c));
+  // The holding counts at the mark: 6 at 0.97 ($5.82) and 20 at 0.96 ($19.20) fit $25.60; 7 ($6.79) do not.
+  assertEquals([nearCertainBuyOk(0.96, 20, 6, 0.97, 320), nearCertainBuyOk(0.96, 20, 7, 0.97, 320)], [true, false]);
+
+  for (const expensive of ["yes", "no"] as const) {
+    const cheap = expensive === "yes" ? "no" : "yes";
+    const { market, book } = nearCertain(expensive);
+    const N = sizeN(Number(market.min_size));
+    const h = (exp: number, chp = 0) => (expensive === "yes" ? { yes: exp, no: chp } : { yes: chp, no: exp });
+    const rw = rwQuotes({ market, book, held: h(0) });
+    assertEquals([N, legs(rw)], [20, expensive === "yes" ? ["yes BUY 0.96", "no BUY 0.02"] : ["yes BUY 0.02", "no BUY 0.96"]]);
+    // Nothing held, $320: both sides rest, as before.
+    assertEquals(lpQuotes({ market, book, held: h(0), capital: 320 }), rw, expensive);
+    // 7 held at the mark plus the order pass $25.60: the near-certain buy is not sent, the cheap side still rests. The old
+    // rule (rwQuotes is what lpQuotes was with less than N held) sent both.
+    assertEquals(legs(rwQuotes({ market, book, held: h(7) })).length, 2);
+    assertEquals(legs(lpQuotes({ market, book, held: h(7), capital: 320 })), [`${cheap} BUY 0.02`], expensive);
+    assertEquals(legs(lpQuotes({ market, book, held: h(6), capital: 320 })).length, 2, expensive);
+    // N held: the cheap side's leg is a SELL of the near-certain token, which the limit never touches; the near-certain buy is not sent.
+    const atN = lpQuotes({ market, book, held: h(N), capital: 320 });
+    assertEquals(atN.map((x) => `${x.outcome} ${x.side}`), [`${expensive} SELL`], expensive);
+    // A sell rests even with no readable capital, and the cheap buy too; held N of the cheap token, its sell rests beside them.
+    assertEquals(lpQuotes({ market, book, held: h(N), capital: undefined }).map((x) => `${x.outcome} ${x.side}`), [`${expensive} SELL`]);
+    assertEquals(legs(lpQuotes({ market, book, held: h(0, N - 1), capital: undefined })), [`${cheap} BUY 0.02`]);
+    assertEquals(lpQuotes({ market, book, held: h(0, N), capital: undefined }).map((x) => `${x.outcome} ${x.side}`).sort(), [`${cheap} BUY`, `${cheap} SELL`].sort());
+    // The limit is a share, so it scales with the capital: at $640 (8 % = $51.20) 32 held still rest a buy, 33 do not.
+    assertEquals(legs(lpQuotes({ market, book, held: h(7), capital: 640 })).length, 2, expensive);
+    assertEquals(lpQuotes({ market, book, held: h(32), capital: 640 }).some((x) => x.outcome === expensive && x.side === "BUY"), true, expensive);
+    assertEquals(lpQuotes({ market, book, held: h(33), capital: 640 }).some((x) => x.outcome === expensive && x.side === "BUY"), false, expensive);
+    // At $200 (8 % = $16) not even the first 20 at 0.96 fit: only the cheap side rests.
+    assertEquals(legs(lpQuotes({ market, book, held: h(0), capital: 200 })), [`${cheap} BUY 0.02`], expensive);
+  }
+  // The paper layer takes what the path rests: the cheap side alone at RW's price is a matched minute, filled on that side.
+  assertEquals(classifyLp([order(1, "no", "BUY", 0.02, 20)], { b: 0.96, a: 0.98, n: 20 }).cls, "matched");
+  // A market under 0.95 on both sides is lpQuotes as before at any capital (the random worlds of the test above, at $0).
+  const r = rng(20261009);
+  for (let i = 0; i < 200; i++) {
+    const { market, book } = randomBook(r);
+    if (tightBook(market, book)) continue;
+    const q = lpQuotes({ market, book, held: { yes: 0, no: 0 } });
+    if (q.some((x) => x.side === "BUY" && x.price >= PM_LP_NEAR_CERTAIN.minPrice)) continue;
+    assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 0 }, capital: 0 }), q, `world ${i}`);
+  }
 });
 
 Deno.test("pauseAfterJump is x2's rule: 15 ¢ or more between two minutes pauses that minute and the 59 after; a jump inside restarts it; no mid records nothing", () => {
@@ -310,7 +372,7 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
   const inst = o.onCost ? { ...PM_LP_INSTANCE, dayStopOnCost: true } : PM_LP_INSTANCE, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
@@ -322,6 +384,8 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
   const L1 = add(1, 12, { depth: [[0, 5]] }), BIG = add(2, 500, { bid: 0.30, ask: 0.32 }), E30 = add(3, 20, { bid: 0.60, ask: 0.62, endDate: iso(T0 + 30 * H), depth: [[0, 5]] });
   const WX = add(4, 15, { feeType: "weather_fees" }), TODAY = add(5, 20, { endDate: "2026-10-05T23:00:00Z" });
   const GAME = add(6, 20, { gameStartTime: "2026-10-06 20:00:00+00" }), LOW = add(7, 8);
+  // `nearCertain`: NC, YES at 0.96 / 0.98 (N 5), whose bid is a BUY of a token at 0.95 or more (Addendum 7's limit).
+  const NC = o.nearCertain ? add(8, 50, { bid: 0.96, ask: 0.98, depth: [[0, 5]] }) : null;
   const mem = memDb({
     agent_locks: [{ name: "pm-lp", lease_until: iso(0), holder: null }, { name: "pm-lpprep", lease_until: iso(0), holder: null }],
     agent_risk: [{ id: 1, global_pause: false }],
@@ -338,7 +402,7 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
   let salt = 1;
   const errors: string[] = [];
   const w = {
-    clock, pm, mem, L1, BIG, E30, WX, TODAY, GAME, LOW, errors,
+    clock, pm, mem, L1, BIG, E30, WX, TODAY, GAME, LOW, NC, errors,
     async turn(t: number) {
       clock.now = t;
       const r = await runPmLive({
@@ -434,6 +498,47 @@ Deno.test("the caps count what the paper holds: a buy that would pass $100 a mar
     const bought = w.rows("pm_lp_orders").some((x) => x.cond === w.L1.cond && x.side === "BUY" && Math.floor(Number((x.request as any).timestamp) / M) * M === t);
     if (bought) assert(lp.committedMarket <= 5 + 1e-9, `${m.minute}: ${lp.committedMarket}`);
   }
+});
+
+Deno.test("the near-certain limit on the path (Addendum 7): its capital is the config's total cap; the paper fills only what rests", async () => {
+  const runNc = async (capTotal: number) => {
+    const w = world({ nearCertain: true, config: { cap_total_usd: capTotal } });
+    const nc = w.NC!;
+    // A SELL of YES at 0.95 through NC's bid (a BUY of YES at 0.96) in each of the first ten minutes, 5 a minute.
+    w.pm.prints.set(nc.cond, Array.from({ length: 10 }, (_, k): P => [at(k, 10), "SELL", 0, 0.95, 5]));
+    await w.run(T0, 14);
+    assertEquals(w.errors, []);
+    assert(w.rows("pm_lp_markets").some((m) => m.cond === nc.cond), "NC selected");
+    const mins = w.rows("pm_lp_minutes").filter((m) => m.cond === nc.cond);
+    const yesBuys = (m: Row) => w.restingAfter(nc.cond, Date.parse(String(m.minute))).filter((x) => x.outcome === "yes" && x.side === "BUY");
+    return { w, nc, mins, yesBuys };
+  };
+  const held = (m: Row) => (m.detail as any).lp.held as { yes: number; no: number };
+  // $100 of capital: 8 % is $8. Nothing held, 5 at 0.96 ($4.80) rests; from 4 YES held at the mark 0.97 ($3.88), the buy
+  // would pass $8 and is not sent, while the cheap side's BUY of NO keeps resting, and from 5 held its SELL of YES.
+  const a = await runNc(100);
+  const first = a.mins.find((m) => held(m).yes === 0 && held(m).no === 0);
+  assert(first && a.yesBuys(first).length === 1, "with nothing held the near-certain buy rests");
+  const over = a.mins.filter((m) => held(m).yes >= 4);
+  assert(over.length > 0, "the paper bought near-certain YES");
+  for (const m of over) {
+    assertEquals(a.yesBuys(m).length, 0, String(m.minute));
+    assert(a.w.restingAfter(a.nc.cond, Date.parse(String(m.minute))).some((x) => x.outcome === (held(m).yes >= 5 ? "yes" : "no") && x.side === (held(m).yes >= 5 ? "SELL" : "BUY")), String(m.minute));
+  }
+  // The paper decides the same way: every NC minute it judged is matched or dark (one side resting is matched), and it
+  // buys YES only while the path rests the buy. (It fills ahead of the holdings the dry-run decides on, the lag the cap
+  // test above names, so it ends above $8; live, the account's holdings are current.)
+  assertEquals([...new Set(a.w.rows("pm_lpprep_minutes").filter((m) => m.cond === a.nc.cond).map((m) => m.class))].filter((c) => c !== "matched" && c !== "dark"), []);
+  const yesBought = (w: typeof a.w) => w.rows("pm_lpprep_fills").filter((f) => f.cond === a.nc.cond && f.token === tok(8, "yes") && f.token_side === "BUY");
+  const lastRest = Math.max(...a.mins.filter((m) => a.yesBuys(m).length > 0).map((m) => Date.parse(String(m.minute))));
+  assert(yesBought(a.w).length > 0 && yesBought(a.w).every((f) => Date.parse(String(f.minute)) <= lastRest), JSON.stringify(yesBought(a.w).map((f) => f.minute)));
+  // $320 of capital (8 % = $25.60): the same holdings still rest the buy. The limit is a share of the capital the path reads.
+  const b = await runNc(320);
+  const between = b.mins.filter((m) => held(m).yes >= 4 && held(m).yes * 0.97 + 5 * 0.96 <= 25.6 && held(m).yes - held(m).no < 25);
+  assert(between.length > 0, "the $320 paper held 4 or more YES under the limit");
+  for (const m of between) assertEquals(b.yesBuys(m).length, 1, String(m.minute));
+  const sum = (w: typeof a.w) => yesBought(w).reduce((t, f) => t + Number(f.size), 0);
+  assert(sum(b.w) > sum(a.w), `${sum(b.w)} YES bought at $320, ${sum(a.w)} at $100`);
 });
 
 Deno.test("a carried market: the next day, not selected, it rests only the sells of what its paper holds, and its paper sells them for nothing of the pool", async () => {

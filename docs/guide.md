@@ -417,7 +417,9 @@ places stay when the number is not whole.
   rewards (the markets the other Reward quotes tests quote included), up
   to ten markets a day and $200 of quotes, $100 a market and $320 in all.
   It sells what it holds before it buys more, stops adding to a side at
-  five times its order size, stays out of a market for an hour after its
+  five times its order size, buys a side priced 0.95 or more only while
+  what it holds of that side plus the order stays within 8 % of its
+  capital (so the limit grows with the capital), stays out of a market for an hour after its
   price jumps 15 cents, leaves out weather markets, and keeps selling what
   it still holds in a market it no longer picks. It stops for good if its
   orders' result plus what Polymarket paid falls to −$75. Until Davies

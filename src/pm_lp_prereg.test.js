@@ -19,6 +19,9 @@ const sqlOf = (f) => read(f).toString('utf8').replace(/--[^\n]*/g, '');
 const tablesOf = (sql) => [...new Set([...sql.matchAll(/\b(?:from|join)\s+public\.([a-z_]+)/g)].map((m) => m[1]))].sort();
 const src = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
+/** The instance's bytes Addendum 2 named (TB1's skip), the rule until Addendum 7. */
+const LP_A2 = 'c404d510c0fdeea529c4edba7a314867d6943d18e4bc1e49e82842ef4fcf5eb4';
+
 describe('the live-prep pre-registration', () => {
   it.each(FILES)('names the sha256 of %s, and the statement is that file', (f) => {
     const named = new RegExp('`(?:[\\w./-]*/)?' + f.replace('.', '\\.') + '` sha256\\s+`([0-9a-f]{64})`').exec(DOC)?.[1];
@@ -106,8 +109,8 @@ describe('the live-prep pre-registration', () => {
     const add2 = DOC.slice(DOC.indexOf('## Addendum 2'));
     expect(add2.length).toBeGreaterThan(100);
     expect(add2).toContain('> 给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单');
-    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1];
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
+    // The bytes it named are the rule until Addendum 7 (below), which names what it changed from.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1]).toBe(LP_A2);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_TIGHT = { maxTicks: 1 } as const;');
     expect(lp).toContain('if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
@@ -120,8 +123,25 @@ describe('the live-prep pre-registration', () => {
     expect(add3).toContain('**Nothing passes.**');
     expect(add3).toContain('`docs/agents/backtests/lpself/`');
     const add2 = DOC.slice(DOC.indexOf('## Addendum 2'), DOC.indexOf('## Addendum 3'));
-    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1];
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1]).toBe(LP_A2);
+    // No addendum between 3 and 7 names other bytes for the instance: Addendum 7 changes it from Addendum 2's.
+    const mid = DOC.slice(DOC.indexOf('## Addendum 3'), DOC.indexOf('## Addendum 7'));
+    expect(mid).not.toMatch(/`pm_lp\.ts` sha256/);
+    expect(DOC.slice(DOC.indexOf('## Addendum 7'))).toContain('`c404d510…5eb4`');
+  });
+
+  // Addendum 7 (2026-10-09, Davies: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值"): the limit on
+  // near-certain buys, a share of the path's capital (supabase/functions/agents/pm_lp.test.ts pins the rule).
+  it("records the near-certain limit in its Addendum 7, in Davies' words, and the instance is the bytes it names", () => {
+    const add7 = DOC.slice(DOC.indexOf('## Addendum 7'));
+    expect(add7).toContain('> 加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值');
+    expect(add7).toContain('`backtests/rwc_opt/results/expensive_limit.txt`');
+    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add7)?.[1];
     expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
+    const lp = src('supabase/functions/agents/pm_lp.ts');
+    expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
+    expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');
+    expect(lp).toContain('else if (nearCertainBuyOk(aNo, N, held.no, 1 - q.m, capital))');
   });
 
   // Addendum 4 (2026-10-08): P3 applied; the payouts change is code on main, no longer a pending patch.

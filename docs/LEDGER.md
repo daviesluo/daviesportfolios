@@ -392,6 +392,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 15:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **EXPENSIVE-LIMIT, live-prep's Addendum 7** (Davies: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值"):
+  a BUY of a token at >= 0.95 rests only while that token's holding at the mark plus the order stays within **8 % of the
+  path's capital** (`PM_LP_NEAR_CERTAIN`, `nearCertainBuyOk` in `pm_lp.ts`; capital = the turn's `capTotal`, which
+  `pm_live.ts` now passes as the rule input's `capital`, so it follows whatever sets `cap_total_usd`). Sells untouched.
+  Chosen by minimax regret over lambda {0,1,3} x three tail rates, on four simulated cells + the paper + the live fill
+  speed: 8 % is at most $1.85/month short of the best (10 %: $2.15, 12.5 %: $5.50); vs no limit -1.72 / +1.36 / +2.24 /
+  +2.19 (R .4); worst single hit 8 % of capital (was 30 %). `rwc_opt/results/expensive_limit.txt`. Mid-pool's Addendum 8
+  (deviation 8: the field only, its decisions unchanged); `pm_live_hash.test.js` and `pm_lp_prereg.test.js` follow.
+  **Open:** lands with the main session's push (Edge deploy); then read that LIVE's resting NO buy on 0xecc209a6 was
+  cancelled with gate `rule` and its NO sell still rests.
+
 ### [2026-10-09 04:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **EXPENSIVE-SIDE** (Davies: "你先回测研究一下，结果告诉我后我再决定", after LIVE bought 80 NO at 0.97 on the Iran voicemail
   market): limits on buying a token priced >= 0.95 / 0.90 against L1 on RW's and the full-universe record (both fill

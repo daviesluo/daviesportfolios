@@ -542,3 +542,96 @@ changes. **No dry-run decision changes** either: the dry-run never reached 6,000
 - `src/pm_live_hash.test.js`: the bytes and the chain of addenda.
 
 All `pm_*` and `polymarket*` Deno tests pass.
+
+## Addendum 7 (2026-10-09, about 15:00 UTC): a limit on buying near-certain tokens, as a share of capital
+
+This addendum was written while live-prep is live (armed at 01:32:21 UTC on 2026-10-09) and before the deploy it
+records. Under "The window", a change to `pm_lp.ts` or `pm_live.ts` deployed after d1 is a deviation an addendum
+records. Davies, 2026-10-09, verbatim:
+
+> 加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值
+
+In English: add it, but first research the best setting for the most it may buy, and make it a proportion, not a hard
+number. "It" is EXPENSIVE-SIDE's recommendation (`backtests/rwc_opt/results/expensive_side.txt`): a limit on live-prep
+buying a token priced 0.95 or more. Live had bought 80 NO at 0.971-0.972 on one market in 21 minutes (about $78, 24 % of
+the $320), which a resolution against it would take in one jump.
+
+**The change.** A BUY of a token whose price is 0.95 or more rests only while that token's holding in the market, at the
+minute's mark (RW's adjusted mid of the book without our orders: YES at m, NO at 1 − m), plus the order at its price stays
+within **8 % of the path's capital** (`PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 }`, `nearCertainBuyOk`, in
+`lpQuotes`). The capital is the total cap the turn's limits read (`lpLimits`' `capTotal`: `pm_lp_config.cap_total_usd`
+under the code's ceiling), so the limit follows whatever raises or lowers it. At $320 it is $25.60.
+
+- A sell is never limited. A buy under 0.95 is unchanged. Where the near-certain buy does not rest, the other side
+  still rests as before (alone, it scores nothing outside [0.10, 0.90], as Polymarket's rules have it).
+- With no readable capital, no near-certain buy rests.
+- It applies to selected markets. A carried market rests only sells, as before.
+- In dry-run the paper layer fills only what the path rests; a minute with one side resting is `matched`, as before.
+- Mini-pool and mid-pool are unchanged. Their rule, `rwQuotes`, ignores the new input.
+
+**The code it deploys:**
+
+- `pm_lp.ts` sha256 `98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c`, where Addendum 2 named
+  `c404d510…5eb4`.
+- `pm_live.ts` sha256 `749bfcdb2b9170ddc455f18c4a5b691c89450c3bd9c8fd9784ada3d9ef2def09`, where Addendum 6 named
+  `8920e0c2…466a`. The one change: the rule's input (`PmQuoteInput`) carries `capital`, the turn's `capTotal`, in both of
+  the turn's calls of the rule. Nothing else in the file changes.
+- `pm_prep.ts` (`a13ef03c…696a`), 0091, `lp_check.sql` and `lp_readout.sql` are unchanged.
+
+**The evidence** (`backtests/rwc_opt/results/expensive_limit.txt`; scripts `explim_run.ts`, `explim_analyse.py`,
+`sql/explim_paper.sql`). None of it is blind: every record had been read before.
+
+- **Records.** EXPENSIVE-SIDE's simulator, unchanged, swept the share f (3 % to 25 %) and the threshold (0.93, 0.95,
+  0.97). It ran on RW's record (14 days) and the full-universe record (4 days), under strict and at-price fills, at
+  $320, and at $640, $1,000 and $2,000. L1, today's rule, reproduces EXPENSIVE-SIDE's day series exactly. Live-prep's
+  own paper (10-04 → 10-09) was replayed to first order. The tail is EXPENSIVE-SIDE's calibration (5,766 markets, a
+  year of hourly prices), also priced at the live path's own speed: 101.34 NO at 0.955-0.972 in 13.25 live hours.
+- **The objective.** It is per 30 days at R = 0.40: E[P&L] − (1 + λ) × E[near-certain loss at the live speed] −
+  λ × E[loss from single hits ≥ 5 % of capital]. λ = 1 counts a dollar lost in one hit twice, once as the loss and once
+  as the room it takes of the −$75 stop. The best f moves with λ (0, 1, 3) and with the tail's rate (1.39 %, 2.65 %,
+  3.35 % per 7-day holding). So the choice is the f least short of the best in any of those nine cases (minimax
+  regret). That rule was picked after seeing that the cases disagree.
+- **The answer: 8 % at 0.95.** Its largest shortfall is $1.85 a month, against 10 %'s $2.15, 12.5 %'s $5.50 and
+  6.25 %'s $4.82.
+- **Against L1, at R = 0.40 and $320:**
+
+| record | result | 2,000-draw day bootstrap, index 100 |
+|---|---|---|
+| RW, strict fills | −$1.72 | −$7.65 |
+| RW, at-price fills | +$1.36 | −$5.66 |
+| full universe, strict | +$2.24 | −$0.03 |
+| full universe, at-price | +$2.19 | −$0.05 |
+| paper replay | $3.09 of $152.74 near-certain formula reward lost in 4.3 days | — |
+
+- **What it saves.** At the live speed the expected near-certain loss is $1.43 a month against $5.41 with no limit, and
+  one hit is at most 8 % of capital against 30 %.
+- **The threshold.** 0.93 costs more at every share up to 10 %. 0.97 costs $7 to $12 on RW's record at every share up
+  to 15 %.
+- **Larger capital.** At $640 to $2,000 the 8 % costs nothing measurable; its worst case is −$1.28. It stops binding at
+  about $1,250, where it passes the $100 a market cap. Below about $245, not even one order of 20 fits.
+- **Confidence: moderate on the band, low on the point.** Every share from 8 % to 12.5 % is within $5.50 a month of the
+  best in all nine cases. Those differences are inside the bootstrap's spread.
+- **The known cost.** A partial fill of 7-19 shares of a 20-share near-certain bid leaves that side unable to rest. The
+  buy is over the limit, and the sell needs N held. This lasts until the price leaves 0.95, the market is carried off,
+  or the next selection. The paper replay counts that cost; live may meet it more often.
+
+**In a live turn:** a near-certain buy past 8 % of the capital is not sent, and a resting one is cancelled when its slot
+is no longer wanted (gate `rule`), as a 5N stop is. On the deploy, the market where live already holds near-certain NO (0xecc209a6)
+keeps resting its sell of what it holds and rests no further NO buy until that holding, at the mark, plus 20 is within
+$25.60. **Dry-run decisions** change only for near-certain buys, by the same rule.
+
+**What it does to this file's checks:**
+
+- The day-1 check (`lp_check.sql`, run on d1) stands as read. None of its conditions reads this rule.
+- The live readout (`lp_readout.sql`, unchanged) and the stop read the path with this rule from its first deployed
+  minute. Live minutes before it are the old rule's, and any comparison across the deploy says so.
+- The readout at 14 live days names this deploy, at the time of the Edge deploy that carries it, as Addendum 7.
+
+**Pinned:**
+
+- `pm_lp.test.ts`, "the near-certain limit (Addendum 7)": with YES or NO the near-certain token, a buy past 8 % of $320
+  is not sent where the old rule sent it; sells and the cheap side are untouched; with no capital no near-certain buy
+  rests; at $640 the boundary moves with the capital.
+- `pm_lp.test.ts`, "the near-certain limit on the path": a dry-run day at $100 and at $320 of the config's cap. The path
+  reads its capital from the config. The paper buys only while the buy rests, and every minute is matched or dark.
+- `src/pm_live_hash.test.js`: the bytes and the chain of addenda.

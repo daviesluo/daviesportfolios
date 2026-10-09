@@ -8,6 +8,7 @@
 //   57f4b1d7…  live-prep's Addendum 4, mid-pool's Addendum 5 (the payouts per path)
 //   a208878b…  live-prep's Addendum 5, mid-pool's Addendum 6 (A6, A7 and the go-live audit's F1, F3–F5, U1)
 //   8920e0c2…  live-prep's Addendum 6, mid-pool's Addendum 7 (live-prep's 12,000 POSTs a day, 2026-10-09)
+//   749bfcdb…  live-prep's Addendum 7, mid-pool's Addendum 8 (the rule's input carries the path's capital, 2026-10-09)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -31,13 +32,14 @@ const addendum = (doc, n) => {
 };
 const namedPath = (text) => /`pm_live\.ts` sha256\s+`([0-9a-f]{64})`/.exec(text)?.[1];
 const A208 = 'a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703';
+const A892 = '8920e0c25306b85784a9255840bb2144045a78404020370a0d3e83ec4100466a';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (6) and mid-pool's (7) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(6);
-    expect(lastNumber(MID)).toBe(7);
-    expect(namedPath(addendum(LP, 6))).toBe(sha);
-    expect(namedPath(addendum(MID, 7))).toBe(sha);
+  it("live-prep's latest addendum (7) and mid-pool's (8) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(7);
+    expect(lastNumber(MID)).toBe(8);
+    expect(namedPath(addendum(LP, 7))).toBe(sha);
+    expect(namedPath(addendum(MID, 8))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -50,6 +52,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(MID, 6)).toContain('deviation 6');
     expect(addendum(MID, 7)).toContain('`a208878b…2703`');
     expect(addendum(MID, 7)).toContain('deviation 7');
+    expect(namedPath(addendum(LP, 6))).toBe(A892);
+    expect(namedPath(addendum(MID, 7))).toBe(A892);
+    expect(addendum(LP, 7)).toContain('`8920e0c2…466a`');
+    expect(addendum(MID, 8)).toContain('`8920e0c2…466a`');
+    expect(addendum(MID, 8)).toContain('deviation 8');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -68,6 +75,19 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
       expect(doc).toMatch(/dry-run decision/i);
     }
     expect(addendum(MID, 7)).toContain("Mid-pool's governor stays at 6,000");
+  });
+
+  it("live-prep's Addendum 7 and mid-pool's 8 record the capital in the rule's input, in Davies' word, and mid-pool unchanged", () => {
+    for (const doc of [addendum(LP, 7), addendum(MID, 8)]) expect(doc).toContain('加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值');
+    expect(addendum(LP, 7)).toContain('**8 % of the path\'s capital**');
+    expect(addendum(LP, 7)).toMatch(/dry-run decision/i);
+    expect(addendum(MID, 8)).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(src.match(/rule\(\{ market: m, book: b, held, own, capital: lim\.capTotal \}\)/g)?.length).toBe(2);
+    expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
+    // The pm_lp.ts the addendum names is today's.
+    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
+    expect(/`pm_lp\.ts` sha256 `([0-9a-f]{64})`/.exec(addendum(LP, 7))?.[1]).toBe(lpSha);
   });
 
   it('the code and the migration carry what the addenda name', () => {

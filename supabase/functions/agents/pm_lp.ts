@@ -25,6 +25,8 @@
 //   - TB1's skip (Davies, 2026-10-08: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"; the pre-registration's
 //     Addendum 2): in a minute whose raw touch, the book without our orders, is at most one tick wide, nothing rests in
 //     that market, buys and sells alike (`PM_LP_TIGHT`, `pmrw_x.ts`'s own `isTight`).
+//   - The near-certain side (Davies, 2026-10-09; Addendum 7): a BUY of a token at 0.95 or more rests only while that
+//     token's holding at the mark plus the order stays within 8 % of the path's capital (`PM_LP_NEAR_CERTAIN`).
 //   - A market held from an earlier day and not selected rests only the sells of what it holds, at the rule's prices.
 //   - Caps: $320 in all and $100 a market (holdings at cost and resting buys); a total stop of −$75 on the fills plus what
 //     was paid (live: the readout's payouts; in dry-run: its paper's closed days at R = 0.40); no day stop.
@@ -61,6 +63,29 @@ export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;
  * our orders, RW's `summarize`) is at most this many ticks wide rests nothing that minute.
  */
 export const PM_LP_TIGHT = { maxTicks: 1 } as const;
+/**
+ * The near-certain side (Davies, 2026-10-09: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值";
+ * the pre-registration's Addendum 7; the study `backtests/rwc_opt/results/expensive_limit.txt`): a BUY of a token at
+ * `minPrice` or more rests only while that token's holding in the market, at the minute's mark, plus the order at its
+ * price stays within `share` of the path's capital (`PmQuoteInput.capital`, its total cap). A share, not dollars, so it
+ * follows the capital: 8 % of $320 is $25.60, room for one order of N = 20 at up to 0.99 with up to six shares held. It
+ * is the share least short of the best under every weight on a single hit and every estimate of the tail the study read
+ * (at most $1.85 a month); lower shares stop the first order and cost reward, higher ones hold more and earn no more.
+ */
+export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;
+
+/**
+ * Whether a BUY of `size` at `price` of a token held `held` and marked `mark` may rest under the near-certain limit with
+ * `capital` the path's: a buy under `PM_LP_NEAR_CERTAIN.minPrice` always may; one at or over it while the holding at the
+ * mark plus the order stays within `share` × capital. No readable capital, no near-certain buy.
+ */
+export function nearCertainBuyOk(price: number, size: number, held: number, mark: number, capital: number | undefined): boolean {
+  if (price < PM_LP_NEAR_CERTAIN.minPrice - 1e-9) return true;
+  const c = Number(capital);
+  if (!(Number.isFinite(c) && c > 0)) return false;
+  return Math.max(0, held) * Math.max(0, mark) + size * price <= PM_LP_NEAR_CERTAIN.share * c + 1e-9;
+}
+
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };
 
@@ -70,9 +95,11 @@ export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFee
  * 1 − b while NO is held ≥ N, else a BUY of YES at b; the ask (a) a SELL of YES at a while YES is held ≥ N, else a BUY of
  * NO at 1 − a. A side stops at `PM_LP_INV_CAP` × N of inventory its way, the inventory being YES held less NO held as
  * RW's `net` counts it. With nothing held it is `rwQuotes` exactly (pinned in pm_lp.test.ts), but where the raw touch is
- * at most `PM_LP_TIGHT.maxTicks` ticks wide: there it rests nothing (TB1's skip, Addendum 2).
+ * at most `PM_LP_TIGHT.maxTicks` ticks wide: there it rests nothing (TB1's skip, Addendum 2). A BUY of a near-certain token
+ * rests only inside `PM_LP_NEAR_CERTAIN`'s share of the path's capital (`nearCertainBuyOk`, Addendum 7), the token marked
+ * at RW's adjusted mid (YES at m, NO at 1 − m); a sell is never limited by it.
  */
-export const lpQuotes: PmQuoteRule = ({ market, book, held, own }) => {
+export const lpQuotes: PmQuoteRule = ({ market, book, held, own, capital }) => {
   const v = Number(market.max_spread), minSize = Number(market.min_size);
   if (!(v > 0) || !(minSize >= 0)) return [];
   const o = othersLevels(book.levels, own ?? []);
@@ -83,10 +110,12 @@ export const lpQuotes: PmQuoteRule = ({ market, book, held, own }) => {
   const N = sizeN(minSize), net = held.yes - held.no, out: PmIntent[] = [];
   const bYes = onTick(q.b, book.tick), aNo = onTick(1 - q.a, book.tick);
   if (net < PM_LP_INV_CAP * N) {
-    out.push(held.no >= N - 1e-9 ? { outcome: "no", side: "SELL", price: onTick(1 - bYes, book.tick), size: N } : { outcome: "yes", side: "BUY", price: bYes, size: N });
+    if (held.no >= N - 1e-9) out.push({ outcome: "no", side: "SELL", price: onTick(1 - bYes, book.tick), size: N });
+    else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital)) out.push({ outcome: "yes", side: "BUY", price: bYes, size: N });
   }
   if (net > -PM_LP_INV_CAP * N) {
-    out.push(held.yes >= N - 1e-9 ? { outcome: "yes", side: "SELL", price: onTick(1 - aNo, book.tick), size: N } : { outcome: "no", side: "BUY", price: aNo, size: N });
+    if (held.yes >= N - 1e-9) out.push({ outcome: "yes", side: "SELL", price: onTick(1 - aNo, book.tick), size: N });
+    else if (nearCertainBuyOk(aNo, N, held.no, 1 - q.m, capital)) out.push({ outcome: "no", side: "BUY", price: aNo, size: N });
   }
   return out;
 };

@@ -520,6 +520,8 @@ export type PmQuoteInput = {
   market: PmMarketRow; book: PmBookNow; held: { yes: number; no: number };
   /** Our orders the book just read contains (live mode: those resting at the venue; a dry-run's are in no book). */
   own?: PmOwnOrder[];
+  /** The path's capital, its total cap as its limits read it this turn (`lpLimits`/`effectiveLimits`' `capTotal`). */
+  capital?: number;
 };
 /** The pluggable quoting rule: a market's book and holdings in, the orders it wants resting out. */
 export type PmQuoteRule = (m: PmQuoteInput) => PmIntent[];
@@ -1885,9 +1887,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     // A market held from an earlier day is not quoted: RW holds what a market it left still holds. Live-prep works it
     // off instead: the rule's quote on it, close-only, so only the sells of what it holds rest, at the rule's prices.
     if (m.quoting) {
-      try { intents = rule({ market: m, book: b, held, own }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+      try { intents = rule({ market: m, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     } else if (inst.lp) {
-      try { intents = closeOnly(rule({ market: m, book: b, held, own }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+      try { intents = closeOnly(rule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
     // Paused (live-prep): nothing rests in the market this minute; what is held is held.
