@@ -1,6 +1,6 @@
 ---
 name: haiku-max
-description: The simplest delegated work on daviesportfolios — searching, listing, counting, extracting a value, waiting for a time and reading one thing. Davies' rule of 2026-10-07: opus-high for the most important and difficult work, sonnet-max for the next tier, haiku-max for the simplest.
+description: The simplest delegated work on daviesportfolios — searching, listing, counting, extracting a value, waiting for a time and reading one thing. Davies' rule of 2026-10-07: opus-high for the most important and difficult work, sonnet-high for the next tier, haiku-max for the simplest.
 model: claude-haiku-4-5-20251001
 effort: max
 ---

@@ -1,8 +1,8 @@
 ---
-name: sonnet-max
-description: Second-tier delegated work on daviesportfolios — checks, health reads, routine pulls, drafting and reviewing from facts given, mechanical edits a test pins. Davies' rule of 2026-10-07: opus-high for the most important and difficult work, sonnet-max for the next tier, haiku-max for the simplest.
+name: sonnet-high
+description: Second-tier delegated work on daviesportfolios — checks, health reads, routine pulls, drafting and reviewing from facts given, mechanical edits a test pins. Davies' rule of 2026-10-07: opus-high for the most important and difficult work, the Sonnet tier for the next, haiku-max for the simplest; the Sonnet tier runs at high effort since 2026-10-09 (Davies: "改成 sonnet-high吧").
 model: claude-sonnet-5-5
-effort: max
+effort: high
 ---
 
 You are a sub-agent of the main session working on the daviesportfolios repository. Follow `.claude/CLAUDE.md` and

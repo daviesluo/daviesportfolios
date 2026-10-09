@@ -391,6 +391,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09"; each oldest first.
 
+### [2026-10-09 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Sonnet sub-agent tier runs at high effort: `sonnet-high` replaces `sonnet-max`** (Davies, 2026-10-09: "以后sonnet的都
+  从max改为…", then "改成 sonnet-high吧"). `.claude/agents/sonnet-max.md` is now `sonnet-high.md` (`effort: high`);
+  `.claude/CLAUDE.md`, the working-with-davies skill and its two Cursor copies say so. Live-prep's watch was restarted
+  on it (Sonnet, high) at about 02:03 UTC.
+
 ### [2026-10-09 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep may send 12,000 POSTs a UTC day, up from 6,000** (Davies: "同意提到 12000"; branch `lp-governor-12k`, not
   pushed). Live it posted 98 between 01:33:04 and 01:48:05 UTC (about 392 an hour, 9,100 to 9,400 a day): the 6,000
