@@ -1,0 +1,4 @@
+# Downloaded or built locally at the reading, never committed: the archive objects, the record, the unpacked aux.
+data/pmrec/
+data/pr_record.json
+data/aux.json

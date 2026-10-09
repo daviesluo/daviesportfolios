@@ -52,6 +52,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (`detail.rewardByMarket`); void if either arm carries a `start` in
      `pm_rwc_x_state` or a day row is missing. TB1's health: both arms in `pm_rwc_x_state.state.arms`, `base` {}, no
      `start` after 10-09 00:05; x4 and x5 still written in both replays.
+   - **LPRESEL6** (`reviews/2026-10-09-lp-reselect6h-prereg.md`, frozen 2026-10-09 before any pm-rec data of 10-09 on was
+     read for design; `backtests/lpresel6/`, pinned by `src/lp_resel6_prereg.test.js`): live-prep's rule against it choosing
+     again every 6 h, offline on pm-rec's whole-universe record 10-09 → 10-23. **Read on or after 2026-10-23 00:05 UTC**
+     beside RWC-OPT: `sql/archive_urls.sql` → `scripts/fetch.py`, `sql/aux.sql`, `build.ts`, `run.ts`, `bar.py`; coverage
+     ≥ 90 % a day else void. Needs `pmrec`/`pmrec-meta` running to 10-23 00:00; the archive is never pruned.
    - **RWC-OPT** (`reviews/2026-10-09-rwc-optimised-arms-prereg.md`, frozen 2026-10-08 before RW-C's first minute;
      scripts `backtests/rwc_opt/`, pinned by `src/rwc_opt_prereg.test.js`): offline replays of RW-C's record, C1 = live-prep's
      S2 + TB1's skip against S2 (primary), C3 = x1 + x2's pause + TB1's skip against x1, C2's exits reported. **Read on or
@@ -383,6 +388,14 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
+  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
+  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
+  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
+  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
+  7 days once archived. No new Edge call, no instance, no change to live-prep.
 
 ### [2026-10-09 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7

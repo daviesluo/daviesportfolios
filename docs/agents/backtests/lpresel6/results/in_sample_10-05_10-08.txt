@@ -1,0 +1,24 @@
+In sample, before the freeze: this folder's pipeline on 2026-10-05 00:00 -> 10-09 00:00 UTC (data to 10-08 22:59), built from the archive objects LPSELF pulled. The bar's checks name the forward window, 10-09 -> 10-22, so they read VOID here; the figures are the in-sample disclosure.
+=== checks ===
+coverage (book minutes of 1,440): 10-09 0, 10-10 0, 10-11 0, 10-12 0, 10-13 0, 10-14 0, 10-15 0, 10-16 0, 10-17 0, 10-18 0, 10-19 0, 10-20 0, 10-21 0, 10-22 0
+archive: 0 of 1008 objects in the index, 1008 missing, 0 failing their sha256
+reproduce (reported, decides nothing): day, L1's markets also live-prep's, L1's formula rewards against the paper's
+  2026-10-05: 2 of 10 also the path's (10); rewards 72.90 against 82.92
+  2026-10-06: 2 of 10 also the path's (10); rewards 151.93 against 157.37
+  2026-10-07: 9 of 10 also the path's (10); rewards 45.27 against 76.64
+  2026-10-08: 7 of 10 also the path's (10); rewards 66.10 against nan
+
+=== the bar ===
+VOID: coverage: under 90 % on ['2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22'], under 95 % on ['2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22']; archive: missing [('books', '2026-10-09T00'), ('books', '2026-10-09T01'), ('books', '2026-10-09T02'), ('books', '2026-10-09T03'), ('books', '2026-10-09T04'), ('books', '2026-10-09T05')], failing []
+strict  : sum D +60.87; 1 bootstrap index 100 -77.41 FAIL; 2 market-days less the best +2.61 ok; 3 worst day 3.66 against L1's -24.25 ok; days ahead 3/4
+          beside, R = 1.0: sum D -37.32; RESEL6 272.89, L1 310.21
+          beside, R = 0.2: sum D +93.60; RESEL6 134.84, L1 41.24
+          totals at R = 0.4: RESEL6 169.35, L1 108.48
+at-price: sum D +61.63; 1 bootstrap index 100 -103.89 FAIL; 2 market-days less the best +5.90 ok; 3 worst day -18.57 against L1's -72.46 ok; days ahead 3/4
+          beside, R = 1.0: sum D -56.11; RESEL6 199.06, L1 255.17
+          beside, R = 0.2: sum D +100.88; RESEL6 102.11, L1 1.23
+          totals at R = 0.4: RESEL6 126.35, L1 64.71
+reported, passive exit model, strict: RESEL6 163.52, L1 92.73 at R = 0.4
+reported, passive exit model, at-price: RESEL6 163.63, L1 62.75 at R = 0.4
+
+RESEL6: VOID

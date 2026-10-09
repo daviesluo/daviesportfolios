@@ -1,0 +1,35 @@
+{
+ "study": "LPRESEL6 (frozen 2026-10-09 before any pm-rec data of 10-09 or later was read for design): live-prep's rule (L1) against the same rule choosing its markets again every six hours (RESEL6), on the pm-rec whole-universe record of 2026-10-09 -> 10-23, read on or after 2026-10-23 00:05 UTC",
+ "write_up": "docs/agents/reviews/2026-10-09-lp-reselect6h-prereg.md",
+ "inputs": {
+  "data/pmrec/ (at the reading)": "scripts/fetch.py on the saved reply of sql/archive_urls.sql, every object checked by sha256",
+  "data/aux.json (at the reading)": "sql/aux.sql, cut out with ../rwc_opt/scripts/grab_payload.py",
+  "data/pr_record.json (at the reading)": "scripts/build.ts over the window"
+ },
+ "run": [
+  "cd docs/agents/backtests/lpresel6",
+  "python3 -I scripts/fetch.py <saved reply> data/pmrec",
+  "deno run --v8-flags=--max-old-space-size=12000 --allow-read --allow-write --no-check scripts/build.ts data/pmrec data/aux.json data/pr_record.json 2026-10-09T00:00:00Z 2026-10-23T00:00:00Z",
+  "deno run --v8-flags=--max-old-space-size=8000 --allow-read --allow-write --no-check scripts/run.ts data/pr_record.json results/rwc_window_arms.json",
+  "python3 -I scripts/bar.py results/rwc_window_arms.json data/pr_record.json data/pmrec data/aux.json > results/bar_out.txt"
+ ],
+ "imports_at_freeze": {
+  "supabase/functions/agents/pmrw.ts": "f2bb5943dacb094d2c90cea91893cc5ec7e301874ebe6f420c9a7fb8278dd7f2",
+  "supabase/functions/agents/pmrw_x.ts": "c145e8078e106a0666171b7f944229983cb0a4488022ffb58a499653411daea9",
+  "supabase/functions/_shared/polymarket_public.ts": "dd33e9805bc90f8435f77fea9d0982b94f7b29da8688c3f234768bebecc76b80",
+  "supabase/functions/agents/pm_book_rec.ts": "9dbe27d127b05c3e941a1ae16f530b0d8c7d4fd3b368fab4a35a00c9c56beee7"
+ },
+ "sha256": {
+  ".gitignore": "988619621ae2a9cb64f62633bb5959d536dc9bb95cbc24c89e7e1c03d0f4cc37",
+  "results/in_sample_10-05_10-08.txt": "effff8444ce9419f9813b9910f8832da0e0f97a5b5f362838580810691b26a55",
+  "scripts/arms.ts": "e48688100ebcbedbe132132c35136b4276aa18b31a581a8f6d0aec3163722535",
+  "scripts/bar.py": "4d2234ff8f5673cf1573d55ac202031eec60777111281e8a700c5981616799a7",
+  "scripts/build.ts": "a40f5b41d391e506a892a817aaa3bb3dbccd645bac65166412ab54af76ff4515",
+  "scripts/fetch.py": "705c3860f9581fa51b5fbfcccff82ba4ba02cfa1c1fb2e0d4f74a80e21bc71d9",
+  "scripts/rec.ts": "050559756aa7065a3b3349efaaf070e46fccf870c8ea3babe1649a0571d3fd02",
+  "scripts/run.ts": "4cb80b02b4dfd13da6fbe042b3206edadea75bf5502d013b57adc4229c690f71",
+  "scripts/sim2.ts": "2a3482c972faa4f5d0e52fd65ddeb5c5464b5361edf7d2e64877d39f8c087662",
+  "sql/archive_urls.sql": "67843c0beeb33941daea2e5573cafe5143f4e24aeec78b3f92a32f4b870005ce",
+  "sql/aux.sql": "c63688432fb8a3b6276920c35f34b0312f21f2d1c9eb90fade5ad0a2feb19351"
+ }
+}
