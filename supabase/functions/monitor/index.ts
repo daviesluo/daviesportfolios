@@ -13,7 +13,7 @@
 //                    sub-account is cancelled and read back. Fresh, or unreadable inside that grace, it touches nothing.
 //                    It writes its call's beat beside the work (`edge_call_beats`, key `monitor?action=deadman`), so the
 //                    Worker's minutes show in the database.
-//   ?action=health   is Supabase's minute loop alive (`health.ts`): four read-only freshness readings with limits.
+//   ?action=health   is Supabase's minute loop alive (`health.ts`): five read-only freshness readings with limits.
 //   ?action=report   the Worker's alerts into `ops_errors`, which the site's errors box reads (`ops-error`'s summary):
 //                    kinds `monitor.*` only. A report the database does not take answers 503, and the Worker keeps it
 //                    queued until one does.

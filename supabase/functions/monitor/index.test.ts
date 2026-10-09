@@ -38,16 +38,17 @@ type Row = Record<string, unknown>;
  * PostgREST over the four tables the function touches, as the schema has them: an unknown column is a 400, and an events
  * row is held to 0052's checks and 0086's kinds. `down` makes every request throw, as a database that does not answer.
  */
-function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[]; dbBytes?: number } = {}) {
+function fakeRest(o: { state?: Row[]; locks?: Row[]; beats?: Row[]; decisions?: Row[]; lp?: Row[]; dbBytes?: number } = {}) {
   const t: Record<string, Row[]> = {
     agent_quote_live_state: o.state ?? [], agent_locks: o.locks ?? [], edge_call_beats: o.beats ?? [], agent_decisions: o.decisions ?? [],
-    agent_quote_live_events: [], ops_errors: [],
+    agent_quote_live_events: [], ops_errors: [], pm_lp_state: o.lp ?? [],
   };
   const COLS: Record<string, string[]> = {
     agent_quote_live_state: ["id", "state", "updated_at", "last_error"], agent_locks: ["name", "lease_until", "holder"],
     edge_call_beats: ["minute", "path", "ts"], agent_decisions: ["id", "ts", "strategy_id"],
     agent_quote_live_events: ["mode", "minute", "book", "rung_side", "k", "kind", "detail"],
     ops_errors: ["id", "created_at", "kind", "symbol", "message", "context", "ip"],
+    pm_lp_state: ["id", "state", "updated_at", "last_error"],
   };
   const s = { down: false, status: 0, calls: [] as string[], t };
   const refuse = (row: Row, table: string): string | null => {
@@ -405,10 +406,10 @@ Deno.test("a cancel is read again after the executor's own pauses", () => {
 // ---------------------------------------------------------------------------------------------------- health
 
 Deno.test("health: each reading against its limit — three minutes for the minute's, 75 for the decisions; a failed read fails", () => {
-  assertEquals(HEALTH_LIMITS_S, { tickBeat: 180, tickTurn: 180, quotes: 180, decisions: 4500 });
+  assertEquals(HEALTH_LIMITS_S, { tickBeat: 180, tickTurn: 180, quotes: 180, decisions: 4500, pmLp: 180 });
   const ok: Record<string, Reading> = {
     tickBeat: { ok: true, at: iso(T0 - 62e3) }, tickTurn: { ok: true, at: iso(T0 + 50e3) },   // a turn in flight holds its lease ahead
-    quotes: { ok: true, at: iso(T0 - 35e3) }, decisions: { ok: true, at: iso(T0 - 65 * 60e3) },
+    quotes: { ok: true, at: iso(T0 - 35e3) }, decisions: { ok: true, at: iso(T0 - 65 * 60e3) }, pmLp: { ok: true, at: iso(T0 - 70e3) },
   };
   const h = judgeHealth(T0, ok as never);
   assertEquals([h.ok, h.checks.tickBeat.ageS, h.checks.tickTurn.ageS, h.checks.decisions.ageS], [true, 62, -50, 3900]);
@@ -422,19 +423,21 @@ Deno.test("health: each reading against its limit — three minutes for the minu
   }
 });
 
-Deno.test("health: the four reads go to the tick's beat, its lease, PR5's state and the newest decision, read-only", async () => {
+Deno.test("health: the five reads go to the tick's beat, its lease, PR5's state, the newest decision and live-prep's state, read-only", async () => {
   // 10-02, 13:05:02 UTC, inside the stall: the tick last started at 12:57, PR5's executor last finished at 12:57:27.
   const rest = fakeRest({
     beats: [{ minute: "2026-10-02T12:57:00+00:00", path: TICK_BEAT_KEY }, { minute: "2026-10-02T13:05:00+00:00", path: "monitor?action=deadman" }],
     locks: [{ name: "tick", lease_until: "2026-10-02T12:57:00.558+00:00", holder: null }, { name: "quotes-live", lease_until: "2026-10-02T13:04:00+00:00", holder: null }],
     state: [{ id: 1, updated_at: "2026-10-02T12:57:27.000+00:00" }],
     decisions: [{ id: 1440, ts: "2026-10-02T12:00:03.728+00:00" }, { id: 1441, ts: "2026-10-02T12:00:04.001+00:00" }],
+    lp: [{ id: 1, updated_at: "2026-10-02T13:04:10.000+00:00" }],
   });
   const h = await runHealth(SB, "service-key", () => T0, rest.fetch);
   assertEquals(rest.calls.every((c) => c.startsWith("GET ")), true);
   assertEquals(rest.calls.sort(), [...Object.values(HEALTH_QUERIES).map((q) => `GET ${q.path}`), `GET ${DB_SIZE_PATH}`].sort());
   // 13:05:02 less 12:57:00, 12:57:00.558, 12:57:27 and 12:00:04.001 (the newest decision by id).
-  assertEquals([h.checks.tickBeat.ageS, h.checks.tickTurn.ageS, h.checks.quotes.ageS, h.checks.decisions.ageS], [482, 481, 455, 3898]);
+  assertEquals([h.checks.tickBeat.ageS, h.checks.tickTurn.ageS, h.checks.quotes.ageS, h.checks.decisions.ageS, h.checks.pmLp.ageS], [482, 481, 455, 3898, 52]);
+  assertEquals(h.checks.pmLp.ok, true);
   assertEquals([h.ok, h.checks.tickBeat.ok, h.checks.quotes.ok, h.checks.decisions.ok], [false, false, false, true]);
   // The monitor's own beat is not the tick's: a fresh one beside a stale tick does not make the loop look alive.
   assertEquals(h.checks.tickBeat.at, "2026-10-02T12:57:00.000Z");
@@ -443,10 +446,10 @@ Deno.test("health: the four reads go to the tick's beat, its lease, PR5's state 
   assertEquals([down.ok, HEALTH_NAMES.every((n) => down.checks[n].error)], [false, true]);
 });
 
-// The database's size beside the four readings (review F4, 0101): shown, and never failing the loop's reading.
-Deno.test("health: the database's size is read beside the four and never fails them, over its watch line or unread", async () => {
+// The database's size beside the five readings (review F4, 0101): shown, and never failing the loop's reading.
+Deno.test("health: the database's size is read beside the five and never fails them, over its watch line or unread", async () => {
   const fresh = { beats: [{ minute: iso(T0 - 30e3), path: TICK_BEAT_KEY }], locks: [{ name: "tick", lease_until: iso(T0 + 20e3), holder: "x" }],
-    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 1, ts: iso(T0 - 600e3) }] };
+    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 1, ts: iso(T0 - 600e3) }], lp: [{ id: 1, updated_at: iso(T0 - 40e3) }] };
   const small = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 1_160_000_000 }).fetch);
   assertEquals([small.ok, small.size], [true, { ok: true, bytes: 1_160_000_000, limitBytes: DB_SIZE_WATCH_BYTES, over: false }]);
   const big = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 4_200_000_000 }).fetch);

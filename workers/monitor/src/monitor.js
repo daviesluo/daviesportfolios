@@ -192,6 +192,7 @@ const HEALTH_LABELS = {
   tickTurn: 'the tick last finished a turn',
   quotes: "PR5's executor last finished a turn",
   decisions: 'the newest strategy decision is',
+  pmLp: "live-prep's order path last finished a turn",
 };
 
 /** The loop check from the health action's answer. @returns {CheckResult} */

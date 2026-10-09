@@ -1,7 +1,7 @@
 // Is Supabase's minute loop alive? The read-only health reading the Cloudflare Worker (`workers/monitor`) asks for every
 // minute, from outside Supabase's scheduler.
 //
-// Why these four readings. On 2026-10-02 the database thrashed from about 13:00 to 14:20 UTC and nothing alerted: the
+// Why these readings. On 2026-10-02 the database thrashed from about 13:00 to 14:20 UTC and nothing alerted: the
 // GitHub health check asks for every 10 minutes and ran 9 times in 48 hours. What the stall looked like in the tables:
 // between 12:51 and 14:12 UTC the tick's call started in 2 minutes of 81 and PR5's in 2 (`edge_call_beats`), and the
 // tick's hourly decisions came 1 h 29 min apart where 1 h 00 min is the most in the three days around it. So:
@@ -12,13 +12,18 @@
 //   * decisions — the newest strategy decision: one each hour at the least (trend-1h's three coins), so a tick that
 //                 runs and decides nothing shows here. The day no hourly row runs any more, this limit moves to the
 //                 slowest row's bar plus a quarter of an hour, or it alerts every hour.
+//   * pmLp      — "Reward quotes live-prep"'s order path finished a turn (`pm_lp_state.updated_at`, written each minute
+//                 from eu-west-1, in dry-run as armed). Added 2026-10-08 for its go (its pre-registration's P5 and
+//                 Addendum 4, the design doc's step 8lp: "a freshness reading … is to be added before or with the go").
+//                 Its orders are GTD of 600 s, so a path that stops leaves nothing resting past ten minutes; this reads
+//                 the stop within three.
 // A minute's reading is stale past three minutes, the dead-man's own line (`deadman.ts`); the hourly one past 75
 // minutes. The Worker alerts only after two failing minutes in a row, so one slow minute never pages.
 //
-// Read-only: four small selects with the service key, each with its own timeout, none of which writes.
+// Read-only: five small selects with the service key, each with its own timeout, none of which writes.
 //
 // Beside them, the database's size (review F4, 0101: it grew about 120 MB a day): `size`, from `db_size_bytes()`, shown
-// with the four and never failing them, so a database grown large does not hold the loop's alert open and hide a stall
+// with the five and never failing them, so a database grown large does not hold the loop's alert open and hide a stall
 // behind it. Its own watch is SQL's: `db-size-watch` (0101) writes a `db.size` row to the errors box once a day while
 // it is over `DB_SIZE_WATCH_BYTES`.
 
@@ -27,7 +32,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 
 export const HEALTH_READ_TIMEOUT_MS = 5_000;
 /** How old each reading may be, in seconds. */
-export const HEALTH_LIMITS_S = { tickBeat: 180, tickTurn: 180, quotes: 180, decisions: 75 * 60 } as const;
+export const HEALTH_LIMITS_S = { tickBeat: 180, tickTurn: 180, quotes: 180, decisions: 75 * 60, pmLp: 180 } as const;
 export type HealthName = keyof typeof HEALTH_LIMITS_S;
 export const HEALTH_NAMES = Object.keys(HEALTH_LIMITS_S) as HealthName[];
 /** The beat key the tick's call writes (`_shared/beats.ts`: the function, and `?action=` with its action). */
@@ -57,13 +62,14 @@ export function judgeHealth(now: number, readings: Record<HealthName, Reading>):
   return { at: iso(now), ok: HEALTH_NAMES.every((n) => checks[n].ok), checks };
 }
 
-/** The four selects, as PostgREST paths, and the column each reading takes its time from. */
+/** The five selects, as PostgREST paths, and the column each reading takes its time from. */
 export const HEALTH_QUERIES: Record<HealthName, { path: string; column: string }> = {
   tickBeat: { path: `edge_call_beats?path=eq.${encodeURIComponent(TICK_BEAT_KEY)}&select=minute&order=minute.desc&limit=1`, column: "minute" },
   tickTurn: { path: "agent_locks?name=eq.tick&select=lease_until", column: "lease_until" },
   quotes: { path: "agent_quote_live_state?id=eq.1&select=updated_at", column: "updated_at" },
   // By id, which only grows: the primary key answers at once, where `ts` has no index of its own.
   decisions: { path: "agent_decisions?select=ts&order=id.desc&limit=1", column: "ts" },
+  pmLp: { path: "pm_lp_state?id=eq.1&select=updated_at", column: "updated_at" },
 };
 
 /** One reading over PostgREST with the service key. */
@@ -98,7 +104,7 @@ export async function readDbSize(sbUrl: string, key: string, f: typeof fetch = f
   }
 }
 
-/** The four readings at once, judged, and the size beside them (outside `ok`). */
+/** The five readings at once, judged, and the size beside them (outside `ok`). */
 export async function runHealth(sbUrl: string, key: string, now: () => number, f: typeof fetch = fetch): Promise<HealthReport> {
   const [entries, size] = await Promise.all([
     Promise.all(HEALTH_NAMES.map(async (n) => [n, await readOne(sbUrl, key, HEALTH_QUERIES[n], f)] as const)),
