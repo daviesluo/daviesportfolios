@@ -1,0 +1,106 @@
+{
+ "live": {
+  "trips": 30,
+  "offsets": {
+   "1": {
+    "trips": 30,
+    "fill": 29,
+    "extra_gbp": 0.038188351999999995,
+    "median_delay_min": 26.67035,
+    "p90_delay_min": 318.27021666666667
+   },
+   "2": {
+    "trips": 30,
+    "fill": 28,
+    "extra_gbp": 0.07372590999999999,
+    "median_delay_min": 39.57046666666667,
+    "p90_delay_min": 581.4879
+   },
+   "3": {
+    "trips": 30,
+    "fill": 26,
+    "extra_gbp": 0.10265625600000002,
+    "median_delay_min": 60.17,
+    "p90_delay_min": 989.0426333333334
+   }
+  }
+ },
+ "pr5": {
+  "trips": 67,
+  "offsets": {
+   "1": {
+    "trips": 67,
+    "fill": 67,
+    "extra_gbp": 0.7427143239999999,
+    "median_delay_min": -0.1079,
+    "p90_delay_min": 219.39875
+   },
+   "2": {
+    "trips": 67,
+    "fill": 65,
+    "extra_gbp": 1.444417492,
+    "median_delay_min": 15.403083333333333,
+    "p90_delay_min": 243.47846666666666
+   },
+   "3": {
+    "trips": 67,
+    "fill": 62,
+    "extra_gbp": 2.0830788270000005,
+    "median_delay_min": 49.447433333333336,
+    "p90_delay_min": 278.5585
+   }
+  }
+ },
+ "p50": {
+  "trips": 77,
+  "offsets": {
+   "1": {
+    "trips": 77,
+    "fill": 76,
+    "extra_gbp": 0.45212020700000016,
+    "median_delay_min": -0.21388333333333334,
+    "p90_delay_min": 128.83571666666666
+   },
+   "2": {
+    "trips": 77,
+    "fill": 75,
+    "extra_gbp": 0.9029938860000003,
+    "median_delay_min": 8.9485,
+    "p90_delay_min": 243.47846666666666
+   },
+   "3": {
+    "trips": 77,
+    "fill": 71,
+    "extra_gbp": 1.2750177750000002,
+    "median_delay_min": 44.4552,
+    "p90_delay_min": 419.4807
+   }
+  }
+ },
+ "d": {
+  "trips": 336,
+  "offsets": {
+   "1": {
+    "trips": 336,
+    "fill": 335,
+    "extra_gbp": 1.9797572359999989,
+    "median_delay_min": -0.34303333333333336,
+    "p90_delay_min": 110.91128333333333
+   },
+   "2": {
+    "trips": 336,
+    "fill": 313,
+    "extra_gbp": 3.7147574799999994,
+    "median_delay_min": 6.603666666666666,
+    "p90_delay_min": 258.21156666666667
+   },
+   "3": {
+    "trips": 336,
+    "fill": 287,
+    "extra_gbp": 5.129967783000001,
+    "median_delay_min": 22.625783333333334,
+    "p90_delay_min": 501.55848333333336
+   }
+  }
+ }
+}

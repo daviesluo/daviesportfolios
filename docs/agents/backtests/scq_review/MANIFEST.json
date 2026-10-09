@@ -1,0 +1,101 @@
+{
+ "study": "Stablecoin quotes review, 2026-10-09 (docs/agents/reviews/2026-10-09-stablecoin-quotes-review.md)",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-09 15:50-16:15 UTC (sql/)",
+ "run": [
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/page_pnl.ts",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/dust_exit.ts",
+  "python3 -I scripts/exit_offset.py"
+ ],
+ "files": [
+  {
+   "path": "data/agent_quote_live_orders.json",
+   "bytes": 24927,
+   "sha256": "7dc142f2bfdad29907001b92ccc962c9f9b7b321356964fbacd5d5abac68bbd6"
+  },
+  {
+   "path": "data/agent_quote_twin_d_orders.json",
+   "bytes": 197774,
+   "sha256": "a817950f092c80b86357e2bba716fdeafb8f77c0f60911bab186440a7311c196"
+  },
+  {
+   "path": "data/agent_quote_twin_p50_orders.json",
+   "bytes": 46370,
+   "sha256": "3873f2a77c2ec3415dadabc5dd34d710270433123c397169cba495fe695466f3"
+  },
+  {
+   "path": "data/agent_quote_twin_pr5_orders.json",
+   "bytes": 41780,
+   "sha256": "1cd1ef1eb6b2d1140ddfcf148ceecdac49f4934704c2c4ac2062a9fd4daa6bf2"
+  },
+  {
+   "path": "data/agent_quote_twin_take50_orders.json",
+   "bytes": 48257,
+   "sha256": "7fad7fbb80ffbfdc0e606c6a3ebdeed5e5ec1f9cf8a7a405b9fff21069a23c9b"
+  },
+  {
+   "path": "data/meta.json",
+   "bytes": 4049,
+   "sha256": "4efc2b205bf5f85cdc12dcf58f472856056a8943d7e22989ecc1748701336d7d"
+  },
+  {
+   "path": "data/prints.json",
+   "bytes": 213828,
+   "sha256": "99fd5943b00e1a8925d298d60367bc72c538c1047698953b453f21aba5508907"
+  },
+  {
+   "path": "results/dust_exit.json",
+   "bytes": 14922,
+   "sha256": "700ccea437f7e7af3a23124eb34881630de970beef2a2123e133cb73a2fba211"
+  },
+  {
+   "path": "results/exit_offset.json",
+   "bytes": 2138,
+   "sha256": "93548b44b1f6473e53a8802d5da88d89634475b5d7357af3b2d574b4f4235701"
+  },
+  {
+   "path": "results/markouts.txt",
+   "bytes": 1732,
+   "sha256": "689b2d8a15817db85a9599660daf8125505a420c9ce7345d95075f6690ede34b"
+  },
+  {
+   "path": "results/page_pnl.json",
+   "bytes": 294712,
+   "sha256": "cb0d19c778873947d42686702f4d47442ade96650ec7632f4bad1b7b81aedb5e"
+  },
+  {
+   "path": "scripts/dust_exit.ts",
+   "bytes": 3960,
+   "sha256": "d474c3d6450f86493ea9e9f50f9875c05e931fd6b5f5ecec8910b0f95a7901fc"
+  },
+  {
+   "path": "scripts/exit_offset.py",
+   "bytes": 3284,
+   "sha256": "b9ff9707d4335629e987ab18690bf9866e68a1adeab9e4906fc4ba8112cdd104"
+  },
+  {
+   "path": "scripts/grab.py",
+   "bytes": 914,
+   "sha256": "d803f99a85229efe45a7667fe511595c5a5bf8277489f63ccaf87d10b6268b51"
+  },
+  {
+   "path": "scripts/page_pnl.ts",
+   "bytes": 5535,
+   "sha256": "1d50588123000cbc46a1bba889c270fdb5b5a535ee6f29f00fec44e450cc9d92"
+  },
+  {
+   "path": "sql/aggregates.sql",
+   "bytes": 5247,
+   "sha256": "a3d0648dd315a496ced2b120efb381bd22d71a98184c2c93f568d4fce7f98f80"
+  },
+  {
+   "path": "sql/markouts.sql",
+   "bytes": 3941,
+   "sha256": "da7c10b6a9569d44398173e51b5d3bec2c51ea0b8d521af186111d1a39f1e102"
+  },
+  {
+   "path": "sql/pull_orders.sql",
+   "bytes": 3684,
+   "sha256": "ac90d67b828a2ad356271f11dfdfca179bd75fed8deb26c7aebf5a3450ea7f4a"
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+sql/markouts.sql, run 2026-10-09 ~16:05 UTC. Fills from 2026-10-01 16:29:53 UTC. Mean mark-out in bps of the limit,
+positive = in the fill's favour, against the recorded book's mid (rows with a side missing or the mid > 2 % from fair
+left out) and against PR5's fair; n = fills, n_mid = fills with a usable mid at that horizon. Minutes 0 / 1 / 5 / 15 / 60.
+
+ENTRIES          n   mid 0    1     5    15    60  | fair 0    1     5    15    60
+live (all)      42   ...  (split below)
+ live:twin-too  17   10.72  6.00  5.65  9.44 12.64 | 13.47 13.40 12.91 13.04 14.49
+ live:live-only 16    5.91  2.86  4.14  6.52  7.43 |  8.00  7.16  7.04  8.06  8.44
+ live:dust       9    7.42  7.13  4.63  9.33 10.72 | 12.29 11.60 11.37 11.49 13.83
+pr5             34    9.42  7.10  5.73 10.16 13.37 | 14.22 14.16 14.37 14.44 14.84
+p50             36    9.38  6.98  5.72 10.04 13.27 | 14.09 13.96 14.11 14.38 14.91
+take50          40    8.21  6.05  4.98 10.26 13.55 | 15.40 15.29 15.70 16.42 16.93
+d              205    5.11  3.31  3.20  5.00  7.32 |  7.43  7.31  7.26  7.51  8.73
+
+EXITS
+live            44    4.12  2.16  1.92  2.20  0.03 |  0.54  0.75  0.67  0.12 -0.77
+pr5             37    2.59  0.37 -0.38  0.46 -1.44 | -0.40 -0.46 -1.05 -1.00 -1.87
+p50             39    2.84  0.57 -0.02  0.59 -0.65 | -0.35 -0.38 -1.17 -1.00 -1.35
+take50          43    2.60  0.58  0.11  0.50 -0.59 | -0.50 -0.51 -1.19 -1.03 -1.32
+d              230    1.60  0.36  0.06  0.71 -0.04 |  0.28  0.19 -0.17  0.08  0.14
+
+Medians against the mid, entries at 60 min: live twin-too 11.94, live-only 6.95, dust 5.96; pr5 12.57; p50 12.57;
+take50 13.21; d 5.95. A fill's instant is filled_at: for the live account the turn that read it back, up to a minute
+after the fill.

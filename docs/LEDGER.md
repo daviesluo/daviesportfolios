@@ -142,6 +142,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      2026-10-04 16:00 → 2026-11-02 00:00 UTC (extended a week at a time to 11-30 until 15 have closed); read on or
      after the window's end + 2 days by a script committed before it ends, whose K2 mirrors the prereg's deviation 1;
      K1 held at 05:03 on 10-03 and is checked again over the whole span.
+   - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind): open with Davies, the
+     buy-back at the venue's £0.10 minimum sized to the penny it pays (F1; a change to the live order path, recorded as a
+     deviation of the twins' and TAKE's pre-registrations), and the draft `p50x1` twin, an exit one tick beyond fair (F3;
+     needs a rule extension and its own frozen file). Every reading named here should cite the review as a non-blind read.
    - **PR5V and variant-2 (rule D), frozen 2026-09-28** (`reviews/2026-09-28-pr5-variant-prereg.md`,
      `reviews/2026-09-28-pr5-rule-d-prereg.md`; governor 900/950 since their deviations of 2026-10-01): PR5V's window
      09-29 → 10-26 by entry day, E = 10-28 00:30 UTC; both reading scripts committed before **2026-10-27 00:00 UTC**
@@ -391,6 +395,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
+
+### [2026-10-09 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes reviewed, read-only, not blind** (Davies: "testing的4个Stablecoin quotes进展如何？live的进展如何？…testing的策略有改进
+  或优化的地方吗？"): `reviews/2026-10-09-stablecoin-quotes-review.md`, evidence `backtests/scq_review/` (map row). No reading
+  run, nothing changed in production. The four twins healthy (K1 holds; mismatches 46/46/46/0). Realised to 15:58 UTC: LIVE
+  42 trips +£0.2126 (coins' mark −£0.17, GBP/USD); pr5 +£8.61, p50 +£5.28, take50 +£5.49, d +£12.74. Since 10-04 LIVE
+  tracks its twin (+£0.240 against pr5/10 +£0.249). New: F1 a £0.10 dust print's buy-back pays a penny for nothing (LIVE
+  £0.0207, a tenth of its realised; fix priced, to build on Davies' word as a deviation of the twins' and TAKE's
+  pre-registrations); F3 an exit one tick beyond fair would have filled 67/67 of pr5's trips for +8.6 % (draft
+  pre-registration `p50x1`, "variant-4", in the review's appendix, needs a small build); no adverse selection on entries;
+  LIVE's at-price fills (+20 %) are the twins' blind spot. TESTING: keep all four to their dates.
 
 ### [2026-10-09 16:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Every Reward quotes page's STATUS values are the scoreboard's size, 13px (12px on a phone), not 17/15 (Davies:
