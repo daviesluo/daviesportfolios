@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStatus, lpLiveStopText, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveRow, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1825,18 +1825,7 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
     expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')?.paper).toBe(true);
   });
-  it("lists the gates of its last turn in the path's order, and its stop in words, masked under hide-values", () => {
-    const g = lpLiveGates(l);
-    expect(g?.rows.map((x) => `${x.key}:${x.state}`)).toEqual([
-      'global_pause:pass', 'risk_readable:pass', 'armed:pass', 'region:pass', 'geoblock:pass', 'closed_only:pass', 'attestation:pass', 'inventory:pass',
-      'loss_total:pass', 'ctf_approval:pass']);
-    expect([g?.openBlockedBy, g?.reduceBlockedBy, g?.mode]).toEqual([null, null, 'live']);
-    const blocked = lpLiveGates({ gates: { ...l.gates, verdicts: { ...l.gates.verdicts, geoblock: false, armed: null }, openBlockedBy: 'geoblock' } });
-    expect(blocked?.rows.filter((x) => x.state !== 'pass').map((x) => `${x.key}:${x.state}`)).toEqual(['armed:n/a', 'geoblock:fail']);
-    expect(lpLiveGates({})).toBe(null);
-    expect(lpLiveStopText(l)).toBe('Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.');
-    expect(/\d/.test(lpLiveStopText(l, (s) => s.replace(/\d/g, '•')))).toBe(false);
-    expect(lpLiveStopText({ stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } })).toMatch(/^Tripped 17 Sep 21:00: nothing opens again/);
+  it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);
   });
   it("its STATUS is the TESTING page's, R (ACTUAL) where the worst case was: '—' until a payout is read", () => {

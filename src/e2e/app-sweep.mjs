@@ -4696,7 +4696,7 @@ async function run() {
           const rows = (/** @type {string} */ sel) => [...root.querySelectorAll(`${sel} tbody tr`)].map((tr) => [...tr.querySelectorAll('td')].map(txt).join(' | '));
           const titles = document.querySelectorAll('.modal .modal-title');
           const vw = document.documentElement.clientWidth;
-          const off = [...root.querySelectorAll('.ag-scoreboard, .ag-rw-tile, .ag-lpl-gate, .ag-lpl-stop-line, .ag-section-title, .hl-scroll, .ag-updated')]
+          const off = [...root.querySelectorAll('.ag-scoreboard, .ag-rw-tile, .ag-section-title, .hl-scroll, .ag-updated')]
             .map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && (r.left < -1 || r.right > vw + 1)).length;
           return {
             title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length, refresh: !!document.querySelectorAll('.modal')[1]?.querySelector('button[aria-label="Refresh"]'),
@@ -4709,8 +4709,7 @@ async function run() {
             split: [...root.querySelectorAll('.ag-sb-split-line')].map(txt).join(' / '),
             tiles: [...root.querySelectorAll('.ag-rw-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
             sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
-            stop: txt(root.querySelector('.ag-lpl-stop-line')), gates: [...root.querySelectorAll('.ag-lpl-gate')].map((g) => `${txt(g)}:${[...g.classList].find((c) => /^is-/.test(c))}`),
-            gatesSum: txt(root.querySelector('.ag-lpl-gates-sum')),
+            stopAndGates: root.querySelectorAll('.ag-lpl-stop, .ag-lpl-gate').length,
             held: rows('.ag-lpl-held'), quotes: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'), days: rows('.ag-lpl-days'),
             paperPage: document.querySelectorAll('.ag-rw-detail').length, foot: txt(root.querySelector('.ag-lpl-foot')),
             overflow: root.scrollWidth - root.clientWidth, pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, off,
@@ -4735,9 +4734,9 @@ async function run() {
         } else fail(LT('page'), `page ${JSON.stringify(lv && { title: lv.title, modals: lv.modals, refresh: lv.refresh, head: lv.head, status: lv.status, tested: lv.tested, paper: lv.paperPage, sb: lv.scoreboard, split: lv.split })}, wanted ${PAGE_SB}`);
         const WANT = {
           // HELD went too (Davies: "新live页里held表也可以删了，QUOTES表里已经有了"): QUOTES' Held column is what it holds of each token.
-          sections: 'STATUS,DAYS,STOP AND GATES,QUOTES,FILLS',
+          // STOP AND GATES went the same day ("live页的子页面中stopandgates那部分也删掉").
+          sections: 'STATUS,DAYS,QUOTES,FILLS',
           tiles: 'R (ACTUAL)=0.44 | TOP SHARE=54 % | QUOTING TODAY=3 | POSITIONS STILL HELD=2',
-          stop: 'Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.',
           days: ['16 Sep | 2 | $5 | +$2.20 | 0.44 | $0.05'],
           // TESTING's QUOTES from the live book: each market's pool, the quote its live orders rest at in YES's book, our share
           // at the last live minute, what it holds, and what Polymarket paid for it and its orders made, adding up to its total.
@@ -4747,13 +4746,12 @@ async function run() {
           fills: ['17 Sep 23:58 not confirmed | Will J happen? | bought Yes | 5 | 30¢', '17 Sep 15:00 | Will J happen? | bought Yes | 10 | 30¢',
             '17 Sep 10:00 | Will G happen? | sold Yes | 20 | 43¢', '16 Sep 13:00 | Will H happen? | bought No | 10 | 28¢', '16 Sep 11:00 | Will G happen? | bought Yes | 20 | 40¢'],
         };
-        if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && lv.stop === WANT.stop
-          && lv.gates.length === 10 && lv.gates.every((g) => g.endsWith(':is-pass')) && lv.gatesSum === 'every gate open'
+        if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && lv.stopAndGates === 0
           && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); the stop and ten gates open; no HELD; TESTING's QUOTES (3 markets, H's 10 No and J's 10 Yes in Held) and FILLS (5, one not confirmed)`);
-        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop "${lv?.stop}", gates ${JSON.stringify(lv?.gates)} "${lv?.gatesSum}", held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); no STOP AND GATES and no HELD; TESTING's QUOTES (3 markets, H's 10 No and J's 10 Yes in Held) and FILLS (5, one not confirmed)`);
+        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1)) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'})`);
         } else fail(LT('width'), `page overflow ${lv?.overflow}, document ${lv?.pageOverflow}, boxes outside ${lv?.off}, tables ${lv?.tableOverflow}`);
@@ -4787,7 +4785,7 @@ async function run() {
         const digits = (/** @type {string} */ t) => /\d/.test(t);
         const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
         const hRow = hq.rows.find((r) => r.name === 'Reward quotes');
-        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && !/\$\d/.test(hv.stop) && hv.tiles === WANT.tiles
+        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && hv.tiles === WANT.tiles
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
           && !cellsAt(hv.quotes, [1, 2, 4, 5, 6, 7]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
           && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && cellsAt(hv.quotes, [3]).join(',') === '36 %,2 %,—' && hv.fills.length === 5;

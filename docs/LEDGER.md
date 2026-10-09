@@ -388,8 +388,22 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
-2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
-"LEDGER.md, archived 2026-10-09"; each oldest first.
+2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
+"LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
+(second)"; each oldest first.
+
+### [2026-10-09 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+- LIVE's "Reward quotes" page loses STOP AND GATES (Davies: "live页的子页面中stopandgates那部分也删掉"); a tripped
+  total stop still shows as the red line under the scoreboard. `lpLiveGates`, `lpLiveStopText` and their styles went
+  with it; the dashboard's `lpLive` still carries `stop` and `gates` (no Edge change).
+- Every Reward quotes page's QUOTES shows "—" where it said "nothing resting" (Davies: "nothing resting改为也用"-"表示").
+  QUOTES lists the day's ten markets whether or not anything rests: a market with no quote and nothing held is one the
+  rule is not quoting that minute (TB1's one-tick skip, x2's pause, no adjusted midpoint, or the caps).
+- The ledger had reached 81 KB: the 2026-10-08 22:49 → 23:58 sections moved verbatim to `docs/handover.md` Part 2,
+  "LEDGER.md, archived 2026-10-09 (second)".
+- Running: a backtest of TB1 skipping only BUYS (resting the sells of what is held) against the live rule (skip both),
+  on RWC-OPT's simulator; Davies: "测好了按照更优的方法直接上线".
 
 ### [2026-10-09 02:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Fees on every Reward quotes page and the Polymarket card** (Davies: "像live一样加入fees行"; "按照实际情况估算"), and HELD
@@ -597,232 +611,3 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   Kill switches read in code: `pm_lp_config.live_confirmed_at` (opening), `global_pause` (cancel-all), the −$75 total
   stop, the cancel read-back and the attestation and region gates. Left for Davies: fund pUSD (≥ $81; $400 for the
   design's ten markets), the probe's allowance read from Ireland, and step 8lp in the conversation where he says go.
-
-### [2026-10-08 23:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The size budget has lasting room again: the drill-in and the editors left the main bundle** (batch 5's size item).
-  Batch 5's first-paint waiting had left 1.35 kB of the 122 kB. A position's drill-in with its player cards
-  (`board/position_drill.jsx`) and the lot editor, add-a-holding and cash dialogs (`board/edit_modals.jsx`) open only
-  on a click, so they are chunks of their own now, fetched after the first paint with the lists, the ticker chart and
-  Agents (`prefetchModalChunks`), each opening in its own frame (`ModalFrame`) should a click beat its code;
-  `board/modals.jsx` keeps the frame and the confirm the board itself uses. The budget's figure is 118.42 kB (3.58 kB
-  of headroom, from 1.35). What the first paint loads (the entry and the chunk it preloads, gzip -9): 123,360 bytes
-  before, 119,771 after (the shared chunk is now formatters and ticker classes, 1,441 bytes; `ops_error.js` moved
-  into the entry). The editors' tests read the new modules; the whole unit suite: 1,369 passed.
-
-### [2026-10-08 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep against itself: nothing further adopted** (live-prep's Addendum 3, `backtests/lpself/`). Every change to
-  S2 + TB1's skip (selection size and cadence, quotes, inventory, exits, pause, stops, caps, horizon, fill cooldown,
-  book imbalance) on RW's 14 days and on a full-universe record built from the pm-rec archive (10-05 → 10-08, 1,373
-  markets, 1.73 million book minutes); the adoption rule (at-price, R = 0.40, ahead on RW's first and last seven days
-  and on the full universe, worst day no worse) passed none; reality check p 0.99. Worth a forward test: re-selection
-  every 6 h (+$57 at-price on the full universe, untestable on RW's record), 8N, skip at two ticks. The pm-rec
-  archive's signed URLs are read into a padded reply, never shown or committed.
-
-### [2026-10-08 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **What RW's round 1 leaves running: `0103` and mini-pool off TESTING** (Davies, 10-08: "按你说的停掉mini-pool的两个调用 …
-  把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"; a sub-agent's branch `retire-after-rw`, not pushed). Each of the 27
-  `edge_calls` rows (read 10-08 23:31 UTC) was set against the readings still to run (reference §4 item 56). Off at
-  apply, on Davies' word: `pmlive`, `pmprep` (mini-pool; the cost he accepted: mid-pool's readout finds mini-pool's
-  column empty from 10-09, a deviation it names). Off only once the last day its reading reads is closed: `pmrw`,
-  `pmrw-select` (RW's 10-08 day row), `pmrw-e`, `pmrw-x` (their replays' 10-08 rows on every arm), by one function,
-  `retire_after_rw()`, run every five minutes by a job that unschedules itself and once at apply, so a push at any hour
-  is safe; `enabled = false` only, no table touched. Checked on PGlite 16 (scratchpad `pgl/check2.mjs`): applied with
-  days to 10-07 it turns off mini-pool's two and nothing of RW's; RW's day closed with one replay arm missing turns off
-  only `pmrw`/`pmrw-select`; each replay goes once its last arm lands, and the job then unschedules itself; applied
-  after RW closed it acts at once and leaves no job; applied twice it changes nothing more. `src/cron_jobs.test.js`
-  pins the list after it (mini-pool's two off, nothing else), the four RW paths, three guards and the schedule (fails
-  on the deferred version, with a guard dropped or a `pmrwc*` path added). Saves ~7,490 Edge calls a day from 10-09. Mini-pool's row and page left
-  TESTING (`paperTestRows`; its `prep` still in the payload, adding nothing); the sweep checks a dashboard carrying it
-  draws no row and changes no total, and the paper layers' hide-values check moved to mid-pool's page. Kept, with the
-  reading each serves: reference §4 item 56. For Davies: `momentum-1d` (no pending reading, no Edge call; retire on his
-  word), the views and book recorders (their horizon is his).
-
-### [2026-10-08 23:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The size budget measures the gzipped size alone** (batch 5's size item). `@size-limit/preset-app` is
-  `@size-limit/file` plus a time plugin that ran the bundle in a headless Chrome (16 s on CI, through estimo and
-  puppeteer) for figures nothing gated; `@size-limit/file` alone measures the same gzipped bytes against the same
-  122 kB (120,646 before and after the swap on the same bundle) in 0.6 s, and 80 packages leave the lockfile, no
-  remaining one changing version. The bundle is rebuilt for the new stamp (`package.json` is a bundle input).
-
-### [2026-10-08 23:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A live Polymarket buy being cancelled counts toward the caps until its cancel is read back** (review A7, batch 5;
-  `agents/pm_live.ts`). The caps run before the turn's cancels and counted every buy the turn would cancel as gone; a
-  cancel the venue takes and never carries out leaves it resting beside the new buys that used its room. In live mode
-  such a buy now counts until its read-back: in full where its slot is withdrawn, and as the larger of the old and new
-  order where it is re-priced (the new one waits for the read-back, so they never rest together). In a live turn: none
-  of the three paths is live (all dry-run), so nothing today; once live, a turn that withdraws buys and wants new ones
-  with a cap binding (a day's new selection replacing yesterday's markets) sends the new ones a turn later, after the
-  read-back, and a frozen cancel no longer leaves the book past its cap. Dry-run is unchanged (its cancels are the
-  database's and always land), so the dry-run windows and live-prep's recorded `committed` read as before. Pinned in
-  `pm_live.test.ts`: A and B resting 24.34 USD under a $30 cap, the next day A and C selected and B's cancels lost;
-  the old count left 43.94 USD resting, the new keeps C's buys back and stays under 30, and the same day in dry-run
-  places C's buys at once. Every Polymarket test file, the frozen-instance comparisons among them: 171 passed, and 176
-  rebased on the payouts-per-path change (869ba644), with which this and A6 merge cleanly. With A6 and this,
-  `pm_live.ts` moves from `57f4b1d7…` (named in live-prep's Addendum 4 and mid-pool's Addendum 5) to `e933f28c…`;
-  `pm_lp.ts` and `pm_mid.ts`, which the pre-registrations' tests pin, are unchanged. An addendum naming the new hash
-  is the coordinator's call.
-
-### [2026-10-08 23:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The Polymarket order paths book a buy before a sell matched in the same second** (review A6, batch 5;
-  `agents/pm_live.ts`, the live branch of the turn's fill read). `match_time` is to the second and CONFIRMED fills were
-  read in `trade_id` order, so a sell matched in the same second as the buy it sells could be counted first, find
-  nothing held, and leave the buy standing as a holding: marked at its market, a phantom position, its loss in the day
-  and total stops. The fills are now ordered buy first at a tie (as the loop's `positionFromFills`), and `tokenBooks`
-  and `sinceOpenPnl`, unchanged, keep that order (their sort is stable). Not in those two functions: the frozen paper
-  layers (`pm_prep_frozen.ts`, `pm_prep_mid_frozen.ts`) import `tokenBooks` and book their paper fills in print order,
-  which stays. In a live turn: nothing today, as every path is in dry-run and there are no live fills (0 rows in
-  `pm_live_fills`, `pm_mid_fills`, `pm_lp_fills`); once live, a same-second buy and sell are booked in that order.
-  Pinned in `pm_daystop.test.ts`: 100 YES bought at 0.80 and sold at 0.85 in one second, the sell's trade id first, read
-  `{ day: 5, total: 5 }` and the path open; the old order read −40 and tripped the $25 day stop. The Polymarket suites
-  with the frozen-instance comparisons: 92 passed.
-
-### [2026-10-08 23:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5's governor counts a rate-limit retry as the second POST it is** (review A4, batch 5; `agents/quotes_live.ts`).
-  An order the venue turned away with a 429 goes once more (same order, same client id), but the governor counted one
-  POST, and a row taken the second time kept no mark of it, so later turns' recounts from the rows counted one too. The
-  retry now counts where it is sent, the row keeps `retriedAfter429` whatever the second answer was, and every recount
-  (the turn's, and the conversion's check) counts such a row twice (`postsOf`). In a live turn: no order, price or size
-  changes; the day's POST count is higher by the number of retries, so on a day with N of them no-entries (900) and
-  stops-only (950) come N POSTs sooner, at the venue's own count. How often it happens is not known: of 3,064 live rows
-  since 10-01 none was turned away twice, and one taken on its retry left no trace until now. Pinned in
-  `quotes_live.test.ts`: six orders with one retried read seven POSTs that turn and the next (the old code: six), and
-  `postsOf`'s cases. PR5's instance test beside its frozen copy, the twins and the simulator: 85 passed (the simulator
-  never answers 429, so the twins' counts cannot move).
-
-### [2026-10-08 23:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A buy booked from the account with another of its coin unbooked takes only its own coins** (review A3, batch 5;
-  `bookLiveBuy` in `agents/tick.ts`, which the loop and PR5's executor both settle through). A buy the venue reports no
-  fee for is booked from the account's balance less the rest of the live book (D12), at most its gross. With two such
-  buys of a coin unbooked at once, the first was booked its gross out of the second's coins, and the second, short by
-  both fees, was refused for good ("settles when the account accounts for it"). When the balance holds more than this
-  buy's gross and two steps, its own share is now at most the gross less its fee in the coin (Revolut X takes a buy's
-  fee in the coin, reference §3.31). Not the review's fix (count the other open buys in the rest): PR5's rungs rest
-  unfilled most of the time, so that would refuse every such settlement while another rung rests. In a live turn:
-  nothing changes unless a buy comes back with no fee (none has: 0 of the 76 live fills) and the account holds more of
-  its coin than the book and that buy explain; then it books its net instead of its gross. A fee in dollars on a second
-  buy would leave its fee as dust at the venue rather than in the book. Pinned in `quotes_live.test.ts`: two 132 USDC
-  buys over 263.7624 held book 131.8812 each; the old rule booked the first 132 and refused the second (short 0.2376
-  against 0.119 allowed). PR5's instance test (beside its frozen copy), the twins, the simulator and the tick: 196
-  passed; the replays never derive a fee, so this branch never runs in them.
-
-### [2026-10-08 23:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A fill the loop books in a turn counts once in that turn's exposure** (review A2, batch 5; `agents/tick.ts`). The
-  turn reads the open orders first and their exposure last; a live buy whose fill it booked without closing the row (a
-  partial fill that grew, a pending row it reconciled from the venue) counted its new fill twice: in the position, and
-  in the open buy's rest computed from the row as the turn began. The rest now reads what the turn wrote, and a
-  reconciled pending row found filled (or closed with nothing filled) is no longer an open buy; one closed with a fill
-  keeps its old count, as that fill is not in the book this turn reads (a separate finding, reported to Davies). In a
-  live turn: only the exposure the risk gate reads changes, and only in the turn that books such a fill; it is lower by
-  the fill counted twice, so an entry that double count refused for that turn can go through. No order, cancel, stop or
-  row write changes. Pinned in `tick.test.ts`: the turn that books 0.05 more of a 0.155 buy at 129 reads the same
-  exposure as the turn after it, and a reconciled pending buy too; on the old code $26.46 against $20.01 ($6.45 = 0.05 ×
-  129 twice).
-
-### [2026-10-08 23:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep takes TB1's skip** (Davies: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"): `lpQuotes` rests
-  nothing in a market whose raw touch (the book without our orders) is at most one tick (`PM_LP_TIGHT`, `isTight`);
-  `pm_lp.ts` only, mini-pool and mid-pool unchanged. Its pre-registration's Addendum 2 records the word, the evidence
-  (S2 → S2 + skip on RW's 14 days: +$68.85 strict, +$141.19 at-price at R = 0.40; −$22.51 at R = 1; p 0.78 / 0.28 after
-  35 changes) and that P2–P5 read the new rule from its first deployed minute; RWC-OPT's Addendum 1 makes C1 the
-  out-of-sample measure of it. After the deploy: read `pm_lp_state.last_error` and that `pm_lp_minutes` has a row every
-  minute. Not armed; only Davies arms.
-
-### [2026-10-08 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A call the one-minute job gains waits 15 minutes for its function's deploy** (review D1, batch 5). 0104 adds
-  `edge_calls.active_from` with no default, so every row on the list holds null and is called as before, then sets the
-  default `now() + 15 minutes` for every row inserted later; the job (0075's request word for word) adds
-  `(call.active_from is null or call.active_from <= now())`; `edge-watchdog` counts a row due only from the first
-  minute that begins at or after its instant, and reads the list whole (`select=*`), so it and 0104 land in either
-  order. Safe while the job runs: `lock_timeout` 3 s, reset after; `db push` (CLI 2.117.0's `ExecBatch`, read from its
-  source) sends the file as one transaction with its version row. migrations.yml no longer cancels a run in flight.
-  Why 15: on 10-07 and 10-08 a migrations run took 20 to 67 s and a deploy run 65 to 145 s (GitHub's run times);
-  0100's row met trading212 v74 once. On PGlite (Postgres 16, pg_cron/pg_net/Vault stubbed) after 0075, 0099 and 0100
-  (0103, which only turns rows off, not run there; it was 0102 until 0103 landed first): 0104 applied twice; 19 rows,
-  none with an instant; at 2026-10-09 10:00 UTC the old and new job queue the same 18 calls in the same order; a later
-  insert gets written + 900 s and is queued at +15 min, not at +14.99. Pins: `cron_jobs.test.js` (the file's five
-  statements in order, the job's filter, every migration that inserts into the list, 0075 to 0100 holding null and any
-  later row the default, an insert naming the column refused, migrations.yml's concurrency) and the watchdog's Deno
-  test (the instant, a held row neither missing nor run early and retried from its minute, the whole-row read); each
-  fails on the old code or a broken 0104 (no file; the job without the condition; the column added with its default,
-  which would have held the whole list for 15 minutes).
-
-### [2026-10-08 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **RWC-OPT frozen before RW-C's first minute** (Davies: "RW-C…可以用目前所有最新的数据看看RW-C可不可以优化到最佳吗", "效果优先").
-  A read-only search on RW's record 09-25 00:00 → 10-08 23:10 UTC (65 arms, strict and at-price fills, R 1 / 0.4 / 0.2,
-  walk-forward, reality check) with live-prep's Phase A simulator plus TB1's option, which reproduces `pm_rw_days` to
-  $1.6e-12 and TB1's 10-03 figures to the cent. Nothing beats S2 after the correction (p 0.78 strict, 0.28 at-price at
-  R = 0.4); S2 + TB1 skip was the walk-forward's pick on 6 of 8 days (+$68.85 strict, +$141.19 at-price over 14 days, in
-  sample). Frozen as C1 (primary), C2 (exits, reported) and C3 (x3 + TB1) in
-  `reviews/2026-10-09-rwc-optimised-arms-prereg.md`, read after 10-23 00:05 on RW-C's record (item 2). RW-C's engine,
-  selection, replays and every frozen pre-registration are unchanged; RW's 10-04 → 10-08 inputs are committed gzipped
-  (3.3 MB) beside the scripts.
-
-### [2026-10-08 23:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The site's own fonts are back (M7 redone), and the sweep checks it draws in them** (review batch 5). 6e8d7544
-  cherry-picked as it was (Inter and JetBrains Mono from `src/app/fonts/`, Google's files and rules but for the URL,
-  preloaded; the CSP and the worker without Google; its evidence is in 6e8d7544's own ledger lines, which the revert
-  e7f0cafe took out) and the bundle rebuilt here: its stylesheet and the 12 font files hash as M7's did. New sweep
-  check `fonts` (both widths): both families' Latin faces loaded, none failed, the page set in Inter and the book's
-  total in JetBrains Mono. On the bundle before this commit it fails (`inter: false, mono: false`: Google's stylesheet
-  is aborted, so no face exists) and the other 243 desktop checks of the main part pass. The whole sweep (648 checks)
-  and the perf matrix (76) on this bundle: CI's browser after T2 (Chrome for Testing 153.0.8010.12, found by
-  Playwright's own lookup with no shell installed) and this container's full Chromium 141 all green; the headless
-  shell (141 and 153) green but for the four layout checks it alone failed before, unchanged: `desktop/agents` the
-  RW-E row and the variant rows (each name on two lines), `desktop/tabs/rwx-waiting` (NEXT on three lines),
-  `phone/tabs/pr5-page` (ROUND TRIPS and the orders 6 px past their boxes). Nothing launches the shell now, so CI
-  should be green; its first run on the landed commit is the proof.
-
-### [2026-10-08 23:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The browser checks run in Playwright's full Chromium, not its headless shell** (review T2, batch 5). Asked for a
-  headless Chromium with no channel, Playwright 1.63 launches `chromium-headless-shell` (its source: `getExecutableName`
-  returns the shell when `headless` and no channel), which alone failed four layout checks with the site's own Inter
-  that full Chrome 141 and 153 pass. Both checks now launch with `src/e2e/browser.mjs`'s options: `channel: 'chromium'`
-  (Playwright's documented switch to its full Chromium in the new headless mode), or the browser
-  `PLAYWRIGHT_CHROMIUM_PATH` names, which wins. check.yml installs with `playwright install --no-shell chromium`: Chrome
-  for Testing 153.0.8010.12 (`chromium-1243`, cdn.playwright.dev/builds/cft/153.0.8010.12/linux64/chrome-linux64.zip)
-  and FFmpeg 1011, no longer the headless shell 1243 (`--dry-run` lists both; nothing else launches the shell: the size
-  budget's timer finds the runner's own Chrome). Proved through Playwright's own lookup with a registry of CI's two
-  builds: the old options launch `chromium_headless_shell-1243`, the new `chromium-1243`; with the shell absent, as CI
-  installs now, the old options fail ("Executable doesn't exist") and the new launch. The whole sweep (646 checks) and
-  the perf matrix (76) are green that way on this bundle. Pinned in `e2e_browser.test.js`: the options, both scripts
-  launching with them alone, and CI's two installs; each fails against the old scripts, check.yml or options.
-
-### [2026-10-08 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **No unit test reaches the network** (review T1, batch 5). Four performance-chart test files left the recorded
-  snapshots and the overnight points unmocked: each Vitest run sent production's Edge Functions 25 GETs with the anon
-  key (28 on this branch before this commit, measured with a preload that records and blocks every fetch), about 560 a
-  day from local gates and CI. The four files now mock `refreshPriceSnapshots` (answering as a failed read does) and
-  `fetchOvernightSeries` (nothing), and `src/test_setup.js` refuses any fetch beyond this machine: it rejects as a
-  network failure does, and the test that made it fails when it ends, naming the URL. Under the same preload the whole
-  run (74 files) now sends nothing beyond a loopback probe of the guard's own test. Pinned in `network_guard.test.js`
-  (refused and recorded, loopback through, a stub gives way and the guard returns, and a swallowed refusal still fails
-  its test); on main all four fail (no guard: the `.invalid` fetches fail on their name instead, and nothing records them).
-  `test_setup.js` counts in the build stamp (`build_stamp.js` leaves out only tests, `e2e/` and notes), so the bundle is
-  rebuilt with it; only its stamp moves.
-
-### [2026-10-08 22:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Cloudflare and Supabase settings from the second review, done by Davies' other tool and checked from outside.**
-  L1: Bot Fight Mode was on and is off, and the zone's separate `enable_js` (JavaScript Detections, which the Free
-  plan's dashboard does not show; read by API) is now false: the home page and an unknown path carry no
-  `/cdn-cgi/challenge-platform/` script (checked 22:46 and 22:50 UTC). L2: Browser Cache TTL is "Respect Existing
-  Headers"; `sw.js`, `robots.txt` and the CSS now answer `max-age=0, must-revalidate`; no Cache or Page Rule. The
-  token `daviesportfolios-pages-deploy` gained Bot Management write and Zone read on daviesluo.com only. PITR is OFF
-  (the add-on is not enabled): the off-site copy (B1/B2) waits on Davies' choice of where. The monitor's deploy token
-  is fine: monitor-deploy's last run (10-07 21:41 UTC) uploaded the Worker with `secrets.CLOUDFLARE_API_TOKEN`, so
-  that secret holds a token with Workers Scripts edit, whichever of the account's tokens it is; a rotated one needs
-  Pages and Workers Scripts both.
-
-### [2026-10-08 22:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Nothing on the board draws the book at 1:1 before the exchange rates load** (review batch 5, approved by Davies
-  2026-10-08: "以上内容都修"). Until the first market data lands, a holding whose FX pair is missing is valued at 1:1;
-  the scoreboard has waited with a dash since 0bbc0829, and now so does everything else that converts with that pair,
-  on one rule (`fxPendingOf` in `metrics.js`, and `fxPendingFor` in `fx.js` for what values the whole book): a position
-  card holding one (value and move), FORMATION VALUE (dashes, in the board's order), Top Movers in dollars ("loading…",
-  percent ranks at once), the captain's armband (none), the heat map (empty), the performance chart ("Loading…", sold
-  holdings counted), the position, holding and sector lists (their dollars, shares of the book and sector percentages;
-  export off), the ticker page's Cost/Value/G/L and share, and the history's realised total. Once the market data has
-  landed, a pair still missing is the FX MISSING badge's, as before. The sweep's main part records every card's and
-  FORMATION VALUE row's value from the first paint (`first-paint`, both widths): on main's bundle it caught
-  `BRIT VUAA: $490.00 before $612.50` and the fund's card `$300.00 before $30.00`; green on this one. Pins in
-  `metrics.test.js`, `pitch.test.jsx`, `header_sidebar.test.jsx`, `heatmap.test.js`, `perf_chart.test.jsx`,
-  `modals.test.jsx`, `holdings_list.test.jsx` and `sectors_list.test.jsx`: the eleven new waiting cases fail on main.

@@ -1339,46 +1339,6 @@ export function liveExtraRows(dash) {
   return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive)].filter((r) => !!r);
 }
 
-/** The order path's gates as its page lists them, each in a few words: the path's own order (`PM_OPEN_GATES`, pm_live.ts). */
-const LP_GATE_WORDS = /** @type {const} */ ([
-  ['global_pause', 'no global pause'], ['risk_readable', 'risk row read'], ['armed', 'armed'], ['region', 'sent from eu-west-1'],
-  ['geoblock', 'geoblock reads Ireland'], ['closed_only', 'account not close-only'], ['attestation', 'Ireland attestation current'],
-  ['inventory', 'balances read'], ['loss_total', 'total loss stop clear'], ['ctf_approval', 'token approvals read'],
-]);
-
-/**
- * Live-prep's live page's GATES: each gate of its last turn, passed, failed, or not judged that turn, with what the
- * failures stop (opening, or every order). Live-prep has no day stop, so its always-passing verdict is not listed.
- * null when the last turn's gates are not in the answer.
- * @param {any} l  the dashboard's `lpLive`
- * @returns {{ rows: Array<{ key: string, label: string, state: 'pass' | 'fail' | 'n/a' }>, openBlockedBy: string | null, reduceBlockedBy: string | null, mode: string | null } | null}
- */
-export function lpLiveGates(l) {
-  const g = l?.gates;
-  if (!g || !g.verdicts || typeof g.verdicts !== 'object') return null;
-  const rows = LP_GATE_WORDS.filter(([k]) => k in g.verdicts).map(([key, label]) => {
-    const v = g.verdicts[key];
-    return { key, label, state: /** @type {'pass' | 'fail' | 'n/a'} */ (v === true ? 'pass' : v === false ? 'fail' : 'n/a') };
-  });
-  return { rows, openBlockedBy: g.openBlockedBy ?? null, reduceBlockedBy: g.reduceBlockedBy ?? null, mode: g.mode ?? null };
-}
-
-/**
- * Live-prep's total loss stop in words: where its reading stands against the limit, the path's own sum (its CONFIRMED
- * fills' P&L at the last mids plus what Polymarket paid), or when it tripped.
- * @param {any} l  the dashboard's `lpLive`
- * @param {(s: string) => string} [m]
- */
-export function lpLiveStopText(l, m = (s) => s) {
-  const st = l?.stop;
-  if (!st) return '';
-  const lim = st.limitUsd == null ? null : Number(st.limitUsd);
-  if (st.trippedAt) return `Tripped ${fmtChartStamp(st.trippedAt)}: nothing opens again until a person clears it; its sells stay armed.`;
-  return `Stops at ${lim == null ? '—' : m(fmtUsd(-lim))} on its fills plus what was paid: now ${m(fmtUsd(Number(st.basisUsd) || 0, true))}`
-    + ` (fills ${m(fmtUsd(Number(st.fillsPnlUsd) || 0, true))}, paid ${m(fmtUsd(Number(st.paidUsd) || 0, true))}), ${st.roomUsd == null ? '—' : m(fmtUsd(Number(st.roomUsd)))} to go.`;
-}
-
-
 /** R, what Polymarket paid over what the formula gave, to two places; a dash without a formula figure. @param {number | null | undefined} r */
 export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : Number(r).toFixed(2));
 
