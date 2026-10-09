@@ -299,7 +299,45 @@
     "formula_usd": 0
    }
   ],
-  "stop": null
+  "stop": null,
+  "hours": [
+   {
+    "hour": "2026-09-16T23:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "minutes": 60,
+    "formula_usd": 0.5
+   },
+   {
+    "hour": "2026-09-17T21:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "minutes": 60,
+    "formula_usd": 0.3
+   },
+   {
+    "hour": "2026-09-17T21:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "minutes": 60,
+    "formula_usd": 0.12
+   },
+   {
+    "hour": "2026-09-17T22:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "minutes": 60,
+    "formula_usd": 0.3
+   },
+   {
+    "hour": "2026-09-17T22:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "minutes": 60,
+    "formula_usd": 0.18
+   },
+   {
+    "hour": "2026-09-17T22:00:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "minutes": 60,
+    "formula_usd": 0
+   }
+  ]
  },
  "output": {
   "armed": true,
@@ -329,6 +367,33 @@
    "bestMarketUsd": 1.65,
    "quoting": 3,
    "held": 2
+  },
+  "estimate": {
+   "day": "2026-09-17",
+   "minutesLeft": 60,
+   "soFar": {
+    "formulaUsd": 0.9,
+    "lowUsd": 0.181699,
+    "highUsd": 0.908493
+   },
+   "fullDay": {
+    "formulaLowUsd": 1.108333,
+    "formulaHighUsd": 1.38,
+    "lowUsd": 0,
+    "highUsd": 1.393023
+   },
+   "r": {
+    "point": 0.444796,
+    "low": 0.198919,
+    "high": 0.994594,
+    "days": 1,
+    "basis": "live"
+   },
+   "rates": {
+    "recent": 0.008,
+    "today": 0.0075,
+    "days": 0.003472
+   }
   },
   "stop": {
    "limitUsd": 75,
@@ -536,6 +601,33 @@
    "bestMarketUsd": 0.6,
    "quoting": 3,
    "held": 2
+  },
+  "estimate": {
+   "day": "2026-09-17",
+   "minutesLeft": 60,
+   "soFar": {
+    "formulaUsd": 0.9,
+    "lowUsd": 0.18,
+    "highUsd": 0.9
+   },
+   "fullDay": {
+    "formulaLowUsd": 1.35,
+    "formulaHighUsd": 1.38,
+    "lowUsd": 0,
+    "highUsd": 1.38
+   },
+   "r": {
+    "point": 0.447214,
+    "low": 0.2,
+    "high": 1,
+    "days": 0,
+    "basis": "prior"
+   },
+   "rates": {
+    "recent": 0.008,
+    "today": 0.0075,
+    "days": null
+   }
   },
   "stop": {
    "limitUsd": 75,

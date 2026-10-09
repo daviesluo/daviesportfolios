@@ -20,10 +20,20 @@
 // buy of YES at 0.30 and a pending buy of NO at 0.68 (an ask of 0.32). Shares at the last live minute: G 0.005 × 1440 / 20
 // = 36 %, H 0.002 × 1440 / 120 = 2.4 %, J none (the formula paid it nothing). By market G 1.05 + 0.60 = 1.65, H 1.20 +
 // 0.10 = 1.30, J 0.10: they add up to the total, 3.05.
+// REWARDS TODAY (EST.), at 23:00 UTC with 60 minutes left: today's live hours give G 0.30 at 21:00 and 22:00, H 0.12 and
+// 0.18, J 0 at 22:00 (and G's 0.50 at 23:00 the day before, which is not today's): 0.90 of formula so far. R: one day
+// read, 2.20 / 5.00 = 0.44; on the log scale its mean is shrunk towards the prior's ln √0.2 = −0.804719 as two days,
+// (2 × −0.804719 + ln 0.44) / 3 = −0.810139, its σ the prior's ln 5 / (2 × 1.281552) = 0.627926 (one day has no spread),
+// so the band is exp(−0.810139 ± 0.804719) = 0.198919 to 0.994594. G's own day read 1.00 / 2.00: (2 × −0.810139 + ln 0.5)
+// / 3 = −0.771142, its band 0.206818 to 1.034147; H's 1.20 / 3.00: −0.845524, 0.192002 to 0.960016. So far: G 0.60 × each
+// end + H 0.30 × each end = 0.181699 to 0.908493. The rest of the day: 60 minutes at the lowest and highest of the newest
+// hour's 0.48 / 60 = 0.008 a minute, today's 0.90 / 120 = 0.0075 and the earlier day's 5.00 / 1440 = 0.003472: 0.208333 to
+// 0.48, so the day's formula is 1.108333 to 1.38. Low: G (0.60 × 1.108333 / 0.90) × 0.206818 = 0.152816 and H's 0.070934
+// are each under the $1 minimum, so 0; high: 0.60 × 1.38 / 0.90 × 1.034147 + 0.30 × 1.38 / 0.90 × 0.960016 = 1.393023.
 
-import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
-import { lpLiveSince, lpLiveSummary } from "./pm_lp_live_view.ts";
+import { LP_LIVE_HOURS_VIEW, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow } from "./pm_lp_live_view.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
@@ -120,8 +130,10 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
     [T.minutes]: [...I.minutes.map((x: Record<string, unknown>) => ({ mode: "live", minute: I.state.state.minute, ...x })), { mode: "dry_run", minute: I.state.state.minute, cond: I.minutes[2].cond, rate: 15, formula_usd: 9 }],
     pm_lpprep_fills: [{ cond: I.markets[0].cond, token: "x", token_side: "BUY", token_price: 0.5, size: 1000 }],
     pm_lpprep_days: [{ day: "2026-09-16", reward: 999 }],
+    // 0107's view: the live hours of the last two days, as the database sums them.
+    [LP_LIVE_HOURS_VIEW]: I.hours,
   }, { now: () => I.nowMs });
-  const reads = [T.config, T.state, T.orders, T.fills, T.settlements, T.rewardDays, T.markets, T.events, T.minutes];
+  const reads = [T.config, T.state, T.orders, T.fills, T.settlements, T.rewardDays, T.markets, T.events, T.minutes, LP_LIVE_HOURS_VIEW];
   const db = onlyTables(mem.db, reads, { readOnly: reads });
   const out = await readLpLive(db, I.nowMs);
   assertEquals(JSON.parse(JSON.stringify(out)), F.output);
@@ -134,6 +146,12 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
   assertEquals(await readLpLive(broken, I.nowMs), null);
 });
 
+Deno.test("funded is the cap the last turn held its buys to (since Addendum 8 it follows the equity); without one, the config's", () => {
+  const withCap = lpLiveSummary({ ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, limits: { capTotal: 370 } } } })!;
+  near(withCap.capUsd, 370, "the turn's cap");
+  near(lpLiveSummary(F.input)!.capUsd, 320, "no turn's figure: the config's");
+});
+
 Deno.test("a live fill's fee is its trade record's: a taker pays its rate by the docs' formula, a maker nothing", () => {
   // Every fill so far is a maker's (post-only): no fee, nothing off realised.
   assertEquals(lpLiveSummary(F.input)!.feesUsd, 0);
@@ -142,4 +160,74 @@ Deno.test("a live fill's fee is its trade record's: a taker pays its rate by the
   near(taker.feesUsd, 0.19608, "the taker's fee");
   near(taker.realisedUsd, 2.85 - 0.19608, "realised, less the fee"); near(taker.totalUsd, 3.05 - 0.19608, "the total too");
   near(taker.realisedUsd + taker.unrealisedUsd, taker.totalUsd, "still adding up");
+});
+
+// ------------------------------------------------------------------ REWARDS TODAY (EST.)
+
+Deno.test("today's rewards, estimated: the hand-worked record (the header's arithmetic), and before any payout the prior's band", () => {
+  const e = lpLiveSummary(F.input)!.estimate;
+  assertEquals([e.day, e.minutesLeft, e.r.days, e.r.basis], ["2026-09-17", 60, 1, "live"]);
+  near(e.soFar.formulaUsd, 0.9, "G 0.60 + H 0.30 + J 0, yesterday's hour left out");
+  assertAlmostEquals(e.r.point, 0.444796, 1e-6); assertAlmostEquals(e.r.low, 0.198919, 1e-6); assertAlmostEquals(e.r.high, 0.994594, 1e-6);
+  assertAlmostEquals(e.soFar.lowUsd, 0.181699, 1e-6); assertAlmostEquals(e.soFar.highUsd, 0.908493, 1e-6);
+  assertEquals([e.rates.recent, e.rates.today], [0.008, 0.0075]); assertAlmostEquals(e.rates.days!, 0.003472, 1e-6);
+  assertAlmostEquals(e.fullDay.formulaLowUsd, 1.108333, 1e-6); near(e.fullDay.formulaHighUsd, 1.38, "0.90 + 60 × 0.008");
+  assertEquals(e.fullDay.lowUsd, 0);                                                       // both markets' lows under $1
+  assertAlmostEquals(e.fullDay.highUsd, 1.393023, 1e-6);
+  // No payout read: the prior alone, 0.2 to 1 around √0.2; the earlier days' rate is unknown, so the rest of the day runs
+  // at 0.0075 to 0.008 a minute.
+  const p = F.noPayout.estimate;
+  assertEquals([p.r.basis, p.r.days, p.r.low, p.r.high, p.r.point], ["prior", 0, 0.2, 1, 0.447214]);
+  assertEquals([p.soFar.lowUsd, p.soFar.highUsd, p.fullDay.formulaLowUsd, p.fullDay.formulaHighUsd], [0.18, 0.9, 1.35, 1.38]);
+});
+
+const G = F.input.markets[0].cond, H = F.input.markets[1].cond;
+const DAY0 = Date.parse("2026-10-10T00:00:00Z");
+/** `n` hours of G from 00:00 at `f` a full hour, the last one `lastMin` minutes long. */
+const hoursOf = (n: number, f: number, lastMin = 60): LpLiveHourRow[] =>
+  Array.from({ length: n }, (_, i) => ({ hour: new Date(DAY0 + i * 3600e3).toISOString(), cond: G, minutes: i === n - 1 ? lastMin : 60, formula_usd: i === n - 1 ? (f * lastMin) / 60 : f }));
+const paid = (day: string, formula: number, paidUsd: number, cond = G) => ({ day, cond, minutes: 1440, minutes_scored: 1400, formula_usd: formula, actual_usd: paidUsd, actual_sponsored_usd: 0, rebate_usd: 0 });
+
+Deno.test("today's estimate grows as the day's minutes accrue, every dashboard read, and starts again from nothing at 00:00 UTC", () => {
+  const days = [paid("2026-10-09", 100, 40)];
+  let last = -1;
+  for (let m = 1; m <= 23 * 60; m += 37) {
+    const now = DAY0 + m * 60e3, h = Math.floor(m / 60), part = m % 60;
+    const hours = part ? hoursOf(h + 1, 6, part) : hoursOf(h, 6);
+    const e = lpRewardEstimate({ rewardDays: days, hours, nowMs: now });
+    near(e.soFar.formulaUsd, (6 * m) / 60, `formula so far at minute ${m}`);
+    assert(e.soFar.highUsd > last, `minute ${m}: ${e.soFar.highUsd} after ${last}`);
+    last = e.soFar.highUsd;
+  }
+  // 23:59 with the day's hours, then 00:00 of the next: yesterday's rows are no part of it, and nothing has accrued.
+  const full = hoursOf(24, 6, 59);
+  const before = lpRewardEstimate({ rewardDays: days, hours: full, nowMs: DAY0 + DAY_MS - 60e3 });
+  assert(before.soFar.highUsd > 50, JSON.stringify(before.soFar));
+  const after = lpRewardEstimate({ rewardDays: days, hours: full, nowMs: DAY0 + DAY_MS });
+  assertEquals([after.day, after.soFar.formulaUsd, after.soFar.lowUsd, after.soFar.highUsd, after.minutesLeft], ["2026-10-11", 0, 0, 0, 1440]);
+  // Its day is the projection alone, at the earlier days' rate: 100 a day, the 10th to the 90th percentile of R.
+  near(after.fullDay.formulaHighUsd, 100, "1440 minutes at 100 / 1440");
+});
+const DAY_MS = 86400e3;
+
+Deno.test("a payout read moves R's band by itself: none, one day, two days, as the algorithm says", () => {
+  const hours = hoursOf(12, 6), now = DAY0 + 12 * 3600e3;
+  const none = lpRewardEstimate({ rewardDays: [], hours, nowMs: now }).r;
+  assertEquals([none.low, none.point, none.high, none.days, none.basis], [0.2, 0.447214, 1, 0, "prior"]);
+  // One day at 0.44: the mean moves, the spread is still the prior's (exp(−0.810139 ± 0.804719)).
+  const one = lpRewardEstimate({ rewardDays: [paid("2026-10-08", 5, 2.2)], hours, nowMs: now }).r;
+  assertEquals([one.low, one.point, one.high, one.days, one.basis], [0.198919, 0.444796, 0.994594, 1, "live"]);
+  // A second at 0.30: mean (2 ln √0.2 + ln 0.44 + ln 0.30) / 4 = −0.908598; their spread's variance 0.073338 weighs two days
+  // against the prior's two: σ = √((2 × 0.394291 + 2 × 0.073338) / 4) = 0.483545; exp(−0.908598 ± 1.281552 × 0.483545).
+  const two = lpRewardEstimate({ rewardDays: [paid("2026-10-08", 5, 2.2), paid("2026-10-09", 10, 3)], hours, nowMs: now }).r;
+  assertEquals([two.low, two.point, two.high, two.days], [0.216907, 0.403089, 0.74908, 2]);
+  // A day whose formula is under $1 says nothing of R; today's own row, before its payout is read, is not a day read.
+  assertEquals(lpRewardEstimate({ rewardDays: [paid("2026-10-08", 0.5, 0.5)], hours, nowMs: now }).r.days, 0);
+  assertEquals(lpRewardEstimate({ rewardDays: [paid("2026-10-10", 5, 5)], hours, nowMs: now }).r.days, 0);
+  // A market read before has its own: G paid 0.80 of 2.00 and H 0.10 of 2.00 the same day (0.225 overall): G's band sits
+  // above H's, and today's G alone is estimated on G's.
+  const mixed = [paid("2026-10-09", 2, 0.8, G), paid("2026-10-09", 2, 0.1, H)];
+  const g = lpRewardEstimate({ rewardDays: mixed, hours, nowMs: now }).soFar;
+  const h = lpRewardEstimate({ rewardDays: mixed, hours: hours.map((x) => ({ ...x, cond: H })), nowMs: now }).soFar;
+  assert(g.lowUsd > h.lowUsd && g.highUsd > h.highUsd, JSON.stringify({ g, h }));
 });

@@ -381,15 +381,23 @@ places stay when the number is not whole.
   on Polymarket since it went live on 9 October, called Reward quotes
   there; its paper row stays on TESTING as Reward quotes live-prep, beside
   TESTING's own Reward quotes, and never adds the real money in. Funded is
-  its cap, the most it may commit; deployed is what its resting buys tie up
+  its cap, the most it may commit, which follows the account: each day's
+  rewards and any money added raise it the minute after they arrive, a
+  withdrawal or a loss lowers it at once, up to $1,000; deployed is what its resting buys tie up
   plus what it holds at cost; today, unrealised and realised come from its
   confirmed fills at the last minute's mid prices, and realised also counts
   the rewards and rebates Polymarket actually paid, less any fee its trade
   records show (none so far: its orders only ever rest, and Polymarket
   charges only the side that takes). Tap it for a page of its own: the same
-  scoreboard, then STATUS as on the TESTING pages, except that its first
-  tile is R (ACTUAL), what Polymarket paid over what the reward formula gave
-  on the days a payout has been read (a dash until the first); then DAYS,
+  scoreboard, then STATUS: R (ACTUAL), what Polymarket paid over what the
+  reward formula gave on the days a payout has been read (a dash until the
+  first); the markets quoting today; the positions still held; and REWARDS
+  TODAY (EST.), what today's quotes have earned since midnight UTC as a
+  range from low to best, with the whole day's range and the band of R it
+  uses under it. It moves every minute, starts again from nothing at
+  midnight UTC, and its band of R comes from the days Polymarket has paid
+  (until the first, from the studies' 0.2 to 1), so each payout read
+  narrows it by itself. Then DAYS,
   each of those days with the formula, what was paid, R and the rebates;
   and QUOTES, the TESTING pages' table less its share and rewards columns
   (each market with an order resting now or a token held, the day's

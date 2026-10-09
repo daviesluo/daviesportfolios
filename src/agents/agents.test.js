@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwCostOf, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwCostOf, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1845,13 +1845,23 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
   it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);
   });
-  it("its STATUS is the TESTING page's, R (ACTUAL) where the worst case was: '—' until a payout is read", () => {
-    expect(rwBarTileKeys('run', true)).toEqual(['R (ACTUAL)', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
+  it("its STATUS: R (ACTUAL), QUOTING TODAY, POSITIONS STILL HELD, then today's rewards estimated, where TOP SHARE was; TESTING's keeps TOP SHARE", () => {
+    expect(rwBarTileKeys('run', true)).toEqual(['R (ACTUAL)', 'QUOTING TODAY', 'POSITIONS STILL HELD', 'REWARDS TODAY (EST.)']);
     expect(rwBarTileKeys('run')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
-    // G's 1.65 of 3.05 (54 %); before any payout G's 0.60 of 0.80 (75 %), and R a dash.
-    expect(lpLiveStatus(l)).toEqual({ phase: 'run', rText: '0.44', bestShareText: '54 %', quoting: 3, open: 2 });
-    expect(lpLiveStatus(lpLiveFixture.noPayout)).toEqual({ phase: 'run', rText: '—', bestShareText: '75 %', quoting: 3, open: 2 });
-    expect(lpLiveStatus({ ...l, totalUsd: 0 }).bestShareText).toBe('—');
+    // The fixture's estimate (pm_lp_live_view.test.ts works it by hand): so far 0.181699 to 0.908493, the day 0 to
+    // 1.393023, R 0.198919 to 0.994594 on one day read; before any payout, the prior's 0.2 to 1.
+    const s = lpLiveStatus(l);
+    expect([s.phase, s.rText, s.quoting, s.open, 'bestShareText' in s]).toEqual(['run', '0.44', 3, 2, false]);
+    expect(s.est).toEqual({ lowUsd: 0.181699, highUsd: 0.908493, dayLowUsd: 0, dayHighUsd: 1.393023, rBand: '0.20–0.99', rDays: 1 });
+    const id = (/** @type {string} */ x) => x;
+    expect(lpEstimateTexts(s.est, id)).toEqual({ text: '$0.18 – $0.91', note: 'day $0 – $1.39 · R 0.20–0.99' });
+    const np = lpLiveStatus(lpLiveFixture.noPayout);
+    expect([np.rText, lpEstimateTexts(np.est, id)]).toEqual(['—', { text: '$0.18 – $0.90', note: 'day $0 – $1.38 · R 0.20–1.00 (prior)' }]);
+    // Hidden values: every dollar goes through the mask, R does not.
+    const mask = (/** @type {string} */ x) => x.replace(/[\d.,]/g, '•');
+    expect(lpEstimateTexts(s.est, mask)).toEqual({ text: '$•••• – $••••', note: 'day $• – $•••• · R 0.20–0.99' });
+    expect(lpEstimateTexts(null, id)).toEqual({ text: '—', note: null });
+    expect(lpLiveStatus({ ...l, estimate: undefined }).est).toBe(null);
   });
 });
 

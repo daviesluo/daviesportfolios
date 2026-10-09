@@ -1344,16 +1344,36 @@ export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : N
 
 /**
  * The STATUS block of LIVE's "Reward quotes" page, the TESTING page's (`RwBar`) from the live book: R (ACTUAL) in place of
- * the worst case, "—" until a payout is read; TOP SHARE, the largest market's part of the total, as `rwView` reads it;
- * the markets chosen today; the markets still holding tokens.
+ * the worst case, "—" until a payout is read; the markets chosen today; the markets still holding tokens; and today's
+ * rewards, estimated, in place of TOP SHARE (Davies, 2026-10-09: "TOP SHARE这个框删了…最右边的那个空余的框显示预估今日rewards收益，
+ * 可以给个范围（最低-最优）"): the dashboard's `estimate` (`lpRewardEstimate`), what the formula has given today's quotes so far
+ * at R's low and high ends, and under it the whole day's and R's band.
  * @param {any} l  the dashboard's `lpLive`
  */
 export function lpLiveStatus(l) {
-  const best = l?.status?.bestMarketUsd == null ? null : Number(l.status.bestMarketUsd), total = Number(l?.totalUsd) || 0;
+  const e = l?.estimate;
+  const n = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? null : Number(x));
   return {
     phase: 'run', rText: fmtR(l?.r),
-    bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
     quoting: Number(l?.status?.quoting) || 0, open: Number(l?.status?.held) || 0,
+    est: e ? {
+      lowUsd: n(e.soFar?.lowUsd), highUsd: n(e.soFar?.highUsd), dayLowUsd: n(e.fullDay?.lowUsd), dayHighUsd: n(e.fullDay?.highUsd),
+      rBand: `${fmtR(e.r?.low)}–${fmtR(e.r?.high)}`, rDays: Number(e.r?.days) || 0,
+    } : null,
+  };
+}
+
+/**
+ * The REWARDS TODAY (EST.) tile's two lines, every dollar through `m` (the hide-values mask): "$a – $b" so far today, and
+ * "day $c – $d · R x–y" ("prior" while no payout has been read). A dash without an estimate.
+ * @param {ReturnType<typeof lpLiveStatus>['est']} est @param {(s: string) => string} m
+ */
+export function lpEstimateTexts(est, m) {
+  if (!est || est.lowUsd == null || est.highUsd == null) return { text: '—', note: null };
+  const usd = (/** @type {number | null} */ x) => m(fmtUsd(x ?? 0));
+  return {
+    text: `${usd(est.lowUsd)} – ${usd(est.highUsd)}`,
+    note: `day ${usd(est.dayLowUsd)} – ${usd(est.dayHighUsd)} · R ${est.rBand}${est.rDays ? '' : ' (prior)'}`,
   };
 }
 
@@ -1588,7 +1608,9 @@ export function rwSplit(r) {
  * @param {string} [_phase] @param {boolean} [live]
  */
 export function rwBarTileKeys(_phase, live = false) {
-  return [live ? 'R (ACTUAL)' : 'WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
+  // LIVE's has no TOP SHARE: its two right-hand tiles move left one and its last is today's rewards, estimated (Davies,
+  // 2026-10-09). TESTING's pages keep theirs.
+  return live ? ['R (ACTUAL)', 'QUOTING TODAY', 'POSITIONS STILL HELD', 'REWARDS TODAY (EST.)'] : ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
 }
 
 /**

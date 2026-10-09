@@ -392,6 +392,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 15:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- LIVE's "Reward quotes" STATUS: TOP SHARE out, QUOTING TODAY and POSITIONS STILL HELD one left, and REWARDS TODAY
+  (EST.) last (Davies: "TOP SHARE这个框删了…最右边的那个空余的框显示预估今日rewards收益…（最低-最优）", then "实时更新…自动优化
+  算法，然后清0继续算下一个day窗口"). `lpRewardEstimate` (pm_lp_live_view.ts), a pure function of the live reward days and
+  `0107`'s view `pm_lp_live_hours` (live minutes by UTC hour and market, last 48 h): so far today = each market's formula
+  x its R band; R = log-scale mean of the paid days, shrunk to the prior's √0.2 as two days, band exp(mean ± 1.2816 σ)
+  (prior 0.2-1.0 until a payout is read); the day projected at the lowest and highest of the newest hour's, today's and
+  the earlier days' rates; a market under $1 counts nothing in the day's low. TESTING keeps TOP SHARE. FUNDED now reads
+  the turn's cap (`state.limits.capTotal`). Fixture regenerated; guide, map, sweep updated.
+
 ### [2026-10-09 15:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **EXPENSIVE-LIMIT, live-prep's Addendum 7** (Davies: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值"):
   a BUY of a token at >= 0.95 rests only while that token's holding at the mark plus the order stays within **8 % of the
