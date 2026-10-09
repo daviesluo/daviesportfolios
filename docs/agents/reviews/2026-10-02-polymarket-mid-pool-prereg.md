@@ -408,3 +408,32 @@ applied to `pm_live.ts` (after it, sha256 `57f4b1d74b89b76f30fe5060ab4c9431cbe97
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 5. Mid-pool's own go-live remains Davies' decision, and its draft
 funded pre-registration's precondition 3 now reads as met.
+
+## Addendum 6 (2026-10-09, about 01:30 UTC): deviation 6, the order path's live turn hardened for live-prep's go
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 6 is a set of changes to the shared order path**, `pm_live.ts`, made for live-prep's go. Davies, 2026-10-09:
+"可以按原计划上线 … 期间你再验证一下所有系统和下单等所有上线会用到的细节都确保没有问题". In English: go live as planned, and
+meanwhile verify every detail of the order path. Live-prep's pre-registration, Addendum 5, gives each change and its
+evidence. After it, `pm_live.ts` sha256 `a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703`, where
+Addendum 5 above named `57f4b1d7…1e40`. `pm_mid.ts` is unchanged, at `215b5435…c2b2`.
+
+**What changes, by change:**
+
+- **A6:** same-second CONFIRMED fills are booked buy first. This is live fills only.
+- **A7:** a live buy being cancelled counts against the caps until it is read back. This is live mode only.
+- **F1:** an approval gate on the outcome tokens. It runs in live-prep's live turn only, never in mid-pool's.
+- **F3:** a live order shown nowhere after its expiry is closed as expired. This is live rows only.
+- **F4:** a book naming a protocol (Polymarket Protocol V2) is unquotable. A refusal of the order's version is reported
+  once an hour.
+- **F5:** a frozen live cancel is asked again on the switch back to dry-run.
+- **U1:** what is held is robust to the conditional balance's reading. This is live-prep's live turn only.
+
+**No dry-run decision of mid-pool changes**, except through F4 on a book that names a protocol. None of live-prep's ten
+books did on 2026-10-09, and mid-pool's books were not read for it. `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts`
+run mid-pool through today's path beside the path this file froze, minute by minute, and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 6.

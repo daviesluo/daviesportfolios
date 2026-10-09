@@ -448,3 +448,55 @@ Addendum 5).
 
 The first three are Davies' to do or say. The design doc's step 8lp is unchanged, and only he arms, in the
 conversation where he says go.
+
+## Addendum 5 (2026-10-09, about 01:30 UTC): the order path's live turn, hardened before the go
+
+This addendum was written after d1 and before the deploy it records. Under "The window", a change to `pm_live.ts`
+deployed after d1 is a deviation an addendum records. Davies, 2026-10-09, after funding the account (pUSD $402.03 read
+at 00:45 UTC), verbatim:
+
+> 可以按原计划上线 … 期间你再验证一下所有系统和下单等所有上线会用到的细节都确保没有问题
+
+In English: go live as planned, and meanwhile verify every system and every detail of the order path the go will use.
+The verification (a read-only audit of the order path against Polymarket's current CLOB, its documentation and the
+official client) found what is fixed below. Arming is not part of this: only he arms, by step 8lp.
+
+**The code it deploys:** `pm_live.ts` sha256 `a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703`.
+Addendum 4 named `57f4b1d7…1e40`. `pm_lp.ts` is Addendum 2's bytes, `pm_prep.ts` Addendum 1's, and 0091,
+`lp_check.sql` and `lp_readout.sql` are unchanged.
+
+**Every change to `pm_live.ts` since `57f4b1d7…`, and what each changes in a live turn:**
+
+- **A6** (review batch 5, deployed 2026-10-09 00:35 UTC, `e933f28c…` with A7): CONFIRMED fills matched in the same
+  second are booked buy first. Live: a buy and the sell of it in one second no longer leave a phantom holding in the
+  stop. It reads live fills only.
+- **A7** (the same deploy): a live buy the turn cancels counts against the caps until its cancel is read back. Live: a
+  cancel the venue never carries out no longer lets new buys pass the caps. It runs in live mode only.
+- **F1, the outcome tokens' approvals (P5).** Live-prep's live turn reads the approvals its conditional-token reads
+  already carry, and opens nothing while they list the CTF Exchange or the Neg Risk CTF Exchange as not approved (gate
+  `ctf_approval`, reported once). A sell is never held back by it. With no approvals listed it stops nothing. The probe
+  now reads the same approvals, so P5 can be met before the go.
+- **F3, a POST the venue never took.** A live order the venue shows nowhere (404) once its expiration less the venue's
+  minute has passed is closed as `expired`. Live: a 5xx, a 503 in cancel-only mode or a timeout no longer holds its slot
+  and its buy's room under the caps for good, nor writes a fault every minute.
+- **F4, a Polymarket Protocol V2 book.** A book naming a `version` is unquotable: the selection passes it over, and a
+  selected market whose book turns V2 is withdrawn and recorded as a condition. A refusal "order_version_mismatch" is
+  reported once an hour. Live: no order is signed for an exchange it cannot be valid on.
+- **F5, the dry-run kill switch.** On the switch back to dry-run, a live order whose earlier cancel the venue never
+  carried out is cancelled again, not left to its GTD expiry.
+- **U1, the conditional balance.** Live-prep's live turn holds, per token, the balance plus our own resting sells when
+  the CONFIRMED fills explain that much, else the balance (`heldFromBalance`). The docs imply the balance is the whole
+  holding ("maxOrderSize = balance − Σ(openOrderSize − filledAmount)"), and then nothing changes. If it were net of
+  our resting sells, the sell-first rule would otherwise flip a side to a buy the minute after its sell rested.
+
+**Dry-run decisions are unchanged.** A6, A7, F1, F3, F5 and U1 run only in a live turn, or on live rows. F4 changes a
+dry-run only for a book that names a protocol: none of 2026-10-09's ten selected books does (read keylessly at about
+00:55 UTC), and the CLOB's `GET /version` answered 2. The evidence is the minute-by-minute comparisons of today's code
+with the frozen code, which find every table, request and report the same: `pm_instance.test.ts`,
+`pm_mid_formula.test.ts`, `pm_payouts.test.ts` and `pm_lp.test.ts` ("live-prep has no day stop"). All 217 tests of the
+`pm_*` and `polymarket*` files pass on Deno 1.46.3. Each change has its own pin, and each pin fails on the code before
+the change.
+
+**What it does to this file's checks:** P1 stands as read. P2, P4 and the go-time statement are unchanged. P5 is now
+read by the probe (`conditional.sellsApproved`), and the live turn enforces it. `lp_readout.sql` reads the path with
+these changes from its first live minute.

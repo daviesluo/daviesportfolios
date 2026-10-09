@@ -82,7 +82,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Before Davies' go, in order: P2 pUSD ≥ $81 in the account (read $0.04 on 10-09 00:00); P3 met in code (the
      payouts-per-path change applied 2026-10-08, live-prep's Addendum 4, mid-pool's deviation 5; it deploys with the
      push that lands it); P4 mini-pool and mid-pool unarmed (both are); P5 the probe's read of the conditional-token
-     allowances (his, from Ireland); the monitor's freshness reading for `pm_lp_state` is built (`monitor/health.ts`
+     allowances: built on branch `pm-prego` (2026-10-09 01:06 section below), read after its deploy with
+     `GET agents?action=probe&only=polymarket&forceFunctionRegion=eu-west-1`, `polymarket.conditional.sellsApproved`
+     both true; the go-live audit's fixes and live-prep's Addendum 5 (`pm_live.ts` `a208878b…`) land with it; the monitor's freshness reading for `pm_lp_state` is built (`monitor/health.ts`
      `pmLp`, three minutes); then step 8lp, only where he says go. Not measured: the selection's CPU over about
      1,379 markets. **mid-pool** (`0081`/`0084`, `agents/pm_mid.ts`, `reviews/2026-10-02-polymarket-mid-pool-prereg.md`;
      day-1 check PASS 10-04): run `backtests/pmlive/mid_readout.sql` once at or after **2026-10-17 00:10 UTC** (wake
@@ -389,6 +391,14 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
+  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
+  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
+  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
+  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
+  7 days once archived. No new Edge call, no instance, no change to live-prep.
+
 ### [2026-10-09 01:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's go-live audit fixed, one commit each, branch `pm-prego`, not pushed** (the coordinator's batch, on
   Davies' "期间你再验证一下所有系统和下单等所有上线会用到的细节都确保没有问题"; nothing armed, no order sent).
@@ -421,19 +431,17 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     live turn now holds `heldFromBalance`: balance + our resting sells when that is at most what the CONFIRMED fills
     explain, else the balance (exact on either reading when fills agree; proof in its comment). Pinned in `pm_lp.test.ts`
     with the fake gross and net (`conditionalNetOfOrders`): one sell resting throughout, no flip, the same POSTs either
-    way; it fails on the net reading without the rule. Platform: Claude Code | Model: not recorded (session policy)
-    code are unchanged and pass. Platform: Claude Code | Model: not recorded (session policy)
-    Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code. Platform: Claude Code | Model: not recorded (session policy)
-    kept only once one is). Pinned in `pm_live.test.ts` (three tests). Platform: Claude Code | Model: not recorded (session policy)
-    read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)". Platform: Claude Code | Model: not recorded (session policy)
-    is not. Pinned in `pm_lp.test.ts` and `index.test.ts`. Platform: Claude Code | Model: not recorded (session policy)
-### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
-  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
-  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
-  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
-  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
-  7 days once archived. No new Edge call, no instance, no change to live-prep.
+    way; it fails on the net reading without the rule.
+  - **F2, the hash.** `pm_live.ts` is now sha256 `a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703`
+    (from `57f4b1d7…`, through A6/A7's `e933f28c…`). Live-prep's Addendum 5 and mid-pool's Addendum 6 (deviation 6)
+    name it and every change since, what each changes live, and the dry-run evidence (the frozen-code comparisons; all
+    217 `pm_*`/`polymarket*` Deno tests pass). `src/pm_live_hash.test.js` fails if `pm_live.ts` is not the bytes both
+    latest addenda name, so its next change needs an addendum first.
+- **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7
+  (twelve days +$1,167.04, stress +$289.96 against RW's +$123.31), x1–x3 7 of 7; RW-NEXT Part 1 names **RW-E**, which
+  goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
+  Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
+  outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
 
 ### [2026-10-09 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7
