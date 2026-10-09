@@ -264,9 +264,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      L4 the SW keeps the board in "data-api"; B1 no off-site database copy, B2 the `pm-rec` bucket unbacked
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
-   - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): landed
-     2026-10-09 (history 00:45): the board's first paint at 1:1 FX, T1, T2, M7 again, D1 (`0104`), A2, A3, A4, A6, A7,
-     the size budget. Follow-ups on `review-fixes`, not yet landed: A1 by the snap (history 00:46).
+   - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): landed 2026-10-09
+     (history 00:45): the board's first paint at 1:1 FX, T1, T2, M7 again, D1 (`0104`), A2, A3, A4, A6, A7, the size
+     budget. Follow-ups on `review-fixes`, not yet landed: A1 by the snap (history 00:46); tick.ts booking a pending
+     order the venue's history shows cancelled after a partial fill as a fill (history 00:51). Landing them: A1
+     changes a `_shared/` module, so every Edge Function redeploys (`bin/edge-changed.sh`); the tick fix is in
+     `agents`.
 
 ## Machine and platform setup
 
@@ -458,6 +461,25 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
   Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
   outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
+
+### [2026-10-09 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A pending live order the venue's history shows cancelled after a partial fill is booked as a fill** (batch 5's
+  follow-up; the finding A2's section reported; `agents/tick.ts`). The reconcile of a pending row (its reply lost)
+  from `findOrder` wrote the venue's state as it came, `cancelled` or `rejected` with its `filled_base` beside it. The
+  book reads filled and partially filled rows alone, so that fill was in no position, floor or P&L, nor after its turn
+  in the exposure, and the turn itself counted the whole buy as open. It is now written as the read-back of an open
+  order writes it: `filled`, with its fill, price, fee and `cancelled_at`, and closed for the turn. In a live turn:
+  nothing changes until a pending loop order is found in the venue's history closed after a partial fill; its fill
+  then enters the book at once. PR5's executor settles a history find through its own read-back (`settleFromView`),
+  which already books such a fill as `filled`. **Production read first (SELECT only, 10-09 about 00:40 UTC):**
+  `agent_orders` holds 30 rows, 2 live and 28 paper, every one `filled` with its fill; none is pending, cancelled,
+  rejected or partially filled, none was reconciled, none carries `cancelled_at`. PR5's `agent_quote_live_orders` has
+  no cancelled or rejected row with a fill (2,953 and 35 live rows, and the dry-run's 1,128 and 19), and none of its
+  78 live filled rows carries `cancelled_at`. No book is wrong today, and no data was touched. Pinned in
+  `tick.test.ts` (a history stub, `findOrder`): such an order, cancelled and rejected alike, leaves the row, the
+  position and the exposure exactly as the read-back of the same order does (`filled` 0.05 at 129.01, fee 0.03,
+  `cancelled_at`, long, $6.4595 of exposure); the old code wrote `cancelled`, read flat and counted $19.995. The
+  tick's 113 tests pass.
 
 ### [2026-10-09 00:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A sell that leaves only float residue closes the position** (review A1 by the snap, batch 5's follow-up;

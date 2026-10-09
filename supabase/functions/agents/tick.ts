@@ -934,14 +934,25 @@ async function turn(d: TickDeps, report: TickReport, nowIso: string, holder: str
           else if (!h.ok) report.errors.push(`${key}: order history ${h.error}`);
         }
         if (found) {
-          const booked = await settledBase(o, found.view, found.view.filledBase);
+          const v = found.view;
+          const booked = await settledBase(o, v, v.filledBase);
           if (!booked) { unreadable.add(o.id); holdInFlight(key, o.side); continue; }   // found, but not bookable yet: still pending
-          await d.db.update("agent_orders", `id=eq.${o.id}`, { state: found.view.state, venue_order_id: found.venueOrderId, filled_base: booked.base, avg_fill_price: found.view.avgPrice, fee_usd: found.view.feeUsd, filled_at: found.view.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, response: withFeeNote({ reconciled: true, view: found.view.raw }, found.view, booked.fromAccount), updated_at: nowIso });
-          report.settled.push({ id: o.id, state: `reconciled:${found.view.state}` });
+          // Cancelled or rejected after part of it filled (an IOC that took part of the ask) is a FILL of that part, booked as
+          // the read-back below books it: `filled`, with the cancel's time. Written in the venue's word, as it was until
+          // 2026-10-09, the fill was in no book, which reads filled and partially filled rows alone: not the position, the
+          // floor, the P&L or, after this turn, the exposure.
+          const closedWithFill = (v.state === "cancelled" || v.state === "rejected") && v.filledBase > 0;
+          const state = closedWithFill ? "filled" : v.state;
+          await d.db.update("agent_orders", `id=eq.${o.id}`, {
+            state, venue_order_id: found.venueOrderId, filled_base: booked.base, avg_fill_price: closedWithFill ? v.avgPrice ?? o.price : v.avgPrice,
+            fee_usd: v.feeUsd, filled_at: v.filledBase > 0 ? fillStamp(o, nowIso) : o.filled_at, ...(closedWithFill ? { cancelled_at: nowIso } : {}),
+            response: withFeeNote({ reconciled: true, view: v.raw }, v, booked.fromAccount), updated_at: nowIso,
+          });
+          report.settled.push({ id: o.id, state: `reconciled:${state}` });
           // Still working, its rest is what remains after this fill; filled, or closed with nothing filled, it is no longer an
-          // open buy (A2). One closed WITH a fill keeps its count as before: that fill is not in the book this turn reads.
-          if (found.view.state === "new" || found.view.state === "partially_filled") filledNow.set(o.id, booked.base);
-          else if (found.view.state === "filled" || !(booked.base > 0)) settledIds.add(o.id);
+          // open buy (A2).
+          if (state === "new" || state === "partially_filled") filledNow.set(o.id, booked.base);
+          else settledIds.add(o.id);
           holdInFlight(key, o.side);
           continue;
         }

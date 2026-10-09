@@ -66,8 +66,11 @@ function stubVenue(id: VenueId, o: {
   placeGate?: (req: LimitOrder) => PlaceResult | null;
   /** Give each accepted order its own venue id (`V-<n>`), for turns that place several live orders. */
   uniqueOrderIds?: boolean;
+  /** The venue's order history by client id (`findOrder`), for a pending row whose reply never landed; absent, no history. */
+  history?: Record<string, { venueOrderId: string; view: OrderView }>;
 }) {
   const calls: string[] = [];
+  const history = o.history;
   const v: Venue = {
     id, canTrade: o.canTrade, feeBps: o.feeBps,
     candles: (sym, iv) => {
@@ -95,6 +98,7 @@ function stubVenue(id: VenueId, o: {
     },
     balances: () => { calls.push("balances"); return Promise.resolve({ ...(o.balances ?? {}) }); },
     activeOrders: () => { calls.push("activeOrders"); return Promise.resolve({ ok: true as const, byClientId: o.active ?? {} }); },
+    ...(history ? { findOrder: (cid: string) => { calls.push(`findOrder ${cid}`); return Promise.resolve({ ok: true as const, found: history[cid] ?? null }); } } : {}),
   };
   return { v, calls };
 }
@@ -122,6 +126,8 @@ function world(opts: {
   revxCanTrade?: boolean; revxBalances?: Record<string, number>; revxOrderView?: OrderView; revxPlacedState?: "new" | "filled"; revxNoQuote?: boolean;
   revxPlaceGate?: (req: LimitOrder) => PlaceResult | null; revxUniqueOrderIds?: boolean;
   revxOrderReply?: VenueOrder;
+  /** Kraken's order history (`findOrder`), by client id. */
+  history?: Record<string, { venueOrderId: string; view: OrderView }>;
 } = {}) {
   const now = opts.now ?? NOW;
   const base = series();
@@ -130,7 +136,7 @@ function world(opts: {
   const m1start = Math.floor(now / ONE_M) * ONE_M - ONE_M;
   const c1m: Candle[] = [{ start: m1start, open: quote.bid, high: quote.bid + 0.05, low: quote.bid - 0.05, close: quote.bid, volume: 1, ...opts.oneMin }];
   const jevLog: string[] = [];
-  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, orderViews: opts.orderViews, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote, candlesDown: opts.krakenCandlesDown });
+  const kraken = stubVenue("kraken", { series: ser, c1m: opts.krakenMinutes ?? c1m, quote, feeBps: { maker: 40, taker: 80 }, canTrade: opts.canTrade ?? false, orderView: opts.orderView, orderViews: opts.orderViews, active: opts.active, onPlace: opts.onPlace, placedState: opts.placedState, noQuote: opts.krakenNoQuote, candlesDown: opts.krakenCandlesDown, history: opts.history });
   const revxQuote = opts.revxQuote ?? { bid: quote.bid + 0.02, ask: quote.ask + 0.02 };
   const revx = stubVenue("revx", { series: ser, c1m, quote: revxQuote, feeBps: { maker: 0, taker: 9 }, canTrade: opts.revxCanTrade ?? false, balances: opts.revxBalances, orderView: opts.revxOrderView, orderReply: opts.revxOrderReply, placedState: opts.revxPlacedState, noQuote: opts.revxNoQuote, placeGate: opts.revxPlaceGate, uniqueOrderIds: opts.revxUniqueOrderIds });
   // Binance as production builds it (`binancePaperVenue`): 10 bps a side, no key, its own touch a little off the others'.
@@ -608,6 +614,38 @@ Deno.test("a live order the venue cancelled after a partial fill settles as a fi
   const w2 = world({ strategies: [strategy({ mode: "live" })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, orders: [live], orderView: none });
   const r2 = await tick(w2.deps);
   assertEquals(r2.settled, [{ id: 4, state: "cancelled" }]);
+});
+
+Deno.test("a pending live order the venue's history shows cancelled after a partial fill is booked as the read-back books it", async () => {
+  // The reply never landed and the order is not resting; the venue's history says it closed with 0.05 of 0.155 filled. The
+  // old reconcile wrote the venue's word, `cancelled`, with the 0.05 beside it, and the book reads filled and partially
+  // filled rows alone: the coins were in no position, floor or P&L, and the turn counted the whole buy as open (old code:
+  // flat, $19.995 of exposure against $6.4595). Booked from the read-back of the same order, it is `filled` at 0.05, with
+  // the cancel's time; the reconcile must leave the row, the position and the exposure as that does.
+  const live = { strategies: [strategy({ mode: "live", symbols: ["BTC/USD", "ETH/USD"] })], canTrade: true, risk: { live_confirmed_at: "2026-09-20T00:00:00Z" }, series: { "BTC/USD": series(), "ETH/USD": series() } };
+  const order = (over: Partial<OrderRow> & Row) => seedOrder({ id: 7, mode: "live", client_order_id: "c7", price: 129, base_size: 0.155, ...over });
+  const outcome = async (w: ReturnType<typeof world>) => {
+    const r = await tick(w.deps);
+    const o = w.mem.tables.agent_orders.find((x) => x.id === 7)!;
+    const btc = w.mem.tables.agent_observations.find((x) => x.symbol === "BTC/USD");
+    const eth = w.mem.tables.agent_decisions.find((x) => x.symbol === "ETH/USD");
+    assert(btc && eth, [...r.skipped, ...r.errors].join("; "));
+    return {
+      settled: r.settled, row: [o.state, o.filled_base, o.avg_fill_price, o.fee_usd, o.filled_at, o.cancelled_at != null],
+      position: (btc!.state as { position: string }).position, exposureUsd: (eth!.numbers as { exposureUsd: number }).exposureUsd,
+    };
+  };
+  for (const state of ["cancelled", "rejected"] as const) {
+    const view: OrderView = { state, filledBase: 0.05, avgPrice: 129.01, feeUsd: 0.03, raw: { status: state, filled: "0.05" } };
+    const readBack = await outcome(world({ ...live, orders: [order({ state: "new", venue_order_id: "V-7" })], orderView: view }));
+    const reconciled = await outcome(world({ ...live, orders: [order({ state: "pending" })], active: {}, history: { c7: { venueOrderId: "V-7", view } } }));
+    assertEquals(readBack.settled, [{ id: 7, state: "filled" }]);
+    assertEquals(reconciled.settled, [{ id: 7, state: "reconciled:filled" }]);
+    assertEquals(reconciled.row, readBack.row);
+    assertEquals(reconciled.row.slice(0, 4), ["filled", 0.05, 129.01, 0.03]);
+    assertEquals([reconciled.position, readBack.position], ["long", "long"]);
+    assertAlmostEquals(reconciled.exposureUsd, readBack.exposureUsd, 1e-9);
+  }
 });
 
 Deno.test("no model answer means no entry: the rule's enter becomes a hold and nothing is placed", async () => {
