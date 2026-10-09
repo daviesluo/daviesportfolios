@@ -1,0 +1,70 @@
+{
+ "15m": {
+  "binance_spot_endpoints_agree": [
+   628,
+   670
+  ],
+  "binance_twap60_agrees_with_outcome": [
+   662,
+   670
+  ],
+  "config": "btc-15m-twap-60",
+  "fee_schedule": {
+   "exponent": 1,
+   "rate": 0.07,
+   "rebateRate": 0.2,
+   "takerOnly": true
+  },
+  "markets": 670,
+  "median_abs_move_bps": 6.86,
+  "median_volume_usd": 27474,
+  "priceToBeat_equals_previous_finalPrice": 668,
+  "resolution_delay_s_p50_p90_max": [
+   54.0,
+   87.0,
+   160.0
+  ],
+  "rewards_fields": [
+   50,
+   4.5,
+   false
+  ],
+  "share_abs_move_under_1bp": 0.1,
+  "up_share": 0.5045,
+  "volume_per_day_usd": 3991398
+ },
+ "5m": {
+  "binance_spot_endpoints_agree": [
+   1733,
+   2010
+  ],
+  "binance_twap60_agrees_with_outcome": [
+   1964,
+   2010
+  ],
+  "config": "btc-5m-twap-60",
+  "fee_schedule": {
+   "exponent": 1,
+   "rate": 0.07,
+   "rebateRate": 0.2,
+   "takerOnly": true
+  },
+  "markets": 2010,
+  "median_abs_move_bps": 3.9,
+  "median_volume_usd": 37175,
+  "priceToBeat_equals_previous_finalPrice": 2008,
+  "resolution_delay_s_p50_p90_max": [
+   54.0,
+   87.0,
+   162.0
+  ],
+  "rewards_fields": [
+   50,
+   4.5,
+   false
+  ],
+  "share_abs_move_under_1bp": 0.1527,
+  "up_share": 0.5104,
+  "volume_per_day_usd": 11280510
+ }
+}

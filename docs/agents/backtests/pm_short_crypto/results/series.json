@@ -1,0 +1,250 @@
+{
+ "series": [
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "btc-up-or-down-5m",
+   "volume24hr": 10900173
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "btc-up-or-down-15m",
+   "volume24hr": 4143328
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "btc-up-or-down-hourly",
+   "volume24hr": 650654
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "eth-up-or-down-5m",
+   "volume24hr": 452727
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "eth-up-or-down-15m",
+   "volume24hr": 339833
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "sol-up-or-down-5m",
+   "volume24hr": 142249
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "sol-up-or-down-15m",
+   "volume24hr": 138443
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "eth-up-or-down-hourly",
+   "volume24hr": 120753
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "xrp-up-or-down-15m",
+   "volume24hr": 109803
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "btc-up-or-down-4h",
+   "volume24hr": 107199
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "daily",
+   "slug": "btc-up-or-down-daily",
+   "volume24hr": 75973
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "xrp-up-or-down-5m",
+   "volume24hr": 50903
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "doge-up-or-down-15m",
+   "volume24hr": 49357
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "xrp-up-or-down-hourly",
+   "volume24hr": 47149
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "bnb-up-or-down-15m",
+   "volume24hr": 39401
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "daily",
+   "slug": "eth-up-or-down-daily",
+   "volume24hr": 37975
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "eth-up-or-down-4h",
+   "volume24hr": 27080
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "hype-up-or-down-15m",
+   "volume24hr": 25669
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "doge-up-or-down-5m",
+   "volume24hr": 20463
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "bnb-up-or-down-5m",
+   "volume24hr": 15970
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "bnb-up-or-down-hourly",
+   "volume24hr": 5619
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "sol-up-or-down-4h",
+   "volume24hr": 4074
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "doge-up-or-down-hourly",
+   "volume24hr": 3610
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "xrp-up-or-down-4h",
+   "volume24hr": 2328
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "hype-up-or-down-5m",
+   "volume24hr": 1656
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "bnb-up-or-down-4h",
+   "volume24hr": 1160
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "daily",
+   "slug": "xrp-up-or-down-daily",
+   "volume24hr": 922
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "hourly",
+   "slug": "hype-up-or-down-hourly",
+   "volume24hr": 777
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "doge-up-or-down-4h",
+   "volume24hr": 670
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "hype-up-or-down-4h",
+   "volume24hr": 223
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "daily",
+   "slug": "bnb-up-or-down-daily",
+   "volume24hr": 177
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "15m",
+   "slug": "zec-up-or-down-15m",
+   "volume24hr": 51
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "daily",
+   "slug": "hype-up-or-down-daily",
+   "volume24hr": 15
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "5m",
+   "slug": "zec-up-or-down-5m",
+   "volume24hr": 11
+  },
+  {
+   "active": true,
+   "closed": false,
+   "recurrence": "4h",
+   "slug": "zec-up-or-down-4h",
+   "volume24hr": 0
+  }
+ ],
+ "total_volume24hr": 17516395
+}

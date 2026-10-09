@@ -1,0 +1,90 @@
+{
+ "depth_usd_median": {
+  "15m": {
+   "book_records": 20697,
+   "down_ask_3_levels": 347,
+   "down_ask_touch": 39,
+   "one_tick_spread_share": 0.574,
+   "up_ask_3_levels": 659,
+   "up_ask_touch": 61
+  },
+  "5m": {
+   "book_records": 27467,
+   "down_ask_3_levels": 307,
+   "down_ask_touch": 36,
+   "one_tick_spread_share": 0.596,
+   "up_ask_3_levels": 345,
+   "up_ask_touch": 37
+  }
+ },
+ "move>=1.0bps|15m": {
+  "answered_1tick_within_10s": 181,
+  "events": 227,
+  "lat_1tick_s_p25_p50_p90": [
+   0.15,
+   0.365,
+   2.214
+  ],
+  "lat_2tick_s_p50": 0.599,
+  "not_answered": 46
+ },
+ "move>=1.0bps|5m": {
+  "answered_1tick_within_10s": 172,
+  "events": 213,
+  "lat_1tick_s_p25_p50_p90": [
+   0.136,
+   0.322,
+   2.218
+  ],
+  "lat_2tick_s_p50": 0.527,
+  "not_answered": 41
+ },
+ "move>=2.0bps|15m": {
+  "answered_1tick_within_10s": 45,
+  "events": 50,
+  "lat_1tick_s_p25_p50_p90": [
+   0.118,
+   0.344,
+   2.778
+  ],
+  "lat_2tick_s_p50": 0.406,
+  "not_answered": 5
+ },
+ "move>=2.0bps|5m": {
+  "answered_1tick_within_10s": 40,
+  "events": 45,
+  "lat_1tick_s_p25_p50_p90": [
+   0.136,
+   0.299,
+   1.983
+  ],
+  "lat_2tick_s_p50": 0.37,
+  "not_answered": 5
+ },
+ "move>=3.0bps|15m": {
+  "answered_1tick_within_10s": 13,
+  "events": 13,
+  "lat_1tick_s_p25_p50_p90": [
+   0.23,
+   0.319,
+   3.641
+  ],
+  "lat_2tick_s_p50": 0.387,
+  "not_answered": 0
+ },
+ "move>=3.0bps|5m": {
+  "answered_1tick_within_10s": 10,
+  "events": 11,
+  "lat_1tick_s_p25_p50_p90": [
+   0.335,
+   0.735,
+   3.641
+  ],
+  "lat_2tick_s_p50": 1.016,
+  "not_answered": 1
+ },
+ "touch_price_changes_per_minute_median": {
+  "15m": 34.2,
+  "5m": 73.2
+ }
+}

@@ -1,0 +1,203 @@
+{
+ "committed": {
+  "data/binance_btcusdt_1s.json.gz": {
+   "bytes": 537740,
+   "sha256": "25e10127b5793ae365bf1e60d8b178e593e15374081d435003747b99c8070ec2"
+  },
+  "data/live/binance_1s.json.gz": {
+   "bytes": 8699,
+   "sha256": "ece79ab69c051da15cf1a81a43b81809464ab7b92b4615b5bfd43a5186a60443"
+  },
+  "data/live/clob.jsonl.gz": {
+   "bytes": 2532138,
+   "sha256": "c736f1d37df36e74cbec234e67d23ebe374c62301e6dad1090b365bdd0d1bd4d"
+  },
+  "data/live/outcomes.json": {
+   "bytes": 7973,
+   "sha256": "f0ab065450fcf4658ed8c2c74f9fd1b6914dc61a95cc521a516ca703c1503016"
+  },
+  "data/live/ref.jsonl.gz": {
+   "bytes": 945365,
+   "sha256": "1c0418b03f9f8c5ca3178ce8892129041234253c4117c529e80fc063e42a984a"
+  },
+  "data/live/ref2.jsonl.gz": {
+   "bytes": 173193,
+   "sha256": "b58c5c50e9452ea379d236ad2bbab16cfd81fd9b1310c3e62dfb4c6725d5951d"
+  },
+  "data/markets_7d.json": {
+   "bytes": 2047031,
+   "sha256": "8110f8388f0686313b47baa3b1abe7d3026b2525e8cb910e089a28e1d8b4d20c"
+  },
+  "data/prints_2d.json.gz": {
+   "bytes": 5478792,
+   "sha256": "d4723a2cefd70b9efdc03ec9b2a50f2701cc6cd49d5d5ca723cc56eb4091bcaa"
+  },
+  "results/h0_resolution.json": {
+   "bytes": 1218,
+   "sha256": "d5f6317569750ab9a06c5debf2826e095a6a1b9882b56d5244ee061c723b62cf"
+  },
+  "results/h1_model_fit.json": {
+   "bytes": 2895,
+   "sha256": "cd7c07802c5dbb183f8a95a85a9f76f5a46e1079cb055bdb1576edc71cee0dc0"
+  },
+  "results/h2_prints.json": {
+   "bytes": 5769,
+   "sha256": "531b7a9e38abe129db535aafa6b7ff80275d53aec013f20499678543cda5590e"
+  },
+  "results/h3_edge_lag.json": {
+   "bytes": 15215,
+   "sha256": "379d02ff6a68d465756f1d89476d451a29e06c790131d592a60467c656bd8569"
+  },
+  "results/h4_who_takes.json": {
+   "bytes": 4561,
+   "sha256": "ea43fb864e0209f896b3e28778333c323b8bf0c3713bf308603a8196102173eb"
+  },
+  "results/h5_price_buckets.json": {
+   "bytes": 6784,
+   "sha256": "60a0e0a8ad85855e30c290f8d62826fe5671dac4280a4064bcce85799fe97cb0"
+  },
+  "results/h6_hedge_and_pool.json": {
+   "bytes": 2638,
+   "sha256": "fd93d3e32d51193d6503529dd4fb9a783b955e21c83bf708b7e8014d87b21449"
+  },
+  "results/h7_brier.json": {
+   "bytes": 1448,
+   "sha256": "1987ca25687c18dd9beb6766c45c580d00ceac97f488911ba14e08e212bd41be"
+  },
+  "results/l1_leadlag.json": {
+   "bytes": 20986,
+   "sha256": "6d2efa0838841633c6bbf64e3aef3cea4a6f1a251d8c242271f11a6b5483a474"
+  },
+  "results/l2_opportunities_bf.json": {
+   "bytes": 14570,
+   "sha256": "5774d8c1bbc6b062ffed320d2e0fff12faba4aafa56c10cdd7fb41c9f0f3dd81"
+  },
+  "results/l2_opportunities_cb.json": {
+   "bytes": 14729,
+   "sha256": "e3c13307b3558b7a8c4767e7291c4d1317cc3af00827029184410dbdc76c7978"
+  },
+  "results/l3_maker_bf.json": {
+   "bytes": 4898,
+   "sha256": "1d35e4defe741668f4a5a0df1d90a25c7016f636ae9504b5e8e1e544c95c49bb"
+  },
+  "results/l3_maker_cb.json": {
+   "bytes": 4997,
+   "sha256": "76ad6c08a96cac65d95375159b04d9df924cf9db7ba1d35277ad35135efee71f"
+  },
+  "results/l4_response.json": {
+   "bytes": 1609,
+   "sha256": "0333d5057391d3368e6a054f320567e7d28d62b1425564a340fa653e1efa94bb"
+  },
+  "results/rewards_current.json": {
+   "bytes": 119,
+   "sha256": "65af47d4c9634336bf2bd5f53f9384682186ae75e6b06fdcd41c60033ad9ecdd"
+  },
+  "results/series.json": {
+   "bytes": 4546,
+   "sha256": "f66df143aed2eb15a519da96c9208e0041f8bec576f2f51d03843e8e81aa374a"
+  },
+  "scripts/h0_resolution.py": {
+   "bytes": 2333,
+   "sha256": "d25909a2a76e60e0077b572e7d6e05c9fb0fcdcc754e0f66cc427efe7099c0a4"
+  },
+  "scripts/h1_model_fit.py": {
+   "bytes": 2385,
+   "sha256": "07c1ed86b09fca5954f79797b10f751c7f1f748aa239b935ec6002930c28d8d3"
+  },
+  "scripts/h2_prints.py": {
+   "bytes": 3213,
+   "sha256": "fd9b3b62f9715a2d63abe39dd23cd9530b33d0cdcbd081c5dc19f11089d1955a"
+  },
+  "scripts/h3_edge_lag.py": {
+   "bytes": 2004,
+   "sha256": "57089c9ef48922e3dda538338e61173a1ac0cc3437255c1dea3f6a96fcd410b3"
+  },
+  "scripts/h4_who_takes.py": {
+   "bytes": 3195,
+   "sha256": "bdeac5b15fde8df694da6d456098455cf62cad521141772186e41c53ca247697"
+  },
+  "scripts/h5_price_buckets.py": {
+   "bytes": 1732,
+   "sha256": "24c1f06354ff8cb8c73bc8ea0a2dfcdb267451f39d1232412e8b54e58d62f9d6"
+  },
+  "scripts/h6_hedge_and_pool.py": {
+   "bytes": 2061,
+   "sha256": "9acef3bdc605b49986201365d653f4a752ec0cfe2870ee688afdee33bbfeabaf"
+  },
+  "scripts/h7_brier.py": {
+   "bytes": 1799,
+   "sha256": "b41449ce7546abbc6e068b42560f4438e15cc669046ff6e80217b3b68ca03eed"
+  },
+  "scripts/l1_leadlag.py": {
+   "bytes": 4561,
+   "sha256": "af12d6b3525d5d1975ce43f0f98ad8c6c675d8cd3b008a485565762bf7c9abfb"
+  },
+  "scripts/l2_opportunities.py": {
+   "bytes": 11101,
+   "sha256": "b3a03504395a340497a80aa5e72837a7ac21dcb286efe7a4512b2a8dde48bc7d"
+  },
+  "scripts/l3_maker.py": {
+   "bytes": 6307,
+   "sha256": "c788748b8534c4703dd0c8fa43b9a6d68dc39d03523d6a9a92a1e2ce3a9ab2aa"
+  },
+  "scripts/l4_response.py": {
+   "bytes": 4069,
+   "sha256": "d3e609675e4c9efc76a4d345d2eab2e402781040b461a1f3f6bb110b0c83c335"
+  },
+  "scripts/model.py": {
+   "bytes": 2396,
+   "sha256": "4e4f0e14a7806adbe6e4cf6146d6a908b3a68aed5e2059607eada3a8d352f908"
+  },
+  "scripts/pull_binance_1s.py": {
+   "bytes": 1242,
+   "sha256": "37e934818ebb0a84426a1feb17cb93a12ff88b3bbbc60decb53fe68fdb14807d"
+  },
+  "scripts/pull_markets.py": {
+   "bytes": 2180,
+   "sha256": "4d97b176a976125a89c35cb6fd58a6282a998724bb96b0a7e4547bd80c1af062"
+  },
+  "scripts/pull_outcomes.py": {
+   "bytes": 906,
+   "sha256": "e51690fde8049050044abb3747589a34e279eb17bbf448832b967ab0d6960146"
+  },
+  "scripts/pull_prints.py": {
+   "bytes": 1583,
+   "sha256": "bbe1b8499bb952771ef13142c12436246a644fbe798ba757a9106723381a9cff"
+  },
+  "scripts/pull_rewards.py": {
+   "bytes": 1507,
+   "sha256": "e59a24124a07e5b2ab1d1e58e03d133f380bd0e20d6670a08ebceaa40ebacba1"
+  },
+  "scripts/pull_series.py": {
+   "bytes": 920,
+   "sha256": "2501b7b9cb00e8a668cd195656ecc34358e5c8942a8933d7cccfec77d6f3ccfc"
+  },
+  "scripts/recorder.py": {
+   "bytes": 10092,
+   "sha256": "8b29a664e0290e3167ac972dfd5f74d59cc126bbedb1f5ca0dc42518ebb95d6c"
+  },
+  "scripts/recorder2.py": {
+   "bytes": 2895,
+   "sha256": "29a723853429d8fee4944264394c8c1b9e5f7e825de74e81342aa2a88dd9a4b5"
+  },
+  "scripts/run_all.sh": {
+   "bytes": 1967,
+   "sha256": "4644f5740400c0796fa5cd71832da0201129c9711d62ff9b37dcde82f50c34d0"
+  }
+ },
+ "rerun": "sh scripts/run_all.sh (no network): rewrites every results/*.json but h4_who_takes, rewards_current and series byte for byte from the committed inputs",
+ "sources": {
+  "data/binance_btcusdt_1s.json.gz": "pull_binance_1s.py 1790966400 1791573600: data-api.binance.vision 1 s klines, BTCUSDT",
+  "data/live/binance_1s.json.gz": "pull_binance_1s.py 1791572400 1791586000: the live span's 1 s klines (the model's variance)",
+  "data/live/clob.jsonl.gz": "recorder.py ... clob: Polymarket market WebSocket, segment A 19:38:46-21:06:20 UTC, segment B 21:09:50-22:44:50 UTC (the gap is the container's restart)",
+  "data/live/outcomes.json": "pull_outcomes.py: Gamma priceToBeat, finalPrice and outcome of every recorded window, read 2026-10-09 ~22:50 UTC",
+  "data/live/ref.jsonl.gz": "recorder.py ... ref: RTDS Chainlink + Binance, Coinbase ticker, Kraken BBO; same two segments",
+  "data/live/ref2.jsonl.gz": "recorder2.py: Binance spot and USD-M perp bookTicker, Hyperliquid BBO and asset context; 20:03:18-21:06:20 and 21:09:51-22:44:51 UTC",
+  "data/markets_7d.json": "pull_markets.py 1791572400 7: Gamma, the 2,016 5m and 672 15m BTC windows ending by 2026-10-09 19:00 UTC",
+  "data/prints_2d.json.gz": "pull_prints.py markets_7d.json 1791399600 1791572400: data-api /v2/trades, every taker print of the 768 windows starting 10-07 19:00 to 10-09 19:00 UTC",
+  "results/h4_who_takes.json": "h4_who_takes.py: re-reads 96 markets' prints with wallets (hashed before writing)",
+  "results/rewards_current.json": "the code now in pull_rewards.py, run inline at ~19:50 UTC (the script was saved from it afterwards and not re-run): clob /rewards/markets/current against 61 BTC up/down condition ids",
+  "results/series.json": "pull_series.py: Gamma series 24 h volumes, read 2026-10-09 ~19:50 UTC"
+ },
+ "study": "PMSC: Polymarket's BTC 5- and 15-minute Up-or-Down markets against the BTC venues (reviews/2026-10-09-pm-short-crypto.md)"
+}

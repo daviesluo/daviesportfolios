@@ -1,0 +1,320 @@
+{
+ "btc-updown-15m-1791574200": {
+  "finalPrice": 82339.57807915178,
+  "priceToBeat": 82388.40821637164,
+  "up_won": false,
+  "volume": 16004.961936000007
+ },
+ "btc-updown-15m-1791575100": {
+  "finalPrice": 82256.69643767456,
+  "priceToBeat": 82339.57807915178,
+  "up_won": false,
+  "volume": 14120.920071000017
+ },
+ "btc-updown-15m-1791576000": {
+  "finalPrice": 82347.80504561026,
+  "priceToBeat": 82256.69643767456,
+  "up_won": true,
+  "volume": 17451.724995999997
+ },
+ "btc-updown-15m-1791576900": {
+  "finalPrice": 82318.38679581753,
+  "priceToBeat": 82347.80504561026,
+  "up_won": false,
+  "volume": 24992.06924699997
+ },
+ "btc-updown-15m-1791577800": {
+  "finalPrice": 82324.84155602081,
+  "priceToBeat": 82318.38679581753,
+  "up_won": true,
+  "volume": 39910.69993799998
+ },
+ "btc-updown-15m-1791578700": {
+  "finalPrice": 82436.80397898536,
+  "priceToBeat": 82324.84155602081,
+  "up_won": true,
+  "volume": 18178.919037999996
+ },
+ "btc-updown-15m-1791579600": {
+  "finalPrice": 82505.7489623661,
+  "priceToBeat": 82436.80397898536,
+  "up_won": true,
+  "volume": 15644.341861000006
+ },
+ "btc-updown-15m-1791580500": {
+  "finalPrice": 82512.99764419101,
+  "priceToBeat": 82505.7489623661,
+  "up_won": true,
+  "volume": 187619.20876700018
+ },
+ "btc-updown-15m-1791581400": {
+  "finalPrice": 82472.50251805791,
+  "priceToBeat": 82512.99764419101,
+  "up_won": false,
+  "volume": 55720.739259999966
+ },
+ "btc-updown-15m-1791582300": {
+  "finalPrice": 82464.9879919323,
+  "priceToBeat": 82472.50251805791,
+  "up_won": false,
+  "volume": 340267.9440090001
+ },
+ "btc-updown-15m-1791583200": {
+  "finalPrice": 82376.85215677964,
+  "priceToBeat": 82464.9879919323,
+  "up_won": false,
+  "volume": 21280.546406000016
+ },
+ "btc-updown-15m-1791584100": {
+  "finalPrice": null,
+  "priceToBeat": 82376.85215677964,
+  "up_won": true,
+  "volume": 21453.43950800001
+ },
+ "btc-updown-15m-1791585000": {
+  "finalPrice": null,
+  "priceToBeat": null,
+  "up_won": null,
+  "volume": 7063.3436409999995
+ },
+ "btc-updown-15m-1791585900": {
+  "finalPrice": null,
+  "priceToBeat": null,
+  "up_won": null,
+  "volume": 11.803922
+ },
+ "btc-updown-5m-1791574500": {
+  "finalPrice": 82328.93624616094,
+  "priceToBeat": 82380.04022718954,
+  "up_won": false,
+  "volume": 36633.38663600001
+ },
+ "btc-updown-5m-1791574800": {
+  "finalPrice": 82339.57807915178,
+  "priceToBeat": 82328.93624616094,
+  "up_won": true,
+  "volume": 54673.300490999995
+ },
+ "btc-updown-5m-1791575100": {
+  "finalPrice": 82273.01837242303,
+  "priceToBeat": 82339.57807915178,
+  "up_won": false,
+  "volume": 55320.01464000002
+ },
+ "btc-updown-5m-1791575400": {
+  "finalPrice": 82281.7588157671,
+  "priceToBeat": 82273.01837242303,
+  "up_won": true,
+  "volume": 55278.84605600001
+ },
+ "btc-updown-5m-1791575700": {
+  "finalPrice": 82256.69643767456,
+  "priceToBeat": 82281.7588157671,
+  "up_won": false,
+  "volume": 47115.737211000065
+ },
+ "btc-updown-5m-1791576000": {
+  "finalPrice": 82254.52262516045,
+  "priceToBeat": 82256.69643767456,
+  "up_won": false,
+  "volume": 82744.73670200004
+ },
+ "btc-updown-5m-1791576300": {
+  "finalPrice": 82268.73504485251,
+  "priceToBeat": 82254.52262516045,
+  "up_won": true,
+  "volume": 46681.67262499998
+ },
+ "btc-updown-5m-1791576600": {
+  "finalPrice": 82347.80504561026,
+  "priceToBeat": 82268.73504485251,
+  "up_won": true,
+  "volume": 41002.10345200003
+ },
+ "btc-updown-5m-1791576900": {
+  "finalPrice": 82333.19015477144,
+  "priceToBeat": 82347.80504561026,
+  "up_won": false,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791577200": {
+  "finalPrice": 82352.37337214286,
+  "priceToBeat": 82333.19015477144,
+  "up_won": true,
+  "volume": 41315.76516
+ },
+ "btc-updown-5m-1791577500": {
+  "finalPrice": 82318.38679581753,
+  "priceToBeat": 82352.37337214286,
+  "up_won": false,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791577800": {
+  "finalPrice": 82313.435995117,
+  "priceToBeat": 82318.38679581753,
+  "up_won": false,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791578100": {
+  "finalPrice": 82327.20736598552,
+  "priceToBeat": 82313.435995117,
+  "up_won": true,
+  "volume": 33510.69236400001
+ },
+ "btc-updown-5m-1791578400": {
+  "finalPrice": 82324.84155602081,
+  "priceToBeat": 82327.20736598552,
+  "up_won": false,
+  "volume": 45766.61932999998
+ },
+ "btc-updown-5m-1791578700": {
+  "finalPrice": 82420.4122559269,
+  "priceToBeat": 82324.84155602081,
+  "up_won": true,
+  "volume": 21051.76390300001
+ },
+ "btc-updown-5m-1791579000": {
+  "finalPrice": 82424.65912963708,
+  "priceToBeat": 82420.4122559269,
+  "up_won": true,
+  "volume": 38701.00798299992
+ },
+ "btc-updown-5m-1791579300": {
+  "finalPrice": 82436.80397898536,
+  "priceToBeat": 82424.65912963708,
+  "up_won": true,
+  "volume": 34109.503414999985
+ },
+ "btc-updown-5m-1791579600": {
+  "finalPrice": 82480.51986785284,
+  "priceToBeat": 82436.80397898536,
+  "up_won": true,
+  "volume": 38880.652381999986
+ },
+ "btc-updown-5m-1791579900": {
+  "finalPrice": 82498.26844971003,
+  "priceToBeat": 82480.51986785284,
+  "up_won": true,
+  "volume": 32156.46126000002
+ },
+ "btc-updown-5m-1791580200": {
+  "finalPrice": 82505.7489623661,
+  "priceToBeat": 82498.26844971003,
+  "up_won": true,
+  "volume": 32358.56853399999
+ },
+ "btc-updown-5m-1791580500": {
+  "finalPrice": 82503.92859195294,
+  "priceToBeat": 82505.7489623661,
+  "up_won": false,
+  "volume": 43510.91497600003
+ },
+ "btc-updown-5m-1791580800": {
+  "finalPrice": 82499.33735632576,
+  "priceToBeat": 82503.92859195294,
+  "up_won": false,
+  "volume": 87869.28183099988
+ },
+ "btc-updown-5m-1791581100": {
+  "finalPrice": 82512.99764419101,
+  "priceToBeat": 82499.33735632576,
+  "up_won": true,
+  "volume": 54390.94183699999
+ },
+ "btc-updown-5m-1791581400": {
+  "finalPrice": 82497.62245644731,
+  "priceToBeat": 82512.99764419101,
+  "up_won": false,
+  "volume": 28306.529550000014
+ },
+ "btc-updown-5m-1791581700": {
+  "finalPrice": 82481.22778534336,
+  "priceToBeat": 82497.62245644731,
+  "up_won": false,
+  "volume": 37758.11274099999
+ },
+ "btc-updown-5m-1791582000": {
+  "finalPrice": 82472.50251805791,
+  "priceToBeat": 82481.22778534336,
+  "up_won": false,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791582300": {
+  "finalPrice": 82462.57445349371,
+  "priceToBeat": 82472.50251805791,
+  "up_won": false,
+  "volume": 106189.92976299986
+ },
+ "btc-updown-5m-1791582600": {
+  "finalPrice": 82460.34133667173,
+  "priceToBeat": 82462.57445349371,
+  "up_won": false,
+  "volume": 35996.05724800001
+ },
+ "btc-updown-5m-1791582900": {
+  "finalPrice": 82464.9879919323,
+  "priceToBeat": 82460.34133667173,
+  "up_won": true,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791583200": {
+  "finalPrice": 82384.02034740287,
+  "priceToBeat": 82464.9879919323,
+  "up_won": false,
+  "volume": 31560.549272999993
+ },
+ "btc-updown-5m-1791583500": {
+  "finalPrice": 82417.70006583193,
+  "priceToBeat": 82384.02034740287,
+  "up_won": true,
+  "volume": 20599.286126999996
+ },
+ "btc-updown-5m-1791583800": {
+  "finalPrice": 82376.85215677964,
+  "priceToBeat": 82417.70006583193,
+  "up_won": false,
+  "volume": 23533.779743999992
+ },
+ "btc-updown-5m-1791584100": {
+  "finalPrice": 82457.27778503399,
+  "priceToBeat": 82376.85215677964,
+  "up_won": true,
+  "volume": 18379.987271000005
+ },
+ "btc-updown-5m-1791584400": {
+  "finalPrice": 82453.21418411502,
+  "priceToBeat": 82457.27778503399,
+  "up_won": false,
+  "volume": 33476.566470000005
+ },
+ "btc-updown-5m-1791584700": {
+  "finalPrice": 82448.25136974189,
+  "priceToBeat": 82453.21418411502,
+  "up_won": false,
+  "volume": 35676.60663199999
+ },
+ "btc-updown-5m-1791585000": {
+  "finalPrice": 82523.18865011375,
+  "priceToBeat": 82448.25136974189,
+  "up_won": true,
+  "volume": 26210.953582
+ },
+ "btc-updown-5m-1791585300": {
+  "finalPrice": null,
+  "priceToBeat": 82523.18865011375,
+  "up_won": true,
+  "volume": 2164.1507800000004
+ },
+ "btc-updown-5m-1791585600": {
+  "finalPrice": null,
+  "priceToBeat": 82559.1156841442,
+  "up_won": null,
+  "volume": 0.0
+ },
+ "btc-updown-5m-1791585900": {
+  "finalPrice": null,
+  "priceToBeat": null,
+  "up_won": null,
+  "volume": 0.0
+ }
+}

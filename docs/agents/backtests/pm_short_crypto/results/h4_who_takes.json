@@ -1,0 +1,208 @@
+{
+ "cheap_shares_total": 433677,
+ "markets": 96,
+ "taker_wallets": 6169,
+ "top20_by_cheap_shares": [
+  {
+   "all_pnl_usd": -262,
+   "all_shares": 217331,
+   "cheap_pnl_usd": 950,
+   "cheap_share_of_all_cheap": 0.0759,
+   "cheap_shares": 32927,
+   "cumulative": 0.0759,
+   "prints": 5459,
+   "wallet_sha10": "817f5da1f5"
+  },
+  {
+   "all_pnl_usd": 31,
+   "all_shares": 141221,
+   "cheap_pnl_usd": 900,
+   "cheap_share_of_all_cheap": 0.046,
+   "cheap_shares": 19952,
+   "cumulative": 0.1219,
+   "prints": 3306,
+   "wallet_sha10": "62e0aa1c47"
+  },
+  {
+   "all_pnl_usd": -1113,
+   "all_shares": 97067,
+   "cheap_pnl_usd": -323,
+   "cheap_share_of_all_cheap": 0.0318,
+   "cheap_shares": 13788,
+   "cumulative": 0.1537,
+   "prints": 2022,
+   "wallet_sha10": "c2130c1591"
+  },
+  {
+   "all_pnl_usd": 1068,
+   "all_shares": 90524,
+   "cheap_pnl_usd": 605,
+   "cheap_share_of_all_cheap": 0.0291,
+   "cheap_shares": 12600,
+   "cumulative": 0.1828,
+   "prints": 1525,
+   "wallet_sha10": "17a17fbdd2"
+  },
+  {
+   "all_pnl_usd": 508,
+   "all_shares": 60064,
+   "cheap_pnl_usd": -30,
+   "cheap_share_of_all_cheap": 0.0205,
+   "cheap_shares": 8893,
+   "cumulative": 0.2033,
+   "prints": 1237,
+   "wallet_sha10": "8b1fbff52b"
+  },
+  {
+   "all_pnl_usd": 83,
+   "all_shares": 51181,
+   "cheap_pnl_usd": -340,
+   "cheap_share_of_all_cheap": 0.0132,
+   "cheap_shares": 5728,
+   "cumulative": 0.2165,
+   "prints": 3195,
+   "wallet_sha10": "70deeaf48c"
+  },
+  {
+   "all_pnl_usd": 361,
+   "all_shares": 15998,
+   "cheap_pnl_usd": -267,
+   "cheap_share_of_all_cheap": 0.0123,
+   "cheap_shares": 5326,
+   "cumulative": 0.2288,
+   "prints": 1791,
+   "wallet_sha10": "e92bcd2533"
+  },
+  {
+   "all_pnl_usd": 482,
+   "all_shares": 44562,
+   "cheap_pnl_usd": 525,
+   "cheap_share_of_all_cheap": 0.0122,
+   "cheap_shares": 5276,
+   "cumulative": 0.2409,
+   "prints": 2091,
+   "wallet_sha10": "5e1abab326"
+  },
+  {
+   "all_pnl_usd": 269,
+   "all_shares": 44306,
+   "cheap_pnl_usd": 112,
+   "cheap_share_of_all_cheap": 0.0112,
+   "cheap_shares": 4838,
+   "cumulative": 0.2521,
+   "prints": 603,
+   "wallet_sha10": "896cd09825"
+  },
+  {
+   "all_pnl_usd": -905,
+   "all_shares": 38746,
+   "cheap_pnl_usd": 33,
+   "cheap_share_of_all_cheap": 0.0097,
+   "cheap_shares": 4210,
+   "cumulative": 0.2618,
+   "prints": 613,
+   "wallet_sha10": "c9a8f55f0f"
+  },
+  {
+   "all_pnl_usd": 34,
+   "all_shares": 43685,
+   "cheap_pnl_usd": -308,
+   "cheap_share_of_all_cheap": 0.0091,
+   "cheap_shares": 3963,
+   "cumulative": 0.2709,
+   "prints": 629,
+   "wallet_sha10": "ed4df892b9"
+  },
+  {
+   "all_pnl_usd": 965,
+   "all_shares": 27919,
+   "cheap_pnl_usd": 151,
+   "cheap_share_of_all_cheap": 0.0081,
+   "cheap_shares": 3514,
+   "cumulative": 0.279,
+   "prints": 912,
+   "wallet_sha10": "2dc1111776"
+  },
+  {
+   "all_pnl_usd": 198,
+   "all_shares": 6478,
+   "cheap_pnl_usd": 63,
+   "cheap_share_of_all_cheap": 0.0081,
+   "cheap_shares": 3510,
+   "cumulative": 0.2871,
+   "prints": 566,
+   "wallet_sha10": "eda7d21998"
+  },
+  {
+   "all_pnl_usd": 3240,
+   "all_shares": 61065,
+   "cheap_pnl_usd": 1148,
+   "cheap_share_of_all_cheap": 0.008,
+   "cheap_shares": 3491,
+   "cumulative": 0.2952,
+   "prints": 48,
+   "wallet_sha10": "21e9480c52"
+  },
+  {
+   "all_pnl_usd": -1122,
+   "all_shares": 40027,
+   "cheap_pnl_usd": 231,
+   "cheap_share_of_all_cheap": 0.0079,
+   "cheap_shares": 3421,
+   "cumulative": 0.3031,
+   "prints": 670,
+   "wallet_sha10": "f0ca2edc1e"
+  },
+  {
+   "all_pnl_usd": -37,
+   "all_shares": 18758,
+   "cheap_pnl_usd": -31,
+   "cheap_share_of_all_cheap": 0.0078,
+   "cheap_shares": 3376,
+   "cumulative": 0.3109,
+   "prints": 422,
+   "wallet_sha10": "6ddc05e48d"
+  },
+  {
+   "all_pnl_usd": 2,
+   "all_shares": 18560,
+   "cheap_pnl_usd": 143,
+   "cheap_share_of_all_cheap": 0.0076,
+   "cheap_shares": 3278,
+   "cumulative": 0.3184,
+   "prints": 348,
+   "wallet_sha10": "a689acb835"
+  },
+  {
+   "all_pnl_usd": -132,
+   "all_shares": 10963,
+   "cheap_pnl_usd": 134,
+   "cheap_share_of_all_cheap": 0.0075,
+   "cheap_shares": 3273,
+   "cumulative": 0.326,
+   "prints": 143,
+   "wallet_sha10": "035f25cad9"
+  },
+  {
+   "all_pnl_usd": 684,
+   "all_shares": 15858,
+   "cheap_pnl_usd": -317,
+   "cheap_share_of_all_cheap": 0.0065,
+   "cheap_shares": 2807,
+   "cumulative": 0.3324,
+   "prints": 365,
+   "wallet_sha10": "6d48029be6"
+  },
+  {
+   "all_pnl_usd": -828,
+   "all_shares": 19007,
+   "cheap_pnl_usd": -1276,
+   "cheap_share_of_all_cheap": 0.0062,
+   "cheap_shares": 2672,
+   "cumulative": 0.3386,
+   "prints": 64,
+   "wallet_sha10": "c9b3706e16"
+  }
+ ],
+ "wallets_with_any_cheap_print": 2924
+}

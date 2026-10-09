@@ -449,6 +449,12 @@ first.
   Revolut X since 11-26 it made a fifth as much, but led since 08-24. A forward paper pre-registration is drafted, not
   frozen. No production read; nothing traded.
 
+### [2026-10-09 22:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PMSC, Polymarket's BTC 5m/15m up/down** (Davies: "polymarket的5分钟比特币涨跌…有套利空间吗", "加上Binance和Hyperliquid"):
+  `reviews/2026-10-09-pm-short-crypto.md`, `backtests/pm_short_crypto/` (map row). Keyless only; nothing placed. **No edge
+  we can take**: the book trails Binance/Coinbase by ~0.4 s and a cheap ask is hit in 0.14 s; taker markouts turn
+  negative from 0.25–0.5 s, a 1 s maker loses, a spot/perp hedge needs ~1,400× the stake; no reward pool. Nothing frozen.
+
 ### [2026-10-09 18:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STATARB-2, the second stat-arb search** (Davies: "除了这三个还有别的好的吗？还有别的统计套利吗？而且不一定要和现有策略类似的"):
   `reviews/2026-10-09-stat-arb-search-2.md`, evidence `backtests/statarb_search2/` (map row). Keyless public data only;

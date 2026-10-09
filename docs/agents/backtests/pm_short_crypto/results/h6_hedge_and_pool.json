@@ -1,0 +1,93 @@
+{
+ "hedge": {
+  "15m|tau450s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 1.97,
+   "btc_notional_usd": 60489,
+   "one_rebalance_cost_usd_revx": 54.44,
+   "sd_of_settlement_move_bps": 13.19
+  },
+  "15m|tau450s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 1.97,
+   "btc_notional_usd": 604894,
+   "one_rebalance_cost_usd_revx": 544.4,
+   "sd_of_settlement_move_bps": 13.19
+  },
+  "15m|tau60s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 8.92,
+   "btc_notional_usd": 273877,
+   "one_rebalance_cost_usd_revx": 246.49,
+   "sd_of_settlement_move_bps": 2.91
+  },
+  "15m|tau60s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 8.92,
+   "btc_notional_usd": 2738773,
+   "one_rebalance_cost_usd_revx": 2464.9,
+   "sd_of_settlement_move_bps": 2.91
+  },
+  "15m|tau900s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 1.36,
+   "btc_notional_usd": 41766,
+   "one_rebalance_cost_usd_revx": 37.59,
+   "sd_of_settlement_move_bps": 19.1
+  },
+  "15m|tau900s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 1.36,
+   "btc_notional_usd": 417659,
+   "one_rebalance_cost_usd_revx": 375.89,
+   "sd_of_settlement_move_bps": 19.1
+  },
+  "5m|tau150s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 3.8,
+   "btc_notional_usd": 139581,
+   "one_rebalance_cost_usd_revx": 125.62,
+   "sd_of_settlement_move_bps": 5.72
+  },
+  "5m|tau150s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 3.8,
+   "btc_notional_usd": 1395808,
+   "one_rebalance_cost_usd_revx": 1256.23,
+   "sd_of_settlement_move_bps": 5.72
+  },
+  "5m|tau300s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 2.47,
+   "btc_notional_usd": 90789,
+   "one_rebalance_cost_usd_revx": 81.71,
+   "sd_of_settlement_move_bps": 8.79
+  },
+  "5m|tau300s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 2.47,
+   "btc_notional_usd": 907894,
+   "one_rebalance_cost_usd_revx": 817.11,
+   "sd_of_settlement_move_bps": 8.79
+  },
+  "5m|tau60s|$100": {
+   "a_1sd_1s_move_shifts_price_c": 8.92,
+   "btc_notional_usd": 327346,
+   "one_rebalance_cost_usd_revx": 294.61,
+   "sd_of_settlement_move_bps": 2.44
+  },
+  "5m|tau60s|$1000": {
+   "a_1sd_1s_move_shifts_price_c": 8.92,
+   "btc_notional_usd": 3273460,
+   "one_rebalance_cost_usd_revx": 2946.11,
+   "sd_of_settlement_move_bps": 2.44
+  }
+ },
+ "makers_two_days": {
+  "15m": {
+   "makers_gross_usd_per_day": -7480,
+   "makers_net_incl_rebate_per_day": 998,
+   "rebate_pool_20pc_per_day": 8478,
+   "taker_fees_usd_per_day": 42389,
+   "taker_usd_paid_per_day": 1903685
+  },
+  "5m": {
+   "makers_gross_usd_per_day": -7014,
+   "makers_net_incl_rebate_per_day": 15386,
+   "rebate_pool_20pc_per_day": 22400,
+   "taker_fees_usd_per_day": 111999,
+   "taker_usd_paid_per_day": 5591538
+  }
+ },
+ "sigma_1s_bps_7d": 0.412
+}
