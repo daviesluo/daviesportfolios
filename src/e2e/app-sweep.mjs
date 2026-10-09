@@ -88,7 +88,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * does. A part leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the
  * same thing whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'unrealized', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -856,6 +856,12 @@ let holdMs = 0;
  */
 let chartGate = /** @type {Promise<void> | null} */ (null), edgeGate = /** @type {Promise<void> | null} */ (null);
 let chartAnswered = 0, edgeAnswered = 0;
+/**
+ * The UNREALIZED part (0c'''): while set, the dividends' answers wait until the check opens it (`divGate`), and the
+ * Trading 212 positions call answers these positions (`T212_HOLDINGS`), so the sync runs on every refresh.
+ */
+let divGate = /** @type {Promise<void> | null} */ (null);
+let T212_HOLDINGS = /** @type {Record<string, { shares: number, cost: number }> | null} */ (null), t212Answered = 0;
 /** A closed gate and the function that opens it. */
 const closedGate = () => {
   /** @type {() => void} */
@@ -1350,7 +1356,9 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
   // Every figure the scoreboard's PORTFOLIO shows from the first paint on, in order (`window.__sbSeen`), so a check can
   // ask what it showed on the way and not only at the end: a figure shown for one frame is still a figure shown. The
   // same for every position card's value (`window.__boardSeen.cards`, by its tickers) and every FORMATION VALUE row's
-  // (`.rows`, by its label), which the exchange rates convert as they do the total (review batch 5).
+  // (`.rows`, by its label), which the exchange rates convert as they do the total (review batch 5); for DAY CHANGE and
+  // UNREALIZED G/L, each with its percentage, and the Transaction history's TOTAL REALIZED while it is open
+  // (`window.__sbCells`, by label: section 0c''').
   if (opts.recordScoreboard) {
     await ctx.addInitScript(() => {
       /** @type {string[]} */
@@ -1359,6 +1367,9 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       /** @type {{ cards: Record<string, string[]>, rows: Record<string, string[]> }} */
       const board = { cards: {}, rows: {} };
       /** @type {any} */ (window).__boardSeen = board;
+      /** @type {Record<string, string[]>} */
+      const cells = {};
+      /** @type {any} */ (window).__sbCells = cells;
       const text = (/** @type {Element | null | undefined} */ el) => (el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : null);
       const keep = (/** @type {Record<string, string[]>} */ into, /** @type {string} */ key, /** @type {string | null} */ t) => {
         if (t === null) return;
@@ -1376,6 +1387,11 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
           const key = text(r.querySelector('.fr-label'));
           if (key) keep(board.rows, key, text(r.querySelector('.fr-val')));
         }
+        for (const c of document.querySelectorAll('.scoreboard-cell')) {
+          const label = text(c.querySelector('.sb-label'));
+          if (label === 'DAY CHANGE' || label === 'UNREALIZED G/L') keep(cells, label, text(c.querySelector('.sb-value')));
+        }
+        keep(cells, 'TOTAL REALIZED', text(document.querySelector('.txn-realized-val')));
       };
       const watch = new MutationObserver(read);
       watch.observe(document, { subtree: true, childList: true, characterData: true });
@@ -1427,7 +1443,12 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     errors.push(`console.error: ${txt}`);
   });
 
-  await page.route('**/functions/v1/**', async (route) => {
+  // The Edge Functions, answered from this file. `routeWorker`: a part that reloads with the service worker in
+  // control has it answered for the worker's own requests too. The worker fetches every Supabase URL itself
+  // (`data-api`, NetworkFirst, vite.config.js), and Playwright routes a worker's requests through the context alone,
+  // never `page.route`: unrouted, they would go to the network, which is production.
+  /** @param {import('playwright').Route} route */
+  const edgeAnswer = async (route) => {
     const req = route.request();
     const url = req.url();
     const hdrs = await req.allHeaders();
@@ -1553,7 +1574,14 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       }
       return json(out);
     }
-    if (url.includes('/trading212') && url.includes('action=dividends')) return json({ dividends: T212_DIVIDENDS, complete: true });
+    if (url.includes('/trading212') && url.includes('action=dividends')) {
+      if (divGate) await Promise.race([divGate, new Promise((r) => setTimeout(r, 7500))]);
+      return json({ dividends: T212_DIVIDENDS, complete: true });
+    }
+    if (url.includes('/trading212') && T212_HOLDINGS && !url.includes('action=')) {
+      t212Answered += 1;
+      return json({ holdings: T212_HOLDINGS, prices: {}, complete: true });
+    }
     if (url.includes('/trading212')) return json({ source: 'orders', orders: T212_ORDERS, complete: true });
     if (url.includes('/fundamentals')) return json({});
     if (url.includes('/overnight-fetch')) return json({});
@@ -1582,7 +1610,17 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       return json({ ok: true });
     }
     return json({});
-  });
+  };
+  await page.route('**/functions/v1/**', edgeAnswer);
+  if (opts.routeWorker) {
+    await ctx.route('**/functions/v1/**', edgeAnswer);
+    await ctx.route('**/*', (route) => {
+      const u = route.request().url();
+      if (u.startsWith(`http://localhost:${PORT}`)) return route.continue();
+      if (u.includes('/functions/v1/')) return route.fallback();
+      return route.abort();
+    });
+  }
   // Registered LAST so Playwright runs it FIRST. `fallback()`, never
   // `continue()` — `continue()` goes to the real network, which is how
   // an earlier harness silently bypassed every mock it had installed.
@@ -2252,6 +2290,106 @@ async function run() {
     const kept = await page.evaluate(() => localStorage.getItem('dp.prefs')).catch(() => null);
     if (kept === prefs) ok(S('prefs'), `the prefs survive the banner's reload: ${kept}`);
     else fail(S('prefs'), `dp.prefs after the banner's reload is ${kept}, was ${prefs}`);
+    await ctx.close();
+  }
+
+  // ---- 0c'''. UNREALIZED G/L from the first paint: a first visit, and a reload with everything kept ----------------
+  // Davies (2026-10-09): "其他似乎都订住了但score board里的UNREALIZED G/L刚刷新的前1s还是会显示别的内容再闪回". Every average cost on the board is
+  // net of the dividends its position paid (`withDividendCosts`), and the page read them after its first refresh and
+  // kept them nowhere: each load drew its first UNREALIZED G/L with no dividend taken off, the gain less every
+  // dividend, then jumped when the read landed. PORTFOLIO and DAY CHANGE carry no cost, so neither moved. Here ACME's
+  // $12 of dividends make its cost $198, and the book has cash, two GBP holdings and a CNY fund: UNREALIZED is
+  // +$424.50, +18.80 % of the holdings' $2,258 cost (+$412.50, +18.17 %, with no dividend taken off). ACME's six shares
+  // are Trading 212's (`t212Shares`), and the positions call answers them on every refresh, so the sync runs too and
+  // must move nothing. Every value the scoreboard shows is recorded from the first paint (`window.__sbCells`). A first
+  // visit, its dividends held until the board has drawn its total: a dash, then the figure, never another. Then a
+  // reload with all the visit kept (the book, the prices and rates last shown, the dividends, the chart rows, the
+  // service worker) and every answer held while the Transaction history is opened: PORTFOLIO, DAY CHANGE and UNREALIZED
+  // the figures on screen before the reload from its first paint, and TOTAL REALIZED a dash until the fills and the
+  // dividends it is counted from have landed, then +$240.00.
+  for (const vp of viewports('unrealized')) {
+    const S = (n) => `${vp.name}/unrealized/${n}`;
+    const UNRL_USD = 252 + 100 + 62.5 + 0 + 10;
+    const UNRL_PCT = `(+${((UNRL_USD / (1188 + 500 + 250 + 300 + 20)) * 100).toFixed(2)}%)`;
+    const isFinal = (/** @type {string | null | undefined} */ t) => !!t && near(money(t.split('(')[0]), UNRL_USD, 0.006) && t.endsWith(UNRL_PCT);
+    const divHold = closedGate();
+    divGate = divHold.p;
+    loadOverride = { ...PORTFOLIO, holdings: { ...PORTFOLIO.holdings, ACME: { ...PORTFOLIO.holdings.ACME, t212Shares: 6, t212Cost: 200 } } };
+    T212_HOLDINGS = { ACME: { shares: 6, cost: 200 } };
+    t212Answered = 0;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { recordScoreboard: true, routeWorker: true });
+    const recorded = () => page.evaluate(() => /** @type {{ cells: Record<string, string[]>, pf: string[] }} */ (
+      JSON.parse(JSON.stringify({ cells: /** @type {any} */ (window).__sbCells || {}, pf: /** @type {any} */ (window).__sbSeen || [] }))));
+    const shown = () => page.evaluate(() => {
+      const txt = (/** @type {Element | null | undefined} */ el) => (el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : null);
+      /** @type {Record<string, string | null>} */
+      const out = { pf: txt(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')), realized: txt(document.querySelector('.txn-realized-val')) };
+      for (const c of document.querySelectorAll('.scoreboard-cell')) {
+        const label = txt(c.querySelector('.sb-label'));
+        if (label === 'DAY CHANGE') out.day = txt(c.querySelector('.sb-value'));
+        if (label === 'UNREALIZED G/L') out.unrl = txt(c.querySelector('.sb-value'));
+      }
+      return out;
+    });
+    // A first visit: the book's total drawn, so the rates have landed, and the dividends still held.
+    await page.waitForFunction((want) => Math.abs(Number((document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || '').replace(/[^0-9.-]/g, '')) - want) < 1, TOTAL_USD, { timeout: 15_000 }).catch(() => {});
+    const whileHeld = (await shown()).unrl;
+    divGate = null;
+    divHold.open();
+    const settled = await readUntil(page, shown, (x) => !!x && isFinal(x.unrl), { ms: 10_000, steady: 300 });
+    const firstCells = (await recorded()).cells;
+    const firstVisit = firstCells['UNREALIZED G/L'] || [];
+    // DAY CHANGE holds no cost: it waits for the rates alone, then reads its one figure.
+    const firstDay = firstCells['DAY CHANGE'] || [];
+    const firstWrong = [...firstVisit.filter((t) => /\d/.test(t) && t !== settled?.unrl), ...firstDay.filter((t) => /\d/.test(t) && t !== settled?.day)];
+    if (settled && isFinal(settled.unrl) && firstDay.length > 0 && firstWrong.length === 0) {
+      ok(S('first-visit'), `a first visit read ${firstVisit.join(' → ')} (with the dividends held: ${whileHeld}), never another figure; DAY CHANGE ${firstDay.join(' → ')}`);
+    } else fail(S('first-visit'), `a first visit read ${firstVisit.join(' → ')}, DAY CHANGE ${firstDay.join(' → ')}; wanted a dash, then +$${UNRL_USD.toFixed(2)}${UNRL_PCT}, and DAY CHANGE a dash, then its figure`);
+
+    // The reload: what the visit kept, at rest, the service worker in control.
+    const worker = await page.evaluate(async () => {
+      for (let i = 0; i < 100; i++) {
+        const r = await navigator.serviceWorker.getRegistration();
+        if (r && r.active) return true;
+        await new Promise((res) => setTimeout(res, 50));
+      }
+      return false;
+    }).catch(() => false);
+    const before = await readUntil(page, async () => ({ ...(await shown()), kept: await page.evaluate(() => localStorage.getItem('dp.lastPrices') !== null) }),
+      (x) => !!x && isFinal(x.unrl) && x.kept, { ms: 10_000, steady: 300 });
+    const edgeHold = closedGate();
+    edgeGate = edgeHold.p;
+    edgeAnswered = 0;
+    const syncedBefore = t212Answered;
+    await page.reload({ waitUntil: 'commit' });
+    await page.waitForFunction(() => /\d/.test(document.querySelector('.scoreboard-cell-portfolio .sb-value-lg')?.textContent || ''), null, { timeout: 10_000 }).catch(() => {});
+    await openMenu(page);
+    await page.locator('.header-menu-item:text-is("Transaction history")').first().click({ timeout: 5_000 }).catch(() => {});
+    await page.waitForSelector('.txn-realized-val', { timeout: 5_000 }).catch(() => {});
+    const realizedHeld = (await shown()).realized;
+    const heldThrough = edgeAnswered === 0;
+    edgeGate = null;
+    edgeHold.open();
+    await readUntil(page, shown, (x) => !!x && x.realized === '+$240.00' && isFinal(x.unrl), { ms: 10_000, steady: 300 });
+    const after = await recorded();
+    const off = (/** @type {string[] | undefined} */ list, /** @type {string | null | undefined} */ want) => (list || []).filter((t) => t !== want);
+    const moved = [...off(after.pf, before?.pf).map((t) => `PORTFOLIO ${t}`), ...off(after.cells['DAY CHANGE'], before?.day).map((t) => `DAY CHANGE ${t}`),
+      ...off(after.cells['UNREALIZED G/L'], before?.unrl).map((t) => `UNREALIZED ${t}`)];
+    const synced = t212Answered - syncedBefore;
+    if (worker && synced > 0 && before && isFinal(before.unrl) && (after.cells['UNREALIZED G/L'] || []).length > 0 && moved.length === 0) {
+      ok(S('reload'), `with the service worker in control and every answer held, the reload's first paint and every one after it read ${before.pf} | ${before.day} | ${before.unrl}, the Trading 212 sync applied ${synced} time(s) on the way`);
+    } else {
+      fail(S('reload'), `worker ${worker}, sync answered ${synced}; before the reload ${before?.pf} | ${before?.day} | ${before?.unrl}; after it ${JSON.stringify(moved)} (UNREALIZED ${JSON.stringify(after.cells['UNREALIZED G/L'])})`);
+    }
+    const realized = after.cells['TOTAL REALIZED'] || [];
+    const realizedWrong = realized.filter((t) => /\d/.test(t) && t !== '+$240.00');
+    if (heldThrough && realizedHeld !== null && realized.at(-1) === '+$240.00' && realizedWrong.length === 0) {
+      ok(S('realized'), `TOTAL REALIZED, opened while every answer was held, read ${realized.join(' → ')}, never another figure`);
+    } else fail(S('realized'), `TOTAL REALIZED read ${realized.join(' → ') || 'nothing'} (opened with ${heldThrough ? 'every answer held' : `${edgeAnswered} answered`}: ${realizedHeld}); wanted a dash, then +$240.00`);
+    divGate = null;
+    edgeGate = null;
+    loadOverride = null;
+    T212_HOLDINGS = null;
     await ctx.close();
   }
 

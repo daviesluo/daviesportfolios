@@ -507,7 +507,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint is the cached portfolio at the prices it last showed; the server's copy replaces the book, the live quotes the prices. |
 | `app/auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
 | `app/supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
-| `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices and 24H chart a reload paints first. |
+| `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices, dividends and 24H chart a reload paints first. |
 | `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
 | `app/chunk_recovery.js` | Loads each page's code: a page already fetched opens at once; one whose code fails to load after a deploy is fetched fresh, the service worker and caches dropped, the app reloaded once and the failure reported. |
 | `app/surface_boundary.jsx` | One error boundary per surface (each panel, the header, the board, the sidebar, every modal and Agents page): a throw shows "failed to load" with a Retry in that surface's place and is reported under its name. |

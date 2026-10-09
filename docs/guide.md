@@ -48,6 +48,10 @@ theirs.
   now, against what they cost; its percentage is that gain over their
   cost, with cash left out (cash still counts in PORTFOLIO and in the
   day's change). Each position card reads its own holdings the same way.
+  The cost is net of the dividends each position has paid, so on a first
+  visit (or a week after the last) it reads `—` until they have loaded,
+  as does each FORMATION VALUE row's gain; after that a reload shows the
+  figure the page showed before, never one without the dividends.
 - **Currency (💱).** Shows the scoreboard's three amounts in dollars,
   pounds or yuan at the live rate, starting in dollars on every visit.
   Until that rate has loaded they read `—`, never the dollar figure
@@ -104,8 +108,9 @@ Tap a tile to open its chart.
   orders the sectors and the holdings inside them.
 - **Transaction history** (edit password only). Every buy, sale and
   dividend across every holding, newest first, closed positions
-  included, with the total realised gain in dollars at the top. Sales
-  are entered in a holding's editor. On a purchase, Avg Cost is what the
+  included, with the total realised gain in dollars at the top (`—` for
+  the moment after a load, until the trades and the dividends it counts
+  have loaded). Sales are entered in a holding's editor. On a purchase, Avg Cost is what the
   position cost per share afterwards, with earlier sales' gains and the
   dividends received folded in, so selling high and buying back lower
   lowers it, and so does every dividend. On a sale, it is the average

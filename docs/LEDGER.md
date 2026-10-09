@@ -267,9 +267,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): landed 2026-10-09
      (history 00:45): the board's first paint at 1:1 FX, T1, T2, M7 again, D1 (`0104`), A2, A3, A4, A6, A7, the size
      budget. Follow-ups on `review-fixes`, not yet landed: A1 by the snap (history 00:46); tick.ts booking a pending
-     order the venue's history shows cancelled after a partial fill as a fill (history 00:51). Landing them: A1
-     changes a `_shared/` module, so every Edge Function redeploys (`bin/edge-changed.sh`); the tick fix is in
-     `agents`.
+     order the venue's history shows cancelled after a partial fill as a fill (history 00:51); UNREALIZED G/L never
+     showing the gain before dividends (history 01:15). Landing them: A1 changes a `_shared/` module, so every Edge
+     Function redeploys (`bin/edge-changed.sh`); the tick fix is in `agents`; the UNREALIZED fix is a new bundle
+     (`dist/`).
 
 ## Machine and platform setup
 
@@ -410,6 +411,30 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
   Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
   7 days once archived. No new Edge call, no instance, no change to live-prep.
+
+### [2026-10-09 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **UNREALIZED G/L reads a dash or its own figure, never the gain before dividends** (Davies, 10-09: "其他似乎都订住了但score
+  board里的UNREALIZED G/L刚刷新的前1s还是会显示别的内容再闪回"). The cause: every average cost on the board is net of the dividends its
+  position paid (`withDividendCosts`), and the page read them after its first refresh, not awaited, and kept them
+  nowhere, so each load's first figures took no dividend off and UNREALIZED read the gain less every dividend until
+  the read landed. PORTFOLIO and DAY CHANGE carry no cost and never moved; TOTAL REALIZED, opened in that second, also
+  counted no closed position, the fills not yet read. The fix: the dividends last read are kept (`dp.dividends`, a
+  week, as the other first-paint stand-ins) and seed the next load, so a reload draws every figure from the state the
+  page last showed; a failed read (`read: false`, new on the fills' and dividends' reads) is never taken for "none";
+  until the dividends are known (a first visit, or a week on) UNREALIZED, its percentage and colour and each FORMATION
+  VALUE row's gain wait with a dash, and TOTAL REALIZED waits for the fills and the dividends. Sweep part
+  `unrealized`, both widths, ACME's shares tagged Trading 212's so the sync runs on every refresh: a first visit with
+  the dividends held, then a reload with the service worker in control and every answer held while Transaction history
+  opens (`routeWorker` answers the worker's own Supabase requests, which Playwright routes through the context alone:
+  unrouted, they would go to production). On main's bundle (app-64101613.js) 6 failures: a first visit —(—) →
+  +$412.50(+18.17%) → +$424.50(+18.80%); the reload's first paint +$412.50(+18.17%), then +$424.50; TOTAL REALIZED
+  +$120.00 → +$240.00. On this one (app-fc25f1d0.js): — → +$424.50(+18.80%); the reload's first paint and every one
+  after it $3,183 | +$30.95(+0.98%) | +$424.50(+18.80%); TOTAL REALIZED — → +$240.00; the sync applied twice after the
+  reload and moved nothing. Unit pins, all 12 failing on the old source: the app's (a reload's first renders show 220
+  net of the kept dividends, old 200; a first visit waits; a failed read keeps them), storage's, both reads' `read`,
+  the scoreboard's, FORMATION VALUE's, TOTAL REALIZED's. Size 118.7 kB of 122. Not covered: the drill, the holding and
+  sector lists and the ticker chart, opened on a first visit in the moment between the first refresh and the
+  dividends' answer, show the ledger's cost (they wait for the rates alone).
 
 ### [2026-10-09 01:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's go-live audit fixed, one commit each, branch `pm-prego`, not pushed** (the coordinator's batch, on

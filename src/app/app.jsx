@@ -410,6 +410,10 @@ function Board({ isReadOnly }) {
   // history. A ledger the fills don't cover reads "still downloading"
   // while this is false and "yours to keep" once it's true.
   const [t212OrdersComplete, setT212OrdersComplete] = useState(false);
+  // Whether a read of the fills has answered this visit (`read`): until then
+  // the rows are an empty stand-in, and what is counted from every fill (the
+  // Transaction history's TOTAL REALIZED) waits with a dash.
+  const [t212OrdersRead, setT212OrdersRead] = useState(false);
   // The chart reads `{rows, complete}` — a half-walked history must not be
   // presented as the whole story on the deposit line — while the lot editor
   // takes the rows and the verdict separately. Derived, not a third slot.
@@ -421,11 +425,33 @@ function Board({ isReadOnly }) {
   // ticker's ledger events in its holding's currency. They come off the
   // average cost on the board, the ticker modal, the lot editor and the
   // Transaction history alike (Davies, 2026-10-07: "整个网站的average cost都改").
-  const [t212Dividends, setT212Dividends] = useState(/** @type {any[]} */ ([]));
+  // Seeded from the ones the last visit read (Storage.loadDividends): read
+  // only after the first refresh, they were missing from every load's first
+  // figures, so UNREALIZED G/L showed the gain less every dividend for a
+  // second after each refresh and then jumped (Davies, 2026-10-09). Null
+  // until a read has answered or a kept copy was found.
+  const [t212Dividends, setT212Dividends] = useState(() => Storage.loadDividends());
   const dividendEvents = React.useMemo(
-    () => dividendEventsByTicker(t212Dividends, withClosedFromFills(portfolio?.holdings, t212Orders)),
+    () => dividendEventsByTicker(t212Dividends ?? [], withClosedFromFills(portfolio?.holdings, t212Orders)),
     [t212Dividends, portfolio?.holdings, t212Orders],
   );
+  // Until then every average cost is the ledger's own, before the dividends
+  // come off it, so what is counted from a cost (UNREALIZED G/L, each
+  // FORMATION VALUE row's gain, TOTAL REALIZED) waits with a dash rather than
+  // show that figure and then another. PORTFOLIO and DAY CHANGE hold no cost.
+  const costsPending = t212Dividends === null;
+  // A dividends answer is taken only when it is one (`read`), never a failed
+  // read's empty stand-in, which would put back the costs before dividends;
+  // and kept for the next load, once per answer.
+  const keptDividendsRef = useRef(/** @type {any[] | null} */ (null));
+  const takeDividends = useCallback((/** @type {{ rows?: any[], read?: boolean } | null | undefined} */ d) => {
+    if (!d?.read || !Array.isArray(d.rows)) return;
+    setT212Dividends(d.rows);
+    if (keptDividendsRef.current !== d.rows) {
+      keptDividendsRef.current = d.rows;
+      Storage.saveDividends(d.rows);
+    }
+  }, []);
   // What the page draws: the book with the last-shown prices over it, and
   // each position's average cost net of the dividends it has paid. Every
   // number on screen reads this; every edit and save reads `portfolio`, so
@@ -948,10 +974,11 @@ function Board({ isReadOnly }) {
     }
     // The dividends, cached like the fills; not awaited with the prices, so
     // a slow read never holds the board.
-    fetchTrading212Dividends().then((d) => { if (Array.isArray(d?.rows)) setT212Dividends(d.rows); });
+    fetchTrading212Dividends().then(takeDividends);
     const t212OrderRows = Array.isArray(t212OrderRead?.rows) ? t212OrderRead.rows : [];
     setT212Orders(t212OrderRows);
     setT212OrdersComplete(t212OrderRead?.complete === true);
+    if (t212OrderRead?.read) setT212OrdersRead(true);
     // Refresh the cache when we fetched this tick; otherwise reuse it. Apply
     // whichever map we have so the MC ext-on anchor stays populated even on
     // the throttled ticks.
@@ -1196,7 +1223,7 @@ function Board({ isReadOnly }) {
       // Clear the spinner, success or throw, unless a newer refresh is still running: that one clears it.
       if (seq === refreshSeqRef.current) setIsRefreshing(false);
     }
-  }, [portfolio, extendedHours, quoteGuard, noteHeldSlices]);
+  }, [portfolio, extendedHours, quoteGuard, noteHeldSlices, takeDividends]);
 
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
@@ -1396,9 +1423,10 @@ function Board({ isReadOnly }) {
       if (!cancelled && Array.isArray(orders?.rows)) {
         setT212Orders(orders.rows);
         setT212OrdersComplete(orders.complete === true);
+        if (orders.read) setT212OrdersRead(true);
       }
       const dividends = await fetchTrading212Dividends();
-      if (!cancelled && Array.isArray(dividends?.rows)) setT212Dividends(dividends.rows);
+      if (!cancelled) takeDividends(dividends);
       // Once the walk has latched, each pass re-reads page one — which is
       // where a trade made minutes ago lands. Two minutes rather than
       // ten: one call per account, so ~1 request/min against T212's 6,
@@ -1410,7 +1438,7 @@ function Board({ isReadOnly }) {
     };
     timer = setTimeout(step, 8000);
     return () => { cancelled = true; if (timer) clearTimeout(timer); };
-  }, [isReadOnly]);
+  }, [isReadOnly, takeDividends]);
 
   // Freeze the native→USD rate each non-USD currency is first seen at,
   // once, and persist it. The deposit line is a sum of dated cash flows;
@@ -1611,6 +1639,7 @@ function Board({ isReadOnly }) {
         metrics={metrics}
         marketData={marketData}
         marketDataReady={marketDataReady}
+        costsPending={costsPending}
         source={source}
         lastUpdated={lastUpdated}
         isRefreshing={isRefreshing}
@@ -1718,6 +1747,7 @@ function Board({ isReadOnly }) {
           refreshedAt={lastUpdated ? lastUpdated.getTime() : 0}
           forceRefreshKey={chartForceKey}
           fxPending={fxPending}
+          costsPending={costsPending}
           marketDataReady={marketDataReady}
         />
         </SurfaceBoundary>
@@ -1823,6 +1853,7 @@ function Board({ isReadOnly }) {
               hideValues={hideValues}
               t212Orders={t212Orders}
               dividends={dividendEvents.byTicker}
+              realizedPending={costsPending || !t212OrdersRead}
               onTickerClick={(t) => { setShowTransactionHistory(false); setViewingTicker(t); }}
               onClose={() => setShowTransactionHistory(false)}
             />

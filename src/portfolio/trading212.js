@@ -136,9 +136,15 @@ export async function fetchTrading212Holdings() {
  * date was a guess. Served from `t212_orders`, which the backfill fills
  * a page at a time; empty until that has run.
  *
+ * `read` says whether the rows are an answer at all: false until a read has
+ * succeeded this session, when the rows are an empty stand-in for a failed
+ * one. What is counted from every fill (the Transaction history's TOTAL
+ * REALIZED) waits for it rather than count a book with none.
+ *
  * @returns {Promise<{
  *   rows: Array<{ticker: string|null, executed_at: string, side: string, shares: number, price: number, account: string}>,
  *   complete: boolean,
+ *   read: boolean,
  * }>}
  */
 let ordersCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
@@ -153,7 +159,7 @@ const ORDERS_TTL_MS = 60 * 1000;
 
 export async function fetchTrading212Orders() {
   if (ordersCache && Date.now() - ordersCache.ts < ORDERS_TTL_MS) {
-    return { rows: ordersCache.rows, complete: ordersCache.complete };
+    return { rows: ordersCache.rows, complete: ordersCache.complete, read: true };
   }
   try {
     const res = await fetch(`${EDGE_TRADING212_URL}?action=orders`, {
@@ -166,7 +172,7 @@ export async function fetchTrading212Orders() {
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) {
-      return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true };
+      return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true, read: ordersCache !== null };
     }
     const body = await res.json();
     const rows = Array.isArray(body?.orders) ? body.orders : [];
@@ -182,9 +188,9 @@ export async function fetchTrading212Orders() {
       // reset migration must be able to downgrade a cached `true`.
       complete,
     };
-    return { rows: ordersCache.rows, complete: ordersCache.complete };
+    return { rows: ordersCache.rows, complete: ordersCache.complete, read: true };
   } catch {
-    return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true };
+    return { rows: ordersCache?.rows || [], complete: ordersCache?.complete === true, read: ordersCache !== null };
   }
 }
 
@@ -200,13 +206,16 @@ export function clearTrading212OrdersCache() {
  * holding_currency, … }]`, `amount` the net cash in the account's currency
  * and `amount_holding` the same in the holding's (null until converted).
  * Cached like the fills, and cleared with them when a sync page lands.
- * @returns {Promise<{rows: any[], complete: boolean}>}
+ * `read` as the fills': false until a read has succeeded this session. Every
+ * average cost on the board is net of these rows, so a failed read's empty
+ * stand-in must never be taken for "no dividends" (app.jsx).
+ * @returns {Promise<{rows: any[], complete: boolean, read: boolean}>}
  */
 let dividendsCache = /** @type {{ts: number, rows: any[], complete: boolean} | null} */ (null);
 
 export async function fetchTrading212Dividends() {
   if (dividendsCache && Date.now() - dividendsCache.ts < ORDERS_TTL_MS) {
-    return { rows: dividendsCache.rows, complete: dividendsCache.complete };
+    return { rows: dividendsCache.rows, complete: dividendsCache.complete, read: true };
   }
   try {
     const res = await fetch(`${EDGE_TRADING212_URL}?action=dividends`, {
@@ -218,7 +227,7 @@ export async function fetchTrading212Dividends() {
       },
       signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true };
+    if (!res.ok) return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true, read: dividendsCache !== null };
     const body = await res.json();
     const rows = Array.isArray(body?.dividends) ? body.dividends : [];
     dividendsCache = {
@@ -227,9 +236,9 @@ export async function fetchTrading212Dividends() {
       rows: rows.length > 0 || !dividendsCache ? rows : dividendsCache.rows,
       complete: body?.complete === true,
     };
-    return { rows: dividendsCache.rows, complete: dividendsCache.complete };
+    return { rows: dividendsCache.rows, complete: dividendsCache.complete, read: true };
   } catch {
-    return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true };
+    return { rows: dividendsCache?.rows || [], complete: dividendsCache?.complete === true, read: dividendsCache !== null };
   }
 }
 

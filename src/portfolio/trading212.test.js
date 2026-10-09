@@ -13,6 +13,7 @@ import {
   applyTrading212Answer,
   applyTrading212NightPrice,
   clearTrading212OrdersCache,
+  fetchTrading212Dividends,
   fetchTrading212Orders,
   lotsFromOrders,
   settleSoldOutSlices,
@@ -477,15 +478,54 @@ describe('fetchTrading212Orders — completion cache', () => {
     const now = Date.now();
     const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
     try {
-      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: true });
+      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: true, read: true });
       nowSpy.mockReturnValue(now + 11 * 60 * 1000);
-      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: false });
+      expect(await fetchTrading212Orders()).toEqual({ rows: [fill], complete: false, read: true });
     } finally {
       nowSpy.mockRestore();
       vi.unstubAllGlobals();
       clearTrading212OrdersCache();
     }
   });
+});
+
+describe('the fills and dividends reads say whether they answered (2026-10-09)', () => {
+  // A failed read hands back an empty stand-in. Taken for an answer, the dividends' one put every average cost back to
+  // the ledger's own, so the board's UNREALIZED G/L would have dropped by every dividend; the fills' one would count
+  // TOTAL REALIZED without a closed position. `read` tells the two apart.
+  const row = { ticker: 'ACME', paid_on: '2026-08-28T15:00:00Z', quantity: 4, amount: 8, amount_holding: 8, holding_currency: 'USD' };
+  const fill = { ticker: 'NVDA', executed_at: '2026-01-01T00:00:00Z', side: 'buy', shares: 1, price: 100 };
+
+  for (const [name, read, body] of /** @type {const} */ ([
+    ['dividends', fetchTrading212Dividends, { dividends: [row], complete: true }],
+    ['fills', fetchTrading212Orders, { orders: [fill], complete: true }],
+  ])) {
+    it(`${name}: no answer yet is read: false; an answer, and every one after it, read: true`, async () => {
+      clearTrading212OrdersCache();
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) })
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValueOnce({ ok: true, json: async () => body })
+        .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
+      vi.stubGlobal('fetch', fetchMock);
+      const now = Date.now();
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(now);
+      try {
+        expect(await read()).toEqual({ rows: [], complete: false, read: false });
+        expect(await read()).toEqual({ rows: [], complete: false, read: false });
+        const answered = await read();
+        expect(answered.read).toBe(true);
+        expect(answered.rows).toHaveLength(1);
+        nowSpy.mockReturnValue(now + 11 * 60 * 1000);           // past the cache: asked again, and it fails
+        expect(await read()).toEqual({ rows: answered.rows, complete: true, read: true });
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+      } finally {
+        nowSpy.mockRestore();
+        vi.unstubAllGlobals();
+        clearTrading212OrdersCache();
+      }
+    });
+  }
 });
 
 describe('applyTrading212 — orders never replace the board ledger', () => {

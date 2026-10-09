@@ -140,9 +140,11 @@ export function nextSortState(sort, colId) {
 /**
  * `marketDataReady`: whether the app's first market data has landed. Until then a ledger in another currency would
  * convert at 1:1 (`fxPendingFor`, fx.js), so TOTAL REALIZED G/L (USD) waits with a dash; the rows, in each holding's
- * own currency, need no rate.
+ * own currency, need no rate. `realizedPending`: the fills or the dividends it is counted from have not been read yet
+ * this visit (app.jsx). Opened in that second, it would count no closed position and no dividend and then jump, so it
+ * waits with a dash too.
  */
-function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), dividends = /** @type {Record<string, any[]> | null} */ (null), onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose, marketDataReady = true }) {
+function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders = /** @type {any[]} */ ([]), dividends = /** @type {Record<string, any[]> | null} */ (null), realizedPending = false, onTickerClick = /** @type {((t: string) => void) | null} */ (null), onClose, marketDataReady = true }) {
   // Closed positions are gone from the board but not from the record —
   // 41 tickers and ~950 executed trades on this book. See
   // `withClosedFromFills`.
@@ -158,10 +160,10 @@ function TransactionHistoryModal({ holdings, marketData, hideValues, t212Orders 
   const [sort, setSort] = React.useState(/** @type {any} */ (null));
   const rows = React.useMemo(() => sortTransactionRows(log, sort), [log, sort]);
   const realizedUsd = React.useMemo(
-    () => (fxPendingFor(Object.values(allHoldings || {}), marketData, marketDataReady)
+    () => (realizedPending || fxPendingFor(Object.values(allHoldings || {}), marketData, marketDataReady)
       ? null
       : totalRealizedUsd(allHoldings, (cur) => fxRateToUSD(cur, marketData).rate, dividends)),
-    [allHoldings, marketData, dividends, marketDataReady],
+    [allHoldings, marketData, dividends, marketDataReady, realizedPending],
   );
   const m = (s) => (hideValues ? maskDigits(s) : s);
 

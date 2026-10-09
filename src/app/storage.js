@@ -50,6 +50,14 @@ const STORAGE_KEYS = {
   // are drawn over whichever book is on screen until the live quotes
   // land, and are never sent to the server.
   lastPrices:    'dp.lastPrices', // { ts, data: { ticker: { lastPrice, prevClose, dayPct, extPrice, extDayPct, extPriceTrusted } } }
+  // The Trading 212 dividends the page last read (`t212_dividends` rows,
+  // portfolio/trading212.js). Every average cost on the board is net of
+  // them, and the read comes after the first refresh: kept nowhere, each
+  // load drew its first UNREALIZED G/L with no dividend taken off and
+  // jumped a second later (Davies, 2026-10-09). Read on the first render,
+  // so a reload starts from the costs the page last showed. A key no
+  // earlier version wrote, so it needs no schema step.
+  dividends:     'dp.dividends', // { ts, data: [{ ticker, paid_on, quantity, amount_holding, holding_currency, … }] }
   // The bars and recorded prints the vs-S&P panel's 24H window was last
   // drawn from, readable on the panel's FIRST render — IndexedDB, where
   // the chart store keeps them, answers only after it. See perf_chart.jsx.
@@ -325,6 +333,20 @@ export const Storage = {
     if (!prices || typeof prices !== 'object' || Object.keys(prices).length === 0) return false;
     return writeJSON(STORAGE_KEYS.lastPrices, { ts: Date.now(), data: prices });
   },
+  // The dividends last read (see STORAGE_KEYS.dividends): the rows, or null
+  // when none are kept, the row is malformed, or it is past a week old, as
+  // the other first-paint stand-ins. An empty list is a read that found
+  // none, and is kept as such.
+  /** @returns {any[] | null} */
+  loadDividends: () => {
+    const row = readJSON(STORAGE_KEYS.dividends, null);
+    if (!row || typeof row !== 'object' || !Array.isArray(row.data)) return null;
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > LAST_SHOWN_MAX_AGE_MS) return null;
+    return row.data.filter((/** @type {any} */ r) => r && typeof r === 'object');
+  },
+  /** @param {any[]} rows */
+  saveDividends: (rows) => (Array.isArray(rows) ? writeJSON(STORAGE_KEYS.dividends, { ts: Date.now(), data: rows }) : false),
   // The 24H chart's last-drawn inputs (see STORAGE_KEYS.perfSeed), or
   // null. Every series and row is checked, because the chart reads the
   // seed on its first render and a malformed one would throw there.

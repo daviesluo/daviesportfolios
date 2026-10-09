@@ -17,7 +17,11 @@ import { render, cleanup, waitFor, act } from '@testing-library/react';
 vi.mock('../board/header_sidebar.jsx', () => ({
   // Header and PerfPanel keep the props they were last drawn with, so a
   // test can read the numbers the page would show.
-  Header: (p) => { /** @type {any} */ (globalThis).__headerProps = p; return <header data-testid="header" />; },
+  Header: (p) => {
+    /** @type {any} */ (globalThis).__headerProps = p;
+    /** @type {any} */ ((globalThis).__headerSeen ||= []).push(p);
+    return <header data-testid="header" />;
+  },
   Sidebar: () => <aside data-testid="sidebar" />,
   MarketConditions: () => <section data-testid="mc" />,
   PerfPanel: (p) => { /** @type {any} */ (globalThis).__perfProps = p; return <div data-testid="perf-panel" />; },
@@ -113,7 +117,7 @@ import { refreshPrices } from '../prices/yahoo_fetch.js';
 import { prefetchAllChartData } from '../prices/prefetch.js';
 import { fetchOvernightSeries } from '../prices/overnight_intraday.js';
 import { fetchHistoricalBatch, fetchTodayRegularClose } from '../prices/historical.js';
-import { syncTrading212History } from '../portfolio/trading212.js';
+import { fetchTrading212Dividends, syncTrading212History } from '../portfolio/trading212.js';
 import { loadPortfolioRemote, savePortfolioRemote, portfolioUserFingerprint, knownPortfolioVersion } from '../portfolio/portfolio_remote.js';
 
 beforeEach(() => {
@@ -403,6 +407,84 @@ describe('App — the last-shown prices on a reload', () => {
     await waitFor(() => expect(lastPriceOf(/** @type {any} */ (globalThis).__perfProps)).toBe(141));
     await waitFor(() => expect(JSON.parse(localStorage.getItem('dp.lastPrices') || '{}').data?.NVDA?.lastPrice).toBe(141));
     vi.mocked(refreshPrices).mockResolvedValue(/** @type {any} */ ({ updates: {}, source: 'live' }));
+  }, 10000);
+});
+
+// Davies (2026-10-09): "score board里的UNREALIZED G/L刚刷新的前1s还是会显示别的内容再闪回". Every average cost is net of the
+// dividends the position paid, and those were read after the first refresh and kept nowhere: each load's first
+// UNREALIZED G/L took no dividend off, then jumped. Here NVDA's 10 shares cost $100 and paid $20 of dividends, so its
+// cost is $98 and the gain $220 at $120; with no dividend taken off it reads $200. The scoreboard is drawn with what
+// Header was given each render (`__headerSeen`): a gain shown is one with `costsPending` false.
+describe('App — the dividends the costs are net of, on a reload and on a first visit', () => {
+  function setAdminToken() {
+    const payload = btoa(JSON.stringify({ role: 'admin', exp: Date.now() + 60 * 60 * 1000 }))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('dp.token', `${payload}.sig`);
+  }
+  const BOOK = {
+    holdings: {
+      NVDA: { shares: 10, cost: 100, lastPrice: 120, prevClose: 118, dayPct: 1.69, currency: 'USD', lots: [{ date: '2025-01-01', shares: 10, cost: 100 }] },
+    },
+    positions: { ST: { role: 'FWD', subtitle: '', tickers: ['NVDA'] } },
+  };
+  const ROW = { ticker: 'NVDA', paid_on: '2025-06-01T15:00:00Z', quantity: 10, amount: 20, currency: 'USD', amount_holding: 20, holding_currency: 'USD' };
+  /** Every UNREALIZED G/L the scoreboard showed, and whether any render had it waiting. */
+  const gains = () => {
+    const seen = /** @type {any[]} */ ((/** @type {any} */ (globalThis)).__headerSeen || []).filter((p) => p.metrics);
+    return { shown: [...new Set(seen.filter((p) => !p.costsPending).map((p) => p.metrics.unrlGL))], waited: seen.some((p) => p.costsPending) };
+  };
+  /** A dividends read the test answers by hand. */
+  const heldRead = () => {
+    /** @type {(v: any) => void} */
+    let answer = () => {};
+    vi.mocked(fetchTrading212Dividends).mockImplementation(() => new Promise((r) => { answer = r; }));
+    return (/** @type {any} */ v) => answer(v);
+  };
+
+  beforeEach(() => {
+    delete /** @type {any} */ (globalThis).__headerSeen;
+    vi.mocked(loadPortfolioRemote).mockResolvedValue(/** @type {any} */ (structuredClone(BOOK)));
+  });
+  afterEach(() => {
+    localStorage.removeItem('dp.dividends');
+    localStorage.removeItem('dp.portfolioCache');
+    delete /** @type {any} */ (globalThis).__headerSeen;
+    vi.mocked(fetchTrading212Dividends).mockImplementation(() => Promise.resolve(/** @type {any} */ ({ rows: [], complete: false })));
+    vi.mocked(loadPortfolioRemote).mockResolvedValue(null);
+  });
+
+  it('a reload draws the gain net of the dividends the last visit read, from its first render, with the read still out', async () => {
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now(), data: [ROW] }));
+    setAdminToken();
+    heldRead();
+    render(<App />);
+    await waitFor(() => expect(refreshPrices).toHaveBeenCalled());
+    await waitFor(() => expect(fetchTrading212Dividends).toHaveBeenCalled());
+    // Until 2026-10-09 the first renders read $200 and the scoreboard showed it until the read landed.
+    expect(gains()).toEqual({ shown: [220], waited: false });
+  }, 10000);
+
+  it('a first visit waits with a dash until the read answers, then shows the gain net of it and keeps it', async () => {
+    setAdminToken();
+    const answer = heldRead();
+    render(<App />);
+    await waitFor(() => expect(fetchTrading212Dividends).toHaveBeenCalled());
+    expect(gains()).toEqual({ shown: [], waited: true });
+    await act(async () => { answer({ rows: [ROW], complete: true, read: true }); });
+    await waitFor(() => expect(gains().shown).toEqual([220]));
+    expect(JSON.parse(localStorage.getItem('dp.dividends') || '{}').data).toEqual([ROW]);
+  }, 10000);
+
+  it('a read that failed is not an answer: it never puts the costs back before the dividends', async () => {
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now(), data: [ROW] }));
+    setAdminToken();
+    const answer = heldRead();
+    render(<App />);
+    await waitFor(() => expect(fetchTrading212Dividends).toHaveBeenCalled());
+    await act(async () => { answer({ rows: [], complete: false, read: false }); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 50)); });
+    expect(gains()).toEqual({ shown: [220], waited: false });
+    expect(JSON.parse(localStorage.getItem('dp.dividends') || '{}').data).toEqual([ROW]);
   }, 10000);
 });
 

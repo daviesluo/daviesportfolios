@@ -126,6 +126,34 @@ describe('Storage last-shown prices (dp.lastPrices)', () => {
   });
 });
 
+describe('Storage dividends last read (dp.dividends)', () => {
+  // Every average cost on the board is net of them, and they are read after the first refresh: a reload starts from
+  // these (2026-10-09), or UNREALIZED G/L shows the gain less every dividend for its first second.
+  const row = { ticker: 'ACME', paid_on: '2026-08-28T15:00:00Z', quantity: 4, amount: 8, amount_holding: 8, holding_currency: 'USD' };
+
+  it('round-trips the rows, and an empty read is kept as one that found none', () => {
+    expect(Storage.saveDividends([row])).toBe(true);
+    expect(Storage.loadDividends()).toEqual([row]);
+    expect(Storage.saveDividends([])).toBe(true);
+    expect(Storage.loadDividends()).toEqual([]);
+  });
+
+  it('is nothing kept when missing, malformed, or past a week old, and writes nothing that is not a list', () => {
+    expect(Storage.loadDividends()).toBeNull();
+    localStorage.setItem('dp.dividends', 'not json');
+    expect(Storage.loadDividends()).toBeNull();
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now(), data: { ACME: row } }));
+    expect(Storage.loadDividends()).toBeNull();
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now() - 8 * DAY, data: [row] }));
+    expect(Storage.loadDividends()).toBeNull();
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now() - 6 * DAY, data: [row, null, 3] }));
+    expect(Storage.loadDividends()).toEqual([row]);
+    localStorage.clear();
+    expect(Storage.saveDividends(/** @type {any} */ (null))).toBe(false);
+    expect(localStorage.getItem('dp.dividends')).toBeNull();
+  });
+});
+
 describe('Storage 24H chart seed (dp.perfSeed)', () => {
   const bars = (base) => [{ date: '2026-09-17T14:00', close: base }, { date: '2026-09-17T19:55', close: base + 1 }];
   const seed = () => ({

@@ -149,6 +149,41 @@ describe('Header scoreboard — currency cycle', () => {
   });
 });
 
+describe('Header scoreboard — UNREALIZED G/L waits for the dividends its costs are net of (2026-10-09)', () => {
+  // Davies: "score board里的UNREALIZED G/L刚刷新的前1s还是会显示别的内容再闪回". Every average cost is net of the
+  // dividends its position paid, and until those are known (`costsPending`, app.jsx) each is the ledger's own: the gain
+  // short of every dividend. That figure is never shown: the cell, its percentage and its colour wait with a dash.
+  // PORTFOLIO and DAY CHANGE hold no cost and do not wait.
+  const shown = (/** @type {HTMLElement} */ c) => [c.querySelector('.sb-value-lg'), ...c.querySelectorAll('.sb-change-row > span:first-child'),
+    ...c.querySelectorAll('.sb-change-row .sb-pct')].map((el) => el?.textContent);
+  const colours = (/** @type {HTMLElement} */ c) => [...c.querySelectorAll('.sb-change-row')].map((el) => /** @type {HTMLElement} */ (el).style.color);
+
+  it('reads a dash, no percentage and no colour while the dividends are unknown; the figure once they are', () => {
+    const { container, rerender } = renderHeader({ costsPending: true });
+    expect(shown(container)).toEqual(['$100,000', '+$1,500', '—', '(+1.52%)', '(—)']);
+    expect(colours(container)[0]).not.toBe('');
+    expect(colours(container)[1]).toBe('');
+    rerender(<Header {...{ metrics: METRICS, marketData: MARKET_DATA, marketDataReady: true, costsPending: false, source: 'live', lastUpdated: new Date(),
+      isRefreshing: false, onRefresh: vi.fn(), editMode: false, setEditMode: vi.fn(), isReadOnly: false, extendedHours: false, onToggleExtended: vi.fn(),
+      viewMode: 'pitch', onToggleView: vi.fn(), hideValues: false, onToggleHideValues: vi.fn(), onOpenHoldingsList: vi.fn(), onOpenSectorsList: vi.fn(),
+      onOpenTransactionHistory: vi.fn(), onOpenAgents: vi.fn() }} />);
+    expect(shown(container)).toEqual(['$100,000', '+$1,500', '+$25,000', '(+1.52%)', '(+33.30%)']);
+  });
+
+  it("a figure taking the dash's place does not flash as a move", () => {
+    const base = { marketData: MARKET_DATA, marketDataReady: true, source: 'live', lastUpdated: new Date(), isRefreshing: false, onRefresh: vi.fn(),
+      editMode: false, setEditMode: vi.fn(), isReadOnly: false, extendedHours: false, onToggleExtended: vi.fn(), viewMode: 'pitch', onToggleView: vi.fn(),
+      hideValues: false, onToggleHideValues: vi.fn(), onOpenHoldingsList: vi.fn(), onOpenSectorsList: vi.fn(), onOpenTransactionHistory: vi.fn(), onOpenAgents: vi.fn() };
+    // The costs before the dividends came off: $24,000 of gain, never shown; then the dividends land.
+    const { container, rerender } = render(<Header {...base} metrics={{ ...METRICS, unrlGL: 24000, unrlPct: 31.4 }} costsPending />);
+    rerender(<Header {...base} metrics={{ ...METRICS }} costsPending={false} />);
+    expect(container.querySelectorAll('.sb-change-row')[1].className).not.toContain('sb-flash');
+    // A real move after it does.
+    rerender(<Header {...base} metrics={{ ...METRICS, unrlGL: 25500, unrlPct: 34 }} costsPending={false} />);
+    expect(container.querySelectorAll('.sb-change-row')[1].className).toContain('sb-flash-up');
+  });
+});
+
 describe('Header scoreboard — hide-values eye', () => {
   it('fires onToggleHideValues when the eye is clicked', async () => {
     const user = userEvent.setup();
@@ -757,6 +792,15 @@ describe('Sidebar — FORMATION VALUE and Top Movers in dollars wait for the exc
     expect(formation()).toEqual([
       ['Midfield', '$1,440', '69.1', '69.1%', '+$240.00 (+20.00%)'],
       ['Centre back', '$642.50', '30.9', '30.9%', '+$100.00 (+20.00%)'],
+    ]);
+  });
+
+  it("each row's gain waits for the dividends its costs are net of, its value and share of the book do not", () => {
+    render(<Sidebar metrics={metricsWith(642.5)} source="live" portfolio={{}} marketData={{}} extendedHours={false} phase="regular"
+      hideValues={false} fxPending={false} costsPending />);
+    expect(formation()).toEqual([
+      ['Midfield', '$1,440', '69.1', '69.1%', '— (—)'],
+      ['Centre back', '$642.50', '30.9', '30.9%', '— (—)'],
     ]);
   });
 

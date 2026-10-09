@@ -181,7 +181,7 @@ function usdToCcyRate(ccy, marketData) {
 /** What a money cell of the scoreboard shows in a currency whose rate has not landed. */
 const CCY_PENDING = '—';
 
-function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
+function Header({ metrics, marketData, marketDataReady, costsPending = false, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -240,6 +240,12 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   const fmPct = (/** @type {number | null | undefined} */ v) => (fxPending ? CCY_PENDING : fmP(v));
   /** Its colour, none while pending: the sign of a 1:1 book is not the book's. */
   const pctColor = (/** @type {number | null | undefined} */ v) => (fxPending ? undefined : pcC(v));
+  // UNREALIZED G/L is counted from the average costs, which are net of the dividends each position paid. Until those
+  // have been read, or kept from the last visit (`costsPending`, app.jsx), every cost is the ledger's own and the gain
+  // short of every dividend: the cell, its percentage and its colour wait with a dash instead of showing that figure
+  // and then jumping (Davies, 2026-10-09). PORTFOLIO and DAY CHANGE hold no cost and never wait on it.
+  const unrlPending = fxPending || costsPending;
+  const unrlText = costsPending ? CCY_PENDING : fmCcy(metrics.unrlGL, { signed: true });
 
   // Mobile scoreboard gap auto-tunes to the DAY CHANGE amount's digit
   // count (the cell whose width swings most — and the ext-hours toggle
@@ -255,6 +261,8 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
   // Scoreboard flash: detect value changes on price refresh
   /** @type {React.MutableRefObject<import('../app/types').PortfolioMetrics | null>} */
   const prevMetrics = React.useRef(null);
+  // Whether UNREALIZED read a dash last time: a figure taking a dash's place is not a move, so it does not flash.
+  const prevUnrlPending = React.useRef(unrlPending);
   /** @type {[Record<string, 'up' | 'down'>, (f: Record<string, 'up' | 'down'>) => void]} */
   const [sbFlash, setSbFlash] = React.useState({});
   /** @type {React.MutableRefObject<ReturnType<typeof setTimeout> | null>} */
@@ -269,15 +277,16 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
       f.mv   = metrics.marketValue  > prev.marketValue  ? "up" : "down";
     if (Math.abs((metrics.dayChange ?? 0) - (prev.dayChange ?? 0)) > eps)
       f.day  = metrics.dayChange    > prev.dayChange    ? "up" : "down";
-    if (Math.abs((metrics.unrlGL ?? 0) - (prev.unrlGL ?? 0)) > eps)
+    if (!prevUnrlPending.current && !unrlPending && Math.abs((metrics.unrlGL ?? 0) - (prev.unrlGL ?? 0)) > eps)
       f.unrl = metrics.unrlGL       > prev.unrlGL       ? "up" : "down";
     prevMetrics.current = metrics;
+    prevUnrlPending.current = unrlPending;
     if (Object.keys(f).length) {
       setSbFlash(f);
       if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
       sbFlashTimerRef.current = setTimeout(() => setSbFlash({}), 1400);
     }
-  }, [metrics]);
+  }, [metrics, unrlPending]);
   // Clear a pending scoreboard-flash reset if Header unmounts mid-window.
   React.useEffect(() => () => {
     if (sbFlashTimerRef.current) clearTimeout(sbFlashTimerRef.current);
@@ -349,9 +358,9 @@ function Header({ metrics, marketData, marketDataReady, source, lastUpdated, isR
         <div className="scoreboard-divider" />
         <div className="scoreboard-cell">
           <div className="sb-label">UNREALIZED G/L</div>
-          <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: pctColor(metrics.unrlPct) }}>
-            <span>{hideValues ? mask(fmCcy(metrics.unrlGL, { signed: true })) : fmCcy(metrics.unrlGL, { signed: true })}</span>
-            <span className="sb-pct">({fmPct(metrics.unrlPct)})</span>
+          <div className={`sb-value mono sb-change-row${sbFlash.unrl ? " sb-flash-" + sbFlash.unrl : ""}`} style={{ color: unrlPending ? undefined : pcC(metrics.unrlPct) }}>
+            <span>{hideValues ? mask(unrlText) : unrlText}</span>
+            <span className="sb-pct">({unrlPending ? CCY_PENDING : fmP(metrics.unrlPct)})</span>
           </div>
         </div>
       </div>
@@ -716,11 +725,12 @@ function TopMovers({ metrics, hideValues = false, fxPending = false }) {
 /**
  * `refreshedAt` / `forceRefreshKey`: when the app's last refresh finished, and how many times its button has been
  * pressed, for the performance panel, which follows both (perf_chart.jsx). `fxPending` (metrics.js's `fxPendingOf`)
- * holds FORMATION VALUE and Top Movers in dollars until the exchange rates have loaded; `marketDataReady` goes to the
- * performance panel, which asks the same of every holding it values.
+ * holds FORMATION VALUE and Top Movers in dollars until the exchange rates have loaded; `costsPending` holds each
+ * FORMATION VALUE row's gain until the dividends its costs are net of are known (app.jsx); `marketDataReady` goes to
+ * the performance panel, which asks the same of every holding it values.
  * @param {{ metrics: any, source: any, portfolio: any, marketData: any, extendedHours: boolean, phase: string,
  *   hideValues: boolean, isReadOnly?: boolean, refreshedAt?: number, forceRefreshKey?: number,
- *   fxPending?: boolean, marketDataReady?: boolean }} props
+ *   fxPending?: boolean, costsPending?: boolean, marketDataReady?: boolean }} props
  */
 /**
  * The desktop foot's keyboard shortcuts, as the page's key handler takes them (app.jsx): a read-only viewer has no
@@ -732,7 +742,7 @@ export function shortcutsHint(isReadOnly) {
   return isReadOnly ? 'R (refresh) · X (extended)' : 'R (refresh) · E (edit) · X (extended)';
 }
 
-function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0, fxPending = false, marketDataReady = true }) {
+function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase, hideValues, isReadOnly = false, refreshedAt = 0, forceRefreshKey = 0, fxPending = false, costsPending = false, marketDataReady = true }) {
   // The by-value position list. Memoised on metrics so the per-tick
   // refresh churn (clock, flash) doesn't re-sort the book on every
   // render. Top movers moved into TopMovers, which owns its own
@@ -775,8 +785,10 @@ function Sidebar({ metrics, source, portfolio, marketData, extendedHours, phase,
                 </div>
                 <div className="fr-meta">
                   <span className="mono dim">{pct == null ? '—' : `${pct.toFixed(1)}%`}</span>
-                  <span className="mono" style={{ color: fxPending ? undefined : pcC(p.unrlPct) }}>
-                    {money(p.unrlGL, { signed: true })} ({fmP(fxPending ? null : p.unrlPct)})
+                  {/* Each row's gain is counted from its costs, net of the dividends: a dash until those are known, as
+                      on the scoreboard (`costsPending`). */}
+                  <span className="mono" style={{ color: fxPending || costsPending ? undefined : pcC(p.unrlPct) }}>
+                    {money(costsPending ? null : p.unrlGL, { signed: true })} ({fmP(fxPending || costsPending ? null : p.unrlPct)})
                   </span>
                 </div>
               </div>
