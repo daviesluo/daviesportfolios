@@ -417,6 +417,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-09 22:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- VB-K is PAUSED on Davies' word ("VB-K先暂停吧，听起来似乎不怎么赚钱"): no Odds API key, no paper phase; the design stays
+  in `reviews/2026-10-09-vbk-design.md`. His CoinJar UK and IG accounts are registered and under the venues' review (no
+  key yet). Running: other venues for PR5's rule (UK and Irish/EEA), IG's API and products for an edge, Polymarket's
+  short crypto markets (resumed after the 21:05 container restart).
+
 ### [2026-10-09 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **VB-K design** (Davies: "VB-K也可以自动化…交给grokbot给我点…和polymarket也可以结合"): `reviews/2026-10-09-vbk-design.md`,
   `backtests/vbk/` (map row); keyless, nothing bet or signed up for. Out of sample, edge ≥ 2 %, odds < 5 against the
