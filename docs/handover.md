@@ -44736,3 +44736,215 @@ unchanged, their ORDER reversed to this Part's convention of newest last. Nothin
   of headroom, from 1.35). What the first paint loads (the entry and the chunk it preloads, gzip -9): 123,360 bytes
   before, 119,771 after (the shared chunk is now formatters and ticker classes, 1,441 bytes; `ops_error.js` moved
   into the entry). The editors' tests read the new modules; the whole unit suite: 1,369 passed.
+
+## LEDGER.md, archived 2026-10-09 (third) — every history section from 2026-10-09 00:10 to 02:46 UTC
+
+Moved verbatim from `LEDGER.md`, which had reached its 80 KiB budget again. Each section is unchanged, their ORDER
+reversed to this Part's convention of newest last. Nothing was deleted.
+
+### [2026-10-09 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's go preparation, everything short of arming** (Davies: "…然后最好上线准备"). P3 met in code: the payouts-per-path
+  change (pending since 10-04) applied as it stood (`pm_live.ts` `4032d6c0…` → `57f4b1d7…`, `pm_mid.ts` comments,
+  `index.ts`, `pm_payouts.test.ts`); live-prep's Addendum 4, mid-pool's Addendum 5 (deviation 5), the pending folder
+  emptied. The monitor's health action reads `pm_lp_state.updated_at` (`pmLp`, three minutes; the Worker labels it).
+  Kill switches read in code: `pm_lp_config.live_confirmed_at` (opening), `global_pause` (cancel-all), the −$75 total
+  stop, the cancel read-back and the attestation and region gates. Left for Davies: fund pUSD (≥ $81; $400 for the
+  design's ten markets), the probe's allowance read from Ireland, and step 8lp in the conversation where he says go.
+
+### [2026-10-09 00:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Review batch 5 landed** (approved by Davies 2026-10-08, "以上内容都修"; each commit's own section below): first-paint
+  FX, T1 (unit tests off the network), T2 (browser checks on Playwright's full Chromium; CI installs `--no-shell`), M7
+  restored, D1 (`0104`, `edge_calls.active_from`, migrations.yml no longer cancels a running push), A2, A3 (a
+  different fix from the review's, see its section), A4, A6, A7, the size budget (3.58 kB of headroom). Still with the
+  reviewer: A1 by the snap (no frozen output moves), an addendum for `pm_live.ts`'s new hash (`e933f28c…`, A6/A7) with
+  a pin, and tick.ts booking the fill of a live order reconciled from history as cancelled after a partial fill.
+  `.claude/CLAUDE.md`, `docs/agents/CLAUDE.md` and the working-with-davies skill (and its Cursor copies) now say the
+  `--no-shell` install, the network guard and the fifteen-minute wait of a new `edge_calls` row.
+- **Polymarket wallet:** Davies funded it for a test; `pm_lp_state` read pUSD $4.996673 at 00:25 UTC, eu-west-1, IE,
+  attested, keyed, every gate true, dry-run. A real order has not been sent: the smoke test (one post-only 5-share
+  buy at 1¢, read back, scoring read, cancel, read back, allowances read) waits on his word.
+
+### [2026-10-09 00:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A sell that leaves only float residue closes the position** (review A1 by the snap, batch 5's follow-up;
+  `applyFill` in `_shared/agents_strategy.ts`). A sell's remainder no larger than `RESIDUE` (1e-12) of the sizes is
+  flat: 0.206612 − 0.206 − 0.000612 left 1.4e-18, and 0.1 + 0.2 − 0.3 left 5.6e-17, and either read as long for good
+  (the rule never entered the coin again; the floor asked every minute to sell what cannot be sold). In a live turn: a
+  position sold in two pieces, or bought in two and sold in one, reads flat after its last sell; nothing else moves.
+  (The review's rounding of every base moved `run()` in all 24 runs, by up to 8.4e-10, and was stopped.)
+  Byte-identical before and after (scratchpad `a1v/`): `backtest.ts`'s `run()` at full precision, four coins × three
+  kinds × two stop rules; `cap_study.json`, `cap_revx.json`, `golive50/replay.json` and the three scripts' output;
+  `backtest_ideas`' `ideas.json` less `ran_at`; the books of production's 30 `agent_orders` rows (read 10-08 ~23:20
+  UTC); the frozen preps' tests, 7 passed (they book through `pmrw_e.ts`'s own `applyFill`). **Not run, as this
+  container has no Kraken or Binance tape:** fp6's `trend_ls` / `score_trend_ls`, `btc_regime`, mx1's
+  `cstar/decisions.ts`, and `backtest_binance`, `_set2`, `_tape`, `_sui`, `_xsmom`, `_xsrev`, `_maker`, `_sizing`,
+  `_fill`, `_testingset`, `_kraken` (that one lacks the other coins' Coinbase data). Pinned in `strategy.test.ts`:
+  both residue cases close (old code: base 1.4e-18, `openedAt` kept), a real 0.000612 remainder stays, and at the edge
+  exactly 1e-12 closes while 4e-12 stays.
+
+### [2026-10-09 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A pending live order the venue's history shows cancelled after a partial fill is booked as a fill** (batch 5's
+  follow-up; the finding A2's section reported; `agents/tick.ts`). The reconcile of a pending row (its reply lost)
+  from `findOrder` wrote the venue's state as it came, `cancelled` or `rejected` with its `filled_base` beside it. The
+  book reads filled and partially filled rows alone, so that fill was in no position, floor or P&L, nor after its turn
+  in the exposure, and the turn itself counted the whole buy as open. It is now written as the read-back of an open
+  order writes it: `filled`, with its fill, price, fee and `cancelled_at`, and closed for the turn. In a live turn:
+  nothing changes until a pending loop order is found in the venue's history closed after a partial fill; its fill
+  then enters the book at once. PR5's executor settles a history find through its own read-back (`settleFromView`),
+  which already books such a fill as `filled`. **Production read first (SELECT only, 10-09 about 00:40 UTC):**
+  `agent_orders` holds 30 rows, 2 live and 28 paper, every one `filled` with its fill; none is pending, cancelled,
+  rejected or partially filled, none was reconciled, none carries `cancelled_at`. PR5's `agent_quote_live_orders` has
+  no cancelled or rejected row with a fill (2,953 and 35 live rows, and the dry-run's 1,128 and 19), and none of its
+  78 live filled rows carries `cancelled_at`. No book is wrong today, and no data was touched. Pinned in
+  `tick.test.ts` (a history stub, `findOrder`): such an order, cancelled and rejected alike, leaves the row, the
+  position and the exposure exactly as the read-back of the same order does (`filled` 0.05 at 129.01, fee 0.03,
+  `cancelled_at`, long, $6.4595 of exposure); the old code wrote `cancelled`, read flat and counted $19.995. The
+  tick's 113 tests pass.
+
+### [2026-10-09 00:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7
+  (twelve days +$1,167.04, stress +$289.96 against RW's +$123.31), x1–x3 7 of 7; RW-NEXT Part 1 names **RW-E**, which
+  goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
+  Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
+  outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
+
+### [2026-10-09 01:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's go-live audit fixed, one commit each, branch `pm-prego`, not pushed** (the coordinator's batch, on
+  Davies' "期间你再验证一下所有系统和下单等所有上线会用到的细节都确保没有问题"; nothing armed, no order sent).
+  - **F1, the outcome tokens' approvals** (live-prep's P5). The probe's polymarket part reads
+    `/balance-allowance?asset_type=CONDITIONAL` on a token of live-prep's selection today, else the busiest book's, and
+    reports `conditional.allowances` named as the collateral block's and `sellsApproved` for the two exchanges. Live-prep's
+    LIVE turn opens nothing while its own conditional reads (already made each minute) list either exchange missing or
+    at 0: gate `ctf_approval`, said once; sells are never held back by it; no listing at all stops nothing; dry-run and
+    the other instances have no such gate. The fake lists both exchanges approved and refuses a sell through one that
+    is not. Pinned in `pm_lp.test.ts` and `index.test.ts`.
+  - **F3, a POST the venue never took no longer holds its slot for good.** A live row the venue shows nowhere (404) once
+    its expiration less the venue's minute has passed cannot rest: closed `expired` with `cancelled_at`, its slot and
+    cap freed, said once if it was pending; before that moment it stays for a person, as before. Every path's live
+    read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)".
+  - **F4, a Polymarket Protocol V2 book is unquotable.** The docs (2026-10-09) give V2 books `version: "v2"`, signed for
+    0xe3333700… with domain version "3" and a position id; CTF books omit `version`. `bookNow` is null for a book naming
+    any protocol (`bookProtocol`), so the selection passes it over and a selected market whose book turns V2 is withdrawn,
+    recorded as the condition "a Polymarket Protocol v2 book: unquotable here". None of 10-09's ten books names one, and
+    the CLOB's `GET /version` read 2. A refusal "order_version_mismatch" is reported once an hour (`state.versionMismatchAt`,
+    kept only once one is). Pinned in `pm_live.test.ts` (three tests).
+  - **F5, the dry-run kill switch re-asks a frozen cancel.** On a mode switch, a live order whose earlier cancel the
+    venue never carried out is cancelled again (only pending and unread rows wait); before, it rested to its GTD expiry.
+    Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code.
+  - The frozen-export checks (`pm_instance`, `pm_mid_formula`, `pm_payouts` tests) list `gates` (F1) and `bookNow` (F4)
+    as changed; they fail on F1 and F4 alone until this commit. The minute-by-minute dry-run comparisons with the frozen
+    code are unchanged and pass.
+  - **U1, sell-first survives either reading of the conditional balance.** The docs imply the balance is the whole
+    holding ("maxOrderSize = balance − Σ(openOrderSize − filledAmount)"), and the fake follows that; if it were net of
+    our resting sells, the minute after a sell rested would read nothing held and flip the side to a buy. Live-prep's
+    live turn now holds `heldFromBalance`: balance + our resting sells when that is at most what the CONFIRMED fills
+    explain, else the balance (exact on either reading when fills agree; proof in its comment). Pinned in `pm_lp.test.ts`
+    with the fake gross and net (`conditionalNetOfOrders`): one sell resting throughout, no flip, the same POSTs either
+    way; it fails on the net reading without the rule.
+  - **F2, the hash.** `pm_live.ts` is now sha256 `a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703`
+    (from `57f4b1d7…`, through A6/A7's `e933f28c…`). Live-prep's Addendum 5 and mid-pool's Addendum 6 (deviation 6)
+    name it and every change since, what each changes live, and the dry-run evidence (the frozen-code comparisons; all
+    217 `pm_*`/`polymarket*` Deno tests pass). `src/pm_live_hash.test.js` fails if `pm_live.ts` is not the bytes both
+    latest addenda name, so its next change needs an addendum first.
+- **RW's paper verdict** (the 10-09 wake; item 2): RW passes 6 of 6 (total +$1,981.72, stress +$94.79), RW-E 7 of 7
+  (twelve days +$1,167.04, stress +$289.96 against RW's +$123.31), x1–x3 7 of 7; RW-NEXT Part 1 names **RW-E**, which
+  goes to RW-C. `stepRw` reproduces every one of 4,116 fills; the re-pulled prints equal the stored 13,634. RW-X4/X5's
+  Test 1 is void (no 10-01 rows for Addendum 1's copy check); descriptively both trail x1's stress. Scripts, reads and
+  outputs in `backtests/rwverdict/`; nothing deployed, nothing armed, no frozen file edited.
+
+### [2026-10-09 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **UNREALIZED G/L reads a dash or its own figure, never the gain before dividends** (Davies, 10-09: "其他似乎都订住了但score
+  board里的UNREALIZED G/L刚刷新的前1s还是会显示别的内容再闪回"). The cause: every average cost on the board is net of the dividends its
+  position paid (`withDividendCosts`), and the page read them after its first refresh, not awaited, and kept them
+  nowhere, so each load's first figures took no dividend off and UNREALIZED read the gain less every dividend until
+  the read landed. PORTFOLIO and DAY CHANGE carry no cost and never moved; TOTAL REALIZED, opened in that second, also
+  counted no closed position, the fills not yet read. The fix: the dividends last read are kept (`dp.dividends`, a
+  week, as the other first-paint stand-ins) and seed the next load, so a reload draws every figure from the state the
+  page last showed; a failed read (`read: false`, new on the fills' and dividends' reads) is never taken for "none";
+  until the dividends are known (a first visit, or a week on) UNREALIZED, its percentage and colour and each FORMATION
+  VALUE row's gain wait with a dash, and TOTAL REALIZED waits for the fills and the dividends. Sweep part
+  `unrealized`, both widths, ACME's shares tagged Trading 212's so the sync runs on every refresh: a first visit with
+  the dividends held, then a reload with the service worker in control and every answer held while Transaction history
+  opens (`routeWorker` answers the worker's own Supabase requests, which Playwright routes through the context alone:
+  unrouted, they would go to production). On main's bundle (app-64101613.js) 6 failures: a first visit —(—) →
+  +$412.50(+18.17%) → +$424.50(+18.80%); the reload's first paint +$412.50(+18.17%), then +$424.50; TOTAL REALIZED
+  +$120.00 → +$240.00. On this one (app-fc25f1d0.js): — → +$424.50(+18.80%); the reload's first paint and every one
+  after it $3,183 | +$30.95(+0.98%) | +$424.50(+18.80%); TOTAL REALIZED — → +$240.00; the sync applied twice after the
+  reload and moved nothing. Unit pins, all 12 failing on the old source: the app's (a reload's first renders show 220
+  net of the kept dividends, old 200; a first visit waits; a failed read keeps them), storage's, both reads' `read`,
+  the scoreboard's, FORMATION VALUE's, TOTAL REALIZED's. Size 118.7 kB of 122. Not covered: the drill, the holding and
+  sector lists and the ticker chart, opened on a first visit in the moment between the first refresh and the
+  dividends' answer, show the ledger's cost (they wait for the rates alone).
+
+### [2026-10-09 01:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The review's 10-08 sections of batches 1–4, landed and closed, moved to the archive** (`docs/handover.md` Part 2,
+  "LEDGER.md, archived 2026-10-09", word for word, oldest first): with batch 5's follow-ups the ledger stood at
+  86,571 bytes, over its 81,920 (`src/ledger_budget.test.js`, the hook's gate 3). Three
+  what-remains pointers to them now say archived.
+
+### [2026-10-09 01:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Reward quotes live-prep is LIVE since 2026-10-09 01:32:21 UTC** (Davies: "可以按原计划上线 … 期间你再验证一下所有系统和
+  下单等所有上线会用到的细节都确保没有问题", then "live-prep等代理修好后你再审核一遍，确定所有都没问题了再上线，并且上线后派个便宜
+  代理盯着"). Before it: the go-live audit's fixes landed (1e41c315, `pm_live.ts` `a208878b…`, live-prep Addendum 5),
+  deployed by edge-functions at ~01:31; the coordinator reviewed the diff; the probe (pg_net, 01:32) read the account
+  funded at the design's size, `conditional.sellsApproved` both true, 0 open orders; step 8lp's pre-read (keyed, no
+  signer problem, pUSD read 14 s before, eu-west-1, mini-pool and mid-pool unarmed, attested, no global pause). Step
+  8lp ran word for word; read back `dry_run` false, `live_confirmed_at` 01:32:21.868885, `cap_total_usd` 320. First live
+  turn 01:33: mode live, every gate true (`ctf_approval` true), 14 live post-only BUYs, no error. A `sonnet-max` watch
+  reads it every 5 min to 02:40 and every 15 to 07:40 UTC and reports to the session. The Agents page's LIVE tab does
+  not show it yet: a live row and page for it are being built (opus-high, branch `lp-live-row`). Kill switches:
+  `update public.pm_lp_config set live_confirmed_at = null where id = 1;` (no new buys; sells stay), `dry_run = true`
+  (cancels its live orders), `agent_risk.global_pause`.
+
+### [2026-10-09 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep may send 12,000 POSTs a UTC day, up from 6,000** (Davies: "同意提到 12000"; branch `lp-governor-12k`, not
+  pushed). Live it posted 98 between 01:33:04 and 01:48:05 UTC (about 392 an hour, 9,100 to 9,400 a day): the 6,000
+  governor would have stopped every order between about 16:15 and 16:50 UTC.
+  - Code: `lpLimits` takes live-prep's own ceiling `PM_LP_MAX_POSTS_DAY` = 12,000; `PM_LIVE_MAX_POSTS_DAY` stays 6,000,
+    so mini-pool and mid-pool are exactly as they were. `pm_live.ts` sha256 `8920e0c2…466a` (from `a208878b…`).
+  - `0105_pm_lp_posts_12000.sql`: `pm_lp_config`'s CHECK admits 12,000 and its row is set there; no other column. The
+    turn uses min(config, code), so either deploy alone keeps 6,000; `lock_timeout` 3 s, safe while live.
+  - Live-prep's Addendum 6 and mid-pool's Addendum 7 (deviation 7); a dated note on the design doc's "POSTs a day" row.
+  - Pins: `pm_lp.test.ts` (lpLimits; an armed day at 6,001 posts on, withheld at 12,000, and at 6,000 with the config
+    at 6,000), `pm_live.test.ts`/`pm_mid.test.ts` (mini-pool's and mid-pool's governors stop at 6,000),
+    `src/pm_live_hash.test.js` (the bytes and the addenda chain). 221 `pm_*`/`polymarket*` Deno tests pass.
+  - After deploy: `select max_posts_day from public.pm_lp_config;` reads 12000 and
+    `select state->'limits'->>'maxPosts' from public.pm_lp_state;` reads 12000 once both have landed.
+
+### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
+  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
+  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
+  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
+  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
+  7 days once archived. No new Edge call, no instance, no change to live-prep.
+
+### [2026-10-09 01:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's real money is a row of LIVE** (Davies: "网站的agents live页怎么看不到这个上线"; it went live 10-09 01:32:21
+  UTC). `agents/pm_lp_live_view.ts` + `readLpLive` send the dashboard's `lpLive` from `pm_lp_*` live rows only: funded
+  is the cap (`cap_total_usd`, not the pUSD read, which also holds the stop's room and moves with fills); deployed the
+  resting live buys' collateral plus holdings at cost; P&L `tokenBooks`/`bookPnl` on CONFIRMED fills and settlements at
+  the last turn's mids, realised plus `pm_lp_reward_days` live actual (native + sponsored) and rebates; formula apart,
+  R; fees 0 (post-only); the −$75 stop as the path reads it. Page `LpLiveDetail` (STOP AND GATES, HELD, RESTING/RECENT
+  ORDERS, FILLS, DAYS). The venue card's "(Paper)" now follows the books on it (a live book folded on LIVE was "(Paper)").
+  Not pushed: sub-agent commit for the main session to land; `pm_live.ts` and `pm_lp.ts` untouched.
+
+### [2026-10-09 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Sonnet sub-agent tier runs at high effort: `sonnet-high` replaces `sonnet-max`** (Davies, 2026-10-09: "以后sonnet的都
+  从max改为…", then "改成 sonnet-high吧"). `.claude/agents/sonnet-max.md` is now `sonnet-high.md` (`effort: high`);
+  `.claude/CLAUDE.md`, the working-with-davies skill and its two Cursor copies say so. Live-prep's watch was restarted
+  on it (Sonnet, high) at about 02:03 UTC.
+
+### [2026-10-09 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's live-prep row is "Reward quotes", its page below the scoreboard reshaped** (Davies, three messages: rename;
+  "STATUS里WORST CASE部分改为实际R值"; "表格部分还是用现在的live页里的设计…RECENT ORDERS表删了，DAYS表放在所有表最上面";
+  "RESTING ORDERS表格还是改为testing页的QUOTES表格吧，fills也一样"). Page: TESTING's STATUS with R (ACTUAL) = Σ paid ÷ Σ formula
+  on live days read ("—" before), then DAYS, STOP AND GATES, HELD, TESTING's QUOTES and FILLS (`RwQuotesTable`,
+  `RwFillsTable`, now shared). `lpLive` gains `status`, `quotes`, TESTING-shaped fills and the live minute's share; no
+  `pm_lpprep_*` read. TESTING's two rows keep their names (distinct ids). Not pushed.
+
+### [2026-10-09 02:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Fees on every Reward quotes page and the Polymarket card** (Davies: "像live一样加入fees行"; "按照实际情况估算"), and HELD
+  off LIVE's page ("QUOTES表里已经有了"). `agents/pm_fees.ts`: fee = C × rate × (p(1−p))^e, 5 dp, makers never charged
+  (docs trading/fees; clob-client-v2 `calculatePlatformFee`); maker rebate estimated as rebateRate × own fee-equivalent
+  (docs maker-rebates), shown apart, counted nowhere. Paper fills are all makers' → fees $0; fee types from RW's `cat`
+  and `pm_rec_markets.fee_type`. LIVE: each trade record's `trader_side`/`fee_rate_bps` (all MAKER, $0). Not pushed.
