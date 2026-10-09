@@ -404,6 +404,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   **Open:** lands with the main session's push (Edge deploy); then read that LIVE's resting NO buy on 0xecc209a6 was
   cancelled with gate `rule` and its NO sell still rests.
 
+### [2026-10-09 14:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPCAP** (Davies: "另外也研究下不同本金的受益会有区别吗，最多能投入多少"): live-prep's L1 at total caps of $320 to $10,000,
+  four ways of using the capital (the cap alone, more markets, bigger orders, both by sqrt), on RW's record (14 d) and the
+  full-universe record (4 d), both fill models; LPSELF's L1 reproduced byte for byte first. At today's sizes the rule
+  holds at most $368-$491 (holdings at cost + resting buys): a larger cap adds ~$0-$1.5 a day at R = 1 and nothing or
+  less at R = 0.4, so its return % falls as 1/capital. Bigger orders saturate the pools (our share 0.22 -> 0.38 at 3x,
+  0.74 at 31x) while fills grow with size: at R = 0.4 the most is at $1,000-$2,000 with both scaled ($38 -> $60 a day
+  on RW's record; $29 -> $41 on the full universe, $18 -> $17 at-price) and every step past $2,000 loses there; at
+  R = 0.2 nothing past $640 pays. More markets: 20 at $640 earns +$29 a day at R = 1, +$1.9 at 0.4, and ~20 markets is
+  where the 12,000 POSTs a day bind. `backtests/lpcap/`, read in Addendum 8.
+
 ### [2026-10-09 04:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **EXPENSIVE-SIDE** (Davies: "你先回测研究一下，结果告诉我后我再决定", after LIVE bought 80 NO at 0.97 on the Iran voicemail
   market): limits on buying a token priced >= 0.95 / 0.90 against L1 on RW's and the full-universe record (both fill

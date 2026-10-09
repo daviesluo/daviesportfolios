@@ -1,0 +1,31 @@
+{
+ "study": "LPCAP (2026-10-09): does live-prep's return on capital change with its size, and how much can it deploy? Live-prep's current rule L1 (LPSELF's, reproduced byte for byte) at total caps of $320, $640, $1,000, $2,000, $5,000 and $10,000 under four ways of using the capital (the cap alone; more markets; bigger orders; both by the square root), and L1 with its cap following its equity (a payout reinvested at once), on RW's record (14 days) and LPSELF's full-universe record (4 days), both fill models",
+ "asked": "Davies, 2026-10-09: \"另外也研究下不同本金的受益会有区别吗，最多能投入多少\"",
+ "write_up": "docs/agents/reviews/2026-10-04-polymarket-lp-prereg.md, Addendum 8",
+ "inputs": {
+  "../rwc_opt/data, ../pmlp/data": "RW's record, as RWC-OPT committed it (LPSELF's loadRW)",
+  "<pr_record.json> (not committed, 99 MB)": "LPSELF's full-universe record, sha256 c855d12c588aff726034a8690428c3f7793c2a31bd9d6c52b5995cc31eaf2de9 (../lpself/MANIFEST.json says how to build it)",
+  "../lpself/results/lp_*.json": "LPSELF's L1, which cap_run.ts checks its copy of the simulator against, byte for byte, before any arm runs"
+ },
+ "run": [
+  "cd docs/agents/backtests/lpcap",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --no-check scripts/cap_run.ts rw [--at-price]",
+  "npx --yes deno@1.46.3 run --v8-flags=--max-old-space-size=6000 --allow-read --allow-write --no-check scripts/cap_run.ts pr <pr_record.json> [--at-price]",
+  "python3 -I scripts/cap_analyse.py > results/cap_analysis.txt"
+ ],
+ "reproduced": "all four runs printed 'L1 reproduces LPSELF's lp_<rec>[_atprice].json byte for byte' before their arms ran",
+ "notes": [
+  "cap_sim.ts is LPSELF's sim2.ts with two counters (POSTs a day, the pools' rates over the minutes we quoted) that change no decision, and one option (equity: the total cap is the starting cap + what the fills realised + R x the rewards of the days before today); sim.ts, sim2.ts, tb1s_sim.ts and exp_sim.ts are untouched",
+  "the POST counter undercounts the live path: live-prep sent 3,036 POSTs from 01:33 to 14:48 UTC on 2026-10-09, 229 an hour over its ten markets (about 550 a market-day), against the counter's 307 a market-day on the full-universe record; scale the counter by about 1.8"
+ ],
+ "sha256": {
+  "results/cap_analysis.txt": "d1558a404c114a65cac61c7cc3591dde052288d56d181701dc68753d0f99797b",
+  "results/cap_pr.json": "9cbe6b096e87be830a461145e2a9b83afb593950fc67af176234e15769379472",
+  "results/cap_pr_atprice.json": "6b86eca6b45286a52c2f7a277adea85c0ae51b1f036a24e4b71aebbb0e13f20e",
+  "results/cap_rw.json": "780df7f5cf31bedb081e793faaeefa8d1d9528eee439ee19ff53c147f21bcb25",
+  "results/cap_rw_atprice.json": "d7d7018194ade08b46f78faa05f05fc513a5e1baef24ebeafee50e28fbbb79b6",
+  "scripts/cap_analyse.py": "86bab0575194576e2f64e5f4ab76bcc28ec337386b71a292c95e3be2729f58ef",
+  "scripts/cap_run.ts": "d58c02b751ba318f924ca18c48586eedbd4cef93b27cbf0c5f56d3070ce36bd3",
+  "scripts/cap_sim.ts": "5f52d56915e5c7070ea9a4497eea06534dcbd8b487528b496bb8330403db293b"
+ }
+}
