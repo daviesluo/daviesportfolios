@@ -1,0 +1,438 @@
+EXPENSIVE-SIDE (2026-10-09): should live-prep stop buying the expensive side of near-certain markets?
+====================================================================================================
+Asked by Davies, 2026-10-09: "你先回测研究一下，结果告诉我后我再决定". The LIVE path "Reward quotes live-prep" (pm_lp.ts, mode live
+since 10-09 01:32 UTC) bought 80 NO at 0.971-0.972 ($77.72 at cost, 4 fills of 20, 03:11:37 -> 03:32:29 UTC; pm_lp_fills) on
+"Will Iran release a Trump voicemail about the Strait of Hormuz by October 15?" (cond 0xecc209a6..., $200/day pool, ends
+10-16 03:59 UTC). Its YES mid fell from 0.045 (01:00-02:59) to 0.030 (03:00-04:00) while the NO bids filled; the market's
+formula reward that hour was $0.56 (pm_lp_minutes, mode live). If YES resolves, ~$78 goes in one jump, which the -$75
+total stop (fills marked plus paid) only sees afterwards. Nothing of the live path was changed by this study.
+
+What was run (read-only; sim.ts / sim2.ts / tb1s_sim.ts untouched):
+- scripts/exp_sim.ts: a copy of TB1-SELLS' tb1s_sim.ts with one more option, `exp` (a limit on BUYING a token whose buy
+  price, b for YES or 1 - a for NO, is >= thr; a SELL of a held token always rests): `nobuy` (the expensive side does not
+  rest as a buy, the cheap side rests alone), `skip` (neither side buys when the expensive side would be a buy), `inv k`
+  (the buy rests only while that token's holding is < k x N), `usd X` (only while that token's holding at cost, or at the
+  mark for `usd 50 mark`, plus the order stays <= $X in that market). Counters: $ held at the mark in tokens marked >= 0.90
+  / 0.95 each minute (all markets, largest single market), rewards by the minute's max(m, 1 - m), and every fill (the
+  passive model's exits included) marked to its market's end value for the attribution.
+- scripts/exp_run.ts rw|pr [--at-price], scripts/exp_analyse.py; results/exp_*.json.gz. L1 = live-prep's rule exactly as
+  LPSELF's lpgrid.ts / tb1s_run.ts write it (S2 + TB1 skip + x2's pause + the paid stop, $320 / $100 a market, 5N,
+  reduce-first). The copy reproduces L1's committed day series exactly on all four record x fill cells (below).
+- Records: RW's (09-25 -> 10-08 23:10 UTC, 14 days, passive exits) and LPSELF's full-universe pm-rec record (10-05 -> 10-08
+  22:59, 4 days, close-only exits; data/pr_record.json not committed, sha256 c855d12c...eaf2de9 checked before the run).
+- Live-prep's own paper record: sql/exp_paper.sql on pm_lpprep_* (10-04 17:55 -> 10-09 01:32 UTC), Supabase connector,
+  read-only, 2026-10-09 ~04:00 UTC; and pm_lp_fills / pm_lp_minutes for the live fills above.
+- Polymarket's own history (keyless public reads): scripts/exp_calib_fetch.py drew 6,352 closed Yes/No markets (5,766
+  distinct; one ending at 00:00 UTC is listed on two days) whose scheduled end is in 2025-10-01 .. 2026-10-04, $25k+
+  volume, less crypto up-or-down, weather and sports games / props, up to 20 a day (random.Random(f"20261023|{day}")), and
+  each one's YES hourly price (CLOB prices-history, fidelity 60) over the 14 days before it closed; 5,632 had a history.
+  data/exp_calib_markets.jsonl.gz is the drawn list (sha256 of the uncompressed markets.jsonl b8d03842...e951cf); the
+  31 MB of hourly prices are not committed (hist.jsonl sha256 2cbc491f...12f60b). scripts/exp_calib.py reads both.
+
+ANSWERS (R = 0.40 unless said; "boot" = paired day bootstrap, random.Random(20261023), 2,000 draws, index 100)
+
+1. How much comes from the expensive side, and what it holds.
+   Rewards earned in minutes whose expensive token was >= 0.95 / 0.90-0.95 (formula, before R):
+     RW 14 d, L1 strict: $88.35 (6.6 %) / $158.75 (11.8 %) of $1,345.50; at-price 6.5 % / 11.6 %.
+     full universe 4 d, strict: $51.08 (14.5 %) / $80.67 (22.9 %) of $352.04; at-price 15.2 % / 23.6 %.
+     live-prep's paper (10-04 -> 10-09): $93.21 (16.2 %) / $59.53 (10.3 %) of $576.47.
+   Fills P&L of trades in tokens priced >= 0.95 / 0.90-0.95 (each fill marked to its market's payout or last mid): RW
+   strict +0.16 / -9.16 (of -0.47 in all); RW at-price +0.94 / -9.44; full universe strict +0.98 / +0.47, at-price +1.00 /
+   -0.30; paper +0.99 / +5.84 (of -34.41). Expensive buys marked out positive everywhere (RW strict: 279 shares bought
+   >= 0.95 for $271, +$8.28 to the end). None of these shows a held expensive token resolving against us: the records contain no upset.
+   Holdings at the mark in tokens marked >= 0.90: RW strict mean $28.90, max $148.38 across markets, $115.16 in one
+   market; some held in 78.7 % of minutes, but the largest single-market holding was >= $50 in 1,083 of 20,111 minutes
+   (5.4 %; 652 of them a token >= 0.95), >= $75 in 384, >= $90 in 299; hourly samples >= $50: 18 market-hours in 6
+   markets, the longest 6 hours. Full universe strict: mean $32.44, max $165.60, one market $115.16, single >= $50 in 308
+   of 5,700 minutes (5.4 %). Paper: mean $16.16, max $151.59, one market $135.11, single >= $50 in 577 of 6,010 minutes.
+   The largest single-market holdings are tokens bought BELOW 0.90-0.95 that then rose (e.g. 0.939 -> 0.998 into
+   resolution), not expensive buys; a buy limit cannot reach them. The live path fills the expensive side much faster
+   than the strict paper model: $77.72 at 0.97 in 21 minutes live, against $271 of >= 0.95 buys in 14 days in RW strict.
+
+2. Candidate rules against L1 (diff = arm less L1 over the record; ahead/behind days; boot; P(boot > 0)).
+   threshold 0.95                       RW strict          RW at-price        full strict        full at-price
+     no buy >= .95 (cheap side alone)   -7.49 b -21.6 .16  -4.63 b -17.0 .27  +0.82 b -2.7 .58   +0.77 b -2.7 .58
+     skip the market's buys             -16.81 b -52.0     -13.85 b -47.7     -0.91 b -6.6       -0.96 b -6.7
+     inventory 1N                       -0.36 b -6.7 .46   +0.09 b -5.6 .52   +2.24 b -0.0 .68   +2.19 b -0.1 .68
+     inventory 2N                       +1.10 b -3.5 .65   +1.59 b -2.4 .71   +2.24              +2.19
+     inventory 3N                       +1.35 b -1.8 .65   +1.40 b -1.7 .65   +2.25              +2.24
+     $25 at cost a market               -1.72 b -7.7 .31   +1.36 b -5.7 .65   +2.24 b -0.0 .68   +2.19 b -0.1 .68
+     $50 at cost a market               -1.22 b -4.8 .26   -0.74 b -3.2 .27   -0.03              -0.07
+     $50 at the mark (worst-case loss)  +0.81 b -3.8 .61   +1.48 b -2.5 .69   +2.24              +2.19
+   threshold 0.90
+     no buy >= .90                      -52.21 b -101.7 0  -41.46 b -89.9 0   -20.69 b -47.6 .06 -12.34 b -27.8 .15
+     skip                               -62.79             -51.29             -40.01             -26.70
+     inventory 1N / 2N / 3N             -9.45 / -6.89 / -6.06 (boot -19.4 / -14.1 / -12.7)  RW at-price -7.75 / -2.22 / -1.95;
+                                        full strict -26.79 / +0.55 / +0.59; full at-price -0.02 / +0.53 / +0.59
+     $25 / $50 at cost                  -11.39 / -7.72 (boot -20.7 / -14.9, P>0 0.00)  RW at-price -13.96 / -2.94;
+                                        full strict -26.79 / -0.03; full at-price -0.03 / -0.09
+   At R = 1: 0.95 caps -6.5 to +2.2 (RW strict inv 1N -2.63, $25 -6.50; no buy -18.27); 0.90 rules -12 to -152 on RW
+   strict (full universe: inv 2N / 3N, $50 at the mark +0.5, the rest -32 to -72). L1's totals: RW 537.73 strict / 504.22 at-price, full universe 114.81 / 71.05 (R = 0.40).
+   Worst day: no 0.95 rule moves it by more than $0.53 on any cell; at 0.90, "inventory 1N" and "$25" take the full
+   universe's worst day from -24.25 to -46.45 (strict).
+   How the lone quote is scored: a token >= 0.90 means the YES mid is < 0.10 (or > 0.90), outside [0.10, 0.90], where
+   Polymarket's docs score a one-sided quote at zero (the 1/3 single-sided credit applies only inside [0.10, 0.90]), and
+   the simulator's min rule gives a lone quote zero too, so both rules agree here: whenever a cap stops the expensive buy,
+   that market earns nothing until the side rests again (a sell of a held token keeps it two-sided). That is why "no buy"
+   and "skip" cost reward, and why caps at 1N-3N or $25-$50 cost almost none: they let the first N rest.
+   What the 0.95 caps do to the tail in the simulation: the minutes with >= $50 of one market in tokens >= 0.90 fall from
+   1,083 to 708 (RW strict) and 996 to 557 (RW at-price); the full universe's 308 hardly move (244 at-price); the largest
+   single-market holding stays $107-$115 in every arm (appreciated tokens, point 1).
+
+3. The tail, from Polymarket's history (833,794 favourite-hours at >= 0.90 in 5,617 markets; lost % = the share of those
+   hours whose favourite went on to lose; 90 % interval by a market-cluster bootstrap):
+     price band    implied (1 - p)   lost (pooled)          lost (each market once)   jump >= 25 c in an hour
+     0.90-0.95     7.39 %            10.18 % [8.96, 11.50]  9.43 %                    0.272 %
+     0.95-0.97     3.96 %             5.15 % [4.12, 6.27]   5.21 %                    0.194 %
+     0.97-0.99     1.87 %             1.53 % [1.14, 1.94]   2.71 %                    0.162 %
+     0.99-1.00     0.28 %             0.49 % [0.26, 0.76]   0.49 %                    0.017 %
+   So a favourite at 0.90-0.97 loses MORE often than its price says (by ~2.8 points at 0.90-0.95, ~1.2 at 0.95-0.97),
+   while 0.97-0.99 is about fair (1.53 % vs 1.87 %). The Iran position's own case (0.97-0.99, 3-14 days left): 1.39 %
+   [0.99, 1.87] pooled, 3.35 % per market, against the 2.9 % its YES price implies. Event-type markets alone (0.95-0.99,
+   3-14 d): 2.70 % [1.86, 3.55] vs 2.60 % implied. Per day, a favourite's price drifts -0.96 % (0.90-0.95), -0.56 %
+   (0.95-0.97), -0.18 % (0.97-0.99), -0.04 % (>= 0.99) of its value.
+   Expected value vs variance, per day: L1's rewards in >= 0.95 minutes are $2.53 a day on RW (88.35 x 0.4 / 13.97 d,
+   mean >= 0.95 holding $21.99) and $5.16 a day on the full universe (mean $8.15); the drift costs $0.04-$0.12 a day on
+   those holdings and the jump model's expected loss $0.23-$0.29 a day (RW L1). The expected reward is 10-20 x the expected
+   tail cost; the problem is not the mean but one market's loss arriving at once.
+   One $77.7 holding at 0.97 for the 7 days to close loses it with 1.4 % (calibration, pooled) to 3.4 % (per market),
+   3.7 % by the jump model; kept all month (four such weeks), the chance of at least one ~$78 loss is 5.5 % / 12.8 % /
+   15.0 % (11.5 % at the price), i.e. a ~24 % drawdown of the $320 at roughly 1-in-8 a month, and it trips the -$75 stop.
+   Capped at $50 a market the same jump model gives 9.3 % a month of a loss of up to $50; at $25 no single loss can reach
+   $50 (expected jump loss $4.67 a month). On the simulated holdings (slow paper fills, mostly appreciated tokens), the
+   chance of one >= $50 loss in 30 days is 1.7-2.1 % under L1 and 1.3-2.1 % under the 0.95 caps.
+
+4. Recommendation: adopt a $25 cap (at cost, per market) on BUYING a token priced >= 0.95, sells of held tokens unchanged;
+   equivalently close to "inventory 1N at >= 0.95" (which allows up to ~2N - 1 = 39 shares, ~$38, after a partial fill).
+   It costs nothing measurable (-1.72 / +1.36 / +2.24 / +2.19 at R = 0.40 over the four cells; every bootstrap index 100
+   between -7.7 and 0.0) and bounds what one direct expensive buy can lose to ~$25 (7.8 % of $320, a third of the stop)
+   instead of ~$97. Do not extend it to 0.90: every 0.90 rule loses $6-$63 on RW's record strict (P>0 <= 0.06) and $2-$51 at-price,
+   and the 1N / $25 caps lose $27 on the full universe strict, even though 0.90-0.95 favourites are slightly overpriced. Do not use "no buy" or "skip": they
+   give up the reward of the near-certain markets (-$7 to -$17 at 0.95, R = 0.40, RW strict).
+   Confidence: moderate. The cost side is consistent across both records and both fill models but small and noisy; the
+   benefit side rests on the calibration (a year of public history, not live-prep's own universe, hourly prices) and on
+   the live path filling the expensive side far faster than the paper does, which the simulation cannot show. Not
+   addressed by any buy rule: tokens bought cheaper that rise to >= 0.95 (the simulation's largest single holdings,
+   $107-$115 at the mark); and the 80 NO already held stay held (the rule would only stop further buys there).
+
+Machine output follows: exp_analyse.py, then exp_calib.py, then sql/exp_paper.sql's rows.
+-------------------------------------------------------------------------------------------------------------------------
+
+### scripts/exp_analyse.py
+== the copy reproduces the committed series (day changes in total, rewards and stress, exact float equality)
+  rw          L1 vs LPSELF lp_rw.json: identical
+  rw          L1 vs TB1-SELLS tb1s_rw.json: identical
+  rw_atprice  L1 vs LPSELF lp_rw_atprice.json: identical
+  rw_atprice  L1 vs TB1-SELLS tb1s_rw_atprice.json: identical
+  pr          L1 vs LPSELF lp_pr.json: identical
+  pr          L1 vs TB1-SELLS tb1s_pr.json: identical
+  pr_atprice  L1 vs LPSELF lp_pr_atprice.json: identical
+  pr_atprice  L1 vs TB1-SELLS tb1s_pr_atprice.json: identical
+  all identical: True
+
+== RW's record, 2026-09-25 -> 10-08 23:10 UTC (14 days), carried markets by Phase A's passive model (as L1 / C1 were judged)
+   -- L1, strict: where it comes from (formula rewards; fills P&L marked to each market's payout or last mid)
+      rewards 1345.50 (attributed 1345.50): >=.95 88.35 (6.6 %), .90-.95 158.75 (11.8 %), <.90 1098.40 (81.6 %)   [bucket = the minute's max(m, 1 - m)]
+      fills P&L -0.47 (attributed -0.47), by the traded token's price:
+        >=.95       +0.16  buy n 110 sh 279 $271 pnl +8.28  exit n 457 sh 69 $67 pnl -2.41  sell n 46 sh 291 $285 pnl -5.71
+        .90-.95     -9.16  buy n 144 sh 133 $121 pnl +6.96  exit n 531 sh 80 $74 pnl -4.96  sell n 13 sh 170 $157 pnl -11.16
+        <.90        +8.54  buy n 517 sh 7220 $2781 pnl +234.04  exit n 13342 sh 2020 $639 pnl -135.55  sell n 242 sh 3655 $1536 pnl -89.95
+      held at the mark in tokens marked >= .90: mean 28.90, max 148.38 (all markets), max in one market 115.16 (at cost 82.92); >= .95: mean 21.99, max 131.82, one market 115.16
+      minutes holding any: 15818 of 20111 (78.7 %) at .90, 15648 at .95; the largest single market holding >= $25: 3592 min, >= $50: 1083 (652 of them a token >= .95), >= $75: 384, >= $90: 299
+   -- L1, at-price: where it comes from (formula rewards; fills P&L marked to each market's payout or last mid)
+      rewards 1340.39 (attributed 1340.39): >=.95 87.67 (6.5 %), .90-.95 155.75 (11.6 %), <.90 1096.97 (81.8 %)   [bucket = the minute's max(m, 1 - m)]
+      fills P&L -31.94 (attributed -31.94), by the traded token's price:
+        >=.95       +0.94  buy n 108 sh 299 $291 pnl +8.35  exit n 322 sh 48 $47 pnl -1.65  sell n 49 sh 331 $325 pnl -5.75
+        .90-.95     -9.44  buy n 129 sh 142 $130 pnl +5.47  exit n 395 sh 60 $56 pnl -4.28  sell n 17 sh 181 $168 pnl -10.63
+        <.90       -23.44  buy n 670 sh 8852 $3389 pnl +267.27  exit n 16309 sh 2470 $756 pnl -162.70  sell n 314 sh 4715 $1975 pnl -128.01
+      held at the mark in tokens marked >= .90: mean 39.00, max 155.91 (all markets), max in one market 113.71 (at cost 82.92); >= .95: mean 32.12, max 140.08, one market 113.71
+      minutes holding any: 16426 of 20111 (81.7 %) at .90, 16367 at .95; the largest single market holding >= $25: 3087 min, >= $50: 996 (653 of them a token >= .95), >= $75: 320, >= $90: 219
+
+   arms (each less L1 at R; boot = index 100 of 2,000 paired day draws; worst-all / worst-one = the most held at the mark in tokens >= .90, all markets / one market)
+   fill        R arm                |    total     diff | ahd bhd |   worst |  boot100   P>0 |   reward fillsP&L | worst-all worst-one one>=50 min mean .90
+   strict    0.4 L1                 |   537.73    +0.00 |   0   0 |   -5.64 |    +0.00  0.00 |  1345.50    -0.47 |    148.38    115.16        1083    28.90
+   strict    0.4 nobuy 0.95         |   530.24    -7.49 |   2   6 |   -5.80 |   -21.55  0.16 |  1327.54    -0.77 |    148.08    115.05         708    21.43
+   strict    0.4 skip 0.95          |   520.92   -16.81 |   3   5 |   -6.07 |   -52.00  0.21 |  1299.47    +1.14 |    148.08    115.05         708    21.51
+   strict    0.4 inv 1N 0.95        |   537.37    -0.36 |   2   3 |   -5.74 |    -6.70  0.46 |  1341.72    +0.68 |    148.08    115.05         708    27.90
+   strict    0.4 inv 2N 0.95        |   538.84    +1.10 |   2   2 |   -5.74 |    -3.50  0.65 |  1342.36    +1.89 |    148.08    115.05         714    25.41
+   strict    0.4 inv 3N 0.95        |   539.08    +1.35 |   2   2 |   -5.70 |    -1.82  0.65 |  1343.16    +1.82 |    148.08    115.05        1083    28.71
+   strict    0.4 usd 25 0.95        |   536.02    -1.72 |   2   5 |   -5.74 |    -7.65  0.31 |  1337.54    +1.00 |    148.08    115.05         708    27.47
+   strict    0.4 usd 50 0.95        |   536.51    -1.22 |   1   4 |   -5.71 |    -4.75  0.26 |  1342.40    -0.45 |    148.08    115.05         714    25.51
+   strict    0.4 usd 50 mark 0.95   |   538.54    +0.81 |   2   3 |   -5.74 |    -3.82  0.61 |  1341.63    +1.89 |    148.08    115.05         714    25.41
+   strict    0.4 nobuy 0.90         |   485.53   -52.21 |   1   8 |  -14.95 |  -101.73  0.00 |  1232.11    -7.32 |    118.21    109.10         605    15.06
+   strict    0.4 skip 0.90          |   474.95   -62.79 |   2   7 |  -15.31 |  -135.16  0.00 |  1197.11    -3.90 |    118.21    109.10         605    15.02
+   strict    0.4 inv 1N 0.90        |   528.28    -9.45 |   1   6 |   -6.20 |   -19.36  0.01 |  1331.11    -4.16 |    118.21    109.10         606    25.25
+   strict    0.4 inv 2N 0.90        |   530.85    -6.89 |   1   6 |   -6.18 |   -14.07  0.02 |  1332.81    -2.28 |    118.21    109.10         606    22.80
+   strict    0.4 inv 3N 0.90        |   531.67    -6.06 |   1   5 |   -5.71 |   -12.71  0.06 |  1335.29    -2.45 |    145.93    109.10         949    22.61
+   strict    0.4 usd 25 0.90        |   526.35   -11.39 |   1   7 |   -5.77 |   -20.70  0.00 |  1321.65    -2.31 |    118.21    109.10         606    24.82
+   strict    0.4 usd 50 0.90        |   530.01    -7.72 |   0   7 |   -6.12 |   -14.92  0.00 |  1332.32    -2.92 |    138.14    115.05         691    23.05
+   strict    0.4 usd 50 mark 0.90   |   530.38    -7.36 |   1   6 |   -6.18 |   -14.59  0.01 |  1331.64    -2.28 |    118.21    109.10         606    22.80
+
+   strict    1.0 L1                 |  1345.03    +0.00 |   0   0 |   31.55 |    +0.00  0.00 |  1345.50    -0.47 |    148.38    115.16        1083    28.90
+   strict    1.0 nobuy 0.95         |  1326.77   -18.27 |   2   6 |   31.55 |   -44.73  0.07 |  1327.54    -0.77 |    148.08    115.05         708    21.43
+   strict    1.0 skip 0.95          |  1300.60   -44.43 |   3   5 |   31.55 |  -124.22  0.09 |  1299.47    +1.14 |    148.08    115.05         708    21.51
+   strict    1.0 inv 1N 0.95        |  1342.40    -2.63 |   2   3 |   31.55 |   -11.88  0.34 |  1341.72    +0.68 |    148.08    115.05         708    27.90
+   strict    1.0 inv 2N 0.95        |  1344.26    -0.78 |   2   2 |   31.55 |    -7.60  0.44 |  1342.36    +1.89 |    148.08    115.05         714    25.41
+   strict    1.0 inv 3N 0.95        |  1344.98    -0.06 |   2   2 |   31.55 |    -4.37  0.45 |  1343.16    +1.82 |    148.08    115.05        1083    28.71
+   strict    1.0 usd 25 0.95        |  1338.54    -6.50 |   2   5 |   31.55 |   -16.66  0.13 |  1337.54    +1.00 |    148.08    115.05         708    27.47
+   strict    1.0 usd 50 0.95        |  1341.95    -3.08 |   1   4 |   31.55 |   -10.20  0.23 |  1342.40    -0.45 |    148.08    115.05         714    25.51
+   strict    1.0 usd 50 mark 0.95   |  1343.52    -1.52 |   2   3 |   31.55 |    -8.69  0.37 |  1341.63    +1.89 |    148.08    115.05         714    25.41
+   strict    1.0 nobuy 0.90         |  1224.79  -120.24 |   1   8 |   30.49 |  -232.09  0.00 |  1232.11    -7.32 |    118.21    109.10         605    15.06
+   strict    1.0 skip 0.90          |  1193.22  -151.82 |   2   7 |   13.98 |  -323.44  0.00 |  1197.11    -3.90 |    118.21    109.10         605    15.02
+   strict    1.0 inv 1N 0.90        |  1326.95   -18.08 |   1   6 |   31.55 |   -34.66  0.00 |  1331.11    -4.16 |    118.21    109.10         606    25.25
+   strict    1.0 inv 2N 0.90        |  1330.53   -14.50 |   1   6 |   31.55 |   -29.04  0.01 |  1332.81    -2.28 |    118.21    109.10         606    22.80
+   strict    1.0 inv 3N 0.90        |  1332.85   -12.19 |   1   5 |   31.55 |   -28.07  0.07 |  1335.29    -2.45 |    145.93    109.10         949    22.61
+   strict    1.0 usd 25 0.90        |  1319.34   -25.70 |   1   7 |   31.55 |   -44.15  0.00 |  1321.65    -2.31 |    118.21    109.10         606    24.82
+   strict    1.0 usd 50 0.90        |  1329.41   -15.63 |   0   7 |   31.55 |   -30.23  0.00 |  1332.32    -2.92 |    138.14    115.05         691    23.05
+   strict    1.0 usd 50 mark 0.90   |  1329.36   -15.68 |   1   6 |   31.55 |   -30.43  0.00 |  1331.64    -2.28 |    118.21    109.10         606    22.80
+
+   at-price  0.4 L1                 |   504.22    +0.00 |   0   0 |  -37.52 |    +0.00  0.00 |  1340.39   -31.94 |    155.91    113.71         996    39.00
+   at-price  0.4 nobuy 0.95         |   499.59    -4.63 |   3   5 |  -37.69 |   -16.99  0.27 |  1329.74   -32.30 |    153.91    113.54         557    31.46
+   at-price  0.4 skip 0.95          |   490.37   -13.85 |   4   4 |  -38.05 |   -47.72  0.32 |  1301.05   -30.05 |    153.91    113.54         557    34.25
+   at-price  0.4 inv 1N 0.95        |   504.31    +0.09 |   2   3 |  -37.64 |    -5.59  0.52 |  1337.91   -30.86 |    153.91    113.54         557    37.91
+   at-price  0.4 inv 2N 0.95        |   505.80    +1.59 |   2   2 |  -37.61 |    -2.38  0.71 |  1338.63   -29.65 |    153.91    113.54         563    35.42
+   at-price  0.4 inv 3N 0.95        |   505.62    +1.40 |   2   2 |  -37.58 |    -1.70  0.65 |  1338.20   -29.66 |    155.91    113.54         936    38.82
+   at-price  0.4 usd 25 0.95        |   505.57    +1.36 |   3   4 |  -37.63 |    -5.66  0.65 |  1340.25   -30.53 |    153.91    113.54         557    37.51
+   at-price  0.4 usd 50 0.95        |   503.48    -0.74 |   1   3 |  -37.58 |    -3.20  0.27 |  1338.67   -31.99 |    153.91    113.54         567    35.51
+   at-price  0.4 usd 50 mark 0.95   |   505.70    +1.48 |   2   2 |  -37.64 |    -2.52  0.69 |  1338.37   -29.65 |    153.91    113.54         563    35.42
+   at-price  0.4 nobuy 0.90         |   462.76   -41.46 |   1   7 |  -40.38 |   -89.86  0.00 |  1252.74   -38.34 |    124.09    107.67         519    22.27
+   at-price  0.4 skip 0.90          |   452.93   -51.29 |   2   6 |  -40.96 |  -123.82  0.00 |  1216.73   -33.77 |    124.09    107.67         519    22.18
+   at-price  0.4 inv 1N 0.90        |   496.47    -7.75 |   2   5 |  -37.17 |   -16.96  0.05 |  1328.47   -34.92 |    128.76    107.67         519    35.31
+   at-price  0.4 inv 2N 0.90        |   501.99    -2.22 |   3   4 |  -37.25 |    -8.16  0.28 |  1339.38   -33.76 |    127.37    107.67         527    32.87
+   at-price  0.4 inv 3N 0.90        |   502.27    -1.95 |   2   4 |  -37.22 |    -6.29  0.21 |  1340.49   -33.93 |    155.91    107.67         802    32.68
+   at-price  0.4 usd 25 0.90        |   490.26   -13.96 |   3   4 |  -36.86 |   -37.93  0.13 |  1309.15   -33.40 |    128.89    107.67         519    34.87
+   at-price  0.4 usd 50 0.90        |   501.27    -2.94 |   2   5 |  -37.22 |    -9.11  0.19 |  1339.33   -34.46 |    143.97    113.54         544    33.06
+   at-price  0.4 usd 50 mark 0.90   |   501.39    -2.83 |   2   5 |  -37.72 |    -8.64  0.21 |  1338.01   -33.82 |    127.35    107.67         519    32.86
+
+   at-price  1.0 L1                 |  1308.45    +0.00 |   0   0 |   16.68 |    +0.00  0.00 |  1340.39   -31.94 |    155.91    113.71         996    39.00
+   at-price  1.0 nobuy 0.95         |  1297.43   -11.02 |   3   5 |   16.37 |   -33.88  0.20 |  1329.74   -32.30 |    153.91    113.54         557    31.46
+   at-price  1.0 skip 0.95          |  1271.00   -37.45 |   4   4 |   15.88 |  -114.44  0.24 |  1301.05   -30.05 |    153.91    113.54         557    34.25
+   at-price  1.0 inv 1N 0.95        |  1307.05    -1.40 |   2   3 |   16.51 |    -8.53  0.39 |  1337.91   -30.86 |    153.91    113.54         557    37.91
+   at-price  1.0 inv 2N 0.95        |  1308.98    +0.53 |   2   2 |   16.59 |    -4.35  0.56 |  1338.63   -29.65 |    153.91    113.54         563    35.42
+   at-price  1.0 inv 3N 0.95        |  1308.54    +0.09 |   2   2 |   16.62 |    -4.08  0.56 |  1338.20   -29.66 |    155.91    113.54         936    38.82
+   at-price  1.0 usd 25 0.95        |  1309.72    +1.27 |   3   4 |   16.54 |    -8.92  0.59 |  1340.25   -30.53 |    153.91    113.54         557    37.51
+   at-price  1.0 usd 50 0.95        |  1306.68    -1.77 |   1   3 |   16.62 |    -6.30  0.23 |  1338.67   -31.99 |    153.91    113.54         567    35.51
+   at-price  1.0 usd 50 mark 0.95   |  1308.73    +0.27 |   2   2 |   16.51 |    -4.92  0.55 |  1338.37   -29.65 |    153.91    113.54         563    35.42
+   at-price  1.0 nobuy 0.90         |  1214.40   -94.05 |   1   7 |   11.77 |  -202.59  0.00 |  1252.74   -38.34 |    124.09    107.67         519    22.27
+   at-price  1.0 skip 0.90          |  1182.97  -125.48 |   2   6 |   10.52 |  -297.38  0.00 |  1216.73   -33.77 |    124.09    107.67         519    22.18
+   at-price  1.0 inv 1N 0.90        |  1293.55   -14.90 |   1   6 |   16.56 |   -30.70  0.01 |  1328.47   -34.92 |    128.76    107.67         519    35.31
+   at-price  1.0 inv 2N 0.90        |  1305.62    -2.83 |   3   4 |   17.49 |   -11.11  0.31 |  1339.38   -33.76 |    127.37    107.67         527    32.87
+   at-price  1.0 inv 3N 0.90        |  1306.57    -1.88 |   2   4 |   17.51 |    -7.71  0.32 |  1340.49   -33.93 |    155.91    107.67         802    32.68
+   at-price  1.0 usd 25 0.90        |  1275.75   -32.71 |   2   5 |   16.64 |   -81.86  0.10 |  1309.15   -33.40 |    128.89    107.67         519    34.87
+   at-price  1.0 usd 50 0.90        |  1304.87    -3.58 |   2   5 |   17.52 |   -12.22  0.26 |  1339.33   -34.46 |    143.97    113.54         544    33.06
+   at-price  1.0 usd 50 mark 0.90   |  1304.19    -4.26 |   2   5 |   16.36 |   -12.75  0.19 |  1338.01   -33.82 |    127.35    107.67         519    32.86
+
+
+== full-universe record (pm-rec), 10-05 -> 10-08 22:59 UTC (4 days), close-only exits as the live path runs them
+   -- L1, strict: where it comes from (formula rewards; fills P&L marked to each market's payout or last mid)
+      rewards 352.04 (attributed 352.04): >=.95 51.08 (14.5 %), .90-.95 80.67 (22.9 %), <.90 220.29 (62.6 %)   [bucket = the minute's max(m, 1 - m)]
+      fills P&L -26.00 (attributed -26.00), by the traded token's price:
+        >=.95       +0.98  buy n 4 sh 80 $79 pnl +1.48  sell n 5 sh 80 $80 pnl -0.50
+        .90-.95     +0.47  buy n 4 sh 70 $64 pnl +1.17  sell n 3 sh 20 $18 pnl -0.70
+        <.90       -27.46  buy n 170 sh 2681 $782 pnl +35.40  sell n 111 sh 1593 $499 pnl -62.85
+      held at the mark in tokens marked >= .90: mean 32.44, max 165.60 (all markets), max in one market 115.16 (at cost 68.76); >= .95: mean 8.15, max 130.14, one market 115.16
+      minutes holding any: 5515 of 5700 (96.8 %) at .90, 1616 at .95; the largest single market holding >= $25: 310 min, >= $50: 308 (206 of them a token >= .95), >= $75: 307, >= $90: 246
+   -- L1, at-price: where it comes from (formula rewards; fills P&L marked to each market's payout or last mid)
+      rewards 333.25 (attributed 333.25): >=.95 50.59 (15.2 %), .90-.95 78.68 (23.6 %), <.90 203.98 (61.2 %)   [bucket = the minute's max(m, 1 - m)]
+      fills P&L -62.25 (attributed -62.25), by the traded token's price:
+        >=.95       +1.00  buy n 5 sh 100 $98 pnl +1.54  sell n 7 sh 120 $119 pnl -0.54
+        .90-.95     -0.30  buy n 2 sh 40 $37 pnl -0.20  sell n 1 sh 20 $19 pnl -0.10
+        <.90       -62.95  buy n 233 sh 3338 $1059 pnl +26.77  sell n 144 sh 2173 $718 pnl -89.72
+      held at the mark in tokens marked >= .90: mean 10.69, max 132.46 (all markets), max in one market 113.71 (at cost 76.47); >= .95: mean 4.05, max 115.96, one market 113.71
+      minutes holding any: 2727 of 5700 (47.8 %) at .90, 1633 at .95; the largest single market holding >= $25: 324 min, >= $50: 308 (206 of them a token >= .95), >= $75: 242, >= $90: 166
+
+   arms (each less L1 at R; boot = index 100 of 2,000 paired day draws; worst-all / worst-one = the most held at the mark in tokens >= .90, all markets / one market)
+   fill        R arm                |    total     diff | ahd bhd |   worst |  boot100   P>0 |   reward fillsP&L | worst-all worst-one one>=50 min mean .90
+   strict    0.4 L1                 |   114.81    +0.00 |   0   0 |  -24.25 |    +0.00  0.00 |   352.04   -26.00 |    165.60    115.16         308    32.44
+   strict    0.4 nobuy 0.95         |   115.63    +0.82 |   1   3 |  -24.26 |    -2.69  0.58 |   348.39   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 skip 0.95          |   113.91    -0.91 |   2   2 |  -24.26 |    -6.62  0.40 |   343.33   -23.42 |    165.30    115.05         308    31.81
+   strict    0.4 inv 1N 0.95        |   117.06    +2.24 |   1   2 |  -24.26 |    -0.03  0.68 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 inv 2N 0.95        |   117.06    +2.24 |   1   1 |  -24.26 |    -0.02  0.68 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 inv 3N 0.95        |   117.06    +2.25 |   1   1 |  -24.26 |    -0.02  0.68 |   351.96   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 usd 25 0.95        |   117.06    +2.24 |   1   2 |  -24.26 |    -0.03  0.68 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 usd 50 0.95        |   114.79    -0.03 |   1   1 |  -24.25 |    -0.09  0.25 |   352.12   -26.06 |    165.30    115.05         308    32.14
+   strict    0.4 usd 50 mark 0.95   |   117.06    +2.24 |   1   1 |  -24.26 |    -0.02  0.68 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    0.4 nobuy 0.90         |    94.12   -20.69 |   2   2 |  -37.22 |   -47.64  0.06 |   332.71   -38.96 |    112.04    109.10         223     7.46
+   strict    0.4 skip 0.90          |    74.81   -40.01 |   1   3 |  -31.89 |   -69.92  0.02 |   299.48   -44.98 |    112.04    109.10         223     7.46
+   strict    0.4 inv 1N 0.90        |    88.02   -26.79 |   0   4 |  -46.45 |   -49.33  0.00 |   321.49   -40.57 |    130.94    109.10         223    26.77
+   strict    0.4 inv 2N 0.90        |   115.37    +0.55 |   1   1 |  -24.28 |    -0.06  0.68 |   351.98   -25.42 |    145.37    109.10         223    31.23
+   strict    0.4 inv 3N 0.90        |   115.41    +0.59 |   1   1 |  -24.27 |    -0.04  0.68 |   351.93   -25.36 |    145.37    109.10         308    31.54
+   strict    0.4 usd 25 0.90        |    88.02   -26.79 |   0   4 |  -46.45 |   -49.33  0.00 |   321.49   -40.57 |    130.94    109.10         223    26.77
+   strict    0.4 usd 50 0.90        |   114.79    -0.03 |   1   1 |  -24.25 |    -0.09  0.25 |   352.12   -26.06 |    165.30    115.05         308    32.14
+   strict    0.4 usd 50 mark 0.90   |   115.37    +0.55 |   1   1 |  -24.28 |    -0.06  0.68 |   351.98   -25.42 |    145.37    109.10         223    31.23
+
+   strict    1.0 L1                 |   326.04    +0.00 |   0   0 |   15.41 |    +0.00  0.00 |   352.04   -26.00 |    165.60    115.16         308    32.44
+   strict    1.0 nobuy 0.95         |   324.67    -1.37 |   2   2 |   15.47 |    -6.73  0.38 |   348.39   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 skip 0.95          |   319.91    -6.14 |   2   2 |   15.47 |   -16.46  0.30 |   343.33   -23.42 |    165.30    115.05         308    31.81
+   strict    1.0 inv 1N 0.95        |   328.22    +2.18 |   2   1 |   15.47 |    -0.01  0.93 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 inv 2N 0.95        |   328.23    +2.19 |   2   0 |   15.47 |    +0.00  0.93 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 inv 3N 0.95        |   328.24    +2.20 |   2   0 |   15.47 |    +0.00  0.93 |   351.96   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 usd 25 0.95        |   328.22    +2.18 |   2   1 |   15.47 |    -0.01  0.93 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 usd 50 0.95        |   326.06    +0.02 |   1   1 |   15.46 |    -0.07  0.57 |   352.12   -26.06 |    165.30    115.05         308    32.14
+   strict    1.0 usd 50 mark 0.95   |   328.23    +2.19 |   2   0 |   15.47 |    +0.00  0.93 |   351.95   -23.72 |    165.30    115.05         308    31.81
+   strict    1.0 nobuy 0.90         |   293.75   -32.29 |   1   3 |   10.34 |   -76.44  0.15 |   332.71   -38.96 |    112.04    109.10         223     7.46
+   strict    1.0 skip 0.90          |   254.49   -71.55 |   1   3 |   11.74 |  -161.12  0.08 |   299.48   -44.98 |    112.04    109.10         223     7.46
+   strict    1.0 inv 1N 0.90        |   280.92   -45.12 |   1   3 |  -17.29 |   -84.65  0.00 |   321.49   -40.57 |    130.94    109.10         223    26.77
+   strict    1.0 inv 2N 0.90        |   326.56    +0.52 |   2   0 |   15.47 |    +0.00  0.93 |   351.98   -25.42 |    145.37    109.10         223    31.23
+   strict    1.0 inv 3N 0.90        |   326.57    +0.52 |   2   0 |   15.45 |    +0.00  0.93 |   351.93   -25.36 |    145.37    109.10         308    31.54
+   strict    1.0 usd 25 0.90        |   280.92   -45.12 |   1   3 |  -17.29 |   -84.65  0.00 |   321.49   -40.57 |    130.94    109.10         223    26.77
+   strict    1.0 usd 50 0.90        |   326.06    +0.02 |   1   1 |   15.46 |    -0.07  0.57 |   352.12   -26.06 |    165.30    115.05         308    32.14
+   strict    1.0 usd 50 mark 0.90   |   326.55    +0.51 |   2   0 |   15.47 |    +0.00  0.93 |   351.98   -25.42 |    145.37    109.10         223    31.23
+
+   at-price  0.4 L1                 |    71.05    +0.00 |   0   0 |  -72.46 |    +0.00  0.00 |   333.25   -62.25 |    132.46    113.71         308    10.69
+   at-price  0.4 nobuy 0.95         |    71.82    +0.77 |   1   3 |  -72.49 |    -2.69  0.58 |   329.62   -60.03 |    132.17    113.54         244     9.80
+   at-price  0.4 skip 0.95          |    70.09    -0.96 |   2   2 |  -72.49 |    -6.65  0.40 |   324.56   -59.73 |    132.17    113.54         244     9.80
+   at-price  0.4 inv 1N 0.95        |    73.24    +2.19 |   1   1 |  -72.49 |    -0.05  0.68 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  0.4 inv 2N 0.95        |    73.24    +2.19 |   1   1 |  -72.49 |    -0.05  0.68 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  0.4 inv 3N 0.95        |    73.28    +2.24 |   1   1 |  -72.48 |    -0.03  0.68 |   333.14   -59.97 |    132.17    113.54         248    10.05
+   at-price  0.4 usd 25 0.95        |    73.24    +2.19 |   1   1 |  -72.49 |    -0.05  0.68 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  0.4 usd 50 0.95        |    70.97    -0.07 |   0   2 |  -72.48 |    -0.18  0.00 |   333.37   -62.37 |    132.17    113.54         248    10.13
+   at-price  0.4 usd 50 mark 0.95   |    73.24    +2.19 |   1   1 |  -72.49 |    -0.05  0.68 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  0.4 nobuy 0.90         |    58.71   -12.34 |   1   3 |  -67.79 |   -27.78  0.15 |   302.84   -62.43 |    112.24    107.67         223     8.97
+   at-price  0.4 skip 0.90          |    44.35   -26.70 |   2   2 |  -70.99 |   -62.81  0.14 |   286.27   -70.16 |    126.93    107.67         223    13.04
+   at-price  0.4 inv 1N 0.90        |    71.03    -0.02 |   1   2 |  -72.52 |    -1.13  0.44 |   331.90   -61.73 |    112.24    107.67         223     9.43
+   at-price  0.4 inv 2N 0.90        |    71.58    +0.53 |   1   2 |  -72.49 |    -0.08  0.68 |   333.14   -61.67 |    112.24    107.67         231     9.47
+   at-price  0.4 inv 3N 0.90        |    71.64    +0.59 |   1   1 |  -72.48 |    -0.03  0.68 |   333.14   -61.61 |    112.24    107.67         248     9.78
+   at-price  0.4 usd 25 0.90        |    71.02    -0.03 |   1   3 |  -72.52 |    -1.13  0.43 |   331.87   -61.73 |    112.24    107.67         223     9.43
+   at-price  0.4 usd 50 0.90        |    70.96    -0.09 |   0   3 |  -72.48 |    -0.18  0.00 |   333.33   -62.37 |    132.17    113.54         248    10.13
+   at-price  0.4 usd 50 mark 0.90   |    71.52    +0.47 |   1   2 |  -72.52 |    -0.15  0.68 |   333.14   -61.73 |    112.24    107.67         223     9.43
+
+   at-price  1.0 L1                 |   271.00    +0.00 |   0   0 |  -41.89 |    +0.00  0.00 |   333.25   -62.25 |    132.46    113.71         308    10.69
+   at-price  1.0 nobuy 0.95         |   269.59    -1.41 |   2   2 |  -41.83 |    -6.73  0.38 |   329.62   -60.03 |    132.17    113.54         244     9.80
+   at-price  1.0 skip 0.95          |   264.83    -6.17 |   2   2 |  -41.83 |   -16.46  0.30 |   324.56   -59.73 |    132.17    113.54         244     9.80
+   at-price  1.0 inv 1N 0.95        |   273.15    +2.15 |   2   0 |  -41.83 |    +0.00  0.93 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  1.0 inv 2N 0.95        |   273.15    +2.15 |   2   0 |  -41.83 |    +0.00  0.93 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  1.0 inv 3N 0.95        |   273.17    +2.17 |   2   0 |  -41.84 |    +0.00  0.93 |   333.14   -59.97 |    132.17    113.54         248    10.05
+   at-price  1.0 usd 25 0.95        |   273.15    +2.15 |   2   0 |  -41.83 |    +0.00  0.93 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  1.0 usd 50 0.95        |   271.00    -0.00 |   1   1 |  -41.84 |    -0.12  0.36 |   333.37   -62.37 |    132.17    113.54         248    10.13
+   at-price  1.0 usd 50 mark 0.95   |   273.15    +2.15 |   2   0 |  -41.83 |    +0.00  0.93 |   333.18   -60.03 |    132.17    113.54         244     9.80
+   at-price  1.0 nobuy 0.90         |   240.41   -30.59 |   1   3 |  -39.38 |   -60.46  0.03 |   302.84   -62.43 |    112.24    107.67         223     8.97
+   at-price  1.0 skip 0.90          |   216.11   -54.89 |   2   2 |  -41.54 |  -138.06  0.14 |   286.27   -70.16 |    126.93    107.67         223    13.04
+   at-price  1.0 inv 1N 0.90        |   270.17    -0.83 |   2   1 |  -41.86 |    -2.54  0.32 |   331.90   -61.73 |    112.24    107.67         223     9.43
+   at-price  1.0 inv 2N 0.90        |   271.46    +0.47 |   2   1 |  -41.83 |    -0.05  0.87 |   333.14   -61.67 |    112.24    107.67         231     9.47
+   at-price  1.0 inv 3N 0.90        |   271.53    +0.53 |   2   0 |  -41.84 |    +0.00  0.93 |   333.14   -61.61 |    112.24    107.67         248     9.78
+   at-price  1.0 usd 25 0.90        |   270.14    -0.86 |   2   2 |  -41.86 |    -2.61  0.30 |   331.87   -61.73 |    112.24    107.67         223     9.43
+   at-price  1.0 usd 50 0.90        |   270.96    -0.04 |   1   2 |  -41.84 |    -0.17  0.29 |   333.33   -62.37 |    132.17    113.54         248    10.13
+   at-price  1.0 usd 50 mark 0.90   |   271.40    +0.41 |   2   1 |  -41.86 |    -0.08  0.80 |   333.14   -61.73 |    112.24    107.67         223     9.43
+
+
+### scripts/exp_calib.py <calib dir>
+== Polymarket calibration: 5766 distinct markets drawn, 5632 with an hourly history; 833794 favourite-hours at >= 0.90 in 5617 markets
+   classes drawn: events 3308, prices 1993, say/post 465
+   (impl % = mean 1 - p, what the price says; lost % = the share of favourite-hours whose side lost, pooled; per-mkt = each
+    market weighted once; lost = markets whose favourite lost; jump/h = hours after which the favourite was >= 25 c lower)
+                                  hours  mkts  lost | impl % lost %   90 % (cluster) per-mkt | jump/h %
+   band 0.90-0.95                130758  3818   418 |   7.39  10.18 [ 8.96, 11.50]   9.43 |   0.272
+   band 0.95-0.97                 92548  3689   219 |   3.96   5.15 [ 4.12,  6.27]   5.21 |   0.194
+   band 0.97-0.99                179951  4195   139 |   1.87   1.53 [ 1.14,  1.94]   2.71 |   0.162
+   band 0.99-1.00                430537  5505    40 |   0.28   0.49 [ 0.26,  0.76]   0.49 |   0.017
+   all >= 0.90                   833794  5617   428 |   2.15   2.75 [ 2.38,  3.10]   4.99 |   0.108
+   all >= 0.95                   703036  5603   235 |   1.17   1.37 [ 1.08,  1.65]   2.71 |   0.078
+
+   by days left to close (>= 0.95 | 0.90-0.95):
+                                  hours  mkts  lost | impl % lost %   90 % (cluster) per-mkt | jump/h %
+   >= .95, 0-1 d                  96402  5595    83 |   0.64   0.64 [ 0.49,  0.78]   0.91 |   0.120
+   .90-.95, 0-1 d                  6302  1330   122 |   7.30  10.58 [ 8.62, 12.65]   8.57 |   1.309
+   >= .95, 1-3 d                 155078  4233   110 |   1.07   1.34 [ 1.08,  1.64]   2.43 |   0.065
+   .90-.95, 1-3 d                 22278  1922   203 |   7.35  10.64 [ 9.14, 12.22]  10.27 |   0.311
+   >= .95, 3-7 d                 224897  3549   142 |   1.44   1.72 [ 1.39,  2.06]   3.92 |   0.134
+   .90-.95, 3-7 d                 57856  2468   255 |   7.41  10.06 [ 8.71, 11.43]  10.06 |   0.273
+   >= .95, 7-14.1 d              226659  2193    68 |   1.21   1.36 [ 0.94,  1.83]   3.02 |   0.013
+   .90-.95, 7-14.1 d              44322  1455   151 |   7.40  10.06 [ 7.80, 12.31]  10.16 |   0.103
+
+   by class (>= 0.95, 1-14 days left | 0.95-0.99, 3-14 days left, the Iran position's case):
+                                  hours  mkts  lost | impl % lost %   90 % (cluster) per-mkt | jump/h %
+   events, >= .95, 1-14 d        424635  2514   121 |   1.11   1.49 [ 1.11,  1.92]   3.96 |   0.021
+   events, .95-.99, 3-14 d       124711  1539    89 |   2.60   2.70 [ 1.86,  3.55]   5.48 |   0.034
+   say/post, >= .95, 1-14 d       39285   322    13 |   1.19   1.57 [ 0.66,  2.69]   3.77 |   0.020
+   say/post, .95-.99, 3-14 d      12744   242    10 |   2.60   3.04 [ 1.29,  5.10]   4.13 |   0.024
+   prices, >= .95, 1-14 d        142714  1591    74 |   1.72   1.46 [ 1.10,  1.87]   4.30 |   0.232
+   prices, .95-.99, 3-14 d        60198  1203    63 |   2.71   2.47 [ 1.78,  3.24]   5.23 |   0.428
+   all, .95-.99, 3-14 d          197653  2984   162 |   2.63   2.65 [ 2.11,  3.31]   5.27 |   0.154
+   all, .97-.99, 3-14 d          126668  2481    84 |   1.89   1.39 [ 0.99,  1.87]   3.35 |   0.145
+
+== jumps: per band, hours with a next-hour price; jump = the favourite >= 25 c lower an hour later; r = the share of the
+   price at the jump lost 24 hours later (the payout if the market closed first); drift = mean (p24 - p) / p over all hours
+   0.90-0.95: 128937 hours, 350 jumps (q = 0.271 % an hour, 6.32 % a day), r median 0.02, mean 0.31; 24 h drift -0.964 %, mean 24 h downside 3.096 % of value
+   0.95-0.97: 91530 hours, 178 jumps (q = 0.194 % an hour, 4.56 % a day), r median 0.00, mean 0.23; 24 h drift -0.556 %, mean 24 h downside 1.758 % of value
+   0.97-0.99: 177520 hours, 287 jumps (q = 0.162 % an hour, 3.81 % a day), r median 0.00, mean 0.16; 24 h drift -0.182 %, mean 24 h downside 0.799 % of value
+   0.99-1.00: 419751 hours, 70 jumps (q = 0.017 % an hour, 0.40 % a day), r median 0.00, mean 0.17; 24 h drift -0.043 %, mean 24 h downside 0.139 % of value
+
+== the tail of the simulated holdings (hourly samples of each market holding a token marked >= 0.90), 30-day view
+   record      arm                 hours   $-hours   max H | E jump loss $/30d  P(>= $50 in 30d) P(>= $25)
+   rw          L1                    982      9807  112.39 |              6.77             1.71%     7.41%
+   rw          nobuy 0.95            982      7257  112.39 |              5.49             1.35%     4.66%
+   rw          inv 1N 0.95           982      9442  112.39 |              7.00             1.35%     5.59%
+   rw          inv 2N 0.95           982      8602  112.39 |              6.57             1.35%     5.93%
+   rw          usd 25 0.95           982      9274  112.39 |              6.74             1.35%     4.82%
+   rw          usd 50 0.95           982      8642  112.39 |              6.57             1.36%     5.94%
+   rw          nobuy 0.90            465      5085   92.92 |              4.60             1.32%     3.56%
+   rw          inv 1N 0.90           982      8531   92.92 |              6.75             1.32%     5.40%
+   rw          usd 25 0.90           982      8365   92.92 |              6.47             1.32%     4.53%
+   rw          usd 50 0.90           982      7821  112.39 |              6.38             1.35%     5.91%
+   rw_atprice  L1                   1339     13231  110.92 |              8.55             1.63%     6.17%
+   rw_atprice  nobuy 0.95           1339     10641  110.92 |              7.27             1.27%     3.29%
+   rw_atprice  inv 1N 0.95          1339     12818  110.92 |              8.77             1.27%     4.24%
+   rw_atprice  inv 2N 0.95          1339     11975  110.92 |              8.34             1.27%     4.59%
+   rw_atprice  usd 25 0.95          1339     12661  110.92 |              8.53             1.27%     3.46%
+   rw_atprice  usd 50 0.95          1339     12015  110.92 |              8.35             1.27%     4.59%
+   rw_atprice  nobuy 0.90            822      7505   91.45 |              5.66             1.24%     2.19%
+   rw_atprice  inv 1N 0.90          1339     11908   91.45 |              8.50             1.24%     4.02%
+   rw_atprice  usd 25 0.90          1339     11752   91.45 |              8.23             1.24%     3.15%
+   rw_atprice  usd 50 0.90          1339     11195  110.92 |              8.16             1.26%     4.56%
+   pr          L1                    165      3147  112.39 |             17.01             1.99%     2.33%
+   pr          nobuy 0.95            165      3067  112.39 |             17.00             1.98%     2.33%
+   pr          inv 1N 0.95           165      3067  112.39 |             17.00             1.98%     2.33%
+   pr          inv 2N 0.95           165      3067  112.39 |             17.00             1.98%     2.33%
+   pr          usd 25 0.95           165      3067  112.39 |             17.00             1.98%     2.33%
+   pr          usd 50 0.95           165      3107  112.39 |             17.01             1.99%     2.33%
+   pr          nobuy 0.90             64       739   92.92 |              3.58             1.88%     2.28%
+   pr          inv 1N 0.90           161      2566   92.92 |             15.23             1.88%     2.28%
+   pr          usd 25 0.90           161      2566   92.92 |             15.23             1.88%     2.28%
+   pr          usd 50 0.90           165      3107  112.39 |             17.01             1.99%     2.33%
+   pr_atprice  L1                     71      1067  110.92 |              5.04             1.98%     2.32%
+   pr_atprice  nobuy 0.95             71       947  110.92 |              5.01             1.94%     2.29%
+   pr_atprice  inv 1N 0.95            71       947  110.92 |              5.01             1.94%     2.29%
+   pr_atprice  inv 2N 0.95            71       947  110.92 |              5.01             1.94%     2.29%
+   pr_atprice  usd 25 0.95            71       947  110.92 |              5.01             1.94%     2.29%
+   pr_atprice  usd 50 0.95            71       987  110.92 |              5.02             1.95%     2.31%
+   pr_atprice  nobuy 0.90             84       856   91.45 |              4.62             1.88%     2.24%
+   pr_atprice  inv 1N 0.90            71       889   91.45 |              4.85             1.88%     2.24%
+   pr_atprice  usd 25 0.90            71       889   91.45 |              4.85             1.88%     2.24%
+   pr_atprice  usd 50 0.90            71       987  110.92 |              5.02             1.95%     2.31%
+
+== a position like the live one (80 NO at ~0.97, $77.7 at cost), held without a jump-exit, by days held:
+   H $ 77.7, 1 d: E jump loss $ 0.48, P(loss >= $50)  0.54 %
+   H $ 77.7, 3 d: E jump loss $ 1.45, P(loss >= $50)  1.61 %
+   H $ 77.7, 7 d: E jump loss $ 3.39, P(loss >= $50)  3.71 %
+   H $ 50.0, 1 d: E jump loss $ 0.31, P(loss >= $50)  0.32 %
+   H $ 50.0, 3 d: E jump loss $ 0.93, P(loss >= $50)  0.97 %
+   H $ 50.0, 7 d: E jump loss $ 2.18, P(loss >= $50)  2.25 %
+   H $ 25.0, 1 d: E jump loss $ 0.16, P(loss >= $50)  0.00 %
+   H $ 25.0, 3 d: E jump loss $ 0.47, P(loss >= $50)  0.00 %
+   H $ 25.0, 7 d: E jump loss $ 1.09, P(loss >= $50)  0.00 %
+   H $ 19.4, 1 d: E jump loss $ 0.12, P(loss >= $50)  0.00 %
+   H $ 19.4, 3 d: E jump loss $ 0.36, P(loss >= $50)  0.00 %
+   H $ 19.4, 7 d: E jump loss $ 0.85, P(loss >= $50)  0.00 %
+
+== one such position kept all month (four 7-day holdings in a row; the calibration rows read a 0.97-0.99 favourite with 3-14 days left):
+   calibration, pooled hours     : P(a 7-day holding loses before close) 1.39 % -> P(>= 1 loss in a month) 5.5 %; E loss $4.33 a month
+   calibration, per market       : P(a 7-day holding loses before close) 3.35 % -> P(>= 1 loss in a month) 12.8 %; E loss $10.42 a month
+   price-implied (YES at 0.03)   : P(a 7-day holding loses before close) 3.00 % -> P(>= 1 loss in a month) 11.5 %; E loss $9.32 a month
+   jump model                    : P(>= $50 in 30 d) 15.0 %; E jump loss $14.53 a month
+   jump model, H $50             : P(>= $50 in 30 d) 9.3 %; E jump loss $9.35 a month; worst single loss $50
+   jump model, H $25             : P(>= $50 in 30 d) 0.0 %; E jump loss $4.67 a month; worst single loss $25
+
+### sql/exp_paper.sql (2026-10-09 ~04:00 UTC; part | bucket | kind | n | shares | $ | P&L to end or reward)
+   exposure: minutes 6010; mean t90 16.16 / max t90 151.59 / max t95 135.11 / max one market 135.11 / minutes t90>0 5182, >=25 824, >=50 577, >=75 284
+   fills  .90-.95  BUY                 12   203.4   186.02    +8.04
+   fills  .90-.95  SELL                 3    45.0    41.60    -2.20
+   fills  <.90     BUY                275  4175.6  1313.59  +104.57
+   fills  <.90     SELL               153  2113.4   673.12   -86.97
+   fills  <.90     SELL close-only     46   706.6   270.91   -58.84
+   fills  >=.95    BUY                  6   110.0   108.84    +1.16
+   fills  >=.95    SELL                 8   138.9   137.90    -1.01
+   fills  >=.95    SELL close-only      1     8.0     7.97    +0.84
+   reward .90-.95  formula reward    2732 minutes paid               59.53
+   reward <.90     formula reward   28906 minutes paid              423.73
+   reward >=.95    formula reward    3424 minutes paid               93.21

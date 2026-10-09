@@ -392,6 +392,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 04:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **EXPENSIVE-SIDE** (Davies: "你先回测研究一下，结果告诉我后我再决定", after LIVE bought 80 NO at 0.97 on the Iran voicemail
+  market): limits on buying a token priced >= 0.95 / 0.90 against L1 on RW's and the full-universe record (both fill
+  models), live-prep's paper, and a year of Polymarket history (5,617 markets). A $25-a-market cap on buys >= 0.95 costs
+  nothing measurable (R .4: -1.72 / +1.36 / +2.24 / +2.19) and bounds one direct expensive buy's loss to ~$25; every
+  0.90 rule loses $6-$63 on RW's record (strict). Favourites at 0.90-0.97 lose more often than priced (0.90-0.95:
+  10.2 % vs 7.4 %).
+  Recommended, not applied: Davies decides. `rwc_opt/results/expensive_side.txt`.
+
 ### [2026-10-09 03:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 - LIVE's "Reward quotes" QUOTES drops Share and Rewards and gains Avg cost after Held (Davies: "shares列和rewards列也删了，
