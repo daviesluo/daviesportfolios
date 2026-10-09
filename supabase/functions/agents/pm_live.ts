@@ -1299,6 +1299,22 @@ export function ctfApproval(replies: unknown[]): boolean | null {
   return lists.every((l) => PM_CTF_OPERATORS.every((op) => positive(l.get(op))));
 }
 
+/**
+ * What is held of one token, from the venue's conditional balance `balance`, the remaining size of our own sells resting
+ * on it `restingSells`, and what our CONFIRMED fills say is held `fromFills` (the go-live audit's U1, 2026-10-09). The
+ * docs imply the balance is the whole holding H ("maxOrderSize = balance − Σ(openOrderSize − filledAmount)"), but if it
+ * were net of our resting sells (H − S), live-prep's sell-first rule would read nothing held the minute after its sell
+ * rests, and flip that side to a buy. So: balance + S when that is at most what the fills explain, else balance.
+ *   - Gross reading (balance = H), fills agreeing (F = H): with S > 0, H + S > F, so H. With S = 0, H either way.
+ *   - Net reading (balance = H − S), fills agreeing (F = H): H − S + S = H ≤ F, so H.
+ * Where fills and the chain disagree it errs to what the venue enforces: with F ≥ H + S on a gross reading it says
+ * H + S, a sell the venue refuses for balance (never one it fills); with F < H on a net reading it says H − S, the
+ * reading before this rule.
+ */
+export function heldFromBalance(balance: number, restingSells: number, fromFills: number): number {
+  return restingSells > 1e-9 && balance + restingSells <= fromFills + 1e-6 ? Math.round((balance + restingSells) * 1e6) / 1e6 : balance;
+}
+
 // ------------------------------------------------------------------ the executor
 
 export type PmLiveDeps = {
@@ -1737,6 +1753,19 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   // ── P&L from CONFIRMED live fills (this turn's read-backs and settlements included), and the loss stops ─────────────
   const { tb, all: allFills } = await fillsBook(newSettlements);
+  // Live-prep, live: what each token holds whichever way the venue reads its balance (`heldFromBalance`, U1), our own
+  // sells resting on it as this turn's read-backs left them. Its dry-run holds its paper's, and nothing else changes.
+  if (inst.lp && mode === "live") {
+    for (const m of markets) {
+      for (const token of [m.yes_token, m.no_token]) {
+        const b = heldOf.get(token);
+        if (b === undefined) continue;
+        const s = openAll.filter((o) => o.mode === "live" && o.state === "live" && o.side === "SELL" && o.token === token)
+          .reduce((a, o) => a + Math.max(0, Number(o.size) - Number(o.size_matched ?? 0)), 0);
+        heldOf.set(token, heldFromBalance(b, s, tb[token]?.held ?? 0));
+      }
+    }
+  }
   const marks: Record<string, number | null> = {};
   for (const m of markets) {
     const b = books.get(m.cond);

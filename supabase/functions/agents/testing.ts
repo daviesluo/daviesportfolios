@@ -1147,6 +1147,8 @@ export class FakePolymarket {
   onRewardsPage: ((offset: number, sponsored: boolean) => void) | null = null;
   /** How long an order must rest before it scores. */
   scoringDelayS = 0;
+  /** A conditional-token balance net of our resting sells (the reading the docs do not imply; U1, 2026-10-09). */
+  conditionalNetOfOrders = false;
   /**
    * The approvals a conditional-token read lists, by operator (the account's, the same for every token): both exchanges
    * approved for good, as a funded Polymarket account's are. A test sets one to "0" or removes it, or sets `{}`.
@@ -1348,8 +1350,12 @@ export class FakePolymarket {
       if (q.get("asset_type") === "COLLATERAL") return this.down.collateral ? err(500, "Internal server error") : { status: 200, body: { balance: String(Math.round(this.pusd * 1e6)), allowances: {} } };
       if (this.down.balance) return err(500, "Internal server error");
       if (q.get("asset_type") !== "CONDITIONAL" || !q.get("token_id")) return err(400, "Invalid asset type");
-      const shares = this.tokens.get(q.get("token_id") ?? "") ?? 0;
-      return { status: 200, body: { balance: String(Math.round(shares * 1e6)), allowances: { ...this.ctfAllowances } } };
+      // The balance as the docs imply it: the whole holding, which the resting sells' reservation is subtracted FROM
+      // ("maxOrderSize = balance − Σ(openOrderSize − filledAmount)", concepts/order-lifecycle, read 2026-10-09). A test
+      // can make it the other reading, net of our resting sells (`conditionalNetOfOrders`), which the path must survive.
+      const token = q.get("token_id") ?? "";
+      const shares = (this.tokens.get(token) ?? 0) - (this.conditionalNetOfOrders ? this.reserved(token) : 0);
+      return { status: 200, body: { balance: String(Math.round(Math.max(0, shares) * 1e6)), allowances: { ...this.ctfAllowances } } };
     }
     if (method === "GET" && path.startsWith("clob.polymarket.com/data/order/")) {
       if (this.orderReadDown) return err(500, "Internal server error");

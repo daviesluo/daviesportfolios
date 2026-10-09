@@ -16,7 +16,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
-  candidateOf, ctfApproval, effectiveLimits, gates, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
+  candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   runPmLive, rwQuotes, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -608,4 +608,42 @@ Deno.test("armed, F1: with the Neg Risk CTF Exchange not approved nothing opens 
   const rd = await d.turn(T0);
   assertEquals(["ctf_approval" in (rd.gates?.verdicts ?? {}), rd.gates?.open], [false, true]);
   assert(d.rows("pm_lp_orders").some((x) => x.side === "BUY"));
+});
+
+// ------------------------------------------------------------------ U1: the conditional balance, gross or net of our resting sells
+
+Deno.test("heldFromBalance: H on either reading of the balance when the fills agree; where they disagree, what the venue enforces", () => {
+  // H = 5 held, S = 5 of it resting in our sell, F = 5 from the fills.
+  assertEquals(heldFromBalance(5, 5, 5), 5);              // gross: 5 + 5 > 5, so the balance
+  assertEquals(heldFromBalance(0, 5, 5), 5);              // net: 0 + 5 ≤ 5, so 5
+  assertEquals(heldFromBalance(12, 5, 12), 12);           // gross, part resting
+  assertEquals(heldFromBalance(7, 5, 12), 12);            // net, part resting
+  assertEquals(heldFromBalance(5, 0, 5), 5);              // nothing resting: the balance, either way
+  assertEquals(heldFromBalance(3, 0, 9), 3);
+  assertEquals(heldFromBalance(0, 5, 3), 0);              // net, but the fills explain less: the balance, as before
+  assertEquals(heldFromBalance(5, 5, 10), 10);            // gross, the fills say more: a sell the venue would refuse, never fill
+});
+
+Deno.test("armed, U1: a sell of what is held keeps resting, and its side never flips to a buy, whether the venue's balance is gross or net of our resting sells", async () => {
+  const live = { dry_run: false, live_confirmed_at: "2026-10-05T09:00:00.000Z" };
+  const day = async (net: boolean) => {
+    const w = world({ config: live });
+    w.pm.conditionalNetOfOrders = net;
+    await w.turn(T0);
+    const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+    assert(yesBuy, "a live BUY of YES rests");
+    w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                     // the account holds 5 YES
+    for (let k = 1; k <= 4; k++) await w.turn(T0 + k * M);
+    const l1 = w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && Date.parse(String(x.ts)) >= T0 + M);
+    const sells = l1.filter((x) => x.side === "SELL");
+    // One SELL of YES at 0.47 × 5, placed once and resting since: never cancelled for a buy, never replaced.
+    assertEquals(sells.map((x) => [x.outcome, Number(x.price), Number(x.size), x.state, x.cancel_requested_at ?? null]), [["yes", 0.47, 5, "live", null]]);
+    // The ask side stays a sell: no BUY of NO is placed while the 5 YES are held.
+    assertEquals(l1.filter((x) => x.outcome === "no" && x.side === "BUY").length, 0);
+    const held = (w.rows("pm_lp_state")[0].state as any).markets.find((m: { cond: string }) => m.cond === w.L1.cond).held;
+    assertEquals(held.yes, 5);
+    return w.pm.calls.filter((c) => c.startsWith("POST")).length;
+  };
+  const gross = await day(false), net = await day(true);
+  assertEquals(net, gross);                                                        // the same orders sent either way
 });

@@ -414,6 +414,14 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code.
   - The frozen-export checks (`pm_instance`, `pm_mid_formula`, `pm_payouts` tests) list `gates` (F1) and `bookNow` (F4)
     as changed; they fail on F1 and F4 alone until this commit. The minute-by-minute dry-run comparisons with the frozen
+    code are unchanged and pass.
+  - **U1, sell-first survives either reading of the conditional balance.** The docs imply the balance is the whole
+    holding ("maxOrderSize = balance − Σ(openOrderSize − filledAmount)"), and the fake follows that; if it were net of
+    our resting sells, the minute after a sell rested would read nothing held and flip the side to a buy. Live-prep's
+    live turn now holds `heldFromBalance`: balance + our resting sells when that is at most what the CONFIRMED fills
+    explain, else the balance (exact on either reading when fills agree; proof in its comment). Pinned in `pm_lp.test.ts`
+    with the fake gross and net (`conditionalNetOfOrders`): one sell resting throughout, no flip, the same POSTs either
+    way; it fails on the net reading without the rule. Platform: Claude Code | Model: not recorded (session policy)
     code are unchanged and pass. Platform: Claude Code | Model: not recorded (session policy)
     Pin `pm_live.test.ts` "dry_run on: … (F5)", which fails on the old code. Platform: Claude Code | Model: not recorded (session policy)
     kept only once one is). Pinned in `pm_live.test.ts` (three tests). Platform: Claude Code | Model: not recorded (session policy)
