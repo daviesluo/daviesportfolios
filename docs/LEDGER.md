@@ -132,17 +132,22 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      10-28 00:30, QUEUE to 11-02, PR5-W to 11-25, 12-23 at the latest); if PR5's record stops early, PR5V's window
      ends with it (under 21 days: reported, not judged). PR5-R (`reviews/2026-09-28-pr5-readings-prereg.md`) is read
      after PR5's four weeks, before that review.
-   - **The twins** (TESTING's stablecoin rows; `0087`–`0090`, `agents/quotes_twin.ts`, reference §4 item 51, one row
-     each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `d` = variant-3; `d` quotes no
-     0.03 % entry from 10-10 00:00, its readout reads the spans apart, twins' prereg §15). Daily health:
-     each `_sim.last_error` empty, `paperCheck.mismatches` 46 for `pr5` and `p50` (all before 2026-09-24 18:13) and 0
-     for `d`, `_state.updated_at` within ~3 min, `edge_call_beats` has `agents?action=quotestwins` each minute, no
+   - **The twins** (TESTING's stablecoin rows; `0087`–`0090`, `0108`, `agents/quotes_twin.ts`, reference §4 item 51,
+     one row each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `p50x1` = variant-3,
+     `d` = variant-4 since `0108`; `d` quotes no 0.03 % entry from 10-10 00:00, its readout reads the spans apart,
+     twins' prereg §15). Daily health: each `_sim.last_error` empty, `paperCheck.mismatches` 46 for `pr5`, `p50` and
+     `p50x1` (all before 2026-09-24 18:13) and 0 for `d`, `_state.updated_at` within ~3 min, `edge_call_beats` has `agents?action=quotestwins` each minute, no
      `agents.quotes_twins` errors, no twin row in `agent_quote_live_orders`. Readouts, no pass bar: PR5's twin beside
      PR5's verdict (10-21) with `p50` per rung; rule D's twin after rule D's reading (10-28) with `p50` at their three
      common rungs. **TAKE** (`take50`, `reviews/2026-10-03-take-prereg.md` and its Addendum 1): take trips opened
      2026-10-04 16:00 → 2026-11-02 00:00 UTC (extended a week at a time to 11-30 until 15 have closed); read on or
      after the window's end + 2 days by a script committed before it ends, whose K2 mirrors the prereg's deviation 1;
-     K1 held at 05:03 on 10-03 and is checked again over the whole span.
+     K1 held at 05:03 on 10-03 and is checked again over the whole span. **p50x1** (`reviews/2026-10-09-p50x1-prereg.md`,
+     F3: `p50` with its exit a tick beyond fair from **2026-10-12 00:00 UTC**; if `0108` lands after that, move
+     `rules.exitOffset.from` and the window to the next Monday by an addendum before it): trips opened 10-12 → 11-09
+     against `p50`'s (so `p50` runs to 11-09 whatever 10-21 says); B1 ≥ 60 trips each, B2 difference > 0, B3 day-block
+     bootstrap p5 > 0 (seed 20261012); script committed before 11-09, read on or after **11-11 00:00 UTC** (no wake set).
+     After `0108`: it loads its backfill (one call), catches up from 10-02 21:05, then mode `forward` before 10-12.
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -398,6 +403,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
+
+### [2026-10-09 17:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes variant-3" = `p50x1`, rule D's twin renamed "variant-4"** (Davies: "新增 TESTING "variant-4"（p50x1），
+  但和目前的variant-3换位置"): `0108` (rename first, names are unique; row at order 35; tables), rule extension
+  `exitOffset` (`quotes_live.ts` `exitAt`, `TWIN_RULES.exitOffset`), backfill `p50x1.json.gz` = `p50.json.gz` but its id,
+  pre-registration frozen (`reviews/2026-10-09-p50x1-prereg.md`, window 10-12 → 11-09, read ≥ 11-11). Default offset
+  proven inert: the six simulated hours with an offset not yet begun equal the frozen executor; ignoring `from` fails it.
+  Fixture regenerated (renames applied in `fixture.ts`); twins §16, p50 §10. No `edge_calls` row.
 
 ### [2026-10-09 16:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Rule D's twin (`d`) drops its 0.03 % rung from 2026-10-10 00:00 UTC** (Davies: "…"规则 D 最内层的档位基本不赚钱"这个档删了";

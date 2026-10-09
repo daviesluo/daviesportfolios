@@ -407,3 +407,27 @@ open at 10-10 00:00 and how they closed. Not blind: written after the review rea
 
 §11–§13 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js`
 pins all of them.
+
+## 16. Deviation 5 (2026-10-09): "Stablecoin quotes variant-3" (`p50x1`), and rule D's twin renamed "variant-4"
+
+**On whose word.** Davies, 2026-10-09, verbatim: "新增 TESTING "variant-4"（p50x1），但和目前的variant-3换位置" (add the twin
+p50x1, and swap it with the current variant-3). `p50x1` (`0108`, `2026-10-09-p50x1-prereg.md`) is variant-1's twin with
+its exit a tick beyond fair from 2026-10-12 00:00 UTC; it is "Stablecoin quotes variant-3", at `display_order` 35, and
+rule D's twin `d` is renamed "Stablecoin quotes variant-4" by the same migration (page name only; it stays at 40, after
+`p50x1`; its id, tables, record and rule are unchanged; names are unique, so the rename goes first).
+
+**What changed in `quotes_twin.ts`.** `TWIN_RULES` gains its second rule, `exitOffset` (`{ "ticks": 1–10, "from":
+"<UTC>" }`), which sets the instance's `exitOffset`; the live executor (`quotes_live.ts`) moves an exit it places or
+re-prices that many ticks beyond the rule's in the position's favour from `from`. Comments. A twin without the rule runs
+the code path it ran: `quotes_live_instance.test.ts` runs the six simulated hours with an offset whose instant has not
+come and finds every table, the account and every report equal to the frozen executor's, turn by turn; a perturbed
+offset (`from` ignored) fails that test. The backfills built again on this code are the same bytes (`pr5.json.gz`,
+`p50.json.gz`, `take50.json.gz`, `d.json.gz`, as §6, §12 and §13 name them), and `p50x1.json.gz` is `p50.json.gz`
+but for its id. Not blind: written after the 2026-10-09 review.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457 |
+
+§11–§15 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js`
+pins all of them.

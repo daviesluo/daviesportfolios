@@ -22,11 +22,11 @@ describe("the realistic twins' pre-registration", () => {
       const named = [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
       // Deviation 1 (2026-10-03, its §12): quotes_twin.ts reads its twins from their rows (0088). Deviation 2 (the same day,
       // its §13): quotes_twin.ts and revx_sim.ts gain TAKE's rule (0089). Each section keeps the hash it named; the last
-      // names the file as it is. Deviation 4 (2026-10-09, its §15): rule D's twin retires its 0.03 % rung. 0087 is named
-      // once, as frozen.
+      // names the file as it is. Deviation 4 (2026-10-09, its §15): rule D's twin retires its 0.03 % rung. Deviation 5 (the
+      // same day, its §16): the rule exitOffset, p50x1's. 0087 is named once, as frozen.
       if (f.endsWith('/quotes_twin.ts')) {
         expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', 'f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8',
-          'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a', sha(f)]);
+          'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a', '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712', sha(f)]);
       }
       else if (f.endsWith('/revx_sim.ts')) expect(named, f).toEqual(['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', sha(f)]);
       else expect(named, f).toEqual([sha(f)]);

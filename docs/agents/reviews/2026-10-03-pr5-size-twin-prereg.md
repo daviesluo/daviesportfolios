@@ -188,3 +188,18 @@ changes. Not blind (written after the 2026-10-09 review).
 | `supabase/functions/agents/quotes_twin.ts` | 92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712 |
 
 §5 and §7 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).
+
+## 10. Deviation 4 (2026-10-09): the driver gains `exitOffset`, and this twin becomes `p50x1`'s base
+
+"Stablecoin quotes variant-3" (`p50x1`, `0108`, `2026-10-09-p50x1-prereg.md`; Davies, 2026-10-09: "新增 TESTING
+"variant-4"（p50x1），但和目前的variant-3换位置") is this twin with its exit a tick beyond fair from 2026-10-12, and its rule
+changed `quotes_twin.ts` (the twins' pre-registration's deviation 5, its §16). This twin is not changed: its row names no
+rule, and `p50.json.gz` built again on the new code is the same bytes. It is now `p50x1`'s comparator, read against it
+over trips opened 2026-10-12 → 11-09: it must keep running through that window, whatever 10-21 decides for it. Its own
+readouts are unchanged. Not blind (written after the 2026-10-09 review).
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457 |
+
+§5, §7 and §9 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).

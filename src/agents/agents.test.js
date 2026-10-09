@@ -950,10 +950,10 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     const x = rowMoney(r);
     expect([x.ccy, x.capital, x.fees]).toEqual(['GBP', 1200, pr5.feesGbp]);
   });
-  it('is "Stablecoin quotes variant-3" for rule D (variant-1 until 2026-10-03), on two lines, at its £1,800', () => {
+  it('is "Stablecoin quotes variant-4" for rule D (variant-1 until 2026-10-03, variant-3 until 2026-10-09), on two lines, at its £1,800', () => {
     const r = /** @type {any} */ (quotesTwinRow(d));
-    expect([r.id, r.name, rowMoney(r).capital, r.capitalUsd]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}d`, 'Stablecoin quotes variant-3', 1800, 2376]);
-    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-3', twoLines: true });
+    expect([r.id, r.name, rowMoney(r).capital, r.capitalUsd]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}d`, 'Stablecoin quotes variant-4', 1800, 2376]);
+    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-4', twoLines: true });
     expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
   });
@@ -969,10 +969,10 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
   });
   it('lists the twins in the payload\'s order, opens each on its page, and is absent before its record is loaded', () => {
     const dash = { quotesTwins: [pr5, null, d], quotes: { live: liveFixture.live } };
-    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-3']);
-    // The dashboard's three since 2026-10-03, variant-1 above variant-3; one not loaded yet is no row.
+    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-4']);
+    // Three of the dashboard's twins, variant-1 above rule D's (variant-4 since 2026-10-09); one not loaded yet is no row.
     const three = { quotesTwins: [pr5, p50, d] };
-    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-3']);
+    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-4']);
     expect([quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}p50`, three), quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}p50`, three)]).toEqual([p50, 'twin']);
     expect(quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}d`, dash)).toBe(d);
     expect(quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}pr5`, dash)).toBe('twin');

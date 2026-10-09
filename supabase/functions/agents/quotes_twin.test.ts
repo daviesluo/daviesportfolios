@@ -329,6 +329,29 @@ Deno.test("twinSpecs: the table's enabled rows in their order; a row this code c
   await assertRejects(() => twinSpecs({ ...mem.db, select: () => Promise.reject(new Error("db GET agent_quote_twin_specs → 503")) }), Error, "503");
 });
 
+Deno.test("exitOffset (p50x1's rule, 0108): sets the instance's exit offset from its instant; a row whose settings it cannot read is refused; no other twin has one", async () => {
+  const from = "2026-10-12T00:00:00Z";
+  const mem = memDb({
+    agent_quote_twin_specs: [
+      ...TWIN_SPEC_ROWS, rowAs("x1", { display_order: 35, rules: { exitOffset: { ticks: 1, from } } }),
+      rowAs("x0", { display_order: 36, rules: { exitOffset: { ticks: 0, from } } }), rowAs("xh", { display_order: 37, rules: { exitOffset: { ticks: 1.5, from } } }),
+      rowAs("xf", { display_order: 38, rules: { exitOffset: { ticks: 1 } } }), rowAs("xb", { display_order: 39, rules: { exitOffset: { ticks: 11, from } } }),
+    ],
+  }, { now: () => T0 });
+  const r = await twinSpecs(mem.db);
+  assertEquals(r.specs.map((x) => x.id), ["pr5", "p50", "x1", "d"]);
+  assertEquals(r.specs[2].instance.exitOffset, { ticks: 1, from: Date.parse(from) });
+  // Everything else of it is p50's, under its own tables and lease.
+  const { exitOffset: _, ...rest } = r.specs[2].instance;
+  assertEquals({ ...rest, govKey: null }, { ...TWINS.p50.instance, config: "agent_quote_twin_x1_config", orders: "agent_quote_twin_x1_orders", events: "agent_quote_twin_x1_events", state: "agent_quote_twin_x1_state", paper: "agent_quote_twin_x1_paper", lease: "quotes-twin-x1", govKey: null });
+  const ticks = `its rule exitOffset needs "ticks", a whole number from 1 to 10`;
+  assertEquals(r.refused, [
+    { id: "x0", why: `twin x0: ${ticks}` }, { id: "xh", why: `twin xh: ${ticks}` }, { id: "xf", why: `twin xf: its rule exitOffset needs "from", a UTC instant` }, { id: "xb", why: `twin xb: ${ticks}` },
+  ]);
+  // The twins as they ran before: no offset, so their executor prices every exit at the rule's own ticks.
+  for (const x of [TWINS.pr5, TWINS.p50, TWINS.d]) assertEquals(x.instance.exitOffset, undefined, x.id);
+});
+
 Deno.test("the call runs the spec table's rows: a row it cannot carry out is reported, and the others turn", async () => {
   const w = world();
   w.mem.tables.agent_quote_twin_specs = [{ ...TWIN_SPEC_ROWS[0], start: iso(T0) }, rowAs("queue", { display_order: 5, rules: { queue: {} } })];

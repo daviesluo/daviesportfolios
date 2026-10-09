@@ -6,11 +6,13 @@
   "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts d  # -> ../d.json.gz; prints no figure of its results (rule D's no-peek)",
   "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts p50  # -> ../p50.json.gz, 'Stablecoin quotes variant-1' (PR5's rule at £600): the size study's s50 run, figure for figure",
   "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts take50  # -> ../take50.json.gz, 'Stablecoin quotes variant-2' (TAKE, 0089): p50's record but for its twin id, its rule starting 2026-10-05",
+  "cd scripts && npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env backfill.ts p50x1  # -> ../p50x1.json.gz, 'Stablecoin quotes variant-3' (0108): p50's record but for its twin id, its exit offset starting 2026-10-12",
   "backfill.ts <id> builds any twin of the spec rows the migrations insert (spec_rows.ts reads them), a later variant's too"
  ],
  "sources": {
   "inputs/twins_inputs.json.gz": "production, SELECT only, 2026-10-02 21:08:45 UTC, every row before 21:08:00: agent_quote_prints (id|book|ms|price|qty|side), agent_quote_inputs (kind|ms|value), agent_quote_minutes (book|ms|x|x_t|fair_u|hours_n|prints_n, and book|ms|recorded_at), agent_quote_events (book, ms, side, k, kind, ticks, detail; tab-separated), agent_quoted_events of arm d, kinds order/refused/withdraw only (book|ms|side|k|kind|what|ticks|oid|leg|why), and the minutes of edge_call_beats for agents?action=quotes; each read with its md5, which matched",
-  "pr5.json.gz, d.json.gz, p50.json.gz": "scripts/backfill.ts on the inputs: each twin's tables as the code left them (orders without their ids), loaded by the agents function's quotestwins call; pr5.json.gz and p50.json.gz built again on the code of 2026-10-03 (the twins as rows, 0088) to the same bytes; take50.json.gz (0089) the same way on the code of 2026-10-03 that adds TAKE, with pr5.json.gz and p50.json.gz built again on it to the same bytes"
+  "pr5.json.gz, d.json.gz, p50.json.gz": "scripts/backfill.ts on the inputs: each twin's tables as the code left them (orders without their ids), loaded by the agents function's quotestwins call; pr5.json.gz and p50.json.gz built again on the code of 2026-10-03 (the twins as rows, 0088) to the same bytes; take50.json.gz (0089) the same way on the code of 2026-10-03 that adds TAKE, with pr5.json.gz and p50.json.gz built again on it to the same bytes",
+  "p50x1.json.gz": "scripts/backfill.ts p50x1 on the inputs, on the code of 2026-10-09 that adds exitOffset (0108), built twice to the same bytes; p50.json.gz, pr5.json.gz, take50.json.gz and d.json.gz built again on that code to the same bytes"
  },
  "committed": {
   "inputs/twins_inputs.json.gz": {
@@ -40,6 +42,10 @@
   "take50.json.gz": {
    "bytes": 285063,
    "sha256": "8a1d68f9cfe183cf13b387a24103bff3fb6fc7ed3f59b91ca0b29614c051af26"
+  },
+  "p50x1.json.gz": {
+   "bytes": 285059,
+   "sha256": "ece1e81ce6e2b790ae52ef3a7939bce6631d97f3c9760be7e5442ff14de9259e"
   }
  }
 }

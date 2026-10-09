@@ -1,8 +1,9 @@
 // The realistic twins of PR5's live executor: the TESTING rows "Stablecoin quotes" (PR5's rule), "Stablecoin quotes
 // variant-1" (PR5's rule at £50 a rung, since 2026-10-03), "Stablecoin quotes variant-2" (variant-1 with TAKE's taker
-// entry from 2026-10-05, `take50`, 0089) and "Stablecoin quotes variant-3" (rule D's arm d, "variant-2" in
-// its own pre-registration; "variant-1" on the page from 2026-10-02, Davies: "这个variant-2上线testing后改名为variant-1", until
-// 2026-10-03). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
+// entry from 2026-10-05, `take50`, 0089), "Stablecoin quotes variant-3" (variant-1 with its exit a tick beyond fair,
+// `p50x1`, 0108, since 2026-10-09) and "Stablecoin quotes variant-4" (rule D's arm d, "variant-2" in its own
+// pre-registration; "variant-1" on the page from 2026-10-02, Davies: "这个variant-2上线testing后改名为variant-1", until
+// 2026-10-03, then "variant-3" until 2026-10-09). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
 // sizes the same evening, "改成原版每档100磅，variant-2 每档50磅，一定要确保新架构真实"; on the conversions, "都按我们昨天新设立的maker
 // 费来换币". The design is frozen in docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md.
 //
@@ -26,10 +27,14 @@
 //   d    rule D (`stepVariantMinute` with `RULED_ARMS.d`, quotes_ruled.ts's judged arm), £1,800: thirty-six rungs of £50,
 //        nine a side of each book, four governed keys (a book and a side each: the frozen design's four sub-accounts); from
 //        2026-10-10 it quotes no entry on the 0.03 % rungs (`RULED_D_RETIRED`, Davies 2026-10-09), eight a side.
-//        "Stablecoin quotes variant-3" on the page since 2026-10-03 (variant-1 before); PR5V keeps running off the page.
+//        "Stablecoin quotes variant-3" on the page from 2026-10-03 (variant-1 before), "variant-4" since 2026-10-09 (0108,
+//        Davies: p50x1 takes its place); PR5V keeps running off the page.
 //   take50  0089's row: p50 with the rule extension `take` (`TWIN_RULES`), "Stablecoin quotes variant-2", TAKE's forward
 //        test (docs/agents/reviews/2026-10-03-take-prereg.md). From its `take.from` a turn reads the book recorder's reads
 //        around it (`takeReadsAt`) and waits for the first after it, so it turns a call behind; before then it is p50's.
+//   p50x1  0108's row: p50 with the rule extension `exitOffset` (one tick beyond fair from 2026-10-12 00:00 UTC),
+//        "Stablecoin quotes variant-3" since 2026-10-09, in rule D's twin's place, which became "variant-4" after it
+//        (docs/agents/reviews/2026-10-09-p50x1-prereg.md). Before `exitOffset.from` it is p50's.
 // An id names a twin's tables and lease and never a variant number, so a page name changes in its row alone. pr5's and
 // d's specs are what they were (quotes_twin.test.ts pins them; their backfills rebuild to the same bytes).
 // It steps a REPLICA of its engine itself, from the inputs that engine decides on (PR5's stored minutes and prints), at
@@ -166,14 +171,24 @@ const GOV_KEYS: Record<TwinSpecRow["gov"], QuoteLiveInstance["govKey"]> = {
 };
 /**
  * The rule extensions a spec row may name in `rules`, by key, each the instance option it sets: `take`, TAKE's taker
- * entry from `from` (`QuoteLiveInstance.take`; docs/agents/reviews/2026-10-03-take-prereg.md). A key with no code here,
- * or one whose settings it cannot read, is refused.
+ * entry from `from` (`QuoteLiveInstance.take`; docs/agents/reviews/2026-10-03-take-prereg.md); `exitOffset`, the exit
+ * that many ticks beyond fair from `from` (`QuoteLiveInstance.exitOffset`; p50x1). A key with no code here, or one whose
+ * settings it cannot read, is refused.
  */
 export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstance>> = {
   take: (v) => {
     const from = Date.parse(String((v as { from?: unknown } | null)?.from));
     if (!Number.isFinite(from)) throw new Error(`its rule take needs "from", a UTC instant`);
     return { take: { from } };
+  },
+  // The exit `ticks` beyond fair in the position's favour from `from` (`QuoteLiveInstance.exitOffset`; p50x1, 0108,
+  // docs/agents/reviews/2026-10-09-p50x1-prereg.md): a whole number of ticks from 1 to 10.
+  exitOffset: (v) => {
+    const o = v as { ticks?: unknown; from?: unknown } | null;
+    const ticks = Number(o?.ticks), from = Date.parse(String(o?.from));
+    if (!Number.isInteger(ticks) || ticks < 1 || ticks > 10) throw new Error(`its rule exitOffset needs "ticks", a whole number from 1 to 10`);
+    if (!Number.isFinite(from)) throw new Error(`its rule exitOffset needs "from", a UTC instant`);
+    return { exitOffset: { ticks, from } };
   },
 };
 

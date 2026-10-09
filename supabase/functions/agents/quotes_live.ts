@@ -109,6 +109,13 @@ export type QuoteLiveInstance = {
    * The live account's instance has none.
    */
   retired?: { ks: readonly number[]; from: number };
+  /**
+   * The exit `ticks` beyond the rule's own (`exitTicks`) in the position's favour, from `from` (ms): a long sells that many
+   * ticks over fair rounded up, a short buys back that many under fair rounded down, both when the exit is placed and when
+   * it is re-priced; the 24-hour stop is not moved. "Stablecoin quotes variant-3" (`p50x1`,
+   * docs/agents/reviews/2026-10-09-p50x1-prereg.md) the first. The live account's instance has none: offset 0, the rule's.
+   */
+  exitOffset?: { ticks: number; from: number };
 };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
@@ -1185,6 +1192,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     }
     return base;
   };
+  /** The exit's price: the rule's (`exitTicks`), moved by the instance's `exitOffset` from its instant; none for the live account. */
+  const exitAt = (fair: number, side: Side): number => {
+    const off = inst.exitOffset && d.now >= inst.exitOffset.from ? inst.exitOffset.ticks : 0;
+    return exitTicks(fair, side) + (side === "bid" ? off : -off);
+  };
   /** A resting exit's size, trimmed to the penny the venue rounds to (`pennyExit`); a stop is never trimmed. */
   const trimExit = (r: RungNow, ticks: number, base: string | null): string | null => {
     const pair = pairs[LIVE_SYMBOL[r.book]];
@@ -1216,7 +1228,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       const lastPrint = paper?.books?.[r.book]?.lastPrint ?? null;
       if (!o) {
         if (fair == null) continue;                                                                   // the rule places an exit only at a fair
-        const ticks = exitTicks(fair, r.side);
+        const ticks = exitAt(fair, r.side);
         // An exit the venue refused waits as the rule's refused order waits: for a newer print, and one not through it.
         const prev = lastLeg(r, "exit");
         if (prev && prev.state === "rejected") {
@@ -1231,7 +1243,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       if (fair == null || staleBook(r.book) || o.fair == null || Math.abs(fair / Number(o.fair) - 1) <= inst.exitReprice) continue;
       const c = await cancelConfirmed(o, "the rule re-prices the exit");
       if (c !== "cancelled") continue;
-      const ticks = exitTicks(fair, r.side);
+      const ticks = exitAt(fair, r.side);
       const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
       if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) }));
     } catch (e) {

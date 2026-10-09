@@ -76,8 +76,20 @@ function world(mod: Mod, instance?: Now.QuoteLiveInstance) {
   };
 }
 
-Deno.test("the executor's default instance is the frozen executor: the same tables, account and reports, turn by turn", async () => {
-  const a = world(Now), b = world(Frozen);
+Deno.test("the executor's default instance is the frozen executor: the same tables, account and reports, turn by turn", () => sixHours());
+
+// p50x1's rule extension (docs/agents/reviews/2026-10-09-p50x1-prereg.md): an `exitOffset` whose instant has not come is
+// no change at all. The same six hours, today's executor with an offset of a tick from an instant after them, against the
+// frozen file: every table, the account and every report equal after every turn.
+Deno.test("an exitOffset before its instant is the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, exitOffset: { ticks: 1, from: T0 + (HOURS + 1) * H } }));
+
+// Rule D's twin's retired rung likewise: a retirement whose instant has not come changes nothing.
+Deno.test("a retired rung before its instant is the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, retired: { ks: [0.001], from: T0 + (HOURS + 1) * H } }));
+
+async function sixHours(instance?: Now.QuoteLiveInstance) {
+  const a = world(Now, instance), b = world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];
   // An old long on USDT's 0.2 % bid, bought a day and a minute before the start: its 24-hour stop goes at the first turn.
   for (const w of [a, b]) {
@@ -152,7 +164,7 @@ Deno.test("the executor's default instance is the frozen executor: the same tabl
   seen.topups = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.auto === true).length;
   // What the hours went through, or the equality above proves nothing.
   for (const [k, v] of Object.entries(seen)) assert(v > 0, `the simulated hours never reached ${k}: ${JSON.stringify(seen)}`);
-});
+}
 
 Deno.test("F1 through the executor and the simulated account: a £0.10 print nibbles an ask; the buy-back buys what its whole penny buys (the frozen executor paid it for nothing)", async () => {
   // The 2026-10-09 review's F1 end to end, on today's executor and on the frozen one, each against its own simulated
@@ -223,4 +235,46 @@ Deno.test("a retired rung (rule D's twin's 0.03 %, from 2026-10-10): from its in
   assertEquals(before, ["bid entry 7546 filled", "ask entry 7562 new", "bid exit 7555 filled", "bid entry 7546 new"]);
   // Retired: the ask's entry withdrawn for that reason, the exit still placed and filled, and no entry after it.
   assertEquals(retired, ["bid entry 7546 filled", "ask entry 7562 cancelled (the rung is retired: it quotes no entry (a holding still exits))", "bid exit 7555 filled"]);
+});
+
+Deno.test("p50x1's exitOffset: from its instant every exit, placed or re-priced, rests a tick beyond the rule's, in the position's favour; before it, and in the frozen file, at the rule's", async () => {
+  // Fair 1 / 1.3238 = 0.755401…: a long's exit at fair rounded up, 7555 ticks, a short's at fair rounded down, 7554.
+  // Long: a seller fills USDC's 0.1 % bid (7546) whole; GBP/USD then moves to 1.3230 (fair 0.755858…, 6 bps, past the
+  // 0.05 % re-price step) and the exit is re-priced to 7559. Short: a buyer fills its 0.1 % ask (7562); GBP/USD moves to
+  // 1.3246 (fair 0.754945…) and the buy-back goes to 7549. A small seller at 7554 after the fill leaves the touch the last
+  // print implies (bid 7554, ask 7555) where no exit crosses it, and no print goes through an exit. With a tick's offset:
+  // 7556 then 7560, and 7553 then 7548.
+  const exitsOf = async (side: "bid" | "ask", mod: Mod, instance?: Now.QuoteLiveInstance) => {
+    const w = world(mod, instance);
+    w.sim.st.balances.USDC = 40;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    const moved = T0 + 8 * M, x1 = side === "bid" ? 1.3230 : 1.3246;
+    for (const r of w.mem.tables.agent_quote_inputs as Row[]) if (r.kind === "fx" && Date.parse(String(r.t)) >= moved) r.value = x1;
+    for (let t = T0; t < T0 + 12 * M; t += M) {
+      const prints: Record<QuoteBook, Print[]> = { "USDC-GBP": [], "USDT-GBP": [] };
+      if (t === T0 + 4 * M) {
+        prints["USDC-GBP"].push(side === "bid" ? { id: "s1", ts: t + 10e3, ticks: 7545, qty: 20, side: "sell" } : { id: "b1", ts: t + 10e3, ticks: 7564, qty: 20, side: "buy" });
+        prints["USDC-GBP"].push({ id: "f1", ts: t + 30e3, ticks: 7554, qty: 1, side: "sell" });
+      }
+      for (const bk of QUOTE_BOOKS) for (const p of prints[bk]) w.print(bk, p);
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: t >= moved ? x1 : 1.3238, fairU: 1.0, prints: prints[bk] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    const orders = w.mem.tables.agent_quote_live_orders as Row[];
+    const fills = orders.filter((o) => o.leg === "entry" && Number(o.filled_base) > 0).map((o) => `${o.book} ${o.rung_side} ${o.k} ${o.price}`);
+    assertEquals(fills, [side === "bid" ? "USDC-GBP bid 0.001 0.7546" : "USDC-GBP ask 0.001 0.7562"]);
+    return orders.filter((o) => o.leg === "exit").map((o) => `${o.rung_side} ${Math.round(Number(o.price) / 1e-4)} ${o.state}`);
+  };
+  const off = (ticks: number, from: number) => ({ ...Now.QUOTE_LIVE_INSTANCE, exitOffset: { ticks, from } });
+  for (const [side, rule, one, two] of [
+    ["bid", ["bid 7555 cancelled", "bid 7559 new"], ["bid 7556 cancelled", "bid 7560 new"], ["bid 7557 cancelled", "bid 7561 new"]],
+    ["ask", ["ask 7554 cancelled", "ask 7549 new"], ["ask 7553 cancelled", "ask 7548 new"], ["ask 7552 cancelled", "ask 7547 new"]],
+  ] as const) {
+    assertEquals(await exitsOf(side, Frozen), [...rule], `${side}: the frozen executor`);
+    assertEquals(await exitsOf(side, Now), [...rule], `${side}: today's, no offset`);
+    assertEquals(await exitsOf(side, Now, off(1, T0 + 20 * M)), [...rule], `${side}: an offset whose instant has not come`);
+    assertEquals(await exitsOf(side, Now, off(1, T0)), [...one], `${side}: a tick`);
+    assertEquals(await exitsOf(side, Now, off(2, T0)), [...two], `${side}: two ticks`);
+  }
 });

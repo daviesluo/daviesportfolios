@@ -27,7 +27,24 @@ const SIMS = {
   "ruled-d": { start: "2026-09-17T03:00:00.000Z", seq: 1530, deadmen: [], turns: 1195, events: 6112 },
 };
 
-const rows = (await specRowsOfMigrations()).filter((r) => r.enabled);
+/**
+ * A page name a later migration gave a row (0108: rule D's twin, "variant-3" to "variant-4", Davies 2026-10-09), each
+ * `update … set display_name = '<new>' where id = '<id>' and display_name = '<old>'` in the migrations' order;
+ * src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen with p50's pre-registration) returns the rows as
+ * first inserted; this makes them the rows as they stand.
+ */
+const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^']+)'\s+where id = '(\w+)' and display_name = '([^']+)';/g;
+const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
+const renamed = async <T extends { id: string; display_name: string }>(rows: T[]): Promise<T[]> => {
+  const files: string[] = [];
+  for await (const e of Deno.readDir(MIGRATIONS)) if (e.isFile && /^\d{4}_.*\.sql$/.test(e.name)) files.push(e.name);
+  for (const f of files.sort()) {
+    const sql = (await Deno.readTextFile(new URL(f, MIGRATIONS))).replace(/--[^\n]*/g, "");
+    for (const [, to, id, from] of sql.matchAll(RENAME)) for (const r of rows) if (r.id === id && r.display_name === from) r.display_name = to;
+  }
+  return rows;
+};
+const rows = (await renamed(await specRowsOfMigrations())).filter((r) => r.enabled);
 const starts: Record<string, string> = {}, sims: Record<string, unknown> = {}, twins: unknown[] = [];
 for (const row of rows) {
   const spec = specFromRow(row), e = SIMS[row.engine];
