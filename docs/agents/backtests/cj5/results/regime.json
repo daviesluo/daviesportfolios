@@ -1,0 +1,175 @@
+{
+ "USDCGBP": {
+  "2020": {
+   "auction_prints": 115,
+   "days": 274.0,
+   "gbp_per_day": 78310.0,
+   "median_abs_dev_from_fair_bps": 21.02,
+   "median_buy_sell_gap_bps": 12.03,
+   "prints_per_day": 21.0,
+   "share_gbp_ge_10_20_30bps": [
+    0.916,
+    0.571,
+    0.323
+   ]
+  },
+  "2021": {
+   "auction_prints": 283,
+   "days": 365.0,
+   "gbp_per_day": 3056782.0,
+   "median_abs_dev_from_fair_bps": 11.29,
+   "median_buy_sell_gap_bps": 4.24,
+   "prints_per_day": 2964.0,
+   "share_gbp_ge_10_20_30bps": [
+    0.425,
+    0.188,
+    0.115
+   ]
+  },
+  "2022": {
+   "auction_prints": 74,
+   "days": 365.0,
+   "gbp_per_day": 906465.0,
+   "median_abs_dev_from_fair_bps": 11.35,
+   "median_buy_sell_gap_bps": 4.07,
+   "prints_per_day": 260.2,
+   "share_gbp_ge_10_20_30bps": [
+    0.454,
+    0.273,
+    0.185
+   ]
+  },
+  "2023": {
+   "auction_prints": 1,
+   "days": 365.0,
+   "gbp_per_day": 24577.0,
+   "median_abs_dev_from_fair_bps": 31.02,
+   "median_buy_sell_gap_bps": 6.33,
+   "prints_per_day": 71.8,
+   "share_gbp_ge_10_20_30bps": [
+    0.832,
+    0.675,
+    0.503
+   ]
+  },
+  "2024": {
+   "auction_prints": 0,
+   "days": 366.0,
+   "gbp_per_day": 69126.0,
+   "median_abs_dev_from_fair_bps": 15.03,
+   "median_buy_sell_gap_bps": 3.77,
+   "prints_per_day": 200.9,
+   "share_gbp_ge_10_20_30bps": [
+    0.734,
+    0.512,
+    0.274
+   ]
+  },
+  "2025": {
+   "auction_prints": 0,
+   "days": 365.0,
+   "gbp_per_day": 57091.0,
+   "median_abs_dev_from_fair_bps": 11.09,
+   "median_buy_sell_gap_bps": 1.33,
+   "prints_per_day": 235.3,
+   "share_gbp_ge_10_20_30bps": [
+    0.625,
+    0.368,
+    0.176
+   ]
+  },
+  "2026": {
+   "auction_prints": 0,
+   "days": 281.0,
+   "gbp_per_day": 20009.0,
+   "median_abs_dev_from_fair_bps": 12.23,
+   "median_buy_sell_gap_bps": 2.71,
+   "prints_per_day": 77.7,
+   "share_gbp_ge_10_20_30bps": [
+    0.687,
+    0.412,
+    0.217
+   ]
+  }
+ },
+ "USDTGBP": {
+  "2021": {
+   "auction_prints": 15,
+   "days": 127.0,
+   "gbp_per_day": 555656.0,
+   "median_abs_dev_from_fair_bps": 7.3,
+   "median_buy_sell_gap_bps": 4.02,
+   "prints_per_day": 251.0,
+   "share_gbp_ge_10_20_30bps": [
+    0.204,
+    0.081,
+    0.052
+   ]
+  },
+  "2022": {
+   "auction_prints": 54,
+   "days": 365.0,
+   "gbp_per_day": 396954.0,
+   "median_abs_dev_from_fair_bps": 17.82,
+   "median_buy_sell_gap_bps": 9.48,
+   "prints_per_day": 105.7,
+   "share_gbp_ge_10_20_30bps": [
+    0.427,
+    0.213,
+    0.135
+   ]
+  },
+  "2023": {
+   "auction_prints": 0,
+   "days": 365.0,
+   "gbp_per_day": 16661.0,
+   "median_abs_dev_from_fair_bps": 38.2,
+   "median_buy_sell_gap_bps": 5.15,
+   "prints_per_day": 38.2,
+   "share_gbp_ge_10_20_30bps": [
+    0.903,
+    0.806,
+    0.584
+   ]
+  },
+  "2024": {
+   "auction_prints": 4,
+   "days": 366.0,
+   "gbp_per_day": 49908.0,
+   "median_abs_dev_from_fair_bps": 25.03,
+   "median_buy_sell_gap_bps": 2.62,
+   "prints_per_day": 130.1,
+   "share_gbp_ge_10_20_30bps": [
+    0.814,
+    0.65,
+    0.414
+   ]
+  },
+  "2025": {
+   "auction_prints": 0,
+   "days": 365.0,
+   "gbp_per_day": 43139.0,
+   "median_abs_dev_from_fair_bps": 14.65,
+   "median_buy_sell_gap_bps": 1.29,
+   "prints_per_day": 122.5,
+   "share_gbp_ge_10_20_30bps": [
+    0.695,
+    0.441,
+    0.248
+   ]
+  },
+  "2026": {
+   "auction_prints": 0,
+   "days": 281.0,
+   "gbp_per_day": 13629.0,
+   "median_abs_dev_from_fair_bps": 16.17,
+   "median_buy_sell_gap_bps": 2.68,
+   "prints_per_day": 34.5,
+   "share_gbp_ge_10_20_30bps": [
+    0.719,
+    0.494,
+    0.308
+   ]
+  }
+ }
+}

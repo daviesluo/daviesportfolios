@@ -292,7 +292,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    endpoint pages back to 2020 with `after` (the search's "eight days" was its default page), so CJ5's paper test can be
    pre-registered and built on history now; only its book (queue) history starts at the deploy. CoinJar offers post-only
    (`MOC`). Live needs Davies' CoinJar UK account and a trades-scope key he creates himself (never printed), stored by
-   him as a Supabase secret, and an order path that does not exist.
+   him as a Supabase secret, and an order path that does not exist. **Its paper test on history is done**
+   (`reviews/2026-10-09-cj5-paper-test.md`): an edge in every year, shrinking; a forward paper test is drafted, not frozen
+   (`reviews/2026-10-09-cj5-forward-paper-prereg.md`), and waits on a design and his word.
 
 ## Machine and platform setup
 
@@ -422,6 +424,15 @@ first.
   plus about £470 of sign-up offers once.
 - Polymarket is a fair-price source, not a value venue or a cheap lay leg. Open: the paper phase (§7 draft) needs
   Davies' Odds API key and his word.
+
+### [2026-10-09 20:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CJ5's paper test on history** (Davies: "现在就用历史数据给 CJ5 做纸面测试"): `reviews/2026-10-09-cj5-paper-test.md`,
+  `backtests/cj5/` (map row). PR5's frozen `pr5_sim.py` imported read-only, first reproducing `pr5_run1`'s PRIMARY
+  exactly, on CoinJar's whole keyless print history (1,390,026 USDC/GBP prints from 2020-04-02, 186,416 USDT/GBP from
+  2021-08-27), EXN interbank, CoinJar's fees. An edge in every year from 2021 and both halves, shrinking: last 12 months
+  £24.87 / £103.40 / £177.66 on £120 / £600 / £1,200 (bootstrap index 100 £20.48 / £85.20 / £146.15). Against PR5 on
+  Revolut X since 11-26 it made a fifth as much, but led since 08-24. A forward paper pre-registration is drafted, not
+  frozen. No production read; nothing traded.
 
 ### [2026-10-09 18:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STATARB-2, the second stat-arb search** (Davies: "除了这三个还有别的好的吗？还有别的统计套利吗？而且不一定要和现有策略类似的"):

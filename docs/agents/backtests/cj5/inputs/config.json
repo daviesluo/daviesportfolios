@@ -1,0 +1,36 @@
+{
+ "half_spread": {
+  "USDCGBP": 0.001388,
+  "USDTGBP": 0.00172
+ },
+ "half_spread_source": {
+  "USDCGBP": {
+   "best_ask": 0.7576,
+   "best_bid": 0.7555,
+   "half_spread": 0.001388,
+   "read_at": "2026-10-09T18:31:33Z",
+   "touch_bps": 27.76
+  },
+  "USDTGBP": {
+   "best_ask": 0.757,
+   "best_bid": 0.7544,
+   "half_spread": 0.00172,
+   "read_at": "2026-10-09T18:31:33Z",
+   "touch_bps": 34.41
+  }
+ },
+ "print_gap_measure_not_used": {
+  "USDCGBP": {
+   "half_spread": 0.000212,
+   "median_gap": 0.000424,
+   "pairs": 315137
+  },
+  "USDTGBP": {
+   "half_spread": 0.000135,
+   "median_gap": 0.000271,
+   "pairs": 15861
+  }
+ },
+ "taker_fee": 1e-05,
+ "taker_fee_source": "coinjar.com/uk/fees (stablecoin<->fiat 0.001 % taker, 0.00 % maker), read 2026-10-09"
+}

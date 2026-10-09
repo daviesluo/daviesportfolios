@@ -1,0 +1,150 @@
+{
+ "files": {
+  "inputs/cj_prints_USDCGBP.json.gz": {
+   "bytes": 13871071,
+   "sha256": "8d4c046eb7b77a8e54162cda10f4a2a500db4a86c260467af49467af602474f4"
+  },
+  "inputs/cj_prints_USDTGBP.json.gz": {
+   "bytes": 1925134,
+   "sha256": "b2d7f89a6eab92fc0cf4140157b91e866e2aa0f4d0dc13d849ecdb31b9a1fb4b"
+  },
+  "inputs/config.json": {
+   "bytes": 755,
+   "sha256": "67ce050707577922efa1bd9d47dff035c416fc1b9b121590bea108e96e8a056d"
+  },
+  "inputs/fx_gbpusd_1m.json.gz": {
+   "bytes": 2676339,
+   "sha256": "d10b6cc36b1366a873f45f3fe3544e19979925d505786dc7677772a0d139a005"
+  },
+  "inputs/raw_manifest.json": {
+   "bytes": 22305,
+   "sha256": "c7ba03e5e66036b513339eb1328941e0dc94d0026ada825ec7d85125f8d1e09e"
+  },
+  "inputs/revx_usd_hours_2026-09-16_10-09.json.gz": {
+   "bytes": 11801,
+   "sha256": "fc4c1cf9ca9b4115ba535e1de7436b76b8ad0ef6f5bbdca1f303e1906c8a5575"
+  },
+  "inputs/usd_hourly.json.gz": {
+   "bytes": 134199,
+   "sha256": "67c4b2236e956e471540641c05717f596783cf8e78d15f9ad08712200e05c924"
+  },
+  "results/calibration.json": {
+   "bytes": 5025,
+   "sha256": "bf5dd8883b7e6d56896b61ea7399c13de883ae793cfa3e7b8f4819457861c052"
+  },
+  "results/cj5.json": {
+   "bytes": 116479,
+   "sha256": "e46b4c41eead39638283d01b97b6c0806a7e9d7a2936ebeb18fca553aa900d04"
+  },
+  "results/cj5_trips_100.json.gz": {
+   "bytes": 899014,
+   "sha256": "2f455818f7c100d599d92d052b8ade5f18b4c85e543e63d1b85a75ea7e4bb195"
+  },
+  "results/fx_check.json": {
+   "bytes": 11780,
+   "sha256": "a612d2774ac0f8427d0821ad587a2bcdf04645d0a45351446416eec2ddc764b4"
+  },
+  "results/paired.json": {
+   "bytes": 7952,
+   "sha256": "5868f2ba236fcfb3f098c5a4bbdbf68acbadad46d20962c2dbad3f136ab3de2e"
+  },
+  "results/regime.json": {
+   "bytes": 3447,
+   "sha256": "19cd58e56950adb2eac41157454c586b3c5dbe304aac7957a3535401f69f2992"
+  },
+  "results/spot_check.json": {
+   "bytes": 2458,
+   "sha256": "a45ce72af173919a59502c21e14ac3fea68c4cecfb56a2e3a121cfcd4c69a5ca"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 3280,
+   "sha256": "72a069a27aebbe6d26cdfe6448a39513524743ad25aaf894a819c55ad99d2ca3"
+  },
+  "scripts/calibrate.py": {
+   "bytes": 3008,
+   "sha256": "20586378e5c82163920faf5631e242be03db75916d96f03a3047e57c416d4f32"
+  },
+  "scripts/cj5_sim.py": {
+   "bytes": 14804,
+   "sha256": "2f86d75f6fdd2bc9e8da9150da1e2786d3d5cd8cb83287efa73f470a0c3e5a68"
+  },
+  "scripts/fx_check.py": {
+   "bytes": 6798,
+   "sha256": "16983f8920f1d29fa48d14c3a70702c51f99080e0434c73dd0e3a993c62d32ec"
+  },
+  "scripts/inputs.py": {
+   "bytes": 11990,
+   "sha256": "47c227db10bf44e397b13edb63975890fa3fe8329b8813141101f1ad65990e75"
+  },
+  "scripts/netget.py": {
+   "bytes": 957,
+   "sha256": "a363c6febc51b10bfbaf83af1dd04daddf03b3888b1ab1baed612fa117cf5266"
+  },
+  "scripts/paired.py": {
+   "bytes": 7386,
+   "sha256": "961c531ab113e2b7577e9af550436515eaa1f33f02006dfb8b27e7a8df8d3776"
+  },
+  "scripts/pull_cj_trades.py": {
+   "bytes": 3244,
+   "sha256": "02eb2f8ad1b580daba8e0ea12cb707dbbdb702141bfd6229893f6e3890d0ce28"
+  },
+  "scripts/pull_fx.py": {
+   "bytes": 4611,
+   "sha256": "e5491f9b9ca3b3d420efb181ea2e5162c4ff8f20d61b86d04ffb6c34a0ba1326"
+  },
+  "scripts/pull_kraken_usdc.py": {
+   "bytes": 1529,
+   "sha256": "608c73f0ee0a78c6fb7f30be9de974b83600b39436310f532acf00d99b8f6a02"
+  },
+  "scripts/pull_revx.py": {
+   "bytes": 1338,
+   "sha256": "f207b9d7ed32f1622860e6d580e92fc1fff248a1b56c02e4a194cf3c7d2af2fc"
+  },
+  "scripts/pull_usd.py": {
+   "bytes": 2662,
+   "sha256": "92df822634aa2d61bc305c802539c1e5568eb8ccc01e6711b90b5c71cfab91a8"
+  },
+  "scripts/regime.py": {
+   "bytes": 2752,
+   "sha256": "0777f8f748e6dd3cf1e4cd60d955ab55fdd9ea68a53d8eb6955d37359c59318d"
+  },
+  "scripts/spot_check.py": {
+   "bytes": 1982,
+   "sha256": "7d1d34da5268069c6908ba5c090c3f727e14ef39187f5714e20a53dcb9955a65"
+  },
+  "scripts/vbook.py": {
+   "bytes": 3367,
+   "sha256": "9a553183e604398c94b9b7a25674de12ffc708ce34d7ef40fb6d4a79312eb5ca"
+  }
+ },
+ "imports_read_only": {
+  "docs/agents/backtests/cjrec/fixture_2026-10-09.json": "CoinJar's touch, the stop's half-spread (inputs.py)",
+  "docs/agents/backtests/inputs/pr5_2026-09-23/": "PR5's committed Revolut X inputs (calibrate.py, paired.py)",
+  "docs/agents/backtests/statarb_search/inputs/{long,fiat_stable}/revx_USD?-GBP.json.gz": "Revolut X UK prints 09-23 -> 10-09 (paired.py)",
+  "docs/agents/scripts/pr5/pr5_sim.py": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a"
+ },
+ "keyless_sources": [
+  "data.exchange.coinjar.com /products/{USDCGBP,USDTGBP}/trades",
+  "ticks.ex2archive.com GBPUSD monthly ticks (EXN)",
+  "query1.finance.yahoo.com GBPUSD=X 1m and 1h",
+  "candledata.fxcorporate.com m1 GBPUSD (check)",
+  "api.exchange.coinbase.com USDT-USD 1h candles",
+  "bitstamp.net ohlc usdcusd / usdtusd 1h",
+  "api.kraken.com Trades USDCUSD (2020)",
+  "revx.revolut.com public candles USDC-USD / USDT-USD"
+ ],
+ "run": [
+  "cd scripts; python3 -I pull_cj_trades.py RAW [ID FROM TO]   # keyless, resumable; segments were pulled side by side, joined by tid",
+  "cd scripts; python3 -I pull_fx.py RAW exness; python3 -I pull_fx.py RAW yahoo; python3 -I pull_fx.py RAW fxcm",
+  "cd scripts; python3 -I pull_usd.py RAW; python3 -I pull_kraken_usdc.py RAW; python3 -I pull_revx.py",
+  "cd scripts; python3 -I inputs.py build RAW   # -> inputs/ (the raw files' sha256 in inputs/raw_manifest.json)",
+  "cd scripts; python3 -I fx_check.py RAW   # -> results/fx_check.json (reads the raw FXCM / Yahoo files)",
+  "cd scripts; python3 -I calibrate.py   # -> results/calibration.json: reproduces pr5_run1.json's PRIMARY, stress and by-book figure for figure",
+  "cd scripts; python3 -I cj5_sim.py   # -> results/cj5.json, results/cj5_trips_100.json.gz (about 10 minutes)",
+  "cd scripts; python3 -I paired.py; python3 -I regime.py; python3 -I spot_check.py (live re-read)",
+  "cd scripts; python3 -I build_manifest.py",
+  "calibrate, cj5_sim, paired and regime were run twice from the committed inputs to the same bytes"
+ ],
+ "study": "CJ5: PR5's frozen rule on CoinJar UK's USDC/GBP and USDT/GBP books over their whole public print history (2020-04-02 / 2021-08-27 -> 2026-10-09), paper, keyless",
+ "write_up": "docs/agents/reviews/2026-10-09-cj5-paper-test.md"
+}

@@ -1,0 +1,677 @@
+{
+ "coinjar/USDCGBP": {
+  "distinct_tids": 1390054,
+  "pages": 1432,
+  "pages_sha_mismatch": 0,
+  "prints_kept_before_cut": 1390026
+ },
+ "coinjar/USDCGBP/pages.jsonl": {
+  "bytes": 105432417,
+  "pages": 672,
+  "sha256": "e2b9024bcb5cd4b66d54ce5015d5e2b80b77d275da221f86e88ec824d6ab992d"
+ },
+ "coinjar/USDCGBP/pages_2021-09-01.jsonl": {
+  "bytes": 74424951,
+  "pages": 470,
+  "sha256": "6c020e0ecf39b9390d4137fdf7bfa9e6cfcdbc4843bfe88284c8539ab45190d4"
+ },
+ "coinjar/USDCGBP/pages_2022-03-01.jsonl": {
+  "bytes": 4155076,
+  "pages": 26,
+  "sha256": "e00d69586a3125316ea4cf8441f5c47d7fafdb2b2be519c0292798f34464ba00"
+ },
+ "coinjar/USDCGBP/pages_2022-06-01.jsonl": {
+  "bytes": 4636471,
+  "pages": 29,
+  "sha256": "e977ada83ee1bf6c8044c961fe215aedf94aa9058f2f62ed0c0eb5d9617c77d1"
+ },
+ "coinjar/USDCGBP/pages_2022-09-01.jsonl": {
+  "bytes": 9978161,
+  "pages": 63,
+  "sha256": "48a3a51c162b2e7387d5dbe9a72185b5cd9214d5fbd9320787312a7c773b6632"
+ },
+ "coinjar/USDCGBP/pages_2024-03-01.jsonl": {
+  "bytes": 27113600,
+  "pages": 172,
+  "sha256": "7b222de39bd938d116f07ff56edd31fcec8fb9cab9db20b77ffa4fda658541a9"
+ },
+ "coinjar/USDTGBP": {
+  "distinct_tids": 186428,
+  "pages": 187,
+  "pages_sha_mismatch": 0,
+  "prints_kept_before_cut": 186416
+ },
+ "coinjar/USDTGBP/pages.jsonl": {
+  "bytes": 29557798,
+  "pages": 187,
+  "sha256": "652d41584c5fd623d957f0fa058ffcb05e99867d98d38248db8ec93a44a6e155"
+ },
+ "exness/Exness_GBPUSD_2020_04.zip": {
+  "bytes": 9428842,
+  "member": "Exness_GBPUSD_2020_04.csv",
+  "minutes": 31397,
+  "sha256": "ff4c9d29785859bf5681ea924d8a74b7ad5ffe398f6b94834801262073efe7f1"
+ },
+ "exness/Exness_GBPUSD_2020_05.zip": {
+  "bytes": 9360601,
+  "member": "Exness_GBPUSD_2020_05.csv",
+  "minutes": 29975,
+  "sha256": "3e6f93d64a7f1ed1f3ca712559caf5080270c03e7e4a63c4f8979fe2f0413410"
+ },
+ "exness/Exness_GBPUSD_2020_06.zip": {
+  "bytes": 12673768,
+  "member": "Exness_GBPUSD_2020_06.csv",
+  "minutes": 31485,
+  "sha256": "c3b6da153fb6cf9e2711836367491c4347f9cd8bbc7cf1946b940acc800ae98f"
+ },
+ "exness/Exness_GBPUSD_2020_07.zip": {
+  "bytes": 10424602,
+  "member": "Exness_GBPUSD_2020_07.csv",
+  "minutes": 32718,
+  "sha256": "6b4e63cedef18d3c933ce49799b8a9a6f27498bf690348500c826bbd227eb6a8"
+ },
+ "exness/Exness_GBPUSD_2020_08.zip": {
+  "bytes": 9981044,
+  "member": "Exness_GBPUSD_2020_08.csv",
+  "minutes": 30210,
+  "sha256": "2ca0dd5f945d5b940a0b6c9f828642f41d365dce96a46aab377e8524e0a4c0d5"
+ },
+ "exness/Exness_GBPUSD_2020_09.zip": {
+  "bytes": 10824633,
+  "member": "Exness_GBPUSD_2020_09.csv",
+  "minutes": 31492,
+  "sha256": "9ec1e0cd275e42fc4c01c608326371559347d905b36cecb3fe8ddb51e4320eb1"
+ },
+ "exness/Exness_GBPUSD_2020_10.zip": {
+  "bytes": 8787124,
+  "member": "Exness_GBPUSD_2020_10.csv",
+  "minutes": 31297,
+  "sha256": "0523174d80db5b1c035ccb870d1555519c6c4d9c21570e65254cb77126802b82"
+ },
+ "exness/Exness_GBPUSD_2020_11.zip": {
+  "bytes": 8603646,
+  "member": "Exness_GBPUSD_2020_11.csv",
+  "minutes": 30199,
+  "sha256": "4c326288f90e467d9a910c1a29119e9329c5f6b3d00e07817f255dcc7ad90805"
+ },
+ "exness/Exness_GBPUSD_2020_12.zip": {
+  "bytes": 9533791,
+  "member": "Exness_GBPUSD_2020_12.csv",
+  "minutes": 31402,
+  "sha256": "49675f1236d23524583552928d2d197793bf06c28977f12f444a10ef0c4d60f1"
+ },
+ "exness/Exness_GBPUSD_2021_01.zip": {
+  "bytes": 7678954,
+  "member": "Exness_GBPUSD_2021_01.csv",
+  "minutes": 28759,
+  "sha256": "efbf4106024c01c3e6ab018dfa1177e0a1c9ec48d67b44abc0d8edce295b3086"
+ },
+ "exness/Exness_GBPUSD_2021_02.zip": {
+  "bytes": 6273487,
+  "member": "Exness_GBPUSD_2021_02.csv",
+  "minutes": 28587,
+  "sha256": "3765b5c36e5de4af42c9f51cdbe3ac7a7c0b1eeb80b6fcd080e74cb757056be0"
+ },
+ "exness/Exness_GBPUSD_2021_03.zip": {
+  "bytes": 7189568,
+  "member": "Exness_GBPUSD_2021_03.csv",
+  "minutes": 30853,
+  "sha256": "8463ad6e1b73c5044044b9055c0da41b2eb536525c24f8e58c14a3ffe3a19e14"
+ },
+ "exness/Exness_GBPUSD_2021_04.zip": {
+  "bytes": 6973168,
+  "member": "Exness_GBPUSD_2021_04.csv",
+  "minutes": 30849,
+  "sha256": "bca644b73658dece8ef7cf57484e778e075b1bf437aba44917f7234a4efc9ec9"
+ },
+ "exness/Exness_GBPUSD_2021_05.zip": {
+  "bytes": 6432161,
+  "member": "Exness_GBPUSD_2021_05.csv",
+  "minutes": 29824,
+  "sha256": "76e06a4cfe40cddbed8725c779b9fce12c44c42aafae7345b26955cac1a28d57"
+ },
+ "exness/Exness_GBPUSD_2021_06.zip": {
+  "bytes": 5742162,
+  "member": "Exness_GBPUSD_2021_06.csv",
+  "minutes": 31001,
+  "sha256": "2d2cb044ae48836037477e5d549e8f0389ced40f91d7d1b35b28a010701a4bcc"
+ },
+ "exness/Exness_GBPUSD_2021_07.zip": {
+  "bytes": 6237111,
+  "member": "Exness_GBPUSD_2021_07.csv",
+  "minutes": 30837,
+  "sha256": "fe198959619467ad8d105be1e6d59f754b6c1968e3b412a54a2c641ac2173aeb"
+ },
+ "exness/Exness_GBPUSD_2021_08.zip": {
+  "bytes": 4099524,
+  "member": "Exness_GBPUSD_2021_08.csv",
+  "minutes": 29044,
+  "sha256": "e1f6035fddeb22b8a77f3a280fb2c945ff4a353531ddcaf3d3307fea0116549d"
+ },
+ "exness/Exness_GBPUSD_2021_09.zip": {
+  "bytes": 5599659,
+  "member": "Exness_GBPUSD_2021_09.csv",
+  "minutes": 29945,
+  "sha256": "73c1dda5e5960b31c0e6e4a19c172d9c324b777da10492f598be58b6a4254454"
+ },
+ "exness/Exness_GBPUSD_2021_10.zip": {
+  "bytes": 6176821,
+  "member": "Exness_GBPUSD_2021_10.csv",
+  "minutes": 28835,
+  "sha256": "d694c14dc2c758325a13a30261af99977e958ef5140b6c931d6fbc265c87b885"
+ },
+ "exness/Exness_GBPUSD_2021_11.zip": {
+  "bytes": 7454282,
+  "member": "Exness_GBPUSD_2021_11.csv",
+  "minutes": 30598,
+  "sha256": "aca3cfb96f272760c22f689e76d350a1762c253e57779648ea71dafe7184c1ac"
+ },
+ "exness/Exness_GBPUSD_2021_12.zip": {
+  "bytes": 6727116,
+  "member": "Exness_GBPUSD_2021_12.csv",
+  "minutes": 31599,
+  "sha256": "3e093e05614a5711cef9d511e5a5059343eb2ec2db59b9a74d8247b1c4487f91"
+ },
+ "exness/Exness_GBPUSD_2022_01.zip": {
+  "bytes": 6702807,
+  "member": "Exness_GBPUSD_2022_01.csv",
+  "minutes": 29437,
+  "sha256": "105148dc74f1d3524292c49bd37c70ea02b83e9152e6fc492f6fb939b312f2f8"
+ },
+ "exness/Exness_GBPUSD_2022_02.zip": {
+  "bytes": 8094625,
+  "member": "Exness_GBPUSD_2022_02.csv",
+  "minutes": 28194,
+  "sha256": "405ab7b1f73da8b288323eef94a318b5a69b4a62960a2d22ecfa285648d88091"
+ },
+ "exness/Exness_GBPUSD_2022_03.zip": {
+  "bytes": 11102630,
+  "member": "Exness_GBPUSD_2022_03.csv",
+  "minutes": 32583,
+  "sha256": "eb04c564dbb1a8eced28cb8a237d89bfeb2aa24a54d067d36580dbf50369849d"
+ },
+ "exness/Exness_GBPUSD_2022_04.zip": {
+  "bytes": 8162170,
+  "member": "Exness_GBPUSD_2022_04.csv",
+  "minutes": 29512,
+  "sha256": "d9135c672dd7e0361eab00071baf26a539346fe2a57e5d5f50b22c473de950f8"
+ },
+ "exness/Exness_GBPUSD_2022_05.zip": {
+  "bytes": 12153586,
+  "member": "Exness_GBPUSD_2022_05.csv",
+  "minutes": 31236,
+  "sha256": "76de3915e463fe66f0958a0e64659f7a95c297edefae3674b8a998d9367d3904"
+ },
+ "exness/Exness_GBPUSD_2022_06.zip": {
+  "bytes": 13444242,
+  "member": "Exness_GBPUSD_2022_06.csv",
+  "minutes": 31027,
+  "sha256": "af56fa938a2afcf84e2d39c3af079e7e3923b104eed2529bd51d36f9a671bca2"
+ },
+ "exness/Exness_GBPUSD_2022_07.zip": {
+  "bytes": 14008074,
+  "member": "Exness_GBPUSD_2022_07.csv",
+  "minutes": 29665,
+  "sha256": "3acede3969f6bd3851323a6bdd452d2c9648de5ccfc6e43e819ce4a7dcffad53"
+ },
+ "exness/Exness_GBPUSD_2022_08.zip": {
+  "bytes": 12870258,
+  "member": "Exness_GBPUSD_2022_08.csv",
+  "minutes": 32727,
+  "sha256": "4d830c5d82afa2ff7ccb5a97d6a4a50a85e0cdf5e03fbcbf8d0318c0ebcd0920"
+ },
+ "exness/Exness_GBPUSD_2022_09.zip": {
+  "bytes": 19854624,
+  "member": "Exness_GBPUSD_2022_09.csv",
+  "minutes": 31151,
+  "sha256": "fa6098239a9761ce0bc295f26fd985b60a873fd1efc8ef9e474ae13c9d8774e9"
+ },
+ "exness/Exness_GBPUSD_2022_10.zip": {
+  "bytes": 24965420,
+  "member": "Exness_GBPUSD_2022_10.csv",
+  "minutes": 30194,
+  "sha256": "c7108b2b4f3688da0f5b7cdfca6f525283ebf5fc7c49c39c164038765a12cd30"
+ },
+ "exness/Exness_GBPUSD_2022_11.zip": {
+  "bytes": 20234517,
+  "member": "Exness_GBPUSD_2022_11.csv",
+  "minutes": 31375,
+  "sha256": "40b7e00c99cadb01644c21ced3d8857a52940678569326d30eac9091589786b5"
+ },
+ "exness/Exness_GBPUSD_2022_12.zip": {
+  "bytes": 16022143,
+  "member": "Exness_GBPUSD_2022_12.csv",
+  "minutes": 31063,
+  "sha256": "f39b7ee5419eeee21ff033f2cbc28901db1d8f483fd9046bf6899700f080ba20"
+ },
+ "exness/Exness_GBPUSD_2023_01.zip": {
+  "bytes": 14529417,
+  "member": "Exness_GBPUSD_2023_01.csv",
+  "minutes": 31280,
+  "sha256": "b1a52a0149355191400c26d9a8b49e3f55cb06b0d89877905f369a2ab7582a61"
+ },
+ "exness/Exness_GBPUSD_2023_02.zip": {
+  "bytes": 12044731,
+  "member": "Exness_GBPUSD_2023_02.csv",
+  "minutes": 28496,
+  "sha256": "f1093651eb8bcea87d689fb622233cd98d35f22b72db4d2653192e15ec53a223"
+ },
+ "exness/Exness_GBPUSD_2023_03.zip": {
+  "bytes": 14418209,
+  "member": "Exness_GBPUSD_2023_03.csv",
+  "minutes": 32612,
+  "sha256": "cb083b2c3501618998e010a3bf7bc6e47ccd1671bc2535920edafe1446bdb65f"
+ },
+ "exness/Exness_GBPUSD_2023_04.zip": {
+  "bytes": 7555122,
+  "member": "Exness_GBPUSD_2023_04.csv",
+  "minutes": 28282,
+  "sha256": "f59f5da61d6107162e4a97c485ded5c1727e78940895d52ee9bd56dabe8c80b2"
+ },
+ "exness/Exness_GBPUSD_2023_05.zip": {
+  "bytes": 8558661,
+  "member": "Exness_GBPUSD_2023_05.csv",
+  "minutes": 32490,
+  "sha256": "21002ac6bc5668455412ff26dc87b9e849b9bf88e29657002b1ace707d55438a"
+ },
+ "exness/Exness_GBPUSD_2023_06.zip": {
+  "bytes": 9330136,
+  "member": "Exness_GBPUSD_2023_06.csv",
+  "minutes": 31028,
+  "sha256": "80ca489ccf97a4ffb15608ea89bc41f789c1ca4c054c2537543940156d839c1a"
+ },
+ "exness/Exness_GBPUSD_2023_07.zip": {
+  "bytes": 9771273,
+  "member": "Exness_GBPUSD_2023_07.csv",
+  "minutes": 30171,
+  "sha256": "61a34e4790b8c7e499b35a3c6410d9c7b8f3b53f740fff48f1ec696cbca138f3"
+ },
+ "exness/Exness_GBPUSD_2023_08.zip": {
+  "bytes": 10641366,
+  "member": "Exness_GBPUSD_2023_08.csv",
+  "minutes": 32910,
+  "sha256": "a644ec5272d27a0aa5fa394552ba3a982082af9852ccf2c238c28f4f50bd7768"
+ },
+ "exness/Exness_GBPUSD_2023_09.zip": {
+  "bytes": 8484285,
+  "member": "Exness_GBPUSD_2023_09.csv",
+  "minutes": 29760,
+  "sha256": "83493fc9993ffb2ba8e0906b08d2f3792074102aee3d49a693de691e2a28021f"
+ },
+ "exness/Exness_GBPUSD_2023_10.zip": {
+  "bytes": 9975580,
+  "member": "Exness_GBPUSD_2023_10.csv",
+  "minutes": 31621,
+  "sha256": "f2681b447fd1ff5a29dfde8f52b59f94b276ef42c67c53be4d8fce45a78bd3f2"
+ },
+ "exness/Exness_GBPUSD_2023_11.zip": {
+  "bytes": 9032024,
+  "member": "Exness_GBPUSD_2023_11.csv",
+  "minutes": 31388,
+  "sha256": "9484b0e5439dbf429c24ce09b904887571bc6bcb85c1276a9c26fc76caf9b9c6"
+ },
+ "exness/Exness_GBPUSD_2023_12.zip": {
+  "bytes": 10809444,
+  "member": "Exness_GBPUSD_2023_12.csv",
+  "minutes": 28553,
+  "sha256": "e363b275bd2daa8f71a45dd4ef273761731ae3a9a6c04a4a43d02110fcc84387"
+ },
+ "exness/Exness_GBPUSD_2024_01.zip": {
+  "bytes": 11626425,
+  "member": "Exness_GBPUSD_2024_01.csv",
+  "minutes": 31650,
+  "sha256": "14e4b396f163fad299850f621db04132444a93c17ffcf22feedeb27102076ae3"
+ },
+ "exness/Exness_GBPUSD_2024_02.zip": {
+  "bytes": 9464823,
+  "member": "Exness_GBPUSD_2024_02.csv",
+  "minutes": 30153,
+  "sha256": "c70855ff4b7981b8c7cf438abbc342bcb73b81f318a0c6a20132455b2922605c"
+ },
+ "exness/Exness_GBPUSD_2024_03.zip": {
+  "bytes": 8021236,
+  "member": "Exness_GBPUSD_2024_03.csv",
+  "minutes": 30091,
+  "sha256": "b8d735abb064706cfdfe1d12360579073345d75ffb4c55ea869e1f6cfc3d36ac"
+ },
+ "exness/Exness_GBPUSD_2024_04.zip": {
+  "bytes": 9377916,
+  "member": "Exness_GBPUSD_2024_04.csv",
+  "minutes": 30080,
+  "sha256": "8b896484a5f38ccf90a93551c90c16beb43363e9a90f4b664ef142b96bc815c2"
+ },
+ "exness/Exness_GBPUSD_2024_05.zip": {
+  "bytes": 8956267,
+  "member": "Exness_GBPUSD_2024_05.csv",
+  "minutes": 32779,
+  "sha256": "38ba9656df91b9ab6346b1c6af777429f9643cdc89b58e6018e5145de95570e0"
+ },
+ "exness/Exness_GBPUSD_2024_06.zip": {
+  "bytes": 7541767,
+  "member": "Exness_GBPUSD_2024_06.csv",
+  "minutes": 28885,
+  "sha256": "89ddcb4fd108165d3529fc2038e81a519b385ba4933ed90629c560ad33a39cea"
+ },
+ "exness/Exness_GBPUSD_2024_07.zip": {
+  "bytes": 8263760,
+  "member": "Exness_GBPUSD_2024_07.csv",
+  "minutes": 33019,
+  "sha256": "8b73bda9c2f0236946a48f302922c865fed6370a2359c453b85090fbf9957de2"
+ },
+ "exness/Exness_GBPUSD_2024_08.zip": {
+  "bytes": 8478079,
+  "member": "Exness_GBPUSD_2024_08.csv",
+  "minutes": 31342,
+  "sha256": "6972473853989666c3f21fc6794571f898ef9f9c26025a910b6233dcb58d4183"
+ },
+ "exness/Exness_GBPUSD_2024_09.zip": {
+  "bytes": 10086630,
+  "member": "Exness_GBPUSD_2024_09.csv",
+  "minutes": 30342,
+  "sha256": "87e9396eba7579ab5c5e815a7dedcae034c9fd1b70cbbc6a34faa20180c4a61c"
+ },
+ "exness/Exness_GBPUSD_2024_10.zip": {
+  "bytes": 11265094,
+  "member": "Exness_GBPUSD_2024_10.csv",
+  "minutes": 33067,
+  "sha256": "85eabf217c440d37dfe29b20defc7d0404897e80ff88019fdd75300e867afd31"
+ },
+ "exness/Exness_GBPUSD_2024_11.zip": {
+  "bytes": 12064289,
+  "member": "Exness_GBPUSD_2024_11.csv",
+  "minutes": 30011,
+  "sha256": "3f0a8dab49ec8d1c17d3663e3608c52cf0d2f594ccb91bac7769b49a0a3471f2"
+ },
+ "exness/Exness_GBPUSD_2024_12.zip": {
+  "bytes": 10481827,
+  "member": "Exness_GBPUSD_2024_12.csv",
+  "minutes": 29986,
+  "sha256": "af4a5b42107ff2b743de8635e6c7d7f51140aaaa2934033450bb4d47055d9d85"
+ },
+ "exness/Exness_GBPUSD_2025_01.zip": {
+  "bytes": 13593730,
+  "member": "Exness_GBPUSD_2025_01.csv",
+  "minutes": 31548,
+  "sha256": "e4190ed9253dd624843b54732ec10ea25bbf65dbe65f1d63c33eac7a688f5534"
+ },
+ "exness/Exness_GBPUSD_2025_02.zip": {
+  "bytes": 11121207,
+  "member": "Exness_GBPUSD_2025_02.csv",
+  "minutes": 28747,
+  "sha256": "d8be96d301f31b54584e16d9d0c60308df8ca1100b90983818ab23d7c1133fc3"
+ },
+ "exness/Exness_GBPUSD_2025_03.zip": {
+  "bytes": 11415936,
+  "member": "Exness_GBPUSD_2025_03.csv",
+  "minutes": 30374,
+  "sha256": "baeed9cb775f57ddeb4eb6b59a0b0edc7b1592472cea83b074ceebd724c5a927"
+ },
+ "exness/Exness_GBPUSD_2025_04.zip": {
+  "bytes": 17764826,
+  "member": "Exness_GBPUSD_2025_04.csv",
+  "minutes": 31584,
+  "sha256": "4666ad979ddfccc42d294ecf42896fd040379a87cb803d6758ee965e29a30aa3"
+ },
+ "exness/Exness_GBPUSD_2025_05.zip": {
+  "bytes": 12210286,
+  "member": "Exness_GBPUSD_2025_05.csv",
+  "minutes": 31454,
+  "sha256": "464f656e09dcbed94a0cd49b7d1a4af471791f5bfce0a5b17cd1b8479bb69c11"
+ },
+ "exness/Exness_GBPUSD_2025_06.zip": {
+  "bytes": 11307800,
+  "member": "Exness_GBPUSD_2025_06.csv",
+  "minutes": 30365,
+  "sha256": "213b8a1c1e5c3a0ff1ab24fed82578db96d76cab1b4bb3786175b2041cf3058f"
+ },
+ "exness/Exness_GBPUSD_2025_07.zip": {
+  "bytes": 11457922,
+  "member": "Exness_GBPUSD_2025_07.csv",
+  "minutes": 33067,
+  "sha256": "33f3cf11016a343d21a5d696414da19098a776f083df2e72ac80f10a62d9a018"
+ },
+ "exness/Exness_GBPUSD_2025_08.zip": {
+  "bytes": 9305326,
+  "member": "Exness_GBPUSD_2025_08.csv",
+  "minutes": 30180,
+  "sha256": "f36af769eab51aaea7641c801f48ee47a3313e579f7b5e7a198e770ca54c624f"
+ },
+ "exness/Exness_GBPUSD_2025_09.zip": {
+  "bytes": 8503420,
+  "member": "Exness_GBPUSD_2025_09.csv",
+  "minutes": 31571,
+  "sha256": "e546d1e7b25648cb079bd27f7672dd2680708c779948a6b267e361bc213b45c8"
+ },
+ "exness/Exness_GBPUSD_2025_10.zip": {
+  "bytes": 9338948,
+  "member": "Exness_GBPUSD_2025_10.csv",
+  "minutes": 32840,
+  "sha256": "d827c3e6eb858d7b4f22433c322f6b83c0e23ad2bda9901cb57de8c2d285a5ec"
+ },
+ "exness/Exness_GBPUSD_2025_11.zip": {
+  "bytes": 8140897,
+  "member": "Exness_GBPUSD_2025_11.csv",
+  "minutes": 28662,
+  "sha256": "95186f1a5e946372b74f08b7f08d055b3c64d1ce584860b9ceb186731823ad82"
+ },
+ "exness/Exness_GBPUSD_2025_12.zip": {
+  "bytes": 7806176,
+  "member": "Exness_GBPUSD_2025_12.csv",
+  "minutes": 31411,
+  "sha256": "093f75b7d440d05b8e558f2baf67278707ba02c0e9b4df28afaf79550619d048"
+ },
+ "exness/Exness_GBPUSD_2026_01.zip": {
+  "bytes": 9636492,
+  "member": "Exness_GBPUSD_2026_01.csv",
+  "minutes": 30081,
+  "sha256": "b4e3771de830adeb0879c5bf0bfa78d819b1d23400cfee2945f0d139ffb249a7"
+ },
+ "exness/Exness_GBPUSD_2026_02.zip": {
+  "bytes": 8755544,
+  "member": "Exness_GBPUSD_2026_02.csv",
+  "minutes": 28662,
+  "sha256": "5977a7d7d590d8ee35fc606c21184d68e55502500b8166ff7910f5e3eaec29f7"
+ },
+ "exness/Exness_GBPUSD_2026_03.zip": {
+  "bytes": 14738961,
+  "member": "Exness_GBPUSD_2026_03.csv",
+  "minutes": 31696,
+  "sha256": "734b0b5b19757b8d86853c5dd5c04883f1e1ef361f4805e48c61ce39fca02306"
+ },
+ "exness/Exness_GBPUSD_2026_04.zip": {
+  "bytes": 9800526,
+  "member": "Exness_GBPUSD_2026_04.csv",
+  "minutes": 31494,
+  "sha256": "a8ea26d3054b67160895ff999ca122b9d51f61eb354b7ac1215463e34e0eb368"
+ },
+ "exness/Exness_GBPUSD_2026_05.zip": {
+  "bytes": 8583671,
+  "member": "Exness_GBPUSD_2026_05.csv",
+  "minutes": 30061,
+  "sha256": "bde0d34215eb0f15289a9241ab7c277130ca0288c83f07317e2a8e2d99c5de16"
+ },
+ "exness/Exness_GBPUSD_2026_06.zip": {
+  "bytes": 8700909,
+  "member": "Exness_GBPUSD_2026_06.csv",
+  "minutes": 31512,
+  "sha256": "8769b4c0538d68a52b5cf543a70335280a30aee7bb97ad5f06db155889b40e7e"
+ },
+ "exness/Exness_GBPUSD_2026_07.zip": {
+  "bytes": 8783874,
+  "member": "Exness_GBPUSD_2026_07.csv",
+  "minutes": 32696,
+  "sha256": "d9c712f15a6e65ca44cdbd8296e4b8499d83aa079ce69d351bd7639b5195d7bf"
+ },
+ "exness/Exness_GBPUSD_2026_08.zip": {
+  "bytes": 6869440,
+  "member": "Exness_GBPUSD_2026_08.csv",
+  "minutes": 30233,
+  "sha256": "8a319848ef8c9d6c23f3a0070820cf3266168c7e2ff220ed72d752639b78de36"
+ },
+ "exness/Exness_GBPUSD_2026_09.zip": {
+  "bytes": 8031262,
+  "member": "Exness_GBPUSD_2026_09.csv",
+  "minutes": 31465,
+  "sha256": "1a99ad6e93d966a1e54827402f6cf35a8f60f7e3c96ac17160a581f0d8ed0806"
+ },
+ "fxcm/GBPUSD_2020_19.csv.gz": {
+  "bytes": 152389,
+  "sha256": "82b34078602a995a856e7f630c6fbcfd883106a0f6f4ef18e60a0d0645ca485d",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2020_32.csv.gz": {
+  "bytes": 153077,
+  "sha256": "995f890400c3b5847d9d015bc988f1a707f857295d322510870da8d9ec21cdb9",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2020_45.csv.gz": {
+  "bytes": 159256,
+  "sha256": "3e69846ed7d288c16d1c215ec0138ffb97db1b7f94c28e9a23195ad46b0917a1",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2021_06.csv.gz": {
+  "bytes": 147600,
+  "sha256": "b60a57b34a66908034471dab4b1146ff8211367226a17dd71a65ac30afa650fe",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2021_19.csv.gz": {
+  "bytes": 105597,
+  "sha256": "6de102cc71a1a76a3a963485c688d000c7355a5a1a1ef73609e220cd04ca36c9",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2021_32.csv.gz": {
+  "bytes": 96490,
+  "sha256": "603b1cf1ea226d75257e5f582f95df313c49fdd469ab5050f7363ad8c2b7383c",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2021_45.csv.gz": {
+  "bytes": 103587,
+  "sha256": "48eaadcccbeb1e93f141adb5f64d5b978d349516c62a024fbd8e6129f403e57e",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2022_06.csv.gz": {
+  "bytes": 104491,
+  "sha256": "7d91ed596af5fbd6f8bad6aaac8fb0622b4cec1152a9cd9dc08f52da72d30306",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2022_19.csv.gz": {
+  "bytes": 111390,
+  "sha256": "f2ccbe9d34c855e798ce16f817ffa5a77378d3f6e67f4c7cc50b54ee1ea322a9",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2022_32.csv.gz": {
+  "bytes": 107895,
+  "sha256": "e658f62cc9fc7c2069cf536e0283710b0e80795bf4b60334af28869ac643ee72",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2022_45.csv.gz": {
+  "bytes": 118296,
+  "sha256": "75a22a3e0e8b12a061ce24aaf87c43714b57a3411996985017d1a6a6b8f23798",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2023_06.csv.gz": {
+  "bytes": 110116,
+  "sha256": "0729aed87e985cec4a29562b45e19f8abcb44de880c81ba09c87f6ca9f1fd1b4",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2023_19.csv.gz": {
+  "bytes": 102987,
+  "sha256": "da72b3e70022f1042041d0a489fd2be1bb45ab90e9f0646b9796363f41686b95",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2023_32.csv.gz": {
+  "bytes": 104690,
+  "sha256": "84f993331fcd9ac9bd8705b58d77ab9a74a1fb7e2bd7184ec284a09c60d1ec27",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2023_45.csv.gz": {
+  "bytes": 104068,
+  "sha256": "d984f95bfe559fe872bc061e1a0d1e358ceb3b1be1f72af68c96eec16aca157d",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2024_06.csv.gz": {
+  "bytes": 101708,
+  "sha256": "26ec1f8ef3785f52f766a4d07912ff0dfc049accadea49e2873f51da56787969",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2024_19.csv.gz": {
+  "bytes": 98859,
+  "sha256": "92e5a2b9aec1a41a6c2dd7ecb201ba4ec2ce7d6c60885d075cac3eab6e500646",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2024_32.csv.gz": {
+  "bytes": 108508,
+  "sha256": "5b888366c7e6393d4942dbc25ef67047e01e32f5c9be0c2fd6acffe6b84cc2ff",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2024_45.csv.gz": {
+  "bytes": 109229,
+  "sha256": "8a786efca9f7654a3b5cfc06585d5214b14e4c6a758067f95b7de2fec459b307",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2025_06.csv.gz": {
+  "bytes": 110089,
+  "sha256": "d2cb93ebf02876bd7a8d8f75ebd9a05fdc66bc130a00df49a9aa56802d23c7e5",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2025_19.csv.gz": {
+  "bytes": 109326,
+  "sha256": "169a5f2b92781a642b0da8dc5d28af9adb5efe682b7a90834b32dc0a15486128",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2025_32.csv.gz": {
+  "bytes": 105884,
+  "sha256": "f0e2587224be4bfb52316c8147661731dc32d1045fe27adcb7c7bd7e51efa32c",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2025_45.csv.gz": {
+  "bytes": 101966,
+  "sha256": "3507df6264e99a31baec695753bb67d0a3c9de9882fd506817cc16f38d4ab5e2",
+  "status": 200
+ },
+ "fxcm/GBPUSD_2026_06.csv.gz": {
+  "bytes": 106563,
+  "sha256": "b9f48a3a89e2ddf2ec871af1777cfb1052397a92c68ca86cef42bb6025a923ef",
+  "status": 200
+ },
+ "usd/bitstamp_usdcusd_3600.json.gz": {
+  "bytes": 786385,
+  "sha256": "d446e2b3b343884033d9e41697b5a6d601ee7de4c40d53d56944f4b4d4df5eb0"
+ },
+ "usd/bitstamp_usdtusd_3600.json.gz": {
+  "bytes": 847243,
+  "sha256": "dac5831dbf7d2f18a2ae07b3867fdde2a7d9a73562098f47977239d5dde416c0"
+ },
+ "usd/coinbase_USDT-USD_3600.json.gz": {
+  "bytes": 683039,
+  "sha256": "c18e5a18e513a3c7a6199ae03b063b3f37a22903b3d24e167158908fda7a7714"
+ },
+ "usd/kraken_USDCUSD_2020.jsonl": {
+  "bytes": 21839699,
+  "sha256": "f2034cfd0f47751b31eaf1dd3c2f426dd0b1c446b0b44a5f9ee90d51e27c3ffc"
+ },
+ "yahoo/GBPUSD_1h_2y.json": {
+  "bytes": 1130572,
+  "sha256": "f68615ab5087728122091e982657b74c0e4c9743e1cfedfc3c61bbf3aaf70e64"
+ },
+ "yahoo/GBPUSD_1m_1788998400.json": {
+  "bytes": 627841,
+  "sha256": "9d48a42a90570c2a0a633c2d046bfcf056b060437c1d7f2a8dd3e19735693091"
+ },
+ "yahoo/GBPUSD_1m_1789603200.json": {
+  "bytes": 628288,
+  "sha256": "19a5b9cf2d60d42f18630d864fb3051aa904c518444989a4344f0ef5190a6858"
+ },
+ "yahoo/GBPUSD_1m_1790208000.json": {
+  "bytes": 628284,
+  "sha256": "8b776c935af53759823f7310a90df89bf45017f09ee9202e4e5741281ec2e2e8"
+ },
+ "yahoo/GBPUSD_1m_1790812800.json": {
+  "bytes": 629211,
+  "sha256": "7a60c22d5b0ff907d7b8a58a4847d7f7e539b58c838ef412ff1e1a78058496a4"
+ },
+ "yahoo/GBPUSD_1m_1791417600.json": {
+  "bytes": 128075,
+  "sha256": "013083b95518412b3f4e1d1d5bb44b001976f20ec33bcaa1e2cba3f10f7427aa"
+ }
+}

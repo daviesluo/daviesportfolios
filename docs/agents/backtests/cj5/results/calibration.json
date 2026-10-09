@@ -1,0 +1,195 @@
+{
+ "gbp": {
+  "by_book": {
+   "USDC-GBP": {
+    "best_trip_usd": 0.7947,
+    "fill_notional_usd": 79579.49,
+    "fill_notional_usd_per_day": 291.5,
+    "max_drawdown_usd": 0.7301,
+    "median_hold_min": 80.0,
+    "pnl_usd": 119.7389,
+    "pnl_usd_per_day": 0.4386,
+    "return_on_capital_pct": 19.9565,
+    "taker_exit_pnl_usd": -1.247,
+    "taker_exits": 25,
+    "trips": 1901,
+    "win_rate": 0.8927,
+    "worst_trip_usd": -0.5633
+   },
+   "USDT-GBP": {
+    "best_trip_usd": 1.1288,
+    "fill_notional_usd": 298758.64,
+    "fill_notional_usd_per_day": 1180.86,
+    "max_drawdown_usd": 0.6171,
+    "median_hold_min": 28.0,
+    "pnl_usd": 530.6427,
+    "pnl_usd_per_day": 2.0974,
+    "return_on_capital_pct": 88.4404,
+    "taker_exit_pnl_usd": 0.2716,
+    "taker_exits": 19,
+    "trips": 6291,
+    "win_rate": 0.959,
+    "worst_trip_usd": -0.5213
+   }
+  },
+  "primary": {
+   "best_trip_usd": 1.1288,
+   "fill_notional_usd": 378338.13,
+   "fill_notional_usd_per_day": 1385.85,
+   "max_drawdown_usd": 0.7301,
+   "median_hold_min": 35.0,
+   "pnl_usd": 650.3816,
+   "pnl_usd_per_day": 2.3824,
+   "return_on_capital_pct": 54.1985,
+   "taker_exit_pnl_usd": -0.9754,
+   "taker_exits": 44,
+   "trips": 8192,
+   "win_rate": 0.9436,
+   "worst_trip_usd": -0.5633
+  },
+  "stress": {
+   "best_trip_usd": 1.0894,
+   "fill_notional_usd": 338645.33,
+   "fill_notional_usd_per_day": 1240.46,
+   "max_drawdown_usd": 0.7301,
+   "median_hold_min": 36.0,
+   "pnl_usd": 570.473,
+   "pnl_usd_per_day": 2.0896,
+   "return_on_capital_pct": 47.5394,
+   "taker_exit_pnl_usd": -3.0324,
+   "taker_exits": 52,
+   "trips": 7181,
+   "win_rate": 0.9382,
+   "worst_trip_usd": -0.5633
+  }
+ },
+ "published": {
+  "PRIMARY": {
+   "best_trip_usd": 1.1371,
+   "fill_notional_usd": 413378.28,
+   "fill_notional_usd_per_day": 1514.21,
+   "max_drawdown_usd": 0.9638,
+   "median_hold_min": 35.0,
+   "pnl_usd": 707.9028,
+   "pnl_usd_per_day": 2.5931,
+   "return_on_capital_pct": 58.9919,
+   "taker_exit_pnl_usd": -1.0832,
+   "taker_exits": 44,
+   "trips": 8192,
+   "win_rate": 0.9436,
+   "worst_trip_usd": -0.5599
+  },
+  "PRIMARY_by_book": {
+   "USDC-GBP": {
+    "best_trip_usd": 0.7991,
+    "fill_notional_usd": 87414.62,
+    "fill_notional_usd_per_day": 320.2,
+    "max_drawdown_usd": 0.9638,
+    "median_hold_min": 80.0,
+    "pnl_usd": 131.2416,
+    "pnl_usd_per_day": 0.4807,
+    "return_on_capital_pct": 21.8736,
+    "taker_exit_pnl_usd": -1.3881,
+    "taker_exits": 25,
+    "trips": 1901,
+    "win_rate": 0.8927,
+    "worst_trip_usd": -0.5599
+   },
+   "USDT-GBP": {
+    "best_trip_usd": 1.1371,
+    "fill_notional_usd": 325963.66,
+    "fill_notional_usd_per_day": 1288.39,
+    "max_drawdown_usd": 0.7591,
+    "median_hold_min": 28.0,
+    "pnl_usd": 576.6612,
+    "pnl_usd_per_day": 2.2793,
+    "return_on_capital_pct": 96.1102,
+    "taker_exit_pnl_usd": 0.305,
+    "taker_exits": 19,
+    "trips": 6291,
+    "win_rate": 0.959,
+    "worst_trip_usd": -0.5182
+   }
+  },
+  "stress_PRIMARY": {
+   "best_trip_usd": 1.0974,
+   "fill_notional_usd": 369174.93,
+   "fill_notional_usd_per_day": 1352.29,
+   "max_drawdown_usd": 0.9638,
+   "median_hold_min": 36.0,
+   "pnl_usd": 618.9551,
+   "pnl_usd_per_day": 2.2672,
+   "return_on_capital_pct": 51.5796,
+   "taker_exit_pnl_usd": -3.1528,
+   "taker_exits": 52,
+   "trips": 7181,
+   "win_rate": 0.9382,
+   "worst_trip_usd": -0.5599
+  }
+ },
+ "reproduces_published": true,
+ "usd": {
+  "by_book": {
+   "USDC-GBP": {
+    "best_trip_usd": 0.7991,
+    "fill_notional_usd": 87414.62,
+    "fill_notional_usd_per_day": 320.2,
+    "max_drawdown_usd": 0.9638,
+    "median_hold_min": 80.0,
+    "pnl_usd": 131.2416,
+    "pnl_usd_per_day": 0.4807,
+    "return_on_capital_pct": 21.8736,
+    "taker_exit_pnl_usd": -1.3881,
+    "taker_exits": 25,
+    "trips": 1901,
+    "win_rate": 0.8927,
+    "worst_trip_usd": -0.5599
+   },
+   "USDT-GBP": {
+    "best_trip_usd": 1.1371,
+    "fill_notional_usd": 325963.66,
+    "fill_notional_usd_per_day": 1288.39,
+    "max_drawdown_usd": 0.7591,
+    "median_hold_min": 28.0,
+    "pnl_usd": 576.6612,
+    "pnl_usd_per_day": 2.2793,
+    "return_on_capital_pct": 96.1102,
+    "taker_exit_pnl_usd": 0.305,
+    "taker_exits": 19,
+    "trips": 6291,
+    "win_rate": 0.959,
+    "worst_trip_usd": -0.5182
+   }
+  },
+  "primary": {
+   "best_trip_usd": 1.1371,
+   "fill_notional_usd": 413378.28,
+   "fill_notional_usd_per_day": 1514.21,
+   "max_drawdown_usd": 0.9638,
+   "median_hold_min": 35.0,
+   "pnl_usd": 707.9028,
+   "pnl_usd_per_day": 2.5931,
+   "return_on_capital_pct": 58.9919,
+   "taker_exit_pnl_usd": -1.0832,
+   "taker_exits": 44,
+   "trips": 8192,
+   "win_rate": 0.9436,
+   "worst_trip_usd": -0.5599
+  },
+  "stress": {
+   "best_trip_usd": 1.0974,
+   "fill_notional_usd": 369174.93,
+   "fill_notional_usd_per_day": 1352.29,
+   "max_drawdown_usd": 0.9638,
+   "median_hold_min": 36.0,
+   "pnl_usd": 618.9551,
+   "pnl_usd_per_day": 2.2672,
+   "return_on_capital_pct": 51.5796,
+   "taker_exit_pnl_usd": -3.1528,
+   "taker_exits": 52,
+   "trips": 7181,
+   "win_rate": 0.9382,
+   "worst_trip_usd": -0.5599
+  }
+ }
+}

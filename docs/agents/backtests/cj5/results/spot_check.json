@@ -1,0 +1,175 @@
+{
+ "USDCGBP": [
+  {
+   "day": "2021-03-11",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2021-04-25",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2021-10-23",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-05-31",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-06-29",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-11-04",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2023-02-22",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2024-01-01",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-06-03",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-06-04",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-06-06",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2026-04-06",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  }
+ ],
+ "USDTGBP": [
+  {
+   "day": "2022-02-14",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-06-07",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-09-25",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2022-10-10",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2023-07-12",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2024-03-28",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2024-08-28",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-04-16",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-05-19",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2025-05-24",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2026-01-13",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  },
+  {
+   "day": "2026-05-08",
+   "differ": 0,
+   "http": 200,
+   "missing": 0,
+   "prints": 1000
+  }
+ ],
+ "all_present": true
+}
