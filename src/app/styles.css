@@ -2005,6 +2005,8 @@ body {
 .ag-section { margin-top: 18px; }
 .ag-section-title { font-size: 10px; letter-spacing: 0.2em; color: var(--chalk-dim); margin-bottom: 8px; }
 .ag-section-title .dim { letter-spacing: 0; text-transform: none; }
+/* The Stablecoin quotes pages' DAYS heading: its last seven days a year, beside it (Davies, 2026-10-09). */
+.ag-quote-days-annual { letter-spacing: 0.04em; overflow-wrap: anywhere; }
 .ag-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .ag-back { padding: 4px 10px; font-size: 12px; }
 .ag-detail-title { margin: 12px 0 6px; font-size: 18px; font-weight: 600; }

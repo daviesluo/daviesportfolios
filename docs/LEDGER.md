@@ -396,6 +396,10 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 16:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Every Stablecoin quotes page (LIVE and the twins) heads DAYS with "- 7-day annualised ±x%": the last seven closed UTC
+  days' realised over the capital, a year of them (`quoteDaysAnnualPct`; Davies: "days表格标题days旁边加上近七天平均年化收益率").
+
 ### [2026-10-09 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes reviewed, read-only, not blind** (Davies: "testing的4个Stablecoin quotes进展如何？live的进展如何？…testing的策略有改进
   或优化的地方吗？"): `reviews/2026-10-09-stablecoin-quotes-review.md`, evidence `backtests/scq_review/` (map row). No reading

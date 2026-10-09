@@ -240,7 +240,9 @@ places stay when the number is not whole.
   and what they realised. INVENTORY: the pounds and coins in the account, each coin also
   in pounds at the index price shown beside it, and with its unrealised;
   their unrealised add up to the scoreboard's. DAYS: each UTC day's orders, entry
-  fills, round trips and what it realised, which add up to realised. Then
+  fills, round trips and what it realised, which add up to realised; its
+  heading shows what the last seven full days made, as a yearly rate on the
+  capital (every Stablecoin quotes page has it). Then
   its round trips (entry, exit, size, fees and what each made: a round
   trip that sold coins a conversion bought carries that conversion's fee
   on those coins, in its fees and its P&L). A round trip ends when the

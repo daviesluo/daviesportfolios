@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1891,5 +1891,16 @@ describe('Reward quotes fees, in LIVE\'s design on every page and card (2026-10-
     expect(card?.feesUsd).toBeCloseTo(0 + 0.12345, 12);
     const none = venueRows({ strategies: [] }, 'testing', [/** @type {any} */ (rwRow({ totalUsd: 0, markets: [], fundedUsd: 1000 }))]).find((c) => c.id === 'polymarket');
     expect(none?.feesUsd).toBe(null);
+  });
+});
+
+describe("the Stablecoin quotes pages' DAYS heading: the last seven closed days a year", () => {
+  it('sums the seven newest closed days, leaves today out, and annualises over the capital', () => {
+    const days = [{ day: '2026-10-09', today: true, realisedGbp: 5 }, ...Array.from({ length: 9 }, (_, i) => ({ day: `2026-10-0${8 - i}`, realisedGbp: 0.01 * (i + 1) }))];
+    // By hand: the seven closed days 0.01 … 0.07 sum to 0.28; over £120, 365 / 7 of them: 0.28 / 120 × 365 / 7 × 100 = 12.1666… %.
+    expect(quoteDaysAnnualPct(days, 120)).toBeCloseTo((0.28 / 120) * (365 / 7) * 100, 10);
+    // Fewer closed days than seven: those there are, a year of them. 0.01 + 0.02 over £600 in 2 days.
+    expect(quoteDaysAnnualPct(days.slice(0, 3), 600)).toBeCloseTo((0.03 / 600) * (365 / 2) * 100, 10);
+    expect([quoteDaysAnnualPct([days[0]], 120), quoteDaysAnnualPct(days, 0), quoteDaysAnnualPct([], 120)]).toEqual([null, null, null]);
   });
 });

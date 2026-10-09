@@ -670,6 +670,23 @@ export function glTextIn(n, pct, ccy) {
  * scoreboard adds up for every row.
  * @param {any} r
  */
+/**
+ * The Stablecoin quotes pages' DAYS heading figure (Davies, 2026-10-09: "在每个stablecoin quotes子页面（live+testings）的days
+ * 表格标题days旁边加上近七天平均年化收益率"): what the last seven closed UTC days realised, over the row's capital, a year's worth
+ * of them — fewer days while there are fewer, today left out because it is not over. null without a closed day or a
+ * capital.
+ * @param {Array<{ day: string, today?: boolean, realisedGbp: number }>} days  newest first, as the page lists them
+ * @param {number | null | undefined} capitalGbp
+ * @returns {number | null} percent a year
+ */
+export function quoteDaysAnnualPct(days, capitalGbp) {
+  const cap = Number(capitalGbp);
+  const closed = (days ?? []).filter((d) => !d.today).slice(0, 7);
+  if (!closed.length || !(cap > 0)) return null;
+  const sum = closed.reduce((s, d) => s + (Number(d.realisedGbp) || 0), 0);
+  return (sum / cap) * (365 / closed.length) * 100;
+}
+
 export function rowMoney(r) {
   if (r?.ccy === 'GBP' && r.gbp) return { ccy: 'GBP', ...r.gbp };
   return {

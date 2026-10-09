@@ -1309,7 +1309,9 @@ const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
         const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
         return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
       }).join(' | '),
-      sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
+      // A DAYS heading's figure is read apart (`annual`), so the sections read as their names.
+      sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map((el) => txt(el).replace(/ - 7-day annualised .*$/, '')),
+      annual: txt(root.querySelector('.ag-quote-days-annual')),
       tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
       guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
       // BOOKS, as the paper page draws them (Davies, 2026-10-01): a card per book, its ladder, its trips and realised.
@@ -4521,6 +4523,11 @@ async function run() {
       if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
         && lp.events.length === 0 && lp.notes === 0 && lp.conversions.length === 0 && lp.fills.length === 0 && lp.oldRungs === 0 && lp.oldOrders === 0) {
         ok(T('pr5-page'), 'its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS: no STATUS, RUNGS, conversions, FILLS or EVENTS');
+      // DAYS' heading carries the last seven closed days a year over the capital (Davies, 2026-10-09: "days表格标题days旁边加上
+      // 近七天平均年化收益率"). By hand: one closed day, 16 Sep's +£0.0288 (17 Sep is today), over £1,200 a year of such
+      // days: 0.0288 / 1,200 × 365 × 100 = 0.876 %, printed +0.9%.
+      if (lp?.annual === '- 7-day annualised +0.9%') ok(T('pr5-page'), `DAYS' heading carries its last closed days a year: "${lp.annual}"`);
+      else fail(T('pr5-page'), `DAYS' heading figure "${lp?.annual}", days ${JSON.stringify(lp?.days)}`);
       } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${lp?.tiles.length}, guards ${lp?.guards.length}, events ${lp?.events.length}, notes ${lp?.notes}, conversions ${lp?.conversions.length}, fills ${lp?.fills.length}, rungs ${lp?.oldRungs}, one ORDERS table ${lp?.oldOrders}`);
       // BOOKS: each rung's live order, or what it holds at its entry with what that has made in pounds at the index, as the
       // account marks it: B sold 132 USDC at £0.7591 (+£0.2112 at £0.7575), E bought 132 USDT at £0.7565 (+£0.0660 at
