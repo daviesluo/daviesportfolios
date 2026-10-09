@@ -85,18 +85,19 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      candidate, with TB1's skip of a one-tick touch since its Addendum 2 (2026-10-08, Davies' word; pinned in
      `pm_lp.test.ts`, deployed with the next push of `agents`) (`0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`): P1 checked 2026-10-07 20:22
      UTC with `backtests/pmlp/lp_check.sql` (sha256 `7e94b042…0a57`): (a)–(e) and (g) PASS, (f) FAIL on funding alone.
-     Before Davies' go, in order: P2 pUSD ≥ $81 in the account; P3 the payouts-per-path patch
-     (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`) applied with an addendum, his call; P4 mini-pool
-     and mid-pool unarmed; P5 the probe of the conditional-token allowances and a `monitor/health.ts` freshness reading
-     for `pm_lp_state` (neither built); then step 8lp, only where he says go. Not measured: the selection's CPU over about
+     Before Davies' go, in order: P2 pUSD ≥ $81 in the account (read $0.04 on 10-09 00:00); P3 met in code (the
+     payouts-per-path change applied 2026-10-08, live-prep's Addendum 4, mid-pool's deviation 5; it deploys with the
+     push that lands it); P4 mini-pool and mid-pool unarmed (both are); P5 the probe's read of the conditional-token
+     allowances (his, from Ireland); the monitor's freshness reading for `pm_lp_state` is built (`monitor/health.ts`
+     `pmLp`, three minutes); then step 8lp, only where he says go. Not measured: the selection's CPU over about
      1,379 markets. **mid-pool** (`0081`/`0084`, `agents/pm_mid.ts`, `reviews/2026-10-02-polymarket-mid-pool-prereg.md`;
      day-1 check PASS 10-04): run `backtests/pmlive/mid_readout.sql` once at or after **2026-10-17 00:10 UTC** (wake
      `trig_01XwUUNT5yXL3pzHoyH4JLaG`), naming deviations 1 and 2 and, as a deviation on Davies' word (2026-10-09), that
      mini-pool's (small-pool's) column is empty from the day `0103` landed (its calls stopped; the days missing, never
      zero), and the overlap audit `mid_audit.sql` no earlier than
      **2026-10-23 00:05 UTC** (the 10-23 wake), read-only, every row reported to Davies (both sha256 pinned by
-     `src/pm_mid_prereg.test.js`). The payouts patch deployed before 10-17 is a deviation of the readout, from 10-17
-     none. His go-live waits for the RW-X arms (report whether x4 or x5 should change mid-pool's rule; a changed rule
+     `src/pm_mid_prereg.test.js`). The payouts change, applied 2026-10-08, is the readout's deviation 5 (its Addendum 5),
+     named beside deviations 1, 2 and 4. His go-live waits for the RW-X arms (report whether x4 or x5 should change mid-pool's rule; a changed rule
      dry-runs before any go date). Before a go date: ≥ $400 of pUSD funded ($320 cap); the probe from Ireland (design
      step 2); the two unused pUSD spenders revoked or kept (step 3, his call); a live row, page and monitor freshness
      reading built; the readout and audit reported; then the funded draft `reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`
@@ -384,6 +385,15 @@ sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-2
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+
+### [2026-10-09 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's go preparation, everything short of arming** (Davies: "…然后最好上线准备"). P3 met in code: the payouts-per-path
+  change (pending since 10-04) applied as it stood (`pm_live.ts` `4032d6c0…` → `57f4b1d7…`, `pm_mid.ts` comments,
+  `index.ts`, `pm_payouts.test.ts`); live-prep's Addendum 4, mid-pool's Addendum 5 (deviation 5), the pending folder
+  emptied. The monitor's health action reads `pm_lp_state.updated_at` (`pmLp`, three minutes; the Worker labels it).
+  Kill switches read in code: `pm_lp_config.live_confirmed_at` (opening), `global_pause` (cancel-all), the −$75 total
+  stop, the cancel read-back and the attestation and region gates. Left for Davies: fund pUSD (≥ $81; $400 for the
+  design's ten markets), the probe's allowance read from Ireland, and step 8lp in the conversation where he says go.
 
 ### [2026-10-08 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep against itself: nothing further adopted** (live-prep's Addendum 3, `backtests/lpself/`). Every change to

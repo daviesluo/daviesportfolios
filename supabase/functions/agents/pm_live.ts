@@ -45,7 +45,8 @@
 //      and its live share of the pool.
 //   7. Once a UTC day after 01:00, the readout (`pm_live_reward_days`): for the two days before, what the account was
 //      paid per market (`/rewards/user`, native and sponsored), its day's total, the maker rebates, and the formula sums
-//      of those days' minutes. R is a query: Σ actual / Σ formula over the live rows.
+//      of those days' minutes. R is a query: Σ actual / Σ formula over the live rows. A payout is booked only for a
+//      market this path's own minutes show it quoting live that day: the account is shared by two paths (2026-10-04).
 //
 // A TURN'S TIME: it shares the one-minute cron job's batch, so it stays inside its call's 58 s and its 55 s lease. Every
 // venue request gives up after 5 s; no selection or readout read starts later than 40 s into the turn and no order is
@@ -59,13 +60,14 @@
 // path as it ran before instances, name for name ("Reward quotes small-pool": $6 to under $10); a turn given no instance
 // runs it, and `pm_instance.test.ts` runs it beside the pre-registered code (`pm_live_frozen.ts`) minute by minute and
 // finds every table, request and report the same but the fields the formula of 2026-10-04 makes. The second, mid-pool
-// ($10 to under $50, a dry-run its own table holds there), is `PM_MID_INSTANCE` in `pm_mid.ts`. Mini-pool's action runs
-// `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default with a book-quality rule its
-// selection applies. Nothing of the rule, the gates, the caps or the stops differs by instance, except where an instance
-// sets `lp`: "Reward quotes live-prep" (`PM_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04) is the one that does, with its own
-// rule, candidate rules, per-market cap, pause after a jump, exits from markets it carries, its stop, and in dry-run its
-// paper layer's holdings in place of the account's (`PmLpOptions`). Every branch it adds runs only for it, so mini-pool
-// and mid-pool make the same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
+// ($10 to under $50; since 0084 the same order path, held in dry-run by its config row), is `PM_MID_INSTANCE` in
+// `pm_mid.ts`. Mini-pool's action runs `PM_MINI_INSTANCE` (2026-10-04, Addendum 6 of its pre-registration): the default
+// with a book-quality rule its selection applies. Nothing of the rule, the gates, the caps or the stops differs by
+// instance, but what one reads of the account's earnings (`readsPayouts`) and where an instance sets `lp`: "Reward
+// quotes live-prep" (`PM_LP_INSTANCE`, `pm_lp.ts`, 2026-10-04) is the one that does, with its own rule, candidate rules,
+// per-market cap, pause after a jump, exits from markets it carries, its stop, and in dry-run its paper layer's holdings
+// in place of the account's (`PmLpOptions`). Every branch it adds runs only for it, so mini-pool and mid-pool make the
+// same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
 
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
@@ -217,10 +219,12 @@ export type PmLiveInstance = {
    */
   bookQuality?: PmBookQualityRule;
   /**
-   * Whether it reads what the account earns: its live share of each pool every minute, and once a day what it was paid.
-   * The account is one: an instance that can never be live (mid-pool's table holds it in dry-run) reads neither, so what
-   * the venue pays for another instance's quotes never lands in its tables; its minutes keep no share and its readout the
-   * formula's sums of its own minutes.
+   * Whether it reads what the account earns in dry-run as well: its live share of each pool every minute, and once a day
+   * what it was paid. The default does, as it always has. One that does not (mid-pool's) reads them only once it is
+   * live: the share in a live turn, and the payouts of a day its own minutes show it quoting live; in dry-run its minutes
+   * keep no share and its readout the formula's sums of its own minutes. The account is one and Polymarket pays the
+   * account, so every instance books a payout only for a market its own minutes show it quoting live that day
+   * (`readout`): what the venue pays for one path's quotes never lands in the other's tables (2026-10-04).
    */
   readsPayouts: boolean;
   /** Its action, its row of `public.edge_calls`, and the kind its faults are reported to `ops_errors` as. */
@@ -1626,8 +1630,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (r.ok && typeof r.data?.scoring === "boolean") scoring.set(o.hash, r.data.scoring);
     }
   }
-  // The account's live share of each pool is what the account earns: read only by an instance that reads its payouts.
-  if (inst.readsPayouts && markets.some((m) => m.quoting) && !pastDeadline(deadline)) {
+  // The account's live share of each pool is what the account earns: read by an instance that reads its payouts in
+  // dry-run too, and by any instance in a live turn. Each records only the shares of its own markets.
+  if ((inst.readsPayouts || mode === "live") && markets.some((m) => m.quoting) && !pastDeadline(deadline)) {
     const r = await venue.rewardPercentages();
     if (r.ok && r.data && typeof r.data === "object") pct = Object.fromEntries(Object.entries(r.data).map(([k, v]) => [k.toLowerCase(), Number(v)]));
   }
@@ -2111,9 +2116,16 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
  * native, then sponsored only, every page from "MA==" as the official clients page it), the day's total over both
  * (`/rewards/user/total?sponsored=true`), the maker rebates paid to the proxy wallet (`/rebates/current`), and the day's
  * minutes from `pm_live_minutes`: per market and mode, the minutes with a quote, with both sides scored by RW's formula,
- * with both sides the venue called scoring, and the formula's sums. A market paid but never quoted is a live row with
- * no minutes. An instance that reads no payouts (`readsPayouts` false) reads nothing of the account here: its rows are
- * its own minutes' formula sums.
+ * with both sides the venue called scoring, and the formula's sums.
+ *
+ * TOLD APART PER PATH (2026-10-04). Polymarket pays the account, and two paths quote from it (mini-pool and mid-pool,
+ * never both armed), so a path books what was paid only for the markets its own minutes show it quoting live that day:
+ * R = Σ actual / Σ formula over its own live rows, and a market the other path quoted is never its. A paid market no live
+ * minute of this path shows is no row of its (until then it was a live row with no minutes, which put every payout of
+ * the account in mini-pool's readout); the account's own day total stays on every row (`detail.total`) and in the
+ * readout's event, so what neither path's rows hold can still be seen. An instance that reads no payouts in dry-run
+ * (`readsPayouts` false) reads them only for a day its own minutes show it quoting live; otherwise its rows are its own
+ * minutes' formula sums and nothing of the account is read.
  */
 async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
   const { db, venue } = d;
@@ -2132,18 +2144,26 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     }
     return { rows, error: `rewards/user (sponsored ${sponsored}): more than ${EARNING_PAGES} pages` };
   };
-  let nat: { rows: PmUserEarning[]; error?: string } = { rows: [] }, spo: { rows: PmUserEarning[]; error?: string } = { rows: [] };
-  let tot: PmReply<PmUserEarning[]> | null = null, reb: PmReply<PmRebate[] | null> | null = null;
-  if (inst.readsPayouts) {
-    nat = await earnings(false);
-    if (nat.error) return { ...empty, error: nat.error };
-    spo = await earnings(true);
-    if (spo.error) return { ...empty, error: spo.error };
-    tot = await venue.userEarningsTotal(dd, true);
-    if (!tot.ok) return { ...empty, error: `rewards/user/total: ${tot.status} ${tot.error}` };
+  type Paid = { nat: PmUserEarning[]; spo: PmUserEarning[]; tot: PmReply<PmUserEarning[]> | null; reb: PmReply<PmRebate[] | null> | null };
+  /** What the account was paid that day: both earnings lists read whole, the day's total and the maker rebates; or why not. */
+  const payouts = async (): Promise<Paid | { error: string }> => {
+    const nat = await earnings(false);
+    if (nat.error) return { error: nat.error };
+    const spo = await earnings(true);
+    if (spo.error) return { error: spo.error };
+    const tot = await venue.userEarningsTotal(dd, true);
+    if (!tot.ok) return { error: `rewards/user/total: ${tot.status} ${tot.error}` };
     const maker = d.account?.maker ?? null;
-    reb = maker ? await venue.rebates(dd, maker) : null;
-    if (reb && !reb.ok) return { ...empty, error: `rebates/current: ${reb.status} ${reb.error}` };
+    const reb = maker ? await venue.rebates(dd, maker) : null;
+    if (reb && !reb.ok) return { error: `rebates/current: ${reb.status} ${reb.error}` };
+    return { nat: nat.rows, spo: spo.rows, tot, reb };
+  };
+  let got: Paid = { nat: [], spo: [], tot: null, reb: null };
+  // The default reads them first, every day, in either mode, as it always has.
+  if (inst.readsPayouts) {
+    const p = await payouts();
+    if ("error" in p) return { ...empty, error: p.error };
+    got = p;
   }
   const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
   const paid = (rows: PmUserEarning[]) => {
@@ -2151,9 +2171,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     for (const e of rows) { const c = String(e.condition_id ?? "").toLowerCase(); if (c) out.set(c, (out.get(c) ?? 0) + usd(e)); }
     return out;
   };
-  const native = paid(nat.rows), sponsored = paid(spo.rows);
-  const rebates = new Map<string, number>();
-  for (const x of Array.isArray(reb?.data) ? reb!.data! : []) { const c = String(x.condition_id ?? "").toLowerCase(); if (c) rebates.set(c, (rebates.get(c) ?? 0) + num(x.rebated_fees_usdc)); }
   const start = `${dd}T00:00:00.000Z`, end = iso(Date.parse(start) + DAY);
   const mins = await db.selectAll<PmMinuteRow>(T.minutes, `minute=gte.${enc(start)}&minute=lt.${enc(end)}&select=mode,minute,cond,rate,bid_size,ask_size,bid_scoring,ask_scoring,ours,formula_usd&order=mode.asc,minute.asc,cond.asc`);
   type Agg = { mode: PmLiveMode; cond: string; minutes: number; two: number; scored: number; formula: number; formulaScored: number; rate: number };
@@ -2168,16 +2185,22 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     a.formula += num(r.formula_usd);
     agg.set(k, a);
   }
-  // Paid markets the minutes do not show are live rows of their own: only a live order can be paid.
-  for (const c of new Set([...native.keys(), ...sponsored.keys(), ...rebates.keys()])) {
-    if (!agg.has(`live|${c}`)) agg.set(`live|${c}`, { mode: "live", cond: c, minutes: 0, two: 0, scored: 0, formula: 0, formulaScored: 0, rate: 0 });
+  // One that reads no payouts in dry-run reads them for a day its own minutes show it quoting live.
+  if (!inst.readsPayouts && [...agg.values()].some((a) => a.mode === "live")) {
+    const p = await payouts();
+    if ("error" in p) return { ...empty, error: p.error };
+    got = p;
   }
+  // A payout is booked on this path's own live rows only: a market its live minutes do not show is not its to count.
+  const native = paid(got.nat), sponsored = paid(got.spo);
+  const rebates = new Map<string, number>();
+  for (const x of Array.isArray(got.reb?.data) ? got.reb!.data! : []) { const c = String(x.condition_id ?? "").toLowerCase(); if (c) rebates.set(c, (rebates.get(c) ?? 0) + num(x.rebated_fees_usdc)); }
   const rows = [...agg.values()].map((a) => ({
     mode: a.mode, day: dd, cond: a.cond, minutes: a.minutes, minutes_two_sided: a.two, minutes_scored: a.scored,
     formula_usd: Math.round(a.formula * 1e6) / 1e6, formula_scored_usd: Math.round(a.formulaScored * 1e6) / 1e6, rate: a.rate,
     actual_usd: a.mode === "live" ? native.get(a.cond) ?? 0 : null, actual_sponsored_usd: a.mode === "live" ? sponsored.get(a.cond) ?? 0 : null,
     rebate_usd: a.mode === "live" ? rebates.get(a.cond) ?? 0 : null, read_at: nowIso,
-    detail: { total: tot?.data ?? null, rebatesRead: reb ? reb.status : null },
+    detail: { total: got.tot?.data ?? null, rebatesRead: got.reb ? got.reb.status : null },
   }));
   if (rows.length) await db.upsert(T.rewardDays, rows, "mode,day,cond");
   const live = rows.filter((r) => r.mode === "live");
@@ -2185,6 +2208,6 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
   return {
     markets: rows.length, actual: sum(live.map((r) => (r.actual_usd ?? 0) + (r.actual_sponsored_usd ?? 0))), sponsored: sum(live.map((r) => r.actual_sponsored_usd ?? 0)),
     formula: sum(live.map((r) => r.formula_usd)), formulaScored: sum(live.map((r) => r.formula_scored_usd)), rebates: sum(live.map((r) => r.rebate_usd ?? 0)),
-    total: Array.isArray(tot?.data) ? sum(tot!.data.map(usd)) : null,
+    total: Array.isArray(got.tot?.data) ? sum(got.tot!.data.map(usd)) : null,
   };
 }

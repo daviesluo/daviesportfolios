@@ -123,4 +123,13 @@ describe('the live-prep pre-registration', () => {
     const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1];
     expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
   });
+
+  // Addendum 4 (2026-10-08): P3 applied; the payouts change is code on main, no longer a pending patch.
+  it("records P3 met in its Addendum 4: the payouts change applied, the patch gone from pending, the per-path test present", () => {
+    const add4 = DOC.slice(DOC.indexOf('## Addendum 4'));
+    expect(add4.length).toBeGreaterThan(100);
+    expect(add4).toContain('P3 is met');
+    expect(fs.existsSync(path.join(ROOT, 'docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch'))).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'supabase/functions/agents/pm_payouts.test.ts'))).toBe(true);
+  });
 });

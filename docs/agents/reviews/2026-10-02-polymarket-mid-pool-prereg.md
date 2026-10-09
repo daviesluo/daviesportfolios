@@ -384,3 +384,27 @@ stop buying every day the same way. What changes, and nothing else:
 - **Nothing else moves.** Its rule, its band, its exclusion and its margin, its sizes, its gates and the total stop; its
   tables, leases and rows of the one-minute job; `mid_check.sql`, `mid_readout.sql` and `mid_audit.sql`. The draft of its
   funded pre-registration (`2026-10-04-polymarket-mid-pool-live-prereg.md`) states the day stop the same way.
+
+## Addendum 5 (2026-10-08, about 00:05 UTC on 10-09): deviation 5, what Polymarket pays told apart per path
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 5 is the payouts-per-path change**, built on 2026-10-04 and kept until now in `docs/agents/pending/`. It is
+applied to `pm_live.ts` (after it, sha256 `57f4b1d74b89b76f30fe5060ab4c9431cbe9757f78e4a82cc8d3b9cb81821e40`),
+`pm_mid.ts` and `index.ts`, for live-prep's go preparation. Davies, 2026-10-08: "确保live-prep各方面都做到最好，然后最好上线准备"
+(live-prep's pre-registration, Addendum 4).
+
+**What changes:**
+
+- A path's readout books a payout only for a market its own minutes show it quoting live that day.
+- Mid-pool reads what the account earns only once it is live.
+- `pm_mid.ts` changes only in comments that described the change as pending: `pm_mid.ts` was sha256
+  `9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd` (Addendum 1), and `pm_mid.ts` is now sha256
+  `215b5435fd86b8e06c2145ae7a7176304f1ee06773c820056d51636182e6c2b2`.
+- No dry-run decision of mid-pool changes. That is pinned by `agents/pm_payouts.test.ts`, which runs mid-pool through
+  today's path beside the path this file froze, minute by minute, and finds every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 5. Mid-pool's own go-live remains Davies' decision, and its draft
+funded pre-registration's precondition 3 now reads as met.

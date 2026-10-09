@@ -1,5 +1,5 @@
 // "Reward quotes mid-pool": Polymarket's order path and its paper layer, run a second time on rewarded markets of $10 to
-// under $50 a day, in DRY-RUN only. Davies, 2026-10-02, verbatim:
+// under $50 a day, in dry-run until Davies arms it (0084). Davies, 2026-10-02, verbatim:
 //
 //   把目前Reward quotes live-prep改名为Reward quotes small-pool，再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
 //   quotes，也是400美元funded测试
@@ -193,10 +193,11 @@ export async function bookReplies(tokens: string[], pm: PmPublicOpts = {}): Prom
 
 /**
  * The path's mid-pool instance (0081): its tables, its lease, its band and its exclusion. Its config row keeps it a
- * dry-run (0084). It reads no payout, share or rebate (`readsPayouts` false), so its records stay what its
- * pre-registration names: the account is mini-pool's too, and Polymarket pays the account, not a path. Mini-pool's
- * readout books every market the account is paid for; a funded mid-pool needs that readout to tell the two paths'
- * markets apart first (a change to `pm_live.ts`, after mini-pool's window), the design doc's step 8m.
+ * dry-run (0084). In dry-run it reads no payout, share or rebate (`readsPayouts` false), so its records stay what its
+ * pre-registration names: the account is mini-pool's too, and Polymarket pays the account, not a path. Since 2026-10-04
+ * each path books a payout only for a market its own minutes show it quoting live that day (`pm_live.ts`, its readout),
+ * and this instance reads what the account earns once it is live: the share each live minute, the payouts of a day it
+ * quoted live. So a live mid-pool's R is its own and never lands in mini-pool's readout (the design doc's step 8m).
  */
 export const PM_MID_INSTANCE: PmLiveInstance = {
   name: "Reward quotes mid-pool",

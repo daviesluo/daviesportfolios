@@ -2489,8 +2489,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
   if (action === "pmprep" && req.method === "POST" && operator) return json(200, await runPmPrepAction());
-  // "Reward quotes mid-pool" (pm_mid.ts, 0081): the same path on $10 to under $50, from eu-west-1, a dry-run its table
-  // holds there (no key read, no POST or DELETE on its wire). Cron bearer only, as the path's own call.
+  // "Reward quotes mid-pool" (pm_mid.ts, 0081, 0084): the same path on $10 to under $50, from eu-west-1, wired as pmlive is
+  // (the key loaded for the stored signer, the same keyed wire): a dry-run while its config row says so. Cron bearer only.
   if (action === "pmmid" && req.method === "POST" && who === "cron") return json(200, await runPmMidAction());
   // Its paper layer (pm_prep.ts on 0081's tables). Keyless public reads only.
   if (action === "pmmidprep" && req.method === "POST" && operator) return json(200, await runPmMidPrepAction());

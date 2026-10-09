@@ -112,7 +112,16 @@ describe('the mid-pool pre-registration', () => {
     const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
     expect(sha('supabase/functions/agents/pm_live_mid_frozen.ts')).toBe('8ba7b915018c8f34bc9f57486f703e016770696947d3d6665fa1a0fc44f39653');
     expect(sha('supabase/functions/agents/pm_prep_mid_frozen.ts')).toBe('8d7861ab263554fba73e2ee2ef6f80bbfa7c33c1fa1971e00822c97b94794dea');
-    // pm_mid.ts is the file Addendum 1 named: the change does not touch it.
-    expect(sha('supabase/functions/agents/pm_mid.ts')).toBe('9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd');
+    // pm_mid.ts was the file Addendum 1 named until deviation 5 (Addendum 5), whose comments only it changed.
+    expect(/`pm_mid\.ts` was sha256\s+`([0-9a-f]{64})`/.exec(DOC.slice(DOC.indexOf('## Addendum 5')))?.[1]).toBe('9fd37436d6c535d56ed5da85824b9346eb2aec5142152787f507664f011eadfd');
+  });
+
+  // Addendum 5 (2026-10-08): deviation 5, the payouts change applied for live-prep's go; no dry-run decision changes.
+  it("names the payouts change as deviation 5, in its Addendum 5, with the code it deploys", () => {
+    const add5 = DOC.slice(DOC.indexOf('## Addendum 5'));
+    expect(add5).toContain('**Deviation 5 is the payouts-per-path change**');
+    expect(add5).toContain('`agents/pm_payouts.test.ts`');
+    const sha = (rel) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex');
+    expect(sha('supabase/functions/agents/pm_mid.ts')).toBe(/`pm_mid\.ts` is now sha256\s+`([0-9a-f]{64})`/.exec(add5)?.[1]);
   });
 });

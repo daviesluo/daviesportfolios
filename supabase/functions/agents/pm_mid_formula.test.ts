@@ -15,6 +15,11 @@
 // decision, so the comparison runs today's mid-pool instances on the day stop the pre-registration froze
 // (`dayStopOnCost`, set by no action); the last test runs mid-pool as deployed beside that, over the same days, and finds
 // the day stop the one difference, worked by hand.
+//
+// With the payouts change (built 2026-10-04, applied 2026-10-08 for live-prep's go: its pre-registration's Addendum 4), a live mid-pool also reads
+// what the account earns: its live minutes' share of each pool, a live day's payouts, and the reads that fetch them.
+// pm_payouts.test.ts pins those exactly; here they are taken out of today's record (`withoutEarnings`) before it is
+// compared, so this test still says what the formula changes and nothing else.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import * as Frozen from "./pm_live_mid_frozen.ts";
@@ -149,6 +154,25 @@ const STEPS: Array<[number, ((w: MidWorld) => void)?]> = [
   [at("2026-10-07T06:01:30Z")], [at("2026-10-07T06:02:30Z")],
 ];
 
+/** Every read of what the account earns: its payouts, its day total, its share of each pool, its rebates. */
+const EARNINGS_URL = /clob\.polymarket\.com\/(rewards\/user|rebates\/current)/;
+/** What the payouts change adds to a live mid-pool's record, taken out (pm_payouts.test.ts pins it). */
+function withoutEarnings(tables: Record<string, unknown>): Record<string, Row[]> {
+  const t = structuredClone(tables) as Record<string, Row[]>;
+  for (const r of t.pm_mid_minutes ?? []) if (r.mode === "live") r.pct = null;
+  const paidDays = new Set((t.pm_mid_reward_days ?? []).filter((r) => r.mode === "live").map((r) => r.day));
+  for (const r of t.pm_mid_reward_days ?? []) {
+    if (r.mode === "live") Object.assign(r, { actual_usd: 0, actual_sponsored_usd: 0, rebate_usd: 0 });
+    if (paidDays.has(r.day)) r.detail = { total: null, rebatesRead: null };
+  }
+  for (const e of t.pm_mid_events ?? []) {
+    if (e.kind === "readout") for (const x of (e.detail as { days: Row[] }).days) Object.assign(x, { actual: 0, sponsored: 0, rebates: 0, total: null });
+  }
+  return t;
+}
+// deno-lint-ignore no-explicit-any
+const reportWithoutEarnings = (r: any) => { const x = structuredClone(r); for (const d of x.live?.readout ?? []) d.actual = 0; return x; };
+
 /** The fields the formula of 2026-10-04 makes (pm_instance.test.ts's list, on mid-pool's tables), taken out. */
 function masked(tables: Record<string, unknown>): Record<string, Row[]> {
   const t = structuredClone(tables) as Record<string, Row[]>;
@@ -194,9 +218,9 @@ Deno.test("mid-pool through today's path and layer, on the frozen day stop, is m
     for (const w of [frozen, today]) act?.(w);
     const a = await frozen.turn(t), b = await today.turn(t);
     const label = iso(t);
-    assertEquals(JSON.stringify(maskedReport(b)), JSON.stringify(maskedReport(a)), `reports at ${label}`);
-    assertEquals(firstDiff(masked(today.mem.tables), masked(frozen.mem.tables)), "", `tables after ${label}`);
-    assertEquals(today.pm.urls, frozen.pm.urls, `requests by ${label}`);
+    assertEquals(JSON.stringify(maskedReport(reportWithoutEarnings(b))), JSON.stringify(maskedReport(a)), `reports at ${label}`);
+    assertEquals(firstDiff(masked(withoutEarnings(today.mem.tables)), masked(frozen.mem.tables)), "", `tables after ${label}`);
+    assertEquals(today.pm.urls.filter((u) => !EARNINGS_URL.test(u)), frozen.pm.urls, `requests by ${label}, less the earnings reads`);
     assertEquals(today.pm.bodies, frozen.pm.bodies, `bodies by ${label}`);
     for (const o of today.mem.tables.pm_mid_orders as Row[]) states.add(`${o.mode}:${o.state}`);
   }
@@ -207,6 +231,7 @@ Deno.test("mid-pool through today's path and layer, on the frozen day stop, is m
   assert(T.pm_midprep_fills.length >= 5 && T.pm_midprep_minutes.some((m) => m.class === "matched"), "paper fills and matched minutes");
   // The decisions, whole: orders, fills, selections, settlements and the paper's fills are the frozen code's.
   for (const k of ["pm_mid_orders", "pm_mid_fills", "pm_mid_markets", "pm_mid_settlements", "pm_midprep_fills", "pm_midprep_settlements", "pm_midprep_events"]) {
+    // (the payouts change adds nothing to these)
     assertEquals(JSON.stringify(T[k]), JSON.stringify(F[k]), k);
   }
   // The formula's fields: RW's midpoint is the frozen code's own; where the venue's is the same, so is every figure.

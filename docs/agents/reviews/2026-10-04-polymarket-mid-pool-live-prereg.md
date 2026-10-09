@@ -144,7 +144,9 @@ Each of these, read and recorded in the conversation where Davies says go:
    代码你先都存好"): it changes the live order path's code, so it reaches production only when he says so (its runs green,
    `agents` redeployed, mid-pool's next turns read without error). Deployed on or before 2026-10-16 it falls inside
    mid-pool's dry-run window (d2–d14) and is a deviation its readout names (it changes no dry-run decision: pinned);
-   from 2026-10-17 00:00 UTC it is not.
+   from 2026-10-17 00:00 UTC it is not. **Applied 2026-10-08** for live-prep's go preparation (Davies: "然后最好上线准备";
+   live-prep's pre-registration, Addendum 4), deployed with the push that lands it: mid-pool's deviation 5 (its
+   pre-registration's Addendum 5).
 4. **Mid-pool's dry-run readout** (`mid_readout.sql`, at or after 2026-10-17 00:10 UTC, its d15) has run and gone to
    Davies whole. Its dates assume the day-1 check passed; a failed check restarts the window by an addendum and moves
    them.

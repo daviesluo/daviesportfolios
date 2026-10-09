@@ -412,3 +412,39 @@ Differences against L1 at R = 0.40 (at-price unless marked):
 - **The skip at two ticks.**
 
 Any of them would be its own addendum on Davies' word.
+
+## Addendum 4 (2026-10-08, about 00:05 UTC on 10-09): P3 is met, what Polymarket pays told apart per path
+
+Davies, 2026-10-08, in Addendum 2's word: "确保live-prep各方面都做到最好，然后最好上线准备", that is, make live-prep the best it
+can be, then prepare it to go live. Arming is not part of that. P3 ("what Polymarket pays told apart per path") is code,
+and it is now applied. It is the change `docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch` held since
+2026-10-04, applied as it stood, its last rebuild on the day stop of 2026-10-07:
+
+- `pm_live.ts` goes from `4032d6c0…6706` (Addendum 1) to sha256
+  `57f4b1d74b89b76f30fe5060ab4c9431cbe9757f78e4a82cc8d3b9cb81821e40`, as the patch's README predicted.
+- `pm_mid.ts`, `index.ts`, `pm_mid_formula.test.ts` and the new `pm_payouts.test.ts` change with it.
+
+**What it does:**
+
+- A path's readout (`pm_lp_reward_days` here) books a payout only for a market its own minutes show it quoting live
+  that day.
+- So live-prep's R and its −$75 stop (fills plus what was paid) count only live-prep's own markets.
+- Mini-pool's dry-run readout no longer books live-prep's payouts as its own live rows.
+- No dry-run decision of any path changes. `pm_payouts.test.ts` pins it, beside `pm_instance.test.ts`,
+  `pm_mid_formula.test.ts`, `pm_lp.test.ts`, `pm_live.test.ts`, `pm_mid.test.ts`, `pm_prep.test.ts` and
+  `pm_daystop.test.ts`, all passing on it.
+- `pm_lp.ts` is Addendum 2's bytes.
+- `lp_check.sql` and `lp_readout.sql` are unchanged.
+
+**It reaches production with the push that lands it.** For mid-pool that push is its deviation 5 (mid-pool's
+Addendum 5).
+
+**What remains before the go-time statement:**
+
+- **P2:** the funding, a pUSD of at least $81 read by the path itself.
+- **P4:** mini-pool and mid-pool unarmed. Both are, and the trigger holds it.
+- **P5:** the probe's read of the conditional-token allowances.
+- The monitor's freshness reading for `pm_lp_state`.
+
+The first three are Davies' to do or say. The design doc's step 8lp is unchanged, and only he arms, in the
+conversation where he says go.

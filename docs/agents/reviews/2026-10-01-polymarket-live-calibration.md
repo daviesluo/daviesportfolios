@@ -473,7 +473,7 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
    each in its pre-registration (preconditions P1–P5): its day-1 check passed (`backtests/pmlp/lp_check.sql`, its
    window d1 the first full UTC day after `pm_lp_config.created_at`); the funding, the same $400 account, a pUSD of at
    least $81 read by the path itself; mini-pool and mid-pool unarmed (the trigger holds it); what Polymarket pays told
-   apart per path (`docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch`, rebuilt on live-prep's build: without
+   apart per path (the payouts-per-path change, applied 2026-10-08 by live-prep's Addendum 4; before it, without
    it mini-pool's dry-run readout books live-prep's payouts as its own live rows, and live-prep's stop and R count every
    payout of the account, which holds only while live-prep is the one path ever live); and the probe's read of the
    account's conditional-token allowances for both exchanges (`GET /balance-allowance?asset_type=CONDITIONAL`): its sells
