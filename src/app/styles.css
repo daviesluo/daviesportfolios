@@ -2311,7 +2311,8 @@ body {
 .ag-rw-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.22); }
 .ag-rw-tile-total { border-left: 3px solid rgba(125,139,255,0.75); }
 .ag-rw-tile-k { font-size: 9px; letter-spacing: 0.18em; color: var(--chalk-dim); }
-.ag-rw-tile-v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The scoreboard's own value size (`.sb-value`, 13px; 12px on a phone), so STATUS reads as the same board (Davies, 2026-10-09). */
+.ag-rw-tile-v { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ag-rw-of { font-size: 11px; font-weight: 400; }
 .ag-rw-tile-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; }
 .ag-rw-tile-note { font-size: 10.5px; line-height: 1.35; }
@@ -2324,7 +2325,7 @@ body {
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }
 @media (max-width: 760px) {
   .ag-rw-tiles { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .ag-rw-tile-v { font-size: 15px; }
+  .ag-rw-tile-v { font-size: 12px; }
 }
 
 /* ── agents: LIVE and TESTING, the two tabs at the top (Davies, 2026-09-24) ──

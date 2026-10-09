@@ -4713,6 +4713,9 @@ async function run() {
             estColor: [...root.querySelectorAll('.ag-rw-bar .ag-rw-tile')].find((t) => txt(t.querySelector('.ag-rw-tile-k')) === 'REWARDS TODAY (EST.)')?.querySelector('.ag-rw-tile-v')?.getAttribute('style') ?? null,
             quoteHeads: [...root.querySelectorAll('.ag-rw-markets thead th')].map(txt).join(' | '),
             sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
+            // STATUS's values are the scoreboard's size (Davies, 2026-10-09: "STATUS表里的字体请和上面的scoreboard一样大").
+            fonts: [root.querySelector('.ag-rw-tile-v'), root.querySelector(':scope > .ag-scoreboard .sb-value:not(.sb-value-lg)')]
+              .map((el) => (el ? getComputedStyle(el).fontSize : '')),
             stopAndGates: root.querySelectorAll('.ag-lpl-stop, .ag-lpl-gate').length,
             held: rows('.ag-lpl-held'), quotes: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'), days: rows('.ag-lpl-days'),
             paperPage: document.querySelectorAll('.ag-rw-detail').length, foot: txt(root.querySelector('.ag-lpl-foot')),
@@ -4758,13 +4761,13 @@ async function run() {
           fills: ['17 Sep 23:58 not confirmed | Will J happen? | bought Yes | 5 | 30¢', '17 Sep 15:00 | Will J happen? | bought Yes | 10 | 30¢',
             '17 Sep 10:00 | Will G happen? | sold Yes | 20 | 43¢', '16 Sep 13:00 | Will H happen? | bought No | 10 | 28¢', '16 Sep 11:00 | Will G happen? | bought Yes | 20 | 40¢'],
         };
-        if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && JSON.stringify(lv.tileNotes) === JSON.stringify(WANT.tileNotes)
+        if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && !!lv.fonts[0] && lv.fonts[0] === lv.fonts[1] && JSON.stringify(lv.tileNotes) === JSON.stringify(WANT.tileNotes)
           && /color:\s*var\(--gain\)/.test(lv.estColor ?? '') && lv.quoteHeads === WANT.quoteHeads && lv.stopAndGates === 0
           && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
           ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}, the estimate in green with nothing under it; QUOTES ${lv.quoteHeads}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
-        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", notes ${JSON.stringify(lv?.tileNotes)}, estimate style "${lv?.estColor}", quote heads "${lv?.quoteHeads}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
+        } else fail(LT('page'), `fonts ${JSON.stringify(lv?.fonts)}, sections ${lv?.sections}, tiles "${lv?.tiles}", notes ${JSON.stringify(lv?.tileNotes)}, estimate style "${lv?.estColor}", quote heads "${lv?.quoteHeads}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1)) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'})`);
         } else fail(LT('width'), `page overflow ${lv?.overflow}, document ${lv?.pageOverflow}, boxes outside ${lv?.off}, tables ${lv?.tableOverflow}`);
