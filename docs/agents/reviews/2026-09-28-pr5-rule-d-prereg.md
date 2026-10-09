@@ -186,3 +186,25 @@ the study had, not a forecast of the TrueFX path: $1.0822 a day against variant-
   was the study's fastest keyless source; this file uses it as the live rate and does not adopt the faster bar.
 - The engine is built after the freeze. The rule is fixed by `fastx_sim.py` at its hash and by the test in §3, so
   nothing seen while building it can change a decision. PR5V's engine is not edited in order to re-decide its minutes.
+
+## 9. Deviation 4 (2026-10-09): the 0.03 % rung leaves rule D's twin, not this test's arm
+
+Deviations 1–3 are recorded in reference §4 item 47. Davies, 2026-10-09, after reading
+`2026-10-09-stablecoin-quotes-review.md` (F7: in the twin, the 0.03 % rungs made 114 trips for +£0.26 to 10-09, about
+0 bps a trip, and spent the POSTs that took it over one account's 1,000 a weekday), verbatim: "…"规则 D 最内层的档位基本不赚钱"
+这个档删了" (delete the rung that makes about nothing).
+
+**What changes.** Only rule D's realistic twin (`d`, the TESTING row, "Stablecoin quotes variant-4" from `0108`): from
+2026-10-10 00:00 UTC it quotes no entry on the 0.03 % rungs; a holding there still exits (the twins'
+pre-registration's deviation 4, its §15, says exactly what changed).
+
+**What does not change, and why.** This file's engine: arms `d` and `v1` keep their nine rungs (`quotes_ruled.ts`
+unedited, `RULED_CODE_VERSION` 4, nothing re-decided). Arm `d` is judged against `v1` (§5), and the two must differ by
+rule D alone (deviation 2); a rung dropped from `d` would add a second difference and, by the rule above, re-decide the
+whole record from 2026-09-28. So the 10-28 reading reads an arm unchanged through its window, by its script, bar and date;
+it says it was not blind (the review read both arms' records) and names this deviation.
+
+**Proposed, not run**, for what Davies asked about the rung: beside the reading, a descriptive line on arm `d` without its
+0.03 % rungs (its trips there taken out over the whole window, both before and after 10-10, since the paper arm never
+changed), and on the twin's two spans (nine rungs to 10-09 23:59, eight from 10-10) apart. Neither is a condition; a rule D
+without that rung for a live executor would be a pre-registration of its own.

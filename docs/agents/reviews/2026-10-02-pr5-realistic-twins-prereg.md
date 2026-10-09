@@ -373,3 +373,37 @@ penny only for coin.
 **For the readings.** The twins' readouts of 10-21 and 10-28 read a rule that changed on the day this lands: each says
 how many buy-backs before and after it were sized to the minimum and what they paid, and reads the days apart where
 that matters. Not blind: the review read every twin's records, and this deviation was written after it.
+
+## 15. Deviation 4 (2026-10-09): rule D's twin quotes no entry on its 0.03 % rung from 2026-10-10
+
+**On whose word.** Davies, 2026-10-09, after reading `2026-10-09-stablecoin-quotes-review.md`, verbatim: "…"规则 D 最内层的档位
+基本不赚钱"这个档删了" (the rung the review found "rule D's innermost rung makes about nothing": delete it). The review's F7:
+in `d`, the 0.03 % rungs made 114 trips for +£0.26 to 10-09 (about 0 bps a trip: a 3 bps edge less a 2 bps penny at
+£50), the 0.05 % rungs 75 for +£1.01, and `d` sent 1,355–2,701 POSTs a weekday over its four keys.
+
+**What changes.** Rule D's twin (`d`, "Stablecoin quotes variant-3" on the page until `0108` renames it) quotes no
+entry on its two books' 0.03 % rungs, bids and asks, from **2026-10-10 00:00 UTC** (`RULED_D_RETIRED` in `quotes_twin.ts`;
+the executor's instance option `retired`, `quotes_live.ts`): the paper rung's entry decisions there are not carried
+out and a resting entry is withdrawn ("the rung is retired"); a holding on it exits and stops as before; the coin the
+asks hold leaves its ask out. Every rung keeps its £50 (£1,800 over nine a side), so £200 of the capital is no longer
+quoted. If the code lands after 10-10 00:00 the change starts at its first turn.
+
+**What does not change.** Rule D's paper engine: arm `d` and arm `v1` keep their nine rungs (`quotes_ruled.ts` is not
+edited, `RULED_CODE_VERSION` stays 4, nothing is re-decided), so the twin's replica still steps all nine and
+`paperCheck` still compares it with that engine's record. That is why the twin alone changes: arm `d` is the arm rule D's
+reading judges against `v1`, and dropping a rung from it would make the two differ by more than rule D, and re-decide
+its record from 2026-09-28. The live executor and every other twin: their instances have no `retired`
+(`quotes_live_instance.test.ts` still finds LIVE's instance equal to the frozen file). A code change, not a row: `d`'s
+spec row is untouched, so no migration can reach the database before the function that carries it out.
+
+**For §9's readout of rule D's twin (after 10-28).** Its record is nine rungs a side to 2026-10-09 23:59 and eight from
+10-10 00:00. Proposed (not run): report the two spans apart, trips by their entry; beside rule D's arm `d`, read the
+eight common rungs over the whole span, and the 0.03 % rungs before 10-10 alone; say how many 0.03 % holdings were
+open at 10-10 00:00 and how they closed. Not blind: written after the review read this twin's records.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712 |
+
+§11–§13 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js`
+pins all of them.

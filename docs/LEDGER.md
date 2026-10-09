@@ -133,7 +133,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      ends with it (under 21 days: reported, not judged). PR5-R (`reviews/2026-09-28-pr5-readings-prereg.md`) is read
      after PR5's four weeks, before that review.
    - **The twins** (TESTING's stablecoin rows; `0087`–`0090`, `agents/quotes_twin.ts`, reference §4 item 51, one row
-     each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `d` = variant-3). Daily health:
+     each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `d` = variant-3; `d` quotes no
+     0.03 % entry from 10-10 00:00, its readout reads the spans apart, twins' prereg §15). Daily health:
      each `_sim.last_error` empty, `paperCheck.mismatches` 46 for `pr5` and `p50` (all before 2026-09-24 18:13) and 0
      for `d`, `_state.updated_at` within ~3 min, `edge_call_beats` has `agents?action=quotestwins` each minute, no
      `agents.quotes_twins` errors, no twin row in `agent_quote_live_orders`. Readouts, no pass bar: PR5's twin beside
@@ -397,6 +398,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
+
+### [2026-10-09 16:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Rule D's twin (`d`) drops its 0.03 % rung from 2026-10-10 00:00 UTC** (Davies: "…"规则 D 最内层的档位基本不赚钱"这个档删了";
+  review F7): `RULED_D_RETIRED` in `quotes_twin.ts`, the executor's `retired` (no entry, resting one withdrawn, holdings
+  still exit, asks' coin leaves it out, £50 a rung kept). The twin alone: rule D's paper arms keep nine rungs (no
+  re-decide), so its 10-28 reading is unchanged; code, not a row, so no migration lands before its function. Deviations:
+  twins §15, p50 §9, rule D §9, reference item 47. Pins fail on the old code (executor and `asksNeedOf`).
 
 ### [2026-10-09 16:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **F1 fixed on every Stablecoin quotes row, LIVE included** (Davies: "修复 F1，应用所有tablecoin quotes包括live的"):

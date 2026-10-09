@@ -175,3 +175,16 @@ penny for a hair under it; the twins' pre-registration's deviation 3 (its §14) 
 froze changes, and `p50.json.gz` holds no such exit (dust prints begin 2026-10-08). This twin met five such buy-backs
 on 10-08 and 10-09 (£0.0351 of pennies in all, the review's `dust_exit.json`); the 10-21 readout says how many came
 before and after the deploy. Not blind: written after the 2026-10-09 review read this twin's records.
+
+## 9. Deviation 3 (2026-10-09): the driver gains rule D's twin's retired rung
+
+Rule D's twin stops quoting its 0.03 % rung from 2026-10-10 (Davies, 2026-10-09: "…"规则 D 最内层的档位基本不赚钱"这个档删了";
+the twins' pre-registration's deviation 4, its §15), and the code that says so changed `quotes_twin.ts`, a file §5 froze.
+This twin is not changed by it: its engine retires no rung, so it runs the code path it ran; nothing of its readout
+changes. Not blind (written after the 2026-10-09 review).
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712 |
+
+§5 and §7 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).

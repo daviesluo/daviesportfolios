@@ -31,11 +31,12 @@ describe("p50's pre-registration", () => {
   it('names the sha256 of each file it froze, once, and each file is that one, as its deviation 1 left it', () => {
     // Deviation 1 (2026-10-03, its §7): the driver and the simulated account gain TAKE's rule (0089). §5 keeps the hashes
     // they were frozen at; §7 names them as they are. Every other frozen file is named once, as frozen.
+    // Deviation 3 (2026-10-09, its §9): the driver gains rule D's twin's retired rung; §9 names it as it is.
     const before = {
-      'supabase/functions/agents/quotes_twin.ts': 'f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8',
-      'supabase/functions/agents/revx_sim.ts': '885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48',
+      'supabase/functions/agents/quotes_twin.ts': ['f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8', 'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a'],
+      'supabase/functions/agents/revx_sim.ts': ['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48'],
     };
-    for (const f of FROZEN) expect(named(f), f).toEqual(before[f] ? [before[f], sha(f)] : [sha(f)]);
+    for (const f of FROZEN) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 
   it('is a row of 0088: PR5\'s rule and start at £600, its own tables and lease, its backfill those bytes to their end', () => {

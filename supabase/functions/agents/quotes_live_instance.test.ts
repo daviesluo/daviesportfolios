@@ -47,7 +47,7 @@ function fxAtMinute(t: number): number | null {
 
 type Mod = typeof Now | typeof Frozen;
 
-function world(mod: Mod) {
+function world(mod: Mod, instance?: Now.QuoteLiveInstance) {
   const clock = { now: T0 };
   const inputs: Row[] = [];
   for (let t = T0 - 2 * H; t <= T0 + (HOURS + 1) * H; t += M) { const x = fxAtMinute(t < T0 ? T0 : t); if (x != null) inputs.push({ kind: "fx", t: iso(t), value: x }); }
@@ -65,7 +65,7 @@ function world(mod: Mod) {
   const uuid = () => `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`;
   const deps = (at: number) => ({
     db: mem.db, now: at, holder: `h${at}`, uuid, account: revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => clock.now), accountNote: null,
-    fetch: sim.publicFetch, pause: () => Promise.resolve(), clock: () => clock.now,
+    fetch: sim.publicFetch, pause: () => Promise.resolve(), clock: () => clock.now, ...(instance ? { instance } : {}),
   });
   return {
     mem, sim, clock,
@@ -193,4 +193,34 @@ Deno.test("F1 through the executor and the simulated account: a £0.10 print nib
   // What the penny bought, at the exit's price: £0.1019790 frozen (£0.0080210 for nothing), £0.109993794 now.
   assertAlmostEquals(0.11 - 0.135 * 0.7554, 0.008021, 1e-12);
   assertAlmostEquals(0.11 - 0.14561 * 0.7554, 0.000006206, 1e-12);
+});
+
+Deno.test("a retired rung (rule D's twin's 0.03 %, from 2026-10-10): from its instant it quotes no entry and its resting one is withdrawn; its holding still exits; before it, the rule's", async () => {
+  // The live account's three rungs, with 0.1 % retired from the seventh minute's turn. A seller fills USDC's 0.1 % bid
+  // (7546) at minute 4; the ask's 0.1 % entry (7562) rests. From the retirement the ask's entry is withdrawn and no 0.1 %
+  // entry goes out again; the long's exit, at fair rounded up (7555), still goes out and fills on a buyer at 7556.
+  const run = async (instance?: Now.QuoteLiveInstance) => {
+    const w = world(Now, instance);
+    w.sim.st.balances.USDC = 40;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    for (let t = T0; t < T0 + 14 * M; t += M) {
+      const prints: Record<QuoteBook, Print[]> = { "USDC-GBP": [], "USDT-GBP": [] };
+      if (t === T0 + 4 * M) prints["USDC-GBP"].push({ id: "s1", ts: t + 10e3, ticks: 7545, qty: 20, side: "sell" }, { id: "f1", ts: t + 30e3, ticks: 7554, qty: 1, side: "sell" });
+      if (t === T0 + 10 * M) prints["USDC-GBP"].push({ id: "b1", ts: t + 10e3, ticks: 7556, qty: 20, side: "buy" });
+      for (const bk of QUOTE_BOOKS) for (const p of prints[bk]) w.print(bk, p);
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: prints[bk] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    const orders = (w.mem.tables.agent_quote_live_orders as Row[]).filter((o) => o.book === "USDC-GBP" && Number(o.k) === 0.001);
+    return orders.map((o) => `${o.rung_side} ${o.leg} ${Math.round(Number(o.price) / 1e-4)} ${o.state}${o.cancel_reason ? ` (${o.cancel_reason})` : ""}`);
+  };
+  const before = await run(), retiredLater = await run({ ...Now.QUOTE_LIVE_INSTANCE, retired: { ks: [0.001], from: T0 + 20 * M } });
+  const retired = await run({ ...Now.QUOTE_LIVE_INSTANCE, retired: { ks: [0.001], from: T0 + 6 * M + 30e3 } });
+  // Not yet retired: as the rule has it, and the same as no retirement at all.
+  assertEquals(retiredLater, before);
+  // The rule's: the bid fills, its exit sells at 7555 and fills, and the bid quotes again; the ask rests throughout.
+  assertEquals(before, ["bid entry 7546 filled", "ask entry 7562 new", "bid exit 7555 filled", "bid entry 7546 new"]);
+  // Retired: the ask's entry withdrawn for that reason, the exit still placed and filled, and no entry after it.
+  assertEquals(retired, ["bid entry 7546 filled", "ask entry 7562 cancelled (the rung is retired: it quotes no entry (a holding still exits))", "bid exit 7555 filled"]);
 });

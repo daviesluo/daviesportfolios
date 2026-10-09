@@ -24,7 +24,8 @@
 //   p50  PR5's rule again, £600: twelve rungs of £50, "Stablecoin quotes variant-1" on the page (2026-10-03, the size
 //        study's proposal: what size does, measured forward beside pr5; docs/agents/reviews/2026-10-03-pr5-size-twin-prereg.md).
 //   d    rule D (`stepVariantMinute` with `RULED_ARMS.d`, quotes_ruled.ts's judged arm), £1,800: thirty-six rungs of £50,
-//        nine a side of each book, four governed keys (a book and a side each: the frozen design's four sub-accounts).
+//        nine a side of each book, four governed keys (a book and a side each: the frozen design's four sub-accounts); from
+//        2026-10-10 it quotes no entry on the 0.03 % rungs (`RULED_D_RETIRED`, Davies 2026-10-09), eight a side.
 //        "Stablecoin quotes variant-3" on the page since 2026-10-03 (variant-1 before); PR5V keeps running off the page.
 //   take50  0089's row: p50 with the rule extension `take` (`TWIN_RULES`), "Stablecoin quotes variant-2", TAKE's forward
 //        test (docs/agents/reviews/2026-10-03-take-prereg.md). From its `take.from` a turn reads the book recorder's reads
@@ -143,10 +144,20 @@ export type TwinSpecRow = {
   /** The migration that made its tables, which the executor names when they are missing. */
   migration: string; enabled: boolean;
 };
-/** Each engine's own rungs and exit re-price (`QuoteLiveInstance`). */
-const ENGINES: Record<TwinSpecRow["engine"], { rungs: readonly number[]; exitReprice: number }> = {
+/**
+ * Rule D's twin quotes no entry on rule D's innermost rung, 0.03 %, from 2026-10-10 00:00 UTC (Davies, 2026-10-09, after
+ * the stablecoin quotes review's F7, "…"规则 D 最内层的档位基本不赚钱"这个档删了": 114 trips for +£0.26 to 10-09, about 0 bps a
+ * trip, and the POSTs that took `d` over one account's 1,000 a weekday). The twin alone: rule D's paper engine (arm `d`,
+ * quotes_ruled.ts) keeps its nine rungs, so its 10-28 reading of rule D against variant-1 is unchanged, and the twin's
+ * replica keeps deciding all nine (`paperCheck` still compares it with that engine's record); the executor carries out
+ * eight. A rung keeps its £50 (its share of £1,800 over nine a side) and its holding exits as before. The twins'
+ * pre-registration's deviation 4.
+ */
+export const RULED_D_RETIRED = { ks: [0.0003] as readonly number[], from: Date.parse("2026-10-10T00:00:00Z") };
+/** Each engine's own rungs and exit re-price (`QuoteLiveInstance`), and the rungs its twins no longer quote. */
+const ENGINES: Record<TwinSpecRow["engine"], { rungs: readonly number[]; exitReprice: number; retired?: QuoteLiveInstance["retired"] }> = {
   pr5: { rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE },
-  "ruled-d": { rungs: RULED_ARMS.d.rungs, exitReprice: RULED_ARMS.d.reprice },
+  "ruled-d": { rungs: RULED_ARMS.d.rungs, exitReprice: RULED_ARMS.d.reprice, retired: RULED_D_RETIRED },
 };
 /** The governed keys: the live account's one; or rule D's frozen design's four, a book and a side each (a conversion on its book's ask key). */
 const GOV_KEYS: Record<TwinSpecRow["gov"], QuoteLiveInstance["govKey"]> = {
@@ -183,7 +194,7 @@ export function specFromRow(r: TwinSpecRow): TwinSpec {
     ...(r.backfill ? { backfill: r.backfill } : {}),
     instance: {
       config: `${p}_config`, orders: `${p}_orders`, events: `${p}_events`, state: `${p}_state`, paper: `${p}_paper`,
-      migration: r.migration, lease: r.lease, rungs: eng.rungs, exitReprice: eng.exitReprice, govKey, ...rules,
+      migration: r.migration, lease: r.lease, rungs: eng.rungs, exitReprice: eng.exitReprice, govKey, ...(eng.retired ? { retired: eng.retired } : {}), ...rules,
     },
   };
 }

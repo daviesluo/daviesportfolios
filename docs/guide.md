@@ -279,7 +279,9 @@ places stay when the number is not whole.
   the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
   quotes move at every 0.03 % move of fair, an entry only once fair has moved
   at least a third of its rung's distance: on £1,800, £50 a rung, from
-  28 Sep. Its page is the same, with nine rungs a side in each book. A
+  28 Sep. Its page is the same, with nine rungs a side in each book; from
+  10 Oct the innermost, 0.03 %, quotes nothing (it earned about nothing),
+  and its row stays on the page with what it made before. A
   variant's name in the table is two lines, and the first is the whole of
   "Stablecoin quotes". The paper test of that rule keeps running behind the
   page until its reading.

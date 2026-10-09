@@ -15,6 +15,8 @@ import {
   type TwinBackfill, type TwinDeps, type TwinDriverState, type TwinSpec, type TwinSpecRow,
 } from "./quotes_twin.ts";
 import type { Db } from "./db.ts";
+import { RULED_ARMS } from "./quotes_ruled.ts";
+import { QUOTE_LIVE_INSTANCE, retiredAt } from "./quotes_live.ts";
 
 const M = 60e3, H = 3600e3;
 const T0 = Date.parse("2026-09-24T10:00:00Z");     // a Thursday, before PR5's beats and minute records: its call ran every minute
@@ -262,6 +264,8 @@ Deno.test("deviation 1 makes the twins rows: pr5's and d's specs are what was fr
     instance: {
       ...tables("d"), migration: "0087", lease: "quotes-twin-d", rungs: [0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003], exitReprice: 0.0003,
       govKey: ["USDC-GBP/bid", "USDC-GBP/ask", "USDC-GBP/ask", "USDT-GBP/bid", "USDT-GBP/ask", "USDT-GBP/ask"],
+      // Deviation 4 (2026-10-09, Davies): from 2026-10-10 00:00 UTC it quotes no entry on the 0.03 % rungs.
+      retired: { ks: [0.0003], from: Date.parse("2026-10-10T00:00:00Z") },
     },
   });
   // p50: pr5's spec but for its id, page name, tables and lease, its migration and its £600.
@@ -277,6 +281,22 @@ Deno.test("deviation 1 makes the twins rows: pr5's and d's specs are what was fr
   assertEquals(TWINS.pr5.backfill, { file: "docs/agents/backtests/twins/pr5.json.gz", sha256: "f04fb89659b608d12cc1533b4afc0599d4c008048ab9a1a6c40c5c8cc4843c98", until: "2026-10-02T21:05:00.000Z" });
   assertEquals(TWINS.d.backfill, { file: "docs/agents/backtests/twins/d.json.gz", sha256: "ecbec6c51dc34d1ae6d2e7b80dafa03194e3296600d460ac3fa1692b04bb9392", until: "2026-10-02T21:05:00.000Z" });
   assertEquals([TWINS.p50.backfill?.file, TWINS.p50.backfill?.until], ["docs/agents/backtests/twins/p50.json.gz", "2026-10-02T21:05:00.000Z"]);
+});
+
+// ------------------------------------------------------------------ deviation 4 (2026-10-09): rule D's twin drops its 0.03 % rung
+
+Deno.test("deviation 4: rule D's twin retires its 0.03 % rung from 2026-10-10 00:00 UTC; rule D's paper engine keeps nine; no other twin retires one", () => {
+  // Davies, 2026-10-09: "…"规则 D 最内层的档位基本不赚钱"这个档删了". The twin alone: arm d of rule D's engine, which its replica
+  // steps and its 10-28 reading reads, keeps its nine rungs, so the replica still matches that engine's record.
+  assertEquals([...RULED_ARMS.d.rungs], [0.0003, 0.0005, 0.00075, 0.001, 0.00125, 0.0015, 0.002, 0.0025, 0.003]);
+  assertEquals([...RULED_ARMS.d.rungs], [...RULED_ARMS.v1.rungs]);
+  assertEquals(TWINS.d.instance.retired, { ks: [0.0003], from: Date.parse("2026-10-10T00:00:00Z") });
+  assertEquals(TWINS.d.instance.rungs, RULED_ARMS.d.rungs);
+  // Each rung keeps its £50: the capital over all nine a side of each book.
+  assertEquals(TWINS.d.capitalGbp / (QUOTE_BOOKS.length * 2 * TWINS.d.instance.rungs.length), 50);
+  assertEquals([retiredAt(TWINS.d.instance, Date.parse("2026-10-09T23:59:59Z")), retiredAt(TWINS.d.instance, Date.parse("2026-10-10T00:00:00Z"))], [[], [0.0003]]);
+  for (const id of ["pr5", "p50"]) assertEquals(TWINS[id].instance.retired, undefined, id);
+  assertEquals(retiredAt(QUOTE_LIVE_INSTANCE, Date.parse("2026-11-01T00:00:00Z")), []);
 });
 
 /** A spec row for the tests: p50's, under another id, its tables and lease named by it. */

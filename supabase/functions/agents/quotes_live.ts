@@ -101,12 +101,22 @@ export type QuoteLiveInstance = {
    * the recorded book rests through the rung by its fee (`takeTriggered`). The live account's instance has none.
    */
   take?: { from: number };
+  /**
+   * Rungs that quote no entry from `from` (ms): their paper decisions are not carried out and a resting entry is
+   * withdrawn, while a holding still exits and stops as any rung's, and the coin the asks hold leaves them out
+   * (`asksNeedOf`). Each rung keeps its share of the capital over every rung. Rule D's twin, its 0.03 % rung from
+   * 2026-10-10 (Davies, 2026-10-09: "…"规则 D 最内层的档位基本不赚钱"这个档删了"; the twins' pre-registration's deviation 4).
+   * The live account's instance has none.
+   */
+  retired?: { ks: readonly number[]; from: number };
 };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
   migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
 };
+/** The rungs an instance has retired at `now` (`QuoteLiveInstance.retired`): none for the live account. */
+export const retiredAt = (inst: QuoteLiveInstance, now: number): readonly number[] => (inst.retired && now >= inst.retired.from ? inst.retired.ks : []);
 /** Does this instance govern more than one key? The live account's one key is every POST it sends. */
 const isMultiKey = (inst: QuoteLiveInstance) => new Set(QUOTE_BOOKS.flatMap((b) => [inst.govKey(b, "bid"), inst.govKey(b, "ask"), inst.govKey(b, null)])).size > 1;
 /** "three" for PR5's three rungs a side, as the messages always said; the count for any other. */
@@ -261,9 +271,14 @@ export function dustBase(pair: PairConfig, price: number): number {
  */
 export const pennyUp = (gbp: number): number => Math.ceil(gbp * 100 - 1e-9) / 100;
 
-/** What a book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): the coin the design holds for them. */
-export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig, rungs: readonly number[] = QUOTE_RUNGS): number {
-  return rungs.reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp, rungs), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
+/**
+ * What a book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): the coin the design holds for them.
+ * A retired rung (`QuoteLiveInstance.retired`, in `skip`) quotes no ask, so its coin is not held for it; each rung keeps
+ * its share of the capital over every rung.
+ */
+export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = []): number {
+  return rungs.filter((k) => !skip.includes(k))
+    .reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp, rungs), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
 }
 
 /** A maker's price for a conversion: the top of the bids, one tick over the best bid when the ask stays a tick above it; never over fair + 50 bps. */
@@ -283,13 +298,13 @@ export type TopUpPlan =
  * shared out of what is left, so one book's buffer never starves another's shortfall. A book whose shortfall the free
  * GBP cannot cover, or that would pass the day's QUOTE_LIVE_TOPUP_MAX_GBP_DAY, is skipped with the reason.
  */
-export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number, rungs: readonly number[] = QUOTE_RUNGS): TopUpPlan[] {
+export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = []): TopUpPlan[] {
   const out: TopUpPlan[] = [];
   const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; minCost: number; full: number; room: number }[] = [];
   for (const b of books) {
     if (b.bestBid == null || b.bestAsk == null) { out.push({ book: b.book, skip: "the order book is unreadable" }); continue; }
     const ticks = makerBuyTicks(b.bestBid, b.bestAsk, b.fair), price = ticks * QUOTE_TICK;
-    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair, rungs);
+    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair, rungs, skip);
     const short = asksNeed - b.beyond;
     if (!(short > 1e-9)) { out.push({ book: b.book, skip: `it holds its ${rungsWord(rungs)} asks' worth` }); continue; }
     const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step)), minCost = pennyUp(min * price);
@@ -1288,12 +1303,14 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (mode === "live" && r.holding) continue;                                                  // step 5's
         if (o && o.leg !== "entry") continue;
         if (o && (o.state === "pending" || o.cancel_requested_at || unreadable.has(o.id))) continue;  // in flight or frozen: never a second order
-        const allowed = entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
+        const retired = retiredAt(inst, d.now).includes(r.k);
+        const allowed = !retired && entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
         if (takeOn && mode === "live" && allowed && r.paperMode !== "position" && (await takeTurn(r, o))) continue;
         const target = allowed ? r.paper : null;
         if (!target) {
           if (o) {
-            const why = entry.book !== mode ? `entries go ${entry.book ?? "nowhere"}: ${entry.why}`
+            const why = retired ? "the rung is retired: it quotes no entry (a holding still exits)"
+              : entry.book !== mode ? `entries go ${entry.book ?? "nowhere"}: ${entry.why}`
               : report.guards[r.book].length ? `guard: ${report.guards[r.book].join("; ")}`
               : levelOf(mode, r.book, r.side) !== "all" ? `governor: ${keyCount(ctx, mode, r.book, r.side)} POSTs today${multiKey ? ` on ${inst.govKey(r.book, r.side)}` : ""}`
               : mode === "live" && lossStopped ? "the day's loss stop" : !bal ? "balances unreadable"
@@ -1366,7 +1383,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
             .reduce((a, o) => a + Number(isOpen(o as LiveOrderRow) ? o.base_size : o.filled_base) * Number(o.price), 0),
         });
       }
-      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs)) {
+      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs, retiredAt(inst, d.now))) {
         if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
         const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
           marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
@@ -1485,7 +1502,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const heldBy = (side: Side) => Math.max(0, fills.filter((o) => o.book === book && o.rung_side === side).reduce((a, o) => a + (o.leg === "entry" ? 1 : -1) * Number(o.filled_base), 0));
   const beyond = (bal[coin] ?? 0) - heldBy("bid") + heldBy("ask");
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
-  const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs);
+  const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs, retiredAt(inst, d.now));
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, ${rungsWord(inst.rungs)} asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + pennyUp(Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price)), 0);
   const needGbp = pennyUp(Number(base) * price * (taker ? 1.0009 : 1));

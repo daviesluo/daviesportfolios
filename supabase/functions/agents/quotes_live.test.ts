@@ -11,7 +11,7 @@ import golden from "../../../docs/agents/backtests/pr5/golden_windows.json" with
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import type { Venue } from "../_shared/venue.ts";
 import {
-  exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
+  exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
@@ -1203,6 +1203,22 @@ Deno.test("inventory: an ask needs coin beyond what the book's own longs will se
   const r2 = await w2.step(T0);
   assertEquals([w2.open("live").length, r2.skippedEntries.filter((s) => s.reason === "not enough free GBP").length], [3, 3]);
   assertEquals(w2.orders().filter((o) => o.state === "rejected").length, 0);
+});
+
+// A retired rung (rule D's twin's 0.03 %, from 2026-10-10; `QuoteLiveInstance.retired`) quotes no ask, so the coin held
+// for the asks leaves it out, while every rung keeps its share of the capital: at fair 0.7550 and £120 (£10 a rung), the
+// 0.1 % ask's 13.23102 coins come off the 39.65286 above, 26.42184 (13.21703 + 13.20481); a top-up plans for them alone.
+Deno.test("asksNeedOf and planTopUps leave a retired rung's ask out, each rung keeping its £10", () => {
+  const fair = 0.755;
+  assertAlmostEquals(asksNeedOf(fair, 120, PAIR, QUOTE_RUNGS, [0.001]), 13.21703 + 13.20481, 1e-9);
+  assertAlmostEquals(asksNeedOf(fair, 120, PAIR, QUOTE_RUNGS, []), 39.65286, 1e-9);
+  // Not the capital over the rungs left (£15 a rung, 39.63275 coins): the retired rung's share stays unspent.
+  assertAlmostEquals(asksNeedOf(fair, 120, PAIR, [0.002, 0.003]), Number(rungBase(15, 0.7566, PAIR, "sell")) + Number(rungBase(15, 0.7573, PAIR, "sell")), 1e-9);
+  assertAlmostEquals(asksNeedOf(fair, 120, PAIR, [0.002, 0.003]), 39.63275, 1e-9);
+  const book = { book: "USDT-GBP" as const, fair, pair: PAIR, bestBid: 0.7547, bestAsk: 0.7552, beyond: 26.5, spentTodayGbp: 0 };
+  assertEquals(planTopUps([book], 120, 10, QUOTE_RUNGS, [0.001]), [{ book: "USDT-GBP", skip: "it holds its three asks' worth" }]);
+  // Without the retirement the same book is 13.15286 short, more than the day's £5 of top-ups buys.
+  assertEquals(planTopUps([book], 120, 10), [{ book: "USDT-GBP", skip: "today's top-ups would pass £5: £0.00 so far, £9.93 short" }]);
 });
 
 // Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币". Worked by hand at fair 0.7550 and £120 (£10 a rung):
